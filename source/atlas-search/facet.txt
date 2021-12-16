@@ -656,135 +656,35 @@ array has the following fields:
 
 .. include:: /includes/fact-fts-search-meta-variable.rst
 
-.. example:: 
-
-   Suppose the following index on the ``sample_mflix.movies`` 
-   collection.
-
-   .. code-block:: json 
-
-      {
-        "mappings": {
-          "dynamic": false,
-          "fields": {
-            "genres": {
-              "type": "stringFacet"
-            },
-            "released": {
-              "type": "date"
-            }
-          }
-        }
-      }
-
-   The following query searches for movies released near July 01, 1999 
-   using the :pipeline:`$search` stage. It requests a count of the 
-   number of movies in each genre. The query also includes a: 
-   
-   - :pipeline:`$project` stage to exclude all fields in the documents 
-     except the ``title`` and ``released`` fields and include the 
-     metadata results stored in the ``$$SEARCH_META`` variable as the 
-     value of a field named ``newField``
-   - :pipeline:`$limit` stage to limit the output to ``2`` documents.
-
-   .. code-block:: json
-
-      db.movies.aggregate([
-        {
-          "$search": {
-            "facet": {
-              "operator": {
-                "near": {
-                  "path": "released",
-                  "origin": ISODate("1999-07-01T00:00:00.000+00:00"),
-                  "pivot": 7776000000
-                }
-              },
-              "facets": {
-                "genresFacet": {
-                  "type": "string",
-                  "path": "genres"
-                }
-              }
-            }
-          }
-        },
-        { 
-          $project: { 
-            "newField": "$$SEARCH_META",
-            "title": 1,
-            "released": 1
-          } 
-        },
-        {
-          "$limit": 2
-        }
-      ])
-
-   The query returns the following results:
-
-   .. code-block:: json 
-      :copyable: false 
-
-      { 
-        "_id" : ObjectId("573a1393f29313caabcde1ae"), 
-        "title" : "Begone Dull Care", 
-        "released" : ISODate("1999-07-01T00:00:00Z"), 
-        "newField" : { 
-          "count" : { "lowerBound" : NumberLong(23026) }, 
-          "facet" : { 
-            "genresFacet" : { 
-              "buckets" : [ 
-                { "_id" : "Drama", "count" : NumberLong(13527) }, 
-                { "_id" : "Comedy", "count" : NumberLong(6922) }, 
-                { "_id" : "Romance", "count" : NumberLong(3615) }, 
-                { "_id" : "Crime", "count" : NumberLong(2649) }, 
-                { "_id" : "Thriller", "count" : NumberLong(2603) }, 
-                { "_id" : "Action", "count" : NumberLong(2505) }, 
-                { "_id" : "Documentary", "count" : NumberLong(2041) }, 
-                { "_id" : "Adventure", "count" : NumberLong(2016) }, 
-                { "_id" : "Horror", "count" : NumberLong(1662) }, 
-                { "_id" : "Biography", "count" : NumberLong(1373) } 
-              ] 
-            } 
-          } 
-        } 
-      }
-      { 
-        "_id" : ObjectId("573a13a9f29313caabd2048a"), 
-        "title" : "Fara", 
-        "released" : ISODate("1999-07-01T00:00:00Z"), 
-        "newField" : { 
-          "count" : { "lowerBound" : NumberLong(23026) }, 
-          "facet" : { 
-            "genresFacet" : { 
-              "buckets" : [ 
-                { "_id" : "Drama", "count" : NumberLong(13527) }, 
-                { "_id" : "Comedy", "count" : NumberLong(6922) }, 
-                { "_id" : "Romance", "count" : NumberLong(3615) }, 
-                { "_id" : "Crime", "count" : NumberLong(2649) }, 
-                { "_id" : "Thriller", "count" : NumberLong(2603) }, 
-                { "_id" : "Action", "count" : NumberLong(2505) }, 
-                { "_id" : "Documentary", "count" : NumberLong(2041) }, 
-                { "_id" : "Adventure", "count" : NumberLong(2016) }, 
-                { "_id" : "Horror", "count" : NumberLong(1662) }, 
-                { "_id" : "Biography", "count" : NumberLong(1373) } 
-              ] 
-            } 
-          } 
-        } 
-      }
-
-   To learn more about these results, see :ref:`fts-facet-results`.
 
 .. _fts-facet-egs:
 
 Examples 
 --------
 
-This example uses the following index definition on the 
-``sample_mflix.movies`` collection. The index definition specifies the 
-following for the fields to index:
+The following examples use the following index definition on the 
+``sample_mflix.movies`` collection. 
+
+.. code-block:: json 
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "directors": {
+           "type": "stringFacet"
+         },
+         "year": {
+           "type": "number"
+         },
+               "released": {
+                 "type": "date"
+               }
+             }
+           }
+         }
+
+The index definition specifies the following for the fields to index:
 
 .. list-table:: 
    :header-rows: 1
@@ -802,92 +702,175 @@ following for the fields to index:
    * - ``released`` 
      - :ref:`bson-data-types-date`
 
-.. code-block:: json 
+.. tabs:: 
+  
+   .. tab:: $facet Example 
+      :tabid: faceteg
 
-     {
-       "mappings": {
-         "dynamic": false,
-         "fields": {
-           "directors": {
-             "type": "stringFacet"
-           },
-           "year": {
-             "type": "number"
-           },
-           "released": {
-             "type": "date"
+      The following query searches for movies released between January 
+      01, 2000 and January 31, 2015. It requests metadata on the 
+      ``directors`` and ``year`` field.
+
+      .. code-block:: json
+
+         db.movies.aggregate([
+           {
+             "$searchMeta": {
+               "facet": {
+                 "operator": {
+                   "range": {
+                     "path": "released",
+                     "gte": ISODate("2000-01-01T00:00:00.000Z"),
+                     "lte": ISODate("2015-01-31T00:00:00.000Z")
+                   }
+                 },
+                 "facets": {
+                   "directorsFacet": {
+                     "type": "string",
+                     "path": "directors",
+                     "numBuckets" : 7
+                   },
+                   "yearFacet" : {
+                     "type" : "number",
+                     "path" : "year",
+                     "boundaries" : [2000,2005,2010, 2015]
+                   }
+                 }
+               }
+             }
            }
+         ])
+
+      |fts| returns the following results: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         { 
+           "count" : { "lowerBound" : NumberLong(13064) }, 
+           "facet" : { 
+             "yearFacet" : { 
+               "buckets" : [ 
+                 { "_id" : 2000, "count" : NumberLong(3283) }, 
+                 { "_id" : 2005, "count" : NumberLong(4365) }, 
+                 { "_id" : 2010, "count" : NumberLong(5123) } 
+               ] 
+             }, 
+             "directorsFacet" : { 
+               "buckets" : [ 
+                 { "_id" : "Takashi Miike", "count" : NumberLong(29) }, 
+                 { "_id" : "Johnnie To", "count" : NumberLong(23) }, 
+                 { "_id" : "Steven Soderbergh", "count" : NumberLong(21) }, 
+                 { "_id" : "Michael Winterbottom", "count" : NumberLong(19) }, 
+                 { "_id" : "Ken Loach", "count" : NumberLong(16) }, 
+                 { "_id" : "Ki-duk Kim", "count" : NumberLong(16) }, 
+                 { "_id" : "Ridley Scott", "count" : NumberLong(15) } 
+               ] 
+             } 
+           } 
          }
-       }
-     }
 
-The following query searches for movies released between January 01, 
-2000 and January 31, 2015. It requests metadata on the ``directors`` 
-and ``year`` field.
+      The results show a count of the following in the 
+      ``sample_mflix.movies`` collection: 
 
+      - Number of movies from the year 2000, inclusive lower bound, to 
+        2015, exclusive upper bound, that |fts| returned for the query
+      - Number of movies for each director that |fts| returned for the 
+        query
 
+   .. tab:: $$SEARCH_META Example 
+      :tabid: aggvariableeg
 
-.. code-block:: json
+      The following query searches for movies released near July 01, 
+      1999 using the :pipeline:`$search` stage. The query also includes 
+      a :pipeline:`$facet` stage to process the input documents using 
+      the following sub-pipeline stages:
 
-   db.movies.aggregate([
-    {
-      "$searchMeta": {
-        "facet": {
-          "operator": {
-            "range": {
-              "path": "released",
-              "gte": ISODate("2000-01-01T00:00:00.000Z"),
-              "lte": ISODate("2015-01-31T00:00:00.000Z")
-            }
-          },
-          "facets": {
-            "directorsFacet": {
-              "type": "string",
-              "path": "directors",
-              "numBuckets" : 7
-            },
-            "yearFacet" : {
-              "type" : "number",
-              "path" : "year",
-              "boundaries" : [2000,2005,2010, 2015]
-            }
-          }
-        }
-      }
-    }
-  ])
+      - :pipeline:`$project` stage to do the following: 
+        
+        - Exclude all fields in the documents except the ``title`` and 
+          ``released`` fields in the ``results`` output field  
+        - Include the metadata results stored in the ``$$SEARCH_META`` 
+          variable as the value of a field named ``newField`` in the 
+          ``counts`` output field
 
-|fts| returns the following results: 
+      - :pipeline:`$limit` stage to do the following: 
+      
+        - Limit the output to ``2`` documents in the ``results`` output 
+          field 
+        - Limit the output to ``1`` document in the ``counts`` output 
+          field
 
-.. code-block:: json 
-   :copyable: false 
+      .. code-block:: json 
 
-   { 
-     "count" : { "lowerBound" : NumberLong(13064) }, 
-     "facet" : { 
-       "yearFacet" : { 
-         "buckets" : [ 
-           { "_id" : 2000, "count" : NumberLong(3283) }, 
-           { "_id" : 2005, "count" : NumberLong(4365) }, 
-           { "_id" : 2010, "count" : NumberLong(5123) } 
-         ] 
-       }, 
-       "directorsFacet" : { 
-         "buckets" : [ 
-           { "_id" : "Takashi Miike", "count" : NumberLong(29) }, 
-           { "_id" : "Johnnie To", "count" : NumberLong(23) }, 
-           { "_id" : "Steven Soderbergh", "count" : NumberLong(21) }, 
-           { "_id" : "Michael Winterbottom", "count" : NumberLong(19) }, 
-           { "_id" : "Ken Loach", "count" : NumberLong(16) }, 
-           { "_id" : "Ki-duk Kim", "count" : NumberLong(16) }, 
-           { "_id" : "Ridley Scott", "count" : NumberLong(15) } ] 
-       } 
-     } 
-   }
+         db.movies.aggregate([
+           {
+             "$search": {
+               "facet": {
+                 "operator": {
+                   "near": {
+                     "path": "released",
+                     "origin": ISODate("1999-07-01T00:00:00.000+00:00"),
+                     "pivot": 7776000000
+                   }
+                 },
+                 "facets": {
+                   "genresFacet": {
+                     "type": "string",
+                     "path": "genres"
+                   }
+                 }
+               }
+             }
+           },
+           {
+             "$facet": {
+               "results": [
+                 { "$limit": 2 },
+                 { "$project":
+                   {
+                     "title": 1,
+                     "released": 1
+                   }
+                 }
+               ],
+                  "counts": [
+                    { "$limit": 1 },
+                    { "$project": { "newField": "$$SEARCH_META" }}
+                  ]
+                }
+              }
+            ])
 
-The results show a count of the following in the 
-``sample_mflix.movies`` collection: 
+      The query returns the following results:
 
-- Number of movies from the year 2000, inclusive lower bound, to 2015, 
-  exclusive upper bound, that |fts| returned for the query
-- Number of movies for each director that |fts| returned for the query
+      .. code-block:: json 
+         :copyable: false 
+
+         [
+           {
+             results: [
+               {
+                 _id: ObjectId("573a1393f29313caabcde1ae"),
+                 title: 'Begone Dull Care',
+                 released: ISODate("1999-07-01T00:00:00.000Z")
+               },
+               {
+                 _id: ObjectId("573a13a9f29313caabd2048a"),
+                 title: 'Fara',
+                 released: ISODate("1999-07-01T00:00:00.000Z")
+               }
+             ],
+             counts: [
+               {
+                 _id: ObjectId("573a1393f29313caabcde1ae"),
+                 newField: {
+                   count: { lowerBound: Long("23026") },
+                  facet: { genresFacet: { buckets: [Array] } }
+                 }
+               }
+             ]
+           }
+         ]
+
+To learn more about these results, see :ref:`fts-facet-results`.
