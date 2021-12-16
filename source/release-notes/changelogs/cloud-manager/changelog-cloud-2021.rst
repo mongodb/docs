@@ -65,6 +65,8 @@
 03 August 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
+- Fully removes personal |api| keys. Use :ref:`programmatic API keys <mms-prog-api-key>` 
+  to access the :doc:`API </reference/api>`.
 - Updates {+mdbagent+} to :ref:`11.3.0.7029-1 <11.3.0.7029-1>`.
 
 .. _cloudmanager_20210713:

@@ -5,7 +5,6 @@
 
 *Released 2021-12-02*
 
-
 - Upgrades the JDK to version 11.0.13.
 - Updates the MongoDB Agent to :ref:`11.0.10.7021 <mongodb-11.0.10.7021>`.
 
@@ -151,6 +150,12 @@ Deprecated Language
 
   Make sure to update any application code or scripts with these
   updated labels to reflect this change.
+
+Deactivated Personal API Keys
+`````````````````````````````
+
+- Fully removes personal |api| keys. Use :ref:`programmatic API keys <mms-prog-api-key>` 
+  to access the :doc:`API </reference/api>`.
 
 Performance Advisor
 ```````````````````
