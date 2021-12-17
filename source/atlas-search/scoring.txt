@@ -289,8 +289,11 @@ to alter the final score of the document:
 
 - Arithmetic expressions, which add or multiply a series of numbers. 
 
-- Constant expressions, which allow a :ref:`constant <scoring-constant>` 
-  number in the function score.
+- Constant expressions, which allow a :ref:`constant 
+  <scoring-constant>` number in the function score.
+
+- Gaussian decay expressions, which decay, or reduces, the scores by 
+  multiplying at a specified rate.
 
 - Path expressions, which incorporate an indexed numeric field value 
   into a function score. 
@@ -418,6 +421,103 @@ to alter the final score of the document:
 
          |fts| replaces the final score of the document with the 
          constant value of ``-23.78``.  
+
+   .. tab:: Gaussian
+      :tabid: gauss
+
+      A gaussian decay expression allows you to decay, or reduce by 
+      multiplying, the final scores of the documents based on the 
+      distance of a numeric field value from a specified origin point. 
+      ``decay`` is computed as: 
+
+      .. figure:: /images/fts-decay-computation.png
+         :alt: Screenshot of decay computation
+         :figwidth: 60%
+
+      where sigma is computed to assure that the score takes the value 
+      ``decay`` at distance ``scale`` from ``origin±offset``:
+
+      .. figure:: /images/fts-sigma-computation.png
+         :alt: Screenshot of sigma computation
+         :figwidth: 40%
+
+      ``gauss`` takes the following options:
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 15 10 15 60
+
+         * - Field 
+           - Type 
+           - Necessity 
+           - Description 
+
+         * - ``decay`` 
+           - double 
+           - Optional 
+           - Rate at which you want to multiply the scores. Value must 
+             be a positive number between ``0`` and ``1`` exclusive. If 
+             omitted, defaults to ``0.5``.
+
+             For documents whose numeric field value (specified using 
+             ``path``) is at a distance (specified using ``scale``) 
+             away from ``origin`` plus or minus (``±``) ``offset``, 
+             |fts| multiplies the current score using ``decay``. 
+
+         * - ``offset`` 
+           - double 
+           - Optional 
+           - Number to use to determine the distance from origin. The 
+             decay operation is performed only for documents whose 
+             distances are greater than ``origin`` plus or minus 
+             (``±``) ``offset``. If ommitted, defaults to ``0``.
+
+         * - ``origin`` 
+           - double 
+           - Required 
+           - Point of origin from which to calculate the distance. 
+
+         * - ``path`` 
+           - :ref:`expression <function-score-expression>` 
+           - Required 
+           - Name of the numeric field whose value you want to use to 
+             multiply the base score. 
+
+         * - ``scale`` 
+           - double 
+           - Required 
+           - Distance from ``origin`` plus or minus (``±``) ``offset`` 
+             at which scores must be multiplied. 
+
+      .. example:: 
+
+         .. code-block:: sh 
+            :copyable: false 
+
+            {
+              "function": {
+                "gauss": {
+                  "path": {
+                    "value": "rating",
+                    "undefined": 50
+                  },
+                  "origin": 95,
+                  "scale": 5,
+                  "offset": 5,
+                  "decay": 0.5
+                }
+              }
+            } 
+
+         Suppose the max rating is ``100``. |fts| uses the ``rating`` 
+         field in the documents to decay the score:
+         
+         - Retains the current score for documents with rating between 
+           ``90`` to ``100``.
+         - Multiplies the current score by ``0.5`` for documents with a 
+           rating lower than ``90``. 
+         - Multiplies the current score by ``0.25`` for documents with 
+           a rating lower than ``85``, and so on.
 
    .. tab:: Path
       :tabid: path 
@@ -558,7 +658,7 @@ to alter the final score of the document:
                 ``multiply`` option. |fts| calculates the log10 of the 
                 arithmetic expression.
               
-             If the specified expression evaluates to lesser than or 
+             If the specified expression evaluates to less than or 
              equal to ``0``, then the ``log`` evaluates to undefined. 
             
              .. example:: 
@@ -723,6 +823,122 @@ and ``score``.
             { "title" : "Of Mice and Men", "score" : 3 }
             { "title" : "All the King's Men", "score" : 3 }
             { "title" : "The Men", "score" : 3 }
+
+   .. tab:: Gaussian
+      :tabid: gauss 
+
+      .. example:: 
+
+         In this example, the :ref:`text-ref` operator uses ``score`` 
+         with the ``function`` option to decay the relevance score 
+         of the documents in the result. 
+         
+         The query specifies that for documents whose ``imdb.rating`` 
+         field value or ``7.8``, if the ``imdb.rating`` field is not 
+         present in the documents, is ``scale`` distance, which is 
+         ``5``, away from ``origin``, which is ``9.5``, plus or minus 
+         ``offset``, which is ``0``, |fts| must multiply the score 
+         using ``decay``, which starts at ``0.5``. This query includes 
+         a :pipeline:`$limit` stage to limit the output to up to ``10`` 
+         results and a :pipeline:`$project` stage to add the 
+         ``imbdb.rating`` field in the results.
+
+         .. code-block:: json
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "shop",
+                    "score": {
+                      "function":{
+                        "gauss": {
+                          "path": {
+                            "value": "imdb.rating",
+                            "undefined": 4.6
+                          },
+                          "origin": 9.5,
+                          "scale": 5,
+                          "offset": 0,
+                          "decay": 0.5
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "$limit": 10
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+
+         The preceding query returns the following results:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            [
+              { title: 'The Shop Around the Corner', imdb: { rating: 8.1 }, score: 0.9471074342727661 },
+              { title: 'Exit Through the Gift Shop', imdb: { rating: 8.1 }, score: 0.9471074342727661 },
+              { title: 'The Shop on Main Street', imdb: { rating: 8 }, score: 0.9395227432250977 },
+              { imdb: { rating: 7.4 }, title: 'Chop Shop', score: 0.8849083781242371 },
+              { title: 'Little Shop of Horrors', imdb: { rating: 6.9 }, score: 0.8290896415710449 },
+              { title: 'The Suicide Shop', imdb: { rating: 6.1 }, score: 0.7257778644561768 },
+              { imdb: { rating: 5.6 }, title: 'A Woman, a Gun and a Noodle Shop', score: 0.6559237241744995 },
+              { title: 'Beauty Shop', imdb: { rating: 5.4 }, score: 0.6274620294570923 }
+            ]
+
+         To compare the results of the Gaussian expressions used in the 
+         above query with the relevance score that is returned in the 
+         results by |fts|, run the following query: 
+
+         .. code-block:: json 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "shop"
+                  }
+                }
+              },
+              {
+                "$limit": 10
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "imdb.rating": 1,
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+
+         The preceding query returns the following results:
+
+         .. code-block:: json 
+            :copyable: false 
+
+            [
+              { title: 'Beauty Shop', imdb: { rating: 5.4 }, score: 4.111973762512207 },
+              { imdb: { rating: 7.4 }, title: 'Chop Shop', score: 4.111973762512207 },
+              { title: 'The Suicide Shop', imdb: { rating: 6.1 }, score: 3.5363259315490723 },
+              { title: 'Little Shop of Horrors', imdb: { rating: 6.9 }, score: 3.1020588874816895 },
+              { title: 'The Shop Around the Corner', imdb: { rating: 8.1 }, score: 2.762784481048584 },
+              { title: 'The Shop on Main Street', imdb: { rating: 8 }, score: 2.762784481048584 },
+              { title: 'Exit Through the Gift Shop', imdb: { rating: 8.1 }, score: 2.762784481048584 },
+              { imdb: { rating: 5.6 }, title: 'A Woman, a Gun and a Noodle Shop', score: 2.0802340507507324 }
+            ]
 
    .. tab:: Path
       :tabid: path 
