@@ -314,7 +314,7 @@
        deploys a cluster that runs MongoDB 4.4.
 
        You must deploy MongoDB **4.4** if
-       **"providerSettings.instanceSizeName" : "M2"** or **"M5"**.
+       **"providerSettings.instanceSizeName" : "M0"**, **"M2"**, or **"M5"**.
 
        If you specify this field, |service| always deploys the cluster 
        with the latest stable patch release of the specified version. 
@@ -443,8 +443,7 @@
        cluster is provisioned.
 
        This setting only works when **"providerSetting.providerName" :
-       "TENANT"** and **"providerSetting.instanceSizeName" : M2** or
-       **M5**.
+       "TENANT"** and **"providerSetting.instanceSizeName" : "M0"**, **"M2"**, or **"M5"**.
 
        |service| accepts the following values:
 
@@ -493,6 +492,10 @@
           If you are deploying a :doc:`Global Cluster
           </global-clusters>`, you must choose a cluster tier of
           **M30** or larger.
+      
+       .. note::
+         
+          .. include:: /includes/cluster-settings/multi-tenant.rst
 
        .. tabs-cloud-providers::
 
@@ -512,8 +515,6 @@
              :tabid: azure
 
              .. include:: /includes/list-tables/instance-types/azure.rst
-
-       .. include:: /includes/cluster-settings/multi-tenant.rst
 
    * - providerSettings.providerName
      - string

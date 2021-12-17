@@ -332,7 +332,7 @@
        - **5.0**
 
        You must deploy MongoDB **4.4** if
-       **"providerSettings.instanceSizeName" : "M2"** or **"M5"**.
+       **"providerSettings.instanceSizeName" : "M0"**, **"M2"** or **"M5"**.
 
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer
@@ -476,8 +476,7 @@
        multi-tenant cluster is provisioned.
 
        This setting only works when **"providerSetting.providerName" :
-       "TENANT"** and **"providerSetting.instanceSizeName" : M2** or
-       **M5**.
+       "TENANT"** and **"providerSetting.instanceSizeName" : "M0"**, **"M2"**, or **"M5"**.
 
        |service| accepts the following values:
 

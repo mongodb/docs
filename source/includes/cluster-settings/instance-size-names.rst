@@ -1,7 +1,9 @@
-|service| supports the following cluster tiers.
-|service| supports deploying **M2** and **M5** tiers
-into a subset of available regions. The documentation for
-**providersettings.regionName** includes a list of these regions.
+|service| supports deploying **M0**, **M2** and **M5** tiers
+into a subset of available regions. 
+Select your cloud provider's tab for example cluster region names
+and available regions:
+
+.. include:: /includes/cluster-settings/cloud-region-name-examples.rst
 
 .. note:: Cluster Tier Naming Conventions
 
