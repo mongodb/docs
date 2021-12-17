@@ -50,4 +50,3 @@
        - :option:`--username` <|aws| access key id>
        - :option:`--password` <secret access key id>
        - :option:`--awsSessionToken` <|aws| session token>
-       
