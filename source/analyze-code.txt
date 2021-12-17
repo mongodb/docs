@@ -1,0 +1,280 @@
+.. _visual-studio-extension-builders:
+
+=================
+Analyze Your Code
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+Learn how to use the {+product+} to analyze your {+driver-long+} code.
+The {+product+} can analyze **builder** and **Language Integrated Query (LINQ)** expressions.
+
+A builder is a class provided by the {+driver-short+} to help you construct
+common operations like queries and updates.
+
+LINQ is a query syntax included in the C# language. The {+driver-short+}
+can translate a subset of LINQ expressions into MongoDB aggregation pipelines.
+
+To learn more about builders, see 
+`Builders <{+driver-docs+}reference/driver/definitions/>`__ in the
+{+driver-short+} documentation.
+
+To learn more about LINQ, see the following resources:
+
+- `LINQ <{+driver-docs+}reference/driver/crud/linq/>`__ in the {+driver-short+}
+  documentation
+- `LINQ <https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/linq/>`__
+  in the Microsoft C# guide
+
+To learn more about aggregation pipelines, see
+:manual:`Aggregation </aggregation/>` in the MongoDB manual.
+
+.. _analyzer-analyze-builders:
+
+Analyze Builders
+----------------
+
+Use the {+product+} to translate your builder expressions into the {+query-api+}.
+Click the following tabs to see an example of a builder expression
+and its corresponding {+query-api+} translation:
+
+.. tabs::
+
+   .. tab:: Builders
+      :tabid: builder
+
+      .. code-block:: csharp
+
+         var filter = Builders<Movie>.Filter.Eq(m => m.Genre, genre) &
+             Builders<Movie>.Filter.Gte(m => m.Score, minScore) &
+             Builders<Movie>.Filter.Regex(m => m.Score, titleSearchTerm);
+
+   .. tab:: {+query-api+}
+      :tabid: query-api-builders
+
+      .. code-block:: json
+
+         {
+           "$and": [ { "Genre": genre },
+             { "Score": { "$gte": minScore } },
+             { "Score": /titleSearchTerm/ } ]
+         }
+
+.. include:: /includes/variable-names.rst
+
+Analyze Builders in Visual Studio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To analyze your builder expressions in Visual Studio, perform the following actions:
+
+1. Install the {+product+} as described in the :doc:`Install </install>`
+   guide.
+2. Write a builder expression with the {+driver-short+}
+3. Move your mouse over the :guilabel:`...` annotation beneath the first
+   method of your builder expression to display an information message that contains
+   the {+query-api+} translation.
+
+Click the following tabs to see a builder expression with and without an
+information message displayed:
+
+.. tabs::
+
+   .. tab:: Without Information Message
+      :tabid: no-message
+
+      .. figure:: /includes/images/builder.png
+         :alt: Screenshot of builder expression in visual studio with ellipsis annotation.
+
+   .. tab:: With Information Message
+      :tabid: message
+
+      .. figure:: /includes/images/builder-popup-photoshop.png
+         :alt: Screenshot of builder expression in visual studio with information message displayed.
+
+.. include:: /includes/error-list-window.rst
+
+.. _analyzer-analyze-linq:
+
+Analyze LINQ
+------------
+
+Use the {+product+} to learn the following
+about your LINQ expressions:
+
+- How your LINQ expressions translate into the {+query-api+}
+- If any of your LINQ expressions are not supported
+
+Click the following tabs to see an example of a LINQ expression
+and its corresponding {+query-api+} translation:
+
+.. tabs::
+
+   .. tab:: LINQ
+      :tabid: linq
+
+      .. code-block:: csharp
+
+         var movies = await moviesCollection.Where(m =>
+             m.Genre == genre &&
+             m.Score >= minScore &&
+             m.Title.Contains(titleSearchTerm)).
+             OrderBy(m => m.Score).
+             ToListAsync();
+
+
+   .. tab:: {+query-api+}
+      :tabid: query-api-linq
+
+      .. code-block:: json
+
+         [{ "$match" : { 
+              "Genre" : genre, 
+              "Score" : { "$gte" : minScore }, 
+              "Title" : /titleSearchTerm/s }
+           }, 
+           { "$sort" : { "Score" : 1 } }]
+
+.. include:: /includes/variable-names.rst
+
+Analyze LINQ in Visual Studio
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To analyze your LINQ expressions in Visual Studio, perform the following actions:
+
+1. Install the {+product+} as described in the :doc:`Install </install>`
+   guide.
+2. Write a LINQ expression with the {+driver-short+}.
+3. Move your mouse over the :guilabel:`...` annotation beneath the first
+   method of your LINQ expression to display an information message that contains
+   the {+query-api+} translation.
+
+Click the following tabs to see a LINQ expression with and without an information message
+displayed:
+
+.. tabs::
+
+   .. tab:: Without Information Message
+      :tabid: without-message
+
+      .. figure:: /includes/images/linq.png
+         :alt: Screenshot of builder expression in visual studio with ellipsis annotation.
+
+   .. tab:: With Information Message
+      :tabid: with-message
+
+      .. figure:: /includes/images/linq-popup.png
+         :alt: Screenshot of builder expression in visual studio with information message displayed.
+
+
+If your LINQ expression is not supported, the {+product+} outputs a
+``NotSupportedLinqExpression`` warning.
+
+Click the following tabs to see a code snippet containing an unsupported LINQ expression
+and the corresponding warning message displayed by the {+product+}:
+
+.. tabs::
+
+   .. tab:: Code Snippet
+      :tabid: code-snippet
+
+      The following code snippet contains the unsupported ``GetHashCode`` LINQ expression:
+
+      .. code-block:: csharp
+
+         _ = moviesCollection.Where(m => m.GetHashCode() == 1234);
+
+      The following screenshot shows the annotation displayed by the {+product+}
+      underneath the preceding code snippet in Visual Studio:
+
+      .. figure:: /includes/images/linq-unsupported.png
+         :alt: Screenshot of annotation beneath unsupported LINQ expression
+
+   .. tab:: Warning
+      :tabid: warning
+
+      The following is the warning generated by the {+product+}:
+
+      .. code-block:: text
+         :copyable: false
+
+         NotSupportedLinqExpression C# {document}.GetHashCode() is not supported.
+
+      The following screenshot shows the warning displayed in Visual Studio:
+
+      .. figure:: /includes/images/linq-unsupported-popup.png
+         :alt: Screenshot of warning displayed in Visual Studio from unsupported LINQ.
+
+.. include:: /includes/error-list-window.rst
+
+To view more examples of unsupported LINQ expressions, see the 
+`{+product+} Github repository <{+product-source-repo+}/tests/MongoDB.Analyzer.Tests.Common.TestCases/Linq/NotSupportedLinqExpressionsBasicTestCases.cs>`__.
+
+Analyze LINQ3
+~~~~~~~~~~~~~
+
+To analyze a LINQ3 expression, you must configure the {+product+} to use the LINQ3
+provider. To learn how to configure your LINQ provider, see the
+:doc:`configuration </configuration>` guide.
+
+.. important:: Expressions Supported Only by LINQ3
+
+   If your {+driver-short+} version supports LINQ3 but you configure your {+product+} to use
+   the default LINQ provider (LINQ2), the {+product+} informs you if your LINQ expression
+   is supported by LINQ3 but not LINQ2.
+
+   Click the tabs to see a LINQ expression supported by LINQ3 but not LINQ2 and the
+   corresponding warning output by the {+product+}:
+
+   .. tabs::
+
+      .. tab:: Code Snippet
+         :tabid: code-snippet-linq3
+
+         .. code-block:: csharp
+
+            _ = moviesCollection.Where(m => m.Producer.Substring(0, 6) == "Steven")
+
+      .. tab:: Warning
+         :tabid: warning-linq3
+
+         .. code-block:: text
+            :copyable: false
+
+            NotSupportedLinq2Expression Supported in LINQ3 only: db.coll.Aggregate([{ "$match" : { "$expr" : { "$eq" : [{ "$substrCP" : ["$Producer", 0, 6] }, "Steven"] } } }])
+
+To learn more about LINQ3, see `LINQ3 <{+driver-docs+}reference/driver/crud/linq3/>`__
+in the {+driver-short+} documentation.
+
+To view examples of expressions the {+driver-short+} only supports with the LINQ3 provider, see the 
+`{+product+} Github repository <{+product-source-repo+}/tests/MongoDB.Analyzer.Tests.Common.TestCases/Linq/NotSupportedLinq2TestCases.cs>`__.
+
+Use the {+product+} From the Command Line
+----------------------------------------------
+
+To run the {+product+} from the command line and save your results to a 
+:github:`SARIF </microsoft/sarif-tutorials/blob/main/docs/1-Introduction.md>`
+format file, perform the following actions:
+
+- Install the {+product+} as described in the :doc:`Install </install>` guide.
+- Execute the following command:
+   
+.. code-block:: shell
+
+   dotnet build -property:ErrorLog=<Path to save your {+product+} report>
+
+To learn more about ``dotnet build``, see 
+`.NET Fundamentals <https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build>`__
+from Microsoft.
+
+To learn more about the ``ErrorLog`` setting, see
+`Error and Warning Options <https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/compiler-options/errors-warnings#errorlog>`__
+from Microsoft.
