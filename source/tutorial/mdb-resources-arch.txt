@@ -114,7 +114,8 @@ to the |k8s| cluster.
 The |k8s-op-short|:
 
 - Watches the custom resource's specification and associated
-  |k8s-configmap-def| or |k8s-secret| for changes.
+  |k8s-configmap-def| or secrets stored in your 
+  :ref:`secret storage tool <k8s-set-secret-storage-tool>`.
 - Validates the changes when the specification file, the ConfigMap,
   or the secret change.
 - Makes the appropriate updates to the MongoDB database resources
@@ -128,9 +129,12 @@ Diagram of a Replica Set Reconciliation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following diagram describes how the |k8s-op-short| behaves
-if you make changes to the ``MongoDB`` custom resource specification,
-or to the associated |k8s-configmap-def| or |k8s-secret|,
-for a replica set.
+if you make changes to a replica set's:
+
+- ``MongoDB`` custom resource specifications
+- Associated |k8s-configmap-def|
+- Associated secrets stored in your 
+  :ref:`secret storage tool <k8s-set-secret-storage-tool>`
 
 .. figure:: /images/mdb-resources-replica-set-reconciliation.svg
    :alt: Diagram describing how the MongoDB Enterprise Kubernetes
@@ -144,9 +148,12 @@ Diagram of a Sharded Cluster Reconciliation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following diagram describes how the |k8s-op-short| behaves if
-you make changes to the ``MongoDB`` custom resource specification,
-or to the associated |k8s-configmap-def| or |k8s-secret|,
-for a sharded cluster.
+you make changes to a sharded cluster's:
+
+- ``MongoDB`` custom resource specifications
+- Associated |k8s-configmap-def|
+- Associated secrets stored in your 
+  :ref:`secret storage tool <k8s-set-secret-storage-tool>`
 
 .. figure:: /images/mdb-resources-sharded-reconciliation.svg
    :alt: Diagram describing how the MongoDB Enterprise Kubernetes
@@ -158,7 +165,7 @@ Reconciliation Workflow
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 When you create or change a MongoDB resource specification, or when you make
-changes to an associated |k8s-configmap-def| or |k8s-secret|, the |k8s-op-short|
+changes to an associated |k8s-configmap-def| or secret, the |k8s-op-short|
 performs the following actions to reconcile the changes:
 
 1. Reads the required organization and project configuration
@@ -177,8 +184,12 @@ performs the following actions to reconcile the changes:
       to start or make changes to the deployment for the MongoDB resource.
 
 2. Reads the authentication configuration for |com| from
-   the secret specified in :setting:`spec.credentials` in the
-   resource specification. This secret stores the
+   the secret specified in either: 
+   
+   - :setting:`spec.credentials` in the resource specification
+   - Your :ref:`secret storage tool <k8s-set-secret-storage-tool>`
+   
+   This secret stores the
    :cloudmgr:`Cloud Manager API keys </reference/api/agentapikeys/create-one-agent-api-key>`
    or the :opsmgr:`Ops Manager API Keys </tutorial/manage-agent-api-key/>`
    required for the |k8s-op-short| to authenticate to |com|.
@@ -186,7 +197,8 @@ performs the following actions to reconcile the changes:
    .. note::
       
       When you configure the |k8s-op-short| for MongoDB resources,
-      you :ref:`create this secret <create-k8s-secret>`.
+      you either :ref:`create this secret in Kubernetes <create-k8s-secret>` or store this
+      secret in your :ref:`secret storage tool <k8s-set-secret-storage-tool>`.
 
 3. The |k8s-op-short| connects to |com| and performs the following actions:
 
@@ -198,7 +210,8 @@ performs the following actions to reconcile the changes:
 
    - Checks that the ``<project-id>-group-secret`` secret
      created by the |k8s-op-short| for the {+mdbagent+} exists.
-     The |k8s-op-short| reads the secret, or, creates it with
+     The |k8s-op-short| reads the secret from your :ref:`secret storage tool <k8s-set-secret-storage-tool>`,
+     or creates it with
      :opsmgr:`Ops Manager API keys
      </reference/api/agentapikeys/create-one-agent-api-key>`
      or :cloudmgr:`Cloud Manager API keys
@@ -212,7 +225,7 @@ performs the following actions to reconcile the changes:
       
    - If :ref:`TLS <secure-tls>` is enabled for a replica set, the
      |k8s-op-short| looks for certificates provided in the
-     ``<resource-name>-cert`` secret.
+     ``<resource-name>-cert`` secret or your :ref:`secret storage tool <k8s-set-secret-storage-tool>`.
      
    - If :ref:`TLS <secure-tls>` is enabled for a sharded cluster, the
      |k8s-op-short| looks for certificates in these secrets:
@@ -220,6 +233,7 @@ performs the following actions to reconcile the changes:
      - ``<resource-name>-x-cert`` for each shard member.
      - ``<resource-name>-config-cert`` for all config servers.
      - ``<resource-name>-mongos-cert`` for all |mongos| instances.
+     - Your :ref:`secret storage tool <k8s-set-secret-storage-tool>`.
 
    - If :ref:`X.509 <create-x509-certs>` or
      :ref:`internal authentication with X.509 and  TLS <secure-internal-auth>`
@@ -314,7 +328,8 @@ Reconciling the ``MongoDBUser`` Custom Resource
 If the user authentication method is set to :ref:`SCRAM
 <add-db-user-scram>`,
 the ``MongoDBUser`` custom resource depends
-on the |k8s-secret| that stores the user credentials. You specify the
+on the :ref:`secret storage tool <k8s-set-secret-storage-tool>` that stores the
+user credentials.  If you are using a |k8s| |k8s-secret|, you specify the
 secret in the ``spec.passwordSecretKeyRef`` settings in the ``MongoDBUser``
 resource specification.
 
@@ -334,7 +349,8 @@ changes. It takes the following actions:
      or creates this project in |com| if it doesn't exist.
    - Checks that the ``<project-id>-group-secret`` created by the
      |k8s-op-short| for the {+mdbagent+} exists.
-     The |k8s-op-short| reads the secret, or, creates it with
+     The |k8s-op-short| reads the secret from your :ref:`secret storage tool <k8s-set-secret-storage-tool>`,
+     or creates it with
      :opsmgr:`Ops Manager API keys
      </reference/api/agentapikeys/create-one-agent-api-key>`
      or :cloudmgr:`Cloud Manager API keys

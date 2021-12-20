@@ -57,7 +57,7 @@
 
    * - :setting:`spec.credentials`
      - string
-     - Name of the |k8s| |k8s-secret| you
+     - Name of the secret you
        :ref:`created <create-k8s-secret>` as |mms| |api|
        authentication credentials for the |k8s-op-short| to
        communicate with |onprem|.
