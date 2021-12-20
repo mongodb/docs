@@ -324,62 +324,148 @@ of the two ``should`` clauses.
 
 .. _filter-example:
 
-``filter`` Example
-~~~~~~~~~~~~~~~~~~
+``filter`` Examples
+~~~~~~~~~~~~~~~~~~~
 
-``filter`` behaves the same as ``must``, except that the ``filter``
-clause is not considered in a returned document's score, and therefore
+``filter`` behaves the same as ``must``, except that the ``filter`` 
+clause is not considered in a returned document's score, and therefore 
 does not affect the order of the returned documents.
 
-.. code-block:: javascript
-   :linenos:
+.. tabs:: 
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "compound": {
-           "must": [{
-             "text": {
-               "query": "varieties",
-               "path": "description"
+   .. tab:: Basic Example 
+      :tabid: basic
+
+      The following query uses the following clauses: 
+      
+      - ``must`` and ``filter`` to specify search conditions which must 
+        be met.
+      - ``should`` to specify preference for documents containing the 
+        word  ``banana``. The ``should`` clause doesn't include the 
+        ``minimumShouldMatch`` option. When you omit 
+        ``minimumShouldMatch``, it defaults to ``0``.
+
+      .. code-block:: javascript
+         :linenos:
+
+         db.fruit.aggregate([
+           {
+             "$search": {
+               "compound": {
+                 "must": [{
+                   "text": {
+                     "query": "varieties",
+                     "path": "description"
+                   }
+                 }],
+                 "should": [{
+                   "text": {
+                     "query": "banana",
+                     "path": "description"
+                   }
+                 }],
+                 "filter": [{
+                   "text": {
+                     "query": "granny",
+                     "path": "description"
+                   }
+                 }]
+               }
              }
-           }],
-           "should": [{
-             "text": {
-               "query": "banana",
-               "path": "description"
-             }
-           }],
-           "filter": [{
-             "text": {
-               "query": "granny",
-               "path": "description"
-             }
-           }]
+           }
+         ])
+
+      The query returns the following result:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "_id" : 1,
+           "type" : "apple",
+           "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+           "category" : "nonorganic",
+           "in_stock" : false
          }
-       }
-     }
-   ])
 
-The above query returns the following result:
+      The returned document fulfills all the requirements for inclusion:
 
-.. code-block:: json
-   :copyable: false
+      - Both the ``must`` clause and the ``filter`` clause match.
+      - The ``minimumShouldMatch`` value is not specified, so it 
+        defaults to ``0``. As a result, the ``should`` clause fails 
+        and still returns a document.
 
-   {
-     "_id" : 1,
-     "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
-     "category" : "nonorganic",
-     "in_stock" : false
-   }
+   .. tab:: $match Replacement Example 
+      :tabid: match
 
-The above document fulfills all the requirements for inclusion:
+      You can replace the :pipeline:`$match` with :query:`$in` in your 
+      queries against data on your |service| cluster with the 
+      ``filter`` clause. The following query demonstrates how to use 
+      ``filter`` in the :pipeline:`$search` stage to specify the search 
+      terms that must match. The query also uses ``should`` to specify 
+      preference for documents containing the term ``varieties``. The 
+      query includes the ``$project`` pipeline stage to do the 
+      following:
+      
+      - Exclude all fields except ``_id`` and ``description``. 
+      - Add a ``score`` field, which displays the document's relevance 
+        score.
 
-- Both the ``must`` clause and the ``filter`` clause match.
-- The ``minimumShouldMatch`` value is not specified, so it defaults to
-  ``0``, which allows the ``should`` clause to fail and still return
-  a document.
+      .. code-block:: json 
+
+         db.fruit.aggregate([
+           {
+             "$search": {
+               "compound": {
+                 "filter": [{
+                   "text": {
+                     "query": ["apples", "bananas"],
+                     "path": "description"
+                   }
+                 }],
+                 "should": [{
+                   "text": {
+                     "query": "varieties",
+                     "path": "description"
+                   }
+                 }]
+               }
+             }
+           },
+           {
+             "$project": {
+               "description": 1,
+               "score": { "$meta": "searchScore" }
+             }
+           }
+         ])
+
+      The query returns the following documents:
+
+      .. code-block:: json
+         :copyable: false
+
+         [
+           {
+             _id: 1,
+             description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.',
+             score: 0.36074575781822205
+           },
+           {
+             _id: 2,
+             description: 'Bananas are usually sold in bunches of five or six.',
+             score: 0
+           }
+         ]
+
+      The documents in the result fulfill all the requirements for 
+      inclusion:
+
+      - Both documents contain the term ``apples`` or ``bananas`` that 
+        was specified in the ``filter`` clause of the query.
+      - Document with ``_id: 1`` scores higher than document with 
+        ``_id: 2`` because it contains the term ``varieties`` specified 
+        in the ``should`` clause of the query.
 
 Nested Example 
 ~~~~~~~~~~~~~~
