@@ -31,6 +31,6 @@
        | :setting:`.tls.certsSecretPrefix<spec.security.tls.certsSecretPrefix>`
      - string
      - Optional
-     - If applicable, add the ``<prefix>`` of the |k8s| |k8s-secret| 
+     - If applicable, add the ``<prefix>`` of the secret 
        name that contains your MongoDB deployment's |tls| certificates.
      - ``devDb``
