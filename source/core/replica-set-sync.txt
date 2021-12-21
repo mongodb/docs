@@ -33,36 +33,77 @@ source using the :parameter:`initialSyncSourceReadPreference` parameter.
 This parameter can only be specified when starting the
 :binary:`~bin.mongod`.
 
-Process
-~~~~~~~
+Starting in MongoDB 5.2, initial syncs can be *logical* or *file copy 
+based*. 
 
-When you perform an initial sync, MongoDB:
+.. _replica-set-initial-sync-logical:
+
+Logical Initial Sync Process
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you perform a 
+:ref:`logical initial sync <replica-set-initial-sync-logical>`, MongoDB:
 
 #. Clones all databases except the :ref:`local
    <replica-set-local-database>` database. To clone, the
    :binary:`~bin.mongod` scans every collection in each source database and
    inserts all data into its own copies of these collections.
 
-   .. versionchanged:: 3.4 
-      Initial sync builds all collection indexes as the documents are
-      copied for each collection. In earlier versions of MongoDB, only
-      the ``_id`` indexes are built during this stage.
-
-   .. versionchanged:: 3.4
-      Initial sync pulls newly added oplog records during the data copy. Ensure
-      that the target member has enough disk space in the ``local``
-      database to temporarily store these oplog records for the
-      duration of this data copy stage.
+#. Builds all collection indexes as the documents are copied for each 
+   collection.
+   
+#. Pulls newly added oplog records during the data copy. Ensure that the 
+   target member has enough disk space in the ``local`` database to 
+   temporarily store these oplog records for the duration of this data 
+   copy stage.
 
 #. Applies all changes to the data set. Using the oplog from the
    source, the :binary:`~bin.mongod` updates its data set to reflect the
    current state of the replica set.
 
-   When the initial sync finishes, the member transitions from
-   :replstate:`STARTUP2` to :replstate:`SECONDARY`.
+When the initial sync finishes, the member transitions from
+:replstate:`STARTUP2` to :replstate:`SECONDARY`.
 
 To perform an initial sync, see
 :doc:`/tutorial/resync-replica-set-member`.
+
+.. _replica-set-initial-sync-file-copy-based:
+
+File Copy Based Initial Sync
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:ref:`File copy based initial sync 
+<replica-set-initial-sync-filed-copy-based>` runs the initial sync
+process by copying and moving files on the file system. 
+
+File copy based initial sync can be faster than 
+:ref:`logical initial sync <replica-set-initial-sync-logical>`.
+
+It is only available on Enterprise Server.
+
+Limitations
+```````````
+
+- File copy based initial sync replaces the ``local`` database on the 
+  node being *synced to* with the ``local`` database from the node 
+  being *synced from*.
+
+- You can only run an initial sync from one given node at a time. 
+
+- You cannot run a backup on the node that is being *synced to* during 
+  the initial sync.
+
+- You cannot run a backup on the node that is being *synced from* during 
+  the initial sync.
+
+- You cannot use file copy based initial sync with encrypted storage  
+  engine to re-key the data.
+
+.. warning::
+
+   You cannot write to the ``local`` database during a file copy based
+   sync.
+
 
 .. _init-sync-retry:
 
