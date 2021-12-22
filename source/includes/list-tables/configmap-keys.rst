@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 20 40 20
+   :widths: 20 10 50 20
    :header-rows: 1
 
    * - Key
