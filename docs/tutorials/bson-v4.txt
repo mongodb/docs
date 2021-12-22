@@ -405,6 +405,38 @@ Represents a string of JavaScript code with a hash of values.
 
   BSON::CodeWithScope.new("this.value = age;", age: 5)
 
+``BSON::DBRef``
+------------------
+
+This is a subclass of ``BSON::Document`` that provides accessors for the
+collection, id, and database of the DBRef.
+
+.. code-block:: ruby
+
+  BSON::DBRef.new({"$ref" => "collection", "$id" => "id"})
+  BSON::DBRef.new({"$ref" => "collection", "$id" => "id", "database" => "db"})
+
+.. note::
+
+  The BSON::DBRef constructor will validate the given hash and will raise an ArgumentError
+  if it is not a valid DBRef. ``BSON::ExtJSON.parse_obj`` and ``Hash.from_bson`` will not
+  raise an error if given an invalid DBRef, and will parse a Hash or deserialize a
+  BSON::Document instead.
+
+.. note::
+
+  All BSON documents are deserialized into instances of BSON::DBRef if they are
+  valid DBRefs, otherwise they are deserialized into instances of BSON::Document.
+  This is true even when the invocation is made from the ``Hash`` class:
+
+  .. code-block:: ruby
+
+    bson = {"$ref" => "collection", "$id" => "id"}.to_bson.to_s
+    loaded = Hash.from_bson(BSON::ByteBuffer.new(bson))
+    => {"$ref"=>"collection", "$id"=>"id"}
+    loaded.class
+    => BSON::DBRef
+
 ``BSON::Document``
 ------------------
 
@@ -418,11 +450,12 @@ access to them with symbol keys.
 
 .. note::
 
-  All BSON documents are deserialized into instances of BSON::Document,
-  even when the invocation is made from the ``Hash`` class:
-  
+  All BSON documents are deserialized into instances of BSON::Document
+  (or BSON::DBRef, if they happen to be a valid DBRef), even when the
+  invocation is made from the ``Hash`` class:
+
   .. code-block:: ruby
-    
+
     bson = {test: 1}.to_bson.to_s
     loaded = Hash.from_bson(BSON::ByteBuffer.new(bson))
     => {"test"=>1}
@@ -559,6 +592,9 @@ them.
 
    * - ``BSON::CodeWithScope``
      - ``{ "$code" : "this.v = value", "$scope" : { v => 5 }}``
+
+   * - ``BSON::DBRef``
+     - ``{ "$ref" : "collection", "$id" : { "$oid" : "id" }, "$db" : "database" }``
 
    * - ``BSON::MaxKey``
      - ``{ "$maxKey" : 1 }``
@@ -815,7 +851,7 @@ for serialization to BSON:
   # => #<BSON::ByteBuffer:0x007fcf20ab8028>
   _.to_s
   # => "^b403158\x00m\x00"
-  
+
   regexp_raw = Regexp::Raw.new("^b403158")
   # => #<BSON::Regexp::Raw:0x007fcf21808f98 @pattern="^b403158", @options="">
   regexp_raw.to_bson
