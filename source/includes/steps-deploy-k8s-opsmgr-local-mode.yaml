@@ -52,28 +52,63 @@ content: |
         kubectl delete statefulset --cascade=false <ops-manager-statefulset>
 
 ---
-title: "Copy the highlighted fields of this |onprem| resource."
+title: "Copy the fields of this |onprem| resource."
 stepnum: 3
 level: 4
 ref: copy-k8s-example
 content: |
 
-  The highlighted section: 
+  Copy Lines 9-31 of this example to:
 
-  - Uses the |onprem| configuration setting 
+  - Use the |onprem| configuration setting 
     ``automation.versions.source: local`` in 
     :opsmgrkube:`spec.configuration` to enable Local Mode.
 
-  - Defines a |k8s-pv| for the |onprem| StatefulSet to store the 
+  - Define a |k8s-pv| for the |onprem| StatefulSet to store the 
     MongoDB installation archive. {+mdbagent+}\s running in MongoDB
     database resource containers that you create with the |k8s-op-short|
     download the installation archives from |onprem| instead of from the
     Internet.
 
-  .. literalinclude:: /reference/k8s/example-opsmgr-local-mode.yaml
-     :language: yaml
+  .. code-block:: yaml
      :linenos:
-     :emphasize-lines: 9-32
+
+     apiVersion: mongodb.com/v1
+     kind: MongoDBOpsManager
+     metadata:
+      name: ops-manager-localmode
+     spec:
+      replicas: 2
+      version: "5.0.0"
+      adminCredentials: ops-manager-admin-secret
+      configuration:
+      # this enables local mode in Ops Manager
+      automation.versions.source: local
+     statefulSet:
+      spec:
+      # the Persistent Volume Claim will be created for each Ops Manager Pod
+      volumeClaimTemplates:
+       - metadata:
+           name: mongodb-versions
+         spec:
+           accessModes: [ "ReadWriteOnce" ]
+           resources:
+             requests:
+               storage: "20Gi"
+      template:
+       spec:
+         containers:
+           - name: mongodb-ops-manager
+             volumeMounts:
+               - name: mongodb-versions
+                 # this is the directory in each Pod where all MongoDB
+                 # archives must be put
+                 mountPath: /mongodb-ops-manager/mongodb-releases
+      backup:
+       enabled: false
+      applicationDatabase:
+       members: 3
+       persistent: true
 
 ---
 title: "Paste the copied example section into your existing |onprem| resource."
