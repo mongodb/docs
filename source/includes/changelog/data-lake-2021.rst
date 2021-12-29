@@ -1,3 +1,12 @@
+.. _data-lake-v20211228:
+
+28 December 2021 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Supports queries on collections prefixed with ``system``, but doesn't 
+  support queries on collections prefixed with ``system.``.
+
 .. _data-lake-v20211207:
 
 07 December 2021 Release
