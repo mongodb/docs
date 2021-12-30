@@ -782,24 +782,36 @@ The index definition specifies the following for the fields to index:
       :tabid: aggvariableeg
 
       The following query searches for movies released near July 01, 
-      1999 using the :pipeline:`$search` stage. The query also includes 
-      a :pipeline:`$facet` stage to process the input documents using 
+      1999 using the :pipeline:`$search` stage. The query includes a 
+      :pipeline:`$facet` stage to process the input documents using 
       the following sub-pipeline stages:
 
-      - :pipeline:`$project` stage to do the following: 
-        
-        - Exclude all fields in the documents except the ``title`` and 
-          ``released`` fields in the ``results`` output field  
-        - Include the metadata results stored in the ``$$SEARCH_META`` 
-          variable as the value of a field named ``newField`` in the 
-          ``counts`` output field
+      - :pipeline:`$project` stage to exclude all fields in the 
+        documents except the ``title`` and ``released`` fields in the ``docs`` output field  
 
       - :pipeline:`$limit` stage to do the following: 
       
-        - Limit the output to ``2`` documents in the ``results`` output 
+        - Limit the output to ``2`` documents in the ``docs`` output 
           field 
-        - Limit the output to ``1`` document in the ``counts`` output 
+        - Limit the output to ``1`` document in the ``meta`` output 
           field
+
+        .. note:: 
+
+           The limit must be small for the results to fit in a 16 MB 
+           document.
+
+      - :pipeline:`$replaceWith` stage to include the metadata results 
+        stored in the ``$$SEARCH_META`` variable in the ``meta`` output 
+        field
+        
+      The query also includes a :pipeline:`$set` stage to add the 
+      ``meta`` field.
+
+      .. note:: 
+
+         To see the metadata results for the following query, |fts| 
+         must return documents that match the query.
 
       .. code-block:: json 
 
@@ -825,7 +837,7 @@ The index definition specifies the following for the fields to index:
            },
            {
              "$facet": {
-               "results": [
+               "docs": [ 
                  { "$limit": 2 },
                  { "$project":
                    {
@@ -834,13 +846,20 @@ The index definition specifies the following for the fields to index:
                    }
                  }
                ],
-                  "counts": [
-                    { "$limit": 1 },
-                    { "$project": { "newField": "$$SEARCH_META" }}
-                  ]
-                }
-              }
-            ])
+               "meta": [
+                 {"$replaceWith": "$$SEARCH_META"},
+                 {"$limit": 1}
+               ]
+             }
+           },
+           {
+             "$set": {
+               "meta": {
+                 "$arrayElemAt": ["$meta", 0]
+               }
+             }
+           }
+         ])
 
       The query returns the following results:
 
@@ -849,7 +868,7 @@ The index definition specifies the following for the fields to index:
 
          [
            {
-             results: [
+             docs: [
                {
                  _id: ObjectId("573a1393f29313caabcde1ae"),
                  title: 'Begone Dull Care',
@@ -861,15 +880,25 @@ The index definition specifies the following for the fields to index:
                  released: ISODate("1999-07-01T00:00:00.000Z")
                }
              ],
-             counts: [
-               {
-                 _id: ObjectId("573a1393f29313caabcde1ae"),
-                 newField: {
-                   count: { lowerBound: Long("23026") },
-                  facet: { genresFacet: { buckets: [Array] } }
+             meta: {
+               count: { lowerBound: Long("23026") },
+               facet: {
+                 genresFacet: {
+                   buckets: [
+                     { _id: 'Drama', count: Long("13527") },
+                     { _id: 'Comedy', count: Long("6922") },
+                     { _id: 'Romance', count: Long("3615") },
+                     { _id: 'Crime', count: Long("2649") },
+                     { _id: 'Thriller', count: Long("2603") },
+                     { _id: 'Action', count: Long("2505") },
+                     { _id: 'Documentary', count: Long("2041") },
+                     { _id: 'Adventure', count: Long("2016") },
+                     { _id: 'Horror', count: Long("1662") },
+                     { _id: 'Biography', count: Long("1373") }
+                   ]
                  }
                }
-             ]
+             }
            }
          ]
 
