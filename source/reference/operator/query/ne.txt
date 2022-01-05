@@ -10,9 +10,12 @@ $ne
    :depth: 1
    :class: singlecol
 
+Definition
+----------
+
 .. query:: $ne
 
-   *Syntax*: ``{field: {$ne: value} }``
+   *Syntax*: ``{ field: { $ne: value } }``
 
    :query:`$ne` selects the documents where the value of the
    ``field`` is not equal to the specified ``value``.
@@ -20,33 +23,94 @@ $ne
 
    .. include:: /includes/fact-comparison-order.rst
 
-   Consider the following example:
+Examples
+--------
 
-   .. code-block:: javascript
+The following examples use the ``inventory`` collection. Create the
+collection:
 
-      db.inventory.find( { qty: { $ne: 20 } } )
+.. include:: /includes/examples-create-inventory.rst
 
-   This query will select all documents in the ``inventory`` collection
-   where the ``qty`` field value does not equal ``20``,
-   including those documents that do not contain the ``qty`` field.
+Match Document Fields
+~~~~~~~~~~~~~~~~~~~~~
 
-   Consider the following example which uses the :query:`$ne`
-   operator with a field in an embedded document:
+Select all documents in the ``inventory`` collection where ``quantity``
+is not equal to ``20``:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.inventory.update( { "carrier.state": { $ne: "NY" } }, { $set: { qty: 20 } } )
+    db.inventory.find( { quantity: { $ne: 20 } } )
 
-   This :method:`~db.collection.update()` operation will set
-   the ``qty`` field value in the documents that contain the embedded
-   document ``carrier`` whose ``state`` field value does not equal "NY",
-   or where the ``state`` field or the ``carrier`` embedded document
-   do not exist.
+The query will also select documents that do not have the ``quantity``
+field.
 
-   .. include:: /includes/extracts/ne_operators_selectivity.rst
+Example output:
 
-   .. seealso::
+.. code-block:: javascript
 
-      - :method:`~db.collection.find()`
-      - :method:`~db.collection.update()`
-      - :update:`$set`
+   {
+     _id: ObjectId("61ba667dfe687fce2f042420"),
+     item: 'nuts',
+     quantity: 30,
+     carrier: { name: 'Shipit', fee: 3 }
+   },
+   {
+     _id: ObjectId("61ba667dfe687fce2f042421"),
+     item: 'bolts',
+     quantity: 50,
+     carrier: { name: 'Shipit', fee: 4 }
+   },
+   {
+     _id: ObjectId("61ba667dfe687fce2f042422"),
+     item: 'washers',
+     quantity: 10,
+     carrier: { name: 'Shipit', fee: 1 }
+   }
+
+Perform an Update Based on Embedded Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets the ``price`` field based on a :query:`$ne`
+comparison against a field in an embedded document.
+
+.. code-block:: javascript
+
+   db.inventory.updateMany( { "carrier.fee": { $ne: 1 } }, { $set: { "price": 9.99 } } )
+
+Example output:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId("61ba66e2fe687fce2f042423"),
+     item: 'nuts',
+     quantity: 30,
+     carrier: { name: 'Shipit', fee: 3 },
+     price: 9.99
+   },
+   {
+     _id: ObjectId("61ba66e2fe687fce2f042424"),
+     item: 'bolts',
+     quantity: 50,
+     carrier: { name: 'Shipit', fee: 4 },
+     price: 9.99
+   },
+   {
+     _id: ObjectId("61ba66e2fe687fce2f042425"),
+     item: 'washers',
+     quantity: 10,
+     carrier: { name: 'Shipit', fee: 1 }
+   }
+
+This :method:`~db.collection.updateMany()` operation searches for an
+embedded document, ``carrier``, with a subfield named ``fee``. It sets
+``{ price: 9.99 }`` in each document where ``fee`` has a value that
+does not equal 1 or where the ``fee`` subfield does not exist.
+
+.. include:: /includes/extracts/ne_operators_selectivity.rst
+
+.. seealso::
+
+   - :method:`~db.collection.find()`
+   - :update:`$set`
+

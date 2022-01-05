@@ -10,38 +10,94 @@ $lt
    :depth: 1
    :class: singlecol
 
+Definition
+----------
+
 .. query:: $lt
 
-   *Syntax*: ``{field: {$lt: value} }``
+   *Syntax*: ``{ field: { $lt: value } }``
 
    :query:`$lt` selects the documents where the value of the
    ``field`` is less than (i.e. ``<``) the specified ``value``.
 
    .. include:: /includes/fact-type-bracketing.rst
 
-   Consider the following example:
+Examples
+--------
 
-   .. code-block:: javascript
+The following examples use the ``inventory`` collection. Create the
+collection:
 
-      db.inventory.find( { qty: { $lt: 20 } } )
+.. include:: /includes/examples-create-inventory.rst
 
-   This query will select all documents in the ``inventory`` collection
-   where the ``qty`` field value is less than ``20``.
+Match Document Fields
+~~~~~~~~~~~~~~~~~~~~~
 
-   Consider the following example which uses the :query:`$lt`
-   operator with a field from an embedded document:
+Select all documents in the ``inventory`` collection where ``quantity``
+is less than ``20``:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.inventory.update( { "carrier.fee": { $lt: 20 } }, { $set: { price: 9.99 } } )
+   db.inventory.find( { quantity: { $lt: 20 } } )
 
-   This :method:`~db.collection.update()` operation will set
-   the ``price`` field value in the documents that contain the
-   embedded document ``carrier`` whose ``fee`` field value is less
-   than ``20``.
+Example output:
 
-   .. seealso::
+.. code-block:: javascript
 
-      - :method:`~db.collection.find()`
-      - :method:`~db.collection.update()`
-      - :update:`$set`
+   {
+     _id: ObjectId("61ba634dfe687fce2f04241f"),
+     item: 'washers',
+     quantity: 10,
+     carrier: { name: 'Shipit', fee: 1 }
+   }
+
+Perform an Update Based on Embedded Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example sets the ``price`` field based on a :query:`$lt`
+comparison against a field in an embedded document.
+
+.. code-block:: javascript
+
+   db.inventory.updateMany( { "carrier.fee": { $lt: 20 } }, { $set: { price: 9.99 } } )
+
+Example output:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId("61ba634dfe687fce2f04241d"),
+     item: 'nuts',
+     quantity: 30,
+     carrier: { name: 'Shipit', fee: 3 },
+     price: 9.99
+   },
+   {
+     _id: ObjectId("61ba634dfe687fce2f04241e"),
+     item: 'bolts',
+     quantity: 50,
+     carrier: { name: 'Shipit', fee: 4 },
+     price: 9.99
+   },
+   {
+     _id: ObjectId("61ba634dfe687fce2f04241f"),
+     item: 'washers',
+     quantity: 10,
+     carrier: { name: 'Shipit', fee: 1 },
+     price: 9.99
+   }
+
+This :method:`~db.collection.updateMany()` operation searches for an
+embedded document, ``carrier``, with a subfield named ``fee``. It sets
+``{ price: 9.99 }`` in each document where ``fee`` has a value less than
+20.
+
+To set the value of the ``price`` field in only the first document
+where ``carrier.fee`` is less than 20, use
+:method:`~db.collection.updateOne()`.
+
+.. seealso::
+
+   - :method:`~db.collection.find()`
+   - :update:`$set`
+

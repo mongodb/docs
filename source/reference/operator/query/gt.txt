@@ -10,50 +10,100 @@ $gt
    :depth: 1
    :class: singlecol
 
+Definition
+----------
+
 .. query:: $gt
 
-   *Syntax*: ``{field: {$gt: value} }``
+   *Syntax*: ``{ field: { $gt: value } }``
 
    :query:`$gt` selects those documents where the value of the
    ``field`` is greater than (i.e. ``>``) the specified ``value``.
 
    .. include:: /includes/fact-type-bracketing.rst
 
-   Consider the following example:
+Examples
+--------
 
-   .. code-block:: javascript
+The following examples use the ``inventory`` collection. Create the
+collection:
 
-      db.inventory.find( { qty: { $gt: 20 } } )
+.. include:: /includes/examples-create-inventory.rst
 
-   This query will select all documents in the ``inventory`` collection
-   where the ``qty`` field value is greater than ``20``.
+Match Document Fields
+~~~~~~~~~~~~~~~~~~~~~
 
-   Consider the following example that uses the :query:`$gt`
-   operator with a field from an embedded document:
+Select all documents in the ``inventory`` collection where ``quantity``
+is greater than ``20``:
 
-   .. code-block:: javascript
+.. code-block:: javascript
 
-      db.inventory.update( { "carrier.fee": { $gt: 2 } }, { $set: { price: 9.99 } } )
+   db.inventory.find( { quantity: { $gt: 20 } } )
 
-   This :method:`~db.collection.update()` operation will set
-   the value of the ``price`` field in the first document found containing the
-   embedded document ``carrier`` whose ``fee`` field value is
-   greater than ``2``.
+Example output:
 
-   To set the value of the ``price`` field in *all* documents containing the
-   embedded document ``carrier`` whose ``fee`` field value is greater than ``2``,
-   specify the ``multi:true`` option in the :method:`~db.collection.update()` method:
+.. code-block:: javascript
 
-   .. code-block:: javascript
+   {
+     _id: ObjectId("61ba25cbfe687fce2f042414"),
+     item: 'nuts',
+     quantity: 30,
+     carrier: { name: 'Shipit', fee: 3 }
+   },
+   {
+     _id: ObjectId("61ba25cbfe687fce2f042415"),
+     item: 'bolts',
+     quantity: 50,
+     carrier: { name: 'Shipit', fee: 4 }
+   }
 
-      db.inventory.update( 
-         { "carrier.fee": { $gt: 2 } },
-         { $set: { price: 9.99 } },
-         { multi: true }
-      )
+Perform an Update Based on Embedded Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. seealso::
+The following example sets the ``price`` field based on a :query:`$gt`
+comparison against a field in an embedded document.
 
-      - :method:`~db.collection.find()`
-      - :method:`~db.collection.update()`
-      - :update:`$set`
+.. code-block:: javascript
+
+   db.inventory.updateOne(
+      { "carrier.fee": { $gt: 2 } }, { $set: { "price": 9.99 } }
+   )
+
+Example output:
+
+.. code-block:: javascript
+
+   {
+     _id: ObjectId("61ba3ec9fe687fce2f042417"),
+     item: 'nuts',
+     quantity: 30,
+     carrier: { name: 'Shipit', fee: 3 },
+     price: 9.99
+   },
+   {
+     _id: ObjectId("61ba3ec9fe687fce2f042418"),
+     item: 'bolts',
+     quantity: 50,
+     carrier: { name: 'Shipit', fee: 4 }
+   },
+   {
+     _id: ObjectId("61ba3ec9fe687fce2f042419"),
+     item: 'washers',
+     quantity: 10,
+     carrier: { name: 'Shipit', fee: 1 }
+   }
+
+This :method:`~db.collection.updateOne()` operation searches for an
+embedded document, ``carrier``, with a subfield named ``fee``. It sets
+``{ price: 9.99 }`` in the first document it finds where ``fee`` has a
+value greater than 2.
+
+To set the value of the ``price`` field in *all* documents where
+``carrier.fee`` is greater than 2, use
+:method:`~db.collection.updateMany()`.
+
+.. seealso::
+
+   - :method:`~db.collection.find()`
+   - :update:`$set`
+
