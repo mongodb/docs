@@ -28,11 +28,11 @@
 
    * - M30 :icon-fa5:`star`
      - 40 GB
-     - 7.5 GB
+     - 8 GB
 
    * - M40 :icon-fa5:`star`
      - 80 GB
-     - 15 GB
+     - 16 GB
 
    * - R40 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 80 GB
@@ -40,7 +40,7 @@
 
    * - M50 :icon-fa5:`star`
      - 160 GB
-     - 30 GB
+     - 32 GB
 
    * - R50 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 160 GB
@@ -48,7 +48,7 @@
 
    * - M60 :icon-fa5:`star`
      - 320 GB
-     - 60 GB
+     - 64 GB
 
    * - R60 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 320 GB
@@ -56,7 +56,7 @@
 
    * - M80 :icon-fa5:`star`
      - 750 GB
-     - 120 GB
+     - 128 GB
 
    * - R80 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 750 GB
@@ -64,7 +64,7 @@
 
    * - M200 :icon-fa5:`star`
      - 1500 GB
-     - 240 GB
+     - 256 GB
 
    * - R200 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 1500 GB
