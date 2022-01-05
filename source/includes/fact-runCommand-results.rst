@@ -11,14 +11,14 @@
 
    * - ``ok``
 
-     - A number that indicates whether the command has succeeded
-       (``1``) or failed (``0``).
+     - A number that indicates whether the command has succeeded (``1``)
+       or failed (``0``).
 
    * - ``operationTime``
 
-     - The logical time of the performed operation, represented in
-       MongoDB by the timestamp from the oplog entry. *Only for replica
-       sets and sharded clusters*
+     - The logical time of the operation. MongoDB uses the logical time 
+       to order operations. *Only for replica sets and sharded 
+       clusters.*
 
        If the command does not generate an oplog entry, e.g. a read
        operation, then the operation does not advance the logical
