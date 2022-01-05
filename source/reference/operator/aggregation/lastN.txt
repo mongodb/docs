@@ -1,0 +1,134 @@
+========================
+$lastN (array operator)
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: $lastN
+
+   .. versionadded:: 5.2
+
+   Returns a specified number of elements from the end of an 
+   array. 
+
+.. seealso::
+
+   - :expression:`$firstN` 
+   
+   - :expression:`$sortArray`
+
+Syntax
+------
+
+:expression:`$lastN` has the following syntax:
+
+.. code-block:: javascript
+
+   { $lastN: { n: <expression>, input: <expression> } }
+
+.. list-table::
+   :header-rows: 1
+   :class: border-table
+
+   * - Field
+     - Description
+
+   * - ``n``
+     - An :ref:`expression <aggregation-expressions>` that resolves to a 
+       positive integer. The integer specifies the number of array elements
+       that :expression:`$lastN` returns.
+
+   * - ``input``
+     - An :ref:`expression <aggregation-expressions>` that resolves to the 
+       array from which to return ``n`` elements.
+
+Behavior
+--------
+
+- :expression:`$lastN` returns elements in the same order they appear in 
+  the input array.
+
+- :expression:`$lastN` does not filter out ``null`` values in the input 
+  array.
+
+- You cannot specify a value of ``n`` less than ``1``.
+
+- If the specified ``n`` is greater than or equal to the number of elements 
+  in the ``input`` array, :expression:`$lastN` returns the ``input`` array. 
+
+- If ``input`` resolves to a non-array value, the aggregation operation 
+  errors. 
+
+Example
+-------
+
+The collection ``games`` has the following documents:
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.games.insertMany([
+       { "playerId" : 1, "score" : [ 1, 2, 3 ] },
+       { "playerId" : 2, "score" : [ 12, 90, 7, 89, 8 ] },
+       { "playerId" : 3, "score" : [ null ] },
+       { "playerId" : 4, "score" : [ ] },
+       { "playerId" : 5, "score" : [ 1293, null, 3489, 9 ]},
+       { "playerId" : 6, "score" : [ "12.1", 2, NumberLong("2090845886852"), 23 ]}
+   ])
+
+The following example uses the :expression:`$lastN` operator to retrieve the 
+last three scores for each player. The scores are returned in the new field 
+``lastScores`` created by :pipeline:`$addFields`. 
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.games.aggregate([
+      { $addFields: { lastScores: { $lastN: { n: 3, input: "$score" } } } }
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: true
+   :emphasize-lines: 4, 9, 14, 19, 24, 29
+
+   [{
+     "playerId": 1,
+     "score": [ 1, 2, 3 ],
+     "lastScores": [ 1, 2, 3 ]
+   },
+   {
+     "playerId": 2,
+     "score": [ 12, 90, 7, 89, 8 ],
+     "lastScores": [ 7, 89, 8 ]
+   },
+   {
+     "playerId": 3,
+     "score": [ null ],
+     "lastScores": [ null ]
+   },
+   {
+     "playerId": 4,
+     "score": [ ],
+     "lastScores": [ ]
+   },
+   { 
+     "playerId": 5,
+     "score": [ 1293, null, 3489, 9 ],
+     "lastScores": [ null, 3489, 9 ]
+   },
+   {
+     "playerId": 6,
+     "score": [ "12.1", 2, NumberLong("2090845886852"), 23 ],
+     "lastScores": [ 2, NumberLong("2090845886852"), 23 ]
+    }]
