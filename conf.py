@@ -282,7 +282,7 @@ extlinks = {
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'cloudmgr': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'driver' : ('https://docs.mongodb.com/drivers%s', ''),
-    'compass': ('https://docs.mongodb.com/compass/master%s', ''),
+    'compass': ('https://docs.mongodb.com/compass/current%s', ''),
     'stitch': ('https://docs.mongodb.com/realm%s', ''),
     'realm': ('https://docs.mongodb.com/realm%s', ''),
     'charts': ('https://docs.mongodb.com/charts/saas%s', ''),
