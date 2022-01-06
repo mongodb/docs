@@ -124,7 +124,10 @@ You can configure the following properties to read from MongoDB:
        **Default:** ``10000``
 
    * - ``partitioner``
-     - The name of the partitioner to use to partition the data.
+     - The name of the partitioner to use to split collection data into 
+       partitions. Partitions are based on a range of values of a field 
+       (e.g. ``_id``\s 1 to 100).
+
        The connector provides the following partitioners:
 
        - ``MongoDefaultPartitioner``
@@ -135,8 +138,8 @@ You can configure the following properties to read from MongoDB:
              **Requires MongoDB 3.2**. A general purpose partitioner for
              all deployments. Uses the average document size and random
              sampling of the collection to determine suitable
-             partitions for the collection. For configuration settings
-             for the MongoSamplePartitioner, see
+             partitions for the collection. For configuration 
+             settings for the MongoSamplePartitioner, see
              :ref:`conf-mongosamplepartitioner`.
 
        - ``MongoShardedPartitioner``
@@ -249,14 +252,40 @@ Partitioner Configuration
        **Default:** ``_id``
 
    * - ``partitionSizeMB``
-     - The size (in MB) for each partition
+     - The size (in MB) for each partition. Smaller partition sizes 
+       create more partitions containing fewer documents.
 
        **Default:** ``64``
 
    * - ``samplesPerPartition``
-     - The number of sample documents to take for each partition.
+     - The number of sample documents to take for each partition in 
+       order to establish a ``partitionKey`` range for each partition. 
+       
+       A greater number of ``samplesPerPartition`` helps to find 
+       ``partitionKey`` ranges that more closely match the 
+       ``partitionSizeMB`` you specify.
+       
+       .. note::
+       
+          For sampling to improve performance, ``samplesPerPartition`` 
+          must be fewer than the number of documents within each of 
+          your partitions.
+
+          You can estimate the number of documents within each of your 
+          partitions by dividing your ``partitionSizeMB`` by the 
+          average document size (in MB) in your collection.
 
        **Default:** ``10``
+
+.. example::
+
+   For a collection with 640 documents with an average document 
+   size of 0.5 MB, the default ``MongoSamplePartitioner`` configuration 
+   values creates 5 partitions with 128 documents per partition.
+
+   The MongoDB Spark Connector samples 50 documents (the default 10 
+   per intended partition) and defines 5 partitions by selecting 
+   ``partitionKey`` ranges from the sampled documents.
 
 .. _conf-mongoshardedpartitioner:
 
@@ -303,7 +332,8 @@ Partitioner Configuration
        **Default:** ``_id``
 
    * - ``partitionSizeMB``
-     - The size (in MB) for each partition
+     - The size (in MB) for each partition. Smaller partition sizes 
+       create more partitions containing fewer documents.
 
        **Default:** ``64``
 
@@ -328,7 +358,8 @@ Partitioner Configuration
        **Default:** ``_id``
 
    * - ``numberOfPartitions``
-     - The number of partitions to create.
+     - The number of partitions to create. A greater number of 
+       partitions means fewer documents per partition.
 
        **Default:** ``64``
 
@@ -353,7 +384,8 @@ Partitioner Configuration
        **Default:** ``_id``
 
    * - ``partitionSizeMB``
-     - The size (in MB) for each partition
+     - The size (in MB) for each partition. Smaller partition sizes 
+       create more partitions containing fewer documents.
 
        **Default:** ``64``
 
