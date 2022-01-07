@@ -15,26 +15,20 @@ Microsoft Azure
 Synopsis
 --------
 
-|service| supports deploying clusters onto Microsoft Azure. This
-page provides reference material related to |service| cluster deployments on
-:abbr:`Azure (Microsoft Azure)`. You can't deploy {+serverless-instances+} on
-Microsoft Azure.
+|service| supports deploying {+clusters+} and {+serverless-instances+} onto Microsoft Azure. This
+section applies to |service| {+database-deployments+} on
+:abbr:`Azure (Microsoft Azure)`.
 
 Depending on your cluster tier, |service| supports the following
-:abbr:`Azure (Microsoft Azure)` regions. While all of the following
-regions support ``M10+`` clusters, some regions don't support Free or
-Shared-Tier clusters. A check mark indicates support for Free clusters,
-Shared-Tier clusters, or Availability Zones. The :guilabel:`Atlas
-Region` is the corresponding region name used by |service| processes.
+:abbr:`Azure (Microsoft Azure)` regions. A check mark indicates support for {+free-clusters+},
+{+shared-clusters+}, {+serverless-instances+}, or :ref:`Availability Zones <microsoft-azure-availability-zones>`.
+The :guilabel:`Atlas Region` is the corresponding region name used by |service| processes.
 
-.. note::
+While all of the following
+regions support ``M10+`` clusters, some regions don't support +{free-clusters+},
+{+shared-clusters+}, or {+serverless-instances+}.
 
-   Regions with :guilabel:`Availability Zones` guarantee higher
-   uptime for {+dedicated-clusters+} deployed after September 12, 2019.
-   Existing clusters in regions with Availability Zones are not
-   automatically migrated. To learn more about Availability Zones,
-   see :abbr:`Azure (Microsoft Azure)`'s
-   `documentation <https://docs.microsoft.com/en-us/azure/availability-zones/az-overview>`_.
+.. _microsoft-azure-supported-regions:
 
 .. tabs::
 
@@ -501,15 +495,52 @@ Encrypted Storage Volumes
 
 .. _microsoft-azure-availability-zones:
 
+Azure Availability Zones
+------------------------
+
+:abbr:`Azure (Microsoft Azure)` maintains multiple data centers within each
+region. :abbr:`Azure (Microsoft Azure)` groups the data centers into `availability zones <https://docs.microsoft.com/en-us/azure/availability-zones/az-overview>`__, 
+which are separate locations within the region. Maintaining data centers in
+different physical locations helps :abbr:`Azure (Microsoft Azure)` tolerate local failures.
+
+:abbr:`Azure (Microsoft Azure)` availability zones aren't available in all
+regions. To learn which :abbr:`Azure (Microsoft Azure)` 
+regions maintain availability zones, see the :ref:`Azure Region table <microsoft-azure-supported-regions>`. 
+In regions where availability zones aren't yet available, :abbr:`Azure (Microsoft Azure)` uses
+:ref:`fault domains <microsoft-azure-fault-domains>` to help ensure failure
+tolerance.
+
+|service| uses :abbr:`Azure (Microsoft Azure)` availability zones automatically
+when you deploy a {+dedicated-cluster+} to a region that supports them. |service| splits the {+cluster+}'s nodes across
+availability zones. For
+example, a three-node replica set {+cluster+} would have one node deployed onto
+each zone. A local failure in the :abbr:`Azure (Microsoft Azure)` data center hosting
+one node doesn't impact the operation of data centers
+hosting the other nodes.
+
+.. note::
+
+   Regions with availability zones provide higher
+   uptime for {+dedicated-clusters+} deployed after September 12, 2019.
+   {+Clusters+} deployed before September 13, 2019 to regions that now offer availability 
+   zones aren't split across availability zones automatically. To learn more about availability 
+   zones, see :abbr:`Azure (Microsoft Azure)`'s `documentation <https://docs.microsoft.com/en-us/azure/availability-zones/az-overview>`_.
+
+.. _microsoft-azure-fault-domains:
+
 Azure Fault Domains
 -------------------
 
-Each :abbr:`Azure (Microsoft Azure)` region includes a set number of fault
-domains. Fault domains consist of a group of virtual machines that share a
-common power source and network switch. For regions that have at least three
-fault domains (3FD), |service| deploys clusters across three fault domains.
-For regions that only have two fault domains (2FD), |service| deploys clusters
-across two fault domains.
+Each :abbr:`Azure (Microsoft Azure)` region
+includes a set number of fault domains for failure tolerance. Fault domains consist of a group of
+virtual machines that share a common power source and network switch. If you deploy your cluster
+to a region that doesn't support availability zones, |service| spreads the nodes across the 
+fault domains instead.
+
+|service| uses `availability sets <https://docs.microsoft.com/en-us/azure/virtual-machines/availability-set-overview>`_ 
+to deploy clusters across fault domains. For regions that have at least three
+fault domains (3FD), |service| deploys clusters across three fault domains. For regions 
+that only have two fault domains (2FD), |service| deploys clusters across two fault domains.
 
 The |service| :doc:`Add New Cluster </tutorial/create-new-cluster>` form marks regions
 that support :abbr:`3FD (Three Fault Domain)` clusters as
@@ -517,9 +548,8 @@ that support :abbr:`3FD (Three Fault Domain)` clusters as
 
 .. include:: /includes/extracts/fact-no-node-restriction-azure.rst
 
-For general information on :abbr:`Azure (Microsoft Azure)` regions and fault
-domains, see `Manage the availability of Windows virtual machines in Azure
-<https://docs.microsoft.com/en-us/azure/virtual-machines/windows/manage-availability>`_
+For general information on :abbr:`Azure (Microsoft Azure)` fault domains and availability sets, see 
+`Availability Sets Overview <https://docs.microsoft.com/en-us/azure/virtual-machines/availability-set-overview>`_
 
 Regions with at Least Three Fault Domains
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
