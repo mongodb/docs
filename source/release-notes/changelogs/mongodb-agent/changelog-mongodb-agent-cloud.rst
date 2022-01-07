@@ -1,9 +1,19 @@
+.. _11.10.0.7307:
+
+MongoDB Agent 11.10.0.7307
+--------------------------
+
+*Released* 2022-01-05
+
+- Fixes problem when removing a shard in a sharded cluster using a
+  non-default value for cluster-wide read or write concern.
+
 .. _11.9.0.7253-1:
 
 MongoDB Agent 11.9.0.7253-1
 ---------------------------
 
-*Released* 2021-12-2
+*Released* 2021-12-02
 
 - Removes support for macOS.
 - Improves detection of NUMA-enabled hardware.
