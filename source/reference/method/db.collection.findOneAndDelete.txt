@@ -27,11 +27,12 @@ Definition
    The :method:`~db.collection.findOneAndDelete()` method has the following 
    form:
 
-   .. code-block:: javascript
+   .. code-block:: none
 
       db.collection.findOneAndDelete(
          <filter>,
          {
+           writeConcern: <document>,
            projection: <document>,
            sort: <document>,
            maxTimeMS: <number>,
@@ -48,15 +49,11 @@ Definition
       :widths: 20 20 80
    
       * - Parameter
-   
         - Type
-   
         - Description
-   
+
       * - ``filter``
-   
         - document
-   
         - The selection criteria for the deletion. The same :ref:`query
           selectors <query-selectors>` as in the :method:`find()
           <db.collection.find()>` method are available.
@@ -66,62 +63,56 @@ Definition
           
           If unspecified, defaults to an empty document.
           
-          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+          Starting in MongoDB 4.2 (and 4.0.12+), the operation
           errors if the query argument is not a document.
-          
-          
-   
-      * - ``projection``
-   
+
+      * - ``writeConcern``
         - document
-   
+        - Optional. A document expressing the :doc:`write concern </reference/write-concern>`.
+          Omit to use the default write concern.
+
+          .. code-block:: javascript
+
+            { w: <value>, j: <boolean>, wtimeout: <number> }
+          
+          See :ref:`Delete A Document Using WriteConcern 
+          <delete-a-document-using-writeconcern>` for usage.
+
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+      * - ``projection``
+        - document
         - Optional. A subset of fields to return.
           
           To return all fields in the returned document, omit this parameter.
           
-          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+          Starting in MongoDB 4.2 (and 4.0.12+), the operation
           errors if the projection argument is not a document.
-          
-          
-   
+
       * - ``sort``
-   
         - document
-   
         - Optional. Specifies a sorting order for the documents matched by the ``filter``.
           
-          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
-          errors if the sort argument is not a document.
+          Starting in MongoDB 4.2 (and 4.0.12+) the operation errors if the sort 
+          argument is not a document.
           
           See :method:`cursor.sort()`.
-          
-          
-   
+
       * - ``maxTimeMS``
-   
         - number
-   
         - Optional. Specifies a time limit in milliseconds within which the operation must 
           complete within. Throws an error if the limit is exceeded.
-          
-          
-   
-      * - ``collation``
-   
-        - document
-   
-        - Optional. 
-          
-          .. include:: /includes/extracts/collation-option.rst
-          
-          
-   
 
+      * - ``collation``
+        - document
+        - Optional. 
+
+          .. include:: /includes/extracts/collation-option.rst
 
    :returns:
 
       Returns the deleted document.
-      
+
 Behavior
 --------
 
@@ -189,7 +180,7 @@ Transactions
 .. _findOneAndDelete-examples:
 
 Examples
-~~~~~~~~
+--------
 
 .. _findOneAndDelete-example-replace-document:
 
@@ -200,12 +191,14 @@ The ``scores`` collection contains documents similar to the following:
 
 .. code-block:: javascript
 
-   { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
-   { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
-   { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
-   { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
-   { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
-   { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+    db.scores.insertMany( [
+      { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+      { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+      { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+      { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+      { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+      { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+   ] )
 
 The following operation finds the first document where ``name : M. Tagnum`` 
 and deletes it:
@@ -222,6 +215,59 @@ The operation returns the *original* document that has been deleted:
 
    { _id: 6312, name: "M. Tagnum", "assignment" : 5, "points" : 30 }
 
+.. _delete-a-document-using-writeconcern:
+
+Delete A Document Using WriteConcern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``scores`` collection contains documents similar to the following:
+
+.. code-block:: javascript
+
+   db.scores.insertMany( [
+      { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+      { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+      { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+      { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+      { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+      { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+   ] )
+
+The following operation uses a write concern document inside of the 
+:method:`db.collection.findOneAndDelete()` method with options:
+
+- ``w:1`` to requests acknowledgment that the write operation has 
+  propagated to the standalone mongod or the primary in a replica set. 
+- ``j:true`` to tell the number of MongoDB instances specified in ``w:1``
+  to have the delete written to on-disk journel.
+- ``wtimeout : 1000`` to specify a time limit, in milliseconds, 
+  for the write concern. ``wtimeout`` is only applicable for ``w`` 
+  values greater than 1.
+
+
+.. code-block:: javascript
+   :emphasize-lines: 3-9
+
+   db.scores.findOneAndDelete(
+      { name: "A. MacDyver" },
+      { 
+         writeConcern: {  
+            w : 1,
+            j : true,
+            wtimeout : 1000
+         } 
+      }
+   )
+
+The operation returns the following document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 6305, name: 'A. MacDyver', assignment: 5, points: 24 }
+
+The document is deleted with the writeConcern options specified.
+
 .. _findOneAndDelete-example-sort-and-replace-document:
 
 Sort And Delete A Document
@@ -231,12 +277,14 @@ The ``scores`` collection contains documents similar to the following:
 
 .. code-block:: javascript
 
-   { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
-   { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
-   { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
-   { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
-   { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
-   { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+   db.scores.insertMany( [
+      { _id: 6305, name : "A. MacDyver", "assignment" : 5, "points" : 24 },
+      { _id: 6308, name : "B. Batlock", "assignment" : 3, "points" : 22 },
+      { _id: 6312, name : "M. Tagnum", "assignment" : 5, "points" : 30 },
+      { _id: 6319, name : "R. Stiles", "assignment" : 2, "points" : 12 },
+      { _id: 6322, name : "A. MacDyver", "assignment" : 2, "points" : 14 },
+      { _id: 6234, name : "R. Stiles", "assignment" : 1, "points" : 10 }
+   ] )
 
 The following operation first finds all documents where 
 ``name : "A. MacDyver"``. It then sorts by ``points`` ascending before 
@@ -289,18 +337,22 @@ The following operation sets a 5ms time limit to complete the deletion:
    try {
       db.scores.findOneAndDelete(
          { "name" : "A. MacDyver" },
-         { sort : { "points" : 1 }, maxTimeMS : 5 };
-      );
+         { sort : { "points" : 1 }, maxTimeMS : 5 }
+      )
    }
    catch(e){
-      print(e);
+      print(e)
    }
 
 If the operation exceeds the time limit, it returns:
 
 .. code-block:: javascript
+   
+   MongoServerError: operation exceeded time limit: { "ok": 0, "code" : 50, "codeName" : "MaxTimeMSExpired" }
 
-   Error: findAndModifyFailed failed: { "ok" : 0, "errmsg" : "operation exceeded time limit", "code" : 50 }
+.. note::
+
+   This error message has been shortened for brevity.
 
 Specify Collation
 ~~~~~~~~~~~~~~~~~
@@ -311,9 +363,11 @@ A collection ``myColl`` has the following documents:
 
 .. code-block:: javascript
 
-   { _id: 1, category: "café", status: "A" }
-   { _id: 2, category: "cafe", status: "a" }
-   { _id: 3, category: "cafE", status: "a" }
+   db.myColl.insertMany( [
+      { _id: 1, category: "café", status: "A" },
+      { _id: 2, category: "cafe", status: "a" },
+      { _id: 3, category: "cafE", status: "a" }
+   ] )
 
 The following operation includes the :ref:`collation <collation>`
 option:
