@@ -4,8 +4,8 @@ Network Access for Live Migrating from Ops Manager or Cloud Manager
 Contact your |com| service administrator and obtain
 external IP addresses for the following components:
 
-External IP Address of the Source Cluster in the Ops Manager
-````````````````````````````````````````````````````````````
+External IP Address of the Source Cluster in Ops Manager
+````````````````````````````````````````````````````````
 
 If you are migrating from |onprem|, the Live Migration service
 in |service| requires an external IP address or an external |cidr|
@@ -24,8 +24,8 @@ External IP Address of the Migration Host in Ops Manager or Cloud Manager
 
 Before you begin the Live Migration procedure, add the IP addresses or
 |cidr| blocks of your migration hosts to the project
-:doc:`IP access list </security/ip-access-list>`. |service| only allows
-connections to the target cluster from hosts with entries in the
+:doc:`IP access list </security/ip-access-list>`. |service| allows
+connections to the target cluster only from hosts with entries in the
 project's access list.
 
 

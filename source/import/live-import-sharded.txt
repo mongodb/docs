@@ -1,8 +1,8 @@
 .. _live-import-sharded:
 
-==========================================
-Live Migrate Your Sharded Cluster to Atlas
-==========================================
+================================================
+Live Migrate (Pull) a Sharded Cluster into Atlas
+================================================
 
 .. default-domain:: mongodb
 
@@ -12,27 +12,26 @@ Live Migrate Your Sharded Cluster to Atlas
    :depth: 1
    :class: singlecol
 
-|service| can perform a live migration of a source sharded cluster to
-an |service| sharded cluster, keeping the cluster in sync with the
-remote source until you cut your applications over to the |service|
-cluster. Once you reach the cutover step in the following procedure,
-you should stop writes to the source cluster by stopping your
-application instances, pointing them to the |service| cluster, and
+|service| can pull a source sharded cluster into an |service| sharded
+cluster using the live migration process. |service| keeps the target
+cluster in sync with the remote source until you cut your applications
+over to the |service| target cluster. Once you reach the cutover step in
+the following procedure, stop writes to the source cluster by stopping
+your application instances, pointing them to the |service| cluster, and
 restarting them.
-
 
 Restrictions
 ------------
 
 - You cannot target a :doc:`Global Cluster </global-clusters>` as the
-  destination for Live Migration.
+  destination for live migration.
 
-- Live Migration does not support :ref:`VPC peering <vpc-peering>` or
+- Live migration does not support :ref:`VPC peering <vpc-peering>` or
   :ref:`private endpoints <private-endpoint>` for either the source or
   target cluster.
 
-For a procedure on live migrating a replica set, see
-:doc:`/import/live-import`.
+To live migrate a replica set, see
+:doc:`Live Migrate (Pull) a Replica Set into Atlas </import/live-import>`.
 
 Prerequisites
 -------------
@@ -46,7 +45,7 @@ replica set. The user must have permissions to:
 - Read all databases and collections on the host.
 - Read the oplog on the host.
 
-To learn more, see :ref:`live-import-sharded-migration-validation`.
+To learn more, see :ref:`live-import-sharded-security`.
 
 .. include:: /includes/note-source-cluster-readiness.rst
 
@@ -69,18 +68,18 @@ Pre-Migration Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| performs a number of validation checks on the source
-and target clusters before starting the Live Migration procedure.
+and target clusters before starting the live migration procedure.
 
 - The source cluster must be a sharded cluster.
 
   If the source is replica set cluster, use
-  :doc:`Live Migration </import/live-import>` to
+  :doc:`pull-type live migration </import/live-import>` to
   migrate the cluster to a |service| replica set first, then
   :doc:`scale your cluster </scale-cluster>` to a sharded cluster.
 
   If the source is a standalone,
   :manual:`convert the standalone to a replica set first </tutorial/convert-standalone-to-replica-set>`
-  before using :doc:`Live Migration </import/live-import>`. Then
+  before using :doc:`pull-type live migration </import/live-import>`. Then
   :doc:`scale your cluster </scale-cluster>` to a sharded cluster.
 
 - The source cluster must use CSRS (Config Server Replica Sets).
@@ -124,22 +123,24 @@ Source Cluster Security
 Considerations
 --------------
 
+.. include:: /includes/fact-network-encryption-pull-migration.rst
+
 Source Cluster Balancer
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| Live Migration stops the :manual:`sharded cluster balancer
+|service| live migration stops the :manual:`sharded cluster balancer
 </core/sharding-balancer-administration/>` on the source cluster at the
 start of the procedure, and starts the balancer at the end of the
 procedure.
 
-If you cancel Live Migration, |service| restarts the balancer on the
+If you cancel live migration, |service| restarts the balancer on the
 source cluster.
 
 .. note::
 
    Under some circumstances |service| cannot restart the balancer on the
-   source cluster at the end of a Live Migration process. If the balancer
-   fails to restart, the Live Migration still succeeds but a warning banner
+   source cluster at the end of a live migration process. If the balancer
+   fails to restart, the live migration still succeeds but a warning banner
    indicates that the source cluster balancer must be
    :manual:`restarted manually </tutorial/manage-sharded-cluster-balancer/>`.
 
@@ -152,16 +153,15 @@ following:
 .. include:: /includes/fact-live-migration-destination-cluster.rst
 
 - You cannot target a :doc:`Global Cluster </global-clusters>` as the
-  target for Live Migration.
+  target for live migration.
 
   .. important::
 
-     You cannot modify the target |service| cluster once you
-     start the Live Migration procedure. If you need to scale up
-     the target cluster, first
-     :ref:`cancel <live-import-sharded-cancel>` the Live
-     Migration procedure, then scale up the cluster and restart
-     the Live Migration procedure.
+     Once you start the live migration process, you cannot modify the
+     target |service| cluster. If you need to scale up the target cluster,
+     :ref:`cancel <live-import-sharded-cancel>` the live migration
+     process, then scale up the cluster and restart the live migration
+     process.
 
 Database Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -187,9 +187,9 @@ You can cancel the process at any time by clicking :guilabel:`Cancel`.
 message for the target cluster until the cluster is ready for
 normal access.
 
-If you cancel the Live Migration procedure before completion,
+If you cancel the live migration process before completion,
 |service| does not remove any data migrated up to that point.
-If you restart the Live Migration procedure using the same
+If you restart the live migration process using the same
 |service| cluster as the target cluster, |service| wipes all data
 from the cluster.
 
@@ -219,7 +219,7 @@ Avoid Elections
 Target Cluster Network Access
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-During Live Migration, the :binary:`~bin.mongos` processes on the
+During live migration, the :binary:`~bin.mongos` processes on the
 target cluster are shut down and cluster connectivity via the
 ``mongos`` servers is suspended. The ``mongos`` processes restart
 automatically once migration is complete.
@@ -234,7 +234,7 @@ Migrate Your Sharded Cluster
 
 .. note:: Staging and Production Migrations
 
-   Consider running a partial Live Migration procedure first to create
+   Consider running a partial live migration procedure first to create
    a staging environment before repeating the procedure to create your
    production environment. The following procedure includes a callout for
    the appropriate time to cancel the procedure and create a staging environment.
@@ -242,13 +242,13 @@ Migrate Your Sharded Cluster
    Use the staging environment to test application behavior and
    performance using the latest :driver:`driver version </driver-compatibility-reference>` 
    that supports the MongoDB version of the target |service| cluster. Then,
-   repeat the Live Migration procedure in full to transition your applications
+   repeat the live migration procedure in full to transition your applications
    from your source cluster to the |service| target cluster.
 
 .. important::
 
    Avoid making changes to the source cluster configuration while the
-   Live Migration procedure runs, such as removing replica set members
+   live migration procedure runs, such as removing replica set members
    or modifying :binary:`mongod <bin.mongod>` runtime settings,
    such as ``featureCompatibilityVersion``.
 

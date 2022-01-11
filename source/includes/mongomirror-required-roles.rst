@@ -2,7 +2,7 @@
   the :authrole:`readAnyDatabase`, the :authrole:`clusterMonitor`, and
   the :authrole:`backup` roles.
   
-  To verify that the database user that will run the Live Migration
+  To verify that the database user that will run the live migration
   process has these roles, run the :manual:`db.getUser() </reference/method/db.getUser/>`
   command on the ``admin`` database.
 

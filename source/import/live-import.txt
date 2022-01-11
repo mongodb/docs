@@ -1,8 +1,8 @@
 .. _live-import-replica:
 
-======================================
-Live Migrate Your Replica Set to Atlas
-======================================
+============================================
+Live Migrate (Pull) a Replica Set into Atlas
+============================================
 
 .. default-domain:: mongodb
 
@@ -14,9 +14,10 @@ Live Migrate Your Replica Set to Atlas
 
 .. include:: /includes/serverless-preview-dont-use.rst
 
-|service| can perform a Live Migration of a source replica set to an
-|service| cluster, keeping the cluster in sync with the remote source
-until you cut your applications over to the |service| cluster.
+|service| can pull a source replica set to an |service| cluster using the
+live migration process. |service| keeps the target cluster in sync with
+the remote source cluster until you cut your applications over to the
+target |service| cluster.
 
 Once you reach the cutover step in the following procedure, stop
 writes to the source cluster: stop your application instances,
@@ -25,28 +26,40 @@ point them to the |service| cluster, and restart them.
 Restrictions
 ------------
 
-- You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared cluster
-  as the source or target for Live Migration. To migrate data from
-  an ``M0`` (Free Tier) or ``M2/M5`` shared cluster to a paid cluster,
-  see :doc:`/scale-cluster`.
+You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared cluster as the
+source or target for live migration. To migrate data from an ``M0`` (Free Tier)
+or ``M2/M5`` shared cluster to a paid cluster, :doc:`change the cluster tier and type </scale-cluster>`.
 
-- Live Migration does not support :ref:`VPC peering <vpc-peering>` or
+- Live migration does not support :ref:`VPC peering <vpc-peering>` or
   :ref:`private endpoints <private-endpoint>` for either the source or
   target cluster.
 
-To live migrate a sharded cluster, see :doc:`/import/live-import-sharded`.
+To live migrate a sharded cluster, see
+:doc:`Live Migrate (Pull) a Sharded Cluster into Atlas </import/live-import-sharded>`.
 
 Prerequisites
 -------------
+
+- Before you migrate to |service|, upgrade the source cluster to MongoDB 4.0
+  or later.
+- Provide the hostname of the :term:`primary` node to the live migration
+  service.
+- If the cluster runs with authentication, grant the user that will run
+  the migration process the following permissions:
+
+  - Read all databases and collecions on the host.
+  - Read access to the primary node's :term:`oplog`.
+
+To learn more :ref:`live-import-security`.
 
 .. include:: /includes/note-source-cluster-readiness.rst
 
 .. _live-import-upgrade-path:
 
-Upgrade Path
-~~~~~~~~~~~~
+Migration Path
+~~~~~~~~~~~~~~
 
-|service| Live Migration supports the following migration paths:
+|service| live migration supports the following migration paths:
 
 .. include:: /includes/list-tables/mongomirror-upgrade-path.rst
 
@@ -65,16 +78,16 @@ Upgrade Path
 Pre-Migration Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before starting the Live Migration procedure, |service| runs validation
+Before starting the pull live migration procedure, |service| runs validation
 checks on the source and target clusters.
 
 - The source cluster is a replica set.
 
-  If the source is a standalone,
+  If the source cluster is a standalone,
   :manual:`convert the standalone to a replica set first </tutorial/convert-standalone-to-replica-set>`
-  before using :doc:`Live Migration </import/live-import>`.
+  before using the :doc:`pull-type live migration </import/live-import>`.
 
-- The target |service| cluster must be a replica set.
+- The target |service| cluster is a replica set.
 
 .. note::
    Unlike for :ref:`sharded clusters <live-import-sharded-migration-validation>`,
@@ -101,6 +114,9 @@ migrate data from the source cluster to the target |service| cluster.
 Considerations
 --------------
 
+.. include:: /includes/fact-network-encryption-pull-migration.rst
+
+
 Target Cluster Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -114,7 +130,7 @@ When configuring the target cluster, consider the following:
   cluster as the target cluster for live migration.
 
 - Do **not** change the ``featureCompatibilityVersion`` flag while
-  |service| Live Migration is running.
+  |service| live migration is running.
 
 Database Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -160,7 +176,7 @@ Migrate Your Cluster
 .. important::
 
    Avoid making changes to the source cluster configuration while the
-   Live Migration procedure runs, such as removing replica set members
+   live migration process runs, such as removing replica set members
    or modifying :binary:`mongod <bin.mongod>` runtime settings, such as
    ``featureCompatibilityVersion``.
 
