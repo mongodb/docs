@@ -59,15 +59,15 @@
      - string
      - Unique identifier of the backup policy.
 
-   * - ``policies.policyitems``
+   * - ``policies.policyItems``
      - array of objects
      - A list of specifications for a policy.
 
-   * - ``policies.policyitems.frequencyInterval``
+   * - ``policies.policyItems.frequencyInterval``
      - number
      - The frequency interval for a set of snapshots.
 
-   * - ``policies.policyitems.frequencyType``
+   * - ``policies.policyItems.frequencyType``
      - string
      - A type of frequency. Possible values are:
        
@@ -80,7 +80,7 @@
      - string
      - Unique identifier for this policy item.
 
-   * - ``policies.policyitems.retentionUnit``
+   * - ``policies.policyItems.retentionUnit``
      - string
      - The unit of time in which snapshot retention is measured. Possible
        values are:
@@ -89,7 +89,7 @@
        - weeks
        - months
 
-   * - ``policies.policyitems.retentionValue``
+   * - ``policies.policyItems.retentionValue``
      - number
      - The number of days, weeks, or months the snapshot is retained.
 
