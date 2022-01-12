@@ -103,7 +103,7 @@ extlinks = {
     'atlas': ('https://docs.atlas.mongodb.com%s',''),
     'compass': ('https://docs.mongodb.com/compass/current/%s',''),
     'products': ('https://www.mongodb.com/products%s', ''),
-    'wtdocs': ('https://source.wiredtiger.com/mongodb-3.4%s', ''),
+    'wtdocs': ('https://source.wiredtiger.com/mongodb-4.0%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
     'node-docs': ('https://mongodb.github.io/node-mongodb-native/3.3/%s', ''),
     'node-api': ('https://mongodb.github.io/node-mongodb-native/3.3/api/%s', ''),
