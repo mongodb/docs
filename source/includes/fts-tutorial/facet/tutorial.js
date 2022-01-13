@@ -27,7 +27,7 @@ async function run() {
         const result = coll.aggregate(agg);
 
         // print results
-        result.forEach((doc) => console.dir(JSON.stringify(doc)));
+        await result.forEach((doc) => console.dir(JSON.stringify(doc)));
     } finally {
         await client.close();
     }
