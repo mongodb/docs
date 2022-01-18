@@ -10,5 +10,4 @@
 05 January 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Increases the memory for new ``M30`` to ``M200`` for Google Cloud clusters.
 - Improves the credits table in the Cloud Billing UI.
