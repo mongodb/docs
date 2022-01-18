@@ -58,11 +58,8 @@
 
    * - ``eventTypeName``
      - string
-     - The type of event.
-
-       Possible values are:
-
-       .. include:: /includes/api/list-tables/alert-eventTypeNames.rst
+     - Human-readable label that indicates the :ref:`type of event 
+       <event-type-values>`.
 
    * - ``groupId``
      - string
@@ -176,7 +173,9 @@
      - string
      - The white list entry of the API Key targeted by the event.
 
+.. _event-type-values:
 
+Event Type Values
+~~~~~~~~~~~~~~~~~
 
-
-
+.. include:: /includes/api/list-tables/alert-eventTypeNames.rst
