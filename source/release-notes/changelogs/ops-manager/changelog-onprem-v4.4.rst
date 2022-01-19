@@ -1,3 +1,21 @@
+.. _opsmgr-server-4.4.20:
+
+|onprem| Server 4.4.20
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-01-13*
+
+- Updates the {+mdbagent+} to :ref:`10.14.31.6566 <mongodb-10.14.31.6566>`.
+
+- When taking a snapshot, allows the {+mdbagent+} to slow the sending of data blocks 
+  when |onprem| is overloaded, so that the snapshot can complete. Successful 
+  completion of snapshots is prioritized over speed.
+  
+  .. important::
+
+     To use this feature, you must upgrade to 
+     :ref:`the latest version of the {+mdbagent+} <mongodb-11.0.11.7036>`.
+
 .. _opsmgr-server-4.4.19:
 
 |onprem| Server 4.4.19
