@@ -4,7 +4,7 @@ GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 USER=$(shell whoami)
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
-	
+
 STAGING_BUCKET=docs-mongodb-org-stg
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 
@@ -94,13 +94,17 @@ migrate: get-assets
 	@echo "Making target source directory -- doing this explicitly instead of via cp"
 	if [ -d ${TARGET_DIR} ]; then rm -rf ${TARGET_DIR} ; fi;
 	mkdir ${TARGET_DIR}
-	
-	@echo "Copying over ruby-driver docs files"
-	cp -R build/ruby-driver-${GIT_BRANCH}/docs/* ${TARGET_DIR}
-	
+
 	@echo "Copying over bson  docs files"
 	cp -R build/bson-ruby/docs/* ${TARGET_DIR}
-	
+	@echo "Deleting symlink ftw..."
+	rm ${TARGET_DIR}/index.txt
+
+	@echo "Copying over ruby-driver docs files"
+	cp -R build/ruby-driver-${GIT_BRANCH}/docs/* ${TARGET_DIR}
+
+
+
 get-assets:
 	giza generate assets
 
