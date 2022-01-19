@@ -6,7 +6,8 @@ punctuation as delimiters, and perform a logical ``OR`` of all such
 tokens in the search string.
 
 For example, you could use the following query to find all stores
-containing any terms from the list "coffee", "shop", and "java":
+containing any terms from the list "coffee", "shop", and "java" in 
+the ``stores`` :ref:`collection <text-index-eg>`:
 
 .. code-block:: javascript
 
