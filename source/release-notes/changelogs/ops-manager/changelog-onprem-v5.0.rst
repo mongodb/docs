@@ -1,3 +1,27 @@
+.. _opsmgr-server-5.0.6:
+
+|onprem| Server 5.0.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-01-13*
+
+- Improves storage size calculation for a Cloud Live Migration of a sharded cluster.
+  
+- Fixes a bug that prevents |onprem| from syncing user information from LDAP servers.
+
+- Fixes a bug where |onprem| incorrectly escaped characters in LDAP search filters.
+
+- Updates the {+mdbagent+} to :ref:`11.0.11.7036 <mongodb-11.0.11.7036>`.
+
+- When taking a snapshot, allows the {+mdbagent+} to slow the sending of data blocks 
+  when |onprem| is overloaded, so that the snapshot can complete. Successful 
+  completion of snapshots is prioritized over speed.
+  
+  .. important::
+
+     To use this feature, you must upgrade to 
+     :ref:`the latest version of the {+mdbagent+} <mongodb-11.0.11.7036>`.
+
 .. _opsmgr-server-5.0.5:
 
 |onprem| Server 5.0.5
@@ -6,7 +30,7 @@
 *Released 2021-12-02*
 
 - Upgrades the JDK to version 11.0.13.
-- Updates the MongoDB Agent to :ref:`11.0.10.7021 <mongodb-11.0.10.7021>`.
+- Updates the {+mdbagent+} to :ref:`11.0.10.7021 <mongodb-11.0.10.7021>`.
 
 
 .. _opsmgr-server-5.0.4:
@@ -20,7 +44,7 @@
   :guilabel:`Oplog Storage` page in the administration console in all
   configurations.
   
-- Updates the MongoDB Agent to :ref:`11.0.9.7010 <mongodb-11.0.9.7010>`.
+- Updates the {+mdbagent+} to :ref:`11.0.9.7010 <mongodb-11.0.9.7010>`.
 
 
 .. _opsmgr-server-5.0.3:
@@ -30,7 +54,7 @@
 
 *Released 2021-10-06*
 
-- Updates the MongoDB Agent to :ref:`11.0.8.7002
+- Updates the {+mdbagent+} to :ref:`11.0.8.7002
   <mongodb-11.0.8.7002>`.
 
 .. _opsmgr-server-5.0.2:
@@ -44,7 +68,7 @@
   RHEL71 and RHEL81 builds of MongoDB present, the RHEL81 build would
   always be selected.
 
-- Updates the MongoDB Agent to :ref:`11.0.7.6992
+- Updates the {+mdbagent+} to :ref:`11.0.7.6992
   <mongodb-11.0.7.6992>`.
 
 - Upgrades the JDK to version 11.0.12, which restricts the use of
@@ -72,7 +96,7 @@
 
 - Disables the continuous backup page when AppDB monitoring is enabled.
 
-- Updates the MongoDB Agent to :ref:`11.0.6.6981
+- Updates the {+mdbagent+} to :ref:`11.0.6.6981
   <mongodb-11.0.6.6981>`.
 
 - Compatible with :db-tools:`MongoDB Database Tools 100.4.0 
@@ -195,5 +219,5 @@ Disables |tls| versions 1.0 and 1.1 by default.
 
 MongoDB Agent
 `````````````
-Updates the MongoDB Agent to :ref:`11.0.5.6967-1
+Updates the {+mdbagent+} to :ref:`11.0.5.6967-1
 <mongodb-11.0.5.6967-1>`.
