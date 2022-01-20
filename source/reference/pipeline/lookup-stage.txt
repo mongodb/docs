@@ -12,12 +12,14 @@
    :depth: 2
    :class: singlecol
 
-``$lookup`` performs a left outer join to an unsharded collection in the
-same database to filter in documents from the "joined" collection for
-processing. For more information, see
-:manual:`$lookup </reference/operator/aggregation/lookup/>`. In
-{+data-lake+}, ``$lookup`` can be used to perform a join of collections
-from different databases. 
+The MongoDB server :manual:`$lookup </reference/operator/aggregation/lookup/>`
+performs a left outer join of one unsharded collection to another
+unsharded collection in the same database. Lookups are useful as they
+allow you to filter in documents from the "joined" collection for processing.
+
+In {+data-lake+}, you can use ``$lookup`` to join sharded and unsharded
+collections from the same database or different databases from |service|,
+|aws| |s3|, and |http| or |https| data stores.
 
 .. _adl-lookup-syntax:
 
@@ -26,9 +28,11 @@ Syntax
 
 The ``$lookup`` 
 :manual:`syntax </reference/operator/aggregation/lookup/#syntax>` is 
-described in the MongoDB server manual. In {+data-lake-short+}, the ``from`` 
-field in ``$lookup`` has the following alternate syntax to support specifying 
-an object containing an optional database name and a required collection name: 
+described in the MongoDB server manual.
+
+In {+data-lake-short+}, the ``from``  field in ``$lookup`` has the
+following alternate syntax. This allows you to specify an object that
+contains an optional database name and a required collection name:
 
 .. tabs:: 
  
@@ -46,7 +50,7 @@ an object containing an optional database name and a required collection name:
            }
          }
 
-   .. tab:: Join Conditions and Uncorrelated Sub-queries
+   .. tab:: Conditions and Sub-Queries
       :tabid: joincondition
 
       .. code-block:: json 
@@ -65,37 +69,38 @@ an object containing an optional database name and a required collection name:
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 70 10
+   :widths: 10 10 66 14
 
-   * - Field 
-     - Type 
-     - Description 
+   * - Field
+     - Type
+     - Description
      - Necessity
 
    * - ``db``
-     - string 
-     - The database name. 
+     - string
+     - The database name.
        
-       If the database name is specified, data is read from the collection in 
-       the specified database. If you specify a database name that is different 
-       from the database upon which the command is operating, all nested 
-       :manual:`$lookup 
-       </reference/operator/aggregation/lookup/#pipe._S_lookup>` stages **must** 
-       also specify a database name. 
+       If you specify a database name, {+data-lake-short+} reads data
+       from the collection in the specified database. If you specify a
+       database name that differs from the database upon which the
+       command is operating, all nested :manual:`$lookup </reference/operator/aggregation/lookup/#pipe._S_lookup>`
+       stages **must** also specify this database name.
 
-       If the database name is not specified within a :manual:`$lookup 
-       </reference/operator/aggregation/lookup/#pipe._S_lookup>` stage, 
-       collections in the stage inherit the database name specified in the closest 
-       parent :manual:`$lookup </reference/operator/aggregation/lookup/#pipe._S_lookup>` 
-       stage if it exists or the database upon which the command is operating.
+       If you don't specify a database name within a :manual:`$lookup 
+       </reference/operator/aggregation/lookup/#pipe._S_lookup>` stage,
+       collections in the stage inherit the database name specified in
+       the closest parent :manual:`$lookup </reference/operator/aggregation/lookup/#pipe._S_lookup>` 
+       stage if it exists, or the name of the database upon which the
+       command is operating.
+
      - Conditional
 
-   * - ``coll`` 
+   * - ``coll``
      - string 
-     - The collection name. 
+     - The collection name.
      - Required
 
-Examples 
+Examples
 --------
 
 Suppose there are three databases named ``sourceDB1``, ``sourceDB2``, and 
@@ -106,7 +111,7 @@ Suppose there are three databases named ``sourceDB1``, ``sourceDB2``, and
    .. tab:: sourceDB1
       :tabid: sourceDB1
 
-      .. code-block:: json 
+      .. code-block:: json
 
          db.orders.insertMany([
            { "_id" : 1, "item" : "almonds", "price" : 12, "quantity" : 2 },
@@ -117,7 +122,7 @@ Suppose there are three databases named ``sourceDB1``, ``sourceDB2``, and
    .. tab:: sourceDB2
       :tabid: sourceDB2
 
-      .. code-block:: json 
+      .. code-block:: json
 
          db.catalog.insertMany([
            { "_id" : 1, "sku" : "almonds", "description": "product 1" },
@@ -131,7 +136,7 @@ Suppose there are three databases named ``sourceDB1``, ``sourceDB2``, and
    .. tab:: sourceDB3
       :tabid: sourceDB3
 
-      .. code-block:: json 
+      .. code-block:: json
 
          db.warehouses.insertMany([
            { "_id" : 1, "stock_item" : "almonds", "warehouse": "A", "instock" : 120 },
@@ -146,7 +151,7 @@ The following examples use the :manual:`$lookup
 to join documents from one collection with the documents from the collection 
 in the other databases.
 
-Basic Example 
+Basic Example
 ~~~~~~~~~~~~~
 
 The following aggregation operation on the ``sourceDB1.orders`` collection joins the documents from the ``orders`` collection with the documents 
