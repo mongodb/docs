@@ -35,7 +35,7 @@ parameters and the locales they are associated with, see
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 20 80
+   :widths: 25 20 80
 
    * - Field
 
@@ -66,7 +66,7 @@ parameters and the locales they are associated with, see
        
        .. list-table::
           :header-rows: 1
-          :widths: 10 90
+          :widths: 15 90
        
           * - Value
             - Description
@@ -119,10 +119,10 @@ parameters and the locales they are associated with, see
 
      - boolean
 
-     - Optional. Flag that determines whether to include case comparison at
-       ``strength`` level ``1`` or ``2``.
+     - Optional. Flag that determines whether to include case comparison 
+       at ``strength`` level ``1`` or ``2``.
        
-       If ``true``, include case comparison; i.e.
+       If ``true``, include case comparison:
        
        - When used with ``strength:1``, collation compares base characters
          and case.
@@ -149,17 +149,18 @@ parameters and the locales they are associated with, see
            
        .. list-table::
           :header-rows: 1
-          :widths: 10 90
+          :widths: 30 90
        
           * - Value
             - Description
-          * - "upper"
+
+          * - ``"upper"``
             - Uppercase sorts before lowercase.
        
-          * - "lower"
+          * - ``"lower"``
             - Lowercase sorts before uppercase.
        
-          * - "off"
+          * - ``"off"``
        
             - Default value. Similar to ``"lower"`` with slight
               differences. See
@@ -175,12 +176,15 @@ parameters and the locales they are associated with, see
      - Optional. Flag that determines whether to compare numeric strings as numbers
        or as strings.
        
-       If ``true``, compare as numbers; i.e. ``"10"`` is greater than
-       ``"2"``.
+       If ``true``, compare as numbers. For example,
+       ``"10"`` is greater than ``"2"``.
        
-       If ``false``, compare as strings; i.e. ``"10"`` is less than ``"2"``.
+       If ``false``, compare as strings. For example,
+       ``"10"`` is less than ``"2"``.
        
        Default is ``false``.
+
+       See :ref:`numericOrdering Restrictions <numeric-order-restrictions>`.
        
        
 
@@ -195,7 +199,7 @@ parameters and the locales they are associated with, see
        
        .. list-table::
           :header-rows: 1
-          :widths: 10 90
+          :widths: 30 90
        
           * - Value
             - Description
@@ -229,19 +233,19 @@ parameters and the locales they are associated with, see
        
        .. list-table::
           :header-rows: 1
-          :widths: 10 90
+          :widths: 30 90
        
           * - Value
             - Description
        
           * - ``"punct"``
        
-            - Both whitespaces and punctuation are "ignorable", i.e. not
+            - Both whitespace and punctuation are ignorable and not
               considered base characters.
        
           * - ``"space"``
        
-            - Whitespace are "ignorable", i.e. not considered base
+            - Whitespace is ignorable and not considered to be base
               characters.
        
        
@@ -278,7 +282,7 @@ parameters and the locales they are associated with, see
        
        See
        `<http://userguide.icu-project.org/collation/concepts#TOC-Normalization>`_ for details.
-          
+       
           
    
 
@@ -333,7 +337,98 @@ Collation and Unsupported Index Types
 .. include::  /includes/extracts/collation-index-type-restrictions.rst
 
 .. include:: /includes/extracts/collation-index-type-restrictions-addendum.rst
+
+Restrictions
+------------
+
+.. _numeric-order-restrictions:
+
+numericOrdering
+~~~~~~~~~~~~~~~
+
+When specifying the ``numericOrdering`` as ``true`` the following 
+restrictions apply:
+
+- Only contiguous non-negative integer substrings of digits are 
+  considered in the comparisons. 
+
+  ``numericOrdering`` does not support:
+
+  - ``+``
+  - ``-``
+  - decimal separators, like decimal points and decimal commas
+  - exponents
+
+- Only Unicode code points in the Number or Decimal Digit (Nd) category 
+  are treated as digits.
+
+- If a digit length exceeds 254 characters, the excess characters are 
+  treated as a separate number.
+
+Consider a collection with the following string number and decimal 
+values:
+
+.. code-block:: javascript
+   :emphasize-lines: 6,10
+
+   db.c.insertMany(
+      [
+          { "n" : "1" },
+          { "n" : "2" },
+          { "n" : "2.1" },
+          { "n" : "-2.1" },
+          { "n" : "2.2" },
+          { "n" : "2.10" },
+          { "n" : "2.20" },
+          { "n" : "-10" },
+          { "n" : "10" },
+          { "n" : "20" },
+          { "n" : "20.1" }
+      ]
+    )
+
+The following :method:`find <db.collection.find()>` query uses a 
+collation document containing the ``numericOrdering`` parameter:
+
+.. code-block:: javascript
+
+   db.c.find(
+      { }, { _id: 0 }
+   ).sort(
+     { n: 1 }
+   ).collation( {
+     locale: 'en_US',
+     numericOrdering: true
+   } )
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :emphasize-lines: 2-3,7-8
+   :copyable: false
    
+      [
+          { n: '-2.1' }, 
+          { n: '-10' },
+          { n: '1' },    
+          { n: '2' },
+          { n: '2.1' },  
+          { n: '2.2' },
+          { n: '2.10' }, 
+          { n: '2.20' },
+          { n: '10' },   
+          { n: '20' },
+          { n: '20.1' }
+      ]
+
+- ``numericOrdering: true`` sorts the string values in ascending 
+  order as if they were numeric values.
+- The two negative values ``-2.1`` and ``-10`` are not sorted in the 
+  expected sort order because they have unsupported ``-`` characters.
+- The value ``2.2`` is sorted before the value ``2.10``, due to the fact
+  that the ``numericOrdering`` parameter does not support decimal 
+  values.
+- As a result, ``2.2`` and ``2.10`` are sorted in lexicographic order.
 
 .. toctree::
    :titlesonly:
