@@ -132,3 +132,19 @@
        :guilabel:`API Key` and click
        :guilabel:`Validate Datadog API Key`.
 
+   * - Microsoft Teams
+
+     - Sends the alert to a 
+       `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
+       channel.
+
+       To send alert notifications to a Microsoft Teams channel,
+       you must create a Microsoft Teams incoming webhook. 
+       After creating the webhook, you can use the automatically
+       generated URL to configure your Microsoft Teams integration
+       in |service|.
+
+       To setup the integration, see 
+       :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
+
+

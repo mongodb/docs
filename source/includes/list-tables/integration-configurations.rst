@@ -237,7 +237,7 @@
 
      - Configures |service| to send alerts about your deployment to 
        your `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
-       channel. You can view these notifications in the 
+       channel. You can view these alerts in the 
        `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_ 
        displayed in your channel.
 
