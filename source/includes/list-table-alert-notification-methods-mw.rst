@@ -136,7 +136,9 @@
 
      - Sends the alert to a 
        `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
-       channel.
+       channel as an
+       `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_.
+
 
        To send alert notifications to a Microsoft Teams channel,
        you must create a Microsoft Teams incoming webhook. 
