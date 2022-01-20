@@ -76,7 +76,7 @@ rst_epilog = '\n'.join([
 ])
 
 source_constants = {
-    'version-dev': '5.2',   # Current development branch
+    'version-dev': '5.3',   # Current development branch
     'package-name-org': 'mongodb-org',
     'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
@@ -196,10 +196,7 @@ html_theme_options = {
     'stable': conf.version.stable,
     'sitename': sconf.theme.sitename,
     'nav_excluded': sconf.theme.nav_excluded,
-    'upcoming': conf.version.upcoming,
-    'banner': True,
-    'banner_msg': 'This is an upcoming (in progress) version of the manual.'
-
+    'upcoming': conf.version.upcoming
 }
 
 html_sidebars = sconf.sidebars
