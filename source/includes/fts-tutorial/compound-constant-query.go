@@ -10,23 +10,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// define structure of movies collection
-type MovieCollection struct {
-	title string `bson:"Title,omitempty"`
-}
-
 func main() {
-	var err error
-	// connect to the Atlas cluster
-	ctx := context.Background()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("<connection-string>"))
+	// connect to your Atlas cluster
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
-	defer client.Disconnect(ctx)
+	defer client.Disconnect(context.TODO())
+
 	// set namespace
 	collection := client.Database("sample_mflix").Collection("movies")
-	// define pipeline
+
+	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
 		"compound": bson.M{
 			"filter": bson.M{
@@ -38,20 +33,22 @@ func main() {
 				{"text", bson.M{
 					"path": "title", "query": "snow", "score": bson.M{
 						"constant": bson.D{{"value", 5}},
-					},
-				}},
-			},
+					}}}},
 		},
+		"highlight": bson.D{{"path", "title"}},
 	}}}
 	limitStage := bson.D{{"$limit", 10}}
-	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"year", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
+	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"year", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}, {"highlights", bson.D{{"$meta", "searchHighlights"}}}}}}
+
 	// specify the amount of time the operation can run on the server
 	opts := options.Aggregate().SetMaxTime(5 * time.Second)
+
 	// run pipeline
-	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{searchStage, limitStage, projectStage}, opts)
+	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage, projectStage}, opts)
 	if err != nil {
 		panic(err)
 	}
+
 	// print results
 	var results []bson.D
 	if err = cursor.All(context.TODO(), &results); err != nil {
