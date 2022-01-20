@@ -9,7 +9,7 @@ See :doc:`/core/replica-set-architectures` for more information.
 Hostnames
 ~~~~~~~~~
 
-.. include:: /includes/tip-hostnames.rst
+.. include:: /includes/important-hostnames.rst
 
 IP Binding
 ~~~~~~~~~~
