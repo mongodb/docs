@@ -104,19 +104,19 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-sync/src/examples/documentation/CausalConsistencyExamples.java -o ${DRIVERS_PATH}/CausalConsistencyExamples.java
 
 # node
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/change_streams.test.js                        -o ${DRIVERS_PATH}/node_changestreams.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/array_filters.test.js                         -o ${DRIVERS_PATH}/node_array_filters.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/causal_consistency.test.js                    -o ${DRIVERS_PATH}/node_causal_consistency.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/insert.test.js                                -o ${DRIVERS_PATH}/node_insert.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/project_fields_from_query_results.test.js     -o ${DRIVERS_PATH}/node_project.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/query.test.js                                 -o ${DRIVERS_PATH}/node_query.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/query_embedded_documents.test.js              -o ${DRIVERS_PATH}/node_query_embedded_documents.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/query_arrays.test.js                          -o ${DRIVERS_PATH}/node_query_arrays.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/query_array_of_documents.test.js              -o ${DRIVERS_PATH}/node_query_array_of_documents.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/query_for_null_fields.test.js                 -o ${DRIVERS_PATH}/node_query_for_null_fields.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/remove_documents.test.js                      -o ${DRIVERS_PATH}/node_remove.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/transactions.test.js                          -o ${DRIVERS_PATH}/node_transactions.js
-	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/functional/examples/update_documents.test.js                      -o ${DRIVERS_PATH}/node_update.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/change_streams.test.js                        -o ${DRIVERS_PATH}/node_changestreams.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/array_filters.test.js                         -o ${DRIVERS_PATH}/node_array_filters.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/causal_consistency.test.js                    -o ${DRIVERS_PATH}/node_causal_consistency.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/insert.test.js                                -o ${DRIVERS_PATH}/node_insert.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/project_fields_from_query_results.test.js     -o ${DRIVERS_PATH}/node_project.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query.test.js                                 -o ${DRIVERS_PATH}/node_query.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_embedded_documents.test.js              -o ${DRIVERS_PATH}/node_query_embedded_documents.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_arrays.test.js                          -o ${DRIVERS_PATH}/node_query_arrays.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_array_of_documents.test.js              -o ${DRIVERS_PATH}/node_query_array_of_documents.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/query_for_null_fields.test.js                 -o ${DRIVERS_PATH}/node_query_for_null_fields.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/remove_documents.test.js                      -o ${DRIVERS_PATH}/node_remove.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/transactions.test.js                          -o ${DRIVERS_PATH}/node_transactions.js
+	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/main/test/integration/node-specific/examples/update_documents.test.js                      -o ${DRIVERS_PATH}/node_update.js
 	curl -SfL https://raw.githubusercontent.com/mongodb/node-mongodb-native/4.0/test/functional/examples/versioned_api.js                               -o ${DRIVERS_PATH}/node_versioned_api.js
 
 # ruby
