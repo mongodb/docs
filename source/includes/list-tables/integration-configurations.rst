@@ -247,4 +247,4 @@
        generated URL to configure your Microsoft Teams integration.
 
        For prerequisites and the setup procedure, see 
-       :ref:`Integrate with Microsoft Teams <<integrate-with-microsoft-teams>>`.
+       :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
