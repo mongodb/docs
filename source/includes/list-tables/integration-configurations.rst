@@ -244,7 +244,8 @@
        To send alert notifications to a Microsoft Teams channel,
        you must create a Microsoft Teams incoming webhook. 
        After creating the webhook, you can use the automatically
-       generated URL to configure your Microsoft Teams integration.
+       generated URL to configure your Microsoft Teams integration
+       in |service|.
 
-       For prerequisites and the setup procedure, see 
+       To setup the integration, see 
        :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
