@@ -246,4 +246,5 @@
        After creating the webhook, you can use the automatically
        generated URL to configure your Microsoft Teams integration.
 
-       For detailed steps, see 
+       For prerequisites and the setup procedure, see 
+       :ref:`Integrate with Microsoft Teams <<integrate-with-microsoft-teams>>`.
