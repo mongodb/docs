@@ -232,3 +232,18 @@
        configuring SumoLogic with |service|. You don't need to
        configure any settings within |service| to set up a SumoLogic
        integration.
+
+   * - :guilabel:`Microsoft Teams Settings`
+
+     - Configures |service| to send alerts about your deployment to 
+       your `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
+       channel. You can view these notifications in the 
+       `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_ 
+       displayed in your channel.
+
+       To send alert notifications to a Microsoft Teams channel,
+       you must create a Microsoft Teams incoming webhook. 
+       After creating the webhook, you can use the automatically
+       generated URL to configure your Microsoft Teams integration.
+
+       For detailed steps, see 
