@@ -38,8 +38,7 @@
 11 November 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Adds support for
-:manual:`MongoDB 5.1 </../v5.1/reference/versioning/#rapid-releases>`.
+- Adds support for :manual:`MongoDB 5.1 </../v5.1/reference/versioning/#rapid-releases>`.
 
 .. _atlas_20211027:
 
