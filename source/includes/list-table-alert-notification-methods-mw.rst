@@ -139,7 +139,6 @@
        channel as an
        `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_.
 
-
        To send alert notifications to a Microsoft Teams channel,
        you must create a Microsoft Teams incoming webhook. 
        After creating the webhook, you can use the automatically
