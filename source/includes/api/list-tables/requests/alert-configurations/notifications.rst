@@ -265,6 +265,7 @@
           - ``TEAM``
           - ``GROUP`` (Project)
           - ``ORG``
+          - ``MICROSOFT_TEAMS``
 
    * - | notifications.[n]
        | .username
@@ -299,3 +300,11 @@
        Set this value if you set **notifications.[n].typeName** to
        **VICTOR_OPS**.
 
+   * - | ``notifications``
+       | ``.webhookUrl``
+     - string
+     - Conditional
+     - Microsoft Teams channel incoming webhook URL.
+
+       Set this value if you set **notifications.[n].typeName** to
+       **MICROSOFT_TEAMS**.
