@@ -33,21 +33,21 @@ sharded:
   supported country or subdivision codes, visit
   https://cloud.mongodb.com/static/atlas/country_iso_codes.txt.
 
-For collections that meet the stated requirements, you *must* shard
-the collection using the following pattern:
-
-.. code-block:: json
-
-   { "location" : 1, "<secondary_field>" : 1 }
-
 A shard key on the ``location`` field alone may result in bottlenecks,
 especially for workloads where a subset of countries or subdivisions
 receive the majority of write operations. |service| |global-write|
 requires a :manual:`compound shard key </core/index-compound>` to
 facilitate efficient distribution of sharded data across the cluster.
 |service| |global-write-cluster| shard keys share the same restrictions
-as MongoDB shard keys. For example, the secondary shard key field
-*cannot* be an array.
+as MongoDB shard keys. |service| |global-write-cluster| limitations are as follows:
+
+- The first field of the compound shard key must be ``location`` and *cannot* be hashed.
+
+- There can only be one secondary shard key field in a compound shard key.
+
+- Starting in MongoDB version 4.4, the secondary shard key field of a compound shard key *can* be hashed.
+
+- The secondary shard key field *cannot* be an array.
 
 .. seealso::
 
@@ -59,6 +59,9 @@ as MongoDB shard keys. For example, the secondary shard key field
 
    - What shard key limitations are, see
      :ref:`Shard Key Limitations <limits-shard-keys>`.
+
+   - What hashed sharding options are available, see
+     :ref:`Hashed Sharding Options <global-writes-initial-chunks>`.
 
 .. important:: Changing the Shard Key
 
@@ -109,6 +112,58 @@ to enable |global-write| for that collection.
 
    To learn more about sharding collections via the Data Explorer, see
    :ref:`de-shard-collection-for-global-writes`.
+
+.. _global-writes-initial-chunks:
+
+Hashed Sharding Options  
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Shard keys use :manual:`hashed sharding </core/hashed-sharding/>` and 
+pre-split data for even distribution. This is only available on 
+|service| clusters running MongoDB 4.4 and above.
+
+|service| distributes the sharded data evenly by hashing the second 
+field of the shard key if you perform one of the following actions:
+
+- Enable the use of hashed index shard keys by selecting 
+  :guilabel:`Use hashed index as the shard key` in the :ref:`User 
+  Interface <de-shard-collection-for-global-writes>`.
+
+- Set ``isCustomShardKeyHashed`` through the :doc:`API 
+  </reference/api/global-clusters-add-namespace>`.
+
+
+You can optionally specify whether to perform initial chunk creation and
+distribution for an empty or non-existing collection. This is based on the
+defined zones and zone ranges for the collection. To do this, 
+perform one of the following actions:
+
+- Select :guilabel:`Pre-split data for even distribution` 
+  in the |service| :ref:`User Interface <de-shard-collection-for-global-writes>`.
+ 
+- Set ``presplitHashedZone`` 
+  using the :doc:`API </reference/api/global-clusters-add-namespace>`.
+
+When creating a sharded collection using a compound hashed shard key 
+for |global-write-cluster|\s, |service| creates at least 1 chunk per 
+location `code <https://cloud.mongodb.com/static/atlas/country_iso_codes.txt>`__ 
+and attempts to distribute chunks evenly across shards in the cluster. 
+
+You can also specify the minimum number of chunks to create initially 
+when sharding an empty collection with a :manual:`hashed shard key 
+</core/hashed-sharding/>` using the |service| :guilabel:`Data Explorer` 
+:ref:`User Interface <de-shard-collection-for-global-writes>` or by 
+setting ``numInitialChunks`` parameter through the :doc:`API 
+</reference/api/global-clusters-add-namespace>`. 
+
+.. note:: 
+
+   If you specify the number of chunks per shard, |service| creates at 
+   least the minimum number of chunks that you specified, with the same 
+   number of chunks per location code. If you specify the minimum 
+   number of chunks, |service| sets up zoned sharding quickly, 
+   especially if you already know how to geographically distribute your 
+   data before sharding.
 
 Error Handling
 ~~~~~~~~~~~~~~
@@ -163,53 +218,6 @@ The collection is already sharded.
 The collection has a custom default collation.
   A :manual:`custom default collation </reference/collation/>` on the
   collection may cause a sharding error.
-
-.. _global-writes-initial-chunks:
-
-Hashed Sharding Options  
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Shard keys use :manual:`hashed sharding </core/hashed-sharding/>` and 
-pre-split data for even distribution. This is only available on 
-|service| clusters running MongoDB 4.4 and above.
-
-If you enable the use of hashed index shard keys by selecting 
-:guilabel:`Use hashed index as the shard key` in the :ref:`User 
-Interface <de-shard-collection-for-global-writes>` or by setting 
-``isCustomShardKeyHashed`` through the :doc:`API 
-</reference/api/global-clusters-add-namespace>`, 
-|service| distributes the sharded data evenly by hashing the second 
-field of the shard key. 
-
-You can optionally select :guilabel:`Pre-split data for even 
-distribution` in the |service| :ref:`User Interface 
-<de-shard-collection-for-global-writes>` or set ``presplitHashedZone`` 
-using the :doc:`API </reference/api/global-clusters-add-namespace>` to 
-specify whether to perform initial chunk creation and distribution for 
-an empty or non-existing collection based on the defined zones and zone 
-ranges for the collection. 
-
-When creating a sharded collection using a compound hashed shard key 
-for |global-write-cluster|\s, |service| creates at least 1 chunk per 
-location `code <https://cloud.mongodb.com/static/atlas/country_iso_codes.txt>`__ 
-and attempts to distribute chunks evenly across shards in the cluster. 
-By default, |service| creates one chunk per location code. 
-
-You can also specify the minimum number of chunks to create initially 
-when sharding an empty collection with a :manual:`hashed shard key 
-</core/hashed-sharding/>` using the |service| :guilabel:`Data Explorer` 
-:ref:`User Interface <de-shard-collection-for-global-writes>` or by 
-setting ``numInitialChunks`` parameter through the :doc:`API 
-</reference/api/global-clusters-add-namespace>`. 
-
-.. note:: 
-
-   If you specify the number of chunks per shard, |service| creates at 
-   least the minimum number of chunks that you specified, with the same 
-   number of chunks per location code. If you specify the minimum 
-   number of chunks, |service| sets up zoned sharding quickly, 
-   especially if you already know how to geographically distribute your 
-   data before sharding.
 
 .. _global-writes-write-operations:
 
