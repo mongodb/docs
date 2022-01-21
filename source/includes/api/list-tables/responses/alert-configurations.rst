@@ -22,7 +22,8 @@
 
    * - eventTypeName
      - string
-     - Type of event that triggers an alert.
+     - Human-readable label that indicates the :ref:`type of event 
+       <alert-configs-event-type-values>`.
 
    * - groupId
      - string
@@ -293,3 +294,11 @@
    * - updated
      - string
      - |iso8601-time| when this alert configuration was last updated.
+
+.. _alert-configs-event-type-values:
+
+Event Type Values
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/list-tables/alert-eventTypeNames.rst
+

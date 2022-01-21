@@ -50,7 +50,8 @@
 
    * - ``eventTypeName``
      - string
-     - Name of the event that triggered the alert.
+     - Human-readable label that indicates the :ref:`type of event 
+       <alerts-event-type-values>`.
 
    * - ``id``
      - string
@@ -107,3 +108,9 @@
      - string
      - |iso8601-time| when the alert was last updated.
 
+.. _alerts-event-type-values:
+
+Event Type Values
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/list-tables/alert-eventTypeNames.rst
