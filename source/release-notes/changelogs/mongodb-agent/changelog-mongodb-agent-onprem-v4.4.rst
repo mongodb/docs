@@ -22,6 +22,8 @@ MongoDB Agent 10.14.29.6548
 :ref:`Released with Ops Manager 4.4.18 on 2021-11-04
 <opsmgr-server-4.4.18>`
 
+- Removes support for RHEL/CentOS 6 for the MongoDB Agent.
+
 .. _mongodb-10.14.28.6532:
 
 MongoDB Agent 10.14.28.6532
@@ -30,7 +32,6 @@ MongoDB Agent 10.14.28.6532
 :ref:`Released with Ops Manager 4.4.17 on 2021-09-03
 <opsmgr-server-4.4.17>`
 
-- Removes support for RHEL/CentOS 6 for the MongoDB Agent.
 
 .. _mongodb-10.14.27.6524:
 
