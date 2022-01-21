@@ -6,26 +6,22 @@
 
      - Configuration Details
 
-   * - :guilabel:`PagerDuty Service Key`
+   * - :guilabel:`Datadog Settings`
 
-     - Sets a default service key for alert notifications sent to a
-       `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
-       account. |service| enters the key by default when you add a
-       PagerDuty notification to an :doc:`alert configuration
-       </monitoring-alerts>`. If you add PagerDuty notifications and if
-       the key used to send the notifications becomes invalid,
-       |service| sends an email to the project owner and eventually
-       removes the key.
+     - Configures |service| to send metric data about your deployment
+       to |datadog|. You can view these metrics in your Datadog
+       dashboards. To discover the detailed list of all |service|
+       metrics that Datadog tracks, refer to the
+       :ref:`Datadog Integration <datadog-integration>` page.
 
-       You can add PagerDuty notifications only for alerts that require
-       user acknowledgement. Informational alerts, such as the alert
-       that a user has joined a project, cannot use this notification
-       method.
+       - If you have a Datadog account, use Datadog begin tracking your
+         |service| metric data.
 
-       Users can acknowledge PagerDuty alerts only from the PagerDuty
-       dashboard.
+       - If you do not have an existing Datadog account,
+         `sign up for one <https://app.datadoghq.com/signup>`__.
 
-       .. include:: /includes/fact-pagerduty-api-key-decommission.rst
+       - Datadog API Key
+       - API Region (United States or Europe)
 
    * - :guilabel:`Flowdock Settings`
 
@@ -59,6 +55,90 @@
               `Tokens page <https://www.flowdock.com/account/tokens>`__
               of your Flowdock account.
 
+   * - :guilabel:`Microsoft Teams Settings`
+
+     - Configures |service| to send alerts about your deployment to 
+       your `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
+       channel. You can view these alerts in the 
+       `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_ 
+       displayed in your channel.
+
+       To send alert notifications to a Microsoft Teams channel,
+       you must create a Microsoft Teams incoming webhook. 
+       After creating the webhook, you can use the automatically
+       generated URL to configure your Microsoft Teams integration
+       in |service|.
+
+       To setup the integration, see 
+       :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
+
+
+   * - :guilabel:`New Relic Settings`
+
+     - .. include:: /includes/fact-new-relic-deprecated.rst
+      
+       Configures |service| to send metric data about your deployment
+       to `New Relic <http://newrelic.com/>`_ for viewing through the
+       New Relic MongoDB plugin. You can also use Insights for New
+       Relic to run analytics on the collected data. |service| sends
+       New Relic the same metric data as displayed in |service|
+       :doc:`cluster metrics </monitor-cluster-metrics>`.
+
+       - If you have a New Relic account, enter the following
+         information:
+
+         - Account ID
+         - License Key
+         - Insights API Insert Key
+         - Insights API Query Key
+
+       - If you don't have a New Relic account,
+         `sign up for one <https://newrelic.com/signup?via=login>`__.
+
+       If any of the keys later become invalid, |service| sends an
+       email to the project owner and eventually removes the invalid
+       credentials.
+
+   * - :guilabel:`OpsGenie API Key`
+
+     - Sets an API key for alert notifications sent to an OpsGenie
+       account. This will be used as the default OpsGenie API key when
+       configuring alerts.
+
+       - If you have an OpsGenie account, enter the following
+         information:
+
+         - OpsGenie integration API Key, which OpsGenie provides after you
+           `create an API integration 
+           <https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration>`__
+           under an OpsGenie team. You cannot use general OpsGenie account API
+           keys for |service| integration.
+         - API Region (United States or Europe)
+
+       - If you don't have an OpsGenie account,
+         `sign up for one <https://www.opsgenie.com/signup>`__.
+
+   * - :guilabel:`PagerDuty Service Key`
+
+     - Sets a default service key for alert notifications sent to a
+       `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
+       account. |service| enters the key by default when you add a
+       PagerDuty notification to an :doc:`alert configuration
+       </monitoring-alerts>`. If you add PagerDuty notifications and if
+       the key used to send the notifications becomes invalid,
+       |service| sends an email to the project owner and eventually
+       removes the key.
+
+       You can add PagerDuty notifications only for alerts that require
+       user acknowledgement. Informational alerts, such as the alert
+       that a user has joined a project, cannot use this notification
+       method.
+
+       Users can acknowledge PagerDuty alerts only from the PagerDuty
+       dashboard.
+
+       .. include:: /includes/fact-pagerduty-api-key-decommission.rst
+
    * - :guilabel:`Slack Settings`
 
      - Sets a team name, |api| token and a channel name for
@@ -87,6 +167,30 @@
           you can't edit your legacy tokens. You must
           reconfigure your Slack integration with
           OAuth2 if you need to edit the token configuration.
+
+   * - :guilabel:`SumoLogic Settings`
+
+     - Connects you to the relevant SumoLogic documentation for
+       configuring SumoLogic with |service|. You don't need to
+       configure any settings within |service| to set up a SumoLogic
+       integration.
+
+
+   * - :guilabel:`VictorOps Settings`
+
+     - Sets an API key and Routing key for alert notifications sent to
+       a Splunk On-Call (formerly VictorOps) account. |service| uses
+       this information as the default settings when configuring
+       alerts.
+
+       - If you have a Splunk On-Call account, enter the following
+         information:
+
+         - `Splunk On-Call API Key <https://help.victorops.com/knowledge-base/api/>`__
+         - `Splunk On-Call Routing Key <https://help.victorops.com/knowledge-base/routing-keys/>`__ (optional)
+
+       - If you don't have a Splunk On-Call account,
+         `sign up for one <https://www.splunk.com/en_us/download/on-call.html>`__.
 
    * - :guilabel:`Webhook Settings`
 
@@ -146,106 +250,3 @@
           If your firewall configuration requires it, allow access from
           :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
           |service| can communicate with your webhook.
-
-   * - :guilabel:`VictorOps Settings`
-
-     - Sets an API key and Routing key for alert notifications sent to
-       a Splunk On-Call (formerly VictorOps) account. |service| uses
-       this information as the default settings when configuring
-       alerts.
-
-       - If you have a Splunk On-Call account, enter the following
-         information:
-
-         - `Splunk On-Call API Key <https://help.victorops.com/knowledge-base/api/>`__
-         - `Splunk On-Call Routing Key <https://help.victorops.com/knowledge-base/routing-keys/>`__ (optional)
-
-       - If you don't have a Splunk On-Call account,
-         `sign up for one <https://www.splunk.com/en_us/download/on-call.html>`__.
-
-
-   * - :guilabel:`OpsGenie API Key`
-
-     - Sets an API key for alert notifications sent to an OpsGenie
-       account. This will be used as the default OpsGenie API key when
-       configuring alerts.
-
-       - If you have an OpsGenie account, enter the following
-         information:
-
-         - OpsGenie integration API Key, which OpsGenie provides after you
-           `create an API integration 
-           <https://support.atlassian.com/opsgenie/docs/create-a-default-api-integration>`__
-           under an OpsGenie team. You cannot use general OpsGenie account API
-           keys for |service| integration.
-         - API Region (United States or Europe)
-
-       - If you don't have an OpsGenie account,
-         `sign up for one <https://www.opsgenie.com/signup>`__.
-
-   * - :guilabel:`New Relic Settings`
-
-     - .. include:: /includes/fact-new-relic-deprecated.rst
-      
-       Configures |service| to send metric data about your deployment
-       to `New Relic <http://newrelic.com/>`_ for viewing through the
-       New Relic MongoDB plugin. You can also use Insights for New
-       Relic to run analytics on the collected data. |service| sends
-       New Relic the same metric data as displayed in |service|
-       :doc:`cluster metrics </monitor-cluster-metrics>`.
-
-       - If you have a New Relic account, enter the following
-         information:
-
-         - Account ID
-         - License Key
-         - Insights API Insert Key
-         - Insights API Query Key
-
-       - If you don't have a New Relic account,
-         `sign up for one <https://newrelic.com/signup?via=login>`__.
-
-       If any of the keys later become invalid, |service| sends an
-       email to the project owner and eventually removes the invalid
-       credentials.
-
-   * - :guilabel:`Datadog Settings`
-
-     - Configures |service| to send metric data about your deployment
-       to |datadog|. You can view these metrics in your Datadog
-       dashboards. To discover the detailed list of all |service|
-       metrics that Datadog tracks, refer to the
-       :ref:`Datadog Integration <datadog-integration>` page.
-
-       - If you have a Datadog account, use Datadog begin tracking your
-         |service| metric data.
-
-       - If you do not have an existing Datadog account,
-         `sign up for one <https://app.datadoghq.com/signup>`__.
-
-       - Datadog API Key
-       - API Region (United States or Europe)
-
-   * - :guilabel:`SumoLogic Settings`
-
-     - Connects you to the relevant SumoLogic documentation for
-       configuring SumoLogic with |service|. You don't need to
-       configure any settings within |service| to set up a SumoLogic
-       integration.
-
-   * - :guilabel:`Microsoft Teams Settings`
-
-     - Configures |service| to send alerts about your deployment to 
-       your `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
-       channel. You can view these alerts in the 
-       `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_ 
-       displayed in your channel.
-
-       To send alert notifications to a Microsoft Teams channel,
-       you must create a Microsoft Teams incoming webhook. 
-       After creating the webhook, you can use the automatically
-       generated URL to configure your Microsoft Teams integration
-       in |service|.
-
-       To setup the integration, see 
-       :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
