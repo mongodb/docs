@@ -62,6 +62,10 @@
      - 750 GB
      - 128 GB
 
+   * - M140 :icon-fa5:`star`
+     - 1000 GB
+     - 192 GB
+
    * - M200 :icon-fa5:`star`
      - 1500 GB
      - 256 GB
@@ -69,6 +73,10 @@
    * - R200 :icon-fa4:`exclamation-circle` :icon-fa5:`star`
      - 1500 GB
      - 256 GB
+
+   * - M250 :icon-fa5:`star`
+     - 1750 GB
+     - 320 GB
 
    * - M300 :icon-fa4:`times-circle` :icon-fa5:`star`
      - 2000 GB
