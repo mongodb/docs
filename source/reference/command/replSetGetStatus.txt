@@ -47,7 +47,7 @@ The command has the following syntax:
       another state, the :data:`replSetGetStatus.initialSyncStatus`
       metrics are no longer available.
 
-- In earlier versions (3.4.x-4.2.0)
+- In earlier versions (3.6.x-4.2.0)
       To return :ref:`initial sync <replica-set-initial-sync>` status
       information, include ``initialSync: 1`` in the command on a
       secondary member or a member in :replstate:`STARTUP2` state:
@@ -84,7 +84,7 @@ Example
 
           .. code-block:: javascript
 
-             db.adminCommand( { replSetGetStatus : 1 } )
+             db.adminCommand( { replSetGetStatus: 1 } )
 
           The command returns the following output for an example
           replica set primary:
@@ -265,7 +265,7 @@ Example
 
           .. code-block:: javascript
 
-             db.adminCommand( { replSetGetStatus : 1 } )
+             db.adminCommand( { replSetGetStatus: 1 } )
 
           The command returns the following output for an example replica set secondary:
 
@@ -417,7 +417,7 @@ Example
                 "operationTime" : Timestamp(1583386018, 1)
              }
 
-          In earlier versions (3.4.x-4.2.0)
+          In earlier versions (3.6.x-4.2.0)
              You can include the optional ``initialSync: 1`` to include
              the :data:`replSetGetStatus.initialSyncStatus` in the
              output (you can omit if you do not want to return the
@@ -425,11 +425,19 @@ Example
       
              .. code-block:: javascript
 
-                db.adminCommand( { replSetGetStatus : 1, initialSync: 1} )
+                db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
           
       - id: startup2
         name: Include Initial Sync Metrics
         content: |
+
+          Starting in MongoDB 5.2, 
+             the :data:`replSetGetStatus.initialSyncStatus` document
+             contains :ref:`additional fields 
+             <fcbis-initial-sync-fields>` when using a
+             :ref:`file copy based initial sync 
+             <replica-set-initial-sync-file-copy-based>`.
+
 
           Starting in MongoDB 4.2.1, 
              If you run :dbcommand:`replSetGetStatus` on a member
@@ -438,13 +446,14 @@ Example
           
              .. code-block:: javascript
 
-                db.adminCommand( { replSetGetStatus : 1} )
+                db.adminCommand( { replSetGetStatus: 1 } )
              
-             Once the member finishes its initial sync and transitions to
-             another state,the :data:`replSetGetStatus.initialSyncStatus`
-             metrics is no longer available.
+             Once the member finishes its initial sync and transitions 
+             to another state, the 
+             :data:`replSetGetStatus.initialSyncStatus` document is no 
+             longer available.
 
-          In earlier versions (3.4.x-4.2.0)
+          In earlier versions (3.6.x-4.2.0)
              You can include the optional ``initialSync: 1`` to include
              the :data:`replSetGetStatus.initialSyncStatus` in the
              output (you can omit if you do not want to return the
@@ -452,9 +461,9 @@ Example
       
              .. code-block:: javascript
 
-                db.adminCommand( { replSetGetStatus : 1, initialSync: 1} )
+                db.adminCommand( { replSetGetStatus: 1, initialSync: 1 } )
              
-             For 3.4.x-4.2.0 replica sets,
+             For 3.6.x-4.2.0 replica sets,
              :data:`replSetGetStatus.initialSyncStatus` metrics remains
              available after the member completes its initial sync.
              That is, you can run the :dbcommand:`replSetGetStatus`
@@ -1050,7 +1059,7 @@ following fields:
 .. data:: replSetGetStatus.initialSyncStatus
 
 
-   A document provides information on the progress and status of
+   A document that provides information on the progress and status of
    :ref:`initial sync <replica-set-initial-sync>` on this member.
 
    .. include:: /includes/fact-rs-status-init-sync-availability.rst
@@ -1132,7 +1141,11 @@ following fields:
          * - rollBackId
 
            - The sync source's rollback identifier at the start of the
-             initial sync attempt.
+             initial sync attempt. 
+             
+             ``rollBackId`` does not appear when using 
+             :ref:`file copy based initial sync 
+             <replica-set-initial-sync-file-copy-based>`.
 
              .. versionadded:: 4.4
 
@@ -1251,6 +1264,137 @@ following fields:
             }
          }
 
+.. _fcbis-initial-sync-fields:
+
+.. data:: replSetGetStatus.initialSyncStatus.method
+
+   .. versionadded:: 5.2
+
+   The method used for the :ref:`initial sync 
+   <replica-set-initial-sync>`.
+   
+   If set to ``logical``, the sync is a :ref:`logical initial sync 
+   <replica-set-initial-sync-logical>`. If set to ``fileCopyBased``, the
+   sync is a :ref:`file copy based initial sync                                   
+   <replica-set-initial-sync-file-copy-based>`.  
+
+.. data:: replSetGetStatus.initialSyncStatus.approxTotalDataSize
+
+   The approximate size (in bytes) of all files to be synced during 
+   :ref:`file copy based initial sync 
+   <replica-set-initial-sync-file-copy-based>`. 
+
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+   
+.. data:: replSetGetStatus.initialSyncStatus.approxTotalBytesCopied
+
+   The total bytes already copied.
+
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.totalInitialSyncElapsedMillis
+   
+   The total time elapsed for the sync attempt in progress.
+
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.remainingInitialSyncEstimatedMillis
+
+   The expected time remaining for the sync attempt in progress.
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.initialBackupDataSize
+   
+   The total size (in bytes) of the initial set of files to be synced.
+
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.previousOplogEnd
+
+   The :term:`optime` available in the previous :term:`backup cursor`. 
+
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.currentOplogEnd
+
+   The last :term:`optime` guaranteed to be available in the current 
+   :term:`backup cursor`. 
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.syncSourceLastApplied
+
+   The :term:`optime` of the last update applied at the sync source 
+   prior to the start of this :term:`backup cursor`. 
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. _fcbis-extension:
+
+.. data:: replSetGetStatus.initialSyncStatus.numExtensions
+
+   The number of times the sync has started a new :term:`backup cursor`.
+
+   This field does not appear if a backup cursor has not started.
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.extensionDataSize
+
+   The total bytes in the current :ref:`extension <fcbis-extension>`. 
+
+   This field does not appear if there is no extension in progress.
+
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+   
+.. data:: replSetGetStatus.initialSyncStatus.files
+
+   An array of files to be synced during :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].filePath
+
+   The path of the file relative to the root of the 
+   :term:`backup cursor`.
+
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].fileSize
+
+   The size of the file as reported by the :term:`backup cursor`.
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].bytesCopied
+
+   The number of bytes copied so far.
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
+
+.. data:: replSetGetStatus.initialSyncStatus.files[n].extensionNumber
+
+   The number of the :ref:`extension <fcbis-extension>` the file belongs 
+   to if this file is part of an extension.
+   
+   This field only appears when using :ref:`file copy based initial 
+   sync <replica-set-initial-sync-file-copy-based>`.
 
 .. data:: replSetGetStatus.members
 
