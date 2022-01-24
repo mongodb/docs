@@ -17,5 +17,7 @@
    * - eventTypeName
      - string
      - Required
-     - Human-readable label that indicates the :ref:`type of event 
-       <alert-configs-event-type-values>`.
+     - Type of event that triggers an alert.
+
+       .. include:: /includes/api/list-tables/alert-eventTypeNames.rst
+

@@ -17,8 +17,11 @@
    * - eventType
      - string
      - Optional
-     - Human-readable label that indicates the :ref:`type of event 
-       <event-type-values>`.
+     - Event type to be returned.
+
+       |service| accepts:
+
+       .. include:: /includes/api/list-tables/alert-eventTypeNames.rst
      -
 
    * - minDate

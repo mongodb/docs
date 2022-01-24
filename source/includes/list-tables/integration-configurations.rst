@@ -57,7 +57,7 @@
 
    * - :guilabel:`Microsoft Teams Settings`
 
-     - Configures |service| to send alerts about your project to 
+     - Configures |service| to send alerts about your deployment to 
        your `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
        channel. You can view these alerts in the 
        `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_ 
@@ -71,6 +71,7 @@
 
        To setup the integration, see 
        :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
+
 
    * - :guilabel:`New Relic Settings`
 
