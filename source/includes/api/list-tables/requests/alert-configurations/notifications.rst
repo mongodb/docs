@@ -300,8 +300,8 @@
        Set this value if you set **notifications.[n].typeName** to
        **VICTOR_OPS**.
 
-   * - | ``notifications``
-       | ``.microsoftTeamWebhookUrl``
+   * - | notifications.[n]
+       | .microsoftTeamWebhookUrl
      - string
      - Conditional
      - Microsoft Teams channel incoming webhook URL.

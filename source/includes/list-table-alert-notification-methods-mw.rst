@@ -137,7 +137,7 @@
      - Sends the alert to a 
        `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
        channel as an
-       `Adaptive Card <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_.
+       `Adaptive Card <https://docs.microsoft.com/en-us/microsoftteams/platform/task-modules-and-cards/cards/cards-reference#adaptive-card/>`_.
 
 
        To send alert notifications to a Microsoft Teams channel,

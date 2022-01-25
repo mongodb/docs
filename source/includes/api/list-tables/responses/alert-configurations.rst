@@ -168,6 +168,12 @@
        **SMS**.
 
    * - | notifications.[n]
+       | .microsoftTeamWebhookUrl
+     - string
+     - Microsoft Teams incoming webhook URL. |service| returns this value if you set
+       **notifications.[n].typeName** to **MICROSOFT_TEAMS**.
+
+   * - | notifications.[n]
        | .notificationToken
      - string
      - HipChat API token. |service| returns this value if you set
