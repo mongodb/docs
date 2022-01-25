@@ -1,0 +1,139 @@
+---
+title: "Navigate to your Project Integrations."
+stepnum: 1
+level: 4
+ref: project-settings
+inherit:
+  ref: project-nav-integrations-page
+  file: steps-source-project-nav.yaml
+---
+title: "Click :guilabel:`Configure` for the Prometheus integration card."
+stepnum: 2
+level: 4
+ref: configure-prometheus
+---
+title: "Enter your preferred username and password."
+stepnum: 3
+level: 4
+ref: credentials-prometheus
+content: |
+
+  .. important::
+
+     Copy your username and password in a secure location. You can't
+     access the password after you leave this screen.
+
+---
+title: "Select your preferred service discovery method."
+stepnum: 4
+level: 4
+ref: sd-method-prometheus
+content: |
+  
+  .. list-table::
+     :widths: 20 80
+     :header-rows: 1
+
+     * - Discovery Method
+       - Description
+
+     * - `HTTP SD <https://prometheus.io/docs/prometheus/latest/http_sd/>`__
+       - This method requires Prometheus v2.28 and later. It
+         automatically generates the `scrape_config
+         <https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config>`__
+         part of your `configuration file
+         <https://prometheus.io/docs/prometheus/latest/configuration/configuration/#configuration-file>`__
+         to discover targets over an HTTP endpoint.
+
+     * - `File Service Discovery <https://prometheus.io/docs/guides/file-sd/#use-file-based-service-discovery-to-discover-scrape-targets>`__
+       - This method allows Prometheus to read YAML or JSON documents to
+         configure the targets to scrape from. You are responsible for
+         providing the targets by making a request to the
+         :ref:`Discovery API <prometheus-discovery-endpoint>` and
+         storing its results in a ``targets.json`` file.
+
+         To make the request, substitute the placeholder text in one of
+         the following tabs or create your own script in another language.
+
+         .. tabs::
+
+           .. tab:: Shell Command
+              :tabid: shell-command
+
+              .. code-block:: sh
+
+                 curl --header 'Accept: application/json' 
+                 # Sets the `Authorization` header on every scrape request with the
+                 # username and password from the previous step.
+                 --user <username>:<password> 
+                 # The URL that Prometheus fetches the targets from. 
+                 # Replace the <group-id> with the project ID of your Atlas instance.
+                 --request GET "https://cloud.mongodb.com/prometheus/v1.0/groups/<group_id>/discovery" 
+
+           .. tab:: Python Script
+              :tabid: python-script
+
+              .. tip::
+
+                 If you need to install the ``requests`` library, see their
+                 `Installation Guide <https://docs.python-requests.org/en/latest/user/install/>`__.
+
+              .. code-block:: python
+
+                 import time, json, requests
+
+                 # This script sets the `Authorization` header on every
+                 # scrape request with the configured username and
+                 # password. Then it tells Prometheus to fetch targets
+                 # from the specified URL. 
+                 #
+                 # Note: Replace the <username> and <password> with the
+                 # values in the previous step, and <group-id> with the
+                 # project ID of your Atlas instance.
+                 basic_auth_user="<username>"
+                 basic_auth_password="<password>"
+                 discovery_api_url="https://cloud.mongodb.com/prometheus/v1.0/groups/<group_id>/discovery"
+
+                 # The script updates your targets.json file every
+                 # minute, if it successfully retrieves targets.
+                 #
+                 # Note: Replace the <path-to-targets.json> with the
+                 # path to your targets.json file.
+                 starttime = time.time()
+                 while True:
+                   r = requests.get(discovery_api_url, auth=(basic_auth_user, basic_auth_password))
+                   if  r.status_code == 200:
+                     with open('<path-to-targets.json>', 'w') as f:
+                       json.dump(r.json(), f)
+                   time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+  
+  To learn more about the Discovery API, see
+  :ref:`prometheus-discovery-endpoint`.
+
+---
+title: "Click :guilabel:`Save`."
+stepnum: 5
+level: 4
+ref: save-prometheus
+---
+title: "View Your Cluster Metrics on Prometheus."
+stepnum: 6
+level: 4
+ref: view-prometheus
+content: |
+
+  a. Copy the generated snippet into the `scrape_configs
+     <https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config>`__
+     section of your `configuration file
+     <https://prometheus.io/docs/prometheus/latest/configuration/configuration/#configuration-file>`__
+     and substitute the placeholder text. 
+     
+     For an example of the configuration file in either method, see
+     :ref:`example-prometheus-configurations`.
+
+  #. Restart your Prometheus instance.
+
+  #. In your Prometheus instance, click ``Status`` in the top navigation
+     bar, and click ``Targets`` to see the metrics of your deployment.
+
+...
