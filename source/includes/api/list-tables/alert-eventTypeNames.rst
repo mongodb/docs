@@ -1,3 +1,7 @@
+.. important::
+
+   The complete list of event type values changes frequently.
+
 .. list-table::
    :widths: 40 80
    :header-rows: 1

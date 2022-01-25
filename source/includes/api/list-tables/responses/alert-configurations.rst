@@ -22,7 +22,8 @@
 
    * - eventTypeName
      - string
-     - Type of event that triggers an alert.
+     - Human-readable label that indicates the :ref:`type of event 
+       <alert-configs-event-type-values>`.
 
    * - groupId
      - string

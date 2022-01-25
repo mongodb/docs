@@ -50,7 +50,8 @@
 
    * - ``eventTypeName``
      - string
-     - Name of the event that triggered the alert.
+     - Human-readable label that indicates the :ref:`type of event 
+       <alerts-event-type-values>`.
 
    * - ``id``
      - string

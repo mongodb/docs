@@ -17,7 +17,8 @@
    * - eventType
      - string
      - Optional
-     - Event type to be returned.
+     - Human-readable label that indicates the :ref:`type of event 
+       <event-type-values>`.
 
        |service| accepts:
 
