@@ -6,8 +6,8 @@ content: |
   a. In the left-side panel of your organization's page, click
      :guilabel:`Live Migration` and choose :guilabel:`Select Cluster for General Live Migration`.
 
-  #. Navigate to the destination |service| cluster and click the ellipsis
-     :guilabel:`...` button. On the Cluster list, the ellipsis
+  #. Navigate to the target |service| cluster and click the ellipsis
+     :guilabel:`...` button. On the cluster list, the ellipsis
      :guilabel:`...` button appears beneath the cluster name, as shown
      in the following screenshot. When you view a cluster's details,
      the ellipsis :guilabel:`...` appears on the right-hand side of
@@ -87,26 +87,25 @@ content: |
 
   #. Click :guilabel:`Start Migration` to start the migration process.
 
-     Once the migration process begins, the |service| UI displays the
-     :guilabel:`Migrating Data` walk-through screen for the destination
-     |service| cluster.
+     Once the migration process begins, the |service| user interface
+     displays the :guilabel:`Migrating Data` walk-through screen for
+     the target |service| cluster.
 
-     The walk-through screen updates as the destination cluster
-     proceeds through the migration process. The migration process
-     includes:
+     The walk-through screen updates as the target cluster proceeds
+     through the migration process. The migration process includes:
 
-     - Copying collections from source to destination.
-     - Creating indexes on the destination.
+     - Copying collections from the source to the target cluster.
+     - Creating indexes on the target cluster.
      - Tailing of oplog entries from the source cluster.
 
-     A lag time value is displayed during the final oplog tailing phase
+     A lag time value displays during the final oplog tailing phase
      that represents the current lag between the source and target clusters.
-     This lag time might fluctuate depending on the rate of oplog generation
-     on the source, but should decrease over time as oplog entries are
-     copied to the target cluster.
+     This lag time may fluctuate depending on the rate of oplog generation
+     on the source cluster, but should decrease over time as the live
+     migration process copies the oplog entries to the target cluster.
 
-  When the lag timer and the :guilabel:`Prepare to Cutover` button turn
-  green, proceed to the next step.
+     When the lag timer and the :guilabel:`Prepare to Cutover` button turn
+     green, proceed to the next step.
 
 ---
 title: "Perform the cutover."
@@ -114,37 +113,38 @@ ref: live-import-prepare-cutover
 level: 4
 content: |
 
-  When |service| detects that the source and destination clusters are nearly
-  in sync, it starts an extendable 72 hour timer to begin the cutover
-  procedure. If the 72 hour period passes, |service| stops synchronizing with
-  the source cluster. You can extend the time remaining by 24 hours by
-  clicking the :guilabel:`Extend time` hyperlink below the :guilabel:`<time>
-  left to cut over` timer.
+   When |service| detects that the source and target clusters are
+   nearly in sync, it starts an extendable 120 hour (5 day) timer to begin
+   the cutover stage of the live migration procedure. If the 120 hour
+   period passes, |service| stops synchronizing with the source cluster.
+   You can extend the time remaining by 24 hours by clicking
+   :guilabel:`Extend time` below the :guilabel:`<time> left to cut over`
+   timer.
 
-  a. Once you are prepared to cut your applications over to the
-     destination |service| cluster, click :guilabel:`Prepare to Cutover`.
+   a. Once you are prepared to cut your applications over to the target
+      |service| cluster, click :guilabel:`Prepare to Cutover`.
+      
+   b. |service| displays a walk-through screen with instructions on how to
+      proceed with the cutover. These steps are also outlined below:
+   
+      1. Stop your application. This ensures that no more  writes occur on
+         the source cluster.
+      
+      2. Wait for the optime gap to reach zero. When the counter reaches
+         zero, the source and target clusters are in sync.
 
-  #. |service| displays a walk-through screen with instructions
-     on how to proceed with the cutover. These steps are also outlined
-     below:
+      3. Restart your application using the new connection string
+         provided in step 3 of the live migration cutover user interface.
 
-     1. Stop your application. This ensures that no additional writes
-        are generated to the source cluster.
+   #. Once you have completed the cutover stage of the procedure and
+      confirm that your application is working with the |service| cluster,
+      click :guilabel:`Cut Over` to complete the migration procedure.
+      This allows |service| to:
 
-     #. Wait for the optime gap to reach zero. When the counter reaches
-        zero, the source and destination clusters are in sync.
+      - Remove the Application Server subnets from the target cluster's
+        IP access list.
+      - Remove the database user that live migration used to import data
+        to the target cluster.
+      - Mark the migration process as complete.
 
-     #. Restart your application using the new connection string
-        provided in step 3 of the Live Migrate cutover UI.
-
-  #. Once you have completed the cutover procedure and confirmed
-     your applications are working normally with the |service| cluster,
-     click :guilabel:`Cut Over` to complete the migration procedure.
-     This allows |service| to:
-
-     - Mark the migration plan as complete.
-     - Remove the Application Server subnets from the destination
-       cluster IP access list.
-     - Remove the database user that Live Migrate used to import data
-       to the destination cluster.
 ...

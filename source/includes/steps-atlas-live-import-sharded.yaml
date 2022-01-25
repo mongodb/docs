@@ -6,7 +6,7 @@ content: |
   a. In the left-side panel of your organization's page, click
      :guilabel:`Live Migration` and choose :guilabel:`Select Cluster for General Live Migration`.
 
-  #. Navigate to the destination |service| cluster and click the ellipsis
+  #. Navigate to the target |service| cluster and click the ellipsis
      :guilabel:`...` button. On the Cluster list, the ellipsis
      :guilabel:`...` button appears beneath the cluster name, as shown
      in the following screenshot. When you view a cluster's details,
@@ -71,13 +71,13 @@ content: |
 
      |service| displays the live migration progress in the UI. During
      live migration, you cannot view metrics or access data for the
-     destination cluster.
+     target cluster.
 
      A lag time value is displayed during the final oplog tailing phase
-     that represents the current lag between the source and destination
+     that represents the current lag between the source and target
      clusters. This lag time may fluctuate depending on the rate of oplog
      generation on the source, but should decrease over time as oplog
-     entries are copied to the destination.
+     entries are copied to the target cluster.
 
      Click :guilabel:`View Progress per Shard` to view the sync progress
      and migration time remaining per shard. If the initial sync
@@ -87,7 +87,7 @@ content: |
   When the lag timer and the :guilabel:`Prepare to Cutover` button
   turn green, proceed to the next step.
 ---
-title: (Optional) Test the destination cluster.
+title: (Optional) Test the target cluster.
 ref: test-destination
 level: 4
 content: |
@@ -96,9 +96,9 @@ content: |
   proceed to step 3.
 
   If you wish to do a dry run of the migration process and test the
-  destination cluster for performance and data integrity, you may
+  target cluster for performance and data integrity, you may
   optionally click the :guilabel:`Cancel` button at this point. The
-  source cluster stops syncing data with the destination cluster, but
+  source cluster stops syncing data with the target cluster, but
   all the transferred data remains, so you can test your applications
   with the new cluster.
 
@@ -113,12 +113,13 @@ ref: live-import-prepare-cutover
 level: 4
 content: |
 
-  When |service| detects that the source and destination clusters are nearly
-  in sync, it starts an extendable 72 hour timer to begin the cutover
-  procedure. If the 72 hour period passes, |service| stops synchronizing with
-  the source cluster. You can extend the time remaining by 24 hours by
-  clicking the :guilabel:`Extend time` hyperlink below the :guilabel:`<time>
-  left to cut over` timer.
+  When |service| detects that the source and target clusters are nearly
+  in sync, it starts an extendable 120 hour (5 day) timer to begin the
+  cutover stage of the live migration procedure. If the 120 hour period
+  passes, |service| stops synchronizing with the source cluster. You can
+  extend the time remaining by 24 hours by clicking
+  :guilabel:`Extend time` below the :guilabel:`<time> left to cut over`
+  timer.
 
   .. important::
 
@@ -128,58 +129,63 @@ content: |
      on the dependent applications.
 
   a. Once you are prepared to cut your applications over to the
-     destination |service| cluster, click :guilabel:`Prepare to Cutover`.
+     target |service| cluster, click :guilabel:`Prepare to Cutover`.
 
-  #. |service| displays a walk-through screen with instructions
+     |service| displays a walk-through screen with instructions
      on how to proceed with the cutover. The :guilabel:`optime gap`
-     displays how far behind the destination cluster is compared to the
-     source cluster. You must stop your application and all writes
-     to the source cluster to allow the destination cluster to close
-     the :guilabel:`optime gap`.
+     displays how far behind the target cluster is compared to the
+     source cluster. You must stop your application and all writes to
+     the source cluster to allow the target cluster to close the
+     :guilabel:`optime gap`.
 
      Perform the steps described in the walk-through screen to cut over 
-     your applications to the |service| cluster. The walk-through screen 
-     provides the cluster connection string your applications must
-     use to connect to the |service| cluster.
+     your applications to the |service| cluster. These steps are also outlined
+     below:
+   
+     1. Stop your application. This ensures that no more  writes occur on
+        the source cluster.
+      
+     2. Wait for the optime gap to reach zero. When the counter reaches
+        zero, the source and target clusters are in sync.
+
+     3. Restart your application using the new connection string
+        provided in step 3 of the live migration cutover user interface.
 
      .. note:: Staging Migration
 
-     
-        If you are creating a staging environment for the purpose of
-        testing your applications against, note the
-        :guilabel:`optime gap` to identify how far behind your
-        staging environment will be compared to your source cluster.
+        If you are creating a staging environment to test your
+        applications, note the :guilabel:`optime gap` to identify how far
+        behind your staging environment will be compared with your source
+        cluster.
 
-        Press :guilabel:`Cancel` to cancel the live migration. 
-        |service| terminates the migration at that point in time,
-        leaving any migrated data in place. |service| displays the 
-        :guilabel:`Sharded Cluster Live Import in Progress` 
-        message for the destination cluster until the cluster is ready 
-        for normal access. See :ref:`live-import-sharded-cancel` for 
-        more information on cancelling a live migration procedure.
-
-        Once the cancellation complete, you can test your staging 
+        Press :guilabel:`Cancel` to cancel the live migration. |service|
+        terminates the migration at that point in time, leaving any
+        migrated data in place. |service| displays the 
+        :guilabel:`Sharded Cluster Live Import in Progress` message for
+        the target cluster until the cluster is ready for normal access.
+        To learn more, see :ref:`Canceling Live Migration <live-import-sharded-cancel>`.
+        Once the cancellation is complete, you can test your staging
         application against the partially migrated data.
 
   #. Click :guilabel:`Cut Over` when you have completed the cutover
-     sequence and updated your applications to point at the 
-     service cluster. The :guilabel:`optime` gap must be ``0:00`` before
-     you can complete the procedure. 
+     sequence and updated your applications to point at the service
+     cluster. The :guilabel:`optime` gap must be ``0:00`` before you
+     can complete the procedure.
 
-     |service| automatically prepares the |service| cluster once
-     you complete the cutover sequence. During this time, you cannot
-     access the |service| cluster. |service| displays the status of the
-     cluster configuration in the UI.
+     |service| automatically prepares the |service| cluster once you
+     complete the cutover sequence. During this time, you cannot access
+     the |service| cluster. |service| displays the status of the cluster
+     configuration in the user interface.
 
      Once |service| displays the cluster as active and ready, you can
      point your applications at the |service| cluster and begin
-     performing write operaitons.
+     performing write operations.
 
-     .. important:: 
+     .. important::
 
         Write operations issued to the source cluster after the
-        cutover sequence are not mirrored to the destination
-        |service| cluster. Double check that your applications
-        are pointed at the new |service| cluster before restarting them.
+        cutover sequence are not mirrored to the target |service|
+        cluster. Check that your applications use the connection
+        string for the new |service| cluster before restarting them.
 
 ...
