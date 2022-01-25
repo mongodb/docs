@@ -161,7 +161,6 @@ rst_epilog = [
     '.. |pem| replace:: :abbr:`PEM (Privacy Enhanced Mail)`',
     '.. |pit| replace:: :abbr:`PIT (Point in Time)`',
     '.. |piv| replace:: :abbr:`PIV (Personal Identity Verification)`',
-    '.. |prometheus| replace:: `Prometheus <https://prometheus.io/>`__',
     '.. |rdp| replace:: :abbr:`RDP (Remote Desktop Protocol)`',
     '.. |rtpp| replace:: :abbr:`RTPP (Real-Time Performance Panel)`',
     '.. |restapi| replace:: :abbr:`REST (Representational State Transfer)` :abbr:`API (Application Programming Interface)`',

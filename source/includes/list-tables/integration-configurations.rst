@@ -232,8 +232,3 @@
        configuring SumoLogic with |service|. You don't need to
        configure any settings within |service| to set up a SumoLogic
        integration.
-
-   * - :guilabel:`Prometheus Settings`
-
-     - Configures |service| to send metric data about your deployment
-       to your |prometheus| instance. To learn more, see :ref:`prometheus-integration`.
