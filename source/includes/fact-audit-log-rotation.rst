@@ -1,12 +1,21 @@
 .. important::
+     
+   If you're running MongoDB Enterprise version 5.0 or later and 
+   {+mdbagent+} {+mdbagent-version-opsmgr+} or later, you can:
 
-   If you enable log rotation, |mms| uses the default MongoDB
-   :manual:`log rotation </tutorial/rotate-log-files/>`, which rotates
-   both the server logs and audit logs. However, |mms| does not:
+   - Set separate rules for rotating server logs and audit logs.
+   - Compress and delete audit logs using |mms|. For security reasons, we recommend managing
+     your audit log compression and deletion outside of |mms|.
+   
+   If you're running earlier versions of MongoDB Enterprise or the
+   {+mdbagent+}, |mms|: 
 
-   - Support separate rules for rotating server logs and audit logs;
-     |mms| treats them both the same way.
+   - Uses your :guilabel:`System Log Rotation` settings to rotate both the
+     server logs and the audit logs. 
+   - Doesn't compress or delete audit logs. If you configure compression and
+     deletion, |mms| applies these settings to the server logs only.
 
-   - Perform any compression or deletion of audit logs for security
-     reasons. You must use an appropriate security software to compress
-     and delete audit logs.
+   MongoDB Community users can rotate, compress, and delete the server logs
+   only.
+
+
