@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 14 11 55
+   :widths: 20 20 20 55
    :stub-columns: 1
 
    * - | notifications.[n]
