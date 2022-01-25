@@ -301,7 +301,7 @@
        **VICTOR_OPS**.
 
    * - | notifications.[n]
-       | .microsoftTeamWebhookUrl
+       | .microsoftTeamsWebhookUrl
      - string
      - Conditional
      - Microsoft Teams channel incoming webhook URL.

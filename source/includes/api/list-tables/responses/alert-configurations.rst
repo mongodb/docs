@@ -168,7 +168,7 @@
        **SMS**.
 
    * - | notifications.[n]
-       | .microsoftTeamWebhookUrl
+       | .microsoftTeamsWebhookUrl
      - string
      - Microsoft Teams incoming webhook URL. |service| returns this value if you set
        **notifications.[n].typeName** to **MICROSOFT_TEAMS**.
