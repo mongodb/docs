@@ -1,1 +1,1 @@
-This endpoint doesn't use HTTP request body parameters.
+This endpoint does not use HTTP request body parameters.

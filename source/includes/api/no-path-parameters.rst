@@ -1,1 +1,1 @@
-This endpoint doesn't use HTTP request path parameters.
+This endpoint does not use HTTP request path parameters.
