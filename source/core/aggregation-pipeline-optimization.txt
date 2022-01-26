@@ -19,6 +19,12 @@ include the :method:`explain <db.collection.aggregate()>` option in the
 
 .. include:: /includes/fact-optimizations-subject-to-change.rst
 
+In addition to learning about the aggregation pipeline optimizations
+performed during the optimization phase, you will also see how to
+improve aggregation pipeline performance using indexes and document
+filters. See
+:ref:`aggregation-pipeline-optimization-indexes-and-filters`.
+
 .. _aggregation-pipeline-projection-optimization:
 
 Projection Optimization
@@ -112,11 +118,12 @@ use any values computed in either the :pipeline:`$project` or
 :pipeline:`$match` stage before both of the projection stages.
 
 .. note::
-   After optimization, the filter ``{ name: "Joe Schmoe" }`` is in
-   a :pipeline:`$match` stage at the beginning of the pipeline. This has
+
+   After optimization, the filter ``{ name: "Joe Schmoe" }`` is in a
+   :pipeline:`$match` stage at the beginning of the pipeline. This has
    the added benefit of allowing the aggregation to use an index on the
-   ``name`` field when initially querying the collection.
-   See :ref:`aggregation-pipeline-operators-and-performance` for more
+   ``name`` field when initially querying the collection. See
+   :ref:`aggregation-pipeline-optimization-indexes-and-filters` for more
    information.
 
 .. _agg-sort-match-optimization:
@@ -151,8 +158,9 @@ can sometimes add a portion of the :pipeline:`$match` stage before the
 :pipeline:`$redact` stage. If the added :pipeline:`$match` stage is at
 the start of a pipeline, the aggregation can use an index as well as
 query the collection to limit the number of documents that enter the
-pipeline. See :ref:`aggregation-pipeline-operators-and-performance` for
-more information.
+pipeline. See
+:ref:`aggregation-pipeline-optimization-indexes-and-filters` for more
+information.
 
 For example, if the pipeline consists of the following stages:
 
@@ -382,6 +390,70 @@ option, the ``explain`` output shows the coalesced stage:
        unwinding: { preserveNullAndEmptyArrays: false }
      }
    }
+
+.. _aggregation-pipeline-optimization-indexes-and-filters:
+
+Improve Performance with Indexes and Document Filters
+-----------------------------------------------------
+
+The following sections show how you can improve aggregation performance
+using indexes and document filters.
+
+Indexes
+~~~~~~~
+
+The :ref:`query planner <query-plans-query-optimization>` analyzes
+an aggregation pipeline to determine if :ref:`indexes <indexes>`
+can be used to improve pipeline performance.
+
+The following list shows some pipeline stages that can use indexes:
+
+``$match`` stage
+  :pipeline:`$match` can use an index to filter documents if
+  :pipeline:`$match` is the first stage in a pipeline.
+
+``$sort`` stage
+  :pipeline:`$sort` can use an index if :pipeline:`$sort` is not
+  preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or
+  :pipeline:`$group` stage.
+
+``$group`` stage
+  :pipeline:`$group` can potentially use an index to find the first
+  document in each group if:
+  
+  - :pipeline:`$group` is preceded by :pipeline:`$sort` that sorts the
+    field to group by, and
+
+  - there is an index on the grouped field that matches the sort order,
+    and
+
+  - :group:`$first` is the only accumulator in :pipeline:`$group`.
+
+  See :ref:`group-pipeline-optimization` for an example.
+
+``$geoNear`` stage
+  :pipeline:`$geoNear` can use a geospatial index. :pipeline:`$geoNear`
+  must be the first stage in an aggregation pipeline.
+
+Indexes can :ref:`cover <read-operations-covered-query>` queries in an
+aggregation pipeline. A covered query uses an index to return all of the
+documents and has high performance.
+
+Document Filters
+~~~~~~~~~~~~~~~~
+
+If your aggregation operation requires only a subset of the documents in
+a collection, filter the documents first:
+
+- Use the :pipeline:`$match`, :pipeline:`$limit`, and :pipeline:`$skip`
+  stages to restrict the documents that enter the pipeline.
+  
+- When possible, put :pipeline:`$match` at the beginning of the pipeline
+  to use indexes that scan the matching documents in a collection.
+
+- :pipeline:`$match` followed by :pipeline:`$sort` at the start of the
+  pipeline is equivalent to a single query with a sort, and can use an
+  index.
 
 Example
 -------

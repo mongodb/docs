@@ -1,24 +1,34 @@
 The following aggregation pipeline example contains two :ref:`stages
 <aggregation-pipeline-operator-reference>` and returns the total
-quantity of urgent orders for each product:
+order quantity of medium size pizzas grouped by pizza name:
 
 .. code-block:: javascript
 
    db.orders.aggregate( [
-      { $match: { status: "urgent" } },
-      { $group: { _id: "$productName", sumQuantity: { $sum: "$quantity" } } }
+
+      // Stage 1: Filter pizza order documents by pizza size
+      {
+         $match: { size: "medium" }
+      },
+
+      // Stage 2: Group remaining documents by pizza name and calculate total quantity
+      {
+         $group: { _id: "$name", totalQuantity: { $sum: "$quantity" } }
+      }
+   
    ] )
 
 The :pipeline:`$match` stage:
 
-- Filters the documents to those with a ``status`` of ``urgent``.
+- Filters the pizza order documents to pizzas with a ``size`` of
+  ``medium``.
   
-- Outputs the filtered documents to the :pipeline:`$group` stage.
+- Passes the remaining documents to the :pipeline:`$group` stage.
 
 The :pipeline:`$group` stage:
 
-- Groups the input documents by ``productName``.
+- Groups the remaining documents by pizza ``name``.
   
-- Uses :group:`$sum` to calculate the total ``quantity`` for each
-  ``productName``, which is stored in the ``sumQuantity`` field returned
-  by the aggregation pipeline.
+- Uses :group:`$sum` to calculate the total order ``quantity`` for each
+  pizza ``name``. The total is stored in the ``totalQuantity`` field
+  returned by the aggregation pipeline.
