@@ -14,7 +14,7 @@
        metrics that Datadog tracks, refer to the
        :ref:`Datadog Integration <datadog-integration>` page.
 
-       - If you have a Datadog account, use Datadog begin tracking your
+       - If you have a Datadog account, use Datadog to begin tracking your
          |service| metric data.
 
        - If you do not have an existing Datadog account,
