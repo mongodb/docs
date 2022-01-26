@@ -65,7 +65,8 @@ a custom storage capacity.
 
 - If you customize the amount of storage capacity, |service| charges
   for the full amount of storage. |service| doesn't deduct the cost of
-  the default storage capacity.
+  the default storage capacity. This change can be a disk upgrade or a
+  instance family change such as changing from general CPU to low-CPU.
 
 .. example::
 
@@ -80,6 +81,7 @@ a custom storage capacity.
 
    Increasing storage capacity can change the maximum |iops| available
    with each :guilabel:`Custom Storage Speed`.
+
 
 .. _storage-speed:
 .. _instance-storage-speed:
@@ -233,15 +235,30 @@ You can :ref:`change the backup policy <cloud-provider-backup-schedule>`
 if needed. In most cases, a new snapshot saves only the data that
 changed after your most recent snapshot.
 
-{+Cloud-Backup+}s support incremental snapshots, where a new snapshot
-saves only the data that changed after your most recent snapshot. For
-example, a cluster with 10 GB of data and 3 snapshots may require less
-than 30 GB of total snapshot storage depending on how data
-changed between snapshots.
+|service| takes one snapshot per shard. It takes the first snapshot in
+full and takes incremental snapshots afterward. |service| can take more
+than one full snapshot per shard in certain cases. These cases include
+when:
 
-To compute the cost for {+Cloud-Backup+}s, |service| obtains the raw
-metric data from the cloud providers and calculates the *total* size of
-all snapshots in GB per month.
+- Snapshot taken on a different node from the previous one due to
+  failover.
+- :ref:`Storage volume of a node changes <howitworks-scale-cluster-storage>`.
+- Region priority changes for a multi-region cluster. This would set a
+  different node as the one that creates snapshots. If |service| deems
+  the selected node as unhealthy, it tries to snapshot the next node
+  that it favors.
+ 
+|service| can bill backup as high as the total storage capacity of the
+volume. This depends upon how the cloud provider stores the volume
+snapshots.
+
+.. example::
+
+   A storage volume on the cloud provider has a capacity of 4 TB. The
+   cloud provider informs |service| that the snapshots occupy the full
+   volume capacity even though your backups only occupy 500 GB. Due to
+   this reporting, |service| bills you for 4 TB in backup storage.
+
 
 .. tabs-cloud-providers::
 
