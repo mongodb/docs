@@ -1,1 +1,1 @@
-This endpoint does not return a response body.
+This endpoint doesn't return a response body.
