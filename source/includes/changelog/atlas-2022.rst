@@ -1,3 +1,12 @@
+.. _atlas_20220126:
+
+26 January 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for the Toronto, Canada (``NORTH_AMERICA_NORTHEAST_2``)
+  :doc:`Google Cloud region </reference/google-gcp/>`.
+- Introduces an alerts integration with Microsoft Teams.
+
 .. _atlas_20220119:
 
 19 January 2022 Release
