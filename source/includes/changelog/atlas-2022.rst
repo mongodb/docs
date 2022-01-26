@@ -5,7 +5,8 @@
 
 - Adds support for the Toronto, Canada (``NORTH_AMERICA_NORTHEAST_2``)
   :doc:`Google Cloud region </reference/google-gcp/>`.
-- Introduces an alerts integration with Microsoft Teams.
+- Introduces an 
+  :doc:`alerts integration with Microsoft Teams </tutorial/integrate-msft-teams/>`.
 
 .. _atlas_20220119:
 
