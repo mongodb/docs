@@ -1,19 +1,21 @@
-As of MongoDB 5.0 the :doc:`map-reduce</core/map-reduce>`
-operation is deprecated.
+Starting in MongoDB 5.0, :doc:`map-reduce </core/map-reduce>` is
+deprecated:
 
-An :doc:`aggregation pipeline </core/aggregation-pipeline>` provides
-better performance and usability than a :doc:`map-reduce
-</core/map-reduce>` operation.
+- Instead of :doc:`map-reduce </core/map-reduce>`, you should use an
+  :doc:`aggregation pipeline </core/aggregation-pipeline>`. Aggregation
+  pipelines provide better performance and usability than map-reduce.
 
-Map-reduce operations can be rewritten using :doc:`aggregation pipeline
-operators </meta/aggregation-quick-reference>`, such as
-:pipeline:`$group`, :pipeline:`$merge`, and others. 
+- You can rewrite map-reduce operations using :doc:`aggregation
+  pipeline stages </meta/aggregation-quick-reference>`, such as
+  :pipeline:`$group`, :pipeline:`$merge`, and others. 
 
-For map-reduce operations that require custom functionality, MongoDB
-provides the :group:`$accumulator` and :expression:`$function`
-aggregation operators starting in version 4.4. Use these operators to
-define custom aggregation expressions in JavaScript.
+- For map-reduce operations that require custom functionality, you can
+  use the :group:`$accumulator` and :expression:`$function` aggregation
+  operators, available starting in version 4.4. You can use those
+  operators to define custom aggregation expressions in JavaScript.
 
-For examples of aggregation pipeline alternatives to map-reduce
-operations, see :doc:`/reference/map-reduce-to-aggregation-pipeline` and
-:doc:`/tutorial/map-reduce-examples`.
+For examples of aggregation pipeline alternatives to map-reduce, see:
+
+- :doc:`/reference/map-reduce-to-aggregation-pipeline`
+
+- :doc:`/tutorial/map-reduce-examples`
