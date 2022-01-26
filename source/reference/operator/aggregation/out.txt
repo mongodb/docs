@@ -48,66 +48,48 @@ Definition
 Comparison with ``$merge``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. topic:: ``$merge`` and ``$out`` Comparison
+With the introduction of :pipeline:`$merge` in version 4.2, MongoDB
+provides two stages, :pipeline:`$merge` and :pipeline:`$out`, for
+writing the results of the aggregation pipeline to a collection. The
+following summarizes the capabilities of the two stages:
 
-   With the introduction of :pipeline:`$merge` in version 4.2, MongoDB
-   provides two stages, :pipeline:`$merge` and :pipeline:`$out`, for
-   writing the results of the aggregation pipeline to a collection. The
-   following summarizes the capabilities of the two stages:
+.. list-table::
+   :header-rows: 1
 
-   .. list-table::
-      :header-rows: 1
-      :class: border-table
+   * - :pipeline:`$out`
+     - :pipeline:`$merge`
+   * - - Available starting in MongoDB 2.6
+     - - Available starting in MongoDB 4.2
+   * - - Can output to a collection in the same or, starting in
+         MongoDB 4.4, different database.
+     - - Can output to a collection in the same or different database.
+   * - - Creates a new collection if the output collection does not
+         already exist.
+     - - Creates a new collection if the output collection does not
+         already exist.
+   * - - Replaces the output collection completely if it already exists.
+     - - Can incorporate results (insert new documents, merge
+         documents, replace documents, keep existing documents, fail
+         the operation, process documents with a custom update pipeline) into
+         an existing collection.
 
-      * - :pipeline:`$out`
-        - :pipeline:`$merge`
+         Can replace the content of the collection but only if the
+         aggregation results contain a match for all existing
+         documents in the collection.
+   * - - Cannot output to a sharded collection. Input collection,
+         however, can be sharded.
+     - - Can output to a sharded collection. Input collection can
+         also be sharded.
+   * - - Corresponds to SQL statements:
 
-      * - - Available starting in MongoDB 2.6
-        - - Available starting in MongoDB 4.2
-
-      * - - Can output to a collection in the same database only.
-        - - Can output to a collection in the same or different database.
-
-
-      * - - Creates a new collection if the output collection does not
-            already exist.
-        - - Creates a new collection if the output collection does not
-            already exist.
-
-      * - - Replaces the output collection completely if it already exists.
-
-        - - Can incorporate results (insert new documents, merge
-            documents, replace documents, keep existing documents, fail
-            the operation, process documents with a custom update pipeline) into
-            an existing collection.
-
-            Can replace the content of the collection but only if the
-            aggregation results contain a match for all existing
-            documents in the collection.
- 
-      * - - Cannot output to a sharded collection. Input collection,
-            however, can be sharded.
-
-        - - Can output to a sharded collection. Input collection can
-            also be sharded.
-
-      * - - Corresponds to SQL statements:
-
-            - ``INSERT INTO T2 SELECT FROM T1``.
-
-            - ``SELECT INTO T2 FROM T1``.
-
-        - - Corresponds to SQL statements:
-
-            - ``MERGE``.
-            
-            - ``INSERT INTO T2 SELECT FROM T1``.
-
-            - ``SELECT INTO T2 FROM T1``.
-            
-            - Create/Refresh Materialized Views.
-
-
+         - ``INSERT INTO T2 SELECT FROM T1``
+         - ``SELECT INTO T2 FROM T1``
+     - - Corresponds to SQL statements:
+     
+         - ``MERGE``
+         - ``INSERT INTO T2 SELECT FROM T1``
+         - ``SELECT INTO T2 FROM T1``
+         - Create/Refresh Materialized Views
 
 Behaviors
 ---------
@@ -144,6 +126,10 @@ Index Constraints
 The pipeline will fail to complete if the documents produced by the
 pipeline would violate any unique indexes, including the index on the
 ``_id`` field of the original output collection.
+
+If the :pipeline:`$out` operation modifies a collection with an
+:atlas:`Atlas Search </atlas-search>` index, you must delete and
+re-create the search index. Consider using :pipeline:`$merge` instead.
 
 Transactions
 ~~~~~~~~~~~~
@@ -217,3 +203,4 @@ documents:
 
    { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
    { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+
