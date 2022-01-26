@@ -28,7 +28,7 @@ CDC events from each of the preceding datastores:
          change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.debezium.mongodb.MongoDbHandler
 
       To view the source code for the Debezium CDC handler, see
-      :github:`the {+mkc+} source code </mongodb/mongo-kafka/tree/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium>`.
+      :github:`the {+mkc+} source code </mongodb/mongo-kafka/tree/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium>`.
 
    .. tab::
       :tabid: Postgres
@@ -47,7 +47,7 @@ CDC events from each of the preceding datastores:
          change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.debezium.rdbms.postgres.PostgresHandler
 
       To view the source code for the Debezium CDC handler, see
-      :github:`the {+mkc+} source code <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium/rdbms/postgres/PostgresHandler.java>`.
+      :github:`the {+mkc+} source code <mongodb/mongo-kafka/blob/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium/rdbms/postgres/PostgresHandler.java>`.
 
    .. tab::
       :tabid: MySQL
@@ -66,12 +66,12 @@ CDC events from each of the preceding datastores:
          change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.debezium.rdbms.mysql.MysqlHandler
 
       To view the source code for the Debezium CDC handler, see
-      :github:`the {+mkc+} source code <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium/rdbms/mysql/MysqlHandler.java>`.
+      :github:`the {+mkc+} source code <mongodb/mongo-kafka/blob/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium/rdbms/mysql/MysqlHandler.java>`.
 
 .. note:: Customize the Debezium CDC Handler
 
    If the Debezium CDC handler is unable to replicate CDC events
    from your datastore, you can customize the handler by extending the 
-   :github:`DebeziumCdcHandler <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium/DebeziumCdcHandler.java>` 
+   :github:`DebeziumCdcHandler <mongodb/mongo-kafka/blob/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/debezium/DebeziumCdcHandler.java>` 
    class. For more information on custom CDC handlers, see the
    :ref:`Create your Own CDC Handler section <cdc-create-your-own>` of this guide.

@@ -14,4 +14,4 @@ MongoDB change event documents:
    change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.mongodb.ChangeStreamHandler
 
 To view the source code for the MongoDB CDC handler, see
-:github:`the {+mkc+} source code <mongodb/mongo-kafka/tree/master/src/main/java/com/mongodb/kafka/connect/sink/cdc/mongodb>`.
+:github:`the {+mkc+} source code <mongodb/mongo-kafka/tree/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/mongodb>`.
