@@ -1,3 +1,4 @@
+- Upgrade the source cluster to MongoDB 4.0 or later.
 - :doc:`Create an Atlas Account </tutorial/create-atlas-account>`.
 - :ref:`Create an Atlas organization <create-organization>` and
   then :ref:`create a project <create-project>` in this organization.
