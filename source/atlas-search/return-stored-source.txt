@@ -1,0 +1,282 @@
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _fts-return-stored-source-option:
+
+==============================
+Returning Stored Source Fields
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+If you configured ``storedSource`` option in the :ref:`index definition 
+<ref-index-definitions-stored-source>` for a collection, you can 
+retrieve the stored fields only using the ``returnStoredSource`` 
+boolean option in your |fts| queries. 
+
+By default, |fts| performs full document lookup implicitly on the 
+backend database after |fts| matches documents for the query, which 
+could significantly degrade performance for queries that filter a large 
+part of the matched dataset in subsequent pipeline stages such as 
+:pipeline:`$sort`, :pipeline:`$match`, or :pipeline:`$skip`. If you 
+configured the ``storedSource`` option, you can avoid full document 
+lookup on the database until further down the pipeline and use the 
+``returnStoredSource`` option to retrieve only parts of the documents 
+directly stored on |fts|. This allows you to perform most database-side 
+filtering operations on documents with a minimum number of fields and 
+avoid full document lookup until further down the aggregation pipeline.
+
+.. _fts-return-stored-source-syntax:
+
+Syntax 
+------
+
+``returnStoredSource`` has the following syntax in your queries:
+
+.. code-block:: json
+   :emphasize-lines: 6 
+
+   {
+     $search: {  
+       "<operator>": { 
+         <operator-specification>
+       },
+       "returnStoredSource": true | false // optional, defaults to "false"
+     }
+   }
+
+To learn more about query syntax, see :pipeline:`$search`.
+
+.. _fts-return-stored-source-behavior:
+
+Behavior
+--------
+
+The ``returnStoredSource`` boolean option specifies whether |fts| must 
+perform a full document lookup on the database or return the stored 
+fields directly from |fts|. You can use the ``returnStoredSource``  
+option only if your index definition includes the configuration for 
+storing fields on |fts|. To learn more about storing fields on |fts|, 
+see :ref:`ref-index-definitions-stored-source` and 
+:ref:`fts-stored-source-definition`. 
+
+You can set one of the following values for the  ``returnStoredSource`` 
+option: 
+
+- ``true`` - to return only stored source fields directly from |fts|
+- ``false`` - to do an implicit full document lookup on the backend 
+  database (default)
+
+If you run |fts| queries with the ``returnStoredSource`` boolean option 
+set to ``true``:
+
+- |fts| returns an empty document if the document doesn't include the 
+  fields configured for storing.
+- |fts| returns errors if the index definition doesn't include the 
+  Stored Source configuration.
+- |fts| might return stale data due to a replication lag.
+- |fts| might return duplicate data on sharded clusters.
+
+.. _fts-return-stored-source-use-case:
+
+Sample Use  
+----------
+
+If your ``$search`` stage discards a lot of the results and you need to 
+perform implicit document lookup on your database, we recommend using 
+the ``returnStoredSource`` option. You can store fields required for 
+sorting or filtering and use ``returnStoredSource`` option at query 
+time to perform the following actions: 
+
+1. Intermediate operations on partial documents returned by |fts|
+2. :pipeline:`$lookup` at the end of the pipeline if full documents are 
+   needed. 
+
+.. important:: 
+
+   For efficiency, configure only a minimum number of fields for 
+   storage on |fts|. Use this option if your documents are large enough 
+   to cause issues during lookup.
+
+.. _fts-return-stored-source-egs:
+
+Examples 
+--------
+
+The examples in this section use the ``sample_mflix.movies`` 
+collection. The examples show how to do a sort or match on the 
+documents that |fts| returns after the ``$search`` stage and then 
+lookup documents on the database.
+
+.. tabs:: 
+         
+   .. tab:: Sort Example 
+      :tabid: sorteg
+
+      1. Create the index using the following index definition. The 
+         index definition for the collection specifies the following 
+         fields:
+
+         - Index ``title`` field
+         - Store ``year`` and ``title`` fields
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              },
+              "storedSource": {
+                "include": [
+                  "year",
+                  "title"
+                ]
+              }
+            }
+
+      #. Run the following query against the collection: 
+
+         .. code-block:: json 
+
+            db.movies.aggregate([
+              {
+                // search and output documents 
+                $search: {
+                  "text": {
+                    "query": "baseball",
+                    "path": "title"
+                  },
+                  "returnStoredSource": true // return stored fields only
+                }
+              },
+              // fetch all matched dataset from $search stage and sort it
+              {
+                $sort: {"year": 1, "title": 1}
+              },
+              // discard everything except top 10 results
+              {
+                $limit: 10
+              },
+              // perform full document lookup for top 10 documents only
+              {
+                $lookup: {
+                  from: "movies", localField: "_id", foreignField: "_id", as: "document"
+                }
+              }
+            ])
+
+         The query returns the following documents:
+
+         .. code-block:: json 
+            :copyable: false 
+            :linenos:
+
+            [
+              {
+                _id: ObjectId("573a1399f29313caabced370"),
+                title: 'Mr. Baseball',
+                year: 1992,
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              },
+              {
+                _id: ObjectId("573a1399f29313caabcee1aa"),
+                title: 'Baseball',
+                year: 1994,
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              }
+            ]
+
+   .. tab:: Match Example 
+      :tabid: matcheg
+
+      1. Create the index using the following index definition. The 
+         index definition for the collection specifies the following 
+         fields:
+
+         - Index ``title`` field 
+         - Store ``imdb.rating`` and ``imdb.votes`` fields
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              },
+              "storedSource": {
+                "include": [
+                  "imdb.rating",
+                  "imdb.votes"
+                ]
+              }
+            }
+
+      #. Run the following query against the collection: 
+            
+
+         .. code-block:: json 
+
+            db.movies.aggregate([
+              {
+                // search and output documents 
+                $search: {
+                  "text": {
+                    "query": "baseball",
+                    "path": "title"
+                  },
+                  "returnStoredSource": true // return stored fields only
+                }
+              },
+              // filter dataset from $search stage using $match 
+              {
+                $match: {$or: [ { "imdb.rating": { $gt: 8.2 } }, { "imdb.votes": { $gte: 4500 } } ]}
+              },
+              // perform full document lookup for matched documents only
+              {
+                $lookup: {
+                  from: "movies", localField: "_id", foreignField: "_id", as: "document"
+                }
+              }
+            ])
+
+         The query returns the following documents:
+
+         .. code-block:: json 
+            :copyable: false
+            :linenos:
+
+            [
+              {
+                _id: ObjectId("573a1399f29313caabcee1aa"),
+                imdb: { rating: 9.1, votes: 2460 },
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              },
+              {
+                _id: ObjectId("573a1399f29313caabced370"),
+                imdb: { rating: 5.8, votes: 7617 },
+                document: [
+                  { ... } // full document returned by $lookup
+                ]
+              }
+            ]

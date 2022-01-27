@@ -1,0 +1,200 @@
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _fts-stored-source-definition:
+
+===============================================
+Define Stored Source Fields in Your |fts| Index 
+===============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+The ``storedSource`` option in an |fts| :ref:`index definition
+<ref-index-definitions-stored-source>` specifies the fields in the 
+source document that |fts| must store. |fts| doesn't index stored 
+fields and so you can't query these fields, but you can retrieve stored 
+fields at query time using the :ref:`returnStoredSource 
+<fts-return-stored-source-option>` option. In certain :ref:`cases 
+<fts-return-stored-source-use-case>`, this configuration improves query 
+performance by avoiding implicit query time lookup on the backend 
+database.
+
+.. note:: 
+
+   You can store fields of all :ref:`bson-data-chart` on |fts|.
+
+To learn more about retrieving the stored fields, see 
+:ref:`fts-return-stored-source-option`. 
+
+.. _fts-stored-source-syntax:
+
+Syntax 
+------
+
+The ``storedSource`` option has the following syntax in an :ref:`index 
+definition <ref-index-definitions>`: 
+
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 3-8
+
+   {
+     ...,
+     "storedSource": true | false | {
+       "include" | "exclude": [
+         "<field-name>", 
+         ...
+       ]
+     }
+   }
+
+.. _fts-stored-source-option:
+
+Options 
+-------
+
+The ``storedSource`` option takes a :ref:`boolean value 
+<fts-stored-source-boolean-values>` or a :ref:`document 
+<fts-stored-source-option>` in the :ref:`index definition 
+<ref-index-definitions-stored-source>`. 
+
+.. _fts-stored-source-boolean-values: 
+
+Boolean Values
+~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Value
+     - Description
+
+   * - ``true``
+     - Specifies that |fts| must store all the fields in the 
+       documents. Storing full documents might significantly impact 
+       performance during indexing and querying. To learn more, 
+       see :ref:`perf-ref-stored-source`. 
+
+   * - ``false``
+     - Specifies that |fts| must not store the original source 
+       document. This is the default value for the ``storedSource`` 
+       option.
+
+.. _fts-stored-source-document: 
+
+Document 
+~~~~~~~~
+
+The ``storedSource`` option document accepts one of the following 
+fields:
+
+.. note:: 
+
+   The document must contain either ``include`` or ``exclude``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 25 60
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``include``
+     - array of strings
+     - List that contains the field names or dot-separated paths to 
+       fields to store. In addition to the specified fields, |fts| 
+       stores ``_id`` also by default. 
+
+   * - ``exclude``
+     - array of strings
+     - List that contains the field names or dot-separated paths to 
+       fields to exclude from being stored. If specified, |fts| stores 
+       original documents except the fields listed here. 
+
+.. _fts-stored-source-egs:
+
+Examples 
+--------
+
+The following index examples use the fields in the 
+``sample_mflix.movies`` collection to demonstrate how to configure the 
+fields to store on |fts| using the ``storedSource`` option. The 
+examples use the :manual:`dot notation </core/document/#dot-notation>` 
+to specify embedded fields.
+
+.. tabs:: 
+
+   .. tab:: Store Specified 
+      :tabid: include 
+
+      .. example:: 
+
+         The following example stores only the ``title`` and 
+         ``awards.wins`` fields in the documents in the collection:
+
+
+         .. code-block:: json
+
+            {
+              "mappings": {
+                ...
+              },
+              "storedSource": {
+                "include": [
+                  "title",
+                  "awards.wins"
+                ]
+              },
+              ...
+            }
+
+   .. tab:: Exclude Specified 
+      :tabid: exclude 
+
+      .. example:: 
+
+         The following example stores all fields except ``directors`` 
+         and ``imdb.rating`` in the documents in the collection:
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                ...
+              },
+              "storedSource": {
+                "exclude": [
+                  "directors",
+                  "imdb.rating"
+                ]
+              },
+              ...
+            }
+
+   .. tab:: Store All Fields 
+      :tabid: storeall  
+
+      .. example:: 
+
+         The following example stores all the fields in the documents 
+         in the collection:
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                ...
+              },
+              "storedSource": true,
+              ...
+            }
