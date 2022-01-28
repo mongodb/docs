@@ -96,8 +96,8 @@ content: |
      * - Storage Capacity
        - The target host's hardware needs to have sufficient free storage
          space for storing the restored data. If you want to keep any
-         existing sharded cluster data on this host, make sure the host
-         has sufficient free space for the sharded cluster data and the
+         existing cluster data on this host, make sure the host
+         has sufficient free space for the cluster data and the
          restored data.
 
      * - MongoDB Version
@@ -132,17 +132,13 @@ title: "Start the Temporary Standalone Instance on the Ephemeral Port."
 ref: start-as-standalone
 content: |
 
-  In this step, you start the |mongod| process in standalone mode, and not as
-  a replica set.
-
-  .. note::
-     Starting |mongod| in this way is a temporary measure. It allows you to
-     add new configuration parameters to the ``system.replset`` collection in
-     subsequent steps.
+  Start the |mongod| process in standalone mode as a temporary measure.
+  This allows you to add new configuration parameters to the
+  ``system.replset`` collection in subsequent steps.
   
   Use the ``<ephemeralPort>`` for the temporary standalone |mongod| process
-  in all steps in this procedure  where it is mentioned. This port must differ from
-  the source and target host ports.
+  in all steps in this procedure  where it is mentioned. This port must
+  differ from the source and target host ports.
 
   Run the |mongod| process as follows. Depending on your path, you may
   need to specify the path to the |mongod| binary.
@@ -162,8 +158,7 @@ ref: connect-on-ephemeral-port
 content: |
 
   From the host running this |mongod| process, start {+mongosh+}. Depending 
-  on your path, you may need to
-  specify the path to {+mongosh+}.
+  on your path, you may need to specify the path to {+mongosh+}.
   
   To connect to the |mongod| listening to localhost on
   the same ``<ephemeralPort>`` specified in the previous step, run:
@@ -229,7 +224,7 @@ content: |
      db.getSiblingDB("local").system.replset.insertOne({
        "_id" : "<replaceMeWithTheReplicaSetName>",
        "version" : NumberInt(1),
-       "protocolVersion" : "<string>",
+       "protocolVersion" : "1",
        "members" : [
          {
            "_id" : NumberInt(0),
@@ -350,13 +345,21 @@ title: "Restart the Instance to Recover the Oplog."
 ref: restart-special-db
 content: |
 
-  Start the |mongod| using the following command. The |mongod| replays
-  the oplog up to the ``Restore timestamp``.
+  Start the |mongod| using the following command, specifying these
+  parameters:
+
+  - ``<bind_ip>`` to the host serving this replica set member that you
+    specified in step 13 of this procedure.
+  - ``<port>`` to the ephemeral port of the replica set that you
+    specified in Step 11 of this procedure.
+  
+   The |mongod| replays the oplog up to the ``Restore timestamp``.
 
   .. code-block:: sh
 
      mongod  --dbpath </path/to/datafiles> \
              --port <ephemeralPort> \
+             --bind_ip <host-serving-this-replica-set-member>
              --replSet <replaceMeWithTheReplicaSetName>
 
 ---
@@ -380,6 +383,9 @@ title: "Run the MongoDB Backup Restore Utility (Point-in-Time Restore Only)."
 level: 4
 ref: mbru-binary
 content: |
+  This step is optional. Run it if you need Point-in-Time Restore. If you
+  need this step, complete it and then run steps 21 and 22. If you
+  don't need this step, then proceed to step 23.
   In this step, you download and run the MongoDB Backup Restore Utility on the
   target instance for the replica set, and then stop the instance.
 
@@ -439,7 +445,8 @@ level: 4
 title: "Restart the Instance to Recover the Oplog."
 ref: restart-rs
 content: |
-
+  This step is needed only if you ran step 20. If you didn't need to run
+  step 20, then proceed to step 23.
   Start the |mongod| using the following command. The |mongod| replays the oplog
   up to the ``Restore timestamp``. Depending on your path, you may need to specify
   the path to the |mongod| binary.
@@ -458,6 +465,9 @@ level: 4
 title: "Stop the Instance on the Ephemeral Port."
 ref: stop-temp-replset
 content: |
+  This step is needed only if you ran step 20. If you didn't need to run
+  step 20, then proceed to step 23.
+  
   Depending on your path, you may need to specify
   the path to {+mongosh+}. Run:
 
