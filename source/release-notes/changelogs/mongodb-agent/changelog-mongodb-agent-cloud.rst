@@ -1,3 +1,12 @@
+.. _11.11.0.7355:
+
+MongoDB Agent 11.11.0.7355
+--------------------------
+
+*Released* 2022-01-25
+
+- Improves memory management during backup snapshots.
+
 .. _11.10.0.7307:
 
 MongoDB Agent 11.10.0.7307
