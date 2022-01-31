@@ -1,15 +1,11 @@
-.. versionchanged:: 3.6
+The argument can be:
 
-The argument must be a valid :ref:`expression
-<aggregation-expressions>` that resolves to one of the following:
+- An :ref:`expression <aggregation-expressions>` that resolves to a
+  :ref:`Date <document-bson-type-date>`, a :ref:`Timestamp
+  <document-bson-type-timestamp>`, or an :ref:`ObjectID
+  <document-bson-type-object-id>`.
 
-- A :ref:`Date <document-bson-type-date>`, a
-  :ref:`Timestamp <document-bson-type-timestamp>`,
-  or an :ref:`ObjectID <document-bson-type-object-id>`.
-
-- A document of the following form:
-
-  .. versionadded:: 3.6
+- A document with this format:
 
   .. code-block:: javascript
 
