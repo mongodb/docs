@@ -1,8 +1,8 @@
 .. _source-configuration-error-handling:
 
-====================================
-Error Handling and Resume Properties
-====================================
+========================================================
+Error Handling and Resuming from Interruption Properties
+========================================================
 
 .. default-domain:: mongodb
 
@@ -133,7 +133,70 @@ Settings
          heartbeat messages. You must provide a positive value in the
          ``heartbeat.interval.ms`` setting to enable this feature.
        |
-       | **Default**: ``__mongodb_heartbeats``
+       | **Default**: ``{+default-heartbeat-topic+}``
        | **Accepted Values**: A valid Kafka topic name
 
 .. _source-configuration-error-handling-table-end:
+
+.. _source-configuration-error-handling-smt:
+
+Heartbeats with Single Message Transforms
+-----------------------------------------
+
+If you enable heartbeats and specify **Single Message Transforms (SMTs)** in your
+{+kc+} deployment, you must exclude your heartbeat messages from
+your SMTs. SMTs are a feature of {+kc+} that enables you to specify transformations on
+the messages that pass through your {+source-connector+} without having to deploy a
+stream processing application.
+
+To exclude heartbeat messages from your SMTs, you must create and apply a
+**predicate** to your SMTs. Predicates are a feature of SMTs that
+enables you to check if a message matches a conditional statement before
+applying a transformation.
+
+The following configuration defines the ``IsHeartbeat`` predicate which matches
+heartbeat messages sent to the default heartbeat topic:
+
+.. code-block:: properties
+
+   predicates=IsHeartbeat
+   predicates.IsHeartbeat.type=org.apache.kafka.connect.transforms.predicates.TopicNameMatches
+   predicates.IsHeartbeat.pattern={+default-heartbeat-topic+}
+
+The following configuration uses the preceding predicate to exclude heartbeat
+messages from an ``ExtractField`` transformation:
+
+.. code-block:: properties
+
+   transforms=Extract
+   transforms.Extract.type=org.apache.kafka.connect.transforms.ExtractField$Key
+   transforms.Extract.field=<the field to extract from your {+ak+} key>
+   transforms.Extract.predicate=IsHeartbeat  
+   transforms.Extract.negate=true
+
+   # apply the default key schema as the extract transformation requires a struct object
+   output.format.key=schema
+
+If you do not exclude your heartbeat messages from the preceding transformation,
+your connector raises the following error once it processes a heartbeat message:
+
+.. code-block:: none
+
+   ERROR WorkerSourceTask{id=mongo-source-0} Task threw an uncaught and unrecoverable exception. Task is being killed ...
+   ...
+   Only Struct objects supported for [field extraction], found: java.lang.String
+
+To learn more about SMTs, see
+`How to Use Single Message Transforms in Kafka Connect <https://www.confluent.io/blog/kafka-connect-single-message-transformation-tutorial-with-examples/>`__
+from Confluent.
+
+To learn more about predicates, see
+`Filter (Apache Kafka) <https://docs.confluent.io/platform/current/connect/transforms/filter-ak.html#predicates>`__
+from Confluent.
+
+To learn more about the ``ExtractField`` transformation, see
+`ExtractField <https://docs.confluent.io/platform/current/connect/transforms/extractfield.html>`__
+from Confluent.
+
+To learn more about the default key schema, see the 
+:ref:`<kafka-source-apply-schemas-default-schema>` page.
