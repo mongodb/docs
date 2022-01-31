@@ -2,7 +2,7 @@ Learn how to perform the following tasks using the Java driver in the
 Fundamentals section:
 
 - :doc:`Connect to MongoDB </fundamentals/connection>`
-- :doc:`Use the Versioned API </fundamentals/versioned-api>`
+- :doc:`Use the Stable API </fundamentals/stable-api>`
 - :doc:`Authenticate with MongoDB </fundamentals/auth>`
 - :doc:`Convert between MongoDB Data Formats and Java Objects </fundamentals/data-formats>`
 - :doc:`Read from and Write to MongoDB </fundamentals/crud>`

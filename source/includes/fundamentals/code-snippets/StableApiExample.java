@@ -24,7 +24,7 @@ public class StableApiExample {
                 .version(ServerApiVersion.V1)
                 .build();
 
-        // Replace the placeholder with your MongoDB deployment's connection string uri
+        // Replace the uri string with your MongoDB deployment's connection string
         String uri = "<connection string uri>";
 
         MongoClientSettings settings = MongoClientSettings.builder()
