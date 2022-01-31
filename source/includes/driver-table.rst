@@ -29,7 +29,7 @@
      - :issue:`JIRA <CSHARP>`
      -
 
-   * - :doc:`Go </go>`
+   * - `Go <https://docs.mongodb.com/drivers/go/current/>`__
      - `Releases <https://github.com/mongodb/mongo-go-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-go-driver>`__
      - `API <https://godoc.org/github.com/mongodb/mongo-go-driver/mongo>`__
@@ -43,7 +43,7 @@
      - :issue:`JIRA <JAVA>`
      - `Course <https://university.mongodb.com/courses/M220J/about>`__
 
-   * - `Node.js <https://docs.mongodb.com/drivers/node>`__
+   * - `Node.js <https://docs.mongodb.com/drivers/node/current/>`__
      - `Releases <https://github.com/mongodb/node-mongodb-native/releases>`__
      - `Source <https://github.com/mongodb/node-mongodb-native>`__
      - `API <https://mongodb.github.io/node-mongodb-native/>`__
@@ -51,7 +51,7 @@
      - `Course <https://university.mongodb.com/courses/M220JS/about>`__
 
    * - :doc:`PHP </php>`
-     - `Releases <http://pecl.php.net/package/mongodb>`__
+     - `Releases <https://pecl.php.net/package/mongodb>`__
      - `Source <https://github.com/mongodb/mongo-php-driver>`__
      - `API <http://php.net/mongodb>`__
      - :issue:`JIRA <PHPC>`
@@ -76,7 +76,7 @@
    * - `Ruby <https://docs.mongodb.com/ruby-driver/current/>`_
      - `Releases <https://rubygems.org/gems/mongo>`__
      - `Source <https://github.com/mongodb/mongo-ruby-driver>`__
-     - :api:`API <ruby/current/>`
+     - `API <https://docs.mongodb.com/ruby-driver/master/api/>`__
      - :issue:`JIRA <RUBY>`
      -
 
@@ -107,8 +107,3 @@
      - `API <https://docs.rs/mongodb/latest/mongodb/>`__
      - :issue:`JIRA <RUST>`
      -
-..
-   * - :doc:`Haskell </haskell>`
-     - `Releases <https://github.com/mongodb/mongodb-haskell/releases>`__
-     - :api:`API <haskell/>`
-     - :issue:`JIRA <HASKELL>`

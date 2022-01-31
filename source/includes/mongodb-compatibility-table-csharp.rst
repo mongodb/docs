@@ -1,5 +1,3 @@
-.. include:: /includes/extracts/csharp-driver-compatibility-matrix-mongodb.rst
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1

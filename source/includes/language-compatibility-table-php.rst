@@ -1,5 +1,3 @@
-.. include:: /includes/extracts/php-driver-compatibility-matrix-language.rst
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1

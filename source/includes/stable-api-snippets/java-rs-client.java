@@ -10,7 +10,7 @@ import com.mongodb.reactivestreams.client.MongoClients;
 // Replace <connection string> with your MongoDB deployment's connection string.
 ConnectionString connString = new ConnectionString("<connection string>");
 
-// Set the version of the Versioned API on the client.
+// Set the version of the {+stable-api+} on the client.
 ServerApi serverApi = ServerApi.builder()
         .version(ServerApiVersion.V1)
          .build();
