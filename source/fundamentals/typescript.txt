@@ -36,21 +36,25 @@ All classes that accept a type parameter in the driver have the default type
      [key: string]: any;
    }
 
-Any object type can extend the ``Document`` interface.
+All object types extend the ``Document`` interface.
 
 For more information on object types, see the
 `TypeScript handbook <https://www.typescriptlang.org/docs/handbook/2/objects.html>`__.
 
-Extend Document
-~~~~~~~~~~~~~~~
+Type Parameters that Extend Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following classes accept any type that extends the ``Document``
-interface:
+The following classes accept all types that both extend
+the ``Document`` interface and are not mutually recursive:
+
+.. _node-mongodb-type-parameters-extend-document:
 
 - `Collection <{+api+}/classes/Collection.html>`__
 - `ChangeStream <{+api+}/classes/ChangeStream.html>`__
 
 You can pass a type parameter that extends the ``Document`` interface like this:
+
+.. _mongodb-node-typescript-pet-interface:
 
 .. literalinclude:: /code-snippets/typescript/extend-document.ts
    :language: typescript
@@ -67,10 +71,16 @@ You can pass a type parameter that extends the ``Document`` interface like this:
       :start-after: start-no-key
       :end-before: end-no-key
 
-Any Type
-~~~~~~~~
+To view an example of a mutually recursive type, which is not supported by the
+:ref:`preceding classes <node-mongodb-type-parameters-extend-document>`,
+see the :ref:`<node-driver-limitations-mutual-recursion>` section.
 
-The following classes accept any type parameter:
+Type Parameters of Any Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following classes accept all type parameters that are not mutually recursive:
+
+.. _node-mongodb-type-parameters-any-type:
 
 - `FindCursor <{+api+}/classes/FindCursor.html>`__
 - `AggregationCursor <{+api+}/classes/AggregationCursor.html>`__
@@ -79,81 +89,60 @@ You can find a code snippet that shows how to specify a type for the ``FindCurso
 class in the
 :ref:`Find Multiple Documents Usage Example <node-driver-find-usage-example-code-snippet>`.
 
-Limitations
------------
+To view an example of a mutually recursive type, which is not supported by the
+:ref:`preceding classes <node-mongodb-type-parameters-any-type>`,
+see the :ref:`<node-driver-limitations-mutual-recursion>` section.
 
-.. _node-driver-typescript-limitations-dot-notation:
 
-The driver cannot infer the type of values with keys containing **dot
-notation**. Dot notation is a property access syntax for navigating BSON objects.
-Click on the tabs to see code snippets that highlight this behavior:
+Type Safety and Dot Notation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. tabs::
+If you specify a query or update with **dot notation**, the {+driver-short+}
+provides type safety if your query or update does not 
+:ref:`reference a nested instance of a recursive type <node-driver-recursive-types-dot-notation>`.
+Dot notation is a syntax you can use to navigate nested JSON objects.
 
-  .. tab:: Dot Notation
-     :tabid: dot-notation
+The following code snippet defines the ``ClassificationPet`` interface,
+which includes a ``classification`` field that enables you to specify the
+genus and color of dogs and cats:  
 
-     The following code snippet does not raise a type error:
+.. code-block:: typescript
 
-     .. literalinclude:: /code-snippets/typescript/dot-notation.ts
-        :language: typescript
-        :linenos:
-        :start-after: start-no-error
-        :end-before: end-no-error
+   interface ClassificationPet {
+     name: string;
+     age: number;
+     classification: { genus: "Canis" | "Felis"; color: string };
+   }
 
-  .. tab:: Nested Objects
-     :tabid: nested-objects
+The following code snippet correctly raises a type error when specifying
+the genus of an unsupported animal in a query:
 
-     The following code snippet raises a type error:
+.. code-block:: typescript
 
-     .. literalinclude:: /code-snippets/typescript/dot-notation.ts
-        :language: typescript
-        :linenos:
-        :start-after: start-error
-        :end-before: end-error
+   database
+     .collection<ClassificationPet>("<your collection>")
+     .find({ "classification.genus": "Sylvilagus" });
 
-     This is the error:
+The type error raised by the preceding code snippet is as follows:
 
-     .. code-block:: text
+.. code-block:: none
 
-        Type 'string' is not assignable to type 'number'.
+   No overload matches this call.
+   ...
+   Type '"Sylvilagus"' is not assignable to type 'Condition<"Canis" | "Felis">'.
 
-Despite the lack of type safety, we still recommend that you use dot notation to
-access nested fields in query and update documents when you use TypeScript. You
-must manually check that your nested field values have your intended type.
+To learn more about dot notation, see 
+:manual:`Dot Notation </core/document/#dot-notation>`
+in the MongoDB manual.
 
-.. note:: Reason To Use Dot Notation
+To learn more about the limitations of dot notation in the
+{+driver-short+}, see the 
+:ref:`<node-driver-recursive-types-dot-notation>`
+section.
 
-   In the MongoDB Query Language, you must match a subdocument exactly
-   when specifying subdocuments in a query. Dot notation allows you to query
-   nested fields without matching subdocuments exactly.
+.. _node-driver-limitations:
 
-   To show this behavior, lets say you have a collection containing
-   only the following document:
+Limitations of Driver Version {+version+}
+---------------------------------
 
-   .. code-block:: json
-
-      { field: { s1: "hi", s2: "bye" } }
-
-   The following query returns no results from this collection, as the value of
-   ``field`` does not exactly match ``{ s1: "hi" }``:
-
-   .. literalinclude:: /code-snippets/typescript/note-on-dot-notation.ts
-      :language: typescript
-      :linenos:
-      :start-after: start-no-doc
-      :end-before: end-no-doc
-
-   The following queries both return your document:
-
-   .. literalinclude:: /code-snippets/typescript/note-on-dot-notation.ts
-      :language: typescript
-      :linenos:
-      :start-after: start-doc
-      :end-before: end-doc
-
-   The syntax of the query that does not use dot notation is cumbersome and hard
-   to understand, and may not be worth the type safety obtained from
-   avoiding dot notation.
-
-For more information on dot notation, see :manual:`the MongoDB Manual </core/document/#dot-notation>`.
+.. include:: includes/limitations/{+version+}.rst
