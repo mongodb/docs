@@ -15,4 +15,5 @@ Fundamentals section:
 - :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`
 - :doc:`Create and Query Time Series Collection </fundamentals/time-series>`
 - :doc:`Specify Type Parameters with TypeScript </fundamentals/typescript>`
+- :doc:`Specify UTF-8 Validation Settings </fundamentals/utf8-validation>`
 

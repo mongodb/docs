@@ -1,0 +1,120 @@
+.. _nodejs-utf-8-validation:
+
+================
+UTF-8 Validation
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to enable or disable the {+driver-short+}'s
+**UTF-8** validation feature. UTF-8 is a character encoding specification
+that ensures compatibility and consistent presentation across most operating
+systems, applications, and language character sets.
+
+If you *enable* validation, the driver throws an error when it attempts to
+convert data that contains invalid UTF-8 characters. The validation adds
+processing overhead since it needs to check the data.
+
+If you *disable* validation, your application avoids the validation processing
+overhead, but cannot guarantee consistent presentation of invalid UTF-8 data.
+
+The driver enables UTF-8 validation by default. It checks documents for any
+characters that are not encoded in a valid UTF-8 format when it transfers data
+between your application and MongoDB.
+
+.. note::
+
+   The current version of the {+driver-short+} automatically substitutes
+   invalid UTF-8 characters with alternate valid UTF-8 ones prior to
+   validation when you send data to MongoDB. Therefore, the validation
+   only throws an error when the setting is enabled and the driver
+   receives invalid UTF-8 document data from MongoDB.
+
+Read the sections below to learn how to set UTF-8 validation using the
+{+driver-short+}.
+
+.. _nodejs-specify-utf-8-validation:
+
+Specify the UTF-8 Validation Setting
+------------------------------------
+
+You can specify whether the driver should perform UTF-8 validation by
+defining the ``enableUtf8Validation`` setting in the options parameter
+when you create a client, reference a database or collection, or call a
+CRUD operation. If you omit the setting, the driver enables UTF-8 validation.
+
+See the following for code examples that demonstrate how to disable UTF-8
+validation on the client, database, collection, or CRUD operation:
+
+.. code-block:: javascript
+
+   // disable UTF-8 validation on the client
+   new MongoClient('<connection uri>', { enableUtf8Validation: false });
+
+   // disable UTF-8 validation on the database
+   client.db('<database name>', { enableUtf8Validation: false });
+
+   // disable UTF-8 validation on the collection
+   db.collection('<collection name>', { enableUtf8Validation: false });
+
+   // disable UTF-8 validation on a specific operation call
+   await collection.findOne({ title: 'Cam Jansen'}, { enableUtf8Validation: false });
+
+If your application reads invalid UTF-8 from MongoDB while the
+``enableUtf8Validation`` option is enabled, it throws a ``BSONError`` that
+contains the following message:
+
+.. code-block::
+
+   Invalid UTF-8 string in BSON document
+
+.. _nodejs-utf-8-validation-scope:
+
+Set the Validation Scope
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``enableUtf8Validation`` setting automatically applies to the scope of the
+object instance on which you included it, and any other objects created by
+calls on that instance.
+
+For example, if you include the option on the call to instantiate a database
+object, any collection instance you construct from that object inherits
+the setting. Any operations you call on that collection instance also
+inherit the setting.
+
+.. code-block:: javascript
+
+   const database = client.db('books', { enableUtf8Validation: false });
+
+   // The collection inherits the UTF-8 validation disabled setting from the database
+   const collection = database.collection('mystery');
+
+   // CRUD operation runs with UTF-8 validation disabled
+   await collection.findOne({ title: 'Encyclopedia Brown' });
+
+You can override the setting at any level of scope by including it when
+constructing the object instance or when calling an operation.
+
+For example, if you disable validation on the collection object, you can
+override the setting in individual CRUD operation calls on that
+collection.
+
+.. code-block:: javascript
+
+   const collection = database.collection('mystery', { enableUtf8Validation: false });
+
+   // CRUD operation runs with UTF-8 validation enabled
+   await collection.findOne({ title: 'Trixie Belden' }, { enableUtf8Validation: true });
+
+   // CRUD operation runs with UTF-8 validation disabled
+   await collection.findOne({ title: 'Enola Holmes' });
+
