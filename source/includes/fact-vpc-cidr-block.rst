@@ -1,34 +1,19 @@
-|service| uses the specified |cidr| block for all other Network Peering
+|service| uses this |service| |cidr| block for all other Network Peering
 connections created in the project. The |service| |cidr| block must be
 at least a ``/24`` and at most a ``/21`` in one of the following :rfc:`private networks <rfc1918#section-3>`.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40 20
+.. include:: /includes/list-tables/aws-vpc-ranges.rst
 
-   * - Lower Bound
-     - Upper Bound
-     - Prefix
+|service| locks this value if an ``M10`` or greater cluster or a
+Network Peering connection exists.
 
-   * - ``10.0.0.0``
-     - ``10.255.255.255``
-     - 10/8
+To modify the |cidr| block, the target project cannot have:
 
-   * - ``172.16.0.0``
-     - ``172.31.255.255``
-     - 172.16/12
+- Any ``M10`` or greater clusters
+- Any other |vpc| peering connections
 
-   * - ``192.168.0.0``
-     - ``192.168.255.255``
-     - 192.168/16
-
-|service| locks this value if an ``M10+`` cluster or a Network Peering
-connection already exists. To modify the |cidr| block, ensure there are
-no ``M10+`` clusters in the project *and* no other |vpc| peering
-connections in the project. 
-
-Alternatively, :ref:`create a new project <atlas-create-atlas-project>`
-and create a Network Peering Connection to set the desired |service| 
+You can also :ref:`create a new project <atlas-create-atlas-project>`
+then create a Network Peering Connection to set the desired |service| 
 |vpc| |cidr| block for that project.
 
 .. important::
