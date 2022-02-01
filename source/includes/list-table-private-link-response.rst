@@ -8,14 +8,14 @@
 
    * - ``comment``
      - string
-     - Human-readable string associateed with this private endpoint.
+     - Human-readable string associated with this private endpoint.
 
    * - ``endpointId``
      - string
      - Unique 22-character alphanumeric string that identifies the 
        private endpoint. {+adl+} supports |aws| private endpoints using 
-       the `|aws| PrivateLink <https://aws.amazon.com/privatelink/>`__ 
-       feature.
+       the `{aws-pl+}
+       <https://aws.amazon.com/privatelink/>`__ feature.
 
    * - ``provider``
      - string
