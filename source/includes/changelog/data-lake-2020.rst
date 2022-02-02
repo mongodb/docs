@@ -215,10 +215,8 @@
   buckets, enabling use of :pipeline:`$out` semantics to write directly
   to those buckets.
 
-- Adds incremental :ref:`store <manage-stores-cli>`,
-  :ref:`database <dl-manage-db-cli>`,
-  :ref:`collection <manage-collections-views-cli>`, and
-  :manual:`view </reference/method/db.createView/#db.createView>`
+- Adds incremental :ref:`store <adl-cli>`, :ref:`database <adl-cli>`,
+  :ref:`collection <adl-cli>`, and :ref:`view <adl-cli>`
   commands for storage configuration management.
 
 - Limits collections returned for wildcard collections to 1,000.
