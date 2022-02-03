@@ -31,6 +31,14 @@ STAGING_BUCKET=docs-mongodb-org-stg
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 PROJECT=kubernetes-operator
 
+ifeq ($(ENV), 'dotcom_stg')
+	STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
+	STAGING_BUCKET=docs-mongodb-org-dotcomstg
+
+ifeq ($(ENV), 'dotcom_prd')
+	PRODUCTION_URL="https://docs.mongodb.com"
+	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
 STABLE_BRANCH=`grep 'manual' build/docs-tools/data/${PROJECT}-published-branches.yaml | cut -d ':' -f 2 | grep -Eo '[0-9a-z.]+'`
