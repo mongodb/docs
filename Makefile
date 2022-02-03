@@ -10,7 +10,7 @@ ifeq ($(ENV), 'dotcom_stg')
 	STAGING_BUCKET=docs-mongodb-org-dotcomstg
 
 ifeq ($(ENV), 'dotcom_prd')
-	PRODUCTION_URL="https://docs.mongodb.com"
+	PRODUCTION_URL="https://mongodb.com/docs"
 	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
 
 # "PROJECT" currently exists to support having multiple projects
