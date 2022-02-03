@@ -8,6 +8,15 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-stg
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 
+
+ifeq ($(ENV), 'dotcom_stg')
+	STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
+	STAGING_BUCKET=docs-mongodb-org-dotcomstg
+
+ifeq ($(ENV), 'dotcom_prd')
+	PRODUCTION_URL="https://mongodb.com/docs"
+	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+	
 PROJECT=ruby-driver
 TARGET_DIR=source-${GIT_BRANCH}
 
