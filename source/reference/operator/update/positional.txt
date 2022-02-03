@@ -96,6 +96,19 @@ However, if the negated portion of the query is inside of an
 :query:`$elemMatch` expression, then you *can* use the positional
 operator to update this field.
 
+Multiple Array Matches
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The positional :update:`$` update operator behaves ambiguously when filtering
+on multiple array fields.
+
+When the server executes an update method, it first runs a query to determine
+which documents you want to update. If the update filters documents on multiple
+array fields, the subsequent call to the positional :update:`$` update operator
+doesn't always update the required position in the array.
+
+For more information, see the :ref:`example <multiple-array-match>`.
+
 Examples
 --------
 
@@ -249,6 +262,66 @@ criteria, namely the second embedded document in the array:
        { grade: 90, mean: 85, std: 3 }
      ]
    }
+
+.. _multiple-array-match:
+
+Update with Multiple Array Matches
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The positional :update:`$` update operator behaves ambiguously when the
+query has multiple array fields to filter documents in the collection.
+
+Consider a document in the ``students_deans_list`` collection, which holds
+arrays of student information:
+
+.. code-block:: javascript
+
+   db.students_deans_list.insertMany( [
+      {
+         _id: 8,
+         activity_ids: [ 1, 2 ],
+         grades: [ 90, 95 ],
+         deans_list: [ 2021, 2020 ]
+      }
+   ] )
+
+In the following example, the user attempts to modify the ``deans_list`` field,
+filtering documents using the ``activity_ids``, ``deans_list``, and ``grades``
+fields, and updating the 2021 value in the ``deans_list`` field to 2022:
+
+.. code-block:: javascript
+
+   db.students_deans_list.updateOne(
+      { activity_ids: 1, grades: 95, deans_list: 2021 },
+      { $set: { "deans_list.$": 2022 } }
+   )
+
+When the server executes the ``updateOne`` method above, it filters
+the available documents using values in the supplied array fields.
+Although the ``deans_list`` field is used in the filter, it is not the field
+used by the positional :update:`$` update operator to determine which position
+in the array to update:
+
+.. code-block:: javascript
+
+   db.students_deans_list.find( { _id: 8 } )
+
+Example output:
+
+.. code-block:: javascript
+
+   {
+      _id: 8,
+      activity_ids: [ 1, 2 ],
+      grades: [ 90, 95 ],
+      deans_list: [ 2021, 2022 ]
+   }
+
+The ``updateOne`` method matched the ``deans_list`` field on 2021, but the
+positional :update:`$` update operator instead changed the 2020 value to 2022.
+
+To avoid unexpected results when matching on multiple arrays, instead
+use the filtered positional operator :update:`$[<identifier>]`.
 
 .. seealso::
 
