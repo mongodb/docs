@@ -8,10 +8,12 @@ PRODUCTION_BUCKET=docs-mongodb-org-prd
 ifeq ($(ENV), 'dotcom_stg')
 	STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 	STAGING_BUCKET=docs-mongodb-org-dotcomstg
+endif
 
 ifeq ($(ENV), 'dotcom_prd')
 	PRODUCTION_URL="https://mongodb.com/docs"
 	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+endif
 
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
