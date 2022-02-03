@@ -3,8 +3,8 @@
    :stub-columns: 1
    :class: compatibility-large
 
-
    * - C++ Driver Version
+     - MongoDB 5.2
      - MongoDB 5.1
      - MongoDB 5.0
      - MongoDB 4.4
@@ -16,94 +16,94 @@
      - MongoDB 3.0
      - MongoDB 2.6
      - MongoDB 2.4
-
    * - 3.6
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     -
-     -
-
+     - 
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - 
+     - 
    * - 3.5
-     -
-     -
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     -
-     -
-
+     - 
+     - 
+     - 
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - 
+     - 
    * - 3.4
-     -
-     -
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     -
-     -
-
+     - 
+     - 
+     - 
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - 
+     - 
    * - 3.3
-     -
-     -
-     -
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     -
-     -
-
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - 
+     - 
    * - 3.2
-     -
-     -
-     -
-     -
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
    * - 3.1
-     -
-     -
-     -
-     -
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
    * - 3.0
-     -
-     -
-     -
-     -
-     -
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - 
+     - ✓
+     - ✓
+     - ✓
+     - ✓
