@@ -143,6 +143,56 @@ Flow Control
 
 .. include:: /includes/extracts/4.2-changes-flow-control-specific-desc.rst
 
+Replication lag can occur without the replica set receiving sufficient load
+to engage flow control, such as in the case of an unresponsive 
+:term:`secondary`.
+
+To view the status of flow control, run the following commands on the 
+:term:`primary`:
+
+#. Run the :method:`rs.printSecondaryReplicationInfo` method to determine if
+   any nodes are lagging:
+
+   .. code-block:: javascript
+   
+      rs.printSecondaryReplicationInfo()    
+
+   Example output:
+
+   .. code-block:: javascript 
+      :copyable: false
+   
+      source: 192.0.2.2:27017
+      {
+        syncedTo: 'Mon Jan 31 2022 18:58:50 GMT+0000 (Coordinated Universal Time)',
+        replLag: '0 secs (0 hrs) behind the primary '
+      }
+      ---
+      source: 192.0.2.3:27017
+      {
+        syncedTo: 'Mon Jan 31 2022 18:58:05 GMT+0000 (Coordinated Universal Time)',
+        replLag: '45 secs (0 hrs) behind the primary '
+      }
+
+#. Run the :dbcommand:`serverStatus` command and use the 
+   :serverstatus:`flowControl.isLagged` value to determine whether the
+   replica set has engaged flow control:
+
+   .. code-block:: javascript
+
+      db.runCommand( { serverStatus: 1 } ).flowControl.isLagged     
+
+   Example output:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      false
+   
+   If flow control has not engaged, investigate the :term:`secondary`
+   to determine the cause of the replication lag, such as limitations in 
+   the hardware, network, or application.
+
 For information on flow control statistics, see:
 
 - :serverstatus:`flowControl <flowControl>`
