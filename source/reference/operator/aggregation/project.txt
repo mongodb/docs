@@ -53,14 +53,9 @@ Definition
 
         - Adds a new field or resets the value of an existing field.
 
-          .. versionchanged:: 3.6
+          If the the expression evaluates to ``$$REMOVE``, the field is
+          excluded in the output. For details, see :ref:`remove-var`.
 
-             MongoDB 3.6 adds the variable :variable:`REMOVE`. If the
-             the expression evaluates to ``$$REMOVE``, the field is
-             excluded in the output. For details, see :ref:`remove-var`.
-
-
-         
       * - ``<field>:<0 or false>``
 
         - Specifies the exclusion of a field.
@@ -102,8 +97,6 @@ must explicitly specify the suppression of the ``_id`` field in
 Exclude Fields
 ~~~~~~~~~~~~~~
 
-.. versionadded:: 3.4
-
 If you specify the exclusion of a field or fields, all other fields are
 returned in the output documents.
 
@@ -125,11 +118,9 @@ See also the :pipeline:`$unset` stage to exclude fields.
 Exclude Fields Conditionally
 ````````````````````````````
 
-.. versionadded:: 3.6
-
-Starting in MongoDB 3.6, you can use the variable :variable:`REMOVE` in
-aggregation expressions to conditionally suppress a field. For an
-example, see :ref:`remove-example`.
+You can use the variable :variable:`REMOVE` in aggregation expressions
+to conditionally suppress a field. For an example, see
+:ref:`remove-example`.
 
 Add New Fields or Reset Existing Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -161,12 +152,13 @@ existing field, you can effectively rename a field.
 New Array Fields
 ````````````````
 
-Starting in MongoDB 3.2, :pipeline:`$project` stage supports using the
-square brackets ``[]`` to directly create new array fields. If array
-specification includes fields that are non-existent in a document, the
-operation substitutes ``null`` as the value for that field. For an
-example, see :ref:`example-project-new-array-fields`.
+The :pipeline:`$project` stage supports using the square brackets ``[]``
+to directly create new array fields. If you specify array fields that do
+not exist in a document, the operation substitutes ``null`` as the value
+for that field. For an example, see
+:ref:`example-project-new-array-fields`.
 
+.. include:: /includes/project-stage-and-array-index.rst
 
 Embedded Document Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -191,10 +183,10 @@ embedded document to specify the field, e.g. ``contact: {
 Restrictions
 ~~~~~~~~~~~~
 
-.. versionchanged:: 3.4
+An error is returned if the :pipeline:`$project` specification is
+an empty document.
 
-MongoDB 3.4 and later produces an error if the :pipeline:`$project`
-specification is an empty document.
+.. include:: /includes/project-stage-and-array-index.rst
 
 Examples
 --------
@@ -264,9 +256,6 @@ The operation results in the following document:
 Exclude Fields from Output Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
-.. versionadded:: 3.4
-
 Consider a ``books`` collection with the following document:
 
 .. code-block:: javascript
@@ -291,8 +280,6 @@ See also the :pipeline:`$unset` stage to exclude fields.
 
 Exclude Fields from Embedded Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 3.4
 
 Consider a ``books`` collection with the following document:
 
@@ -341,10 +328,8 @@ See also the :pipeline:`$unset` stage to exclude fields.
 Conditionally Exclude Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 3.6
-
-Starting in MongoDB 3.6, you can use the variable :variable:`REMOVE` in
-aggregation expressions to conditionally suppress a field.
+You can use the variable :variable:`REMOVE` in aggregation expressions
+to conditionally suppress a field.
 
 Consider a ``books`` collection with the following document:
 
@@ -537,6 +522,54 @@ The operation returns the following document:
 
    { "_id" : ObjectId("55ad167f320c6be244eb3b95"), "myArray" : [ 1, 1, null ] }
 
-.. seealso:: 
-   :doc:`/tutorial/aggregation-zip-code-data-set`,
-   :doc:`/tutorial/aggregation-with-user-preference-data`
+.. _example-project-array-indexes:
+
+Array Indexes are Unsupported
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot use an array index with the :pipeline:`$project` stage. This
+section shows an example.
+
+Create the following ``pizzas`` collection:
+
+.. code-block:: javascript
+
+   db.pizzas.insert( [
+      { _id: 0, name: [ 'Pepperoni' ] },
+   ] )
+
+The following example returns the pizza:
+
+.. code-block:: javascript
+
+   db.pizzas.aggregate( [
+      { $project: { x: '$name', _id: 0 } },
+   ] )
+
+The pizza is returned in the example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ { x: [ 'Pepperoni' ] } ]
+
+The following example uses an array index (``$name.0``) to attempt to
+return the pizza:
+
+.. code-block:: javascript
+
+   db.pizzas.aggregate( [
+      { $project: { x: '$name.0', _id: 0 } },
+   ] )
+
+The pizza is not returned in the example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ { x: [] } ]
+
+.. seealso::
+
+   - :doc:`/tutorial/aggregation-zip-code-data-set`
+   - :doc:`/tutorial/aggregation-with-user-preference-data`
