@@ -5,17 +5,21 @@
 
 *Released 2022-01-13*
 
-- Improves storage size calculation for a Cloud Live Migration of a sharded cluster.
+- Improves storage size calculation for a Cloud Live Migration of a
+  sharded cluster.
   
-- Fixes a bug that prevents |onprem| from syncing user information from LDAP servers.
+- Fixes a bug that prevents |onprem| from syncing user information from
+  LDAP servers.
 
-- Fixes a bug where |onprem| incorrectly escaped characters in LDAP search filters.
+- Fixes a bug where |onprem| incorrectly escaped characters in LDAP
+  search filters.
 
 - Updates the {+mdbagent+} to :ref:`11.0.11.7036 <mongodb-11.0.11.7036>`.
 
-- When taking a snapshot, allows the {+mdbagent+} to slow the sending of data blocks 
-  when |onprem| is overloaded, so that the snapshot can complete. Successful 
-  completion of snapshots is prioritized over speed.
+- When taking a snapshot, allows the {+mdbagent+} to slow the sending
+  of data blocks when |onprem| is overloaded, so that the snapshot can
+  complete. Successful completion of snapshots is prioritized over
+  speed.
   
   .. important::
 

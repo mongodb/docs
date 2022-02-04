@@ -9,6 +9,8 @@
 
 - Adds a Microsoft Teams alerts integration.
 
+- Removes workaround to use an X.509 CommonName instead of a |san-dns|.
+
 .. _cloudmanager_20210105:
 
 5 January 2022 Release

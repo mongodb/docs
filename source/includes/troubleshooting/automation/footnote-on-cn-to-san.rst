@@ -1,8 +1,8 @@
 .. [#cnchange]
 
-   The {+mdbagent+} is written in the Go language. Go 1.15 changed the
-   default behavior for using the `X.509 CommonName field in Go 1.15
-   <https://golang.org/doc/go1.15#commonname>`__.
+   MongoDB wrote the {+mdbagent+} the Go language. Go 1.17 removed the
+   ability to use `X.509 CommonName field as a hostname
+   <https://go.dev/doc/go1.17#crypto/x509>`__ when no |san-dns| exists.
 
    When clients validate |tls| certificates, the client checks the
    hostname or hostnames to which the certs apply from the values in
@@ -20,6 +20,11 @@
    :rfc:`RFC 6125 <6125>` practice of making CN optional. In practice,
    this change requires you to either add |san-dns| values or enable
    the use of CNs.
+
+   Go 1.17 removes the workaround to use the CN if no SAN exists.
+
+   With the current version of the {+mdbagent+}, you *must* use
+   |san-dns|.
 
    To learn more, see
    `Fraser Tweedale's blog post on this topic <https://frasertweedale.github.io/blog-redhat/posts/2017-07-11-cn-deprecation.html>`__
