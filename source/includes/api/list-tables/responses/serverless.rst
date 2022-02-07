@@ -56,8 +56,7 @@
 
    * - providerSettings.providerName
      - string
-     - Cloud service provider that applies to the provisioned the
-       {+serverless-instance+}.
+     - This value will always be the string literal ``SERVERLESS``.
 
    * - providerSettings.regionName
      - string

@@ -22,14 +22,13 @@
    * - providerSettings.backingProviderName
      - string
      - Required
-     - Cloud service provider on which MongoDB Cloud provisioned the
+     - Cloud service provider on which MongoDB Cloud provisions the
        {+serverless-instance+}.
 
    * - providerSettings.providerName
      - string
      - Required
-     - Cloud service provider that applies to the provisioned the
-       {+serverless-instance+}.
+     - This value must be the string literal ``SERVERLESS``.
 
    * - providerSettings.regionName
      - string
