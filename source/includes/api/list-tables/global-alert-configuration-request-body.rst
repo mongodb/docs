@@ -197,6 +197,13 @@
        configuration triggers.
 
    * - | ``notifications``
+       | ``.microsoftTeamsWebhookUrl``
+     - string
+     - Conditional
+     - Microsoft Teams channel incoming webhook URL. Only accepted 
+       for ``MICROSOFT_TEAMS`` notifications.
+
+   * - | ``notifications``
        | ``.notificationToken``
      - string
      - Conditional

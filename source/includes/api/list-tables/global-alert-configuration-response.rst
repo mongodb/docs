@@ -170,6 +170,11 @@
        for unacknowledged, unresolved alerts that this alert 
        configuration triggers.
 
+   * - ``notifications.microsoftTeamsWebhookUrl``
+     - string
+     - Microsoft Teams channel incoming webhook URL. Only present 
+       for ``MICROSOFT_TEAMS`` notifications.
+
    * - ``notifications.notificationToken``
      - string
      - HipChat API token. Only present for ``HIP_CHAT`` notifications.
