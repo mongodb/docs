@@ -1,11 +1,8 @@
-Each group of operations can have at most :limit:`1000 operations <Write Command Operation Limit Size>`. If a group exceeds this :limit:`limit
-<Write Command Operation Limit Size>`, MongoDB will divide the group into
-smaller groups of 1000 or less. For example, if the bulk operations list
-consists of 2000 insert operations, MongoDB creates 2 groups, each with
-1000 operations.
+:method:`Bulk()` operations and comparable methods in the drivers do not
+have a limit for the number of operations in a group. To see how the
+operations are grouped for bulk operation execution, call
+:method:`Bulk.getOperations()` *after* the execution.
 
-The sizes and grouping mechanics are internal performance details and
-are subject to change in future versions.
+.. seealso::
 
-To see how the operations are grouped for a bulk operation execution,
-call :method:`Bulk.getOperations()` *after* the execution.
+   - :limit:`Write Command Batch Limit Size`
