@@ -133,9 +133,13 @@ limitations and considerations:
   
    * - :manual:`Aggregation </aggregation>`
      - {+Serverless-instance+} aggregations can't use the :manual:`allowDiskUse
-       <reference/method/db.collection.aggregate>` option for aggregation
-       operations or the :manual:`$out </reference/operator/aggregation/out/>`
-       stage. They can use :manual:`$merge </reference/operator/aggregation/merge/>`.
+       </reference/method/db.collection.aggregate>` option for aggregation
+       operations. 
+
+       {+Serverless-instances+} don't support the :manual:`$out 
+       </reference/operator/aggregation/out/>`
+       stage. Use :manual:`$merge
+       </reference/operator/aggregation/merge/>` instead.
        
        Aggregation fields on {+serverless-instances+} that represent database and
        collection names (such as :manual:`$merge
