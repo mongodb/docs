@@ -61,7 +61,7 @@ rr_version = '4.5'
 # rr_version = str(float(manifest_version) + 0.1)
 
 extlinks = {
-    'hardlink' : ( 'https://docs.opsmanager.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'https://docs.opsmanager.mongodb.com/{0}%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'manual': ('https://docs.mongodb.com/manual%s', ''),
     'v2.2': ('https://docs.mongodb.com/v2.2%s', ''),
