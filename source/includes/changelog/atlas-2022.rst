@@ -6,7 +6,10 @@
 - Adds support for the Toronto, Canada (``NORTH_AMERICA_NORTHEAST_2``)
   :doc:`Google Cloud region </reference/google-gcp/>`.
 - Introduces an 
-  :doc:`alerts integration with Microsoft Teams </tutorial/integrate-msft-teams/>`.
+  :doc:`alerts integration with Microsoft Teams 
+  </tutorial/integrate-msft-teams/>`.
+- Increases the memory for new ``M30`` to ``M200`` for Google Cloud 
+  clusters.
 
 .. _atlas_20220119:
 
