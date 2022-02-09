@@ -54,25 +54,68 @@ The following drivers use the Extended JSON v2.0
    :columns: 3
 
    - C
-
    - C++
-
    - Go
-
    - Java
-
    - Node
-
    - Perl
-
    - PHPC
-
    - Python
-
    - Scala
    
 For C# and Ruby that use Legacy MongoDB Extended JSON v1, refer to
 :doc:`/reference/mongodb-extended-json-v1`.
+
+Extended JSON Methods
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides the following methods for Extended JSON:
+
+.. list-table::
+
+   * - Method
+     - Description
+
+   * - ``serialize``
+     - Serializes a BSON object and returns the data in Extended JSON
+       format.
+
+       .. code-block:: javascript
+
+          EJSON.serialize( db.<collection>.findOne() )
+
+   * - ``deserialize``
+     - Converts a serialized document to field and value pairs. The
+       values have :ref:`BSON types <type-representations>`.
+
+       .. code-block:: javascript
+
+          EJSON.deserialize( <serialized object> )
+
+   * - ``stringify``
+     - Converts the element and :ref:`type <type-representations>`
+       pairs in a deserialized object to strings.
+
+       .. code-block:: javascript
+
+          EJSON.stringify( <deserialized object> )
+
+   * - ``parse``
+     - Converts strings into element and :ref:`type
+       <type-representations>` pairs.
+
+       .. code-block:: javascript
+
+          EJSON.parse( <string> )
+
+For usage examples, see :ref:`ex-obj-conversions` below.
+
+For additional details, see the documentation for:
+
+- `MongoDB NodeJS Driver
+  <https://mongodb.github.io/node-mongodb-native/4.0/>`__
+- `BSON Parser <https://github.com/mongodb-js/bson-ext>`__
+- `BSON-EXT Parser <https://github.com/mongodb-js/bson-ext>`__
 
 MongoDB Database Tools
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -107,8 +150,8 @@ representations in *Canonical* and *Relaxed*.
        - :bsontype:`Regular Expression`
        - :bsontype:`Timestamp`
 
-For a complete list, see
-https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#conversion-table.
+The complete list is `here
+<https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#conversion-table>`__.
 
 .. bsontype:: Array
 
@@ -119,7 +162,6 @@ https://github.com/mongodb/specifications/blob/master/source/extended-json.rst#c
    :class: border-table
 
    * - Canonical
-
      - Relaxed
 
    * - .. code-block:: none
@@ -137,7 +179,6 @@ Where the array elements are as follows:
 - ``<elements>``
 
   - Array elements use Extended JSON.
-
   - To specify an empty array, omit the content ``[ ]``.
 
 .. _extended-json-binary:
@@ -151,7 +192,6 @@ Where the array elements are as follows:
    :class: border-table
 
    * - Canonical
-
      - Relaxed
 
    * - .. code-block:: none
@@ -588,8 +628,15 @@ Where the values are as follows:
   - A positive integer for the increment.
 
 
-Example
--------
+Examples
+--------
+
+The following examples illustrate Extended JSON usage. 
+
+.. _type-representations:
+
+Type Representations
+~~~~~~~~~~~~~~~~~~~~
 
 .. list-table::
    :widths: 20 40 40
@@ -655,3 +702,106 @@ Example
    * - "timestampField":
      - {"$timestamp":{"t":1565545664,"i":1}}
      - {"$timestamp":{"t":1565545664,"i":1}}
+
+.. _ex-obj-conversions:
+
+Extended JSON Object Conversions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following short examples create a document object and then convert
+the object to different forms using Extended JSON object conversion
+methods.
+
+Setup
+`````
+
+Create a document in the ``conversions`` collection:
+
+.. code-block:: javascript
+
+   db.conversions.insertOne( { insertDate: new Date() } )
+
+:binary:`mongosh` returns a document object:
+
+.. code-block:: javascript
+
+      {
+        acknowledged: true,
+        insertedId: ObjectId("61fbaf25671c45f3f5f4074a")
+      }
+
+EJSON.serialize
+```````````````
+
+Serialize the data stored in a MongoDB document object:
+
+.. code-block:: javascript
+
+   serialized = EJSON.serialize( db.conversions.findOne() )
+
+:binary:`mongosh` parses a JavaScript object and returns values using
+``"$"`` prefixed :ref:`types <type-representations>`:
+
+.. code-block:: javascript
+
+   {
+     _id: { '$oid': '61fbaf25671c45f3f5f4074a' },
+     insertDate: { '$date': '2022-02-03T10:32:05.230Z' }
+   }
+
+EJSON.deserialize
+`````````````````
+
+Deserialize a serialized object:
+
+.. code-block:: javascript
+
+   EJSON.deserialize( serialized )
+
+:binary:`mongosh` parses a JavaScript object and returns values using
+the default :binary:`mongosh` :ref:`type <type-representations>` form:
+
+.. code-block:: javascript
+
+   {
+     _id: new ObjectId( "61fbaf25671c45f3f5f4074a" ),
+     insertDate: ISODate( "2022-02-03T10:32:05.230Z" )
+   }
+
+EJSON.stringify
+```````````````
+
+Convert an object to a string: 
+
+.. code-block:: javascript
+
+   stringified = EJSON.stringify( db.conversions.findOne() )
+
+:binary:`mongosh` outputs the elements of the converted object as
+strings:
+
+.. code-block:: javascript
+
+   {
+      "_id": {"$oid":"61fbaf25671c45f3f5f4074a"},
+      "insertDate":{"$date":"2022-02-03T10:32:05.230Z"}
+   }
+
+EJSON.parse
+```````````
+
+Parse a string to create an object:
+
+.. code-block:: javascript
+
+   EJSON.parse( stringified )
+
+:binary:`mongosh` returns the converted strings as documents:
+
+.. code-block:: javascript
+
+   {
+     _id: new ObjectId("61fbaf25671c45f3f5f4074a"),
+     insertDate: ISODate("2022-02-03T10:32:05.230Z")
+   }
+
