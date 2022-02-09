@@ -52,7 +52,7 @@
          It's a good idea to put your connection code in a class so
          that it can be reused.
 
-         .. literalinclude:: /driver-examples/connect.py
+         .. literalinclude:: /includes/examples/python/connect/connect.py
             :language: python
             :dedent: 0
             :start-after: Start Connect
@@ -67,7 +67,7 @@
 
          Now add code to call the class you just created.
 
-         .. literalinclude:: /driver-examples/connecttest.py
+         .. literalinclude:: /includes/examples/python/connect/connecttest.py
             :language: python
             :dedent: 0
             :start-after: Start Caller Connect
@@ -95,7 +95,7 @@
          connection. This is a full example of a Go connection to
          mongoDB, including a test ``ping``.
 
-         .. literalinclude:: /driver-examples/connect.go
+         .. literalinclude:: /includes/examples/go/connect/connect.go
             :language: go
             :dedent: 0
             :start-after: Start code
@@ -152,7 +152,7 @@
 
          For the MongoDB java driver 3.7 and beyond, use the ``MongoClients.create()`` method.
 
-         .. literalinclude:: /driver-examples/JavaConnectExample.java
+         .. literalinclude:: /includes/examples/java/ConnectExample.java
             :language: java
             :dedent: 4
             :start-after: Start Connection
@@ -161,7 +161,7 @@
 
          For legacy drivers (prior to 3.7), use:
 
-         .. literalinclude:: /driver-examples/JavaConnectExampleLegacy.java
+         .. literalinclude:: /includes/examples/java/ConnectExampleLegacy.java
             :language: java
             :dedent: 4
             :start-after: Start Connection
@@ -171,7 +171,7 @@
      - id: nodejs
        content: |
 
-         .. literalinclude:: /driver-examples/connect.js
+         .. literalinclude:: /includes/examples/node/connect/connect.js
             :language: javascript
             :dedent: 0
             :start-after: Start Connect
@@ -184,7 +184,7 @@
          you'll import it here.
 
          
-         .. literalinclude:: /driver-examples/csharpconnect.cs
+         .. literalinclude:: /includes/examples/csharp/Connect.cs
             :language: c#
             :dedent: 0
             :start-after: Start Connect
