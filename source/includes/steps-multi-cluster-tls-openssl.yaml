@@ -1,0 +1,181 @@
+---
+stepnum: 1
+level: 4
+ref: mc-openssl-generate-certs-csrs
+title: "Use OpenSSL to generate CA certificates, CSRs, and server certificates."
+content: |
+
+    a. (Optional). If you don't have a |certauth| key and root certificate for your
+       organization, generate a |certauth| key with `genrsa <https://www.openssl.org/docs/man3.0/man1/genrsa.html>`__.
+       Skip this step if you already have a |certauth| key.
+
+       .. code-block:: sh
+
+          openssl genrsa -out ./certs/ca.key 2048
+
+    #. (Optional). Run `openssl req <https://www.openssl.org/docs/man3.0/man1/openssl-req.html>`__
+       to generate a |certauth| root certificate signed by the |certauth|
+       key generated in the previous step. Skip this step if your
+       organization already has a |certauth| root certificate that you
+       can use to secure your multi-cluster deployment.
+
+       .. code-block:: sh
+
+          openssl req -x509 -new -nodes \
+             -key ./certs/ca.key \
+             -subj /CN={org cert common name} \
+             -days 3650 \
+             -reqexts v3_req \
+             -extensions v3_ca \
+             -out ./certs/ca.crt
+
+    #. For each member cluster, generate a key for the Certificate Signing Request (CSR) with `genrsa <https://www.openssl.org/docs/man3.0/man1/genrsa.html>`__:
+
+       .. code-block:: sh
+
+          openssl genrsa -out ./certs/{cluster-X-cert-key}.key 2048
+
+    #. For each member cluster, generate a CSR using its key with `openssl req <https://www.openssl.org/docs/man3.0/man1/openssl-req.html>`__.
+
+       .. code-block:: sh
+
+          openssl req -new -sha256 \
+             -key ./certs/{cluster-X-cert-key}.key \
+             -subj /C={cert country}/ST={cert state}/O={organization} \
+             -out ./certs/{cluster-X-cert-signing}.csr
+
+    #. For each member cluster, using the generated CA key, root
+       certificate, and the CSR, generate a server certificate. The
+       following procedure uses `openssl req <https://www.openssl.org/docs/man3.0/man1/openssl-req.html>`__
+       in combination with ``bash -extfile`` and ``printf`` to first
+       contstruct a ``subjectAltName`` parameter, and then inject it
+       via ``printf`` as the value into ``bash -extfile``.
+
+       .. code-block:: sh
+
+          bash -c openssl x509 -req \
+               -extfile <(printf "subjectAltName=DNS:{resource name}-{cluster index}-{host index}-svc.mongodb.svc.cluster.local") \
+               -days 365 \
+               -in ./certs/{cluster-X-cert-signing}.csr \
+               -CA ./certs/ca.crt \
+               -CAkey ./certs/ca.key \
+               -CAcreateserial \
+               -out ./certs/{resource name}-{cluster index}-{host index}.crt
+
+---
+
+stepnum: 2
+level: 4
+ref: mc-openssl-configmap
+title: "Create a ConfigMap that contains the CA root certificate."
+content: |
+
+  Run the following command on each member cluster to create a
+  ConfigMap that contains the |certauth| root certificate:
+
+  .. code-block:: sh
+
+     kubectl \
+       --context=$MDB_CLUSTER_1_FULL_NAME \
+       --namespace=mongodb \
+       create configmap issuer-ca \
+         --from-literal ca-pem="$(< ./certs/ca.crt)" \
+         --from-literal mms-ca.crt="$(< ./certs/ca.crt)"
+
+  .. code-block:: sh
+
+     kubectl \
+       --context=$MDB_CLUSTER_2_FULL_NAME \
+       --namespace=mongodb \
+       create configmap issuer-ca \
+         --from-literal ca-pem="$(< ./certs/ca.crt)" \
+         --from-literal mms-ca.crt="$(< ./certs/ca.crt)"
+
+  .. code-block:: sh
+
+     kubectl \
+       --context=$MDB_CLUSTER_3_FULL_NAME \
+       --namespace=mongodb \
+       create configmap issuer-ca \
+         --from-literal ca-pem="$(< ./certs/ca.crt)" \
+         --from-literal mms-ca.crt="$(< ./certs/ca.crt)"
+
+---
+
+stepnum: 3
+level: 4
+ref: mc-openssl-cert-secret-member-cluster
+title: "Create a certificate secret for each member cluster."
+content: |
+
+  For each member cluster, create a cluster certificate secret of the type
+  ``generic`` named ``clustercert-{resource name}-cert`` with all server
+  certificates generated in step 2 of this procedure.
+
+  For example, if the first and third member clusters are three-node
+  MongoDB replica sets, and the second member cluster has two MongoDB nodes,
+  to to create a cluster certificate secret on ``$MDB_CLUSTER_1_FULL_NAME``,
+  run the following command:
+
+  .. code-block:: sh
+
+     kubectl \
+       --context=$MDB_CLUSTER_1_FULL_NAME \
+       --namespace=mongodb \
+       create secret clustercert-{resource name}-cert \
+       --from-literal {resource name}-0-0-pem="$(< ./certs/{cluster-0-cert-key}.key)\$(< ./certs/{resource name}-0-0.crt)" \
+       --from-literal {resource name}-0-1-pem="$(< ./certs/{cluster-0-cert-key}.key)\$(< ./certs/{resource name}-0-1.crt)" \
+       --from-literal {resource name}-0-2-pem="$(< ./certs/{cluster-0-cert-key}.key)\$(< ./certs/{resource name}-0-2.crt)" \
+       --from-literal {resource name}-1-0-pem="$(< ./certs/{cluster-1-cert-key}.key)\$(< ./certs/{resource name}-1-0.crt)" \
+       --from-literal {resource name}-1-1-pem="$(< ./certs/{cluster-1-cert-key}.key)\$(< ./certs/{resource name}-1-1.crt)" \
+       --from-literal {resource name}-2-0-pem="$(< ./certs/{cluster-2-cert-key}.key)\$(< ./certs/{resource name}-2-0.crt)" \
+       --from-literal {resource name}-2-1-pem="$(< ./certs/{cluster-2-cert-key}.key)\$(< ./certs/{resource name}-2-1.crt)" \
+       --from-literal {resource name}-2-2-pem="$(< ./certs/{cluster-2-cert-key}.key)\$(< ./certs/{resource name}-2-2.crt)"
+
+  The commands in this step lead to the following results:
+
+  - The cluster certificate secret contains all server certificates
+    generated in Step 2 of this procedure.
+  - Each member cluster's host contains a corresponding secret key,
+    ``resource name-cluster index-host index-pem``.
+  
+    This key contains a server certificate generated for that host
+    in Step 2, ``resource name-cluster index-host index.crt``,
+    concatenated with the cluster certificate key, ``cluster-X-cert-key.key``,
+    also generated in Step 2.
+  
+  Run the same command as in the previous step for two other clusters in
+  the example multi-cluster deployment, ``$MDB_CLUSTER_2_FULL_NAME`` and
+  ``$MDB_CLUSTER_3_FULL_NAME``.
+
+---
+
+stepnum: 4
+level: 4
+ref: mc-openssl-update-crds
+title: "Update the MongoDB multi-cluster resource and configure |tls| options in it."
+content: |
+
+  :ref:`Update the MongoDB multi-cluster resource <k8s-edit-database-resource>`
+  with :ref:`security settings <security-settings>` from the |k8s-op-short|
+  MongoDB resource specification. The resulting configuration should look as follows:
+
+  .. code-block:: yaml
+
+     spec.security:
+      tls:
+       ca: issuer-ca
+       enabled: true
+       secretRef:
+        prefix: clustercert
+
+---
+
+stepnum: 5
+level: 4
+ref: verify-mc-resources-tls
+inherit:
+  file: steps-multi-cluster-source.yaml
+  ref: verify-mdb-resources-mc
+
+...

@@ -1,0 +1,88 @@
+.. _multi-cluster-secure-ref:
+
+=========================================
+Secure Multi-Cluster Deployments with TLS
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _multi-cluster-tls-overview:
+
+Overview
+--------
+
+To secure your multi-cluster deployment with |tls| encryption,
+:ref:`run the multi-cluster TLS tool <multi-cluster-tls-tool>` provided
+by MongoDB to automate the |tls| configuration. The tool runs OpenSSL
+commands on the specified :ref:`central cluster <central-and-member-clusters>`
+to generate server certificates for each member cluster and then updates
+the |k8s-op-short| configuration on each member cluster.
+
+Alternatively, you can :ref:`run OpenSSL commands <multi-cluster-tls-openssl>`
+directly on each member cluster to generate server certificates and CSRs,
+and then update the |k8s-op-short| configuration on each member cluster.
+
+.. _multi-cluster-security-prereqs:
+
+Prerequisites
+-------------
+
+Before you secure your multi-cluster MongoDB deployment using |tls|
+encryption, complete the following tasks:
+
+- Follow the steps in the :ref:`Multi-Cluster Quick Start Prerequisites <multi-cluster-prereqs>`.
+- Deploy a multi-cluster using a :ref:`multi-cluster-quick-start-ref`.
+- `Install OpenSSL <https://www.openssl.org/source/>`__.
+
+.. _multi-cluster-tls-tool:
+
+Configure TLS with the Multi-Cluster TLS Tool
+---------------------------------------------
+
+Run the :github:`multi-cluster TLS </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/tls.go>`
+tool on the specified :ref:`central cluster <central-and-member-clusters>`.
+The tool runs OpenSSL commands and takes the following actions:
+
+- On each member cluster, uses a |certauth| key and root certificate that
+  you specify, or generates a new self-signed |certauth| certificate and
+  key if you don't specify a |certauth| key and root certificate.
+- Generates each cluster's Certificate Signing Request (CSR) and server
+  certificates for each member cluster's host.
+- Based on these certificates and a CSR, creates a cluster certificate
+  secret for each member cluster. Each cluster certificate secret consists
+  of all generated server certificates and each member cluster host's
+  secret key. The host's secret key contains the server certificate
+  concatened with the cluster certificate key.
+- Creates an ``issuer-ca`` ConfigMap in each member cluster that has the
+  |certauth| root certificate.
+- Updates the MongoDB multi-cluster resource with the ConfigMap's name
+  and :ref:`TLS security settings <security-settings>`.
+
+.. include:: /includes/steps/multi-cluster-tls-tool.rst
+
+.. _multi-cluster-tls-openssl:
+
+Configure TLS with OpenSSL
+--------------------------
+
+In this procedure you:
+
+- Use OpenSSL to generate member cluster's |certauth| root certificates
+  and CSRs, and server certificates for each member cluster's host.
+- Based on these certificates and CSRs, use OpenSSL to create the member
+  cluster certificate secrets. Each cluster certificate secret consists
+  of all generated server certificates and each member cluster host's
+  secret key. The host's secret key contains the server certificate
+  concatened with the cluster certificate key.
+- In each member cluster, create the ConfigMap that has the |certauth|
+  root certificate.
+- Update the MongoDB multi-cluster resource with the ConfigMap's name and
+  :ref:`TLS security settings <security-settings>`.
+
+.. include:: /includes/steps/multi-cluster-tls-openssl.rst
