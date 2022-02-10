@@ -106,7 +106,7 @@ publish:
 
 ## Host online for review
 stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${STGPROJECT} --stage ${ARGS}
 	@echo "\n\nHosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 
