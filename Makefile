@@ -30,15 +30,16 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-stg
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 PROJECT=kubernetes-operator
-STGPROJECT=kubernetes-operator
+STGPREFIX=kubernetes-operator
+PREFIX=kubernetes-operator
 
 ifeq ($(ENV), 'dotcom')
 	STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
 	STAGING_BUCKET=docs-mongodb-org-dotcomstg
 	PRODUCTION_URL="https://mongodb.com"
 	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
-	PROJECT=docs-qa/kubernetes-operator
-	STGPROJECT=docs/kubernetes-operator
+	PREFIX=docs-qa/kubernetes-operator
+	STGPREFIX=docs/kubernetes-operator
 endif
 
 # Parse our published-branches configuration file to get the name of
@@ -106,8 +107,8 @@ publish:
 
 ## Host online for review
 stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${STGPROJECT} --stage ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${STGPREFIX} --stage ${ARGS}
+	@echo "\n\nHosted at ${STAGING_URL}/${STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 
 #################################################################
@@ -116,9 +117,9 @@ stage:
 
 ## Deploy to the production bucket
 deploy: build/public
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
 
-	@echo "\n\nHosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
+	@echo "\n\nHosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
 
 	$(MAKE) deploy-search-index
 
