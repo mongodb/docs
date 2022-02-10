@@ -71,7 +71,7 @@
          ``inventory`` collection in the ``test`` database to a 
          variable
 
-         .. literalinclude:: /driver-examples/assign.go
+         .. literalinclude:: /includes/examples/go/assign/assign.go
             :language: go
             :dedent: 2
             :start-after: Start Collection
@@ -87,7 +87,7 @@
 
          First, get the inventory collection.
 
-         .. literalinclude:: /driver-examples/JavaConnectExample.java
+         .. literalinclude:: /includes/examples/java/ConnectExample.java
             :language: java
             :dedent: 4
             :start-after: Start Collection
@@ -104,7 +104,7 @@
 
      #    First, bind to the ``inventory`` collection.
 
-     #    .. literalinclude:: /driver-examples/JavaConnectTest.java
+     #    .. literalinclude:: /includes/examples/java/ConnectTest.java
      #       :language: java
      #       :dedent: 4
      #       :start-after: Start Collection Bind

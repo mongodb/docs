@@ -20,7 +20,7 @@
 
      - id: python
        content: |
-         .. literalinclude:: /driver-examples/test_examples.py
+         .. literalinclude:: /includes/examples/curl_examples/test_examples.py
             :language: python
             :dedent: 8
             :start-after: Start Example 1
@@ -29,7 +29,7 @@
 
      - id: go
        content: |
-         .. literalinclude:: /driver-examples/examples.go
+         .. literalinclude:: /includes/examples/curl_examples/examples.go
             :language: go
             :dedent: 2
             :start-after: Start Example 1
@@ -37,7 +37,7 @@
 
      - id: motor
        content: |
-         .. literalinclude:: /driver-examples/test_examples_motor.py
+         .. literalinclude:: /includes/examples/curl_examples/test_examples_motor.py
             :language: python
             :dedent: 8
             :start-after: Start Example 1
@@ -65,7 +65,7 @@
          Next, populate a Document with fields and an embedded document,
          and insert it into the database.
 
-         .. literalinclude:: /driver-examples/DocumentationSamples.java
+         .. literalinclude:: /includes/examples/curl_examples/DocumentationSamples.java
             :language: java
             :dedent: 8
             :start-after: Start Example 1
@@ -73,7 +73,7 @@
 
      #- id: java-async
      #  content: |
-     #    .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+     #    .. literalinclude:: /includes/examples/curl_examples/AsyncDocumentationSamples.java
      #       :language: java
      #       :dedent: 8
      #       :start-after: Start Example 1
@@ -81,7 +81,7 @@
 
      - id: nodejs
        content: |   
-         .. literalinclude:: /driver-examples/examples_tests.js
+         .. literalinclude:: /includes/examples/curl_examples/examples_tests.js
             :language: javascript
             :dedent: 8
             :start-after: Start Example 1
@@ -90,7 +90,7 @@
 
      - id: csharp
        content: |
-         .. literalinclude:: /driver-examples/DocumentationExamples.cs
+         .. literalinclude:: /includes/examples/curl_examples/DocumentationExamples.cs
             :language: c#
             :dedent: 12
             :start-after: Start Example 1
@@ -98,7 +98,7 @@
 
      # - id: php
      #   content: |
-     #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+     #     .. literalinclude:: /includes/examples/curl_examples/DocumentationExamplesTest.php
      #        :language: php
      #        :dedent: 8
      #        :start-after: Start Example 1
@@ -106,7 +106,7 @@
      # 
      # - id: perl
      #   content: |
-     #     .. literalinclude:: /driver-examples/driver-examples.t
+     #     .. literalinclude:: /includes/examples/curl_examples/driver-examples.t
      #        :language: perl
      #        :dedent: 4
      #        :start-after: Start Example 1
@@ -114,7 +114,7 @@
      # 
      # - id: ruby
      #   content: |
-     #     .. literalinclude:: /driver-examples/shell_examples_spec.rb
+     #     .. literalinclude:: /includes/examples/curl_examples/shell_examples_spec.rb
      #        :language: ruby
      #        :dedent: 6
      #        :start-after: Start Example 1
@@ -122,7 +122,7 @@
      # 
      # - id: scala
      #   content: |
-     #     .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+     #     .. literalinclude:: /includes/examples/curl_examples/DocumentationExampleSpec.scala
      #        :language: scala
      #        :dedent: 4
      #        :start-after: Start Example 1

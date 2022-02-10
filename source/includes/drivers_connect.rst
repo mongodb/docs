@@ -84,7 +84,7 @@
 
          Later you'll configure the context specific to your requirements.
          
-         .. literalinclude:: /driver-examples/connect.go
+         .. literalinclude:: /includes/examples/go/connect.go
             :language: go
             :dedent: 1 
             :start-after: Open Connection
