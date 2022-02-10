@@ -30,15 +30,15 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-stg
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 PROJECT=kubernetes-operator
+STGPROJECT=kubernetes-operator
 
-ifeq ($(ENV), 'dotcom_stg')
-	STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
+ifeq ($(ENV), 'dotcom')
+	STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
 	STAGING_BUCKET=docs-mongodb-org-dotcomstg
-endif
-
-ifeq ($(ENV), 'dotcom_prd')
-	PRODUCTION_URL="https://mongodb.com/docs"
+	PRODUCTION_URL="https://mongodb.com"
 	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+	PROJECT=docs-qa/kubernetes-operator
+	STGPROJECT=docs/kubernetes-operator
 endif
 
 # Parse our published-branches configuration file to get the name of
