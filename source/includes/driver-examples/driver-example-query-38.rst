@@ -22,8 +22,8 @@
          .. code-block:: javascript
 
             [
-               { _id: 1, item: null },
-               { _id: 2 }
+               { "_id": 1, "item": null },
+               { "_id": 2 }
             ]
 
          For instructions on inserting documents in MongoDB Compass, see
