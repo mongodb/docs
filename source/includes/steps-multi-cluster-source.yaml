@@ -1,6 +1,17 @@
 ---
 stepnum: 0
 level: 4
+ref: install-helm-charts
+title: "Add :mdb-github:`MongoDB Helm Charts for Kubernetes </helm-charts>` from their repository to Helm."
+content: |
+
+  .. code-block:: sh
+
+     helm repo add mongodb https://mongodb.github.io/helm-charts
+
+---
+stepnum: 0
+level: 4
 ref: clone-k8s-repo-multi-cluster
 title: "Clone the :github:`MongoDB Enterprise Kubernetes Operator repository </mongodb/mongodb-enterprise-kubernetes>`."
 content: |
@@ -21,13 +32,16 @@ content: |
   three member clusters, and a namespace labeled ``mongodb`` in each of
   the clusters.
   
-  a. Change to the directory to which you cloned the repository.
+  a. Change to the directory to which you cloned the |k8s-op-short|
+     repository, and then to the directory that has the ``multi-cluster kubeconfig creator``
+     tool.
   #. Run the :github:`multi-cluster kubeconfig creator </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/main.go>`
      tool:
 
      .. code-block:: sh
 
-        go run tools/multicluster/main.go \
+        cd tools/multicluster
+        go run main.go \
           -central-cluster="${MDB_CENTRAL_CLUSTER_FULL_NAME}" \
           -member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}" \
           -member-cluster-namespace="mongodb" \
@@ -40,11 +54,12 @@ ref: set-istio-webhook
 title: "Set the Istio injection webhook in each member cluster."
 content: |
    
-   In each member cluster, label namespaces with the
-   ``istio-injection=enabled`` label to enable Istio's injection
-   webhook. This ensures that any Pods that you create in these
-   namespaces will have a sidecar added to them. To learn more, see
-   `Automatic sidecar injection <https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection>`__
+   Run the following command on the central cluster, specifying the context
+   for each of the member clusters in the deployment. These commands add
+   the``istio-injection=enabled`` label to the ``mongodb`` namespace on
+   each member cluster. This label configures Istio's injection webhook
+   which enables adding a sidecar to any Pods that you create in this
+   namespace. To learn more, see `Automatic sidecar injection <https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection>`__
    in the Istio documentation.
 
    .. code-block:: sh
@@ -52,15 +67,15 @@ content: |
 
       kubectl label \
         --context=$MDB_CLUSTER_1_FULL_NAME \
-         --namespace mongodb \
-         istio-injection=enabled
+        namespace mongodb \
+        istio-injection=enabled
 
    .. code-block:: sh
       :emphasize-lines: 4
 
       kubectl label \
         --context=$MDB_CLUSTER_2_FULL_NAME \
-        --namespace mongodb \
+        namespace mongodb \
         istio-injection=enabled
 
    .. code-block:: sh
@@ -68,7 +83,7 @@ content: |
 
       kubectl label \
         --context=$MDB_CLUSTER_3_FULL_NAME \
-        --namespace mongodb \
+        namespace mongodb \
         istio-injection=enabled
 
 ---
@@ -78,7 +93,7 @@ title: "Configure ``kubectl`` to use the central cluster's namespace."
 ref: configure-kubectl-mc
 content: |
 
-  If you have not done so already, run the following commands to execute
+  If you have not done so already, run the following commands to run
   all ``kubectl`` commands on the central cluster in the default
   namespace. In the following steps, you will install the |k8s-op-short|
   into this namespace.
@@ -96,17 +111,18 @@ title: "Install the |k8s-op-full| in the central cluster."
 ref: install-kubectl-mc
 content: |
 
-     Use Helm to install the |k8s-op-short| for managing your
-     |multi-cluster|:
+     Use the Helm charts for the |k8s-op-short| and multi-cluster deployments
+     to install |k8s-op-short| for managing your |multi-cluster|:
 
      .. code-block:: sh
 
         helm upgrade \
           --install \
             mongodb-enterprise-operator-multi-cluster \
-            public/helm_chart \
+            mongodb/enterprise-operator \
               --namespace mongodb \
               --set namespace=mongodb \
+              --version <mongodb-kubernetes-operator-version> \
               --set operator.name=mongodb-enterprise-operator-multi-cluster \
               --set operator.createOperatorServiceAccount=false \
               --set "multiCluster.clusters={${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}}"
@@ -116,21 +132,21 @@ title: "Deploy the MongoDB resource."
 ref: deploy-mdbresource-mc
 content: |
 
-   a. Create a secret in each member cluster so that the |k8s-op-short|
+   a. On the central cluster, create a secret so that the |k8s-op-short|
       can create and update objects in your |mms| project.
       To learn more, see :ref:`create-k8s-credentials`.
 
-   #. Create a ConfigMap in each member cluster to link the
-      |k8s-op-short| to your |mms| project.
-      To learn more, see :ref:`create-k8s-project`.
+   #. On the central cluster, create a ConfigMap to link the |k8s-op-short|
+      to your |mms| project. To learn more, see :ref:`create-k8s-project`.
 
-   #. Configure the required service accounts in each member cluster:
+   #. On the central cluster, configure the required service accounts
+      for each member cluster:
 
       .. code-block:: sh
 
          helm template --show-only \
            templates/database-roles.yaml \
-           public/helm_chart \
+           mongodb/enterprise-operator \
            --set namespace=mongodb | \
          kubectl apply -f - \
            --context=$MDB_CLUSTER_1_FULL_NAME \
@@ -140,7 +156,7 @@ content: |
 
          helm template --show-only \
            templates/database-roles.yaml \
-           public/helm_chart \
+           mongodb/enterprise-operator \
            --set namespace=mongodb | \
          kubectl apply -f - \
            --context=$MDB_CLUSTER_2_FULL_NAME \
@@ -150,7 +166,7 @@ content: |
 
          helm template --show-only \
            templates/database-roles.yaml \
-           public/helm_chart \
+           mongodb/enterprise-operator \
            --set namespace=mongodb | \
          kubectl apply -f - \
            --context=$MDB_CLUSTER_3_FULL_NAME \
@@ -175,28 +191,24 @@ content: |
          apiVersion: mongodb.com/v1
          kind: MongoDBMulti
          metadata:
-           name: multi-replica-set
+          name: multi-replica-set
          spec:
-           version: 4.4.0-ent
-           type: ReplicaSet
-           persistent: false
-           duplicateServiceObjects: true
-           credentials: my-credentials
-           security:
-             authentication:
-               enabled: true
-               modes: ["SCRAM"]
-             opsManager:
-               configMapRef:
-                 name: my-project
-             clusterSpecList:
-               clusterSpecs:
-                - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
-                  members: 3
-                - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
-                  members: 2
-                - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
-                  members: 3
+          version: 4.4.0-ent
+          type: ReplicaSet
+          persistent: false
+          duplicateServiceObjects: true
+          credentials: my-credentials
+          opsManager:
+            configMapRef:
+              name: my-project
+          clusterSpecList:
+            clusterSpecs:
+            - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+              members: 3
+            - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+              members: 2
+            - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+              members: 3
          EOF
 ---
 stepnum: 0
