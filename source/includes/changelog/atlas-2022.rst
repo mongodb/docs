@@ -24,5 +24,5 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Improves the credits table in the Cloud Billing console.
-- Changes how the MongoDB Agent rotates `mongosqld` logs to copy and
+- Changes how the MongoDB Agent rotates ``mongosqld`` logs to copy and
   truncate.
