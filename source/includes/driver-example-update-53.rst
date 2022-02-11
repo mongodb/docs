@@ -4,7 +4,7 @@
    - id: shell
      content: |
        .. code-block:: javascript
-       
+
           db.inventory.updateMany(
               { "qty" : { $lt: 50 } }, // specifies the documents to update
               {
@@ -17,11 +17,11 @@
      content: |
        1. Copy the following filter into the Compass query bar and click
           :guilabel:`Find`:
-          
+
           .. code-block:: javascript
-          
+
              { "qty" : { $lt: 50 } }
-       
+
        2. For each document, click the edit icon:
 
           .. figure:: /images/compass-example-update-53-edit.png
@@ -29,14 +29,14 @@
              :width: 100%
 
        3. Make the following changes:
-       
+
           - Expand the ``size`` field and update the ``uom`` value to ``cm``.
           - Change the value of the ``status`` field to ``P``.
           - Click inside the ``status`` field and click the plus button,
             then click :guilabel:`Add field after status`.
             Add a ``lastModified`` field, select ``Date`` as its type
             using the drop-down menu on the right, and input today's date:
-          
+
           .. figure:: /images/compass-example-update-53-set-and-currentDate.png
              :alt: Screenshot of the MongoDB Compass interface where the first returned document has been edited to change the status field value to P and add a lastModified date field with value 2018-04-17.
              :width: 100%
@@ -45,7 +45,7 @@
 
    - id: python
      content: |
-       .. literalinclude:: /driver-examples/test_examples.py
+       .. literalinclude:: examples/curl_examples/test_examples.py
           :language: python
           :dedent: 8
           :start-after: Start Example 53
@@ -53,7 +53,7 @@
 
    - id: motor
      content: |
-       .. literalinclude:: /driver-examples/test_examples_motor.py
+       .. literalinclude:: examples/curl_examples/test_examples_motor.py
           :language: python
           :dedent: 8
           :start-after: Start Example 53
@@ -63,7 +63,7 @@
        the update many operation with the asyncio event loop:
 
        .. code-block:: python
-       
+
           async def do_update_many():
               document = await db.inventory.update_many(
                              {"qty": {"$lt": 50}},
@@ -73,14 +73,14 @@
 
        Run the asyncio loop to execute both the ``update_one`` and ``update_many``
        operations:
-       
+
        .. code-block:: python
-       
+
           loop = asyncio.get_event_loop()
 
-          tasks = [ 
+          tasks = [
               asyncio.ensure_future(do_update_one()),
-              asyncio.ensure_future(do_update_many()), 
+              asyncio.ensure_future(do_update_many()),
           ]
 
           loop.run_until_complete(asyncio.wait(tasks))
@@ -88,7 +88,7 @@
 
    - id: java-sync
      content: |
-       .. literalinclude:: /driver-examples/DocumentationSamples.java
+       .. literalinclude:: examples/curl_examples/DocumentationSamples.java
           :language: java
           :dedent: 8
           :start-after: Start Example 53
@@ -96,7 +96,7 @@
 
    - id: go
      content: |
-       .. literalinclude:: /driver-examples/examples.go
+       .. literalinclude:: examples/curl_examples/examples.go
           :language: go
           :dedent: 1
           :start-after: Start Example 53
@@ -104,22 +104,31 @@
 
    - id: nodejs
      content: |
-       .. literalinclude:: /driver-examples/examples_tests.js
+       .. literalinclude:: examples/curl_examples/examples_tests.js
           :language: javascript
           :dedent: 8
           :start-after: Start Example 53
           :end-before: End Example 53
+   - id: csharp
+     content: |
+       .. literalinclude:: examples/curl_examples/DocumentationExamples.cs
+          :language: c#
+          :dedent: 12
+          :start-after: Start Example 53
+          :end-before: End Example 53
+
+..
    #  - id: java-async
    #    content: |
-   #      .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+   #      .. literalinclude:: examples/curl_examples/AsyncDocumentationSamples.java
    #         :language: java
    #         :dedent: 8
    #         :start-after: Start Example 53
    #         :end-before: End Example 53
-   #  
+   #
    # - id: php
    #   content: |
-   #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+   #     .. literalinclude:: examples/curl_examples/DocumentationExamplesTest.php
    #        :language: php
    #        :dedent: 8
    #        :start-after: Start Example 53
@@ -127,7 +136,7 @@
    #
    # - id: perl
    #   content: |
-   #     .. literalinclude:: /driver-examples/driver-examples.t
+   #     .. literalinclude:: examples/curl_examples/examples/curl_examples/.t
    #        :language: perl
    #        :dedent: 4
    #        :start-after: Start Example 53
@@ -135,7 +144,7 @@
    #
    # - id: ruby
    #   content: |
-   #     .. literalinclude:: /driver-examples/shell_examples_spec.rb
+   #     .. literalinclude:: examples/curl_examples/shell_examples_spec.rb
    #        :language: ruby
    #        :dedent: 8
    #        :start-after: Start Example 53
@@ -143,16 +152,9 @@
    #
    # - id: scala
    #   content: |
-   #     .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+   #     .. literalinclude:: examples/curl_examples/DocumentationExampleSpec.scala
    #        :language: scala
    #        :dedent: 4
    #        :start-after: Start Example 53
    #        :end-before: End Example 53
 
-   - id: csharp
-     content: |
-       .. literalinclude:: /driver-examples/DocumentationExamples.cs
-          :language: c#
-          :dedent: 12
-          :start-after: Start Example 53
-          :end-before: End Example 53
