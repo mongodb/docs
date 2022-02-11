@@ -171,6 +171,19 @@ to ``paper``. The operation uses:
        - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
 
+   - id: csharp
+     content: |
+       .. literalinclude:: examples/curl_examples/DocumentationExamples.cs
+          :language: c#
+          :dedent: 12
+          :start-after: Start Example 52
+          :end-before: End Example 52
+
+
+
+
+
+..
    # - id: java-async
    #   content: |
    #     .. literalinclude:: examples/curl_examples/AsyncDocumentationSamples.java
@@ -211,10 +224,3 @@ to ``paper``. The operation uses:
    #        :start-after: Start Example 52
    #        :end-before: End Example 52
 
-   - id: csharp
-     content: |
-       .. literalinclude:: /driver-examples/DocumentationExamples.cs
-          :language: c#
-          :dedent: 12
-          :start-after: Start Example 52
-          :end-before: End Example 52
