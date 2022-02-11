@@ -1,26 +1,16 @@
-stepnum: 1
-title: Connect to your MongoDB instance.
-ref: connect
-level: 4
-content: |
-  .. include:: /includes/drivers_connect.rst
----
-title: Switch to the ``test`` database.
-ref: bind_db
-level: 4
-stepnum: 2
-content: |
+.. step:: Connect to your MongoDB instance.
+
+   .. include:: /includes/drivers_connect.rst
+
+.. step:: Switch to the ``test`` database.
+
   In this guide, you will update documents in a collection in the
   ``test`` database.
-  
+
   .. include:: /includes/bind_db.rst
----
-stepnum: 3
-title: Update a single document in the ``inventory`` collection.
-ref: update_one_with_set
-level: 4
-# Example: 52
-content: |
+
+.. step:: Update a single document in the ``inventory`` collection.
+
   To change a field value, MongoDB provides update operators
   to modify values. Some update operators, including
   will create the specified field if the field does not exist
@@ -28,13 +18,8 @@ content: |
 
   .. include:: /includes/driver-example-update-52.rst
 
----
-stepnum: 4
-title: Update multiple documents.
-ref: update_many
-level: 4
-# Example: 53
-content: |
+.. step:: Update multiple documents.
+
   The following operation updates all of the documents with
   ``quantity`` value less than 50.
 
@@ -43,5 +28,3 @@ content: |
   .. include:: /includes/driver-example-update-result.rst
 
   .. include:: /includes/drivers_close_connection.rst
-
-...
