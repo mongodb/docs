@@ -1,30 +1,33 @@
-.. step:: Connect to your MongoDB instance.
+.. procedure::
+   :style: normal
 
-   .. include:: /includes/drivers_connect.rst
+   .. step:: Connect to your MongoDB instance.
 
-.. step:: Switch to the ``test`` database.
+      .. include:: /includes/drivers_connect.rst
 
-  In this guide, you will update documents in a collection in the
-  ``test`` database.
+   .. step:: Switch to the ``test`` database.
 
-  .. include:: /includes/bind_db.rst
+     In this guide, you will update documents in a collection in the
+     ``test`` database.
 
-.. step:: Update a single document in the ``inventory`` collection.
+     .. include:: /includes/bind_db.rst
 
-  To change a field value, MongoDB provides update operators
-  to modify values. Some update operators, including
-  will create the specified field if the field does not exist
-  in the document.
+   .. step:: Update a single document in the ``inventory`` collection.
 
-  .. include:: /includes/driver-example-update-52.rst
+     To change a field value, MongoDB provides update operators
+     to modify values. Some update operators, including
+     will create the specified field if the field does not exist
+     in the document.
 
-.. step:: Update multiple documents.
+     .. include:: /includes/driver-example-update-52.rst
 
-  The following operation updates all of the documents with
-  ``quantity`` value less than 50.
+   .. step:: Update multiple documents.
 
-  .. include:: /includes/driver-example-update-53.rst
+     The following operation updates all of the documents with
+     ``quantity`` value less than 50.
 
-  .. include:: /includes/driver-example-update-result.rst
+     .. include:: /includes/driver-example-update-53.rst
 
-  .. include:: /includes/drivers_close_connection.rst
+     .. include:: /includes/driver-example-update-result.rst
+
+     .. include:: /includes/drivers_close_connection.rst
