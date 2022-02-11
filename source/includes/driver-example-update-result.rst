@@ -15,16 +15,16 @@
        The operation returns an instance of
        :py:class:`pymongo.results.UpdateResult` that contains the
        status of the operation.
- 
+
    - id: motor
      content: |
        The operations asynchronously return instances of
        :py:class:`pymongo.results.UpdateResult` that contains the
        status of the operation.
- 
+
    - id: java-sync
      content: |
-       The operation returns an instance of 
+       The operation returns an instance of
        com.mongodb.client.result.UpdateResult_
        with the status of the
        operation.
@@ -34,13 +34,22 @@
        The operation returns a promise that provides a ``result``
        containing the status of the operation.
 
+   - id: csharp
+     content: |
+       Upon successful execution, the operation returns an instance of
+       :csharp-api:`UpdateResult <T_MongoDB_Driver_UpdateResult>` that
+       contains the status of the operation.
+
+.. _com.mongodb.client.result.UpdateResult: https://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/result/UpdateResult
+
+..
    # - id: java-async
    #   content: |
-   #     The operation returns an instance of 
+   #     The operation returns an instance of
    #     com.mongodb.client.result.UpdateResult_
    #     with the status of the
    #     operation.
-   # 
+   #
    # - id: php
    #   content: |
    #     The operation returns an instance of
@@ -65,10 +74,3 @@
    #     `Observable <http://mongodb.github.io/mongo-scala-driver/2.1/reference/observables/>`_
    #     contains the status of the operation.
 
-   - id: csharp
-     content: |
-       Upon successful execution, the operation returns an instance of
-       :csharp-api:`UpdateResult <T_MongoDB_Driver_UpdateResult>` that
-       contains the status of the operation.
-
-.. _com.mongodb.client.result.UpdateResult: https://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/client/result/UpdateResult
