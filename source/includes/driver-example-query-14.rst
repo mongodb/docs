@@ -31,7 +31,7 @@
      - id: python
        content: |
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/test_examples.py
+         .. literalinclude:: /includes/examples/curl_examples/test_examples.py
             :language: python
             :dedent: 8
             :start-after: Start Example 14
@@ -40,7 +40,7 @@
      - id: go
        content: |
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/examples.go
+         .. literalinclude:: /includes/examples/curl_examples/examples.go
             :language: go
             :dedent: 2
             :start-after: Start Example 14
@@ -49,7 +49,7 @@
      - id: motor
        content: |
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/test_examples_motor.py
+         .. literalinclude:: /includes/examples/curl_examples/test_examples_motor.py
             :language: python
             :dedent: 8
             :start-after: Start Example 14
@@ -101,7 +101,7 @@
          Now add the ``insertMany`` call.
 
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/DocumentationSamples.java
+         .. literalinclude:: /includes/examples/curl_examples/DocumentationSamples.java
             :language: java
             :dedent: 8
             :start-after: Start Example 14
@@ -110,7 +110,7 @@
      - id: nodejs
        content: |
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/examples_tests.js
+         .. literalinclude:: /includes/examples/curl_examples/examples_tests.js
             :language: javascript
             :dedent: 8
             :start-after: Start Example 14
@@ -119,7 +119,7 @@
      #- id: php
      #  content: |
      #    .. class:: copyable-code
-     #    .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+     #    .. literalinclude:: /includes/examples/curl_examples/DocumentationExamplesTest.php
      #       :language: php
      #       :dedent: 8
      #       :start-after: Start Example 14
@@ -128,7 +128,7 @@
      #- id: perl
      #  content: |
      #    .. class:: copyable-code
-     #    .. literalinclude:: /driver-examples/driver-examples.t
+     #    .. literalinclude:: /includes/examples/curl_examples/driver-examples.t
      #       :language: perl
      #       :dedent: 4
      #       :start-after: Start Example 14
@@ -137,7 +137,7 @@
      #- id: ruby
      #  content: |
      #    .. class:: copyable-code
-     #    .. literalinclude:: /driver-examples/shell_examples_spec.rb
+     #    .. literalinclude:: /includes/examples/curl_examples/shell_examples_spec.rb
      #       :language: ruby
      #       :dedent: 6
      #       :start-after: Start Example 14
@@ -146,7 +146,7 @@
      #- id: scala
      #  content: |
      #    .. class:: copyable-code
-     #    .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+     #    .. literalinclude:: /includes/examples/curl_examples/DocumentationExampleSpec.scala
      #       :language: scala
      #       :dedent: 4
      #       :start-after: Start Example 14
@@ -164,7 +164,7 @@
          Next create the array of BsonDocuments and pass it to the ``insertMany`` call on ``collection``.
 
          .. class:: copyable-code
-         .. literalinclude:: /driver-examples/DocumentationExamples.cs
+         .. literalinclude:: /includes/examples/curl_examples/DocumentationExamples.cs
             :language: c#
             :dedent: 12
             :start-after: Start Example 14
