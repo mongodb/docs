@@ -15,7 +15,7 @@ to ``paper``. The operation uses:
          current date.
 
        .. code-block:: javascript
-       
+
           db.inventory.updateOne(
               { "item" : "paper" }, // specifies the document to update
               {
@@ -28,11 +28,11 @@ to ``paper``. The operation uses:
      content: |
          1. Copy the following filter into the Compass query bar and click
             :guilabel:`Find`:
-            
+
             .. code-block:: javascript
-            
+
                { "item" : "paper" }
-         
+
          2. Click the edit icon on the first document returned:
 
 
@@ -40,26 +40,26 @@ to ``paper``. The operation uses:
                :alt: Screenshot of the MongoDB Compass interface searching for documents in the inventory collection in the test database where the "item" field value is "paper". One document is displayed.
                :width: 100%
 
-            
+
          3. Expand the ``size`` field and update the ``uom`` value to ``cm``.
             Click inside the ``status`` field and click the plus button,
             then click :guilabel:`Add field after status`.
             Add a ``lastModified`` field, select ``Date`` as its type
             using the drop-down menu on the right, and input today's date:
-            
+
             .. figure:: /images/compass-example-update-52-set-and-currentDate.png
                :alt: Screenshot of the MongoDB Compass interface where the first returned document has been edited to change the size.uom field value to "cm" and add a lastModified date field with value 2018-04-17.
                :width: 100%
 
 
          4. Click :guilabel:`Update`.
-         
+
             .. figure:: /images/compass-example-update-52-finalize.png
                :alt: Screenshot of the MongoDB Compass interface where the "Update" button is selected to finalize the changes made to a document.
                :width: 100%
    - id: go
      content: |
-        
+
       - ``$set`` to update the ``status`` field and the ``uom``
         field embedded in the ``size`` document. To access the fields within
         embedded documents, the operation uses :ref:`dot notation
@@ -70,15 +70,15 @@ to ``paper``. The operation uses:
 
       Before updating the data, you'll need to assign the ``inventory`` collection in the ``test`` database to a variable:
 
-      .. literalinclude:: /driver-examples/assign.go
+      .. literalinclude:: examples/go/assign/assign.go
          :language: go
          :dedent: 1
          :start-after: Start Collection
          :end-before: End Collection
-      
+
       Followed by the call to update:
 
-      .. literalinclude:: /driver-examples/examples.go
+      .. literalinclude:: examples/curl_examples/examples.go
          :language: go
          :dedent: 1
          :start-after: Start Example 52
@@ -95,17 +95,17 @@ to ``paper``. The operation uses:
 
        - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
-       
-       .. literalinclude:: /driver-examples/test_examples.py
+
+       .. literalinclude:: examples/curl_examples/test_examples.py
           :language: python
           :dedent: 8
           :start-after: Start Example 52
           :end-before: End Example 52
-       
+
        Run the loop:
-       
+
        .. code-block:: python
-       
+
           loop = asyncio.get_event_loop()
           loop.run_until_complete(do_update_one())
 
@@ -119,17 +119,17 @@ to ``paper``. The operation uses:
        - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
 
-       .. literalinclude:: /driver-examples/test_examples_motor.py
+       .. literalinclude:: examples/curl_examples/test_examples_motor.py
           :language: python
           :dedent: 8
           :start-after: Start Example 52
           :end-before: End Example 52
-       
+
        For completeness, the following example shows how you might wrap
        the update one operation with the asyncio event loop:
-       
+
        .. code-block:: python
-       
+
           async def do_update_one():
               document = await db.inventory.update_one(
                              {"item": "paper"},
@@ -139,17 +139,17 @@ to ``paper``. The operation uses:
 
    - id: java-sync
      content: |
-       - :java-sync-api:`set <com/mongodb/client/model/Updates.html#set-java.lang.String-TItem->` 
+       - :java-sync-api:`set <com/mongodb/client/model/Updates.html#set-java.lang.String-TItem->`
          to update the ``status`` field and the ``uom``
          field embedded in the ``size`` document. To access the fields within
          embedded documents, the operation uses :ref:`dot notation
          <document-dot-notation>`.
 
-       - :java-sync-api:`currentDate <com/mongodb/client/model/Updates.html#currentDate-java.lang.String->` 
+       - :java-sync-api:`currentDate <com/mongodb/client/model/Updates.html#currentDate-java.lang.String->`
          to set the ``lastModified`` field to the
          current date.
-       
-       .. literalinclude:: /driver-examples/DocumentationSamples.java
+
+       .. literalinclude:: examples/curl_examples/DocumentationSamples.java
           :language: java
           :dedent: 8
           :start-after: Start Example 52
@@ -157,7 +157,7 @@ to ``paper``. The operation uses:
 
    - id: nodejs
      content: |
-       .. literalinclude:: /driver-examples/examples_tests.js
+       .. literalinclude:: examples/curl_examples/examples_tests.js
           :language: javascript
           :dedent: 8
           :start-after: Start Example 52
@@ -173,15 +173,15 @@ to ``paper``. The operation uses:
 
    # - id: java-async
    #   content: |
-   #     .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+   #     .. literalinclude:: examples/curl_examples/AsyncDocumentationSamples.java
    #        :language: java
    #        :dedent: 8
    #        :start-after: Start Example 52
    #        :end-before: End Example 52
-   # 
+   #
    # - id: php
    #   content: |
-   #     .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+   #     .. literalinclude:: examples/curl_examples/DocumentationExamplesTest.php
    #        :language: php
    #        :dedent: 8
    #        :start-after: Start Example 52
