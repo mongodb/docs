@@ -45,7 +45,7 @@
 
    - id: python
      content: |
-       .. literalinclude:: examples/curl_examples/test_examples.py
+       .. literalinclude:: /includes/examples/curl_examples/test_examples.py
           :language: python
           :dedent: 8
           :start-after: Start Example 53
@@ -53,7 +53,7 @@
 
    - id: motor
      content: |
-       .. literalinclude:: examples/curl_examples/test_examples_motor.py
+       .. literalinclude:: /includes/examples/curl_examples/test_examples_motor.py
           :language: python
           :dedent: 8
           :start-after: Start Example 53
@@ -88,7 +88,7 @@
 
    - id: java-sync
      content: |
-       .. literalinclude:: examples/curl_examples/DocumentationSamples.java
+       .. literalinclude:: /includes/examples/curl_examples/DocumentationSamples.java
           :language: java
           :dedent: 8
           :start-after: Start Example 53
@@ -96,7 +96,7 @@
 
    - id: go
      content: |
-       .. literalinclude:: examples/curl_examples/examples.go
+       .. literalinclude:: /includes/examples/curl_examples/examples.go
           :language: go
           :dedent: 1
           :start-after: Start Example 53
@@ -104,15 +104,15 @@
 
    - id: nodejs
      content: |
-       .. literalinclude:: examples/curl_examples/examples_tests.js
+       .. literalinclude:: /includes/examples/curl_examples/examples_tests.js
           :language: javascript
           :dedent: 8
           :start-after: Start Example 53
           :end-before: End Example 53
    - id: csharp
      content: |
-       .. literalinclude:: examples/curl_examples/DocumentationExamples.cs
-          :language: c#
+       .. literalinclude:: /includes/examples/curl_examples/DocumentationExamples.cs
+          :language: csharp
           :dedent: 12
           :start-after: Start Example 53
           :end-before: End Example 53
@@ -120,7 +120,7 @@
 ..
    #  - id: java-async
    #    content: |
-   #      .. literalinclude:: examples/curl_examples/AsyncDocumentationSamples.java
+   #      .. literalinclude:: /includes/examples/curl_examples/AsyncDocumentationSamples.java
    #         :language: java
    #         :dedent: 8
    #         :start-after: Start Example 53
@@ -128,7 +128,7 @@
    #
    # - id: php
    #   content: |
-   #     .. literalinclude:: examples/curl_examples/DocumentationExamplesTest.php
+   #     .. literalinclude:: /includes/examples/curl_examples/DocumentationExamplesTest.php
    #        :language: php
    #        :dedent: 8
    #        :start-after: Start Example 53
@@ -136,7 +136,7 @@
    #
    # - id: perl
    #   content: |
-   #     .. literalinclude:: examples/curl_examples/examples/curl_examples/.t
+   #     .. literalinclude:: /includes/examples/curl_examples/examples/curl_examples/.t
    #        :language: perl
    #        :dedent: 4
    #        :start-after: Start Example 53
@@ -144,7 +144,7 @@
    #
    # - id: ruby
    #   content: |
-   #     .. literalinclude:: examples/curl_examples/shell_examples_spec.rb
+   #     .. literalinclude:: /includes/examples/curl_examples/shell_examples_spec.rb
    #        :language: ruby
    #        :dedent: 8
    #        :start-after: Start Example 53
@@ -152,7 +152,7 @@
    #
    # - id: scala
    #   content: |
-   #     .. literalinclude:: examples/curl_examples/DocumentationExampleSpec.scala
+   #     .. literalinclude:: /includes/examples/curl_examples/DocumentationExampleSpec.scala
    #        :language: scala
    #        :dedent: 4
    #        :start-after: Start Example 53

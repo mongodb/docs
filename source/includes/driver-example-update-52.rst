@@ -70,7 +70,7 @@ to ``paper``. The operation uses:
 
       Before updating the data, you'll need to assign the ``inventory`` collection in the ``test`` database to a variable:
 
-      .. literalinclude:: examples/go/assign/assign.go
+      .. literalinclude:: /includes/examples/go/assign/assign.go
          :language: go
          :dedent: 1
          :start-after: Start Collection
@@ -78,7 +78,7 @@ to ``paper``. The operation uses:
 
       Followed by the call to update:
 
-      .. literalinclude:: examples/curl_examples/examples.go
+      .. literalinclude:: /includes/examples/curl_examples/examples.go
          :language: go
          :dedent: 1
          :start-after: Start Example 52
@@ -96,7 +96,7 @@ to ``paper``. The operation uses:
        - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
 
-       .. literalinclude:: examples/curl_examples/test_examples.py
+       .. literalinclude:: /includes/examples/curl_examples/test_examples.py
           :language: python
           :dedent: 8
           :start-after: Start Example 52
@@ -119,7 +119,7 @@ to ``paper``. The operation uses:
        - ``$currentDate`` to set the ``lastModified`` field to the
          current date.
 
-       .. literalinclude:: examples/curl_examples/test_examples_motor.py
+       .. literalinclude:: /includes/examples/curl_examples/test_examples_motor.py
           :language: python
           :dedent: 8
           :start-after: Start Example 52
@@ -149,7 +149,7 @@ to ``paper``. The operation uses:
          to set the ``lastModified`` field to the
          current date.
 
-       .. literalinclude:: examples/curl_examples/DocumentationSamples.java
+       .. literalinclude:: /includes/examples/curl_examples/DocumentationSamples.java
           :language: java
           :dedent: 8
           :start-after: Start Example 52
@@ -157,7 +157,7 @@ to ``paper``. The operation uses:
 
    - id: nodejs
      content: |
-       .. literalinclude:: examples/curl_examples/examples_tests.js
+       .. literalinclude:: /includes/examples/curl_examples/examples_tests.js
           :language: javascript
           :dedent: 8
           :start-after: Start Example 52
@@ -173,8 +173,8 @@ to ``paper``. The operation uses:
 
    - id: csharp
      content: |
-       .. literalinclude:: examples/curl_examples/DocumentationExamples.cs
-          :language: c#
+       .. literalinclude:: /includes/examples/curl_examples/DocumentationExamples.cs
+          :language: csharp
           :dedent: 12
           :start-after: Start Example 52
           :end-before: End Example 52
@@ -186,7 +186,7 @@ to ``paper``. The operation uses:
 ..
    # - id: java-async
    #   content: |
-   #     .. literalinclude:: examples/curl_examples/AsyncDocumentationSamples.java
+   #     .. literalinclude:: /includes/examples/curl_examples/AsyncDocumentationSamples.java
    #        :language: java
    #        :dedent: 8
    #        :start-after: Start Example 52
@@ -194,7 +194,7 @@ to ``paper``. The operation uses:
    #
    # - id: php
    #   content: |
-   #     .. literalinclude:: examples/curl_examples/DocumentationExamplesTest.php
+   #     .. literalinclude:: /includes/examples/curl_examples/DocumentationExamplesTest.php
    #        :language: php
    #        :dedent: 8
    #        :start-after: Start Example 52
