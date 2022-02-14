@@ -5,16 +5,13 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-stg
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 PROJECT=php-library
-STGPREFIX=php-library
 PREFIX=php-library
-ifeq ($(ENV), 'dotcom')
-	STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
-	STAGING_BUCKET=docs-mongodb-org-dotcomstg
-	PRODUCTION_URL="https://mongodb.com"
-	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
-	PREFIX=docs-qa/php-library
-	STGPREFIX=docs/php-library
-endif
+DOTCOM_STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
+DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
+DOTCOM_PRODUCTION_URL="https://mongodb.com"
+DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+DOTCOM_PREFIX=docs-qa/php-library
+DOTCOM_STGPREFIX=docs/php-library
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -59,7 +56,9 @@ stage: ## Host online for review
 #      if ${ARGS}, then additonal arguments
 
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${STGPREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
+	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
+	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${STGPREFIX} --stage ${ARGS}
+	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 
 
@@ -81,6 +80,9 @@ deploy: publish ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
+	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy ${ARGS}
+
+	@echo "Hosted at ${DOTCOM_PRODUCTION_URL}/${PREFIX}/index.html"
 
 	$(MAKE) deploy-search-index
 
