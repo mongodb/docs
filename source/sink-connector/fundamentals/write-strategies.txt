@@ -1,3 +1,5 @@
+.. _sink-connector-write-model-strategies:
+
 ======================
 Write Model Strategies
 ======================
@@ -13,97 +15,117 @@ Write Model Strategies
 Overview
 --------
 
-This guide shows you how to change the way your sink connector
-writes data to MongoDB. 
+This guide shows you how to change the way your sink connector writes data to
+MongoDB.
 
-Use cases for changing how your connector writes data to MongoDB include:
+You can change how your connector writes data to MongoDB for use cases
+including the following:
 
-- Improve performance by inserting rather than upserting documents
-- Replace documents using a filter other than your ``_id`` field
-- Delete documents in MongoDB matching a filter on your messages
+- Insert documents instead of upserting them
+- Replace documents that match a filter other than the ``_id`` field
+- Delete documents that match a filter
 
-You configure how your connector writes data to MongoDB by specifying a **write model strategy**.
-A write model strategy is a **strategy** that defines how your connector constructs 
-the **write models** that form the bulk write operations your connector performs 
-on your MongoDB deployment. A strategy is an algorithm that you can change in the {+mkc+}.
-A write model is a representation of an individual write operation.
+You can configure how your connector writes data to MongoDB by specifying a
+**write model strategy**. A write model strategy is a class that defines
+how your sink connector should write data using **write models**. A write
+model is a MongoDB Java driver interface that defines the
+structure of a write operation.
 
-If you would rather learn how to modify the sink records your connector receives before your
-connector writes them to MongoDB, read the :ref:`<sink-fundamentals-post-processors>` guide.
+To learn how to modify the sink records your connector receives before your
+connector writes them to MongoDB, read the guide on
+:ref:`Sink Connector Post Processors <sink-fundamentals-post-processors>`.
 
-To learn more about bulk writes, see the MongoDB Java driver
-`guide on bulk writes <{+connector_driver_url_base+}fundamentals/crud/write-operations/bulk/>`__.
+To learn more about bulk writes, see the MongoDB Java driver guide on
+`Bulk Writes <{+connector_driver_url_base+}fundamentals/crud/write-operations/bulk/>`__.
 
-To learn how write model strategies work in the connector, see 
-:github:`this section of the {+mkc+} source code <mongodb/mongo-kafka/blob/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/writemodel/strategy/InsertOneDefaultStrategy.java>`.
-
-To learn more about strategies, see the 
-`Wikipedia article on the strategy pattern <https://en.wikipedia.org/wiki/Strategy_pattern>`__.
+To see a write model strategy implementation, see the source code of the
+:github:`InsertOneDefaultStrategy class <mongodb/mongo-kafka/blob/master/src/main/java/com/mongodb/kafka/connect/sink/writemodel/strategy/InsertOneDefaultStrategy.java>`.
 
 How to Specify Write Model Strategies
 -------------------------------------
 
-To specify a write model strategy, use the following option:
+To specify a write model strategy, use the following setting:
 
 .. code-block:: properties
 
-   writemodel.strategy:<a write model strategy>
+   writemodel.strategy=<write model strategy classname>
 
-For a list of all the pre-built write model strategies the {+mkc+} provides, see our
-guide on :ref:`sink connector configuration properties <sink-connector-write-model-strategies>`.
+For a list of the pre-built write model strategies included in the connector,
+see the guide on :ref:`write model strategy configurations <sink-connector-write-model-strategies>`.
 
 .. _kafka-sink-business-key:
 
 Specify a Business Key
 ~~~~~~~~~~~~~~~~~~~~~~
 
-A business key is a value composed of one or more fields in your sink record that identifies
-it as unique. The following write model strategies require a business key:
+A business key is a value composed of one or more fields in your sink record
+that identifies it as unique. By default, the sink connector uses the ``_id``
+field of the sink record to retrieve the business key. To specify a
+different business key, configure the Document Id Adder post processor to use
+a custom value.
+
+You can configure the Document Id Adder to set the ``_id`` field from the
+sink record key as shown in the following example properties:
+
+.. code-block:: properties
+
+   document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.PartialKeyStrategy
+   document.id.strategy.partial.key.projection.list=<comma-separated field names>
+   document.id.strategy.partial.key.projection.type=AllowList
+
+Alternatively, you can configure it to set the ``_id`` field from the sink
+record value as shown in the following example properties:
+
+.. code-block:: properties
+
+   document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy
+   document.id.strategy.partial.value.projection.list=<comma-separated field names>
+   document.id.strategy.partial.value.projection.type=AllowList
+
+.. important:: Improve Write Performance
+
+   Create a unique index in your target collection that corresponds to the
+   fields of your business key. This improves the performance of write
+   operations from your sink connector. See the guide on
+   :manual:`unique indexes </core/index-unique>` for more information.
+
+The following write model strategies require a business key:
 
 - ``ReplaceOneBusinessKeyStrategy``
 - ``DeleteOneBusinessKeyStrategy``
 - ``UpdateOneBusinessKeyTimestampStrategy``
 
-Your sink connector uses the ``_id`` field of your sink record to retrieve
-your business key. To specify a business key, you must set the ``_id`` field of
-your sink record with the Document ID Adder post processor.
-
-You can set the ``_id`` field in your sink record like this: 
-
-.. code-block:: properties
-
-   document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy
-   document.id.strategy.partial.value.projection.list=<comma separate list of fields>
-   document.id.strategy.partial.value.projection.type=AllowList
-
-.. important:: Unique Index
-   
-   Create a unique index in your target collection corresponding to the fields
-   of your business key. This will improve the performance of write operations
-   from your sink connector. To learn more, see our guide on 
-   :manual:`unique indexes </core/index-unique>`.
-
-For more information on the Document ID Adder post processor, see
+For more information on the Document Id Adder post processor, see
 :ref:`<sink-post-processors-document-id-adder>`.
 
 Examples
 --------
 
-This section shows examples of configuration and output of the following types of
-write model strategies:
+This section shows examples of configuration and output of the following write
+model strategies:
 
-- :ref:`UpdateOneTimestampsStrategy <kafka-sink-write-model-time-example>`
-- :ref:`ReplaceOneBusinessKeyStrategy <kafka-sink-write-model-replace-example>`
-- :ref:`DeleteOneBusinessKeyStrategy <kafka-sink-write-model-delete-example>`
+- :ref:`Update One Timestamps Strategy <kafka-sink-write-model-time-example>`
+- :ref:`Replace One Business Key Strategy <kafka-sink-write-model-replace-example>`
+- :ref:`Delete One Business Key Strategy <kafka-sink-write-model-delete-example>`
 
 .. _kafka-sink-write-model-time-example:
 
-Update One Time Stamps Strategy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Update One Timestamps Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this example, you use the ``UpdateOneTimestampsStrategy`` to track the position of a train.
+You can configure the Update One Timestamps strategy to add and update
+timestamps when writing documents to MongoDB. This strategy performs the
+following actions:
 
-Your sink connector receives messages with the following structure:
+* When the connector inserts a new MongoDB document, it sets the
+  ``_insertedTS`` and ``_modifiedTS`` fields to the current time on the
+  connector's server.
+
+* When the connector updates an existing MongoDB document, it updates the
+  ``_modifiedTS`` field to the current time on the connector's server.
+
+Suppose you want to track the position of a train along a route, and your
+sink connector receives messages with the following structure:
 
 .. code-block:: json
 
@@ -114,20 +136,21 @@ Your sink connector receives messages with the following structure:
      "position": [ 40, -73 ]
    }
 
-Use the ``ProvidedInValueStrategy`` to specify that your connector should use the
-``_id`` value of your message as the ``_id`` field in your MongoDB document.
-Set your write model strategy and id strategy with the following options:
+Use the ``ProvidedInValueStrategy`` to specify that your connector should use
+the ``_id`` value of the message to assign the ``_id`` field in your MongoDB
+document. Specify your id and write model strategy properties as follows:
 
 .. code-block:: properties
 
    document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.ProvidedInValueStrategy
    writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.UpdateOneTimestampsStrategy
 
-Assume your sink connector receives the preceding sample message. After your
-sink connector processes the message, your MongoDB collection contains the
-following document:
+After your sink connector processes the preceding example record, it inserts a
+document that contains the ``_insertedTS`` and ``_modifiedTS`` fields as shown
+in the following document:
 
 .. code-block:: json
+   :emphasize-lines: 3-4
 
    {
      "_id": "MN-1234",
@@ -138,18 +161,21 @@ following document:
      "position": [ 40, -73 ]
    }
 
-After an hour, your sink connector receives the following message: 
+After one hour, the train reports its new location along its route with
+a new position as shown in the following record:
 
 .. code-block:: json
+   :emphasize-lines: 5
 
    {
      "_id": "MN-1234",
      "start": "Beacon",
      "destination": "Grand Central"
-     "position": [ 41, -73 ]
+     "position": [ 40, -75 ]
    }
 
-Once your sink connector updates MongoDB, your document in MongoDB looks like this: 
+Once your sink connector processes the preceding record, it inserts a document
+that contains the following data:
 
 .. code-block:: json
    :emphasize-lines: 4,7
@@ -160,157 +186,194 @@ Once your sink connector updates MongoDB, your document in MongoDB looks like th
      "_modifiedTS": ISODate("2021-09-20T16:08:000Z"),
      "start": "Beacon",
      "destination": "Grand Central"
-     "position": [ 41, -73 ]
+     "position": [ 42, -75 ]
    }
 
-For more information on the ``ProvidedInValueStrategy``, see
-:ref:`<sink-post-processors-document-id-adder>`.
+For more information on the ``ProvidedInValueStrategy``, see the section
+on how to :ref:`Configure the Document Id Adder Post Processor <sink-post-processors-document-id-adder>`.
 
 .. _kafka-sink-write-model-replace-example:
 
 Replace One Business Key Strategy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this example, your sink connector receives messages with the following structure
-and your :ref:`business key <kafka-sink-business-key>` consists of the 
-``color`` and ``taste`` fields:
+You can configure the Replace One Business Key strategy to replace documents
+that match the value of the business key. To define a business key on
+multiple fields of a record and configure the connector to replace
+documents that contain matching business keys, perform the following
+tasks:
+
+#. Create a :manual:`unique index </core/index-unique>` in your collection
+   that corresponds to your business key fields.
+#. Specify the ``PartialValueStrategy`` id strategy to identify the
+   fields that belong to the business key in the connector configuration.
+#. Specify the ``ReplaceOneBusinessKeyStrategy`` write model strategy in the
+   connector configuration.
+
+Suppose you want to track airplane capacity by the flight number and airport
+location represented by ``flight_no`` and ``airport_code``, respectively. An
+example message contains the following information:
 
 .. code-block:: json
 
    {
-     "color": "blue",
-     "taste": "good",
-     "quantity": 1
+     "flight_no": "Z342",
+     "airport_code": "LAX",
+     "seats": {
+       "capacity": 180,
+       "occupied": 152
+     }
    }
 
-First, create a unique index on the ``color`` and ``taste`` fields in your
-target collection by running the following command in the MongoDB shell:
+To implement the strategy, using ``flight_no`` and ``airport_code`` as the
+business key, first create a unique index on these fields in the MongoDB
+shell:
 
 .. code-block:: javascript
 
-   db.collection.createIndex({ "color": 1, "taste": 1}, { unique: true })
+   db.collection.createIndex({ "flight_no": 1, "airport_code": 1}, { unique: true })
 
-Then, specify your business key and write model strategy in your sink connector
-with the following configuration:
+Next, specify the ``PartialValueStrategy`` strategy and business key
+fields in the a projection list. Specify the id and write model strategy
+configuration as follows:
 
 .. code-block:: properties
 
    document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy
-   document.id.strategy.partial.value.projection.list=color,taste
+   document.id.strategy.partial.value.projection.list=flight_no,airport_code
    document.id.strategy.partial.value.projection.type=AllowList
    writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.ReplaceOneBusinessKeyStrategy
 
-Assume your sink connector receives the preceding sample message. After your
-sink connector processes the message, your MongoDB collection contains the
-following document:
+The sample data inserted into the collection contains the following:
 
 .. code-block:: json
+   :emphasize-lines: 1,2
 
    {
-     "_id": ObjectId('5db0b81199b7fbcc89631d06'),
-     "color": "blue",
-     "taste": "good",
-     "quantity": 1
+     "flight_no": "Z342"
+     "airport_code": "LAX",
+     "seats": {
+       "capacity": 180,
+       "occupied": 152
+     }
    }
 
-Your sink connector now receives the following message:
+When the connector processes sink data that matches the business key of
+the existing document, it replaces the document with the new values
+without changing the business key fields:
 
 .. code-block:: json
+   :emphasize-lines: 4
 
    {
-     "color": "blue",
-     "taste": "good",
-     "quantity": 2
+     "flight_no": "Z342"
+     "airport_code": "LAX",
+     "status": "canceled"
    }
 
-After your sink connector processes the message, your document in MongoDB looks
-like this:
-
-.. code-block:: json
-   :emphasize-lines: 5
-
-   {
-     "_id": ObjectId('5db0b81199b7fbcc89631d06'),
-     "color": "blue",
-     "taste": "good",
-     "quantity": 2
-   }
+After the connector processes the sink data, it replaces the original sample
+document in MongoDB with the preceding one.
 
 .. _kafka-sink-write-model-delete-example:
 
 Delete One Business Key Strategy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Your sink connector receives messages with the following structure and your
-:ref:`business key <kafka-sink-business-key>` is the ``name`` field:
+You can configure the connector to remove documents when it receives
+messages that match a business key using the Delete One Business Key
+strategy. To set a business key from multiple fields of a record and
+configure the connector to delete documents that contain matching business
+keys, perform the following tasks:
+
+#. Create a :manual:`unique index </core/index-unique>` in your MongoDB
+   collection that corresponds to your business key fields.
+#. Specify the ``PartialValueStrategy`` as the id strategy to identify the
+   fields that belong to the business key in the connector configuration.
+#. Specify the ``DeleteOneBusinessKeyStrategy`` write model strategy in the
+   connector configuration.
+
+Suppose you need to delete all calendar events from a specific year from
+a collection that contains documents that resemble the following:
+
+.. _delete-one-business-key-sample-document:
 
 .. code-block:: json
+   :copyable: false
 
    {
-     "name": "Spot",
-     "animal": "dog",
+     "year": 2005,
+     "month": 3,
+     "day": 15,
+     "event": "Dentist Appointment"
    }
 
-First, create a unique index on the ``name`` field in your target collection
-by running the following command in the MongoDB shell:
+To implement the strategy, using ``year`` as the business key, first create
+a unique index on these fields in the MongoDB shell:
 
 .. code-block:: javascript
 
-   db.collection.createIndex({ "name": 1 }, { unique: true })
+   db.collection.createIndex({ "year": 1 }, { unique: true })
 
-Then, specify your business key and write model strategy in your sink connector
-with the following configuration:
+Next, specify your business key and write model strategy in your
+configuration as follows:
 
 .. code-block:: properties
 
    document.id.strategy=com.mongodb.kafka.connect.sink.processor.id.strategy.PartialValueStrategy
-   document.id.strategy.partial.value.projection.list=reservation_no
+   document.id.strategy.partial.value.projection.list=year
    document.id.strategy.partial.value.projection.type=AllowList
    writemodel.strategy=com.mongodb.kafka.connect.sink.writemodel.strategy.DeleteOneBusinessKeyStrategy
 
-Your MongoDB collection contains the following document:
+When the connector processes sink data that matches the business key of
+the existing documents, it deletes the documents from the collection.
+
+If your connector processes a sink record that contains the business key
+``year``, it deletes all MongoDB documents with a matching field value.
+Suppose your connector processes a sink record that contains the following
+value data:
 
 .. code-block:: json
 
    {
-     "_id": ObjectId('5db0b81199b7fbcc89631d06'),
-     "name": "Spot",
-     "animal": "dog",
-     "friendly": true
+     "year": 2005,
+     ...
    }
 
-Now, assume your sink connector receives the preceding sample message. After processing
-the sample message, your sink connector has deleted the preceding sample document from
-your collection. 
+When the connector processes the preceding record, it deletes all documents
+from the collection that contain a ``year`` field with a value of "2005"
+including the original
+:ref:`"Dentist Appointment" sample document <delete-one-business-key-sample-document>`.
 
 .. _kafka-sink-write-model-create-custom-strategy:
 
 Custom Write Model Strategies
 -----------------------------
 
-If none of the pre-built write model strategies fit your use case, you can create
-your own.
+If none of the write model strategies included with the connector fit your use
+case, you can create your own.
 
-Your custom write model strategy is a Java class that implements the
-``WriteModelStrategy`` interface and overrides the ``createWriteModel()`` method.
+A write model strategy is a Java class that implements the
+``WriteModelStrategy`` interface and must override the ``createWriteModel()``
+method.
 
-To learn more, see the
-:github:`source code for the WriteModelStrategy interface <mongodb/mongo-kafka/blob/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/writemodel/strategy/WriteModelStrategy.java>`.
+See the
+:github:`source code for the WriteModelStrategy interface <mongodb/mongo-kafka/blob/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/writemodel/strategy/WriteModelStrategy.java>`
+for the required method signature.
 
 Sample Write Model Strategy
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following custom write model strategy returns a write operation that replaces a document
-in MongoDB that matches the ``_id`` field of your sink record with the value of the
-``fullDocument`` field of your sink record:
+The following custom write model strategy returns a write operation that
+replaces a MongoDB document that matches the ``_id`` field of your sink
+record with the value of the ``fullDocument`` field of your sink record:
 
 .. code-block:: java
 
    /**
-    * A custom write model strategy
+    * Custom write model strategy
     *
-    * This example takes the 'fullDocument' field from a change stream and creates a
-    * ReplaceOne operation.
+    * This class reads the 'fullDocument' field from a change stream and
+    * returns a ReplaceOne operation.
     */
 
    public class CustomWriteModelStrategy implements WriteModelStrategy {
@@ -331,34 +394,37 @@ in MongoDB that matches the ``_id`` field of your sink record with the value of 
    }
 
 For another example of a custom write model strategy, see the
-:github:`kafka-edu repository on GitHub <mongodb-university/kafka-edu/blob/main/custom-write-strategy-example/src/main/java/custom/writestrategy/UpsertAsPartOfDocumentStrategy.java>`.
+:github:`UpsertAsPartOfDocumentStrategy <mongodb-university/kafka-edu/blob/main/custom-write-strategy-example/src/main/java/custom/writestrategy/UpsertAsPartOfDocumentStrategy.java>`
+example strategy on GitHub.
 
-How to Use Your Strategy
-~~~~~~~~~~~~~~~~~~~~~~~~
+How to Install Your Strategy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To configure your sink connector to use your custom write strategy, you must do the
-following actions:
+To configure your sink connector to use a custom write strategy, you must
+complete the following actions:
 
-#. Compile your custom write strategy class to a JAR file.
+1. Compile the custom write strategy class to a JAR file.
 
 #. Add the compiled JAR to the classpath/plugin path for your Kafka workers.
-   For more information about plugin paths, see the `Confluent documentation
-   <https://docs.confluent.io/current/connect/managing/community.html>`__.
+   For more information about plugin paths, see the
+   `Confluent documentation <https://docs.confluent.io/current/connect/managing/community.html>`__.
 
    .. note::
 
       Kafka Connect loads plugins in isolation. When you deploy a custom write
       strategy, both the connector JAR and the write model strategy
-      JAR should be on the same path. Your paths should resemble the following:
+      JAR must be on the same path. Your paths should resemble the following:
 
       | ``<plugin.path>/mongo-kafka-connect/mongo-kafka-connect-all.jar``
       | ``<plugin.path>/mongo-kafka-connect/custom-write-model-strategy.jar``
 
-      To learn more about {+kc+} plugins, see 
+      To learn more about {+kc+} plugins, see
       `this guide from Confluent <https://docs.confluent.io/home/connect/userguide.html#installing-kconnect-plugins>`__.
 
-#. Specify your custom class in the ``writemodel.strategy``
-   :ref:`configuration setting <sink-configuration-post-processors>`.
+#. Specify your custom class in the
+   :ref:`writemodel.strategy <sink-configuration-post-processors>`
+   configuration setting.
 
-To learn how to compile a class to a JAR file, 
-`see this guide from Oracle <https://docs.oracle.com/javase/tutorial/deployment/jar/build.html>`__.
+To learn how to compile a class to a JAR file, see the
+`JAR deployment guide <https://docs.oracle.com/javase/tutorial/deployment/jar/build.html>`__
+from the Java SE documentation.
