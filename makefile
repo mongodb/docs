@@ -1,6 +1,6 @@
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 PRODUCTION_URL="https://docs.mongodb.com"
-PRODUCTION_BUCKET=docs-mongodb-org-prod
+PRODUCTION_BUCKET=docs-mongodb-org-prd
 
 .PHONY: help html deploy deploy-search-index
 
