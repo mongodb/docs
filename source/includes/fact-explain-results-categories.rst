@@ -20,3 +20,8 @@ The verbosity mode (i.e. ``queryPlanner``, ``executionStats``,
 ``allPlansExecution``) determines whether the results include
 :ref:`executionStats` and whether :ref:`executionStats` includes data
 captured during :ref:`plan selection <query-plans-query-optimization>`.
+
+Explain output is limited by the maximum :limit:`Nested Depth for BSON
+Documents`, which is 100 levels of nesting. Explain output that exceeds
+the limit is truncated.
+
