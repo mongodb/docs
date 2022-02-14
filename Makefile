@@ -32,15 +32,12 @@ PRODUCTION_BUCKET=docs-mongodb-org-prd
 PROJECT=kubernetes-operator
 STGPREFIX=kubernetes-operator
 PREFIX=kubernetes-operator
-
-ifeq ($(ENV), 'dotcom')
-	STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
-	STAGING_BUCKET=docs-mongodb-org-dotcomstg
-	PRODUCTION_URL="https://mongodb.com"
-	PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
-	PREFIX=docs-qa/kubernetes-operator
-	STGPREFIX=docs/kubernetes-operator
-endif
+DOTCOM_STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
+DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
+DOTCOM_PRODUCTION_URL="https://mongodb.com"
+DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+DOTCOM_PREFIX=docs-qa/kubernetes-operator
+DOTCOM_STGPREFIX=docs/kubernetes-operator
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -111,6 +108,12 @@ stage:
 	@echo "\n\nHosted at ${STAGING_URL}/${STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 
+	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
+	@echo "\n\nHosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
+
+
+
+
 #################################################################
 ####  DEPLOY KUBERNETES OPERATOR DOCUMENTATION TO PRODUCTION ####
 #################################################################
@@ -120,6 +123,12 @@ deploy: build/public
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
 
 	@echo "\n\nHosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
+
+	
+	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
+
+	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/index.html"
+
 
 	$(MAKE) deploy-search-index
 
