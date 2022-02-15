@@ -6,5 +6,6 @@ buttons:
 
 .. figure:: /images/connection-method.png
    :figwidth: 600px
+   :alt: connection-method
 
 Follow the instructions for your driver language and version.

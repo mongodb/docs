@@ -13,6 +13,7 @@
 
          .. figure:: /images/connection-method.png
             :figwidth: 600px
+            :alt: connection-method
 
          Follow the instructions for your platform.
 
@@ -29,6 +30,7 @@
 
          .. figure:: /images/connection-method.png
             :figwidth: 600px
+            :alt: connection-method
 
          Follow the instructions for your version of Compass.
 
