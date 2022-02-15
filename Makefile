@@ -15,7 +15,7 @@ DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
 DOTCOM_PRODUCTION_URL="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
 DOTCOM_PREFIX=docs-qa/ruby-driver
-DOTCOM_STGPREFIX=docs/ruby-driver
+DOTCOM_STGPREFIX=docs-qa/ruby-driver
 
 TARGET_DIR=source-${GIT_BRANCH}
 
