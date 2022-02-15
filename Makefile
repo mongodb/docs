@@ -12,7 +12,7 @@ DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
 DOTCOM_PRODUCTION_URL="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
 DOTCOM_PREFIX=docs-qa
-DOTCOM_STGPREFIX=docs
+DOTCOM_STGPREFIX=docs-qa
 
 
 
