@@ -1,17 +1,17 @@
 .. procedure::
    :style: normal
 
-    .. step:: Create your MongoDB account.
+   .. step:: Create your MongoDB account.
 
       Go to `account.mongodb.com/account/register 
-      <https://account.mongodb.com/account/register>`__ to create your 
-      MongoDB account. To register for a new MongoDB account, you 
-      must do the following:
+      <https://account.mongodb.com/account/register>`__ 
+      to create your MongoDB account. To register for a new MongoDB
+      account, you must do the following:
 
       .. procedure::
-          :style: connected
+         :style: connected
 
-          .. step:: Provide the following information about yourself:
+         .. step:: Provide the following information about yourself:
 
             - :guilabel:`Email Address`
             - :guilabel:`First Name` and :guilabel:`Last Name` 
@@ -21,25 +21,28 @@
             - :guilabel:`Job Function`
             - :guilabel:`Country`
 
-          .. step:: Review and select the checkbox to accept the :guilabel:`Privacy 
+         .. step:: Review and select the checkbox to accept the :guilabel:`Privacy 
             Policy` and the :guilabel:`Terms of Service`.
 
-          .. step:: Click :guilabel:`Sign up` to create the account.
+         .. step:: Click :guilabel:`Sign up` to create the account.
 
-    .. step:: Access your MongoDB services.
+   .. step:: Access your MongoDB services.
 
-      a. Log in to your account at `account.mongodb.com/account/login 
-        <https://account.mongodb.com/account/login>`__ and select 
-        :guilabel:`Overview` from the left navigation menu to access the 
-        MongoDB services. 
+      .. procedure::
+         :style: connected
+
+         .. step:: Log in to your account at `account.mongodb.com/account/login 
+            <https://account.mongodb.com/account/login>`__ 
+            and select :guilabel:`Overview` from the left navigation 
+            menu to access the MongoDB services.
         
-      b. Click:
+         .. step:: Click:
 
-        - :guilabel:`Visit MongoDB Atlas` to go to MongoDB Atlas or MongoDB 
-          Cloud Manager UI.
-        - :guilabel:`Visit MongoDB University` to take courses at the 
-          MongoDB University.
-        - :guilabel:`Visit MongoDB Support` to get help from MongoDB Support.
+            - :guilabel:`Visit MongoDB Atlas` to go to MongoDB Atlas or MongoDB 
+              Cloud Manager UI.
+            - :guilabel:`Visit MongoDB University` to take courses at the 
+              MongoDB University.
+            - :guilabel:`Visit MongoDB Support` to get help from MongoDB Support.
       
       You can also directly log into the following MongoDB 
       services using your MongoDB account credentials:
@@ -49,28 +52,31 @@
       - `MongoDB University <https://university.mongodb.com/>`__
       - `MongoDB Support <https://support.mongodb.com/welcome>`__
 
-    .. step:: Manage Your MongoDB Account.
+   .. step:: Manage Your MongoDB Account.
 
-      a. Log in to your MongoDB service, click on your name at the 
-        top right-hand corner, and select :guilabel:`MongoDB Account`. You 
-        can also directly log in to your account at 
-        `account.mongodb.com/account/login 
-        <https://account.mongodb.com/account/login>`__.
+      .. procedure::
+         :style: connected
+
+         .. step:: Log in to your MongoDB service, click on your name at the 
+            top right-hand corner, and select :guilabel:`MongoDB Account`. You 
+            can also directly log in to your account at 
+            `account.mongodb.com/account/login 
+            <https://account.mongodb.com/account/login>`__.
         
-      b. Select:
+         .. step:: Select:
 
-        - :guilabel:`Login Info` from the left navigation menu to reset 
-          your MongoDB account password. You must provide your 
-          current password and a new password to reset the password.
+            - :guilabel:`Login Info` from the left navigation menu to reset 
+              your MongoDB account password. You must provide your 
+              current password and a new password to reset the password.
       
-        - :guilabel:`Personal Info` from the left navigation menu to  
-          change the following account settings:
+            - :guilabel:`Personal Info` from the left navigation menu to  
+              change the following account settings:
 
-          - :guilabel:`First Name` and :guilabel:`Last Name`
-          - :guilabel:`Company` 
-          - :guilabel:`Position` 
-          - :guilabel:`Country`
-          - :guilabel:`Email Address`
-          - :guilabel:`Phone Number`
+              - :guilabel:`First Name` and :guilabel:`Last Name`
+              - :guilabel:`Company` 
+              - :guilabel:`Position` 
+              - :guilabel:`Country`
+              - :guilabel:`Email Address`
+              - :guilabel:`Phone Number`
 
-      c. Click :guilabel:`Save Changes` for the changes to take effect.
+         .. step:: Click :guilabel:`Save Changes` for the changes to take effect.
