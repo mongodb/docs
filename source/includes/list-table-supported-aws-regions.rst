@@ -5,24 +5,26 @@
    * - |data-lake| Regions
      - |aws| Regions
 
-   * - Northern Virginia, North America
+   * - Virginia, USA
      - us-east-1
 
-   * - Oregon, North America
+   * - Oregon, USA
      - us-west-2
 
-   * - Ireland, Europe
+   * - Sao Paulo, Brazil
+     - sa-east-1
+
+   * - Ireland
      - eu-west-1
 
-   * - London, Europe
+   * - London, England
      - eu-west-2
 
-   * - Frankfurt, Europe
+   * - Frankfurt, Germany
      - eu-central-1
     
-   * - Mumbai, Asia
+   * - Mumbai, India
      - ap-south-1
 
    * - Sydney, Australia
      - ap-southeast-2
-     
