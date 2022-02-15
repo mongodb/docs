@@ -263,6 +263,9 @@ try:
         ## add `extlinks` for each published version.
         for i in conf.git.branches.published:
             extlinks[i] = ( conf.project.url + '/' + i + '%s', '')
+    
+        source_constants['admin-api'] = 'Ops Manager Administration API'
+
     elif tags.has('cloud'):
         conf.runstate.edition = 'cloud'
 
@@ -277,6 +280,7 @@ try:
         html_theme_options['pdfpath'] = '/' + 'cloudmanager-manual.pdf'
         html_theme_options['sitename'] = 'Cloud Manager Docs'
         html_theme_options['automation_eol'] = True
+        source_constants['admin-api'] = 'Cloud Manager Administration API'
 except NameError:
     pass
 
