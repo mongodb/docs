@@ -162,6 +162,8 @@
      - 
    * - :gh:`github.com/klauspost/compress</klauspost/compress>`
      - 
+   * - :gh:`github.com/miekg/dns</miekg/dns>`
+     - 
    * - :gh:`github.com/pierrec/lz4</pierrec/lz4>`
      - 
    * - :gh:`global-agent\@2.1.8</gajus/global-agent>`

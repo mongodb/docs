@@ -30,8 +30,6 @@
      - 
    * - cglib:cglib\@3.3.0
      - 
-   * - ch.qos.logback:logback-classic\@1.2.3
-     - 
    * - com.amazonaws:aws-java-sdk-cloudwatch\@1.11.1026
      - Copyright 2010-2014 Amazon.com, Inc. or its affiliates. All
        Rights Reserved.

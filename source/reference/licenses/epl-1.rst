@@ -6,6 +6,13 @@
    * - Package
      - Copyright
 
+
+   * - ch.qos.logback:logback-access\@1.2.3
+     - 
+   * - ch.qos.logback:logback-classic\@1.2.3
+     - 
+   * - ch.qos.logback:logback-core\@1.2.3
+     - 
    * - com.mchange:c3p0\@0.9.5.4
      - 
    * - com.mchange:mchange-commons-java\@0.2.15

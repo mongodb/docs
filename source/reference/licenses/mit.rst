@@ -327,12 +327,6 @@
    * - :gh:`card-validator\@8.1.0</braintree/card-validator>`
      - Copyright © 2009-2017 Braintree, a division of PayPal, Inc.
 
-   * - ch.qos.logback:logback-access\@1.2.3
-     - 
-
-   * - ch.qos.logback:logback-core\@1.2.3
-     - 
-
    * - :gh:`chai\@4.3.4</chaijs/chai>`
      - Copyright © 2017 Chai.js Assertion Library
 

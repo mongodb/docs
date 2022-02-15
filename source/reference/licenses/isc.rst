@@ -38,6 +38,8 @@
      - Copyright © Isaac Z. Schlueter and Contributors
    * - :gh:`glob\@7.1.6</isaacs/node-glob>`
      - Copyright © Isaac Z. Schlueter and Contributors
+   * - :gh:`gopass</howeyc/gopass>`
+     - Copyright © 2012 Chris Howey
    * - :gh:`graceful-fs\@4.2.3</isaacs/node-graceful-fs>`
      - Copyright © Isaac Z. Schlueter, Ben Noordhuis, and Contributors
    * - :gh:`har-schema\@2.0.0</ahmadnassri/har-schema>`
