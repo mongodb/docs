@@ -11,24 +11,22 @@ ref: create-pem-file
 title: "Create the PEM file for backups."
 content: |
     
-    Create the :opsmgr:`queryable.pem
-    </reference/configuration/#brs.queryable.pem>`
+    Create the :opsmgr:`Ops Manager queryable.pem </reference/configuration/#brs.queryable.pem>`
     file that you will use for accessing and querying backups based on
     your deployment's |tls| requirements. The PEM file contains a public
     key certificate and its associated private key that are needed to
-    access and run queries on |onprem| backup snapshots.
+    access and run queries on backup snapshots in |onprem|.
 
     To learn more about the PEM file's requirements, see
-    :opsmgr:`Authorization and Authentication Requirements
+    :opsmgr:`Authorization and Authentication Requirements in Ops Manager
     </tutorial/query-backup/#authentication-and-authorization>`.
-
 ---
 stepnum: 3
 level: 4
 ref: create-queryable-pem-secret
-title: "Create a Secret containing the PEM file."
+title: "Create a secret containing the PEM file."
 content: |
-  Run the following command to create a Secret with the
+  Run the following command to create a secret with the
   :opsmgr:`queryable.pem </reference/configuration/#brs.queryable.pem>`
   file that you created in the previous step:
 
@@ -40,25 +38,19 @@ content: |
 
   .. include:: /includes/facts/fact-learn-more-secret-storage.rst
 ---
-title: "Mount the Secret as a volume that |onprem| custom objects will use."
+title: "Configure |onprem| custom resource to use the secret."
 stepnum: 4
 level: 4
 ref: mount-pem-secret
 content: |
 
-  The |k8s-op-short| must be able to access the :opsmgr:`queryable.pem
-  </reference/configuration/#brs.queryable.pem>` file in the mount point
-  for the persistent volume in the Pod's container for |onprem|.
+  Configure :opsmgrkube:`spec.backup.queryableBackupSecretRef.name` to
+  reference the :opsmgr:`queryable.pem </reference/configuration/#brs.queryable.pem>`
+  secret.
 
-  To mount the Secret, use one of these methods:
-
-  - Configure volumes using ``volumeClaimTemplates`` and specify the
-    location for the :opsmgr:`queryable.pem
-    </reference/configuration/#brs.queryable.pem>` file:
-
-    .. code-block:: yaml
-       :linenos:
-       :emphasize-lines: 9-35
+  .. code-block:: yaml
+     :linenos:
+     :emphasize-lines: 8-12
 
        apiVersion: mongodb.com/v1
        kind: MongoDBOpsManager
@@ -68,74 +60,10 @@ content: |
          replicas: 1
          version: 5.0.0
          adminCredentials: ops-manager-admin-secret
-         configuration:
-           mms.fromEmailAddr: "admin@thecompany.com"
-           brs.queryable.pem: "/certs/queryable.pem"
- 
-         statefulSet:
-           spec:
-            # the Persistent Volume Claim is created for each Ops Manager Pod
-            volumeClaimTemplates:
-              - metadata:
-                  name: queryable-volume
-                spec:
-                  accessModes: [ "ReadWriteOnce" ]
-                  storageClassName: <your_storage_class_name>
-                  resources:
-                    requests:
-                       storage: 1G
-            template:
-              spec:
-                containers:
-                  - name: mongodb-ops-manager
-                  volumeMounts:
-                       - name: queryable-volume
-                       - mountPath: /certs
-                volumes:
-                  - name: queryable-pem
-                  secret:
-                   secretName: queryable-pem
-
-         applicationDatabase:
-            members: 3
-            version: 4.2.6-ent
-
-  - Configure volumes without using ``volumeClaimTemplates`` and specify
-    the location for the :opsmgr:`queryable.pem
-    </reference/configuration/#brs.queryable.pem>` file:
-
-    .. code-block:: yaml
-       :linenos:
-       :emphasize-lines: 9-24
-
-       apiVersion: mongodb.com/v1
-        kind: MongoDBOpsManager
-        metadata:
-          name: ops-manager
-       spec:
-          replicas: 1
-          version: 5.0.0
-          adminCredentials: ops-manager-admin-secret
-          configuration:
-            brs.queryable.pem: "/certs/queryable.pem"
-            mms.fromEmailAddr: "admin@thecompany.com"
-          statefulSet:
-            template:
-              spec:
-                containers:
-                  - name: mongodb-ops-manager
-                  volumeMounts:
-                   - name: queryable-volume
-                   - mountPath: /certs/
-                   
-                volumes:
-                  - name: queryable-pem
-                  secret:
-                    secretName: queryable-pem
- 
-       applicationDatabase:
-         members: 3
-         version: 4.2.6-ent
+         backup:
+           enabled: true
+           queryableBackupSecretRef:
+             name: om-queryable-pem
 
 ---
 title: "Save your |onprem| config file."
