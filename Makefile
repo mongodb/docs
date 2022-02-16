@@ -2,7 +2,7 @@ GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 USER=`whoami`
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
-STAGING_BUCKET=docs-mongodb-org-stg
+STAGING_BUCKET=docs-mongodb-org-prd-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
