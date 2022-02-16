@@ -60,7 +60,7 @@ publish: examples ## Builds this branch's publishable HTML and other artifacts u
 #   * Upload each to the S3 bucket under <project>/<username>/<basename>/<filename>
 stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
+	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
 
 
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
@@ -86,7 +86,7 @@ stage: ## Host online for review
 deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
+	@echo "Hosted at ${PRODUCTION_URL}/index.html"
 
 	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
 
