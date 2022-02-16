@@ -173,10 +173,10 @@
        - **4.2**
        - **4.4**
 
-       If omitted, |service| deploys a cluster that runs MongoDB 4.4.
+       If omitted, |service| deploys a cluster that runs MongoDB 5.0.
 
        If **"replicationSpecs[n].regionConfigs[m].<type>Specs.instanceSize":
-       "M0"**, **"M2"**, or **"M5"**, deploy MongoDB **4.4**.
+       "M0"**, **"M2"**, or **"M5"**, deploy MongoDB **5.0**.
 
        |service| always deploys the cluster with the latest stable
        release of the specified version. You can upgrade to a newer
