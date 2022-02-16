@@ -5,7 +5,7 @@ USER=$(shell whoami)
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
 
-STAGING_BUCKET=docs-mongodb-org-stg
+STAGING_BUCKET=docs-mongodb-org-prd-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 	
 PROJECT=ruby-driver
@@ -57,22 +57,23 @@ publish: migrate ## Build publishable artifacts, and also migrates assets
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
 stage: ## Host online for review
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
 	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build/public/${GIT_BRANCH} ## Create a fake deployment in the staging bucket
-	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${STGPREFIX} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${STGPREFIX}/${GIT_BRANCH}/index.html"
+	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PROJECT} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
+	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${GIT_BRANCH}/index.html"
+
 	mut-publish build/public/ ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --deploy --verbose  --redirects build/public/.htaccess ${ARGS}
 	@echo "Hosted at ${DOTCOM_STAGING_BUCKET}/${DOTCOM_STGPREFIX}/${GIT_BRANCH}/index.html"
 
 deploy: build/public/${GIT_BRANCH} ## Deploy to the production bucket
-	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --redirects build/public/.htaccess ${ARGS}
+	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
 
-	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/${GIT_BRANCH}"
+	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}"
 
 	mut-publish build/public/ ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirects build/public/.htaccess ${ARGS}
 
