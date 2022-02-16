@@ -14,5 +14,5 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Improves performance and stability.
-- Adds indexed ``matchComments`` field to query history. To learn more,
+- Adds ``matchComments`` field to query history. To learn more,
   see :ref:`Retrieve Data Lake Query History <adl-query-history-stage>`.
