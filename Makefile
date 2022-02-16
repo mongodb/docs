@@ -2,9 +2,21 @@ GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 USER=$(shell whoami)
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
-STAGING_BUCKET=docs-mongodb-org-stg
+STAGING_BUCKET=docs-mongodb-org-prd-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 PREFIX=
+
+DOTCOM_STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
+DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
+DOTCOM_PRODUCTION_URL="https://mongodb.com"
+DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+DOTCOM_PREFIX=docs-qa
+DOTCOM_STGPREFIX=docs-qa
+
+DRIVERS_PATH=source/driver-examples
+
+BLOCKS_FILE=./build/${GIT_BRANCH}/tests.blocks
+TEST_FILE=./build/${GIT_BRANCH}/tests.js
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -29,7 +41,10 @@ lint: ## Checks URLs in the built corpus underneath build/<branch>/html
 
 stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PREFIX}/${USER}/${GIT_BRANCH}/index.html"
+	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
+
+	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
+	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 fake-deploy: build/public
 	mut-publish build/public/ ${STAGING_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
@@ -39,6 +54,10 @@ deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
+
+	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
+
+	@echo "Hosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/index.html"
 
 	$(MAKE) deploy-search-index
 
