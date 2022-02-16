@@ -2,12 +2,20 @@ GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
 USER=`whoami`
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
-STAGING_BUCKET=docs-mongodb-org-stg
+STAGING_BUCKET=docs-mongodb-org-prd-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 
 # "PROJECT" currently exists to support having multiple projects
 # within one bucket. For the manual it is empty.
 PROJECT=
+DOTCOM_STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
+DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
+DOTCOM_PRODUCTION_URL="https://mongodb.com"
+DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+DOTCOM_PREFIX=docs-qa
+DOTCOM_STGPREFIX=docs-qa
+
+
 
 DRIVERS_PATH=source/driver-examples
 
@@ -47,6 +55,13 @@ stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
 	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
 
+
+	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
+	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
+
+
+	
+
 # - Enter build/public/<branch>, as well as any symbolic links pointing
 #   to it, and recurse over each file <basename>/<filename>.
 #   * Upload each to the S3 bucket under <project>/<basename>/<filename>.
@@ -65,6 +80,10 @@ deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
+
+	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
+
+	@echo "Hosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/index.html"
 
 	$(MAKE) deploy-search-index
 
