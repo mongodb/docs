@@ -193,3 +193,8 @@ limitations and considerations:
    * - |bson| Nested Object Depth
      - {+Serverless-instances+} can't store documents with more than 50 
        nested levels.
+
+   * - Transaction Size
+     - {+Serverless-instances+} support multi-document transactions that are up
+       to 700 MB in size. |service| aborts any {+serverless-instance+} transactions that
+       exceed 700 MB.
