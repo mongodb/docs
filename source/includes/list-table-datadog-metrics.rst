@@ -192,6 +192,73 @@
      - The average rate of :manual:`oplog </core/replica-set-oplog/>`
        the primary generates in gigabytes per hour.
 
+   * - | ``TOTAL_NUMBER_OF_GETMORE_COMMANDS``
+       | (mongodb.atlas.search.index.stats.commands.getmore)
+     - |fts|
+     - Total number of ``getmore`` commands run on all |fts| queries.
+
+   * - | ``TOTAL_NUMBER_OF_DELETES``
+       | (mongodb.atlas.search.index.stats.deletes)
+     - |fts|
+     - Total number of documents or fields (specified in the index 
+       definition) removed.
+
+   * - | ``TOTAL_NUMBER_OF_INDEX_FIELD``
+       | (mongodb.atlas.search.index.stats.index.fields) 
+     - |fts|
+     - Total number of unique fields present in the |fts| index.
+
+   * - | ``TOTAL_INDEX_SIZE_ON_DISK``
+       | (mongodb.atlas.search.index.stats.index.size)
+     - |fts|
+     - Total size of all indexes on disk.
+
+   * - | ``TOTAL_NUMBER_OF_INSERTS_SERIES``
+       | (mongodb.atlas.search.index.stats.inserts)
+     - |fts|
+     - Total number of documents or fields (specified in the index 
+       definition) that |fts| indexed.
+   
+   * - | ``MAX_REPLICATION_LAG``
+       | (mongodb.atlas.search.index.stats.max.replication.lag)
+     - |fts|
+     - Approximate number of milliseconds that |fts| is behind in 
+       replicating changes from the :term:`oplog` of |mongod|.
+
+   * - | ``TOTAL_NUMBER_OF_UPDATES``
+       | (mongodb.atlas.search.index.stats.updates)
+     - |fts|
+     - Total number of documents or fields (specified in the index 
+       definition) that |fts| updated.
+
+   * - | ``TOTAL_NUMBER_OF_ERROR_QUERIES``
+       | (mongodb.atlas.search.index.stats.queries.error)
+     - |fts|
+     - Total number of queries for which |fts| is unable to return a 
+       response.
+
+   * - | ``TOTAL_NUMBER_OF_SUCCESS_QUERIES``
+       | (mongodb.atlas.search.index.stats.queries.success)
+     - |fts|
+     - Total number of queries for which |fts| successfully returned a 
+       response.
+
+   * - | ``TOTAL_NUMBER_OF_TOTAL_QUERIES``
+       | (mongodb.atlas.search.index.stats.queries.total)
+     - |fts|
+     - Total number of queries submitted to |fts|.
+
+   * - | ``JVM_CURRENT_MEMORY``
+       | (mongodb.atlas.search.jvm.current.memory)
+     - |fts|
+     - Amount of memory that the JVM heap is currently 
+       using.
+
+   * - | ``JVM_MAX_MEMORY``
+       | (mongodb.atlas.search.jvm.max.memory)
+     - |fts|
+     - Total available memory in the JVM heap.
+
    * - | ``DISK_PARTITION_SPACE_FREE``
        | (mongodb.atlas.system.disk.space.free)
        | ``DISK_PARTITION_SPACE_USED`` 
