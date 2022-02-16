@@ -1,3 +1,13 @@
+.. _data-lake-v20220215:
+
+15 February 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Renames the ``matchComments`` field to ``queryFilterComments`` . To 
+  learn more, see :ref:`adl-query-history-stage`.
+
+
 .. _data-lake-v20220118:
 
 18 January 2022 Release
