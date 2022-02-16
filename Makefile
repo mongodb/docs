@@ -27,7 +27,7 @@ else
 endif
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
-STAGING_BUCKET=docs-mongodb-org-stg
+STAGING_BUCKET=docs-mongodb-org-prd-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 PROJECT=kubernetes-operator
 STGPREFIX=kubernetes-operator
@@ -104,8 +104,8 @@ publish:
 
 ## Host online for review
 stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${STGPREFIX} --stage ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL}/${STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
+	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
+	@echo "\n\nHosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
 
 
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
@@ -120,9 +120,9 @@ stage:
 
 ## Deploy to the production bucket
 deploy: build/public
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PREFIX} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
+	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
 
-	@echo "\n\nHosted at ${PRODUCTION_URL}/${PREFIX}/index.html"
+	@echo "\n\nHosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
 
 	
 	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
