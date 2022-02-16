@@ -163,6 +163,9 @@ limitations and considerations:
      - Some database commands have limitations for {+serverless-instances+}. To
        learn more, see
        :doc:`Unsupported Commands in Serverless Instances </reference/unsupported-commands-serverless>`.
+       
+       You cannot create a capped collection or convert an existing
+       collection to a capped collection.
 
    * - Namespaces and Database Names
      - |service| limits {+serverless-instance+} namespaces to 95 characters and
