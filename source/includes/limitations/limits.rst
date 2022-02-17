@@ -1,5 +1,5 @@
 Learn about the following TypeScript specific limitations of
-version 4.3 of the {+driver-short+}:
+version {+version+} of the {+driver-short+}:
 
 - :ref:`No type safety for dot notation references to nested instances of recursive types <node-driver-recursive-types-dot-notation>`
 - :ref:`No mutually recursive types <node-driver-limitations-mutual-recursion>`
@@ -59,7 +59,7 @@ The following code snippet references a top-level instance of the
 The error raised by the preceding code snippet is as follows:
 
 .. code-block:: none
-            
+
    index.ts(19,59): error TS2769: No overload matches this call.
    The last overload gave the following error.
    Type 'string' is not assignable to type 'Condition<Pet>'.
@@ -67,7 +67,7 @@ The error raised by the preceding code snippet is as follows:
 If you must have type safety within nested instances of recursive types,
 you must write your query or update without dot notation.
 
-To learn more about dot notation, see 
+To learn more about dot notation, see
 :manual:`Dot Notation </core/document/#dot-notation>`
 in the MongoDB manual.
 
