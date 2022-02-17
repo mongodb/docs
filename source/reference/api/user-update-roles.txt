@@ -1,0 +1,225 @@
+=========================
+Update Roles for One User
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-groups-projects-synonyms.rst
+
+Add, update, or remove one |service| user's roles within an
+organization or project.
+
+Resource
+--------
+
+.. include:: /includes/api/base-api-uri.rst
+
+.. code-block:: http
+
+   PATCH /users/{USER-ID}
+
+Required Roles
+--------------
+
+You must have the appropriate Owner roles to use this |api| endpoint.
+
+.. list-table::
+   :widths: 60 40
+   :header-rows: 1
+
+   * - Level
+     - Needed Role
+
+   * - Organization
+     - :authrole:`Organization Owner`
+
+   * - Project
+     - :authrole:`Project Owner`
+
+.. important::
+
+   You can always update your own |service| user account.
+
+   If you own an organization or project, you can update the
+   :ref:`user roles <user-roles>` for any user with membership in that
+   organization or project. You cannot modify any other user profile
+   information.
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - USER-ID
+     - string
+     - Required
+     - Unique 24-hexadecimal digit string that identifies the |service|
+       user whose roles you want to update.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 14 11 55
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+
+   * - roles
+     - array of objects
+     - Required
+     - Role assigned to the |service| user.
+
+   * - roles.orgId
+     - string
+     - Optional
+     - Unique 24-hexadecimal digit string that identifies the
+       organization in which the |service| user has the specified role.
+
+   * - roles.groupId
+     - string
+     - Optional
+     - Unique 24-hexadecimal digit string that identifies the project
+       in which the |service| user has the specified role.
+
+   * - roles.roleName
+     - string
+     - Label that identifies the assigned grouping of |service|
+       privileges.
+
+       When associated to **roles.orgId**, the valid roles and their
+       mappings include:
+
+       .. list-table::
+          :widths: 40 60
+          :header-rows: 1
+          :stub-columns: 1
+
+          * - Role
+            - Mapping
+
+          * - ORG_OWNER
+            - :authrole:`Organization Owner`
+          * - ORG_GROUP_CREATOR
+            - :authrole:`Organization Project Creator`
+          * - ORG_BILLING_ADMIN
+            - :authrole:`Organization Billing Admin`
+          * - ORG_READ_ONLY
+            - :authrole:`Organization Read Only`
+          * - ORG_MEMBER
+            - :authrole:`Organization Member`
+
+       When associated to **roles.groupId**, the valid roles and their
+       mappings include:
+
+       .. list-table::
+          :widths: 40 60
+          :header-rows: 1
+          :stub-columns: 1
+
+          * - Role
+            - Mapping
+
+          * - GROUP_OWNER
+            - :authrole:`Project Owner`
+          * - GROUP_CLUSTER_MANAGER
+            - :authrole:`Project Cluster Manager`
+          * - GROUP_READ_ONLY
+            - :authrole:`Project Read Only`
+          * - GROUP_DATA_ACCESS_ADMIN
+            - :authrole:`Project Data Access Admin`
+          * - GROUP_DATA_ACCESS_READ_WRITE
+            - :authrole:`Project Data Access Read/Write`
+          * - GROUP_DATA_ACCESS_READ_ONLY
+            - :authrole:`Project Data Access Read Only`
+
+Response
+--------
+
+The |json| document contains each of the following elements:
+
+.. include:: /includes/api/list-tables/responses/atlas-users.rst
+
+Example Request
+---------------
+
+.. code-block:: sh
+   :linenos:
+   :emphasize-lines: 7-12
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/users/{USER-ID}" \
+        --data '
+          {
+             "roles": [{
+               "groupId": "{GROUP-ID}",
+               "roleName": "{ROLE}"
+            }]
+          }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :linenos:
+   :emphasize-lines: 19-20
+
+   {
+     "id": "{USER-ID}",
+     "username": "jane",
+     "emailAddress": "jane@qa.example.com",
+     "firstName": "Jane",
+     "lastName": "D'oh",
+     "links": [{
+       "href": "https://cloud.mongodb.com/api/atlas/v1.0/users/{USER-ID}",
+       "rel": "self"
+     },
+     {
+        "href": "https://cloud.mongodb.com/api/atlas/v1.0/users/{USER-ID}/whitelist",
+       "rel": "http://mms.mongodb.com/whitelist"
+     }],
+     "roles": [{
+       "orgId": "{ORG-ID}",
+       "roleName": "ORG_MEMBER"
+     },{
+       "groupId": "{PROJECT-ID}",
+       "roleName": "GROUP_READ_ONLY"
+     }],
+     "teamIds": []
+   }
