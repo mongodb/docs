@@ -1,3 +1,15 @@
+.. _11.12.0.7401:
+
+MongoDB Agent 11.12.0.7401
+--------------------------
+
+*Released* 2022-02-16
+
+- Fixes an issue where the {+mdbagent+} erroneously determined that 
+  processes were down before they were completely shut down.
+- Updates the {+aagent+} ``systemd`` configuration script to send the
+  correct termination signal.
+
 .. _11.11.0.7355:
 
 MongoDB Agent 11.11.0.7355
