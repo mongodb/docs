@@ -127,7 +127,7 @@ deploy: build/public
 	
 	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
 
-	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/index.html"
+	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/${GIT_BRANCH}/index.html"
 
 
 	$(MAKE) deploy-search-index
