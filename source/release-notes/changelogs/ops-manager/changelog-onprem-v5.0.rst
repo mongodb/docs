@@ -1,3 +1,19 @@
+.. _opsmgr-server-5.0.7:
+
+|onprem| Server 5.0.7
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-02-17*
+
+- Removes support for PowerPC architectures.
+- Fixes an issue where S3 Oplog Stores can leave behind S3 objects even
+  after the configured retention window has elapsed.
+- Updates JDK to jdk-11.0.14.1+1
+- Keeps legacy monitoring and backup agents in sync with MongoDB agent
+  configuration when making ``automationConfig`` API and UI updates.
+- Removes workaround to use an X.509 CommonName instead of a |san-dns|.
+- Updates the {+mdbagent+} to :ref:`11.0.12.7051 <mongodb-11.0.12.7051>`
+
 .. _opsmgr-server-5.0.6:
 
 |onprem| Server 5.0.6

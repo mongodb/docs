@@ -1,3 +1,12 @@
+.. _mongodb-11.0.12.7051:
+
+MongoDB Agent 11.0.12.7051
+--------------------------
+
+:ref:`Released with Ops Manager 5.0.7 on 2022-02-17 <opsmgr-server-5.0.7>`
+
+Rejects legacy monitoring and backup agent settings that don't match
+MongoDB Agent settings when ``configOverrides`` field should be used.
 
 .. _mongodb-11.0.11.7036:
 
