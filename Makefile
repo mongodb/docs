@@ -40,6 +40,9 @@ html: migrate ## Builds this branch's HTML under build/<branch>/html
 # you must install yard
 # generate the api docs from the mongoid project and output to the build dir
 
+debug:
+	@echo ${DOTCOM_PRODUCTION_BUCKET}
+
 publish: migrate ## Builds this branch's publishable HTML and other artifacts under build/public
 	giza make publish
 	@echo "Making api  directory in /build/public/${GIT_BRANCH}"
@@ -56,7 +59,7 @@ stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
 	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
-	
+
 
 fake-deploy: build/public/${GIT_BRANCH} ## Create a fake deployment in the staging bucket
 	mut-publish build/public ${STAGING_BUCKET} --prefix=${PROJECT} --deploy --verbose  ${ARGS}
@@ -65,7 +68,7 @@ fake-deploy: build/public/${GIT_BRANCH} ## Create a fake deployment in the stagi
 	mut-publish build/public ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --deploy --verbose  ${ARGS}
 	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${GIT_BRANCH}/index.html"
 
-	
+
 
 deploy: build/public/${GIT_BRANCH} ## Deploy to the production bucket
 	mut-publish build/public/ ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirects build/public/.htaccess ${ARGS}
@@ -76,16 +79,16 @@ deploy: build/public/${GIT_BRANCH} ## Deploy to the production bucket
 
 	@echo "Hosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/${GIT_BRANCH}"
 
-	
+
 
 	$(MAKE) deploy-search-index
 
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -g -s --exclude build/public/${GIT_BRANCH}/api; \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${PRODUCTION_BUCKET} -g -s --exclude build/public/${GIT_BRANCH}/api; \
 	else \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s --exclude build/public/${GIT_BRANCH}/api; \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}  -b ${PRODUCTION_BUCKET} -s --exclude build/public/${GIT_BRANCH}/api; \
 	fi
 
 # in case you want to just generate the api-docs
@@ -105,8 +108,8 @@ migrate: get-assets
 	@echo "Making target source directory"
 	if [ -d ${TARGET_DIR} ]; then rm -rf ${TARGET_DIR} ; fi;
 	mkdir ${TARGET_DIR}
-	
-	
+
+
 	@echo "Copying over mongoid doc files"
 	cp -r ${SOURCE_FILE_DIR}/docs/* ${TARGET_DIR}/
 
