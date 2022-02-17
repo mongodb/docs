@@ -1,6 +1,9 @@
 GIT_BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
 PRODUCTION_URL="https://docs.mongodb.com"
 PRODUCTION_BUCKET=docs-mongodb-org-prd
+DOTCOM_PRODUCTION_URL="https://mongodb.com"
+DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
+DOTCOM_PREFIX=docs-qa
 
 .PHONY: help html deploy deploy-search-index
 
@@ -22,6 +25,10 @@ deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
 
 	@echo "Hosted at ${PRODUCTION_URL}/index.html"
+
+	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
+
+	@echo "Hosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/index.html"
 
 	$(MAKE) deploy-search-index
 
