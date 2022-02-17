@@ -1,3 +1,12 @@
+.. _atlas_20220216:
+
+16 February 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Upgrades free (``M0``) and shared (``M2`` and ``M5``) clusters to 
+  MongoDB 5.0.
+- Defaults new clusters to MongoDB 5.0.
+
 .. _atlas_20220126:
 
 26 January 2022 Release
