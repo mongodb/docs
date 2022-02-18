@@ -12,7 +12,7 @@ These operators can be used with the :pipeline:`$setWindowFields` stage:
 
 .. _setWindowFields-gap-filling-operators:
 
-- Gap filling operators: :group:`$locf`.
+- Gap filling operators: :group:`$linearFill` and :group:`$locf`.
 
 .. _setWindowFields-order-operators:
 
