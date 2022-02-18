@@ -1,5 +1,4 @@
-Learn about the following TypeScript specific limitations of
-version {+version+} of the {+driver-short+}:
+Learn about the following TypeScript specific limitations of the {+driver-short+}:
 
 - :ref:`No type safety for dot notation references to nested instances of recursive types <node-driver-recursive-types-dot-notation>`
 - :ref:`No mutually recursive types <node-driver-limitations-mutual-recursion>`
@@ -8,6 +7,11 @@ version {+version+} of the {+driver-short+}:
 
 Recursive Types and Dot Notation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important:: Impacted Versions
+
+   - 4.3
+   - 4.4
 
 The {+driver-short+} cannot provide type safety within nested instances of
 **recursive types** referenced through dot notation.
@@ -76,8 +80,12 @@ in the MongoDB manual.
 Mutual Recursion
 ~~~~~~~~~~~~~~~~
 
-You cannot specify a **mutually recursive** type as a type parameter in version
-4.3 of the driver.
+.. important:: Impacted Versions
+
+   - 4.3
+   - 4.4
+
+You cannot specify a **mutually recursive** type as a type parameter.
 
 A mutually recursive type exists when two types contain a property that is of
 the other's type. You can update the
