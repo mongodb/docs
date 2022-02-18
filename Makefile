@@ -7,7 +7,7 @@ PRODUCTION_URL="https://docs.mongodb.com"
 
 STAGING_BUCKET=docs-mongodb-org-prd-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prd
-	
+
 PROJECT=ruby-driver
 PREFIX=ruby-driver
 DOTCOM_STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
@@ -84,9 +84,9 @@ deploy: build/public/${GIT_BRANCH} ## Deploy to the production bucket
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o docs-ruby-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -g -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-ruby-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}  -b ${PRODUCTION_BUCKET} -g -s; \
 	else \
-		mut-index upload build/public/${GIT_BRANCH} -o docs-ruby-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-ruby-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}  -b ${PRODUCTION_BUCKET} -s; \
 	fi
 
 # in case you want to just generate the api-docs
