@@ -8,22 +8,6 @@
      - Description
      - Example
 
-   * - | ``spec.security.tls``
-       | :setting:`.enabled<spec.security.tls.enabled>`
-     - boolean
-     - Optional
-     - Set this value to ``true`` to enable |tls| on the MongoDB
-       deployment.
-
-       By default, |k8s-op-short| requires hosts to use and accept
-       |tls| encrypted connections.
-
-       .. note::
-
-          To connect to a replica set from outside |k8s|, set this
-          value to ``true``.
-     - ``true``
-
    * - | ``spec.connectivity``
        | :setting:`.replicaSetHorizons<spec.connectivity.replicaSetHorizons>`
      - collection
@@ -45,7 +29,16 @@
           - Make sure that the number of entries in this array matches
             the value given in :setting:`spec.members`.
 
-          - Set the :setting:`spec.security.tls.enabled` to ``true`` to
-            enable |tls|. This method to use split horizons requires
-            the Server Name Indication extension of the |tls| protocol.
+          - Provide a value for the
+            :setting:`spec.security.certsSecretPrefix` setting to
+            enable |tls|. This method to use split horizons requires the
+            Server Name Indication extension of the |tls| protocol.
      - :setting:`See Setting<spec.connectivity.replicaSetHorizons>`
+
+   * - | ``spec.security``
+       | :setting:`.tls.certsSecretPrefix<spec.security.tls.certsSecretPrefix>`
+     - string
+     - Required
+     - Add the ``<prefix>`` of the secret 
+       name that contains your MongoDB deployment's |tls| certificates.
+     - ``devDb``
