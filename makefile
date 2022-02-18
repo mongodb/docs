@@ -50,10 +50,10 @@ DOTCOM_PRODUCTION_URL_CLOUDMGR="https://mongodb.com"
 DOTCOM_STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-dotcomprd
 DOTCOM_PRODUCTION_URL_OPSMGR="https://mongodb.com"
 DOTCOM_STAGING_BUCKET_OPSMGR=docs-opsmanager-dotcomprd
-DOTCOM_CMPREFIX= docs-qa/cloudmanager
-DOTCOM_CMSTGPREFIX= docs-qa/cloudmanager
-DOTCOM_OPMPREFIX= docs-qa/opsmanager
-DOTCOM_OPMSTGPREFIX= docs-qa/opsmanager
+DOTCOM_CMPREFIX= docs-qa/cloud-manager
+DOTCOM_CMSTGPREFIX= docs-qa/cloud-manager
+DOTCOM_OPMPREFIX= docs-qa/ops-manager
+DOTCOM_OPMSTGPREFIX= docs-qa/ops-manager
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
