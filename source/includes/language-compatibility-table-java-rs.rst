@@ -9,6 +9,18 @@
      - Java 7
      - Java 6
 
+   * - 4.5
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+
+   * - 4.4
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+
    * - 4.3
      - |checkmark|
      - |checkmark|
