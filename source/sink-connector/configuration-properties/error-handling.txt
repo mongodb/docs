@@ -65,7 +65,7 @@ Settings
 
        | When set to ``true``, the connector logs both "tolerated" and
          "not tolerated" errors.
-       | When set to ``false``, the connector logs "not tolertaed" errors.
+       | When set to ``false``, the connector logs "not tolerated" errors.
 
        .. note::
 
@@ -105,8 +105,11 @@ Settings
        | **Description:**
        | Whether the connector should include context headers when it
          writes messages to the dead letter queue.
-       | For more information about the dead letter queue, see the 
+       | To learn more about the dead letter queue, see the 
          :ref:`Dead Letter Queue Configuration Example <sink-dead-letter-queue-configuration-example>`.
+       | To learn about the exceptions the connector defines and
+         reports through context headers, see the
+         :ref:`<sink-configuration-error-handling-dlq-errors>` section.
        |
        | **Default:** ``false``
        | **Accepted Values**: ``true`` or ``false``
@@ -125,6 +128,114 @@ Settings
        | **Accepted Values**: A valid number of nodes
 
 .. _sink-configuration-error-handling-table-end:
+
+.. _sink-configuration-error-handling-dlq-errors:
+
+Bulk Write Exceptions
+---------------------
+
+The connector can report the following exceptions to your dead letter queue
+as context headers when performing bulk writes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Name
+     - Description
+   
+   * - | ``WriteException``
+     - | **Description:**
+       | Contains details of a
+         `BulkWriteError <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/bulk/BulkWriteError.html>`__
+         your connector encountered.
+       |
+       | **Message Format:**
+
+       This class outputs the error in the following format:
+    
+       .. code-block:: none
+
+          v=%d, code=%d, message=%s, details=%s
+
+       The fields in the preceding message contain the following information:
+
+       - ``v``: The version of the ``WriteException`` message format.
+         This field helps parse the messages produced by this exception.  
+         For version {+connector_version+} of the connector, the version of the
+         message format is {+write-exception-version+}.
+       - ``code``: The code associated with the error. To learn more see the 
+         `getCode() <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/WriteError.html#getCode()>`__
+         method documentation. 
+       - ``message``: The message associated with the error. To learn more, see the
+         `getMessage() <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/WriteError.html#getMessage()>`__
+         method documentation. 
+       - ``details``: The details associated with the error in JSON format. To
+         learn more, see the following method documentation:
+         
+         - `getDetails() <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/WriteError.html#getDetails()>`__
+         - `toJson() <{+connector_driver_api_doc_url_base+}apidocs/bson/org/bson/BsonDocument.html#toJson()>`__
+
+   * - | ``WriteConcernException``
+     - | **Description:**
+       | Contains details of a
+         `WriteConcernError <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/bulk/WriteConcernError.html>`__
+         your connector encountered.
+       |
+       | **Message Format:**
+
+       This class outputs the error in the following format:
+    
+       .. code-block:: none
+
+          v=%d, code=%d, codeName=%d, message=%s, details=%s
+
+       The fields in the preceding message contain the following information:
+
+       - ``v``: The version of the ``WriteConcernException`` message format.
+         This field helps parse the messages produced by this exception.  
+         For version {+connector_version+} of the
+         connector, the version of the message format is
+         {+write-concern-exception-version+}.
+       - ``code``: The code associated with the error. To learn more see the
+         `getCode() <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/bulk/WriteConcernError.html#getCode()>`__
+         method documentation. 
+       - ``codeName``: The code name associated with the error. To learn more, see the 
+         `getCodeName() <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/bulk/WriteConcernError.html#getCode()>`__
+         method documentation. 
+       - ``message``: The message associated with the error. To learn more, see the
+         `getMessage() <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/bulk/WriteConcernError.html#getMessage()>`__
+         method documentation. 
+       - ``details``: The details associated with the error in JSON format. To
+         learn more, see the following method documentation:
+
+         - `getDetails() <{+connector_driver_api_doc_url_base+}apidocs/mongodb-driver-core/com/mongodb/bulk/WriteConcernError.html#getDetails()>`__
+         - `toJson() <{+connector_driver_api_doc_url_base+}apidocs/bson/org/bson/BsonDocument.html#toJson()>`__
+
+   * - | ``WriteSkippedException``
+     - | **Description:**
+       | Informs that MongoDB did not attempt the write of a ``SinkRecord`` as part of
+         the following scenario:
+
+       #. The connector sends an ordered bulk write operation to MongoDB
+       #. MongoDB fails to process a write operation in the ordered bulk write
+       #. MongoDB does not attempt to perform all subsequent write operations in the ordered bulk write
+
+       | To learn how to set the connector to perform unordered bulk
+         write operations, see the :ref:`<sink-configuration-message-processing>` page.
+       | **Message Format:**
+
+       This exception produces no message. 
+
+To enable bulk write exception reporting to the dead letter queue, use the
+following connector configuration:
+
+.. code-block:: properties
+   :emphasize-lines: 3
+
+   errors.tolerance=all
+   errors.deadletterqueue.topic.name=<name of topic to use as dead letter queue>
+   errors.deadletterqueue.context.headers.enable=true
 
 .. _sink-dead-letter-queue-configuration-example:
 
