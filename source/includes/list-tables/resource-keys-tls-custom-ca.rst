@@ -9,17 +9,6 @@
      - Example
 
    * - | ``spec.security``
-       | :setting:`.tls.enabled<spec.security.tls.enabled>`
-     - boolean
-     - Required
-     - If this value is ``true``, |tls| is enabled on the MongoDB
-       deployment.
-
-       By default, |k8s-op-short| requires hosts to use and
-       accept |tls| encrypted connections.
-     - ``true``
-
-   * - | ``spec.security``
        | :setting:`.tls.ca<spec.security.tls.ca>`
      - string
      - Required
@@ -28,9 +17,9 @@
      - ``<custom-ca>``
 
    * - | ``spec.security``
-       | :setting:`.tls.certsSecretPrefix<spec.security.tls.certsSecretPrefix>`
+       | :setting:`.certsSecretPrefix<spec.security.certsSecretPrefix>`
      - string
-     - Optional
-     - If applicable, add the ``<prefix>`` of the secret 
+     - Required
+     - Add the ``<prefix>`` of the secret 
        name that contains your MongoDB deployment's |tls| certificates.
      - ``devDb``

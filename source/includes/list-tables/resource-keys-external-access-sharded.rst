@@ -16,17 +16,6 @@
        :k8sdocs:`NodePort service </concepts/services-networking/service/#nodeport>`.
      - ``true``
 
-   * - | ``spec.security``
-       | :setting:`.tls.enabled<spec.security.tls.enabled>`
-     - boolean
-     - Optional
-     - If this value is ``true``, |tls| is enabled on the MongoDB
-       deployment.
-
-       By default, |k8s-op-short| requires hosts to use and
-       accept |tls| encrypted connections.
-     - ``true``
-
    * - | ``spec.security.tls``
        | :setting:`.additionalCertificateDomains<spec.security.tls.additionalCertificateDomains>`
      - collection
@@ -37,3 +26,11 @@
        certificate includes a |san-dns| in the form ``<pod
        name>.<additional cert domain>``.
      - ``true``
+
+   * - | ``spec.security``
+       | :setting:`.certsSecretPrefix<spec.security.certsSecretPrefix>`
+     - string
+     - Required
+     - Add the ``<prefix>`` of the secret 
+       name that contains your MongoDB deployment's |tls| certificates.
+     - ``devDb``

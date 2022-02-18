@@ -5,8 +5,7 @@
    and :opsmgrkube:`spec.security.tls.secretRef.name`
    settings are deprecated.
    
-   These fields will remain in future releases to maintain backwards
-   compatibility.
+   These fields will be removed in a future release.
 
    If you omit these settings,
    the |k8s-op-short| expects the secrets that contain your
