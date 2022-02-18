@@ -50,7 +50,7 @@ DOTCOM_STAGING_BUCKET_OPSMGR=docs-mongodb-org-dotcomstg
 DOTCOM_PRODUCTION_URL_CLOUDMGR="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET_CLOUDMGR=docs-mongodb-org-dotcomprd
 DOTCOM_PRODUCTION_URL_OPSMGR="https://mongodb.com"
-DOTCOM_PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-dotcomprd
+DOTCOM_PRODUCTION_BUCKET_OPSMGR=docs-mongodb-org-dotcomprd
 
 DOTCOM_CMPREFIX= docs-qa/cloud-manager
 DOTCOM_CMSTGPREFIX= docs-qa/cloud-manager
@@ -263,7 +263,7 @@ deploy-onprem: build/public/onprem
 
 	mut-publish build/public/onprem/ ${DOTCOM_PRODUCTION_BUCKET_OPSMGR} --prefix=${DOTCOM_OPMPREFIX} --deploy  --redirects build/public/onprem/.htaccess ${ARGS}
 
-	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL_OPSMGR}/${DOTCOM_OPMPREFIX}/index.html"
+	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL_OPSMGR}/${DOTCOM_OPMPREFIX}/${GIT_BRANCH}/index.html"
 	
 	$(MAKE) deploy-onprem-search-index
 
