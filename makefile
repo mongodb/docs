@@ -43,13 +43,15 @@ PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-prd
 
 PREFIX=
 DOTCOM_STAGING_URL_CLOUDMGR="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
-DOTCOM_STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-dotcomstg
+DOTCOM_STAGING_BUCKET_CLOUDMGR=docs-mongodb-org-dotcomstg
 DOTCOM_STAGING_URL_OPSMGR="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
-DOTCOM_STAGING_BUCKET_OPSMGR=docs-opsmanager-dotcomstg
+DOTCOM_STAGING_BUCKET_OPSMGR=docs-mongodb-org-dotcomstg
+
 DOTCOM_PRODUCTION_URL_CLOUDMGR="https://mongodb.com"
-DOTCOM_STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-dotcomprd
+DOTCOM_PRODUCTION_BUCKET_CLOUDMGR=docs-mongodb-org-dotcomprd
 DOTCOM_PRODUCTION_URL_OPSMGR="https://mongodb.com"
-DOTCOM_STAGING_BUCKET_OPSMGR=docs-opsmanager-dotcomprd
+DOTCOM_PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-dotcomprd
+
 DOTCOM_CMPREFIX= docs-qa/cloud-manager
 DOTCOM_CMSTGPREFIX= docs-qa/cloud-manager
 DOTCOM_OPMPREFIX= docs-qa/ops-manager
