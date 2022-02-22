@@ -1,3 +1,17 @@
+.. _opsmgr-server-4.4.21:
+
+|onprem| Server 4.4.21
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-02-17*
+
+- Fixes an issue where |s3| Oplog Stores can leave behind |s3| 
+  objects even after the configured retention window has elapsed.
+
+- Updates the |jdk| to ``jdk-11.0.14.1+1``.
+
+- Updates the {+mdbagent+} to :ref:`10.14.32.6576 <mongodb-10.14.32.6576>`.
+
 .. _opsmgr-server-4.4.20:
 
 |onprem| Server 4.4.20
