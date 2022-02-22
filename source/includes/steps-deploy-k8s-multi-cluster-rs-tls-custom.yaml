@@ -1,0 +1,84 @@
+---
+stepnum: 1
+ref: create-k8s-mc-rs-tls-secret
+title: "Create the secret for the TLS certificate of your ``MongoDBMulti`` custom resource."
+level: 4
+content: |
+   Run the ``kubectl`` command to create a new secret that stores the
+   MongoDB multi-cluster resource's certificate:
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+      --namespace=<metadata.namespace> \
+      create secret tls <prefix>-<metadata.name>-cert \
+      --cert=<resource-tls-cert> \
+      --key=<resource-tls-key>
+
+---
+stepnum: 2
+ref: create-k8s-mc-rs-tls-configmap
+title: "Create the ConfigMap to link your CA with your ``MongoDBMulti`` custom resource."
+level: 4
+content: |
+   Run the ``kubectl`` command to link your |certauth| to your ``MongoDBMulti`` custom resource:
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+      --namespace=<metadata.namespace> \
+      create configmap custom-ca -from-file=ca-pem
+
+---
+stepnum: 3
+ref: update-mongodbmulti-resource
+title: "Update your ``MongoDBMulti`` custom resource."
+level: 4
+content: |
+
+   :ref:`Update your MongoDB multi-cluster resource <k8s-edit-database-resource>`
+   with :ref:`security settings <security-settings>` from the |k8s-op-short|
+   MongoDB resource specification. The resulting configuration should look as
+   follows:
+
+   .. code-block:: yaml
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDBMulti
+      metadata:
+       name: multi-replica-set
+      spec:
+       version: 4.4.0-ent
+       type: ReplicaSet
+       persistent: false
+       duplicateServiceObjects: true
+       credentials: my-credentials
+       opsManager:
+         configMapRef:
+           name: my-project
+       security:
+         tls:
+           ca: custom-ca
+         certsSecretPrefix: <prefix>
+       clusterSpecList:
+         clusterSpecs:
+         - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+           members: 3
+         - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+           members: 2
+         - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+           members: 3
+
+   The |k8s-op-short| copies the ConfigMap with the |certauth| created in
+   the central cluster to each member cluster, generates a concatenated
+   |pem| secret, and distributes it to the member clusters.
+
+---
+stepnum: 4
+level: 4
+ref: verify-mc-resources-tls
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: verify-mdb-resources-mc
+
+...
