@@ -7,6 +7,7 @@ Python 3 Compatibility
    :class: compatibility-large
 
    * - PyMongo Driver Version
+     - Python 3.10 [#ssl-4.0-issue]_
      - Python 3.9
      - Python 3.8
      - Python 3.7
@@ -19,6 +20,7 @@ Python 3 Compatibility
      - Python 3.1
 
    * - 4.0
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -37,12 +39,14 @@ Python 3 Compatibility
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
      -
      - |checkmark|
      -
      -
 
    * - 3.11
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -55,6 +59,7 @@ Python 3 Compatibility
      -
 
    * - 3.10
+     -
      -
      - |checkmark|
      - |checkmark|
@@ -69,6 +74,7 @@ Python 3 Compatibility
    * - 3.9
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -81,6 +87,7 @@ Python 3 Compatibility
    * - 3.8
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -91,6 +98,7 @@ Python 3 Compatibility
      -
 
    * - 3.7
+     -
      -
      -
      - |checkmark|
@@ -106,6 +114,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -115,6 +124,7 @@ Python 3 Compatibility
      -
 
    * - 3.5
+     -
      -
      -
      -
@@ -131,6 +141,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -139,6 +150,7 @@ Python 3 Compatibility
      -
 
    * - 3.3
+     -
      -
      -
      -
@@ -155,6 +167,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -163,6 +176,7 @@ Python 3 Compatibility
      -
 
    * - 3.1
+     -
      -
      -
      -
@@ -180,6 +194,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -187,6 +202,7 @@ Python 3 Compatibility
      -
 
    * - 2.9
+     -
      -
      -
      -
@@ -204,6 +220,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -211,6 +228,7 @@ Python 3 Compatibility
      - |checkmark|
 
    * - 2.7
+     -
      -
      -
      -
@@ -340,8 +358,11 @@ Python 2 Compatibility
      - |checkmark|
      - |checkmark|
 
-.. [#python-2-compat] PyMongo 4.0 and later is not compatible with Python 2
-
+.. [#python-2-compat] Versions of PyMongo 4.0 and later are not compatible
+   with Python 2
+.. [#ssl-4.0-issue] Versions of Python 3.10 and later are not compatible with
+   TLS/SSL for versions of MongoDB 4.0 and earlier. See the `PyMongo documentation <https://pymongo.readthedocs.io/en/stable/examples/tls.html#python-3-10-incompatibilities-with-tls-ssl-on-mongodb-4-0>`__
+   for more information.
 
 .. note::
 
