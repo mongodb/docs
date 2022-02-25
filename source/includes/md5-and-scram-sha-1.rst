@@ -3,7 +3,7 @@ If you use :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`:
 - :term:`md5` is necessary but is not used for cryptographic purposes,
   and
 
-- if you use :ref:`FIPS mode <fips-overview>`, then instead of
+- if you use :ref:`FIPS mode <fips-mode>`, then instead of
   :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>` use:
   
   - :ref:`SCRAM-SHA-256 <authentication-scram-sha-256>`,
