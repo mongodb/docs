@@ -401,15 +401,16 @@ Options
 
 .. option:: -o=<field list>
 
-   When specified, :program:`mongostat` includes **only** the specified fields
-   in the :program:`mongostat` output.
+   When output fields are specified with :option:`-o`, only the
+   specified fields are included in the :program:`mongostat` output.
    
    Use dot notation to specify
    :dbcommand:`serverStatus fields <serverStatus>`, as in
    :serverstatus:`metrics.document.inserted`.
    
-   To specify a custom name for a field, use ``<field>=<customName>``,
-   as in:
+   A custom field name can include spaces. If you include a space, do
+   not put additional quotes around the field name. To specify a custom
+   name for a field, use ``<field>=<customName>``, as in:
    
    .. code-block:: sh
    
@@ -425,21 +426,22 @@ Options
       call.
    
       :ref:`ex-mongostat-rate` illustrates how to use
-      :binary:`~bin.mongostat` with :option:`-o <mongostat -o>` and the :method:`.rate()`
-      method.
+      :binary:`~bin.mongostat` with :option:`-o <mongostat -o>` and the
+      :method:`.rate()` method.
    
    .. method:: .diff()
    
       Use :method:`.diff()` to view how much a serverStatus field has
-      changed since the previous :binary:`~bin.mongostat` call. The interval
-      between calls is specified by ``<sleeptime>``.
+      changed since the previous :binary:`~bin.mongostat` call. The
+      interval between calls is specified by ``<sleeptime>``.
    
       :ref:`ex-mongostat-diff` illustrates how to use
-      :binary:`~bin.mongostat` with :option:`-o <mongostat -o>` and the :method:`.diff()`
-      method.
+      :binary:`~bin.mongostat` with :option:`-o <mongostat -o>` and the
+      :method:`.diff()` method.
 
-   :program:`mongostat` supports specifying *either* :option:`-o <mongostat -o>` or :option:`-O <mongostat -O>`:
-   you cannot include both options.
+   :program:`mongostat` supports specifying *either* :option:`-o 
+   <mongostat -o>` or :option:`-O <mongostat -O>`: you cannot include
+   both options.
    
    See :ref:`ex-mongostat-specify-columns` for an example of
    :option:`-o <mongostat -o>`.
@@ -448,14 +450,16 @@ Options
 .. option:: -O=<field list>
 
    When specified, :program:`mongostat` includes the specified
-   :dbcommand:`serverStatus` fields after the default :program:`mongostat` output.
+   :dbcommand:`serverStatus` fields after the default
+   :program:`mongostat` output.
    
    Use dot notation to specify
    :dbcommand:`serverStatus fields <serverStatus>`, as in
    :serverstatus:`metrics.document.inserted`.
    
-   To specify a custom name for a field, use ``<field>=<customName>``,
-   as in:
+   A custom field name can include spaces. If you include a space, do
+   not put additional quotes around the field name. To specify a custom
+   name for a field, use ``<field>=<customName>``, as in:
    
    .. code-block:: sh
    
@@ -721,18 +725,19 @@ behavior:
 Add Fields to :binary:`~bin.mongostat` Output
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:option:`-O <mongostat -O>` allows you to specify fields from
+:option:`-O <mongostat -O>` allows you to specify fields from the
 :dbcommand:`serverStatus` output to add to the default
-:binary:`~bin.mongostat` output. The following example adds the :serverstatus:`host`
-and :serverstatus:`version` fields as well as the :serverstatus:`network.numRequests` field,
-which will display as "network requests", to the default
+:binary:`~bin.mongostat` output. If you include a space in your
+custom filed name, do not put additional quotes around the field name. 
+
+The following example adds fields to the default
 :binary:`~bin.mongostat` output:
 
 .. code-block:: sh
 
    mongostat -O='host,version,network.numRequests=network requests'
 
-The :binary:`~bin.mongostat` output would then resemble:
+The :binary:`~bin.mongostat` output resembles:
 
 .. code-block:: sh
 
@@ -741,29 +746,62 @@ The :binary:`~bin.mongostat` output would then resemble:
        *0    *0     *0     *0       0     1|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   157b   39.3k    2 Oct 11 12:14:46.879 localhost:37017  3.3.14               95
        *0    *0     *0     *0       0     1|0  0.0% 0.0%       0 2.51G 19.0M 0|0 0|0   157b   39.2k    2 Oct 11 12:14:47.884 localhost:37017  3.3.14               99
 
+The following fields are added to the default output:
+
+- :serverstatus:`host`
+- :serverstatus:`version`
+- :serverstatus:`network.numRequests`
+
+The :serverstatus:`network.numRequests` field has a custom field name,
+"network requests".
+
 .. _ex-mongostat-specify-columns:
 
 Specify :binary:`~bin.mongostat` Output Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:option:`-o <mongostat -o>` specifies the columns :binary:`~bin.mongostat` includes in its
-output. You can specify any :dbcommand:`serverStatus` field as a
-:binary:`~bin.mongostat` output column. The following example specifies the
-:serverstatus:`host`, :serverstatus:`time <localTime>`, and  :serverstatus:`metrics.document.inserted` fields:
+:option:`-o <mongostat -o>` specifies the columns
+:binary:`~bin.mongostat` includes in its output. You can specify any
+:dbcommand:`serverStatus` field as a :binary:`~bin.mongostat` output
+column.
+
+The following example uses custom fields for :binary:`mongostat`:
 
 .. code-block:: sh
 
-   mongostat -o='host,time,metrics.document.inserted'
+   mongostat --port 27500 -o='host,opcounters.insert.rate()=Insert Rate,opcounters.query.rate()=Query Rate,opcounters.command.rate()=Command Rate,wiredTiger.cache.pages requested from the cache=Pages Req,metrics.document.inserted=inserted rate'
 
-The :binary:`~bin.mongostat` output would then resemble:
+The :binary:`~bin.mongostat` output resembles:
 
 .. code-block:: sh
 
-              host                time metrics.document.inserted
-   localhost:37017 Oct 11 12:21:17.370                         0
-   localhost:37017 Oct 11 12:21:18.371                         0
-   localhost:37017 Oct 11 12:21:19.371                         0
-   localhost:37017 Oct 11 12:21:20.368                         0
+              host Insert Rate Query Rate Command Rate Pages Req Inserted Rate
+   localhost:27500         180          1            8   2999446          9638
+   localhost:27500          40          3           12   2999601          9678
+   localhost:27500         181          2            9   3000207          9859
+   localhost:27500          39          2           12   3000362          9899
+   localhost:27500         181          2           11   3000969         10080
+   localhost:27500          39          2           10   3001124         10120
+
+The counters and corresponding custom field names are: 
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Counter
+     - Custom Field Name
+   * - opcounters.insert.rate
+     - Insert Rate
+   * - opcounters.query.rate
+     - Query Rate
+   * - opcounters.command.rate
+     - Command Rate
+   * - wiredTiger.cache.pages requested from the cache
+     - Pages Req
+   * - metrics.document.inserted
+     - Inserted Rate
+
 
 .. _ex-mongostat-rate:
 
