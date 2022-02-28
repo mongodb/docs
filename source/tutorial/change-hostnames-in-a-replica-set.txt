@@ -295,24 +295,49 @@ Procedure
 
    #. Edit the replica set configuration manually. The replica set
       configuration is the only document in the ``system.replset``
-      collection in the ``local`` database. Edit the replica set
-      configuration with the new hostnames and correct ports for all
-      the members of the replica set. Consider the following sequence of
-      commands to change the hostnames in a three-member set:
+      collection in the ``local`` database. 
 
-      .. code-block:: javascript
+      |
 
-         use local
+      To change the hostnames, edit the replica set configuration to
+      provide the new hostnames and ports for all members of the
+      replica set.
 
-         cfg = db.system.replset.findOne( { "_id": "rs" } )
+      #. Switch to the ``local`` database.
 
-         cfg.members[0].host = "mongodb0.example.net:27017"
+         .. code-block:: javascript
 
-         cfg.members[1].host = "mongodb1.example.net:27017"
+            use local
 
-         cfg.members[2].host = "mongodb2.example.net:27017"
+      #. Create a JavaScript variable for the configuration document.
+         Modify the value of the ``_id`` field to match your replica
+         set.
 
-         db.system.replset.update( { "_id": "rs" } , cfg )
+         .. code-block:: javascript
+
+            cfg = db.system.replset.findOne( { "_id": "rs0" } )
+
+      #. Provide new hostnames and ports for each member of the replica
+         set. Modify the hostnames and ports to match your replica set.
+
+         .. code-block:: javascript
+
+            cfg.members[0].host = "mongodb0.example.net:27017"
+            cfg.members[1].host = "mongodb1.example.net:27017"
+            cfg.members[2].host = "mongodb2.example.net:27017"
+
+      #. Update the hostnames and ports in the ``system.replset``
+         collection:
+
+         .. code-block:: javascript
+
+            db.system.replset.updateOne( { "_id": "rs0" }, { $set: cfg } )
+
+      #. Verify the changes:
+
+         .. code-block:: javascript
+
+            db.system.replset.find( {}, { "members.host": 1 } )
 
    #. Stop the :binary:`~bin.mongod` process on the member.
 
@@ -325,7 +350,7 @@ Procedure
 
    .. code-block:: bash
 
-      mongod --dbpath /data/db1/ --port 27017 --replSet rs --bind_ip localhost,<hostname(s)|ip address(es)>
+      mongod --dbpath /data/db1/ --port 27017 --replSet rs0 --bind_ip localhost,<hostname(s)|ip address(es)>
 
 #. Connect to one of the :binary:`~bin.mongod` instances
    using :binary:`~bin.mongosh`. For example:
@@ -342,7 +367,7 @@ Procedure
    .. code-block:: javascript
 
       {
-          "_id" : "rs",
+          "_id" : "rs0",
           "version" : 4,
           "members" : [
               {
@@ -359,3 +384,4 @@ Procedure
               }
           ]
       }
+
