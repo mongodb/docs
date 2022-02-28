@@ -15,20 +15,26 @@ content: |
 
    - Each unique MongoDB user must have a unique certificate.
 
-   - A client x.509 certificate's subject, which contains the
-     Distinguished Name (``DN``), must **differ** from that of a
-     :ref:`x509-member-certificate`.
-     
-     At least one of the Organization (``O``), Organizational Unit
-     (``OU``), or Domain Component (``DC``) attributes in the client
-     certificate must differ from those in the
-     :setting:`net.tls.clusterFile` and
-     :setting:`net.tls.certificateKeyFile` server certificates.
-     
-     If the MongoDB deployment has
-     :parameter:`tlsX509ClusterAuthDNOverride` set (available starting
-     in MongoDB 4.2), the client x.509 certificate's subject must also
-     differ from that value.
+   - The ``subject`` of a client x.509 certificate, which contains the 
+     Distinguished Name (``DN``), must be **different** than the ``subject``\s 
+     of :ref:`member x.509 certificates <x509-member-certificate>`.
+
+     .. important::  
+    
+        If a client x.509 certificate's subject matches the ``O``, ``OU``, and 
+        ``DC`` attributes of the :ref:`x509-member-certificate` (or
+        :parameter:`tlsX509ClusterAuthDNOverride`, if set) exactly, the client 
+        connection is accepted, full permissions are granted, and a warning 
+        message appears in the log. 
+        
+        Only :ref:`cluster member x509 certificates <x509-member-certificate>` 
+        should use the same ``O``, ``OU``, and ``DC`` attribute combinations.
+
+
+     .. versionadded:: 4.2
+
+        If the MongoDB deployment has :parameter:`tlsX509ClusterAuthDNOverride` 
+        set, the client x.509 certificate's subject must not match that value.
 
      .. warning::
 
@@ -91,11 +97,10 @@ content: |
         CN=host2,OU=Dept1,O=MongoDB
 
    - Either the Common Name (``CN``) or one of the Subject Alternative
-     Name (``SAN``) entries must match the hostname of the server, used
-     by the other members of the cluster. Starting in MongoDB 4.2, when
-     performing comparison of SAN, MongoDB supports comparison of DNS
-     names or IP addresses. In previous versions, MongoDB only supports
-     comparisons of DNS names.
+     Name (``SAN``) entries must match the server hostname for other cluster
+     members. Starting in MongoDB 4.2, when comparing ``SAN``\s, MongoDB can 
+     compare either DNS names or IP addresses. In previous versions, MongoDB 
+     only compares DNS names.
 
      For example, the certificates for a cluster could have the following
      subjects:
