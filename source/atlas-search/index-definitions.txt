@@ -181,16 +181,19 @@ The table below enumerates all the :manual:`BSON data types
      - Atlas Search Field Type
 
    * - Double
-     - yes
-     - :ref:`number <bson-data-types-number>`
+     - yes :sup:`*`
+     - - :ref:`number <bson-data-types-number>`
+       - :ref:`numberFacet <bson-data-types-number-facet>`
 
    * - 32-bit integer
-     - yes
-     - :ref:`number <bson-data-types-number>`
+     - yes :sup:`*`
+     - - :ref:`number <bson-data-types-number>`
+       - :ref:`numberFacet <bson-data-types-number-facet>`
 
    * - 64-bit integer
-     - yes
-     - :ref:`number <bson-data-types-number>`
+     - yes :sup:`*`
+     - - :ref:`number <bson-data-types-number>`
+       - :ref:`numberFacet <bson-data-types-number-facet>`
 
    * - String 
      - yes :sup:`*`
@@ -198,8 +201,9 @@ The table below enumerates all the :manual:`BSON data types
        - :ref:`stringFacet <bson-data-types-string-facet>`
   
    * - Date
-     - yes
-     - :ref:`date <bson-data-types-date>`
+     - yes :sup:`*`
+     - - :ref:`date <bson-data-types-date>`
+       - :ref:`dateFacet <bson-data-types-date-facet>`
 
    * - Object
      - yes
@@ -250,9 +254,15 @@ The table below enumerates all the :manual:`BSON data types
      - 
 
 :sup:`*` You can't use :ref:`dynamic mapping <static-dynamic-mappings>` 
-to automatically index ``string`` fields for faceting. You must index 
-fields using :ref:`bson-data-types-string-facet` to run a facet query 
-on ``string`` fields.
+to automatically index fields for faceting. You must index the fields 
+using: 
+
+- :ref:`bson-data-types-date-facet` to run a facet query on ``date`` 
+  fields.
+- :ref:`bson-data-types-number-facet` to run a facet query on 
+  ``number`` fields. 
+- :ref:`bson-data-types-string-facet` to run a facet query on 
+  ``string`` fields.
 
 .. _fts-array-ref:
 
@@ -555,9 +565,45 @@ operator.
 date
 ````
 
+.. note:: 
+
+   .. include:: /includes/fact-fts-facet-data-type-deprecation.rst
+
 The ``date`` type is used for indexing date values. It takes the 
 ``type`` option. The value of ``type`` must be ``date``. A  date can't 
-be indexed if it is part of an array.
+be indexed if it is part of an array. You must index the fields using 
+:ref:`bson-data-types-date-facet` to run a facet query on ``date`` 
+fields.
+
+.. _bson-data-types-date-facet:
+
+dateFacet 
+`````````
+
+The ``dateFacet`` type is used for indexing date values for faceting. 
+It takes the ``type`` option. The value of ``type`` must be 
+``dateFacet``. A  date can't be indexed if it is part of an array.
+
+Example 
++++++++
+
+The following index definition for the ``sample_mflix.movies`` 
+collection in the :ref:`sample dataset <available-sample-datasets>` 
+indexes the ``released`` field as ``dateFacet`` for faceting.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "released": {
+           "type": "dateFacet"
+         }
+       }
+     }
+   }
 
 .. _bson-data-types-document:
 
@@ -673,9 +719,16 @@ coordinates. For this type, the indexed field must be a
 number
 ``````
 
+.. note:: 
+
+   .. include:: /includes/fact-fts-facet-data-type-deprecation.rst
+
 The ``number`` type is used for fields with numeric values of 
-``int32``, ``int64``, and ``double`` data types. The ``number`` type 
-has the following options: 
+``int32``, ``int64``, and ``double`` data types. You must index the 
+``number`` fields using :ref:`bson-data-types-number-facet` to run a 
+facet query on ``number`` fields.
+
+The ``number`` type has the following options: 
 
 .. list-table::
    :widths: 20 10 10 50 10
@@ -811,6 +864,99 @@ has the following options:
             }
         }
       }
+
+.. _bson-data-types-number-facet:
+
+numberFacet 
+``````````` 
+
+The ``numberFacet`` data type is used for indexing numeric values using 
+the specified ``representation`` for faceting. You can index numbers of 
+|bson| types ``int32``, ``int64``, and ``double``. The following 
+limitations apply:
+
+- You can't index ``decimal128`` for faceting. 
+- You can't index numeric values in arrays for faceting.
+
+If you specify both :ref:`bson-data-types-number` and 
+:ref:`bson-data-types-number-facet` in the index definition, |fts| uses 
+the :ref:`bson-data-types-number-facet` options only for faceted 
+queries on numeric fields.
+
+The ``numberFacet`` type has the following options: 
+
+.. list-table::
+   :widths: 20 10 10 50 10
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+     - Default
+
+   * - ``type``
+     - string 
+     - Required
+     - The type of field. Value must be ``numberFacet``.
+     - 
+
+   * - ``representation``
+     - string 
+     - Optional
+     - The data type of the field to index. Values can be one of the 
+       following |bson| types:
+
+       - ``int64`` - for indexing large integers without loss of 
+         precision and for rounding double values to integers. You 
+         can't use this type to index large double values.
+       - ``double`` - for indexing large double values without rounding.
+
+       To learn more, see :ref:`example <number-facet-egs>` below.
+
+     - ``double``
+
+   * - ``indexIntegers``
+     - boolean 
+     - Optional
+     - Indicates whether to index or omit indexing ``int32`` and 
+       ``int64`` type values. Value can be ``true`` or ``false``.
+       To learn more, see :ref:`example <number-facet-egs>` below. Either this or ``indexDoubles`` must be ``true``.
+
+     - ``true``
+
+   * - ``indexDoubles``
+     - boolean 
+     - Optional
+     - Indicates whether to index or omit indexing ``double`` type 
+       values. Value can be ``true`` or ``false``. To learn more, 
+       see :ref:`example <number-facet-egs>` below. Either this or 
+       ``indexIntegers`` must be ``true``.
+
+     - ``true``
+
+.. _number-facet-egs:
+
+Examples
+++++++++
+
+The following index definition for the ``sample_mflix.movies`` 
+collection in the :ref:`sample dataset <available-sample-datasets>` 
+indexes the ``year`` field as ``numberFacet`` for faceting.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "year": {
+           "type": "numberFacet"
+         }
+       }
+     }
+   }
 
 .. _objectId-ref:
 
@@ -1014,7 +1160,7 @@ Example
 
 The following index definition for the ``sample_mflix.movies`` 
 collection in the :ref:`sample dataset <available-sample-datasets>` 
-indexes the ``genres`` field as ``string`` for faceting.
+indexes the ``genres`` field as ``stringFacet`` for faceting.
 
 .. code-block:: json
    :copyable: false
