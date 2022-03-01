@@ -97,6 +97,17 @@
             - Name of the :realm:`{+MongoDB-Realm+} </>` app
               associated with the line item.
 
+          * - ``tierLowerBound``
+            - The lower bound of the specific tier used for the line item.
+
+          * - ``tierUpperBound``
+            - The upper bound of the specific tier used for the line item.
+
+              .. note::
+
+                 ``tierLowerBound`` and ``tierUpperBound`` only appear if 
+                 your ``sku`` is tiered.
+
           * - ``totalPriceCents``
             - Total price for the line item, in USD cents. Equal to
 
