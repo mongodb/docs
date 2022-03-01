@@ -130,7 +130,7 @@
 
 - Improves stability and performance.
 - Supports public S3 data stores with the ``public`` configuration flag.
-- Supports Zstandard compression.
+- Supports Zstandard compression when federating queries to |service| clusters.
 - Adds ``db`` field to ``dbStats`` result.
 
 .. _data-lake-v20210511:
