@@ -7,7 +7,7 @@
      - Optional
      - |Epoch-time-ms| for the first entry that |service| returns from
        the database access logs.
-     - Current timestamp minus 30 days
+     - Current timestamp minus 7 days
 
    * - end
      - number
