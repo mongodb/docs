@@ -48,6 +48,7 @@
 *Released 2021-11-04*
 
 - Updates the MongoDB Agent to :ref:`10.14.29.6548 <mongodb-10.14.29.6548>`.
+- Removes support for RHEL 6.
 
 .. _opsmgr-server-4.4.17:
 

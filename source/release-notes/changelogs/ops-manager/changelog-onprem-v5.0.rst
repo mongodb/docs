@@ -79,6 +79,7 @@
   
 - Updates the {+mdbagent+} to :ref:`11.0.9.7010 <mongodb-11.0.9.7010>`.
 
+- Removes support for RHEL 6.
 
 .. _opsmgr-server-5.0.3:
 
