@@ -1,6 +1,6 @@
 As of MongoDB version 4.2, :ref:`{+Old-Backup+}s <legacy-backup>`
 are deprecated in favor of :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`.
-When you upgrade from 4.0 to 4.2, your backup system upgrades to {+cloud-backup+} if it
+When you upgrade to version 4.2 or later, your backup system upgrades to {+cloud-backup+} if it
 is currently set to {+old-backup+}. After this upgrade:
 
 - All your existing {+old-backup+} snapshots remain available. They
