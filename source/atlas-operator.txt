@@ -12,124 +12,42 @@
    :depth: 2
    :class: singlecol
 
-You can use |ak8so| to manage resources in |service| without leaving
-|k8s|. The application is deployed into |k8s| clusters. |ak8so| 
-manages resources in |service| based on |k8s| custom resources. It 
-helps to ensure that the state of the projects, clusters, and database 
-users in |service| matches the configurations in the ``AtlasProject``, 
-``AtlasCluster``, and ``AtlasDatabaseUser`` custom resources that you 
-create in your |k8s| cluster.
-
-|ak8so| supports the following custom resources:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
-
-   * - Resource
-     - Description
-
-   * - :ref:`atlasproject-custom-resource`
-     - Configuration of a project in Atlas.
-
-   * - :ref:`atlascluster-custom-resource`
-     - Configuration of a cluster inside some project in |service|.
-
-   * - :ref:`atlasdatabaseuser-custom-resource`
-     - Configuration of a database user inside some project in Atlas.
-
-|ak8so| Workflow
+What is |ak8so|?
 ----------------
 
-Create and Update Process
-~~~~~~~~~~~~~~~~~~~~~~~~~
+|ak8so| is a new service that integrates |service| resources with your
+|k8s| {+cluster+}. You can now deploy and manage the lifecycle of your 
+cloud-native applications that need data services in a single control 
+plane with secure enterprise platform integration.
 
-Each time you change the ``spec`` field in any of the supported 
-managed custom resources, the following workflow begins in |ak8so|:
+To learn more, see :ref:`ak8so-quick-start-ref`.
 
-1. |ak8so| receives an event about the changed custom resource.
+What Can You Do?
+----------------
 
-#. |ak8so| updates the ``status.conditions`` field to reflect that the 
-   resource is not ready:
+You can use |ak8so| to manage resources in |service| without leaving
+|k8s|. You deploy |ak8so| into |k8s| {+clusters+}. |ak8so| 
+manages resources in |service| based on |k8s| :ref:`custom resources 
+<custom-resources>`. It ensures that the state of the projects, 
+{+clusters+}, and database users in |service| matches the 
+configurations in each :ref:`atlasproject-custom-resource`,
+:ref:`atlascluster-custom-resource`, and 
+:ref:`atlasdatabaseuser-custom-resource` that you 
+create in your |k8s| {+cluster+}.
 
-   .. code-block:: sh
-      
-      conditions:
-      - lastTransitionTime: "2021-03-13T16:26:17Z"
-        status: "False"
-        type: Ready
+Get Hands-On Experience with |ak8so|
+------------------------------------
 
-#. To connect to the {+atlas-admin-api+}, |ak8so| reads the 
-   organization ID 
-   and |api| keys from one of the following locations:
+To create your first {+cluster+} in |service| with |ak8so|, see one of 
+the following tutorials:
 
-   - :setting:`spec.connectionSecretRef.name` (if specified in 
-     ``AtlasProject``).
-   - ``global`` |ak8so| |k8s-secret| 
-     ``<operator-deployment-name>-api-key`` 
-     (if :setting:`spec.connectionSecretRef.name` is not specified) .
+- :ref:`ak8so-quick-start-ref`
+- :ref:`ak8so-quick-start-helm-ref`
 
-#. To create or update resources in |service|, |ak8so| uses the 
-   connection information to make |api| calls to |service|.
+To configure |ak8so| access to |service|, see 
+:ref:`ak8so-access-to-atlas-ref`.
 
-   .. note::
-
-      Sometimes |ak8so| makes multiple |api| calls in |service| during 
-      the reconciliation of a custom resource. For example, 
-      ``AtlasProject`` has an :ref:`IP Access List <access-list>` 
-      configuration for calling the matching :doc:`API 
-      </reference/api/access-lists>`.
-
-#. If any errors occur during the reconciliation, ``status.conditions`` 
-   updates to reflect the error.
-   
-   .. example::
-
-      .. code-block:: sh
-
-         - lastTransitionTime: "2021-03-15T14:26:44Z"
-            message: 'POST https://cloud.mongodb.com/api/atlas/v1.0/groups/604a47de73cd8cag77239021/accessList:
-                 400 (request "INVALID_IP_ADDRESS_OR_CIDR_NOTATION") The address 192.0.2.1dfdfd5
-                 must be in valid IP address or CIDR notation.'
-            reason: ProjectIPAccessListNotCreatedInAtlas
-            status: "False"
-            type: IPAccessListReady
-
-#. If the update succeeds, ``status.conditions`` reflects that the 
-   resource is ready:
-
-   .. code-block:: sh
-    
-      conditions:
-      - lastTransitionTime: "2021-03-13T16:26:17Z"
-        status: "True"
-        type: Ready
-
-Delete Process
-~~~~~~~~~~~~~~
-
-If you remove a custom resource from |k8s|, |ak8so| tries to clean the state in |service|, and the following workflow begins:
-
-1. |ak8so| receives an event about the deleted custom resource.
-
-#. To connect to the {+atlas-admin-api+}, |ak8so| reads the 
-   organization ID 
-   and |api| keys from one of the following locations:
-
-   - :setting:`spec.connectionSecretRef.name` (if specified in 
-     ``AtlasProject``).
-   - ``global`` |ak8so| |k8s-secret| 
-     ``<operator-deployment-name>-api-key`` 
-     (if :setting:`spec.connectionSecretRef.name` is not specified).
-
-#. To delete the resource from |service|, |ak8so| uses the connection 
-   information to make |api| calls to |service|. 
-  
-   .. note::
-
-      |ak8so| removes any related objects created in |k8s|. For 
-      example, if you remove ``AtlasDatabaseUser``, |ak8so| removes the 
-      related connection |k8s-secrets|.
+To manage resources, see :ref:`custom-resources`.
 
 .. toctree::
    :titlesonly:
@@ -137,7 +55,6 @@ If you remove a custom resource from |k8s|, |ak8so| tries to clean the state in 
    /reference/atlas-operator/ak8so-quick-start
    /reference/atlas-operator/ak8so-quick-start-helm
    /reference/atlas-operator/configure-ak8so-access-to-atlas
-   /reference/atlas-operator/atlasproject-custom-resource
-   /reference/atlas-operator/atlascluster-custom-resource
-   /reference/atlas-operator/atlasdatabaseuser-custom-resource
+   /reference/atlas-operator/custom-resources
+   /reference/atlas-operator/production-notes
    /reference/atlas-operator/ak8so-changelog

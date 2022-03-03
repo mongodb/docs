@@ -1,0 +1,162 @@
+.. _ak8so-x509:
+
+===========================
+Set Up X.509 Authentication
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+X.509 client certificates provide database users access to the 
+{+database-deployments+} in your project. You can use |ak8so| to enable 
+X.509 authentication for the :ref:`atlasproject-custom-resource` and 
+the :ref:`atlasdatabaseuser-custom-resource`.
+
+Options for X.509 authentication include |service|-managed X.509 
+authentication and self-managed X.509 authentication. To learn more 
+about self-managed X.509 authentication, see :ref:`self-managed-x509`.
+
+To set up X.509 authentication:
+
+1. Generate an X.509 certificate.
+
+#. Configure the :ref:`atlasproject-custom-resource` to use the 
+   certificate.
+
+#. Configure the :ref:`atlasdatabaseuser-custom-resource` to use 
+   |service|-managed or self-managed X.509 authentication.
+
+Prerequisites
+-------------
+
+To use self-managed X.509 certificates, you must have a
+Public Key Infrastructure to integrate with |service-fullname|.
+
+.. include:: /includes/fact-ak8so-api-key-permission.rst
+
+To learn more, see :ref:`ak8so-access-to-atlas-ref`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Create an X.509 certificate.
+
+      Run the :github:`create_X.509.go 
+      <mongodb/mongodb-atlas-kubernetes/blob/main/scripts/create_x509.go>` 
+      script or use another tool as an alternative (for example, 
+      `cert-manager <https://cert-manager.io/docs/>`_):
+
+      .. code-block:: sh
+
+         go run scripts/create_x509.go --path={pem-file-path}
+
+      **Example:**
+
+      .. code-block:: sh
+
+         go run scripts/create_x509.go --path=tmp/x509/
+
+   .. step:: Add the ceritificate to a secret.
+
+      To add the certificate to a |k8s-secret|, run the following 
+      commands:
+
+      .. code-block:: sh
+
+         kubectl create secret generic {secret-name} --from-file={pem-file-directory}
+         kubectl label secret {secret-name} atlas.mongodb.com/type=credentials
+
+      **Example:**
+
+      .. code-block:: sh
+
+         kubectl create secret generic my-x509-cert --from-file=./tmp/x509/cert.pem
+         kubectl label secret my-x509-cert atlas.mongodb.com/type=credentials
+         
+
+   .. step:: Configure a project to use the certificate
+            
+      Specify the |k8s-secret| within the
+      :setting:`spec.X509CertRef.name` parameter for the 
+      :ref:`atlasproject-custom-resource`.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject     
+         metadata:
+           name: my-project      
+         spec:                 
+           name: Test Project
+           projectIpAccessList:     
+             - ipAddress: "192.0.2.15"
+               comment: "IP address for Application Server A"
+             - ipAddress: "203.0.113.0/24"
+               comment: "CIDR block for Application Servers B - D"
+           x509CertRef:
+             name: my-x509-cert
+         EOF
+
+   .. step:: Add a database user that uses X.509 authentication
+
+      Specify the ``x509Type`` parameter for the 
+      :ref:`atlasdatabaseuser-custom-resource`.
+
+      This parameter accepts:
+
+      .. list-table::
+         :stub-columns: 1
+         :widths: 20 80
+
+         * - NONE
+           - User that doesn't use X.509 authentication.
+
+         * - MANAGED
+           - User that uses |service|-managed X.509.
+
+             You must specify ``\$external`` for the
+             ``spec.databaseName`` parameter.
+
+         * - CUSTOMER
+           - User that uses :ref:`Self-Managed X.509 
+             <self-managed-x509>`. Users created with this ``x509Type`` 
+             require a Common Name (CN) in the ``username`` field. To 
+             learn more, see :rfc:`RFC 2253 <2253>`.
+
+             You must specify ``\$external`` for the 
+             ``spec.databaseName`` parameter.
+
+      To learn more about the configuration parameters available from 
+      the |api|, see the |service| :doc:`API 
+      </reference/api/database-users-create-a-user>`.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDatabaseUser
+         metadata:
+           name: my-database-user
+         spec:
+           username: CN=my-x509-authenticated-user,OU=organizationalunit,O=organization
+           databaseName: "\$external"
+           x509Type: "CUSTOMER"
+           roles:
+             - roleName: "readWriteAnyDatabase"
+               databaseName: "admin"
+           projectRef:
+             name: my-project
+         EOF

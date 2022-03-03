@@ -1,0 +1,111 @@
+.. _custom-resources:
+
+================
+Custom Resources
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|ak8so| supports the following custom resources:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Resource
+     - Description
+
+   * - :ref:`atlasproject-custom-resource`
+     - Configuration of a project in Atlas.
+
+   * - :ref:`atlascluster-custom-resource`
+     - Configuration of a {+cluster+} inside some project in |service|.
+
+   * - :ref:`atlasdatabaseuser-custom-resource`
+     - Configuration of a database user inside some project in 
+       |service|.
+
+|ak8so| Workflow
+----------------
+
+When you use |ak8so|, you can create a new |service| project, or you 
+can work with an existing |service| project.
+
+.. include:: /includes/fact-ak8so-api-key-permission.rst
+
+To learn more, see :ref:`ak8so-access-to-atlas-ref`.
+
+.. _ak8so-create-update-process:
+
+Create and Update Process
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each time you change the ``spec`` field in any of the supported 
+custom resources, the following workflow begins in |ak8so|:
+
+1. |ak8so| receives an event about the changed custom resource.
+
+#. |ak8so| updates the ``status.conditions`` field to reflect that the 
+   resource is not ready:
+
+   .. code-block:: sh
+      
+      conditions:
+      - lastTransitionTime: "2021-03-13T16:26:17Z"
+        status: "False"
+        type: Ready
+
+#. .. include:: /includes/fact-ak8so-orgid-api-key-locations.rst
+
+#. .. include:: /includes/fact-ak8so-connection-information.rst
+
+#. .. include:: /includes/fact-ak8so-connection-errors.rst
+
+#. If the update succeeds, ``status.conditions`` reflects that the 
+   resource is ready:
+
+   .. code-block:: sh
+    
+      conditions:
+      - lastTransitionTime: "2021-03-13T16:26:17Z"
+        status: "True"
+        type: Ready
+
+Delete Process
+~~~~~~~~~~~~~~
+
+If you remove a custom resource from |k8s|, |ak8so| tries to clean the state in |service|, and the following workflow begins:
+
+1. |ak8so| receives an event about the deleted custom resource.
+
+#. To connect to the {+atlas-admin-api+}, |ak8so| reads the 
+   organization ID 
+   and |api| keys from one of the following locations:
+
+   - :setting:`spec.connectionSecretRef.name` (if specified in 
+     ``AtlasProject``).
+   - ``global`` |ak8so| |k8s-secret| 
+     ``<operator-deployment-name>-api-key`` 
+     (if :setting:`spec.connectionSecretRef.name` is not specified).
+
+#. To delete the resource from |service|, |ak8so| uses the connection 
+   information to make |api| calls to |service|. 
+  
+   .. note::
+
+      |ak8so| removes any related objects created in |k8s|. For 
+      example, if you remove ``AtlasDatabaseUser``, |ak8so| removes the 
+      related connection |k8s-secrets|.
+      
+.. toctree::
+   :titlesonly:
+
+   /reference/atlas-operator/atlasproject-custom-resource
+   /reference/atlas-operator/atlascluster-custom-resource
+   /reference/atlas-operator/atlasdatabaseuser-custom-resource
