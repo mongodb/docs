@@ -15,9 +15,11 @@
 The ``AtlasCluster`` custom resource configures your MongoDB cluster in 
 |service|. When you create the ``AtlasCluster`` custom resource, 
 |ak8so| tries to create or update a cluster in |service|.
-   
-|ak8so| does one of the following actions using the |service| :doc:`API 
-</reference/api/clusters>`:
+
+|ak8so| does one of the following actions using the |service| 
+:doc:`Clusters API Resource </reference/api/clusters>` and 
+:doc:`Advanced Clusters API Resource 
+</reference/api/clusters-advanced/>`:
    
 - Creates a new cluster.
 - Updates an existing cluster.
@@ -67,13 +69,14 @@ The following example shows the ``AtlasCluster`` resource with a
      name: my-atlas-cluster
      namespace: default
    spec:
-     name: test-cluster
      projectRef:
        name: my-project
-     providerSettings:
-       instanceSizeName: M10
-       providerName: AWS
-       regionName: US_EAST_1
+     clusterSpec:
+       name: test-cluster
+       providerSettings:
+         instanceSizeName: M10
+         providerName: AWS
+         regionName: US_EAST_1
    status:
      conditions:
      - lastTransitionTime: "2021-03-18T16:32:43Z"
@@ -90,8 +93,8 @@ The following example shows the ``AtlasCluster`` resource with a
      observedGeneration: 1
      stateName: IDLE
 
- Configuration Example
- ~~~~~~~~~~~~~~~~~~~~~
+Configuration Example
+~~~~~~~~~~~~~~~~~~~~~
      
 The following example shows an ``AtlasCluster`` custom resource 
 specification configured for auto-scaling multi-region clusters:
@@ -104,37 +107,63 @@ specification configured for auto-scaling multi-region clusters:
      name: test-cluster-name
      namespace: mongodb-atlas-system
    spec:
-     autoScaling:
-       compute:
-         enabled: true
-         scaleDownEnabled: true
-     clusterType: REPLICASET
-     name: service-name
      projectRef:
        name: development
-     providerBackupEnabled: true
-     providerSettings:
+     clusterSpec:
        autoScaling:
          compute:
-           maxInstanceSize: M40
-           minInstanceSize: M30
-       instanceSizeName: M30
-       providerName: GCP
-     replicationSpecs:
-       - numShards: 1
-         regionsConfig:
-           EASTERN_US:
-             analyticsNodes: 0
-             electableNodes: 1
-             priority: 6
-             readOnlyNodes: 0
-           SOUTH_AMERICA_EAST_1:
-             analyticsNodes: 0
-             electableNodes: 2
-             priority: 7
-             readOnlyNodes: 0
-         zoneName: Zone 1
+           enabled: true
+           scaleDownEnabled: true
+       clusterType: REPLICASET
+       name: service-name
+       providerBackupEnabled: true
+       providerSettings:
+         autoScaling:
+           compute:
+             maxInstanceSize: M40
+             minInstanceSize: M30
+         instanceSizeName: M30
+         providerName: GCP
+       replicationSpecs:
+         - numShards: 1
+           regionsConfig:
+             EASTERN_US:
+               analyticsNodes: 0
+               electableNodes: 1
+               priority: 6
+               readOnlyNodes: 0
+             SOUTH_AMERICA_EAST_1:
+               analyticsNodes: 0
+               electableNodes: 2
+               priority: 7
+               readOnlyNodes: 0
+           zoneName: Zone 1
 
+Advanced Cluster Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+     
+The following example shows an advanced ``AtlasCluster`` custom resource
+specification configured for multi-region clusters:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCluster
+   metadata:
+     name: my-atlas-cluster
+   spec:
+     projectRef:
+       name: my-project
+     advancedClusterSpec:
+       clusterType: REPLICASET
+       name: tenantCluster
+       replicationSpecs:
+         - regionConfigs:
+           - electableSpecs:
+               instanceSize: M5
+             providerName: TENANT
+             backingProviderName: AWS
+             regionName: US_EAST_1
 
 Parameters
 ----------
@@ -150,14 +179,44 @@ This section describes the ``AtlasCluster`` custom resource parameters:
    Name of the project where the cluster belongs. You must specify an 
    existing :ref:`atlasproject-custom-resource`.
 
+.. setting:: spec.clusterSpec
+
+   *Type*: array
+
+   *Conditional*
+
+   List that contains the cluster parameters from the |api|.
+   For a full list of parameters available, see the |service|
+   :doc:`API </reference/api/clusters-create-one>`.
+   
+   .. important::
+
+      You must specify ``spec.clusterSpec`` or ``spec.advancedClusterSpec``
+      in your configuration.
+
+.. setting:: spec.advancedClusterSpec
+
+   *Type*: array
+
+   *Conditional*
+
+   List that contains the advanced cluster parameters from the |api|.
+   For a full list of parameters available, see the |service|
+   :doc:`API </reference/api/cluster-advanced/create-one-cluster-advanced>`.
+
+   .. important::
+
+      You must specify ``spec.clusterSpec`` or ``spec.advancedClusterSpec``
+      in your configuration.
+
 .. setting:: status.connectionStrings
 
-   *Type*: string
+   *Type*: array
 
    *Required*
 
-   Connection URL for accessing the cluster. This parameter appears 
-   after a cluster is created or updated.
+   List that contains the connection URLs for accessing the cluster.
+   This parameter appears after you create or update a cluster.
    
    .. note::
 
@@ -171,8 +230,11 @@ This section describes the ``AtlasCluster`` custom resource parameters:
       ``AtlasDatabaseUser`` custom resource restricts the clusters that 
       create the database user.
 
-For the configuration parameters available from the |api|, see the 
-|service| :doc:`API </reference/api/clusters-create-one>`. 
+For the configuration parameters available for a cluster and advanced
+cluster from the |api|, see the |service| 
+:doc:`Clusters API </reference/api/clusters-create-one>`, and
+:doc:`Advanced Clusters API
+</reference/api/cluster-advanced/create-one-cluster-advanced>`.
 
 .. note::
    
