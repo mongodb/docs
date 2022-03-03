@@ -1,3 +1,13 @@
+.. _mongodb-11.0.13.7055:
+
+MongoDB Agent 11.0.13.7055
+--------------------------
+
+:ref:`Released with Ops Manager 5.0.8 on 2022-03-03 <opsmgr-server-5.0.8>`
+
+Supports MongoDB log rotate configuration and commands for independent 
+log rotation configuration for MongoDB Log and MongoDB Audit Log Files.
+
 .. _mongodb-11.0.12.7051:
 
 MongoDB Agent 11.0.12.7051

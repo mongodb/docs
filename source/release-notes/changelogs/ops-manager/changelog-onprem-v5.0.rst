@@ -1,3 +1,16 @@
+.. _opsmgr-server-5.0.8:
+
+|onprem| Server 5.0.8
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-03-03*
+
+- Supports MongoDB log rotate configuration and commands for 
+  independent log rotation configuration for MongoDB Log and MongoDB 
+  Audit Log Files.
+
+- Updates the {+mdbagent+} to :ref:`11.0.13.7055 <mongodb-11.0.13.7055>`.
+
 .. _opsmgr-server-5.0.7:
 
 |onprem| Server 5.0.7
