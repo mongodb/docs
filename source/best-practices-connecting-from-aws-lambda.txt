@@ -63,6 +63,45 @@ and |service|:
   with a mapped Elastic IP address. Otherwise, you must
   allow all IP addresses (0.0.0.0/0) to access your service cluster.
 
+
+- :doc:`/security/set-up-unified-aws-access` and use |aws| IAM authentication where possible.
+
+  You can connect to your |service| {+clusters+} using |aws| `IAM roles <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html>`__
+  instead of hardcoding your credentials in Lambda. Hardcoded credentials are
+  viewable by anyone who accesses your AWS Lambda environment, which can pose
+  a security risk. With |aws| IAM authentication, |service| accesses |aws| Lambda
+  through an `assumed IAM role <https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html>`__,
+  so you don't need credentials in your connection strings.
+  
+  |service| supports |aws| IAM authentication for {+clusters+} running
+  MongoDB version 4.4 or higher. We strongly advise using |aws| IAM
+  authentication for Lambda connections if your {+cluster+} meets the
+  requirements.
+  
+  To use |aws| IAM authentication, :doc:`/security/set-up-unified-aws-access`.
+  
+  .. note::
+
+     For the connection examples on this page, you can use AWS IAM
+     authentication instead of hardcoded credentials by doing the following:
+
+     1. :doc:`/security/set-up-unified-aws-access`
+     2. In the :ref:`first Node.js example <lambda-aws-example>`, replace
+        ``const { MongoClient } = require('mongodb');`` with the following lines of code:
+
+        .. code-block:: javascript
+           :caption: index.js
+           :linenos:
+
+           const MONGODB_CONNECTION_STRING = new URL(process.env.MONGODB_URI);
+           MONGODB_CONNECTION_STRING.username = process.env.AWS_ACCESS_KEY_ID;
+           MONGODB_CONNECTION_STRING.password = encodeURIComponent(process.env.AWS_SECRET_ACCESS_KEY);
+           MONGODB_CONNECTION_STRING.searchParams.set('authSource', '$external');
+           MONGODB_CONNECTION_STRING.searchParams.set('authMechanism', 'AWS_SESSION_TOKEN:' + encodeURIComponent(process.env.AWS_SESSION_TOKEN));
+    
+     3. In the :ref:`first Node.js example <lambda-aws-example>`, replace
+        ``process.env.MONGODB_URI`` with ``MONGODB_CONNECTION_STRING.toString()``
+
 .. _lambda-aws-example:
 
 Connection Examples
@@ -77,7 +116,6 @@ This section includes examples for two approaches:
   ``MongoClient.connect`` into its own module so that the connections
   can be reused across functions. Use this approach if you package
   multiple logical functions together in a single Lambda handler function.
-
 
 The following example shows the best practice of defining the
 ``MongoClient.connect`` function in your application's Node.js code
