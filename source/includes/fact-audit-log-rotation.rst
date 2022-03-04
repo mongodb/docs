@@ -1,7 +1,14 @@
 .. important::
      
-   If you're running MongoDB Enterprise version 5.0 or later and 
-   {+mdbagent+} {+mdbagent-version-cloud+} or later, you can:
+   .. cond:: cloud  
+   
+      If you're running MongoDB Enterprise version 5.0 or later and 
+      {+mdbagent+} 11.11.0.7355 or later, you can:
+
+   .. cond:: onprem  
+   
+      If you're running MongoDB Enterprise version 5.0 or later and 
+      {+mdbagent+} 11.0.13.7055 or later, you can:
 
    - Set separate rules for rotating server logs and audit logs.
    - Compress and delete audit logs using |mms|. For security reasons, we recommend managing
