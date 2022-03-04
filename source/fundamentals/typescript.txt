@@ -142,7 +142,6 @@ section.
 
 .. _node-driver-limitations:
 
-
 Insert Operations and the _id Field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -262,6 +261,100 @@ following resources:
 - `OptionalId <{+api+}/modules.html#OptionalId>`__ API documentation
 - `PkFactory <{+api+}/interfaces/PkFactory.html>`__ API documentation
 - :github:`ObjectId <mongodb/js-bson/blob/master/src/objectid.ts>` source code
+
+Find Methods and the _id Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``find`` and ``findOne`` methods of the ``Collection`` class include
+the ``_id`` field in their return type.
+
+If the type parameter you passed to your ``Collection`` instance includes the
+``_id`` field, the type of the ``_id`` field in the values returned from the 
+find methods is the same as the type of the ``_id``
+field in your type parameter.
+
+If the type parameter you passed to your ``Collection`` instance does not include the ``_id``
+field, the driver gives the ``_id`` field in the values returned from the find methods
+the type ``ObjectId``.
+
+The following code uses the :ref:`Pet <mongodb-node-typescript-pet-interface>` interface to return
+a document with an ``_id`` of type ``ObjectId``:
+
+.. code-block:: typescript
+
+   const database = client.db("<your database>");
+   const collection = db.collection<Pet>("<your collection>");
+   
+   const document = await collection.findOne({
+     name: "Spot",
+   });
+   const id : ObjectId = document._id;
+
+The following code uses the ``IdNumberPet`` interface to return a
+document with an ``_id`` field of type ``number``:
+
+.. code-block:: typescript
+
+   interface IdNumberPet {
+     _id: number;
+     name: string;
+     age: number;
+   }
+
+   const database = client.db("<your database>");
+   const collection = db.collection<IdNumberPet>("<your collection>");
+
+   const document = await collection.findOne({
+     name: "Spot",
+   });
+   const id : number = document._id;
+
+.. important:: Projection
+
+   If you specify a :ref:`projection <mongodb-node-projection>` in a find
+   method, you should pass a type parameter to your find method that reflects
+   the structure of your projected documents.
+   Without a type parameter, TypeScript cannot check at compile time that you
+   are using your projected documents safely.
+
+   To show this behavior, the following code snippet passes type checking but
+   raises an error at runtime:
+
+   .. code-block:: typescript
+
+      const doc = await collection.findOne(
+        {},
+        { projection: { _id: 0, name: 1 } }
+      );
+      console.log(doc._id.generationTime);
+
+   To catch this error at compile time, pass a type parameter that does not include
+   the ``_id`` field to your find method:
+
+   .. code-block:: typescript
+
+      interface ProjectedDocument {
+         name: string
+      }
+
+      const doc = await collection.findOne<ProjectedDocument>(
+        {},
+        { projection: { _id: 0, name: 1 } }
+      );
+      // Compile time error: Property '_id' does not exist on type 'ProjectedDocument'.
+      console.log(doc._id.generationTime);
+   
+   To view a runnable TypeScript example that includes a find method applying a
+   projection, see the
+   :ref:`Find a Document <node-driver-findone-usage-example-code-snippet>` page.
+
+
+To learn more about the classes and methods discussed in this section, see the following
+API documentation:
+
+- `Collection <{+api+}/classes/Collection.html>`__
+- `find <{+api+}/classes/Collection.html#find>`__
+- `findOne <{+api+}/classes/Collection.html#findOne>`__
 
 Known Limitations
 -----------------
