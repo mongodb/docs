@@ -24,7 +24,8 @@ Definition
 
       db.runCommand( { 
          dbStats: 1, 
-         scale: <number>  // Optional
+         scale: <number>,
+         freeStorage: 0
       } )
 
    The :dbcommand:`dbStats` command takes the following fields:
@@ -33,16 +34,13 @@ Definition
       :header-rows: 1
       :widths: 20 80
    
-      * - Parameter
-   
+      * - Fields
         - Description
    
-      * - ``dbStats``
-   
+      * - :dbcommand:`dbStats`
         - 1
 
       * - :ref:`scale <dbStats-scale>`
-
         - .. _dbStats-scale:
         
           Optional. The scale factor for the various size data. The
@@ -57,6 +55,17 @@ Definition
 
           .. include:: /includes/extracts/4.2-changes-stats-scaleFactor.rst
 
+      * - :ref:`freeStorage <dbStats-freeStorage>`
+        - .. _dbStats-freeStorage:
+
+          Optional. To return details on free space allocated to
+          collections, set ``freeStorage`` to 1.
+          
+          If the instance has a large number of collections or indexes,
+          obtaining free space usage data may cause processing delays.
+          To gather :dbcommand:`dbStats` information without free space
+          details, either set ``freeStorage`` to 0 or do not include
+          the field.
 
    In :binary:`~bin.mongosh`, the :method:`db.stats()` function
    provides a wrapper around :dbcommand:`dbStats`.
@@ -151,9 +160,10 @@ Output
    allocated to indexes. See :data:`~dbStats.indexFreeStorageSize` for
    the total free index size.
 
-   This value is always included in the :dbcommand:`dbStats` output.
+   To include this value in the :dbcommand:`dbStats` output, set
+   :ref:`freeStorage <dbStats-freeStorage>` to 1.
 
-   .. versionadded:: 5.0
+   *Updated in version 5.3.0, 5.2.1, and 5.0.6.*
 
 .. data:: dbStats.indexes
 
@@ -174,7 +184,10 @@ Output
    allocated to document storage. See :data:`~dbStats.freeStorageSize`
    for the total free document storage size.
 
-   .. versionadded:: 5.0
+   To include this value in the :dbcommand:`dbStats` output, set
+   :ref:`freeStorage <dbStats-freeStorage>` to 1.
+
+   *Updated in version 5.3.0, 5.2.1, and 5.0.6.*
 
 .. data:: dbStats.totalSize
 
@@ -192,7 +205,10 @@ Output
    :data:`~dbStats.freeStorageSize` and
    :data:`~dbStats.indexFreeStorageSize`.
 
-   .. versionadded:: 5.0
+   To include this value in the :dbcommand:`dbStats` output, set
+   :ref:`freeStorage <dbStats-freeStorage>` to 1.
+
+   *Updated in version 5.3.0, 5.2.1, and 5.0.6.*
 
 .. data:: dbStats.scaleFactor
 
@@ -224,12 +240,66 @@ Output
 Examples
 --------
 
-If you are only interested in one field, the output of the
-:dbcommand:`dbStats` command can be limited to just that field. For
-example, the following command returns the current total free
-storage size.
+The following examples demonstrate :dbcommand:`dbStats` usage.
+
+Limit Data Returned
+~~~~~~~~~~~~~~~~~~~
+
+To limit the data returned to a single field, append the field name to
+the :dbcommand:`dbStats` command. This example returns the
+:data:`~dbStats.indexSize` value:
 
 .. code-block:: javascript
 
-   db.runCommand( { dbStats: 1 } ).freeStorageSize
-   
+   db.runCommand( { dbStats: 1 } ).indexSize
+
+View Free Space Allocated to Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view free storage usage, set :ref:`freeStorage
+<dbStats-freeStorage>` to 1. 
+
+.. code-block:: javascript
+
+   db.runCommand( { dbStats: 1, scale: 1024, freeStorage: 1 } )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 9, 12, 14
+
+   {
+     db: 'test',
+     collections: 2,
+     views: 0,
+     objects: 1689,
+     avgObjSize: 52.56542332741267,
+     dataSize: 86.7021484375,
+     storageSize: 100,
+     freeStorageSize: 32,
+     indexes: 2,
+     indexSize: 116,
+     indexFreeStorageSize: 36,
+     totalSize: 216,
+     totalFreeStorageSize: 68,
+     scaleFactor: 1024,
+     fsUsedSize: 60155820,
+     fsTotalSize: 61255492,
+     ok: 1,
+     '$clusterTime': {
+       clusterTime: Timestamp({ t: 1646085664, i: 1 }),
+       signature: {
+         hash: Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+         keyId: Long("0")
+       }
+     },
+     operationTime: Timestamp({ t: 1646085664, i: 1 })
+   }
+
+The :ref:`freeStorage <dbStats-freeStorage>` field enables
+the collection and display of the highlighted metrics.
+
+The :ref:`scale <dbStats-scale>` field sets the displayed values to
+kilobytes.
+
