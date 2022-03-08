@@ -1,5 +1,7 @@
 ## Pull Request Info
 
+[PR Reviewing Guidelines](https://github.com/mongodb/docs-java/blob/master/REVIEWING.md)
+
 ### Issue JIRA link:
 https://jira.mongodb.org/browse/DOCSP-NNNNN
 
