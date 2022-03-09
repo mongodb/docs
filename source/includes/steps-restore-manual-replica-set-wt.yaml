@@ -67,6 +67,11 @@ content: |
 
   Before attempting to restore the data manually, :doc:`remove the
   replica set from Automation </tutorial/unmanage-deployment>`.
+
+  Choose the
+  :guilabel:`Unmanage this item in Ops Managers but continue to 
+  monitor` option.
+
 ---
 stepnum: 8
 level: 4
@@ -115,8 +120,9 @@ level: 4
 title: "Move the Snapshot Data Files to the Target Host."
 ref: copy-snapshot-files
 content: |
-  Before moving the snapshot's data files to the target host, check
-  whether the target host contains any existing files and delete them.
+  Before you move the snapshot's data files to the target host, check
+  whether the target host contains any existing files, and delete all 
+  the files except the ``automation-mongod.conf`` file.
   
   Unpack the snapshot files and move them to the target host as follows:
 
@@ -224,7 +230,7 @@ content: |
      db.getSiblingDB("local").system.replset.insertOne({
        "_id" : "<replaceMeWithTheReplicaSetName>",
        "version" : NumberInt(1),
-       "protocolVersion" : "1",
+       "protocolVersion" : NumberInt(1),
        "members" : [
          {
            "_id" : NumberInt(0),
@@ -298,7 +304,7 @@ content: |
 
   .. code-block:: javascript
 
-     truncateAfterPoint = Timestamp(restoreTS.getTime(), restoreTS.getInc())
+     truncateAfterPoint = Timestamp(truncateAfterPoint = Timestamp(<getTime>,<getInc>))
      db.getSiblingDB("local").replset.oplogTruncateAfterPoint.insertOne({
         "_id": "oplogTruncateAfterPoint",
         "oplogTruncateAfterPoint": truncateAfterPoint
@@ -379,7 +385,7 @@ content: |
 ---
 
 stepnum: 20
-title: "Run the MongoDB Backup Restore Utility (Point-in-Time Restore Only)."
+title: "(Point-in-Time Restore Only) Run the MongoDB Backup Restore Utility."
 level: 4
 ref: mbru-binary
 content: |
@@ -442,7 +448,7 @@ content: |
 ---
 stepnum: 21
 level: 4
-title: "Restart the Instance to Recover the Oplog."
+title: "(Point-in-Time Restore Only) Restart the Instance to Recover the Oplog."
 ref: restart-rs
 content: |
   This step is needed only if you ran step 20. If you didn't need to run
@@ -462,7 +468,7 @@ content: |
 ---
 stepnum: 22
 level: 4
-title: "Stop the Instance on the Ephemeral Port."
+title: "(Point-in-Time Restore Only) Stop the Instance on the Ephemeral Port."
 ref: stop-temp-replset
 content: |
   This step is needed only if you ran step 20. If you didn't need to run
@@ -532,27 +538,58 @@ content: |
 
 stepnum: 27
 level: 4
-title: "Set up Your Replica Set Configuration."
+title: "Restart all nodes in a replica set."
 ref: set-up-config
 content: |
   
-  At this point, the data files in the replica set are in a consistent state,
-  but the replica set configuration needs to be updated so that each node is
-  aware of each other.
+  At this point, the data files in the replica set are in a consistent 
+  state, but the replica set configuration needs to be updated so that 
+  each node is aware of each other.
   
-  :doc:`Deploy the replica set </tutorial/deploy-replica-set>` with the
-  required configuration.
+  Run the following command:
+
+  .. code-block:: sh
+
+     sudo -u mongod <path/to/target_mongod_binary> -f /path/to/datafiles/automation-mongod.conf
+
+  The following example restarts all nodes with the version 4.4.12 
+  enterprise with the data path ``/data6/node3``:
+
+  .. code-block:: sh
+
+     sudo -u mongod /var/lib/mongodb-mms-automation/mongodb-linux-x86_64-4.4.12-ent/bin/mongod -f /data6/node3/automation-mongod.conf
+
+---
+stepnum: 28
+level: 4
+title: "Set up your replica set configuration."
+ref: set-up-replica-set-config
+content: |
+
+  Log into one of the nodes and run the following commands:
+
+  .. code-block:: sh
+
+     rs.initiate()
+     rs.add( { host: "<host2>:<port>" } )
+     rs.add( { host: "<host3>:<port>" } )
+
 ---
 
-stepnum: 28
+stepnum: 29
 level: 4
 title: "Reimport the Replica Set."
 ref: reimport-replica-set
 content: |
 
   To manage the replica set with automation again,
-  :doc:`import the replica set </tutorial/add-existing-mongodb-processes>`
+  :doc:`import the replica set 
+  </tutorial/add-existing-mongodb-processes>`
   back into |mms|.
+
+  On the :guilabel:`Deployment` page, click :guilabel:`Add New`, select 
+  :guilabel:`Existing MongoDB Deployment`, and proceed with adding 
+  :guilabel:`Automation` back to your cluster.
 
 ...
 
