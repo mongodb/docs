@@ -4,8 +4,9 @@
 ``M10`` or larger Tier Clusters
   You can select a different provider to change the cloud provider for your dedicated clusters.
 
-Changing to a different provider changes the connection string to your
-new cluster. Consider scheduling a time to
-:ref:`update your applications with the new connection string <atlas-faq-migrate-providers>`
-to resume connectivity to the cluster. |service| migrates data to the
-new cluster.
+Changing to a different provider could change the connection string to 
+your new cluster if your old cluster was deployed on GCP or Azure 
+before October 2020. Consider scheduling a time to :ref:`update your 
+applications with the new connection string 
+<atlas-faq-migrate-providers>` to resume connectivity to the cluster. 
+|service| migrates data to the new cluster.
