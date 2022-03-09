@@ -134,10 +134,8 @@
      - id: nodejs
        content: |
          To create an index using the
-         `Node.JS driver <https://mongodb.github.io/node-mongodb-native/>`_,
-         use
-         `createIndex() <http://mongodb.github.io/node-mongodb-native/2.1/tutorials/create-indexes/>`_.
-
+         `Node.JS driver <https://docs.mongodb.com/drivers/node/current/>`_,
+         use ``createIndex()``.
 
          .. code-block:: javascript
 
@@ -157,9 +155,8 @@
                callback(result);
             }
 
-         The `createIndex() <http://mongodb.github.io/node-mongodb-native/2.1/tutorials/create-indexes/>`_
-         method only creates an index if an index of the same
-         specification does not already exist.
+         The ``createIndex()`` method only creates an index if an index
+         of the same specification does not already exist.
 
      - id: php
        content: |
