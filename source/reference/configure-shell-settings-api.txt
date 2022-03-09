@@ -1,0 +1,280 @@
+.. _configure-settings-api:
+
+==============================================
+Configure :binary:`~bin.mongosh` Using the API
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+
+The ``config`` API provides methods to examine and update the
+:binary:`~bin.mongosh` configuration. Updates made using the ``config``
+API persist between sessions.
+
+.. note::
+
+   The ``config`` API can be used within the :binary:`~bin.mongosh`
+   command line interface. It has no effect in the
+   :compass:`embedded Compass shell </embedded-shell>`.
+
+Syntax
+------
+
+Print the current :binary:`~bin.mongosh` configuration:
+
+.. _mongosh-config:
+
+.. code-block:: javascript
+
+   config 
+
+Return the current value for ``<property>``:
+
+.. code-block:: javascript
+
+   config.get( "<property>" )
+
+.. _mongosh-config-set:
+
+Change the current setting of ``<property>`` to ``<value>``:
+
+.. code-block:: javascript
+
+   config.set( "<property>", <value> )
+
+Reset a ``<property>`` to the default value:
+
+.. code-block:: javascript
+
+   config.reset( "<property>" )
+
+Supported ``property`` parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/list-table-shell-properties.rst
+
+Behavior
+--------
+
+Remove or Redact Sensitive Information From History
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:binary:`~bin.mongosh` makes "best-effort" attempts to match patterns
+that normally correspond to certain kinds of sensitive information.
+
+There are patterns that match:
+
+- Certificates and keys
+- Email addresses
+- Generic user directories
+- HTTP(s) URLs
+- IP addresses
+- MongoDB connection strings
+
+Certain operations, such as :method:`connect()`, are considered
+inherently sensitive. If ``redactHistory`` is set to ``remove`` or
+``remove-redact``, lines with these operations will be removed from the
+:ref:`command line history <mdb-shell-command-history>`.
+
+Other operations, like :method:`~db.collection.find()`, sometimes have
+sensitive information like email addresses. The
+:ref:`shell history <mdb-shell-command-history>` will retain these
+lines as entered unless ``redactHistory`` is set to ``remove-redact``.
+
+Behavior with Configuration File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Settings specified with the ``config`` API:
+
+- Override settings specified in the :ref:`configuration file
+  <configure-settings-global>`.
+
+- Persist across restarts.
+
+.. example::
+
+   Consider the following configuration file that sets the
+   ``inspectDepth`` setting to ``20``:
+
+   .. code-block:: yaml
+
+      mongosh:
+        inspectDepth: 20
+       
+   During your ``mongosh`` session you run the following command to set
+   ``inspectDepth`` to ``10``:
+
+   .. code-block:: javascript
+
+      config.set( "inspectDepth": 10 )
+
+   The value of ``inspectDepth`` becomes ``10``, and will remain ``10``
+   even when ``mongosh`` is restarted.
+
+Examples
+--------
+
+Update Number of Items Returned by a Cursor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider viewing a collection with a number of large documents. You can
+update the ``batchSize`` to limit the number of items returned by a
+cursor.
+
+.. code-block:: javascript
+
+   config.set("displayBatchSize", 3) 
+
+
+Future ``db.collection.find()`` operations will only return 3 documents
+per cursor iteration.
+
+Turn On Stack Traces
+~~~~~~~~~~~~~~~~~~~~
+
+Enable stack traces to see more detailed error reporting. 
+
+.. code-block:: javascript
+
+   config.set("showStackTraces", true)
+
+The output differs like this: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   // showStackTraces set to 'false'
+   Enterprise> db.orders.find( {}, { $thisWontWork: 1 } )
+   MongoError: FieldPath field names may not start with '$'.
+
+   // showStackTraces set to 'true'
+   Enterprise> db.orders.find( {}, { $thisWontWork: 1 } )
+   Uncaught:
+   MongoError: FieldPath field names may not start with '$'.
+       at MessageStream.messageHandler (/usr/bin/mongosh:58878:20)
+       at MessageStream.emit (events.js:315:20)
+       at MessageStream.EventEmitter.emit (domain.js:548:15)
+       at processIncomingData (/usr/bin/mongosh:57954:12)
+       at MessageStream._write (/usr/bin/mongosh:57850:5)
+       at writeOrBuffer (_stream_writable.js:352:12)
+       at MessageStream.Writable.write (_stream_writable.js:303:10)
+       at Socket.ondata (_stream_readable.js:719:22)
+       at Socket.emit (events.js:315:20)
+       at Socket.EventEmitter.emit (domain.js:548:15)
+
+Call ``config`` API from outside :binary:`~bin.mongosh`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can call the ``config`` API from the command line using
+:option:`--eval` with :binary:`~bin.mongosh`. In this case the
+:option:`--nodb` option means :binary:`~bin.mongosh` will update
+without connecting to a MongoDB database.
+
+.. important::
+
+   You must use different quotation marks for the :option:`--eval`
+   expression and the ``config`` property. That is, single quotes for
+   one and double quotes for the other. 
+
+.. code-block::
+
+   mongosh --nodb --eval 'config.set("enableTelemetry", true)'
+
+:binary:`~bin.mongosh` returns additional information along with the
+result of the API call.
+
+.. code-block::
+   :copyable: false
+
+   Current Mongosh Log ID:	609583b730e14918fa0d363f
+   Using MongoDB:		undefined
+   Using Mongosh Beta:	0.12.1
+
+   For mongosh info see: https://docs.mongodb.com/mongodb-shell/
+
+   Setting "enableTelemetry" has been changed
+
+Redact Sensitive Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Compare the recalled history when ``redactHistory`` is set to
+``remove-redact`` or ``remove``. 
+
+Set ``redactHistory`` to ``remove-redact`` mode and enter a query
+containing an email address. 
+
+.. code-block:: javascript
+
+   config.set( "redactHistory", "remove-redact" )
+   db.contacts.find( {"email": "customer@clients.com" } )
+
+When you press the ``up arrow`` to replay the last command the email
+address is redacted. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.contacts.find( {"email": "<email>" } )  // Redacted
+
+Set ``redactHistory`` to ``remove`` mode and enter a query containing
+an email address. 
+
+.. code-block:: javascript
+
+   config.set( "redactHistory", "remove" )
+   db.contacts.find( {"email": "customer@clients.com" } )
+
+When you press the ``up arrow`` to replay the last command the email
+address is present. 
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.contacts.find( {"email": "customer@clients.com" } )
+
+The :ref:`shell history <mdb-shell-command-history>` reflects the
+changes. (Note that this stores the most recent input first.)
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.contacts.find( {"email": "customer@clients.com" } )
+   config.set( "redactHistory", "remove" )
+   db.contacts.find( {"email": "<email>" } )
+   config.set( "redactHistory", "remove-redact" )
+
+.. _example-reset-setting:
+
+Reset a Configuration Setting to the Default Value
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you modified a configuration setting and want to reset it to the
+default value, use ``config.reset( "<property>" )``.
+
+#. Change the value of the ``historyLength`` setting to ``2000``:
+
+   .. code-block:: javascript
+
+      config.set("historyLength", 2000)
+
+#. Verify the updated value for ``historyLength``:
+
+   .. code-block:: javascript
+
+      config.get("historyLength")
+
+#. Reset the ``historyLength`` setting to the default value of ``1000``:
+
+   .. code-block:: javascript
+
+      config.reset("historyLength")
+
+#. Verify the updated value for ``historyLength``:
+
+   .. code-block:: javascript
+
+      config.get("historyLength")
