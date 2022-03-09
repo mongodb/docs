@@ -1,0 +1,1 @@
+This endpoint doesn't use HTTP request query parameters.

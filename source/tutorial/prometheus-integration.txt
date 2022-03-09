@@ -1,0 +1,267 @@
+.. _prometheus-integration-mms:
+
+=========================
+Integrate with Prometheus
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|prometheus| collects metrics from configured targets at given
+intervals, evaluates rule expressions, displays the results, and can
+trigger alerts when it observes specific conditions. 
+
+Our integration allows you to configure |mms| to send metric data
+about your deployment to your |prometheus| instance.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- |prometheus| integration is available in :ref:`automation managed
+  <manage-automation>` clusters versions ``11.9.1.7259-1`` or later.
+
+- Have a working Prometheus instance. To set up a working instance, see
+  their `Installation Guide <https://prometheus.io/docs/prometheus/latest/installation/>`__.
+
+- (Optional) Use `Grafana
+  <https://prometheus.io/docs/visualization/grafana/>`__ to visualize your
+  Prometheus metrics.
+
+Procedure
+~~~~~~~~~
+
+To configure an |mms| integration with |prometheus|:
+
+.. include:: /includes/steps/configure-prometheus-integration.rst
+
+.. _example-prometheus-configurations-mms:
+
+Example Configurations
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following shows examples of the `configuration file
+<https://prometheus.io/docs/prometheus/latest/configuration/configuration/#configuration-file>`__
+when you use the :ref:`HTTP SD <httpsd-prometheus-config-mms>` or :ref:`File
+Service Discovery <filesd-prometheus-config-mms>` method.
+
+The configuration file in both methods contains the following fields:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``scrape_interval``
+     - Time that indicates how frequently to scrape targets. This setting supports a minimum time of 10s.
+
+   * - ``job_name``
+     - Human-readable label assigned to scraped metrics.
+
+   * - ``metrics_path``
+     - HTTP resource path that indicates where to fetch metrics from targets.
+
+   * - ``scheme``
+     - Protocol scheme that you want to configure for requests.
+
+   * - ``basic_auth``
+     - Authorization header to use on every scrape request.
+  
+.. _httpsd-prometheus-config-mms:
+
+HTTP SD
+```````
+
+The HTTP SD method also contains the ``http_sd_configs`` field
+with the following sub-fields:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``url``
+     - URL from which Prometheus fetches the targets.
+
+   * - ``refresh_interval``
+     - Time that indicates when to re-query the endpoint.
+
+   * - ``basic_auth``
+     - Credentials to use for authenticating to the API server.
+
+.. code-block:: yaml
+
+   global:
+     scrape_interval: 15s
+
+   scrape_configs:
+
+     - job_name: "CM-Testing-mongo-metrics"
+       scrape_interval: 10s
+       metrics_path: /metrics
+       scheme : https
+       basic_auth:
+         username: prom_user_61e6e34e93eac1632d39f457
+         password: V7hTyLfkjwiWQbv
+       http_sd_configs:
+         - url: https://cloud.mongodb.com/prometheus/v1.0/groups/61e6e34e93eac1632d39f457/discovery
+         refresh_interval: 60s
+         basic_auth:
+           username: prom_user_61e6e34e93eac1632d39f457
+           password: V7hTyLfkjwiWQbv
+
+.. _filesd-prometheus-config-mms:
+
+File Service Discovery
+``````````````````````
+
+The File Service Discovery method also contains the
+``file_sd_configs`` field with the following sub-field:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``files``
+     - List that contains the files from which to extract the metrics scraping targets.
+
+.. code-block:: yaml
+
+   global:
+     scrape_interval: 15s
+ 
+   scrape_configs:
+
+     - job_name: "CM-Testing-mongo-metrics"
+       scrape_interval: 10s
+       metrics_path: /metrics
+       scheme : https
+       basic_auth:
+         username: prom_user_61e6e34e93eac1632d39f457
+         password: V7hTyLfkjwiWQbv
+       file_sd_configs:
+         - files:
+           - /usr/local/etc/targets.json
+
+Performance Metrics Available to Prometheus
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following metrics are available when you use the Prometheus
+integration with your |service| cluster:
+
+- :ref:`prometheus-metric-labels-mms`
+
+  - :manual:`serverStatus </reference/command/serverStatus/>` metrics
+  - :manual:`replSetStatus </reference/command/replSetGetStatus/>` metrics
+
+- :ref:`prometheus-hardware-metrics-mms`
+
+.. _prometheus-metric-labels-mms:
+
+MongoDB Metric Labels
+~~~~~~~~~~~~~~~~~~~~~
+
+Each MongoDB metric contains the following labels:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Label
+     - Description
+
+   * - ``group_id``
+     - Unique hexadecimal digit string that identifies the project.
+
+   * - ``org_id``
+     - Unique hexadecimal digit string that identifies the organization.
+
+   * - ``cl_role``
+     - Human readable label that defines the cluster role.
+
+   * - ``cl_name``
+     - Human-readable label that identifies the cluster.
+
+   * - ``rs_nm``
+     - Human-readable label that identifies the replica set.
+
+   * - ``rs_state``
+     - Number that indicates the :manual:`replica set state </reference/replica-states/>`.
+     
+   * - ``process_port``
+     - Port on which the process runs.
+
+.. _prometheus-mongodb-info-metrics-mms:
+
+MongoDB Information Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongodb_info`` is a gauge that always has the value of ``1``. This
+metric contains all the :ref:`prometheus-metric-labels-mms` and
+also the following labels:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Label
+     - Description
+
+   * - ``mongodb_version``
+     - String that represents the major, minor, and patch versions.
+
+   * - ``replica_state_name``
+     - String that indicates the :manual:`replica set member status 
+       </reference/replica-states/>`.
+
+   * - ``process_type``
+     - String that indicates the process running. Its values can be 
+       ``mongod``, ``mongos``, or ``config``.
+
+.. _prometheus-hardware-metrics-mms:
+
+Hardware Metrics
+~~~~~~~~~~~~~~~~
+
+.. note:: 
+
+   You can also view descriptions of each hardware metric in the
+   `Prometheus expression browser
+   <https://prometheus.io/docs/visualization/browser/>`__.
+
+.. include:: /includes/list-tables/prometheus-metrics.rst
+
+Hardware Metric Labels
+~~~~~~~~~~~~~~~~~~~~~~
+
+Each hardware metric contains the following labels:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Label
+     - Description
+
+   * - ``group_id``
+     - Unique hexadecimal digit string that identifies the project.
+
+   * - ``org_id``
+     - Unique hexadecimal digit string that identifies the organization.
+
+   * - ``process_port``
+     - Port on which the process runs.
+
+   * - ``disk_name``
+     - Human-readable label that identifies the disk.
