@@ -77,6 +77,7 @@ The following example shows the ``AtlasCluster`` resource with a
          instanceSizeName: M10
          providerName: AWS
          regionName: US_EAST_1
+       mongoDBMajorVersion: "4.4"
    status:
      conditions:
      - lastTransitionTime: "2021-03-18T16:32:43Z"
@@ -147,7 +148,7 @@ specification configured for multi-region clusters:
 
 .. code-block::
 
-   apiVersion: atlas.mongodb.com/v1
+   apiVersion: atlas.mongodb.com/v1.5
    kind: AtlasCluster
    metadata:
      name: my-atlas-cluster
@@ -168,31 +169,13 @@ specification configured for multi-region clusters:
 Parameters
 ----------
 
-This section describes the ``AtlasCluster`` custom resource parameters:
-
-.. setting:: spec.projectRef.name
-
-   *Type*: string
-
-   *Required*
-
-   Name of the project where the cluster belongs. You must specify an 
-   existing :ref:`atlasproject-custom-resource`.
-
-.. setting:: spec.clusterSpec
-
-   *Type*: array
-
-   *Conditional*
-
-   List that contains the cluster parameters from the |api|.
-   For a full list of parameters available, see the |service|
-   :doc:`API </reference/api/clusters-create-one>`.
-   
-   .. important::
-
-      You must specify ``spec.clusterSpec`` or ``spec.advancedClusterSpec``
-      in your configuration.
+This section describes some of the key ``AtlasCluster`` custom resource 
+parameters available. For a full list of parameters available, see the
+|service| :doc:`Clusters API </reference/api/clusters-create-one>`
+and |service| :doc:`Advanced Clusters API 
+</reference/api/cluster-advanced/create-one-cluster-advanced>`. Refer 
+to these descriptions, the available examples, and the |api| 
+documentation to customize your specifications.
 
 .. setting:: spec.advancedClusterSpec
 
@@ -202,12 +185,317 @@ This section describes the ``AtlasCluster`` custom resource parameters:
 
    List that contains the advanced cluster parameters from the |api|.
    For a full list of parameters available, see the |service|
-   :doc:`API </reference/api/cluster-advanced/create-one-cluster-advanced>`.
+   :doc:`Advanced Clusters API 
+   </reference/api/cluster-advanced/create-one-cluster-advanced>`.
 
    .. important::
 
-      You must specify ``spec.clusterSpec`` or ``spec.advancedClusterSpec``
-      in your configuration.
+      You must specify ``spec.clusterSpec`` or 
+      ``spec.advancedClusterSpec`` in your configuration.
+
+.. setting:: spec.clusterSpec
+
+   *Type*: array
+
+   *Conditional*
+
+   List that contains the cluster parameters from the |api|.
+   For a full list of parameters available, see the |service|
+   :doc:`Clusters API </reference/api/clusters-create-one>`.
+   
+   .. important::
+
+      You must specify ``spec.clusterSpec`` or 
+      ``spec.advancedClusterSpec`` in your configuration.
+
+.. setting:: spec.clusterSpec.clusterType
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies cluster type to create.
+
+   **When should you use this parameter?**
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 78 22
+
+      * - Condition
+        - Necessity
+
+      * - You set :setting:`spec.clusterSpec.replicationSpecs`.
+        - Required
+
+      * - You are deploying
+          :doc:`Global Clusters </global-clusters>`.
+        - Required
+
+      * - You are deploying non-Global replica sets and sharded
+          clusters.
+        - Optional
+
+   |service| accepts:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 60 40
+
+      * - Value
+        - Cluster Type
+      * - REPLICASET
+        - :term:`replica set`
+      * - SHARDED
+        - :term:`sharded cluster`
+      * - GEOSHARDED
+        - :doc:`global cluster </global-clusters>`
+
+.. setting:: spec.clusterSpec.mongoDBMajorVersion
+
+   *Type*: string
+
+   *Optional*
+
+   Version of the cluster to deploy. |service| supports the
+   following MongoDB versions for ``M10+`` clusters:
+
+   - 4.0
+   - 4.2
+   - 4.4
+   - 5.0
+
+   The following conditions produce the following results:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 78 22
+
+      * - Condition
+        - Result
+
+      * - You omit this parameter and you omit the 
+          :setting:`spec.clusterSpec.versionReleaseSystem` parameter.
+        - |service| deploys a cluster that runs MongoDB 5.0.
+
+      * - You omit this parameter and you set the
+          :setting:`spec.clusterSpec.versionReleaseSystem` parameter to 
+          ``LTS``.
+        - |service| deploys a cluster that runs MongoDB 5.0.
+
+      * - You set the 
+          :setting:`spec.clusterSpec.providerSettings.instanceSizeName` 
+          parameter to ``M0``, ``M2``, or ``M5``.
+        - You must deploy MongoDB 5.0.
+
+      * - You specify this parameter.
+        - |service| always deploys the cluster with the latest stable 
+          patch release of the specified version.
+
+      * - You set the :setting:`spec.clusterSpec.versionReleaseSystem` 
+          parameter to ``CONTINUOUS``.
+        - You must omit this parameter.
+
+.. setting:: spec.clusterSpec.providerSettings
+
+   *Type*: Object
+
+   *Required*
+
+   Configuration that specifies the settings for the provisioned hosts 
+   on which MongoDB runs. The available options are specific to the 
+   cloud service provider. To learn more, see the :ref:`AWS 
+   <amazon-aws>`, :ref:`GCP <google-gcp>`, and :ref:`Azure 
+   <microsoft-azure>` cluster configuration options.
+
+.. setting:: spec.clusterSpec.providerSettings.providerName
+
+   *Type*: string
+
+   *Required*
+
+   Cloud service provider on which |service| provisions the hosts.
+
+   .. list-table::
+      :widths: 20 80
+      :stub-columns: 1
+
+      * - AWS
+        - Amazon AWS
+      * - GCP
+        - Google Cloud Platform
+      * - AZURE
+        - Microsoft Azure
+      * - TENANT
+        - ``M0``, ``M2``, or ``M5`` multi-tenant cluster
+
+          Use :setting:`spec.clusterSpec.providerSettings.backingProviderName` to set the cloud service provider.
+
+          ``M0``, ``M2``, and ``M5`` clusters are multi-tenant 
+          deployments. You must set this parameter to ``TENANT`` and 
+          specify the cloud service provider in :setting:`spec.clusterSpec.providerSettings.backingProviderName`.
+
+.. setting:: spec.clusterSpec.providerSettings.backingProviderName
+
+   *Type*: string
+
+   *Conditional*
+
+   Cloud service provider on which |service| provisions the host for a 
+   multi-tenant cluster.
+
+   This setting works only when you set 
+   :setting:`spec.clusterSpec.providerSettings.providerName` to 
+   ``TENANT`` and 
+   :setting:`spec.clusterSpec.providerSettings.instanceSizeName` 
+   to ``M0``, ``M2``, or ``M5``.
+
+   |service| accepts the following values:
+
+   .. list-table::
+      :widths: 20 80
+      :stub-columns: 1
+
+      * - AWS
+        - Amazon AWS
+      * - GCP
+        - Google Cloud Platform
+      * - AZURE
+        - Microsoft Azure
+
+.. setting:: spec.clusterSpec.providerSettings.instanceSizeName
+
+   **Type**: string
+
+   **Required**
+
+   |service| provides different cluster tiers, each with a default
+   storage capacity and RAM size. The cluster you select is
+   used for all the data-bearing servers in your cluster. To learn 
+   more, see the :ref:`AWS <amazon-aws>`, :ref:`GCP <google-gcp>`, and 
+   :ref:`Azure <microsoft-azure>` custom storage sizes.
+
+.. setting:: spec.clusterSpec.providerSettings.regionName
+
+   **Type**: string
+
+   **Conditional**
+
+   Physical location of your MongoDB cluster. The region you
+   choose can affect network latency for clients accessing your
+   databases.
+
+   For a complete list of region name values, refer to the
+   the cloud provider reference pages:
+
+   - :ref:`AWS <amazon-aws>`
+
+   - :ref:`GCP <google-gcp>`
+
+   - :ref:`Azure <microsoft-azure>`
+
+   For multi-region clusters, see
+   :setting:`spec.clusterSpec.replicationSpecs`. You must set either 
+   :setting:`spec.clusterSpec.providerSettings.regionName` or 
+   :setting:`spec.clusterSpec.replicationSpecs`.
+
+.. setting:: spec.clusterSpec.replicationSpecs
+
+   **Type**: array of objects
+
+   **Conditional**
+
+   List that contains the configurations for your cluster regions. Use 
+   this parameter for multi-region clusters. You must set either 
+   :setting:`spec.clusterSpec.providerSettings.regionName` or 
+   :setting:`spec.clusterSpec.replicationSpecs`.
+
+   **When should you use this parameter?**
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 20 40
+
+      * - Condition
+        - Necessity
+        - Values
+
+      * - You are deploying
+          :doc:`Global Clusters </global-clusters>`.
+        - Required
+        - Each object in the array represents a zone where
+          |service| deploys your cluster's nodes.
+
+      * - You are deploying non-Global replica sets and sharded
+          clusters.
+        - Optional
+        - This array has one object representing where
+          |service| deploys your cluster's nodes.
+
+   If you specify this parameter, you must also specify
+   :setting:`spec.clusterSpec.clusterType` and 
+   :setting:`spec.clusterSpec.replicationSpecs.numShards`.
+
+.. setting:: spec.clusterSpec.replicationSpecs.numShards
+
+   Positive integer that specifies the number of shards to deploy
+   for a sharded cluster.
+
+   If you use the :setting:`spec.clusterSpec.replicationSpecs` 
+   parameter, you must set this parameter.
+
+   |service| accepts ``1`` through ``50``, inclusive. The default
+   value is ``1``.
+
+   - If you specify a value of ``1`` and you set 
+     :setting:`spec.clusterSpec.clusterType` to ``SHARDED``, |service| 
+     deploys a single-shard :term:`sharded cluster`.
+
+   - If you specify ``1`` and you set 
+     :setting:`spec.clusterSpec.clusterType` to ``REPLICASET``, 
+     |service| deploys a :term:`replica set`.
+
+     .. include:: /includes/cluster-settings/single-shard-cluster-warning.rst
+
+     .. seealso::
+
+        - :manual:`Sharding </sharding>`
+        - :ref:`server-number-costs`
+
+.. setting:: spec.clusterSpec.versionReleaseSystem
+
+   *Type*: string
+
+   *Conditional*
+
+   Release cadence that |service| uses for this {+cluster+}.
+   |service| accepts:
+
+   - ``CONTINUOUS``: |service| creates your {+cluster+} using the 
+     most recent MongoDB release. |service| automatically updates 
+     your {+cluster+} to the latest major and rapid MongoDB releases
+     as they become available.
+   - ``LTS``: |service| creates your {+cluster+} using the latest
+     patch release of the MongoDB version that you specify in the 
+     :setting:`spec.clusterSpec.mongoDBMajorVersion` parameter.
+     |service| automatically updates your {+cluster+} to subsequent 
+     patch releases of this MongoDB version. |service| doesn't update 
+     your {+cluster+} to newer rapid or major MongoDB releases as they 
+     become available.
+
+     If omitted, defaults to ``LTS``.
+
+     If you set this parameter to ``CONTINUOUS``, you must omit the 
+     :setting:`spec.clusterSpec.mongoDBMajorVersion` parameter.
+
+.. setting:: spec.projectRef.name
+
+   *Type*: string
+
+   *Required*
+
+   Name of the project where the cluster belongs. You must specify an 
+   existing :ref:`atlasproject-custom-resource`.
 
 .. setting:: status.connectionStrings
 

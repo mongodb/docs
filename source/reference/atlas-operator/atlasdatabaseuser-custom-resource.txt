@@ -30,10 +30,12 @@ The following example shows a reference to the
 |ak8so| ensures the database user configuration in |service| matches 
 the configuration in |k8s|.
 
-|ak8so| does one of the following actions:
+|ak8so| does one of the following actions using the |service| 
+:doc:`Database Users API 
+</reference/api/database-users-create-a-user/>`:
    
 - Creates a new database user.
-- If the databse user already exists, updates the existing user.
+- Updates an existing user.
 
 Before you create a database user, you must create a |k8s-secret| with 
 a password to log into the |service| cluster database.
@@ -115,10 +117,11 @@ The following example shows mounting the secret as files:
 
 By default, |ak8so| creates the database user connection secret
 for each cluster in the same project that the ``AtlasDatabaseUser`` 
-references. You can change this behavior with the ``spec.scopes`` 
-parameter. This parameter restricts the clusters where the database 
-user gets created. The name of the connection secret uses the following 
-format: ``<project_name>-<cluster_name>-<db_user_name>``.
+references. You can change this behavior with the 
+:setting:`spec.scopes` parameter. This parameter restricts the clusters 
+where the database user gets created. The name of the connection secret 
+uses the following format: 
+``<project_name>-<cluster_name>-<db_user_name>``.
 
 Examples
 --------
@@ -171,7 +174,7 @@ Database User without Scopes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example shows an ``AtlasDatabaseUser`` custom resource 
-specification with ``spec.scopes`` omitted:
+specification with :setting:`spec.scopes` omitted:
 
 .. code-block:: sh
 
@@ -199,7 +202,7 @@ Database User with Scopes
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example shows an ``AtlasDatabaseUser`` custom resource 
-specification scoped to the |gcp| cluster only:
+specification with :setting:`spec.scopes` set to the |gcp| cluster only:
 
 .. code-block::
 
@@ -224,24 +227,161 @@ After you update this custom resource, |ak8so| removes ``theuser`` from
 the ``aws-cluster``. It also removes the ``p1-aws-cluster-theuser`` 
 secret from the |k8s| cluster.
 
+Database User with X.509 Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDatabaseUser`` custom resource 
+specification with :ref:`X.509 authentication <ak8so-x509>`.
+
+.. code-block:: sh
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDatabaseUser
+   metadata:
+     name: my-database-user
+   spec:
+     username: CN=my-x509-authenticated-user,OU=organizationalunit,O=organization
+     databaseName: "\$external"
+     x509Type: "CUSTOMER"
+     roles:
+       - roleName: "readWriteAnyDatabase"
+         databaseName: "admin"
+     projectRef:
+       name: my-project
+
 Parameters
 ----------
 
-.. setting:: spec.passwordSecretRef
+This section describes some of the key ``AtlasDatabaseUser`` custom 
+resource parameters available. For a full list of parameters available, 
+see the |service| :doc:`Database Users API 
+</reference/api/database-users-create-a-user>`. Refer to 
+these descriptions, the available examples, and the |api| documentation 
+to customize your specifications.
+
+.. setting:: spec.databaseName
 
    *Type*: string
 
    *Required*
 
-   Reference to the |k8s-secret| that contains the password. The only 
-   supported authentication method, :manual:`SCRAM-SHA 
-   </core/security-scram>`, requires this parameter.
+   :ref:`Database <authentication-database>` against which the
+   database user authenticates. Database users must provide both a
+   username and authentication database to log into MongoDB.
+
+   If the database user authenticates with :manual:`SCRAM-SHA 
+   </core/security-scram>`, this value must be ``admin``.
+
+   If the database user authenticates with :ref:`X.509 <ak8so-x509>`, 
+   this value must be ``\$external``.
+
+.. setting:: spec.passwordSecretRef
+
+   *Type*: string
+
+   *Conditional*
+
+   Reference to the |k8s-secret| that contains the password. The 
+   :manual:`SCRAM-SHA </core/security-scram>` authentication method 
+   requires this parameter.
+
+:setting:`spec.projectRef.name`
+   *Type*: string
+
+   *Required*
+
+   Name of the project where the database user belongs. You must 
+   specify an existing :ref:`atlasproject-custom-resource`.
+
+.. setting:: spec.roles
+
+   *Type*: array
+   
+   *Required*
+
+   List that contains the user's roles and the databases or collections 
+   on which the roles apply. For a full list of parameters available, 
+   see the |service| :doc:`Database Users API 
+   </reference/api/database-users-create-a-user>`.
+
+.. setting:: spec.scopes
+
+   *Type*: array
+
+   *Optional*
+
+   List that contains the clusters where the user gets created.
+
+.. setting:: spec.scopes.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies the cluster that the database 
+   user can access. You must specify this parameter if you specified 
+   :setting:`spec.scopes`.
+
+.. setting:: spec.scopes.type
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies the resource type that the 
+   database user can access. |ak8so| currently supports only 
+   ``CLUSTER``. You must specify this parameter if you specified 
+   :setting:`spec.scopes`.
+
+.. setting:: spec.username
+
+   *Type*: string
+
+   *Required*
+
+   Human-readable label that identifies the user needed to authenticate 
+   to the MongoDB database or collection.
+
+.. setting:: spec.x509Type
+
+   *Type*: string
+
+   *Optional*
+
+   X.509 method by which the database authenticates the
+   provided :setting:`spec.username`. If you don't specify a value,
+   |service| uses the default value of ``NONE``.
+
+   This parameter accepts:
+
+   .. list-table::
+      :stub-columns: 1
+      :widths: 20 80
+
+      * - NONE
+        - User that doesn't use X.509 authentication.
+
+      * - MANAGED
+        - User that uses |service|-managed X.509.
+
+          You must specify ``\$external`` for the
+          :setting:`spec.databaseName` parameter.
+
+      * - CUSTOMER
+        - User that uses :ref:`Self-Managed X.509 
+          <self-managed-x509>`. Users created with this ``x509Type`` 
+          require a Common Name (CN) in the :setting:`spec.username` 
+          parameter. To learn more, see :rfc:`RFC 2253 <2253>`.
+
+          You must specify ``\$external`` for the 
+          :setting:`spec.databaseName` parameter.
 
 For the configuration parameters available from the |api|, see the 
-|service| :doc:`API </reference/api/database-users-create-a-user>`. 
+|service| :doc:`Database Users API 
+</reference/api/database-users-create-a-user>`. 
    
 Currently, |ak8so| does not support the following parameters 
-available from the |service| :doc:`API 
+available from the |service| :doc:`Database Users API 
 </reference/api/database-users-create-a-user>`:
    
 - ``awsIAMType``
