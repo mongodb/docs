@@ -174,7 +174,6 @@
        configure any settings within |service| to set up a SumoLogic
        integration.
 
-
    * - :guilabel:`VictorOps Settings`
 
      - Sets an API key and Routing key for alert notifications sent to
@@ -249,3 +248,8 @@
           If your firewall configuration requires it, allow access from
           :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
           |service| can communicate with your webhook.
+
+   * - :guilabel:`Prometheus Settings`
+
+     - Configures |service| to send metric data about your deployment
+       to your |prometheus| instance. To learn more, see :ref:`prometheus-integration`.
