@@ -1,3 +1,11 @@
+.. _cloudmanager_20220309:
+
+9 March 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces a :ref:`metrics integration with Prometheus <prometheus-integration-mms>`.
+- Updates {+mdbagent+} to :ref:`11.13.0.7438 <11.13.0.7438>`.
+
 .. _cloudmanager_20220216:
 
 16 February 2022 Release

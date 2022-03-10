@@ -1,3 +1,12 @@
+.. _11.13.0.7438:
+
+MongoDB Agent 11.13.0.7438
+--------------------------
+
+*Released* 2022-03-09
+
+- Reduces the rate of DNS lookups performed by the {+mdbagent+}.
+
 .. _11.12.0.7401:
 
 MongoDB Agent 11.12.0.7401
