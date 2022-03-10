@@ -1,12 +1,3 @@
-.. _data-lake-v20220308:
-
-8 March 2022 Release
-~~~~~~~~~~~~~~~~~~~~
-
-- Improves performance and stability.
-- Imposes an upper :doc:`limit </supported-unsupported/limitations>` on 
-  ``maxRowGroupSize``.
-
 .. _data-lake-v20220215:
 
 15 February 2022 Release
