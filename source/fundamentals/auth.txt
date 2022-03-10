@@ -254,10 +254,23 @@ in the following order:
 The following code snippets show how to specify the authentication mechanism,
 using the following placeholders:
 
-* ``username`` - value of your ``AWS_ACCESS_KEY_ID``.
-* ``password`` - value of your ``AWS_SECRET_ACCESS_KEY``.
+* ``awsKeyId`` - value of your ``AWS_ACCESS_KEY_ID``.
+* ``awsSecretKey`` - value of your ``AWS_SECRET_ACCESS_KEY``.
 * ``atlasUri`` - network address of your MongoDB Atlas instance.
 * ``awsSessionToken`` - value of your ``AWS_SESSION_TOKEN``. *(optional)*
+
+.. important:: URL-encode Your Credentials
+
+   Make sure to URL-encode your credentials to prevent backslash or other
+   characters from causing parsing errors. The following code example
+   shows you how to URL-encode a sample string, represented by the placeholder
+   ``fieldValue``:
+
+   .. literalinclude:: /includes/fundamentals/code-snippets/MongoDbAwsAuth.java
+      :language: java
+      :dedent:
+      :start-after: start urlEncode
+      :end-before: end urlEncode
 
 Select the :guilabel:`Connection String` or the :guilabel:`MongoCredential`
 tab below for instructions and sample code for specifying this authentication
@@ -270,22 +283,25 @@ mechanism:
 
       To specify the ``MONGODB-AWS`` authentication mechanism using a
       connection string, assign the ``authMechanism`` parameter the value
-      ``MONGODB-AWS`` in your connection string. Your code to instantiate
+      ``"MONGODB-AWS"`` in your connection string. Your code to instantiate
       a ``MongoClient`` should look something like this:
 
-      .. code-block:: java
-
-         MongoClient mongoClient = MongoClients.create("mongodb://<username>:<password>@<atlasUri>?authMechanism=MONGODB-AWS");
+      .. literalinclude:: /includes/fundamentals/code-snippets/MongoDbAwsAuth.java
+         :language: java
+         :dedent:
+         :start-after: start connectionString
+         :end-before: end connectionString
 
       If you need to specify an AWS session token, include it in the
       ``authMechanismProperties`` parameter as follows using the format
       ``AWS_SESSION_TOKEN:<awsSessionToken>``. Your code to instantiate
       a ``MongoClient`` with a session token should look something like this:
 
-      .. code-block:: java
-
-         MongoClient mongoClient = MongoClients.create("mongodb://<username>:<password>@<atlasUri>?authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<awsSessionToken>");
-
+      .. literalinclude:: /includes/fundamentals/code-snippets/MongoDbAwsAuth.java
+         :language: java
+         :dedent:
+         :start-after: start connectionStringSessionToken
+         :end-before: end connectionStringSessionToken
 
    .. tab::
       :tabid: MongoCredential
@@ -295,7 +311,11 @@ mechanism:
       `createAwsCredential() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html#createAwsCredential(java.lang.String,char%5B%5D)>`__
       method. Your code to instantiate a ``MongoClient`` should look something like this:
 
-      .. include:: /includes/fundamentals/code-snippets/auth-credentials-aws.rst
+      .. literalinclude:: /includes/fundamentals/code-snippets/MongoDbAwsAuth.java
+         :language: java
+         :dedent:
+         :start-after: start mongoCredential
+         :end-before: end mongoCredential
 
       If you need to specify an AWS session token, you can add it using
       one of the following choices:
@@ -310,7 +330,11 @@ mechanism:
         `applyConnectionString() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html#applyConnectionString(com.mongodb.ConnectionString)>`__
         method as follows:
 
-        .. include:: /includes/fundamentals/code-snippets/auth-credentials-aws-session.rst
+        .. literalinclude:: /includes/fundamentals/code-snippets/MongoDbAwsAuth.java
+           :language: java
+           :dedent:
+           :start-after: start mongoCredentialSessionTokenConnString
+           :end-before: end mongoCredentialSessionTokenConnString
 
       - **Specify your AWS session token in a MongoCredential.**
 
@@ -319,15 +343,17 @@ mechanism:
         `withMechanismProperty() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoCredential.html#withMechanismProperty(java.lang.String,T)>`__
         method as shown below:
 
-        .. code-block:: java
-
-           MongoCredential.createAwsCredential("<username>", "<password>".toCharArray()) .withMechanismProperty("AWS_SESSION_TOKEN", "<awsSessionToken>");
+        .. literalinclude:: /includes/fundamentals/code-snippets/MongoDbAwsAuth.java
+           :language: java
+           :dedent:
+           :start-after: start mongoCredentialSessionTokenCredential
+           :end-before: end mongoCredentialSessionTokenCredential
 
       - **Specify your AWS session token in an environment variable.**
 
         In your client execution environment, set an environment variable
         called ``AWS_SESSION_TOKEN`` and assign your token to it. The value is
-        automatically picked up by your MongoClient when you specify the
+        automatically picked up by your ``MongoClient`` when you specify the
         ``MONGODB-AWS`` authentication mechanism.
 
 Refresh Credentials
@@ -336,24 +362,12 @@ Refresh Credentials
 The driver supports refreshing credentials for cases such as assuming roles
 or using `Elastic Kubernetes Service <https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html>`__.
 
-
-.. code-block:: java
-   :emphasize-lines: 3-4, 8
-
-   Supplier<AwsCredential> awsFreshCredentialSupplier = () -> {
-       // Code to fetch fresh credentials, such as assuming a role using the AWS SDK.
-       // Ensure you return the temporary credentials.
-       return new AwsCredential("<accessKeyId>", "<secretAccessKey>", "<sessionToken>");
-   };
-
-   MongoCredential credential = MongoCredential.createAwsCredential(null, null)
-                   .withMechanismProperty(MongoCredential.AWS_CREDENTIAL_PROVIDER_KEY, awsFreshCredentialSupplier);
-   MongoClient mongoClient = MongoClients.create(
-           MongoClientSettings.builder()
-                   .applyToClusterSettings(builder ->
-                           builder.hosts(Collections.singletonList(new ServerAddress("<hostname>", 27017))))
-                   .credential(credential)
-                   .build());
+.. literalinclude:: /includes/fundamentals/code-snippets/MongoDbAwsAuth.java
+   :language: java
+   :dedent:
+   :start-after: start refreshCredentials
+   :end-before: end refreshCredentials
+   :emphasize-lines: 4-5, 9
 
 .. _x509-auth-mechanism:
 
