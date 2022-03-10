@@ -1,3 +1,13 @@
+.. _atlas_20220309:
+
+9 March 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces a :ref:`metrics integration with Prometheus <prometheus-integration>`.
+- Introduces a new :authrole:`Project Search Index Editor` role to manage |fts| indexes using the |service| UI or Administration API.
+- Introduces the ability to :doc:`configure Federated Authentication with the Atlas Administration API </reference/api/federation-configuration/>`.
+- Introduces the :ref:`M140 and M250 cluster tiers in all GCP regions <google-gcp>`. 
+
 .. _atlas_20220216:
 
 16 February 2022 Release
