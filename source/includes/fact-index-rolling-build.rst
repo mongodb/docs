@@ -34,6 +34,22 @@ less than ``4.2``,
 :doc:`resync the head database </tutorial/resync-backup>` to ensure that
 the head database takes the new index into account.
 
+|mms| automatically cancels rolling index builds 
+that do not succeed on all nodes. When a rolling index build completes 
+on some nodes, but fails on others, |mms| cancels the build
+and removes the index from any nodes that it was successfully built on. 
+
+In the event of a rolling index build cancellation,
+|mms| generates an activity feed event 
+and sends a notification email to the project owner 
+with the following information:
+
+- Name of the cluster on which the rolling index build failed
+- Namespace on which the rolling index build failed
+- Project containing the cluster and namespace
+- Organization containing the project
+- Link to the activity feed event
+
 To learn more about rebuilding indexes, see :manual:`Build Indexes on
 Replica Sets </tutorial/build-indexes-on-replica-sets>`.
 
