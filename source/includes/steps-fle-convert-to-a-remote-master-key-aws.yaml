@@ -10,10 +10,51 @@ content: |
      - **access key ID**
      - **secret access key**
 
-  2. Grant the IAM user full ``List`` and ``Read`` permissions for the KMS
+  2. Grant the IAM user narrowly scoped ``List`` and ``Read`` permissions only for the KMS
      service. See Amazon's official documentation on
      `Adding permissions to a user <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_change-permissions.html>`__
      to set these permissions.
+
+  .. important:: Authenticate with IAM Roles in Production
+
+     When deploying your CSFLE-enabled application to a production environment,
+     authenticate your application through an IAM role instead of an IAM user.
+
+     To authenticate with an IAM role, specify your temporary IAM role credentials
+     in your KMS provider object as follows:
+
+     .. code-block:: json
+
+        {
+          "accessKeyId":"<temporary access key ID>",
+          "secretAccessKey":"<temporary secret access key>",
+          "sessionToken":"<temporary session token>"
+        }
+     
+     You can get your temporary IAM role credentials through the following mechanisms:
+
+     - `Call AssumeRole <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__
+     - `Retrieve Credentials from EC2 Instance Metadata <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#instance-metadata-security-credentials>`__
+
+     Your application must include logic to get new temporary credentials
+     and recreate your CSFLE-enabled ``MongoClient`` instance when each set of
+     temporary credentials expires.
+
+     To learn more about IAM roles, see the following resources from AWS:
+
+     - `IAM roles <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html>`__
+     - `When to create an IAM role (instead of a user) <https://docs.aws.amazon.com/IAM/latest/UserGuide/id.html#id_which-to-choose_role>`__
+
+     To learn how to get temporary credentials and assume a role in each of
+     the languages supported in this guide, see the following ``AssumeRole``
+     runnable examples from AWS:
+
+     - `Java <https://docs.aws.amazon.com/code-samples/latest/catalog/javav2-sts-src-main-java-com-example-sts-AssumeRole.java.html>`__
+     - `NodeJS <https://docs.aws.amazon.com/code-samples/latest/catalog/javascriptv3-sts-src-sts_assumerole.js.html>`__
+     - `Python <https://docs.aws.amazon.com/code-samples/latest/catalog/python-sts-sts_temporary_credentials-assume_role_mfa.py.html>`__
+       (example uses multi-factor authentication)
+     - `C# <https://docs.aws.amazon.com/code-samples/latest/catalog/dotnetv3-STS-AssumeRole-AssumeRoleExample-AssumeRole.cs.html>`__
+     - `Go <https://docs.aws.amazon.com/code-samples/latest/catalog/go-sts-TakeRole-TakeRole.go.html>`__
 
 ---
 title: Create the Master Key
@@ -58,19 +99,28 @@ content: |
      .. list-table::
         :header-rows: 1
         :stub-columns: 1
-        :widths: 30 15 45
+        :widths: 25 15 15 45
 
         * - Field
-          - Required
+          - Required for IAM User
+          - Required for IAM Role
           - Description
 
         * - Access Key ID
           - Yes
-          - Identifies the account user
+          - Yes
+          - Identifies the account user.
 
         * - Secret Access Key
           - Yes
-          - Contains the authentication credentials of the account user
+          - Yes
+          - Contains the authentication credentials of the account user.
+
+        * - Session Token
+          - No
+          - Yes
+          - Contains a token obtained from AWS Security Token Service (STS).
+
 
   2. Next, add your authentication credentials to your CSFLE-enabled client
      code:
@@ -157,7 +207,6 @@ content: |
            func (a *AWS) Credentials() map[string]map[string]interface{} {
                return map[string]map[string]interface{}{"aws": structs.Map(a.credentials)}
            }
-
 
 ---
 title: Create a New Data Encryption Key
