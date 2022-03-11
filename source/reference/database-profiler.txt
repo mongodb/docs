@@ -565,6 +565,25 @@ operation.
 
       Number of bytes read by the operation from the disk to the cache.
 
+      Data read from disk into the cache includes everything needed
+      to execute the query.  If the data is already in the cache,
+      then the number of bytes read from disk could be ``0``.
+
+      The number of bytes read from disk includes more than the
+      queried documents:
+
+      * WiredTiger reads in units of pages and a page may contain one or
+        several documents.  If a document is in a page, all documents in that
+        page are read into the cache and included in the ``bytesRead`` value.
+
+      * If the cache requires page management (such as eviction or rereads),
+        the ``bytesRead`` value includes data read from disk
+        in these operations.
+
+      * If the index is not in the cache or the index in the cache is stale,
+        WiredTiger reads several internal and leaf pages from disk to
+        reconstruct the index in cache.
+
    .. data:: system.profile.storage.data.timeReadingMicros
 
       .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
@@ -578,6 +597,17 @@ operation.
 
       Number of bytes written by the operation from the cache to the
       disk.
+
+      WiredTiger typically doesn't require the query to write to disk.
+      Data modified by the query is written to an in-memory cache that
+      WiredTiger flushes to disk as part an eviction or checkpoint
+      operation. In such cases, ``bytesWritten`` shows as 0.
+
+      If the thread running the query requires forced page management
+      (such as eviction), WiredTiger writes the page contents to disk.
+      This flush likely includes data unrelated to changes made by the
+      query itself, which can cause ``bytesWritten`` to show
+      a higher value than expected.
 
    .. data:: system.profile.storage.data.timeWritingMicros
 
