@@ -112,6 +112,7 @@ Filter by event
           - Pending indexes deleted
           - Process restart requested
           - Query logs downloaded for Online Archive
+          - Rolling index build failed
           - Slow index build detected for auto-created index
           - Stalled index build detected for auto-created index
           - Submitted auto-created index build
