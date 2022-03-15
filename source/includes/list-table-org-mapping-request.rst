@@ -15,7 +15,10 @@
        users can log in.
 
        If you provide a ``domainAllowList`` field in the request, the array
-       that you provide replaces the current ``domainAllowList``.
+       that you provide replaces the current ``domainAllowList``, with the exception 
+       of any SSO domains.
+
+       .. include:: /includes/fact-connected-org-config-sso.rst
 
    * - ``domainRestrictionEnabled``
      - boolean

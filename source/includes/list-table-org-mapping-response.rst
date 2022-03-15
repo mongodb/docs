@@ -12,6 +12,8 @@
      - List that contains the approved domains from which organization 
        users can log in.
 
+       .. include:: /includes/fact-connected-org-config-sso.rst
+
    * - ``domainRestrictionEnabled``
      - boolean
      - Flag that indicates whether domain restriction is enabled for 
