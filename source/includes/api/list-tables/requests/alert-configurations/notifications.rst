@@ -217,12 +217,6 @@
        Set this value if you set **notifications.[n].typeName** to
        **PAGER_DUTY**.
 
-       |service| accepts the following values:
-
-       - ``CRITICAL``
-       - ``ERROR``
-       - ``WARNING``
-
    * - | notifications.[n]
        | .smsEnabled
      - boolean
