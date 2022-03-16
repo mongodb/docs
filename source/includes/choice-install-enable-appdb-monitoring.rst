@@ -18,30 +18,6 @@
 
             .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
 
-         .. tab:: PowerPC
-            :tabid: ppc
-
-            On PowerPC architecture running Ubuntu 18.04 (managing
-            MongoDB 3.4 or later deployments only):
-
-            .. tabs::
-
-               .. tab:: deb Package
-                  :tabid: deb
-
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                  Using a ``deb`` package:
-
-                  .. include:: /includes/steps/monitor-appdb-on-ppc64e1.ubuntu1604-deb.rst
-
-               .. tab:: TAR Archive
-                  :tabid: tar
-
-                  Using a ``tar`` archive:
-
-                  .. include:: /includes/steps/monitor-appdb-on-ubuntu1604-ppc64le-tar.rst
-
          .. tab:: IBM zSeries
             :tabid: s390x
 

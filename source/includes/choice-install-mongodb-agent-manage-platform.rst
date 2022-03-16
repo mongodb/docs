@@ -25,30 +25,6 @@
 
             .. include:: /includes/steps/install-mongodb-agent-manage-amd64.ubuntu1604-deb.rst
 
-         .. tab:: PowerPC
-            :tabid: ppc
-
-            On PowerPC architecture running Ubuntu 18.04
-            (managing MongoDB 3.4 or later deployments only):
-
-            .. tabs::
-
-               .. tab:: DEB package
-                  :tabid: deb
-
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                  Using a ``deb`` package:
-
-                  .. include:: /includes/steps/install-mongodb-agent-manage-ppc64e1.ubuntu1604-deb.rst
-
-               .. tab:: TAR archive
-                  :tabid: tar
-
-                  Using a ``tar`` archive:
-
-                  .. include:: /includes/steps/install-mongodb-agent-manage-ubuntu1604-ppc64le-tar.rst
-
    .. tab::
       :tabid: rhel
 

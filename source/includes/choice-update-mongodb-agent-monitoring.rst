@@ -23,28 +23,6 @@
 
             .. include:: /includes/steps/update-monitoring-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
-         .. tab:: PowerPC
-            :tabid: ppc
-
-            On PowerPC architecture running Ubuntu 18.x
-            (managing MongoDB 3.6 or later deployments only):
-
-            .. tabs::
-
-               .. tab:: DEB package
-                  :tabid: deb
-
-                     Using a ``deb`` package:
-
-                     .. include:: /includes/steps/update-monitoring-to-mongodb-agent-ppc64e1.ubuntu1604-deb.rst
-
-               .. tab:: TAR archive
-                  :tabid: tar
-
-                     Using a ``tar`` archive:
-
-                     .. include:: /includes/steps/update-monitoring-to-mongodb-agent-ubuntu1604-ppc64le-tar.rst
-
          .. tab:: IBM ZSeries
             :tabid: s390x
 

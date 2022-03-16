@@ -23,35 +23,13 @@
 
             .. include:: /includes/steps/update-backup-to-mongodb-agent-amd64.ubuntu1604-deb.rst
 
-         .. tab:: PowerPC
-            :tabid: ppc
+         .. tab:: IBM ZSeries
+            :tabid: s390x
 
-            On PowerPC architecture running Ubuntu 18.04
-            (managing MongoDB 3.4 or later deployments only):
+            On zSeries architecture running Ubuntu 18.04 using a
+            ``deb`` package:
 
-            .. tabs::
-
-               .. tab:: DEB package
-                  :tabid: deb
-
-                  Using a ``deb`` package:
-
-                  .. include:: /includes/steps/update-backup-to-mongodb-agent-ppc64e1.ubuntu1604-deb.rst
-
-               .. tab:: TAR archive
-                  :tabid: tar
-
-                  Using a ``tar`` archive:
-
-                  .. include:: /includes/steps/update-backup-to-mongodb-agent-ubuntu1604-ppc64le-tar.rst
-
-               .. tab:: IBM ZSeries
-                  :tabid: s390x
-
-                  On zSeries architecture running Ubuntu 18.04 using a
-                  ``deb`` package:
-
-                  .. include:: /includes/steps/update-backup-to-mongodb-agent-s390x.ubuntu1804-deb.rst
+            .. include:: /includes/steps/update-backup-to-mongodb-agent-s390x.ubuntu1804-deb.rst
 
    .. tab::
       :tabid: rhel
