@@ -1,5 +1,3 @@
-.. versionadded:: 3.6
-
 The ``authenticationRestrictions`` document can contain *only* the
 following fields. The server throws an error if the 
 ``authenticationRestrictions`` document contains an unrecognized field:

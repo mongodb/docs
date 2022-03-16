@@ -36,8 +36,6 @@
        sessions <causal-consistency>`, MongoDB drivers use this time
        to automatically set the :ref:`afterClusterTime`.
 
-       .. versionadded:: 3.6
-
    * - ``$clusterTime``
    
      - A document that returns the signed cluster time. Cluster time is a
@@ -50,6 +48,4 @@
 
        - ``signature``: a document that contains the hash of the cluster time and the id
          of the key used to sign the cluster time.
-
-       .. versionadded:: 3.6
 
