@@ -94,8 +94,8 @@ Solutions
 You can recover from an invalid resume token using one of the following
 strategies:
 
-- :ref:`Temporarily Tolerate Errors <temporarily-tolerate-errors>`
-- :ref:`Delete Stored Offsets <troubleshoot-delete-stored-offsets>`
+- :ref:`<temporarily-tolerate-errors>`
+- :ref:`<troubleshoot-reset-stored-offsets>`
 
 .. _temporarily-tolerate-errors:
 
@@ -132,43 +132,60 @@ To configure your source connector to temporarily tolerate errors:
 For more information on the ``errors.tolerance`` option, see the
 :ref:`<source-configuration-error-handling>` page.
 
+.. _troubleshoot-reset-stored-offsets:
 .. _troubleshoot-delete-stored-offsets:
 
-Delete Stored Offsets
+Reset Stored Offsets
 ~~~~~~~~~~~~~~~~~~~~~
 
-You can delete your Kafka Connect offset data, which contains your resume token,
-to allow your connector to resume processing your change stream. This strategy is
-more complex than the preceding strategy, but does not risk tolerating errors
-unrelated to the invalid resume token.
+You can reset your Kafka Connect offset data, which contains your resume token,
+to allow your connector to resume processing your change stream.
 
-.. As far as I can tell, there is not a straightforward way to tell at runtime
-   which mode you are in. The Data Engineer Persona likely knows how they
-   configured their pipeline, but if they do not know they may
-   have to attempt both choices.
+To reset your offset data, change the value of the
+``offset.partition.name`` configuration property to a partition name that does
+not exist on your Kafka deployment. You can set your ``offset.partition.name``
+property like this:
 
-The steps to perform this strategy depend on whether you are running Kafka Connect
-in distributed mode or standalone mode. Click on the tab corresponding to the
-mode of your deployment: 
+.. code-block:: properties
 
-.. tabs::
+   offset.partition.name=<a string>
 
-   .. tab:: Distributed
-      :tabid: distributed
+.. tip:: Naming your Offset Partitions
 
-      #. Delete the topic specified in the ``offset.storage.topic`` property of your
-         Kafka Connect deployment. For more information on deleting topics in Apache Kafka, see the 
-         `official Apache Kafka documentation <https://kafka.apache.org/081/documentation.html#basic_ops_add_topic>`__.
+   Consider using the following pattern to name your offset partitions:
 
-      #. Restart your source connector and continue to process change stream events. 
+   .. code-block:: properties
 
-   .. tab:: Standalone
-      :tabid: standalone
+      offset.partition.name=<source connector name>.<monotonically increasing number>
 
-      #. Delete the file referenced by the ``offset.storage.file.filename`` property of
-         your Kafka Connect deployment.
+   This pattern provides the following benefits:
 
-      #. Restart your source connector and continue to process change stream events. 
+   - Records the number of times you reset your connector
+   - Documents to which connector an offset partition belongs
+
+   .. example::
+
+      Assume you named your source connector ``"source-values"`` and you are
+      setting the ``offset.partition.name`` property for the first time.
+      You would configure your connector as follows:
+
+      .. code-block:: properties
+
+         offset.partition.name=source-values.1
+
+      The next time you reset your connector's offset data, configure
+      your connector as follows:
+
+      .. code-block:: properties
+
+         offset.partition.name=source-values.2
+
+To learn more about the ``offset.partition.name`` configuration property, see
+the :ref:`<source-configuration-error-handling>` page.
+
+To learn about naming your connector, see the official 
+`{+ak+} <https://kafka.apache.org/documentation/#connect_configuring>`__
+documentation.
 
 .. _invalid-resume-token-prevention:
 
