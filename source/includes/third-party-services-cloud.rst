@@ -5,3 +5,4 @@
 - ``VICTOR_OPS``
 - ``FLOWDOCK``
 - ``WEBHOOK``
+- ``PROMETHEUS``
