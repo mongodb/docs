@@ -10,6 +10,8 @@
 
 - Updates the |jdk| to ``jdk-11.0.14.1+1``.
 
+- Removes workaround to use an X.509 CommonName instead of a |san-dns|.
+
 - Updates the {+mdbagent+} to :ref:`10.14.32.6576 <mongodb-10.14.32.6576>`.
 
 .. _opsmgr-server-4.4.20:
