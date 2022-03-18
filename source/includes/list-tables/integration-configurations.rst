@@ -128,11 +128,6 @@
        |service| sends an email to the project owner and eventually
        removes the key.
 
-       You can add PagerDuty notifications only for alerts that require
-       user acknowledgement. Informational alerts, such as the alert
-       that a user has joined a project, cannot use this notification
-       method.
-
        Users can acknowledge PagerDuty alerts only from the PagerDuty
        dashboard.
 

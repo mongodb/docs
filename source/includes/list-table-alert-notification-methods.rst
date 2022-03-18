@@ -114,10 +114,6 @@
        account. Enter only the PagerDuty service key. Define
        escalation rules and alert assignments directly in PagerDuty.
 
-       This option is available only for alerts that require 
-       acknowledegment. Informational alerts, such as the alert that a 
-       user has joined a project, cannot use this notification method.
-
        Users can acknowledge PagerDuty alerts only from the PagerDuty
        dashboard.
 
