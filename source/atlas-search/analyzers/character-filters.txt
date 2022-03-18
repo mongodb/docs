@@ -1,0 +1,318 @@
+.. _character-filters:
+.. _char-filters-ref:
+
+=================
+Character Filters
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Character filters require a type field, and some take additional
+options as well.
+
+.. code-block:: json
+
+   "charFilters": [
+     {
+       "type": "<filter-type>",
+       "<additional-option>": <value>
+     }
+   ]
+
+|fts| supports four types of character filters:
+
+- :ref:`htmlStrip <htmlStrip-ref>`
+- :ref:`icuNormalize <icuNormalize-ref>`
+- :ref:`mapping <mapping-ref>`
+- :ref:`persian <persian-ref>`
+
+.. _htmlStrip-ref:
+
+htmlStrip
+---------
+
+The ``htmlStrip`` character filter strips out HTML constructs. It has 
+the following attributes:
+
+.. list-table::
+   :widths: 10 10 45 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this character filter type. 
+       Value must be ``htmlStrip``.
+     - yes
+     - 
+
+   * - ``ignoredTags``
+     - array of strings
+     - List that contains the HTML tags to exclude from filtering.
+     - no
+     - 
+
+.. example::
+
+   The following index definition example uses a custom analyzer 
+   named ``htmlStrippingAnalyzer``. It uses the ``htmlStrip`` 
+   character filter to remove all HTML tags from the text except 
+   the ``a`` tag in the ``minutes`` collection. It uses the 
+   :ref:`standard tokenizer <standard-tokenizer-ref>` and no 
+   token filters.
+
+   .. code-block:: json
+
+     {
+       "analyzer": "htmlStrippingAnalyzer",
+       "mappings": {
+         "dynamic": true
+       },
+       "analyzers": [{
+         "name": "htmlStrippingAnalyzer",
+         "charFilters": [{
+           "type": "htmlStrip",
+           "ignoredTags": ["a"]
+         }],
+         "tokenizer": {
+           "type": "standard"
+         },
+         "tokenFilters": []
+       }]
+     }
+
+   The following search operation looks for occurrences of the 
+   string ``head`` in the ``text`` field of the ``minutes`` 
+   collection.
+
+   .. code-block:: json
+
+     db.minutes.aggregate([   
+       {     
+         $search: {
+           text: {
+             query: "head",
+             path: "text"
+           }
+         }
+       },
+       {
+         $project: {
+           "_id": 1,
+           "text": 1
+         }
+       }
+     ])
+
+   The query returns the following results:
+
+   .. code-block:: json
+     :copyable: false
+    
+     { "_id" : 2, "text" : "The head of the sales department spoke first." }
+     { "_id" : 3, "text" : "<body>We'll head out to the conference room by noon.</body>" }
+
+   The document with ``_id: 1`` is not returned, because the 
+   string ``head`` is part of the HTML tag ``<head>``. The 
+   document with ``_id: 3`` contains HTML tags, but the string 
+   ``head`` is elsewhere so the document is a match.
+
+.. _icuNormalize-ref:
+
+icuNormalize
+------------
+
+The ``icuNormalize`` character filter normalizes text with the `ICU 
+<http://site.icu-project.org/>`__ Normalizer. It is based on Lucene's 
+`ICUNormalizer2CharFilter <https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html>`__. 
+It has the following attribute:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this character filter type. 
+       Value must be ``icuNormalize``.
+     - yes
+     - 
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``normalizingAnalyzer``. It uses the ``icuNormalize`` character
+   filter, the :ref:`whitespace tokenizer <whitespace-tokenizer-ref>`,
+   and no token filters.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "normalizingAnalyzer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "normalizingAnalyzer",
+            "charFilters": [
+              {
+                "type": "icuNormalize"
+              }
+            ],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _mapping-ref:
+
+mapping
+-------
+
+The ``mapping`` character filter applies user-specified normalization 
+mappings to characters. It is based on Lucene's `MappingCharFilter 
+<https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html>`__. 
+It has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this character filter type. 
+       Value must be ``mapping``.
+     - yes
+     - 
+ 
+   * - ``mappings``
+     - object
+     - Object that contains a comma-separated list of mappings. A 
+       mapping indicates that one character or group of characters 
+       should be substituted for another, in the format 
+       ``<original> : <replacement>``.
+     - yes
+     -
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``mappingAnalyzer``. It uses the ``mapping`` character filter to
+   replace instances of ``\\`` with ``/``. It uses the :ref:`keyword
+   tokenizer <keyword-tokenizer-ref>` and no token filters.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "mappingAnalyzer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "mappingAnalyzer",
+            "charFilters": [
+              {
+                "type": "mapping",
+                "mappings": {
+                  "\\": "/"
+                }
+              }
+            ],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+   .. seealso:: 
+   
+      The :ref:`shingle-tf-ref` token filter for a sample index 
+      definition and query. 
+
+.. _persian-ref:
+
+persian
+-------
+
+The ``persian`` character filter replaces instances of `zero-width 
+non-joiner <https://en.wikipedia.org/wiki/Zero-width_non-joiner>`__ 
+with ordinary space. It is based on Lucene's `PersianCharFilter 
+<https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html>`__. 
+It has the following attribute:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this character filter type. 
+       Value must be ``persian``.
+     - yes
+     - 
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``persianCharacterIndex``. It uses the ``persian`` character filter,
+   the ``whitespace`` tokenizer and no token filters.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "persianCharacterIndex",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "persianCharacterIndex",
+            "charFilters": [
+              {
+                "type": "persian"
+              }
+            ],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+      

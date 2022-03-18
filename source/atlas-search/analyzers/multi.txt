@@ -1,0 +1,85 @@
+.. _ref-multi-analyzers:
+
+==============
+Multi Analyzer
+==============
+
+.. default-domain:: mongodb
+
+You can use the ``multi`` object in your index definition to specify 
+alternate analyzers with which to also index the field. When you index 
+a field with alternate analyzers in addition to the default analyzer, 
+you can search the collection with either the default or the alternate 
+analyzer. This page demonstrates how to specify alternate analyzers in 
+your :ref:`index definition <ref-index-definitions>` using ``multi``. 
+To learn more about searching with alternate analyzers, see 
+:ref:`ref-path`.
+
+Example 
+-------
+
+The following example index definition specifies an index on the
+``title`` field in the ``sample_mflix.movies`` collection using the 
+``standard`` analyzer. The index definition also specifies 
+:ref:`keyword analyzer <ref-keyword-analyzer>` as an alternate analyzer 
+for the ``title`` field, with the name ``keywordAnalyzer``. The 
+:ref:`ref-keyword-analyzer` analyzer indexes the entire field as a 
+single term, so it returns results only if the search term and the 
+specified field match exactly. 
+
+.. code-block:: json
+
+   {
+       "mappings": {
+         "dynamic": false,
+         "fields": {
+           "title": {
+             "type": "string",
+             "analyzer": "lucene.standard",
+             "multi": {
+               "keywordAnalyzer": {
+                 "type": "string",
+                 "analyzer": "lucene.keyword"
+               }
+             }
+           }
+         }
+       }
+     }
+
+The following query uses the alternate analyzer, named 
+``keywordAnalyzer``, to search for exact matches on the string ``The 
+Count of Monte Cristo``. 
+
+.. code-block:: javascript
+
+   db.movies.aggregate([
+     {
+       $search: {
+         "text": {
+           "query": "The Count of Monte Cristo",
+           "path": { "value": "title", "multi": "keywordAnalyzer" }
+         }
+       }
+     }, 
+     { 
+       $project: { 
+         "title": 1,
+         "year": 1,
+         "_id": 0 
+       } 
+     }
+   ])
+
+The above query returns the following results:
+
+.. code-block:: json
+   :copyable: false
+
+   { "title" : "The Count of Monte Cristo", "year" : 1934 }
+   { "title" : "The Count of Monte Cristo", "year" : 1954 }
+   { "title" : "The Count of Monte Cristo", "year" : 1998 }
+
+By contrast, the same query using the ``standard`` analyzer would find 
+all the movies with the word ``Count`` or ``Monte`` or ``Cristo`` in 
+the title.

@@ -1,0 +1,170 @@
+.. _what-is-fts:
+
+==============
+|fts| Overview
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB's |fts| allows fine-grained text indexing and querying of data 
+on your |service| cluster. It enables advanced search functionality for 
+your applications without any additional management or separate search 
+system alongside your database. |fts| provides options for several 
+kinds of :ref:`text analyzers <analyzers-ref>`, a rich :ref:`query 
+language <query-syntax-ref>` that uses |fts| aggregation pipeline 
+stages like :pipeline:`$search` and :pipeline:`$searchMeta` in 
+conjunction with other MongoDB aggregation pipeline stages, and 
+score-based results ranking.
+
+|fts| is available on |service| instances running MongoDB 4.2 or higher 
+versions only. 
+
+.. _fts-architecture:
+
+|fts| Architecture 
+------------------
+
+The |fts| ``mongot`` Java web process uses `Apache Lucene 
+<https://lucene.apache.org/>`__ and runs alongside ``mongod`` on each 
+node in the |service| cluster. The ``mongot`` process: 
+
+1. Creates |fts| indexes based on the rules in the :ref:`index 
+   definition <ref-index-definitions>` for the collection.
+#. Monitors :manual:`change streams </changeStreams/>` for the current 
+   state of the documents and index changes for the collections for 
+   which you defined |fts| indexes.
+#. Processes |fts| queries and returns matching documents.
+
+.. image:: /images/fts-architecture.png
+   :alt: Atlas Search architecture 
+   :figwidth: 100%
+
+|fts| Indexes
+~~~~~~~~~~~~~
+
+When you configure one or more |fts| search indexes, |service| enables 
+the ``mongot`` process on the nodes in the cluster. Each ``mongot`` 
+process talks to the ``mongod`` on the same node. To create and update 
+indexes, the ``mongot`` process performs collection scans on the 
+backend database and opens change streams for each index. 
+
+You can specify the fields to index using the following: 
+
+- :ref:`Dynamic mappings <static-dynamic-mappings>`, which enables 
+  |fts| to automatically index all the fields of :ref:`supported types 
+  <bson-data-chart>` in each document. This takes disk space and might 
+  negatively impact cluster performance. 
+- :ref:`Static mappings <static-dynamic-mappings>`, which allows you to 
+  selectively identify the fields to index. 
+
+|fts| performs inverted indexing and stores the indexed fields on disk. 
+The data stored on |fts| isn't an identical copy of data from the 
+collection on your |service| cluster, but it still takes some disk 
+space and memory.
+
+|fts| provides built-in analyzers for creating indexable terms that 
+correct for differences in punctuation, capitalization, stop words, 
+and more. Analyzers apply parsing and language rules to the query. You 
+can also create a custom analyzer using available built in character 
+filters, tokenizers, and token filters. To learn more about the 
+built-in and custom analyzers, see :ref:`analyzers-ref`.
+
+For text fields, the ``mongot`` performs the following to create 
+indexable tokens: 
+
+1. Analysis of the text
+#. Tokenization, which is breaking up of words in a string to indexable 
+   tokens
+#. Normalization, such as transforming the text to lower case, folding 
+   diacritics, and removing stop words
+#. Stemming, such as ignoring plural and other word forms to index the 
+   word in the most reduced form
+
+To learn more about |fts| support for other data types, see 
+:ref:`bson-data-chart` and :ref:`bson-data-types`. The ``mongot`` 
+process stores the indexed fields and the ``_id`` field on disk per 
+index for the collections on the cluster. 
+
+If you modify an existing index, |fts| performs a no-downtime rebuild 
+of the index. This allows you to continue using the old index for 
+existing and new queries until the index rebuild is complete. 
+
+If you make changes to the collection for which you defined |fts| 
+indexes, the latest data might not be available immediately for 
+queries. However, ``mongot`` monitors the change streams, which allows 
+it to update stored copies of data, and |fts| indexes are eventually 
+consistent.
+
+After you set up an |fts| index for a collection, you can run queries 
+against the indexed fields.
+
+|fts| Queries 
+~~~~~~~~~~~~~
+
+|fts| queries take the form of an :manual:`aggregation pipeline stage 
+</aggregation>`. |fts| provides :pipeline:`$search`, which must be the 
+first stage in the query pipeline, and :pipeline:`$searchMeta` stages. 
+These stages can be used in conjunction with other :manual:`aggregation 
+pipeline stages </aggregation>` in your query pipeline. To learn more 
+about these pipeline stages, see :ref:`query-syntax-ref`.
+
+|fts| also provides query :ref:`operators <operators-ref>` and 
+:ref:`collectors <collectors-ref>` that you can use inside the 
+:ref:`query-syntax-ref`. The |fts| operators provide ways to locate and 
+retrieve matching data from the collection on your |service| cluster. 
+The collector returns a document representing the search metadata 
+results.
+
+You can use |fts| operators to query terms, phrases, geographic shapes 
+and points, numeric values, synonymous terms, and more. You can also 
+search using regex and wildcard expressions. The |fts| 
+:ref:`compound-ref` operator allows you to combine multiple operators 
+inside your :pipeline:`$search` stage to perform a complex search and 
+filter of data based on what *must*, *must not*, or *should* be present 
+in the documents returned by |fts|. You can use the :ref:`compound-ref` 
+operator to also match or filter documents in the :pipeline:`$search` 
+stage itself. Running :pipeline:`$match` after :pipeline:`$search` is 
+less performant than running :pipeline:`$search` with the 
+:ref:`compound-ref` operator.
+
+To learn more about the syntax, options, and usage of the various |fts| 
+operators, see :ref:`operators-ref`.
+
+When you run a query, the query first goes to the MongoDB process, 
+which is ``mongod`` for a replica set cluster or ``mongos`` for a 
+sharded cluster. For sharded clusters, your cluster data is partitioned 
+across ``mongod`` instances and each ``mongot`` knows about the data on 
+the ``mongod`` on the same node only. Therefore, you can't run queries 
+that target a particular shard. ``mongos`` directs the queries to all 
+shards, making these *scatter gather* queries. 
+
+The MongoDB process routes the query to the ``mongot`` on the same 
+node. |fts| performs the search and scoring and returns the document 
+IDs and other search metadata for the matching results to ``mongod``. 
+The ``mongod`` then performs a full document lookup implicitly for the 
+matching results and then returns the results to the client. 
+
+|fts| associates a relevance-based score with every document in the 
+result set. The relevance-based scoring allows the documents to be 
+returned in order from highest score to lowest. |fts| scores documents 
+higher if the query term appears frequently in a document and lower if 
+the query term appears across many documents in the collection. |fts| 
+also supports customizing the relevance-based default score by 
+boosting, decaying, etc. To learn more about the various ways in which 
+you can customize the resulting scores, see :ref:`scoring-ref`. 
+
+Next Steps 
+----------
+
+For hands-on experience creating |fts| indexes and running |fts| 
+queries against the :doc:`sample datasets </sample-data>`, try the 
+tutorials in the following pages:
+
+- :ref:`fts-tutorial-ref`
+- :ref:`fts-tutorials`

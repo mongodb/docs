@@ -1,0 +1,1397 @@
+.. _token-filters-ref:
+
+=============
+Token Filters
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Token Filters always require a type field, and some take additional 
+options as well.
+
+.. code-block:: json
+
+   "tokenFilters": [
+     {
+       "type": "<token-filter-type>",
+       "<additional-option>": <value>
+     }
+   ]
+
+|fts| supports the following token filters:
+
+- :ref:`asciiFolding <asciiFolding-tf-ref>`
+- :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>`
+- :ref:`edgeGram <edgegram-tf-ref>`
+- :ref:`icuFolding <icufolding-tf-ref>`
+- :ref:`icuNormalizer <icunormalizer-tf-ref>`
+- :ref:`length <length-tf-ref>`
+- :ref:`lowercase <lowercase-tf-ref>`
+- :ref:`nGram <ngram-tf-ref>`
+- :ref:`regex <regex-tf-ref>`
+- :ref:`reverse <reverse-tf-ref>`
+- :ref:`shingle <shingle-tf-ref>`
+- :ref:`snowballStemming <snowballstemming-tf-ref>`
+- :ref:`stopword <stopword-tf-ref>`
+- :ref:`trim <trim-tf-ref>`
+
+.. _asciiFolding-tf-ref: 
+
+asciiFolding
+------------
+
+The ``asciiFolding`` token filter converts alphabetic, numeric, and 
+symbolic unicode characters that are not in the `Basic Latin Unicode 
+block <https://en.wikipedia.org/wiki/Basic_Latin_(Unicode_block)>`__ 
+to their ASCII equivalents, if available. It has the following 
+attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type. 
+       Value must be ``asciiFolding``.
+     - yes
+     -
+
+   * - ``originalTokens`` 
+     - string 
+     - String that specifies whether to include or omit the original
+       tokens in the output of the token filter. Value can be one of
+       the following: 
+
+       - ``include`` - include the original tokens with the 
+         converted tokens in the output of the token filter. We 
+         recommend this value if you want to support queries on both 
+         the original tokens as well as the converted forms. 
+       - ``omit`` - omit the original tokens and include only the 
+         converted tokens in the output of the token filter. Use this 
+         value if you want to query only on the converted forms of the 
+         original tokens. 
+
+     - no 
+     - ``omit``
+
+.. example:: 
+
+   The following index definition example uses a custom analyzer 
+   named ``asciiConverter``. It uses the :ref:`standard tokenizer
+   <standard-tokenizer-ref>` with the ``asciiFolding`` token filter to 
+   index the fields in the :ref:`example <custom-analyzers-eg-coll>` 
+   collection and convert the field values to their ASCII equivalent. 
+
+   .. code-block:: json 
+
+      {
+        "analyzer": "asciiConverter",
+        "searchAnalyzer": "asciiConverter",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "asciiConverter",
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "asciiFolding"
+              }
+            ]
+          }
+        ]
+      }
+
+   The following query searches the ``first_name`` field for names 
+   using their ASCII equivalent.
+
+   .. code-block:: json 
+
+      db.minutes.aggregate([
+        {
+          $search: {
+            "index": "default",
+            "text": {
+              "query": "Sian",
+              "path": "page_updated_by.first_name"
+            }
+          }
+        },
+        {
+          $project: {
+            "_id": 1,
+            "page_updated_by.last_name": 1,
+            "page_updated_by.first_name": 1
+          }
+        }
+      ])
+
+   |fts| returns the following results: 
+
+   .. code-block:: json
+      :copyable: false 
+
+      [
+        {
+           _id: 1,
+           page_updated_by: { last_name: 'AUERBACH', first_name: 'Siân'}
+        }
+      ]
+
+.. _daitchmokotoffsoundex-tf-ref: 
+
+daitchMokotoffSoundex
+---------------------
+
+The ``daitchMokotoffSoundex`` token filter creates tokens for words 
+that sound the same based on the `Daitch-Mokotoff Soundex 
+<https://en.wikipedia.org/wiki/Daitch%E2%80%93Mokotoff_Soundex>`__ 
+phonetic algorithm. This filter can generate multiple encodings for 
+each input, where each encoded token is a 6 digit number. 
+
+.. note:: 
+
+   Don't use the ``daitchMokotoffSoundex`` token filter in: 
+          
+   - :ref:`Synonym <synonyms-ref>` or :ref:`autocomplete 
+     <bson-data-types-autocomplete>` mapping definitions.
+   - Operators where ``fuzzy`` is enabled. |fts| supports the ``fuzzy`` 
+     option for the following operators: 
+
+     - :ref:`autocomplete-ref`
+     - :ref:`term-ref` 
+     - :ref:`text-ref` 
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``daitchMokotoffSoundex``.
+     - yes
+     -
+
+   * - ``originalTokens`` 
+     - string 
+     - String that specifies whether to include or omit the original 
+       tokens in the output of the token filter. Value can be one of 
+       the following: 
+
+       - ``include`` - include the original tokens with the encoded 
+         tokens in the output of the token filter. We recommend this 
+         value if you want queries on both the original tokens as well 
+         as the encoded forms. 
+       - ``omit`` - omit the original tokens and include only the 
+         encoded tokens in the output of the token filter. Use this 
+         value if you want to only query on the encoded forms of the 
+         original tokens. 
+
+     - no 
+     - ``include``
+
+.. example::
+
+   The following index definition example uses a custom analyzer 
+   named ``dmsAnalyzer``. It uses the :ref:`standard tokenizer
+   <standard-tokenizer-ref>` with the ``daitchMokotoffSoundex`` 
+   token filter to index and query for words that sound the same 
+   as their encoded forms.
+
+   .. code-block:: json 
+
+     {
+       "analyzer": "dmsAnalyzer",
+       "searchAnalyzer": "dmsAnalyzer",
+       "mappings": {
+         "dynamic": true
+       },
+       "analyzers": [
+         {
+           "name": "dmsAnalyzer",
+           "tokenizer": {
+             "type": "standard"
+           },
+           "tokenFilters": [
+             {
+               "type": "daitchMokotoffSoundex",
+               "originalTokens": "include"
+             }
+           ]
+         }
+       ]
+     }
+
+   The following query searches for terms that sound similar to 
+   ``AUERBACH`` in the ``page_updated_by.last_name`` field of 
+   the ``minutes`` collection.
+
+   .. code-block:: json 
+
+      db.minutes.aggregate([
+        {
+          $search: {
+            "index": "default",
+            "text": {
+              "query": "AUERBACH",
+              "path": "page_updated_by.last_name"
+            }
+          }
+        },
+        {
+          $project: {
+            "_id": 1,
+            "page_updated_by.last_name": 1
+          }
+        }
+      ])
+
+   The query returns the following results: 
+
+   .. code-block:: json 
+     :copyable: false 
+
+     { "_id" : 1, "page_updated_by" : { "last_name" : "AUERBACH" } }
+     { "_id" : 2, "page_updated_by" : { "last_name" : "OHRBACH" } }
+
+   |fts| returns documents with ``_id: 1`` and ``_id: 2`` 
+   because the terms in both documents are phonetically similar, 
+   and are coded using the same six digit ``097500``.
+
+.. _edgegram-tf-ref:
+
+edgeGram
+--------
+
+The ``edgeGram`` token filter tokenizes input from the left side, or 
+"edge", of a text input into n-grams of configured sizes. You can't use 
+the :ref:`edgeGram <edgegram-tf-ref>` token filter in :ref:`synonym 
+<synonyms-ref>` or :ref:`autocomplete <bson-data-types-autocomplete>` 
+mapping definitions. It has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type. 
+       Value must be ``edgeGram``.
+     - yes
+     -
+
+   * - ``minGram``
+     - integer
+     - Number that specifies the minimum length of generated n-grams.
+       Value must be less than or 
+       equal to ``maxGram``.
+     - yes
+     - 
+
+   * - ``maxGram``
+     - integer
+     - Number that specifies the maximum length of generated n-grams.
+       Value must be greater than or 
+       equal to ``minGram``.
+     - yes
+     - 
+
+   * - ``termNotInBounds``
+     - string
+     - String that specifies whether to index tokens shorter than
+       ``minGram`` or longer than ``maxGram``. Accepted
+       values are:
+
+       - ``include``
+       - ``omit``
+
+       If ``include`` is specified, tokens shorter than ``minGram`` or
+       longer than ``maxGram`` are indexed as-is. If ``omit`` is 
+       specified, those tokens are not indexed.
+     - no
+     - ``omit``
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``englishAutocomplete``. It performs the following operations:
+
+   - Tokenizes with the :ref:`standard tokenizer 
+     <standard-tokenizer-ref>`.
+   - Token filtering with the following filters:
+
+     - ``icuFolding``
+     - ``shingle``
+     - ``edgeGram``
+
+   .. code-block:: json
+
+      {
+        "analyzer": "englishAutocomplete",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "englishAutocomplete",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuFolding"
+              },
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              },
+              {
+                "type": "edgeGram",
+                "minGram": 1,
+                "maxGram": 10
+              }
+            ]
+          }
+        ]
+      }
+
+   .. seealso:: 
+   
+      The :ref:`shingle-tf-ref` token filter for a sample index 
+      definition and query. 
+
+.. _icufolding-tf-ref:
+
+icuFolding
+----------
+
+The ``icuFolding`` token filter applies character folding from `Unicode 
+Technical Report #30 <http://www.unicode.org/reports/tr30/tr30-4.html>`__. 
+It has the following attribute:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``icuFolding``.
+     - yes
+     -
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``diacriticFolder``. It uses the :ref:`keyword tokenizer
+   <keyword-tokenizer-ref>` with the ``icuFolding`` token filter to 
+   apply foldings from `UTR#30 Character Foldings
+   <https://unicode.org/reports/tr30/>`__. Foldings include accent
+   removal, case folding, canonical duplicates folding, and many others
+   detailed in the report.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "diacriticFolder",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "diacriticFolder",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuFolding"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _icunormalizer-tf-ref:
+
+icuNormalizer
+-------------
+
+The ``icuNormalizer`` token filter normalizes tokens using a standard 
+`Unicode Normalization Mode <https://unicode.org/reports/tr15/>`__. It 
+has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``icuNormalizer``.
+     - yes
+     -
+
+   * - ``normalizationForm``
+     - string
+     - Normalization form to apply. Accepted values are:
+
+       - ``nfd`` (Canonical Decomposition)
+       - ``nfc`` (Canonical Decomposition, followed by Canonical 
+         Composition)
+       - ``nfkd`` (Compatibility Decomposition)
+       - ``nfkc`` (Compatibility Decomposition, followed by Canonical 
+         Composition)
+
+       To learn more about the supported normalization forms, see
+       `Section 1.2: Normalization Forms, UTR#15 
+       <https://unicode.org/reports/tr15/#Norm_Forms>`__.
+
+     - no
+     - ``nfc``
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``normalizer``. It uses the :ref:`whitespace tokenizer
+   <whitespace-tokenizer-ref>`, then normalizes
+   tokens by Canonical Decomposition, followed by Canonical Composition.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "normalizer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "normalizer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuNormalizer",
+                "normalizationForm": "nfc"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _length-tf-ref:
+
+length
+------
+
+The ``length`` token filter removes tokens that are too short or too 
+long. It has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``length``.
+     - yes
+     -
+
+   * - ``min``
+     - integer
+     - Number that specifies the minimum length of a token.
+       Value must be less than or equal to 
+       ``max``.
+     - no
+     - 0
+
+   * - ``max``
+     - integer
+     - Number that specifies the maximum length of a token.
+       Value must be greater than or equal to 
+       ``min``.
+     - no
+     - 255
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``longOnly``. It uses the ``length`` token filter to index only 
+   tokens that are at least 20 UTF-16 code units long after tokenizing 
+   with the :ref:`standard tokenizer <standard-tokenizer-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "longOnly",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "longOnly",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "length",
+                "min": 20
+              }
+            ]
+          }
+        ]
+      }
+
+.. _lowercase-tf-ref:
+
+lowercase
+---------
+
+The ``lowercase`` token filter normalizes token text to lowercase. It 
+has the following attribute:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``lowercase``.
+     - yes
+     -
+
+.. example::
+         
+   The following index definition example uses a custom analyzer named 
+   ``lowercaser``. It uses the :ref:`standard tokenizer 
+   <standard-tokenizer-ref>` with the ``lowercase`` token filter to 
+   lowercase all tokens.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "lowercaser",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "lowercaser",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              }
+            ]
+          }
+        ]
+      }
+
+   .. seealso:: 
+   
+      The :ref:`regex-tf-ref` token filter for a sample index 
+      definition and query. 
+
+.. _ngram-tf-ref:
+
+nGram
+-----
+
+The ``nGram`` token filter tokenizes input into n-grams of configured 
+sizes. You can't use the :ref:`nGram <ngram-tf-ref>` token filter in 
+:ref:`synonym <synonyms-ref>` or :ref:`autocomplete 
+<bson-data-types-autocomplete>` mapping definitions. It has the 
+following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type. Value must be ``nGram``.
+     - yes
+     -
+
+   * - ``minGram``
+     - integer
+     - Number that specifies the minimum length of generated n-grams.
+       Value must be less than or 
+       equal to ``maxGram``.
+     - yes
+     - 
+
+   * - ``maxGram``
+     - integer
+     - Number that specifies the maximum length of generated n-grams.
+       Value must be greater than or 
+       equal to ``minGram``.
+     - yes
+     - 
+
+   * - ``termNotInBounds``
+     - string
+     - String that specifies whether to index tokens shorter than
+       ``minGram`` or longer than ``maxGram``. Accepted values are:
+
+       - ``include``
+       - ``omit``
+
+       If ``include`` is specified, tokens shorter than ``minGram`` or
+       longer than ``maxGram`` are indexed as-is. If ``omit`` is 
+       specified, those tokens are not indexed.
+     - no
+     - ``omit``
+
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``persianAutocomplete``. It functions as an autocomplete analyzer for
+   Persian and other languages that use the zero-width non-joiner
+   character. It performs the following operations:
+   
+   - Normalizes zero-width non-joiner characters with the :ref:`persian
+     character filter <persian-ref>`. 
+   - Tokenizes by whitespace with the :ref:`whitespace tokenizer
+     <whitespace-tokenizer-ref>`.
+   - Applies a series of token filters: 
+   
+     - ``icuNormalizer``
+     - ``shingle``
+     - ``nGram``
+
+   .. code-block:: json
+
+      {
+        "analyzer": "persianAutocomplete",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "persianAutocomplete",
+            "charFilters": [
+              {
+                "type": "persian"
+              }
+            ],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "type": "icuNormalizer",
+                "normalizationForm": "nfc"
+              },
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              },
+              {
+                "type": "nGram",
+                "minGram": 1,
+                "maxGram": 10
+              }
+            ]
+          }
+        ]
+      }
+
+.. _regex-tf-ref:
+
+regex
+-----
+
+The ``regex`` token filter applies a regular expression to each token, 
+replacing matches with a specified string. It has the following 
+attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter.
+       Value must be ``regex``.
+     - yes
+     -
+
+   * - ``pattern``
+     - string
+     - Regular expression pattern to apply to each token.
+     - yes
+     - 
+
+   * - ``replacement``
+     - string
+     - Replacement string to substitute wherever a matching pattern
+       occurs.
+     - yes
+     - 
+
+   * - ``matches``
+     - string
+     - Acceptable values are:
+
+       - ``all``
+       - ``first``
+
+       If ``matches`` is set to ``all``, replace all matching patterns.
+       Otherwise, replace only the first matching pattern.
+
+     - yes
+     -
+
+.. example::
+
+   The following index definition uses a custom analyzer named 
+   ``emailRedact`` for indexing the ``page_updated_by.email`` 
+   field in the ``minutes`` collection. It uses the 
+   :ref:`standard tokenizer <standard-tokenizer-ref>`. It first 
+   applies the lowercase token filter to turn uppercase 
+   characters in the field to lowercase and then finds strings 
+   that look like email addresses and replaces them with the word 
+   ``redacted``.
+
+   .. code-block:: json
+ 
+     {
+       "analyzer": "lucene.standard",
+       "mappings": {
+         "dynamic": false,
+         "fields": {
+           "page_updated_by": {
+             "type": "document",
+             "fields": {
+               "email": {
+                 "type": "string",
+                 "analyzer": "emailRedact"
+               }
+             }
+           }
+         }
+       },
+       "analyzers": [
+         {
+           "charFilters": [],
+           "name": "emailRedact",
+           "tokenizer": {
+             "type": "standard"
+           },
+           "tokenFilters": [
+             {
+               "type": "lowercase"
+             },
+             {
+               "matches": "all",
+               "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
+               "replacement": "redacted",
+               "type": "regex"
+             }
+           ]
+         }
+       ]
+     }
+
+   The following query searches for the term ``example`` in the 
+   ``page_updated_by.email`` field of the ``minutes`` collection. 
+
+   .. code-block:: 
+
+     db.minutes.aggregate([
+       {
+         $search: {
+           "index": "default",
+           "text": {
+             "query": "example",
+             "path": "page_updated_by.email"
+           }
+         }
+       }
+     ])
+
+   |fts| doesn't return any results for the query because the 
+   ``page_updated_by.email`` field doesn't contain any instances 
+   of the word ``example`` that aren't in an email address. 
+   |fts| replaces strings that match the regular expression 
+   provided in the custom analyzer with the word ``redacted``.
+
+.. _reverse-tf-ref:
+
+reverse 
+-------
+
+The ``reverse`` token filter reverses each string token. It has the 
+following attribute: 
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter.
+       Value must be ``reverse``.
+     - yes
+     -
+
+.. example:: 
+
+   The following index definition example for the :ref:`minutes 
+   <custom-analyzers-eg-coll>` collection uses a custom analyzer named 
+   ``keywordReverse``. It performs the following operations:
+
+   - Uses :ref:`dynamic mapping <static-dynamic-mappings>` 
+   - Tokenizes with the :ref:`keyword tokenizer 
+     <keyword-tokenizer-ref>`
+   - Applies the ``reverse`` token filter to tokens
+
+   .. code-block:: json
+      :emphasize-lines: 14-16
+
+      {
+        "analyzer": "lucene.keyword",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "keywordReverse",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "reverse"
+              }
+            ]
+          }
+        ]
+      }
+
+   The following query searches the ``page_updated_by.email`` field in 
+   the ``minutes`` collection using the :ref:`wildcard-ref` operator to 
+   match any characters preceding the characters ``@example.com`` in 
+   reverse order. The ``reverse`` token filter can speed up leading 
+   wildcard queries.
+
+   .. code-block:: json 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "index": "default",
+            "wildcard": {
+              "query": "*@example.com",
+              "path": "page_updated_by.email",
+              "allowAnalyzedField": true
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "page_updated_by.email": 1,
+          }
+        }
+      ])
+
+   The query returns the following documents:
+
+   .. code-block:: json
+      :copyable: false 
+
+      [
+        { _id: 1, page_updated_by: { email: 'auerbach@example.com' } },
+        { _id: 2, page_updated_by: { email: 'ohrback@example.com' } },
+        { _id: 3, page_updated_by: { email: 'lewinsky@example.com' } },
+        { _id: 4, page_updated_by: { email: 'levinski@example.com' } }
+      ]
+
+.. _shingle-tf-ref:
+
+shingle
+-------
+
+The ``shingle`` token filter constructs shingles (token n-grams) from a 
+series of tokens. You can't use the ``shingle`` token filter in 
+:ref:`synonym <synonyms-ref>` or :ref:`autocomplete 
+<bson-data-types-autocomplete>` mapping definitions. It has the 
+following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``shingle``.
+     - yes
+     -
+
+   * - ``minShingleSize``
+     - integer
+     - Minimum number of tokens per shingle. Must be less than or equal
+       to ``maxShingleSize``.
+     - yes
+     -
+
+   * - ``maxShingleSize``
+     - integer
+     - Maximum number of tokens per shingle. Must be greater than or 
+       equal to ``minShingleSize``.
+     - yes
+     -
+
+.. example::
+
+   The following index definition example uses two custom 
+   analyzers, ``emailAutocompleteIndex`` and 
+   ``emailAutocompleteSearch``, to implement autocomplete-like 
+   functionality. |fts| uses the ``emailAutocompleteIndex`` 
+   analyzer during index creation to:
+    
+   - Replace ``@`` characters in a field with ``AT``
+   - Create tokens with the :ref:`whitespace 
+     <whitespace-tokenizer-ref>` tokenizer
+   - Shingle tokens 
+   - Create :ref:`edgegram-tf-ref` of those shingled tokens
+  
+   |fts| uses the ``emailAutocompleteSearch`` analyzer during a 
+   search to:
+
+   - Replace ``@`` characters in a field with ``AT``
+   - Create tokens with the :ref:`whitespace tokenizer 
+     <whitespace-tokenizer-ref>` tokenizer
+    
+   .. code-block:: json
+      :emphasize-lines: 34-38
+
+      {
+       "analyzer": "lucene.keyword",
+       "mappings": {
+         "dynamic": true,
+         "fields": {
+           "page_updated_by": {
+             "type": "document",
+             "fields": {
+               "email": {
+                 "type": "string",
+                 "analyzer": "emailAutocompleteIndex",
+                 "searchAnalyzer": "emailAutocompleteSearch",
+               }
+             }
+           }
+         }
+       },
+       "analyzers": [
+         {
+           "name": "emailAutocompleteIndex",
+           "charFilters": [
+             {
+               "mappings": {
+                 "@": "AT"
+               },
+               "type": "mapping"
+             }
+           ],
+           "tokenizer": {
+             "maxTokenLength": 15,
+             "type": "whitespace"
+           },
+           "tokenFilters": [
+             {
+               "maxShingleSize": 3,
+               "minShingleSize": 2,
+               "type": "shingle"
+             },
+             {
+               "maxGram": 15,
+               "minGram": 2,
+               "type": "edgeGram"
+             }
+           ]
+         },
+         {
+           "name": "emailAutocompleteSearch",
+           "charFilters": [
+             {
+               "mappings": {
+                 "@": "AT"
+               },
+               "type": "mapping"
+             }
+           ],
+           "tokenizer": {
+             "maxTokenLength": 15,
+             "type": "whitespace"
+           }
+         }
+       ]
+     }
+
+   The following query searches for an email address in the 
+   ``page_updated_by.email`` field of the ``minutes`` collection:
+
+   .. code-block:: json 
+
+      db.minutes.aggregate([
+        {
+          $search: {
+            "index": "default",
+            "text": {
+              "query": "auerbach@ex",
+               "path": "page_updated_by.email"
+            }
+          }
+        }
+      ])
+
+   The query returns the following results:
+
+   .. code-block:: json 
+      :copyable: false 
+
+      {  
+        "_id" : 1, 
+        "page_updated_by" : { 
+          "last_name" : "AUERBACH", 
+          "first_name" : "Siân", 
+          "email" : "auerbach@example.com", 
+          "phone" : "123-456-7890" 
+        }, 
+        "title": "The weekly team meeting",
+        "text" : "<head> This page deals with department meetings. </head>" 
+      }
+
+.. _snowballstemming-tf-ref:
+
+snowballStemming
+----------------
+
+The ``snowballStemming`` token filters Stems tokens using a 
+`Snowball-generated stemmer <https://snowballstem.org/>`__. It has the 
+following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``snowballStemming``.
+     - yes
+     -
+
+   * - ``stemmerName``
+     - string
+     - The following values are valid:
+
+       - ``arabic``
+       - ``armenian``
+       - ``basque``
+       - ``catalan``
+       - ``danish``
+       - ``dutch``
+       - ``english``
+       - ``finnish``
+       - ``french``
+       - ``german``
+       - ``german2`` (Alternative German language stemmer. Handles the 
+         umlaut by expanding ü to ue in most contexts.)
+       - ``hungarian``
+       - ``irish``
+       - ``italian``
+       - ``kp`` (Kraaij-Pohlmann stemmer, an alternative stemmer for 
+         Dutch.)
+       - ``lithuanian``
+       - ``lovins`` (The first-ever published "Lovins JB" stemming 
+         algorithm.)
+       - ``norwegian``
+       - ``porter`` (The original Porter English stemming algorithm.)
+       - ``portuguese``
+       - ``romanian``
+       - ``russian``
+       - ``spanish``
+       - ``swedish``
+       - ``turkish``
+     - yes
+     -
+
+.. example::
+
+   The following example index definition uses a custom analyzer named
+   ``frenchStemmer``. It uses the ``lowercase`` token filter and the
+   :ref:`standard tokenizer <standard-tokenizer-ref>`, followed
+   by the ``french`` variant of the ``snowballStemming`` token filter.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "frenchStemmer", 
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "frenchStemmer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              },
+              {
+                "type": "snowballStemming",
+                "stemmerName": "french"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _stopword-tf-ref:
+
+stopword 
+--------
+
+The ``stopword`` token filter removes tokens that correspond to the 
+specified stop words. This token filter doesn't analyze the specified 
+stop words. It has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``stopword``.
+     - yes
+     - 
+
+   * - ``tokens``
+     - array of strings
+     - List that contains the stop words that correspond to the tokens
+       to remove. 
+       Value must be one or more stop words.
+     - yes
+     - 
+
+   * - ``ignoreCase``
+     - boolean
+     - Flag that indicates whether to ignore the case of stop 
+       words when filtering the tokens to remove. The value can be one 
+       of the following: 
+
+       - ``true`` - ignore case and remove all tokens that match the 
+         specified stop words
+       - ``false`` - be case-sensitive and remove only tokens that 
+         exactly match the specified case
+
+       If omitted, defaults to ``true``.
+
+     - no
+     - true
+
+.. example:: 
+
+   The following index definition example uses a custom analyzer named
+   It uses the ``stopword`` token filter after the 
+   :ref:`whitespace tokenizer <whitespace-tokenizer-ref>` to remove 
+   the tokens that match the defined stop words ``is``, ``the``, and 
+   ``at``. The token filter is case-insensitive and will remove all 
+   tokens that match the specified stop words.
+
+   .. code-block:: json
+
+      {  
+        "analyzer": "tokenTrimmer", 
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "stopwordRemover",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "type": "stopword",
+                "tokens": ["is", "the", "at"]
+              }
+            ]
+          }
+        ]
+      }
+
+.. _trim-tf-ref:
+
+trim
+----
+
+The ``trim`` token filter trims leading and trailing whitespace from 
+tokens. It has the following attribute:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this token filter type.
+       Value must be ``trim``.
+     - yes
+     -
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``tokenTrimmer``. It uses the ``trim`` token filter after the 
+   :ref:`keyword tokenizer <keyword-tokenizer-ref>` to remove leading 
+   and trailing whitespace in the tokens created by the :ref:`keyword 
+   tokenizer <keyword-tokenizer-ref>`.
+
+   .. code-block:: json
+
+      
+        "analyzer": "tokenTrimmer", 
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "tokenTrimmer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "trim"
+              }
+            ]
+          }
+        ]
+      }
+      

@@ -1,0 +1,572 @@
+.. _tokenizers-ref:
+
+==========
+Tokenizers
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+A custom analyzer's tokenizer determines how |fts| splits up text into
+discrete chunks for indexing. Tokenizers require a type field, and some 
+take additional options as well.
+
+.. code-block:: json
+
+   "tokenizer": {
+     "type": "<tokenizer-type>",
+     "<additional-option>": "<value>"
+   }
+
+|fts| supports the following tokenizer options:
+
+- :ref:`edgeGram <edgegram-tokenizer-ref>`
+- :ref:`keyword <keyword-tokenizer-ref>`
+- :ref:`nGram <ngram-tokenizer-ref>`
+- :ref:`regexCaptureGroup <regexcapturegroup-tokenizer-ref>`
+- :ref:`regexSplit <regexSplit-tokenizer-ref>`
+- :ref:`standard <standard-tokenizer-ref>`
+- :ref:`uaxUrlEmail <uaxUrlEmail-tokenizer-ref>`
+- :ref:`whitespace <whitespace-tokenizer-ref>`
+
+.. _edgegram-tokenizer-ref:
+
+edgeGram
+--------
+
+The ``edgeGram`` tokenizer tokenizes input from the left side, or 
+"edge", of a text input into n-grams of given sizes. You can't use the 
+:ref:`edgeGram <edgegram-tokenizer-ref>` tokenizer in :ref:`synonym 
+<synonyms-ref>` or :ref:`autocomplete <bson-data-types-autocomplete>` 
+mapping definitions. It has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``edgeGram``.
+     - yes
+     -
+ 
+   * - ``minGram``
+     - integer
+     - Number of characters to include in the shortest token created.
+     - yes
+     - 
+ 
+   * - ``maxGram``
+     - integer
+     - Number of characters to include in the longest token created.
+     - yes
+     - 
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``edgegramShingler``. It uses the ``edgeGram`` tokenizer to create 
+   tokens between 2 and 5 characters long starting from the first 
+   character of text input and the :ref:`shingle token filter 
+   <shingle-tf-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "edgegramShingler",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "edgegramShingler",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "edgeGram",
+              "minGram": 2,
+              "maxGram": 5
+            },
+            "tokenFilters": [
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              }
+            ]
+          }
+        ]
+      }
+
+.. _keyword-tokenizer-ref:
+
+keyword
+-------
+
+The ``keyword`` tokenizer tokenizes the entire input as a single token. 
+It has the following attribute:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``keyword``.
+     - yes
+     -
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``keywordTokenizingIndex``. It uses the ``keyword`` tokenizer and a
+   regular expression token filter that redacts email addresses.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "keywordTokenizingIndex",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "keywordTokenizingIndex",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "keyword"
+            },
+            "tokenFilters": [
+              {
+                "type": "regex",
+                "pattern": "^([a-z0-9_\\.-]+)@([\\da-z\\.-]+)\\.([a-z\\.]{2,5})$",
+                "replacement": "redacted",
+                "matches": "all"
+              }
+            ]
+          }
+        ]
+      } 
+
+.. _ngram-tokenizer-ref:
+
+nGram
+-----
+
+The ``nGram`` tokenizer tokenizes into text chunks, or "n-grams", of 
+given sizes. You can't use the :ref:`nGram <ngram-tokenizer-ref>` 
+tokenizer in :ref:`synonym <synonyms-ref>` or :ref:`autocomplete 
+<bson-data-types-autocomplete>` mapping definitions. It has the 
+following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``nGram``.
+     - yes
+     -
+ 
+   * - ``minGram``
+     - integer
+     - Number of characters to include in the shortest token created.
+     - yes
+     - 
+ 
+   * - ``maxGram``
+     - integer
+     - Number of characters to include in the longest token created.
+     - yes
+     - 
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``ngramShingler``. It uses the ``nGram`` tokenizer to create tokens
+   between 2 and 5 characters long and the :ref:`shingle token filter
+   <shingle-tf-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "ngramShingler",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "ngramShingler",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "nGram",
+              "minGram": 2,
+              "maxGram": 5
+            },
+            "tokenFilters": [
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              }
+            ]
+          }
+        ]
+      }
+
+.. _regexcapturegroup-tokenizer-ref:
+
+regexCaptureGroup
+-----------------
+
+The ``regexCaptureGroup`` tokenizer matches a regular expression 
+pattern to extract tokens. It has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``regexCaptureGroup``.
+     - yes
+     -
+ 
+   * - ``pattern``
+     - string
+     - Regular expression to match against.
+     - yes
+     - 
+ 
+   * - ``group``
+     - integer
+     - Index of the character group within the matching expression to 
+       extract into tokens. Use ``0`` to extract all character groups.
+     - yes
+     - 
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``phoneNumberExtractor``. It uses the ``regexCaptureGroup`` tokenizer
+   to creates a single token from the first US-formatted phone number
+   present in the text input.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "phoneNumberExtractor",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "phoneNumberExtractor",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "regexCaptureGroup",
+              "pattern": "^\\b\\d{3}[-.]?\\d{3}[-.]?\\d{4}\\b$",
+              "group": 0
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _regexSplit-tokenizer-ref:
+
+regexSplit
+----------
+
+The ``regexSplit`` tokenizer splits tokens with a regular-expression 
+based delimiter. It has the following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``regexSplit``.
+     - yes
+     -
+ 
+   * - ``pattern``
+     - string
+     - Regular expression to match against.
+     - yes
+     - 
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``dashSplitter``. It uses the ``regexSplit`` tokenizer
+   to create tokens from hyphen-delimited input text.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "dashSplitter",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "dashSplitter",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "regexSplit",
+              "pattern": "[-]+"
+            },
+            "tokenFilters": []
+          }
+        ]
+      }
+
+.. _standard-tokenizer-ref:
+
+standard
+--------
+
+The ``standard`` tokenizer tokenizes based on word break rules from the 
+`Unicode Text Segmentation algorithm <https://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__. 
+It has the following attributes:
+
+.. list-table::
+   :widths: 20 10 50 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``standard``.
+     - yes
+     -
+
+   * - ``maxTokenLength``
+     - integer
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
+     - no
+     - 255
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``standardShingler``. It uses the ``standard`` tokenizer and the
+   :ref:`shingle token filter <shingle-tf-ref>`.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "standardShingler",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "standardShingler",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "standard",
+              "maxTokenLength": 10,
+            },
+            "tokenFilters": [
+              {
+                "type": "shingle",
+                "minShingleSize": 2,
+                "maxShingleSize": 3
+              }
+            ]
+          }
+        ]
+      }
+
+   .. seealso:: 
+   
+      The :ref:`regex-tf-ref` token filter for a sample index 
+      definition and query. 
+
+.. _uaxUrlEmail-tokenizer-ref:
+
+uaxUrlEmail
+-----------
+
+The ``uaxUrlEmail`` tokenizer tokenizes :abbr:`URLs (Uniform Resource 
+Locator)` and email addresses. Although ``uaxUrlEmail`` tokenizer 
+tokenizes based on word break rules from the `Unicode Text Segmentation 
+algorithm <http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__, 
+we recommend using ``uaxUrlEmail`` tokenizer only when the indexed 
+field value includes :abbr:`URLs (Uniform Resource Locator)` and email 
+addresses. For fields that don't include :abbr:`URLs (Uniform Resource 
+Locator)` or email addresses, use the :ref:`<standard-tokenizer-ref>` 
+tokenizer to create tokens based on word break rules. It has the 
+following attributes:
+
+.. list-table::
+   :widths: 10 10 60 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type`` 
+     - string 
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``uaxUrlEmail``.
+     - yes 
+     - 
+
+   * - ``maxTokenLength``
+     - int 
+     - Maximum number of characters in one token. 
+     - no 
+     - ``255``
+
+.. example:: 
+
+   The following index definition example uses a custom analyzer named
+   ``emailUrlExtractor``. It uses the ``uaxUrlEmail`` tokenizer to 
+   create tokens up to ``200`` characters long each for all text, 
+   including email addresses and :abbr:`URLs (Uniform Resource 
+   Locator)`, in the input. It converts all text to lowercase using the 
+   :ref:`lowercase <lowercase-tf-ref>` token filter.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "emailUrlExtractor",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "emailUrlExtractor",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "uaxUrlEmail",
+              "maxTokenLength": "200"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              }
+            ]
+          }
+        ]
+      }
+
+.. _whitespace-tokenizer-ref:
+
+whitespace
+----------
+
+The ``whitespace`` tokenizer tokenizes based on occurrences of 
+whitespace between words. It has the following attributes:
+
+.. list-table::
+   :widths: 20 10 40 10 10
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Description
+     - Required?
+     - Default
+
+   * - ``type``
+     - string
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``whitespace``.
+     - yes
+     -
+
+   * - ``maxTokenLength``
+     - integer
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
+     - no
+     - 255
+
+.. example::
+
+   The following index definition example uses a custom analyzer named
+   ``whitespaceLowerer``. It uses the ``whitespace`` tokenizer and a
+   token filter that lowercases all tokens.
+
+   .. code-block:: json
+
+      {
+        "analyzer": "whitespaceLowerer",
+        "mappings": {
+          "dynamic": true
+        },
+        "analyzers": [
+          {
+            "name": "whitespaceLowerer",
+            "charFilters": [],
+            "tokenizer": {
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "type": "lowercase"
+              }
+            ]
+          }
+        ]
+      }
+
+   .. seealso:: 
+   
+      The :ref:`shingle-tf-ref` token filter for a sample index 
+      definition and query.
