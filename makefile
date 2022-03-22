@@ -52,10 +52,10 @@ DOTCOM_PRODUCTION_BUCKET_CLOUDMGR=docs-mongodb-org-dotcomprd
 DOTCOM_PRODUCTION_URL_OPSMGR="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET_OPSMGR=docs-mongodb-org-dotcomprd
 
-DOTCOM_CMPREFIX= docs-qa/cloud-manager
-DOTCOM_CMSTGPREFIX= docs-qa/cloud-manager
-DOTCOM_OPMPREFIX= docs-qa/ops-manager
-DOTCOM_OPMSTGPREFIX= docs-qa/ops-manager
+DOTCOM_CMPREFIX= docs/cloud-manager
+DOTCOM_CMSTGPREFIX= docs/cloud-manager
+DOTCOM_OPMPREFIX= docs/ops-manager
+DOTCOM_OPMSTGPREFIX= docs/ops-manager
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -152,10 +152,6 @@ publish-onprem:
 ## Deploy artifacts from the working branch of Cloud Manager
 ## to the staging S3 bucket / EC2 for review
 stage-cloud:
-	mut-publish build/${GIT_BRANCH}/html-cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX} --stage ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL_CLOUDMGR}/${USER}/${GIT_BRANCH}/index.html"
-
-
 	mut-publish build/${GIT_BRANCH}/html-cloud ${DOTCOM_STAGING_BUCKET_CLOUDMGR} --prefix=${DOTCOM_CMSTGPREFIX} --stage ${ARGS}
 	@echo "\n\nHosted at ${DOTCOM_STAGING_URL_CLOUDMGR}/${DOTCOM_CMSTGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
@@ -167,10 +163,6 @@ fake-deploy-cloud: build/public/cloud
 	cp -p build/landing/landing.html build/public/cloud/
 	cp -p build/landing/style.min.css build/public/cloud/_static/
 	cp -p build/landing/*webfont* build/public/cloud/_static/fonts
-
-
-	mut-publish build/public/cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX}  --all-subdirectories --deploy ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL_CLOUDMGR}/index.html"
 
 
 	mut-publish build/public/cloud ${DOTCOM_STAGING_BUCKET_CLOUDMGR} --prefix=${DOTCOM_CMSTGPREFIX}  --all-subdirectories --deploy ${ARGS}
@@ -187,11 +179,6 @@ deploy-cloud: build/public/cloud
 ifneq ($(GIT_BRANCH), master)
 	$(error "Aborting attempt to deploy cloud on master")
 endif
-
-	mut-publish build/public/cloud ${PRODUCTION_BUCKET_CLOUDMGR} --prefix=${PREFIX} --deploy --all-subdirectories ${ARGS}
-
-	@echo "\n\nHosted at ${PRODUCTION_URL_CLOUDMGR}/index.html"
-
 
 	mut-publish build/public/cloud ${DOTCOM_PRODUCTION_BUCKET_CLOUDMGR} --prefix=${DOTCOM_CMPREFIX} --deploy --all-subdirectories ${ARGS}
 
@@ -225,10 +212,6 @@ endif
 ## Deploy artifacts from the working branch of Ops Manager
 ## to the staging S3 bucket / EC2 for review
 stage-onprem:
-	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
-
-
 	mut-publish build/${GIT_BRANCH}/html-onprem ${DOTCOM_STAGING_BUCKET_OPSMGR} --prefix=${DOTCOM_OPMSTGPREFIX} --stage --all-subdirectories ${ARGS}
 	@echo "\n\nHosted at ${DOTCOM_STAGING_URL_OPSMGR}/${DOTCOM_OPMSTGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
@@ -239,9 +222,6 @@ fake-deploy-onprem: build/public/onprem
 	@echo "Copying over fullsize images "
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
-
-	mut-publish build/public/onprem/${GIT_BRANCH} ${STAGING_BUCKET_OPSMGR} --prefix=${GIT_BRANCH} --deploy --all-subdirectories ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL_OPSMGR}/${GIT_BRANCH}/index.html"
 
 	mut-publish build/public/onprem/${GIT_BRANCH} ${DOTCOM_STAGING_BUCKET_OPSMGR} --prefix=${DOTCOM_OPMSTGPREFIX} --deploy --all-subdirectories ${ARGS}
 	@echo "\n\nHosted at ${DOTCOM_STAGING_URL_OPSMGR}/${DOTCOM_OPMSTGPREFIX}/${GIT_BRANCH}/index.html"
@@ -256,13 +236,7 @@ deploy-onprem: build/public/onprem
 	@echo "Copying over fullsize images "
 	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
 
-
-	mut-publish build/public/onprem/ ${PRODUCTION_BUCKET_OPSMGR} --prefix= --deploy  --redirects build/public/onprem/.htaccess ${ARGS}
-
-	@echo "\n\nHosted at ${PRODUCTION_URL_OPSMGR}/${GIT_BRANCH}/index.html"
-
 	mut-publish build/public/onprem/ ${DOTCOM_PRODUCTION_BUCKET_OPSMGR} --prefix=${DOTCOM_OPMPREFIX} --deploy  --redirects build/public/onprem/.htaccess ${ARGS}
-
 	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL_OPSMGR}/${DOTCOM_OPMPREFIX}/${GIT_BRANCH}/index.html"
 	
 	$(MAKE) deploy-onprem-search-index
