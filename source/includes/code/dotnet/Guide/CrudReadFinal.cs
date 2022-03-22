@@ -2,8 +2,7 @@
 using MongoDB.Driver;
 
 // Replace the uri string with your MongoDB deployment's connection string.
-// var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
-var uri = "mongodb+srv://foo:bar@cluster0.7stmv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
 
 var client = new MongoClient(uri);
 

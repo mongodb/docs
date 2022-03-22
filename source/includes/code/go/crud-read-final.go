@@ -10,8 +10,7 @@ import (
 )
 
 func main() {
-	// uri := "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
-	uri := "mongodb+srv://foo:bar@cluster0.7stmv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+	uri := "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority"
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
