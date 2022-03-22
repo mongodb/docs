@@ -62,8 +62,8 @@ rst_epilog = '\n'.join([
 pygments_style = 'sphinx'
 
 extlinks = {
-    'manual': ('https://docs.mongodb.com/manual%s', ''),
-    'drivers': ('https://docs.mongodb.com/drivers%s', ''),
+    'manual': ('https://www.mongodb.com/docs/manual%s', ''),
+    'drivers': ('https://www.mongodb.com/docs/drivers%s', ''),
 }
 
 # add `extlinks` for each published version.
