@@ -188,5 +188,5 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
    * - indexConfigs.options
      - document
      - Required
-     - Index options that the :driver:`MongoDB Go Driver </go>`
+     - Index options that the :driver:`MongoDB Go Driver </go/current/>`
        supports.
