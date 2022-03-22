@@ -4,9 +4,6 @@
       :widths: 40 60
       :class: border-table
 
-      * - RHEL/CentOS 7 PPC64LE
-        - Support removed in MongoDB 5.0+.
-
       * - Ubuntu 18.04 PPC64LE
         - Support removed in MongoDB 5.0+.
 
@@ -31,13 +28,13 @@
      -
 
    * - RHEL/CentOS 7
-     -
+     - 
      - |checkmark|
      - |checkmark|
-     - |checkmark|
+     - 4.0.0 - 4.0.27
 
    * - Ubuntu 18.04
      -
-     - |checkmark|
-     - |checkmark|
-     -
+     - 4.4.0 - 4.4.10
+     - 4.2.1 - 4.2.17
+     - 
