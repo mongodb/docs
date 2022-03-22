@@ -29,13 +29,13 @@
 
    * - RHEL/CentOS 7
      - |checkmark|
-     - |checkmark|
+     - 4.0.0 - 4.0.27
      - |checkmark|
      - |checkmark|
 
    * - Ubuntu 18.04
-     - |checkmark|
-     -
+     - 4.2.1 - 4.2.17
+     - 
      -
      -
 
