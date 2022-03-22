@@ -27,9 +27,9 @@ To contribute to the documentation,
 See the following documents that provide an overview of the
 documentation style and process:
 
-- `Style Guide <https://docs.mongodb.org/meta/style-guide/style/>`_
-- `Documentation Organization <https://docs.mongodb.org/meta/organization>`_
-- `Documentation Practices <https://docs.mongodb.org/meta/practices>`_
+- `Style Guide <https://mongodb.org/docs/meta/style-guide/style/>`_
+- `Documentation Organization <https://mongodb.org/docs/meta/organization>`_
+- `Documentation Practices <https://mongodb.org/docs/meta/practices>`_
 
 File JIRA Tickets
 -----------------
