@@ -4,13 +4,11 @@
      :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6 on
      :ref:`x86_64 <prod-notes-supported-platforms-x86_64>`
 
-   - MongoDB 5.0 Enterprise Edition removes support for
-     :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7 on
-     :ref:`PPC64LE<prod-notes-supported-platforms-PPC64LE>`
-
-   - MongoDB 5.0 Enterprise Edition removes support for
-     :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7 on
-     :ref:`s390x <prod-notes-supported-platforms-s390x>`
+   - MongoDB Enterprise Edition removed support for 
+     :abbr:`RHEL (Red Hat Enterprise Linux)` 7 / CentOS / Oracle 
+     :ref:`PPC64LE<prod-notes-supported-platforms-PPC64LE>` 
+     between versions 4.0 and 5.0. However, these 
+     architectures are supported for 5.0.X versions.
 
 MongoDB {+version+} Enterprise Edition supports the following
 :red:`64-bit` versions of Red Hat Enterprise Linux (RHEL), CentOS Linux,
@@ -20,8 +18,6 @@ and Oracle Linux [#oracle-linux]_ on
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 8
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
-
-- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6
 
 MongoDB only supports the 64-bit versions of these platforms.
 
