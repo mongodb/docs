@@ -10,7 +10,7 @@
      - 3.4 Enterprise
 
    * - RHEL/CentOS 7
-     - |checkmark|
+     - 4.0.0 - 4.0.27
      - |checkmark|
      - |checkmark|
 
