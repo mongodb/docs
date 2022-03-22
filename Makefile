@@ -55,9 +55,6 @@ stage: ## Host online for review
 #      --stage                    indicates that mut-publish should publish to the staging bucket (not the prod bucket)
 #      if ${ARGS}, then additonal arguments
 
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
-
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
 	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
@@ -78,9 +75,6 @@ deploy: publish ## Deploy to the production bucket
 #      --verbose            prints out a detail of what files are being uploaded/deleted/etc.
 #      --dry-run            instructs mut-publish to do everything *except* actually put stuff on the internet.
 #      if ${ARGS}, then additonal arguments
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy ${ARGS}
-	@echo "Hosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
-
 	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy ${ARGS}
 	@echo "Hosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/${GIT_BRANCH}"
 
