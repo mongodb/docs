@@ -88,6 +88,16 @@
      - Amount of time in seconds that updates to the secondary delay
        behind updates to the primary.
 
+   * - | ``REPLICATION_OPLOG_WINDOW``
+       | (mongodb.atlas.replset.oplogWindow) 
+     - Process
+     - Estimated average number, in seconds, of database 
+       operations available in the primary’s replication oplog. This 
+       metric is based on oplog churn. A :manual:`full resync 
+       </tutorial/resync-replica-set-member/>` is required if 
+       replication lag on a secondary node exceeds the replication 
+       oplog window and replication headroom reaches zero.
+
    * - | ``SYSTEM_NORMALIZED_CPU_USER`` 
        | (mongodb.atlas.system.cpu.norm.user)
        | ``SYSTEM_NORMALIZED_CPU_KERNEL``
