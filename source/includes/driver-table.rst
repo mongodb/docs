@@ -29,7 +29,7 @@
      - :issue:`JIRA <CSHARP>`
      -
 
-   * - `Go <https://docs.mongodb.com/drivers/go/current/>`__
+   * - `Go <https://www.mongodb.com/docs/drivers/go/current/>`__
      - `Releases <https://github.com/mongodb/mongo-go-driver/releases>`__
      - `Source <https://github.com/mongodb/mongo-go-driver>`__
      - `API <https://godoc.org/github.com/mongodb/mongo-go-driver/mongo>`__
@@ -43,7 +43,7 @@
      - :issue:`JIRA <JAVA>`
      - `Course <https://university.mongodb.com/courses/M220J/about>`__
 
-   * - `Node.js <https://docs.mongodb.com/drivers/node/current/>`__
+   * - `Node.js <https://www.mongodb.com/docs/drivers/node/current/>`__
      - `Releases <https://github.com/mongodb/node-mongodb-native/releases>`__
      - `Source <https://github.com/mongodb/node-mongodb-native>`__
      - `API <https://mongodb.github.io/node-mongodb-native/>`__
@@ -73,17 +73,17 @@
      - :issue:`JIRA <MOTOR>`
      -
 
-   * - `Ruby <https://docs.mongodb.com/ruby-driver/current/>`_
+   * - `Ruby <https://www.mongodb.com/docs/ruby-driver/current/>`_
      - `Releases <https://rubygems.org/gems/mongo>`__
      - `Source <https://github.com/mongodb/mongo-ruby-driver>`__
-     - `API <https://docs.mongodb.com/ruby-driver/master/api/>`__
+     - `API <https://www.mongodb.com/docs/ruby-driver/master/api/>`__
      - :issue:`JIRA <RUBY>`
      -
 
-   * - `Mongoid (Ruby ODM) <https://docs.mongodb.com/mongoid/current/>`_
+   * - `Mongoid (Ruby ODM) <https://www.mongodb.com/docs/mongoid/current/>`_
      - `Releases <https://rubygems.org/gems/mongoid>`__
      - `Source <https://github.com/mongodb/mongoid>`__
-     - `API <https://docs.mongodb.com/mongoid/7.0/api/>`__
+     - `API <https://www.mongodb.com/docs/mongoid/7.0/api/>`__
      - :issue:`JIRA <MONGOID>`
      -
 

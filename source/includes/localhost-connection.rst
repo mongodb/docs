@@ -5,7 +5,7 @@ purposes instead of using an Atlas cluster, you need to complete the following:
    or `Enterprise <https://www.mongodb.com/try/download/enterprise>`__ version
    of MongoDB Server.
 
-#. `Install and configure <https://docs.mongodb.com/manual/installation/>`__
+#. `Install and configure <https://www.mongodb.com/docs/manual/installation/>`__
    MongoDB Server.
 
 #. Start the server.
