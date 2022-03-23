@@ -27,14 +27,14 @@
      - 3.4 Enterprise
 
    * - RHEL/CentOS 7
-     - |checkmark|
-     - 4.0.6+
+     - 4.2.0 - 4.2.17
+     - 4.0.6 - 4.0.27
      - Removed starting in 3.6.17
      - Removed starting in 3.4.15
 
    * - RHEL/CentOS 6
      - 4.2.4 - 4.2.14
-     - |checkmark|
+     - 4.0.0 - 4.0.24
      - Removed starting in 3.6.14
      - Removed starting in 3.4.22
 
