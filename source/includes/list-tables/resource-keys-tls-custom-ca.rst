@@ -22,4 +22,7 @@
      - Required
      - Add the ``<prefix>`` of the secret 
        name that contains your MongoDB deployment's |tls| certificates.
+
+       .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+
      - ``devDb``
