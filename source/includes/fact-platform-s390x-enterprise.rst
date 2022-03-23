@@ -26,14 +26,14 @@
    * - RHEL/CentOS 7
      - |checkmark|
      - |checkmark|
-     - |checkmark|
-     - 4.0.6+
+     - 4.2.0 - 4.2.17
+     - 4.0.6 - 4.0.27
 
    * - RHEL/CentOS 6
      -
      -
-     - 4.2.4+
-     - |checkmark|
+     - 4.2.4 - 4.2.14
+     - 4.0.0 - 4.0.24
 
    * - SLES 12
      -
