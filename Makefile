@@ -36,8 +36,8 @@ DOTCOM_STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
 DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
 DOTCOM_PRODUCTION_URL="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
-DOTCOM_PREFIX=docs-qa/kubernetes-operator
-DOTCOM_STGPREFIX=docs-qa/kubernetes-operator
+DOTCOM_PREFIX=docs/kubernetes-operator
+DOTCOM_STGPREFIX=docs/kubernetes-operator
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -85,8 +85,6 @@ clean-html:
 ## Builds this branch's publishable HTML and other artifacts under
 ## build/public
 publish:
-	if [ ${GIT_BRANCH} = master ]; then rm -rf build/public; fi;
-	rm -rf build/${GIT_BRANCH}
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
@@ -104,10 +102,6 @@ publish:
 
 ## Host online for review
 stage:
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL}/${PROJECT}/${USER}/${GIT_BRANCH}/index.html"
-
-
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
 	@echo "\n\nHosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
@@ -120,16 +114,8 @@ stage:
 
 ## Deploy to the production bucket
 deploy: build/public
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
-
-	@echo "\n\nHosted at ${PRODUCTION_URL}/${PROJECT}/index.html"
-
-	
 	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='${PROJECT}' ${ARGS}
-
 	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/${GIT_BRANCH}/index.html"
-
-
 	$(MAKE) deploy-search-index
 
 ## Update the search index for this branch
