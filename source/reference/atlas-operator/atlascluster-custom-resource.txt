@@ -12,19 +12,19 @@
    :depth: 2
    :class: singlecol
 
-The ``AtlasCluster`` custom resource configures your MongoDB cluster in 
-|service|. When you create the ``AtlasCluster`` custom resource, 
-|ak8so| tries to create or update a cluster in |service|.
+The ``AtlasCluster`` custom resource configures your MongoDB 
+{+cluster+} in |service|. When you create the ``AtlasCluster`` custom 
+resource, |ak8so| tries to create or update a {+cluster+} in |service|.
 
 |ak8so| does one of the following actions using the |service| 
 :doc:`Clusters API Resource </reference/api/clusters>` and 
-:doc:`Advanced Clusters API Resource 
+:doc:`Advanced {+Clusters+} API Resource 
 </reference/api/clusters-advanced/>`:
    
-- Creates a new cluster.
-- Updates an existing cluster.
+- Creates a new {+cluster+}.
+- Updates an existing {+cluster+}.
 
-Creating or updating a cluster can take up to 10 minutes. |ak8so| 
+Creating or updating a {+cluster+} can take up to 10 minutes. |ak8so| 
 monitors the update process.
 
 You can run the following command to check on the status:
@@ -33,7 +33,7 @@ You can run the following command to check on the status:
 
    kubectl get atlascluster -o yaml
 
-The following example shows the status section of a cluster that is
+The following example shows the status section of a {+cluster+} that is
 provisioning:
 
 .. code-block:: sh
@@ -46,11 +46,11 @@ provisioning:
        reason: ClusterCreating 
        message: Cluster is provisioning
 
-The ``ClusterReady`` status will change to ``True`` when the cluster is 
-ready.
+The ``ClusterReady`` status will change to ``True`` when the 
+{+cluster+} is ready.
 
-If you remove the ``AtlasCluster`` resource from your |k8s| cluster, 
-|ak8so| removes the cluster from |service|.
+If you remove the ``AtlasCluster`` resource from your |k8s| 
+{+cluster+}, |ak8so| removes the {+cluster+} from |service|.
 
 Examples
 --------
@@ -98,7 +98,7 @@ Configuration Example
 ~~~~~~~~~~~~~~~~~~~~~
      
 The following example shows an ``AtlasCluster`` custom resource 
-specification configured for auto-scaling multi-region clusters:
+specification configured for auto-scaling multi-region {+clusters+}:
 
 .. code-block::
 
@@ -140,15 +140,29 @@ specification configured for auto-scaling multi-region clusters:
                readOnlyNodes: 0
            zoneName: Zone 1
 
-Advanced Cluster Example
+.. _ak8so-advanced-clusters:
+
+Advanced {+Cluster+} Example
 ~~~~~~~~~~~~~~~~~~~~~~~~
-     
+
+Advanced {+clusters+} can span regions and cloud service providers. To 
+learn more, see the :ref:`Advanced {+Cluster+} Considerations 
+<create-advanced-cluster-considerations>`.
+
+.. note::
+
+   While the |service| :doc:`Advanced {+Clusters+} API Resource 
+   </reference/api/clusters-advanced/>` send requests using the 
+   ``v1.5`` |service| |api| versions, the |ak8so| ``apiVersion`` field 
+   uses ``v1``. In this case, ``v1`` refers to the version of 
+   the |k8s| |api|.
+
 The following example shows an advanced ``AtlasCluster`` custom resource
-specification configured for multi-region clusters:
+specification configured for multi-region {+clusters+}:
 
 .. code-block::
 
-   apiVersion: atlas.mongodb.com/v1.5
+   apiVersion: atlas.mongodb.com/v1
    kind: AtlasCluster
    metadata:
      name: my-atlas-cluster
@@ -166,13 +180,52 @@ specification configured for multi-region clusters:
              backingProviderName: AWS
              regionName: US_EAST_1
 
+Multiple Cloud Service Providers Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     
+The following example shows an advanced ``AtlasCluster`` custom resource
+specification configured to span multiple cloud service providers:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCluster
+   metadata:
+     name: my-atlas-cluster
+   spec:
+     projectRef:
+       name: my-project
+     advancedClusterSpec:
+       clusterType: REPLICASET
+       name: tenantCluster
+       replicationSpecs:
+         - regionConfigs:
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 3
+             providerName: AWS
+             regionName: US_EAST_1
+             priority: 7
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 2
+             providerName: AZURE
+             regionName: US_EAST_2
+             priority: 6
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 2
+             providerName: GCP
+             regionName: CENTRAL_US
+             priority: 5
+
 Parameters
 ----------
 
 This section describes some of the key ``AtlasCluster`` custom resource 
 parameters available. For a full list of parameters available, see the
-|service| :doc:`Clusters API </reference/api/clusters-create-one>`
-and |service| :doc:`Advanced Clusters API 
+|service| :doc:`{+Clusters+} API </reference/api/clusters-create-one>`
+and |service| :doc:`Advanced {+Clusters+} API 
 </reference/api/cluster-advanced/create-one-cluster-advanced>`. Refer 
 to these descriptions, the available examples, and the |api| 
 documentation to customize your specifications.
@@ -183,9 +236,9 @@ documentation to customize your specifications.
 
    *Conditional*
 
-   List that contains the advanced cluster parameters from the |api|.
-   For a full list of parameters available, see the |service|
-   :doc:`Advanced Clusters API 
+   List that contains the advanced {+cluster+} parameters from the 
+   |api|. For a full list of parameters available, see the |service|
+   :doc:`Advanced {+Clusters+} API 
    </reference/api/cluster-advanced/create-one-cluster-advanced>`.
 
    .. important::
@@ -193,15 +246,156 @@ documentation to customize your specifications.
       You must specify ``spec.clusterSpec`` or 
       ``spec.advancedClusterSpec`` in your configuration.
 
+.. setting:: spec.advancedClusterSpec.replicationSpecs.regionConfigs
+
+   *Type*: array
+
+   *Required*
+
+   Hardware specifications for nodes set for a given region. Each
+   ``regionConfigs`` object describes the region's priority in
+   elections and the number and type of MongoDB nodes that
+   |service| deploys to the region.
+
+   Each ``regionConfigs`` object must have either an
+   ``analyticsSpecs`` object, ``electableSpecs`` object, or
+   ``readOnlySpecs`` object.
+
+   - ``TENANT`` {+clusters+} (``M0``, ``M2``, or ``M5`) require only 
+     ``electableSpecs``.
+
+   - {+Dedicated-clusters+} can specify any of these specifications,
+     but must have at least one ``electableSpecs`` object within a
+     ``replicationSpec``.
+
+   - Every hardware specification must use the same
+     ``instanceSize``.
+
+.. setting:: spec.advancedClusterSpec.replicationSpecs.regionConfigs.analyticsSpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for :ref:`analytics nodes 
+   <analytics-nodes-overview>` needed in the region. Analytics nodes 
+   handle analytic data such as reporting queries from |bic|. Analytics 
+   nodes are read-only and can never become the :term:`primary`.
+
+   If you don't specify this parameter, |service| deploys no analytics  
+   to this region.
+
+.. setting:: spec.advancedClusterSpec.replicationSpecs.regionConfigs.electableSpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for electable nodes in the region.
+   Electable nodes can become the :term:`primary` and can enable
+   local reads.
+
+   If you don't specify this option, |service| deploys no electable 
+   nodes to the region.
+
+.. setting:: spec.advancedClusterSpec.replicationSpecs.regionConfigs.electableSpecs.instanceSize
+
+   *Type*: string
+
+   *Conditional*
+
+   Hardware specification for the instance sizes in this region. Each
+   instance size has a default storage and memory capacity. The instance
+   size you select applies to all the data-bearing hosts in your 
+   instance size. To learn more, see the :ref:`AWS <amazon-aws>`, 
+   :ref:`GCP <google-gcp>`, and :ref:`Azure <microsoft-azure>` custom 
+   storage sizes.
+
+   If you deploy a :term:`sharded cluster`, or :doc:`global {+cluster+} 
+   </global-clusters>`, you must choose an instance size of ``M30`` or 
+   greater.
+
+.. setting:: spec.advancedClusterSpec.replicationSpecs.regionConfigs.electableSpecs.nodeCount
+
+   *Type*: integer
+
+   *Conditional*
+
+   Number of electable nodes for |service| to deploy to the region.
+   Electable nodes can become the :term:`primary` and can enable
+   local reads.
+
+   The combined ``electableSpecs.nodeCount`` across all
+   ``replicationSpecs.regionConfigs`` objects must total
+   ``3``, ``5``, or ``7``.
+
+   You can't create electable nodes if :setting:`spec.advancedClusterSpec.replicationSpecs.regionConfigs.priority` is 
+   ``0``.
+
+.. setting:: spec.advancedClusterSpec.replicationSpecs.regionConfigs.priority
+
+   *Type*: integer
+
+   *Required*
+
+   Precedence is given to this region when a primary election
+   occurs.
+
+   If your ``regionConfigs`` has only ``readOnlySpecs``,
+   ``analyticsSpecs``, or both, set this value to ``0``.
+
+   If you have multiple ``regionConfigs`` objects (your {+cluster+} is
+   multi-region or multi-cloud), they must have priorities in
+   descending order. The highest priority is ``7``.
+
+   .. example::
+
+      Set your highest priority region to ``7``, your
+      second-highest priority to ``6``, and your third-priority
+      region to ``5``. If you have no electable nodes, set this
+      value to ``0``.
+
+   If your region has set ``electableSpecs.nodeCount`` to ``1`` or
+   higher, it must have a priority of exactly one less than
+   another region in the ``replicationSpecs.regionConfigs``
+   array unless it is the primary. The highest-priority region **must** 
+   have a priority of ``7``. The lowest possible priority is ``1``.
+
+   The priority ``7`` region identifies the **Preferred Region** of
+   the {+cluster+}. |service| places the :term:`primary` node in the
+   **Preferred Region**. Priorities ``1`` through ``7`` are
+   exclusive: you can't assign a given priority to more than one
+   region per {+cluster+}.
+
+   .. example::
+
+      If you have three regions, their priorities would be ``7``,
+      ``6``, and ``5`` respectively. If you added two more regions
+      for supporting electable nodes, the priorities of those
+      regions would be ``4`` and ``3`` respectively.
+
+.. setting:: spec.advancedClusterSpec.replicationSpecs.regionConfigs.readOnlySpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for read-only nodes in the region.
+   Read-only nodes can never become the :term:`primary` member, but
+   can enable local reads.
+
+   If you don't specify this parameter, |service| deploys no read-only 
+   nodes to the region.
+
 .. setting:: spec.clusterSpec
 
    *Type*: array
 
    *Conditional*
 
-   List that contains the cluster parameters from the |api|.
+   List that contains the {+cluster+} parameters from the |api|.
    For a full list of parameters available, see the |service|
-   :doc:`Clusters API </reference/api/clusters-create-one>`.
+   :doc:`{+Clusters+} API </reference/api/clusters-create-one>`.
    
    .. important::
 
@@ -214,7 +408,7 @@ documentation to customize your specifications.
 
    *Conditional*
 
-   Human-readable label that identifies cluster type to create.
+   Human-readable label that identifies {+cluster+} type to create.
 
    **When should you use this parameter?**
 
@@ -229,11 +423,11 @@ documentation to customize your specifications.
         - Required
 
       * - You are deploying
-          :doc:`Global Clusters </global-clusters>`.
+          :doc:`Global {+Clusters+} </global-clusters>`.
         - Required
 
       * - You are deploying non-Global replica sets and sharded
-          clusters.
+          {+clusters+}.
         - Optional
 
    |service| accepts:
@@ -243,13 +437,13 @@ documentation to customize your specifications.
       :widths: 60 40
 
       * - Value
-        - Cluster Type
+        - {+Cluster+} Type
       * - REPLICASET
         - :term:`replica set`
       * - SHARDED
         - :term:`sharded cluster`
       * - GEOSHARDED
-        - :doc:`global cluster </global-clusters>`
+        - :doc:`global {+cluster+} </global-clusters>`
 
 .. setting:: spec.clusterSpec.mongoDBMajorVersion
 
@@ -257,8 +451,8 @@ documentation to customize your specifications.
 
    *Optional*
 
-   Version of the cluster to deploy. |service| supports the
-   following MongoDB versions for ``M10+`` clusters:
+   Version of the {+cluster+} to deploy. |service| supports the
+   following MongoDB versions for ``M10+`` {+clusters+}:
 
    - 4.0
    - 4.2
@@ -276,12 +470,12 @@ documentation to customize your specifications.
 
       * - You omit this parameter and you omit the 
           :setting:`spec.clusterSpec.versionReleaseSystem` parameter.
-        - |service| deploys a cluster that runs MongoDB 5.0.
+        - |service| deploys a {+cluster+} that runs MongoDB 5.0.
 
       * - You omit this parameter and you set the
           :setting:`spec.clusterSpec.versionReleaseSystem` parameter to 
           ``LTS``.
-        - |service| deploys a cluster that runs MongoDB 5.0.
+        - |service| deploys a {+cluster+} that runs MongoDB 5.0.
 
       * - You set the 
           :setting:`spec.clusterSpec.providerSettings.instanceSizeName` 
@@ -289,8 +483,8 @@ documentation to customize your specifications.
         - You must deploy MongoDB 5.0.
 
       * - You specify this parameter.
-        - |service| always deploys the cluster with the latest stable 
-          patch release of the specified version.
+        - |service| always deploys the {+cluster+} with the latest 
+          stable patch release of the specified version.
 
       * - You set the :setting:`spec.clusterSpec.versionReleaseSystem` 
           parameter to ``CONTINUOUS``.
@@ -306,7 +500,7 @@ documentation to customize your specifications.
    on which MongoDB runs. The available options are specific to the 
    cloud service provider. To learn more, see the :ref:`AWS 
    <amazon-aws>`, :ref:`GCP <google-gcp>`, and :ref:`Azure 
-   <microsoft-azure>` cluster configuration options.
+   <microsoft-azure>` {+cluster+} configuration options.
 
 .. setting:: spec.clusterSpec.providerSettings.providerName
 
@@ -327,11 +521,11 @@ documentation to customize your specifications.
       * - AZURE
         - Microsoft Azure
       * - TENANT
-        - ``M0``, ``M2``, or ``M5`` multi-tenant cluster
+        - ``M0``, ``M2``, or ``M5`` multi-tenant {+cluster+}.
 
           Use :setting:`spec.clusterSpec.providerSettings.backingProviderName` to set the cloud service provider.
 
-          ``M0``, ``M2``, and ``M5`` clusters are multi-tenant 
+          ``M0``, ``M2``, and ``M5`` {+clusters+} are multi-tenant 
           deployments. You must set this parameter to ``TENANT`` and 
           specify the cloud service provider in :setting:`spec.clusterSpec.providerSettings.backingProviderName`.
 
@@ -342,7 +536,7 @@ documentation to customize your specifications.
    *Conditional*
 
    Cloud service provider on which |service| provisions the host for a 
-   multi-tenant cluster.
+   multi-tenant {+cluster+}.
 
    This setting works only when you set 
    :setting:`spec.clusterSpec.providerSettings.providerName` to 
@@ -369,9 +563,9 @@ documentation to customize your specifications.
 
    **Required**
 
-   |service| provides different cluster tiers, each with a default
-   storage capacity and RAM size. The cluster you select is
-   used for all the data-bearing servers in your cluster. To learn 
+   |service| provides different {+cluster+} tiers, each with a default
+   storage capacity and RAM size. The {+cluster+} you select is
+   used for all the data-bearing servers in your {+cluster+}. To learn 
    more, see the :ref:`AWS <amazon-aws>`, :ref:`GCP <google-gcp>`, and 
    :ref:`Azure <microsoft-azure>` custom storage sizes.
 
@@ -381,7 +575,7 @@ documentation to customize your specifications.
 
    **Conditional**
 
-   Physical location of your MongoDB cluster. The region you
+   Physical location of your MongoDB {+cluster+}. The region you
    choose can affect network latency for clients accessing your
    databases.
 
@@ -394,7 +588,7 @@ documentation to customize your specifications.
 
    - :ref:`Azure <microsoft-azure>`
 
-   For multi-region clusters, see
+   For multi-region {+clusters+}, see
    :setting:`spec.clusterSpec.replicationSpecs`. You must set either 
    :setting:`spec.clusterSpec.providerSettings.regionName` or 
    :setting:`spec.clusterSpec.replicationSpecs`.
@@ -405,9 +599,9 @@ documentation to customize your specifications.
 
    **Conditional**
 
-   List that contains the configurations for your cluster regions. Use 
-   this parameter for multi-region clusters. You must set either 
-   :setting:`spec.clusterSpec.providerSettings.regionName` or 
+   List that contains the configurations for your {+cluster+} regions. 
+   Use this parameter for multi-region {+clusters+}. You must set 
+   either :setting:`spec.clusterSpec.providerSettings.regionName` or 
    :setting:`spec.clusterSpec.replicationSpecs`.
 
    **When should you use this parameter?**
@@ -421,16 +615,16 @@ documentation to customize your specifications.
         - Values
 
       * - You are deploying
-          :doc:`Global Clusters </global-clusters>`.
+          :doc:`Global {+Clusters+} </global-clusters>`.
         - Required
         - Each object in the array represents a zone where
-          |service| deploys your cluster's nodes.
+          |service| deploys your {+cluster+}'s nodes.
 
       * - You are deploying non-Global replica sets and sharded
-          clusters.
+          {+clusters+}.
         - Optional
         - This array has one object representing where
-          |service| deploys your cluster's nodes.
+          |service| deploys your {+cluster+}'s nodes.
 
    If you specify this parameter, you must also specify
    :setting:`spec.clusterSpec.clusterType` and 
@@ -439,7 +633,7 @@ documentation to customize your specifications.
 .. setting:: spec.clusterSpec.replicationSpecs.numShards
 
    Positive integer that specifies the number of shards to deploy
-   for a sharded cluster.
+   for a sharded {+cluster+}.
 
    If you use the :setting:`spec.clusterSpec.replicationSpecs` 
    parameter, you must set this parameter.
@@ -461,6 +655,17 @@ documentation to customize your specifications.
 
         - :manual:`Sharding </sharding>`
         - :ref:`server-number-costs`
+
+.. setting:: spec.clusterSpec.replicationSpecs.zoneName
+
+   *Type*: string
+
+   *Optional*
+
+   Human-readable label that identifies the zone in a 
+   :doc:`Global {+Cluster+} </global-clusters>`. Provide this value 
+   only if you set :setting:`spec.clusterSpec.clusterType` to 
+   ``GEOSHARDED``.
 
 .. setting:: spec.clusterSpec.versionReleaseSystem
 
@@ -494,7 +699,7 @@ documentation to customize your specifications.
 
    *Required*
 
-   Name of the project where the cluster belongs. You must specify an 
+   Name of the project where the {+cluster+} belongs. You must specify an 
    existing :ref:`atlasproject-custom-resource`.
 
 .. setting:: status.connectionStrings
@@ -503,17 +708,17 @@ documentation to customize your specifications.
 
    *Required*
 
-   List that contains the connection URLs for accessing the cluster.
-   This parameter appears after you create or update a cluster.
+   List that contains the connection URLs for accessing the {+cluster+}.
+   This parameter appears after you create or update a {+cluster+}.
    
    .. note::
 
       .. include:: /includes/fact-ak8so-connection-strings.rst
 
-For the configuration parameters available for a cluster and advanced
-cluster from the |api|, see the |service| 
-:doc:`Clusters API </reference/api/clusters-create-one>`, and
-:doc:`Advanced Clusters API
+For the configuration parameters available for a {+cluster+} and 
+advanced {+cluster+} from the |api|, see the |service| 
+:doc:`{+Clusters+} API </reference/api/clusters-create-one>`, and
+:doc:`Advanced {+Clusters+} API
 </reference/api/cluster-advanced/create-one-cluster-advanced>`.
 
 .. note::
