@@ -5,8 +5,7 @@ purposes, you need to complete the following:
    or `Enterprise <https://www.mongodb.com/try/download/enterprise>`__ version
    of MongoDB Server.
 
-#. `Install and configure <https://docs.mongodb.com/manual/installation/>`__
-   MongoDB Server.
+#. :ref:`Install and configure <tutorials-installation>` MongoDB Server.
 
 #. Start the server.
 

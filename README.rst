@@ -27,10 +27,10 @@ To contribute to the documentation,
 See the following documents that provide an overview of the
 documentation style and process:
 
-- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
-- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
-- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
+- `Style Guide <http://www.mongodb.com/docs/meta/style-guide>`_
+- `Documentation Practices <http://www.mongodb.com/docs/meta/practices>`_
+- `Documentation Organization <http://www.mongodb.com/docs/meta/organization>`_
+- `Build Instructions <http://www.mongodb.com/docs/meta/practices/#builds`_
 
 File JIRA Tickets
 -----------------
