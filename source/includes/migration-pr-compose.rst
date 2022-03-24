@@ -26,17 +26,17 @@
   Atlas supports the latest versions of MongoDB: 3.6, 4.0, and 4.2.
   If you're running MongoDB version 2.6 or greater, the Atlas Live Migration
   Service can move your data directly into a newer database version.
-  Update your `MongoDB drivers <https://docs.mongodb.com/ecosystem/drivers>`_
+  Update your `MongoDB drivers <https://mongodb.com/docs/drivers>`_
   and make any necessary code changes at the application level to ensure
-  compatibility. If you're running a version older than 2.6, see 
-  `Upgrade MongoDB to 2.6 <https://docs.mongodb.com/v2.6/release-notes/2.6-upgrade/index.html>`_
+  compatibility. If you're running a version older than 2.6, see
+  `Upgrade MongoDB to 2.6 <https://mongodb.com/docs/v2.6/release-notes/2.6-upgrade/index.html>`_
   for upgrade instructions.
 
 * Your current deployment is a MongoDB replica set or sharded cluster.
 
   If your deployment is currently a standalone instance, you must first
   :manual:`convert it to a replica set </tutorial/convert-standalone-to-replica-set/>`.
-  
+
   Live migration of data from sharded clusters is not supported. Your destination
   cluster may be sharded, but your source cluster must be an unsharded replica
   set.
@@ -55,11 +55,11 @@
 
 * The database user from your source cluster that you will use to perform
   the migration has the required MongoDB roles.
-   
+
   - The :authrole:`readAnyDatabase` role.
   - The :authrole:`clusterMonitor` role.
   - The :authrole:`backup` role.
-  
+
   To verify that the database user that will run the Live Migration
   process has these roles, run the :manual:`db.getUser()
   </reference/method/db.getUser/>` command on the ``admin`` database.
@@ -87,7 +87,7 @@
          }
        ]
      } ...
-  
+
   In addition, the database user from your source cluster in Compose
   must have the role to read the oplog on your ``admin`` database. See
   :atlas:`Oplog Access </reference/atlas-oplog/>`. You obtain access to

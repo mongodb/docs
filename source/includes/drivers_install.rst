@@ -20,13 +20,13 @@
 
      - id: compass
        content: |
-	
+
          To install Compass, see the `Compass installation instructions
-         <https://docs.mongodb.com/compass/current/install/>`__
-     
+         <https://mongodb.com/docs/compass/current/install/>`__
+
      - id: go
        content: |
-         
+
          The MongoDB Go driver can be installed using ``go get``:
 
          .. code-block:: sh
@@ -35,15 +35,15 @@
 
          The output of this may look like a warning stating something like:
 
-         .. code-block:: none 
+         .. code-block:: none
 
             package github.com/mongodb/mongo-go-driver: no Go files in (...).
-         
+
          This is expected output.
 
-         Alternatively if you are using the ``dep`` package manager to 
+         Alternatively if you are using the ``dep`` package manager to
          install the driver,
-         you can install the main mongo package as well as the bson and 
+         you can install the main mongo package as well as the bson and
          mongo/options package using this command:
 
          .. code-block:: sh
@@ -80,7 +80,7 @@
      # - id: php
      #   content: |
      #     Here's how you `install the PHP library
-     #     <https://docs.mongodb.com/php-library/current/tutorial/install-php-library/>`__
+     #     <https://mongodb.com/docs/php-library/current/tutorial/install-php-library/>`__
      #
      # - id: perl
      #   content: |
@@ -90,7 +90,7 @@
      # - id: ruby
      #   content: |
      #     Here's how you `install the Ruby driver
-     #     <https://docs.mongodb.com/ruby-driver/master/installation/>`__
+     #     <https://mongodb.com/docs/ruby-driver/master/installation/>`__
      #
      # - id: scala
      #   content: |
