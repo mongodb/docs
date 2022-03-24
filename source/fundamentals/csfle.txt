@@ -18,20 +18,20 @@ Level Encryption (CSFLE)** in the MongoDB Node.js driver.
 
 CSFLE allows you to encrypt specific data fields within a document with
 your MongoDB client application before sending the data to the server.
-Starting in MongoDB 4.2 Enterprise, you can perform this client-side 
+Starting in MongoDB 4.2 Enterprise, you can perform this client-side
 encryption automatically.
 
-With CSFLE, your client application encrypts fields client-side without 
-requiring any server-side configuration or directives. CSFLE is useful 
-for situations in which applications must guarantee that unauthorized 
-parties, including server administrators, cannot read the encrypted 
+With CSFLE, your client application encrypts fields client-side without
+requiring any server-side configuration or directives. CSFLE is useful
+for situations in which applications must guarantee that unauthorized
+parties, including server administrators, cannot read the encrypted
 data.
 
-This guide is a quick introduction to CSFLE using the Node.js driver. 
+This guide is a quick introduction to CSFLE using the Node.js driver.
 For in-depth information on how CSFLE works, see
-the :manual:`CSFLE reference </core/security-client-side-encryption/>` 
-documentation. For a real-world scenario and implementation, see our 
-`CSFLE Guide <https://docs.mongodb.com/drivers/security/client-side-field-level-encryption-guide>`_.
+the :manual:`CSFLE reference </core/security-client-side-encryption/>`
+documentation. For a real-world scenario and implementation, see our
+`CSFLE Guide <https://www.mongodb.com/docs/drivers/security/client-side-field-level-encryption-guide>`__.
 
 Installation
 ------------
@@ -45,8 +45,8 @@ To get started with CSFLE in your client application, you need:
 ``mongodb-client-encryption``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``mongodb-client-encryption`` module is the official client 
-encryption module for the MongoDB Node.js driver. It contains bindings 
+The ``mongodb-client-encryption`` module is the official client
+encryption module for the MongoDB Node.js driver. It contains bindings
 to communicate with the native library that manages the encryption.
 
 Add it to your project using ``npm``:
@@ -59,10 +59,10 @@ Add it to your project using ``npm``:
 ``mongocryptd``
 ~~~~~~~~~~~~~~~
 
-``mongocryptd`` is launched automatically by the package, and it is used for 
-automatic encryption. ``mongocryptd`` communicates with 
-``mongodb-client-encryption`` to automatically encrypt the information 
-specified by a user-provided 
+``mongocryptd`` is launched automatically by the package, and it is used for
+automatic encryption. ``mongocryptd`` communicates with
+``mongodb-client-encryption`` to automatically encrypt the information
+specified by a user-provided
 :manual:`JSON Schema </reference/security-client-side-automatic-json-schema/>`.
 
 For more detailed information on ``mongocryptd``, see the
@@ -71,23 +71,23 @@ For more detailed information on ``mongocryptd``, see the
 Example
 -------
 
-The following example shows how to configure a CSFLE-enabled client 
-with a local key and a JSON schema. Values in the ``ssn`` field are 
-automatically encrypted before insertion, and decrypted when calling 
+The following example shows how to configure a CSFLE-enabled client
+with a local key and a JSON schema. Values in the ``ssn`` field are
+automatically encrypted before insertion, and decrypted when calling
 ``find()`` with a CSFLE-enabled client.
 
 .. warning::
 
-   MongoDB recommends using local key management only for testing 
+   MongoDB recommends using local key management only for testing
    purposes, and using a remote key management service
    for production.
 
-An expanded example with support for remote key management services is 
-available at MongoDB University's GitHub 
+An expanded example with support for remote key management services is
+available at MongoDB University's GitHub
 `Node CSFLE Example <https://github.com/mongodb-university/csfle-guides/tree/master/nodejs>`__.
 
 .. note::
-   
+
    Auto encryption requires MongoDB **Enterprise** or **Atlas**.
 
 To run this example, first complete the following steps:
@@ -98,16 +98,16 @@ To run this example, first complete the following steps:
 - Start a ``mongocryptd`` locally on the default port 27020.
 
 .. code-block:: javascript
-  
+
    const { MongoClient, Binary } = require("mongodb");
    const { ClientEncryption } = require("mongodb-client-encryption");
    const fs = require("fs/promises");
-   
+
    async function getRegularClient() {
      const client = new MongoClient("mongodb://localhost:27017");
      return await client.connect();
    }
-   
+
    async function getCsfleEnabledClient(schemaMap) {
      const client = new MongoClient("mongodb://localhost:27017", {
        autoEncryption: {
@@ -122,7 +122,7 @@ To run this example, first complete the following steps:
      });
      return await client.connect();
    }
-   
+
    function createJsonSchemaMap(dataKey) {
      return {
        "users.ssns": {
@@ -141,7 +141,7 @@ To run this example, first complete the following steps:
        },
      };
    }
-   
+
    async function makeDataKey(client) {
      const encryption = new ClientEncryption(client, {
        keyVaultNamespace: "encryption.__keyVault",
@@ -151,47 +151,47 @@ To run this example, first complete the following steps:
          },
        },
      });
-     
+
      let dataKey = await encryption.createDataKey("local", {
        masterKey: null,
      });
-     
+
      return dataKey.toString("base64");
    }
-   
+
    async function run(regularClient, csfleClient) {
      try {
-   
+
        regularClient = await getRegularClient();
-   
+
        let dataKey = await makeDataKey(regularClient);
        console.log(
          "New dataKey created for this run:\n",
          dataKey
        );
-   
+
        const schemaMap = createJsonSchemaMap(dataKey);
-       
+
        csfleClient = await getCsfleEnabledClient(schemaMap);
-   
+
        const regularClientSsnsColl = regularClient
          .db("users")
          .collection("ssns");
        const csfleClientSsnsColl = csfleClient
          .db("users")
          .collection("ssns");
-   
+
        const exampleDocument = {
          name: "Jon Doe",
          ssn: 241014209,
        };
-   
+
        await csfleClientSsnsColl.updateOne(
          { ssn: exampleDocument.ssn },
          { $set: exampleDocument },
          { upsert: true }
        );
-   
+
        const csfleFindResult = await csfleClientSsnsColl.findOne({
          ssn: exampleDocument.ssn,
        });
@@ -199,21 +199,21 @@ To run this example, first complete the following steps:
          "Document retrieved with csfle enabled client:\n",
          csfleFindResult
        );
-   
+
        const regularFindResult = await regularClientSsnsColl.findOne({
          name: "Jon Doe",
        });
        console.log(
-         "Document retrieved with regular client:\n", 
+         "Document retrieved with regular client:\n",
          regularFindResult
        );
-   
+
      } finally {
        if (regularClient) await regularClient.close();
        if (csfleClient) await csfleClient.close();
      }
    }
-   
+
    run().catch(error => {
      console.dir(error);
      process.exit(1);
