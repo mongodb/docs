@@ -1,0 +1,86 @@
+project_name: atlascli
+
+monorepo:
+  tag_prefix: atlascli/
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - <<: &build_defaults
+      env:
+        - CGO_ENABLED=0
+      binary: bin/atlas
+      main: ./cmd/atlas/atlas.go
+      ldflags:
+        - -s -w -X github.com/mongodb/mongocli/internal/version.Version={{.Version}} -X github.com/mongodb/mongocli/internal/version.GitCommit={{.FullCommit}}
+    id: macos
+    goos: [darwin]
+    goarch: [amd64,arm64]
+    hooks:
+      # This will notarize Apple binaries and replace goreleaser bins with the notarized ones
+      post: ./build/package/atlascli_mac_notarize.sh
+  - <<: *build_defaults
+    id: linux
+    goos: [linux]
+    goarch: [amd64,arm64]
+  - <<: *build_defaults
+    id: windows
+    goos: [windows]
+    goarch: [amd64]
+archives:
+- id: linux
+  name_template: "mongodb-atlas-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  builds: [linux]
+  <<: &archive_defaults
+    files:
+      - README.md
+      - LICENSE
+      - third_party_notices/**/*
+    replacements:
+      darwin: macos
+      amd64: x86_64
+  wrap_in_directory: true
+  format: tar.gz
+- id: macos
+  name_template: "mongodb-atlas-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  builds: [macos]
+  <<: *archive_defaults
+  format: zip
+  wrap_in_directory: false
+- id: windows
+  name_template: "mongodb-atlas-cli_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  builds: [windows]
+  <<: *archive_defaults
+  wrap_in_directory: false
+  format: zip
+nfpms:
+- package_name: mongodb-atlas-cli
+  vendor: MongoDB Inc.
+  homepage: https://www.mongodb.com/
+  maintainer: MongoDB Inc. <support@mongodb.com>
+  description: MongoDB Atlas Command Line Interface (atlascli) is a tool for managing your MongoDB Atlas account.
+  license: Apache 2.0
+  bindir: /usr
+  builds: [linux]
+  formats: [deb,rpm]
+  replacements:
+    amd64: x86_64
+checksum:
+  name_template: checksums.txt
+snapshot:
+  name_template: "{{ .Env.VERSION_GIT }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+    - '^task:'
+    - '^build(deps):'
+release:
+  prerelease: true
+  name_template: "MongoDB Atlas CLI {{.Version}}"
+  extra_files:
+    - glob: ./bin/*.msi
