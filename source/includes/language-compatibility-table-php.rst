@@ -14,6 +14,17 @@
      - PHP 5.6
      - PHP 5.5
 
+   * - ext 1.13 + lib 1.12
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
+     -
+
    * - ext 1.12 + lib 1.11
      - |checkmark|
      - |checkmark|
