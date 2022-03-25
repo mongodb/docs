@@ -11,115 +11,53 @@ Configuration Options
    :class: singlecol
 
 Various configuration options are available for the MongoDB Spark
-Connector. To learn more about the options you can set, see 
-:ref:`spark-write-conf` and :ref:`spark-read-conf`.
+Connector.
 
 Specify Configuration
 ---------------------
 
-.. _spark-conf:
+Via ``SparkConf``
+~~~~~~~~~~~~~~~~~
 
-Using ``SparkConf``
-~~~~~~~~~~~~~~~~~~~
-
-You can specify configuration options with ``SparkConf`` using any of 
-the following approaches:
-
-.. tabs-selector:: drivers
-
-.. tabs-drivers::
-
-   tabs:
-     - id: java-sync
-       content: |
-
-         - The ``SparkConf`` constructor in your application. To learn more, see the `Java SparkConf documentation <https://spark.apache.org/docs/latest/api/java/index.html?org/apache/spark/SparkConf.html>`__.
-
-     - id: python
-       content: |
-
-         - The ``SparkConf`` constructor in your application. To learn more, see the `Python SparkConf documentation <https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.SparkConf.html>`__.
-
-     - id: scala
-       content: |
-
-         - The ``SparkConf`` constructor in your application. To learn more, see the `Scala SparkConf documentation <https://spark.apache.org/docs/latest/api/scala/org/apache/spark/SparkConf.html>`__.
-
-- The ``--conf`` flag at runtime. To learn more, see 
-  `Dynamically Loading Spark Properties <https://spark.apache.org/docs/latest/configuration.html#dynamically-loading-spark-properties>`__ in 
-  the Spark documentation.
-
-- The ``$SPARK_HOME/conf/spark-default.conf`` file.
-
-The MongoDB Spark Connector will use the settings in ``SparkConf`` as 
+You can specify these options via ``SparkConf`` using the ``--conf``
+setting or the ``$SPARK_HOME/conf/spark-default.conf`` file, and
+MongoDB Spark Connector will use the settings in ``SparkConf`` as the
 defaults.
 
 .. important::
 
-   When setting configurations with ``SparkConf``, you must prefix the
-   configuration options. Refer to :ref:`spark-write-conf` and 
-   :ref:`spark-read-conf` for the specific prefixes.
+   When setting configurations via ``SparkConf``, you must prefix the
+   configuration options. Refer to the configuration sections for the
+   specific prefix.
 
-.. _options-map:
+Via ``ReadConfig`` and ``WriteConfig``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using an Options Map
-~~~~~~~~~~~~~~~~~~~~
+Various methods in the MongoDB Connector API accept an optional
+:mongo-spark:`ReadConfig
+</blob/master/src/main/scala/com/mongodb/spark/config/ReadConfig.scala>`
+or a :mongo-spark:`WriteConfig
+</blob/master/src/main/scala/com/mongodb/spark/config/WriteConfig.scala>` object.
+``ReadConfig`` and ``WriteConfig`` settings override any
+corresponding settings in ``SparkConf``.
+For examples, see :ref:`gs-read-config` and :ref:`gs-write-config`. For
+more details, refer to the source for these methods.
 
-In the Spark API, the DataFrameReader and DataFrameWriter methods 
-accept options in the form of a ``Map[String, String]``. Options 
-specified this way override any corresponding settings in ``SparkConf``.
+Via Options Map
+~~~~~~~~~~~~~~~
 
-.. tabs-drivers::
+In the Spark API, some methods (e.g. ``DataFrameReader`` and
+``DataFrameWriter``) accept options in the form of a ``Map[String,
+String]``.
 
-   tabs:
-     - id: java-sync
-       content: |
+You can convert custom ``ReadConfig`` or ``WriteConfig`` settings into
+a ``Map`` via the ``asOptions()`` method.
 
-         To learn more about specifying options with 
-         `DataFrameReader <https://spark.apache.org/docs/latest/api/java/org/apache/spark/sql/DataFrameReader.html#option-java.lang.String-boolean->`__ and 
-         `DataFrameWriter <https://spark.apache.org/docs/latest/api/java/org/apache/spark/sql/DataFrameWriter.html#option-java.lang.String-boolean->`__, 
-         refer to the Java Spark documentation for the ``.option()`` 
-         method.
-
-     - id: python
-       content: |
-
-         To learn more about specifying options with 
-         `DataFrameReader <https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.DataFrameReader.option.html#pyspark.sql.DataFrameReader.option>`__ and 
-         `DataFrameWriter <https://spark.apache.org/docs/latest/api/python/reference/api/pyspark.sql.DataFrameWriter.option.html#pyspark.sql.DataFrameWriter.option>`__, 
-         refer to the Java Spark documentation for the ``.option()`` 
-         method.
-
-     - id: scala
-       content: |
-
-         To learn more about specifying options with 
-         `DataFrameReader <https://spark.apache.org/docs/latest/api/scala/org/apache/spark/sql/DataFrameReader.html#option(key:String,value:Double):org.apache.spark.sql.DataFrameReader>`__ and 
-         `DataFrameWriter <https://spark.apache.org/docs/latest/api/scala/org/apache/spark/sql/DataFrameWriter.html#option(key:String,value:Double):org.apache.spark.sql.DataFrameWriter[T]>`__, 
-         refer to the Java Spark documentation for the ``.option()`` 
-         method.
-  
-Short-Form Syntax
-`````````````````
-
-Options maps support short-form syntax. You may omit the prefix when 
-specifying an option key string.
-
-.. example::
-
-   The following syntaxes are equivalent to one another:
-
-   - ``dfw.option("spark.mongodb.write.collection", "myCollection").save()``
-
-   - ``dfw.option("spark.mongodb.collection", "myCollection").save()``
-
-   - ``dfw.option("collection", "myCollection").save()``
-
-Using a System Property
-~~~~~~~~~~~~~~~~~~~~~~~
+Via System Property
+~~~~~~~~~~~~~~~~~~~
 
 The connector provides a cache for ``MongoClients`` which can only be
-configured with a System Property. See :ref:`cache-configuration`.
+configured via the System Property. See :ref:`cache-configuration`.
 
 .. _cache-configuration:
 
@@ -132,7 +70,7 @@ share the MongoClient across threads.
 .. important::
 
    As the cache is setup before the Spark Configuration is available,
-   the cache can only be configured with a System Property.
+   the cache can only be configured via a System Property.
 
 .. list-table::
    :header-rows: 1
@@ -142,21 +80,10 @@ share the MongoClient across threads.
      - Description
 
    * - ``mongodb.keep_alive_ms``
-     - The length of time to keep a ``MongoClient`` available for 
-       sharing.
+     - The length of time to keep a ``MongoClient`` available for sharing.
 
        **Default:** ``5000``
-
-``ConfigException``\s
----------------------
-
-A configuration error throws a ``ConfigException``. Confirm that any of 
-the following methods of configuration that you use are configured 
-properly:
-
-- :ref:`SparkConf <spark-conf>`
-- :ref:`Options maps <options-map>`
-
+       
 .. toctree::
    :titlesonly:
 
