@@ -76,7 +76,9 @@ For details and examples, click any of the following options:
 ~~~~~~~~~
 
 The ``boost`` option multiplies a result's base score by a given number 
-or the value of a numeric field in the documents. 
+or the value of a numeric field in the documents. For example, you can 
+use ``boost`` to increase the importance of certain matching documents 
+in the result.
 
 .. note::
 
@@ -127,32 +129,49 @@ Examples
 The following examples use the ``movies`` collection in the
 ``sample_mflix`` database. If you have the :ref:`sample dataset
 <available-sample-datasets>` on your cluster, you can create the |fts|
-``default`` index and run the example queries on your cluster. 
+``default`` index and run the example queries on your cluster.  
  
-The sample queries include a ``$project`` stage to exclude all fields 
-except ``title`` and ``score``.
+The  sample :ref:`compound-ref` queries demonstrate how to increase the 
+importance of one search criteria over another. The queries include a 
+``$project`` stage to exclude all fields except ``title`` and 
+``score``. 
 
 .. tabs:: 
 
    .. tab:: ``value`` Field Example
       :tabid: number
 
-      In the following example, the :ref:`text <text-ref>` operator 
-      uses ``score`` with the ``boost`` option to multiply the score 
-      results by 3, as specified in the ``value`` field.
+      In the following example, the :ref:`compound-ref` operator uses 
+      :ref:`text-ref` operator to search for the the term ``Helsinki`` 
+      in the ``plot`` and ``title`` fields. The query for the ``title`` 
+      field uses ``score`` with the ``boost`` option to multiply the 
+      score results by 3, as specified in the ``value`` field.
 
       .. code-block:: json
          :linenos:
 
          db.movies.aggregate([
            {
-             $search: {
-               "text": {
-                 "query": "Helsinki",
-                 "path": "title",
-                 "score": { "boost": { "value": 3 } }
+             "$search": {
+               "compound": {
+                 "should": [{
+                   "text": {
+                     "query": "Helsinki",
+                     "path": "plot"
+                   }
+                 },
+                 {
+                   "text": {
+                     "query": "Helsinki",
+                     "path": "title",
+                     "score": { "boost": { "value": 3 } }
+                   }
+                 }]
                }
              }
+           },
+           {
+             "$limit": 5
            },
            {
              $project: {
@@ -164,38 +183,77 @@ except ``title`` and ``score``.
          ])
 
       The above query returns the following results, in which the score 
-      is multiplied by 3 from its base value:
+      for documents where the ``title`` matches the query term is 
+      multiplied by 3 from its base value:
 
       .. code-block:: json
          :copyable: false
 
-         { "title" : "Kites Over Helsinki", "score" : 12.247001647949219 }
-         { "title" : "Helsinki-Naples All Night Long", "score" : 9.568056106567383 }
+         [
+           {
+             plot: 'Epic tale about two generations of men in a wealthy Finnish family, spanning from the 1960s all the way through the early 1990s. The father has achieved his position as director of the ...',
+             title: 'Kites Over Helsinki',
+             score: 12.2470121383667
+           },
+           {
+             plot: 'Alex is Finlander married to an Italian who works as a taxi driver in Berlin. One night in his taxi come two men with a briefcase full of money. Unluckily for Alex, they are being chased by...',
+             title: 'Helsinki-Naples All Night Long',
+             score: 9.56808090209961
+           },
+           {
+             plot: 'The recession hits a couple in Helsinki.',
+             title: 'Drifting Clouds',
+             score: 4.5660295486450195
+           },
+           {
+             plot: 'Two teenagers from Helsinki are sent on a mission by their drug dealer.',
+             title: 'Sairaan kaunis maailma',
+             score: 4.041563034057617
+           },
+           {
+             plot: 'A murderer tries to leave his criminal past in East Helsinki and make a new life for his family',
+             title: 'Bad Luck Love',
+             score: 3.6251673698425293
+           }
+         ]
 
    .. tab:: ``path`` Field Example
       :tabid: patheg
 
-      In the following example, the :ref:`text <text-ref>` operator 
-      uses ``score`` with the ``boost`` option to multiply the score results by 
-      the numeric field ``imdb.rating`` in ``path``. 
-      If the numeric field is not found in the 
-      specified ``path``, the operator multiplies the score of the documents by 3.
+      In the following example, the :ref:`compound-ref` operator 
+      uses :ref:`text-ref` operator to search for the the term 
+      ``Helsinki`` in the ``plot`` and ``title`` fields. The query 
+      against the ``title`` field uses ``score`` with the ``boost`` 
+      option to multiply the score results by the numeric field 
+      ``imdb.rating`` in ``path``. If the numeric field isn't found in 
+      the specified ``path``, the operator multiplies the score of the 
+      documents by ``3``.
 
       .. code-block:: json 
          :linenos:
 
          db.movies.aggregate([
            {
-             $search: {
-               "text": {
-                 "query": "Helsinki",
-                 "path": "title",
-                 "score": { 
-                   "boost": { 
-                     "path": "imdb.rating",
-                     "undefined": 3
-                   } 
-                 }
+             "$search": {
+               "compound": {
+                 "should": [{
+                   "text": {
+                     "query": "Helsinki",
+                     "path": "plot"
+                   }
+                 },
+                 {
+                   "text": {
+                     "query": "Helsinki",
+                     "path": "title",
+                     "score": {
+                       "boost": {
+                         "path": "imdb.rating",
+                         "undefined": 3
+                       }
+                     }
+                   }
+                 }]
                }
              }
            },
@@ -209,15 +267,41 @@ except ``title`` and ``score``.
          ])
 
       The above query returns the following results, in which the score 
-      is multiplied from its base value by the value of the numeric 
-      field ``imdb.rating`` or ``3``, if the field could not be found 
-      in the documents:
+      for documents where the ``title`` field matches the query term is 
+      multiplied from its base value by the value of the numeric field 
+      ``imdb.rating`` or ``3``, if the field couldn't be found in the 
+      documents:
 
       .. code-block:: json 
          :copyable: false 
 
-         { "title" : "Kites Over Helsinki", "score" : 24.902257919311523 }
-         { "title" : "Helsinki-Naples All Night Long", "score" : 20.411907196044922 }
+         [
+           {
+             plot: 'Epic tale about two generations of men in a wealthy Finnish family, spanning from the 1960s all the way through the early 1990s. The father has achieved his position as director of the ...',
+             title: 'Kites Over Helsinki',
+             score: 24.902257919311523
+           },
+           {
+             plot: 'Alex is Finlander married to an Italian who works as a taxi driver in Berlin. One night in his taxi come two men with a briefcase full of money. Unluckily for Alex, they are being chased by...',
+             title: 'Helsinki-Naples All Night Long',
+             score: 20.411907196044922
+           },
+           {
+             plot: 'The recession hits a couple in Helsinki.',
+             title: 'Drifting Clouds',
+             score: 4.5660295486450195
+           },
+           {
+             plot: 'Two teenagers from Helsinki are sent on a mission by their drug dealer.',
+             title: 'Sairaan kaunis maailma',
+             score: 4.041563034057617
+           },
+           {
+             plot: 'A murderer tries to leave his criminal past in East Helsinki and make a new life for his family',
+             title: 'Bad Luck Love',
+             score: 3.6251673698425293
+           }
+         ]
 
 .. _scoring-constant:
 
@@ -232,10 +316,12 @@ The ``constant`` option replaces the base score with a specified number.
 Examples
 ````````
 
-The following example uses the default index on the ``sample_mflix.movies``
-collection to query the ``title`` field. In the query, the :ref:`text <text-ref>` 
-operator uses ``score`` with the ``constant`` option to replace all score results
-with ``5``.
+The following example uses the default index on the 
+``sample_mflix.movies`` collection to query the ``plot`` and ``title`` 
+fields using the :ref:`compound-ref` operator. In the query, the 
+:ref:`text-ref` operator uses ``score`` with the ``constant`` option to 
+replace all score results with ``5`` for results that match the query 
+against the ``title`` field only.
 
 .. code-block:: javascript
    :linenos:
@@ -243,10 +329,20 @@ with ``5``.
    db.movies.aggregate([
      {
        $search: {
-         "text": {
-           "query": "tower",
-           "path": "title",
-           "score": { "constant": { "value": 5 } }
+         "compound": {
+           "should": [{
+             "text": {
+               "query": "tower",
+               "path": "plot"
+             }
+           },
+           {
+             "text": {
+               "query": "tower",
+               "path": "title",
+               "score": { "constant": { "value": 5 } }
+             }
+           }]
          }
        }
      },
@@ -259,18 +355,41 @@ with ``5``.
      }
    ])
 
-The above query returns the following results, in which the score is
+The above query returns the following results, in which the score for 
+documents that match the query against the ``title`` field only is 
 replaced with the specified ``constant`` value:
 
 .. code-block:: json
    :copyable: false
    :linenos:
 
-   { "title": "Tower Heist", "score": 5 }
-   { "title": "Tokyo Tower", "score": 5 }
-   { "title": "The Leaning Tower", "score": 5 }
-   { "title" : "Tower Block", "score" : 5 }
-   { "title": "Ivory Tower", "score": 5 }
+   [
+     {
+       plot: 'Several months after witnessing a murder, residents of Tower Block 31 find themselves being picked off by a sniper, pitting those lucky enough to be alive into a battle for survival.',
+       title: 'Tower Block',
+       score: 8.15460205078125
+     },
+     {
+       plot: "When a group of hard-working guys find out they've fallen victim to their wealthy employer's Ponzi scheme, they conspire to rob his high-rise residence.",
+       title: 'Tower Heist',
+       score: 5
+     },
+     {
+       plot: 'Toru Kojima and his friend Koji are young student boys with one thing in common - they both love to date older women. Koji is a playboy with several women, young and older, whereas Toru is a romantic with his heart set on on certain lady.',
+       title: 'Tokyo Tower',
+       score: 5
+     },
+     {
+       plot: 'A middle-aged mental patient suffering from a split personality travels to Italy where his two personalities set off all kinds of confusing developments.',
+       title: 'The Leaning Tower',
+       score: 5
+     },
+     {
+       plot: 'A documentary that questions the cost -- and value -- of higher education in the United States.',
+       title: 'Ivory Tower',
+       score: 5
+     }
+   ]
 
 .. _scoring-function:
 
