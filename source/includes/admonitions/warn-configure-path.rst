@@ -16,5 +16,4 @@
      shell, see :manual:`The mongo Shell </mongo>`.
 
    - To install the ``mongosh`` shell and for instructions on 
-     configuring your ``PATH`` variable, see 
-     `Install the MongoDB Shell <https://docs.mongodb.com/mongodb-shell/install>`__.
+     configuring your ``PATH`` variable, see :mongosh:`Install the MongoDB Shell </install>`.
