@@ -28,8 +28,8 @@ endif
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
-PRODUCTION_BUCKET=docs-mongocli-prod
-PROJECT=mongocli
+PRODUCTION_BUCKET=docs-atlas-cli-prod
+PROJECT=atlas-cli
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -83,13 +83,13 @@ publish:
 
 #################################################################
 ####                                                         ####
-####        DEPLOY KUBERNETES OPERATOR DOCUMENTATION         ####
+####              DEPLOY ATLAS CLI DOCUMENTATION             ####
 ####                                                         ####
 #################################################################
 
 
 #################################################################
-####   DEPLOY KUBERNETES OPERATOR DOCUMENTATION TO STAGING   ####
+####         DEPLOY ATLAS CLI DOCUMENTATION TO STAGING       ####
 #################################################################
 
 ## Host online for review
@@ -99,7 +99,7 @@ stage:
 
 
 #################################################################
-####  DEPLOY KUBERNETES OPERATOR DOCUMENTATION TO PRODUCTION ####
+####       DEPLOY ATLAS CLI DOCUMENTATION TO PRODUCTION      ####
 #################################################################
 
 ## Deploy to the production bucket
