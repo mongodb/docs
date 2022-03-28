@@ -74,7 +74,7 @@ rst_epilog = '\n'.join([
 pygments_style = 'sphinx'
 
 extlinks = {
-    'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'http://www.mongodb.com/docs/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'api': ('https://api.mongodb.com/%s', ''),
     'gettingstarted': ('https://www.mongodb.com/docs/getting-started%s', ''),
