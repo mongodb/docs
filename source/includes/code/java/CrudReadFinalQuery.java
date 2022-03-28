@@ -9,8 +9,21 @@ public class CrudRead {
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
             // database and collection code goes here
+            MongoDatabase db = mongoClient.getDatabase("sample_guides");
+            MongoCollection<Document> coll = db.getCollection("planets");
+
             // find code goes here
+            Bson filter = eq("hasRings", true);
+            MongoCursor<Document> cursor = coll.find(filter).iterator();
+
             // iterate code goes here
+            try {
+                while (cursor.hasNext()) {
+                    System.out.println(cursor.next().toJson());
+                }
+            } finally {
+                cursor.close();
+            }
         }
     }
 }

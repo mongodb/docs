@@ -4,7 +4,7 @@
 
      - id: python
        content: |
-         .. literalinclude:: /includes/code/python/crud-read-iterate.py
+         .. literalinclude:: /includes/code/python/crud_read_iterate.py
             :caption: crud_read.py
             :language: python
             :dedent: 0

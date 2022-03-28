@@ -12,7 +12,7 @@
 
             The empty ``bson.D{}`` is required to match all documents.
 
-         .. literalinclude:: /includes/code/go/crud-read-retrieve.go
+         .. literalinclude:: /includes/code/go/crud-read-find-noquery.go
             :caption: crudRead.go
             :language: go
             :linenos:
@@ -24,14 +24,10 @@
          guide, you'll learn how to use the same method to retrieve documents
          that match specific criteria.
 
-         .. literalinclude:: /includes/code/python/crud-read-retrieve.py
+         .. literalinclude:: /includes/code/python/crud_read_find_noquery.py
             :caption: crud_read.py
             :language: python
             :dedent: 0
-
-     - id: motor
-       content: |
-         TODO:
 
 
      - id: java-sync
@@ -41,7 +37,7 @@
          guide, you'll learn how to use the same method to retrieve documents
          that match specific criteria.
 
-         .. literalinclude:: /includes/code/java/CrudReadRetrieve.java
+         .. literalinclude:: /includes/code/java/CrudReadFindNoquery.java
             :caption: CrudRead.java
             :language: java
             :linenos:
@@ -54,14 +50,14 @@
          guide, you'll learn how to use the same method to retrieve documents
          that match specific criteria.
 
-         .. literalinclude:: /includes/code/node/crud-read-retrieve.js
+         .. literalinclude:: /includes/code/node/crud-read-find-noquery.js
             :caption: crud-read.js
             :language: javascript
             :dedent: 0
 
      - id: csharp
        content: |
-         .. literalinclude:: /includes/code/dotnet/CrudReadRetrieve.cs
+         .. literalinclude:: /includes/code/dotnet/CrudReadFindNoquery.cs
             :caption: CrudRead.cs
             :language: csharp
             :dedent: 0

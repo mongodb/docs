@@ -4,7 +4,7 @@
      - id: python
        content: |
 
-         .. literalinclude:: /includes/code/python/crud-read-switch.py
+         .. literalinclude:: /includes/code/python/crud_read_switch.py
             :caption: crud_read.py
             :language: python
             :dedent: 0

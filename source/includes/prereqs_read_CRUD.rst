@@ -1,5 +1,6 @@
-- A :ref:`connection string <guides-get-connection-sring>` to your MongoDB deployment.
-- If you have not already installed a client, complete the :ref:`Add a Driver <guides-add-a-driver>` guide before attempting this guide.
+- A :ref:`connection string <guides-get-connection-string>` to your MongoDB deployment.
+- Sample datasets :ref:`loaded into your cluster <guides-load-sample-data>`.
+- An :ref:`installed MongoDB Driver <guides-add-a-driver>`.
 
 ..
   .. tabs-cloud::

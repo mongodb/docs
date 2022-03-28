@@ -5,10 +5,10 @@
      - id: python
        content: |
 
-         The following is a basic example of how to connect to MongoDB using PyMongo.
-         You'll make addiitons over the next few steps to read data.
+         The following is an outline with the minimum code necessary to connect to MongoDB using PyMongo.
+         You'll make additions over the next few steps to read data.
 
-         .. literalinclude:: /includes/code/python/crud-read-connect.py
+         .. literalinclude:: /includes/code/python/crud_read_connect.py
             :caption: crud_read.py
             :language: python
             :linenos:
@@ -26,8 +26,8 @@
      - id: go
        content: |
 
-         The following is a basic example of how to connect to MongoDB using the Go driver.
-         You'll make addiitons over the next few steps to read data.
+         The following is an outline with the minimum code necessary to connect to MongoDB using the Go driver.
+         You'll make additions over the next few steps to read data.
 
          .. literalinclude:: /includes/code/go/crud-read-connect.go
             :caption: crudRead.go
@@ -38,8 +38,8 @@
      - id: java-sync
        content: |
 
-         The following is a basic example of how to connect to MongoDB using the Java driver.
-         You'll make addiitons over the next few steps to read data.
+         The following is an outline with the minimum code necessary to connect to MongoDB using the Java driver.
+         You'll make additions over the next few steps to read data.
 
          .. literalinclude:: /includes/code/java/CrudReadConnect.java
             :caption: CrudRead.java
@@ -50,8 +50,8 @@
      - id: nodejs
        content: |
 
-         The following is a basic example of how to connect to MongoDB using the Node.js driver.
-         You'll make addiitons over the next few steps to read data.
+         The following is an outline with the minimum code necessary to connect to MongoDB using the Node.js driver.
+         You'll make additions over the next few steps to read data.
 
          .. literalinclude:: /includes/code/node/crud-read-connect.js
             :caption: crud-read.js
@@ -62,8 +62,8 @@
      - id: csharp
        content: |
 
-         The ``MongoDB.Bson`` package is used in CRUD operations, so
-         you'll import it here.
+         The following is an outline with the minimum code necessary to connect to MongoDB using the C#/.NET driver.
+         You'll make additions over the next few steps to read data.
 
          .. literalinclude:: /includes/code/dotnet/CrudReadConnect.cs
             :caption: CrudRead.cs

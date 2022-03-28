@@ -15,7 +15,7 @@
             :caption: crud_read.py
             :copyable: true
 
-            .. input:: /includes/code/python/crud-read-final.py
+            .. input:: /includes/code/python/crud_read_final_noquery.py
                :language: python
                :linenos:
 
@@ -41,7 +41,7 @@
             :caption: crudRead.go
             :copyable: true
 
-            .. input:: /includes/code/go/crud-read-final.go
+            .. input:: /includes/code/go/crud-read-final-noquery.go
                :language: go
                :linenos:
 
@@ -66,7 +66,7 @@
             :caption: CrudRead.java
             :copyable: true
 
-            .. input:: /includes/code/java/CrudReadFinal.java
+            .. input:: /includes/code/java/CrudReadFinalNoquery.java
                :language: java
                :linenos:
 
@@ -88,7 +88,7 @@
             :caption: crud-read.js
             :copyable: true
 
-            .. input:: /includes/code/node/crud-read-final.js
+            .. input:: /includes/code/node/crud-read-final-noquery.js
                :language: javascript
                :linenos:
 
@@ -113,7 +113,7 @@
             :caption: CrudRead.cs
             :copyable: true
 
-            .. input:: /includes/code/dotnet/Guide/CrudReadFinal.cs
+            .. input:: /includes/code/dotnet/CrudReadFinalNoquery.cs
                :language: csharp
                :linenos:
 

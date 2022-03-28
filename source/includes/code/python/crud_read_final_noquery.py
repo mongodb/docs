@@ -9,7 +9,7 @@ client = MongoClient(uri)
 db = client.sample_guides
 coll = db.planets
 # find code goes here
-cursor = coll.find()
+cursor = coll.find({"hasRings": True})
 # iterate code goes here
 for doc in cursor:
     print(doc)

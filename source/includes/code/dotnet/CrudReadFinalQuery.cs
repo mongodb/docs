@@ -1,0 +1,20 @@
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
+
+// Replace the uri string with your MongoDB deployment's connection string.
+var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
+
+var client = new MongoClient(uri);
+
+// database and collection code goes here
+var db = client.GetDatabase("sample_guides");
+var coll = db.GetCollection<BsonDocument>("planets");
+// find code goes here
+var cursor = coll.AsQueryable().Where(x => x["hasRings"] == (bool?)true);
+// iterate code goes here
+foreach (var document in cursor)
+{
+    Console.WriteLine(document);
+}
+
+
