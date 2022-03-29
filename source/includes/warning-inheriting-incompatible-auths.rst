@@ -7,4 +7,4 @@
            the server is unable to authenticate the user.
 
            For more information about authentication in MongoDB, see
-           `Authentication <https://docs.mongodb.com/manual/core/authentication/>`_.
+           `Authentication <https://www.mongodb.com/docs/manual/core/authentication/>`_.
