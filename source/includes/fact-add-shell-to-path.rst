@@ -31,7 +31,8 @@
          Copy the Homebrew command from the |service| UI
          window and run it in your terminal. If you downloaded the 
          MongoDB Shell directly, follow the steps to `install 
-         <https://docs.mongodb.com/mongodb-shell/install/>`__ |mongosh|.
+         <https://www.mongodb.com/docs/mongodb-shell/install/>`__ 
+         |mongosh|.
 
      - id: linux
        name: Linux
