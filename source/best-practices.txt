@@ -9,7 +9,7 @@
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 With |service-fullname| as your data platform, operational focus can
@@ -31,11 +31,11 @@ MongoDB manages and operates the infrastructure required to provide a
 MongoDB Database Service to the customer. MongoDB's responsibilities
 include the following:
 
-- Manage the database clusters and underlying infrastructure, ensuring
+- Manage the database {+clusters+} and underlying infrastructure, ensuring
   availability, stability, and performance of MongoDB, backed by a
   99.995%
   :website:`Uptime Service Level Agreement (SLA) </cloud/atlas/availability-sla>`
-  for clusters of size ``M10`` and larger.
+  for {+clusters+} of size ``M10`` and larger.
 
 - Ensure the health of the underlying compute nodes. Make sure they are
   running, have network connectivity, and have all recommended OS-level
@@ -53,7 +53,7 @@ include the following:
   :doc:`Role-Based Access Control </security-add-mongodb-users>`,
   :doc:`adding IP addresses to an IP access list </security/ip-access-list>`, and
   :doc:`peering </security-vpc-peering>` to
-  maximize cluster security per the customer's direction.
+  maximize {+cluster+} security per the customer's direction.
 
 - Provide :doc:`backup and restore </backup-restore-cluster>` services.
 
@@ -61,30 +61,45 @@ The customer continues to develop and deploy applications which access
 MongoDB, without having to directly manage the underlying database
 resources and/or infrastructure.
 
-Organization and Project-Level Management
------------------------------------------
+.. _db-deployment-best-practices:
+
+{+Database-Deployment+} Management
+----------------------------------
+
+.. important::
+
+   |service| doesn't support moving {+database-deployments+} from one project to
+   another. Instead, perform a :ref:`live migration <live-migration>`.
 
 |service-fullname| abstracts away database operations so that you can
-focus on high-value, high-level management decisions.
-
-Creating a well-designed hierarchy of
-:doc:`organizations and projects <organizations-projects>` within
-|service| allows for maximum enterprise efficiency with minimum
-operational friction.
+focus on high-value, high-level management decisions. You can manage
+access to your |service| {+database-deployments+} with :doc:`Atlas User
+Roles </reference/user-roles/>`. You can apply these permissions
+**only** on the :ref:`the organization level
+<org-level-best-practices>` or :ref:`the project level
+<project-level-best-practices>`. So, you should carefully plan the
+hierarchy of your organizations and projects.
 
 .. tip::
 
    If you need to create more than the |service| organization limit of 
-   250 projects, create additional organizations to store them.
+   250 projects, create more organizations to store them. To learn
+   more, see :ref:`Atlas Organization and Project Limits <org-project-limits>`.
+
+To create a well-designed hierarchy of :doc:`organizations and
+projects <organizations-projects>` within |service|, break your
+{+database-deployments+} into projects that make sense for your use
+cases. This allows for maximum enterprise efficiency with minimum
+operational friction.
+
+.. tip::
 
    Use :ref:`Cross-Organization Billing <cross-org-billing>` to link 
    multiple |service| organizations and receive a single invoice for 
-   all of them.
+   all of them. To learn more, see :ref:`Cross-Organization Billing Use
+   Cases <cross-org-billing-use-cases>`.
 
-.. seealso::
-   
-   - :ref:`Atlas Organization and Project Limits <org-project-limits>`
-   - :ref:`Cross-Organization Billing Use Cases <cross-org-billing-use-cases>`
+.. _org-level-best-practices:
 
 The Organization Level
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -97,6 +112,8 @@ or more :doc:`Projects </tutorial/manage-projects>`. |service|
 To efficiently control user access and privileges, you can group users
 into :doc:`teams </access/manage-teams-in-orgs>` at the Organization
 level.
+
+.. _project-level-best-practices:
 
 The Project Level
 ~~~~~~~~~~~~~~~~~
@@ -116,9 +133,16 @@ environments.
   project-level monitoring and system health metadata without having
   access to any collection data or administrative operations.
 
-- Users with the :authrole:`Project Cluster Manager` role can scale
-  clusters and perform other administrative operations, but have no
+- Users with the :authrole:`Project {+Cluster+} Manager` role can scale
+  {+clusters+} and perform other administrative operations, but have no
   data-level access.
+
+.. important:: {+Serverless-Instances+} are in Preview
+
+   {+Serverless-instances+} are in preview and do not support most of
+   the following responsibilities. To learn more, see
+   :doc:`{+Serverless-Instance+} Limitations
+   </reference/serverless-instance-limitations/>`.
 
 Other project-level responsibilities include:
 
@@ -142,6 +166,100 @@ Other project-level responsibilities include:
 
   .. include:: /includes/fact-new-relic-deprecated.rst
 
+{+Cluster+} Naming Conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Choosing the right naming convention for your |service| {+clusters+} is a good
+first step towards running a successful production environment. Once you've
+named a {+cluster+} you can't rename it, so it's important to get it right the
+first time. The following suggestions can make it easier to parse logs and
+differentiate {+clusters+}.
+
+- Use descriptive, lowercase names.
+
+- Avoid special characters.
+
+- Join words with hyphens or underscores. Avoid blank spaces between words.
+
+- Use a convention which makes it clear whether a {+cluster+} is for production,
+  staging, or development purposes. 
+
+Some examples of good {+cluster+} names:
+
+- ``prod-aws-website``
+- ``staging-gcp-internal``
+- ``dev-azure-analytics``
+
+Single Region and Multi-Region {+Clusters+} 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+High availability and {+cluster+} durability depend on a cluster's
+geographical deployment configuration. {+Clusters+} which are deployed
+within a single :doc:`region </cloud-providers-regions>` are spread
+across availability zones within that region, so they can withstand
+partial region outages without an interruption of read or write
+availability.
+
+You can optionally choose to spread your {+clusters+} across two or
+more regions for greater resiliency and
+:doc:`workload isolation </cluster-config/multi-cloud-distribution>`.
+
+The order of regions determines the priority order for the location of
+the :manual:`primary node </core/replica-set-members#replica-set-primary-member>`.
+Therefore, if you wish to direct database write operations to a
+particular region when that region is available, you should list that
+region first. The second region on the list should be the second
+choice for where writes should go if the first region is unavailable.
+
+The following example from the |service|
+:doc:`Create a {+Cluster+} </tutorial/create-new-cluster/>` UI shows a
+multi-region {+cluster+} with electable nodes in three different regions,
+arranged by priority from highest to lowest:
+
+.. figure:: /images/multi-region-cluster.png
+   :alt: Screenshot of electable nodes across three regions
+   :figwidth: 550px
+
+If the :guilabel:`us-east-1` region becomes unavailable, a new primary
+will be elected in the :guilabel:`us-west-1` region.
+
+.. note::
+
+   {+Clusters+} must have an odd number of nodes to ensure primary
+   electability. To learn more, see
+   :manual:`Replica Set Elections </core/replica-set-elections/>`.
+
+Deployment in Two Regions
+`````````````````````````
+
+Deploying a {+cluster+} to two regions ensures that a copy of your data
+will always be maintained in more than one region. However, a loss of
+the region which contains a majority of the nodes in the {+cluster+} will
+leave the second region in a read-only state until an administrator
+intervenes or the original region becomes available.
+
+Deployment in Three or More Regions
+```````````````````````````````````
+
+Deploying a {+cluster+} to three or more regions ensures that the {+cluster+}
+can withstand a full region-level outage while maintaining read and
+write availability, provided the application layer is fault-tolerant.
+
+If maintaining write operations in your preferred region at all times
+is a high priority, it is recommended to deploy the {+cluster+} so that at
+least two :manual:`electable members
+</core/replica-set-architecture-geographically-distributed#electability-of-members>`
+are in at least two data centers within your preferred region.
+
+Global {+Clusters+}
+```````````````````
+
+For the best database performance in a worldwide deployment, users can
+configure a :doc:`global {+cluster+} </global-clusters>` which uses
+location-aware sharding to minimize read and write latency. Users with
+geographical storage requirements can also ensure that data is stored
+in a particular geographical area.
+
 Application Management
 ----------------------
 
@@ -150,13 +268,13 @@ Application-level responsibilities include:
 - :manual:`Schema design </core/data-modeling-introduction>`, including
   query and index optimization.
 
-- Cluster tier and topology selection. Choosing the appropriate cluster
+- {+Cluster+} tier and topology selection. Choosing the appropriate {+cluster+}
   :doc:`size </cluster-tier>` and topology (:term:`replica set` or
-  :term:`sharded cluster`), along with :doc:`storage capacity and IOPS
+  :term:`sharded {+cluster+}`), along with :doc:`storage capacity and IOPS
   </customize-storage/>` is crucial for optimal database performance.
 
-- Provisioning of non-production clusters. Production backups can be
-  restored into non-production clusters with the |service| UI or the
+- Provisioning of non-production {+clusters+}. Production backups can be
+  restored into non-production {+clusters+} with the |service| UI or the
   API.
 
 - Capacity planning. Determining when additional computational capacity
@@ -173,7 +291,7 @@ Application-level responsibilities include:
 - Implementing and testing a
   :doc:`backup and restoration </backup-restore-cluster/>` plan.
 
-- Ensuring that applications gracefully handle cluster failover through
+- Ensuring that applications gracefully handle {+cluster+} failover through
   :doc:`testing </tutorial/test-failover/>`.
 
 - Configuring data analytics services with tools such as
@@ -184,113 +302,43 @@ Scaling
 
 MongoDB Atlas offers two methods for scaling, vertical and horizontal.
 
-*Vertical scaling* involves increasing a cluster's storage capacity,
+*Vertical scaling* involves increasing a {+clusters+} storage capacity,
 computing power, and/or |iops| rate. Vertical scaling can be
 accomplished quickly and is useful for peak usage periods. Vertically
-scaling from :term:`shared clusters <shared cluster>` (``M2`` and
+scaling from :term:`shared {+clusters+} <shared cluster>` (``M2`` and
 ``M5``) requires a few minutes of downtime whereas scaling between
-:term:`dedicated clusters <dedicated cluster>` (``M10`` and greater)
+:term:`dedicated {+clusters+} <dedicated cluster>` (``M10`` and greater)
 happens without downtime.
 
-When scaling vertically, ``M30`` and higher clusters are recommended for
-production environments. You can use the following cluster tiers as
+When scaling vertically, ``M30`` and higher {+clusters+} are recommended for
+production environments. You can use the following {+cluster+} tiers as
 production environments for low-traffic applications, but these tiers
 are recommended for development environments:
 
-- ``M2`` and ``M5`` shared clusters
-- ``M10`` and ``M20`` dedicated clusters
+- ``M2`` and ``M5`` shared {+clusters+}
+- ``M10`` and ``M20`` dedicated {+clusters+}
 
 *Horizontal scaling* involves implementing
 :manual:`sharding </sharding/>` or adding shards in an
-existing sharded cluster. Horizontal scaling requires careful planning
+existing sharded {+cluster+}. Horizontal scaling requires careful planning
 and execution, and is part of a long-term growth strategy for ``M30+``
-clusters. You can also reduce the number of shards in a sharded cluster.
+{+clusters+}. You can also reduce the number of shards in a sharded {+cluster+}.
 
 .. include:: /includes/fact-reduce-shards-warning.rst
 
 Vertical and horizontal sharding can be combined in |service|. For example,
-a sharded cluster can be vertically scaled up for a peak period,
+a sharded {+cluster+} can be vertically scaled up for a peak period,
 increasing the storage capacity and computing power of the individual
-sharded cluster members.
+sharded {+cluster+} members.
 
-By default, |service| :doc:`vertically auto-scales cluster storage
-</cluster-autoscaling/>` up to your configured cluster tier size limit.
+By default, |service| :doc:`vertically auto-scales {+cluster+} storage
+</cluster-autoscaling/>` up to your configured {+cluster+} tier size limit.
 
 You can configure |service| to
-:doc:`automatically scale </cluster-autoscaling/>` your cluster tier
-and cluster storage capacity in response to increased cluster usage,
+:doc:`automatically scale </cluster-autoscaling/>` your {+cluster+} tier
+and {+cluster+} storage capacity in response to increased {+cluster+} usage,
 allowing for a rapid, automated response to a need for greater storage
 computing power.
-
-Single Region and Multi-Region Clusters
----------------------------------------
-
-High availability and cluster durability depend on a cluster's
-geographical deployment configuration. Clusters which are deployed
-within a single :doc:`region </cloud-providers-regions>` are spread
-across availability zones within that region, so they can withstand
-partial region outages without an interruption of read or write
-availability.
-
-You can optionally choose to spread your clusters across two or
-more regions for greater resiliency and
-:doc:`workload isolation </cluster-config/multi-cloud-distribution>`.
-
-The order of regions determines the priority order for the location of
-the :manual:`primary node </core/replica-set-members#replica-set-primary-member>`.
-Therefore, if you wish to direct database write operations to a
-particular region when that region is available, you should list that
-region first. The second region on the list should be the second
-choice for where writes should go if the first region is unavailable.
-
-The following example from the |service|
-:doc:`Create a Cluster </tutorial/create-new-cluster/>` UI shows a
-multi-region cluster with electable nodes in three different regions,
-arranged by priority from highest to lowest:
-
-.. figure:: /images/multi-region-cluster.png
-   :alt: Screenshot of electable nodes across three regions
-   :figwidth: 550px
-
-If the :guilabel:`us-east-1` region becomes unavailable, a new primary
-will be elected in the :guilabel:`us-west-1` region.
-
-.. note::
-
-   Clusters must have an odd number of nodes to ensure primary
-   electability. To learn more, see
-   :manual:`Replica Set Elections </core/replica-set-elections/>`.
-
-Deployment in Two Regions
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Deploying a cluster to two regions ensures that a copy of your data
-will always be maintained in more than one region. However, a loss of
-the region which contains a majority of the nodes in the cluster will
-leave the second region in a read-only state until an administrator
-intervenes or the original region becomes available.
-
-Deployment in Three or More Regions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Deploying a cluster to three or more regions ensures that the cluster
-can withstand a full region-level outage while maintaining read and
-write availability, provided the application layer is fault-tolerant.
-
-If maintaining write operations in your preferred region at all times
-is a high priority, it is recommended to deploy the cluster so that at
-least two :manual:`electable members
-</core/replica-set-architecture-geographically-distributed#electability-of-members>`
-are in at least two data centers within your preferred region.
-
-Global Clusters
-~~~~~~~~~~~~~~~
-
-For the best database performance in a worldwide deployment, users can
-configure a :doc:`global cluster </global-clusters>` which uses
-location-aware sharding to minimize read and write latency. Users with
-geographical storage requirements can also ensure that data is stored
-in a particular geographical area.
 
 .. _audit-temp-db-users:
 
@@ -298,7 +346,7 @@ Auditing Temporary Database Users
 ---------------------------------
 
 Enabling auditing for all database users, including application service 
-users, might severely affect cluster performance. If you need to audit 
+users, might severely affect {+cluster+} performance. If you need to audit 
 the actions of a temporary database user, you can create a custom role 
 targeted for auditing, create a temporary user with elevated privileges, 
 and grant this user the custom role to audit their actions.
@@ -306,30 +354,6 @@ and grant this user the custom role to audit their actions.
 To audit the actions of a temporary database user:
 
 .. include:: /includes/steps/db-audit-temp-user.rst
-
-Cluster Naming Conventions
---------------------------
-
-Choosing the right naming convention for your |service| clusters is a good
-first step towards running a successful production environment. Once you've
-named a cluster you can't rename it, so it's important to get it right the
-first time. The following suggestions can make it easier to parse logs and
-differentiate clusters.
-
-- Use descriptive, lowercase names.
-
-- Avoid special characters.
-
-- Join words with hyphens or underscores. Avoid blank spaces between words.
-
-- Use a convention which makes it clear whether a cluster is for production,
-  staging, or development purposes. 
-
-Some examples of good cluster names:
-
-- ``prod-aws-website``
-- ``staging-gcp-internal``
-- ``dev-azure-analytics``
 
 Optional Monitoring & Logging Integrations
 ------------------------------------------
@@ -344,6 +368,6 @@ options for customers in development and for enterprise customers.
 
 Possible support areas include:
 
-- Issues and concerns with the MongoDB clusters under management.
+- Issues and concerns with the MongoDB {+clusters+} under management.
 - Performance-related inquiries.
 - Application-side and :manual:`driver </ecosystem/>` consultation.
