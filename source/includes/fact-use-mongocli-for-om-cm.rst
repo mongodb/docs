@@ -1,4 +1,3 @@
 .. note::
 
-   To use the command line interface for |mms|, :ref:`install the {+mcli+}
-   <mcli-install>`.
+   To use the command line interface for |mms|, `install the {+mcli+} <https://www.mongodb.com/docs/mongocli/stable/install/>`__.
