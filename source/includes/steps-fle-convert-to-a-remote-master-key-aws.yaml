@@ -2,18 +2,40 @@ title: Create an AWS IAM User
 ref: create-an-aws-iam-user
 content: |
   1. Create a new programmatic IAM user in the AWS management console by
-     following the official AWS documentation on `Adding a User <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html>`__.
-     CSFLE-enabled clients authenticate with AWS KMS using the IAM user to
+     following the official AWS documentation on
+     `Adding a User <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html>`__.
+     You will use this IAM user as a service account for your CSFLE-enable application.
+     Your application authenticates with AWS KMS using the IAM user to
      encrypt and decrypt the remote master key. Take note of the following
      IAM credentials needed to authenticate with the KMS:
 
      - **access key ID**
      - **secret access key**
 
-  2. Grant the IAM user narrowly scoped ``List`` and ``Read`` permissions only for the KMS
-     service. See Amazon's official documentation on
-     `Adding permissions to a user <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_change-permissions.html>`__
-     to set these permissions.
+  2. Grant your IAM user ``kms:Encrypt`` and ``kms:Decrypt`` permissions for
+     your remote master key.
+     
+     .. important::
+
+        The new client IAM User *should not* have administrative permissions
+        for the master key. We recommend that you follow the
+        `principle of least privilege <https://en.wikipedia.org/wiki/Principle_of_least_privilege>`__
+        to keep your data secure.
+     
+     The following inline policy allows an IAM user to encrypt and decrypt
+     with the remote master key with the least privileges possible:
+
+     .. literalinclude:: /includes/iam-user-policy-minimum.json
+        :language: json
+
+     To add this policy, follow the
+     `Adding IAM identity permissions <https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_manage-attach-detach.html#add-policies-console>`__
+     guide in the AWS documentation.
+
+     .. note:: Remote Master Key Amazon Resource Name (ARN)
+
+        The preceding policy requires the ARN of the key you generate in the
+        :ref:`Create the Master Key <aws-create-master-key>` step of this guide.
 
   .. important:: Authenticate with IAM Roles in Production
 
@@ -40,14 +62,15 @@ content: |
      and recreate your CSFLE-enabled ``MongoClient`` instance when each set of
      temporary credentials expires.
 
-     To learn more about IAM roles, see the following resources from AWS:
+     To learn more about IAM roles, see the following pages in the official AWS
+     documentation:
 
      - `IAM roles <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html>`__
      - `When to create an IAM role (instead of a user) <https://docs.aws.amazon.com/IAM/latest/UserGuide/id.html#id_which-to-choose_role>`__
 
      To learn how to get temporary credentials and assume a role in each of
      the languages supported in this guide, see the following ``AssumeRole``
-     runnable examples from AWS:
+     runnable examples in the AWS documentation:
 
      - `Java <https://docs.aws.amazon.com/code-samples/latest/catalog/javav2-sts-src-main-java-com-example-sts-AssumeRole.java.html>`__
      - `NodeJS <https://docs.aws.amazon.com/code-samples/latest/catalog/javascriptv3-sts-src-sts_assumerole.js.html>`__
@@ -66,22 +89,24 @@ content: |
   .. image:: /figures/CSFLE_Master_Key_KMS.png
      :alt: Diagram that describes creating a master key when using a KMS provider
 
+  .. _aws-create-master-key:
+
   1. To create a master key, log into your AWS management console and create
      a new symmetric master key in the KMS section. Choose a name and
      description that helps you identify it; these fields do not affect the
      functionality or configuration.
 
   2. In the :guilabel:`Usage Permissions` step of the key generation
-     process, add the full KMS ``List`` and ``Read`` permissions to the IAM
-     user you created in the previous step. This authorizes the user to
-     encrypt and decrypt the new master key.
+     process, use the following default key policy to enable IAM policies
+     to allow access to your remote master key:
 
-  .. important::
+     .. literalinclude:: /includes/key-policy-default.json
+        :language: json
 
-     The new client IAM User *should not* have administrative permissions
-     for the master key. We recommend that you follow the
-     `principle of least privilege <https://en.wikipedia.org/wiki/Principle_of_least_privilege>`__
-     to keep your data secure.
+     To learn more about key policies, see
+     `Key Policies in AWS KMS <https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html>`__
+     in the official AWS documentation.
+
 ---
 title: Specify the AWS KMS Provider Credentials
 ref: specify-the-aws-kms-provider-credentials
