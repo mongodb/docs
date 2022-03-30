@@ -213,7 +213,176 @@ fields ``a`` and ``b``:
 These operations **will not** efficiently use the index ``{ a: 1, b: 1,
 c: 1, d: 1 }`` and may not even use the index to retrieve the documents.
 
+Index Sort Order
+----------------
+
+A collection of indexed documents may have multiple data types in the
+key field.
+
+- When an index has a key with multiple data types, the index is
+  sorted according to the :ref:`BSON type sort order
+  <bson-types-comparison-order>`.
+- If an index key contains an array, the document is sorted according
+  to the type of the first array element.
+
+See the :ref:`index sorting example <ex-sort-index-types>`.
+
 Index Use and Collation
 -----------------------
 
 .. include:: /includes/extracts/collation-index-use.rst
+
+Examples
+--------
+
+.. _ex-sort-index-types:
+
+The following example demonstrates sorting when index keys have the
+same or different types.
+
+Create the ``keyTypes`` collection:
+
+.. code-block:: javascript
+
+   db.keyTypes.insertMany( [
+     { seqNum: 1, seqType: null, type: "null" },
+     { seqNum: 29, seqType: null, type: "null" },
+     { seqNum: 2, seqType: Int32("10"), type: "Int32"  },
+     { seqNum: 28, seqType: Int32("10"), type: "Int32"  },
+     { seqNum: 3, seqType: Long("10"), type: "Long" },
+     { seqNum: 27, seqType: Long("10"), type: "Long" },
+     { seqNum: 4, seqType: Decimal128("10"), type: "Decimal128" },
+     { seqNum: 26, seqType: Decimal128("10"), type: "Decimal128" },
+     { seqNum: 5, seqType: Double("10"), type: "Double" },
+     { seqNum: 25, seqType: Double("10"), type: "Double"  },
+     { seqNum: 6, seqType: String("10"), type: "String"  },
+     { seqNum: 24, seqType: String("10"), type: "String" },
+     { seqNum: 7, seqType: [ "1", "2", "3" ], type: "Array" },
+     { seqNum: 23, seqType: [ "1", "2", "3" ], type: "Array" },
+     { seqNum: 8, seqType: [ [1], [2], [3] ], type: "Array" },
+     { seqNum: 22, seqType: [ [1], [2], [3] ], type: "Array " },
+     { seqNum: 9, seqType: [ 1, 2, 3 ], type: "Array" },
+     { seqNum: 21, seqType: [ 1, 2, 3 ], type: "Array" },
+     { seqNum: 10, seqType: true, type: "Boolean" },
+     { seqNum: 11, seqType: new Timestamp(), type: "Timestamp" },
+     { seqNum: 12, seqType: new Date(), type: "Date" },
+     { seqNum: 13, seqType: new ObjectId(), type: "ObjectId" },
+   ] )
+
+Create indexes on the sequence number ( ``seqNum`` ) and sequence type
+( ``seqType`` ) fields:
+
+.. code-block:: javascript
+
+   db.keyTypes.createIndex( { seqNum: 1 } )
+
+   db.keyTypes.createIndex( { seqType: 1 } )
+
+
+Query the collection using :method:`~db.collection.find()`.
+The projection document, ``{ _id: 0 }``, suppresses the ``_id`` field
+in the output display.
+
+.. code-block:: javascript
+
+   db.keyTypes.find( {}, { _id: 0 } )
+
+The documents are returned in insertion order:
+
+.. code-block:: javascript:
+   :copyable: false
+
+   { seqNum: 1, seqType: null, type: 'null' },
+   { seqNum: 29, seqType: null, type: 'null' },
+   { seqNum: 2, seqType: 10, type: 'Int32' },
+   { seqNum: 28, seqType: 10, type: 'Int32' },
+   { seqNum: 3, seqType: Long("10"), type: 'Long' },
+   { seqNum: 27, seqType: Long("10"), type: 'Long' },
+   { seqNum: 4, seqType: Decimal128("10"), type: 'Decimal128' },
+
+   // Output truncated
+
+The sequence number ( ``seqNum`` ) index has values of the same type.
+Use the ``seqNum`` index to query the ``keyTypes`` collection:
+
+.. code-block:: javascript
+
+   db.keyTypes.find( {}, { _id: 0 } ).sort( { seqNum: 1} )
+
+
+The ``seqNum`` keys are integers. The documents are returned in
+numerical order:
+
+.. code-block:: javascript:
+   :copyable: false
+
+   { seqNum: 1, seqType: null, type: 'null' },
+   { seqNum: 2, seqType: 10, type: 'Int32' },
+   { seqNum: 3, seqType: Long("10"), type: 'Long' },
+   { seqNum: 4, seqType: Decimal128("10"), type: 'Decimal128' },
+   { seqNum: 5, seqType: 10, type: 'Double' },
+   { seqNum: 6, seqType: '10', type: 'String' },
+   { seqNum: 7, seqType: [ '1', '2', '3' ], type: 'Array' },
+
+   // Output truncated
+
+The sequence type ( ``seqType`` ) index has values of the different
+types. Use the ``seqType`` index to query the ``keyTypes`` collection:
+
+.. code-block:: javascript
+
+   db.keyTypes.find( {}, { _id: 0 } ).sort( { seqType: 1} )
+
+The documents are returned in :ref:`BSON type sort order
+<bson-types-comparison-order>`:
+
+
+.. code-block:: javascript:
+   :copyable: false
+
+   { seqNum: 1, seqType: null, type: 'null' },
+   { seqNum: 29, seqType: null, type: 'null' },
+   { seqNum: 9, seqType: [ 1, 2, 3 ], type: 'Array' },
+   { seqNum: 21, seqType: [ 1, 2, 3 ], type: 'Array' },
+   { seqNum: 2, seqType: 10, type: 'Int32' },
+   { seqNum: 28, seqType: 10, type: 'Int32' },
+   { seqNum: 3, seqType: Long("10"), type: 'Long' },
+   { seqNum: 27, seqType: Long("10"), type: 'Long' },
+   { seqNum: 4, seqType: Decimal128("10"), type: 'Decimal128' },
+   { seqNum: 26, seqType: Decimal128("10"), type: 'Decimal128' },
+   { seqNum: 5, seqType: 10, type: 'Double' },
+   { seqNum: 25, seqType: 10, type: 'Double' },
+   { seqNum: 7, seqType: [ '1', '2', '3' ], type: 'Array' },
+   { seqNum: 23, seqType: [ '1', '2', '3' ], type: 'Array' },
+   { seqNum: 6, seqType: '10', type: 'String' },
+   { seqNum: 24, seqType: '10', type: 'String' },
+   { seqNum: 8, seqType: [ [ 1 ], [ 2 ], [ 3 ] ], type: 'Array' },
+   { seqNum: 22, seqType: [ [ 1 ], [ 2 ], [ 3 ] ], type: 'Array ' },
+   {
+     seqNum: 13,
+     seqType: ObjectId("6239e3922604d5a7478df071"),
+     type: 'ObjectId'
+   },
+   { seqNum: 10, seqType: true, type: 'Boolean' },
+   {
+     seqNum: 12,
+     seqType: ISODate("2022-03-22T14:56:18.100Z"),
+     type: 'Date'
+   },
+   {
+     seqNum: 11,
+     seqType: Timestamp({ t: 1647960978, i: 1 }),
+     type: 'Timestamp'
+   }
+
+- Arrays are sorted according to the type of the first element. In this
+  example the first element types are: Int32, String, and Array. 
+- Numerical types (Int32, Long, Decimal128, Double) are equivalent when
+  compared with other types. 
+- Within the Numbers BSON type, numerical types are sorted:
+
+  - Int32
+  - Long
+  - Decimal128
+  - Double
+
