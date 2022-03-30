@@ -6,6 +6,7 @@ Fundamentals section:
 - :doc:`Authenticate with MongoDB </fundamentals/auth>`
 - :doc:`Read from and Write to MongoDB </fundamentals/crud>`
 - :doc:`Work with BSON </fundamentals/bson>`
+- :doc:`Use a Time Series Collection </fundamentals/time-series>`
 
 .. - :doc:`Specify an API Version </fundamentals/versioned-api>`
 .. - :doc:`Use the Driver's Data Formats </fundamentals/data-formats>`
