@@ -19,8 +19,6 @@
 
      - id: java-sync
        content: |
-         Next, populate a Document with fields and an embedded document,
-         and insert it into the database.
 
          .. literalinclude:: /includes/examples/curl_examples/DocumentationSamples.java
             :language: java
