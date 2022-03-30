@@ -10,7 +10,9 @@ var client = new MongoClient(uri);
 var db = client.GetDatabase("sample_guides");
 var coll = db.GetCollection<BsonDocument>("planets");
 // find code goes here
-var cursor = coll.AsQueryable().Where(x => x["hasRings"] == (bool?)true);
+var cursor = from planet in coll.AsQueryable()
+             where planet["hasRings"] == true
+             select planet;
 // iterate code goes here
 foreach (var document in cursor)
 {

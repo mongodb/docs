@@ -10,7 +10,7 @@
             because ``BSON.D`` is ordered. This is important in more complex
             operations.
 
-         .. literalinclude:: /includes/code/go/crud-read-find-multiple-query.go
+         .. literalinclude:: /includes/code/go/crud-read-find-query.go
             :caption: crudRead.go
             :language: go
             :linenos:
@@ -19,15 +19,10 @@
      - id: python
        content: |
 
-         .. literalinclude:: /includes/code/python/crud_read_find_multiple_query.py
+         .. literalinclude:: /includes/code/python/crud_read_find_query.py
             :caption: crud_read.py
             :language: python
             :dedent: 0
-
-     - id: motor
-       content: |
-         TODO:
-
 
      - id: java-sync
        content: |
@@ -37,7 +32,7 @@
          that simplify the process of creating queries (and other operations).
          Here, you use the ``Filters.eq`` builder to construct the query document.
 
-         .. literalinclude:: /includes/code/java/CrudReadFindMultipleQuery.java
+         .. literalinclude:: /includes/code/java/CrudReadFindQuery.java
             :caption: CrudRead.java
             :language: java
             :linenos:
@@ -46,14 +41,14 @@
      - id: nodejs
        content: |
 
-         .. literalinclude:: /includes/code/node/crud-read-find-multiple-query.js
+         .. literalinclude:: /includes/code/node/crud-read-find-query.js
             :caption: crud-read.js
             :language: javascript
             :dedent: 0
 
      - id: csharp
        content: |
-         .. literalinclude:: /includes/code/dotnet/CrudReadFindMultipleQuery.cs
+         .. literalinclude:: /includes/code/dotnet/CrudReadFindQuery.cs
             :caption: CrudRead.cs
             :language: csharp
             :dedent: 0

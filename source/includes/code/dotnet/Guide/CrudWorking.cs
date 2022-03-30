@@ -1,4 +1,7 @@
-﻿using MongoDB.Bson;
+﻿/**
+ * This is a working file, do not include this file in any code visible to the user.
+*/
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 // Replace the uri string with your MongoDB deployment's connection string.
