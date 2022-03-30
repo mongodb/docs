@@ -1,31 +1,13 @@
 .. tabs-drivers::
 
    tabs:
-     - id: shell
+     - id: csharp
        content: |
-         .. code-block:: javascript
-
-            db.inventory.insertOne(
-               { "item" : "canvas", 
-                 "qty" : 100, 
-                 "tags" : ["cotton"], 
-                 "size" : { "h" : 28, "w" : 35.5, "uom" : "cm" } 
-               }
-            )
-
-     - id: compass
-       content: |
-         .. figure:: /images/compass-insert-document-inventory.png
-            :figwidth: 700px
-
-     - id: python
-       content: |
-         .. literalinclude:: /includes/examples/curl_examples/test_examples.py
-            :language: python
-            :dedent: 8
+         .. literalinclude:: /includes/examples/curl_examples/DocumentationExamples.cs
+            :language: c#
+            :dedent: 12
             :start-after: Start Example 1
             :end-before: End Example 1
-
 
      - id: go
        content: |
@@ -34,31 +16,6 @@
             :dedent: 2
             :start-after: Start Example 1
             :end-before: End Example 1
-
-     - id: motor
-       content: |
-         .. literalinclude:: /includes/examples/curl_examples/test_examples_motor.py
-            :language: python
-            :dedent: 8
-            :start-after: Start Example 1
-            :end-before: End Example 1
-
-         For completeness, this is how you might wrap this call and run
-         it with the asyncio event loop.
-
-         Run the loop:
-         
-         .. code-block:: python
-         
-            async def do_insert_one():
-                document = await db.inventory.insert_one(
-                    {"item": "canvas",
-                     "qty": 100,
-                     "tags": ["cotton"],
-                     "size": {"h": 28, "w": 35.5, "uom": "cm"}})
- 
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(do_insert_one())
 
      - id: java-sync
        content: |
@@ -71,14 +28,6 @@
             :start-after: Start Example 1
             :end-before: End Example 1
 
-     #- id: java-async
-     #  content: |
-     #    .. literalinclude:: /includes/examples/curl_examples/AsyncDocumentationSamples.java
-     #       :language: java
-     #       :dedent: 8
-     #       :start-after: Start Example 1
-     #       :end-before: End Example 1
-
      - id: nodejs
        content: |   
          .. literalinclude:: /includes/examples/curl_examples/examples_tests.js
@@ -87,43 +36,10 @@
             :start-after: Start Example 1
             :end-before: End Example 1
 
-
-     - id: csharp
+     - id: python
        content: |
-         .. literalinclude:: /includes/examples/curl_examples/DocumentationExamples.cs
-            :language: c#
-            :dedent: 12
+         .. literalinclude:: /includes/examples/curl_examples/test_examples.py
+            :language: python
+            :dedent: 8
             :start-after: Start Example 1
             :end-before: End Example 1
-
-     # - id: php
-     #   content: |
-     #     .. literalinclude:: /includes/examples/curl_examples/DocumentationExamplesTest.php
-     #        :language: php
-     #        :dedent: 8
-     #        :start-after: Start Example 1
-     #        :end-before: End Example 1
-     # 
-     # - id: perl
-     #   content: |
-     #     .. literalinclude:: /includes/examples/curl_examples/driver-examples.t
-     #        :language: perl
-     #        :dedent: 4
-     #        :start-after: Start Example 1
-     #        :end-before: End Example 1
-     # 
-     # - id: ruby
-     #   content: |
-     #     .. literalinclude:: /includes/examples/curl_examples/shell_examples_spec.rb
-     #        :language: ruby
-     #        :dedent: 6
-     #        :start-after: Start Example 1
-     #        :end-before: End Example 1
-     # 
-     # - id: scala
-     #   content: |
-     #     .. literalinclude:: /includes/examples/curl_examples/DocumentationExampleSpec.scala
-     #        :language: scala
-     #        :dedent: 4
-     #        :start-after: Start Example 1
-     #        :end-before: End Example 1
