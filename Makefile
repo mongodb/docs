@@ -5,7 +5,7 @@ else
 	USER=$(STAGING_USERNAME)
 endif
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
-PRODUCTION_URL="https://docs.mongodb.com/database-tools"
+PRODUCTION_URL="https://www.mongodb.com/docs/database-tools"
 STAGING_BUCKET=docs-mongodb-org-staging
 PRODUCTION_BUCKET=docs-commandline-tools
 

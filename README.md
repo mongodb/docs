@@ -14,7 +14,7 @@ found in the Server Manual repository:
 The live documentation for the Database Tools can be found at the
 following URL:
 
-- https://docs.mongodb.com/database-tools/
+- https://www.mongodb.com/docs/database-tools/
 
 Report Issues
 -------------

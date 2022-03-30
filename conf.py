@@ -86,12 +86,12 @@ source_constants = {
 
 
 extlinks = {
-    'hardlink' : ( 'http://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'http://mongodb.com/docs/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'api': ('https://api.mongodb.com/%s', ''),
-    'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
-    'manual': ('https://docs.mongodb.com/manual%s', ''),
-    'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
+    'gettingstarted': ('https://www.mongodb.com/docs/getting-started%s', ''),
+    'manual': ('https://www.mongodb.com/docs/manual%s', ''),
+    'ecosystem': ('https://www.mongodb.com/docs/drivers/%s', ''),
     'mms-docs': ('https://docs.cloudmanager.mongodb.com%s', ''),
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
     'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
@@ -104,7 +104,7 @@ extlinks = {
     'ruby-api': ('http://api.mongodb.com/ruby/current/Mongo/%s', ''),
     'scala-api': ('http://mongodb.github.io/mongo-scala-driver/2.0/scaladoc/org/mongodb/scala/MongoCollection.html#%s', ''),
     'csharp-api': ('https://api.mongodb.com/csharp/current/html/%s.htm', ''),
-    'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
+    'csharp-docs': ('https://www.mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
     'java-async-docs': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
     'java-async-api': ('http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
     'go-api': ('https://godoc.org/github.com/mongodb/mongo-go-driver/%s', '')
