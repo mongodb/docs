@@ -18,7 +18,7 @@ Definition
    .. versionchanged:: 5.0
 
    For a :binary:`~bin.mongod` instance, the command enables, disables,
-   or configures the :doc:`/tutorial/manage-the-database-profiler`. The
+   or configures the :ref:`database profiler <database-profiler>`. The
    profiler captures and records data on the performance of write
    operations, cursors, and database commands on a running
    :binary:`~bin.mongod` instance. If the profiler is disabled, the
@@ -26,28 +26,31 @@ Definition
    log.
 
    On :binary:`~bin.mongod`, if the :ref:`database profiler level
-   <set-profiling-level-level>` is ``1`` or ``2`` (i.e. the
-   :doc:`database profiler </tutorial/manage-the-database-profiler/>` is
-   enabled), the :ref:`slowms <set-profiling-level-options-slowms>`,
-   :ref:`sampleRate <set-profiling-level-options-sampleRate>`, and
-   :ref:`filter <set-profiling-level-options-filter>` affect the
-   behavior of both the profiler and the :option:`diagnostic log <mongod
-   --logpath>`.
+   <set-profiling-level-level>` is ``2``, full logging is enabled on
+   the profiler and the :option:`diagnostic log <mongod --logpath>`.
+
+   At :ref:`database profiler level <set-profiling-level-level>` ``1``,
+   the following settings modify both the profiler and the
+   :option:`diagnostic log <mongod --logpath>`:
+
+   - :ref:`slowms <set-profiling-level-options-slowms>`
+   - :ref:`sampleRate <set-profiling-level-options-sampleRate>`
+   - :ref:`filter <set-profiling-level-options-filter>`
 
    If the :ref:`database profiler level <set-profiling-level-level>` is
-   ``0`` (i.e. :doc:`database profiler
-   </tutorial/manage-the-database-profiler/>` is disabled), the
-   :ref:`slowms <set-profiling-level-options-slowms>`,
-   :ref:`sampleRate <set-profiling-level-options-sampleRate>`, and
-   :ref:`filter <set-profiling-level-options-filter>` affect
-   only the diagnostic log.
+   ``0``, the :ref:`database profiler <database-profiler>` is disabled.
+   At level ``0`` the following settings only modify the diagnostic log:
    
+   - :ref:`slowms <set-profiling-level-options-slowms>`
+   - :ref:`sampleRate <set-profiling-level-options-sampleRate>`
+   - :ref:`filter <set-profiling-level-options-filter>`
+
    Starting in MongoDB 4.0, for a :binary:`~bin.mongos` instance, the
    command only configures how operations get written to the diagnostic
-   log. You cannot enable the
-   :doc:`/tutorial/manage-the-database-profiler` on a
-   :binary:`~bin.mongos` instance because ``mongos`` does not have any
-   collections that the profiler can write to.
+   log. You cannot enable the :ref:`database profiler
+   <database-profiler>` on a :binary:`~bin.mongos` instance because
+   ``mongos`` does not have any collections that the profiler can write
+   to.
 
    .. include:: /includes/log-changes-to-database-profiler.rst
 
@@ -74,7 +77,6 @@ Definition
       }
 
    .. _slowms-threshold-option:
-
 
    .. list-table::
       :header-rows: 1
@@ -111,7 +113,7 @@ Definition
           
           .. note::
              This argument affects the same setting as the configuration option
-             :setting:`~operationProfiling.slowOpThresholdMs`.
+             :setting:`operationProfiling.slowOpThresholdMs`.
           
           
    
@@ -127,46 +129,45 @@ Definition
           .. note::
           
              This argument affects the same setting as the configuration option
-             :setting:`~operationProfiling.slowOpSampleRate` and does not
+             :setting:`operationProfiling.slowOpSampleRate` and does not
              affect the :ref:`slow oplog entry log messages on secondaries
              (available starting in MongoDB 4.2) <slow-oplog>`.
           
           .. versionadded:: 3.6
 
       * - ``filter``
-        
         - object
+        - .. _profile-filter-def:
 
-        - Optional.
+          Optional.
+          A query that determines which operations are profiled or
+          logged.
 
-          A filter expression that controls which operations are
-          profiled and logged.
-
-          The ``filter`` expression takes the following form:
+          The filter query takes the following form:
    
           .. code-block:: javascript
             
              { <field1>: <expression1>, ... }
-            
-          The ``<field>`` can be
-          :ref:`any field in the profiler output <profiler>`. The
-          ``<expression>`` is a
-          :ref:`query condition expression <query-selectors>`.
+
+          The query can be any legal :method:`~db.collection.find()`
+          operation where the query ``<field>`` matches a field in the
+          :ref:`profiler output <profiler>`.
 
           .. note::
-          
-             This argument affects the same setting as the configuration
-             option :setting:`~operationProfiling.filter`. When
-             ``filter`` is set, the ``slowms`` and ``sampleRate``
+
+             This argument affects the same setting as the
+             configuration option :setting:`operationProfiling.filter`.
+             
+             When ``filter`` is set, the ``slowms`` and ``sampleRate``
              options are not used for profiling and slow-query log
              lines.
 
           .. versionadded:: 4.4.2
 
 The :method:`db.getProfilingStatus()` and
-:method:`db.setProfilingLevel()` :doc:`shell methods
-</reference/method>` provide wrappers around the :dbcommand:`profile`
-command.
+:method:`db.setProfilingLevel()` :ref:`shell methods
+<js-administrative-methods>` provide wrappers around the
+:dbcommand:`profile` command.
 
 .. |binary| replace:: :binary:`~bin.mongod` or :binary:`~bin.mongos`
 
@@ -187,3 +188,31 @@ command against the ``admin`` database.
 .. seealso::
 
    :ref:`Database Profiling <database-profiling>`
+
+Example
+-------
+
+Enable profiling and filter the logged data:
+
+.. code-block:: javascript
+
+   db.runCommand( 
+      {
+        profile: 1,
+        filter:
+           {
+              $or:
+              [
+                 { millis: { $gte: 100 } },
+                 { user: "testuser@admin" }
+              ]
+           }
+      }
+   )
+
+The :ref:`filter <profile-filter-def>` only selects operations that
+are:
+
+- at least ``100`` milliseconds long, or
+- submitted by the ``testuser``.
+
