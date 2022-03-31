@@ -1,5 +1,5 @@
-Disk type of the server's root volume for Azure instances. If
-omitted, |service| uses the default disk type for the selected
+Disk type of the server's root volume for Azure instances.
+If omitted, |service| uses the default disk type for the selected
 ``providerSettings.instanceSizeName``.
 
 The following table lists the possible values for this field,

@@ -1,7 +1,7 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :widths: 20 14 11 55
+   :widths: 20 13 13 54
 
    * - Body Parameter
      - Type
@@ -24,8 +24,8 @@
    * - autoScaling.compute
      - object
      - Optional
-     - Specifies whether the cluster automatically scales its cluster
-       tier and whether the cluster can scale down.
+     - Collection of settings that configure how a cluster might scale
+       its cluster tier and whether the cluster can scale down.
 
        .. important::
 
@@ -44,15 +44,6 @@
 
        - Set to **false** to disable cluster tier auto-scaling.
 
-       .. note::
-
-          If you disable auto-scaling for your cluster, |service|
-          sets your minimum and maximum autoscaling bounds to
-          **null**. If you re-enable autoscaling at a later time, you
-          must set new values for
-          **providerSettings.autoScaling.compute.minInstanceSize** and
-          **providerSettings.autoScaling.compute.maxInstanceSize**.
-
    * - autoScaling.compute.scaleDownEnabled
      - boolean
      - Conditional
@@ -62,10 +53,6 @@
 
        If you enable this option, specify a value for
        **providerSettings.autoScaling.compute.minInstanceSize**.
-
-       .. note::
-
-          .. include:: /includes/fact-must-enable-autoscaling.rst
 
    * - autoScaling.diskGBEnabled
      - boolean
@@ -85,28 +72,13 @@
        :doc:`{+old-backup+}s </backup/legacy-backup/overview>` have
        been enabled.
 
-       Set to **false** to disable {+old-backup+}s for the cluster.
-       |service| deletes any stored snapshots. See the {+old-backup+}
-       :ref:`retention-policy` for more information.
-
-       You cannot enable {+old-backup+}s if you have an
-       existing cluster in the project with
-       :doc:`/backup/cloud-backup/overview` enabled.
-
-       The default value is **false**.
-
-       .. note::
-
-          This option is not supported on clusters running
-          MongoDB 4.2. Clusters running MongoDB 4.2 must use
-          :doc:`/backup/cloud-backup/overview`.
+       .. include:: /includes/fact-only-m10-clusters.rst
 
        .. important::
 
-          Clusters running MongoDB |fcv-link| 4.2 or later and any new 
-          |service| clusters of any type do not support this
-          parameter. These clusters must use
-          :doc:`/backup/cloud-backup/overview`:
+          Clusters running MongoDB |fcv-link| 4.2 or later and any new
+          |service| clusters of any type do not support this parameter.
+          These clusters must use :doc:`/backup/cloud-backup/overview`:
           **providerBackupEnabled**
 
           If you create a new |service| cluster and set
@@ -114,6 +86,22 @@
 
           This change doesn't affect existing clusters that use
           {+old-backup+}s.
+
+       Set to **true** to enable |service|
+       :doc:`{+old-backup+}s </backup/legacy-backup/overview>` for the
+       cluster.
+
+       Set to **false** to disable {+old-backup+}s for the cluster.
+       |service| deletes any stored snapshots.
+
+       To learn more about snapshot storage, see the {+old-backup+}
+       :ref:`retention-policy`.
+
+       You can't enable {+old-backup+}s if you have an
+       existing cluster in the project with
+       :doc:`/backup/cloud-backup/overview` enabled.
+
+       The default value is **false**.
 
    * - biConnector
      - object
@@ -147,7 +135,7 @@
        .. list-table::
           :header-rows: 1
           :stub-columns: 1
-          :widths: 20 80
+          :widths: 22 78
 
           * - Value
             - Description
@@ -173,15 +161,13 @@
    * - clusterType
      - string
      - Conditional
-     - Type of the cluster that you want to modify.
-
-       .. include:: /includes/fact-conversion-sharded-clusters.rst
+     - Type of the cluster that you want to upgrade to.
 
        .. note:: When should you use ``clusterType``?
-       
+
           .. list-table::
              :header-rows: 1
-             :widths: 80 20
+             :widths: 78 22
 
              * - Condition
                - Necessity
@@ -217,40 +203,32 @@
      - Conditional
      - Capacity, in gigabytes, of the host's root volume. Increase this
        number to add capacity, up to a maximum possible value of
-       **4096** (4 TB). This value must be a positive integer.
+       ``4096`` (4 TB). This value must be a positive number.
 
-       .. note:: When should you use **diskSizeGB**?
+       .. note:: When should you use ``diskSizeGB``?
 
           This setting:
 
           - Cannot be used with |nvme-clusters|.
           - Cannot be used with |azure| clusters. Use
-            :ref:`providerSettings.diskTypeName <modify-cluster-providerSettings-diskTypeName>` instead.
+            :ref:`providerSettings.diskTypeName <upgrade-cluster-providerSettings-diskTypeName>` instead.
           - Must be used when **replicationSpecs** is set.
 
        The minimum disk size for dedicated clusters is 10 GB for |aws|
-       and |gcp|, and 32 GB for |azure|. If you specify **diskSizeGB**
-       with a lower disk size, |service| defaults to the minimum disk
-       size value.
-
-       Each cluster tier has its own default value. If you set a value
-       below the cluster default, |service| replaces it with the
-       default value. To view default values: open the |service| web
-       interface; click the button to add a new cluster; view the
-       available default sizes; close the window without saving
-       changes.
+       and |gcp|. If you specify **diskSizeGB** with a lower disk size,
+       |service| defaults to the minimum disk size value.
 
        .. important::
 
-          |service| calculates storage charges differently depending on
-          whether you choose the default value or a custom value. For
-          details, see :ref:`storage-capacity`.
+          |service| calculates storage charges differently
+          depending on whether you choose the default value or a
+          custom value.
+
+          .. seealso::
+
+             :ref:`storage-capacity`.
 
        .. include:: /includes/cluster-settings/storage-limitation.rst
-
-       .. note::
-
-          .. include:: /includes/autoscale-oplog.rst
 
    * - encryptionAtRestProvider
      - string
@@ -326,36 +304,29 @@
      - Version of the cluster to deploy. |service| supports the
        following MongoDB versions for **M10+** clusters:
 
-       - **4.0**
-       - **4.2**
-       - **4.4**
-       - **5.0**
+       - 4.0
+       - 4.2
+       - 4.4
+       - 5.0
 
-       You must deploy MongoDB **4.4** if
-       **"providerSettings.instanceSizeName" : "M0"**, **"M2"** or **"M5"**.
+       If omitted and you also set **versionReleaseSystem**
+       to **LTS** or you omit **versionReleaseSystem**, |service| 
+       deploys a cluster that runs MongoDB 5.0.
 
-       |service| always deploys the cluster with the latest stable
-       release of the specified version. You can upgrade to a newer
-       version of MongoDB when you
-       :doc:`modify a cluster </reference/api/clusters-modify-one>`
+       You must deploy MongoDB **5.0** if
+       **"providerSettings.instanceSizeName" : "M0"**, **"M2"**, or **"M5"**.
 
-       .. note::
+       If you specify this field, |service| always deploys the cluster 
+       with the latest stable patch release of the specified version. 
+       You can upgrade to a newer version of MongoDB when you
+       :doc:`modify a cluster </reference/api/clusters-modify-one>`.
 
-          If you are upgrading from version **4.0** to **4.2** and you
-          have :doc:`{+old-backup+}s </backup/legacy-backup/overview>`
-          enabled, you must set **backupEnabled** to **false** and set
-          **providerBackupEnabled** to **true** as part of the API request.
-          Continuous backups are no longer supported in MongoDB version **4.2**.
-          Instead, use :doc:`/backup/cloud-backup/overview`. 
-
-       If **mongoDBMajorVersion** is set to **CONTINUOUS**, you must
-       omit the **mongoDBMajorVersion** field. You can't modify the
-       MongoDB version that you clusters run when you choose the
-       continuous release cadence.
+       You must omit mongoDBMajorVersion field if you set
+       **versionReleaseSystem** to **CONTINUOUS**.
 
    * - name
      - string
-     - Optional
+     - Required
      - Name of the cluster as it appears in |service|. After |service|
        creates the cluster, you can't change its name.
 
@@ -383,70 +354,66 @@
 
        .. include:: /includes/cluster-settings/single-shard-cluster-warning.rst
 
-       For more information on sharded clusters, see
-       :manual:`Sharding </sharding>` in the MongoDB manual.
+       .. seealso::
 
-       For details on how this setting affects costs, see
-       :ref:`server-number-costs`.
+          - :manual:`Sharding </sharding>`
+          - :ref:`server-number-costs`
 
        .. note::
 
-          Do not include in the request body for
+          Don't include in the request body for
           :doc:`Global Clusters </global-clusters>`.
-
-   * - paused
-     - boolean
-     - Optional
-     - Indicates whether the cluster is paused or not. The default
-       value is false.
-
-       You cannot create a paused cluster. Either omit the parameter or
-       explicitly set to false.
 
    * - pitEnabled
      - boolean
      - Optional
-     - Indicates if the cluster uses :ref:`{+pit-restore+}s
-       <pit-restore>`. If set to **true**, **providerBackupEnabled**
-       must also be set to **true**.
+     - Flag that indicates the cluster uses
+       :ref:`{+pit-restore+}s <pit-restore>`.
+
+       - Set to **true** to enable :ref:`{+pit-restore+}s
+         <pit-restore>`. Requires that you set
+         **providerBackupEnabled** to **true**.
+
+       - Set to **false** to disable
+         :ref:`{+pit-restore+}s <pit-restore>`.
 
    * - providerBackupEnabled
      - boolean
-     - Conditional
-     - Set **true** or **false** to enable or disable
-       :ref:`backup-cloud-provider` for cluster backups.
-       If **providerBackupEnabled** *and* **backupEnabled** are
-       **false**, the cluster does not use |service| backups.
+     - Optional
+     - .. include:: /includes/fact-only-m10-clusters.rst
 
-       If you disable {+old-backup+}s for the cluster,
-       |service| deletes all stored snapshots. See the {+old-backup+} :ref:`retention-policy` for more information.
+       Flag that indicates if the cluster uses
+       :ref:`backup-cloud-provider` for backups.
 
-       You cannot enable {+Cloud-Backup+}s if you have an
-       existing cluster in the project with
-       :ref:`legacy-backup` enabled.
+       - If **true**, the cluster uses :ref:`backup-cloud-provider` for
+         backups.
+
+       - If **"providerBackupEnabled" : false** *and* **"backupEnabled"
+         : false**, the cluster doesn't use |service| backups.
+
+       You cannot enable {+Cloud-Backup+}s if you have an existing
+       cluster in the project with :ref:`legacy-backup` enabled.
 
        .. important::
 
-          You must set this value to **true** for NVMe clusters.
+          You must set this value to **true** for |nvme| clusters.
 
    * - providerSettings
      - object
-     - Optional
-     - Configuration for the provisioned servers on which MongoDB
-       runs. The available options are specific to the cloud service
+     - Required
+     - Configuration for the provisioned hosts on which MongoDB runs.
+       The available options are specific to the cloud service
        provider.
 
    * - providerSettings.autoScaling
      - object
      - Conditional
-     - Contains the **minInstanceSize** and **maxInstanceSize**
-       parameters which specify the range of instance sizes to which
-       your cluster can scale. |service| requires this parameter if
-       **"autoScaling.compute.enabled" : true**.
+     - Range of instance sizes to which your cluster can scale.
 
        .. important::
 
-          .. include:: /includes/fact-must-enable-autoscaling.rst
+          You can't specify the **providerSettings.autoScaling** object
+          if **"autoScaling.compute.enabled" : false**.
 
    * - providerSettings.autoScaling.compute
      - object
@@ -472,15 +439,15 @@
    * - providerSettings.backingProviderName
      - string
      - Conditional
-     - Cloud service provider on which the server for a
-       multi-tenant cluster is provisioned.
+     - Cloud service provider on which the host for a multi-tenant
+       cluster is provisioned.
 
        This setting only works when **"providerSetting.providerName" :
        "TENANT"** and **"providerSetting.instanceSizeName" : "M0"**, **"M2"**, or **"M5"**.
 
        |service| accepts the following values:
 
-       .. include:: /includes/api/list-tables/clusters/cloud-service-providers-no-tenant.rst
+       .. include:: /includes/cluster-settings/cloud-service-providers.rst
 
    * - providerSettings.diskIOPS
      - number
@@ -498,32 +465,37 @@
      - Type of disk if you selected |azure| as your cloud service
        provider.
 
-       .. include:: /includes/modify-cluster-providerSettings-diskTypeName.rst
+       .. include:: /includes/upgrade-cluster-providerSettings-diskTypeName.rst
 
    * - providerSettings.encryptEBSVolume
      - boolean
-     - Conditional
+     - Deprecated
      - Flag that indicates whether the Amazon EBS encryption feature
        encrypts the host's root volume for both data at rest within
        the volume and for data moving between the volume and the
        cluster.
 
-       .. note::
-
-          This setting is always enabled for |nvme-clusters|.
-
-       The default value is **true**.
+       |service| always sets this value to **true**.
 
    * - providerSettings.instanceSizeName
      - string
      - Required
      - |service| provides different cluster tiers, each with a default
        storage capacity and RAM size. The cluster you select is
-       used for all the data-bearing servers in your cluster.
+       used for all the data-bearing hosts in your cluster tier.
 
        .. seealso::
 
           :ref:`server-number-costs`.
+
+       .. important::
+          If you are deploying a :doc:`Global Cluster
+          </global-clusters>`, you must choose a cluster tier of
+          **M30** or larger.
+      
+       .. note::
+         
+          .. include:: /includes/cluster-settings/multi-tenant.rst
 
        .. tabs-cloud-providers::
 
@@ -544,12 +516,12 @@
 
              .. include:: /includes/list-tables/instance-types/azure.rst
 
-       .. include:: /includes/cluster-settings/multi-tenant.rst
-
    * - providerSettings.providerName
      - string
-     - Conditional
+     - Required
      - Cloud service provider on which |service| provisions the hosts.
+       You can specify a provider that is different from your currrent
+       provider and this will port the cluster to this provider.
 
        .. include:: /includes/api/list-tables/clusters/cloud-service-providers.rst
 
@@ -559,21 +531,23 @@
      - string
      - Conditional
      -
-       .. note:: Required if setting **replicationSpecs** array to empty
+       .. note:: Required if ``replicationSpecs`` array is empty
 
-          This parameter is *required* if you have not set any values
-          in the  **replicationSpecs** array.
+          If you haven't set values in the  **replicationSpecs** array,
+          you must set this parameter.
 
        Physical location of your MongoDB cluster. The region you choose
        can affect network latency for clients accessing your databases.
 
-       Do *not* specify this parameter when creating a multi-region
-       cluster using the **replicationSpec** document.
+       *Don't* specify this parameter when creating a multi-region
+       cluster using the **replicationSpec** object or a
+       :doc:`Global Cluster </global-clusters>` with the
+       **replicationSpecs** array.
 
        .. include:: /includes/cluster-settings/group-region-association.rst
 
-       Select your cloud provider's tab for example cluster region
-       names:
+       Select your cloud service provider's tab for example cluster
+       region names:
 
        .. include:: /includes/cluster-settings/cloud-region-name-examples.rst
 
@@ -590,10 +564,10 @@
      - Optional
      -
 
-       .. important:: Use **replicationSpecs**
-
-          **replicationFactor** is deprecated. Use
-          **replicationSpecs**.
+       .. deprecated:: 
+       
+          ``replicationFactor`` is deprecated. Use
+          ``replicationSpecs``.
 
        Number of :term:`replica set` members. Each member keeps a copy
        of your databases, providing high availability and data
@@ -609,11 +583,17 @@
        |service| ignores this value if you pass the **replicationSpec**
        object.
 
+       .. seealso::
+
+          - :ref:`server-number-costs`
+          - :manual:`Replication </replication>`
+
    * - replicationSpec
      - object
      - Optional
-     - .. deprecated:: 
-     
+     -
+       .. deprecated:: 
+       
           ``replicationSpec`` is deprecated. Use ``replicationSpecs``.
 
        Configuration of each region in a multi-region cluster. Each
@@ -636,7 +616,7 @@
           If you use **replicationSpec**, you must specify a minimum of
           one **replicationSpec.<region>** object.
 
-       Use the **replicationSpecs** parameter to modify a
+       Use the **replicationSpecs** parameter to create a
        :doc:`Global Cluster </global-clusters>`.
 
        .. note::
@@ -770,7 +750,7 @@
      - Configuration for cluster regions.
 
        .. note:: When should you use ``replicationSpecs``?
-
+       
           .. list-table::
              :header-rows: 1
              :widths: 40 20 40
@@ -794,7 +774,7 @@
        You must specify all parameters in **replicationSpecs** object
        array.
 
-       .. tip:: What parameters depend on **replicationSpecs**?
+       .. note:: What parameters depend on ``replicationSpecs``?
 
           If you set **replicationSpecs**, you must:
 
@@ -803,33 +783,6 @@
           - Not set **replicationSpec**
           - Not use |nvme-clusters|
           - Not use Azure clusters
-
-   * - replicationSpecs[n].id
-     - string
-     - Conditional
-     - Unique identifier of the replication object for a zone in a
-       |global-write-cluster|. Must be exactly 24 hexadecimal digits in
-       length.
-
-       .. list-table:: When is this value needed?
-          :header-rows: 1
-          :widths: 80 20
-
-          * - Condition
-            - Necessity
-
-          * - Existing zones included in a cluster modification request
-              body.
-            - Required
-
-          * - Adding a new zone to an existing |global-write-cluster|.
-            - Optional
-
-       .. warning::
-
-          |service| deletes any existing zones in a
-          |global-write-cluster| that are not included in a cluster
-          modification request.
 
    * - replicationSpecs[n].numShards
      - number
@@ -934,6 +887,7 @@
 
    * - replicationSpecs[n].zoneName
      - string
+     
      - Optional
      - Name for the zone in a |global-write-cluster|. Don't provide
        this value if **clusterType** is not **GEOSHARDED**.
@@ -941,21 +895,15 @@
    * - rootCertType
      - string 
      - Optional 
-     - .. important:: Feature unavailable in Free and Shared-Tier Clusters
+     - |certauth| that MongoDB |service| clusters use. You can specify 
+       ``ISRGROOTX1`` (for ISRG Root X1).
 
-          This feature is not available for ``M0`` {+free-clusters+}, ``M2``, 
-          and ``M5`` clusters. To learn more about which features are 
-          unavailable, see :ref:`atlas-free-tier`.
-     
-       |certauth| that MongoDB |service| clusters use. You can specify 
-       ``ISRGROOTX1`` (for ISRG Root X1). 
+       .. note::
 
-       .. note:: 
-
-          Beginning on 1 May 2021, new |tls| certificates that 
-          MongoDB |service| creates use ISRG instead of IdenTrust for 
-          their root |certauth| in line with Let's Encrypt's 
-          `announcement <https://letsencrypt.org/2019/04/15/transitioning-to-isrg-root.html>`__
+          Beginning on 1 May 2021, new |tls| certificates that MongoDB 
+          |service| creates use ISRG instead of IdenTrust for their 
+          root |certauth| in line with Let's Encrypt's `announcement 
+          <https://letsencrypt.org/2019/04/15/transitioning-to-isrg-root.html>`__
           of this transition.
 
    * - versionReleaseSystem
@@ -964,23 +912,18 @@
      - Release cadence that |service| uses for this {+cluster+}.
        |service| accepts:
 
-       - **CONTINUOUS**: |service| automatically updates your 
-         {+cluster+} to the latest 
-         major and rapid MongoDB releases as they become available.
-       - **LTS**: |service| automatically updates 
+       - **CONTINUOUS**: |service| creates your {+cluster+} using the 
+         most recent MongoDB release. |service| automatically updates 
+         your {+cluster+} to the latest major and rapid MongoDB releases
+         as they become available.
+       - **LTS**: |service| creates your {+cluster+} using the latest
+         patch release of the MongoDB version that you specify in the 
+         **mongoDBMajorVersion** field. |service| automatically updates 
          your {+cluster+} to subsequent patch releases of this MongoDB
          version. |service| doesn't update your {+cluster+} to newer
          rapid or major MongoDB releases as they become available.
 
+       If omitted, defaults to **LTS**.
+
        If you set this field to **CONTINUOUS**, you must omit the 
        **mongoDBMajorVersion** field.
-
-       You can change from **LTS** to **CONTINUOUS** only if your
-       {+cluster+} runs the most recent MongoDB major release.
-
-       You can change from **CONTINUOUS** to **LTS** only if the most
-       recent MongoDB release is a major version. For example, if the
-       most recent MongoDB release is 5.0, you can switch from 
-       **CONTINUOUS** to **LTS**. If the most recent MongoDB release is
-       5.1, you must wait until MongoDB 6.0 is released to switch from
-       **CONTINUOUS** to **LTS**.
