@@ -19,6 +19,9 @@
      - Required
      
    * - ``mappings.fields``
-     - .. include:: /includes/extracts/fts-field-mappings-fields.rst
+     - .. include:: /includes/extracts/fts-field-mappings-fields-json.rst
 
      - Conditional   
+
+   * - ``storedSource``
+     - .. include:: /includes/extracts/fts-stored-source-json.rst

@@ -24,8 +24,13 @@
        Corresponds to the  ``mappings.dynamic`` setting.
      - Required
      
+   * - :guilabel:`Store Full Document`
+     - .. include:: /includes/extracts/fts-stored-source-vib.rst 
+
+     - Required
+
    * - :guilabel:`Field Mappings`
-     - .. include:: /includes/extracts/fts-field-mappings-fields.rst
+     - .. include:: /includes/extracts/fts-field-mappings-fields-vib.rst
 
        Corresponds to the  ``mappings.fields`` setting.
      - Conditional   
