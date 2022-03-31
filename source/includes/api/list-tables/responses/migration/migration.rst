@@ -28,3 +28,8 @@
        MongoDB data from the source (|com|) to destination
        (|service|) deployments. Each live migration process uses its
        own dedicated migration host.
+
+   * - readyForCutover
+     - boolean
+     - Flag that indicates whether the live migration process is ready
+       to start the cutover process.
