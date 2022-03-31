@@ -16,7 +16,7 @@ DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
 DOTCOM_PRODUCTION_URL="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
 DOTCOM_PREFIX=docs/guides
-DOTCOM_STGPREFIX=docs/guides
+DOTCOM_STGPREFIX=docs-qa/guides
 
 .PHONY: examples help html publish stage deploy deploy-search-index
 
