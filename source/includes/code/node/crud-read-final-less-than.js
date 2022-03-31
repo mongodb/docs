@@ -6,14 +6,11 @@ const client = new MongoClient(uri);
 async function run() {
   try {
     await client.connect();
-    // database and collection code goes here
-    const db = client.db("sample_guides");
-    const coll = db.collection("planets");
+    const coll = client.db("sample_guides").collection("planets");
 
     // find code goes here
-    const cursor = coll.find();
+    const cursor = coll.find({ "surfaceTemperatureC.mean": { $lt: 15 } });
 
-    // iterate code goes here
     await cursor.forEach(console.log);
   } finally {
     // Ensures that the client will close when you finish/error

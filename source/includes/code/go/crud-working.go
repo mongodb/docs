@@ -24,16 +24,36 @@ func main() {
 		}
 	}()
 
-	// database and colletion code goes here
-	db := client.Database("sample_guides")
-	coll := db.Collection("planets")
+	coll := client.Database("sample_guides").Collection("planets")
 
 	// find code goes here
+	// filter := bson.D{
+	// 	{"$and",
+	// 		bson.A{
+	// 			bson.D{{"hasRings", false}},
+	// 			bson.D{{"mainAtmosphere", "Ar"}},
+	// 		},
+	// 	},
+	// }
+	// 	filter := bson.D{
+	// 		{"$and",
+	// 			bson.A{
+	// 				bson.D{{"surfaceTemperatureC.mean",
+	// 					bson.D{{"$lt", 15}},
+	// 				}},
+	// 				bson.D{{"surfaceTemperatureC.min",
+	// 					bson.D{{"$gt", -100}},
+	// 				}},
+	// 			},
+	// 		},
+	// 	}
 	filter := bson.D{
-		{"$and",
+		{"$or",
 			bson.A{
-				bson.D{{"hasRings", false}},
-				bson.D{{"mainAtmosphere", "Ar"}},
+				bson.D{{"orderFromSun",
+					bson.D{{"$gt", 7}},
+				}},
+				bson.D{{"orderFromSun", bson.D{{"$lt", 2}}}},
 			},
 		},
 	}

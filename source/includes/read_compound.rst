@@ -1,53 +1,25 @@
-.. step:: Write an implied AND query.
-  
+.. step:: Write an AND query.
+
    To write a compound query in MongoDB that matches all of the query
    predicates (i.e. a logical AND), specify all of the fields that you
    wish to match in your find document. By default, MongoDB matches all
-   of the fields.
-    
-   The following example retrieves all documents in the ``inventory``
-   collection where the ``status`` equals ``"A"`` **and** ``qty`` is less
-   than (:query:`$lt`) ``30``:
+   of the fields. If you followed the :ref:`previous guide <guide-read-query>`
+   you've already done this!
 
-   .. include:: /includes/driver-example-query-11.rst
+   The following example retrieves all documents in the ``{+guides-coll+}``
+   collection where the ``surfaceTemperatureC.mean`` field is less than ``15``
+   **and** the ``surfaceTemperatureC.min`` field is greater than ``-90``.
 
-   MongoDB also provides a :query:`~op.$and` logical operator as part of
-   its logical query operators, but the "implied AND" described above is
-   a more common pattern.
+   .. include:: /includes/crud_find_multiple_operators_and.rst
 
-.. step:: Iterate over the results.
+.. step:: Write an OR query.
 
-   .. include:: /includes/iterate_all_noshellcursor.rst
+   OR queries are required when you want to specify criteria that are
+   mutually exclusive. For example, you can't match documents in the
+   ``{+guides-coll+}`` collection where the ``orderFromSun`` value is both
+   greater than ``7`` AND less than ``2``.
 
-.. step:: Check your results.
-  
-   If you have loaded data into your test database, you will see one or
-   more JSON documents returned. Your results should look something like
-   the JSON below. Note that the record below has a ``status`` of ``"A"``
-   and a ``qty`` less than ``30`` per the criteria in the compound query.
-  
-   .. include:: /includes/results_read5a.rst
-  
-.. step:: Write an "or" query.
-  
-   .. include:: /includes/driver-query-12-intro.rst
-  
-   The following example retrieves all documents in the collection where
-   the ``status`` equals ``"A"`` **or** ``qty`` is less than
-   ``30``:
+   The following example shows how to use the ``$or`` operator to express
+   mutually exclusive criteria.
 
-   .. include:: /includes/driver-example-query-12.rst
-
-.. step:: Iterate over the results.
-  
-   .. include:: /includes/iterate_all.rst
-
-.. step:: Check your results.
-  
-   If you have loaded data into your test database, you will see one or
-   more JSON documents returned. Note that the record has a ``status`` of ``"A"``
-   but a ``qty`` of more than ``30``, which is acceptable according to
-   the :query:`$or` criteria.
-  
-   .. include:: /includes/results_read6.rst
-
+   .. include:: /includes/crud_find_multiple_operators_or.rst

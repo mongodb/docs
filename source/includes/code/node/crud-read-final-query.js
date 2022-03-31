@@ -9,8 +9,10 @@ async function run() {
     // database and collection code goes here
     const db = client.db("sample_guides");
     const coll = db.collection("planets");
+
     // find code goes here
-    let cursor = coll.find({ hasRings: true });
+    const cursor = coll.find({ hasRings: true });
+
     // iterate code goes here
     await cursor.forEach(console.log);
   } finally {
