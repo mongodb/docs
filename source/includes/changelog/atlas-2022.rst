@@ -1,3 +1,15 @@
+.. _atlas_20220331:
+
+31 March 2022 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for :ref:`upgrading shared tiers 
+  <upgrade-one-shared-tier-cluster-ref>` through the |service| Admin 
+  API.
+- Adds support for :ref:`managing project settings 
+  <atlas-update-one-project-settings-api>` through the |service| Admin 
+  API.
+
 .. _atlas_20220309:
 
 9 March 2022 Release
