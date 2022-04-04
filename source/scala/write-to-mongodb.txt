@@ -1,70 +1,15 @@
-.. include:: /includes/scala-java-write.rst
+The following example creates a DataFrame from a ``json`` file and 
+saves it to the MongoDB collection specified in ``SparkConf``:
 
 .. code-block:: scala
 
-   import org.bson.Document
+   val df = spark.read.format("json").load("example.json")
 
-   val documents = sc.parallelize((1 to 10).map(i => Document.parse(s"{test: $i}")))
+   df.write.format("mongodb").mode("overwrite").save()
 
-   MongoSpark.save(documents) // Uses the SparkConf for configuration
+The MongoDB Connector for Spark supports the following save modes:
 
-Using a ``WriteConfig``
------------------------
+-  ``append``
+- ``overwrite``
 
-.. include:: /includes/scala-java-write-writeconfig.rst
-
-.. code-block:: scala
-
-   import com.mongodb.spark.config._
-
-   val writeConfig = WriteConfig(Map("collection" -> "spark", "writeConcern.w" -> "majority"), Some(WriteConfig(sc)))
-   val sparkDocuments = sc.parallelize((1 to 10).map(i => Document.parse(s"{spark: $i}")))
-   
-   MongoSpark.save(sparkDocuments, writeConfig)
-
-.. _rdd-save-methods:
-
-RDD Save Helper Methods
------------------------
-
-RDDs have an implicit helper method ``saveToMongoDB()`` to write data
-to MongoDB:
-
-For example, the following uses the ``documents`` RDD defined above and
-uses its ``saveToMongoDB()`` method without any arguments to save the
-documents to the collection specified in the ``SparkConf``:
-
-.. code-block:: scala
-
-   documents.saveToMongoDB() // Uses the SparkConf for configuration
-
-Call ``saveToMongoDB()`` with a ``WriteConfig`` object to specify a
-different MongoDB server address, database and collection. See
-:ref:`write configuration settings <spark-output-conf>` for available
-settings:
-
-.. code-block:: scala
-
-   documents.saveToMongoDB(WriteConfig(Map("uri" -> "mongodb://example.com/database.collection")))
-   // Uses the WriteConfig
-
-Unsupported Types
------------------
-
-Some Scala types (e.g. ``Lists``) are unsupported and should be
-converted to their Java equivalent. To convert from Scala into native
-types include the following import statement to use the ``.asJava``
-method:
-
-The following operation imports the ``.asJava`` method, converts a
-Scala list to its Java equivalent, and saves it to MongoDB:
-
-.. code-block:: scala
-
-   import scala.collection.JavaConverters._
-   import org.bson.Document
-   
-   val documents = sc.parallelize(
-     Seq(new Document("fruits", List("apples", "oranges", "pears").asJava))
-   )
-   MongoSpark.save(documents)
+To learn more about save modes, see the `Spark SQL Guide <https://spark.apache.org/docs/3.2.0/sql-data-sources-load-save-functions.html#save-modes>`__.

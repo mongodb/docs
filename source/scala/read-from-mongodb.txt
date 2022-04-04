@@ -1,53 +1,52 @@
-Use the ``MongoSpark.load`` method to create an RDD representing
-a collection.
+Use your local SparkSession's ``read`` method to create a DataFrame 
+representing a collection.
+
+.. note::
+   
+   A ``DataFrame`` is represented by a ``Dataset`` of
+   ``Rows``. It is an alias of ``Dataset[Row]``.
 
 The following example loads the collection specified in the
 ``SparkConf``:
 
 .. code-block:: scala
 
-   val rdd = MongoSpark.load(sc)
-   
-   println(rdd.count)
-   println(rdd.first.toJson)
+   val df = spark.read.format("mongodb").load() // Uses the SparkConf for configuration
 
 To specify a different collection, database, and other :ref:`read
-configuration settings <spark-input-conf>`, pass a ``ReadConfig`` to
-``MongoSpark.load()``.
-
-Using a ``ReadConfig``
-``````````````````````
-
-.. include:: /includes/scala-java-read-readconfig.rst
+configuration settings <spark-input-conf>`, use the ``option`` method:
 
 .. code-block:: scala
 
-   import com.mongodb.spark.config._
+   val df = spark.read.format("mongodb").option("database", "<example-database>").option("collection", "<example-collection>").load()
 
-   val readConfig = ReadConfig(Map("collection" -> "spark", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc)))
-   val customRdd = MongoSpark.load(sc, readConfig)
+.. _scala-implicit-schema:
+
+Schema Inference
+----------------
+
+When you load a Dataset or DataFrame without a schema, Spark samples 
+the records to infer the schema of the collection.
+
+Consider a collection named ``characters``:
+
+.. include:: /includes/characters-example-collection.rst
+
+The following operation loads data from the MongoDB collection 
+specified in ``SparkConf`` and infers the schema:
+
+.. code-block:: scala
+
+   val df = MongoSpark.load(spark)  // Uses the SparkSession
+   df.printSchema()                 // Prints DataFrame schema
+
+``df.printSchema()`` outputs the following schema to the console:
+
+.. code-block:: sh
    
-   println(customRdd.count)
-   println(customRdd.first.toJson)
-
-SparkContext Load Helper Methods
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``SparkContext`` has an implicit helper method ``loadFromMongoDB()`` to
-load data from MongoDB.
-
-For example, use the ``loadFromMongoDB()`` method without any arguments
-to load the collection specified in the ``SparkConf``:
-
-.. code-block:: scala
-
-   sc.loadFromMongoDB() // Uses the SparkConf for configuration
-
-Call ``loadFromMongoDB()`` with a ``ReadConfig`` object to specify a
-different MongoDB server address, database and collection. See
-:ref:`input configuration settings <spark-output-conf>` for available
-settings:
-
-.. code-block:: scala
-
-   sc.loadFromMongoDB(ReadConfig(Map("uri" -> "mongodb://example.com/database.collection"))) // Uses the ReadConfig
+   root
+    |-- _id: struct (nullable = true)
+    |    |-- oid: string (nullable = true)
+    |-- age: integer (nullable = true)
+    |-- name: string (nullable = true)
+   
