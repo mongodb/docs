@@ -8,4 +8,4 @@
 
    - :doc:`/configure-api-access`
    - :doc:`/api/data-api`
-   - :realm:`Realm Administration API docs </admin/api/v3/>` :icon-fa5:`external-link-alt`
+   - :realm:`Realm Administration API docs </admin/api/v3/>`
