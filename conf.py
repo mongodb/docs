@@ -245,6 +245,7 @@ extlinks = {
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
     'v1.2': ('https://www.mongodb.com/docs/kubernetes-operator/v1.2%s', ''),
     'github' : ('https://github.com%s', ''),
+    'github-raw' : ('https://raw.githubusercontent.com%s', ''),
     'mdb-github' : ('https://mongodb.github.io%s', ''),
     'gopkg' : ('https://godoc.org%s',''),
     'npmjs' : ('https://www.npmjs.com/package%s',''),
