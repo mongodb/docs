@@ -134,10 +134,12 @@ limitations and considerations:
    * - Operation
      - Limitation
   
-   * - :manual:`Aggregation </aggregation>`
-     - {+Serverless-instance+} aggregations can't use the :manual:`allowDiskUse
-       </reference/method/db.collection.aggregate>` option for aggregation
-       operations. 
+   * - :manual:`Aggregation </aggregation>` and :manual:`Queries </tutorial/query-documents/>`
+     - {+Serverless-instance+} aggregations can't use the ``allowDiskUse`` option for the
+       :manual:`aggregation command </reference/command/aggregate>`, 
+       its :manual:`helper method </reference/method/db.collection.aggregate>`,
+       or the :manual:`cursor.allowDiskUse() 
+       </reference/method/cursor.allowDiskUse/#mongodb-method-cursor.allowDiskUse>` query cursor method.
 
        {+Serverless-instances+} don't support the :manual:`$out 
        </reference/operator/aggregation/out/>`
