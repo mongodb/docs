@@ -29,7 +29,7 @@ endif
 STAGING_URL="https://docs-staging.atlas.mongodb.com"
 STAGING_BUCKET=docs-atlas-staging
 
-PRODUCTION_URL="https://docs.atlas.mongodb.com"
+PRODUCTION_URL="https://www.mongodb.com/docs/atlas"
 PRODUCTION_BUCKET=docs-atlas-prod
 PREFIX=
 

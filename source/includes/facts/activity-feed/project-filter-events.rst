@@ -402,7 +402,7 @@ Filter by event
           - Value is no longer anomalous
   
       * - Data Lake
-        - Events related to `Atlas Datalake <https://docs.mongodb.com/datalake/>`__:
+        - Events related to `Atlas Datalake <https://www.mongodb.com/docs/datalake/>`__:
 
           - Data Lake tenant removed
           - Data Lake tenant updated

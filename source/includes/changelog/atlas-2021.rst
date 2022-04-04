@@ -209,7 +209,7 @@
   database deployment option in |service|, available in preview.
 
 - Introduces the general availability of the new 
-  `MongoDB Shell <https://docs.mongodb.com/mongodb-shell/>`__.
+  `MongoDB Shell <https://www.mongodb.com/docs/mongodb-shell/>`__.
 
 - Updates the 
   `Atlas Uptime SLA <https://www.mongodb.com/cloud/atlas/sla>`__ 
@@ -259,7 +259,7 @@
 - Introduces trial version of the :ref:`MongoDB Atlas Kubernetes 
   Operator <ak8so-quick-start-ref>`.
 - Adds an easy `MongoDB CLI quickstart command
-  <https://docs.mongodb.com/mongocli/stable/quick-start/#configure-an-service-cluster>`__ 
+  <https://www.mongodb.com/docs/mongocli/stable/quick-start/#configure-an-service-cluster>`__ 
   to get started with |service|.
 
 .. _atlas_20210330:

@@ -6,7 +6,7 @@
      - Description
 
    * - ``desc``
-     - User-supplied description of the `programmatic API Key <https://docs.atlas.mongodb.com/configure-api-access/#programmatic-api-keys>`_.
+     - User-supplied description of the `programmatic API Key <https://www.mongodb.com/docs/atlas/configure-api-access/#programmatic-api-keys>`_.
 
    * - ``id``
      - Unique identifier of the programmatic API Key.
@@ -21,7 +21,7 @@
      - The public key for the programmatic API Key used to query this resource.
 
    * - ``roles[]``
-     - Array of `organization roles <https://docs.atlas.mongodb.com/reference/user-roles/#organization-roles>`_.
+     - Array of `organization roles <https://www.mongodb.com/docs/atlas/reference/user-roles/#organization-roles>`_.
        assigned to the programmatic API Key used to query this resource.
 
    * - ``roles[i].orgId``
