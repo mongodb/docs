@@ -1,3 +1,16 @@
+.. _11.14.0.7475:
+
+MongoDB Agent 11.14.0.7475
+--------------------------
+
+*Released* 2022-03-31
+
+- Removes support for managing MongoDB 3.4 clusters, but still 
+  supports monitoring and backup.
+- Includes additional optimization for DNS lookups that the MongoDB 
+  Agent performs.
+- Improves error handling for parallel restores.
+
 .. _11.13.0.7438:
 
 MongoDB Agent 11.13.0.7438
