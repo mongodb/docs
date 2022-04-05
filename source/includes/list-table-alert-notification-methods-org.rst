@@ -122,10 +122,6 @@
        account. Enter only the PagerDuty service key. Define
        escalation rules and alert assignments directly in PagerDuty.
 
-       This option is available only for alerts that you must
-       acknowledge. Informational alerts like |a-service| user has 
-       joined the organization can't use this notification method.
-
        Acknowledge PagerDuty alerts from the PagerDuty dashboard.
 
        .. include:: /includes/fact-pagerduty-api-key-decommission.rst
