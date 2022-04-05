@@ -82,13 +82,16 @@ Capabilities
    * - Use :doc:`Online Archive </online-archive/manage-online-archive>`
      - 
 
-   * - Use :doc:`Triggers </triggers>`
-     - 
-
    * - Use :charts:`MongoDB Charts </>`
      - 
 
-   * - Use :realm:`MongoDB Realm </>`
+   * - Use :realm:`MongoDB Realm (excluding Realm Sync and Triggers) </>`
+     - :icon:`check-square`
+
+   * - Use :realm:`Realm Sync </sync/learn/overview/#std-label-sync-overview>`
+     - 
+
+   * - Use :doc:`Triggers </triggers>`
      - 
    
    * - Use Predefined :doc:`Replica Set Tags </reference/replica-set-tags>`
