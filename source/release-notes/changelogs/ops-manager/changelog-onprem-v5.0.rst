@@ -18,7 +18,15 @@
 
 *Released 2022-02-17*
 
-- Removes support for PowerPC architectures.
+- Removes support for running |onprem| on:
+  
+  - RHEL 7.x/8.x, and Ubuntu 16.x on PowerPC (``ppc64le``)
+    architectures.
+  - RHEL 6.x/7.x, Ubuntu 18.x, and SUSE 12.x on zSeries (``s390x``)
+    architectures.
+
+  To learn more about supported platforms for running |onprem| on, see
+  :ref:`Ops Manager Software Requirements <software-requirements>`.
 - Fixes an issue where S3 Oplog Stores can leave behind S3 objects even
   after the configured retention window has elapsed.
 - Updates JDK to jdk-11.0.14.1+1
