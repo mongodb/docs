@@ -4,9 +4,9 @@
 
 .. step:: Select documents using the less-than operator.
 
-   You'll use :manual:`dot notation </core/document/#embedded-documents>`
+   Use :manual:`dot notation </core/document/#embedded-documents>`
    in this query to select documents where the embedded document ``surfaceTemperatureC``
-   has value in its ``mean`` field less than 15 degrees (Celsius).
+   has a value in its ``mean`` field less than 15 degrees (Celsius).
 
    .. include:: /includes/find-less-than.rst
 
@@ -15,4 +15,4 @@
    Here is the complete code followed by sample output. Results have been
    truncated for display purposes.
 
-   .. include:: /includes/crud_find_less_than_all_results.rst
+   .. include:: /includes/crud_read_operator_final_less_than.rst

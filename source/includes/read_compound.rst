@@ -8,7 +8,7 @@
 
    The following example retrieves all documents in the ``{+guides-coll+}``
    collection where the ``surfaceTemperatureC.mean`` field is less than ``15``
-   **and** the ``surfaceTemperatureC.min`` field is greater than ``-90``.
+   **and** the ``surfaceTemperatureC.min`` field is greater than ``-100``.
 
    .. include:: /includes/crud_find_multiple_operators_and.rst
 

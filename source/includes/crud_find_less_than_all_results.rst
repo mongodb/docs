@@ -5,8 +5,6 @@
      - id: python
        content: |
 
-         Here is the complete code followed by sample output.
-
          .. io-code-block::
             :caption: crud_read.py
             :copyable: true
@@ -26,9 +24,6 @@
      - id: go
        content: |
 
-         Here is the complete code followed by sample output. The output
-         documents have been truncated here for display purposes.
-
          .. io-code-block::
             :caption: crudRead.go
             :copyable: true
@@ -47,7 +42,6 @@
 
      - id: java-sync
        content: |
-         Here is the complete code followed by sample output.
 
          .. io-code-block::
             :caption: CrudRead.java
@@ -71,8 +65,6 @@
      - id: nodejs
        content: |
 
-         Here is the complete code followed by sample output.
-
          .. io-code-block::
             :caption: crud-read.js
             :copyable: true
@@ -92,7 +84,6 @@
 
      - id: csharp
        content: |
-         Here is the complete code followed by sample output.
 
          .. io-code-block::
             :caption: CrudRead.cs

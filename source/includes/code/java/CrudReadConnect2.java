@@ -11,7 +11,7 @@ public class CrudRead {
             MongoCollection<Document> coll = mongoClient.getDatabase("sample_guides")
                     .getCollection("planets");
             // find code goes here
-            // Bson filter = ...
+            Bson filter = null;
             MongoCursor<Document> cursor = coll.find().iterator();
             try {
                 while (cursor.hasNext()) {

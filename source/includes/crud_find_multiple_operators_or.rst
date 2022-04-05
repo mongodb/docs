@@ -1,4 +1,3 @@
-
 .. tabs-drivers::
 
    tabs:
@@ -56,7 +55,7 @@
             :caption: crud-read.js
             :copyable: true
 
-            .. input:: /includes/code/node/crud-read-find-multiple-operators.js
+            .. input:: /includes/code/node/crud-read-find-multiple-operators-or.js
                :language: javascript
                :linenos:
 
@@ -70,7 +69,7 @@
             :caption: CrudRead.cs
             :copyable: true
 
-            .. input:: /includes/code/dotnet/CrudReadFindMultipleOperators.cs
+            .. input:: /includes/code/dotnet/CrudReadFindMultipleOperatorsOr.cs
                :language: csharp
                :linenos:
 

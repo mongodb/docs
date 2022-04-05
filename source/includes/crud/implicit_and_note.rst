@@ -6,7 +6,7 @@
     when specifying criteria on the same field.
 
     For example, to find documents in the ``{+guides-coll+}`` collection that have
-    an ``orderFromSun`` value greater than ``2`` AND less than ``4``, you must
+    an ``orderFromSun`` value greater than ``2`` AND less than ``5``, you must
     use the ``$and`` query operator.
 
     .. include:: /includes/crud/drivers_implicit_and.rst
