@@ -25,7 +25,7 @@ USER=$(shell whoami)
 STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-staging
 
-PRODUCTION_URL="https://docs.mongodb.com"
+PRODUCTION_URL="https://www.mongodb.com/docs"
 PRODUCTION_BUCKET=docs-compass-prod
 
 PROJECT=charts
