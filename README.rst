@@ -31,10 +31,9 @@ See the following documents within this repository that provide a more
 thorough overview of the documentation style, and process. These links
 point back to the MongoDB Manual materials:
 
-- `Style Guide <http://docs.mongodb.org/manual/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.org/manual/meta/practices>`_
-- `Documentation Organization <http://docs.mongodb.org/manual/meta/organization>`_
-- `Build Instructions <http://docs.mongodb.org/manual/meta/build>`_
+- `Style Guide <https://www.mongodb.com/docs/meta/style-guide>`_
+- `Documentation Practices <https://www.mongodb.com/docs/meta/practices>`_
+- `Documentation Organization <https://www.mongodb.com/docs/meta/organization>`_
 
 File issue reports or requests at the `Documentation Jira Project
 <https://jira.mongodb.org/browse/DOCS>`_.
