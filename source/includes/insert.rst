@@ -5,7 +5,7 @@
        content: |
 
          .. literalinclude:: /includes/examples/go/assign/assign.go
-            :language: go
+            :language: python
             :dedent: 2
             :start-after: Start Collection
             :end-before: End Collection
@@ -32,7 +32,7 @@
        content: |
 
          .. literalinclude:: /includes/examples/java/ConnectExample.java
-            :language: java
+            :language: javascript
             :dedent: 4
             :start-after: Start Collection
             :end-before: End Collection
@@ -41,7 +41,7 @@
        content: |
 
          .. literalinclude:: /includes/examples/java/ConnectExample.java
-            :language: java
+            :language: csharp
             :dedent: 4
             :start-after: Start Collection
             :end-before: End Collection

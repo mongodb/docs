@@ -1,25 +1,19 @@
-﻿/**
- * This is a working file, do not include this file in any code visible to the user.
-*/
-
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 // Replace the uri string with your MongoDB deployment's connection string.
-// var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
-var uri = "mongodb+srv://m220student:m220student@cluster0.jojrz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
 
 var client = new MongoClient(uri);
 
-var coll = client.GetDatabase("sample_guides").GetCollection<Comet>("comets");
+// database and collection code goes here
+var db = client.GetDatabase("sample_guides");
+var coll = db.GetCollection<Comet>("comets");
 
-var filter = Builders<Comet>.Filter.Empty;
-var update = Builders<Comet>.Update.Mul("Radius", 1.60934);
-var result = coll.UpdateMany(filter, update);
-
-foreach (var document in cursor)
+// insert code goes here
+var documents = new Comet[]
 {
     new Comet
     {
@@ -46,12 +40,16 @@ foreach (var document in cursor)
         Mass = 8.8e12
     }
 };
+
 coll.InsertMany(documents);
 
+// display insert ids code goes here
+
+// class that contains variables to represent each field in the document
 class Comet
 {
     [BsonId]
-    public ObjectId Id { get; set; }
+    public ObjectId Id { get; set;  }
     public string Name { get; set; }
     public string OfficialName { get; set; }
     public double OrbitalPeriod { get; set; }
