@@ -1,115 +1,16 @@
-.. _java-write:
-
-================
-Write to MongoDB
-================
-
-.. include:: /includes/scala-java-write.rst
+The following example creates a DataFrame from a ``json`` file and 
+saves it to the MongoDB collection specified in ``SparkConf``:
 
 .. code-block:: java
-   
-   package com.mongodb.spark_examples;
 
-   import com.mongodb.spark.MongoSpark;
-   import org.apache.spark.api.java.JavaRDD;
-   import org.apache.spark.api.java.JavaSparkContext;
-   import org.apache.spark.api.java.function.Function; 
-   import org.apache.spark.sql.SparkSession;
+   Dataset<Row> df = spark.read().format("json").load("example.json");
 
-   import org.bson.Document;
+   df.write().format("mongodb").mode("overwrite").save();
 
-   import static java.util.Arrays.asList;
+The MongoDB Connector for Spark supports the following save modes:
 
-   public final class WriteToMongoDB {
+-  ``append``
+- ``overwrite``
 
-     public static void main(final String[] args) throws InterruptedException {
-	   
-       SparkSession spark = SparkSession.builder()
-       	 .master("local")
-       	 .appName("MongoSparkConnectorIntro")
-       	 .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/test.myCollection")
-       	 .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/test.myCollection")
-       	 .getOrCreate();
-	     
-       JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-         
-       // Create a RDD of 10 documents
-       JavaRDD<Document> documents = jsc.parallelize(asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)).map
-               (new Function<Integer, Document>() {
-         public Document call(final Integer i) throws Exception {
-             return Document.parse("{test: " + i + "}");
-         }
-       });
-       
-       /*Start Example: Save data from RDD to MongoDB*****************/
-       MongoSpark.save(sparkDocuments, writeConfig);  
-       /*End Example**************************************************/
-       
-       jsc.close();
-         
-     }
-     
-   }
-
-Using a ``WriteConfig``
------------------------
-
-.. include:: /includes/scala-java-write-writeconfig.rst
-
-.. code-block:: java
-   
-   package com.mongodb.spark_examples;
-
-   import com.mongodb.spark.MongoSpark;
-   import com.mongodb.spark.config.WriteConfig;
-
-   import org.apache.spark.api.java.JavaRDD;
-   import org.apache.spark.api.java.JavaSparkContext;
-   import org.apache.spark.api.java.function.Function; 
-   import org.apache.spark.sql.SparkSession;
-
-   import org.bson.Document;
-
-   import static java.util.Arrays.asList;
-
-   import java.util.HashMap;
-   import java.util.Map;
-
-
-   public final class WriteToMongoDBWriteConfig {
-
-     public static void main(final String[] args) throws InterruptedException {
-	     
-       SparkSession spark = SparkSession.builder()
-         .master("local")
-         .appName("MongoSparkConnectorIntro")
-         .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/test.myCollection")
-         .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/test.myCollection")
-         .getOrCreate();
-	   
-       JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-     
-       // Create a custom WriteConfig
-       Map<String, String> writeOverrides = new HashMap<String, String>();
-       writeOverrides.put("collection", "spark");
-       writeOverrides.put("writeConcern.w", "majority");
-       WriteConfig writeConfig = WriteConfig.create(jsc).withOptions(writeOverrides);
-       
-       // Create a RDD of 10 documents  
-       JavaRDD<Document> sparkDocuments = jsc.parallelize(asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)).map
-     	    (new Function<Integer, Document>() {
-     	  public Document call(final Integer i) throws Exception {
-     		  return Document.parse("{spark: " + i + "}");
-     		}
-     	 });
-     
-       /*Start Example: Save data from RDD to MongoDB*****************/
-       MongoSpark.save(sparkDocuments, writeConfig);  
-       /*End Example**************************************************/
-       
-       jsc.close();
-      
-     }
-     
-   }
+To learn more about save modes, see the `Spark SQL Guide <https://spark.apache.org/docs/3.2.0/sql-data-sources-load-save-functions.html#save-modes>`__.
    

@@ -1,105 +1,71 @@
-.. _java-read: 
+Use your local SparkSession's ``read`` method to create a DataFrame 
+representing a collection.
 
-=================
-Read from MongoDB
-=================
+.. note::
+   
+   ``DataFrame`` does not exist as a class in the Java API. Use 
+   ``Dataset<Row>`` to reference a DataFrame.
 
-Pass a ``JavaSparkContext`` to ``MongoSpark.load()`` to read from
-MongoDB into a ``JavaMongoRDD``. The following example loads the data
-from the ``myCollection`` collection in the ``test`` database that was
-saved as part of the :ref:`write example <java-write>`.
+The following example loads the collection specified in the
+``SparkConf``:
 
 .. code-block:: java
 
-   package com.mongodb.spark_examples;
+   Dataset<Row> df = spark.read().format("mongodb").load(); // Uses the SparkConf for configuration
 
-   import org.apache.spark.api.java.JavaSparkContext;
-   import org.apache.spark.sql.SparkSession;
-   import org.bson.Document;
+To specify a different collection, database, and other :ref:`read
+configuration settings <spark-input-conf>`, use the ``option`` method:
 
-   import com.mongodb.spark.MongoSpark;
-   import com.mongodb.spark.rdd.api.java.JavaMongoRDD;
+.. code-block:: java
 
-   public final class ReadFromMongoDB {
-   
-     public static void main(final String[] args) throws InterruptedException {
-       
-       SparkSession spark = SparkSession.builder()
-         .master("local")
-         .appName("MongoSparkConnectorIntro")
-         .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/test.myCollection")
-         .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/test.myCollection")
-         .getOrCreate();
-         
-       // Create a JavaSparkContext using the SparkSession's SparkContext object
-       JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-       
-       /*Start Example: Read data from MongoDB************************/
-       JavaMongoRDD<Document> rdd = MongoSpark.load(jsc);
-       /*End Example**************************************************/
-       
-       // Analyze data from MongoDB
-       System.out.println(rdd.count());
-       System.out.println(rdd.first().toJson());
-       
-       jsc.close();
-         
-     }
-   }
+   Dataset<Row> df = spark.read().format("mongodb").option("database", "<example-database>").option("collection", "<example-collection>").load();
 
-Specify a ``ReadConfig``
-~~~~~~~~~~~~~~~~~~~~~~~~
+.. _java-implicit-schema:
 
-.. include:: /includes/scala-java-read-readconfig.rst
+Schema Inference
+----------------
+
+When you load a Dataset or DataFrame without a schema, Spark samples 
+the records to infer the schema of the collection.
+
+Consider a collection named ``characters``:
+
+.. include:: /includes/characters-example-collection.rst
+
+The following operation loads data from the MongoDB collection 
+specified in ``SparkConf`` and infers the schema:
 
 .. code-block:: java
    
-   package com.mongodb.spark_examples;
+   Dataset<Row> implicitDS = spark.read().format("mongodb").load();
+   implicitDS.printSchema();
+   implicitDS.show();
 
-   import java.util.HashMap;
-   import java.util.Map;
+``implicitDS.printSchema()`` outputs the following schema to the console:
+
+.. code-block:: sh
    
-   import org.apache.spark.api.java.JavaSparkContext;
-   import org.apache.spark.sql.SparkSession;
-   import org.bson.Document;
+   root
+    |-- _id: struct (nullable = true)
+    |    |-- oid: string (nullable = true)
+    |-- age: integer (nullable = true)
+    |-- name: string (nullable = true)
    
-   import com.mongodb.spark.MongoSpark;
-   import com.mongodb.spark.config.ReadConfig;
-   import com.mongodb.spark.rdd.api.java.JavaMongoRDD;
-   
-   
-   public final class ReadFromMongoDBReadConfig {
-   
-     public static void main(final String[] args) throws InterruptedException {
-       
-       SparkSession spark = SparkSession.builder()
-         .master("local")
-         .appName("MongoSparkConnectorIntro")
-         .config("spark.mongodb.input.uri", "mongodb://127.0.0.1/test.myCollection")
-         .config("spark.mongodb.output.uri", "mongodb://127.0.0.1/test.myCollection")
-         .getOrCreate();
-         
-       // Create a JavaSparkContext using the SparkSession's SparkContext object
-       JavaSparkContext jsc = new JavaSparkContext(spark.sparkContext());
-       
-       /*Start Example: Read data from MongoDB************************/
-              
-       // Create a custom ReadConfig
-       Map<String, String> readOverrides = new HashMap<String, String>();
-       readOverrides.put("collection", "spark");
-       readOverrides.put("readPreference.name", "secondaryPreferred");
-       ReadConfig readConfig = ReadConfig.create(jsc).withOptions(readOverrides);
-       
-       // Load data using the custom ReadConfig
-       JavaMongoRDD<Document> customRdd = MongoSpark.load(jsc, readConfig);
-       
-       /*End Example**************************************************/
-       
-       // Analyze data from MongoDB
-       System.out.println(customRdd.count());
-       System.out.println(customRdd.first().toJson());
-       
-       jsc.close();
-         
-     }
-   }
+``implicitDS.show()`` outputs the following to the console:
+
+.. code-block:: sh
+
+   +--------------------+----+-------------+
+   |                 _id| age|         name|
+   +--------------------+----+-------------+
+   |[585024d558bef808...|  50|Bilbo Baggins|
+   |[585024d558bef808...|1000|      Gandalf|
+   |[585024d558bef808...| 195|       Thorin|
+   |[585024d558bef808...| 178|        Balin|
+   |[585024d558bef808...|  77|         Kíli|
+   |[585024d558bef808...| 169|       Dwalin|
+   |[585024d558bef808...| 167|          Óin|
+   |[585024d558bef808...| 158|        Glóin|
+   |[585024d558bef808...|  82|         Fíli|
+   |[585024d558bef808...|null|       Bombur|
+   +--------------------+----+-------------+
