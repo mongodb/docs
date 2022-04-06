@@ -250,24 +250,25 @@ these fields to determine whether the command returned stale data.
 -----------
 
 For :manual:`explain </reference/command/explain>` command, the data 
-returned by ``explain`` documents the |data-lake| query plan, and 
-differs from MongoDB in that it provides information about the data 
-partitions used to satisfy the query.
+returned by ``explain`` documents the |data-lake| query plan. The 
+``explain`` output differs from MongoDB in that it provides information 
+about the data partitions used to satisfy the query.
 
-The following commands are explainable in |data-lake|: 
+The following commands can be explained in |data-lake|: 
 
 - ``aggregate()``
 - ``count()``
 - ``find()``
 
-The following ``verbosity`` modes are supported: 
+{+adl+} supports the following ``verbosity`` modes: 
 
 - ``queryPlanner`` - provides information on the query plan.
 - ``queryPlannerExtended`` - provides detailed information on the query 
   plan including information about the |s3| objects, such as the |s3| 
   object names and sizes, that will be queried.
       
-The ``executionStats`` and ``allPlansExecution`` modes aren't supported.
+{+adl+} doesn't support ``executionStats`` and ``allPlansExecution`` 
+modes.
 
 .. example:: 
 
@@ -280,6 +281,110 @@ The ``executionStats`` and ``allPlansExecution`` modes aren't supported.
       :copyable: false 
 
       db.runCommand({ "explain": { "aggregate": "user", "verbosity": "queryPlannerExtended", "pipeline": [ ], "cursor": {} }})
+
+When you run ``explain``, {+adl+} returns the following fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 30 70 
+
+   * - Output Field Name
+     - Description 
+
+   * - ``stats``
+     - Document that describes the number and total size of partitions 
+       that {+adl+} might open for the query.
+
+   * - ``stats.size``
+     - Total size of partitions that {+adl+} might open for the query.
+
+   * - ``stats.numberOfPartitions``
+     - Number of partitions that {+adl+} might open for the query.
+
+   * - ``plan``
+     - Document that contains the query execution plan for the query.  
+       The document contains nested execution plan nodes, each of which 
+       is a document describing the plan node. The nested plan node 
+       documents contain internal description of {+adl+}'s query 
+       execution, and include various node kinds that are subject to 
+       change. Contact MongoDB support if you need more help with 
+       understanding the query plan.
+
+.. tabs:: 
+
+   .. tab:: Basic Example 
+      :tabid: basiceg
+
+      .. io-code-block::
+         
+         .. input::
+            :language: shell
+
+            db.runCommand({ "explain": { "aggregate": "user", "verbosity": "queryPlanner", "pipeline": [ ], "cursor": {} }})
+
+         .. output::
+            :linenos:
+
+            {
+              ok: 1,
+              stats: { size: '42.06258487701416 MiB', numberOfPartitions: 1 },
+              plan: {
+                kind: 'region',
+                region: 'AWS/us-east-1',
+                node: {
+                  kind: 'data',
+                  size: '42.06258487701416 MiB',
+                  numberOfPartitions: 1,
+                  partitions: [ { source: 'sbx', provider: 'atlas', size: '42.06258487701416 MiB' } ]
+                }
+              }
+            }
+
+   .. tab:: find Example 
+      :tabid: findeg
+
+      .. io-code-block::
+         
+         .. input::
+            :language: shell
+
+            db.movies.explain().find({"type": "movie", "year": {$gt: 2010, $lt: 2015} }, {"title": 1, "year": 1 })
+
+         .. output::
+            :linenos:
+
+            {
+              ok: 1,
+              stats: { size: '36.06258487701416 MiB', numberOfPartitions: 1 },
+              plan: {
+                kind: 'region',
+                region: 'AWS/us-east-1',
+                node: {
+                  kind: 'data',
+                  size: '36.06258487701416 MiB',
+                  numberOfPartitions: 1,
+                  partitions: [
+                    {
+                      source: 'sbx',
+                      provider: 'atlas',
+                      size: '36.06258487701416 MiB',
+                      pipeline: [
+                        {
+                          '$match': {
+                            '$and': [
+                              { year: { '$lt': 2015 } },
+                              { year: { '$gt': 2010 } },
+                              { type: { '$eq': 'movie' } }
+                            ]
+                          }
+                        },
+                        { '$project': { title: 1, year: 1 } }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
 
 ``getLog``
 ----------
