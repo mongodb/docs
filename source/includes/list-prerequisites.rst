@@ -2,8 +2,8 @@
   :manual:`MongoDB documentation </>` and `Spark documentation
   <https://spark.apache.org/docs/latest/>`_ for more details.
 
-- Running MongoDB instance (version 4.0 or later).
+- Running MongoDB instance (version 2.6 or later).
 
-- Spark version 3.1 or later.
+- Spark 2.4.x.
 
-- Java 8 or later.
+- Scala 2.12.x

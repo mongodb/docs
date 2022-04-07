@@ -1,0 +1,73 @@
+===============
+Filters and SQL
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Filters
+-------
+
+.. note::
+
+   When using filters with DataFrames or the R API, the
+   underlying Mongo Connector code constructs an :manual:`aggregation
+   pipeline </core/aggregation-pipeline/>` to filter the data in
+   MongoDB before sending it to Spark.
+
+Use ``filter()`` to read a subset of data from your MongoDB collection.
+
+.. include:: /includes/example-load-dataframe.rst
+
+First, set up a dataframe to connect with your default MongoDB data
+source:
+
+.. code-block:: none
+
+   df <- read.df("", source = "com.mongodb.spark.sql.DefaultSource")
+
+.. include:: /includes/data-source.rst
+
+The following operation filters the data and includes records where the
+``qty`` field is greater than or equal to ``10``:
+
+.. code-block:: none
+
+   head(filter(df, df$qty >= 10))
+
+The operation prints the following output:
+
+.. code-block:: none
+
+   _id qty   type
+   1   2  10 orange
+   2   3  15 banana
+
+SQL
+---
+
+Before running SQL queries on your dataset, you must register a
+temporary view for the dataset.
+
+The following example registers a temporary table called ``temp``,
+then uses SQL to query for records in which the ``type`` field
+contains the letter ``e``:
+
+.. code-block:: python
+
+   createOrReplaceTempView(df, "temp")
+   some_fruit <- sql("SELECT type, qty FROM temp WHERE type LIKE '%e%'")
+   head(some_fruit)
+
+In the ``sparkR`` shell, the operation prints the following output:
+
+.. code-block:: none
+
+   type qty
+   1  apple   5
+   2 orange  10
