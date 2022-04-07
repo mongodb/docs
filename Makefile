@@ -150,7 +150,7 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/versioned_api_examples_spec.rb -o ${DRIVERS_PATH}/versioned_api_examples_spec.rb
 
 # rust
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/master/src/test/documentation_examples/mod.rs -o ${DRIVERS_PATH}/mod.rs
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-rust-driver/main/src/test/documentation_examples/mod.rs -o ${DRIVERS_PATH}/mod.rs
 
 # scala
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
