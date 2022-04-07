@@ -4,6 +4,7 @@
    :class: compatibility-large
 
    * - Swift Driver Version
+     - MongoDB 5.3
      - MongoDB 5.2
      - MongoDB 5.1
      - MongoDB 5.0
@@ -14,6 +15,7 @@
 
    * - 1.2.0
      - 
+     - 
      -
      - |checkmark|
      - |checkmark|
@@ -23,6 +25,7 @@
 
    * - 1.1.0
      - 
+     - 
      -
      -
      - |checkmark|
@@ -31,6 +34,7 @@
      - |checkmark|
 
    * - 1.0.0
+     - 
      - 
      -
      -

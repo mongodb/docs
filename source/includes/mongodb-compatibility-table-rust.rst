@@ -5,6 +5,7 @@
    :class: compatibility-large
 
    * - Rust Driver Version
+     - MongoDB 5.3
      - MongoDB 5.2
      - MongoDB 5.1
      - MongoDB 5.0
@@ -15,6 +16,7 @@
    * - 2.1 [#2.1-limitation]_
      - 
      - 
+     - 
      - ✓
      - ✓
      - ✓
@@ -23,12 +25,14 @@
    * - 2.0 [#limitations]_
      - 
      - 
+     - 
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
    * - 1.1 [#limitations]_
+     - 
      - 
      - 
      - 
