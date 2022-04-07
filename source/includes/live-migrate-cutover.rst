@@ -28,6 +28,6 @@
 
      - Mark the migration plan as complete.
      - Remove the Application Server subnets from the destination
-       cluster whitelist.
+       cluster IP access list.
      - Remove the MongoDB user that Live Migrate used to import data
        to the destination cluster.
