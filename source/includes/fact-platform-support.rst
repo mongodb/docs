@@ -1,17 +1,5 @@
 .. |checkmark| unicode:: U+2713
 
-.. note:: Platform Support EOL Notice
-
-   .. list-table::
-      :widths: 25 75
-      :class: border-table
-
-      * - s390x ('zseries') 
-        - Support removed in MongoDB Database Tools ``104.0.0``.
-          Previous versions of the Database Tools that support the s390x
-          architecture can be downloaded from `Archived Releases
-          <https://www.mongodb.com/download-center/database-tools/releases/archive>`__.
-
 .. list-table::
   :header-rows: 1
   :class: compatibility
@@ -63,7 +51,7 @@
     - |checkmark|
     -
     - |checkmark|
-    -
+    - |checkmark|
 
   * - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS 6
     - |checkmark|
