@@ -13,8 +13,8 @@
      - Optional 
      - Specify ``true`` to enable automatic export of cloud backup 
        snapshots to the |aws| bucket. You must also define the 
-       export policy using ``export``. If omitted, defaults to 
-       ``false``.
+       export policy using ``export``. Specify ``false`` to disable 
+       automatic export.
 
    * - ``export``
      - document 
