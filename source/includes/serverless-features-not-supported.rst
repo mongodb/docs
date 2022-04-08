@@ -135,7 +135,7 @@ limitations and considerations:
      - Limitation
   
    * - :manual:`Aggregation </aggregation>` and :manual:`Queries </tutorial/query-documents/>`
-     - {+Serverless-instance+} aggregations can't use the ``allowDiskUse`` option for the
+     - {+Serverless-instances+} don't support the ``allowDiskUse`` option for the
        :manual:`aggregation command </reference/command/aggregate>`, 
        its :manual:`helper method </reference/method/db.collection.aggregate>`,
        or the :manual:`cursor.allowDiskUse() 
