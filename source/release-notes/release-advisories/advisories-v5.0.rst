@@ -22,8 +22,11 @@ Platform Support Changes
 - Maintains support for managing MongoDB deployments that run
   on Windows 2016, 2019, 2020.
 
-- Removes support for managing MongoDB deployments that run on |rhel|
-  7.x on the ppc64le architecture
+- Removes support for managing MongoDB deployments with the MongoDB Agent
+  that runs on Ubuntu 16.x on the PowerPC (``ppc64le``) architecture.
+
+To learn more about supported platforms for running |onprem| on,
+see :ref:`Ops Manager Software Requirements <software-requirements>`.
 
 Rapid Release Versions
 ~~~~~~~~~~~~~~~~~~~~~~

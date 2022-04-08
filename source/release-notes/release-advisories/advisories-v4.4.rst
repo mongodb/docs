@@ -90,11 +90,13 @@ Ops Manager Microsoft Windows Support Changes
 MongoDB Platform Support Changes
 ````````````````````````````````
 
-- |onprem| 4.4 removes support MongoDB deployments run on the following
-  platforms:
+|onprem| 4.4 removes support for managing MongoDB deployments with the
+MongoDB Agent that run on:
 
   - Amazon Linux 1 on the x86_64 architecture
-  - Ubuntu 18.x on the ppc64le architecture
+  - RHEL 7.x, Ubuntu 16.x on the PowerPC (``ppc64le``) architecture
+  - RHEL 6.x/7.x, Ubuntu 18.x, and SUSE 12.x on zSeries (``s390x``)
+    architecture
 
 Server Pools
 ~~~~~~~~~~~~
