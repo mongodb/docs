@@ -1,3 +1,22 @@
+.. _opsmgr-server-5.0.9:
+
+|onprem| Server 5.0.9
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-04-07*
+
+- Adds support for concurrent MongoDB version 4.2+ snapshots and S3 snapshot store grooms.
+- Fixes an incorrect link when filtering backup jobs on the admin pages.
+- Fixes an issue when using controlled features changes to automation could be rejected incorrectly.
+- Changes how disk space is calculated for Cloud Live Migrations. Starting with this release, 
+  the migration process validates that the target |service| cluster has enough free disk based 
+  on the storage size of the compressed data. To learn more about data and storage sizes, see 
+  :manual:`dbStats <//reference/command/dbStats/#dbstats>`.
+- Fixes an issue when creating LDAP group mappings through the API.
+- Updates the {+mdbagent+} to :ref:`11.0.14.7064 <mongodb-11.0.14.7064>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.5.2 
+  </release-notes/database-tools-changelog#100.5.2-changelog>`.
+
 .. _opsmgr-server-5.0.8:
 
 |onprem| Server 5.0.8
@@ -10,6 +29,9 @@
   Audit Log Files.
 
 - Updates the {+mdbagent+} to :ref:`11.0.13.7055 <mongodb-11.0.13.7055>`.
+
+- Compatible with :db-tools:`MongoDB Database Tools 100.5.2 
+  </release-notes/database-tools-changelog#100.5.2-changelog>`.
 
 .. _opsmgr-server-5.0.7:
 
@@ -34,6 +56,8 @@
   configuration when making ``automationConfig`` API and UI updates.
 - Removes workaround to use an X.509 CommonName instead of a |san-dns|.
 - Updates the {+mdbagent+} to :ref:`11.0.12.7051 <mongodb-11.0.12.7051>`
+- Compatible with :db-tools:`MongoDB Database Tools 100.5.2 
+  </release-notes/database-tools-changelog#100.5.2-changelog>`.
 
 .. _opsmgr-server-5.0.6:
 
@@ -62,6 +86,9 @@
 
      To use this feature, you must upgrade to 
      :ref:`the latest version of the {+mdbagent+} <mongodb-11.0.11.7036>`.
+
+- Compatible with :db-tools:`MongoDB Database Tools 100.5.1 
+  </release-notes/database-tools-changelog#100.5.1-changelog>`.
 
 .. _opsmgr-server-5.0.5:
 
