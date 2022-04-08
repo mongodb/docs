@@ -10,7 +10,7 @@ The following table shows the modes of access each role supports.
      - |service| UI
      - |service| API
      - |fts| API 
-     - {+mcli+}
+     - {+atlas-cli+}
 
    * - :authrole:`Project Data Access Read Only` or higher role 
      - To view |fts| analyzers and indexes.
