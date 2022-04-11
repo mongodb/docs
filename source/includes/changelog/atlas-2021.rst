@@ -146,7 +146,7 @@
   </reference/method/cursor.sort/>`, :manual:`Project
   </tutorial/project-fields-from-query-results>`, and :manual:`Collation
   </reference/collation/>` query options when you :ref:`query your data
-  <de-view-documents>` using :guilabel:`Data Explorer`.
+  <atlas-ui-view-documents>` using the {+atlas-ui+}.
 - Adds the ability for a user with the 
   :authrole:`Project Cluster Manager` role to :ref:`test-failover-api`.
 

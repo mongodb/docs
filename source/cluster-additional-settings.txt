@@ -1,38 +1,486 @@
 .. _create-cluster-additional-settings:
 
-===========================
-Additional Cluster Settings
-===========================
+=============================
+Configure Additional Settings
+=============================
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
 You can configure the following additional settings for your
-|service| cluster.
+|service| {+cluster+}.
 
-.. figure:: /images/create-cluster-additional-settings.png
-   :scale: 50%
-   :alt: Image showing additional cluster settings.
+.. _create-cluster-version:
 
-See the following pages for details on specific settings:
+Select the MongoDB Version of the {+Cluster+}
+---------------------------------------------
 
-- :doc:`Select the MongoDB Version of the cluster </cluster-config/mongodb-version>`
+.. include:: /includes/extracts/fact-mongodb-version.rst
 
-- :doc:`Configure backup options for the cluster (M10+ Clusters Only) </cluster-config/backups>`
+.. include:: /includes/fact-upgrade-best-practices.rst
 
-- :doc:`Shard your cluster (M30+ Clusters Only) </cluster-config/sharded-cluster>`
+To select the MongoDB version for your cluster, use the
+dropdown in the :guilabel:`Additional Settings` section
+of the {+cluster+} form.
 
-- :doc:`Enable BI Connector for Atlas (M10+ Clusters Only) </cluster-config/enable-bic>`
+You can upgrade an existing |service| {+cluster+} to a newer major
+MongoDB version, if available, when you 
+:ref:`scale a cluster <scale-cluster-version>`. However, you 
+can't downgrade a {+cluster+}'s MongoDB version.
 
-- :doc:`Manage your own encryption keys (M10+ Clusters Only) </cluster-config/encryption>`
+.. important::
 
-- :doc:`Configure Additional Options (M10+ Clusters Only) </cluster-config/additional-options>`
+   If your project contains a :ref:`custom role <mongodb-roles>`
+   that uses actions introduced in a specific MongoDB version, you
+   can't create a {+cluster+} with a MongoDB version less than that
+   version unless you delete the custom role.
 
-.. toctree::
-   :titlesonly:
-      
-   /cluster-config/mongodb-version
-   /cluster-config/backups
-   /cluster-config/sharded-cluster
-   /cluster-config/enable-bic
-   /cluster-config/encryption
-   /cluster-config/additional-options
+If you select :guilabel:`Latest Release`, |service| uses the most
+recent MongoDB release for your {+cluster+}. |service| also 
+upgrades your {+cluster+} to the new major and rapid version releases 
+via a rolling process to maintain {+cluster+} availability
+as each release becomes available.
+
+You can select :guilabel:`Latest Release` only if your {+cluster+} is
+running the most recent major release of MongoDB.
+
+.. note::
+
+   You can upgrade your {+cluster+}s to the
+   :guilabel:`Latest Release` only if they run MongoDB 5.0.
+
+To learn more about MongoDB versions, see :manual:`MongoDB Versioning
+</reference/versioning>` in the MongoDB Manual.
+
+.. _create-cluster-backups:
+
+Configure Backup Options for the {+Cluster+}
+--------------------------------------------
+
+This section describes the backup configuration options for your
+|service| {+cluster+}.
+
+M2/M5 Tier Backup Options
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| automatically enables backups for ``M2`` and ``M5``
+{+shared-clusters+} and you can't disable them. To learn more, see
+:ref:`m2-m5-snapshots`.
+
+M10+ Tier Backup Options
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable backups for an ``M10+`` |service| {+cluster+}, toggle
+:guilabel:`Turn on Backup (M10 and up)` to ``Yes``.
+If enabled, |service| takes snapshots of your databases at
+regular intervals and retains them according to your project's
+:ref:`retention policy <retention-policy>`.
+
+|service| provides the following backup options for ``M10+``
+clusters:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Backup Option
+     - Description
+
+   * - :doc:`/backup/legacy-backup/overview`
+
+     - .. include:: /includes/admonitions/deprecated-continuous-backup.rst
+
+       |service| takes incremental snapshots of the data in your 
+       {+cluster+} and lets you :doc:`restore 
+       </backup/legacy-backup/restore>` the data from stored
+       snapshots or from a selected point in time within the last 24
+       hours. You can also :doc:`query a {+old-backup+} snapshot
+       </backup/legacy-backup/backup-query>`.
+
+       Each project has *one* backup data center location dictated by
+       the *first* backup-enabled {+cluster+} created in that project. 
+       To learn more, see :ref:`continuous-snapshot-storage-location`.
+
+   * - :doc:`/backup/cloud-backup/overview`
+
+     - |service| takes incremental snapshots of the data in your 
+       {+cluster+} and lets you restore the data from those snapshots. 
+       |service| stores snapshots in the same cloud provider region as 
+       the replica set member targeted for snapshots.
+
+.. _create-cluster-sharding:
+.. _cluster-option-sharding:
+
+Deploy a Sharded {+Cluster+}
+----------------------------
+
+.. tip:: 
+
+   .. include:: /includes/fact-online-archive-recommendation.rst
+
+To deploy your cluster as a :term:`sharded cluster <sharded cluster>`,
+toggle :guilabel:`Shard your cluster (M30 and up)` to ``Yes``.
+
+:term:`Sharded clusters <sharded cluster>` support horizontal scaling 
+and consist of :manual:`shards </core/sharded-cluster-shards>`,
+:ref:`config servers <sharding-config-server>` and
+:term:`mongos <mongos>` routers:
+
+.. include:: /includes/list-sharded-cluster-components.rst
+
+.. include:: /includes/fact-conversion-sharded-clusters.rst
+
+To learn more about how the number of server instances affect cost, see
+:ref:`server-number-costs`.
+
+To learn more about sharded clusters, see
+:manual:`Sharding </sharding>` in the MongoDB manual.
+
+.. _create-cluster-shardNum:
+
+Configure the Number of Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/cluster-option-clusterShardingNum.rst
+
+Consideration for Upgrading a Replica Set to a Sharded {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your {+cluster+} tier is ``M30`` or higher, you can upgrade 
+your replica set deployment to a sharded {+cluster+} deployment.
+
+.. include:: /includes/fact-upgrade-to-sharded-cluster-warning.rst
+
+.. _create-cluster-enable-bi:
+
+Enable |bic|
+------------
+
+To enable `BI Connector for Atlas
+<https://www.mongodb.com/docs/bi-connector/master/>`__ for this 
+{+cluster+}, toggle :guilabel:`Enable Business Intelligence Connector 
+(M10 and up)` to :guilabel:`Yes`.
+
+.. note::
+
+   .. include:: /includes/extracts/cluster-option-bi-cluster-requirements.rst
+
+If enabled, select the node type from which |bic|
+should read.
+
+.. _bic-read-preferences:
+
+Read Preferences
+~~~~~~~~~~~~~~~~
+
+The following table describes the available read preferences for
+|bic-short| and their corresponding
+:manual:`readPreference </reference/read-preference>` and
+:manual:`readPreferenceTag </core/read-preference-tags>`
+connection string options.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 20 30
+
+   * - |bic-short-no-link| Read Preference
+     - Description
+     - readPreference
+     - readPreferenceTags
+
+   * - Primary
+     - Read from the :term:`primary` node.
+     - ``primary``
+     - None
+
+   * - Secondary
+     - Read from :term:`secondary` nodes.
+     - ``secondary``
+     - ``{ nodeType : ELECTABLE }`` or ``{ nodeType : READ_ONLY }``
+
+   * - Analytics
+     - Read from :term:`analytics nodes <analytics node>`.
+     - ``secondary``
+     - ``{ nodeType : ANALYTICS }``
+
+Node Types
+``````````
+
+The ``nodeType`` read preference tag dictates the type of node |bic|
+connects to. You can specify the following values for this option:
+
+- ``ELECTABLE`` restricts |bic-short| to the :term:`primary` and
+  electable :term:`secondary` nodes.
+
+- ``READ_ONLY`` restricts |bic-short| to connecting to
+  non-electable :term:`secondary` nodes.
+
+- ``ANALYTICS`` restricts |bic-short| to connecting to
+  :ref:`analytics nodes <analytics-nodes-overview>`.
+
+  .. tip::
+
+     When you use the :guilabel:`Analytics` read preference, |service|
+     places |bic| on the same hardware as the analytics nodes that
+     |bic| reads from.
+
+     By isolating electable data-bearing nodes from the |bic|, electable
+     nodes don't compete for resources with |bic|, thus improving
+     {+cluster+} reliability and performance.
+
+For high traffic production environments, connecting to the
+:guilabel:`Secondary Node(s)` or :guilabel:`Analytics Node(s)` may
+be preferable to connecting to the :guilabel:`Primary Node`.
+
+For {+clusters+} with one or more
+:ref:`analytics nodes <analytics-nodes-overview>`, select
+:guilabel:`Analytics Node` to isolate |bic| queries from
+your operational workload and read from dedicated, read-only
+analytics nodes. With this option, electable nodes don't compete
+for resources with |bic|, thus improving cluster reliability and
+performance.
+
+Sampling Settings
+~~~~~~~~~~~~~~~~~
+
+The |bic-short-no-link| generates a relational schema by
+:bic:`sampling data </schema/cached-sampling/>` from MongoDB. You can 
+configure the following sampling settings:
+
+.. list-table::
+   :widths: 25 10 65
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - |bic-short-no-link| Option
+     - Type
+     - Description
+
+   * - Schema Sample Size
+     - integer
+     - *Optional.* The number of documents that the BI Connector
+       samples for each database when it gathers schema information.
+       To learn more, see the
+       :bic:`BI Connector documentation
+       </reference/mongosqld/#cmdoption-mongosqld-samplesize>`.
+
+   * - Sample Refresh Interval
+     - integer
+     - *Optional.* The frequency, in seconds, at which the BI
+       Connector re-samples data to recreate the schema.To learn more, 
+       see the :bic:`BI Connector documentation </reference/mongosqld/#cmdoption-mongosqld-samplerefreshintervalsecs>`.
+
+.. _create-cluster-enable-encryption:
+
+Manage Your Own Encryption Keys
+-------------------------------
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| encrypts all {+cluster+} storage and snapshot volumes,
+ensuring the security of all {+cluster+} data at rest
+(Encryption at Rest). |service|
+:authrole:`Project Owners <Project Owner>` can configure
+an added layer of encryption on their data at rest using the
+MongoDB :manual:`Encrypted Storage Engine 
+</core/security-encryption-at-rest>`
+and their |service|-compatible Encryption at Rest provider.
+
+|service| supports the following Encryption at Rest providers:
+
+- :ref:`AWS Key Management Services <security-aws-kms>`
+- :ref:`Azure Key Vault <security-azure-kms>`
+- :ref:`Google Cloud KMS <security-gcp-kms>`
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- You must configure the |service| project for Encryption at Rest
+  using your Key Management before you enable the feature for your
+  |service| {+clusters+}. To learn more,
+  see :ref:`security-kms-encryption`.
+
+- To switch from one Encryption at Rest provider on your
+  {+cluster+} to another, you must first disable Encryption at Rest for
+  your {+cluster+}, then re-enable it with your desired Encryption at
+  Rest provider. To learn more, see :doc:`/security-kms-encryption`.
+
+Procedure
+~~~~~~~~~
+
+To start managing your own encryption keys for this {+cluster+},
+toggle :guilabel:`Encryption using your Key Management (M10 and up)`
+to :guilabel:`Yes`.
+
+|service| Encryption at Rest using your Key Management is available for
+``M10+`` replica set {+clusters+}. |service| Encryption
+at Rest supports encrypting :ref:`backup-cloud-provider` **only**.
+You can't enable Encryption at Rest on a {+cluster+} using
+:ref:`legacy-backup`.
+
+Managing your own encryption keys incurs an increase to the hourly run
+costs of your {+clusters+}. To learn more about |service| billing for
+advanced security features, see :ref:`advanced-security`.
+
+.. important::
+
+   If |service| can't access the |service| project key management
+   provider or the encryption key used to encrypt a {+cluster+},
+   that {+cluster+} becomes inaccessible and unrecoverable. Exercise
+   extreme caution before you modify, delete, or disable an
+   encryption key or the key management provider credentials that
+   |service| uses.
+
+.. _create-cluster-more-configuration-options:
+
+Configure Additional Options
+----------------------------
+
+
+You can configure the following |mongod| runtime options on ``M10+``
+paid tier {+clusters+}.
+
+Considerations
+~~~~~~~~~~~~~~
+
+|service| dynamically modifies the :guilabel:`Oplog Size` for replica
+sets and sharded clusters. However, for the :guilabel:`Minimum TLS
+Protocol Version` and :guilabel:`Allow Server-Side JavaScript`
+settings, it performs a rolling restart of the shard members
+and the config server replica set. To learn more about how |service|
+supports high availability during maintenance operations, see
+:ref:`high-availability`.
+
+Locate Additional Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To view these settings, open the :guilabel:`More Configuration Options`
+under :guilabel:`Additional Settings` in the cluster form.
+
+.. _set-oplog-size:
+
+Set Oplog Size
+~~~~~~~~~~~~~~
+
+Modify the :term:`oplog` size of the {+cluster+}.
+
+For sharded {+cluster+} deployments, this option modifies the oplog 
+size of each shard in the {+cluster+}.
+
+This option corresponds to modifying the
+:setting:`replication.oplogSizeMB` configuration file option for each
+|mongod| in the {+cluster+}.
+
+Specify your desired :guilabel:`Oplog Size` in megabytes in the
+input box.
+
+.. warning::
+
+   Reducing the size of the oplog requires removing data from the
+   oplog. |service| can't access or restore any oplog entries removed
+   as a result of oplog reduction. Consider the ramifications of this
+   data loss before you reduce the oplog.
+
+.. important::
+
+   - You can't set the oplog to less than 990 megabytes.
+   - |service| places no upper limit in megabytes on the oplog.
+     However, |service| returns an error if the oplog size you choose 
+     leaves your {+cluster+}'s disk with less than 25 percent of its 
+     capacity free.
+
+To check the oplog size:
+
+1. Connect to your {+cluster+} via {+mongosh+}.
+2. Authenticate as a user with the :atlasrole:`Atlas admin` role.
+3. Run the
+   :method:`rs.printReplicationInfo() <rs.printReplicationInfo>` method.
+
+|service| displays the current oplog size and time.
+
+Disk Space Considerations
+`````````````````````````
+
+*Don't* reduce the size of the oplog to increase the available disk 
+space. Only the oplog collection (``local.oplog.rs``)
+can reclaim the space that reducing the oplog size saves. Other
+collections don't benefit from reducing oplog storage.
+
+Enforce Index Key Limit
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable or disable enforcement of the 1024-byte index key limit.
+Documents can only be updated or inserted if, for all indexed fields on
+the target collection, the corresponding index entries don't exceed
+1024 bytes.
+
+If disabled, |mongod| writes documents that breach the limit but
+*doesn't* index them. This option corresponds to modifying the
+:parameter:`failIndexKeyTooLong <param.failIndexKeyTooLong>`
+parameter via the :dbcommand:`setParameter` command for each |mongod|
+in the {+cluster+}.
+
+.. include:: /includes/admonitions/removed-fail-index-key-too-long.rst
+
+Allow Server-Side JavaScript
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-javascriptEnabled-description.rst
+
+.. include:: /includes/admonitions/changed-javascript-enabled-mongos.rst
+
+Set Minimum TLS Protocol Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Set the minimum TLS version that the {+cluster+} accepts for incoming
+connections. This option corresponds to configuring the
+:setting:`net.ssl.disabledProtocols` configuration file option
+for each |mongod| in the {+cluster+}.
+
+.. note:: TLS 1.0 Deprecation
+
+   If you are considering this option as a method for enabling the
+   deprecated Transport Layer Security (TLS) 1.0 protocol version, read
+   :ref:`faq-tls-1.0-deprecation` before proceeding. |service|
+   deprecation of TLS 1.0 improves your security of data-in-transit
+   and aligns with industry best practices. Enabling TLS 1.0 for any
+   |service| {+cluster+} carries security risks. Consider enabling TLS
+   1.0 only for as long as required to update your application stack
+   to support TLS 1.1 or later.
+
+Require Indexes for All Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable or disable the execution of queries that require a collection
+scan to return results. This option corresponds to modifying the
+:parameter:`notablescan <param.notablescan>` parameter via the
+:dbcommand:`setParameter` command for each |mongod| in
+the {+cluster+}.
+
+Default Read Concern
+~~~~~~~~~~~~~~~~~~~~
+
+Set the :manual:`default level of acknowledgment requested from MongoDB for read operations </reference/read-concern/>` for this {+cluster+}.
+
+MongoDB 4.4 {+clusters+} default to :manual:`available
+</reference/read-concern-available>`.
+
+MongoDB 5.0 {+clusters+} default to :manual:`local </reference/read-concern-local>`.
+
+Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~
+
+Set the 
+:manual:`default level of acknowledgment requested from MongoDB for write operations </reference/write-concern/>` for this {+cluster+}.
+
+MongoDB 4.4 {+clusters+} default to :manual:`1 
+</reference/write-concern>`.
+
+MongoDB 5.0 {+clusters+} default to :manual:`majority 
+</reference/write-concern>`.
+

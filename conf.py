@@ -208,6 +208,7 @@ rst_epilog.extend(get_replacements(conf))
 rst_epilog = '\n'.join(rst_epilog)
 
 source_constants = {
+    'atlas-ui': 'Atlas UI',
     'aws-pl': 'AWS PrivateLink',
     'az-pl': 'Azure Private Link',
     'data-api': 'Data API',

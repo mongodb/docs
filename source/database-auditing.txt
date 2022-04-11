@@ -1,7 +1,7 @@
 .. _set-up-database-auditing:
 
 ========================
-Set up Database Auditing
+Set Up Database Auditing
 ========================
 
 .. default-domain:: mongodb
@@ -146,7 +146,140 @@ Use the following procedure to set up database auditing:
 To retrieve the audit logs in |service|, see :ref:`MongoDB Logs <mongodb-logs>`.
 To retrieve the audit logs using the API, see :doc:`Logs </reference/api/logs>`.
 
-.. toctree::
-   :titlesonly:
+.. _auditing-custom-filter:
 
-   /tutorial/auditing-custom-filter
+Configure a Custom Auditing Filter
+----------------------------------
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. include:: /includes/serverless-preview-dont-use.rst
+
+|service| supports specifying a JSON-formatted audit filter
+for customizing :manual:`MongoDB Auditing </core/auditing>`. 
+
+Custom audit filters allow users to forgo the managed 
+{+atlas-ui+} :doc:`auditing filter builder </database-auditing>`
+in favor of hand-tailored granular control of event auditing.
+|service| only checks that the custom filter uses valid
+JSON syntax, and does not validate or test the filter's functionality.
+
+The audit filter document must resolve to a query that matches one or 
+more fields in the 
+:manual:`audit event message </reference/audit-message/#audit-message>`.
+The filter document can use combinations of 
+:manual:`query operators </reference/operator/query/>` and equality 
+conditions to match the desired audit messages.
+
+For a selection of example auditing filters, see 
+:ref:`auditing-filter-example`. For complete documentation on
+configuring MongoDB auditing filters, see 
+:manual:`Configure Audit Filter </tutorial/configure-audit-filters>`.
+
+.. important::
+
+   |service| uses a :ref:`rolling upgrade <high-availability>` strategy 
+   for enabling or updating audit configuration settings across all 
+   clusters in the |service| project. Rolling upgrades require at least 
+   one election per replica set. 
+
+   For instructions on testing application resilience to replica set
+   elections, see :doc:`/tutorial/test-failover`. For more information
+   on how |service| provides high availability, see
+   :ref:`Atlas High Availability <high-availability>`. 
+
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/custom-auditing-filter.rst
+
+Edit a Custom Auditing Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can edit your filter at any time:
+
+1. In the :guilabel:`Security` section of the left navigation, click
+   :guilabel:`Advanced`.
+
+#. Under :guilabel:`Database Auditing`:icon-fa5:`arrow-right`
+   :guilabel:`Configure Your Auditing Filter`, click
+   :guilabel:`Use Custom JSON Filter`. 
+
+#. Make the required changes. 
+
+#. Click :guilabel:`Save`.
+
+.. _auditing-filter-example:
+
+Example Auditing Filters
+------------------------
+
+Use the following example auditing filters for guidance in constructing
+your own filters.
+
+.. important::
+
+   These examples are not intended for use in
+   production environments, nor are they a replacement for familiarity
+   with the :manual:`MongoDB Auditing Documentation </core/auditing/>`.
+
+Audit all authentication events for known users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+ 
+   {
+     "atype": "authenticate"
+   }
+
+Audit all authentication events for known users and authentication failures for unknown users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+     "$or": [
+       {
+         "users": []
+       },
+       {
+         "atype": "authenticate"
+       } 
+     ]
+   }
+
+.. note::
+
+   The ``authenticate`` action is required to log authentication
+   failures from known and unknown users.
+
+Audit authentication events for the "myClusterAdministrator" user
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json        
+
+    {
+      "atype": "authenticate",
+      "param": {
+        "user": "myClusterAdministrator",
+        "db": "admin",
+        "mechanism": "SCRAM-SHA-1"
+      }
+    }
+
+Audit unauthorized attempts at executing the selected commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+   
+   {
+     "atype": "authCheck",
+     "param.command": {
+       "$in": [
+         "insert",
+         "update",
+         "delete"
+       ]
+     }
+   }

@@ -18,7 +18,7 @@
 
 .. note::
 
-   Data Explorer does not support building indexes with a rolling build
+   the {+atlas-ui+} does not support building indexes with a rolling build
    for ``M0`` {+free-clusters+} and ``M2/M5`` {+shared-clusters+}. You 
    can't build indexes with a rolling build for 
    {+serverless-instances+}.

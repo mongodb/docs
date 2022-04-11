@@ -17,7 +17,7 @@ Before starting the import process:
      representative client machine, if you don't already have it.
 
   #. Connect to your destination cluster using the connection string
-     from the |service| UI. For more information, see
+     from the {+atlas-ui+}. For more information, see
      :ref:`connect-mongo-shell`.
 
   Once you have verified your connectivity to your target cluster,

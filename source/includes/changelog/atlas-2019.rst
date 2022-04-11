@@ -147,7 +147,7 @@
   deployments.
 - Disables the ability to create new Personal |api| Keys. These keys
   are deprecated. Use
-  :doc:`Programmatic API Keys </tutorial/manage-programmatic-access>`
+  :ref:`Programmatic API Keys <about-project-api-keys>`
   to access the |mms| |api|.
 
 .. _atlas-v20190709:
@@ -191,8 +191,8 @@
 
 - Supports Encryption at Rest for snapshots.
 
-- Added :ref:`Aggregation Pipeline Builder <cloud-agg-pipeline>` to the
-  :doc:`Data Explorer </data-explorer>`.
+- Added :ref:`Aggregation Pipeline Builder <atlas-ui-agg-pipeline>` to the
+  :doc:`{+atlas-ui+} </atlas-ui>`.
 
 .. _atlas-v20190528:
 

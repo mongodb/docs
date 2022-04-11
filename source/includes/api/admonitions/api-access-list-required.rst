@@ -6,7 +6,7 @@
    2. Add the IP addresses or |cidr| blocks of your client applications
       to the access list using the
       :ref:`console <add-to-ip-access-list-ui>` or
-      :ref:`API <change-project-app-api-edit-access-list>`. If you host
+      :ref:`API <edit-project-api-key-access-list>`. If you host
       your application on |aws|, you can use an |aws| security group ID
       as well.
 

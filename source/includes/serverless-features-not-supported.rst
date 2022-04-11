@@ -167,7 +167,8 @@ limitations and considerations:
    * - Database Commands
      - Some database commands have limitations for {+serverless-instances+}. To
        learn more, see
-       :doc:`Unsupported Commands in Serverless Instances </reference/unsupported-commands-serverless>`.
+       :ref:`Unsupported Commands in Serverless Instances 
+       <atlas-serverless-command-limitations>`.
        
        You cannot create a capped collection or convert an existing
        collection to a capped collection.

@@ -62,8 +62,8 @@
      - Minimum number of chunks to create initially when sharding an 
        empty collection with a :manual:`hashed shard key 
        </core/hashed-sharding/#std-label-sharding-hashed>`. To learn 
-       more, see :doc:`Global Cluster Sharding Reference 
-       </global-cluster-sharding>`. This is only available for 
+       more, see :ref:`Global Cluster Sharding Reference 
+       <global-cluster-sharding>`. This is only available for 
        |service| clusters with MongoDB v4.4 and later.
 
    * - ``managedNamespaces[n].presplitHashedZones``

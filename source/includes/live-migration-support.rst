@@ -4,7 +4,7 @@ Migration Support
 If you have any questions regarding migration support beyond what is
 covered in this documentation, or if you encounter an error during
 migration, please :doc:`request support </support>` through the
-|service| UI.
+{+atlas-ui+}.
 
 To file a support ticket:
 

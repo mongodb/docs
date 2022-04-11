@@ -8,7 +8,7 @@
    file limit, contact MongoDB Support:
 
    1. Click :guilabel:`Support` in the left-hand navigation bar of the
-      |service| UI.
+      {+atlas-ui+}.
    2. Complete the requested fields to open a support ticket.
 
    :ref:`backup-cloud-provider` do not have a collection limit.

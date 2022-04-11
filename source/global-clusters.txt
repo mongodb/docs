@@ -1,59 +1,122 @@
 .. _global-clusters:
 
-===============
-Global Clusters
-===============
+======================
+Manage Global Clusters
+======================
 
 .. default-domain:: mongodb
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
 .. include:: /includes/serverless-preview-dont-use.rst
-
-|service| |global-write-clusters| use a highly curated implementation 
-of sharded cluster :manual:`zones </core/zone-sharding>` to support 
-location-aware read and write operations for globally distributed 
-application instances and clients. |global-write-clusters| support 
-deployment patterns such as:
-
-- Low-latency read and write operations for globally distributed
-  clients.
-
-- Uptime protection during partial or full regional outages.
-
-- Location-aware data storage in specific geographic regions.
-
-- Workload isolation based on cluster member types.
-
-For instructions on creating a Global Cluster, see
-:ref:`create-new-global-write-cluster`.
-
-You can enable |global-write| in |service| when deploying an ``M30`` or
-greater sharded cluster. For replica sets,
-:doc:`scale </scale-cluster>` the cluster to at least an ``M30``
-tier and enable |global-write|. All shard nodes deploy with the 
-selected cluster.
-
-.. important::
-
-   You cannot disable |global-write| for a cluster once it is deployed.
-
-Additional Global Cluster Reference
------------------------------------
 
 |service| |global-write-clusters| require that you define single or
 multi-region :guilabel:`Zones`, where each zone supports write and read
-operations from geographically local shards. You can also configure zones
-that support global low-latency secondary reads. To learn more, see
-:ref:`Global Writes Zones <global-writes-zones>`.
+operations from geographically local shards. You can also configure 
+zones that support global low-latency secondary reads. To learn more, 
+see :ref:`Global Writes Zones <global-writes-zones>`.
 
 |service| does not auto-configure or auto-shard collections. You can
-:ref:`shard global collections for global writes <de-shard-collection-for-global-writes>`.
-To use |global-write|, sharded collections must meet specific compatibility
-requirements. To learn more, see :ref:`Global Cluster Sharding Reference <global-writes-collections>`.
+:ref:`shard global collections for global writes
+<de-shard-collection-for-global-writes>`.
+To use |global-write|, sharded collections must meet specific 
+compatibility requirements. To learn more, see
+:ref:`Global Cluster Sharding Reference <global-writes-collections>`.
+
+.. _global-writes-zones:
+
+Global Write Zones and Zone Mapping
+-----------------------------------
+
+Each |service| global {+cluster+} supports up to nine distinct zones. 
+Each zone consists of one :guilabel:`Highest Priority` region
+and one or more :guilabel:`Electable`, :guilabel:`Read-only`, or
+:guilabel:`Analytics` regions. The available regions depend on
+the selected cloud service provider.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Region Type
+     - Description
+
+   * - :guilabel:`Highest Priority`
+     - Region where |service| deploys the :term:`primary` replica
+       set member for the shard or shards associated with that zone.
+       Clients can issue only write operations to the :term:`primary`.
+
+       |service| uses the geographic location of the 
+       :guilabel:`Highest Priority` regions to construct a map of
+       geographically-near countries and subdivisions. The 
+       |global-write| {+cluster+} uses this map for directing write
+       operations to the correct zone.
+
+       .. tip::
+
+          To facilitate low-latency local secondary reads of globally
+          distributed data, for each zone in the {+cluster+}, add a
+          :guilabel:`Read-only` node in the
+          :guilabel:`Highest Priority` region of every other {+cluster+}
+          zone.
+
+   * - :guilabel:`Electable` 
+     - Region where |service| deploys the electable :term:`secondary` 
+       replica set members for the shard or shards associated to that 
+       zone. :guilabel:`Electable` regions add additional fault 
+       tolerance in the event of a partial or total regional outage in 
+       the :guilabel:`Highest Priority` region.
+
+   * - :guilabel:`Read-only` 
+     - Region where |service| deploys the non-electable 
+       :term:`secondary` replica set members for supporting secondary 
+       read operations.
+
+   * - :guilabel:`Analytics` 
+     - Region where |service| deploys
+       :ref:`analytics nodes <analytics-nodes-overview>`. Analytics
+       nodes are read-only nodes configured with distinct
+       :ref:`replica set tags <replica-set-tags>`. You can use these
+       tags to direct queries to specific regions. As a result,
+       analytics nodes can help isolate reporting queries from your
+       normal operational workload as well as reduce latency for local
+       reads.
+
+Shard Distribution
+~~~~~~~~~~~~~~~~~~
+
+For each shard associated to a zone, |service| distributes the
+shard nodes across the configured regions. While |service| allows
+more than one shard per zone, users should instead consider 
+creating additional zones to address high user volume in a concentrated
+geographic area.
+
+.. note::
+   
+   |service| supports up to :ref:`50 shards per sharded cluster 
+   <can-i-deploy-more-than-50-shards>`
+   regardless of the number of zones. If you have requirements
+   for more shards in your |global-write-cluster|, click 
+   :guilabel:`Support` from the {+atlas-ui+} to contact support.
+
+The |service| {+cluster+} builder includes templates for automatically
+configuring |global-write| zones for the |global-write-cluster|. 
+Each template provides a visual description of the {+cluster+} zone
+configuration, including estimates of geographic latency and coverage.
+To learn more about creating a |global-write-cluster|,
+see :ref:`create-new-global-write-cluster`.
+
+Considerations
+~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-remove-global-zone.rst
 
 .. toctree::
    :titlesonly:
-
-   /tutorial/create-global-cluster
-   /global-write-zones
-   /data-explorer/global-writes
-   /global-cluster-sharding
+      
+   /shard-global-collection
+   /tutorial/move-cluster

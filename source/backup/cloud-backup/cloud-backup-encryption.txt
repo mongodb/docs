@@ -1,0 +1,93 @@
+.. _encrypted-cloud-provider-snapshot:
+
+==============================================
+Storage Engine and {+Cloud-Backup+} Encryption
+==============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|service| encrypts the storage engine of all snapshot volumes, ensuring
+the security of cluster data at rest. For projects and clusters using
+:ref:`security-kms-encryption`, |service| applies an additional layer
+of encryption to your snapshot storage volumes using the Key Management
+Service (KMS) provider configured for the cluster.
+
+.. tabs::
+
+   .. tab:: AWS Identity and Access Management (IAM)
+      :tabid: aws-kms
+
+      For clusters using :doc:`AWS IAM </security-aws-kms>` as their
+      Key Management Service, |service| uses the project's customer
+      master key (CMK) and AWS |iam| user or role credentials at the time
+      of the snapshot to automatically encrypt the snapshot data files.
+      This is an additional layer of encryption on the existing
+      encryption applied to all |service| storage and snapshot
+      volumes. :term:`Oplog <oplog>` data collected for |pit| restores
+      is also encrypted with the customer's |cmk|.
+
+      |service| stores the unique ID of the |cmk| and the |aws| |iam|
+      user credentials or :ref:`roles <set-up-unified-aws-access>` used
+      to access the |cmk|. |service| uses this information when restoring
+      the snapshot. For complete documentation on restoring an encrypted
+      snapshot, see :ref:`restore-encrypted-snapshot`.
+
+   .. tab:: Azure Key Vault
+      :tabid: azure-kms
+
+      For clusters using :doc:`Azure Key Vault </security-azure-kms>`
+      as their Key Management Service, |service| uses the project's
+      Key Identifier, Key Vault Credentials, and Active Directory
+      application account credentials at the time of the snapshot to
+      automatically encrypt the snapshot data files. This is an
+      additional layer of encryption on the existing encryption
+      applied to all |service| storage and snapshot volumes.
+
+      |service| stores the unique ID of the Azure Key Identifier used
+      the encrypt the snapshot. |service| also stores the Azure Key
+      Vault credentials and the Active Domain application account
+      credentials used to access the Key Identifier. |service| uses
+      this information when restoring the snapshot. For complete
+      documentation on restoring an encrypted snapshot, see
+      :ref:`restore-encrypted-snapshot`.
+
+   .. tab:: Google Cloud KMS
+      :tabid: gcp-kms
+
+      |service| uses your |gcp| Service Account Key to encrypt and
+      decrypt your MongoDB master keys. These MongoDB master keys are
+      used to encrypt cluster database files and :ref:`cloud providers
+      snapshots <backup-cloud-provider>`. For complete documentation
+      on restoring an encrypted snapshot, see
+      :ref:`restore-encrypted-snapshot`.
+
+To view the key used to encrypt a snapshot:
+
+1. Click :guilabel:`Databases` in the top-left corner of the 
+   {atlas-ui+}.
+   
+#. From the :guilabel:`{+Database-Deployments+}` view of the 
+   {+atlas-ui+}, click the cluster name.
+
+#. Click the :guilabel:`Backup` tab, then click
+   :guilabel:`Snapshots`.
+
+#. Note the :guilabel:`Encryption Key ID` for each snapshot in
+   the cluster. |service| lists the Key Identifier
+   used to encrypt the snapshot. Unencrypted snapshots display
+   :guilabel:`Not enabled`.
+
+.. include:: /includes/fact-encrypted-backups-master-key-requirements.rst
+
+For complete documentation on configuring Encryption at Rest using
+your Key Management for an |service| project,
+see :doc:`/security-kms-encryption`. You can then either
+:ref:`deploy <create-cluster-enable-encryption>` a new cluster or
+:ref:`enable <scale-cluster-enable-encryption>` an existing cluster
+with Encryption at Rest using your Key Management.

@@ -1,8 +1,8 @@
 .. _security-aws-kms:
 
-====================================
-Customer Key Management with AWS KMS
-====================================
+=================================
+Manage Customer Keys with AWS KMS
+=================================
 
 .. default-domain:: mongodb
 
@@ -43,11 +43,14 @@ before enabling it on clusters in that project.
 
    - :ref:`set-up-unified-aws-access`
 
+Enable Customer-Managed Keys with AWS KMS
+-----------------------------------------
+
 .. _aws-ksm-prereqs:
 .. _security-aws-kms-restrictions:
 
 Prerequisites
--------------
+~~~~~~~~~~~~~
 
 To enable customer-managed keys with |aws| |kms| for a MongoDB
 project, you must:
@@ -57,7 +60,7 @@ project, you must:
 .. _aws-kms-enable-project:
 
 Enable Role-Based Access to Your Encryption Key for a Project
--------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. tabs::
 
@@ -74,7 +77,7 @@ Enable Role-Based Access to Your Encryption Key for a Project
 .. _aws-kms-switch-project:
 
 Switch to Role-Based Access to Your Encryption Key for a Project
-----------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. important:: 
 
@@ -100,7 +103,7 @@ Switch to Role-Based Access to Your Encryption Key for a Project
 .. _aws-enable-cluster-encryption-at-rest:
 
 Enable Customer Key Management for an |service| Cluster
--------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 After you :ref:`aws-kms-enable-project`, you must enable customer key
 management for each |service| cluster that contains data that you want
@@ -112,14 +115,75 @@ to encrypt.
    enable customer key management for clusters in that project.
 
 For new clusters, toggle the
-:doc:`Manage your own encryption keys </cluster-config/encryption/>`
+:ref:`Manage your own encryption keys 
+<create-cluster-enable-encryption>`
 setting to :guilabel:`Yes` when you create the cluster. 
 
 For existing clusters:
 
 .. include:: /includes/steps/cluster-customer-key-management.rst
 
-.. toctree::
-   :titlesonly:
+.. _security-aws-kms-rotate-key:
 
-   /tutorial/security-aws-kms-rotate-key
+Rotate your AWS Customer Master Key
+-----------------------------------
+
+.. meta::
+   :keywords: encryption
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. include:: /includes/serverless-preview-dont-use.rst
+
+.. include:: /includes/fact-atlas-key-rotation.rst
+
+|service| does *not* automatically rotate the |aws| customer master key
+(CMK) used for |aws|\-provided Encryption at Rest.
+
+|service| automatically creates an
+:alert:`alert <AWS encryption key elapsed time since last rotation is above (n) days>`
+to remind you to rotate your |cmk| every 90 days by default when you
+:ref:`enable Encryption at Rest <security-aws-kms>` for |a-service|
+project.
+
+|aws| |kms| supports
+:aws:`automatic CMK rotation </kms/latest/developerguide/rotate-keys.html>`.
+|aws| automatic |cmk| rotation does not require you to update the
+|service| Encryption at Rest project settings, including the |cmk| ID.
+
+This page explains how to create a new key and update the |cmk| ID in
+|service| to rotate your |service| project |cmk|. This method of key
+rotation supports more granular control of the rotation period compared
+to |aws| |kms| automatic |cmk| rotation.
+
+.. important:: {+Cloud-Backup+}s with Encryption at Rest
+
+   For clusters using :doc:`Encryption at Rest </security-aws-kms>` and
+   :ref:`backup-cloud-provider`, |service| uses the project's |cmk| and
+   |aws| |iam| user credentials at the time of the snapshot to
+   automatically encrypt the snapshot data files. This is an additional
+   layer of encryption on the existing encryption applied to all
+   |service| storage and snapshot volumes.
+
+   |service| does *not* re-encrypt snapshots with the new |cmk| after
+   rotation. Do *not* delete the old |cmk| until you check *every*
+   backup-enabled cluster in the project for any snapshots still using
+   that |cmk|. |service| deletes backups in accordance to the
+   :ref:`cloud-provider-retention-policy`. After |service| deletes all
+   snapshots depending on a given |cmk|, you can delete that |cmk|
+   safely.
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/rotate-aws-kms-cmk.rst
+
+Related Topics
+--------------
+
+- To learn more about MongoDB Encryption at Rest, see
+  :manual:`Encryption at Rest </core/security-encryption-at-rest/>` in
+  the MongoDB server documentation.
+
+- To learn more about Encryption at Rest with {+Cloud-Backup+}s, see 
+  :ref:`encrypted-cloud-provider-snapshot`.

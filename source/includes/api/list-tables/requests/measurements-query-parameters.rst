@@ -30,7 +30,7 @@
        |service| retrieves database metrics every 20 minutes by
        default. Results include data points with 20 minute intervals.
 
-       To learn more, see :ref:`view-mongodb-process-metrics`.
+       To learn more, see :ref:`review-mongodb-process-metrics`.
      -
 
    * - period

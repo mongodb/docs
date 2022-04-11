@@ -47,7 +47,7 @@ The following table shows the modes of access each role supports.
 
    * - :authrole:`Project Search Index Editor` 
      - To create, view, edit, and delete |fts| indexes using the 
-       |service| UI or API.
+       {+atlas-ui+} or API.
      - ✓
      - ✓
      - ✓

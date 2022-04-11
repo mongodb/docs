@@ -45,7 +45,7 @@
      - object array
      - Line items in the invoice. This information is also found in the
        :guilabel:`Usage Details` section of the Invoice page in the
-       |service| UI.
+       {+atlas-ui+}.
 
        Each object in the array includes the following fields:
 

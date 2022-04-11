@@ -55,7 +55,7 @@
 
          1. Use the Homebrew command provided.
 
-         #. Copy the Homebrew command from the |service| UI
+         #. Copy the Homebrew command from the {+atlas-ui+}
             window and run it in a terminal.
 
      - id: linux

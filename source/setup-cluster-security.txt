@@ -1,6 +1,6 @@
-===========================
-Security Features and Setup
-===========================
+========================================================
+Configure Security Features for {+Database-Deployments+}
+========================================================
 
 .. default-domain:: mongodb
 
@@ -10,10 +10,11 @@ Security Features and Setup
    :depth: 2
    :class: singlecol
 
-Network and Firewall Requirements
----------------------------------
-
-.. include:: /includes/fact-open-network-ports.rst 
+You can use |service| securely out of the box. |service| comes 
+preconfigured with secure default settings. You can fine-tune 
+the security features for your {+database-deployments+} to meet your 
+unique security needs and preferences. Review the following security 
+features and considerations for {+database-deployments+}. 
 
 Preconfigured Security Features
 -------------------------------
@@ -22,10 +23,11 @@ The following security features are part of the |service| product:
 
 .. _security-tls:
 
-|tls-ssl|
-~~~~~~~~~
+Encryption in Transit
+~~~~~~~~~~~~~~~~~~~~~
 
-|service| uses |tls-ssl| to encrypt the connections to your databases.
+|service| requires |tls-ssl| to encrypt the connections to your 
+databases.
 
 To configure SSL or TLS OCSP certificate revocation checking, see 
 :ref:`oscp-cert-check`.
@@ -35,22 +37,29 @@ To configure SSL or TLS OCSP certificate revocation checking, see
 Virtual Private Cloud
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/fact-vpc-per-project-no-link.rst
+All |service| projects with one or more M10+ {+dedicated-clusters+}
+receive their own dedicated |vpc| (or VNet if you use |azure|). 
+|service| deploys all {+dedicated-clusters+} inside this |vpc| or VNet.
 
-Encrypted Storage 
-~~~~~~~~~~~~~~~~~
+Encryption at Rest 
+~~~~~~~~~~~~~~~~~~
 
-By default, |service| encrypts all data stored on M10 or higher 
-|service| clusters. If your existing cluster doesn't have encryption 
-enabled, you can enable encryption by :ref:`editing 
-<scale-cluster-instance>` your :guilabel:`Cluster Tier`. |service| also 
-supports :ref:`Encryption at Rest using your Key Management 
+By default, |service| encrypts all data stored on M10+ |service| 
+clusters. If your existing cluster doesn't have encryption enabled, you 
+can enable encryption by :ref:`editing <scale-cluster-instance>` your 
+:guilabel:`Cluster Tier`. |service| also supports 
+:ref:`Encryption at Rest using your Key Management 
 <security-kms-encryption>`. 
 
 Required Security Features
 --------------------------
 
 You *must* configure the following security features:
+
+Network and Firewall Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-open-network-ports.rst
 
 .. _security-ip-access-list:
 
@@ -67,16 +76,17 @@ For |service| {+clusters+} deployed on :ref:`google-gcp` or
 |azure| services to |service| project |ipaddr| access list to grant
 those services access to the {+cluster+}.
 
-User Authentication/Authorization
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+User Authentication or Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| requires clients to authenticate to access the
-{+database-deployments+}. You must create database users to access the
-database. To set up database users to your {+database-deployments+}, see
-:doc:`security-add-mongodb-users`.
+|service| requires clients to authenticate to connect to the database. 
+You must create database users to access the database. To set up 
+database users to your {+database-deployments+}, see
+:doc:`security-add-mongodb-users`. |service| offers many 
+security features for :ref:`{+database-deployment+} authentication and authorization <db-deployment-auth>`.
 
-To access {+database-deployments+} in a project, users must belong to that project.
-Users can belong to multiple projects.
+To access {+database-deployments+} in a project, users must belong to 
+that project. Users can belong to multiple projects.
 
 .. seealso::
 
@@ -87,19 +97,14 @@ Optional Security Features
 
 You *may* configure the following security features:
 
-Custom Roles
-~~~~~~~~~~~~
+Network Peering Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| supports creating :ref:`custom roles <mongodb-roles>`
-in cases where the built-in |service|
-:ref:`database user privileges <atlas-user-privileges>` cannot
-describe your desired set of privileges.
+|service| supports peering connections with other |aws|, |azure|, or 
+|gcp| network peering connections. To learn more, see 
+:doc:`security-vpc-peering`.
 
-|vpc| Peering
-~~~~~~~~~~~~~
-
-|service| supports |vpc| peering with other |aws|, |azure|, or |gcp|
-|vpc|\s. To use |vpc| Peering, see :doc:`security-vpc-peering`.
+.. include:: /includes/extracts/fact-vpc-per-project-no-link.rst
 
 Private Endpoints
 ~~~~~~~~~~~~~~~~~
@@ -117,21 +122,6 @@ Private Endpoints
 
 To use private endpoints, see :doc:`security-private-endpoint`.
 
-Two Factor Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|service| supports Two Factor Authentication (2FA) to help users 
-control access to their |service| accounts. To use
-:abbr:`2FA (Two Factor Authentication)`, see
-:doc:`security-two-factor-authentication`.
-
-User Authentication/Authorization with |ldap|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-|service| supports performing user authentication and authorization
-with |ldap|. To use |ldap|, see
-:doc:`Set up User Authentication and Authorization with LDAP </security-ldaps>`.
-
 Unified AWS Access
 ~~~~~~~~~~~~~~~~~~
 
@@ -142,6 +132,73 @@ for authentication.
 
 To set up an |aws| IAM role for |service| to use, see
 :ref:`set-up-unified-aws-access`.
+
+.. _db-deployment-auth:
+
+{+Database-Deployment+} Authentication and Authorization
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| offers the following security features for 
+{+database-deployment+} authentication and authorization.
+
+Database User Authentication or Authorization
+`````````````````````````````````````````````
+
+|service| requires clients to authenticate to access
+{+database-deployments+}. You must create database users to access the
+database. To set up database users for your {+database-deployments+}, 
+see :ref:`mongodb-users`.
+
+Custom Roles for Database Authorization
+```````````````````````````````````````
+
+|service| supports creating :ref:`custom roles <mongodb-roles>`
+for database authrozaition in cases where the built-in |service|
+:ref:`roles <atlas-user-privileges>` don't grant your desired set of 
+privileges.
+
+Passwordless Authentication with AWS IAM
+````````````````````````````````````````
+
+You can set up passwordless authentication for your |aws| |iam| users
+in the following ways:
+
+- Configure |aws| |iam| roles to make username or password fields
+  optional. To learn more, see :ref:`passwordless-auth-aws-no-saml`.
+- Use temporary credentials obtained with the
+  `AssumeRoleWithSAML API operation
+  <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithSAML.html>`__. To learn more, see 
+  :ref:`passwordless-auth-aws-saml`.
+
+User Authentication or Authorization with |ldap|
+````````````````````````````````````````````````
+
+|service| supports performing user authentication and authorization
+with |ldap|. To use |ldap|, see
+:doc:`Set Up User Authentication and Authorization with LDAP
+</security-ldaps>`.
+
+User Authentication with X.509
+``````````````````````````````
+
+X.509 client certificates provide database users access to the 
+{+database-deployments+} in your project. Options for X.509 
+authentication include |service|-managed X.509 authentication and 
+self-managed X.509 authentication. To learn more 
+about self-managed X.509 authentication, see :ref:`self-managed-x509`.
+
+Restrict MongoDB Support Access to |service| Backend Infrastructure
+```````````````````````````````````````````````````````````````````
+
+Organization owners can restrict MongoDB Production Support Employees
+from accessing |service| backend infrastructure for any |service|
+{+database-deployment+} in their organization. Organization owners may 
+grant a 24 hour bypass to the access restriction at the |service| 
+{+database-deployment+} level.
+
+.. include:: /includes/fact-restrict-support-access.rst
+
+To enable this option, see :doc:`security-restrict-support-access`.
 
 Encryption at Rest using your Key Management
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -156,35 +213,17 @@ Client-Side Field Level Encryption
 |service| supports :manual:`client-side field level encryption
 </core/security-client-side-encryption>`, including
 :manual:`automatic </core/security-automatic-client-side-encryption>`
-encryption of fields. 
+encryption of fields. All |service| users are entitled to use MongoDB's 
+automatic client-side field level encryption features.
+
+To learn more, see
+:driver:`Client-Side Field Level Encryption Requirements
+</security/client-side-field-level-encryption-guide#requirements>`.
 
 .. note::
 
-   All |service| users are entitled to use MongoDB's automatic client-side
-   field level encryption features.
-
-Prerequisites
-`````````````
-
-Minimum Driver and {+mongosh+} Version
-  The following support client-side field level encryption:
-
-  - Official MongoDB drivers compatible with MongoDB Server 4.2 and
-    later, or
-  - {+mongosh+} v0.8.0 and later.
-
-  For more information on official MongoDB drivers, see :driver:`MongoDB
-  Drivers </>`.
-
-Minimum Server Version
-  Drivers and {+mongosh+} can only use client-side
-  field level encryption if connected to a |service| 
-  {+database-deployment+} running MongoDB 4.2 or later.
-
-.. note::
-
-   :compass:`MongoDB Compass </>`, the :ref:`Data Explorer
-   <data-explorer>`, and the :mdb-shell:`MongoDB Shell </>`
+   :compass:`MongoDB Compass </>`, the :ref:`{+atlas-ui+}
+   <atlas-ui>`, and the :mdb-shell:`MongoDB Shell </>`
    (``mongosh``) do not support decrypting client-side field
    level-encrypted fields.
 
@@ -193,7 +232,7 @@ Minimum Server Version
    - :manual:`Client-Side Field Level Encryption
      </core/security-client-side-encryption/>`
    - :driver:`Use-Case Guide for Client-Side Field Level Encryption
-     <use-cases/client-side-field-level-encryption-guide>`
+     </security/client-side-field-level-encryption-guide/>`
 
 Database Auditing
 ~~~~~~~~~~~~~~~~~
@@ -201,25 +240,19 @@ Database Auditing
 |service| supports auditing all system event actions. To use database
 auditing, see :doc:`Set up Database Auditing </database-auditing>`.
 
-Restrict MongoDB Support Access to |service| Backend Infrastructure
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Organization owners can restrict MongoDB Production Support Employees
-from accessing |service| backend infrastructure for any |service|
-{+database-deployment+} in their organization. Organization owners may grant a 24 hour
-bypass to the access restriction at the |service| {+database-deployment+} level.
-
-.. include:: /includes/fact-restrict-support-access.rst
-
-To enable this option, see :doc:`security-restrict-support-access`.
-
 Access Tracking
 ~~~~~~~~~~~~~~~
 
-|service| surfaces authentication logs directly in the UI so that you 
-can easily review successful and unsuccesful authentication attempts 
-made against your {+database-deployment+}s. To view your database access history, see 
-:doc:`access-tracking`.
+|service| surfaces authentication logs directly in the {+atlas-ui+} so 
+that you can easily review successful and unsuccesful authentication 
+attempts made against your {+database-deployment+}s. To view your 
+database access history, see :doc:`access-tracking`.
+
+Multi-Factor Authentication for {+atlas-ui+} Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| supports |mfa| to help you control access to your 
+|service| accounts. To set up |mfa|, see :ref:`atlas-enable-mfa`.
 
 .. _atlas-add-inbound-ips:
 
@@ -278,17 +311,13 @@ for the :driver:`MongoDB driver </>` version that your application uses.
    :titlesonly:
 
    /security/quick-start
-   /security-add-mongodb-roles
-   Multi-Factor Authentication </security-multi-factor-authentication>
-   /security-two-factor-authentication
+   /security/ip-access-list
+   /security-vpc-peering
+   /security-private-endpoint
    /security/set-up-unified-aws-access
-   /security-ldaps
-   /security/federated-authentication
+   /security/config-db-auth
    /security-kms-encryption
    /database-auditing
    /access-tracking
-   /security-self-managed-x509
-   /security-restrict-support-access
-   /security/manage-your-mongodb-atlas-account
 
 .. |arrow| unicode:: U+27A4

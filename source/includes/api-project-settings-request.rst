@@ -48,4 +48,4 @@
        optimize your data model and enhance performance. Disable this 
        setting to disable schema suggestions in the :ref:`Performance 
        Advisor <performance-advisor>` and the :ref:`Data Explorer 
-       <data-explorer-db-colls>`.
+       <atlas-ui>`.

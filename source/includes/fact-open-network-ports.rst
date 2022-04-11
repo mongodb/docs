@@ -4,6 +4,7 @@ environment. To add the inbound network access from your application environment
 1. Add the public IP addresses to your IP access list
 2. Use :ref:`VPC / VNet peering <vpc-peering>` to add private IP
    addresses.
+3. Add :ref:`private endpoints <private-endpoint>`.
 
 .. seealso::
 

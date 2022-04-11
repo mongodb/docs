@@ -25,7 +25,7 @@
        are:
 
        - ``NONE`` - auditing not configured for the project.
-       - ``FILTER_BUILDER`` - auditing configured via |service| UI filter builder
+       - ``FILTER_BUILDER`` - auditing configured via {+atlas-ui+} filter builder
        - ``FILTER_JSON`` - auditing configured via |service| custom filter or API
 
    * - ``enabled``
