@@ -44,7 +44,7 @@
          The following is an outline with the minimum code necessary to connect to MongoDB using the Node.js driver.
          You'll make additions over the next few steps to read data.
 
-        .. literalinclude:: /includes/code/node/crud-delete-connect.js
+         .. literalinclude:: /includes/code/node/crud-delete-connect.js
             :caption: crud-delete.js
             :language: javascript
             :linenos:
@@ -67,5 +67,5 @@
             Make sure you've installed PyMongo with the ``srv`` option.
 
             .. code-block:: sh
-               
+
                python3 -m pip install "pymongo[srv]"

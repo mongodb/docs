@@ -4,6 +4,7 @@
 
      - id: csharp
        content: |
+       
          .. literalinclude:: /includes/code/dotnet/CrudDeleteDisplay.cs
             :caption: CrudDelete.cs
             :language: csharp
