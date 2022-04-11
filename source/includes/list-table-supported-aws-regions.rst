@@ -26,8 +26,5 @@
    * - Mumbai, India
      - ap-south-1
 
-   * - Singapore
-     - ap-southeast-1
-
    * - Sydney, Australia
      - ap-southeast-2
