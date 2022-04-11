@@ -25,8 +25,8 @@
          The MongoDB Java Driver includes
          `Builders <https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/builders/>`__
          that simplify the process of creating queries (and other operations).
-         Here, you use the ``Filters.empty`` builder to construct the query
-         document.
+         Here, you use the ``Filters.empty`` and ``Updates.mul``
+         builders to construct the query document.
          
          .. literalinclude:: /includes/code/java/CrudUpdateDocuments.java
             :caption: CrudUpdate.java
