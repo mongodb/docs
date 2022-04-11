@@ -1,0 +1,70 @@
+.. tabs-drivers::
+
+   tabs:
+
+     - id: csharp
+       content: |
+
+         The following is an outline with the minimum code necessary to connect to MongoDB using the C#/.NET driver.
+         You'll make additions over the next few steps to update data.
+
+         .. literalinclude:: /includes/code/dotnet/CrudUpdateConnect.cs
+            :caption: CrudUpdate.cs
+            :language: csharp
+            :linenos:
+            :dedent: 0
+
+     - id: go
+       content: |
+
+         The following is an outline with the minimum code necessary to connect to MongoDB using the Go driver.
+         You'll make additions over the next few steps to update data.
+
+         .. literalinclude:: /includes/code/go/crud-update-connect.go
+            :caption: crud-update.go
+            :language: go
+            :linenos:
+            :dedent: 0
+
+     - id: java-sync
+       content: |
+
+         The following is an outline with the minimum code necessary to connect to MongoDB using the Java driver.
+         You'll make additions over the next few steps to update data.
+
+         .. literalinclude:: /includes/code/java/CrudUpdateConnect.java
+            :caption: CrudUpdate.java
+            :language: java
+            :linenos:
+            :dedent: 0
+
+     - id: nodejs
+       content: |
+
+         The following is an outline with the minimum code necessary to connect to MongoDB using the Node.js driver.
+         You'll make additions over the next few steps to update data.
+
+         .. literalinclude:: /includes/code/node/crud-update-connect.js
+            :caption: crud-update.js
+            :language: javascript
+            :linenos:
+            :dedent: 0
+
+     - id: python
+       content: |
+
+         The following is an outline with the minimum code necessary to connect to MongoDB using PyMongo.
+         You'll make additions over the next few steps to update data.
+
+         .. literalinclude:: /includes/code/python/crud_update_connect.py
+            :caption: crud_update.py
+            :language: python
+            :linenos:
+            :dedent: 0
+
+         .. tip:: ``mongodb+srv``
+
+            Make sure you've installed PyMongo with the ``srv`` option.
+
+            .. code-block:: sh
+               python3 -m pip install "pymongo[srv]"
