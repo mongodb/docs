@@ -13,10 +13,10 @@
                :language: csharp
                :linenos:
 
-            .. output:: 
+            .. output::
                :language: json
 
-               3
+               2
 
      - id: go
        content: |

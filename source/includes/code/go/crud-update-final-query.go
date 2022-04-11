@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
-	"os"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,7 +22,7 @@ func main() {
 			panic(err)
 		}
 	}()
-	
+
 	// database and colletion code goes here
 	db := client.Database("sample_guides")
 	coll := db.Collection("comets")
@@ -38,6 +36,6 @@ func main() {
 		panic(err)
 	}
 
-	// display the results of your operation
+	// amount update code goes here
 	fmt.Println(result.ModifiedCount)
 }

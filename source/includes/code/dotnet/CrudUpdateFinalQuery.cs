@@ -1,13 +1,9 @@
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
 // Replace the uri string with your MongoDB deployment's connection string.
-var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
-
-// instruct the driver to read the fields in camelCase
-var pack = new ConventionPack { new CamelCaseElementNameConvention() };
-ConventionRegistry.Register("elementNameConvention", pack, x => true);
+// var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
+var uri = "mongodb+srv://m220student:m220student@cluster0.jojrz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 
 var client = new MongoClient(uri);
 
@@ -17,14 +13,16 @@ var coll = db.GetCollection<BsonDocument>("comets");
 
 // update code goes here
 var filter = Builders<Comet>.Filter.Empty;
-var update = Builders<Comet>.Update.Mul(x => x.Radius, 1.60934);
+var update = Builders<Comet>.Update.Mul("Radius", 1.60934);
 var result = coll.UpdateMany(filter, update);
 
-// display the results of your operation
+// amount updated code goes here
 Console.WriteLine(result.ModifiedCount);
 
-class Comet {
-    public ObjectId Id { get; set;  }
+class Comet
+{
+    [BsonId]
+    public ObjectId Id { get; set; }
     public string Name { get; set; }
     public string OfficialName { get; set; }
     public double OrbitalPeriod { get; set; }

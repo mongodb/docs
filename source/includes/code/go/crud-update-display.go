@@ -1,2 +1,2 @@
-// display the results of your operation
+// amount update code goes here
 fmt.Println(result.ModifiedCount)

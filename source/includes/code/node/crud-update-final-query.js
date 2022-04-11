@@ -14,18 +14,17 @@ async function run() {
     const coll = db.collection("comets");
 
     // update code goes here
-    const filter = { };
+    const filter = {};
     const updateDoc = {
       $mul: {
-          Radius: 1.60934
-      }
+        Radius: 1.60934,
+      },
     };
 
     const result = await coll.updateMany(filter, updateDoc);
 
-    // display the results of your operation
+    // amount deleted code goes here
     console.log(result.modifiedCount);
-
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();

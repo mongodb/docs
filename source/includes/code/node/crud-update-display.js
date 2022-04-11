@@ -1,2 +1,2 @@
-// display the results of your operation
+// amount deleted code goes here
 console.log(result.modifiedCount);
