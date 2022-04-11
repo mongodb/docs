@@ -31,4 +31,3 @@ class Comet {
     public double Radius { get; set; }
     public double Mass { get; set; }
 }
-
