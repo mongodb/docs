@@ -70,7 +70,7 @@
        content: |
 
          .. io-code-block::
-            :caption: crud_insert.py
+            :caption: crud_delete.py
             :copyable: true
 
             .. input:: /includes/code/python/crud_delete_final_query.py
