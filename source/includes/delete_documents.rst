@@ -2,6 +2,14 @@
 
    tabs:
 
+     - id: csharp
+       content: |
+
+         .. literalinclude:: /includes/code/dotnet/CrudDeleteDocuments.cs
+            :caption: CrudDelete.cs
+            :language: csharp
+            :dedent: 0
+
      - id: go
        content: |
 
@@ -9,14 +17,6 @@
             :caption: crud-delete.go
             :language: go
             :linenos:
-            :dedent: 0
-
-     - id: python
-       content: |
-
-         .. literalinclude:: /includes/code/python/crud_delete_documents.py
-            :caption: crud_delete.py
-            :language: python
             :dedent: 0
 
      - id: java-sync
@@ -36,10 +36,10 @@
             :language: javascript
             :dedent: 0
 
-     - id: csharp
+     - id: python
        content: |
 
-         .. literalinclude:: /includes/code/dotnet/CrudDeleteDocuments.cs
-            :caption: CrudDelete.cs
-            :language: csharp
+         .. literalinclude:: /includes/code/python/crud_delete_documents.py
+            :caption: crud_delete.py
+            :language: python
             :dedent: 0

@@ -2,18 +2,18 @@
 
    tabs:
 
-     - id: python
+     - id: csharp
        content: |
 
          .. io-code-block::
-            :caption: crud_insert.py
+            :caption: CrudDelete.cs
             :copyable: true
 
-            .. input:: /includes/code/python/crud_delete_final_query.py
-               :language: python
+            .. input:: /includes/code/dotnet/CrudDeleteFinalQuery.cs
+               :language: csharp
                :linenos:
 
-            .. output::
+            .. output:: 
                :language: json
 
                2
@@ -66,18 +66,18 @@
 
                2
 
-     - id: csharp
+     - id: python
        content: |
 
          .. io-code-block::
-            :caption: CrudDelete.cs
+            :caption: crud_insert.py
             :copyable: true
 
-            .. input:: /includes/code/dotnet/CrudDeleteFinalQuery.cs
-               :language: csharp
+            .. input:: /includes/code/python/crud_delete_final_query.py
+               :language: python
                :linenos:
 
-            .. output:: 
+            .. output::
                :language: json
 
                2

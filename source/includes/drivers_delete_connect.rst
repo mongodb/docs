@@ -64,7 +64,8 @@
 
          .. tip:: ``mongodb+srv``
 
-           Make sure you've installed PyMongo with the ``srv`` option.
+            Make sure you've installed PyMongo with the ``srv`` option.
 
-           .. code-block:: sh
-              python3 -m pip install "pymongo[srv]"
+            .. code-block:: sh
+               
+               python3 -m pip install "pymongo[srv]"
