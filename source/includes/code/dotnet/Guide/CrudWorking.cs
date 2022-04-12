@@ -1,25 +1,29 @@
 ﻿/**
  * This is a working file, do not include this file in any code visible to the user.
 */
-
-using System.Security.Cryptography;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
 // Replace the uri string with your MongoDB deployment's connection string.
 // var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
+// var uri = "mongodb+srv://foo:bar@cluster0.7stmv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 var uri = "mongodb+srv://m220student:m220student@cluster0.jojrz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+
+// instuct the driver to camelCase the fields in MongoDB
+var pack = new ConventionPack { new CamelCaseElementNameConvention() };
+ConventionRegistry.Register("elementNameConvention", pack, x => true);
 
 var client = new MongoClient(uri);
 
-var coll = client.GetDatabase("sample_guides").GetCollection<Comet>("comets");
+client.GetDatabase("sample_guides").DropCollection("comets");
 
-var filter = Builders<Comet>.Filter.Empty;
-var update = Builders<Comet>.Update.Mul("Radius", 1.60934);
-var result = coll.UpdateMany(filter, update);
+// database and colletion code goes here
+var db = client.GetDatabase("sample_guides");
+var coll = db.GetCollection<Comet>("comets");
 
-foreach (var document in cursor)
+// insert code goes here
+var comets = new[]
 {
     new Comet
     {
@@ -46,11 +50,19 @@ foreach (var document in cursor)
         Mass = 8.8e12
     }
 };
-coll.InsertMany(documents);
 
+coll.InsertMany(comets);
+
+// display insert ids code goes here
+foreach (var comet in comets)
+{
+    Console.WriteLine(comet.Id);
+}
+
+// class that represents the fields of a document in the
+// sample_guides.comets collection
 class Comet
 {
-    [BsonId]
     public ObjectId Id { get; set; }
     public string Name { get; set; }
     public string OfficialName { get; set; }
