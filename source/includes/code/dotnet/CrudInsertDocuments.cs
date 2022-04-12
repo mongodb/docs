@@ -1,5 +1,5 @@
 ﻿// insert code goes here
-var documents = new Comet[]
+var comets = new []
 {
     new Comet
     {
@@ -27,16 +27,4 @@ var documents = new Comet[]
     }
 };
 
-coll.InsertMany(documents);
-
-// class that contains variables to represent each field in the document
-class Comet
-{
-    [BsonId]
-    public ObjectId Id { get; set;  }
-    public string Name { get; set; }
-    public string OfficialName { get; set; }
-    public double OrbitalPeriod { get; set; }
-    public double Radius { get; set; }
-    public double Mass { get; set; }
-}
+coll.InsertMany(comets);

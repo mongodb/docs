@@ -1,19 +1,22 @@
-﻿using System.Security.Cryptography;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
 // Replace the uri string with your MongoDB deployment's connection string.
 var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
 
+// instuct the driver to camelCase the fields in MongoDB
+var pack = new ConventionPack { new CamelCaseElementNameConvention() };
+ConventionRegistry.Register("elementNameConvention", pack, x => true);
+
 var client = new MongoClient(uri);
 
-// database and collection code goes here
+// database and colletion code goes here
 var db = client.GetDatabase("sample_guides");
 var coll = db.GetCollection<Comet>("comets");
 
 // insert code goes here
-var documents = new Comet[]
+var comets = new []
 {
     new Comet
     {
@@ -41,14 +44,18 @@ var documents = new Comet[]
     }
 };
 
-coll.InsertMany(documents);
+coll.InsertMany(comets);
 
 // display insert ids code goes here
+foreach (var comet in comets)
+{
+    Console.WriteLine(comet.Id);
+}
 
-// class that contains variables to represent each field in the document
+// class that represents the fields of a document in the
+// sample_guides.comets collection
 class Comet
 {
-    [BsonId]
     public ObjectId Id { get; set;  }
     public string Name { get; set; }
     public string OfficialName { get; set; }
