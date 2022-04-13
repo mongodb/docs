@@ -14,7 +14,7 @@
      - id: python
        content: |
 
-         .. literalinclude:: /includes/code/python/display.py
+         .. literalinclude:: /includes/code/python/crud_insert_display.py
             :caption: crud_insert.py
             :language: python
             :dedent: 0
@@ -38,6 +38,7 @@
 
      - id: csharp
        content: |
+
          .. literalinclude:: /includes/code/dotnet/CrudInsertDisplay.cs
             :caption: CrudInsert.cs
             :language: csharp

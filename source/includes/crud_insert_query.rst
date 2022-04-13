@@ -22,14 +22,11 @@
      - id: go
        content: |
 
-         Here is the complete code followed by sample output. The output
-         documents have been truncated here for display purposes.
-
          .. io-code-block::
             :caption: crud-insert.go
             :copyable: true
 
-            .. input::
+            .. input:: /includes/code/go/crud-insert-final-query.go
                :language: go
                :linenos:
 
@@ -60,8 +57,6 @@
      - id: nodejs
        content: |
 
-         Here is the complete code followed by sample output.
-
          .. io-code-block::
             :caption: crud-insert.js
             :copyable: true
@@ -81,7 +76,6 @@
 
      - id: csharp
        content: |
-         Here is the complete code followed by sample output.
 
          .. io-code-block::
             :caption: CrudInsert.cs
@@ -94,4 +88,6 @@
             .. output:: 
                :language: json
 
-               TODO
+               625604fbd301606fd9998b14
+               625604fbd301606fd9998b15
+               625604fbd301606fd9998b16
