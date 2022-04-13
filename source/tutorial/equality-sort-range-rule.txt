@@ -1,0 +1,172 @@
+.. _esr-indexing-rule:
+
+====================================
+The ESR (Equality, Sort, Range) Rule
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+An index that references multiple fields is a :ref:`compound index
+<index-type-compound>`. Compound indexes can dramatically improve query
+response times.
+
+Index keys correspond to document fields. In most cases, applying the
+ESR (Equality, Sort, Range) Rule to arrange the index keys helps to
+create a more efficient :ref:`compound index <index-type-compound>`.
+
+This page introduces the ESR Rule. For more information on tuning
+queries, see :dbcommand:`explain` and 
+:ref:`query-plans-query-optimization`. 
+
+.. tip::
+
+   To force MongoDB to use a particular index, use :ref:`cursor-hint`
+   when testing indexes.
+
+.. _esr-rule-equality:
+
+Equality
+--------
+
+"Equality" refers to an exact match on a single value. The following
+exact match queries scan the ``cars`` collection for documents whose
+``model`` field exactly matches ``Cordoba``.
+
+.. code-block:: javascript
+
+   db.cars.find( { model: "Cordoba" } )
+   db.cars.find( { model: { $eq: "Cordoba" } } )
+
+Index searches make efficient use of exact matches to limit the number
+of documents that need to be examined to satisfy a query. Place fields
+that require exact matches first in your index.
+
+An index may have multiple keys for queries with exact matches. The
+index keys for equality matches can appear in any order. However, to
+satisfy an equality match with the index, all of the index keys for
+exact matches must come before any other index fields. MongoDB's search
+algorithm eliminates any need to arrange the exact match fields in a
+particular order.
+
+Exact matches should be selective. To reduce the number of index keys
+scanned, ensure equality tests eliminate at least 90% of possible
+document matches.
+
+.. _esr-rule-sort:
+
+Sort
+----
+
+"Sort" determines the order for results. Sort follows equality matches
+because the equality matches reduce the number of documents that need
+to be sorted. Sorting after the equality matches also allows MongoDB to
+do a non-blocking sort.
+
+An index can support sort operations when the query fields are a subset
+of the index keys. Sort operations on a subset of the index keys are
+only supported if the query includes equality conditions for all of the
+prefix keys that precede the sort keys. For more information see:
+:ref:`Sort and Non-prefix Subset of an Index
+<sort-index-nonprefix-subset>`.
+
+The following example queries the ``cars`` collection. The output is
+sorted by ``model``:
+
+.. code-block:: javascript
+
+   db.cars.find( { manufacturer: "GM" } ).sort( { model: 1 } )
+
+To improve query performance, create an index on the ``manufacturer``
+and ``model`` fields:
+
+.. code-block:: javascript
+
+   db.cars.createIndex( { manufacturer: 1, model: 1 } )
+
+- ``manufacturer`` is the first key because it is an equality match.
+- ``model`` is indexed in the same order ( ``1`` ) as the query. 
+
+.. _esr-rule-range:
+
+Range
+-----
+
+"Range" filters scan fields. The scan doesn't require an exact match,
+which means range filters are loosely bound to index keys. To improve
+query efficiency, make the range bounds as tight as possible and use
+equality matches to limit the number of documents that must be scanned.
+
+Range filters resemble the following:
+
+.. code-block:: javascript
+
+   db.cars.find( { price: { $gte: 15000} } )
+   db.cars.find( { age: { $lt: 10 } } )
+   db.cars.find( { priorAccidents: { $ne: null } } )
+
+MongoDB cannot do an index sort on the results of a range filter.
+Place the range filter after the sort predicate so MongoDB can use a
+non-blocking index sort. For more information on blocking sorts, see
+:method:`cursor.allowDiskUse()`.
+
+Additional Considerations
+-------------------------
+
+Inequality operators such as :query:`$ne` or :query:`$nin` are range
+operators, not equality operators.
+
+:query:`$regex` is a range operator.
+
+:query:`$in` can be an equality operator or a range operator.
+When :query:`$in` is used alone, it is an equality operator that
+does a series of equality matches. :query:`$in` acts like a range
+operator when it is used with ``.sort()``.
+
+Example
+-------
+
+The following query searches the ``cars`` collection for vehicles
+manufactured by Ford that cost more than $15,000 dollars. The results
+are sorted by model:
+
+.. code-block:: javascript
+
+   db.cars.find(
+      {
+          manufacturer: 'Ford',
+          cost: { $gt: 10000 }
+      } ).sort( { model: 1 } )
+
+
+The query contains all the elements of the ESR Rule:
+
+- ``manufacturer: 'Ford'`` is an equality based match
+- ``cost: { $gt: 10000 }`` is a range based match, and
+- ``model`` is used for sorting
+
+Following the ESR rule, the optimal index for the example query is:
+
+.. code-block:: javascript
+
+   { manufacturer: 1, model: 1, cost: 1 }
+
+Further Discussion
+------------------
+
+A number of MongoDB conference presentations discuss the ESR rule in
+depth.
+
+- `Tips and Tricks for Effective Indexing
+  <https://www.slideshare.net/mongodb/mongodb-local-toronto-2019-tips-and-tricks-for-effective-indexing>`__
+- `The Sights (and Smells) of a Bad Query
+  <https://www.slideshare.net/mongodb/mongodb-world-2019-the-sights-and-smells-of-a-bad-query>`__
+- `Tips and Tricks++ for Querying and Indexing MongoDB
+  <https://www.slideshare.net/mongodb/mongodb-world-2019-tips-and-tricks-for-querying-and-indexing-mongodb>`__
+
