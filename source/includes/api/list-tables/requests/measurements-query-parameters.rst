@@ -47,18 +47,21 @@
    * - start
      - string
      - Required
-     - |iso8601-time| when to start retrieving measurements. If you
-       specify **start** you must also specify **end**. Mutually
-       exclusive with **period**.
+     - Date and time that specifies when to start retrieving
+       measurements. If you set **start**, you must set **end**. You
+       can't set this parameter and **period** in the same request.
+       This parameter expresses its value in the :rfc:`RFC 3339
+       <3339#section-5.6>` timestamp format in UTC.
      -
 
    * - end
      - string
      - Required
-     - |iso8601-time| when to stop retrieving measurements.
-
-       If you specify **end** you must also specify **start**. Mutually
-       exclusive with **period**.
+     - Date and time that specifies when to stop retrieving
+       measurements. If you set" **end**, you must set **start**. You
+       can't set this parameter and" **period** in the same request.
+       This parameter expresses its value in the :rfc:`RFC 3339
+       <3339#section-5.6>` timestamp format in UTC.
      -
 
    * - m
