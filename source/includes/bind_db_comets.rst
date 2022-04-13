@@ -5,44 +5,41 @@
      - id: csharp
        content: |
 
-         .. code-block:: csharp
+         .. literalinclude:: /includes/code/dotnet/CrudDeleteSwitch.cs
+            :caption: CrudDelete.cs
+            :language: csharp
+            :dedent: 0
 
-            // database and collection code goes here
-            var db = client.GetDatabase("sample_guides");
-            var coll = db.GetCollection<BsonDocument>("comets");
-            
      - id: go
        content: |
 
-         .. code-block:: go
-
-            // database and colletion code goes here
-            db := client.Database("sample_guides")
-            coll := db.Collection("comets")
+         .. literalinclude:: /includes/code/go/crud-delete-switch.go
+            :caption: crud-delete.go
+            :language: go
+            :linenos:
+            :dedent: 0
 
      - id: java-sync
        content: |
 
-         .. code-block:: java
-
-            // database and collection code goes here
-            MongoDatabase db = mongoClient.getDatabase("sample_guides");
-            MongoCollection<Document> coll = db.getCollection("comets");
+         .. literalinclude:: /includes/code/java/CrudDeleteSwitch.java
+            :caption: CrudDelete.java
+            :language: java
+            :linenos:
+            :dedent: 0
 
      - id: nodejs
        content: |
 
-         .. code-block:: javascript
-
-            // database and collection code goes here
-            const db = client.db("sample_guides");
-            const coll = db.collection("comets");
+         .. literalinclude:: /includes/code/node/crud-delete-switch.js
+            :caption: crud-delete.js
+            :language: javascript
+            :dedent: 0
 
      - id: python
        content: |
 
-         .. code-block:: python
-
-            # database and collection code goes here
-            db = client.sample_guides
-            coll = db.comets
+         .. literalinclude:: /includes/code/python/crud_delete_switch.py
+            :caption: crud_delete.py
+            :language: python
+            :dedent: 0

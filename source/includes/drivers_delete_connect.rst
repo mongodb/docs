@@ -6,12 +6,14 @@
        content: |
 
          The following is an outline with the minimum code necessary to connect to MongoDB using the C#/.NET driver.
-         You'll make additions over the next few steps to read data.
+         You'll make additions over the next few steps to delete data.
 
-         In lines 18 to 28, we map the ``Comet`` class to the fields of
-         a document in the ``comets`` collection. In C#, we capitalize
-         the first letter of each field. In lines 8 to 10, we instruct
-         the driver to camel case each field in our collection.
+         In C#, you map fields to class variables, which are uppercase
+         by convention. However, you should insert the data with camel
+         case fields. To make the driver automatically convert the
+         fields from uppercase to camel case, create a
+         ``ConventionPack`` and register the naming convention for
+         ``CamelCase``.
 
          .. literalinclude:: /includes/code/dotnet/CrudDeleteConnect.cs
             :caption: CrudDelete.cs
@@ -23,7 +25,7 @@
        content: |
 
          The following is an outline with the minimum code necessary to connect to MongoDB using the Go driver.
-         You'll make additions over the next few steps to read data.
+         You'll make additions over the next few steps to delete data.
 
          .. literalinclude:: /includes/code/go/crud-delete-connect.go
             :caption: crudDelete.go
@@ -35,7 +37,7 @@
        content: |
 
          The following is an outline with the minimum code necessary to connect to MongoDB using the Java driver.
-         You'll make additions over the next few steps to read data.
+         You'll make additions over the next few steps to delete data.
 
          .. literalinclude:: /includes/code/java/CrudDeleteConnect.java
             :caption: CrudDelete.java
@@ -47,7 +49,7 @@
        content: |
 
          The following is an outline with the minimum code necessary to connect to MongoDB using the Node.js driver.
-         You'll make additions over the next few steps to read data.
+         You'll make additions over the next few steps to delete data.
 
          .. literalinclude:: /includes/code/node/crud-delete-connect.js
             :caption: crud-delete.js
@@ -59,7 +61,7 @@
        content: |
          
          The following is an outline with the minimum code necessary to connect to MongoDB using PyMongo.
-         You'll make additions over the next few steps to read data.
+         You'll make additions over the next few steps to delete data.
 
          .. literalinclude:: /includes/code/python/crud_delete_connect.py
             :caption: crud_delete.py
