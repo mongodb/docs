@@ -8,6 +8,11 @@
          The following is an outline with the minimum code necessary to connect to MongoDB using the C#/.NET driver.
          You'll make additions over the next few steps to read data.
 
+         In lines 18 to 28, we map the ``Comet`` class to the fields of
+         a document in the ``comets`` collection. In C#, we capitalize
+         the first letter of each field. In lines 8 to 10, we instruct
+         the driver to camel case each field in our collection.
+
          .. literalinclude:: /includes/code/dotnet/CrudDeleteConnect.cs
             :caption: CrudDelete.cs
             :language: csharp

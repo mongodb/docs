@@ -1,53 +1,33 @@
 ﻿/**
  * This is a working file, do not include this file in any code visible to the user.
 */
-
-using System.Security.Cryptography;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
 // Replace the uri string with your MongoDB deployment's connection string.
 // var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
-var uri = "mongodb+srv://foo:bar@cluster0.7stmv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+// var uri = "mongodb+srv://foo:bar@cluster0.7stmv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+var uri = "mongodb+srv://m220student:m220student@cluster0.jojrz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+
+// instruct the driver to read the fields in camelCase
+var pack = new ConventionPack { new CamelCaseElementNameConvention() };
+ConventionRegistry.Register("elementNameConvention", pack, x => true);
 
 var client = new MongoClient(uri);
 
-var coll = client.GetDatabase("sample_guides").GetCollection<Comet>("comets");
-// var documents = new Comet[]
-// {
-//     new Comet
-//     {
-//         Name = "Halley's Comet",
-//         OfficialName = "1P/Halley",
-//         OrbitalPeriod = 75,
-//         Radius = 3.4175,
-//         Mass = 2.2e14
-//     },
-//     new Comet
-//     {
-//         Name = "Wild2",
-//         OfficialName = "81P/Wild",
-//         OrbitalPeriod = 6.41,
-//         Radius = 1.5534,
-//         Mass = 2.3e13
-//     },
-//     new Comet
-//     {
-//         Name = "Comet Hyakutake",
-//         OfficialName = "C/1996 B2",
-//         OrbitalPeriod = 17000,
-//         Radius = 0.77671,
-//         Mass = 8.8e12
-//     }
-// };
-// coll.InsertMany(documents);
+// database and collection code goes here
+var db = client.GetDatabase("sample_guides");
+var coll = db.GetCollection<Comet>("comets");
 
-var filter = Builders<Comet>.Filter.And(Builders<Comet>.Filter.Gt("OrbitalPeriod", 5), Builders<Comet>.Filter.Lt("OrbitalPeriod", 85));
-var result = coll.DeleteMany(filter);
+// delete code goes here
+var result = coll.DeleteMany(x => x.OrbitalPeriod > 5 && x.OrbitalPeriod < 85);
 
+// amount deleted code goes here
 Console.WriteLine(result.DeletedCount);
 
+// class that represents the fields of a document in the
+// sample_guides.comets collection
 class Comet
 {
     public ObjectId Id { get; set;  }
