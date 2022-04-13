@@ -38,7 +38,7 @@ func main() {
 		panic(err)
 	}
             
-	// display insert ids code goes here
+	// display the results of your operation
 	for _, id := range result.InsertedIDs {
 		fmt.Printf("\t%s\n", id)
 	}

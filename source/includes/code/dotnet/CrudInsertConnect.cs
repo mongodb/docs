@@ -13,12 +13,11 @@ var client = new MongoClient(uri);
 
 // database and colletion code goes here
 // insert code goes here
-// display insert ids code goes here
+// display the results of your operation
 
 // class that maps to the fields of a document in the
 // sample_guides.comets collection
-class Comet
-{
+class Comet {
     public ObjectId Id { get; set;  }
     public string Name { get; set; }
     public string OfficialName { get; set; }

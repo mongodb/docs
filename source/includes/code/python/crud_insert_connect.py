@@ -7,7 +7,7 @@ client = MongoClient(uri)
 
 # database and collection code goes here
 # insert code goes here
-# display insert ids code goes here
+# display the results of your operation
 
 # Close the connection to MongoDB when you're done.
 client.close()

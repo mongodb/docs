@@ -1,5 +1,4 @@
-﻿// display insert ids code goes here
-foreach (var comet in comets)
-{
+﻿// display the results of your operation
+foreach (var comet in comets) {
     Console.WriteLine(comet.Id);
 }

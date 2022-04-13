@@ -1,2 +1,2 @@
-// display insert ids code goes here
+// display the results of your operation
 console.log(result.insertedIds);

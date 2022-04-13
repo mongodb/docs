@@ -24,6 +24,6 @@ func main() {
 
 	// database and colletion code goes here
 	// insert code goes here
-	// display insert ids code goes here
+	// display the results of your operation
 }
 

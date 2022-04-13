@@ -10,7 +10,7 @@ using MongoDB.Driver;
 // var uri = "mongodb+srv://foo:bar@cluster0.7stmv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 var uri = "mongodb+srv://m220student:m220student@cluster0.jojrz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 
-// instuct the driver to camelCase the fields in MongoDB
+// instruct the driver to camelCase the fields in MongoDB
 var pack = new ConventionPack { new CamelCaseElementNameConvention() };
 ConventionRegistry.Register("elementNameConvention", pack, x => true);
 
@@ -53,7 +53,7 @@ var comets = new[]
 
 coll.InsertMany(comets);
 
-// display insert ids code goes here
+// display the results of your operation
 foreach (var comet in comets)
 {
     Console.WriteLine(comet.Id);

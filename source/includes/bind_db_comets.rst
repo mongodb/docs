@@ -5,44 +5,41 @@
      - id: csharp
        content: |
 
-         .. code-block:: csharp
-
-            // database and collection code goes here
-            var db = client.GetDatabase("sample_guides");
-            var coll = db.GetCollection<BsonDocument>("comets");
+         .. literalinclude:: /includes/code/dotnet/CrudInsertSwitch.cs
+            :caption: CrudInsert.cs
+            :language: csharp
+            :dedent: 0
 
      - id: go
        content: |
 
-         .. code-block:: go
-
-            // database and colletion code goes here
-            db := client.Database("sample_guides")
-            coll := db.Collection("comets")
+         .. literalinclude:: /includes/code/go/crud-insert-switch.go
+            :caption: crud-insert.go
+            :language: go
+            :linenos:
+            :dedent: 0
 
      - id: java-sync
        content: |
 
-         .. code-block:: java
-
-            // database and collection code goes here
-            MongoDatabase db = mongoClient.getDatabase("sample_guides");
-            MongoCollection<Document> coll = db.getCollection("comets");
+         .. literalinclude:: /includes/code/java/CrudInsertSwitch.java
+            :caption: CrudInsert.java
+            :language: java
+            :linenos:
+            :dedent: 0
 
      - id: nodejs
        content: |
 
-         .. code-block:: javascript
-
-            // database and collection code goes here
-            const db = client.db("sample_guides");
-            const coll = db.collection("comets");
+         .. literalinclude:: /includes/code/node/crud-insert-switch.js
+            :caption: crud-insert.js
+            :language: javascript
+            :dedent: 0
 
      - id: python
        content: |
 
-         .. code-block:: python
-
-            # database and collection code goes here
-            db = client.sample_guides
-            coll = db.comets
+         .. literalinclude:: /includes/code/python/crud_insert_switch.py
+            :caption: crud_insert.py
+            :language: python
+            :dedent: 0

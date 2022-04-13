@@ -5,7 +5,6 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.InsertManyResult;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -32,12 +31,8 @@ public class CrudInsert {
             
             InsertManyResult result = coll.insertMany(documents);
             
-            // display insert ids code goes here
-            List<ObjectId> insertedIds = new ArrayList<>();
-            result.getInsertedIds().values()
-                .forEach(doc -> insertedIds.add(doc.asObjectId().getValue()));
-            
-            System.out.println(insertedIds);
+            // display the results of your operation
+            result.getInsertedIds().values().forEach(doc -> System.out.println(doc.asObjectId().getValue()));
         }
     }
 }

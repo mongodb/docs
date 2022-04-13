@@ -20,7 +20,7 @@ docs = [
 
 result = coll.insert_many(docs)
 
-# display insert ids code goes here
+# display the results of your operation
 print(result.inserted_ids)
 
 # Close the connection to MongoDB when you're done.
