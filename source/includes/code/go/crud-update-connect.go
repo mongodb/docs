@@ -29,5 +29,5 @@ func main() {
 
 	// database and colletion code goes here
 	// update code goes here
-	// amount update code goes here
+	// display the results of your operation
 }

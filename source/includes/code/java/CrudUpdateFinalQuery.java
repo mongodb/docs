@@ -23,7 +23,7 @@ public class CrudUpdate {
             Bson update = Updates.mul("Radius", 1.60934);
             UpdateResult result = coll.updateMany(filter, update);
             
-            // amount updated code goes here
+            // display the results of your operation
             System.out.println(result.getModifiedCount());
         }
     }

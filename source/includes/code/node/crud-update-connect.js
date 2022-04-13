@@ -10,7 +10,7 @@ async function run() {
     await client.connect();
     // database and collection code goes here
     // update code goes here
-    // amount deleted code goes here
+    // display the results of your operation
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();

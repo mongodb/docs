@@ -15,7 +15,7 @@ doc = {
 }
 result = coll.update_many({}, doc)
 
-# amount updated code goes here
+# display the results of your operation
 print(result.modified_count)
 
 # Close the connection to MongoDB when you're done.

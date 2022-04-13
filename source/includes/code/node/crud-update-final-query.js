@@ -23,7 +23,7 @@ async function run() {
 
     const result = await coll.updateMany(filter, updateDoc);
 
-    // amount deleted code goes here
+    // display the results of your operation
     console.log(result.modifiedCount);
 
   } finally {

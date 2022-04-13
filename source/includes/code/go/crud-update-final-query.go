@@ -38,6 +38,6 @@ func main() {
 		panic(err)
 	}
 
-	// amount update code goes here
+	// display the results of your operation
 	fmt.Println(result.ModifiedCount)
 }

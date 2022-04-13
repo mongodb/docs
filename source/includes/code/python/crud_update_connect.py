@@ -7,7 +7,7 @@ client = MongoClient(uri)
 
 # database and collection code goes here
 # update code goes here
-# amount updated code goes here
+# display the results of your operation
 
 # Close the connection to MongoDB when you're done.
 client.close()

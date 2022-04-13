@@ -16,7 +16,7 @@
             .. output:: 
                :language: json
 
-               2
+               3
 
      - id: go
        content: |
