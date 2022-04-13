@@ -47,8 +47,7 @@ foreach (var comet in comets) {
     Console.WriteLine(comet.Id);
 }
 
-// class that maps to the fields of a document in the
-// sample_guides.comets collection
+// class that maps to the fields of a document in the sample_guides.comets collection
 class Comet {
     public ObjectId Id { get; set;  }
     public string Name { get; set; }

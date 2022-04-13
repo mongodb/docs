@@ -16,7 +16,7 @@
          ``CamelCase``.
 
          .. literalinclude:: /includes/code/dotnet/CrudInsertConnect.cs
-            :caption: CrudRead.cs
+            :caption: CrudInsert.cs
             :language: csharp
             :linenos:
             :dedent: 0
@@ -28,7 +28,7 @@
          You'll make additions over the next few steps to insert data.
 
          .. literalinclude:: /includes/code/go/crud-insert-connect.go
-            :caption: crudRead.go
+            :caption: crud-insert.go
             :language: go
             :linenos:
             :dedent: 0
@@ -40,7 +40,7 @@
          You'll make additions over the next few steps to insert data.
 
          .. literalinclude:: /includes/code/java/CrudInsertConnect.java
-            :caption: CrudRead.java
+            :caption: CrudInsert.java
             :language: java
             :linenos:
             :dedent: 0
@@ -52,7 +52,7 @@
          You'll make additions over the next few steps to insert data.
 
          .. literalinclude:: /includes/code/node/crud-insert-connect.js
-            :caption: crud-read.js
+            :caption: crud-insert.js
             :language: javascript
             :linenos:
             :dedent: 0
@@ -64,7 +64,7 @@
          You'll make additions over the next few steps to insert data.
 
          .. literalinclude:: /includes/code/python/crud_insert_connect.py
-            :caption: crud_read.py
+            :caption: crud_insert.py
             :language: python
             :linenos:
             :dedent: 0
