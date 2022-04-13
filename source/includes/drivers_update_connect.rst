@@ -7,7 +7,14 @@
 
          The following is an outline with the minimum code necessary to connect to MongoDB using the C#/.NET driver.
          You'll make additions over the next few steps to update data.
-
+         
+         In C#, you map fields to class variables, which are uppercase
+         by convention. However, you should insert the data with camel
+         case fields. To make the driver automatically convert the
+         fields from uppercase to camel case, create a
+         ``ConventionPack`` and register the naming convention for
+         ``CamelCase``.
+         
          .. literalinclude:: /includes/code/dotnet/CrudUpdateConnect.cs
             :caption: CrudUpdate.cs
             :language: csharp
