@@ -28,7 +28,7 @@
          You'll make additions over the next few steps to delete data.
 
          .. literalinclude:: /includes/code/go/crud-delete-connect.go
-            :caption: crudDelete.go
+            :caption: crud-delete.go
             :language: go
             :linenos:
             :dedent: 0
