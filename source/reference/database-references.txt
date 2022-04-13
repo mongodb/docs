@@ -13,57 +13,48 @@ Database References
    :class: singlecol
 
 For many use cases in MongoDB, the denormalized data model where
-related data is stored within a single :term:`document <document>` will
-be optimal. However, in some cases, it makes sense to store related
+related data is stored within a single :term:`document <document>` is optimal. 
+However, in some cases, it makes sense to store related
 information in separate documents, typically in different collections
 or databases.
 
 .. important::
 
-   MongoDB 3.2 introduces :pipeline:`$lookup` pipeline stage to perform
+   You can use the :pipeline:`$lookup` pipeline stage to perform
    a left outer join to an unsharded collection in the same database.
-   For more information and examples, see :pipeline:`$lookup`.
 
-   Starting in MongoDB 3.4, you can also use :pipeline:`$graphLookup`
-   pipeline stage to join an unsharded collection to perform recursive
-   search. For more information and examples, see
-   :pipeline:`$graphLookup`.
+   You can also use the :pipeline:`$graphLookup` pipeline stage to join an 
+   unsharded collection to perform recursive search.
 
 This page outlines alternative procedures that predate the
 :pipeline:`$lookup` and :pipeline:`$graphLookup` pipeline stages.
 
-MongoDB applications use one of two methods for relating documents:
+MongoDB applications use one of two methods to relate documents:
 
-- :ref:`Manual references <document-references>` where you save the
+- :ref:`Manual references <document-references>` save the
   ``_id`` field of one document in another document as a reference.
-  Then your application can run a second query to return the related
+  Your application runs a second query to return the related
   data. These references are simple and sufficient for most use
   cases.
 
 - :ref:`DBRefs <dbref-explanation>` are references from one document to another
   using the value of the first document's ``_id`` field, collection name,
-  and, optionally, its database name. By including these names, DBRefs
-  allow documents located in multiple collections to be more easily linked
-  with documents from a single collection.
+  and, optionally, its database name, as well as any other fields. DBRefs allow
+  you to more easily reference documents stored in multiple collections or 
+  databases.
 
-  To resolve DBRefs, your application
-  must perform additional queries to return the referenced
-  documents. Many :driver:`Drivers </>` have helper
-  methods that form the query for the DBRef automatically. The
-  drivers [#official-driver]_ do not *automatically* resolve DBRefs
-  into documents.
+To resolve DBRefs, your application must perform additional queries to return
+the referenced documents. Some :driver:`MongoDB drivers </>` provide helper 
+methods to enable DBRefs to be resolved into documents, but it doesn't happen 
+automatically.
 
-  DBRefs provide a common format and type to represent relationships among
-  documents. The DBRef format also provides common semantics for representing
-  links between documents if your database must interact with
-  multiple frameworks and tools.
+DBRefs provide a common format and type to represent relationships among
+documents. The DBRef format also provides common semantics for representing
+links between documents if your database must interact with
+multiple frameworks and tools.
 
 Unless you have a compelling reason to use DBRefs, use manual
 references instead.
-
-.. [#official-driver] Some community supported drivers may have
-   alternate behavior and may resolve a DBRef into a document
-   automatically.
 
 .. _document-references:
 
@@ -73,7 +64,7 @@ Manual References
 Background
 ~~~~~~~~~~
 
-Using manual references is the practice of including one
+A manual reference is the practice of including one
 :term:`document's <document>` ``_id`` field in another document. The
 application can then issue a second query to resolve the referenced
 fields as needed.
@@ -129,7 +120,11 @@ Background
 DBRefs are a convention for representing a :term:`document`, rather
 than a specific reference type. They include the name of the
 collection, and in some cases the database name, in addition to the
-value from the ``_id`` field.
+value from the ``_id`` field. 
+
+Optionally, DBRefs can include any number of other fields. Extra field names 
+must follow any :ref:`rules for field names <limit-restrictions-on-field-names>` 
+imposed by the server version.
 
 Format
 ~~~~~~
@@ -153,8 +148,6 @@ DBRefs have the following fields:
    Contains the name of the database where the referenced document
    resides.
 
-   Only some drivers support ``$db`` references.
-
 .. example::
 
    DBRef documents resemble the following document:
@@ -174,13 +167,15 @@ DBRefs have the following fields:
         "creator" : {
                         "$ref" : "creators",
                         "$id" : ObjectId("5126bc054aed4daf9e2ab772"),
-                        "$db" : "users"
+                        "$db" : "users",
+                        "extraField" : "anything"
                      }
       }
 
    The DBRef in this example points to a document in the ``creators``
    collection of the ``users`` database that has
-   ``ObjectId("5126bc054aed4daf9e2ab772")`` in its ``_id`` field.
+   ``ObjectId("5126bc054aed4daf9e2ab772")`` in its ``_id`` field. It also contains
+   an optional field.
 
 .. note::
 
