@@ -12,8 +12,8 @@ DOTCOM_STAGING_URL="https://mongodbcom-cdn.website.staging.corp.mongodb.com"
 DOTCOM_STAGING_BUCKET=docs-mongodb-org-dotcomstg
 DOTCOM_PRODUCTION_URL="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
-DOTCOM_PREFIX=docs-qa
-DOTCOM_STGPREFIX=docs-qa
+DOTCOM_PREFIX=docs
+DOTCOM_STGPREFIX=docs
 
 
 
@@ -58,15 +58,9 @@ publish: examples ## Builds this branch's publishable HTML and other artifacts u
 #   <basename>/<filename>.
 #   * Upload each to the S3 bucket under <project>/<username>/<basename>/<filename>
 stage: ## Host online for review
-	mut-publish build/${GIT_BRANCH}/html ${STAGING_BUCKET} --prefix=${PROJECT} --stage ${ARGS}
-	@echo "Hosted at ${STAGING_URL}/${USER}/${GIT_BRANCH}/index.html"
-
-
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
 	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
-
-	
 
 # - Enter build/public/<branch>, as well as any symbolic links pointing
 #   to it, and recurse over each file <basename>/<filename>.
@@ -83,14 +77,8 @@ stage: ## Host online for review
 # The recursive behavior would CHANGE if --all-subdirectories were
 # given: ALL contents of build/public/<branch> would be upload
 deploy: build/public ## Deploy to the production bucket
-	mut-publish build/public ${PRODUCTION_BUCKET} --prefix=${PROJECT} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
-
-	@echo "Hosted at ${PRODUCTION_URL}/index.html"
-
 	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --redirect-prefix='v[0-9]\.[0-9]' --redirect-prefix='manual' --redirect-prefix='master' ${ARGS}
-
 	@echo "Hosted at ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/index.html"
-
 	$(MAKE) deploy-search-index
 
 deploy-search-index: ## Update the search index for this branch

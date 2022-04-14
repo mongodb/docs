@@ -91,16 +91,16 @@ source_constants = {
 pygments_style = 'sphinx'
 
 extlinks = {
-    'hardlink' : ( 'https://docs.mongodb.com/{0}/%s'.format(conf.git.branches.current), ''),
+    'hardlink' : ( 'https://www.mongodb.com/docs/{0}/%s'.format(conf.git.branches.current), ''),
     'issue': ('https://jira.mongodb.org/browse/%s', '' ),
     'api': ('https://api.mongodb.com/%s', ''),
-    'gettingstarted': ('https://docs.mongodb.com/getting-started%s', ''),
-    'manual': ('https://docs.mongodb.com/manual%s', ''),
-    'ecosystem': ('https://docs.mongodb.com/ecosystem%s', ''),
-    'atlas' : ('https://docs.atlas.mongodb.com%s',''),
-    'mms-docs': ('https://docs.cloudmanager.mongodb.com%s', ''),
+    'gettingstarted': ('https://www.mongodb.com/docs/getting-started%s', ''),
+    'manual': ('https://www.mongodb.com/docs/manual%s', ''),
+    'ecosystem': ('https://www.mongodb.com/docs/ecosystem%s', ''),
+    'atlas' : ('https://www.mongodb.com/docs/atlas%s',''),
+    'mms-docs': ('https://www.mongodb.com/docs/cloud-manager%s', ''),
     'mms-home': ('https://www.mongodb.com/cloud/cloud-manager%s', ''),
-    'opsmgr': ('https://docs.opsmanager.mongodb.com/current%s', ''),
+    'opsmgr': ('https://www.mongodb.com/docs/ops-manager/current%s', ''),
     'products': ('https://www.mongodb.com/products%s', ''),
     'wtdocs': ('https://source.wiredtiger.com/mongodb-3.4%s', ''),
     'perl-api': ('https://metacpan.org/pod/MongoDB::%s', ''),
@@ -112,12 +112,12 @@ extlinks = {
     'csharp-docs': ('https://mongodb.github.io/mongo-csharp-driver/2.4/reference/%s', ''),
     'java-async-docs': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/%s', ''),
     'java-async-api': ('https://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/%s', ''),
-    'v3.4': ('https://docs.mongodb.com/v3.4%s', ''),
-    'v3.2': ('https://docs.mongodb.com/v3.2%s', ''),
-    'v3.0': ('https://docs.mongodb.com/v3.0%s', ''),
-    'v2.6': ('https://docs.mongodb.com/v2.6%s', ''),
-    'v2.4': ('https://docs.mongodb.com/v2.4%s', ''),
-    'v2.2': ('https://docs.mongodb.com/v2.2%s', '')
+    'v3.4': ('https://www.mongodb.com/docs/v3.4%s', ''),
+    'v3.2': ('https://www.mongodb.com/docs/v3.2%s', ''),
+    'v3.0': ('https://www.mongodb.com/docs/v3.0%s', ''),
+    'v2.6': ('https://www.mongodb.com/docs/v2.6%s', ''),
+    'v2.4': ('https://www.mongodb.com/docs/v2.4%s', ''),
+    'v2.2': ('https://www.mongodb.com/docs/v2.2%s', '')
 }
 
 ## add `extlinks` for each published version.
