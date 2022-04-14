@@ -56,7 +56,7 @@ content: |
    
    Run the following command on the central cluster, specifying the context
    for each of the member clusters in the deployment. These commands add
-   the``istio-injection=enabled`` label to the ``mongodb`` namespace on
+   the ``istio-injection=enabled`` label to the ``mongodb`` namespace on
    each member cluster. This label configures Istio's injection webhook
    which enables adding a sidecar to any Pods that you create in this
    namespace. To learn more, see `Automatic sidecar injection <https://istio.io/latest/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection>`__
@@ -102,7 +102,7 @@ content: |
 
      kubectl config use-context $MDB_CENTRAL_CLUSTER_FULL_NAME
      kubectl config set-context $(kubectl config current-context) \
-     --namespace=mongodb
+       --namespace=mongodb
 
 ---
 stepnum: 0
@@ -185,7 +185,6 @@ content: |
          single ClusterIP address per each |k8s| Pod.
 
       .. code-block:: sh
-         :emphasize-lines: 10,11,16-18
 
          kubectl apply -f - <<EOF
          apiVersion: mongodb.com/v1
@@ -210,6 +209,7 @@ content: |
             - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
               members: 3
          EOF
+
 ---
 stepnum: 0
 level: 4
@@ -248,11 +248,88 @@ content: |
            get mdbm multi-replica-set -o yaml -w
 
 ---
-
-title: "Renew the |k8s-secret| for a ``MongoDBMulti`` resource."
 stepnum: 0
+title: "Create the secret for the TLS certificate of your ``MongoDBMulti`` custom resource."
 level: 4
+ref: create-k8s-mc-tls-secret
+content: |
+
+  Run the ``kubectl`` command to create a new secret that stores the
+  MongoDB multi-cluster resource's certificate:
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+       --namespace=<metadata.namespace> \
+     create secret tls <prefix>-<metadata.name>-cert \
+       --cert=<resource-tls-cert> \
+       --key=<resource-tls-key>
+
+  .. note::
+
+     .. include:: /includes/fact-req-secret-prefix.rst
+
+  .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+
+---
+stepnum: 0
+title: "Create the secret for your agent's X.509 certificate of your ``MongoDBMulti`` custom resource."
+level: 4
+ref: create-mc-agent-secret-x509
+content: |
+
+  Run the ``kubectl`` command to create a new secret that stores the agent's X.509 certificate:
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+       --namespace=<metadata.namespace> \
+     create secret tls <prefix>-<metadata.name>-agent-certs \
+       --cert=<agent-tls-cert> \
+       --key=<agent-tls-key>
+
+---
+stepnum: 0
+title: "Create the secret for the member cluster's internal X.509 certificate."
+level: 4
+ref: create-mc-secret-x509-internal
+content: |
+
+  Run the ``kubectl`` command to create a new secret that stores the internal
+  cluster member's X.509 certificate. The member clusters are defined in
+  your ``MongoDBMulti`` custom resource.
+
+  .. code-block:: sh
+
+     kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+       --namespace=<metadata.namespace> \
+     create secret tls <prefix>-<metadata.name>-clusterfile \
+       --cert=<resource-clusterfile-tls-cert> \
+       --key=<resource-clusterfile-tls-key>
+
+---
+stepnum: 0
+ref: create-k8s-mc-tls-configmap
+title: "Create the ConfigMap to link your CA with your ``MongoDBMulti`` custom resource."
+level: 4
+content: |
+   Run the ``kubectl`` command to link your |certauth| to your ``MongoDBMulti`` custom resource:
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+        --namespace=<metadata.namespace> \
+        create configmap custom-ca -from-file=ca-pem
+
+---
+stepnum: 0
+title: "Renew the |k8s-secret| for a ``MongoDBMulti`` resource."
 ref: renew-mc-rs-tls-secret
+level: 4
 content: |
 
   Run this ``kubectl`` command to renew an existing |k8s-secret| that
@@ -268,5 +345,44 @@ content: |
      --dry-run=client \
      -o yaml |
      kubectl apply -f -
+
+---
+stepnum: 0
+ref: renew-mc-secret-x509-agent
+title: "Renew the secret for your agent's X.509 certificates."
+level: 4
+content: |
+   Run the ``kubectl`` command to renew an existing secret that stores
+   the ``MongoDBMulti`` resource's agent certificates:
+
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+        --namespace=<metadata.namespace> \
+      create secret tls <prefix>-<metadata.name>-agent-certs \
+        --cert=<agent-tls-cert> \
+        --key=<agent-tls-key> \
+        --dry-run=client \
+        -o yaml | kubectl apply -f -
+
+---
+stepnum: 0
+ref: renew-secret-internal-x509
+title: "Renew the secret for internal members's X.509 certificates of the MongoDBMulti resource."
+level: 4
+content: |
+   Run the ``kubectl`` command to renew an existing secret that stores
+   X.509 certificates for internal members of the ``MongoDBMulti`` resource:
+
+   .. code-block:: sh
+
+      kubectl --context $MDB_CENTRAL_CLUSTER_FULL_NAME \
+        --namespace=<metadata.namespace> \
+      create secret tls <prefix>-<metadata.name>-clusterfile \
+        --cert=<resource-clusterfile-tls-cert> \
+         --key=<resource-clusterfile-tls-key> \
+         --dry-run=client \
+         -o yaml | kubectl apply -f -
 
 ...
