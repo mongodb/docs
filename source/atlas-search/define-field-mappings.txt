@@ -70,27 +70,27 @@ types </reference/bson-types/>`.
      - Atlas Search Field Type
 
    * - Double
-     - yes :icon-fa5:`star`
+     - yes (see :ref:`bson-data-types-limitations`)
      - - :ref:`number <bson-data-types-number>`
        - :ref:`numberFacet <bson-data-types-number-facet>`
 
    * - 32-bit integer
-     - yes :icon-fa5:`star`
+     - yes (see :ref:`bson-data-types-limitations`)
      - - :ref:`number <bson-data-types-number>`
        - :ref:`numberFacet <bson-data-types-number-facet>`
 
    * - 64-bit integer
-     - yes :icon-fa5:`star`
+     - yes (see :ref:`bson-data-types-limitations`)
      - - :ref:`number <bson-data-types-number>`
        - :ref:`numberFacet <bson-data-types-number-facet>`
 
    * - String 
-     - yes :icon-fa5:`star`
+     - yes (see :ref:`bson-data-types-limitations`)
      - - :ref:`string <bson-data-types-string>`
        - :ref:`stringFacet <bson-data-types-string-facet>`
   
    * - Date
-     - yes :icon-fa5:`star`
+     - yes (see :ref:`bson-data-types-limitations`)
      - - :ref:`date <bson-data-types-date>`
        - :ref:`dateFacet <bson-data-types-date-facet>`
 
@@ -110,7 +110,7 @@ types </reference/bson-types/>`.
      - no
      - 
 
-   * - Array
+   * - :ref:`Array <fts-array-ref>`
      - yes
      - 
 
@@ -142,9 +142,20 @@ types </reference/bson-types/>`.
      - no
      - 
 
-:icon-fa5:`star` You can't use :ref:`dynamic mapping 
-<static-dynamic-mappings>` to automatically index fields for faceting. 
-You must index the fields using: 
+.. note:: 
+
+   You can store fields of all :ref:`bson-data-chart` on |fts| using 
+   the ``storedSource`` :ref:`option <index-definition-options>`.
+
+.. _bson-data-types-limitations:
+
+Limitations
+~~~~~~~~~~~
+
+You can't use :ref:`dynamic mapping <static-dynamic-mappings>` to 
+automatically index fields of :ref:`bson-data-types-date`, 
+:ref:`bson-data-types-number`, and :ref:`bson-data-types-string` types 
+for faceting. You must index the fields using: 
 
 - :ref:`bson-data-types-date-facet` to run a facet query on ``date`` 
   fields.
@@ -153,10 +164,20 @@ You must index the fields using:
 - :ref:`bson-data-types-string-facet` to run a facet query on 
   ``string`` fields.
 
-.. note:: 
+|fts| doesn't index the following types if the given type is contained 
+in an array or is in a document that is contained in an array:
 
-   You can store fields of all :ref:`bson-data-chart` on |fts| using 
-   the ``storedSource`` :ref:`option <index-definition-options>`.
+- :ref:`bson-data-types-autocomplete`
+- :ref:`boolean-ref`
+- :ref:`bson-data-types-date`
+- :ref:`bson-data-types-date-facet`
+- :ref:`bson-data-types-number`
+- :ref:`bson-data-types-number-facet`
+
+.. _bson-data-types-indexing:
+
+Index Field as Multiple Data Types 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To index a field as multiple types, define the types inside the field 
 definition array for the field.  
@@ -191,8 +212,8 @@ definition array for the field.
 
 .. _fts-array-ref:
 
-array
-~~~~~
+Index Array
+~~~~~~~~~~~
 
 For indexing arrays, |fts| requires only the data type of the array 
 elements. You don't have to specify that the data is contained in an 
@@ -201,8 +222,6 @@ array in the index definition.
 .. note:: 
 
    .. include:: /includes/fact-fts-index-limitation.rst 
-     
-   |fts| doesn't index documents inside an array.
 
 .. _fts-array-example:
 
@@ -493,11 +512,14 @@ Use the ``boolean`` data type to index ``true`` and ``false``
 values. It works in conjunction with the :ref:`equals <equals-ref>` 
 operator.
 
-.. note::
+.. note:: Limitations
 
-   Fields of type ``boolean`` cannot be dynamically indexed. You must 
-   index fields of type ``boolean`` using :ref:`static mappings 
-   <static-dynamic-mappings>`.
+   - |fts| doesn't index fields of type ``boolean`` dynamically. You 
+     must index fields of type ``boolean`` using :ref:`static mappings 
+     <static-dynamic-mappings>`.
+
+   - |fts| doesn't index fields of type ``boolean`` in an array or in a 
+     document inside an array.
 
 .. _boolean-objectid-example:
 
@@ -533,10 +555,16 @@ date
    .. include:: /includes/fact-fts-facet-data-type-deprecation.rst
 
 Use the ``date`` type to index date values. It takes the ``type`` 
-option. The value of ``type`` must be ``date``. A date can't be indexed 
-if it is part of an array. You must index the fields using  
-:ref:`bson-data-types-date-facet` to run a facet query on ``date`` 
-fields.
+option. The value of ``type`` must be ``date``. 
+
+.. note:: 
+
+   You can't index date field if it's part of an array or if it's in a 
+   document in an array. 
+   
+   You must index the date fields using  
+   :ref:`bson-data-types-date-facet` to run a facet query on ``date`` 
+   fields.
 
 .. _bson-data-types-date-facet:
 
@@ -545,7 +573,12 @@ dateFacet
 
 Use the ``dateFacet`` type for indexing date values for faceting. 
 It takes the ``type`` option. The value of ``type`` must be 
-``dateFacet``. A  date can't be indexed if it's part of an array.
+``dateFacet``. 
+
+.. note::
+
+   You can't index date field if it's inside an array or if it's inside 
+   a document in an array for faceting.
 
 .. example:: 
 
@@ -689,9 +722,16 @@ number
    .. include:: /includes/fact-fts-facet-data-type-deprecation.rst
 
 Use the ``number`` type to index fields with numeric values of 
-``int32``, ``int64``, and ``double`` data types. You must index the 
-``number`` fields using :ref:`bson-data-types-number-facet` to run a 
-facet query on ``number`` fields.
+``int32``, ``int64``, and ``double`` data types. 
+
+.. note::
+
+   You can't index numeric values in arrays or in a document in an 
+   array. 
+   
+   You must index the ``number`` fields using 
+   :ref:`bson-data-types-number-facet` to run a facet query on 
+   ``number`` fields. 
 
 The ``number`` type has the following options: 
 
@@ -842,7 +882,8 @@ the specified ``representation`` for faceting. You can index numbers of
 limitations apply:
 
 - You can't index ``decimal128`` for faceting. 
-- You can't index numeric values in arrays for faceting.
+- You can't index numeric values in arrays or in a document in an array 
+  for faceting.
 
 If you specify both :ref:`bson-data-types-number` and 
 :ref:`bson-data-types-number-facet` in the index definition, |fts| uses 
