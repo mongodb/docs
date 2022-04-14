@@ -8,7 +8,7 @@
          .. procedure::
            :style: connected
 
-           .. step:: Create a class that resembles a document from the ``comet`` collection.
+           .. step:: Create a class that resembles a document from your collection.
 
               The following class lists all the field names and types
               that your document will have.
@@ -34,7 +34,7 @@
                  :linenos:
                  :dedent: 0
 
-           .. step:: Verify your code.
+           .. step:: Verify your connection code.
 
               .. tip::
 
@@ -44,11 +44,11 @@
                  At line 6, replace the URI string with your own
                  :ref:`Atlas connection string <guides-get-connection-string>`.
 
-                 .. literalinclude:: /includes/code/dotnet/CrudInsertConnect.cs
-                    :caption: CrudInsert.cs
-                    :language: csharp
-                    :linenos:
-                    :dedent: 0
+              .. literalinclude:: /includes/code/dotnet/CrudInsertConnect.cs
+                 :caption: CrudInsert.cs
+                 :language: csharp
+                 :linenos:
+                 :dedent: 0
 
      - id: go
        content: |
