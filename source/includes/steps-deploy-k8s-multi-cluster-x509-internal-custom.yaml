@@ -1,28 +1,39 @@
 ---
 stepnum: 1
-ref: create-k8s-mc-rs-tls-secret
+ref: create-mc-rs-tls-secret
 source:
   file: steps-multi-cluster-source.yaml
   ref: create-k8s-mc-tls-secret
-
 ---
 stepnum: 2
+ref: create-multi-cluster-agent-secret-x509
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: create-mc-agent-secret-x509
+---
+stepnum: 3
+ref: create-mc-secret-internal-x509
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: create-mc-secret-x509-internal
+---
+stepnum: 5
 ref: create-k8s-mc-rs-tls-configmap
 source:
   file: steps-multi-cluster-source.yaml
   ref: create-k8s-mc-tls-configmap
 ---
-
-stepnum: 3
-ref: update-mongodbmulti-resource
-title: "Update your ``MongoDBMulti`` custom resource."
+stepnum: 6
+ref: update-mongodbmulti-resource-x509
+title: "Update your ``MongoDBMulti`` custom resource to enable X509 authentication."
 level: 4
 content: |
 
    :ref:`Update your MongoDB multi-cluster resource <k8s-edit-database-resource>`
    with :ref:`security settings <security-settings>` from the |k8s-op-short|
-   MongoDB resource specification. The resulting configuration should look as
-   follows:
+   MongoDB resource specification. Add the ``internalCluster`` setting,
+   under ``spec.authentication``, and set it to ``"X509"``. The resulting
+   configuration should look as follows:
 
    .. code-block:: yaml
 
@@ -43,6 +54,12 @@ content: |
          tls:
            ca: custom-ca
          certsSecretPrefix: <prefix>
+       authentication:
+         enabled: true
+         modes: ["X509"]
+         agents: 
+           mode: "X509"
+         internalCluster: "X509"
        clusterSpecList:
          clusterSpecs:
          - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
@@ -55,9 +72,8 @@ content: |
    The |k8s-op-short| copies the ConfigMap with the |certauth| created in
    the central cluster to each member cluster, generates a concatenated
    |pem| secret, and distributes it to the member clusters.
-
 ---
-stepnum: 4
+stepnum: 7
 level: 4
 ref: verify-mc-resources-tls
 source:
