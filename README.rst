@@ -3,6 +3,7 @@ MongoDB Kafka Connector Documentation
 =====================================
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 This repository contains documentation for the MongoDB Kafka Connector.
 
 
@@ -20,10 +21,19 @@ Report Issues
 -------------
 
 File issue reports or requests to the `Documentation Jira Project
+=======
+This repository contains documentation for the MongoDB Kafka Connector.
+
+File JIRA Tickets
+-----------------
+
+Please file issue reports or requests at the `Documentation Jira Project
+>>>>>>> Updater README and PR template (#241)
 <https://jira.mongodb.org/browse/DOCS>`_.
 
 Licenses
 --------
+<<<<<<< HEAD
 =======
 This repository contains documentation regarding components of the 
 MongoDB Kafka Connector. This documentation builds on the work of the
@@ -61,9 +71,20 @@ File issue reports or requests at the `Private Documentation Jira Project
 
 All documentation is available under the terms of a `Creative Commons
 License <http://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
+=======
+
+All documentation is available under the terms of a `Creative Commons
+License <https://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
+>>>>>>> Updater README and PR template (#241)
 
 The MongoDB Documentation Project is governed by the terms of the
 `MongoDB Contributor Agreement
 <https://www.mongodb.com/legal/contributor-agreement>`_.
 
 -- The MongoDB Docs Team
+<<<<<<< HEAD
+=======
+
+
+
+>>>>>>> Updater README and PR template (#241)
