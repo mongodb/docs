@@ -7,6 +7,9 @@
       * - RHEL 6 s390x
         - Support removed in MongoDB Enterprise 4.2.15.
 
+      * - RHEL  s390x
+        - Support removed in MongoDB Enterprise 4.2.19.
+
       * - SLES 12 s390x
         - Support removed in MongoDB Enterprise 4.2.15.
 
@@ -27,7 +30,7 @@
      - 3.4 Enterprise
 
    * - RHEL/CentOS 7
-     - 4.2.0 - 4.2.17
+     - 4.2.0 - 4.2.19
      - 4.0.6 - 4.0.27
      - Removed starting in 3.6.17
      - Removed starting in 3.4.15

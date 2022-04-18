@@ -34,13 +34,13 @@
      - |checkmark|
 
    * - Ubuntu 18.04
-     - 4.2.1 - 4.2.17
+     - 4.2.1 - 4.2.19
      - 
      -
      -
 
    * - Ubuntu 16.04
      -
-     - |checkmark|
+     - 4.0.0-4.0.27
      - Removed starting in 3.6.13
      - Removed starting in 3.4.21
