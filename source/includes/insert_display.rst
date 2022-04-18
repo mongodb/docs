@@ -55,7 +55,7 @@
      - id: csharp
        content: |
          
-         But for insert operations, the C# driver automatically creates the
+         For insert operations, the C# driver automatically creates the
          ``_id`` of documents that were successfully inserted. Here, you
          access this property from the original array and print them.
 
