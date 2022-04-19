@@ -30,18 +30,18 @@ instructions on how to format your connection string.
 
 To retrieve your connection string for the cluster and user you created in
 the previous step, log into your Atlas account and navigate to the
-**Clusters** section and click the **Connect** button for the cluster that you
+:guilabel:`Database` section and click the :guilabel:`Connect` button for the cluster that you
 want to connect to as shown below.
 
 .. figure:: /includes/figures/atlas_connection_select_cluster.png
    :alt: Atlas Connection GUI cluster selection screen
 
-Proceed to the **Connect Your Application** step and select the Java driver.
+Proceed to the :guilabel:`Connect Your Application` step and select the Java driver.
 Select "4.1 or Later" for the version.
-Click the **Copy** icon to copy the *connection string* to your clipboard as
+Click the :guilabel:`Copy` icon to copy the *connection string* to your clipboard as
 shown below.
 
-.. figure:: /includes/figures/atlas_connection_copy_string.png
+.. figure:: /includes/figures/atlas_connection_copy_string_java.png
    :alt: Atlas Connection GUI connection string screen
 
 Save your Atlas connection string in a safe location that you can access
