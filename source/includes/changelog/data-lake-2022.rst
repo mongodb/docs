@@ -1,3 +1,21 @@
+.. _data-lake-v20220419:
+
+19 April 2022 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Supports the following new MongoDB 5.2 :ref:`aggregation operators 
+  <data-lake-agg-support>`:
+
+  - ``$sortArray``
+  - ``$topN``
+  - ``$bottomN``
+  - ``$maxN``
+  - ``$firstN``
+  - ``$lastN``
+   
+- Fixes a bug to allow you to use read preference for sharded clusters.
+
 .. _data-lake-v20220329:
 
 29 March 2022 Release
