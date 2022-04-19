@@ -28,17 +28,17 @@ other connection options.
 
 To retrieve your connection string for the cluster and user you created in
 the previous step, log into your Atlas account and navigate to the
-**Clusters** section and click the **Connect** button for the cluster that you
+:guilabel:`Database` section and click the :guilabel:`Connect` button for the cluster that you
 want to connect to as shown below.
 
 .. figure:: /includes/figures/atlas_connection_select_cluster.png
    :alt: Atlas Connection GUI cluster selection screen
 
-Proceed to the **Connect Your Application** step and select the Go
-driver. Then, click the **Copy** button to copy the *connection string*
+Proceed to the :guilabel:`Connect Your Application` step and select the Go
+driver. Then, click the :guilabel:`Copy` button to copy the *connection string*
 to your clipboard as shown below.
 
-.. figure:: /includes/figures/atlas_connection_copy_string.png
+.. figure:: /includes/figures/atlas_connection_copy_string_go.png
    :alt: Atlas Connection GUI connection string screen
 
 Save your Atlas connection string in a safe location that you can access
