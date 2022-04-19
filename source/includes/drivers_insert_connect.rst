@@ -21,12 +21,12 @@
               
            .. step:: Automap your class to the documents fields.
 
-              In C#, you map fields to class variables, which are uppercase
-              by convention. However, you should insert the data with camel
-              case fields. To make the driver automatically convert the
-              fields from uppercase to camel case, create a
-              ``ConventionPack`` and register the naming convention for
-              ``CamelCase``.
+              In C#, you map fields to class properties, which are
+              uppercase by convention. However, you should insert the
+              data with camel case fields. To make the driver
+              automatically convert the fields from uppercase to camel
+              case, create a ``ConventionPack`` and register the naming
+              convention for ``CamelCase``.
 
               .. literalinclude:: /includes/code/dotnet/CrudInsertCamelCase.cs
                  :caption: CrudInsert.cs

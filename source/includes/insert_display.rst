@@ -54,9 +54,9 @@
 
      - id: csharp
        content: |
-         
+       
          For insert operations, the C# driver automatically creates the
-         ``_id`` of documents that were successfully inserted. Here, you
+         ``_id`` of documents that are being inserted. Here, you
          access this property from the original array and print them.
 
          .. literalinclude:: /includes/code/dotnet/CrudInsertDisplay.cs
