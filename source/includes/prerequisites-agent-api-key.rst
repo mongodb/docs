@@ -5,7 +5,7 @@ The {+mdbagent+} requires one Agent |api| Key per project to communicate
 with the |application|.
 
 If you do not have an existing Agent |api| Key for your |mms| project,
-you need to create one:
+create one:
 
 1. Click :guilabel:`Deployment`.
 
