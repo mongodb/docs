@@ -10,9 +10,11 @@ import (
 )
 
 func main() {
-	var uri string
-	if uri = os.Getenv("DRIVER_REF_URI"); uri == "" {
-		log.Fatal("You must set your 'MONGODB_URI' environmental variable. See\n\t https://docs.mongodb.com/drivers/go/current/usage-examples/")
+	uri := "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority"
+
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		panic(err)
 	}
 
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))

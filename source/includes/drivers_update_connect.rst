@@ -76,7 +76,7 @@
             You'll make additions over the next few steps to insert data.
 
             At line 14, replace the URI string with your own
-            :ref:`Atlas connection string <guides-get-connection-string>`..
+            :ref:`Atlas connection string <guides-get-connection-string>`.
 
          .. literalinclude:: /includes/code/java/CrudUpdateConnect.java
             :caption: CrudUpdate.java
