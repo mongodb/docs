@@ -67,19 +67,33 @@ to your SELinux policy:
 
 #. Create a custom policy file :file:`mongodb_proc_net.te`:
 
-   .. code-block:: bash
+   .. code-block:: none
 
       cat > mongodb_proc_net.te <<EOF
       module mongodb_proc_net 1.0;
 
       require {
-          type proc_net_t;
+          type cgroup_t;
+          type configfs_t;
+          type file_type;
           type mongod_t;
-          class file { open read };
+          type proc_net_t;
+          type sysctl_fs_t;
+          type var_lib_nfs_t;
+
+          class dir { search getattr };
+          class file { getattr open read };
       }
 
       #============= mongod_t ==============
+      allow mongod_t cgroup_t:dir { search getattr } ;
+      allow mongod_t cgroup_t:file { getattr open read };
+      allow mongod_t configfs_t:dir getattr;
+      allow mongod_t file_type:dir { getattr search };
+      allow mongod_t file_type:file getattr;
       allow mongod_t proc_net_t:file { open read };
+      allow mongod_t sysctl_fs_t:dir search;
+      allow mongod_t var_lib_nfs_t:dir search;
       EOF
 
 #. Once created, compile and load the custom policy module by
