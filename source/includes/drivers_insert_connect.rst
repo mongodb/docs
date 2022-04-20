@@ -13,7 +13,7 @@
               The following class lists all the field names and types
               that your document will have.
 
-              .. literalinclude:: /includes/code/dotnet/CrudInsertClass.cs
+              .. literalinclude:: /includes/code/dotnet/CrudWriteOpsClass.cs
                  :caption: CrudInsert.cs
                  :language: csharp
                  :linenos:
@@ -28,7 +28,7 @@
               case, create a ``ConventionPack`` and register the naming
               convention for ``CamelCase``.
 
-              .. literalinclude:: /includes/code/dotnet/CrudInsertCamelCase.cs
+              .. literalinclude:: /includes/code/dotnet/CrudWriteOpsCamelCase.cs
                  :caption: CrudInsert.cs
                  :language: csharp
                  :linenos:

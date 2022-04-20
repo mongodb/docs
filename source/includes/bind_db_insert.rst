@@ -5,7 +5,7 @@
      - id: csharp
        content: |
 
-         .. literalinclude:: /includes/code/dotnet/CrudInsertSwitch.cs
+         .. literalinclude:: /includes/code/dotnet/CrudCometSwitch.cs
             :caption: CrudInsert.cs
             :language: csharp
             :dedent: 0
@@ -13,7 +13,7 @@
      - id: go
        content: |
 
-         .. literalinclude:: /includes/code/go/crud-insert-switch.go
+         .. literalinclude:: /includes/code/go/crud-comet-switch.go
             :caption: crud-insert.go
             :language: go
             :linenos:
@@ -22,7 +22,7 @@
      - id: java-sync
        content: |
 
-         .. literalinclude:: /includes/code/java/CrudInsertSwitch.java
+         .. literalinclude:: /includes/code/java/CrudCometSwitch.java
             :caption: CrudInsert.java
             :language: java
             :linenos:
@@ -31,7 +31,7 @@
      - id: nodejs
        content: |
 
-         .. literalinclude:: /includes/code/node/crud-insert-switch.js
+         .. literalinclude:: /includes/code/node/crud-comet-switch.js
             :caption: crud-insert.js
             :language: javascript
             :dedent: 0
@@ -39,7 +39,7 @@
      - id: python
        content: |
 
-         .. literalinclude:: /includes/code/python/crud_insert_switch.py
+         .. literalinclude:: /includes/code/python/crud_comet_switch.py
             :caption: crud_insert.py
             :language: python
             :dedent: 0
