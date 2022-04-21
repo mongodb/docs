@@ -1,3 +1,64 @@
+.. _atlas_20220420:
+
+20 April 2022 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports new |aws| :ref:`region <amazon-aws>`: ``ap-southeast-3`` 
+  (Jakarta, Indonesia).
+- Supports new |gcp| :ref:`region <google-gcp>`: ``southamerica-west1`` 
+  (Santiago, Chile).
+- Supports new |azure| :ref:`regions <microsoft-azure>`:
+ 
+  - ``australiacentral`` (Canberra, Australia)
+  - ``australiacentral2`` (Canberra, Australia)
+  - ``francesouth`` (Marseille, France)
+  - ``norwaywest`` (Stavanger, Norway)
+  - ``swedencentral`` (Gävle, Sweden)
+  - ``swedensouth`` (Staffanstrop, Sweden)
+  - ``southafricawest`` (Cape Town, South Africa)
+  - ``brazilsoutheast`` (Rio de Janeiro, Brazil)
+  - ``westus3`` (Arizona, USA)
+   
+- Introduces deploying Low-CPU |service| {+clusters+} into additional
+  |gcp| regions:
+ 
+  - ``europe-west3`` (Frankfurt, Germany)
+  - ``europe-west6`` (Zurich, Switzerland)
+  - ``northamerica-northeast1`` (Montreal, Canada)
+  - ``northamerica-northeast2`` (Toronto, Canada)
+  - ``asia-east2`` (Hong Kong, China)
+  - ``asia-northeast2`` (Osaka, Japan)
+  - ``asia-northeast3`` (Seoul, South Korea)
+  - ``asia-southeast2`` (Jakarta, Indonesia)
+  - ``europe-north1`` (Finland)
+  - ``asia-south1`` (Mumbai, India)
+  - ``southamerica-east1`` (São Paulo, Brazil)
+  - ``us-west3`` (Salt Lake City, UT, USA)
+  - ``us-west4`` (Las Vegas, NV, USA)
+   
+- Spreads newly deployed {+clusters+} in the following |azure| regions 
+  across three availability :ref:`availability zones 
+  <microsoft-azure-availability-zones>`:
+ 
+  - ``brazilsouth`` (São Paulo, Brazil)
+  - ``eastasia`` (Hong Kong, China)
+  - ``norwayeast`` (Oslo, Norway)
+  - ``centralindia`` (Pune, India)
+  - ``koreacentral`` (Seoul, South Korea)
+   
+- Spreads newly deployed {+clusters+} in the following |aws| regions 
+  across three :ref:`availability zones 
+  <amazon-aws-availability-zones>`:
+
+  - ``ca-central-1`` (Montreal, QC, Canada)
+  - ``ap-south-1`` (Mumbai, India)
+  - ``ap-northeast-2`` (Seoul, South Korea)
+  - ``sa-east-1`` (São Paulo, Brazil)
+  - ``ap-northeast-1`` (Tokyo, Japan)
+
+- Supports :ref:`online archive data expiration 
+  <config-online-archive>`. This feature is in preview.
+
 .. _atlas_20220331:
 
 31 March 2022 Release
