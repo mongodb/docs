@@ -1,7 +1,8 @@
-If you need guidance on upgrading to |newversion|, `MongoDB offers major version
-upgrade services
-<https://www.mongodb.com/products/consulting?tck=docs_server>`_ to help ensure
-a smooth transition without interruption to your MongoDB application.
+If you need guidance on upgrading to |newversion|, `MongoDB
+professional services
+<https://www.mongodb.com/products/consulting?tck=docs_server>`_
+offer major version upgrade support to help ensure a smooth transition
+without interruption to your MongoDB application.
 
 Upgrade Recommendations and Checklists
 --------------------------------------
