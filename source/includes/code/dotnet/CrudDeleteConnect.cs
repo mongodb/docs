@@ -18,7 +18,6 @@ var client = new MongoClient(uri);
 // class that represents the fields of a document in the
 // sample_guides.comets collection
 class Comet {
-    [BsonId]
     public ObjectId Id { get; set;  }
     public string Name { get; set; }
     public string OfficialName { get; set; }

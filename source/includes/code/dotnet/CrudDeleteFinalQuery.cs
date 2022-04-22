@@ -24,7 +24,6 @@ Console.WriteLine($"Number of documents deleted: {result.DeletedCount}");
 // class that maps to the fields of a document in the sample_guides.comets collection
 class Comet
 {
-    [BsonId]
     public ObjectId Id { get; set; }
     public string Name { get; set; }
     public string OfficialName { get; set; }
