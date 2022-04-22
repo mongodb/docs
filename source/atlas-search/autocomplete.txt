@@ -161,57 +161,44 @@ Options
      - no
      - ``any``
 
+Limitations 
+-----------
+
+The ``autocomplete`` operator query results that are exact matches 
+receive a lower score than results that aren't exact matches. |fts| 
+can't determine if a query string is an exact match for an indexed text 
+if you specify just the autocomplete-indexed token substrings. To score 
+exact matches higher, try the following workaround: 
+
+.. note::
+   
+   The following workaround doesn't guarantee higher scores for exact 
+   matches in all cases.
+
+1. Index the field as both :ref:`bson-data-types-autocomplete` and 
+   :ref:`bson-data-types-string` types.
+
+   |fts| ``autocomplete`` boosts exact matches when an ``autocomplete`` 
+   field is also indexed as a ``string``, thereby increasing the score 
+   of exact matches.
+
+#. Query using the :ref:`compound-ref` operator.
+
+For a demonstration of this workaround, see 
+:ref:`autocomplete-compound`.
+
 .. _autocomplete-ref-egs:
-
-----------
-
-.. |arrow| unicode:: U+27A4
-
-|arrow| Use the **Select your language** drop-down menu to set the 
-language of the examples on this page.
-
-----------
-
-.. tabs-selector:: drivers
 
 Examples
 --------
 
-The following examples use the ``movies`` collection in the ``sample_mflix`` 
-database. If you loaded the
-:ref:`sample dataset <available-sample-datasets>` on your cluster, you
-can create the static index for
-:ref:`autocompletion <bson-data-types-autocomplete>` and run
-the example queries on your cluster.
+The following examples use the ``movies`` collection in the 
+``sample_mflix`` database. If you loaded the :ref:`sample dataset 
+<available-sample-datasets>` on your {+cluster+}, you can create the 
+static index for :ref:`autocompletion <bson-data-types-autocomplete>` 
+and run the example queries on your cluster.
 
 .. include:: /includes/admonitions/get-started-atlas-search.rst
-
-.. tabs-drivers::
-
-   .. tab::
-      :tabid: shell
-
-      Run the following command at {+mongosh+} prompt to use the
-      ``sample_mflix`` database:
-
-      .. code-block:: shell
-
-         use sample_mflix
-
-   .. tab::
-      :tabid: compass
-
-   .. tab:: 
-      :tabid: go
-
-   .. tab:: 
-      :tabid: java-sync 
-
-   .. tab::
-      :tabid: nodejs
-
-   .. tab::
-      :tabid: python
 
 Index Definition
 ~~~~~~~~~~~~~~~~
@@ -222,7 +209,7 @@ The following tabs contain sample index definitions for the
 
 .. tabs::
 
-   .. tab:: edgeGram Index Definition
+   .. tab:: edgeGram 
       :tabid: edgeGram
 
       .. code-block:: json
@@ -245,7 +232,7 @@ The following tabs contain sample index definitions for the
            }
          }
 
-   .. tab:: rightEdgeGram Index Definition
+   .. tab:: rightEdgeGram 
       :tabid: rightEdgeGram
 
       .. code-block:: json
@@ -268,7 +255,7 @@ The following tabs contain sample index definitions for the
            }
          }
 
-   .. tab:: nGram Index Definition
+   .. tab:: nGram 
       :tabid: nGram
 
       .. code-block:: json
@@ -290,6 +277,44 @@ The following tabs contain sample index definitions for the
              }
            }
          }
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the example on this page.
+
+----------
+
+.. tabs-selector:: drivers
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      Run the following command at the {+mongosh+} prompt to use the
+      ``sample_mflix`` database:
+
+      .. code-block:: shell
+
+         use sample_mflix
+
+   .. tab::
+      :tabid: compass
+
+   .. tab:: 
+      :tabid: go
+
+   .. tab:: 
+      :tabid: java-sync 
+
+   .. tab::
+      :tabid: nodejs
+
+   .. tab::
+      :tabid: python
 
 .. _autocomplete-ref-egs-basic:
 
@@ -411,6 +436,8 @@ The query also includes a:
 
 - :pipeline:`$limit` stage to limit the output to 10 results.
 - :pipeline:`$project` stage to exclude all fields except ``title``.
+
+.. include:: /includes/fts-tutorial/autocomplete/different-results-note.rst
 
 .. tabs-drivers::
 
@@ -618,3 +645,158 @@ The query includes a:
       :tabid: python
 
       .. include:: /includes/fts-tutorial/autocomplete/highlight-output-py.rst
+
+.. _autocomplete-compound:
+
+Compound Example 
+~~~~~~~~~~~~~~~~
+
+The following index definition indexes the ``title`` field as both 
+:ref:`bson-data-types-autocomplete` and :ref:`bson-data-types-string` 
+types.
+
+.. tabs::
+
+   .. tab:: edgeGram 
+      :tabid: edgeGram
+
+      .. code-block:: json
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": [
+                 {
+                   "type": "autocomplete",
+                   "tokenization": "edgeGram",
+                   "minGrams": 3,
+                   "maxGrams": 7,
+                   "foldDiacritics": false
+                 },
+                 {
+                   "type": "string"
+                 }
+               ]
+             }
+           }
+         }
+
+   .. tab:: rightEdgeGram 
+      :tabid: rightEdgeGram
+
+      .. code-block:: json
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": [
+                 {
+                   "type": "autocomplete",
+                   "tokenization": "rightEdgeGram",
+                   "minGrams": 3,
+                   "maxGrams": 7,
+                   "foldDiacritics": false
+                 },
+                 {
+                   "type": "string"
+                 }
+               ]
+             }
+           }
+         }
+
+   .. tab:: nGram 
+      :tabid: nGram
+
+      .. code-block:: json
+         :linenos:
+
+         {
+           "mappings": {
+             "dynamic": false,
+             "fields": {
+               "title": [
+                 {
+                   "type": "autocomplete",
+                   "tokenization": "nGram",
+                   "minGrams": 3,
+                   "maxGrams": 7,
+                   "foldDiacritics": false
+                 }
+               ]
+             }
+           }
+         }
+
+The following query searches for the characters ``ball`` in the 
+``title`` field of the ``movies`` collection using the 
+:ref:`compound-ref` operator. The query specifies a preference for 
+documents that contain ``ballroom`` in the ``title`` field.
+
+The query includes a:
+
+- :pipeline:`$limit` stage to limit the output to 10 results.
+ 
+- :pipeline:`$project` stage to:
+
+  - return the document's score.
+ 
+  - exclude all fields except ``title``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/compound-eg-shell.js 
+         :language: js
+         :linenos:
+  
+      .. include:: /includes/fts-tutorial/autocomplete/compound-eg-output-shell-and-compass.rst
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/fts-tutorial/autocomplete/compound-eg-compass.rst 
+  
+      .. include:: /includes/fts-tutorial/autocomplete/compound-eg-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/compound-eg.go
+         :language: go
+         :linenos:
+  
+      .. include:: /includes/fts-tutorial/autocomplete/compound-eg-output-go.rst 
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/compound-eg.java
+         :language: java
+         :linenos:
+  
+      .. include:: /includes/fts-tutorial/autocomplete/compound-eg-output-java.rst 
+
+   .. tab::
+      :tabid: nodejs
+
+      .. literalinclude::  /includes/fts-tutorial/autocomplete/compound-eg.js 
+         :language: js
+         :linenos:
+  
+      .. include:: /includes/fts-tutorial/autocomplete/compound-eg-output-nodejs.rst
+
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/compound-eg.py
+         :language: python
+         :linenos:
+  
+      .. include:: /includes/fts-tutorial/autocomplete/compound-eg-output-py.rst
