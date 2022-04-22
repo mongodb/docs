@@ -24,7 +24,7 @@ async function run() {
     const result = await coll.deleteMany(doc);
 
     // amount deleted code goes here
-    console.log(result.deletedCount);
+    console.log("Number of documents deleted: " + result.deletedCount);
 
   } finally {
     // Ensures that the client will close when you finish/error

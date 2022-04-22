@@ -1,2 +1,2 @@
 // amount deleted code goes here
-console.log(result.deletedCount);
+console.log("Number of documents deleted: " + result.deletedCount);

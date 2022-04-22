@@ -13,8 +13,8 @@ coll = db.comets
 doc = {"$mul": {"Radius": 1.60934}}
 result = coll.update_many({}, doc)
 
-# amount updated code goes here
-print(result.modified_count)
+# display the results of your operation
+print("Number of documents updated: ", result.modified_count)
 
 # Close the connection to MongoDB when you're done.
 client.close()

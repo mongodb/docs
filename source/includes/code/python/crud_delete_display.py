@@ -1,2 +1,2 @@
 # amount deleted code goes here
-print(result.deleted_count)
+print("Number of documents deleted: ", result.deleted_count)

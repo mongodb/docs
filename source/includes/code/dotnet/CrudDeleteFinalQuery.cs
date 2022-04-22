@@ -18,11 +18,14 @@ var coll = db.GetCollection<Comet>("comets");
 // delete code goes here
 var result = coll.DeleteMany(x => x.OrbitalPeriod > 5 && x.OrbitalPeriod < 85);
 
-// class that represents the fields of a document in the
-// sample_guides.comets collection
-class Comet {
+// amount deleted code goes here
+Console.WriteLine($"Number of documents deleted: {result.DeletedCount}");
+
+// class that maps to the fields of a document in the sample_guides.comets collection
+class Comet
+{
     [BsonId]
-    public ObjectId Id { get; set;  }
+    public ObjectId Id { get; set; }
     public string Name { get; set; }
     public string OfficialName { get; set; }
     public double OrbitalPeriod { get; set; }

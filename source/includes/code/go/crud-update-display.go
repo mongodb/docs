@@ -1,2 +1,2 @@
-// amount update code goes here
-fmt.Println(result.ModifiedCount)
+// display the results of your operation
+fmt.Printf("Number of documents updated: %d", result.ModifiedCount)

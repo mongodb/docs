@@ -51,13 +51,8 @@ var comets = new[]
     }
 };
 
-coll.InsertMany(comets);
-
-// display the results of your operation
-foreach (var comet in comets)
-{
-    Console.WriteLine(comet.Id);
-}
+// amount deleted code goes here
+Console.WriteLine($"Number of documents deleted: {result.DeletedCount}");
 
 // class that represents the fields of a document in the
 // sample_guides.comets collection

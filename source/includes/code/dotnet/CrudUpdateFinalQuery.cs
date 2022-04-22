@@ -19,8 +19,8 @@ var filter = Builders<Comet>.Filter.Empty;
 var update = Builders<Comet>.Update.Mul("Radius", 1.60934);
 var result = coll.UpdateMany(filter, update);
 
-// amount updated code goes here
-Console.WriteLine(result.ModifiedCount);
+// display the results of your operation
+Console.WriteLine($"Number of documents updated: {result.ModifiedCount}");
 
 // class that maps to the fields of a document in the sample_guides.comets collection
 class Comet

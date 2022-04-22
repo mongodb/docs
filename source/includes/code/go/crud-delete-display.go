@@ -1,2 +1,2 @@
 // amount deleted code goes here
-fmt.Println(result.DeletedCount)
+fmt.Printf("Number of documents deleted: %d", result.DeletedCount)

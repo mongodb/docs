@@ -19,7 +19,7 @@ doc = {
 result = coll.delete_many(doc)
 
 # amount deleted code goes here
-print(result.deleted_count)
+print("Number of documents deleted: ", result.deleted_count)
 
 # Close the connection to MongoDB when you're done.
 client.close()

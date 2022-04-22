@@ -16,7 +16,7 @@
             .. output:: 
                :language: json
 
-               2
+               Number of documents deleted: 2
 
      - id: go
        content: |
@@ -32,7 +32,7 @@
             .. output::
                :language: json
 
-               2
+               Number of documents deleted: 2
 
      - id: java-sync
        content: |
@@ -48,7 +48,7 @@
             .. output::
                :language: json
 
-               2
+               Number of documents deleted: 2
 
      - id: nodejs
        content: |
@@ -64,7 +64,7 @@
             .. output::
                :language: json
 
-               2
+               Number of documents deleted: 2
 
      - id: python
        content: |
@@ -80,4 +80,4 @@
             .. output::
                :language: json
 
-               2
+               Number of documents deleted: 2

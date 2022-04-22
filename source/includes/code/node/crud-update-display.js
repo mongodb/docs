@@ -1,2 +1,2 @@
-// amount deleted code goes here
-console.log(result.modifiedCount);
+// display the results of your operation
+console.log("Number of documents updated: " + result.modifiedCount);

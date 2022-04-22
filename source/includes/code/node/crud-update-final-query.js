@@ -23,8 +23,8 @@ async function run() {
 
     const result = await coll.updateMany(filter, updateDoc);
 
-    // amount deleted code goes here
-    console.log(result.modifiedCount);
+    // display the results of your operation
+    console.log("Number of documents updated: " + result.modifiedCount);
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();

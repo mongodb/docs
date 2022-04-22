@@ -1,2 +1,2 @@
 // amount deleted code goes here
-Console.WriteLine(result.DeletedCount);
+Console.WriteLine($"Number of documents deleted: {result.DeletedCount}");

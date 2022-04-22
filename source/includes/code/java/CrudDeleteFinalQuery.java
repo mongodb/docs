@@ -22,7 +22,7 @@ public class CrudDelete {
             DeleteResult result = coll.deleteMany(filter);
             
             // amount deleted code goes here
-            System.out.println(result.getDeletedCount());
+            System.out.println("Number of documents deleted: " +result.getDeletedCount());
         }
     }
 }
