@@ -1,12 +1,12 @@
 Learn how to perform the following tasks using the Go driver in the
 Fundamentals section:
 
-- :doc:`Connect to MongoDB </fundamentals/connection>`
-- :doc:`How the Driver Uses Context </fundamentals/context>`
-- :doc:`Authenticate with MongoDB </fundamentals/auth>`
-- :doc:`Read from and Write to MongoDB </fundamentals/crud>`
-- :doc:`Work with BSON </fundamentals/bson>`
-- :doc:`Use a Time Series Collection </fundamentals/time-series>`
+- :ref:`Connect to MongoDB <golang-connection-guide>`
+- :ref:`How the Driver Uses Context <golang-context>`
+- :ref:`Authenticate with MongoDB <golang-authentication-mechanisms>`
+- :ref:`Read from and Write to MongoDB <golang-crud>`
+- :ref:`Work with BSON <golang-bson>`
+- :ref:`Use a Time Series Collection <golang-time-series>`
 
 .. - :doc:`Specify an API Version </fundamentals/versioned-api>`
 .. - :doc:`Use the Driver's Data Formats </fundamentals/data-formats>`
