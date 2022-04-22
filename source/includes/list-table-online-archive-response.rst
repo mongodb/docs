@@ -72,6 +72,19 @@
        :manual:`db.collection.find(query) 
        </reference/method/db.collection.find/>` command.
 
+   * - dataExpirationRule
+     - object
+     - Rule that specifies when data should be deleted from the 
+       archive. The data expiration rule takes effect only after 24 
+       hours.
+    
+   * - dataExpirationRule.expireAfterDays
+     - int 
+     - Number of days after which |service| must delete archived data. 
+       Value can be between ``7`` and ``9125`` days (25 years). 
+       |service| deletes archived data after the number of days you 
+       specify here.
+
    * - dbName
      - string
      - Name of the database that contains the collection.
