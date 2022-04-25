@@ -121,6 +121,30 @@
                   ``tar`` archive:
 
                   .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-tar.rst
+
+         .. tab:: ARM64
+            :tabid: arm64
+
+            On ARM64 architecture running RHEL 8.x or Amazon Linux 2 (managing MongoDB 4.4 or later deployments):
+
+            .. tabs::
+
+               .. tab:: RPM package
+                  :tabid: rpm
+
+                  .. include:: /includes/agents/binaries-removed-from-path.rst
+
+                  Running RHEL 8.x or Amazon Linux 2 using the rpm
+                  package manager (managing MongoDB 4.4 or later deployments):
+
+                  .. include:: /includes/steps/install-mongodb-agent-manage-arm64.rhel8-rpm.rst
+
+               .. tab:: TAR archive
+                  :tabid: tar
+
+                  Using a ``tar`` archive:
+
+                  .. include:: /includes/steps/install-mongodb-agent-manage-rhel8-arm64-tar.rst
    
    .. tab::
       :tabid: linux
