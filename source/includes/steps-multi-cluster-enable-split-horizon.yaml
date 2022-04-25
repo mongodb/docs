@@ -1,0 +1,165 @@
+---
+title: ":ref:`Deploy a Multi-Cluster Replica Set <multi-cluster-quick-start-ref>`."
+stepnum: 1
+level: 4
+ref: pre-deploy-replicaset
+content: |
+
+---
+title: ":ref:`Secure the Multi-Cluster with TLS <multi-cluster-secure-tls>`."
+level: 4
+stepnum: 2
+ref: enable-tls--replicaset
+content: |
+
+  Provide values for:
+
+  - The |tls| secret in :setting:`spec.security.certsSecretPrefix`.
+  - The custom |certauth| certificate in :setting:`spec.security.tls.ca`.
+
+---
+title: "Add Subject Alternate Names to your |tls| certificates."
+level: 4
+stepnum: 3
+ref: remove-tls-existing-replicasets
+content: |
+
+  Add each external |dns| name to the certificate |san-dns|.
+
+---
+title: "Create a ``NodePort`` service for each of the Pods in different clusters."
+level: 4
+stepnum: 4
+ref: k8s-ext-rs-create-nodeports
+content: |
+
+  When you create a ``NodePort`` service with ``kubectl``, it assigns a
+  random port in the range from 30000 to 32767, inclusive.
+
+  1. Create a NodePort service.
+
+     - To create a NodePort service that uses a randomly assigned port, run
+       the following command on each Pod in each cluster:
+
+       .. code-block:: sh
+
+          kubectl expose pod/<my-replica-set>-0 --type="NodePort" --port 27017
+
+     - To create a NodePort service that uses a deterministic port, on each
+       Pod in each cluster, create a ``Nodeport`` service definition YAML
+       file similar to the following example. Specify the port you want
+       to use in the :setting:`spec.ports.NodePort` setting. This example
+       configures a NodePort service on port 30007.
+
+       .. code-block:: yaml
+
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: <my-replica-set>-0
+            labels:
+              controller: mongodb-enterprise-operator
+          spec:
+            type: NodePort
+            selector:
+              controller: mongodb-enterprise-operator
+            ports:
+              port: 27017
+              targetPort: 27017
+              nodePort: 30007
+
+
+       Apply the YAML with ``kubectl apply -f <nodeport-conf>.yaml``.
+
+---
+title: "Verify the NodePort services."
+level: 4
+stepnum: 5
+ref: k8s-ext-rs-discover-nodeports
+content: |
+
+  In each cluster, run this command to verify the NodePort services that
+  you created:
+
+  .. code-block:: sh
+
+     $ kubectl get svc <node_port_service_name>
+
+  The command returns results similar to the following example:
+
+  .. code-block:: sh
+
+     NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
+     <node_port_service_name>   NodePort    10.102.27.116   <none>        27017:30007/TCP   8m30s
+
+---
+title: "Update your replica set resource |yaml| file."
+level: 4
+stepnum: 6
+ref: update-replset-resource-mc-split-horizon
+content: |
+
+  Set the hostnames and ports in :setting:`spec.connectivity.replicaSetHorizons`
+  to the NodePort values that you created in the previous step.
+
+  Confirm that you specified the correct external hostnames. External
+  hostnames should match the |dns| names of |k8s| worker nodes.
+  These can be *any* nodes in the |k8s| cluster. If the Pod runs on another
+  node, |k8s| nodes use internal routing.
+
+  .. code-block:: sh
+
+     apiVersion: mongodb.com/v1
+      kind: MongoDBMulti
+      metadata:
+       name: multi-cluster-replica-set
+       namespace: mongodb
+      spec:
+       clusterSpecList:
+        clusterSpecs:
+        - clusterName: e2e.cluster1.mongokubernetes.com
+          members: 1
+        - clusterName: e2e.cluster2.mongokubernetes.com
+          members: 1
+        - clusterName: e2e.cluster3.mongokubernetes.com
+          members: 1
+       connectivity:
+        replicaSetHorizons:
+        - sample-horizon: web1.example.com:30907
+        - sample-horizon: web2.example.com:30907
+        - sample-horizon: web3.example.com:30907
+       credentials: my-credentials
+       duplicateServiceObjects: false
+       opsManager:
+        configMapRef:
+         name: my-project
+       persistent: true
+       security:
+        certsSecretPrefix: clustercert
+        tls:
+          ca: issuer-ca
+       type: ReplicaSet
+       version: 4.4.0-ent"
+
+---
+title: "Apply the updated replica set file."
+level: 4
+stepnum: 7
+ref: apply-crd
+content: |
+
+  In each cluster, run this command to apply the updated replica set file:
+
+  .. code-block:: sh
+
+     $ Kubectl apply -f <file_name.yaml>
+
+---
+level: 4
+stepnum: 8
+ref: k8s-ext-rs-test-conn-horizon-mc
+inherit:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: k8s-ext-rs-test-conn
+
+...

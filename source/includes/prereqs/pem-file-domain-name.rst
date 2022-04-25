@@ -2,8 +2,7 @@ Each certificate should include a valid Domain Name.
 
 For each replica set or sharded cluster member, the Common Name, also
 known as the Domain Name, for that member's certificate must match
-the |fqdn| of the POD on which this cluster member
-is deployed.
+the |fqdn| of the pod this cluster member is deployed on.
 
 The |fqdn| name in each certificate has the following syntax:
 ``pod-name.service-name.namespace.svc.cluster.local``. This name is
