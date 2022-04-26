@@ -1,14 +1,20 @@
 Add the MongoDB .NET/C# driver using ``NuGet``. Use `MongoDB.Driver <https://www.nuget.org/packages/mongodb.driver>`__
 for all new projects.
 
-- .NET CLI ::
+- .NET CLI
 
-   dotnet add package MongoDB.Driver --version {+full-dotnet-version+}
+  .. code-block:: sh
 
-- Package Manager ::
+     dotnet add package MongoDB.Driver --version {+full-dotnet-version+}
 
-   PM > Install-Package MongoDB.Driver -Version {+full-dotnet-version+}
+- Package Manager
 
-- Package Reference ::
+  .. code-block:: sh
 
-   <PackageReference Include=MongoDB.Driver" Version="{+full-dotnet-version+}" />
+     PM > Install-Package MongoDB.Driver -Version {+full-dotnet-version+}
+
+- Package Reference
+
+  .. code-block:: sh
+
+     <PackageReference Include=MongoDB.Driver" Version="{+full-dotnet-version+}" />
