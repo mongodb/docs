@@ -1,0 +1,408 @@
+.. _deploy-prometheus:
+
+========================================
+Deploy a Resource to Use with Prometheus
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use the :ref:`mongodb-prometheus-sample.yaml 
+<mdb-prometheus-sample>` file to deploy a MongoDB resource in your
+|k8s| cluster, with a :github:`ServiceMonitor 
+</prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>`
+to indicate to Prometheus how to consume metrics data from 
+it.
+
+The sample specifies a simple MongoDB resource with one user,
+and the :setting:`spec.prometheus` attribute with basic HTTP 
+authentication and no |tls|. The sample lets you test
+the metrics that MongoDB sends to Prometheus.
+
+Quick Start
+-----------
+
+We tested this setup with version 0.54 of the 
+:github:`Prometheus Operator 
+</prometheus-operator/prometheus-operator>`.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+* Kubernetes 1.16+
+* Helm 3+
+
+Install the Prometheus Operator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can install the Prometheus Operator using Helm. To learn 
+more, see the :github:`installation instructions
+</prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack#kube-prometheus-stack>`.
+
+To install the Prometheus Operator using Helm, run the 
+following commands:
+
+.. code-block:: sh
+
+   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+.. code-block:: sh
+
+   helm repo update
+
+.. code-block:: sh
+
+   helm install prometheus prometheus-community/kube-prometheus-stack \ 
+     --namespace <prometheus-system> \   
+     --create-namespace
+
+Install the |k8s-op-full|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Run the following command to install the |k8s-op-short| and create a 
+namespace to contain the |k8s-op-short| and resources:
+
+.. code-block:: sh
+
+   helm install enterprise-operator mongodb/enterprise-operator \ 
+     --namespace <mongodb> --create-namespace
+
+To learn more, see :ref:`install-k8s`.
+
+Create a MongoDB Resource
+-------------------------
+
+You can use the :ref:`mongodb-prometheus-sample.yaml 
+<mdb-prometheus-sample>` file to deploy a MongoDB resource in your
+|k8s| cluster, with a :github:`ServiceMonitor
+</prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>`
+to indicate to Prometheus how to consume metrics data from 
+it.
+
+You can apply the sample directly with the following command:
+
+.. note::
+
+   Specify the full path to the :ref:`mongodb-prometheus-sample.yaml 
+   <mdb-prometheus-sample>` file. Ensure you specify 
+   :setting:`spec.credentials` and 
+   :setting:`spec.cloudManager.configMapRef.name`.
+
+.. code-block:: sh
+
+   kubectl apply -f <mongodb-prometheus-sample.yaml>
+
+This command creates two |k8s-secrets| that contain authentication 
+for a new MongoDB user and basic HTTP authentication for the 
+Prometheus endpoint. The command creates both |k8s-secrets| in the 
+`mongodb` namespace.
+
+This command also creates a :github:`ServiceMonitor
+</prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>` that 
+configures Prometheus to consume this resource's metrics. This command 
+creates the ``ServiceMonitor`` in the ``prometheus-system``
+namespace.
+
+Optional: Enable TLS on the Prometheus Endpoint
+-----------------------------------------------
+
+Install Cert-Manager
+~~~~~~~~~~~~~~~~~~~~
+
+1. To install `cert-manager <https://cert-manager.io/>`_ using Helm, 
+   see the `cert-manager installation documentation
+   <https://cert-manager.io/docs/installation/helm/>`_.
+
+#. To create a cert-manager ``Issuer``, see the 
+   `cert-manager configuration documentation 
+   <https://cert-manager.io/docs/configuration/>`_
+   
+#. To create a certificate, see the `cert-manager usage documentation 
+   <https://cert-manager.io/docs/usage/>`_.
+
+Enable TLS on the MongoDB CRD
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+    
+   Do **NOT** use this configuration in Production 
+   environments! A security expert should advise you about how to 
+   configure |tls|.
+
+To enable |tls|, you must add a new entry to the
+:setting:`spec.prometheus` section of the MongoDB custom resource. Run 
+the following :k8sdocs:`patch 
+</tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/>`
+operation to add the needed entry.
+
+.. note:: 
+
+   :setting:`tlsSecretKeyRef.name` points at a |k8s-secret| of type 
+   ``kubernetes.io/tls`` that holds a **Server certificate**.
+
+.. code-block:: sh
+
+   kubectl patch mdbc mongodb --type='json' \
+     -p='[{"op": "add", "path": "/spec/prometheus/tlsSecretKeyRef", "value":{"name": "prometheus-target-cert"}}]' \
+     --namespace mongodb
+
+The following response appears:
+
+.. code-block:: sh
+
+   mongodbenterprise.mongodbenterprise.mongodb.com/mongodb patched
+
+After a few minutes, the MongoDB resource should return to the 
+Running phase. Now you must configure the Prometheus 
+:github:`ServiceMonitor </prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>`
+to point to the HTTPS endpoint.
+
+Update ServiceMonitor
+~~~~~~~~~~~~~~~~~~~~~
+
+To update the :github:`ServiceMonitor
+</prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>`, run 
+the following command to patch the resource again:
+
+.. code-block:: sh
+    
+   kubectl patch servicemonitors mongodb-sm --type='json' \
+       -p='
+   [
+       {"op": "replace", "path": "/spec/endpoints/0/scheme", "value": "https"},
+       {"op": "add",     "path": "/spec/endpoints/0/tlsConfig", "value": {"insecureSkipVerify": true}}
+   ]
+   ' \
+       --namespace mongodb
+
+The following reponse appears:
+
+.. code-block:: sh
+
+   servicemonitor.monitoring.coreos.com/mongodb-sm patched
+
+With these changes, the new :github:`ServiceMonitor
+</prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>` 
+points to the HTTPS endpoint (defined in 
+``/spec/endpoints/0/scheme``). You also set 
+``spec/endpoints/0/tlsConfig/insecureSkipVerify`` to ``true``, 
+so that Prometheus doesn't verify the |tls| certificates on 
+MongoDB's end.
+
+Prometheus should now be able to scrape the MongoDB target 
+using HTTPS.
+
+.. _mdb-prometheus-sample:
+
+``mongodb-prometheus-sample.yaml``
+----------------------------------
+
+Create the following ``mongodb-prometheus-sample.yaml`` file to deploy 
+a MongoDB resource in your |k8s| cluster, with a 
+:github:`ServiceMonitor </prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>`
+to indicate to Prometheus how to consume metrics data from 
+it.
+
+This sample file specifies a simple MongoDB resource with one user,
+and the :setting:`spec.prometheus` attribute with basic HTTP 
+authentication and no |tls|. The sample lets you test
+the metrics that MongoDB sends to Prometheus.
+
+To learn more, see :ref:`prometheus-settings`.
+
+.. code-block:: sh
+
+   ---
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-replica-set
+   spec:
+     members: 3
+     version: 5.0.6-ent
+ 
+     cloudManager:
+       configMapRef:
+         name: <project-configmap>
+ 
+     credentials: <credentials-secret>
+     type: ReplicaSet
+ 
+     persistent: true
+ 
+     prometheus:
+       passwordSecretRef:
+         # SecretRef to a Secret with a 'password' entry on it.
+         name: metrics-endpoint-password
+ 
+       # change this value to your Prometheus username
+       username: prometheus-username
+ 
+       # Enables HTTPS on the prometheus scrapping endpoint
+       # This should be a reference to a Secret type kuberentes.io/tls
+       # tlsSecretKeyRef:
+       #   name: <prometheus-tls-cert-secret>
+ 
+       # Port for Prometheus, default is 9216
+       # port: 9216
+       #
+       # Metrics path for Prometheus, default is /metrics
+       # metricsPath: '/metrics'
+
+   ---
+   apiVersion: monitoring.coreos.com/v1
+   kind: ServiceMonitor
+   metadata:
+ 
+     # This needs to match `spec.ServiceMonitorSelector.matchLabels` from your
+     # `prometheuses.monitoring.coreos.com` resouce.
+     labels:
+       release: prometheus
+ 
+     name: mongodb-sm
+ 
+     # Make sure this namespace is the same as in `spec.namespaceSelector`.
+     namespace: mongodb
+   spec:
+     endpoints:
+ 
+     # Configuring a Prometheus Endpoint with basic Auth.
+     # `prom-secret` is a Secret containing a `username` and `password` entries.
+     - basicAuth:
+         password:
+           key: password
+           name: metrics-endpoint-creds
+         username:
+           key: username
+           name: metrics-endpoint-creds
+ 
+       # This port matches what we created in our MongoDB Service.
+       port: prometheus
+ 
+       # If using HTTPS enabled endpoint, change scheme to https
+       scheme: http
+ 
+       # Configure different TLS related settings. For more information, see:
+       # https://github.com/prometheus-operator/prometheus-operator/blob/main/pkg/apis/monitoring/v1/types.go#L909
+       # tlsConfig:
+       #    insecureSkipVerify: true
+ 
+     # What namespace to watch
+     namespaceSelector:
+       matchNames:
+       # Change this to the namespace the MongoDB resource was deployed.
+       - mongodb
+ 
+     # Service labels to match
+     selector:
+       matchLabels:
+         app: my-replica-set-svc
+ 
+   ---
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: metrics-endpoint-creds
+     namespace: mongodb
+   type: Opaque
+   stringData:
+     password: 'Not-So-Secure!'
+     username: prometheus-username
+
+   ...
+
+Examples
+--------
+
+The following examples show the resource definitions required to use 
+Prometheus with your MongoDB resource.
+
+.. _mdb-resource-prometheus:
+
+MongoDB Resource with Prometheus
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To learn more, see :ref:`prometheus-settings`.
+
+.. code-block:: sh
+
+   ---
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-replica-set
+   spec:
+     members: 3
+     version: 5.0.6-ent 
+     cloudManager:
+       configMapRef:
+         name: <project-configmap>
+     credentials: <credentials-secret>
+     type: ReplicaSet
+     persistent: true
+     prometheus:
+       passwordSecretRef:
+         name: metrics-endpoint-password
+       username: prometheus-username
+
+   ...
+
+.. _prometheus-servicemonitor:
+
+ServiceMonitor
+~~~~~~~~~~~~~~
+
+.. code-block:: sh
+
+   ---
+   apiVersion: monitoring.coreos.com/v1
+   kind: ServiceMonitor
+   metadata:
+     labels:
+       release: prometheus
+     name: mongodb-sm
+     namespace: mongodb
+   spec:
+     endpoints:
+     - basicAuth:
+         password:
+           key: password
+           name: metrics-endpoint-creds
+         username:
+           key: username
+           name: metrics-endpoint-creds
+       port: prometheus
+       scheme: http
+     namespaceSelector:
+       matchNames:
+       - mongodb
+     selector:
+       matchLabels:
+         app: my-replica-set-svc
+
+   ...
+
+.. _prometheus-endpoint-creds:
+
+Endpoint Credentials
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: sh
+
+   ---
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: metrics-endpoint-creds
+     namespace: mongodb
+   type: Opaque
+   stringData:
+     password: 'Not-So-Secure!'
+     username: prometheus-username
+
+   ...
