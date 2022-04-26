@@ -1,6 +1,6 @@
 .. code-block:: groovy
 
    dependencies {
-       compile 'org.mongodb:mongodb-crypt:1.2.0'
+       compile 'org.mongodb:mongodb-crypt:{+mongocrypt-version+}'
    }
 
