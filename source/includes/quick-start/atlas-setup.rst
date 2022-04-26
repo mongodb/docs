@@ -44,6 +44,6 @@ to your clipboard as shown below.
 Save your Atlas connection string in a safe location that you can access
 for the next step.
 
-For more information on conencting to the Go driver through Atlas, see
+To learn more about conencting to the Go driver through Atlas, see
 the :atlas:`Atlas driver connection guide </driver-connection>`
 and select **Go** from the *Select your language* dropdown.
