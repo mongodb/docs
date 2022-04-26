@@ -98,19 +98,43 @@
 
 :icon-fa4:`times-circle` Unavailable in the following regions:
 
-- **SOUTH_AMERICA_EAST_1**
-- **EUROPE_WEST_3**
-- **NORTHEASTERN_ASIA_PACIFIC**
-- **AUSTRALIA_SOUTHEAST_1**
+- ``AUSTRALIA_SOUTHEAST_1``
+- ``EUROPE_WEST_3``
+- ``NORTHEASTERN_ASIA_PACIFIC``
+- ``SOUTH_AMERICA_EAST_1``
 
-:icon-fa4:`exclamation-circle` |service| limits **R**-class instances to the following
-regions:
+:icon-fa4:`exclamation-circle` |service| limits **R**-class instances 
+to the following regions:
 
-- **asia-east1**
-- **asia-northeast1**
-- **asia-southeast1**
-- **europe-west1**
-- **europe-west2**
-- **europe-west4**
-- **us-central1**
-- **us-west1**
+Americas
+~~~~~~~~
+
+- ``CENTRAL_US``
+- ``WESTERN_US``
+- ``US_WEST_3``
+- ``US_WEST_4``
+- ``NORTH_AMERICA_NORTHEAST_1``
+- ``NORTH_AMERICA_NORTHEAST_2``
+- ``SOUTH_AMERICA_EAST_1``
+
+Asia Pacific
+~~~~~~~~~~~~
+
+- ``ASIA_EAST_2``
+- ``ASIA_NORTHEAST_2``
+- ``ASIA_NORTHEAST_3``
+- ``ASIA_SOUTH_1``
+- ``ASIA_SOUTHEAST_2``
+- ``EASTERN_ASIA_PACIFIC``
+- ``NORTHEASTERN_ASIA_PACIFIC``
+- ``SOUTHEASTERN_ASIA_PACIFIC``
+
+Europe
+~~~~~~
+
+- ``WESTERN_EUROPE``
+- ``EUROPE_NORTH_1``
+- ``EUROPE_WEST_2``
+- ``EUROPE_WEST_3``
+- ``EUROPE_WEST_4``
+- ``EUROPE_WEST_6``
