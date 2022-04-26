@@ -5,28 +5,29 @@
      - id: go
        content: |
 
-         To install the Go driver, see the :ref:`Go Driver documentation <go-quickstart>`.
+         .. include:: /includes/crud/install/go.rst
 
      - id: python
        content: |
-         To install Pymongo, see the `Pymongo  documentation
-         <https://pymongo.readthedocs.io/en/stable/installation.html>`__.
+
+         .. include:: /includes/crud/install/python.rst
 
 
      - id: java-sync
        content: |
-         To install the Java driver, see the :ref:`Java Driver documentation
-         <java-sync-quickstart>`.
+
+
+         .. include:: /includes/crud/install/java.rst
 
      - id: nodejs
        content: |
-          To install the Node.js driver, see the :ref:`Node.js Driver documentation
-          <node-quickstart>`.
+
+         .. include:: /includes/crud/install/node.rst
 
      - id: csharp
        content: |
-         To install the C#/.NET driver, see the `C# Driver documentation
-         <http://mongodb.github.io/mongo-csharp-driver/>`__
+
+         .. include:: /includes/crud/install/csharp.rst
 
 ..
   # - id: motor
