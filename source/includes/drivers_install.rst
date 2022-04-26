@@ -27,7 +27,7 @@
      - id: csharp
        content: |
 
-         .. include:: /includes/crud/install/csharp.rst
+         .. include:: /includes/crud/install/csharp-versioned.rst
 
 ..
   # - id: motor
