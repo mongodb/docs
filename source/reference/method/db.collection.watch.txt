@@ -106,8 +106,16 @@ Definition
           :method:`~db.collection.watch()` returns a ``fullDocument`` field with
           the document lookup in addition to the ``updateDescription`` delta.
           
-          
-   
+          .. include:: /includes/change-stream-pre-and-post-images-full-document.rst
+
+
+      * - ``fullDocumentBeforeChange``   
+        - string
+        - Optional.
+
+          .. include:: /includes/change-stream-pre-and-post-images-full-document-before-change.rst
+
+
       * - ``batchSize``
    
         - int
@@ -313,6 +321,202 @@ stream update event <change-streams-update-event>`.
 
 For complete documentation on change stream output, see
 :ref:`change-stream-output`.
+
+.. _db.collection.watch-change-streams-pre-and-post-images-example:
+
+Change Streams with Document Pre- and Post-Images
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/change-stream-pre-and-post-images-introduction.rst
+
+.. include:: /includes/change-stream-pre-and-post-images-additional-information.rst
+
+Create Collection
+`````````````````
+
+Create a ``temperatureSensor`` collection that has
+:ref:`changeStreamPreAndPostImages
+<db.createCollection.changeStreamPreAndPostImages>` enabled:
+
+.. code-block:: javascript
+
+   db.createCollection(
+      "temperatureSensor",
+      { changeStreamPreAndPostImages: { enabled: true } }
+   )
+
+Populate the ``temperatureSensor`` collection with temperature readings:
+
+.. code-block:: javascript
+
+   db.temperatureSensor.insertMany( [
+      { "_id" : 0, "reading" : 26.1 },
+      { "_id" : 1, "reading" : 25.9 },
+      { "_id" : 2, "reading" : 24.3 },
+      { "_id" : 3, "reading" : 22.4 },
+      { "_id" : 4, "reading" : 24.6 }
+   ] )
+
+The following sections show change stream examples for document pre- and
+post-images that use the ``temperatureSensor`` collection.
+
+Change Stream with Document Pre-Image
+`````````````````````````````````````
+
+You use the ``fullDocumentBeforeChange: "whenAvailable"`` setting to
+output the document pre-image, if available. The pre-image is the
+document before it was replaced, updated, or deleted. There is no
+pre-image for an inserted document.
+
+The following example creates a change stream cursor for the
+``temperatureSensor`` collection using ``fullDocumentBeforeChange:
+"whenAvailable"``:
+
+.. code-block:: javascript
+
+   watchCursorFullDocumentBeforeChange = db.temperatureSensor.watch(
+      [],
+      { fullDocumentBeforeChange: "whenAvailable" }
+   )
+
+The following example uses the cursor to check for new change stream
+events:
+
+.. code-block:: javascript
+
+   while ( !watchCursorFullDocumentBeforeChange.isClosed() ) {
+      if ( watchCursorFullDocumentBeforeChange.hasNext() ) {
+         printjson( watchCursorFullDocumentBeforeChange.next() );
+      }
+   }
+
+.. include:: /includes/change-stream-pre-and-post-images-example-cursor-methods.rst
+
+The following example updates the ``reading`` field for a
+``temperatureSensor`` document:
+
+.. code-block:: javascript
+
+   db.temperatureSensor.updateOne(
+      { _id: 2 },
+      { $set: { reading: 22.1 } }
+   )
+
+After the ``temperatureSensor`` document is updated, the change event
+outputs the document pre-image in the ``fullDocumentBeforeChange``
+field. The pre-image contains the ``temperatureSensor`` document
+``reading`` field before it was updated. For example:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : {
+         "_data" : "82624B21...",
+         "_typeBits" : BinData(0,"QA==")
+      },
+      "operationType" : "update",
+      "clusterTime" : Timestamp(1649090957, 1),
+      "ns" : {
+         "db" : "test",
+         "coll" : "temperatureSensor"
+      },
+      "documentKey" : {
+         "_id" : 2
+      },
+      "updateDescription" : {
+         "updatedFields" : {
+            "reading" : 22.1
+         },
+         "removedFields" : [ ],
+         "truncatedArrays" : [ ]
+      },
+      "fullDocumentBeforeChange" : {
+         "_id" : 2,
+         "reading" : 24.3
+      }
+   }
+
+.. include:: /includes/change-stream-pre-and-post-images-output.rst
+
+Change Stream with Document Post-Image
+``````````````````````````````````````
+
+You use the ``fullDocument: "whenAvailable"`` setting to output the
+document post-image, if available. The post-image is the document after
+it was inserted, replaced, or updated. There is no post-image for a
+deleted document.
+
+The following example creates a change stream cursor for the
+``temperatureSensor`` collection using ``fullDocument:
+"whenAvailable"``:
+
+.. code-block:: javascript
+
+   watchCursorFullDocument = db.temperatureSensor.watch(
+      [],
+      { fullDocument: "whenAvailable" }
+   )
+
+The following example uses the cursor to check for new change stream
+events:
+
+.. code-block:: javascript
+
+   while ( !watchCursorFullDocument.isClosed() ) {
+      if ( watchCursorFullDocument.hasNext() ) {
+         printjson( watchCursorFullDocument.next() );
+      }
+   }
+
+.. include:: /includes/change-stream-pre-and-post-images-example-cursor-methods.rst
+
+The following example updates the ``reading`` field for a
+``temperatureSensor`` document:
+
+.. code-block:: javascript
+
+   db.temperatureSensor.updateOne(
+      { _id: 1 },
+      { $set: { reading: 29.5 } }
+   )
+
+After the ``temperatureSensor`` document is updated, the change event
+outputs the document post-image in the ``fullDocument`` field. The
+post-image contains the ``temperatureSensor`` document ``reading`` field
+after it was updated. For example:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      "_id" : {
+         "_data" : "8262474D...",
+         "_typeBits" : BinData(0,"QA==")
+      },
+      "operationType" : "update",
+      "clusterTime" : Timestamp(1648840090, 1),
+      "fullDocument" : {
+         "_id" : 1,
+         "reading" : 29.5
+      },
+      "ns" : {
+         "db" : "test",
+         "coll" : "temperatureSensor"
+      },
+      "documentKey" : {
+         "_id" : 1
+      },
+      "updateDescription" : {
+         "updatedFields" : {
+            "reading" : 29.5
+         },
+         "removedFields" : [ ],
+         "truncatedArrays" : [ ]
+      }
+   }
+
+.. include:: /includes/change-stream-pre-and-post-images-output.rst
 
 Change Stream with Aggregation Pipeline Filter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
