@@ -116,16 +116,30 @@ The results consist of those documents that do not contain the field
 Use a Sparse Index to Improve ``$exists`` Performance 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following scenario is not optimal because all of the collection's
-documents are examined:
+The following table compares ``$exists`` query performance using sparse 
+and non-sparse indexes:
 
-- You use a query to retrieve or count documents, and
-- use ``field: { $exists: true }``, and
-- the ``field`` has a non-:ref:`sparse index <index-type-sparse>` or
-  does not have an index.
+.. list-table::
+   :widths: 20,30,30
+   :header-rows: 1
 
-To improve performance, create a :ref:`sparse index <index-type-sparse>`
-on the ``field`` as shown in the following scenario:
+   * - ``$exists`` Query
+     - Using a Sparse Index
+     - Using a Non-Sparse Index
+   * - ``{ $exists: true }``
+     - Most efficient. MongoDB can make an exact match and does not
+       require a ``FETCH``.
+     - More efficient than queries without an index, but still requires 
+       a ``FETCH``.
+   * - ``{ $exists: false }``
+     - Cannot use the index and requires a ``COLLSCAN``.
+     - Requires a ``FETCH``.
+
+Queries that use ``{ $exists: true }`` on fields that use a non-sparse 
+index or that use ``{ $exists: true }`` on fields that are not indexed
+examine all documents in a collection. To improve performance, create 
+a :ref:`sparse index <index-type-sparse>` on the ``field`` as shown in 
+the following scenario:
 
 #. Create a ``stockSales`` collection:
 
