@@ -5,6 +5,7 @@
    :class: compatibility-large
 
    * - Motor (Python async) Driver Version
+     - Python 3.10
      - Python 3.9
      - Python 3.8
      - Python 3.7
@@ -17,7 +18,21 @@
      - Python 2.6
      - Python 2.5
 
+   * - 3.0
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
    * - 2.5
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -37,6 +52,7 @@
      - |checkmark|
      - |checkmark|
      - |checkmark|
+     - |checkmark|
      -
      -
      -
@@ -45,6 +61,7 @@
      -
 
    * - 2.3
+     -
      -
      - |checkmark|
      - |checkmark|
@@ -59,6 +76,7 @@
 
    * - 2.2
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -71,6 +89,7 @@
      -
 
    * - 2.1
+     -
      -
      - |checkmark|
      - |checkmark|
@@ -86,6 +105,7 @@
    * - 2.0
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -99,6 +119,7 @@
    * - 1.3
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -110,6 +131,7 @@
      -
 
    * - 1.2
+     -
      -
      -
      - |checkmark|
@@ -126,6 +148,7 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -139,6 +162,7 @@
      -
      -
      -
+     -
      - |checkmark|
      - |checkmark|
      - |checkmark|
@@ -148,11 +172,14 @@
      - |checkmark|
      -
 
+- Motor 3.0 wraps PyMongo 4.1+
 - Motor 2.4 wraps PyMongo 3.11+
 - Motor 2.3 wraps PyMongo 3.11+
 - Motor 2.2 wraps PyMongo 3.11+
 - Motor 2.1 wraps PyMongo 3.10+
 - Motor 2.0 wraps PyMongo 3.7+
+- Motor 1.3 wraps PyMongo 3.6+ and adds support for CPython 3.7
+- Motor 1.2 wraps PyMongo 3.6+
 - Motor 1.1 wraps PyMongo 3.4+
 - Motor 1.0 wraps PyMongo 3.3+
 
