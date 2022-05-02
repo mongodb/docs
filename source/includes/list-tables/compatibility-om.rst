@@ -5,6 +5,12 @@
    * - |k8s-op-short| Release Series
      - |onprem| Version
 
+   * - 1.16.x
+     - 4.4, 5.0
+
+   * - 1.15.x
+     - 4.4, 5.0
+
    * - 1.14.x
      - 4.4, 5.0
   
