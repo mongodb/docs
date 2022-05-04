@@ -21,7 +21,7 @@
 
          For more information on the MongoDB Compass Query Bar, see the
          Compass
-         `Query Bar <https://docs.mongodb.com/compass/master/query-bar/>`_
+         :compass:`Query Bar </query-bar>`
          documentation.
 
      - id: python

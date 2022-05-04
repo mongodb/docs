@@ -74,7 +74,7 @@
          This page provides examples of |query_operations| using the
          :phpmethod:`MongoDB\\Collection::find() <phpmethod.MongoDB\\Collection::find>`
          method in the
-         `MongoDB PHP Library <https://docs.mongodb.com/php-library/master/>`_.
+         `MongoDB PHP Library <https://www.mongodb.com/docs/drivers/php-libraries/>`_.
          The examples on this page use the ``inventory`` collection. To
          populate the ``inventory`` collection, run the following:
 
@@ -92,7 +92,7 @@
          This page provides examples of |query_operations| using the
          :ruby-api:`Mongo::Collection#find()<Collection.html#find-instance_method>`
          method in the
-         `MongoDB Ruby Driver <https://docs.mongodb.com/ruby-driver/master/>`_.
+         :ruby:`MongoDB Ruby Driver </>`.
          The examples on this page use the ``inventory`` collection. To
          populate the ``inventory`` collection, run the following:
 
