@@ -15,7 +15,7 @@ when you upgrade |onprem|.
 
 If you run |onprem| 4.4.0 in
 :doc:`local mode </tutorial/configure-local-mode>`, you must
-:dl:`download and install a compatible version of the MongoDB Tools <database-tools>`.
+:dl:`download and install a compatible version of the MongoDB Tools TGZ package <database-tools>` to the :guilabel:`Versions Directory`.
 
 .. list-table::
    :widths: 40 60
