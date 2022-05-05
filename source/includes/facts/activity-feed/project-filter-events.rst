@@ -362,6 +362,8 @@ Filter by event
           - Host version changed
           - Host's SSL certificate is current
           - Host's SSL certificate will expire within 21 days
+          - Index Build Completed
+          - Index Build Failed
           - Logs downloaded for Atlas host
           - Logs downloaded for BI Connector
           - Mongot no longer crashing due to out of memory error
@@ -389,6 +391,7 @@ Filter by event
           - Replica set member removed
           - Replication Oplog Window
           - Replication oplog window is healthy
+          - Rolling Index Build Succeeded
           - Scheduled maintenance will occur
           - Search process ran out of memory
           - Secondary Index automatically created
