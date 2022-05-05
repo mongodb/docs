@@ -1,3 +1,16 @@
+.. _opsmgr-server-5.0.10:
+
+|onprem| Server 5.0.10
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-05-05*
+
+- Adds support for Debian 10 when you use the :bic:`BI Connector </>`.
+- Fixes an issue that occured when you changed the default server usage
+  for organizations.
+- Updates the {+mdbagent+} to :ref:`11.0.15.7073 <mongodb-11.0.15.7073>`.
+- Updates the |jdk| to ``jdk-11.0.15+10``.
+
 .. _opsmgr-server-5.0.9:
 
 |onprem| Server 5.0.9
