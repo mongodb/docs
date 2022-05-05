@@ -3,7 +3,7 @@ MongoDB Documentation
 =====================
 
 This repository contains a major revision of the MongoDB documentation,
-currently accessible at http://docs.mongodb.com/manual/. You can build
+currently accessible at https://www.mongodb.com/docs/manual/. You can build
 the documentation locally if you have `giza
 <https://pypi.python.org/pypi/giza>`_ installed: ::
 

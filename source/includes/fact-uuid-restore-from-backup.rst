@@ -9,4 +9,4 @@
    present, MongoDB generates a UUID for the restored collection. 
 
    For more information on collection UUIDs, see
-   `Collections <https://docs.mongodb.com/v3.6/core/databases-and-collections/#collections>`_.
+   `Collections <https://www.mongodb.com/docs/v3.6/core/databases-and-collections/#collections>`_.
