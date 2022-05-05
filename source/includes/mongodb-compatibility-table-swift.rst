@@ -13,7 +13,17 @@
      - MongoDB 4.0
      - MongoDB 3.6
 
-   * - 1.2.0
+   * - 1.3.0 [#1.2-1.3-limitations]_
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+
+   * - 1.2.0 [#1.2-1.3-limitations]_
      - 
      - 
      -
@@ -23,7 +33,7 @@
      - |checkmark|
      - |checkmark|
 
-   * - 1.1.0
+   * - 1.1.0 [#1.0-1.1-limitations]_
      - 
      - 
      -
@@ -33,18 +43,23 @@
      - |checkmark|
      - |checkmark|
 
-   * - 1.0.0
+   * - 1.0.0 [#1.0-1.1-limitations]_
      - 
      - 
      -
      -
-     - |checkmark| (*)
+     - |checkmark|
      - |checkmark|
      - |checkmark|
      - |checkmark|
 
 The Swift driver is not compatible with MongoDB server versions older than 3.6.
 
-(*) Not all features in MongoDB 4.4 are available in this version of the
-driver including OCSP and MONGODB-AWS. These features will be included in
-future versions of the driver.
+.. [#1.2-1.3-limitations] Versions 1.2 and 1.3 do not include support for
+   :ref:`Client-Side Field Level Encryption <ecosystem-csfle>`,
+   :manual:`GridFS </core/gridfs/>`, and authentication using AWS IAM roles.
+
+.. [#1.0-1.1-limitations] Versions 1.0 and 1.1 do not include support for
+   :manual:`OCSP </core/security-transport-encryption/>`, 
+   :ref:`Client-Side Field Level Encryption <ecosystem-csfle>`,
+   :manual:`GridFS </core/gridfs/>`, and authentication using AWS IAM roles.
