@@ -1,3 +1,17 @@
+.. _opsmgr-server-4.4.22:
+
+|onprem| Server 4.4.22
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-05-05*
+
+- Adds support for Debian 10 when you use the :bic:`BI Connector </>`.
+- Fixes an issue that occurred when you changed the default server
+  usage for organizations.
+- Updates the {+mdbagent+} to :ref:`10.14.33.6581 <mongodb-10.14.33.6581>`.
+- Updates the |jdk| to ``jdk-11.0.15+10``.
+- Upgrades the ``com.google.protobuf:protobuf-java`` package to 3.19.4.
+
 .. _opsmgr-server-4.4.21:
 
 |onprem| Server 4.4.21
