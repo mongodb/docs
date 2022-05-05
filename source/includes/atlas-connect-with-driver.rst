@@ -4,8 +4,8 @@ select the button marked :guilabel:`Connect Your Application`.
 The following Atlas screenshot shows the connection option
 buttons:
 
-.. figure:: /images/connection-method.png
+.. figure:: /images/connection-string.png
    :figwidth: 600px
-   :alt: connection-method
+   :alt: connection-string
 
 Follow the instructions for your driver language and version.

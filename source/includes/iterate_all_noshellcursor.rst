@@ -51,7 +51,7 @@
          This is often easier than specifying a callback, or chaining
          a promise.
 
-         For more information, see the :ref:`Promise and Callbacks guide <node-promise-and-callbacks>`.
+         For more information, see the `Promise and Callbacks guide <https://www.mongodb.com/docs/drivers/node/current/fundamentals/promises/>`__.
 
          .. literalinclude:: /includes/code/node/crud-read-iterate.js
             :caption: crud-read.js
