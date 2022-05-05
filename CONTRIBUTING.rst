@@ -3,9 +3,9 @@ Contributing to the MongoDB Documentation Project
 =================================================
 
 We welcome your contributions to the MongoDB documentation project.
-The primary site is http://docs.mongodb.org/ and translated versions
+The primary site is https://www.mongodb.com/docs/ and translated versions
 of the site are listed in `MongoDB Manual Translation
-<http://docs.mongodb.org/manual/meta/translation/>`_.
+<https://www.mongodb.com/docs/meta/translation/>`_.
 
 MongoDB documentation is distributed under a `Creative Commons
 Attribution-NonCommercial-ShareAlike 3.0 Unported`_ license.  MongoDB,
@@ -19,10 +19,10 @@ pull request.
 Please review the following documents for our style, conventions,
 processes and practices for the MongoDB Documentation:
 
-- `Style Guide <http://docs.mongodb.org/meta/style-guide>`_
-- `Documentation Practices <http://docs.mongodb.org/meta/practices>`_
-- `Documentation Organization <http://docs.mongodb.org/meta/organization>`_
-- `Documentation Build Tools <https://docs.mongodb.com/meta/tutorials/install/>`_
+- `Style Guide <https://www.mongodb.com/docs/meta/style-guide>`_
+- `Documentation Practices <https://www.mongodb.com/docs/meta/practices>`_
+- `Documentation Organization <https://www.mongodb.com/docs/meta/organization>`_
+- `Documentation Build Tools <https://www.mongodb.com/docs/meta/tutorials/install/>`_
 
 Do not hesitate to open a ticket in our `Jira`_ project
 or to contact the `documentation team`_

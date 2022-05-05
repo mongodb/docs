@@ -134,7 +134,7 @@
      - id: nodejs
        content: |
          To create an index using the
-         `Node.JS driver <https://docs.mongodb.com/drivers/node/current/>`_,
+         `Node.JS driver <https://www.mongodb.com/docs/drivers/node/current/>`_,
          use ``createIndex()``.
 
          .. code-block:: javascript
@@ -161,7 +161,7 @@
      - id: php
        content: |
          To create an index using the
-         `PHP driver <https://docs.mongodb.com/php-library/current/>`_, use
+         `PHP driver <https://www.mongodb.com/docs/php-library/current/>`_, use
          :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex>`.
 
 

@@ -24,8 +24,8 @@ Check Driver Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before you upgrade MongoDB, check that you're using a MongoDB 
-|newversion|-compatible driver. Consult the `driver documentation
-<https://docs.mongodb.com/drivers/>`_ for your specific driver to verify 
+|newversion|-compatible driver. Consult the :driver:`driver documentation
+</>` for your specific driver to verify 
 compatibility with MongoDB |newversion|. 
 
 Upgraded deployments that run on incompatible drivers might encounter 
