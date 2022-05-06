@@ -118,19 +118,40 @@ the ``Find()`` method, which performs the following actions:
 - Matches documents where the ``rating`` falls between ``5`` and ``10``
 - Returns the ``type`` and ``rating``, but excludes the ``_id`` 
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
-   :language: go
-   :dedent:
-   :start-after: begin find docs
-   :end-before: end find docs
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{
+         {"$and",
+            bson.A{
+               bson.D{{"rating", bson.D{{"$gt", 5}}}},
+               bson.D{{"rating", bson.D{{"$lt", 10}}}},
+            }},
+      }
+      projection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
+      opts := options.Find().SetProjection(projection)
 
-   [{type Masala} {rating 7}]
-   [{type Earl Grey} {rating 9}]
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{type Masala} {rating 7}]
+      [{type Earl Grey} {rating 9}]
 
 Example
 ```````
@@ -142,18 +163,29 @@ to the ``FindOne()`` method, which performs the following actions:
 - A descending sort on the ``rating`` field
 - Returns the ``type`` and ``rating``, but excludes the ``_id`` 
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
-   :language: go
-   :dedent:
-   :start-after: begin find one docs
-   :end-before: end find one docs
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{}
+      sort := bson.D{{"rating", -1}}
+      projection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
+      opts := options.FindOne().SetSort(sort).SetProjection(projection)
 
-   [{type Masala} {rating 10}]
+      var result bson.D
+      err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
+      if err != nil {
+         panic(err)
+      }
+
+      fmt.Println(result)
+
+   .. output::
+      :language: none
+
+      [{type Masala} {rating 10}]
 
 .. _golang-retrieve-aggregation:
 
@@ -241,19 +273,38 @@ performs the following actions:
 - Groups reviews by types
 - Calculates the average rating of each type
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
-   :language: go
-   :dedent:
-   :start-after: begin aggregate docs
-   :end-before: end aggregate docs
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      groupStage := bson.D{
+         {"$group", bson.D{
+            {"_id", "$type"},
+            {"average", bson.D{
+               {"$avg", "$rating"},
+            }},
+      }}}
 
-   Masala has an average rating of 8.5
-   Earl Grey has an average rating of 7
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{groupStage})
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.M
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Printf("%v has an average rating of %v \n", result["_id"], result["average"])
+      }
+
+   .. output::
+      :language: none
+
+      Masala has an average rating of 8.5
+      Earl Grey has an average rating of 7
 
 To learn more about how to construct an aggregation pipeline, see
 the MongoDB server manual page on :manual:`Aggregation

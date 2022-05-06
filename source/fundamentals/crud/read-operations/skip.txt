@@ -69,20 +69,31 @@ The following example performs the following actions in order with the
 - An ascedning sort on the ``rating`` field
 - Skips the first two documents
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/skip.go
-   :language: go
-   :dedent:
-   :start-after: begin skip
-   :end-before: end skip
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
-   
-   [{_id ObjectID("...")} {type Oolong} {rating 7}]
-   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-   [{_id ObjectID("...")} {type Masala} {rating 10}]
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"rating", 1}}).SetSkip(2)
+
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {type Oolong} {rating 7}]
+      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+      [{_id ObjectID("...")} {type Masala} {rating 10}]
 
 Aggregation
 -----------
@@ -99,20 +110,34 @@ The following example performs the following actions in order with the
 - A descending sort on the ``rating`` field
 - Skips the first three documents
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/skip.go
-   :language: go
-   :dedent:
-   :start-after: begin aggregate skip
-   :end-before: end aggregate skip
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      sortStage := bson.D{{"$sort", bson.D{{"rating", -1}}}}
+      skipStage := bson.D{{"$skip", 3}}
 
-   [{_id ObjectID("...")} {type Assam} {rating 5}]
-   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
-   
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage, skipStage})
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+
 Additional Information
 ----------------------
 

@@ -310,20 +310,38 @@ The following example performs the following actions in any order:
 - Increments all documents ``rating`` by ``3`` if their current rating is less than ``7``.
 - Deletes all documents where the rating is ``9``.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
-   :language: go
-   :dedent:
-   :start-after: begin unordered
-   :end-before: end unordered
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      models := []mongo.WriteModel{
+         mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Oolong"}, {"rating", 9}}),
+         mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Assam"}, {"rating", 6}}),
+         mongo.NewReplaceOneModel().SetFilter(bson.D{{"type", "Earl Grey"}}).
+            SetReplacement(bson.D{{"type", "Matcha"}, {"rating", 4}}),
+         mongo.NewUpdateManyModel().SetFilter(bson.D{{"rating", bson.D{{"$lt", 7}}}}).
+            SetUpdate(bson.D{{"$inc", bson.D{{"rating", 3}}}}),
+         mongo.NewDeleteManyModel().SetFilter(bson.D{{"rating", 9}}),
+      }
+      opts := options.BulkWrite().SetOrdered(false)
 
-   Number of documents inserted: 2
-   Number of documents replaced or updated: 3
-   Number of documents deleted: 2
+      results, err := coll.BulkWrite(context.TODO(), models, opts)
+      if err != nil {
+         panic(err)
+      }
+      
+      fmt.Printf("Number of documents inserted: %d\n", results.InsertedCount)
+      fmt.Printf("Number of documents replaced or updated: %d\n", results.ModifiedCount)
+      fmt.Printf("Number of documents deleted: %d\n", results.DeletedCount)
+
+   .. output::
+      :language: none
+
+      Number of documents inserted: 2
+      Number of documents replaced or updated: 3
+      Number of documents deleted: 2
 
 The following documents are present in the ``ratings`` collection after
 the bulk operation:

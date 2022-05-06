@@ -92,18 +92,24 @@ Example
 The following example counts the number of documents where the
 ``rating`` is less than ``6``:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/countAndEstimate.go
-   :language: go
-   :dedent:
-   :start-after: begin count documents
-   :end-before: end count documents
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{{"rating", bson.D{{"$lt", 6}}}}
 
-   Number of ratings less than six: 4
+      count, err := coll.CountDocuments(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+      fmt.Printf("Number of ratings less than six: %d\n", count)
+
+   .. output::
+      :language: none
+
+      Number of ratings less than six: 4
 
 Aggregation
 -----------
@@ -119,18 +125,32 @@ The following example performs the following actions:
 - Counts the number of documents where the ``rating`` is greater than ``5``
 - Assigns the count to a field called ``total_documents``
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/countAndEstimate.go
-   :language: go
-   :dedent:
-   :start-after: begin aggregate count
-   :end-before: end aggregate count
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      matchStage := bson.D{{"$match", bson.D{{"rating", bson.D{{"$gt", 5}}}}}}
+      countStage := bson.D{{"$count", "total_documents"}}
 
-   [{total_documents 5}]
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage, countStage})
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{total_documents 5}]
 
 .. _golang-estimated-count:
 
@@ -173,18 +193,22 @@ Example
 The following example estimates the number of documents in the
 ``ratings`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/countAndEstimate.go
-   :language: go
-   :dedent:
-   :start-after: begin est doc count
-   :end-before: end est doc count
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      count, err := coll.EstimatedDocumentCount(context.TODO())
+      if err != nil {
+         panic(err)
+      }
+      fmt.Printf("Estimated number of documents in the ratings collection: %d\n", count)
 
-   Estimated number of documents in the ratings collection: 9
+   .. output::
+      :language: none
+
+      Estimated number of documents in the ratings collection: 9
 
 Additional Information
 ----------------------

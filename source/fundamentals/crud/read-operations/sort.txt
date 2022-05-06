@@ -71,22 +71,33 @@ Example
 
 The following example specifies an ascending sort on the ``rating`` field:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
-   :language: go
-   :dedent:
-   :start-after: begin ascending sort
-   :end-before: end ascending sort
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"rating", 1}})
 
-   [{_id ObjectID("...")} {type Assam} {rating 5}]
-   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
-   [{_id ObjectID("...")} {type Oolong} {rating 7}]
-   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-   [{_id ObjectID("...")} {type Masala} {rating 10}]
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      [{_id ObjectID("...")} {type Oolong} {rating 7}]
+      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+      [{_id ObjectID("...")} {type Masala} {rating 10}]
 
 Descending
 ~~~~~~~~~~
@@ -107,22 +118,33 @@ Example
 
 The following example specifies a descending sort on the ``rating`` field:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
-   :language: go
-   :dedent:
-   :start-after: begin descending sort
-   :end-before: end descending sort
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"rating", -1}})
 
-   [{_id ObjectID("...")} {type Masala} {rating 10}]
-   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-   [{_id ObjectID("...")} {type Oolong} {rating 7}]
-   [{_id ObjectID("...")} {type Assam} {rating 5}]
-   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {type Masala} {rating 10}]
+      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+      [{_id ObjectID("...")} {type Oolong} {rating 7}]
+      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
 
 Handling Ties
 ~~~~~~~~~~~~~
@@ -149,22 +171,33 @@ Example
 The following example specifies an ascending sort on the ``rating`` field,
 then a descending sort on the ``type`` field:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
-   :language: go
-   :dedent:
-   :start-after: begin multi sort
-   :end-before: end multi sort
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{}
+      opts := options.Find().SetSort(bson.D{{"rating", 1}, {"type", -1}})
 
-   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
-   [{_id ObjectID("...")} {type Assam} {rating 5}]
-   [{_id ObjectID("...")} {type Oolong} {rating 7}]
-   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-   [{_id ObjectID("...")} {type Masala} {rating 10}]
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      [{_id ObjectID("...")} {type Oolong} {rating 7}]
+      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+      [{_id ObjectID("...")} {type Masala} {rating 10}]
 
 Aggregation
 ~~~~~~~~~~~
@@ -178,22 +211,35 @@ Example
 The following example specifies a descending sort on the ``rating``
 field, then an ascending sort on the ``type`` field:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
-   :language: go
-   :dedent:
-   :start-after: begin aggregate sort
-   :end-before: end aggregate sort
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      sortStage := bson.D{{"$sort", bson.D{{"rating", -1}, {"type", 1}}}}
 
-   [{_id ObjectID("...")} {type Masala} {rating 10}]
-   [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-   [{_id ObjectID("...")} {type Oolong} {rating 7}]
-   [{_id ObjectID("...")} {type Assam} {rating 5}]
-   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage})
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {type Masala} {rating 10}]
+      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
+      [{_id ObjectID("...")} {type Oolong} {rating 7}]
+      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
 
 Additional Information
 ----------------------

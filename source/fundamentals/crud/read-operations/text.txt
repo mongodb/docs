@@ -99,19 +99,32 @@ Example
 
 The following example runs a text search for titles that contain the term "War":
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
-   :language: go
-   :dedent:
-   :start-after: begin term search
-   :end-before: end term search
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{{"$text", bson.D{{"$search", "War"}}}}
 
-   [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
-   [{_id ObjectID("...")} {title Captain America: Civil War} {year 2016}]
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+      [{_id ObjectID("...")} {title Captain America: Civil War} {year 2016}]
 
 Search by a Phrase
 ~~~~~~~~~~~~~~~~~~
@@ -131,18 +144,31 @@ Example
 The following example runs a text search for titles that contain the
 phrase "Infinity War":
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
-   :language: go
-   :dedent:
-   :start-after: begin phrase search
-   :end-before: end phrase search
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{{"$text", bson.D{{"$search", "\"Infinity War\""}}}}
 
-   [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
 
 Search with Terms Excluded
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -163,19 +189,32 @@ Example
 The following example runs a text search for titles that contain the
 term "Avenger", but does not contain the phrase "Captain America":
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
-   :language: go
-   :dedent:
-   :start-after: begin exclude term search
-   :end-before: end exclude term search
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{{"$text", bson.D{{"$search", "Avenger -\"Captain America\""}}}}
 
-   [{_id ObjectID("...")} {title The Avengers} {year 2012}]
-   [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {title The Avengers} {year 2012}]
+      [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
 
 Sort by Relevance
 ~~~~~~~~~~~~~~~~~
@@ -195,20 +234,36 @@ The following example performs the following actions:
 - Sorts the results in descending order based on their text score
 - Includes the ``title`` and ``score`` fields from the results
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
-   :language: go
-   :dedent:
-   :start-after: begin text score
-   :end-before: end text score
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      filter := bson.D{{"$text", bson.D{{"$search", "Avenger"}}}}
+      sort := bson.D{{"score", bson.D{{"$meta", "textScore"}}}}
+      projection := bson.D{{"title", 1}, {"score", bson.D{{"$meta", "textScore"}}}, {"_id", 0}}
+      opts := options.Find().SetSort(sort).SetProjection(projection)
 
-   [{title The Avengers} {score 1}]
-   [{title Avengers: Infinity War} {score 0.6666666666666666}]
-   [{title Captain America: The First Avenger} {score 0.625}]
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{title The Avengers} {score 1}]
+      [{title Avengers: Infinity War} {score 0.6666666666666666}]
+      [{title Captain America: The First Avenger} {score 0.625}]
 
 .. tip::
 
@@ -230,18 +285,31 @@ Term Search Example
 
 The following example runs a text search for titles that contain the term "Winter":
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
-   :language: go
-   :dedent:
-   :start-after: begin aggregate text search
-   :end-before: end aggregate text search
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "Winter"}}}}}}
 
-   [{_id ObjectID("...")} {title Captain America: The Winter Soldier} {year 2014}]
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage})
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{_id ObjectID("...")} {title Captain America: The Winter Soldier} {year 2014}]
 
 Text Score Example
 ~~~~~~~~~~~~~~~~~~
@@ -252,20 +320,35 @@ The following example performs the following actions:
 - Sorts the results in descending order based on their text score
 - Includes the ``title`` and ``score`` fields from the results
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
-   :language: go
-   :dedent:
-   :start-after: begin aggregate text score
-   :end-before: end aggregate text score
+.. io-code-block::
+   :copyable: true
 
-After running this example, the output resembles the following:
+   .. input::
+      :language: go
 
-.. code-block:: none
-   :copyable: false
+      matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "Avenger"}}}}}}
+      sortStage := bson.D{{"$sort", bson.D{{"score", bson.D{{ "$meta", "textScore" }}}}}}
+      projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"score", bson.D{{ "$meta", "textScore" }}}, {"_id", 0}}}}
 
-   [{title The Avengers} {score 1}]
-   [{title Avengers: Infinity War} {score 0.6666666666666666}]
-   [{title Captain America: The First Avenger} {score 0.625}]
+      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage, sortStage, projectStage})
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+
+      [{title The Avengers} {score 1}]
+      [{title Avengers: Infinity War} {score 0.6666666666666666}]
+      [{title Captain America: The First Avenger} {score 0.625}]
 
 .. tip::
 
