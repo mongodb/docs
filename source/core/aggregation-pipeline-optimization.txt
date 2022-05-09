@@ -387,24 +387,82 @@ option, the ``explain`` output shows the coalesced stage:
      }
    }
 
+.. _sbe-pipeline-optimizations:
+
+|sbe-title| Pipeline Optimizations
+----------------------------------
+
+MongoDB can use the :ref:`slot-based execution query engine
+<5.1-rel-notes-sbe>` to execute certain pipeline stages when specific
+conditions are met. In most cases, the |sbe-short| provides improved
+performance and lower CPU and memory costs compared to the classic query
+engine.
+
+To verify that the |sbe-short| is used, run the aggregation with the
+``explain`` option. This option outputs information on the
+aggregation's query plan. For more information on using ``explain``
+with aggregations, see :ref:`example-aggregate-method-explain-option`.
+
+The following sections describe:
+
+- The conditions when the |sbe-short| is used for aggregation.
+
+- How to verify if the |sbe-short| was used.
+
 .. _agg-group-optimization-sbe:
 
 ``$group`` Optimization 
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 5.2
 
 .. include:: /includes/fact-sbe-group-overview.rst
 
-To verify that the |sbe-short| is used, run the aggregation with the
-``.explain()`` option. This option outputs information on the
-aggregation's query plan.
-
 When the |sbe| is used for :pipeline:`$group`, the :ref:`explain results
 <explain-results>` include:
 
 - ``explain.explainVersion: '2'``
-- ``explain.queryPlanner.winningPlan.queryPlan.stage: "GROUP"``
+- ``queryPlanner.winningPlan.queryPlan.stage: "GROUP"``
+
+  The location of the ``queryPlanner`` object depends on whether the
+  pipeline contains stages after the ``$group`` stage which cannot be
+  executed using the |sbe-short|.
+
+  - If ``$group`` is the last stage or all stages after ``$group`` can
+    be executed using the |sbe-short|, the ``queryPlanner`` object is in
+    the top-level ``explain`` output object (``explain.queryPlanner``).
+
+  - If the pipeline contains stages after ``$group`` which cannot be
+    executed using the |sbe-short|, the ``queryPlanner`` object is in
+    ``explain.stages[0].$cursor.queryPlanner``.
+
+.. _agg-lookup-optimization-sbe:
+
+``$lookup`` Optimization 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 6.0
+
+.. include:: /includes/fact-sbe-lookup-overview.rst
+
+When the |sbe| is used for :pipeline:`$lookup`, the :ref:`explain
+results <explain-results>` include:
+
+- ``explain.explainVersion: '2'``
+- ``queryPlanner.winningPlan.queryPlan.stage: "EQ_LOOKUP"``.
+  ``EQ_LOOKUP`` means "equality lookup".
+
+  The location of the ``queryPlanner`` object depends on whether the
+  pipeline contains stages after the ``$lookup`` stage which cannot be
+  executed using the |sbe-short|.
+
+  - If ``$lookup`` is the last stage or all stages after ``$lookup`` can
+    be executed using the |sbe-short|, the ``queryPlanner`` object is in
+    the top-level ``explain`` output object (``explain.queryPlanner``).
+
+  - If the pipeline contains stages after ``$lookup`` which cannot be
+    executed using the |sbe-short|, the ``queryPlanner`` object is in
+    ``explain.stages[0].$cursor.queryPlanner``.
 
 .. _aggregation-pipeline-optimization-indexes-and-filters:
 
