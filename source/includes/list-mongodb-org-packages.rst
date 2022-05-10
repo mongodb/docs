@@ -37,10 +37,7 @@ repository, and contains the following officially-supported packages:
          * - ``{+package-name-org+}-mongos``
            - Contains the :binary:`~bin.mongos` daemon.
 
-         * - ``{+package-name-org+}-shell``
-           - Contains the legacy :binary:`~bin.mongo` shell.
-
-  * - ``mongodb-mongosh``
+  * - ``{+package-name+}-mongosh``
     - Contains the MongoDB Shell (:binary:`~bin.mongosh`).
 
   * - ``{+package-name-org+}-tools``
