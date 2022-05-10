@@ -60,6 +60,10 @@ Install the SELinux Policy
 
       sudo make install
 
+.. important:: Backward-Incompatible Feature
+
+   .. include:: /includes/downgrade-for-SELinux-policy.rst
+
 SELinux Policy Considerations
 +++++++++++++++++++++++++++++
 
@@ -89,4 +93,3 @@ SELinux Policy Considerations
   .. code-block:: bash
 
      sudo make uninstall
-
