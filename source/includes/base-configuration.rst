@@ -66,10 +66,10 @@ for the tutorial.
 
       Start the Docker image with the following command:
 
-       ..
-          TODO: if running windows, use powershell command powershell.exe .\run.ps1
+      ..
+         TODO: if running windows, use powershell command powershell.exe .\run.ps1
 
-       .. code-block:: bash
+      .. code-block:: bash
          :copyable: true
 
           sh run.sh
@@ -84,30 +84,30 @@ for the tutorial.
       When the script completes successfully, it outputs the following
       information:
 
-       .. code-block:: bash
+      .. code-block:: bash
 
-          Kafka Connectors status:
-          <status information>
-          Version of MongoDB Connector for Apache Kafka installed
-          <version information>
+         Kafka Connectors status:
+         <status information>
+         Version of MongoDB Connector for Apache Kafka installed
+         <version information>
 
-   ..  step:: Verify the Successful Setup
+   .. step:: Verify the Successful Setup
 
-       Confirm the development environment started normally, run the following
-       command from the "mongodb-kafka-base" directory:
+      Confirm the development environment started normally, run the following
+      command from the "mongodb-kafka-base" directory:
 
-       .. code-block:: bash
+      .. code-block:: bash
 
-          sh status.h
+         sh status.h
 
        ..
           TODO: find out the windows version
 
-       The command should output the following information if the Docker
-       development environment was set up successfully:
+      The command should output the following information if the Docker
+      development environment was set up successfully:
 
-       .. code-block:: bash
+      .. code-block:: bash
 
-          MongoDB: <MongoDB version>
+         MongoDB: <MongoDB version>
 
-       You can continue to the next step of the tutorial.
+      You can continue to the next step of the tutorial.
