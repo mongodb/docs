@@ -1,3 +1,10 @@
+.. _data-lake-v20220510:
+
+10 May 2022 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+
 .. _data-lake-v20220419:
 
 19 April 2022 Release
