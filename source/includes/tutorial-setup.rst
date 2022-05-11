@@ -1,8 +1,9 @@
 Before You Get Started
 ----------------------
 
-This tutorial uses a Docker development environment to help you get started
-with the {+connector-long+} by packaging the dependencies and configurations.
+The tutorials in this section use a Docker development environment to
+package the dependencies and configurations you need to run the
+{+connector-long+}.
 
 Requirements
 ~~~~~~~~~~~~
@@ -19,7 +20,7 @@ Install the Docker Development Environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow the steps in this section to set up your development environment
-for the tutorial.
+for this tutorial.
 
 .. note::
 
@@ -66,19 +67,23 @@ for the tutorial.
 
       Start the Docker image with the following command:
 
-      ..
-         TODO: if running windows, use powershell command powershell.exe .\run.ps1
-
       .. code-block:: bash
          :copyable: true
 
           sh run.sh
 
+      If you are running Windows, use the following PowerShell command instead:
+
+      .. code-block:: bash
+         :copyable: true
+
+         powershell.exe .\run.ps1
+
       .. note::
 
          If the script exits with the message "Please terminate the local
          mongod on 27017", you must terminate the process that is listening
-         on port 27017 before you can continue. Once, you terminate the
+         on port 27017 before you can continue. After you terminate the
          process, run the script again.
 
       When the script completes successfully, it outputs the following
@@ -98,10 +103,14 @@ for the tutorial.
 
       .. code-block:: bash
 
-         sh status.h
+         sh status.sh
 
-       ..
-          TODO: find out the windows version
+      If you are running Windows, use the following PowerShell command instead:
+
+      .. code-block::
+         :copyable: true
+
+         powershell.exe .\status.ps1
 
       The command should output the following information if the Docker
       development environment was set up successfully:
@@ -110,4 +119,6 @@ for the tutorial.
 
          MongoDB: <MongoDB version>
 
-      You can continue to the next step of the tutorial.
+      Your development environment setup is complete and you can proceed to
+      the next step of the tutorial.
+
