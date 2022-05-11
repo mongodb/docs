@@ -69,6 +69,11 @@
      - Name of the metric to check. Supports the same values as
        the **metricName** field of the **alerts** resource.
 
+       To learn more about the available metrics, see 
+       :ref:`measurement-types`.
+
+       .. include:: /includes/fact-serverless-alert-conditions.rst
+
    * - | metricThreshold
        | .mode
      - string

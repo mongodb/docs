@@ -8,7 +8,10 @@
      - Required
      - Name of the metric to check.
 
-       To review available metrics, see :ref:`measurement-types`.
+       To learn more about the available metrics, see 
+       :ref:`measurement-types`.
+
+       .. include:: /includes/fact-serverless-alert-conditions.rst
 
    * - | metricThreshold
        | .operator

@@ -73,9 +73,10 @@
      - string
      - Name of the metric whose value went outside the threshold.
 
-       Possible values are:
+       To learn more about the available metrics, see 
+       :ref:`measurement-types`.
 
-       .. include:: /includes/api/list-tables/options/alert-metrics.rst
+       .. include:: /includes/fact-serverless-alert-conditions.rst
 
    * - ``replicaSetName``
      - string

@@ -21,5 +21,6 @@
 
        .. include:: /includes/api/list-tables/alert-eventTypeNames.rst
 
-       If ``"eventTypeName" : "OUTSIDE_METRIC_THRESHOLD"``, set
-       values in the ``metricThreshold`` array.
+       If you set ``eventTypeName`` to ``OUTSIDE_METRIC_THRESHOLD`` or 
+       ``OUTSIDE_SERVERLESS_METRIC_THRESHOLD``, you must set values in 
+       the ``metricThreshold`` array.

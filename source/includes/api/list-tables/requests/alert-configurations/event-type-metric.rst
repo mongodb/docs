@@ -17,6 +17,6 @@
    * - **eventTypeName**
      - string
      - Required
-     - Type of event that triggers an alert. Set this value to
-       **OUTSIDE_METRIC_THRESHOLD**. You must also set one or more host
-       metrics in the **metricThreshold** array.
+     - Type of event that triggers an alert. Accepted values are:
+
+       .. include:: /includes/api/list-tables/alert-eventTypeNames.rst
