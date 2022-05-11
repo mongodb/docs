@@ -1,3 +1,5 @@
+.. _kafka-tutorials-setup:
+
 Before You Get Started
 ----------------------
 
@@ -86,6 +88,11 @@ for this tutorial.
          on port 27017 before you can continue. After you terminate the
          process, run the script again.
 
+         If you previously started the image in Docker Desktop and have not
+         stopped it, the image automatically starts when you launch Docker
+         Desktop. If the image is already running, you can proceed to the
+         next step.
+
       When the script completes successfully, it outputs the following
       information:
 
@@ -117,7 +124,25 @@ for this tutorial.
 
       .. code-block:: bash
 
-         MongoDB: <MongoDB version>
+         Kafka topics:
+
+         [
+           <list of kafka topics>
+         ]
+
+         The status of the connectors:
+
+         Currently configured connectors
+
+         []
+
+         Version of MongoDB Connector for Apache Kafka installed:
+
+         {"class":"com.mongodb.kafka.connect.MongoSinkConnector","type":"sink","version":"<version>"}
+         {"class":"com.mongodb.kafka.connect.MongoSourceConnector","type":"source","version":"<version>"}
+
+      Since you have not started the connectors, the status and configured
+      list are empty.
 
       Your development environment setup is complete and you can proceed to
       the next step of the tutorial.
