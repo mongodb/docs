@@ -24,19 +24,16 @@ Install the Docker Development Environment
 Follow the steps in this section to set up your development environment
 for this tutorial.
 
-.. note::
-
-   The development environment takes up <TODO> of disk space. Make sure
-   you have sufficient space.
-
 .. procedure::
-   :style: normal
-
+   :style: connected
 
    .. step:: Download the Tutorial Docker Image
 
       Download the `tutorial docker image <https://hub.docker.com/repository/docker/robwma/mongokafkatutorial>`__
-      from Docker Hub. The command to download it should resemble the following:
+      from Docker Hub which contains command line tools to interact with
+      MongoDB, Apache Kafka, and the connectors.
+
+      Run the following command:
 
       .. code-block:: bash
          :copyable: true
@@ -98,15 +95,17 @@ for this tutorial.
 
       .. code-block:: bash
 
-         Kafka Connectors status:
-         <status information>
-         Version of MongoDB Connector for Apache Kafka installed
-         <version information>
+      The following services are running:
+
+      MongoDB 3-node cluster available on port 27017
+      Kafka Broker on 9092
+      Kafka Zookeeper on 2181
+      Kafka Connect on 8083
 
    .. step:: Verify the Successful Setup
 
-      Confirm the development environment started normally, run the following
-      command from the "mongodb-kafka-base" directory:
+      Confirm the development environment started normally by running the
+      following command from the "mongodb-kafka-base" directory:
 
       .. code-block:: bash
 
@@ -119,7 +118,7 @@ for this tutorial.
 
          powershell.exe .\status.ps1
 
-      The command should output the following information if the Docker
+      This command should output the following information if the Docker
       development environment was set up successfully:
 
       .. code-block:: bash
