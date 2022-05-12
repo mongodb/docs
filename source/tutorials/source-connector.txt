@@ -1,0 +1,173 @@
+.. _kafka-tutorial-source-connector:
+
+===============================================
+Getting Started with a MongoDB Source Connector
+===============================================
+
+.. procedure::
+   :style: connected
+
+   .. step:: Configure the Source Connector
+
+      .. code-block:: bash
+
+         nano simplesource.json
+
+
+      .. code-block:: bash
+
+         curl -X POST -H "Content-Type: application/json" -d @simplesource.json http://connect:8083/connectors -w "\n"
+
+      .. code-block:: bash
+
+         sh status.sh
+
+      .. code-block:: none
+
+         Kafka topics:
+
+
+         The status of the connectors:
+
+         source  |  mongo-simple-source  |  RUNNING  |  RUNNING  |  com.mongodb.kafka.connect.MongoSourceConnector
+
+         Currently configured connectors
+
+         [
+           "mongo-simple-source"
+         ]
+
+
+         Version of MongoDB Connector for Apache Kafka installed:
+
+         {"class":"com.mongodb.kafka.connect.MongoSinkConnector","type":"sink","version":"1.7.0"}
+         {"class":"com.mongodb.kafka.connect.MongoSourceConnector","type":"source","version":"1.7.0"}
+
+
+   .. step:: Create Change Events
+
+      .. code-block:: shell
+
+         mongosh "mongodb://mongo1"
+
+      .. code-block:: javascript
+
+         use Tutorial1
+         db.orders.insertOne( { 'order_id' : 1, 'item' : 'coffee' } )
+
+      .. code-block:: bash
+
+         sh status.sh
+
+      .. code-block::
+
+         ...
+         "topic": "Tutorial1.orders",
+         ...
+
+      .. code-block::
+
+         kc Tutorial1.orders
+
+      .. code-block::
+
+         Partition: 0	Offset: 0
+
+         Key (198 bytes):
+
+         {"schema":{"type":"string","optional":false},"payload":"{\"_id\": {\"_data\": \"8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004\"}}"}
+
+         Value (530 bytes):
+
+         {"schema":{"type":"string","optional":false},"payload":"{\"_id\": {\"_data\": \"8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004\"}, \"operationType\": \"insert\", \"clusterTime\": {\"$timestamp\": {\"t\": 1650809557, \"i\": 2}}, \"fullDocument\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}, \"order_id\": 1, \"item\": \"coffee\"}, \"ns\": {\"db\": \"Tutorial1\", \"coll\": \"orders\"}, \"documentKey\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}}}"}
+
+
+     .. code-block::
+
+        {
+          "schema": {
+            "type": "string",
+            "optional": false
+          },
+          "payload": "{\"_id\": {\"_data\": \"8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004\"}, \"operationType\": \"insert\", \"clusterTime\": {\"$timestamp\": {\"t\": 1650809557, \"i\": 2}}, \"fullDocument\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}, \"order_id\": 1, \"item\": \"coffee\"}, \"ns\": {\"db\": \"Tutorial1\", \"coll\": \"orders\"}, \"documentKey\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}}}"
+        }
+
+     .. code-block::
+        :emphasize-lines: 12-17
+
+        {
+          "_id": {
+            "_data": "8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004"
+          },
+          "operationType": "insert",
+          "clusterTime": {
+            "$timestamp": {
+              "t": 1650809557,
+              "i": 2
+            }
+          },
+          "fullDocument": {
+            "_id": {
+              "$oid": "62655ad5d9440c0c72a22030"
+            },
+            "order_id": 1,
+            "item": "coffee"
+          },
+          "ns": {
+            "db": "Tutorial1",
+            "coll": "orders"
+          },
+          "documentKey": {
+            "_id": {
+              "$oid": "62655ad5d9440c0c72a22030"
+            }
+          }
+        }
+
+   .. step:: Configure the Change Stream to Return the Full Document
+
+      .. code-block::
+
+         del mongo-simple-source
+
+      .. code-block::
+
+         nano simplesource.json
+
+      .. code-block::
+
+         {"name": "mongo-simple-source",
+            "config": {
+            "connector.class":"com.mongodb.kafka.connect.MongoSourceConnector",
+            "connection.uri":"mongodb://mongo1",
+            "publish.full.document.only":true,
+            "database":"Tutorial1",
+            "collection":"orders"
+           }
+         }
+      
+      .. code-block::
+         
+         cx simplesource.json
+
+
+      .. code-block::
+         
+         use Tutorial1
+         db.orders.insertOne( { 'order_id' : 2, 'item' : 'oatmeal' } )
+
+
+      .. code-block::
+       
+         kc Tutorial1.orders
+
+      .. code-block::
+
+         {"_id": {"$oid": "62656553d9440c0c72a22031"}, "order_id": 2, "item": "oatmeal"}"}
+
+
+         
+
+
+
+
