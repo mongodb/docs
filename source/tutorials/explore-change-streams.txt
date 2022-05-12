@@ -4,195 +4,148 @@
 Explore MongoDB Change Streams 
 ==============================
 
-.. default-domain:: mongodb
+Follow this tutorial to learn how to create a change stream on a MongoDB
+collection and observe the change events it creates.
 
-In this tutorial, you can learn how to convert an existing MongoDB
-collection to a **time series collection** using the {+mkc+}.
+If you already understand how to create change streams and the change
+event data they create, proceed to the 
+(TODO: link ``Sourcing Data from MongoDB``) tutorial.
 
-Time series collections efficiently store sequences of measurements
-over a period of time. Time series data consists of measurement data collected
-over time, metadata that describes the measurement, and the time of the
-measurement.
+.. procedure::
+   :style: connected
 
-You can configure the source connector to read your existing MongoDB
-collection and the sink connector to write Kafka topic data into a MongoDB
-time series collection.
+   .. step:: Connect to the Docker Container
 
-To learn more about MongoDB time series collections, see the MongoDB
-manual page on :manual:`Time Series Collections </core/timeseries-collections/>`.
+      Create two interactive shell sessions on the tutorial Docker
+      Container, each in a separate window.
 
-Scenario
---------
+      .. code-block:: bash
 
-Suppose you accumulated stock price data in a MongoDB collection and have
-the following needs:
+         docker run --rm --name shell1 --network mongodb-kafka-base_localnet -it robwma/mongokafkatutorial:latest bash
 
-- More efficient storage of the price data
-- Maintain the ability to analyze stock performance over time using
-  aggregation operators
+      .. code-block:: bash
 
-After reading about MongoDB time series collections, you decide to migrate
-your existing collection into a time series one. Learn how to perform this
-migration in the following sections.
+         docker run --rm --name shell2 --network mongodb-kafka-base_localnet -it robwma/mongokafkatutorial:latest bash
 
-Steps to Migrate to a Time Series Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To migrate an existing MongoDB collection to a time series collection, you
-need to perform the following tasks:
+   .. step:: Open a Change Stream
 
-1) :ref:`Identify the time field <time-series-identify-field>` in the existing
-   stock price data document.
-2) :ref:`Configure a source connector <time-series-source-config>` to copy
-   the existing collection data to a Kafka topic.
-3) :ref:`Configure a sink connector <time-series-sink-config>` to copy the
-   Kafka topic data to the time series collection.
-4) :ref:`Verify the connector migrated the data <time-series-verify-collection>` to the time
-   series collection.
 
-.. _time-series-identify-field:
+      TODO: could this be downloaded instead?
+      .. code-block:: bash
 
-Identify the Time Field
-~~~~~~~~~~~~~~~~~~~~~~~
+         nano openchangestream.py
+      
+         
+      .. code-block:: python
 
-Before you create a time series collection, you need to identify the
-**time field**. The time field is the document field that MongoDB uses to
-distinguish the time of the measurement. The value of this field can be
-a string, integer, or ISO date. Make sure to set the
-``timeseries.timefield.auto.convert`` setting to instruct the connector to
-automatically convert the value to a date.
+         import os
+         import pymongo
+         from bson.json_util import dumps
+        
+         client = pymongo.MongoClient('mongodb://mongo1')
+         db = client.get_database(name='Tutorial1')
+         with db.orders.watch() as stream:
+             print('\nChange Stream is opened on the Tutorial1.orders namespace.  Currently watching ...\n\n')
+             for change in stream:
+                 print(dumps(change, indent=2))
 
-The following document shows the format of stock price data documents in
-the existing MongoDB collection:
+      .. code-block:: bash
 
-.. code-block:: javascript
-  :copyable: false
+         python3 openchangestream.py
+      
 
-   {
-     tx_time: 2021-07-12T05:20:35Z,
-     symbol: 'WSV',
-     company_name: 'WORRIED SNAKEBITE VENTURES',
-     price: 21.22,
-     _id: ObjectId("...")
-   }
+   .. step:: Trigger a Change Event
 
-For this scenario, assume you stored these documents in a collection named
-``PriceData`` in the ``Stocks`` database.
+      .. code-block:: bash
+         
+         mongosh "mongodb://mongo1"
 
-You identify that the ``tx_time`` field distinguishes the time of the
-measurements, and specify it as your time field in your sink connector
-configuration.
 
-Learn how to set your time field and field conversion in the
-:ref:`time series configuration guide <time-series-sink-config>`.
+      .. code-block:: javascript
 
-.. _time-series-source-config:
+         use Tutorial1
+         db.orders.insertOne( { 'test' : 1 } )
 
-Configure the Source Connector
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. code-block:: json
+         :emphasize-lines: 5
+         
+         {
+           "_id": {
+             "_data": "8262648461000000012B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462648461D9440C0C72A2202C0004"
+           },
+           "operationType": "insert",
+           "clusterTime": {
+             "$timestamp": {
+               "t": 1650754657,
+               "i": 1
+             }
+           },
+           "fullDocument": {
+             "_id": {
+               "$oid": "62648461d9440c0c72a2202c"
+             },
+             "test": 1
+           },
+           "ns": {
+             "db": "Tutorial1",
+             "coll": "orders"
+           },
+           "documentKey": {
+             "_id": {
+               "$oid": "62648461d9440c0c72a2202c"
+             }
+           }
+         }
 
-To copy data from the ``PriceData`` MongoDB collection data and publish it
-to the ``marketdata.Stocks.PriceData`` Kafka topic, create a source
-connector with the following configuration:
 
-.. code-block:: json
+   .. step:: Open a Filtered Change Stream
 
-   {
-     "name": "mongo-source-marketdata",
-     "config": {
-       "tasks.max":"1",
-       "connector.class":"com.mongodb.kafka.connect.MongoSourceConnector",
-       "key.converter":"org.apache.kafka.connect.storage.StringConverter",
-       "value.converter":"org.apache.kafka.connect.json.JsonConverter",
-       "publish.full.document.only":"true",
-       "connection.uri":"<your connection uri>",
-       "topic.prefix":"marketdata",
-       "database":"Stocks",
-       "collection":"PriceData",
-       "copy.existing":"true"
-   }}
+      .. code-block:: bash
 
-.. note::
+         nano pipeline.py
 
-   If you insert documents into a collection during the copying process,
-   the connector inserts them after the process is complete.
+      .. code-block:: python
 
-After you start your source connector with the preceding configuration,
-the connector starts the copying process. Once the process is complete,
-you should see the following message in the log:
+         import os
+         import pymongo
+         from bson.json_util import dumps
+         client = pymongo.MongoClient('mongodb://mongo1')
+         db = client.get_database(name='Tutorial1')
+         pipeline = [{"$match":{ "$and": [{"fullDocument.type":"temp"},{"fullDocument.value":{"$gte":100}}] }}]
+         with db.sensors.watch(pipeline=pipeline) as stream:
+             print('\nChange Stream is opened on the Tutorial1.sensors namespace.  Currently watching for values > 100...\n\n')
+             for change in stream:
+                 print(dumps(change, indent=2))
 
-.. code-block:: none
-   :copyable: false
 
-   Finished copying existing data from the collection(s).
+      .. code-block:: python
 
-Your data from the ``PriceData`` MongoDB collection is now available in
-the ``marketdata.Stocks.PriceData`` Kafka topic.
+         python3 pipeline.py
 
-.. _time-series-sink-config:
 
-Configure the Sink Connector
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. step:: Observe the Filtered Change Stream
 
-To consume data from the ``marketdata.Stocks.PriceData`` Kafka topic and write
-it to a time series collection named ``StockDataMigrate`` in a database
-named ``Stocks``, you can create the following source connector configuration:
+      .. code-block:: javascript
 
-.. code-block:: json
-   :emphasize-lines: 12-14
+         use Tutorial1
+         db.sensors.insertOne( { 'type' : 'temp', 'value':101 } )
+      
+      .. code-block:: json
 
-   {
-     "name": "mongo-sink-marketdata",
-     "config": {
-      "connector.class":"com.mongodb.kafka.connect.MongoSinkConnector",
-       "tasks.max":"1",
-       "topics":"marketdata.Stocks.PriceData",
-       "connection.uri":"<your connection uri>",
-       "database":"Stocks",
-       "collection":"StockDataMigrate",
-       "key.converter":"org.apache.kafka.connect.storage.StringConverter",
-       "value.converter":"org.apache.kafka.connect.json.JsonConverter",
-       "timeseries.timefield":"tx_time",
-       "timeseries.timefield.auto.convert":"true",
-       "timeseries.timefield.auto.convert.date.format":"yyyy-MM-dd'T'HH:mm:ss'Z'"
-    }}
+         [{"$match":{ "$and": [{"fullDocument.type":"temp"},{"fullDocument.value":{"$gte":100}}] }}]
 
-.. tip::
+      .. code-block:: javascript
 
-   The sink connector configuration above uses the time field date
-   format converter. Alternatively, you can use the ``TimestampConverter``
-   Single Message Transform (SMT) to convert the ``tx_time`` field from a
-   ``String`` to an ``ISODate``. When using the ``TimestampConverter`` SMT,
-   you must define a schema for the data in the Kafka topic.
+         db.sensors.insertOne( { 'type' : 'temp', 'value':99 } )
+         db.sensors.insertOne( { 'type' : 'pressure', 'value':22 } )
 
-   For information on how to use the ``TimestampConverter`` SMT, see the
-   `TimestampConverter <https://docs.confluent.io/platform/current/connect/transforms/timestampconverter.html#timestampconverter>`__
-   Confluent documentation.
 
-After your sink connector finishes processing the topic data, the documents
-in the ``StockDataMigrate`` time series collection contain the ``tx_time``
-field with an ``ISODate`` type value.
 
-.. _time-series-verify-collection:
+Learn More
+----------
 
-Verify the Collection Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+:ref:`Change Streams and the Source Connector <kafka-source-change-streams>`
 
-By this step, your time series collection should contain all the market data
-from your ``PriceData`` collection. The following shows the format of the
-documents in the ``StockDataMigrate`` time series collection:
 
-.. code-block:: javascript
-
-  {
-    tx_time: 2021-07-12T20:05:35.000Z,
-    symbol: 'WSV',
-    company_name: 'WORRIED SNAKEBITE VENTURES',
-    price: 21.22,
-    _id: ObjectId("...")
-  }
-
-To learn how to verify a collection is of type **timeseries**, see the
-instructions on how to :manual:`Check if a Collection is of Type Time Series </core/timeseries-collections/#check-if-a-collection-is-of-type-time-series>`
-in the MongoDB manual.
 
