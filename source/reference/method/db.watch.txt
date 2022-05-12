@@ -262,6 +262,11 @@ have a :ref:`role <roles>` that grants the following :ref:`privilege
 The built-in :authrole:`read` role provides the appropriate
 privileges.
 
+Cursor Iteration
+----------------
+
+.. include:: /includes/fact-multiple-cursor-monitors.rst
+
 Example
 -------
 
@@ -274,17 +279,20 @@ database.
 
    watchCursor = db.getSiblingDB("hr").watch()
 
+
 Iterate the cursor to check for new events. Use the
-:method:`cursor.isExhausted()` method to ensure the loop only exits
-if the change stream cursor is closed *and* there are no objects
-remaining in the latest batch:
+:method:`cursor.isClosed()` method with the :method:`cursor.tryNext()`
+method to ensure the loop only exits if the change stream cursor is
+closed *and* there are no objects remaining in the latest batch:
 
 .. code-block:: javascript
 
-   while (!watchCursor.isExhausted()){
-      if (watchCursor.hasNext()){
-         printjson(watchCursor.next());
-      }
+   while (!watchCursor.isClosed()) {
+     let next = watchCursor.tryNext()
+     while (next !== null) {
+       printjson(next);
+       next = watchCursor.tryNext()
+     }
    }
 
 For complete documentation on change stream output, see
