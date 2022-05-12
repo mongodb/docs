@@ -1,0 +1,94 @@
+.. _kafka-tutorial-sink-connector:
+
+=====================================
+Getting Started with a Sink Connector
+=====================================
+
+.. procedure::
+   :style:connected
+
+   .. step:: Configure the Sink Connector
+
+      .. code-block::
+
+         docker run --rm --name tutorialshell --network mongodb-kafka-base_localnet -it robwma/mongokafkatutorial:latest bash
+
+      .. code-block::
+
+         nano simplesink.json
+
+      .. code-block::
+
+         {"name": "mongo-sink", "config": {
+           "connector.class":"com.mongodb.kafka.connect.MongoSinkConnector",
+           "topics":"Tutorial2.pets",
+           "connection.uri":"mongodb://mongo1",
+           "key.converter":"org.apache.kafka.connect.storage.StringConverter",
+           "value.converter":"org.apache.kafka.connect.json.JsonConverter",
+           "value.converter.schemas.enable":false,
+           "database":"Tutorial2",
+           "collection":"pets"
+           }
+         }
+       
+
+      .. code-block::
+
+         cx simplesink.json
+
+      
+      .. code-block::
+
+         curl -X POST -H "Content-Type: application/json" -d @simplesink.json http://connect:8083/connectors -w "\n"
+         
+      .. code-block::
+
+         sh status.sh
+      
+   .. step:: Write Data to a Kafka Topic
+   
+      .. code-block::
+   
+         nano kafkawrite.py
+
+      .. code-block::
+
+         from kafka import KafkaProducer
+         import json
+         from json import dumps
+         
+         p = KafkaProducer(bootstrap_servers=['broker:29092'],value_serializer=lambda x:dumps(x).encode('utf-8'))
+         
+         data={'name':'roscoe'}
+         
+         p.send('Tutorial2.pets', value=data)
+         
+         p.flush()
+         
+
+      .. code-block::
+
+         python3 kafkawrite.py
+
+   .. step:: View the Data in the MongoDB Collection
+      
+      .. code-block::
+         
+         mongosh "mongodb://mongo1"
+
+   
+      .. code-block::
+
+         use Tutorial2
+         db.pets.find()
+
+      .. code-block::
+
+         { _id: ObjectId("62659..."), name: 'roscoe' }
+         
+      .. code-block::
+
+         "key.converter":"org.apache.kafka.connect.storage.StringConverter",
+         "value.converter":"org.apache.kafka.connect.json.JsonConverter",
+         "value.converter.schemas.enable":false,
+
