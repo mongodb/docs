@@ -43,15 +43,77 @@ fields:
 
    :method:`db.collection.createIndex()`
 
-Index Hints for Time Series Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _timeseries-secondary-index-sort-performance:
 
-To force MongoDB to use a specific index when querying a :term:`time
-series collection`, use :method:`cursor.hint()` with an index name:
+Use Secondary Indexes to Improve Sort Performance
+-------------------------------------------------
+
+Sort operations on the ``timeField`` and ``metaField`` can use secondary
+indexes on those fields to improve performance.
+
+For example, the following ``sensorData`` collection contains
+temperature readings:
 
 .. code-block:: javascript
 
-   db.weather24h.find({ "metadata.sensorId": 1235 }).hint("metadata.sensorId_1_timestamp_1")
+   db.sensorData.insertMany( [
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2022-01-15T00:00:00.000Z"),
+         "temperatureReading": 12
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2022-01-15T04:00:00.000Z"),
+         "temperatureReading": 11
+      },
+      {
+         "metadata": { "sensorId": 5579, "type": "temperature" },
+         "timestamp": ISODate("2022-01-15T08:00:00.000Z"),
+         "temperatureReading": 9
+      }
+   ] )
+
+The following command creates a compound ascending secondary index on
+the ``timestamp`` and ``metadata.sensorId``  fields:
+
+.. code-block:: javascript
+
+   db.sensorData.createIndex(
+      { "timestamp": 1, "metadata.sensorId": 1 }
+   )
+   
+The following sort operation on the ``timestamp`` field uses the index
+to improve performance:
+
+.. code-block:: javascript
+
+   db.sensorData.find().sort( { "timestamp": 1 } )
+
+To confirm that the sort operation used the index, run the operation
+again with the ``.explain()`` option:
+
+.. code-block:: javascript
+
+   db.sensorData.find().sort( { "timestamp": 1 } ).explain()
+
+The ``winningPlan.queryPlan.inputStage.stage`` is ``IXSCAN``, which
+indicates that the index was used. For more information on explain plan
+output, see :ref:`explain-results`.
+
+Specify Index Hints for Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Index hints cause MongoDB to use a specific index for a query. Some
+operations on time series collections can only take advantage of an
+index if that index is specified in a hint.
+
+For example, the following query causes MongoDB to use the
+``timestamp_1_metadata.sensorId_1`` index:
+
+.. code-block:: javascript
+
+   db.sensorData.find( { "metadata.sensorId": 5578 } ).hint( "timestamp_1_metadata.sensorId_1" )
 
 On a time series collection, you can specify hints using either the
 index name or the index key pattern. To get the names of the indexes on
@@ -60,7 +122,7 @@ a collection, use the :method:`db.collection.getIndexes()` method.
 .. _timeseries-add-secondary-index-mongodb-6.0:
 
 Time Series Secondary Indexes in MongoDB 6.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------------------------
 
 Starting in MongoDB 6.0:
 
@@ -78,29 +140,3 @@ Starting in MongoDB 6.0:
 .. note::
 
    .. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst
-
-For example, the following ``sensorData`` collection contains
-temperature readings:
-
-.. code-block:: javascript
-
-   db.sensorData.insertMany( [
-      {
-         "metadata": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate("2022-01-15T00:00:00.000Z"),
-         "temperatureReading": 12
-      },
-      {
-         "metadata": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate("2022-01-15T04:00:00.000Z"),
-         "temperatureReading": 11
-      }
-   ] )
-
-The following example creates an ascending secondary index on the
-``metadata.sensorId`` and ``temperatureReading`` fields in the
-``sensorData`` collection:
-
-.. code-block:: javascript
-
-   db.sensorData.createIndex( { "metadata.sensorId": 1, "temperatureReading": 1 } )
