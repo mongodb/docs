@@ -246,6 +246,11 @@ have a :ref:`role <roles>` that grants the following :ref:`privilege
 The built-in :authrole:`read` role provides the appropriate
 privileges.
 
+Cursor Iteration
+----------------
+
+.. include:: /includes/fact-multiple-cursor-monitors.rst
+
 Examples
 --------
 
@@ -260,16 +265,18 @@ The following operation opens a change stream cursor against the
    watchCursor = db.getSiblingDB("data").sensors.watch()
 
 Iterate the cursor to check for new events. Use the
-:method:`cursor.isExhausted()` method to ensure the loop only exits
-if the change stream cursor is closed *and* there are no objects
-remaining in the latest batch:
+:method:`cursor.isClosed()` method with the :method:`cursor.tryNext()`
+method to ensure the loop only exits if the change stream cursor is
+closed *and* there are no objects remaining in the latest batch:
 
 .. code-block:: javascript
 
-   while (!watchCursor.isExhausted()){
-      if (watchCursor.hasNext()){
-         printjson(watchCursor.next());
-      }
+   while (!watchCursor.isClosed()) {
+     let next = watchCursor.tryNext()
+     while (next !== null) {
+       printjson(next);
+       next = watchCursor.tryNext()
+     }
    }
 
 For complete documentation on change stream output, see
@@ -294,16 +301,18 @@ the ``data.sensors`` collection using the
    )
 
 Iterate the cursor to check for new events. Use the
-:method:`cursor.isExhausted()` method to ensure the loop only exits
-if the change stream cursor is closed *and* there are no objects
-remaining in the latest batch:
+:method:`cursor.isClosed()` method with the :method:`cursor.tryNext()`
+method to ensure the loop only exits if the change stream cursor is
+closed *and* there are no objects remaining in the latest batch:
 
 .. code-block:: javascript
 
-   while (!watchCursor.isExhausted()){
-      if (watchCursor.hasNext()){
-         printjson(watchCursor.next());
-      }
+   while (!watchCursor.isClosed()) {
+     let next = watchCursor.tryNext()
+     while (next !== null) {
+       printjson(next);
+       next = watchCursor.tryNext()
+     }
    }
 
 For any update operation, the change event returns the result of the
@@ -335,13 +344,13 @@ filter only ``insert`` events:
    )
 
 Iterate the cursor to check for new events. Use the
-:method:`cursor.isExhausted()` method to ensure the loop only exits
-if the change stream cursor is closed *and* there are no objects
-remaining in the latest batch:
+:method:`cursor.isClosed()` method with the :method:`cursor.hasNext()`
+method to ensure the loop only exits if the change stream cursor is
+closed *and* there are no objects remaining in the latest batch:
 
 .. code-block:: javascript
 
-   while (!watchCursor.isExhausted()){
+   while (!watchCursor.isClosed()){
       if (watchCursor.hasNext()){
          printjson(watchCursor.next());
       }
@@ -370,7 +379,7 @@ rolled off the cluster's oplog.
    let watchCursor = db.getSiblingDB("data").sensors.watch();
    let firstChange;
 
-   while (!watchCursor.isExhausted()) {
+   while (!watchCursor.isClosed()) {
       if (watchCursor.hasNext()) {
         firstChange = watchCursor.next();
         break;
@@ -387,13 +396,14 @@ rolled off the cluster's oplog.
    )
 
 Iterate the cursor to check for new events. Use the
-:method:`cursor.isExhausted()` method to ensure the loop only exits
-if the change stream cursor is closed *and* there are no objects
-remaining in the latest batch:
+:method:`cursor.isClosed()` method with the :method:`cursor.hasNext()`
+method to ensure the loop only exits if the change stream cursor is
+closed *and* there are no objects remaining in the latest batch:
+
 
 .. code-block:: javascript
 
-   while (!resumedWatchCursor.isExhausted()){
+   while (!resumedWatchCursor.isClosed()){
       if (resumedWatchCursor.hasNext()){
          printjson(watchCursor.next());
       }
