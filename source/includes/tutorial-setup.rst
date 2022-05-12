@@ -94,13 +94,14 @@ for this tutorial.
       information:
 
       .. code-block:: bash
+         :copyable: false
 
-      The following services are running:
+         The following services are running:
 
-      MongoDB 3-node cluster available on port 27017
-      Kafka Broker on 9092
-      Kafka Zookeeper on 2181
-      Kafka Connect on 8083
+         MongoDB 3-node cluster available on port 27017
+         Kafka Broker on 9092
+         Kafka Zookeeper on 2181
+         Kafka Connect on 8083
 
    .. step:: Verify the Successful Setup
 
@@ -122,6 +123,7 @@ for this tutorial.
       development environment was set up successfully:
 
       .. code-block:: bash
+         :copyable: false
 
          Kafka topics:
 
