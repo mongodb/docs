@@ -5,7 +5,8 @@ Before You Get Started
 
 The tutorials in this section use a Docker development environment to
 package the dependencies and configurations you need to run the
-{+connector-long+}.
+{+connector-long+}. Make sure you complete the development environment setup
+steps before proceeding to the tutorials.
 
 Requirements
 ~~~~~~~~~~~~
@@ -18,8 +19,8 @@ While not required, we recommend that you use **git** to download the setup
 files. To learn how to install git, read the `Git Downloads <https://git-scm.com/downloads>`__
 page.
 
-Install the Docker Development Environment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Set Up Your Development Environment with Docker
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Follow the steps in this section to set up your development environment
 for this tutorial.
