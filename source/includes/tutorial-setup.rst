@@ -3,7 +3,7 @@
 Before You Get Started
 ----------------------
 
-The tutorials in this section use a Docker development environment to
+The tutorials in this section run on a development environment using Docker to
 package the dependencies and configurations you need to run the
 {+connector-long+}. Make sure you complete the development environment setup
 steps before proceeding to the tutorials.
@@ -11,26 +11,23 @@ steps before proceeding to the tutorials.
 Requirements
 ~~~~~~~~~~~~
 
-To download the Docker containers you need for this tutorial, you must have
-a Docker account. To learn how to sign up for an account and install Docker
-Desktop, read the `Docker Hub Quickstart <https://docs.docker.com/docker-hub/>`__.
+- Create or sign into your Docker account to download the Docker containers
+  you need for this tutorial.  To learn how to sign up for an account and
+  install Docker Desktop, read the `Docker Hub Quickstart <https://docs.docker.com/docker-hub/>`__.
 
-While not required, we recommend that you use **git** to download the setup
-files. To learn how to install git, read the `Git Downloads <https://git-scm.com/downloads>`__
-page.
+- Optional. Install **git** to download the setup files. To learn how to
+  install git, read the `Git Downloads <https://git-scm.com/downloads>`__
+  page.
 
 Set Up Your Development Environment with Docker
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Follow the steps in this section to set up your development environment
-for this tutorial.
 
 .. procedure::
    :style: connected
 
    .. step:: Download the Tutorial Docker Image
 
-      Download the `tutorial docker image <https://hub.docker.com/repository/docker/robwma/mongokafkatutorial>`__
+      Download the `tutorial Docker image <https://hub.docker.com/repository/docker/robwma/mongokafkatutorial>`__
       from Docker Hub which contains command line tools to interact with
       MongoDB, Apache Kafka, and the connectors.
 
@@ -56,28 +53,50 @@ for this tutorial.
 
    .. step:: Run the Development Environment
 
-      Navigate to the tutorial directory "mongodb-kafka-base" within the
-      repository or unzipped archive.  If you cloned the repository with git,
-      your command resembles the following:
+      Select the tab that matches your OS for instructions on how to run the
+      commands in this guide:
 
-      .. code-block:: bash
-         :copyable: true
+      .. tabs::
 
-         cd kafka-edu/docs-examples/source/mongodb-kafka-base/
+         .. tab:: Windows
+            :tabid: powershell
 
-      Start the Docker image with the following command:
+            Navigate to the tutorial directory "mongodb-kafka-base" within
+            the repository or unzipped archive using PowerShell.  If you
+            cloned the repository with git, your command resembles the
+            following:
 
-      .. code-block:: bash
-         :copyable: true
+            .. code-block:: none
+               :copyable: true
 
-          sh run.sh
+               cd kafka-edu\docs-examples\source\mongodb-kafka-base\
 
-      If you are running Windows, use the following PowerShell command instead:
+            Start the Docker image with the following command:
 
-      .. code-block:: bash
-         :copyable: true
+            .. code-block:: bash
+               :copyable: true
 
-         powershell.exe .\run.ps1
+               powershell.exe .\run.ps1
+
+         .. tab:: Linux or Mac OS
+            :tabid: shell
+
+            Navigate to the tutorial directory "mongodb-kafka-base" within
+            the repository or unzipped archive using bash shell. If you
+            cloned the repository with git, your command resembles the
+            following:
+
+            .. code-block:: bash
+               :copyable: true
+
+               cd kafka-edu/docs-examples/source/mongodb-kafka-base/
+
+            Start the Docker image with the following command:
+
+            .. code-block:: bash
+               :copyable: true
+
+                sh run.sh
 
       .. note::
 
@@ -109,16 +128,22 @@ for this tutorial.
       Confirm the development environment started normally by running the
       following command from the "mongodb-kafka-base" directory:
 
-      .. code-block:: bash
+      .. tabs::
 
-         sh status.sh
+         .. tab:: Windows
+            :tabid: powershell
 
-      If you are running Windows, use the following PowerShell command instead:
+            .. code-block:: bash
+               :copyable: true
 
-      .. code-block::
-         :copyable: true
+               powershell.exe .\status.ps1
 
-         powershell.exe .\status.ps1
+         .. tab:: Linux or Mac OS
+            :tabid: shell
+
+            .. code-block:: bash
+
+               sh status.sh
 
       This command should output the following information if the Docker
       development environment was set up successfully:
