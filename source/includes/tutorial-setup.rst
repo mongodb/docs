@@ -58,26 +58,6 @@ Set Up Your Development Environment with Docker
 
       .. tabs::
 
-         .. tab:: Windows
-            :tabid: powershell
-
-            Navigate to the tutorial directory "mongodb-kafka-base" within
-            the repository or unzipped archive using PowerShell.  If you
-            cloned the repository with git, your command resembles the
-            following:
-
-            .. code-block:: none
-               :copyable: true
-
-               cd kafka-edu\docs-examples\source\mongodb-kafka-base\
-
-            Start the Docker image with the following command:
-
-            .. code-block:: bash
-               :copyable: true
-
-               powershell.exe .\run.ps1
-
          .. tab:: Linux or Mac OS
             :tabid: shell
 
@@ -97,6 +77,26 @@ Set Up Your Development Environment with Docker
                :copyable: true
 
                 sh run.sh
+
+         .. tab:: Windows
+            :tabid: powershell
+
+            Navigate to the tutorial directory "mongodb-kafka-base" within
+            the repository or unzipped archive using PowerShell.  If you
+            cloned the repository with git, your command resembles the
+            following:
+
+            .. code-block:: none
+               :copyable: true
+
+               cd kafka-edu\docs-examples\source\mongodb-kafka-base\
+
+            Start the Docker image with the following command:
+
+            .. code-block:: bash
+               :copyable: true
+
+               powershell.exe .\run.ps1
 
       .. note::
 
@@ -130,6 +130,13 @@ Set Up Your Development Environment with Docker
 
       .. tabs::
 
+         .. tab:: Linux or Mac OS
+            :tabid: shell
+
+            .. code-block:: bash
+
+               sh status.sh
+
          .. tab:: Windows
             :tabid: powershell
 
@@ -137,13 +144,6 @@ Set Up Your Development Environment with Docker
                :copyable: true
 
                powershell.exe .\status.ps1
-
-         .. tab:: Linux or Mac OS
-            :tabid: shell
-
-            .. code-block:: bash
-
-               sh status.sh
 
       This command should output the following information if the Docker
       development environment was set up successfully:
