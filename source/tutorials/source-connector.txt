@@ -4,28 +4,78 @@
 Getting Started with a MongoDB Source Connector
 ===============================================
 
+Follow this tutorial to learn how to configure a {+source-connector+}
+to read data from a change stream and publish it to an Apache Kafka topic.
+
+Before you start this tutorial, you must complete the steps in the
+Tutorial Setup (TODO: link).
+
 .. procedure::
    :style: connected
 
    .. step:: Configure the Source Connector
 
+
+      Create an interactive shell session on the tutorial Docker Container
+      using the following command:
+
+      .. code-block:: bash
+
+         docker run --rm --name tutorialshell --network mongodb-kafka-base_localnet -it robwma/mongokafkatutorial:latest bash
+
+      Create a source configuration file called ``simplesource.json`` with
+      the following command:
+
       .. code-block:: bash
 
          nano simplesource.json
 
+      Paste the following configuration information into the file and save
+      your changes:
+
+      .. code-block:: json
+
+         { "name": "mongo-simple-source",
+           "config": {
+             "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
+             "connection.uri": "mongodb://mongo1",
+             "database": "Tutorial1",
+             "collection": "orders"
+           }
+         }
+
+      Run the following command in the shell to start the source connector
+      using the configuration file you created:
 
       .. code-block:: bash
 
-         curl -X POST -H "Content-Type: application/json" -d @simplesource.json http://connect:8083/connectors -w "\n"
+         cx simplesource.json
+
+      .. note::
+
+         The ``cx`` command is a custom script included in the tutorial
+         development environment. This script runs the following
+         equivalent request to the Kafka Connect REST API to create a new
+         connector:
+
+         .. code-block:: bash
+
+            curl -X POST -H "Content-Type: application/json" -d @simplesource.json http://connect:8083/connectors -w "\n"
+
+      Run the following command in the shell to check the status of the
+      connectors:
 
       .. code-block:: bash
 
-         sh status.sh
+         status
+
+      If your source connector started successfully, you should see the
+      following output:
 
       .. code-block:: none
 
          Kafka topics:
-
+         ...
 
          The status of the connectors:
 
@@ -37,67 +87,100 @@ Getting Started with a MongoDB Source Connector
            "mongo-simple-source"
          ]
 
-
-         Version of MongoDB Connector for Apache Kafka installed:
-
-         {"class":"com.mongodb.kafka.connect.MongoSinkConnector","type":"sink","version":"1.7.0"}
-         {"class":"com.mongodb.kafka.connect.MongoSourceConnector","type":"source","version":"1.7.0"}
-
+         ...
 
    .. step:: Create Change Events
+
+      In the same shell, connect to MongoDB using ``mongosh``, the MongoDB
+      Shell by running the following command:
 
       .. code-block:: shell
 
          mongosh "mongodb://mongo1"
+
+      After you connect successfully, you should see the following
+      MongoDB shell prompt:
+
+      .. code-block::
+
+         rs0 [direct: primary] test>
+
+       At the prompt, type the following commands to insert a new document:
 
       .. code-block:: javascript
 
          use Tutorial1
          db.orders.insertOne( { 'order_id' : 1, 'item' : 'coffee' } )
 
+      Once MongoDB completes the insert command, you should receive an 
+      acknowledgement that resembles the following text:
+
+      .. code-block:: json
+
+         {
+           acknowledged: true,
+           insertedId: ObjectId("627e7e...")
+         }
+
+      Exit the MongoDB shell by entering the command ``exit``.
+      
+      Check the status of your Kafka environment using the following
+      command:
+
       .. code-block:: bash
 
-         sh status.sh
+         status
 
+      In the output of the preceding command, you should see the new topic
+      that the source connector created after receiving the change event:
+      
       .. code-block::
+         :copyable: false
+         :emphasize-lines: 2
 
          ...
          "topic": "Tutorial1.orders",
          ...
 
+      Confirm the content of data on the new Kafka topic by running the 
+      following command:
+
       .. code-block::
 
          kc Tutorial1.orders
 
-      .. code-block::
+      .. note::
+
+         The ``kc`` command is a helper script that outputs the content of
+         a Kafka topic.
+
+      You should see the following Kafka topic data, organized by "Key"
+      and "Value" sections when you run the preceding command:
+      
+      .. code-block:: none
+         :emphasize-lines: 3,5,7,9
 
          Partition: 0	Offset: 0
 
          Key (198 bytes):
 
-         {"schema":{"type":"string","optional":false},"payload":"{\"_id\": {\"_data\": \"8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004\"}}"}
+         {"schema":{"type":"string","optional":false},"payload":"{\"_id\": {\"_data\": \"8262655A...\"}}"}
 
          Value (530 bytes):
 
-         {"schema":{"type":"string","optional":false},"payload":"{\"_id\": {\"_data\": \"8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004\"}, \"operationType\": \"insert\", \"clusterTime\": {\"$timestamp\": {\"t\": 1650809557, \"i\": 2}}, \"fullDocument\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}, \"order_id\": 1, \"item\": \"coffee\"}, \"ns\": {\"db\": \"Tutorial1\", \"coll\": \"orders\"}, \"documentKey\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}}}"}
+         {"schema":{"type":"string","optional":false},"payload":"{\"_id\": {\"_data\": \"8262655A...\"}, \"operationType\": \"insert\", \"clusterTime\": {\"$timestamp\": {\"t\": 1650809557, \"i\": 2}}, \"fullDocument\": {\"_id\": {\"$oid\": \"62655a...\"}, \"order_id\": 1, \"item\": \"coffee\"}, \"ns\": {\"db\": \"Tutorial1\", \"coll\": \"orders\"}, \"documentKey\": {\"_id\": {\"$oid\": \"62655a...\"}}}"}
 
 
-     .. code-block::
-
-        {
-          "schema": {
-            "type": "string",
-            "optional": false
-          },
-          "payload": "{\"_id\": {\"_data\": \"8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004\"}, \"operationType\": \"insert\", \"clusterTime\": {\"$timestamp\": {\"t\": 1650809557, \"i\": 2}}, \"fullDocument\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}, \"order_id\": 1, \"item\": \"coffee\"}, \"ns\": {\"db\": \"Tutorial1\", \"coll\": \"orders\"}, \"documentKey\": {\"_id\": {\"$oid\": \"62655ad5d9440c0c72a22030\"}}}"
-        }
+     From the "Value" section of the output, you can find the part of the
+     ``payload`` that includes the ``fullDocument`` field.
+     The following 
 
      .. code-block::
         :emphasize-lines: 12-17
 
         {
           "_id": {
-            "_data": "8262655AD5000000022B022C0100296E5A1004A137DF2952414F6FB43DAA01CE8D54AB46645F6964006462655AD5D9440C0C72A220300004"
+            "_data": "8262655A..."
           },
           "operationType": "insert",
           "clusterTime": {
@@ -108,7 +191,7 @@ Getting Started with a MongoDB Source Connector
           },
           "fullDocument": {
             "_id": {
-              "$oid": "62655ad5d9440c0c72a22030"
+              "$oid": "62655a..."
             },
             "order_id": 1,
             "item": "coffee"
@@ -119,7 +202,7 @@ Getting Started with a MongoDB Source Connector
           },
           "documentKey": {
             "_id": {
-              "$oid": "62655ad5d9440c0c72a22030"
+              "$oid": "62655a..."
             }
           }
         }
@@ -145,29 +228,23 @@ Getting Started with a MongoDB Source Connector
             "collection":"orders"
            }
          }
-      
+
       .. code-block::
-         
+
          cx simplesource.json
 
 
       .. code-block::
-         
+
          use Tutorial1
          db.orders.insertOne( { 'order_id' : 2, 'item' : 'oatmeal' } )
 
 
       .. code-block::
-       
+
          kc Tutorial1.orders
 
       .. code-block::
 
          {"_id": {"$oid": "62656553d9440c0c72a22031"}, "order_id": 2, "item": "oatmeal"}"}
-
-
-         
-
-
-
 
