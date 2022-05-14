@@ -112,7 +112,7 @@ Tutorial Setup (TODO: link).
          use Tutorial1
          db.orders.insertOne( { 'order_id' : 1, 'item' : 'coffee' } )
 
-      Once MongoDB completes the insert command, you should receive an 
+      Once MongoDB completes the insert command, you should receive an
       acknowledgement that resembles the following text:
 
       .. code-block:: json
@@ -123,7 +123,7 @@ Tutorial Setup (TODO: link).
          }
 
       Exit the MongoDB shell by entering the command ``exit``.
-      
+
       Check the status of your Kafka environment using the following
       command:
 
@@ -133,7 +133,7 @@ Tutorial Setup (TODO: link).
 
       In the output of the preceding command, you should see the new topic
       that the source connector created after receiving the change event:
-      
+
       .. code-block::
          :copyable: false
          :emphasize-lines: 2
@@ -142,7 +142,7 @@ Tutorial Setup (TODO: link).
          "topic": "Tutorial1.orders",
          ...
 
-      Confirm the content of data on the new Kafka topic by running the 
+      Confirm the content of data on the new Kafka topic by running the
       following command:
 
       .. code-block::
@@ -156,7 +156,7 @@ Tutorial Setup (TODO: link).
 
       You should see the following Kafka topic data, organized by "Key"
       and "Value" sections when you run the preceding command:
-      
+
       .. code-block:: none
          :emphasize-lines: 3,5,7,9
 
@@ -172,8 +172,8 @@ Tutorial Setup (TODO: link).
 
 
      From the "Value" section of the output, you can find the part of the
-     ``payload`` that includes the ``fullDocument`` field.
-     The following 
+     ``payload`` that includes the ``fullDocument`` data as highlighted in
+     the following formatted JSON document:
 
      .. code-block::
         :emphasize-lines: 12-17
@@ -207,44 +207,99 @@ Tutorial Setup (TODO: link).
           }
         }
 
-   .. step:: Configure the Change Stream to Return the Full Document
+   .. step:: Reconfigure the Change Stream
+
+      You can omit the metadata from the events created by the change
+      stream by configuring it to only return the ``fullDocument`` field.
+
+      Stop the connector using the following command:
 
       .. code-block::
 
          del mongo-simple-source
 
-      .. code-block::
+      .. note::
+
+         The ``del`` command is a helper script that calls the Kafka
+         Connect REST API to stop the connector and is equivalent to the
+         following command:
+
+         .. code-block:: bash
+
+            curl -X DELETE connect:8083/connectors/<parameter>
+
+      Edit the source configuration file called ``simplesource.json`` with
+      the following command:
+
+      .. code-block:: bash
 
          nano simplesource.json
 
+      Remove the existing configuration, add the following configuration,
+      and save the file:
+
       .. code-block::
 
-         {"name": "mongo-simple-source",
+         { "name": "mongo-simple-source",
             "config": {
-            "connector.class":"com.mongodb.kafka.connect.MongoSourceConnector",
-            "connection.uri":"mongodb://mongo1",
-            "publish.full.document.only":true,
-            "database":"Tutorial1",
-            "collection":"orders"
+            "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
+            "connection.uri": "mongodb://mongo1",
+            "publish.full.document.only": true,
+            "database": "Tutorial1",
+            "collection": "orders"
            }
          }
+
+      Run the following command in the shell to start the source connector
+      using the configuration file you updated:
 
       .. code-block::
 
          cx simplesource.json
 
+      Connect to MongoDB using ``mongosh`` using the following command:
+
+      .. code-block:: shell
+
+         mongosh "mongodb://mongo1"
+
+       At the prompt, type the following commands to insert a new document:
 
       .. code-block::
 
          use Tutorial1
          db.orders.insertOne( { 'order_id' : 2, 'item' : 'oatmeal' } )
 
+      Confirm the content of data on the new Kafka topic by running the
+      following command:
 
       .. code-block::
 
          kc Tutorial1.orders
 
+      The ``payload`` field in the "Value" document should contain only the
+      following document data:
+
       .. code-block::
 
-         {"_id": {"$oid": "62656553d9440c0c72a22031"}, "order_id": 2, "item": "oatmeal"}"}
+         {"_id": {"$oid": "626565..."}, "order_id": 2, "item": "oatmeal"}"}
+
+
+Summary
+-------
+
+In this tutorial, you started a source connector using different
+configurations to alter the change stream event data published to a Kafka
+topic.
+
+
+Learn More
+----------
+
+Read the following resources to learn more about concepts mentioned in
+this tutorial:
+
+- :ref:`Source Connector Configuration Properties <source-configuration-index>`
+- :ref:
+- `Kafka Connect REST API <https://developer.confluent.io/learn-kafka/kafka-connect/rest-api/>`__
 
