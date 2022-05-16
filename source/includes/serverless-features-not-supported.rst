@@ -85,9 +85,6 @@ Capabilities
    * - Use :charts:`MongoDB Charts </>`
      - 
 
-   * - Use :realm:`MongoDB Realm (excluding Realm Sync and Triggers) </>`
-     - :icon:`check-square`
-
    * - Use :realm:`Realm Sync </sync/learn/overview/#std-label-sync-overview>`
      - 
 
