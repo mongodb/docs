@@ -1,37 +1,39 @@
 ---
 stepnum: 1
 level: 4
-ref: clone-k8s-repo-kind
-title: "Clone the :github:`MongoDB Enterprise Kubernetes Operator repository </mongodb/mongodb-enterprise-kubernetes>`."
-content: |
-
-  .. code-block:: sh
-
-     git clone https://github.com/mongodb/mongodb-enterprise-kubernetes.git
+source:
+  file: steps-helm-master.yaml
+  ref: install-helm-charts
 
 ---
 stepnum: 2
 level: 4
-ref: create-k8s-ns-kind
-title: "Create a |k8s-ns| for your |k8s| deployment."
+title: "Install the |k8s-op-full|"
+ref: install-kubectl-quickstart
 content: |
 
-  By default, The |k8s-op-short| uses the ``mongodb`` namespace. To
-  simplify your installation, consider creating a namespace labeled
-  ``mongodb`` using the following |kubectl| command:
+  To :github:`install the Kubernetes Operator with the Helm Chart 
+  </mongodb/helm-charts/tree/main/charts/enterprise-operator#installing-enterprise-operator>`, see the 
+  instructions in the repository.
+
+  **Example**
+
+  The following command installs the |k8s-op-full| in the ``mongodb`` 
+  namespace with the optional ``--create-namespace`` option. By 
+  default, |k8s-op-short| uses the ``default`` namespace. 
 
   .. code-block:: sh
 
-     kubectl create namespace mongodb
+     helm install enterprise-operator mongodb/enterprise-operator --namespace mongodb --create-namespace
 
 ---
 stepnum: 3
 level: 4
-ref: configure-kubectl-configmap-kind
+ref: configure-kubectl-quickstart
 title: "Configure ``kubectl`` to default to your namespace."
 content: |
 
-  If you have not already, run the following command to execute all 
+  If you haven't already, run the following command to execute all 
   ``kubectl`` commands in the namespace you created:
 
   .. code-block:: sh
@@ -40,117 +42,143 @@ content: |
 
 ---
 stepnum: 4
-level: 4
-title: "Install the |k8s-op-full|"
-ref: install-kubectl-kind
+title: "Configure the Kubernetes Operator"
+ref: configure-kubernetes-operator-quickstart
 content: |
 
-  a. Change to the directory in which you cloned the repository.
+  a. :cloudmgr:`Go to the Kubernetes Setup Page in the Cloud Manager UI 
+     <tutorial/nav/k8s-config-for-mdb-resource/#navigate-to-the-kubernetes-setup-page-in-the-mms-ui>`.
 
-  #. Install the |k8s-crds| for MongoDB deployments using the 
-     following |kubectl| command:
+  #. Click :guilabel:`Create New API Keys` or 
+     :guilabel:`Use Existing API Keys`.
 
-     .. code-block:: sh
+  #. Complete the form. To learn more, see 
+     :cloudmgr:`Programmatic Access to Cloud Manager 
+     </tutorial/manage-programmatic-api-keys/>`.
 
-        kubectl apply -f crds.yaml
+  #. Click :guilabel:`Generate Key and YAML`.
   
-  #. Install the |k8s-op-short| using the following |kubectl| command:
-  
-     .. code-block:: sh
-
-        kubectl apply -f mongodb-enterprise.yaml
-
 ---
 stepnum: 5
-title: "Create credentials and store them as a secret."
-ref: create-k8s-credentials-kind
+level: 4
+title: "Copy and save the ConfigMap."
+ref: copy-k8s-configmap-quickstart
 content: |
 
-  Run the following command:
+  Copy and save the generated ``config-map.yaml`` file.
 
-  .. note::
+  **Example:**
 
-     Provide your Public and Private Key values for the following 
-     parameters. To learn more, see :ref:`create-k8s-credentials`.  
+  .. code-block:: yaml
 
-  .. code-block:: sh
+     apiVersion: v1
+     kind: ConfigMap
+     metadata:
+       name: my-project
+       namespace: mongodb
+     data:
+       baseUrl: https://cloud.mongodb.com
 
-     kubectl -n mongodb \
-       create secret generic ops-manager-admin-key \
-       --from-literal="publicKey=<publicKey>" \
-       --from-literal="privateKey=<privateKey>"
+       # Optional Parameters
+       # projectName: My Ops/Cloud Manager Project
+
+       ordId: 5ecd252f8c1a75033c74106c
   
+  To learn more, see the :doc:`parameter descriptions 
+  </tutorial/create-project-using-configmap>`.
+
 ---
 stepnum: 6
 level: 4
-title: "Invoke the following command to create a ConfigMap."
-ref: copy-k8s-configmap-kind
+title: "Copy and save the Secret."
+ref: copy-k8s-secret-quickstart
 content: |
 
-  .. note::
+  Copy and save the generated ``secret.yaml`` file.
 
-     Provide your values for the following parameters. To learn more, 
-     see the :doc:`parameter descriptions 
-     </tutorial/create-project-using-configmap>`.
+  **Example:**
 
-  .. code-block:: sh
+  .. code-block:: yaml
 
-     kubectl create configmap myconfigmap \
-       --from-literal="baseUrl=<myOpsManagerURL>" \
-       --from-literal="projectName=<myOpsManagerProjectName>" \ #Optional
-       --from-literal="orgId=<orgID>" #Required for Global API Keys
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: organization-secret
+       namespace: mongodb
+     stringData:
+       user: <public_key>
+       publicAPIKey: <private_key>
+  
+  For security purposes, |cloud| displays this file only once.
 
 ---
 stepnum: 7
 level: 4
-title: "Deploy the :term:`replica set` resource."
-ref: deploy-replica-set-kind
+title: "Apply the ConfigMap and Secret."
+ref: apply-configmap-secret
 content: |
 
   Run the following command:
 
   .. code-block:: sh
 
-     cat <<EOF | kubectl apply -f -
-     apiVersion: mongodb.com/v1
-     kind: MongoDB
-     metadata:
-       name: demo-mongodb-cluster-1
-       namespace: mongodb
-     spec:
-       members: 3
-       version: 4.4.5-ent
-       type: ReplicaSet
-       authentication:
-         enabled: true
-         modes: ["SHA"]
-       opsManager:
-         configMapRef:
-           name: myconfigmap
-       credentials: ops-manager-admin-key
-       persistent: true
-       podSpec:
-         podTemplate:
-           spec:
-             containers:
-             - name: mongodb-enterprise-database
-               resources:
-                 limits:
-                   cpu: 2
-                   memory: 1.5G
-                 requests:
-                   cpu: 1
-                   memory: 1G 
-                 persistence:
-                   single:
-                     storage: 10Gi
-     EOF
+     kubectl apply -f secret.yaml -f config-map.yaml
 
 ---
 stepnum: 8
 level: 4
+title: "Deploy the :term:`replica set` resource."
+ref: deploy-replica-set-quickstart
+content: |
+
+  a. Copy and save the following |yaml| file:
+
+     .. code-block:: yaml
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDB
+        metadata:
+          name: demo-mongodb-cluster-1
+          namespace: mongodb
+        spec:
+          members: 3
+          version: 4.4.5-ent
+          type: ReplicaSet
+          authentication:
+            enabled: true
+            modes: ["SHA"]
+          cloudManager:
+            configMapRef:
+              name: myproject
+          credentials: organization-secret
+          persistent: true
+          podSpec:
+            podTemplate:
+              spec:
+               containers:
+                - name: mongodb-enterprise-database
+                  resources:
+                    limits:
+                      cpu: 2
+                      memory: 1.5G
+                    requests:
+                      cpu: 1
+                      memory: 1G 
+                    persistence:
+                      single:
+                        storage: 10Gi
+
+  #. Run the following command:
+
+     .. code-block:: sh
+
+        kubectl apply -f <replica-set-conf>.yaml
+
+---
+stepnum: 9
+level: 4
 title: "Create a secret with your database user password"
-ref: create-k8s-user-secret-kind
+ref: create-k8s-user-secret-quickstart
 content: |
 
   You can choose to use a cleartext password or a Base64-encoded 
@@ -163,9 +191,9 @@ content: |
      see the :doc:`parameter descriptions 
      </tutorial/manage-database-users-scram>`.
 
-  For a cleartext password, create and save the following YAML file:
+  For a cleartext password, create and save the following |yaml| file:
 
-  .. code-block:: sh
+  .. code-block:: yaml
 
      apiVersion: v1
      kind: Secret
@@ -180,7 +208,7 @@ content: |
   For a Base64-encoded password, create and save the following YAML 
   file:
 
-  .. code-block:: sh
+  .. code-block:: yaml
 
      apiVersion: v1
      kind: Secret
@@ -193,60 +221,63 @@ content: |
        # corresponds to user.spec.passwordSecretKeyRef.key
 
 ---
-stepnum: 9
-level: 4
-title: "Create a database user."
-ref: add-k8s-user-configmap-kind
-content: |
-
-  Run the following command:
-
-  .. code-block:: sh
-
-     cat <<EOF | kubectl apply -f -
-     apiVersion: mongodb.com/v1
-     kind: MongoDBUser
-     metadata:
-       name: mms-scram-user-1
-     spec:
-       passwordSecretKeyRef:
-         name: mms-user-1-password
-         # Match to metadata.name of the User Secret
-         key: password
-       username: "mms-scram-user-1"
-       db: "admin" #
-       mongodbResourceRef:
-         name: "demo-mongodb-cluster-1"
-         # Match to MongoDB resource using authenticaiton
-       roles:
-       - db: "admin"
-         name: "clusterAdmin"
-       - db: "admin"
-         name: "userAdminAnyDatabase"
-       - db: "admin"
-         name: "readWrite"
-       - db: "admin"
-         name: "userAdminAnyDatabase"
-     EOF
-
----
 stepnum: 10
 level: 4
-ref: view-k8s-user-kind
+title: "Create a database user."
+ref: add-k8s-user-configmap-quickstart
+content: |
+
+  a. Copy and save the following |yaml| file:
+
+     .. code-block:: yaml
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDBUser
+        metadata:
+          name: mms-scram-user-1
+        spec:
+          passwordSecretKeyRef:
+            name: mms-user-1-password
+            # Match to metadata.name of the User Secret
+            key: password
+          username: "mms-scram-user-1"
+          db: "admin" #
+          mongodbResourceRef:
+            name: "demo-mongodb-cluster-1"
+            # Match to MongoDB resource using authenticaiton
+          roles:
+          - db: "admin"
+            name: "clusterAdmin"
+          - db: "admin"
+            name: "userAdminAnyDatabase"
+          - db: "admin"
+            name: "readWrite"
+          - db: "admin"
+            name: "userAdminAnyDatabase"
+
+  #. Run the following command:
+
+     .. code-block:: sh
+
+        kubectl apply -f <database-user-conf>.yaml
+
+---
+stepnum: 11
+level: 4
+ref: view-k8s-user-quickstart
 optional: true
 source:
   file: steps-add-database-user-scram.yaml
   ref: view-k8s-user
 
 ---
-stepnum: 11
+stepnum: 12
 level: 4
 title: "Connect to the :term:`replica set`."
-ref: connect-k8s-rs-kind
+ref: connect-k8s-rs-quickstart
 content: |
 
-  Perform the following steps in the |cloud-link| or |onprem-link|
-  application, depending on where your clusters are hosted:
+  Perform the following steps in the |cloud-link| application:
 
   a. Click :guilabel:`Deployment` in the left navigation.
 
