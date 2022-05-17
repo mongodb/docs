@@ -15,6 +15,8 @@ Requirements
   you need for this tutorial.  To learn how to sign up for an account and
   install Docker Desktop, read the `Docker Hub Quickstart <https://docs.docker.com/docker-hub/>`__.
 
+- A terminal app and shell.
+
 - Optional. Install **git** to download the setup files. To learn how to
   install git, read the `Git Downloads <https://git-scm.com/downloads>`__
   page.
@@ -28,15 +30,33 @@ Set Up Your Development Environment with Docker
    .. step:: Download the Tutorial Docker Image
 
       Download the `tutorial Docker image <https://hub.docker.com/repository/docker/robwma/mongokafkatutorial>`__
-      from Docker Hub which contains command line tools to interact with
-      MongoDB, Apache Kafka, and the connectors.
+      from Docker Hub which contains tools to interact with MongoDB, Apache
+      Kafka, and the connectors.
 
-      Run the following command:
+      Run the following shell command in your terminal:
 
       .. code-block:: bash
          :copyable: true
 
          docker pull robwma/mongokafkatutorial
+
+      When the command successfully completes, you should see the following
+      output:
+
+      .. code-block:: bash
+         :copyable: false
+
+         Status: Downloaded newer image for robwma/mongokafkatutorial:latest
+         docker.io/robwma/mongokafkatutorial:latest
+
+      If you already have the Docker image in your local repository, you
+      should see the following message:
+
+      .. code-block:: bash
+         :copyable: false
+
+         Status: Image is up to date for robwma/mongokafkatutorial:latest
+         docker.io/robwma/mongokafkatutorial:latest
 
    .. step:: Clone or Download the Tutorial Repository
 
@@ -45,7 +65,7 @@ Set Up Your Development Environment with Docker
       .. code-block:: bash
          :copyable: true
 
-         git clone https://github.com/mongodb-university/kafka-edu/
+         git clone https://github.com/mongodb-university/kafka-edu.git
 
       If you do not have git installed, you can download the
       `zip archive <https://github.com/mongodb-university/kafka-edu/archive/refs/heads/main.zip>`__
@@ -118,7 +138,7 @@ Set Up Your Development Environment with Docker
 
          The following services are running:
 
-         MongoDB 3-node cluster available on port 27017
+         MongoDB replica set available on port 27017
          Kafka Broker on 9092
          Kafka Zookeeper on 2181
          Kafka Connect on 8083
