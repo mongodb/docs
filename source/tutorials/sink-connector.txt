@@ -1,0 +1,201 @@
+.. _kafka-tutorial-sink-connector:
+
+=====================================================
+Getting Started with the MongoDB Kafka Sink Connector
+=====================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Follow this tutorial to learn how to configure a {+sink-connector+}
+to read data from an Apache Kafka topic and write it to a MongoDB
+collection.
+
+Before you start this tutorial, you must complete the steps in the
+Tutorial Setup (TODO: link).
+
+.. procedure::
+   :style:connected
+
+   .. step:: Configure the Sink Connector
+
+      Create an interactive shell session on the tutorial Docker Container
+      using the following command:
+
+      .. code-block::
+         :copyable: true
+
+         docker run --rm --name tutorialshell --network mongodb-kafka-base_localnet -it robwma/mongokafkatutorial:latest bash
+
+      Create a source configuration file called ``simplesink.json`` with
+      the following command:
+
+      .. code-block::
+         :copyable: true
+
+         nano simplesink.json
+
+      Paste the following configuration information into the file and save
+      your changes:
+
+      .. code-block::
+         :copyable: true
+         :emphasize-lines: 7-9
+
+         {
+           "name": "mongo-sink",
+           "config": {
+             "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+             "topics": "Tutorial2.pets",
+             "connection.uri": "mongodb://mongo1",
+             "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+             "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+             "value.converter.schemas.enable": false,
+             "database": "Tutorial2",
+             "collection": "pets"
+           }
+         }
+
+      .. note::
+
+         The highlighted lines in the configuration properties specify
+         **converters** which instruct the connector how to translate the data
+         from Kafka.
+
+      Run the following command in the shell to start the sink connector
+      using the configuration file you created:
+
+      .. code-block::
+         :copyable: true
+
+         cx simplesink.json
+
+      .. note::
+
+         The ``cx`` command is a custom script included in the tutorial
+         development environment. This script runs the following
+         equivalent request to the Kafka Connect REST API to create a new
+         connector:
+
+         .. code-block:: bash
+            :copyable: true
+
+            curl -X POST -H "Content-Type: application/json" -d @simplesink.json http://connect:8083/connectors -w "\n"
+
+      Run the following command in the shell to check the status of the
+      connectors:
+
+      .. code-block:: bash
+         :copyable: true
+
+         status
+
+      If your sink connector started successfully, you should see the
+      following output:
+
+      .. code-block:: none
+         :copyable: false
+
+         Kafka topics:
+         ...
+         The status of the connectors:
+
+         sink  |  mongo-sink  |  RUNNING  |  RUNNING  |  com.mongodb.kafka.connect.MongoSinkConnector
+
+         Currently configured connectors
+
+         [
+           "mongo-sink"
+         ]
+         ...
+
+   .. step:: Write Data to a Kafka Topic
+
+      In the same shell, create a Python script to open a change stream using
+      the PyMongo driver.
+
+      .. code-block:: bash
+         :copyable: true
+
+         nano kafkawrite.py
+
+      Paste the following code into the file and save your changes:
+
+      .. code-block::
+         :copyable: true
+
+         from kafka import KafkaProducer
+         import json
+         from json import dumps
+
+         p = KafkaProducer(bootstrap_servers=['broker:29092'],value_serializer=lambda x:dumps(x).encode('utf-8'))
+
+         data={'name':'roscoe'}
+
+         p.send('Tutorial2.pets', value=data)
+
+         p.flush()
+
+      Run the Python script:
+
+      .. code-block:: bash
+         :copyable: true
+
+         python3 kafkawrite.py
+
+   .. step:: View the Data in the MongoDB Collection
+
+      In the same shell, connect to MongoDB using ``mongosh``, the MongoDB
+      shell by running the following command:
+
+      .. code-block::
+         :copyable: true
+
+         mongosh "mongodb://mongo1"
+
+      After you connect successfully, you should see the following
+      MongoDB shell prompt:
+
+      .. code-block::
+         :copyable: false
+
+         rs0 [direct: primary] test>
+
+      At the prompt, type the following commands to retrieve all the
+      documents in the ``Tutorial2.pets`` MongoDB namespace:
+
+      .. code-block::
+         :copyable: true
+
+         use Tutorial2
+         db.pets.find()
+
+      You should see the following document returned as the result:
+
+      .. code-block::
+         :copyable: false
+
+         { _id: ObjectId("62659..."), name: 'roscoe' }
+
+      Exit the MongoDB shell by entering the command ``exit``.
+
+
+Summary
+-------
+
+In this tutorial, you configured a sink connector to save data from
+a Kafka topic to a collection in a MongoDB cluster.
+
+Learn More
+----------
+
+Read the following resources to learn more about concepts mentioned in
+this tutorial:
+
+- :ref:`Sink Connector Configuration Properties <kafka-sink-configuration-properties>`
+- :ref:`Introduction to Kafka Connector Converters <intro-converters>`
+- `Kafka Connect REST API <https://developer.confluent.io/learn-kafka/kafka-connect/rest-api/>`__
+
