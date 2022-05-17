@@ -1,7 +1,8 @@
 .. _kafka-tutorials-setup:
 
-Before You Get Started
-----------------------
+==============================
+Kafka Connector Tutorial Setup
+==============================
 
 The tutorials in this section run on a development environment using Docker to
 package the dependencies and configurations you need to run the
@@ -15,7 +16,8 @@ Requirements
   you need for this tutorial.  To learn how to sign up for an account and
   install Docker Desktop, read the `Docker Hub Quickstart <https://docs.docker.com/docker-hub/>`__.
 
-- A terminal app and shell.
+- A terminal app and shell. For MacOS users, use Terminal or a similar app.
+  For Windows users, use PowerShell or a similar app.
 
 - Optional. Install **git** to download the setup files. To learn how to
   install git, read the `Git Downloads <https://git-scm.com/downloads>`__
