@@ -14,17 +14,13 @@ Release Notes for MongoDB 6.0 (Release Candidate)
 
 .. include:: /includes/rc-available.rst
 
-This page reflects the differences between MongoDB 5.3 and MongoDB 6.0.
+This page describes changes and new features introduced in MongoDB 6.0.
+
 MongoDB 6.0 is a |lts| Release, which means that it is supported for
-both MongoDB Atlas and on-premises deployments.
-
-If you are upgrading from MongoDB 5.0 to 6.0, you will also see changes
-that were introduced in MongoDB Rapid Releases 5.1, 5.2, and 5.3. To see
-the changes introduced in these releases, see the following pages:
-
-- :ref:`release-notes-5.1`
-- :ref:`release-notes-5.2`
-- :ref:`release-notes-5.3`
+both MongoDB Atlas and on-premises deployments. MongoDB 6.0 includes
+changes introduced in MongoDB Rapid Releases 5.1, 5.2, and 5.3. This
+page describes changes introduced in those Rapid Releases and MongoDB
+6.0.
 
 To learn more about the differences between |lts| and Rapid releases,
 see :ref:`release-version-numbers`.
@@ -32,40 +28,218 @@ see :ref:`release-version-numbers`.
 Aggregation
 -----------
 
-|sbe-title| Can Execute :pipeline:`$lookup` Stages
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _6.0-rel-notes-new-agg-stages:
 
-.. include:: /includes/fact-sbe-lookup-overview.rst
+New Aggregation Stages
+~~~~~~~~~~~~~~~~~~~~~~
 
-For more information, see :ref:`agg-lookup-optimization-sbe`.
+MongoDB 6.0 introduces the following aggregation stages:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Stage
+     - Description
+
+   * - :pipeline:`$densify`
+     - Creates new documents in a sequence of documents where values in
+       a specified field are missing.
+
+   * - :pipeline:`$documents`
+     - Returns literal documents from input expressions.
+
+   * - :pipeline:`$fill`
+     - .. include:: /includes/fact-fill-description.rst
+
+.. _6.0-rel-notes-new-agg-operators:
+
+New Aggregation Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 6.0 introduces the following aggregation operators:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Operator
+     - Description
+
+   * - :group:`$bottom`
+     - Returns the bottom element within a group according to the specified 
+       sort order.
+
+   * - :group:`$bottomN`
+     - Returns an aggregation of the bottom ``n`` elements within a group,
+       according to the specified sort order.
+
+   * - :group:`$firstN`
+     - Returns an aggregation of the first ``n`` elements within a group.
+       Distinct from the :expression:`$firstN` array operator.
+
+   * - :expression:`$firstN (array operator) <$firstN>`
+     - Returns a specified number of elements from the beginning of an 
+       array.
+       Distinct from the :group:`$firstN` accumulator.
+  
+   * - :group:`$lastN`
+     - Returns an aggregation of the last ``n`` elements within a group.
+       Distinct from the :expression:`$lastN` array operator.
+
+   * - :expression:`$lastN (array operator) <$lastN>`
+     - Returns a specified number of elements from the end of an 
+       array.
+       Distinct from the :group:`$lastN` accumulator.
+
+   * - :group:`$linearFill`
+     - .. include:: /includes/fact-linear-fill-description.rst
+
+   * - :group:`$locf`
+     - .. include:: /includes/fact-locf-description.rst
+  
+   * - :group:`$maxN`
+     - Returns an aggregation of the ``n`` maximum valued elements 
+       within a group.
+       Distinct from the :expression:`$maxN` array operator.
+
+   * - :expression:`$maxN (array operator) <$maxN>`
+     - Returns the ``n`` largest values in an array.
+       Distinct from the :group:`$maxN` accumulator.
+
+   * - :group:`$minN`
+     - Returns an aggregation of the ``n`` minimum valued elements 
+       within a group.
+       Distinct from the :expression:`$minN` array operator.
+
+   * - :expression:`$minN (array operator) <$minN>`
+     - Returns the ``n`` smallest values in an array.
+       Distinct from the :group:`$minN` accumulator.
+
+   * - :group:`$top`
+     - Returns the top element within a group according to the specified 
+       sort order.
+       Distinct from the command :dbcommand:`top`.
+
+   * - :group:`$topN`
+     - Returns an aggregation of the top ``n`` elements within a group,
+       according to the specified sort order.
+
+   * - :expression:`$sortArray`
+     - Sorts an array based on its elements. 
+
+   * - :expression:`$tsIncrement`
+     - .. include:: /includes/tsIncrement-introduction.rst
+   
+   * - :expression:`$tsSecond`
+     - .. include:: /includes/tsSecond-introduction.rst
+
+``$lookup`` and ``$graphLookup`` with Sharded Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/5.1-fact-sharded-lookup-graphlookup.rst
+
+|sbe-title| Can Execute ``$group`` and ``$lookup`` Stages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 6.0, MongoDB uses the :ref:`slot-based execution
+query engine <5.1-rel-notes-sbe>` to execute :pipeline:`$group` and
+:pipeline:`$lookup` stages when certain conditions are met.
+
+For more information, see :ref:`sbe-pipeline-optimizations`.
+
+.. _6.0-rel-notes-change-streams:
+
+Change Streams
+--------------
+
+.. |change-streams| replace:: :ref:`change streams <changeStreams>`
+
+.. include:: /includes/change-streams-optimization.rst
+
+Clustered Collections
+---------------------
+
+.. include:: /includes/clustered-collections-introduction.rst
+
+To learn about the benefits compared to a normal collection, see
+:ref:`clustered-collections`.
+
+Indexes
+-------
+
+Starting in MongoDB 5.1, you can use the :dbcommand:`collMod` database
+command to add the ``expireAfterSeconds`` option to an existing
+single-field non-TTL index.
 
 Installation
 ------------
+
+Notarized Binaries on macOS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Starting in MongoDB 6.0 (and 5.0.9, 4.4.14, 4.2.20), MongoDB
 installations on macOS are notarized. When installing on macOS, you no
 longer need to instruct macOS to trust MongoDB binaries.
 
-Time Series Collections
------------------------
+SELinux Policies
+~~~~~~~~~~~~~~~~
 
-MongoDB 6.0 introduces the following improvements and new features for
-time series collections:
+Starting in MongoDB 5.1, there is a new SE Linux Policy for:
 
-Additional Secondary Index Types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- :ref:`MongoDB Enterprise Server <install-enterprise-rhel-configure-selinux>`
+- :ref:`MongoDB Community Edition Server <install-rhel-configure-selinux>`
 
-You can add additional :term:`secondary index <secondary index>` types
-to :ref:`time series collections <manual-timeseries-collection>`. See
-:ref:`timeseries-add-secondary-index-mongodb-6.0` for the additional
-indexes and other improvements.
+running on Red Hat Linux. The SELinux policy is for use with default
+installations using ``rpm`` installer packages.
 
-Sort Operations Use Secondary Indexes
+Replica Sets
+------------
+
+``initialSyncMethod`` Parameter                                            
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                            
+
+Starting in MongoDB 5.2, the :parameter:`initialSyncMethod` determines  
+whether :ref:`initial sync <replica-set-initial-sync>` is a                
+:ref:`logical initial sync <replica-set-initial-sync-logical>` or a        
+:ref:`file copy based initial sync                                         
+<replica-set-initial-sync-file-copy-based>`.
+
+:parameter:`initialSyncMethod` is only available in MongoDB Enterprise  
+Server.
+
+Security
+--------
+
+KMIP Key Activation
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.3, :setting:`security.kmip.activateKeys` activates all 
+newly created KMIP keys upon creation and then periodically checks that 
+keys are in an active state. 
+
+Polling for Active State Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.3, :setting:`security.kmip.keyStatePollingSeconds` sets 
+the polling interval in seconds at which :binary:`mongod` polls the KMIP server 
+for active keys. 
+
+Sharding
+--------
+
+Default Chunk Size Increased from 64 MB to 128 MB 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.2, the 
+:ref:`default chunk size <sharding-chunk-size>` is 128 megabytes. In 
+earlier versions of MongoDB, the default chunk size is 64 megabytes.
+
+``enableSharding`` No Longer Required
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sort operations on time series collections can use indexes to improve
-performance. For more information and an example, see
-:ref:`timeseries-secondary-index-sort-performance`.
+Starting in MongoDB 6.0, the :dbcommand:`enableSharding` command is
+no longer required to shard a collection.
 
 Stable API
 ----------
@@ -89,6 +263,60 @@ the :ref:`Stable API <stable-api>`:
 
 To see the full list of database commands available in the Stable API,
 see :ref:`stable-api-changelog`.
+
+Time Series Collections
+-----------------------
+
+The following sections describe improvements and new features for
+:ref:`time series collections <manual-timeseries-collection>`.
+
+Sharded Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/5.1/5.1-release-notes-sharded-time-series.rst
+
+Updates and Deletes
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.1, time series collections support 
+:ref:`update and delete operations
+<timeseries-limitations-updates-deletes>` with limitations.
+
+Time Series Column Compression
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.2, time series collections now use **column
+compression**. Column compression adds a number of innovations that work
+together to significantly improve practical compression, reduce your
+data's overall storage on disk, and also improve:
+
+- Read performance
+- The amount of data time series collections can store in-memory
+- WiredTiger cache usage
+
+Support for ``$geoNear``
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.3, you can use the :pipeline:`$geoNear` pipeline
+operator on any field in a :ref:`time series collection
+<manual-timeseries-collection>`.
+
+Additional Secondary Index Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add additional :term:`secondary index <secondary index>` types
+to time series collections, including :ref:`2dsphere <2dsphere-index>`
+and :ref:`2d <2d-index>` indexes.
+
+For all additional indexes and other improvements, see
+:ref:`timeseries-add-secondary-index-mongodb-6.0`.
+
+Sort Operations Use Secondary Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Sort operations on time series collections can use indexes to improve
+performance. For more information and an example, see
+:ref:`timeseries-secondary-index-sort-performance`.
 
 .. _6.0-rel-notes-general:
 
@@ -133,11 +361,17 @@ connection object has the following new methods:
 - :method:`Mongo.getWriteConcern()` returns the :term:`write concern`
 - :method:`Mongo.setWriteConcern()` sets the :term:`write concern`
 
-Sharding
-~~~~~~~~
+Multiple Arbiters Unsupported
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 6.0, the :dbcommand:`enableSharding` command is
-no longer required to shard a collection.
+.. include:: /includes/support-multiple-arbiters.rst
+
+Changes Affecting Compatibility
+-------------------------------
+
+Some changes can affect compatibility and may require user actions. For
+a detailed list of compatibility changes, see
+:ref:`6.0-compatibility`.
 
 .. _6.0-upgrade:
 
