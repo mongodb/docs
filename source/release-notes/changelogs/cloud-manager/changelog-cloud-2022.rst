@@ -3,7 +3,14 @@
 11 May 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
+- Updates PagerDuty integration to use the
+  `PagerDuty Events API v2 <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgw-events-api-v2-overview>`__.
+- Adds the ``OPLOG_REPLICATION_LAG_TIME`` host measurement series to
+  the :doc:`Measurements Administration API resource </reference/api/measures/measurement-types>`.
+- Deprecates the ``OPLOG_SLAVE_LAG_MASTER_TIME`` metric.
 - Updates {+mdbagent+} to :ref:`12.0.0.7536 <12.0.0.7536>`.
+
+
 
 .. _cloudmanager_20220420:
 
