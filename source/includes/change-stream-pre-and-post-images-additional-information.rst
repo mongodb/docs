@@ -72,9 +72,9 @@ Additional considerations:
   
   - Pre-images are removed asynchronously by a background process.
 
-- If you need to downgrade MongoDB to a version that does not support
-  pre- and post-images, you must first disable pre- and post-images for
-  the collections.
+.. important:: Backward-Incompatible Feature
+
+   .. include:: /includes/downgrade-for-pre-and-post-images.rst
 
 .. seealso::
 
