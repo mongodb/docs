@@ -1,3 +1,14 @@
+.. _atlas_20220511:
+
+11 May 2022 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Adds additional privileges to custom database roles.
+- Adds the ``OPLOG_REPLICATION_LAG_TIME`` host measurement series to
+  the :doc:`Measurements Administration API resource </reference/api/process-measurements/#measurement-values>`.
+- Updates PagerDuty integration to use the
+  `PagerDuty Events API v2 <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgw-events-api-v2-overview>`__.
+
 .. _atlas_20220420:
 
 20 April 2022 Release
