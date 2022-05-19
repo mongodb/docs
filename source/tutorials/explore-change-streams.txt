@@ -1,0 +1,242 @@
+.. _kafka-tutorial-explore-change-streams:
+
+==============================
+Explore MongoDB Change Streams
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Follow this tutorial to learn how to create a change stream on a MongoDB
+collection and observe the change events it creates.
+
+.. include:: /includes/tutorials/setup.rst
+
+Explore Change Streams
+----------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Connect to the Docker Container
+
+      Create two interactive shell sessions on the tutorial Docker
+      Container, each in a separate window.
+
+      .. code-block:: bash
+         :copyable: true
+         :caption: This command starts an interactive shell called shell1
+
+         docker run --rm --name shell1 --network mongodb-kafka-base_localnet -it robwma/mongokafkatutorial:latest bash
+
+      .. code-block:: bash
+         :copyable: true
+         :caption: This command starts an interactive shell called shell2
+
+         docker run --rm --name shell2 --network mongodb-kafka-base_localnet -it robwma/mongokafkatutorial:latest bash
+
+   .. step:: Open a Change Stream
+
+      In **shell1**, create a Python script to open a change stream using
+      the PyMongo driver.
+
+      .. code-block:: bash
+         :copyable: true
+
+         nano openchangestream.py
+
+      Paste the following code into the file and save the changes:
+
+      .. code-block:: python
+         :copyable: true
+
+         import os
+         import pymongo
+         from bson.json_util import dumps
+
+         client = pymongo.MongoClient('mongodb://mongo1')
+         db = client.get_database(name='Tutorial1')
+         with db.orders.watch() as stream:
+             print('\nChange Stream is opened on the Tutorial1.orders namespace.  Currently watching ...\n\n')
+             for change in stream:
+                 print(dumps(change, indent=2))
+
+      Run the Python script:
+
+      .. code-block:: bash
+         :copyable: true
+
+         python3 openchangestream.py
+
+      The script outputs the following message after it starts successfully:
+
+      .. code-block:: bash
+         :copyable: false
+
+         Change Stream is opened on the Tutorial1.orders namespace.  Currently watching ...
+
+   .. step:: Trigger a Change Event
+
+      In **shell2**, connect to MongoDB using ``mongosh``, the MongoDB
+      shell, using the following command:
+
+      .. code-block:: bash
+         :copyable: true
+
+         mongosh "mongodb://mongo1"
+
+      After you connect successfully, you should see the following
+      MongoDB shell prompt:
+
+      .. code-block::
+         :copyable: false
+
+         rs0 [direct: primary] test>
+
+      At the prompt, type the following commands:
+
+      .. code-block:: javascript
+         :copyable: true
+
+         use Tutorial1
+         db.orders.insertOne( { 'test' : 1 } )
+
+      After entering the preceding commands, switch to **shell1** to view
+      the change stream output, which should resemble the following:
+
+      .. code-block:: json
+         :copyable: true
+         :emphasize-lines: 5
+
+         {
+           "_id": {
+             "_data": "826264..."
+           },
+           "operationType": "insert",
+           "clusterTime": {
+             "$timestamp": {
+               "t": 1650754657,
+               "i": 1
+             }
+           },
+           "fullDocument": {
+             "_id": {
+               "$oid": "62648461d9440c0c72a2202c"
+             },
+             "test": 1
+           },
+           "ns": {
+             "db": "Tutorial1",
+             "coll": "orders"
+           },
+           "documentKey": {
+             "_id": {
+               "$oid": "62648461d9440c0c72a2202c"
+             }
+           }
+         }
+
+      To stop the script, press :kbd:`Ctrl+C`.
+
+      By the end of this step, you've successfully triggered and observed a
+      change stream event.
+
+   .. step:: Open a Filtered Change Stream
+
+      You can apply a filter to a change stream by passing it an aggregation
+      pipeline.
+
+      In **shell1**, create a new Python script to open a filtered change
+      stream using the PyMongo driver.
+
+      .. code-block:: bash
+         :copyable: true
+
+         nano pipeline.py
+
+      Paste the following code into the file and save the changes:
+
+      .. code-block:: python
+         :copyable: true
+         :emphasize-lines: 6
+
+         import os
+         import pymongo
+         from bson.json_util import dumps
+         client = pymongo.MongoClient('mongodb://mongo1')
+         db = client.get_database(name='Tutorial1')
+         pipeline = [ { "$match": { "$and": [ { "fullDocument.type":"temp" }, { "fullDocument.value":{ "$gte":100 } } ] } } ]
+         with db.sensors.watch(pipeline=pipeline) as stream:
+             print('\nChange Stream is opened on the Tutorial1.sensors namespace.  Currently watching for values > 100...\n\n')
+             for change in stream:
+                 print(dumps(change, indent=2))
+
+      Run the Python script:
+
+      .. code-block:: python
+
+         python3 pipeline.py
+
+      The script outputs the following message after it starts successfully:
+
+      .. code-block::
+         :copyable: false
+
+         Change Stream is opened on the Tutorial1.sensors namespace.  Currently watching for values > 100...
+
+   .. step:: Observe the Filtered Change Stream
+
+      Return to your **shell2** session which should be connected to
+      MongoDB using ``mongosh``.
+
+      At the prompt, type the following commands:
+
+      .. code-block:: javascript
+
+         use Tutorial1
+         db.sensors.insertOne( { 'type' : 'temp', 'value':101 } )
+
+      As indicated by the script output, the change stream creates a change
+      event because it matches the following pipeline:
+
+      .. code-block:: json
+         :copyable: false
+
+         [ { "$match": { "$and": [ { "fullDocument.type":"temp" }, { "fullDocument.value":{ "$gte":100 } } ] } } ]
+
+      Try inserting the following documents in in **shell2** to verify the
+      change stream only produces events when the documents match the filter:
+
+      .. code-block:: javascript
+
+         db.sensors.insertOne( { 'type' : 'temp', 'value':99 } )
+         db.sensors.insertOne( { 'type' : 'pressure', 'value':22 } )
+
+   .. step:: (Optional) Stop the Docker Containers
+
+      .. include:: /includes/tutorials/stop-containers.rst
+
+Summary
+-------
+
+In this tutorial, you created a change stream on MongoDB and observed the
+output. The {+source-connector+} reads the change events from a change
+stream that you configure, and writes them to a Kafka topic.
+
+To learn how to configure a change stream and Kafka topic for a source
+connector, proceed to the :ref:`<kafka-tutorial-source-connector>`
+tutorial.
+
+Learn More
+----------
+
+Read the following resources to learn more about concepts mentioned in
+this tutorial:
+
+- :ref:`Change Streams and the Source Connector <kafka-source-change-streams>`
+- :manual:`Modify Change Stream Output </changeStreams/#modify-change-stream-output>`
+- :mongosh:`MongoDB Shell (mongosh) </>`
+
