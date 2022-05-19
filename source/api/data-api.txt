@@ -33,7 +33,7 @@ document in |service| by calling the ``insertOne`` endpoint:
 .. io-code-block::
    
    .. input::
-      :language: sh
+      :language: bash
       
       curl --request POST \
         'https://data.mongodb-api.com/app/data-xtest/endpoint/data/beta/action/insertOne' \
@@ -157,7 +157,7 @@ works and then start exploring:
 
 A. Insert a test document:
 
-   .. code-block:: sh
+   .. code-block:: bash
       
       curl --request POST \
         'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
@@ -176,7 +176,7 @@ A. Insert a test document:
 
 B. Then, find the test document that you just inserted:
 
-   .. code-block:: sh
+   .. code-block:: bash
       
       curl --request POST \
         'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/findOne' \
@@ -192,7 +192,7 @@ B. Then, find the test document that you just inserted:
 
 C. Finally, delete the test document:
 
-   .. code-block:: sh
+   .. code-block:: bash
       
       curl --request POST \
         'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/deleteOne' \
@@ -206,10 +206,293 @@ C. Finally, delete the test document:
             "filter": { "name": "John Sample" }
         }'
 
-.. _data-api-ejson:
+.. _data-api-ejson-responses:
 
-Extended JSON
--------------
+Extended JSON Responses
+-----------------------
+
+By default, the {+data-api+} encodes response body content in |json|.
+MongoDB stores data as |bson| and uses :manual:`MongoDB Extended JSON
+</reference/mongodb-extended-json/>`, or EJSON, to
+represent types that do not exist in the JSON format.
+To translate MongoDB EJSON data into JSON responses, the {+data-api+}
+translates fields into JSON values when possible and
+omits the values of EJSON fields that have no JSON equivalent.
+
+The following table shows how JSON and EJSON can differ in responses
+from the {+data-api+}:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 42 42
+   
+   * - Type
+     - EJSON Representation
+     - JSON Representation
+   
+   * - ``Array``
+     - .. code-block:: json
+          :copyable: false
+
+          [ <elements> ]
+     - .. code-block:: json
+          :copyable: false
+
+          [ <elements> ]
+
+   * - ``Binary``
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "$binary": {
+                "base64": "DEADBEEF",
+                "subType": "04"
+             }
+          }
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "Subtype": 4,
+             "Data": "DEADBEEF"
+          }
+
+   * - ``Date``
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "$date": {
+                "$numberLong": "1641954803067"
+             }
+          }
+     - .. code-block:: json
+          :copyable: false
+
+          "2022-01-12T02:33:23.067Z"
+
+   * - ``Decimal128``
+     - .. code-block:: json
+          :copyable: false
+
+          { "$numberDecimal": "9823.1297" }
+     - .. code-block:: json
+          :copyable: false
+
+          "9823.1297"
+
+   * - ``Document``
+     - .. code-block:: json
+          :copyable: false
+
+          { <content> }
+     - .. code-block::
+          :copyable: false
+
+          { <content> }
+
+   * - ``Double``
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "$numberDouble": "10.5"
+          }
+     - .. code-block:: json
+          :copyable: false
+
+          10.5
+   * - ``Int32``
+     - .. code-block:: json
+          :copyable: false
+
+          {"$numberInt":"10"}
+     - .. code-block:: json
+          :copyable: false
+
+          10
+
+   * - ``Int64``
+     - .. code-block:: json
+          :copyable: false
+
+          {"$numberLong":"50"}
+     - .. code-block:: json
+          :copyable: false
+
+          50
+
+   * - ``MaxKey``
+     - .. code-block:: json
+          :copyable: false
+
+          { "$maxKey": 1 }
+     - .. code-block:: json
+          :copyable: false
+
+          {}
+
+   * - ``MinKey``
+     - .. code-block:: json
+          :copyable: false
+
+          { "$minKey": 1 }
+     - .. code-block:: json
+          :copyable: false
+
+          {}
+
+   * - ``ObjectId``
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "$oid":"5d505646cf6d4fe581014ab2"
+          }
+     - .. code-block:: json
+          :copyable: false
+
+          "5d505646cf6d4fe581014ab2"
+
+   * - ``Regular Expression``
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "$regularExpression": {
+                "pattern":"^H",
+                "options":"i"
+             }
+          }
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "Pattern": "^H",
+             "Options": "i"
+          },
+
+   * - ``Timestamp``
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "$timestamp": {
+                "t":1565545664,
+                "i":1
+              }
+          }
+     - .. code-block:: json
+          :copyable: false
+
+          {
+             "T": 1565545664,
+             "I": 1
+          }
+
+.. important::
+
+   EJSON values with no JSON equivalent, such as ``MinKey`` and ``MaxKey``,
+   translate to an empty document (``{}``).
+
+
+To avoid any field value translations or omissions, configure the
+{+data-api+} to respond with EJSON. Use the ``Accept``
+header to control the response type:
+
+.. tabs::
+
+    .. tab:: JSON
+       :tabid: json
+ 
+       ``Accept`` header value:
+
+       .. code-block::
+
+          application/json
+
+       Example request and response:
+
+       .. io-code-block::
+
+          .. input::
+             :language: bash
+             
+             curl --request POST \
+               'https://data.mongodb-api.com/app/data-xtest/endpoint/data/beta/action/findOne' \
+               --header 'Content-Type: application/json' \
+               --header 'Accept: application/json' \
+               --header 'Access-Control-Request-Headers: *' \
+               --header 'api-key: TpqAKQgvhZE4r6AOzpVydJ9a3tB1BLMrgDzLlBLbihKNDzSJWTAHMVbsMoIOpnM6' \
+               --data-raw '{
+                   "dataSource": "Cluster0",
+                   "database": "learn-data-api",
+                   "collection": "hello",
+                   "filter": {
+                     "_id": { "$oid" : "428bce77527c32e0f6f930e8"},
+                   }
+               }'
+          
+          .. output::
+             :language: json
+             :visible: true
+      
+             {
+                "Name": "Mango",
+                "Year": 2022,
+                "Weight": {},
+                "Date": "2022-01-12T02:33:23.067Z"
+             }
+
+
+    .. tab:: EJSON
+       :tabid: ejson
+ 
+ 
+       ``Accept`` header value:
+ 
+       .. code-block::
+ 
+          application/ejson
+
+       Example request and response:
+ 
+       .. io-code-block::
+ 
+          .. input::
+             :language: bash
+             
+             curl --request POST \
+               'https://data.mongodb-api.com/app/data-xtest/endpoint/data/beta/action/findOne' \
+               --header 'Content-Type: application/json' \
+               --header 'Accept: application/ejson' \
+               --header 'Access-Control-Request-Headers: *' \
+               --header 'api-key: TpqAKQgvhZE4r6AOzpVydJ9a3tB1BLMrgDzLlBLbihKNDzSJWTAHMVbsMoIOpnM6' \
+               --data-raw '{
+                   "dataSource": "Cluster0",
+                   "database": "learn-data-api",
+                   "collection": "hello",
+                   "filter": {
+                     "_id": { "$oid" : "428bce77527c32e0f6f930e8"},
+                   }
+               }'
+          
+          .. output::
+             :language: json
+             :visible: true
+      
+             {
+                "Name": "Mango",
+                "Year": { "$numberLong": "2022" },
+                "Weight": { "$numberDecimal": "9823.1297" },
+                "Date": { "$date": { "$numberLong": "1641954803067" } }
+             }
+
+.. _data-api-ejson-requests:
+
+Extended JSON Requests
+----------------------
 
 The {+data-api+} uses canonical :manual:`MongoDB Extended JSON
 </reference/mongodb-extended-json/>` to encode BSON data types in
@@ -224,8 +507,9 @@ Binary
 To specify a binary value, use ``$binary`` with the value encoded in
 Base64 and a `BSON subtype <https://bsonspec.org/spec.html>`_:
 
-.. code-block:: sh
+.. code-block:: bash
    :emphasize-lines: 11-16
+   :copyable: false
    
    curl --request POST \
      'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
@@ -252,8 +536,9 @@ Date
 To specify a date, use ``$date`` with the `UNIX timestamp in
 milliseconds <https://currentmillis.com/>`_ as a 64-bit integer:
 
-.. code-block:: sh
+.. code-block:: bash
    :emphasize-lines: 11
+   :copyable: false
    
    curl --request POST \
      'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
@@ -275,8 +560,9 @@ Decimal128
 To specify a 128-bit decimal, use ``$numberDecimal`` with the decimal
 value as a string:
 
-.. code-block:: sh
+.. code-block:: bash
    :emphasize-lines: 11
+   :copyable: false
    
    curl --request POST \
      'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
@@ -298,8 +584,9 @@ Double
 To specify a 64-bit signed floating point value (commonly referred to as
 a "double"), use ``$numberDouble`` with the integer value as a string:
 
-.. code-block:: sh
+.. code-block:: bash
    :emphasize-lines: 11
+   :copyable: false
    
    curl --request POST \
      'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
@@ -322,8 +609,9 @@ Int64
 To specify a 64-bit signed integer value, use ``$numberLong`` with the
 integer value as a string:
 
-.. code-block:: sh
+.. code-block:: bash
    :emphasize-lines: 11
+   :copyable: false
    
    curl --request POST \
      'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
@@ -345,8 +633,9 @@ Int32
 To specify a 32-bit signed integer value, use ``$numberInt`` with the
 integer value as a string:
 
-.. code-block:: sh
+.. code-block:: bash
    :emphasize-lines: 11
+   :copyable: false
    
    curl --request POST \
      'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
@@ -367,8 +656,9 @@ ObjectId
 
 To specify an ObjectId value, use ``$oid`` with the ID as a byte string:
 
-.. code-block:: sh
+.. code-block:: bash
    :emphasize-lines: 11
+   :copyable: false
    
    curl --request POST \
      'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
