@@ -4,9 +4,14 @@
 
      - id: python
        content: |
+        
+         .. tip::
 
-         The following is an outline with the minimum code necessary to connect to MongoDB using PyMongo.
-         You'll make additions over the next few steps to read data.
+            The following is an outline with the minimum code necessary to connect to MongoDB.
+            You'll make additions over the next few steps to read data.
+
+            At line 4, replace the URI string with your own
+            :ref:`Atlas connection string <guides-get-connection-string>`.
 
          .. literalinclude:: /includes/code/python/crud_read_connect.py
             :caption: crud_read.py
@@ -26,8 +31,13 @@
      - id: go
        content: |
 
-         The following is an outline with the minimum code necessary to connect to MongoDB using the Go driver.
-         You'll make additions over the next few steps to read data.
+         .. tip::
+
+            The following is an outline with the minimum code necessary to connect to MongoDB.
+            You'll make additions over the next few steps to read data.
+
+            At line 11, replace the URI string with your own
+            :ref:`Atlas connection string <guides-get-connection-string>`.
 
          .. literalinclude:: /includes/code/go/crud-read-connect.go
             :caption: crudRead.go
@@ -38,8 +48,13 @@
      - id: java-sync
        content: |
 
-         The following is an outline with the minimum code necessary to connect to MongoDB using the Java driver.
-         You'll make additions over the next few steps to read data.
+         .. tip::
+
+            The following is an outline with the minimum code necessary to connect to MongoDB.
+            You'll make additions over the next few steps to read data.
+
+            At line 8, replace the URI string with your own
+            :ref:`Atlas connection string <guides-get-connection-string>`.
 
          .. literalinclude:: /includes/code/java/CrudReadConnect.java
             :caption: CrudRead.java
@@ -50,8 +65,13 @@
      - id: nodejs
        content: |
 
-         The following is an outline with the minimum code necessary to connect to MongoDB using the Node.js driver.
-         You'll make additions over the next few steps to read data.
+         .. tip::
+
+            The following is an outline with the minimum code necessary to connect to MongoDB.
+            You'll make additions over the next few steps to read data.
+
+            At line 4, replace the URI string with your own
+            :ref:`Atlas connection string <guides-get-connection-string>`.
 
          .. literalinclude:: /includes/code/node/crud-read-connect.js
             :caption: crud-read.js
@@ -62,8 +82,13 @@
      - id: csharp
        content: |
 
-         The following is an outline with the minimum code necessary to connect to MongoDB using the C#/.NET driver.
-         You'll make additions over the next few steps to read data.
+         .. tip::
+
+            The following is an outline with the minimum code necessary to connect to MongoDB.
+            You'll make additions over the next few steps to read data.
+
+            At line 5, replace the URI string with your own
+            :ref:`Atlas connection string <guides-get-connection-string>`.
 
          .. literalinclude:: /includes/code/dotnet/CrudReadConnect.cs
             :caption: CrudRead.cs
