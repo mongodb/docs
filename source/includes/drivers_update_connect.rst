@@ -41,7 +41,7 @@
                  The following is an outline with the minimum code necessary to connect to MongoDB.
                  You'll make additions over the next few steps to insert data.
                  
-                 At line 6, replace the URI string with your own
+                 At line 5, replace the URI string with your own
                  :ref:`Atlas connection string <guides-get-connection-string>`.
 
               .. literalinclude:: /includes/code/dotnet/CrudUpdateConnect.cs
@@ -58,7 +58,7 @@
             The following is an outline with the minimum code necessary to connect to MongoDB.
             You'll make additions over the next few steps to insert data.
 
-            At line 15, replace the URI string with your own
+            At line 13, replace the URI string with your own
             :ref:`Atlas connection string <guides-get-connection-string>`.
 
          .. literalinclude:: /includes/code/go/crud-update-connect.go
