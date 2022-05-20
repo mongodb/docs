@@ -21,6 +21,14 @@
 
          To learn more, see :ref:`new-relic-integration`.
 
+     * - :guilabel:`PagerDuty Settings`
+
+       - Configures |mms| to send metric data about your deployment
+         to your |pagerduty| account.
+         To learn more, see :ref:`pagerduty-integration-mms`.
+
+         .. include:: /includes/fact-pagerduty-api-key-decommission.rst
+
      * - :guilabel:`Prometheus Settings`
 
        - Configures |mms| to send metric data about your deployment
@@ -49,3 +57,10 @@
          :ref:`cluster metrics <monitor-cluster-metrics>`.
 
          To learn more, see :ref:`new-relic-integration`.
+
+     * - :guilabel:`PagerDuty Settings`
+
+       - Configures |mms| to send metric data about your deployment
+         to your |pagerduty| account.
+
+         .. include:: /includes/fact-pagerduty-api-key-decommission.rst
