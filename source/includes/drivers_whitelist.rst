@@ -12,7 +12,7 @@
             Have you whitelisted your IP address for access to Atlas?
             For more details see *Step 3*, ``Whitelist your IP Address
             and Select Your Connection Method`` in
-            :doc:`/cloud/connectionstring`.
+            :ref:`guides-get-connection-string`.
 
      - id: local
        content: |

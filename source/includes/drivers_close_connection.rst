@@ -1,60 +1,25 @@
 .. tabs-drivers::
 
    tabs:
-         
-     - id: python
+
+     - id: csharp
        content: |
 
-     - id: motor
+     - id: go
        content: |
 
      - id: java-sync
        content: |
 
-         When you are done working with your MongoDB data, close your
+         When you finish inserting your MongoDB data, close your
          connection to MongoDB:
 
          .. code-block:: java
 
             mongoClient.close();
+         
+     - id: nodejs
+       content: |
 
-    # - id: php
-    #   content: |
-    #
-    #    When you are done working with your MongoDB data, close your
-    #    connection to MongoDB:
-    #
-    #     .. code-block:: php
-    #
-    #        $test->close();
-    #
-    # - id: perl
-    #   content: |
-    #
-    #    When you are done working with your MongoDB data, close your
-    #    connection to MongoDB:
-    #
-    #     .. code-block:: perl
-    #
-    #        $client->disconnect;
-    #
-    # - id: ruby
-    #   content: |
-    #
-    #    When you are done working with your MongoDB data, close your
-    #    connection to MongoDB:
-    #
-    #     .. code-block:: ruby
-    #
-    #        client.close
-    #
-    # - id: scala
-    #   content: |
-    #
-    #    When you are done working with your MongoDB data, close your
-    #    connection to MongoDB:
-    #
-    #     .. code-block:: scala
-    #
-    #        mongoClient.close();
-    #
+     - id: python
+       content: |

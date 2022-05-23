@@ -5,7 +5,7 @@ STAGING_URL="https://docs-mongodborg-staging.corp.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-prd-staging
 
 PRODUCTION_BUCKET=docs-mongodb-org-prd
-PRODUCTION_URL=https://docs.mongodb.com/guides
+PRODUCTION_URL=https://mongodb.com/docs/guides
 
 PROJECT=guides
 
@@ -39,7 +39,7 @@ stage: ## Host online for review
 	mut-publish build/${GIT_BRANCH}/html ${DOTCOM_STAGING_BUCKET} --prefix=${DOTCOM_STGPREFIX} --stage ${ARGS}
 	@echo "Hosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
-	
+
 
 deploy: build/public ## Deploy to the production bucket
 	mut-publish build/public ${DOTCOM_PRODUCTION_BUCKET} --prefix=${DOTCOM_PREFIX} --deploy --all-subdirectories ${ARGS}
@@ -70,15 +70,15 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/DocumentationExamples.cs -o ${DRIVERS_PATH}/DocumentationExamples.cs
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/ChangeStreamExamples.cs -o ${DRIVERS_PATH}/ChangeStreamExamples.cs
 	#curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/examples.go	
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/examples.go
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver-reactivestreams/master/examples/documentation/src/DocumentationSamples.java -o ${DRIVERS_PATH}/AsyncDocumentationSamples.java
 	curl -Sfl https://raw.githubusercontent.com/skerschb/testauth/react_stitch_google/src/index.js -o ${DRIVERS_PATH}/react_stitch_google.js
-	curl -Sfl https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/examples.go	
+	curl -Sfl https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/examples/documentation_examples/examples.go -o ${DRIVERS_PATH}/examples.go
 	curl -SfL https://raw.githubusercontent.com/skerschb/testauth/master/src/index.js -o ${DRIVERS_PATH}/react_stitch_google.js
 	cp examples/java/ConnectExample.java  ${DRIVERS_PATH}/JavaConnectExample.java
 	cp examples/csharp/Connect.cs  ${DRIVERS_PATH}/csharpconnect.cs
-	cp examples/go/assign/assign.go ${DRIVERS_PATH}/assign.go	
-	cp examples/go/connect/connect.go ${DRIVERS_PATH}/connect.go	
+	cp examples/go/assign/assign.go ${DRIVERS_PATH}/assign.go
+	cp examples/go/connect/connect.go ${DRIVERS_PATH}/connect.go
 	cp examples/python/connect/connect.py  ${DRIVERS_PATH}/connect.py
 	cp examples/go/connect/connect.go ${DRIVERS_PATH}/connect.go
 	cp examples/motor/connect/connect.py  ${DRIVERS_PATH}/motorconnect.py
@@ -97,10 +97,10 @@ screenshots:
 	-rm -r screenshots-temp/guides
 	mkdir -p screenshots-temp/guides
 	cd build/docs-tools/tools/screenshot-tool && npm install
-	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-provider.js `pwd`/screenshot-scripts/.properties.ini	
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-provider.js `pwd`/screenshot-scripts/.properties.ini
 	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-clusterselect.js `pwd`/screenshot-scripts/.properties.ini
-	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-importatlas.js `pwd`/screenshot-scripts/.properties.ini	
-	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringcompass.js `pwd`/screenshot-scripts/.properties.ini	
-	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringdrivers.js `pwd`/screenshot-scripts/.properties.ini	
-	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringwhitelist.js `pwd`/screenshot-scripts/.properties.ini	
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-importatlas.js `pwd`/screenshot-scripts/.properties.ini
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringcompass.js `pwd`/screenshot-scripts/.properties.ini
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringdrivers.js `pwd`/screenshot-scripts/.properties.ini
+	node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstringwhitelist.js `pwd`/screenshot-scripts/.properties.ini
 	#node build/docs-tools/tools/screenshot-tool/screenshots.js `pwd`/screenshot-scripts/guides-connectionstring.js `pwd`/screenshot-scripts/.properties.ini

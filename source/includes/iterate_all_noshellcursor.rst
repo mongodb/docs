@@ -1,50 +1,29 @@
 .. tabs-drivers::
 
    tabs:
-     - id: shell
-       content: |
-
-         This query does not require cursor iteration in ``mongo`` shell
-         because the shell returns up to 20 results.
-
-     - id: compass
-       content: |
-
-         You will see a list of all of the documents that match your
-         criteria in the query window.
 
      - id: python
        content: |
-         
-         .. code-block:: python
-          
-            from pprint import pprint
-                
-            for inventory in cursor:
-                 pprint(inventory)
+         .. literalinclude:: /includes/code/python/crud_read_iterate.py
+            :caption: crud_read.py
+            :language: python
+            :dedent: 0
 
      - id: go
        content: |
-         
-         .. code-block:: go
-          
-            for cursor.Next(context.TODO()) {
-                elem := &bson.D{}
-                if err := cursor.Decode(elem); err != nil {
-                        log.Fatal(err)
-                }
-                // ideally, you would do something with elem....
-                // but for now just print it to the console
-                fmt.Println(elem)
-            }
 
+         .. literalinclude:: /includes/code/go/crud-read-iterate.go
+            :caption: crudRead.go
+            :language: go
+            :linenos:
+            :dedent: 0
 
      - id: motor
        content: |
 
          In the code snippet above you may have noticed the code that
          iterates the results and prints them to the command line:
-         
+
          .. code-block:: python
 
             async for doc in cursor:
@@ -52,47 +31,39 @@
 
      - id: java-sync
        content: |
-         
-         You can implement a ``com.mongodb.Block`` to print the results
-         of the iteration
-         
-         .. code-block:: java
-         
-            Block<Document> printBlock = new Block<Document>() {
-                @Override
-                public void apply(final Document document) {
-                    System.out.println(document.toJson());
-                }
-            };
-         
-         Then iterate the cursor for documents, passing the
-         ``printBlock`` as a parameter.
-         
-         .. code-block:: java
-       
-            findIterable.forEach(printBlock);
+
+         .. literalinclude:: /includes/code/java/CrudReadIterate.java
+            :caption: CrudRead.java
+            :language: java
+            :linenos:
+            :dedent: 0
 
      - id: nodejs
        content: |
-         .. code-block:: javascript
 
-            function iterateFunc(doc) {
-               console.log(JSON.stringify(doc, null, 4));
-            }
+         Iterate the results and print them to the console. Operations like
+         this are **asychronous** in the MongoDB Node.js
+         driver by default, meaning the Node.js runtime doesn't block other
+         operations while waiting for them to finish execution.
 
-            function errorFunc(error) {
-               console.log(error);
-            }
-            
-            cursor.forEach(iterateFunc, errorFunc);
-            
+         In order to simplify the operation, you specify the ``await``
+         keyword, which **will** cause the runtime to wait for the operation.
+         This is often easier than specifying a callback, or chaining
+         a promise.
+
+         For more information, see the `Promise and Callbacks guide <https://www.mongodb.com/docs/drivers/node/current/fundamentals/promises/>`__.
+
+         .. literalinclude:: /includes/code/node/crud-read-iterate.js
+            :caption: crud-read.js
+            :language: javascript
+            :dedent: 0
 
 
      - id: csharp
        content: |
-         .. code-block:: c#
-           
-            foreach (var doc in result) {
-               Console.WriteLine(doc.ToJson());
-            }
+
+         .. literalinclude:: /includes/code/dotnet/CrudReadIterate.cs
+            :caption: CrudRead.cs
+            :language: csharp
+            :dedent: 0
 
