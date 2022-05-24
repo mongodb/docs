@@ -85,6 +85,9 @@ clean-html:
 ## Builds this branch's publishable HTML and other artifacts under
 ## build/public
 publish:
+
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/public; fi;
+	rm -rf build/${GIT_BRANCH}
 	giza make publish
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects -o build/public/.htaccess; fi
 
