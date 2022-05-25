@@ -12,7 +12,7 @@ your ``PATH``, do one of the following:
      sudo cp /path/to/mongosync/dist/mongosync /usr/local/bin/
 
 - Create symbolic links to the ``mongosync`` binary from a
-  directory such as``/usr/local/bin`` that is already in your
+  directory such as ``/usr/local/bin`` that is already in your
   ``PATH``. (Update ``/path/to/mongosync/dist`` to reflect the
   location where you extracted the ``tar`` file.)
 
