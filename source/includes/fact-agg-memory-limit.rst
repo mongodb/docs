@@ -1,22 +1,33 @@
 .. FYI -- 2.5.3 introduced the limit to $group and changed the limit for
    $sort from 10% to 100 MB.
 
-Each individual pipeline stage has a limit of 100 megabytes of RAM. By
-default, if a stage exceeds this limit, MongoDB produces an error. For
-some pipeline stages you can allow pipeline processing to take up more
-space by using the :ref:`allowDiskUse <aggregate-cmd-allowDiskUse>`
-option to enable aggregation pipeline stages to write data to temporary
-files.
+Starting in MongoDB 6.0, the :parameter:`allowDiskUseByDefault` 
+parameter controls whether pipeline stages that require more than 100 
+megabytes of memory to execute write temporary files to disk by 
+default.
+
+- If :parameter:`allowDiskUseByDefault` is set to ``true``, pipeline
+  stages that require more than 100 megabytes of memory to execute 
+  write temporary files to disk by default. You can disable writing 
+  temporary files to disk for specific ``find`` or ``aggregate`` 
+  commands using the ``{ allowDiskUse: false }`` option.
+
+- If :parameter:`allowDiskUseByDefault` is set to ``false``, pipeline
+  stages that require more than 100 megabytes of memory to execute 
+  raise an error by default. You can enable writing temporary files to 
+  disk for specific ``find`` or ``aggregate`` using 
+  the ``{ allowDiskUse: true }`` option.
 
 The :pipeline:`$search` aggregation stage is not restricted to 
 100 megabytes of RAM because it runs in a separate process.
 
-Examples of stages that can spill to disk when :ref:`allowDiskUse
-<aggregate-cmd-allowDiskUse>` is ``true`` are:
+Examples of stages that can write temporary files to disk when 
+:ref:`allowDiskUse <aggregate-cmd-allowDiskUse>` is ``true`` are:
 
 - :pipeline:`$bucket`
 - :pipeline:`$bucketAuto`
 - :pipeline:`$group`
+- :pipeline:`$setWindowFields`
 - :pipeline:`$sort` when the sort operation is not supported by an
   index
 - :pipeline:`$sortByCount`
