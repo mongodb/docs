@@ -1,4 +1,4 @@
-.. versionadded:: 5.3
+.. versionadded:: 6.0
 
 Specifies the unique identifier of the Key Management
 Interoperability Protocol (KMIP) key for :ref:`audit log encryption
