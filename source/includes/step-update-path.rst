@@ -1,6 +1,6 @@
 The ``mongosync`` binary is in the ``dist/`` directory of the
-tarball. To add the location of the ``mongosync`` binary to your
-``PATH``, do one of the following:
+unpacked tarball. To add the location of the ``mongosync`` binary to
+your ``PATH``, do one of the following:
 
 - Copy the binary into a directory listed in your ``PATH``
   variable, such as ``/usr/local/bin``. (Update
