@@ -1,9 +1,166 @@
 .. _c2c-mongosync:
 
+.. default-domain:: mongodb
+
+.. program:: mongosync
+
 =============
 ``mongosync``
 =============
 
-.. default-domain:: mongodb
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
-Migrate data between clusters using ``mongosync``.
+Description
+-----------
+
+The ``mongosync`` binary is the primary process used in Cluster-to-Cluster Sync.
+It migrates data from one cluster to another and can keep the clusters
+in continuous sync.
+
+This document provides a complete overview of all command-line options.
+
+Options
+-------
+
+Global Options
+~~~~~~~~~~~~~~
+
+.. option:: --cluster0 <URI>
+
+   Sets the :ref:`connection URI <mongodb-uri>` for the first cluster.
+   The first cluster can serve as either the source cluster or the destination 
+   cluster in the sync process.
+
+   .. note::
+ 
+      The cluster must use MongoDB 6.0 or later.
+
+
+   For more information on connecting ``mongosync``, see
+   :ref:`Connections <c2c-conn-top-level>`.
+
+
+.. option:: --cluster1 <URI>
+
+   Sets the :ref:`connection URI <mongodb-uri>` for the second cluster.
+   The second cluster can serve as either the source cluster or the destination 
+   cluster in the sync process.
+
+   .. note::
+
+      The cluster must use MongoDB 6.0 or later.
+
+
+   For more information on connecting ``mongosync``, see
+   :ref:`Connections <c2c-conn-top-level>`.
+
+
+.. option:: --verbosity <level>
+
+   *Default*: ``INFO``
+
+   Sets the verbosity level to use in log messages.  Cluster-to-Cluster Sync logs
+   all messages at the specified level as well as any messages at less severe levels.
+
+   The ``--verbosity`` option supports the following values:
+
+   - ``TRACE``
+   - ``DEBUG``
+   - ``INFO``
+   - ``WARN``
+   - ``ERROR``
+   - ``FATAL``
+   - ``PANIC``
+
+
+.. option:: --logPath <DIR>
+
+   Sets the path to the log directory. Cluster-to-Cluster Sync writes logs to
+   files in this directory.
+
+
+.. option:: --port
+
+   *Default*: ``27182``
+
+   Sets the port used by the HTTP server for the Cluster-to-Cluster Sync REST API.
+
+
+.. option:: --id <ID>
+
+   Sets an identifier for the ``mongosync`` instance.
+
+   Use this option when running multiple instances of ``mongosync`` on a sharded
+   cluster, to synchronize the shards individually.  The ``--id`` option must
+   correspond to the shard ID of the shard it
+   syncs.  To find the shard ID, use the :dbcommand:`listShards` command.
+
+.. option:: --config <filename>
+
+   Sets the path to the configuration file.
+
+   For more information, see :ref:`c2c-mongosync-config`.
+
+
+.. option:: --version, -v
+
+   Prints ``mongosync`` version information to stdout.
+
+
+.. option:: --help, h
+
+   Prints usage information to stdout.
+
+
+Behavior
+--------
+
+.. _c2c-mongosync-config:
+
+Configuration File
+~~~~~~~~~~~~~~~~~~
+
+Options for ``mongosync`` can be set in a YAML configuration file, specified
+using the :option:`--config` option.  For example:
+
+.. code-block:: yaml
+
+   # Cluster Configuration
+   cluster0: "mongodb://192.0.2.10:27017,192.0.2.11:27017,192.0.2.12:27017"
+   cluster1: "mongodb://192.0.2.20:27017,192.0.2.21:27017,192.0.2.22:27017"
+
+
+Examples
+--------
+
+#. Deploy a source and a destination cluster.
+
+#. Initialize Cluster-to-Cluster Sync:
+
+   .. code-block:: bash
+
+      mongosync \
+           --cluster0 'mongodb://192.0.2.10:27017,192.0.2.11:27017,192.0.2.12:27017' \
+           --cluster1 'mongodb://192.0.2.20:27017,192.0.2.21:27017,192.0.2.22:27017'
+
+   Use the appropriate connection strings for the :option:`--cluster0` and
+   :option:`--cluster1` options so that they can connect to your replica sets.
+
+#. To start the synchronization process, use a REST client such as cURL to send
+   the ``start`` command to ``mongosync``:
+
+   .. code-block:: bash
+
+      curl localhost:27182/api/v1/start -X POST \
+            --data '{ "source": "cluster0", "destination": "cluster1" }'
+
+   Example Output:
+
+   .. code-block:: json
+      :copyable: false
+
+      { "success": true }

@@ -10,3 +10,82 @@ Frequently Asked Questions
 This page provides answers to some frequently asked questions we have
 encountered. If you have additional questions please contact MongoDB
 Support.
+
+Does ``mongosync`` have to use the same operating system as MongoDB Enterprise Server? 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When ``mongosync`` runs on its own hardware, it does not have to use
+the same operation system (OS) as the source or destination clusters it
+is connecting.
+
+Should I increase the size of the oplog in the source cluster?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you anticipate synchronizing a large data set, or if you plan to
+pause synchronization for an extended period of time, increase the size
+of the replica set :term:`oplog` in the source cluster.
+
+The ``oplog`` in the source cluster must be large enough to track
+events that happen during the time it takes to complete the initial
+sync to the destination cluster.
+
+The proper ``oplog`` size depends on system hardware, network speed,
+and other factors including system workload. However, assuming network
+transfer speeds of 30-50GB per hour, a rough formula to estimate the
+required ``oplog`` size is:
+
+.. code-block:: shell
+
+   minimumRetentionHours = dataSizeInGB / 30
+
+To learn more about how to increase the size of the ``oplog``, see:
+:ref:`tutorial-change-oplog-size`. 
+
+Which connection string options does ``mongosync`` allow?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` requires :ref:`readConcern: "majority" <read-concern>`
+and :ref:`writeConcern: "majority" <write-concern>`. ``mongosync`` 
+overwrites any other ``readConcern`` or ``writeConcern`` and uses
+``"majority"`` instead.
+
+``monogosync`` accepts all other :ref:`connection string options
+<mongodb-uri>`.
+
+
+Which security and authentication options are supported?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` uses a standard MongoDB :ref:`connection string
+<mongodb-uri>` to connect to the source and destination clusters. 
+
+:ref:`LDAP <security-auth-ldap>` and :ref:`X509
+<authentication-mechanism-x509>` are supported. For available
+authentication options, see :ref:`authentication`.
+
+
+Can I configure ``mongosync`` for high availability?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There is no automatic failover built into ``mongosync``. However you
+can write a script or use your operating system's process managers,
+``systemd`` for example, to restart the ``mongosync`` process. 
+
+The ``mongosync`` binary is stateless. The metadata for restarting is
+stored on the destination cluster.
+
+A ``mongosync`` operation can be resumed if ``mongosync`` becomes
+unavailable during synchronization. When ``mongosync`` becomes
+available again, restart the ``mongosync`` process with the same
+parameters. ``mongosync`` resumes the operation from where it stopped
+when ``mongosync`` became unavailable.
+
+Can the source or destination be a replica set with arbiters? 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes, the replica set can have arbiters. The source replica set must
+have more than 2 non-arbiter nodes and you must sync from a non-arbiter
+node. Use the source cluster's connection string to specify a
+:ref:`read preference <mongodb-uri>` for a non-arbiter, data-bearing
+node. 
+
