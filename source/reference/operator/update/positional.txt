@@ -72,7 +72,52 @@ Nested Arrays
 The positional :update:`$` operator cannot be used for queries which
 traverse more than one array, such as queries that traverse arrays
 nested within other arrays, because the replacement for the
-:update:`$` placeholder is a single value
+:update:`$` placeholder is a single value.
+
+If you need to update nested array elements while using a query
+traversing multiple arrays, use :update:`$[\<identifier\>]`.
+
+Consider the following document in the ``students`` collection
+
+   .. code-block:: javascript
+   
+      {
+        _id: 1,
+        subjects: ['A', 'B', 'C'],
+        grades: [
+          { grade: 80, mean: 75, std: 8 },
+          { grade: 85, mean: 90, std: 5 },
+          { grade: 85, mean: 85, std: 8 }
+        ]
+      }
+
+The following query traverses two arrays, thus would *not* update using ``$``
+(but the document is found and returned unchanged):
+
+   .. code-block:: javascript
+   
+      db.students.findOneAndUpdate({
+        subjects: 'A',
+        'grades.mean': 75
+      }, {
+        $set: {
+          'grades.$.grade': 81
+        }
+      })
+
+Yet moving the query to arrayFilters using :update:`$[\<identifier\>]` works:
+
+   .. code-block:: javascript
+   
+      db.projects.findOneAndUpdate({
+        subjects: 'A'
+      }, {
+        $set: {
+          'grades.$[elem].grade': 81
+        }
+      }, {
+          arrayFilters: [{ "elem.mean": 75 }]
+      })
 
 Unsets
 ~~~~~~
