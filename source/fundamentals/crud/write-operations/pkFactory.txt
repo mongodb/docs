@@ -1,0 +1,83 @@
+.. _node-pkfactory:
+
+=================================
+Generate Custom Values for ``_id``
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the MongoDB Node.js driver to generate your
+own ``_id`` values using the **primary key factory**.
+
+The primary key factory allows you to create unique identifiers in your
+documents when you choose not to specify an ``_id`` during an
+:ref:`insert operation <node-fundamentals-insert-data>`. The 
+default primary key factory generates ``ObjectId`` values.
+
+.. note:: Upsert Operations
+
+   The driver doesn't use the primary key factory for
+   :ref:`upsert operations <node-fundamentals-upsert>` because it's
+   unable to determine whether to apply the primary key factory. If you
+   specified the primary key factory in an upsert operation and it
+   performs an insert operation, the server autogenerates an
+   ``ObjectId`` for that document.
+
+   If you want to use your specified primary key factory, perform a
+   :ref:`find operation <node-fundamentals-retrieve-data>`, then an
+   :ref:`update <node-fundamentals-change-a-document>` or
+   :ref:`insert <node-fundamentals-insert-data>` operation.
+
+Specify a Primary Key Factory
+-----------------------------
+
+To specify a primary key factory, apply the ``pkFactory`` option to your
+``MongoClient`` instance.
+
+The following code snippet applies the ``pkFactory`` option to
+generate ``_id`` values of type ``uuid``:
+
+.. code-block:: javascript
+
+   const { UUID } = require('bson');
+   ...
+   const client = new MongoClient(uri, { 
+     useUnifiedTopology: true, 
+     pkFactory: { createPk: () =>  new UUID().toBinary() }
+   });
+
+.. note:: Data Consistency
+
+   If you insert a document with an ``_id`` field with a different
+   type than the type specified by the primary key factory, then you 
+   will have inconsistent data. 
+  
+   For example, if you run the following insert operation on a primary
+   key factory that generates ``uuid`` types, your ``_id`` values will
+   contain both the ``uuid`` and ``string`` types:
+
+   .. code-block:: javascript
+
+      collection.insertOne({ _id: "user1388", ... }); 
+
+Additional Information
+----------------------
+
+To learn more about the types, interfaces, and classes discussed in this
+section, see the following resources:
+
+- `pkFactory <{+api+}/interfaces/PkFactory.html>`__
+- :manual:`The _id Field </core/document/#the-_id-field>`
+- :ref:`node-fundamentals-upsert`
+- :ref:`node-fundamentals-retrieve-data`
+- :ref:`node-fundamentals-change-a-document`
+- :ref:`node-fundamentals-insert-data`
