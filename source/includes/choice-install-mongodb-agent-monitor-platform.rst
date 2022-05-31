@@ -87,7 +87,7 @@
             :tabid: ppc
 
             On RHEL / CentOS (7.x) on PowerPC architecture
-            (managing MongoDB 3.4 or later deployments):
+            (managing MongoDB 3.6 or later deployments):
 
             .. tabs::
 
@@ -110,10 +110,10 @@
          .. tab:: IBM ZSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 3.4 or
+            On zSeries architecture (managing MongoDB 4.0 or
             later deployments):
 
-            Running RHEL / CentOS 7.x using the ``rpm`` package manager:
+            Running RHEL / CentOS 7.x/8.x using the ``rpm`` package manager:
 
             .. include:: /includes/agents/binaries-removed-from-path.rst
 
@@ -132,7 +132,7 @@
 
                   .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                  Running RHEL 8.x or Amazon Linux 2 using the rpm
+                  Running RHEL 8.x or Amazon Linux 2 using the ``rpm``
                   package manager:
 
                   .. include:: /includes/steps/install-mongodb-agent-monitor-arm64.rhel8-rpm.rst

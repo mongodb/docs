@@ -63,16 +63,16 @@
                      .. tab:: RPM package
                         :tabid: rpm
 
-                           Using an ``rpm`` package:
+                        Using an ``rpm`` package:
 
-                           .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64.rhel7-rpm.rst
+                        .. include:: /includes/steps/update-monitoring-to-mongodb-agent-x86-64.rhel7-rpm.rst
 
                      .. tab:: TAR archive
                         :tabid: tar
 
-                           Using a ``tar`` archive:
+                        Using a ``tar`` archive:
 
-                           .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-x86-64-tar.rst
+                        .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-x86-64-tar.rst
 
          .. tab:: PowerPC
             :tabid: ppc
@@ -85,40 +85,27 @@
                .. tab:: RPM package
                   :tabid: rpm
 
-                     Using an ``rpm`` package:
+                  Using an ``rpm`` package:
 
-                     .. include:: /includes/steps/update-monitoring-to-mongodb-agent-ppc641e.rhel7-rpm.rst
+                  .. include:: /includes/steps/update-monitoring-to-mongodb-agent-ppc641e.rhel7-rpm.rst
 
                .. tab:: TAR archive
                   :tabid: tar
 
-                     Using a ``tar`` archive:
+                  Using a ``tar`` archive:
 
-                     .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-ppc64le-tar.rst
+                  .. include:: /includes/steps/update-monitoring-to-mongodb-agent-rhel7-ppc64le-tar.rst
 
          .. tab:: IBM ZSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 3.4 or
+            On zSeries architecture (managing MongoDB 4.0 or
             later deployments):
 
-            .. tabs::
+            Running RHEL / CentOS 7.x/8.x using the
+            ``rpm`` package manager:
 
-               .. tab:: 6.x
-                  :tabid: v6
-
-                  Running RHEL / CentOS 6.x using the
-                  ``rpm`` package manager:
-
-                  .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.rhel6-rpm.rst
-
-               .. tab:: 7.x
-                  :tabid: v7
-
-                  Running RHEL / CentOS 7.x using the
-                  ``rpm`` package manager:
-
-                  .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.rhel7-rpm.rst
+            .. include:: /includes/steps/update-monitoring-to-mongodb-agent-s390x.rhel7-rpm.rst
 
    .. tab::
       :tabid: linux

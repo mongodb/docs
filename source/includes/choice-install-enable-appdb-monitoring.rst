@@ -104,30 +104,16 @@
          .. tab:: IBM zSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 3.4 or later
-            deployments):
+            On zSeries architecture (managing MongoDB 4.0 or later
+            deployments), use RHEL /CentOS 7.x or 8.x:
 
-            .. tabs::
+            .. include:: /includes/agents/binaries-removed-from-path.rst
 
-               .. tab:: 6.0+
-                  :tabid: v6
+            Running RHEL / CentOS 7.x/8.x using the ``rpm`` package
+            manager:
 
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
+            .. include:: /includes/steps/monitor-appdb-on-s390x.rhel7-rpm.rst
 
-                  Running RHEL / CentOS 6.x using the ``rpm`` package
-                  manager:
-
-                  .. include:: /includes/steps/monitor-appdb-on-s390x.rhel6-rpm.rst
-
-               .. tab:: 7.0+
-                  :tabid: v7
-
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                  Running RHEL / CentOS 7.x using the ``rpm`` package
-                  manager:
-
-                  .. include:: /includes/steps/monitor-appdb-on-s390x.rhel7-rpm.rst
 
    .. tab::
       :tabid: linux

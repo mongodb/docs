@@ -99,28 +99,15 @@
          .. tab:: IBM ZSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 3.4 or
+            On zSeries architecture (managing MongoDB 4.0 or
             later deployments):
 
-            Running RHEL / CentOS 7.x:
+            Running RHEL / CentOS 7.x/8x:
 
-            .. tabs::
+            Running RHEL / CentOS 7.x/8.x using the ``rpm`` package
+            manager:
 
-               .. tab:: RPM package
-                  :tabid: rpm 
-
-                  Running RHEL / CentOS 7.x using the
-                  ``rpm`` package manager:
-
-                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
-
-               .. tab:: TAR archive
-                  :tabid: tar 
-
-                  Running RHEL / CentOS 7.x using the
-                  ``tar`` archive:
-
-                  .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-tar.rst
+            .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
 
          .. tab:: ARM64
             :tabid: arm64

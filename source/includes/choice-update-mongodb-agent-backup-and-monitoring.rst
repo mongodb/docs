@@ -102,23 +102,10 @@
             On zSeries architecture (managing MongoDB 3.4 or
             later deployments):
 
-            .. tabs::
+            Running RHEL / CentOS 7.x/8.x using the
+            ``rpm`` package manager:
 
-               .. tab:: 6.x
-                  :tabid: v6
-
-                  Running RHEL / CentOS 6.x using the
-                  ``rpm`` package manager:
-
-                  .. include:: /includes/steps/update-backup-to-mongodb-agent-s390x.rhel6-rpm.rst
-
-               .. tab:: 7.x
-                  :tabid: v7
-
-                  Running RHEL / CentOS 7.x using the
-                  ``rpm`` package manager:
-
-                  .. include:: /includes/steps/update-backup-to-mongodb-agent-s390x.rhel7-rpm.rst
+            .. include:: /includes/steps/update-backup-to-mongodb-agent-s390x.rhel7-rpm.rst
 
    .. tab::
       :tabid: linux
