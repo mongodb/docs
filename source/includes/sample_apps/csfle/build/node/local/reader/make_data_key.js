@@ -25,7 +25,6 @@ const kmsProviders = {
 // end-datakeyopts
 
 // start-create-dek
-const base64 = require("base64-js");
 const connectionString = "<Your Connection String>";
 const keyVaultNamespace = "encryption.__keyVault";
 const client = new MongoClient(connectionString, {
@@ -41,9 +40,7 @@ async function main() {
       kmsProviders,
     });
     const key = await encryption.createDataKey(provider);
-    const base64DataKeyId = key.toString("base64");
-    const uuidDataKeyId = base64.fromByteArray(base64DataKeyId);
-    console.log("DataKeyId [base64]: ", base64DataKeyId);
+    console.log("DataKeyId [base64]: ", key.toString("base64"));
   } finally {
     await client.close();
   }

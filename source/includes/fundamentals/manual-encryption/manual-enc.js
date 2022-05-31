@@ -2,20 +2,20 @@ const mongodb = require("mongodb");
 const { ClientEncryption } = require("mongodb-client-encryption");
 const { MongoClient, Binary } = mongodb;
 
-var db = "medicalRecords";
-var coll = "patients";
+const db = "medicalRecords";
+const coll = "patients";
 
 // start-specify-credentials
 const provider = "aws";
 const kmsProviders = {
   aws: {
-    accessKeyId: process.env["AWS_ACCESS_KEY_ID"],
-    secretAccessKey: process.env["AWS_SECRET_ACCESS_KEY"],
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 };
 const masterKey = {
-  key: process.env["AWS_KEY_ARN"],
-  region: process.env["AWS_KEY_REGION"],
+  key: process.env.AWS_KEY_ARN,
+  region: process.env.AWS_KEY_REGION,
 };
 // end-specify-state
 
@@ -66,8 +66,8 @@ async function main() {
     });
     let doc = await collection.findOne({ name: queryEncryptedName });
     console.log("Encrypted Document: ", doc);
-    doc["name"] = encryption.decrypt(doc["name"]);
-    doc["foods"] = encryption.decrypt(doc["foods"]);
+    doc.name = encryption.decrypt(doc.name);
+    doc.foods = encryption.decrypt(doc.foods);
     console.log("Decrypted document: ", doc);
     // end_find_decrypt
   } finally {
