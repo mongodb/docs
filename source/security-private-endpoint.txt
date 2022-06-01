@@ -1,8 +1,8 @@
 .. _private-endpoint:
 
-=================================================
-Set Up a Private Endpoint for a Dedicated Cluster
-=================================================
+=========================
+Set Up a Private Endpoint
+=========================
 
 .. default-domain:: mongodb
 
@@ -14,23 +14,39 @@ Set Up a Private Endpoint for a Dedicated Cluster
 
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-.. include:: /includes/serverless-preview-dont-use.rst
+MongoDB |service| supports private endpoints on {+dedicated-clusters+}
+and {+serverless-instances+}. Select your {+database-deployment+} type
+to learn which cloud providers |service| supports:
 
-MongoDB |service| supports private endpoints on: 
+.. tabs::
 
-- |aws| using the `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__
-  feature,
+   .. tab:: {+Dedicated-Clusters+}
+      :tabid: clusters
 
-- |azure| using the `{+az-pl+}
-  <https://azure.microsoft.com/en-us/services/private-link/>`__ feature, and
+      - |aws| using the `{+aws-pl+} 
+        <https://aws.amazon.com/privatelink/>`__ feature.
 
-- |gcp| using the `{+gcp-psc+} <https://cloud.google.com/vpc/docs/private-service-connect>`__ 
-  feature.
+      - |azure| using the `{+az-pl+} 
+        <https://azure.microsoft.com/en-us/services/private-link/>`__
+        feature.
 
-.. note:: 
+      - |gcp| using the `{+gcp-psc+} 
+        <https://cloud.google.com/vpc/docs/private-service-connect>`__
+        feature.
 
-   You can set up private endpoints for your Online Archive. To learn 
-   more, see :ref:`oa-config-private-endpoint`.
+   .. tab:: {+Serverless-Instances+}
+      :tabid: serverless-instances
+
+      |aws| using the `{+aws-pl+} 
+      <https://aws.amazon.com/privatelink/>`__ feature. 
+      {+Serverless-instances+} don't support {+az-pl+} or {+gcp-psc+}.
+
+      .. note::
+
+         .. include:: /includes/fact-serverless-adding-features.rst
+
+You can also set up private endpoints for your Online Archive. To learn 
+more, see :ref:`oa-config-private-endpoint`.
 
 .. _private-endpoint-overview:
 
@@ -42,34 +58,52 @@ Overview
    .. tab:: {+aws-pl+}
       :tabid: {+aws-pl+}
 
-      When you enable this feature, |service| creates its own |vpc| and
-      places clusters within a region behind a network load balancer in
-      the |service| |vpc|.
-
-      Then you create resources that establish a one-way connection
-      from your |vpc| to the network load balancer in the |service|
-      |vpc| using a private endpoint.
-
       .. tabs::
+         
+         .. tab:: {+Dedicated-Clusters+}
+            :tabid: clusters
 
-         .. tab:: {+aws-pl+}
-            :tabid: aws-pl-diagram
+            When you enable this feature, |service| creates its own 
+            |vpc| and places {+database-deployments+} within a region
+            behind a network load balancer in the |service| |vpc|.
 
-            .. figure:: /images/atlas-aws-privatelink.svg
-               :width: 720px
-               :alt: Image showing how {+aws-pl+} establishes connections from
-                     your application VPC to resources in the |service| VPC.
+            Then you create resources that establish a one-way
+            connection from your |vpc| to the network load balancer in
+            the |service| |vpc| using a private endpoint.
 
-         .. tab:: {+aws-pl+} with Direct Connect
-            :tabid: aws-pl-directconnect-diagram
+            .. tabs::
 
-            .. figure:: /images/atlas-aws-privatelink-directconnect.svg
-               :width: 720px
-               :alt: Image showing how can use |aws| Direct Connect to establish a transitive connection from your data center to a peered |aws| VPC to resources in the |service| VPC using |aws| Direct Connect.
+               .. tab:: {+aws-pl+}
+                  :tabid: aws-pl-diagram
 
-      Connections to |service| clusters using private endpoints offer
-      the following advantages over other network access management
-      options:
+                  .. figure:: /images/atlas-aws-privatelink.svg
+                     :width: 720px
+                     :alt: Image showing how {+aws-pl+} establishes   
+                           connections from your application VPC to
+                           resources in the |service| VPC.
+
+               .. tab:: {+aws-pl+} with Direct Connect
+                  :tabid: aws-pl-directconnect-diagram
+
+                  .. figure:: /images/atlas-aws-privatelink-directconnect.svg
+                     :width: 720px
+                     :alt: Image showing how you can use |aws| Direct
+                           Connect to establish a transitive
+                           connection from your data center to a
+                           peered |aws| VPC to resources in the 
+                           |service| VPC using |aws| Direct Connect.
+
+         .. tab:: {+Serverless-Instances+}
+            :tabid: serverless-instances
+      
+            When you enable this feature, |service| reserves an
+            existing endpoint service in the same |vpc| and region as
+            your {+serverless-instance+} on an endpoint-by-endpoint
+            basis.
+
+      Connections to |service| {+database-deployments+} using private
+      endpoints offer the following advantages over other network
+      access management options:
 
       - Connections using private endpoints are one-way. |service|
         |vpc|\s can't initiate connections back to your |vpc|\s. This
@@ -244,27 +278,29 @@ IP Access Lists and Network Peering Connections with Private Endpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When you enable private endpoints, you can still enable access to your
-|service| clusters using other methods, such as adding public IPs to
+|service| {+database-deployments+} using other methods, such as adding
+public IPs to
 :doc:`IP access lists </security/ip-access-list>` and
 :doc:`network peering </security-vpc-peering>`.
 
-Clients connecting to |service| clusters using other methods use
-standard connection strings. Your clients might have to identify when
-to use private endpoint-aware connection strings and standard
-connection strings.
+Clients connecting to |service| {+database-deployments+} using other
+methods use standard connection strings. Your clients might have to
+identify when to use private endpoint-aware connection strings and
+standard connection strings.
 
 .. _atlas_regionalized-pl:
 
 (Optional) Regionalized Private Endpoints for Multi-Region Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For multi-region and global sharded clusters, you can deploy multiple
-private endpoints to a region if you need to connect to |service| using
-a private endpoint from networks that can't be peered with one another.
+For multi-region and global sharded clusters,
+you can deploy multiple private endpoints to a region if you need to
+connect to |service| using a private endpoint from networks that can't
+be peered with one another.
 
 You can deploy any number of private endpoints to regions that you
-deployed your cluster to. Each regional private endpoint connects to the
-|mongos| instances in that region.
+deployed your {+database-deployment+} to. Each regional private
+endpoint connects to the |mongos| instances in that region.
 
 .. include:: /includes/admonitions/warnings/regionalized-pls-change-connection-strings.rst
 
@@ -285,14 +321,11 @@ Limitations
    .. tab:: {+aws-pl+}
       :tabid: {+aws-pl+}
 
-      - You can use {+aws-pl+} to connect to |service| clusters running
-        MongoDB version 3.6 or later.
-
       - {+aws-pl+} must be active in all regions into which you deploy
-        a multi-region cluster. You will receive an error if {+aws-pl+}
-        is active in some, but not all, targeted regions. If you have a 
-        multi-cloud cluster in |aws| or |azure|, you must provision an 
-        endpoint in each provider or region. 
+        a multi-region {+cluster+}. You will receive an error if 
+        {+aws-pl+} is active in some, but not all, targeted regions. If
+        you have a multi-cloud {+cluster+} in |aws| or |azure|, you must
+        provision an endpoint in each provider or region. 
 
       - You can do only one of the following:
 
@@ -311,16 +344,18 @@ Limitations
         multi-region and global sharded clusters.
 
       - If this is the first private endpoint that you deploy to a   
-        region, you must first resume any paused clusters in your
-        project with nodes deployed to that region.
+        region, you must first resume any paused 
+        {+database-deployments+} in your project with nodes deployed to
+        that region.
 
         This limitation doesn't apply for additional private endpoints
         that you deploy to the same region.
 
-      - To connect to |service| clusters using {+aws-pl+} from regions
-        in which you haven't deployed a private endpoint connection,
-        you must peer |vpc|\s in those regions to |vpc|\s in a region
-        in which you have deployed a private endpoint connection.
+      - To connect to |service| {+database-deployments+} using 
+        {+aws-pl+} from regions in which you haven't deployed a private
+        endpoint connection, you must peer |vpc|\s in those regions to 
+        |vpc|\s in a region in which you have deployed a private
+        endpoint connection.
 
         To learn about inter-region |vpc| peering, see the `AWS
         documentation
@@ -342,11 +377,29 @@ Limitations
         - Each |bic| instance across all dedicated clusters in the
           project.
 
+        This limitation doesn't apply to {+serverless-instances+}.
+
         .. note::
 
            To request a one-time increase to use {+aws-pl+} with up to
            100 addressable targets per |service| project, contact
            :ref:`MongoDB Support <request-support>`.
+
+      {+Serverless-Instance+} Limitations
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Additionally, the following limitations apply when you connect to
+      |service| {+serverless-instances+} using {+aws-pl+}:
+
+      - Private endpoints for {+serverless-instances+} apply at the 
+        {+database-deployment+} level. If you configure a private
+        endpoint for a {+serverless-instance+}, that private endpoint
+        can't be used for other {+serverless-instances+} or {+clusters+}
+        in the same project. You must configure a separate private
+        endpoint for each {+serverless-instance+}.
+
+      - You can connect up to two private endpoints per 
+        {+serverless-instance+}.
 
    .. tab:: {+az-pl+}
       :tabid: {+az-pl+}
@@ -573,25 +626,10 @@ Procedures
 Configure an |service| Private Endpoint
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Enable clients to connect to |service| clusters using private endpoints
-with the following procedure:
+Use these resources to configure an |service| private endpoint:
 
-.. tabs::
-
-   .. tab:: {+aws-pl+}
-      :tabid: {+aws-pl+}
-
-      .. include:: /includes/steps/configure-privatelink-aws.rst
-
-   .. tab:: {+az-pl+}
-      :tabid: {+az-pl+}
-
-      .. include:: /includes/steps/configure-privatelink-azure.rst
-
-   .. tab:: {+gcp-psc+}
-      :tabid: {+gcp-psc+}
-
-      .. include:: /includes/steps/configure-privateserviceconnect-gcp.rst
+- :ref:`<cluster-private-endpoint>`
+- :ref:`<serverless-private-endpoint>`
 
 .. _connect-private-endpoint:
 .. _atlas-connect-private-endpoint:
@@ -606,9 +644,11 @@ Connect to |service| using a Private Endpoint
    :ref:`Private Endpoint-Aware Connection Strings <private-endpoint-connection-strings>`.
 
 Use a private endpoint-aware connection string to connect to an
-|service| cluster with the following procedure:
+|service| {+database-deployment+} with the following procedure:
 
 .. include:: /includes/steps/connect-to-database-deployment-privatelink.rst
+
+.. _remove-private-endpoint:
 
 Remove a Private Endpoint from |service|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -711,3 +751,10 @@ Troubleshoot Private Endpoint Connection Issues
       :tabid: {+gcp-psc+}
 
       .. include:: /includes/troubleshoot-privateserviceconnect-gcp.rst
+
+
+.. toctree::
+   :titlesonly:
+
+   /security-cluster-private-endpoint
+   /security-serverless-private-endpoint

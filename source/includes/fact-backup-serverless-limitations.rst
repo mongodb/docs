@@ -1,6 +1,3 @@
-- You can :ref:`restore <serverless-restore-snapshot>` only
-  the two most recent snapshots.
-
 - You can't download {+serverless-instance+} snapshots.
 
 - Custom policies are not supported for {+serverless-instance+}

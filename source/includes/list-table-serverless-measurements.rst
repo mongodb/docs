@@ -53,3 +53,6 @@ Serverless Measurements
       
    * - ``SERVERLESS_TOTAL_READ_UNITS``
      - Total read units meet the specified threshold.
+
+   * - ``SERVERLESS_TOTAL_WRITE_UNITS``
+     - Total write units meet the specified threshold.

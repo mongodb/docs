@@ -48,12 +48,24 @@
        timestamp. |service| returns this parameter when **"oplogTs"**
        exceeds 0.
 
+       .. note::
+
+          {+Serverless-instance+} snapshots don't return the
+          ``oplogTs``. You can't restore a {+serverless-instance+}
+          snapshot using an :ref:`Oplog <ref-atlas-oplog>` timestamp.
+
    * - oplogInc
      - integer
      - :ref:`Oplog <ref-atlas-oplog>` operation number from which to
        you want to restore this snapshot. This is the second part of an
        :ref:`Oplog <ref-atlas-oplog>` timestamp. |service| returns this
        parameter when **"oplogTs"** exceeds 0.
+
+       .. note::
+
+          {+Serverless-instance+} snapshots don't return the
+          ``oplogInc``. You can't restore a {+serverless-instance+}
+          snapshot using an :ref:`Oplog <ref-atlas-oplog>` timestamp.
 
    * - pointInTimeUTCSeconds
      - integer

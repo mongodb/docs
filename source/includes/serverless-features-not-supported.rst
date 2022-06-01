@@ -30,9 +30,12 @@ Configurations
    * - :doc:`Global Clusters </global-clusters>`
      - 
 
-   * - :doc:`Private Endpoints </security-private-endpoint>`
+   * - :doc:`Private Endpoints on Azure using {+az-pl+} </security-private-endpoint>`
      - :icon:`check-square`
 
+   * - :doc:`Private Endpoints on Google Cloud using {+gcp-psc+} </security-private-endpoint>`
+     - :icon:`check-square`
+  
    * - :doc:`Network Peering (VPC/VNet) </security-vpc-peering>`
      - 
 
@@ -67,12 +70,7 @@ Capabilities
        for your project or organization if your bill exceeds a certain threshold.
      - :icon:`check-square`
 
-   * - Configure :doc:`Backups </backup/cloud-backup/overview>`
-       
-       While {+serverless-instances+} do allow backups, you cannot change the backup policies.
-     - 
-
-   * - Perform :doc:`Point-in-Time or Automated Restores </backup-restore-cluster>`
+   * - Perform :doc:`Automated Restores </backup-restore-cluster>`
        from Backup Snapshots
      - 
 
@@ -201,3 +199,8 @@ limitations and considerations:
      - {+Serverless-instances+} support multi-document transactions that are up
        to 700 MB in size. |service| aborts any {+serverless-instance+} transactions that
        exceed 700 MB.
+
+   * - Write Concern
+     - {+Serverless-instances+} don't accept a numeric :manual:`write 
+       concern </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->` level greater than 
+       ``1``, or custom write concerns.

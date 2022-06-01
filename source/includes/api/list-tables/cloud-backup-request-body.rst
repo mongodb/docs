@@ -22,8 +22,11 @@
        This is the first part of an :ref:`Oplog <ref-atlas-oplog>`
        timestamp.
 
-       Three conditions apply to this parameter:
+       The following conditions apply to this parameter:
 
+       - Use a {+cluster+} as your source. You can't restore a 
+         {+serverless-instance+} snapshot using an 
+         :ref:`Oplog <ref-atlas-oplog>` timestamp.
        - Enable :ref:`{+PIT-Restore+} restores <pit-restore>` on your
          cluster.
        - Specify ``oplogInc``.
@@ -37,8 +40,11 @@
        you want to restore this snapshot. This is the second part of
        an :ref:`Oplog <ref-atlas-oplog>` timestamp.
 
-       Three conditions apply to this parameter:
+       The following conditions apply to this parameter:
 
+       - Use a {+cluster+} as your source. You can't restore a 
+         {+serverless-instance+} snapshot using an 
+         :ref:`Oplog <ref-atlas-oplog>` timestamp.
        - Enable :ref:`{+PIT-Restore+} restores <pit-restore>` on your
          cluster.
        - Specify ``oplogTs``.
@@ -53,7 +59,7 @@
        Two conditions apply to this parameter:
 
        - Enable :ref:`{+PIT-Restore+} restores <pit-restore>` on your
-         cluster.
+         {+database-deployment+}.
        - Specify either ``pointInTimeUTCSeconds`` or ``oplogTs`` and
          ``oplogInc``, but *not both*.
 

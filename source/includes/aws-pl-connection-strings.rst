@@ -1,22 +1,38 @@
 When you configure a private endpoint, |service| generates DNS
 seedlist and standard private endpoint-aware connection strings:
 
-- DNS seedlist connection
+.. tabs::
 
-  .. code-block:: none
-     :copyable: false
+   .. tab:: {+Dedicated-Clusters+}
+      :tabid: clusters
 
-     mongodb+srv://cluster0-pl-0-k45tj.mongodb.net
+      - DNS seedlist connection
 
-- Standard connection string
+        .. code-block:: none
+           :copyable: false
 
-  .. code-block:: none
-     :copyable: false
+           mongodb+srv://cluster0-pl-0-k45tj.mongodb.net
 
-     mongodb://pl-0-us-east-1-k45tj.mongodb.net:1024,pl-0-us-east-1-k45tj.mongodb.net:1025,pl-0-us-east-1-k45tj.mongodb.net:1026/?ssl=true&authSource=admin&replicaSet=Cluster0-shard-0-shard-0
+      - Standard connection string
 
-When a client in your |vpc| connects to an |service| cluster using one
-of these private endpoint-aware connection strings, the client attempts to
+        .. code-block:: none
+           :copyable: false
+
+           mongodb://pl-0-us-east-1-k45tj.mongodb.net:1024,pl-0-us-east-1-k45tj.mongodb.net:1025,pl-0-us-east-1-k45tj.mongodb.net:1026/?ssl=true&authSource=admin&replicaSet=Cluster0-shard-0-shard-0
+
+   .. tab:: {+Serverless-Instances+}
+      :tabid: serverless-instances
+
+      DNS seedlist connection
+
+      .. code-block:: none
+         :copyable: false
+
+         mongodb+srv://serverlessinstance0-pl-0-k45tj.mongodb.net
+
+When a client in your |vpc| connects to an |service| 
+{+database-deployment+} using one of these private endpoint-aware
+connection strings, the client attempts to
 establish a connection to the load balancer in the |service| |vpc|
 through one of the :term:`interface endpoints <interface endpoint>`.
 Your client's |dns| resolution mechanism handles which of the interface

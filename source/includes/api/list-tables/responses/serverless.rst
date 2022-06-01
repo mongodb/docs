@@ -64,6 +64,15 @@
        your MongoDB {+serverless-instance+}. The region you choose can
        affect network latency for clients accessing your databases.
 
+   * - serverlessBackupOptions.serverlessContinuousBackupEnabled
+     - boolean
+     - Flag that indicates whether the {+serverless-instance+} uses 
+       :guilabel:`Serverless Continuous Backup`. If this parameter is 
+       ``false``, the {+serverless-instance+} uses 
+       :guilabel:`Basic Backup`.
+
+       .. include:: /includes/list-table-serverless-backup-options.rst
+
    * - stateName
      - string
      - Stage of deployment of this {+serverless-instance+} when the
