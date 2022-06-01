@@ -1,0 +1,318 @@
+.. _embedded-document-ref:
+
+================
+embeddedDocument
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note:: 
+
+   .. include:: /includes/fact-embedded-document-preview.rst
+
+Definition
+----------
+
+.. expression:: embeddedDocument
+
+   The ``embeddedDocument`` operator is similar to :manual:`$elemMatch 
+   </reference/operator/query/elemMatch/>` operator. It constrains  
+   multiple query predicates to be satisfied from a single element of 
+   an array of embedded documents. ``embeddedDocument`` can be used 
+   only for queries over fields of type 
+   :ref:`bson-data-types-embedded-documents`.
+
+.. _embedded-document-syntax:
+
+Syntax
+------
+
+``embeddedDocument`` has the following syntax:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "embeddedDocument": {
+       "path": "<path-to-field>",
+       "operator": { <operator-specification> },
+       "score": { <score-options> }
+     }
+   }
+
+.. _embedded-document-options:
+
+Options
+-------
+
+``embeddedDocument`` uses the following options to construct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``operator``
+     - object
+     - Operator to use to query each document in the array of documents 
+       that you specify in the ``path``.
+     - Required
+
+   * - ``path``
+     - string
+     - Indexed :ref:`bson-data-types-embedded-documents` type field to 
+       search. The specified field must be a parent for all operators 
+       and fields specified using the ``operator`` option. See 
+       :ref:`Path Construction <ref-path>` for more information.
+     - Required
+
+   * - ``score``
+     - object
+     - Score to assign to matching search results. You can use the 
+       :ref:`scoring-embedded` scoring option to configure scoring 
+       options. If you omit this option or use another scoring option, 
+       ``embeddedDocument`` operator uses the default aggregation 
+       strategy, ``sum``, for combining scores of embedded document 
+       matches. To learn more, see :ref:`scoring-ref`.
+     - Optional
+
+.. _embedded-document-query-behavior:
+
+Behavior
+--------
+
+When you query embedded documents in arrays using the 
+``embeddedDocument`` operator, |fts| evaluates and scores the operator 
+query predicates at different stages of query execution. |fts|:
+
+1. Evaluates each embedded document in the array independently. 
+#. Combines the scores of matching results as configured using the 
+   :ref:`scoring-embedded` option, or scores by summing the scores of 
+   matching results if you don't specify an :ref:`scoring-embedded` 
+   score option.
+#. Joins the matching results with the parent document if other 
+   query predicates are specified through the :ref:`compound-ref` 
+   operator.
+
+   .. note::
+
+      For string faceting, |fts| counts string facets once for each 
+      document in the result set. For an example of this behavior, see 
+      :ref:`embedded-document-query-examples`.
+
+.. _embedded-document-query-examples:
+
+Examples
+--------
+
+The following examples use the ``sample_supplies.sales`` collection 
+in the :ref:`sample dataset <available-sample-datasets>`. These 
+examples use the following index definition on the collection: 
+
+.. code-block:: json 
+
+   {
+     "mappings": {
+       "dynamic": true,
+       "fields": {
+         "items": {
+           "dynamic": true,
+           "type": "embeddedDocuments"
+         },
+         "purchaseMethod": {
+           "type": "stringFacet"
+         }
+       }
+     }
+   }
+
+.. tabs:: 
+
+   .. tab:: Basic Example 
+      :tabid: basic 
+
+      The following query searches the collection for items tagged 
+      ``school`` with a preference for items named ``backpack``. |fts| 
+      scores the results in descending order based on the average 
+      (arithmetic mean) score of all matching embedded documents. The 
+      query includes a :pipeline:`$limit` stage to limit the output to 
+      ``5`` documents and a :pipeline:`$project` stage to:
+
+      - Exclude all fields except ``items.name`` field 
+      - Add a field named ``score`` 
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.sales.aggregate({
+              "$search": {
+                "embeddedDocument": {
+                  "path": "items",
+                  "operator": {
+                    "compound": {
+                      "must": [{
+                        "text": {
+                          "path": "items.tags",
+                          "query": "school"
+                        }
+                      }],
+                      "should": [{
+                        "text": {
+                          "path": "items.name",
+                          "query": "backpack"
+                        }
+                      }]
+                    }
+                  },
+                  "score": {
+                    "embedded": {
+                      "aggregate": "mean"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              $limit: 5
+            },
+            {
+              $project: {
+                "_id": 0,
+                "items.name": 1,
+                "items.tags": 1,
+                "score": { $meta: "searchScore" }
+              }
+            })
+
+         .. output::
+            :language: json 
+
+            [
+              { 
+                items: [ { 
+                  name: 'backpack', 
+                  tags: [ 'school', 'travel', 'kids' ] 
+                } ], 
+                score: 1.2907354831695557 
+              },
+              { 
+                items: [ {
+                  name: 'envelopes',
+                  tags: [ 'stationary', 'office', 'general' ]
+                },
+                { 
+                  name: 'printer paper', 
+                  tags: [ 'office', 'stationary' ] 
+                },
+                { 
+                  name: 'backpack', 
+                  tags: [ 'school', 'travel', 'kids' ] 
+                } ], 
+                score: 1.2907354831695557
+              },
+              { 
+                items: items: [ { 
+                  name: 'backpack', 
+                  tags: [ 'school', 'travel', 'kids' ] 
+                } ], 
+                score: 1.2907354831695557 
+              },
+              { 
+                items: [ { 
+                  name: 'backpack', 
+                  tags: [ 'school', 'travel', 'kids' ] 
+                } ], 
+                score: 1.2907354831695557 
+              },
+              { 
+                items: [ { 
+                  name: 'backpack', 
+                  tags: [ 'school', 'travel', 'kids' ] 
+                } ], 
+                score: 1.2907354831695557 
+              }
+            ]
+
+   .. tab:: Facet Example 
+      :tabid: facet 
+      
+      The following query searches for items tagged ``school`` with a 
+      preference for items named ``backpack``. It requests facet 
+      information on the ``purchaseMethod`` field.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.sales.aggregate({
+              "$searchMeta": {
+                "facet": {
+                  "operator": {
+                    "embeddedDocument": {
+                      "path": "items",
+                      "operator": {
+                        "compound": {
+                          "must": [
+                            {
+                              "text": {
+                                "path": "items.tags",
+                                "query": "school"
+                              }
+                            }
+                          ],
+                          "should": [
+                            {
+                              "text": {
+                                "path": "items.name",
+                                "query": "backpack"
+                              }
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  },
+                  "facets": {
+                    "purchaseMethodFacet": {
+                      "type": "string",
+                      "path": "purchaseMethod"
+                    }
+                  }
+                }
+              }
+            })
+
+         .. output::
+            :language: json 
+
+            [
+              {
+                count: { lowerBound: Long("2309") },
+                facet: {
+                  purchaseMethodFacet: {
+                    buckets: [
+                      { _id: 'In store', count: Long("2751") },
+                      { _id: 'Online', count: Long("1535") },
+                      { _id: 'Phone', count: Long("578") }
+                    ]
+                  }
+                }
+              }
+            ]

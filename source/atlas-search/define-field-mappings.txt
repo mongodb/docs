@@ -13,11 +13,35 @@ Define Field Mappings
    :class: singlecol
 
 When you create an |fts| index, you can explicitly specify the fields 
-to index using static mappings. Alternatively, you can configure |fts| 
-to automatically index all the supported field types in the collection 
-using dynamic mappings.
+to index using static mappings. For the fields in the collection that 
+you want to index, you must include a ``type`` field that describes the 
+:ref:`data type <bson-data-chart>` of the field in the field 
+definition. You can specify an array of field definitions for a field, 
+one for each data type.
 
-.. include:: /includes/fact-fts-index-field-order.rst
+.. code-block:: json  
+   :caption: Syntax 
+   :emphasize-lines: 3-12
+   :linenos:
+
+   "mappings": { 
+     "dynamic": <boolean>, 
+     "fields": { 
+       "<field-name>": [
+         {
+           "type": "<field-type>",
+           ...
+         },
+         ...
+       ],
+       ...  
+     }
+   }
+
+Alternatively, you can configure |fts| to automatically index all the 
+supported field types in the collection using dynamic mappings.
+
+.. include:: /includes/fact-fts-index-field-order.rst 
 
 .. _static-dynamic-mappings:
 
@@ -96,7 +120,9 @@ types </reference/bson-types/>`.
 
    * - Object
      - yes
-     - :ref:`document <bson-data-types-document>`
+     - - :ref:`document <bson-data-types-document>`
+       - :ref:`embeddedDocuments <bson-data-types-embedded-documents>` 
+         (for array of objects)
 
    * - ObjectId
      - no
@@ -187,8 +213,10 @@ definition array for the field.
    The following example shows the field definition for indexing a 
    field as multiple types.
 
-   .. code-block:: 
+   .. code-block:: json
       :copyable: false 
+      :linenos:
+      :emphasize-lines: 6-16
 
       {
         ...
@@ -205,8 +233,10 @@ definition array for the field.
                 ...
               },
               ...
-            ]  
-          } 
+            ],
+            ...  
+          },
+          ... 
         }
       }
 
@@ -244,6 +274,10 @@ array in the index definition.
           }
         }
       }
+
+For indexing string fields in embedded documents, which are documents 
+nested inside an array, you must use the 
+:ref:`bson-data-types-embedded-documents` type.
 
 .. _bson-data-types:
 
@@ -578,7 +612,10 @@ It takes the ``type`` option. The value of ``type`` must be
 .. note::
 
    You can't index date field if it's inside an array or if it's inside 
-   a document in an array for faceting.
+   a document in an array for faceting. 
+
+   |fts| doesn't support date faceting over fields indexed as part of 
+   an ``embeddedDocuments`` field.
 
 .. example:: 
 
@@ -652,6 +689,143 @@ It takes the following parameters:
        more, see an :ref:`example <index-config-example>`. This is 
        required if ``dynamic`` is omitted or set to ``false``. 
      - 
+
+.. _bson-data-types-embedded-documents:
+
+embeddedDocuments
+~~~~~~~~~~~~~~~~~
+
+.. note:: 
+
+   .. include:: /includes/fact-embedded-document-preview.rst
+
+Use the ``embeddedDocuments`` type to index fields in documents that 
+are elements of an array. |fts| indexes embedded documents independent 
+of their parent document. Each indexed document contains only fields 
+that are part of the embedded document array element. You can't use 
+``embeddedDocuments`` for :ref:`date <bson-data-types-date-facet>` or 
+:ref:`numeric <bson-data-types-number-facet>` faceting. You can't use 
+the |service| UI Visual Index Builder to define fields of 
+``embeddedDocuments`` type.
+
+.. important:: 
+
+   |fts| doesn't support indexing more than approximately two billion 
+   index objects, where each indexed embedded document counts as a 
+   single object. Using ``embeddedDocuments`` type could result in 
+   indexing objects in excess of this limit, thereby transitioning an 
+   index to a failed state. To prevent this, we recommend sharding 
+   clusters that contain indexes with ``embeddedDocuments`` field type.
+
+It takes the following options:
+
+.. list-table::
+   :widths: 15 10 15 50 10
+   :header-rows: 1
+
+   * - Option
+     - Type
+     - Necessity
+     - Purpose
+     - Default
+
+   * - ``type``
+     - string
+     - Required
+     - Human-readable label that identifies the field type.
+       Value must be ``embeddedDocuments``.
+     - 
+
+   * - ``dynamic``
+     - boolean
+     - Optional
+     - Flag that specifies whether to index every dynamically indexable 
+       field inside the document unless excluded by a field definition 
+       using ``fields``. Value can be one of the following: 
+
+       - ``true`` - index all indexable fields 
+       - ``false`` - don't index all the indexable fields 
+
+     - ``false``
+
+   * - ``fields``
+     - Map<String, Field Definition>
+     - Conditional
+     - Fields to index or exclude from indexing. 
+     
+       If ``dynamic`` is ``true``, you can specify the fields to 
+       exclude from indexing in the field definition for the fields. By 
+       default, |fts| indexes all indexable fields if ``dynamic`` is 
+       ``true``. 
+       
+       If ``dynamic`` is ``false``, you can specify the fields to index 
+       in the field definition for the fields.
+
+       .. note:: 
+
+          |fts| doesn't support indexing facet fields as part of an 
+          ``embeddedDocuments`` field.
+
+     - ``{}``
+
+Examples 
+```````` 
+
+The following index examples use the ``sample_supplies.sales`` 
+collection in the :ref:`sample dataset <sample-data>`.
+
+.. tabs:: 
+
+   .. tab:: Index All Fields
+      :tabid: include 
+
+      .. example:: 
+
+         The following index defintion specifies that all dynamically 
+         indexable fields in the ``items`` array of documents must be 
+         automatically indexed. 
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                "fields": {
+                  "items": {
+                    "type": "embeddedDocuments",
+                    "dynamic": true
+                  }
+                }
+              }
+            }
+
+   .. tab:: Index Specified Fields Only
+      :tabid: exclude 
+
+      .. example:: 
+
+         The following index defintion identifies the specific fields 
+         in the ``items`` array of documents to index. 
+
+         .. code-block:: json 
+
+            {
+              "mappings": {
+                "fields": {
+                  "items": {
+                    "type": "embeddedDocuments",
+                    "dynamic": false,
+                    "fields": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "tags": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
 
 .. _bson-data-types-geo:
 
@@ -884,6 +1058,8 @@ limitations apply:
 - You can't index ``decimal128`` for faceting. 
 - You can't index numeric values in arrays or in a document in an array 
   for faceting.
+- You can't facet over numeric fields indexed as part of an 
+  ``embeddedDocuments`` field.
 
 If you specify both :ref:`bson-data-types-number` and 
 :ref:`bson-data-types-number-facet` in the index definition, |fts| uses 
