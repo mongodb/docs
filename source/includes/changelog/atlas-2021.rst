@@ -325,7 +325,7 @@
   upgraded to MongoDB 4.4.
 - Defaults new clusters to MongoDB 4.4.
 - Introduces custom archiving rules for |service| :ref:`Online Archive
-  <manage-online-archive>`.
+  <online-archive-overview>`.
 - Introduces the ability to use an |aws| |iam| role to authorize
   |service| to access:
 

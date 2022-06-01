@@ -26,7 +26,7 @@
   :ref:`Identity Federation with SAML <atlas-federated-authentication>`.
 - Supports passwordless :ref:`X.509 authentication <self-managed-x509>`
   for database users on ``M0``, ``M2``, and ``M5`` {+clusters+}.
-- Releases |service| :ref:`Online Archive <manage-online-archive>` to
+- Releases |service| :ref:`Online Archive <online-archive-overview>` to
   general availability.
 
 .. _atlas_20201123:

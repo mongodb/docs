@@ -1,4 +1,4 @@
-.. _query-online-archive:
+.. _manage-online-archive:
 
 ======================
 Manage Online Archives 
@@ -14,88 +14,13 @@ Manage Online Archives
 
 .. include:: /includes/serverless-preview-dont-use.rst
 
-You can run queries against your archived data. 
+After you :ref:`configure <config-online-archive>` an online archive, 
+you can do the following: 
 
-Connection String 
------------------
-
-To run queries, you must first connect to your {+Online-Archive+}. Your 
-:ref:`cluster connection string <gswa-connect>` allows you to only 
-query data in your |service| cluster. To query your {+Online-Archive+}, 
-you must use one of the following: 
-
-- :ref:`connect-online-archive-cluster-atlas-ui` - this read-only connection 
-  string allows you to read data directly from the live cluster, 
-  thereby impacting available resources for |iops|, and from your 
-  {+Online-Archive+}.
-- :ref:`connect-online-archive-atlas-ui` - this read-only 
-  connection string allows you to read data from the {+Online-Archive+} 
-  only and doesn't affect resources of the cluster.
-
-Performance Considerations 
---------------------------
-
-In general, your queries against archived data will be much slower than 
-your queries against data on the |service| cluster. When you query your 
-cluster and archived data through the federated connection string:
-
-- Blocking queries, such as sorts that consume and process all input 
-  documents to the sort operation before returning results, have  
-  performance characteristics associated with the slowest storage, the 
-  archive, being queried. The sort operations require all data from the 
-  sources being queried before returning the results.
-- Streaming queries, such as finds, have performance characteristics 
-  associated with the highest performing storage, the |service| 
-  cluster, being queried. |service| returns the results as soon as they 
-  are available, which means returning results from the archive takes 
-  longer than returning results from the |service| cluster.
-
-Query Price 
------------
-
-For your federated and archive-only queries, you incur costs for the 
-following items.
-
-Data Scan 
-~~~~~~~~~
-
-During data scan, |service| processes data from both the cluster and 
-the archive. |service| runs as much of the query on the cluster as it 
-can to minimize the amount of data it needs to scan. For example, for a 
-``match`` query that specifies a specific value, |service| only 
-retrieves documents with the specified value from the cluster. 
-|service| then combines the retrieved documents with the archived data 
-and returns.
-
-For blocking queries that need to access all data stored in the 
-underlying cluster, |service| retrieves all data. For example, for a 
-``sort`` (with no ``match``), |service| retrieves all data from the 
-cluster and archive to be sorted.
-
-Data Access 
-~~~~~~~~~~~
-
-MongoDB charges a fee for each partition that you query in the archive. 
-If your query requires querying specific partitions, MongoDB downloads 
-the partitions and each downloaded partition corresponds to a single 
-access.
-
-Data Seek 
-~~~~~~~~~
-
-To find partitions based on the query and query fields, |service| runs 
-operations on the archive. Each such operation that |service| runs 
-finds up to 1000 partitions. |service| runs the minimum number of 
-required operations to find the partitions required to satisfy the 
-query. For example, if your query requires 100 partitions that are 
-covered in your query fields, |service| runs only one operation to 
-satisfy the query.
-
-Data Transfer 
-~~~~~~~~~~~~~
-
-Data that is transferred to the federated infrastructure incurs data 
-transfer costs.
+- :ref:`View <view-online-archive>` your online archive
+- :ref:`Edit <edit-online-archive>` your online archive 
+- :ref:`Query <query-online-archive>` your online archive 
+- :ref:`Delete <delete-online-archive>` your online archive
 
 .. _view-online-archive:
 
@@ -216,6 +141,95 @@ To edit an online archive through the |api|, send a ``PATCH`` request
 to the :ref:`onlineArchives <api-online-archive>` endpoint with the 
 unique ID of the online archive to update. To learn more about the 
 |api| syntax and options, see :ref:`api-online-archive-update-one`.
+
+.. _query-online-archive:
+
+Query Online Archive
+--------------------
+
+You can run queries against your archived data. 
+
+Connection String 
+~~~~~~~~~~~~~~~~~
+
+To run queries, you must first connect to your {+Online-Archive+}. Your 
+:ref:`cluster connection string <gswa-connect>` allows you to only 
+query data in your |service| cluster. To query your {+Online-Archive+}, 
+you must use one of the following: 
+
+- :ref:`connect-online-archive-cluster-atlas-ui` - this read-only 
+  connection string allows you to read data directly from the live 
+  cluster. This impacts available resources for |iops|, and from your 
+  {+Online-Archive+}.
+- :ref:`connect-online-archive-atlas-ui` - this read-only 
+  connection string allows you to read data from the {+Online-Archive+} 
+  only and doesn't affect cluster resources.
+
+Performance Considerations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In general, your queries against archived data are much slower than 
+your queries against data on the |service| cluster. When you query data 
+in your cluster and {+Online-Archive+} through the federated connection 
+string:
+
+- Blocking queries, such as sorts that consume and process all input 
+  documents to the sort operation before returning results, have  
+  performance characteristics associated with the slowest storage, the 
+  archive, being queried. The sort operations require all data from the 
+  sources being queried before returning the results.
+- Streaming queries, such as finds, have performance characteristics 
+  associated with the highest performing storage, the |service| 
+  cluster, being queried. |service| returns the results as soon as they 
+  are available, which means returning results from the archive takes 
+  longer than returning results from the |service| cluster.
+
+Query Price 
+~~~~~~~~~~~
+
+For your federated and archive-only queries, you incur costs for the 
+following items.
+
+Data Scan 
+`````````
+
+During data scan, |service| processes data from both the cluster and 
+the archive. |service| runs as much of the query on the cluster as it 
+can to minimize the amount of data it needs to scan. For example, for a 
+``match`` query that specifies a specific value, |service| only 
+retrieves documents with the specified value from the cluster. 
+|service| then combines the retrieved documents with the archived data 
+and returns.
+
+For blocking queries that need to access all data stored in the 
+underlying cluster, |service| retrieves all data. For example, for a 
+``sort`` (with no ``match``), |service| retrieves all data from the 
+cluster and archive to be sorted.
+
+Data Access 
+```````````
+
+MongoDB charges a fee for each partition that you query in the archive. 
+If your query requires querying specific partitions, MongoDB downloads 
+the partitions and each downloaded partition corresponds to a single 
+access.
+
+Data Seek 
+`````````
+
+To find partitions based on the query and query fields, |service| runs 
+operations on the archive. Each such operation that |service| runs 
+finds up to 1000 partitions. |service| runs the minimum number of 
+required operations to find the partitions required to satisfy the 
+query. For example, if your query requires 100 partitions that are 
+covered in your query fields, |service| runs only one operation to 
+satisfy the query.
+
+Data Transfer 
+`````````````
+
+Data that is transferred to the federated infrastructure incurs data 
+transfer costs.
 
 .. _delete-online-archive: 
 
