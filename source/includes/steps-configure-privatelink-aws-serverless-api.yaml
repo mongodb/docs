@@ -1,0 +1,239 @@
+stepnum: 1
+level: 4
+ref: create-private-endpoint
+title: "Create the private endpoint in |service|."
+content: |
+
+  a. Run the command to 
+     :doc:`/reference/api/serverless-private-endpoints-create-one`,
+     replacing the placeholders with your parameters. To learn more
+     about the parameters, see 
+     :doc:`/reference/api/serverless-private-endpoints-create-one`.
+
+     .. code-block:: json
+        :linenos:
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/{INSTANCE-NAME}/endpoint?pretty=true" \
+        --data '
+           {
+             "comment" : "example comment"
+           }'
+
+  b. Note the value for the field ``_id`` in the response.
+
+     .. code-block:: json
+        :copyable: false
+        :linenos:
+        :emphasize-lines: 2
+        
+        {
+          "_id": "5f7cac1adf5d6c6306f4b283",
+          "cloudProviderEndpointId": null,
+          "comment": "example comment",
+          "endpointServiceName": null,
+          "errorMessage": null,
+          "status": "RESERVATION_REQUESTED"
+        }
+---
+stepnum: 2
+level: 4
+ref: get-private-endpoint-service-name
+title: "Retrieve the service name for the private endpoint."
+content: |
+
+  .. note::
+
+     It might take |service| some time to provision the private
+     endpoint. Wait 1-2 minutes before you complete this step.
+
+  a. Run the command to 
+     :doc:`/reference/api/serverless-private-endpoints-get-one`,
+     replacing the placeholders with the parameters for the endpoint
+     you created. Replace {ENDPOINT-ID} with the ``_id`` that you
+     retrieved previously. To learn more about the parameters, see 
+     :doc:`/reference/api/serverless-private-endpoints-get-one`.
+
+     .. code-block:: json
+        :linenos:
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --header "Accept: application/json" \
+             --request GET "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/
+             {INSTANCE-NAME}/endpoint/{ENDPOINT-ID}?pretty=true"
+
+  b. Note the value for the field ``endpointServiceName`` in the
+     response.
+
+     .. code-block:: json
+        :copyable: false
+        :linenos:
+        :emphasize-lines: 5
+        
+        {
+          "_id": "5f7cac1adf5d6c6306f4b283",
+          "cloudProviderEndpointId": "34985fcac938279cd98dc894",
+          "comment": "example comment",
+          "endpointServiceName": "com.amazonaws.vpce.us-east-1.vpce-svc-0afd34ee97e30d43f",
+          "errorMessage": null,
+          "status": "RESERVED"
+        }
+
+  If ``endpointServiceName`` is ``null``, wait 1-2 more minutes for 
+  |service| to provision the private endpoint. Then, try this step
+  again.
+
+---
+stepnum: 3
+level: 4
+ref: create-interface-endpoint-aws-api
+title: "Create the interface endpoint in AWS."
+content: |
+
+  a. Run the command in the |aws| CLI, replacing the following
+     placeholders with your values:
+
+     .. list-table::
+        :widths: 20 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - {VPC-ID}
+          - Unique string that identifies the peer |aws| |vpc|. Find
+            this value on the |vpc| dashboard in your |aws| account.
+
+        * - {REGION}
+          - :ref:`AWS region <amazon-aws>` in which your 
+            {+serverless-instance+} resides.
+
+        * - {SUBNET-IDS}
+          - Unique string that identifies the subnets that your |aws| 
+            |vpc| uses. Find these values on the :guilabel:`Subnet`
+            dashboard in your |aws| account.
+
+            .. important::
+
+               You must specify at least one subnet. If you don't, 
+               |aws| won't provision an :term:`interface endpoint` in
+               your |vpc|. An interface endpoint is required for 
+               clients in your |vpc| to send traffic to the private 
+               endpoint.
+
+        * - {SERVICE-NAME}
+          - Unique string identifying the private endpoint
+            service that you retrieved previously.
+
+     .. code-block:: sh
+
+        aws ec2 create-vpc-endpoint --vpc-id {VPC-ID} \
+        --region {REGION} --service-name {SERVICE-NAME} \
+        --vpc-endpoint-type Interface --subnet-ids {SUBNET-IDS}
+
+     To learn more about the |aws| CLI, see 
+     :aws:`Creating an Interface Endpoint 
+     </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>`.
+
+  b. Note the value for the field ``VpcEndpointId``. This is a
+     22-character alphanumeric string that identifies your private
+     endpoint. You can also find this value on the 
+     |aws| VPC Dashboard under :guilabel:`Endpoints > VPC ID`.
+
+---
+stepnum: 4
+level: 4
+ref: update-private-endpoint-aws-api
+title: "Update your private endpoint with the VPC Endpoint ID."
+content: |
+
+  Run the command to 
+  :doc:`</reference/api/serverless-private-endpoints-update-one/>`,
+  replacing the placeholders with the parameters for the endpoint you
+  created. Update the ``cloudProviderEndpointId`` field to the VPC
+  Endpoint ID you retrieved previously. To learn more about the
+  parameters, see 
+  :doc:`</reference/api/serverless-private-endpoints-update-one/>`.
+
+  .. code-block:: json
+     :linenos:
+
+     curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+          --header "Accept: application/json" \
+          --header "Content-Type: application/json" \
+          --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/
+          {INSTANCE-NAME}/endpoint/{ENDPOINT-ID}" \
+          --data '
+            {
+              "cloudProviderEndpointId" : "vpce-fcac938279cd98dc894",
+              "providerName" : "AWS"
+            }'
+
+  .. note::
+   
+     You must include the ``providerName`` to successfully run this command.
+     
+---
+ref: resource-sg-pl-aws
+level: 4
+stepnum: 5
+inherit:
+  ref: resource-sg-pl
+  file: steps-source-privatelink.yaml
+
+---
+ref: attach-sg-pl-aws
+level: 4
+stepnum: 6
+inherit:
+  ref: attach-sg-pl
+  file: steps-source-privatelink.yaml
+
+---
+stepnum: 7
+level: 4
+ref: get-private-endpoint-status
+title: "Verify the private endpoint's availability."
+content: |
+
+  You can connect to an |service| {+serverless-instance+} using the 
+  {+aws-pl+} private endpoint after |service| finishes configuring all
+  of the resources and the private endpoint becomes available.
+
+  To verify that the AWS PrivateLink private endpoint is available: 
+   
+  a. Run the command to 
+     :doc:`</reference/api/serverless-private-endpoints-get-one/>`,
+     replacing the placeholders with the parameters for the endpoint you
+     created. To learn more about the parameters, see 
+     :doc:`</reference/api/serverless-private-endpoints-get-one/>`.
+
+     .. code-block:: json
+       :linenos:
+
+       curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            --header "Accept: application/json" \
+            --request GET "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/
+            {INSTANCE-NAME}/endpoint/{ENDPOINT-ID}?pretty=true"
+
+  b. Verify that the ``status`` field's value is ``AVAILABLE`` as
+     shown in the following example:
+
+     .. code-block:: json
+        :copyable: false
+        :linenos:
+        :emphasize-lines: 7
+        
+        {
+          "_id": "5f7cac1adf5d6c6306f4b283",
+          "cloudProviderEndpointId": "vpce-fcac938279cd98dc894",
+          "comment": "example comment",
+          "endpointServiceName": "com.amazonaws.vpce.us-east-1.vpce-svc-0afd34ee97e30d43f",
+          "errorMessage": null,
+          "status": "AVAILABLE"
+        }
+
+   If ``cloudProviderEndpointId`` is ``Initiating``, wait 1-2 more minutes for |service| to configure the private endpoint. Then, try this step again.
+...
