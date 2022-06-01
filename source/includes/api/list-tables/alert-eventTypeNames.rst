@@ -83,28 +83,6 @@
 - | ``REPLICATION_OPLOG_WINDOW_RUNNING_OUT``
   | Replication Oplog Window is...
 
-**Realm**
-
-- | ``TRIGGERS_FAILED_REQUESTS``
-  | Number of Triggers requests that fail per second meets the 
-  | specified threshold.
-
-- | ``GQL_FAILED_REQUESTS``
-  | Number of GraphQL requests that fail per second meets the 
-  | specified threshold.
-
-- | ``ENDPOINTS_FAILED_REQUESTS``
-  | Number of Endpoints requests that fail per second meets the 
-  | specified threshold.
-
-- | ``SDKFNS_FAILED_REQUESTS``
-  | Number of SDK Function requests that fail per second meets the 
-  | specified threshold.
-
-- | ``OVERALL_FAILED_REQUESTS``
-  | Number of total requests that fail per second meets the specified 
-  | threshold.
-
 **Serverless**
 
 - | ``OUTSIDE_SERVERLESS_METRIC_THRESHOLD``.
