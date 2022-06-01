@@ -6,10 +6,10 @@ var clientEncryptionOptions = new ClientEncryptionOptions(
 var clientEncryption = new ClientEncryption(clientEncryptionOptions);
 
 var dataKeyOptions = new DataKeyOptions(
+    alternateKeyNames: new[] { "<Your Key Alt Name>" },
     masterKey: new BsonDocument
     {
         { "<Your dataKeyOpts Keys>", "<Your dataKeyOpts Values>" },
     });
-List<string> keyNames = new List<string>();
-keyNames.Add("<Your Key Alt Name>");
-var dataKeyId = clientEncryption.CreateDataKey("<Your KMS Provider>", dataKeyOptions.With(keyNames), CancellationToken.None);
+
+var dataKeyId = clientEncryption.CreateDataKey("<Your KMS Provider>", dataKeyOptions, CancellationToken.None);
