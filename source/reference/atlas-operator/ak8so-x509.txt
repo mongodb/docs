@@ -9,7 +9,7 @@ Set Up X.509 Authentication
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 X.509 client certificates provide database users access to the 
@@ -34,25 +34,70 @@ To set up X.509 authentication:
 Prerequisites
 -------------
 
-To use self-managed X.509 certificates, you must have a
-Public Key Infrastructure to integrate with |service-fullname|.
+.. note:: 
 
-.. include:: /includes/fact-ak8so-api-key-permission.rst
+   To use self-managed X.509 certificates, you must have a
+   Public Key Infrastructure to integrate with |service-fullname|.
 
-To learn more, see :ref:`ak8so-access-to-atlas-ref`.
+- .. include:: /includes/fact-ak8so-api-key-permission.rst
 
-Procedure
----------
+  To learn more, see :ref:`ak8so-access-to-atlas-ref`.
+
+- Generate an X.509 certificate with :ref:`cert-manager
+  <generate-x509-cert-manager>` or the :ref:`create_X.509.go 
+  <generate-X509-script>` script.
+
+.. _generate-x509-cert-manager:
+
+Generate an X.509 Certificate with cert-manager
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To generate an X.509 certificate with `cert-manager
+<https://cert-manager.io/docs/>`_, do the following steps:
 
 .. procedure::
    :style: normal
-   
-   .. step:: Create an X.509 certificate.
 
+   .. step:: Install cert-manager.
+
+      To install cert-manager, see the
+      `cert-manager installation documentation
+      <https://cert-manager.io/docs/installation/>`_.
+
+   .. step:: Create an ``Issuer``.
+
+      To create a cert-manager ``Issuer``, see the 
+      `cert-manager configuration documentation 
+      <https://cert-manager.io/docs/configuration/>`_.
+
+      To learn more, see the :github:`example 
+      </mongodb/mongodb-atlas-kubernetes/blob/main/docs/helpers/certs/issuer.yaml>`.           
+
+   .. step:: Creat a certificate.
+
+      To create a certificate, see the 
+      `cert-manager usage documentation 
+      <https://cert-manager.io/docs/usage/>`_.
+
+      To learn more, see the :github:`example </mongodb/mongodb-atlas-kubernetes/blob/main/docs/helpers/certs/cert.yaml>`.
+
+.. _generate-X509-script:
+
+Generate an X.509 Certificate with a Custom Script
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To generate an X.509 certificate with the :github:`create_X.509.go 
+<mongodb/mongodb-atlas-kubernetes/blob/main/scripts/create_x509.go>` 
+script, do the following steps:
+
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run the custom script.
+      
       Run the :github:`create_X.509.go 
-      <mongodb/mongodb-atlas-kubernetes/blob/main/scripts/create_x509.go>` 
-      script or use another tool as an alternative (for example, 
-      `cert-manager <https://cert-manager.io/docs/>`_):
+      <mongodb/mongodb-atlas-kubernetes/blob/main/scripts/create_x509.go>` script:
 
       .. code-block:: sh
 
@@ -72,6 +117,9 @@ Procedure
       .. code-block:: sh
 
          kubectl create secret generic {secret-name} --from-file={pem-file-directory}
+
+      .. code-block:: sh
+
          kubectl label secret {secret-name} atlas.mongodb.com/type=credentials
 
       **Example:**
@@ -79,10 +127,18 @@ Procedure
       .. code-block:: sh
 
          kubectl create secret generic my-x509-cert --from-file=./tmp/x509/cert.pem
-         kubectl label secret my-x509-cert atlas.mongodb.com/type=credentials
-         
 
-   .. step:: Configure a project to use the certificate
+      .. code-block:: sh
+
+         kubectl label secret my-x509-cert atlas.mongodb.com/type=credentials
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure a project to use the certificate.
             
       Specify the |k8s-secret| within the
       :setting:`spec.X509CertRef.name` parameter for the 
@@ -108,7 +164,7 @@ Procedure
              name: my-x509-cert
          EOF
 
-   .. step:: Add a database user that uses X.509 authentication
+   .. step:: Add a database user that uses X.509 authentication.
 
       Specify the ``x509Type`` parameter for the 
       :ref:`atlasdatabaseuser-custom-resource`.

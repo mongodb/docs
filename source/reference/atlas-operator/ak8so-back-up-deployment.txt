@@ -1,0 +1,175 @@
+.. _ak8so-backup:
+
+==================================
+Back Up Your |service| {+Cluster+}
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. note:: {+Serverless-instances+} back up automatically
+
+   |service| automatically enables backups for {+serverless-instances+}
+   and takes snapshots every six hours. Any |ak8so| backup custom
+   resources you apply to a {+serverless-instance+} will not override
+   the automatic settings.
+
+   To learn more about backups for {+serverless-instances+}, see
+   :ref:`serverless-snapshots`.
+
+|ak8so| supports :ref:`{+cloud-backup+} <backup-cloud-provider>` for
+your |service| {+clusters+}. {+Cloud-backup+} uses the native
+snapshot capabilities of your cloud provider to support full-copy
+snapshots and localized snapshot storage.
+
+To manage {+cloud-backup+} with |ak8so|, you can specify and 
+update the following custom resources:
+
+.. list-table::
+   :widths: 50 80
+   :header-rows: 1
+
+   * - Custom Resource
+     - Purpose
+
+   * - :ref:`atlasbackuppolicy-custom-resource` 
+     - Defines the backup policy, including the frequency of backups
+       and the length of snapshot retention.
+
+   * - :ref:`atlasbackupschedule-custom-resource`
+     - Defines the backup schedule, including the time of day that 
+       |service| backs up your {+database-deployment+}, the number
+       of days back in time to which you can restore, and the backup policy.
+
+   * - :ref:`atlasdeployment-custom-resource`
+     - Defines the characteristics of a {+cluster+}. You
+       must set the :setting:`spec.backupRef.name` field to the name of
+       the configured backup schedule to enable {+cloud-backup+} for
+       the {+cluster+}.
+
+Each time you change any of the supported custom resources, |ak8so|
+:ref:`creates or updates <ak8so-create-update-process>` the 
+corresponding |service| configuration. 
+
+Considerations
+--------------
+
+Review the following considerations:
+
+- You can specify one backup policy per backup schedule.
+- You can specify one backup schedule per {+cluster+}, but
+  you can use the same backup schedule for multiple 
+  {+clusters+}.
+- |service| determines the order of nodes to snapshot based on your 
+  {+cluster+} configuration. To learn more, see
+  :ref:`Cloud Backups <single-region-cloud-backup>`.
+
+Limitations
+-----------
+
+Certain limitations apply to {+cloud-backup+}. To learn more, see 
+:ref:`<backup-cloud-provider>`.
+
+Prerequisites
+-------------
+
+To enable {+cloud-backup+} for your |ak8so|-managed 
+{+cluster+}, you must: 
+
+- Have a running |k8s| cluster with 
+  |ak8so| :ref:`deployed <ak8so-quick-start-ref>`.
+- Ensure your |ipaddr| address is in the organization's |api| 
+  :ref:`access list <access-list>`.
+
+.. _ak8so-configure-backup:
+
+Procedure
+---------
+
+Follow these steps to enable {+cloud-backup+} for your |ak8so|-managed 
+{+clusters+}:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the backup policy.
+
+     To learn more about the parameters for a backup policy, see
+     :ref:`atlasbackuppolicy-custom-resource`.
+
+     **Example:**
+
+     .. code-block:: sh
+
+        cat <<EOF | kubectl apply -f -
+        apiVersion: atlas.mongodb.com/v1
+        kind: AtlasBackupPolicy    
+        metadata:
+          name: "atlas-default-backuppolicy"      
+        spec:  
+           items:               
+              frequencyType: "weekly"
+              frequencyInterval: 1
+              retentionUnit: "days"
+              retentionValue: 7    
+         EOF
+
+   .. step:: Create the backup schedule.
+
+      In the :setting:`spec.policy.name` field, specify the 
+      ``metadata.name`` from the
+      :ref:`atlasbackuppolicy-custom-resource` to apply your backup
+      policy.
+
+      To learn more about the other parameters for a backup schedule
+      see :ref:`atlasbackupschedule-custom-resource`.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasBackupSchedule   
+         metadata:
+           name: "atlas-default-backupschedule"      
+         spec:
+           autoExportExabled: true
+           referenceHourOfDay: 10
+           referenceMinuteOfHour: 10
+           restoreWindowDays: 2
+           policy:
+             name: atlas-default-backuppolicy
+             namespace: mongodb-atlas-system              
+         EOF
+
+   .. step:: Apply the backup schedule to the {+cluster+}.
+
+      In the :setting:`spec.backupRef.name` field of the
+      :ref:`atlasdeployment-custom-resource`, specify the 
+      ``metadata.name`` from the 
+      :ref:`atlasbackupschedule-custom-resource` to apply your
+      backup schedule to the {+cluster+}.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasDeployment 
+         metadata:
+           name: my-atlas-cluster     
+         spec:
+           backupRef:
+             name: atlas-default-backupschedule
+             namespace: mongodb-atlas-system              
+         EOF
+

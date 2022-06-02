@@ -25,6 +25,10 @@ Manage Private Endpoints
   <https://azure.microsoft.com/en-us/services/private-link/>`__ 
   feature.
 
+- |gcp| using the `{+gcp-psc+} 
+  <https://cloud.google.com/vpc/docs/private-service-connect>`__ 
+  feature.
+
 When you use |ak8so| to configure private links in |service|, |service| 
 creates its own |vpc| or a Private Link service and places clusters 
 within a region behind a load balancer in the |service| |vpc| or 
@@ -105,6 +109,39 @@ endpoints, you require:
         Compute instances in |azure|. To learn more, see the |azure|
         :azure:`Private Link documentation </private-link/>`.
 
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      - A running |k8s| cluster with |ak8so| :ref:`deployed 
+        <ak8so-quick-start-ref>`.
+     
+      - The :authrole:`Project Owner` or
+        :authrole:`Organization Owner` role in |service|.
+
+      - A |gcp| user account with an |iam| user policy and a 
+        :gcp:`Compute Network Admin
+        </iam/docs/understanding-roles#compute.networkAdmin>`
+        role that grants permissions to create, modify, and delete 
+        networking resources. To learn more about managing private 
+        endpoints and connections, see the 
+        :gcp:`Google Cloud documentation </vpc/docs/overview.html>`.
+
+      - :gcp:`The gcloud CLI installed </sdk/docs/install>`.
+
+      - If you have not already done so, create your |vpc| and Compute
+        instances in |gcp|. To learn more, see the 
+        :gcp:`GCP documentation </vpc/docs/using-vpc.html>`.
+
+      - Ensure egress firewall rules permit traffic to the internal
+        IP address of the {+gcp-psc+} endpoint.
+         
+      - (Optional) If you enforce a security perimeter with |vpc| 
+        service controls (VPC-SC), you must create ingress and egress 
+        rules to establish the connection between the {+gcp-psc+} 
+        endpoint and |service| {+clusters+}. To learn more, see the 
+        :gcp:`GCP documentation 
+        </vpc/docs/configure-private-service-connect-services#vpc-sc>`.
+
 Procedure
 ---------
 
@@ -124,8 +161,10 @@ with the following procedure:
          .. step:: Specify the ``spec.privateEndpoints`` parameter.
             
             Specify the :setting:`spec.privateEndpoints` parameter for 
-            the :ref:`atlasproject-custom-resource`. Specify the 
-            provider and :ref:`AWS region <amazon-aws>` information for 
+            the :ref:`atlasproject-custom-resource`. In the 
+            ``spec.privateEndpoints.provider`` field, specify 
+            ``AWS``. Replace the placeholder ``{aws-region}`` with the 
+            :ref:`AWS region <amazon-aws>` information for 
             your private endpoints and run the following command:
 
             .. code-block:: sh
@@ -150,7 +189,7 @@ with the following procedure:
 
          .. step:: Find the service names for your private endpoints.
 
-            1. Run the following command:
+            a. Run the following command:
 
                .. code-block:: sh
 
@@ -164,13 +203,14 @@ with the following procedure:
 
             To create your application |vpc| :term:`interface endpoint`:
 
-            1. Copy the following command:
+            a. Copy the following command:
 
                .. code-block:: sh
 
                   aws ec2 create-vpc-endpoint --vpc-id {your-application-vpc-id} --region {aws-region} --service-name {service-name-string} --vpc-endpoint-type Interface --subnet-ids {your-application-subnet-ids}
              
-            #. Specify the following details about your |aws| |vpc|:
+            #. Replace the following placeholders with the details 
+               about your |aws| |vpc|:
 
                .. list-table::
                   :widths: 20 80
@@ -216,7 +256,8 @@ with the following procedure:
          .. step:: Update the ``spec.privateEndpoints`` parameter.
 
             Update the :setting:`spec.privateEndpoints` parameter for 
-            the :ref:`atlasproject-custom-resource`. Specify the VPC ID 
+            the :ref:`atlasproject-custom-resource`. Specify the
+            :ref:`AWS region <amazon-aws>` and the VPC ID 
             information for your private endpoints and run the 
             following command:
 
@@ -243,7 +284,7 @@ with the following procedure:
                    id: "{vpc-id}"
                EOF
         
-         .. step:: Check the status from |ak8so| of your private endpoints.
+         .. step:: Check the status of your private endpoints using |ak8so|.
 
             Run the following command:
 
@@ -260,8 +301,10 @@ with the following procedure:
          .. step:: Specify the ``spec.privateEndpoints`` parameter.
             
             Specify the :setting:`spec.privateEndpoints` parameter for 
-            the :ref:`atlasproject-custom-resource`. Specify the 
-            provider and :ref:`Azure region <microsoft-azure>` 
+            the :ref:`atlasproject-custom-resource`. In the 
+            ``spec.privateEndpoints.provider`` field, specify 
+            ``AZURE``. Replace the placeholder ``{azure-region}`` with 
+            the :ref:`Azure region <microsoft-azure>` 
             information for your private endpoints and run the 
             following command:
 
@@ -288,13 +331,14 @@ with the following procedure:
             |service| doesn't support network policies for private 
             endpoints.
 
-            1. Copy the following command:
+            a. Copy the following command:
 
                .. code-block:: sh
                 
                   az network vnet subnet update --resource-group {resource-group-name} --vnet-name {vnet-name} --name {subnet-name} --disable-private-endpoint-network-policies true
 
-            #. Specify the following details about your |azure| VNet:
+            #. Replace the following placeholders with the details 
+               about your |azure| VNet:
 
                .. list-table::
                   :widths: 20 80
@@ -328,7 +372,7 @@ with the following procedure:
          
          .. step:: Find the service IDs and names for your private endpoints.
 
-            1. Run the following command:
+            a. Run the following command:
 
                .. code-block:: sh
 
@@ -344,13 +388,14 @@ with the following procedure:
 
             To create your private endpoint:
 
-            1. Copy the following command:
+            a. Copy the following command:
 
                .. code-block:: sh
 
                   az network private-endpoint create --resource-group {resource-group-name} --name {endpoint-name} --vnet-name {vnet-name} --subnet {subnet-name} --private-connection-resource-id {serviceResourceId} --connection-name {serviceName} --manual-request true
             
-            #. Specify the following details about your |azure| VNet:
+            #. Replace the following placeholders with the details 
+               about your |azure| VNet:
 
                .. list-table::
                   :widths: 20 80
@@ -399,8 +444,9 @@ with the following procedure:
 
             Update the :setting:`spec.privateEndpoints` parameter for 
             the :ref:`atlasproject-custom-resource`. Specify the 
-            Resource ID and IP address information for your private 
-            endpoints and run the following command:
+            the :ref:`Azure region <microsoft-azure>`, Resource ID, and 
+            IP address information for your private endpoints and run 
+            the following command:
 
             .. note::
                
@@ -430,7 +476,233 @@ with the following procedure:
                    ip: "{private-ip}"
                EOF
         
-         .. step:: Check the status from |ak8so| of your private endpoints.
+         .. step:: Check the status of your private endpoints using |ak8so|.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+               kubectl get atlasproject my-project -o yaml
+
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Specify the ``spec.privateEndpoints`` parameter.
+            
+            Specify the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. In the 
+            ``spec.privateEndpoints.provider`` field, specify 
+            ``GCP``. Replace the placeholder ``{gcp-region}`` 
+            with the :ref:`Google Cloud Platform region <google-gcp>` 
+            information for your private endpoints and run the 
+            following command:
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "GCP"
+                   region: "{gcp-region}"
+               EOF
+            
+            |service| creates the |vpc| resources in the region you 
+            selected. This might take several minutes to complete.
+
+         .. step:: Find the ``{unique-ID}`` for your private endpoints.
+
+            a. Run the following command:
+
+               .. code-block:: sh
+
+                  kubectl get atlasproject my-project -o yaml
+
+            b. Note the ``{unique-ID}`` that follows ``projects/`` 
+               in each service attachment name. The ``{unique-ID}`` in 
+               the following example is ``p-ogyvk1plka2anycnzl6znr9p``.
+
+               **Example**
+
+               .. code-block:: sh
+
+                  "serviceAttachmentNames": [
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-0",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-1",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-2",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-3",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-4",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-5"
+                  ]
+
+         .. step:: Configure your private endpoints.
+
+            To edit the private endpoints and generate the necessary 
+            script with the {+atlas-ui+}, see 
+            :ref:`atlas-configure-private-endpoint`.
+
+            To configure your private endpoints manually:
+
+            a. Copy the following shell script:
+
+               .. code-block:: sh
+
+                  #!/bin/bash
+                  gcloud config set project {project-id}
+
+                  for i in {0..5}
+                  do
+                    gcloud compute addresses create {endpoint-name}-ip-$i --region={gcp-region} --subnet={subnet-name}
+                  done
+
+                  for i in {0..5}
+                  do
+                    if [ $(gcloud compute addresses describe {endpoint-name}-ip-$i --region={gcp-region} --format="value(status)") != "RESERVED" ]; then
+                      echo "{endpoint-name}-ip-$i is not RESERVED";
+                    exit 1;
+                    fi
+                  done
+
+                  for i in {0..5}
+                  do
+                    gcloud compute forwarding-rules create {endpoint-name}-$i --region={gcp-region} --network={vpc-name} --address={endpoint-name}-ip-$i --target-service-attachment=projects/{unique-ID}/regions/{gcp-region}/serviceAttachments/sa-{gcp-region}-{org-id}-$i
+                  done
+
+                  if [ $(gcloud compute forwarding-rules list --regions={gcp-region} --format="csv[no-heading](name)" --filter="name:{endpoint-name}" | wc -l) -gt 50 ]; then
+                    echo "Project has too many forwarding rules that match prefix {endpoint-name}. Either delete the competing resources or choose another endpoint prefix."
+                    exit 2;
+                  fi
+
+                  gcloud compute forwarding-rules list --regions={gcp-region} --format="json(IPAddress,name)" --filter="name:{endpoint-name}" > atlasEndpoints-{endpoint-name}.json
+        
+            b. Replace the following placeholders with the details 
+               about your |gcp| |vpc|:
+
+               .. list-table::
+                  :widths: 20 80
+
+                  * - ``project-id``
+                    - Unique ID that identifies your |gcp| project. 
+                      Find this value on the :guilabel:`Dashboard` 
+                      page on your |gcp| platform.
+
+                  * - ``endpoint-name``
+                    - Human-readable label that prefixes all endpoints 
+                      created and identifies the endpoint group.
+
+                  * - ``gcp-region``
+                    - Label that identifies the 
+                      :ref:`Google Cloud Platform region 
+                      <google-gcp>` of the private endpoint.
+
+                  * - ``subnet-name``
+                    - Human-readable label that identifies the subnet 
+                      in your |gcp| |vpc|. Find this value on the 
+                      :guilabel:`VPC Networks` page on your |gcp|
+                      dashboard.
+
+                  * - ``vpc-name``
+                    - Human-readablle label that identifies the |vpc| 
+                      that you want to use to connect to |service|. 
+                      Find this value on the :guilabel:`VPC Networks` 
+                      page on your |gcp| dashboard.
+
+                  * - ``unique-id``
+                    - Unique string that you noted when you returned 
+                      the project status.
+
+                  * - ``org-id``
+                    - Unique 24-digit hexadecimal string that 
+                      identifies the |service| :ref:`organization 
+                      <organizations>`.
+
+            c. Save the shell file as ``setup_psc.sh`` and run the 
+               script from the directory where you saved the file with 
+               the following command:
+
+               .. code-block:: sh
+
+                  sh setup_psk.sh
+
+               The script creates an 
+               ``atlasEndpoints-{endpoint-name}.json`` output file that 
+               contains a list of IP addresses and forwarding rule 
+               names.
+
+            d. Run the following commands to format the output for 
+               |ak8so|:
+          
+               .. code-block:: sh
+
+                  yq e -P atlasEndpoints-user-private-endpoint.json > atlasEndpoints-user-private-endpoint.yaml
+
+               .. code-block:: sh
+
+                  awk 'sub("name","endpointName")sub("IPAddress","ipAddress")' atlasEndpoints-user-private-endpoint.yaml
+
+               The output shoud resemble the following example:
+
+               .. code-block:: sh
+                  :copyable: false
+
+                  - ipAddress: 10.0.0.00
+                    endpointName: {endpoint-name}-0
+                  - ipAddress: 10.0.0.01
+                    endpointName: {endpoint-name}-1
+                  - ipAddress: 10.0.0.02
+                    endpointName: {endpoint-name}-2
+                  - ipAddress: 10.0.0.03
+                    endpointName: {endpoint-name}-3
+                  - ipAddress: 10.0.0.04
+                    endpointName: {endpoint-name}-4
+                  - ipAddress: 10.0.0.05
+                    endpointName: {endpoint-name}-5
+
+         .. step:: Update the ``spec.privateEndpoints`` parameter.
+
+            Update the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. Specify the 
+            :ref:`Google Cloud Platform region <google-gcp>`, :guilabel:`Google Cloud Project ID`,
+            :guilabel:`Private Service Endpoint Prefix`, your output 
+            information, and run the following command:
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "GCP"
+                   region: "{gcp-region}"
+                   gcpProjectId: "{project-id}"
+                   endpointGroupName: "{endpoint-name}"
+                   endpoints:
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-0
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-1
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-2
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-3
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-4
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-5
+               EOF
+        
+         .. step:: Check the status of your private endpoints using |ak8so|.
 
             Run the following command:
 

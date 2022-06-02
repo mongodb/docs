@@ -1,0 +1,150 @@
+.. _atlasbackuppolicy-custom-resource:
+
+=====================================
+``AtlasBackupPolicy`` Custom Resource
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasBackupPolicy`` custom resource configures a backup policy
+that applies to the :ref:`atlasbackupschedule-custom-resource` that you 
+can apply to your :ref:`atlasdeployment-custom-resource`. When you 
+create the ``AtlasBackupPolicy`` custom resource, |ak8so| tries to 
+create or update a backup policy.
+
+|ak8so| does one of the following actions using the |service| 
+:doc:`Cloud Backup Schedule API Resource 
+</reference/api/cloud-backup/schedule/modify-one-schedule/>`:
+   
+- Creates a new backup policy.
+- Updates an existing backup policy.
+
+If you remove the ``AtlasBackupPolicy`` resource from your |k8s| 
+cluster, |service| stops creating backups for your {+cluster+}.
+
+.. note:: 
+
+   You must do all of the following tasks to back up a {+cluster+}:
+
+   1. Create a backup policy.
+   #. Create a 
+      :ref:`backup schedule <atlasbackupschedule-custom-resource>` and
+      set the :setting:`spec.policy.name` field to the name of the
+      configured backup policy.
+   #. Set the :setting:`spec.backupRef.name` field in the
+      :ref:`atlasdeployment-custom-resource` to the name of the 
+      configured backup schedule.
+
+   To learn more, see :ref:`ak8so-backup`.
+
+Example
+-------
+
+The following example shows an ``AtlasBackupPolicy`` custom resource
+that is configured to take snapshots weekly and retain snapshots for
+seven days:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasBackupPolicy
+   metadata:
+     name: "atlas-default-backuppolicy"
+   spec:
+     items:
+       frequencyType: "weekly"
+       frequencyInterval: 1
+       retentionUnit: "days"
+       retentionValue: 7
+
+Parameters
+----------
+
+This section describes some of the key ``AtlasBackupPolicy`` custom
+resource parameters available. For a full list of parameters available,
+see the |service| 
+:doc:`Modify {+Cloud-Backup+} Backup Policy API 
+</reference/api/cloud-backup/schedule/modify-one-schedule/>`. Refer 
+to these descriptions, the available examples, and the |api| 
+documentation to customize your specifications.
+
+.. setting:: spec.items
+
+   *Type*: array
+
+   *Conditional*
+
+   List that contains the policy item parameters from the 
+   |api|. For a full list of parameters available, see the |service|
+   :doc:`Modify {+Cloud-Backup+} Backup Policy API 
+   </reference/api/cloud-backup/schedule/modify-one-schedule/>`.
+
+.. setting:: spec.items.frequencyInterval
+
+   *Type*: number
+
+   *Required*
+
+   Number that indicates the desired frequency of the new backup policy
+   item specified by :setting:`spec.items.frequencyType`. A value of
+   ``1`` specifies the first instance of the corresponding
+   :setting:`spec.items.frequencyType`.
+
+   .. example::
+
+      - In a monthly policy item, ``1`` indicates that the monthly
+        snapshot occurs on the first day of the month.
+      - In a weekly policy item, ``1`` indicates that the weekly
+        snapshot occurs on Monday.
+
+   This setting accepts the following frequency values:
+
+   - Hourly: ``1``, ``2``, ``4``, ``6``, ``8``, and ``12``.
+   - Daily: ``1``.
+   - Weekly: ``1`` through ``7``, where ``1`` is Monday and ``7`` is
+     Sunday.
+   - Monthly: ``1`` through ``28`` and ``40``, where ``1`` is the first
+     day of the month and ``40`` is the last day of the month.
+
+.. setting:: spec.items.frequencyType
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the frequency associated with the backup
+   policy item. Accepted values are: ``hourly``, ``daily``, ``weekly``,
+   or ``monthly``.
+
+   .. note::
+
+      You can't specify multiple ``hourly`` and ``daily`` backup policy
+      items.
+
+.. setting:: spec.items.retentionUnit
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the scope of the backup policy item. Together
+   with :setting:`spec.items.retentionValue`, these settings define the
+   length of time to retain snapshots. Accepted values are: ``days``,
+   ``weeks``, or ``months``.
+
+.. setting:: spec.items.retentionValue
+
+   *Type*: string
+
+   *Required*
+
+   String that indicates the value to associate with 
+   :setting:`spec.items.retentionUnit`. Together with
+   :setting:`spec.items.retentionUnit`, these settings define
+   the length of time to retain snapshots.
