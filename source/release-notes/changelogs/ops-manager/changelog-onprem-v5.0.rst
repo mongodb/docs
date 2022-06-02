@@ -1,3 +1,16 @@
+.. _opsmgr-server-5.0.11:
+
+|onprem| Server 5.0.11
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-06-02*
+
+- Adds support for the |pagerduty| Events API V2. All new |pagerduty| keys use their `Events API v2 
+  <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgw-events-api-v2-overview>`__. 
+- Fixes an issue where updating {+mdbagent+} versions via the API fails when you 
+  use controlled features.
+- Updates the {+mdbagent+} to :ref:`11.0.16.7080 <mongodb-11.0.16.7080>`.
+
 .. _opsmgr-server-5.0.10:
 
 |onprem| Server 5.0.10
@@ -20,7 +33,7 @@
 
 - Adds support for concurrent MongoDB version 4.2+ snapshots and S3 snapshot store grooms.
 - Fixes an incorrect link when filtering backup jobs on the admin pages.
-- Fixes an issue when using controlled features changes to automation could be rejected incorrectly.
+- Fixes an issue where the {+mdbagent+} erroneously rejects changes when you use controlled features.
 - Changes how disk space is calculated for Cloud Live Migrations. Starting with this release, 
   the migration process validates that the target |service| cluster has enough free disk based 
   on the storage size of the compressed data. To learn more about data and storage sizes, see 
