@@ -166,7 +166,9 @@
        Use this |uri| format if your driver supports it. If it doesn't,
        use **connectionStrings.privateEndpoint[n].connectionString**.
 
-       .. seealso:: :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
+       .. seealso::
+       
+          :manual:`Seedlist format </reference/connection-string/#dns-seedlist-connection-format>`
 
    * - connectionStrings.privateEndpoint[n].type
      - string
@@ -379,6 +381,14 @@
        - 4.2
        - 4.4
        - 5.0
+       - 6.0 Release Candidate
+
+       .. important::
+    
+          MongoDB 6.0 is a release candidate, made available for early
+          testing. To learn more, see :v6.0:`MongoDB v6.0 Release Notes
+          </release-notes/6.0/>`. |service| will upgrade the cluster to
+          the stable release version when it is generally available.
 
    * - mongoURI
      - string

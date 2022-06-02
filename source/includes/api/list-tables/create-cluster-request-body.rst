@@ -307,16 +307,24 @@
        - 4.2
        - 4.4
        - 5.0
+       - 6.0 Release Candidate
 
-       If omitted and you also set **versionReleaseSystem**
-       to **LTS** or you omit **versionReleaseSystem**, |service| 
-       deploys a cluster that runs MongoDB 5.0.
+       .. important::
+    
+          MongoDB 6.0 is a release candidate, made available for early
+          testing. To learn more, see :v6.0:`MongoDB v6.0 Release Notes
+          </release-notes/6.0/>`. |service| will upgrade the cluster
+          to the stable release version when it is generally available.
+
+       If you omit **mongoDBMajorVersion** and also set
+       **versionReleaseSystem** to **LTS**, or omit **versionReleaseSystem**,
+       |service| deploys a cluster that runs MongoDB 5.0.
 
        You must deploy MongoDB **5.0** if
        **"providerSettings.instanceSizeName" : "M0"**, **"M2"**, or **"M5"**.
 
-       If you specify this field, |service| always deploys the cluster 
-       with the latest stable patch release of the specified version. 
+       If you specify this field, |service| always deploys the cluster
+       with the latest stable patch release of the specified version.
        You can upgrade to a newer version of MongoDB when you
        :doc:`modify a cluster </reference/api/clusters-modify-one>`.
 
