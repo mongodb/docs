@@ -104,8 +104,8 @@
          .. tab:: IBM zSeries
             :tabid: s390x
 
-            On zSeries architecture (managing MongoDB 4.0 or later
-            deployments), use RHEL /CentOS 7.x or 8.x:
+            On zSeries architecture (managing MongoDB 4.4 or later
+            deployments), use RHEL / CentOS 7.x or 8.x:
 
             .. include:: /includes/agents/binaries-removed-from-path.rst
 
