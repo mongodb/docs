@@ -201,6 +201,21 @@ limitations and considerations:
        exceed 700 MB.
 
    * - Write Concern
-     - {+Serverless-instances+} don't accept a numeric :manual:`write 
+     - {+Serverless-instances+} don't support a numeric :manual:`write 
        concern </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->` level greater than 
-       ``1``, or custom write concerns.
+       ``1``, or custom write concerns. Operations that use a 
+       write concern level greater than ``1``, or custom write 
+       concerns, might return an ``UnsatisfiableWriteConcern`` error. 
+       This behavior also applies to operations sent over a connection 
+       created with a :manual:`write concern option 
+       </reference/connection-string/#write-concern-options>`.
+
+       .. note::
+
+          For {+clusters+} other than ``M0``, ``M2``, or ``M5`` 
+          {+clusters+}, you can verify whether you're using a write 
+          concern mode that {+serverless-instances+} don't support with 
+          the :manual:`serverStatus </reference/command/serverStatus/>` 
+          command's :manual:`opWriteConcernCounters 
+          </reference/command/serverStatus/#opwriteconcerncounters>` 
+          field.
