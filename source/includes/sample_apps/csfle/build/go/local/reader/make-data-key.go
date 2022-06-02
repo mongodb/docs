@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -26,7 +25,6 @@ func localMasterKey() []byte {
 }
 
 func MakeKey() error {
-	err := godotenv.Load()
 
 	localMasterKey()
 
@@ -48,7 +46,7 @@ func MakeKey() error {
 	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).SetKmsProviders(kmsProviders)
 	keyVaultClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		return fmt.Errorf("Client encryption connect error %v", err)
+		return fmt.Errorf("Client connect error %v", err)
 	}
 	clientEnc, err := mongo.NewClientEncryption(keyVaultClient, clientEncryptionOpts)
 	if err != nil {

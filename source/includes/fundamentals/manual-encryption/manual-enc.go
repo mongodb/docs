@@ -12,7 +12,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-
 const (
 	KeyVaultNamespace = "encryption.__keyVault"
 	DbName            = "medicalRecords"
@@ -22,25 +21,24 @@ const (
 
 var URI string = os.Getenv("MONGODB_URI")
 
-
 func main() {
 	err := godotenv.Load()
 	provider := "aws"
-	kmsProviders := map[string]map[string]interface{} {
-		provider:{
-		  "accessKeyId": os.Getenv("AWS_ACCESS_KEY_ID"),
-		  "secretAccessKey" : os.Getenv("AWS_SECRET_ACCESS_KEY"),
+	kmsProviders := map[string]map[string]interface{}{
+		provider: {
+			"accessKeyId":     os.Getenv("AWS_ACCESS_KEY_ID"),
+			"secretAccessKey": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		},
 	}
-	masterKey := map[string]interface{} {
-		"key": os.Getenv("AWS_KEY_ARN"),
+	masterKey := map[string]interface{}{
+		"key":    os.Getenv("AWS_KEY_ARN"),
 		"region": os.Getenv("AWS_KEY_REGION"),
 	}
 
 	// start_mongoclient
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(URI))
 	if err != nil {
-		panic(fmt.Errorf("Client encryption connect error %v", err))
+		panic(fmt.Errorf("Client connect error %v", err))
 	}
 	// end_mongoclient
 
@@ -57,8 +55,8 @@ func main() {
 	// end_client_enc
 
 	dataKeyOpts := options.DataKey().
-	SetMasterKey(masterKey).
-	SetKeyAltNames([]string{KeyAltName})
+		SetMasterKey(masterKey).
+		SetKeyAltNames([]string{KeyAltName})
 	dataKeyID, err := clientEnc.CreateDataKey(context.TODO(), provider, dataKeyOpts)
 	if err != nil {
 		panic(fmt.Errorf("create data key error %v", err))
@@ -69,7 +67,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-		nameRawValue := bson.RawValue{Type: nameRawValueType, Value: nameRawValueData}
+	nameRawValue := bson.RawValue{Type: nameRawValueType, Value: nameRawValueData}
 	nameEncryptionOpts := options.Encrypt().
 		SetAlgorithm("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").
 		SetKeyID(dataKeyID)
@@ -80,7 +78,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	foodsRawValueType, foodsRawValueData, err := bson.MarshalValue(bson.A{"Grapes","Cheese"})
+	foodsRawValueType, foodsRawValueData, err := bson.MarshalValue(bson.A{"Grapes", "Cheese"})
 	if err != nil {
 		panic(err)
 	}
@@ -137,10 +135,9 @@ func main() {
 	foodsDecrypted, err := clientEnc.Decrypt(
 		context.TODO(),
 		result["foods"].(primitive.Binary))
-	result["foods"] = foodsDecrypted;
+	result["foods"] = foodsDecrypted
 	result["name"] = nameDecrypted
 	fmt.Printf("Decrypted Document: %s\n", result)
 	// end_find_decrypt
 	return
 }
-

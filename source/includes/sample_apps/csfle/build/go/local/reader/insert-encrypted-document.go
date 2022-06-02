@@ -7,17 +7,15 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func Insert() error {
-	err := godotenv.Load()
 
 	// start-key-vault
-	KeyVaultNamespace := "encryption.__keyVault"
+	keyVaultNamespace := "encryption.__keyVault"
 	// end-key-vault
 	dbName := "medicalRecords"
 	collName := "patients"
@@ -97,7 +95,7 @@ func Insert() error {
 	// start-client
 	autoEncryptionOpts := options.AutoEncryption().
 		SetKmsProviders(kmsProviders).
-		SetKeyVaultNamespace(KeyVaultNamespace).
+		SetKeyVaultNamespace(keyVaultNamespace).
 		SetSchemaMap(schemaMap).
 		SetExtraOptions(extraOptions)
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri).SetAutoEncryptionOptions(autoEncryptionOpts))
