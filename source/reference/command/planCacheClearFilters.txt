@@ -24,79 +24,72 @@ Definition
    Specify the :term:`query shape` to remove a specific index filter.
    Omit the query shape to clear all index filters on a collection.
 
-   The command has the following syntax:
+Syntax
+------
 
-   .. code-block:: javascript
+The command has the following syntax:
 
-      db.runCommand(
-         {
-            planCacheClearFilters: <collection>,
-            query: <query pattern>,
-            sort: <sort specification>,
-            projection: <projection specification>,
-            comment: <any>
-         }
-      )
+.. code-block:: javascript
 
-   The :dbcommand:`planCacheClearFilters` command has the following field:
+   db.runCommand(
+      {
+         planCacheClearFilters: <collection>,
+         query: <query pattern>,
+         sort: <sort specification>,
+         projection: <projection specification>,
+         collation: { <collation> },
+         comment: <any>
+      }
+   )
 
+Command Fields
+--------------
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Field
-   
-        - Type
-   
-        - Description
-   
-      * - ``planCacheClearFilters``
-   
-        - string
-   
-        - The name of the collection.
-          
-          
-   
-      * - ``query``
-   
-        - document
-   
-        - Optional. The query predicate associated with the filter to remove. If
-          omitted, clears all filters from the collection.
-          
-          The values in the ``query`` predicate are insignificant in
-          determining the :term:`query shape`, so the values used in the query
-          need not match the values shown using
-          :dbcommand:`planCacheListFilters`.
-          
-          
-   
-      * - ``sort``
-   
-        - document
-   
-        - Optional. The sort associated with the filter to remove, if any.
-          
-          
-   
-      * - ``projection``
-   
-        - document
-   
-        - Optional. The projection associated with the filter to remove,
-          if any.
-          
-          
-      * - ``comment``
+The command has the following fields:
 
-        - any
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+   
+   * - Field
+     - Type
+     - Description
+   
+   * - ``planCacheClearFilters``
+     - string
+     - The name of the collection to remove the index filters from.
+   
+   * - ``query``
+     - document
+     - Optional. The query predicate for the index filter to
+       remove. If omitted, the command clears all index filters from the
+       collection.
+          
+       The values in the ``query`` predicate do not:
 
-        - .. include:: /includes/extracts/comment-content.rst
+       - Determine the :term:`query shape`.
+       - Need to match the values returned by
+         :dbcommand:`planCacheListFilters`.
+
+   * - ``sort``   
+     - document
+     - Optional. The sort for the index filter to remove, if any.
+
+   * - ``projection``   
+     - document
+     - Optional. The projection for the index filter to remove, if any.
+
+   * - ``collation`` 
+     - document
+     - .. include:: /includes/extracts/collation-option.rst
+
+       .. include:: /includes/index-filters-and-collations.rst
+
+   * - ``comment``
+     - any
+     - .. include:: /includes/extracts/comment-content.rst
        
-          .. versionadded:: 4.4
-
+       .. versionadded:: 4.4
 
 Required Access
 ---------------
@@ -110,7 +103,7 @@ Examples
 Clear Specific Index Filter on Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``orders`` collection contains the following two filters:
+The ``orders`` collection contains the following index filters:
 
 .. code-block:: javascript
 
@@ -127,6 +120,16 @@ The ``orders`` collection contains the following two filters:
      "projection" : { },
      "indexes" : [ { "status" : 1, "cust_id" : 1 } ]
    }
+
+   {
+     "query": { "item": "Movie" },
+     "collation": { locale: "en_US" },
+     "indexes": [ { "item": 1, "order_date": 1 , "quantity": 1 } ]
+   }
+
+.. note::
+
+   .. include:: /includes/index-filters-and-collations.rst
 
 The following command removes the second index filter only:
 
@@ -163,6 +166,22 @@ collection:
    db.runCommand(
       {
          planCacheClearFilters: "orders"
+      }
+   )
+
+Clear Index Filter Containing a Query and a Collation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example clears the index filter containing the query on
+``Movie`` and the collation ``en_US`` for the ``orders`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         planCacheClearFilters: "orders",
+         query: { item: "Movie" },
+         collation: { locale: "en_US" }
       }
    )
 
