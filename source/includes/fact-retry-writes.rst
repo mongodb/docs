@@ -1,7 +1,7 @@
 .. note:: Retryable Writes with MongoDB 3.6 and later
 
    MongoDB drivers can automatically retry certain write
-   operations a single time. Retryable writes provide built-in handling
+   operations once. Retryable writes provide built-in handling
    of automatic failovers and elections. To learn more, See
    :manual:`retryable writes </core/retryable-writes/>`.
  

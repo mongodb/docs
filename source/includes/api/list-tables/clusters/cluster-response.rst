@@ -376,7 +376,6 @@
      - string
      - Major version of MongoDB the cluster runs:
 
-       - 4.0
        - 4.2
        - 4.4
        - 5.0

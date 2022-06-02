@@ -232,7 +232,7 @@ source_constants = {
     'reference-compatibility-mongodb-scala': ':driver:`MongoDB compatibility matrix </scala#compatibility>`',
     'reference-compatibility-mongodb-swift': ':driver:`MongoDB compatibility matrix </swift#compatibility>`',
     'fts' : 'Atlas Search',
-    'latest-mongodb-eol': '3.6',
+    'latest-mongodb-eol': '4.0',
     'service-api-v1-base-uri' : 'https://cloud.mongodb.com/api/atlas/v1.0',
     'Cloud-Backup' : 'Cloud Backup',
     'Old-Backup' : 'Legacy Backup',
