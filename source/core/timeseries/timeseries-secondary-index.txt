@@ -48,8 +48,8 @@ fields:
 Use Secondary Indexes to Improve Sort Performance
 -------------------------------------------------
 
-Sort operations on the ``timeField`` and ``metaField`` can use secondary
-indexes on those fields to improve performance.
+Create secondary indexes on the ``timeField`` and ``metaField`` fields to 
+improve sort performance.
 
 For example, the following ``sensorData`` collection contains
 temperature readings:
@@ -99,6 +99,74 @@ again with the ``.explain()`` option:
 
 The ``winningPlan.queryPlan.inputStage.stage`` is ``IXSCAN``, which
 indicates that the index was used. For more information on explain plan
+output, see :ref:`explain-results`.
+
+"Last Point" Queries on Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A "last point" query fetches the latest measurement for each unique metadata 
+value. For example, you may want to get the latest temperature reading from all
+sensors. Improve performance on last point queries by creating any of the 
+following indexes:
+
+.. code-block:: javascript
+
+   { "metadata.sensorId": 1,  "timestamp": 1 }
+   { "metadata.sensorId": 1,  "timestamp": -1 }
+   { "metadata.sensorId": -1, "timestamp": 1 }
+   { "metadata.sensorId": -1, "timestamp": -1 }  
+
+.. note::
+
+   Last point queries are most performant when they use the :ref:`DISTINCT_SCAN 
+   optimization <explain-results>`. This optimization is only available when an 
+   index on ``timeField`` is descending.
+
+The following command creates a compound secondary index on ``metaField``
+(ascending) and ``timeField`` (descending): 
+
+.. code-block:: javascript
+
+   db.sensorData.createIndex( { "metadata.sensorId": 1,  "timestamp": -1 } ) 
+
+The following last point query example uses the descending ``timeField`` 
+compound secondary index created above:
+
+.. code-block:: javascript
+
+   db.sensorData.aggregate( [
+      { 
+         $sort: { "metadata.sensorId": 1, "timestamp": -1 } 
+      },
+      { 
+         $group: {
+            _id: "$metadata.sensorId",
+            ts: { $first: "$timestamp" },
+            temperatureF: { $first: "$currentConditions.tempF" }
+         }  
+      }
+   ] )
+
+To confirm that the last point query used the secondary index, run the operation
+again using ``.explain("executionStats")``:
+
+.. code-block:: javascript
+
+   db.getCollection('sensorData').explain("executionStats").aggregate( [
+      {
+         $sort: { "metadata.sensorId": 1, "timestamp": -1 }
+      },
+      {
+         $group: {
+            _id: "$metadata.sensorId",
+            ts: {$first: "$timestamp"},
+            temperatureF: {$first: "$currentConditions.tempF" }
+         }
+      }
+   ] )
+
+The ``winningPlan.queryPlan.inputStage.stage`` is ``DISTINCT_SCAN``, which 
+indicates that the index was used. For more information on the explain plan 
 output, see :ref:`explain-results`.
 
 Specify Index Hints for Time Series Collections
