@@ -3,7 +3,7 @@
    :stub-columns: 1
    :widths: 20 14 66
 
-   * - Name
+   * - Field
      - Type
      - Description
 
