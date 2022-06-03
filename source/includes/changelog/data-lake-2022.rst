@@ -1,3 +1,11 @@
+.. _data-lake-v20220531:
+
+31 May 2022 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Disables support for the MySQL dialect.
+
 .. _data-lake-v20220510:
 
 10 May 2022 Release
