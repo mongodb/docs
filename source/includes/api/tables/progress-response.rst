@@ -9,7 +9,8 @@
 
    * - ``state``
      - string
-     - The current state of {+c2c-product-name+}.
+     - The current state of ``mongosync``. For information on the
+       possible states, see :ref:`c2c-states-descriptions`.
 
    * - ``canCommit``
      - boolean
