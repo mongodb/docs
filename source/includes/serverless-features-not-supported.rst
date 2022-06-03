@@ -1,12 +1,19 @@
 .. _atlas-serverless-limits-csp:
 
-{+Serverless-instances+} are in a preview release and do not currently support the
-|service| features listed below. If you require these capabilities, please use a
+{+Serverless-instances+} don't currently support the following 
+|service| features. If you require the following capabilities, use a 
 :doc:`{+dedicated-cluster+} </tutorial/create-new-cluster>`.
 
+{+Serverless-instances+} don't support some features even though they 
+are a part of the :manual:`Stable API v1 
+</reference/stable-api/#api-v1-commands>`. We note unsupported 
+features that are a part of the :manual:`Stable API v1 
+</reference/stable-api/#api-v1-commands>` inline.
+
 MongoDB plans to add support for more configurations and capabilities on
-{+serverless-instances+} over time. A checkmark below indicates that MongoDB
-plans to support the feature for {+serverless-instances+} in the future.
+{+serverless-instances+} over time. A checkmark below indicates that 
+MongoDB plans to support the feature for {+serverless-instances+} in 
+the future.
 
 Configurations
 --------------
@@ -101,9 +108,12 @@ Capabilities
    * - Track Database Access
      - 
 
-   * - Use :manual:`Server-Side JavaScript </core/server-side-javascript/>`,
-       such as ``$where``, ``$function``,
-       ``$accumulator`` and ``map-reduce``
+   * - Use :manual:`Server-Side JavaScript 
+       </core/server-side-javascript/>`, such as ``$where``, 
+       ``$function``, ``$accumulator`` and ``map-reduce``.
+
+       .. include:: /includes/fact-unsupported-stable-api.rst
+
      -
   
    * - Download :doc:`Database Logs </mongodb-logs/>`
@@ -129,24 +139,29 @@ limitations and considerations:
    * - Operation
      - Limitation
   
-   * - :manual:`Aggregation </aggregation>` and :manual:`Queries </tutorial/query-documents/>`
-     - {+Serverless-instances+} don't support the ``allowDiskUse`` option for the
-       :manual:`aggregation command </reference/command/aggregate>`, 
-       its :manual:`helper method </reference/method/db.collection.aggregate>`,
-       or the :manual:`cursor.allowDiskUse() 
-       </reference/method/cursor.allowDiskUse/#mongodb-method-cursor.allowDiskUse>` query cursor method.
+   * - :manual:`Aggregation </aggregation>` and :manual:`Queries 
+       </tutorial/query-documents/>`
+     - {+Serverless-instances+} don't support the ``allowDiskUse`` 
+       option for the :manual:`aggregation command 
+       </reference/command/aggregate>`, its :manual:`helper method 
+       </reference/method/db.collection.aggregate>`, or the 
+       :manual:`cursor.allowDiskUse() </reference/method/cursor.allowDiskUse/#mongodb-method-cursor.allowDiskUse>` query cursor 
+       method.
 
        {+Serverless-instances+} don't support the :manual:`$out 
-       </reference/operator/aggregation/out/>`
-       stage. Use :manual:`$merge
-       </reference/operator/aggregation/merge/>` instead.
+       </reference/operator/aggregation/out/>` stage. Use 
+       :manual:`$merge </reference/operator/aggregation/merge/>` 
+       instead.
        
-       Aggregation fields on {+serverless-instances+} that represent database and
-       collection names (such as :manual:`$merge
-       </reference/operator/aggregation/merge/>` values) can't be expressions.
+       Aggregation fields on {+serverless-instances+} that represent 
+       database and collection names (such as :manual:`$merge
+       </reference/operator/aggregation/merge/>` values) can't be 
+       expressions.
+
+       .. include:: /includes/fact-unsupported-stable-api.rst
        
-       Aggregation pipelines for {+serverless-instances+} can have a maximum of 50
-       stages.
+       Aggregation pipelines for {+serverless-instances+} can have a 
+       maximum of 50 stages.
 
    * - Sort
      - The :manual:`$sort </reference/operator/aggregation/sort/>` stage has
@@ -187,9 +202,15 @@ limitations and considerations:
    * - :manual:`Change Streams </changeStreams/>`
      - {+Serverless-instances+} don't support change streams.
 
+       {+Serverless-instances+} don't support this feature even though 
+       it's a part of the :manual:`Stable API v1 
+       </reference/stable-api/#api-v1-commands>`.
+
    * - :manual:`Collation </reference/collation/>` 
      - {+Serverless-instances+} don't support collation on collections,
        indexes, or queries.
+
+       .. include:: /includes/fact-unsupported-stable-api.rst
 
    * - |bson| Nested Object Depth
      - {+Serverless-instances+} can't store documents with more than 50 
