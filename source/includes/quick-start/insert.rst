@@ -1,3 +1,5 @@
+.. _csfle-quick-start-insert:
+
 Use your {+csfle-abbrev+}-enabled
 ``MongoClient`` instance to insert an encrypted document into the
 ``medicalRecords.patients`` namespace using the following code

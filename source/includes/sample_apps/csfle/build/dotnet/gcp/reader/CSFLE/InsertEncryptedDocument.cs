@@ -118,6 +118,10 @@ namespace Insert
             };
             // end-extra-options
 
+            var regularClientSettings = MongoClientSettings.FromConnectionString(connectionString);
+            var regularClient = new MongoClient(regularClientSettings);
+            var regularCollection = regularClient.GetDatabase(db).GetCollection<BsonDocument>(coll);
+
             // start-client
             var clientSettings = MongoClientSettings.FromConnectionString(connectionString);
             var autoEncryptionOptions = new AutoEncryptionOptions(
@@ -126,7 +130,7 @@ namespace Insert
                 schemaMap: schemaMap,
                 extraOptions: extraOptions);
             clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
-            var client = new MongoClient(clientSettings);
+            var secureClient = new MongoClient(clientSettings);
             // end-client
 
             // start-insert
@@ -152,14 +156,21 @@ namespace Insert
             };
 
             // Construct an auto-encrypting client
-            var collection = client.GetDatabase(db).GetCollection<BsonDocument>(coll);
+            var secureCollection = secureClient.GetDatabase(db).GetCollection<BsonDocument>(coll);
 
             // Insert a document into the collection
-            collection.InsertOne(sampleDocFields);
-            var result = collection.Find(FilterDefinition<BsonDocument>.Empty).Limit(1).ToList()[0];
-            Console.WriteLine("Successfully upserted the sample document!");
-            Console.WriteLine($"Encrypted client query by the SSN (deterministically-encrypted) field:\n {result}\n");
+            secureCollection.InsertOne(sampleDocFields);
             // end-insert
+            // start-find
+            Console.WriteLine("Finding a document with regular (non-encrypted) client.");
+            var filter = Builders<BsonDocument>.Filter.Eq("name", "Jon Doe");
+            var regularResult = regularCollection.Find(filter).Limit(1).ToList()[0];
+            Console.WriteLine($"\n{regularResult}\n");
+            Console.WriteLine("Finding a document with encrypted client, searching on an encrypted field");
+            var ssnFilter = Builders<BsonDocument>.Filter.Eq("ssn", 145014000);
+            var secureResult = secureCollection.Find(ssnFilter).Limit(1).ToList()[0];
+            Console.WriteLine($"\n{secureResult}\n");
+            // end-find
         }
     }
 }

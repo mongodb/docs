@@ -44,7 +44,6 @@ func MakeKey() error {
 	defer func() {
 		_ = clientEnc.Close(context.TODO())
 	}()
-
 	dataKeyOpts := options.DataKey().
 		SetMasterKey(masterKey)
 	dataKeyID, err := clientEnc.CreateDataKey(context.TODO(), provider, dataKeyOpts)

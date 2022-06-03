@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.mongodb.client.model.Filters.eq;
 
 import com.mongodb.AutoEncryptionSettings;
 import com.mongodb.client.MongoClient;
@@ -32,6 +33,7 @@ import org.bson.BsonDocument;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import org.bson.Document;
+
 
 
 /*
@@ -47,7 +49,7 @@ public class insertEncryptedDocument {
     public static void main(String[] args) throws Exception {
         String recordsDb = "medicalRecords";
         String recordsColl = "patients";
-
+        
         // start-key-vault
         String keyVaultNamespace = "encryption.__keyVault";
         // end-key-vault
@@ -94,36 +96,52 @@ public class insertEncryptedDocument {
         extraOptions.put("mongocryptdSpawnPath", "/usr/local/bin/mongocryptd");
         // end-extra-options
 
+        MongoClientSettings clientSettingsRegular = MongoClientSettings.builder()
+            .applyConnectionString(new ConnectionString(connectionString))
+            .build();
+
+        MongoClient mongoClientRegular = MongoClients.create(clientSettingsRegular);
+
         // start-client
         MongoClientSettings clientSettings = MongoClientSettings.builder()
-                .applyConnectionString(new ConnectionString(connectionString))
-                .autoEncryptionSettings(AutoEncryptionSettings.builder()
-                        .keyVaultNamespace(keyVaultNamespace)
-                        .kmsProviders(kmsProviders)
-                        .schemaMap(schemaMap)
-                        .extraOptions(extraOptions)
-                        .build())
-                .build();
+            .applyConnectionString(new ConnectionString(connectionString))
+            .autoEncryptionSettings(AutoEncryptionSettings.builder()
+                .keyVaultNamespace(keyVaultNamespace)
+                .kmsProviders(kmsProviders)
+                .schemaMap(schemaMap)
+                .extraOptions(extraOptions)
+                .build())
+            .build();
 
-        MongoClient mongoClient = MongoClients.create(clientSettings);
+        MongoClient mongoClientSecure = MongoClients.create(clientSettings);
         // end-client
         // start-insert
         ArrayList<Document> medicalRecords = new ArrayList<>();
         medicalRecords.add(new Document().append("weight", "180"));
         medicalRecords.add(new Document().append("bloodPressure", "120/80"));
-
+        
         Document insurance = new Document()
-                .append("policyNumber", 123142)
-                .append("provider", "MaestCare");
+        .append("policyNumber", 123142)
+        .append("provider",  "MaestCare");
 
         Document patient = new Document()
-                .append("name", "Jon Doe")
-                .append("ssn", 241014209)
-                .append("bloodType", "AB+")
-                .append("medicalRecords", medicalRecords)
-                .append("insurance", insurance);
-        mongoClient.getDatabase(recordsDb).getCollection(recordsColl).insertOne(patient);
-        // end-insert   
-        mongoClient.close();
+            .append("name", "Jon Doe")
+            .append("ssn", 241014209)
+            .append("bloodType", "AB+")
+            .append("medicalRecords", medicalRecords)
+            .append("insurance", insurance);
+        mongoClientSecure.getDatabase(recordsDb).getCollection(recordsColl).insertOne(patient);
+        // end-insert
+        // start-find
+        System.out.println("Finding a document with regular (non-encrypted) client.");
+        Document docRegular = mongoClientRegular.getDatabase(recordsDb).getCollection(recordsColl).find(eq("name", "Jon Doe")).first();
+        System.out.println(docRegular.toJson());
+        System.out.println("Finding a document with encrypted client, searching on an encrypted field");
+        Document docSecure = mongoClientSecure.getDatabase(recordsDb).getCollection(recordsColl).find(eq("ssn", 241014209)).first();
+        System.out.println(docSecure.toJson());
+        // end-find 
+        mongoClientSecure.close();
+        mongoClientRegular.close();    
+
     }
 }

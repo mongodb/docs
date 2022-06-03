@@ -81,31 +81,52 @@ const secureClient = new MongoClient(connectionString, {
   },
 });
 // end-client
+const regularClient = new MongoClient(connectionString, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 async function main() {
   try {
-    await secureClient.connect();
-    // start-insert
+    await regularClient.connect();
     try {
-      const writeResult = await secureClient
-        .db(db)
-        .collection(coll)
-        .insertOne({
-          name: "Jon Doe",
-          ssn: 241014209,
-          bloodType: "AB+",
-          medicalRecords: [{ weight: 180, bloodPressure: "120/80" }],
-          insurance: {
-            policyNumber: 123142,
-            provider: "MaestCare",
-          },
-        });
-    } catch (writeError) {
-      console.error("writeError occurred:", writeError);
+      await secureClient.connect();
+      // start-insert
+      try {
+        const writeResult = await secureClient
+          .db(db)
+          .collection(coll)
+          .insertOne({
+            name: "Jon Doe",
+            ssn: 241014209,
+            bloodType: "AB+",
+            medicalRecords: [{ weight: 180, bloodPressure: "120/80" }],
+            insurance: {
+              policyNumber: 123142,
+              provider: "MaestCare",
+            },
+          });
+      } catch (writeError) {
+        console.error("writeError occurred:", writeError);
+      }
+      // end-insert
+      // start-find
+      console.log("Finding a document with regular (non-encrypted) client.");
+      console.log(
+        await regularClient.db(db).collection(coll).findOne({ name: /Jon/ })
+      );
+      console.log(
+        "Finding a document with encrypted client, searching on an encrypted field"
+      );
+      console.log(
+        await secureClient.db(db).collection(coll).findOne({ ssn: "241014209" })
+      );
+      // end-find
+    } finally {
+      await secureClient.close();
     }
-    // end-insert
   } finally {
-    await secureClient.close();
+    await regularClient.close();
   }
 }
 main();

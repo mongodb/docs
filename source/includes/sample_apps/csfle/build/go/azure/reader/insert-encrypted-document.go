@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -90,19 +91,25 @@ func Insert() error {
 		"mongocryptdSpawnPath": "/usr/local/bin/mongocryptd",
 	}
 	// end-extra-options
-
+	regularClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		return fmt.Errorf("Connect error for regular client: %v", err)
+	}
+	defer func() {
+		_ = regularClient.Disconnect(context.TODO())
+	}()
 	// start-client
 	autoEncryptionOpts := options.AutoEncryption().
 		SetKmsProviders(kmsProviders).
 		SetKeyVaultNamespace(keyVaultNamespace).
 		SetSchemaMap(schemaMap).
 		SetExtraOptions(extraOptions)
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri).SetAutoEncryptionOptions(autoEncryptionOpts))
+	secureClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri).SetAutoEncryptionOptions(autoEncryptionOpts))
 	if err != nil {
 		return fmt.Errorf("Connect error for encrypted client: %v", err)
 	}
 	defer func() {
-		_ = client.Disconnect(context.TODO())
+		_ = secureClient.Disconnect(context.TODO())
 	}()
 	// end-client
 
@@ -120,10 +127,34 @@ func Insert() error {
 			"policyNumber": 123142,
 		},
 	}
-	if _, err := client.Database(dbName).Collection(collName).InsertOne(context.TODO(), test_patient); err != nil {
+	if _, err := secureClient.Database(dbName).Collection(collName).InsertOne(context.TODO(), test_patient); err != nil {
 		return fmt.Errorf("InsertOne error: %v", err)
 	}
 	// end-insert
-	fmt.Println("Successfully Inserted Encrypted Document!")
+	// start-find
+	fmt.Println("Finding a document with regular (non-encrypted) client.")
+	var resultRegular bson.M
+	err = regularClient.Database(dbName).Collection(collName).FindOne(context.TODO(), bson.D{{"name", "Jon Doe"}}).Decode(&resultRegular)
+	if err != nil {
+		panic(err)
+	}
+	outputRegular, err := json.MarshalIndent(resultRegular, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s\n", outputRegular)
+
+	fmt.Println("Finding a document with encrypted client, searching on an encrypted field")
+	var resultSecure bson.M
+	err = secureClient.Database(dbName).Collection(collName).FindOne(context.TODO(), bson.D{{"ssn", "241014209"}}).Decode(&resultSecure)
+	if err != nil {
+		panic(err)
+	}
+	outputSecure, err := json.MarshalIndent(resultSecure, "", "    ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("%s\n", outputSecure)
+	// end-find
 	return nil
 }

@@ -55,7 +55,6 @@ func MakeKey() error {
 	defer func() {
 		_ = clientEnc.Close(context.TODO())
 	}()
-
 	dataKeyOpts := options.DataKey()
 	dataKeyID, err := clientEnc.CreateDataKey(context.TODO(), provider, dataKeyOpts)
 	if err != nil {

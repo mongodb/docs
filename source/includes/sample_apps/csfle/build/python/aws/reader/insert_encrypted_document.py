@@ -5,6 +5,7 @@ import base64
 import os
 from bson.codec_options import CodecOptions
 from bson.binary import STANDARD, UUID
+import pprint
 
 # start-key-vault
 key_vault_namespace = "encryption.__keyVault"
@@ -73,7 +74,7 @@ extra_options = {"mongocryptd_spawn_path": "/usr/local/bin/mongocryptd"}
 fle_opts = AutoEncryptionOpts(
     kms_providers, key_vault_namespace, schema_map=patient_schema, **extra_options
 )
-client = MongoClient(connection_string, auto_encryption_opts=fle_opts)
+secureClient = MongoClient(connection_string, auto_encryption_opts=fle_opts)
 # end-client
 
 # start-insert
@@ -93,7 +94,7 @@ def insert_patient(
 
 medical_record = [{"weight": 180, "bloodPressure": "120/80"}]
 insert_patient(
-    client.medicalRecords.patients,
+    secureClient.medicalRecords.patients,
     "Jon Doe",
     241014209,
     "AB+",
@@ -102,3 +103,11 @@ insert_patient(
     "MaestCare",
 )
 # end-insert
+regularClient = MongoClient(connection_string)
+# start-find
+print("Finding a document with regular (non-encrypted) client.")
+result = regularClient.medicalRecords.patients.find_one({"name": "Jon Doe"})
+pprint.pprint(result)
+print("Finding a document with encrypted client, searching on an encrypted field")
+pprint.pprint(secureClient.medicalRecords.patients.find_one({"ssn": 241014209}))
+# end-find
