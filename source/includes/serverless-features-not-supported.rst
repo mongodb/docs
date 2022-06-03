@@ -90,10 +90,10 @@ Capabilities
    * - Use :charts:`MongoDB Charts </>`
      - 
 
-   * - Use :realm:`Realm Sync </sync/learn/overview/#std-label-sync-overview>`
+   * - Use :appservices:`Atlas Device Sync </sync/learn/overview/>`
      - 
 
-   * - Use :doc:`Triggers </triggers>`
+   * - Use :doc:`Atlas Triggers </triggers>`
      - 
    
    * - Use Predefined :doc:`Replica Set Tags </reference/replica-set-tags>`

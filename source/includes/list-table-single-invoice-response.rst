@@ -94,7 +94,7 @@
 
           * - ``stitchAppName``
 
-            - Name of the :realm:`{+MongoDB-Realm+} </>` app
+            - Name of the :appservices:`{+atlas-app-services+} </>` app
               associated with the line item.
 
           * - ``tierLowerBound``

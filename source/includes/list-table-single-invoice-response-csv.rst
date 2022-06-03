@@ -39,7 +39,7 @@
      - The name of the config server that incurred the charge
 
    * - ``Application``
-     - Name of the :realm:`{+MongoDB-Realm+} </>` app associated with
+     - Name of the :appservices:`{+atlas-app-services+} </>` app associated with
        the line item.
 
    * - ``Unit``

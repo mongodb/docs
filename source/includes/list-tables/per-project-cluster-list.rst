@@ -21,6 +21,6 @@
        Sharded {+Cluster+}), and number of nodes in the {+cluster+}
        ({+clusters+} only).
 
-   * - :guilabel:`Linked {+MongoDB-Realm+} App`
-     - Name of the :realm:`{+MongoDB-Realm+} </>` application linked
+   * - :guilabel:`Linked {+app-services+} App`
+     - Name of the :appservices:`{+atlas-app-services+} </>` application linked
        to this {+cluster+}, if appropriate ({+clusters+} only).

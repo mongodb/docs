@@ -1,9 +1,9 @@
 .. note::
 
    You can't convert a replica set to a sharded cluster when either of 
-   the following {+MongoDB-Realm+} features is enabled for the cluster:
+   the following {+atlas-app-services+} features is enabled for the cluster:
 
-   - A :realm:`database trigger </triggers/database-triggers/#configuration>` 
+   - A :appservices:`database trigger </triggers/database-triggers/#configuration>` 
      with the :guilabel:`Document Preimage` configuration option 
      enabled, or 
-   - :realm:`Realm Sync </sync>`.
+   - :appservices:`Atlas Device Sync </sync/learn/overview/>`.

@@ -440,14 +440,16 @@ Filter by event
           - Logs archive download has started.
           - Support email sent
 
-      * - Realm
-        - Events related to :realm:`MongoDB Realm </>`. The following filters are available:
+      * - {+app-services+}
+        - Events related to :ref:`{+atlas-app-services+}
+          <realm-cloud>`. 
+          The following filters are available:
 
           - A Custom URL has been confirmed for static hosting
           - A Sync process has failed and cannot be restarted
           - A Trigger has failed and cannot be restarted
           - A user (or Code Deployment) attempted to deploy changes but encountered an error
-          - A user (or Code Deployment) has deployed changes successfully to a Realm application
+          - A user (or Code Deployment) has deployed changes successfully to an {+app-services+} application
           - An overall request rate limit has been hit
 
       * - Projects
