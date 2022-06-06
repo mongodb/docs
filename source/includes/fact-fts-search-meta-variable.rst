@@ -7,8 +7,8 @@ results for your :pipeline:`$search` query.
 
 .. note::
 
-   You can't use the ``$$SEARCH_META`` variable to retrieve metadata 
-   results for queries over sharded collections.
+   To run facet queries over sharded collections, your cluster 
+   must run MongoDB v6.0 (including release candidates).
 
 MongoDB recommends using the ``$$SEARCH_META`` variable only if you 
 need both the search results and the metadata results. Otherwise, use 
