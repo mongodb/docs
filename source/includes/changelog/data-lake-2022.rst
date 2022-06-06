@@ -1,3 +1,16 @@
+.. _adf-v20220607:
+
+07 June 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Renames and relaunches {+adl+} as {+adf+}. 
+
+  .. important:: 
+
+     The federated query engine service previously called {+adl+} is 
+     now called {+adf+}. To learn more about {+adf+}, see 
+     :ref:`atlas-data-federation`.
+
 .. _data-lake-v20220531:
 
 31 May 2022 Release
