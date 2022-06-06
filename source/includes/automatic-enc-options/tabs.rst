@@ -1,5 +1,3 @@
-.. TODO: requires code review from driver teams
-
 .. tabs-drivers::
 
    .. tab::
