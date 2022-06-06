@@ -1,0 +1,176 @@
+.. _adl-add-pipeline:
+
+==================================
+Create an {+adl+} Pipeline 
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page guides you through the steps for creating an {+adl+} pipeline.
+
+.. _adl-add-pipeline-prereqs:
+
+Prerequisites 
+------------- 
+
+Before you begin, you must have the following: 
+
+- :ref:`Backup-enabled <backup-cloud-provider>` ``M10`` or higher 
+  |service| cluster. 
+- :authrole:`Project Owner` role for the project for which you want to 
+  deploy a {+dl+}.
+- :ref:`Sample data <sample-data>` loaded on your cluster (if you wish 
+  to try the example in the following 
+  :ref:`adl-add-pipeline-steps`).
+
+.. _adl-add-pipeline-steps:
+
+Procedure 
+---------
+
+.. procedure:: 
+
+   .. step:: Navigate to {+adl+} in the |service| UI. 
+
+      .. include:: /includes/extracts/ui-nav-adl.rst 
+   
+   .. step:: Click :guilabel:`Add Data Lake Pipeline`.
+   
+   .. step:: Define the data source for the pipeline.
+
+      You can create a copy of data on your |service| cluster in 
+      MongoDB-managed cloud object storage optimized for analytic 
+      queries with workload isolation.
+      
+      To set up a pipeline, specify the following in the 
+      :guilabel:`Setup Pipeline` page: 
+
+      a. Select the |service| cluster from the dropdown.
+
+         .. example:: 
+            
+            If you loaded the sample data on your cluster, select the 
+            |service| cluster where you loaded the sample data.
+
+      #. Select the database on the specified cluster from the 
+         dropdown.
+
+         .. example:: 
+            
+            If you selected the cluster where the sample data is 
+            loaded, select ``sample_mflix``. 
+
+      #. Select the collection in the specified database from the 
+         dropdown.
+
+         .. example:: 
+            
+            If you selected the ``sample_mflix`` database, select the 
+            ``movies`` collection in the ``sample_mflix`` database.
+
+      #. Enter a name for the pipeline.
+
+         .. example:: 
+            
+            If you are following the examples in this tutorial, enter 
+            ``sample_mflix.movies`` in the :guilabel:`Pipeline Name` 
+            field.
+
+      #. Click :guilabel:`Continue`.
+
+   .. step:: Specify an extraction schedule for your cluster data.
+
+      You can specify how frequently your cluster data is extracted for 
+      querying. Each snapshot represents your data at that point in 
+      time, which is stored in a workload isolated, analytic storage. 
+      You can query any snapshot data in the {+dl+} datasets.
+
+      You must choose from the following schedules the 
+      :guilabel:`Snapshot Schedule` that is similar to your backup 
+      schedule:
+
+      - Every day 
+      - Every Saturday 
+      - Last day of the month
+
+      .. example:: 
+         
+         For this tutorial, select :guilabel:`Daily` from the 
+         :guilabel:`Snapshot Schedule` dropdown if you don't have a 
+         backup schedule yet. If you have a backup schedule, the 
+         available options are based on the schedule you have set for 
+         your backup schedule.
+
+   .. step:: Specify fields in your collection to create partitions.
+
+      Enter the most commonly queried fields from the collection in the 
+      :guilabel:`Partition Attributes` section. To specify nested 
+      fields, use the :manual:`dot notation 
+      </core/document/#dot-notation>`. Do not include quotes (``""``) 
+      around nested fields that you specify using :manual:`dot notation 
+      </core/document/#dot-notation>`. You can't specify fields inside 
+      an array. The specified fields are used to partition your data. 
+
+      The most frequently queried fields should be listed towards the 
+      top because they will have a larger impact on performance and c
+      ost than fields listed lower down the list. The order of fields 
+      is important in the same way as it is for :manual:`Compound 
+      Indexes </core/index-compound/>`. Data is optimized for queries 
+      by the first field, followed by the second field, and so on. 
+
+      .. example:: 
+         
+         Enter ``year`` in the :guilabel:`Most commonly queried field` 
+         field and ``title`` in the :guilabel:`Second most commonly 
+         queried field` field. 
+
+         {+adl+} optimizes performance for the ``year`` field, followed 
+         by the ``title`` field. If you configure a {+fdi+} for your 
+         {+dl+} dataset, {+adf+} optimizes performance for queries on 
+         the following fields:
+
+         - the ``year`` field,
+         - the ``title`` field, and 
+         - the ``year`` field and the ``title`` field.
+
+         {+adf+} can also supports a query on the ``title`` field only. 
+         However, in this case, {+adf+} wouldn't be as efficient in 
+         supporting the query as it would be if the query were on the 
+         ``title`` field only. Performance is optimized in order; if a 
+         query omits a particular partition, {+adf+} is less efficient 
+         in making use of any partitions that follow that.  
+  
+         You can run {+adf+} queries on fields not specified here, but 
+         {+adl+} is less efficient in processing such queries.
+
+   .. step:: (Optional) Specify fields inside your documents to exclude.
+
+      By default, {+adl+} extracts and stores all fields inside the 
+      documents in your collection. To specify fields to exclude: 
+
+      a. Click :guilabel:`Add Field`.
+      #. Enter field name in the :guilabel:`Add Transformation Field 
+         Name` window.
+
+         .. example:: 
+            
+            (Optional) Enter ``fullplot`` to exclude the field named 
+            ``fullplot`` in the ``movies`` collection. 
+
+      #. Click :guilabel:`Done`.
+      #. Repeat steps for each field you wish to exclude. To remove a 
+         field from this list, click :icon:`trash-alt`.
+
+   .. step:: Click :guilabel:`Finish` to create the {+dl+}.
+
+Next steps 
+----------
+
+Now that you've created your {+dl+} pipeline, proceed to 
+:ref:`adl-create-federated-db`.

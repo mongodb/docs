@@ -17,137 +17,91 @@
 
 .. _atlas-data-lake-about:
 
-About |service| |data-lake|
----------------------------
+About {+adl+}
+---------------------
 
-MongoDB |service| |data-lake| allows you to natively query, transform, 
-and move data across |aws| |s3| and MongoDB |service| clusters. You can 
-query your richly structured data stored in |json|, |bson|, CSV, TSV, 
-Avro, ORC, and Parquet formats using the |mongo| shell, :dl:`MongoDB 
-Compass <compass>`, or any :driver:`MongoDB driver </>`.
+MongoDB {+adl+} is now an analytic-optimized object storage service for 
+extracted data. {+adl+} provides an analytic storage service optimized 
+for flat or nested data with low latency query performance.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+{+adl+} requires an ``M10`` or higher backup-enabled |service| cluster 
+with cloud backup jobs running on a specified cadence. To learn more 
+about cloud backups, see :atlas:`Back Up Your Database Deployment 
+</backup/cloud-backup/overview/>`.
+
+Supported Types of Data Source 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+adl+} supports collection snapshots from |service| clusters as a data 
+source for extracted data. {+adl+} automatically extracts data from the 
+snapshots, and partitions and stores data in an analytics-optimized 
+format.
 
 Sample Uses 
 -----------
 
 You can use {+adl+} to: 
 
-- Convert richly structured MongoDB data into columnar Parquet or CSV 
-  files.
-- `Query across multiple Atlas clusters <https://developer.mongodb.com/how-to/query-multiple-databases-with-atlas-data-lake/?tck=featlearn>`__ 
-  to get a holistic view of your data.
-- Materialize aggregations from MongoDB or |s3| data.
-- Automatically import data from your |s3| bucket into an |service| 
-  cluster.
-
-|data-lake| Access 
-------------------
-
-When you create a |data-lake|, you grant |service| either read only or 
-read and write access to |s3| buckets in your |aws| account. To access 
-your |service| clusters, |service| uses your existing :manual:`Role 
-Based Access Controls</core/authorization>`. You can view and edit the 
-generated data storage :ref:`configuration 
-<datalake-configuration-file>` that maps data from your |s3| buckets 
-and |service| clusters to virtual databases and collections.
-
-A database user must have one of the following roles to query an 
-|service| |data-lake|:
-
-- :atlas:`readWriteAnyDatabase </security-add-mongodb-users/#readWriteAnyDatabase>`
-
-- :atlas:`readAnyDatabase </security-add-mongodb-users/#readAnyDatabase>`
-
-- A :atlas:`custom role </security-add-mongodb-roles/>` with the  
-  :manual:`find </reference/privilege-actions/>` privilege
-
-.. _atlas-data-lake-actions:
-
-Privilege Actions 
------------------
-
-Privilege actions define the operations that you can perform on your 
-{+dl+}. You can grant the following {+adl+} privileges: 
-
-- When you :atlas:`create or modify </security-add-mongodb-roles/>` 
-  custom roles from the |service| User Interface
-- In the ``actions.action`` request body parameter when you 
-  :atlas:`create </reference/api/custom-roles-create-a-role/>` or 
-  :atlas:`update </reference/api/custom-roles-update-a-role/>` a custom 
-  role from the |service| |api|
-
-.. authaction:: sqlGetSchema
-
-   Retrieve the schema stored for a collection or view using 
-   the :ref:`sqlgetschema-cmd` command. 
-
-.. authaction:: sqlSetSchema
-
-   Set or delete the schema for a collection or view using the 
-   :ref:`sqlsetschema-cmd` command.
-
-.. authaction:: viewAllHistory 
-
-   Retrieve details about the queries that were run in the past 
-   24 hours using :ref:`$queryHistory <adl-query-history-stage>`.
-
-.. authaction:: outToS3
-
-   Write data from any one of the :ref:`supported 
-   <datalake-configuration-file-overview>` {+data-lake-stores+} or 
-   multiple :ref:`supported <datalake-configuration-file-overview>` 
-   {+data-lake-stores+} to your |s3| bucket using :ref:`adl-out-stage`.
-
-.. authaction:: storageGetConfig 
-
-   Retrieve your {+dl+} :ref:`storage configuration 
-   <datalake-configuration-file>` using the :ref:`storageGetConfig 
-   <datalake-getstorageconfig>` command.
-
-.. authaction:: storageSetConfig 
-
-   Set or update your {+dl+} :ref:`storage configuration 
-   <datalake-configuration-file>` using the :ref:`storageSetConfig 
-   <datalake-setstorageconfig>` command.
-
-Authentication Options 
-----------------------
-
-|data-lake| uses :manual:`SCRAM-SHA </core/security-scram/>` or
-:ref:`x509 <self-managed-x509-adl>` for authentication. It doesn't
-support :atlas:`LDAP </security-ldaps/>`.
+- Isolate analytical workloads from your operational cluster.
+- Provide a consistent view of cluster data from a snapshot for long 
+  running aggregations using ``$out``.
+- Query and compare across versions of your cluster data at different 
+  points in time.
 
 .. _atlas-data-lake-regions:
 
 {+adl+} Regions 
 -----------------------
 
-.. note::
-
-   To prevent excessive charges on your bill, create your |service|
-   |data-lake| in the same |aws| region as your |s3| data source.
-
-{+adl+} routes your {+dl+} requests through one of the following 
-regions:
+{+adl+} provides optimized storage in the following |aws| regions:
 
 .. include:: /includes/list-table-supported-aws-regions.rst
 
-.. note::
+{+adl+} automatically selects the region closest to your |service| 
+cluster for storing extracted data. 
 
-   You will incur charges when running {+data-lake+} queries. For more
-   information, see :ref:`atlas-data-lake-billing`.
+Billing 
+-------
+
+You incur {+adl+} charges per GB per month based on the |aws| region 
+where the extracted data is stored. You incur {+adl+} costs for the 
+following items:
+
+- Extraction of data from your data source
+- Storage on the cloud object storage
+
+Extraction Costs 
+~~~~~~~~~~~~~~~~
+
+{+adl+} charges you for the resources utilized to extract, upload, and 
+transfer data. {+adl+} charges for the :atlas:`snapshot export 
+</backup/cloud-backup/export/>` operations is based on the following: 
+
+- Cost per GB for snapshot extraction 
+- Cost per hour on the |aws| server for snapshot export download 
+- Cost per GB per hour for snapshot export restore storage
+- Cost per |iops| per hour for snapshot export storage |iops|
+
+Storage Costs 
+~~~~~~~~~~~~~
+
+{+adl+} charges for storing and accessing stored data is based on the 
+following:
+
+- Cost per GB per day 
+- Cost for every one thousand storage access requests, where each 
+  access request is a dataset partition being processed
+
+To learn more, see the |service-pricing|. 
 
 .. toctree::
    :titlesonly:
    :hidden:
 
-   /tutorial/getting-started
-   /deployment/deploy-adl
-   /config/config-data-lake
-   /administration
-   /query/query-data-lake
-   /tutorials
-   /reference
-   /supported-unsupported
-   /supported-unsupported/limitations
-   /billing
+   /get-started
+   Manage Data Lake Pipeline </manage-adl-dataset-pipeline>
+   /limitations
    /release-notes/data-lake

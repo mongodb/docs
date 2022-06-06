@@ -1,0 +1,244 @@
+.. _adl-create-federated-db:
+
+=====================================================
+Set Up a {+fdi+} for Your Dataset 
+=====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page guides you through the steps for creating a federated 
+database instance for you {+dl+} dataset.
+
+Prerequisites 
+-------------
+
+Before you begin, you must have the following: 
+
+- An {+adl+} dataset in the same project where you intend to create the 
+  federated database instance.
+- :authrole:`Project Owner` role for the project where you want to 
+  create the federated database instance.
+
+Procedure 
+---------
+
+.. procedure:: 
+
+   .. step:: Navigate to {+adf+} in the |service| UI. 
+
+      .. include:: /includes/extracts/ui-nav-adf.rst 
+
+   .. step:: Click :guilabel:`Create Federated Database`.
+
+   .. step:: Select the configuration method. 
+
+      - For a guided experience, enable :guilabel:`Visual Editor`. (Default)
+      - To edit the raw |json|, disable :guilabel:`Visual Editor`.
+
+   .. step:: Create virtual databases, collections, and views and map them to your {+dl+} dataset.
+
+      Follow the steps in the tab below for your preferred Editor view 
+      in the UI.
+
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: visual
+
+            a. (Optional) Click the :icon-fa4:`pencil` for the:
+  
+               - :guilabel:`Federated Database Instance` to specify a 
+                 name for your federated database instance. Defaults to 
+                 ``FederatedDatabaseInstance[n]``. 
+
+               - Database to edit the database name. Defaults to 
+                 ``Database[n]``. 
+
+                 Corresponds to ``databases.[n].name`` |json| 
+                 configuration setting.
+          
+               - Collection to edit the collection name. Defaults to 
+                 ``Collection[n]``. 
+       
+                 Corresponds to ``databases.[n].collections.name`` 
+                 |json| configuration setting.
+     
+               - View to edit the view name. 
+            
+               You can click: 
+     
+               - :guilabel:`Add Database` to add databases and 
+                 collections. 
+               - :icon-fa4:`plus` associated with the database to 
+                 add collections to the database. 
+               - :icon-fa4:`plus` associated with the collection to 
+                 add :manual:`views </core/views/>` on the 
+                 collection. To create a view, you must specify: 
+       
+                 - The name of the view.
+                 - The :manual:`pipeline </core/aggregation-pipeline/#std-label-aggregation-pipeline>` 
+                   to apply to the view.
+
+                   .. note:: 
+
+                      The view definition pipeline can't include the 
+                      ``$out`` or the ``$merge`` stage. If the view 
+                      definition includes nested pipeline stages such 
+                      as ``$lookup`` or ``$facet``, this restriction 
+                      applies to those nested pipelines as well.
+
+                   To learn more about views, see: 
+
+                   - :manual:`Views </core/views/>`
+                   - :manual:`db.createView </reference/method/db.createView/>`
+               
+                 - :icon-fa4:`trash-o` associated with the database, 
+                   collection, or view to remove it.
+
+               .. note:: 
+
+                  The :ref:`sample queries <adl-run-queries>` that you 
+                  can run later in this tutorial use the names 
+                  ``Database0`` for the virtual database name and 
+                  ``Collection0`` for the virtual collection name. If 
+                  you modify the names here, make sure to modify the 
+                  names in the sample queries also before you run them.
+
+            #. Drag and drop the :guilabel:`Data Lake Dataset` to map  
+               with the collection.
+
+               .. example:: 
+                 
+                  If you are creating a federated database instance for 
+                  the {+adl+} dataset that you created for the sample 
+                  data using the examples in :ref:`adl-add-pipeline`: 
+                  
+                  i. Under :guilabel:`Datasets`, select 
+                     :guilabel:`Ingestion Pipeline` from the dropdown 
+                     if it isn't already selected. 
+                  #. Under :guilabel:`Data Lake Dataset` section, drag 
+                     the dataset named ``sample_mflix.movies`` and drop 
+                     it under the collection.
+             
+               Corresponds to 
+               ``databases.[n].collections.[n].dataSources`` |json| 
+               configuration setting.
+
+         .. tab:: JSON Editor 
+            :tabid: json
+
+            a. Define your dataset as a data store in your {+fdi+} 
+               storage configuration.
+
+               Edit the |json| configuration settings shown in the UI 
+               for ``stores``. Your ``stores`` cofiguration setting 
+               should resemble the following:
+
+               .. code-block:: json 
+
+                  {
+                    "stores": [
+                      {
+                        "name": "<store-name>",
+                        "provider": "<cloud-storage-provider-name>",
+                        "region": "<cloud-storage-provider-region>"
+                      }
+                    ]
+                  }
+
+               To learn more about these settings, see :atlas:`Storage 
+               Configuration For Atlas Data Lake Datasets 
+               </data-federation/config/config-adl-datasets/#stores>`.
+
+               .. example:: 
+                 
+                  If you are creating a federated database instance for 
+                  the {+adl+} pipeline that you created for the sample 
+                  data using the examples in :ref:`adl-add-pipeline`, 
+                  replace the ``stores`` in the |json| configuration 
+                  settings shown in the UI with the following: 
+
+                  .. code-block:: json 
+
+                     {
+                       "stores": [
+                         {
+                           "name": "dls-store-us-east-1",
+                           "provider": "dls:aws",
+                           "region": "US_EAST_1"
+                         }
+                       ]
+                     }
+
+            #. Define virtual databases, collections, and views for 
+               your dataset in the {+adf+} storage configuration.
+
+               .. code-block:: json 
+
+                  {
+                    "databases": [
+                      {
+                        "name": "<database-name>",
+                        "collections": [
+                          {
+                            "name": "<collection-name>",
+                            "dataSources": [
+                              {
+                                "storeName": "<store-name>",
+                                "datasetName": "<snapshot-name>"
+                              }
+                            ]
+                          }
+                        ],
+                        "views": []
+                      }
+                    ]
+                  }
+
+               To learn more about these settings, see :atlas:`Storage 
+               Configuration For Atlas Data Lake Datasets 
+               </data-federation/config/config-adl-datasets/#databases>`.
+
+               .. example:: 
+                 
+                  If you are creating a federated database instance for 
+                  the {+adl+} dataset that you created for the sample 
+                  data using the examples in :ref:`adl-add-pipeline`, 
+                  replace the ``databases`` in the |json| configuration 
+                  settings shown in the UI with the following:
+
+                  .. code-block:: json 
+
+                     {
+                       "databases": [
+                         {
+                           "name": "Database0",
+                           "collections": [
+                             {
+                               "name": "Collection0",
+                               "dataSources": [
+                                 {
+                                   "storeName": "dls-store-us-east-1",
+                                   "datasetName": "v1$atlas$snapshot$dlsTest$sample_mflix$movies$$.<snapshot-id>"
+                                 }
+                               ]
+                             }
+                           ],
+                           "views": []
+                         }
+                       ]
+                     }
+
+   .. step:: Click :guilabel:`Save` to create the federated database instance with virtual databases, collections, and views mapped to your {+dl+} dataset.
+
+Next Steps 
+----------
+
+Now that you've created a federated database instance for your {+dl+} 
+dataset, proceed to :ref:`adl-connect-federated-db-instance`.
