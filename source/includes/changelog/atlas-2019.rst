@@ -184,7 +184,7 @@
 
   - Requires MongoDB 4.2.
 
-- Introduces :adl:`{+data-lake+} </>` on-demand query service.
+- Introduces {+adf+} on-demand query service.
 
 - Supports :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
   for 4.2 replica sets.

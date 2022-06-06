@@ -404,13 +404,14 @@ Filter by event
           - Test of primary failover requested
           - Value is no longer anomalous
   
-      * - Data Lake
-        - Events related to `Atlas Datalake <https://www.mongodb.com/docs/datalake/>`__:
+      * - {+df+}
+        - Events related to :ref:`Atlas Data Federation 
+          <atlas-data-federation>`:
 
-          - Data Lake tenant removed
-          - Data Lake tenant updated
-          - New Data Lake tenant created
-          - Query logs downloaded for Data Lake Tenant
+          - Data Federation tenant removed
+          - Data Federation tenant updated
+          - New Data Federation tenant created
+          - Query logs downloaded for Data Federation Tenant
 
 
       * - Maintenance

@@ -1,0 +1,283 @@
+.. _adf-configuration-file-adl:
+
+========================
+{+adl+} Datasets
+========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+adf+} supports {+adl+} datasets as {+fdi+} stores. You must define 
+mappings in your {+fdi+} storage configuration to your {+dl+} dataset 
+to run queries against your data.
+
+.. important:: 
+
+   Information in your storage configuration is visible internally at 
+   MongoDB and stored as operational data to monitor and improve the 
+   performance of {+adf+}. We recommend that you don't use :abbr:`PII 
+   (Personally Identifiable Information)` in your configurations.
+
+Example Configuration for {+adl+} Data Store 
+----------------------------------------------------
+
+.. example:: 
+
+   Consider an {+adl+} pipeline named ``myDataCenter`` containing 
+   snapshot data from the ``metrics.hardware`` collection. The 
+   ``metrics.hardware`` collection contains JSON documents with metrics 
+   derived from the hardware in a datacenter. The following 
+   configuration:
+
+   - Specifies the cloud storage provider ``dls:aws`` and the provider 
+     region ``us-east-1`` as a {+fdi+} store.
+   - Maps documents from the snapshots of ``metrics.hardware`` 
+     collection on the |service| cluster name ``dlsTest`` to the 
+     ``dataCenter.inventory`` collection in the storage configuration. 
+     For example, when the {+adl+} pipeline runs on May 5, 2022 at 
+     02:00:10 UTC, {+adl+} creates a dataset with the dataset name 
+     ``v1$atlas$snapshot$dlsTest$metrics$hardware$20220510T020010Z``.
+
+   .. code-block:: json 
+
+      {
+        "stores": [
+          {
+            "name": "adlStore",
+            "provider": "dls:aws",
+            "region": "us-east-1"
+          }
+        ],
+        "databases": [
+          {
+            "name": "datacenter",
+            "collections": [
+              {
+                "name": "inventory",
+                "dataSources": [
+                  {
+                    "storeName": "adlStore",
+                    "datasetName": "v1$atlas$snapshot$dlsTest$metrics$hardware$20220510T020010Z"
+                  }
+                ]
+              }
+            ],
+            "views": []
+          }
+        ]
+      }
+
+   {+adf+} maps all the documents in the snapshots to the 
+   ``dataCenter.inventory`` collection in the storage configuration. 
+
+   Users connected to the {+fdi+} can use the MongoDB Query Language 
+   and supported aggregations to query historical data in the snapshot 
+   through the ``datacenter.inventory`` collection. When you run 
+   queries, the query first goes to {+adf+}. Therefore, if you run 
+   aggregation queries that are supported by your |service| cluster but 
+   not by {+adf+}, the queries will fail. To learn more about supported 
+   and unsupported commands in {+df+}, see :ref:`adf-mql-support`.
+
+.. _adf-adl-configuration-format:
+
+Configuration Format
+--------------------
+
+The {+fdi+} configuration for an {+adl+} dataset has the following 
+format:
+
+.. literalinclude:: /includes/data-federation/adl-config-format.json
+   :language: json
+   :linenos:
+
+.. _adf-adl-stores-reference:
+
+``stores``
+~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/adl-stores-config-format.json 
+   :language: json
+   :linenos:
+
+.. datalakeconf-adl:: stores
+
+   Array of objects where each object represents a data store to 
+   associate with the {+fdi+}. The {+fdi+} store references files in an 
+   |s3| bucket, documents in an |service| cluster, files stored at 
+   publicly accessible |url|\s, or {+adl+} datasets. {+adf+} can only 
+   access data stores defined in the ``stores`` object.
+
+.. datalakeconf-adl:: stores.[n].name
+
+   Name of the {+fdi+} store. The :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].storeName`
+   field references this value as part of mapping configuration.
+
+.. datalakeconf-adl:: stores.[n].provider
+
+   Cloud provider where the snapshot data is stored. Value must be 
+   ``dls:<subtype>`` for a snapshot. {+adf+} only supports ``aws`` as 
+   subtype. Therefore, this value must be ``dls:aws``.
+
+.. datalakeconf-adl:: stores.[n].region
+
+   Region name of your {+dl+}. Each store is associated with a single 
+   region, where both the metadata and snapshot data are stored. If you 
+   have multiple datasets in different regions, you must add a store 
+   for each region to map data in that region to virtual databases and 
+   collection in {+fdi+}.
+
+.. _adf-adl-databases-reference:
+
+``databases``
+~~~~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/adl-databases-config-format.json 
+   :language: json
+   :linenos:
+
+.. datalakeconf-adl:: databases
+
+   Array of objects that define the mapping between each {+fdi+} 
+   store defined in ``stores`` and {+adl+} datasets. Each object 
+   represents a database, its collections, and, optionally, any 
+   :manual:`views </core/views/>` on the collections. Each database can 
+   have multiple ``collections`` and ``views`` objects.
+
+.. datalakeconf-adl:: databases.[n].name
+
+   Name of the database to which {+adf+} maps the data contained in the 
+   data store. 
+
+.. datalakeconf-adl:: databases.[n].collections
+
+   Array of objects where each object represents a collection and data 
+   sources that map to a :datalakeconf-adl:`stores` {+fdi+} store. 
+
+.. datalakeconf-adl:: databases.[n].collections.name
+
+   Name of the collection to which {+adf+} maps the data contained in 
+   each :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].storeName`. 
+   Each object in the array represents the mapping between the 
+   collection and an object in the :datalakeconf-adl:`stores` array. 
+
+   You can generate collection names dynamically by specifying ``*`` 
+   for the collection name. To dynamically generate collection names, 
+   you must also specify the following: 
+
+   - :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].datasetPrefix`
+   - :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].trimLevel`
+
+   For wildcard collections, {+adf+} maps a dataset name to a 
+   collection name first by splitting the :manual:`namespace 
+   </reference/limits/#namespaces>` into a list of fields on the ``$`` 
+   delimiter, then by trimming a number of fields from the left of the 
+   list, and finally by combining the remaining fields using ``_``. 
+
+.. datalakeconf-adl:: databases.[n].collections.[n].dataSources 
+
+   Array of objects where each object represents a {+fdi+} store in the 
+   :datalakeconf-adl:`stores` array to map with the collection. You can 
+   specify multiple ``dataSources`` for a wildcard collection only if 
+   all the ``dataSources`` for the collection map to {+adl+} dataset 
+   :datalakeconf-adl:`stores`.
+
+.. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].storeName
+
+   Name of a {+fdi+} store to map to the ``<collection>``. Must match 
+   the :datalakeconf-adl:`~stores.[n].name` of an object in the 
+   :datalakeconf-adl:`stores` array. 
+
+.. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].datasetName 
+
+   Name of the {+adl+} dataset to map with the collection. The 
+   {+adl+} ``datasetName`` is in the following format: 
+
+   .. code-block:: 
+
+      <version>$<type>$<subtype>$<clusterName>$<dbName>$<collectionName>$<snapshotId>
+
+   .. example:: 
+
+      Consider the following {+adl+} dataset name.
+
+      .. code-block:: 
+
+         v1$atlas$snapshot$clusterName$dbName$collectionName$snapshotId
+   
+      Here: 
+
+      - ``v1`` is the version 
+      - ``atlas`` is the type of data source
+      - ``snapshot`` is the subtype
+      - ``clusterName`` is the name of the |service| cluster 
+      - ``dbName`` is the name of the database on the |service| cluster 
+      - ``collectionName`` is the collection in the database 
+      - ``snapshotId`` is the unique identifier of the snapshot of the 
+        data in the collection
+
+.. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].datasetPrefix 
+
+   Dataset name prefix to match against {+adl+} dataset names. You can 
+   set this setting for wildcard collections only. If specified, 
+   {+adf+} maps collections to only the dataset names whose prefix 
+   match the value specified here.
+
+.. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].trimLevel
+
+   Unsigned integer that specifies how many fields of the dataset name 
+   to trim from the left of the dataset name before mapping the 
+   remaining fields to a wildcard collection name. Value must be 
+   greater than ``0``. You can set this setting for wildcard 
+   collections only. 
+
+   .. example:: 
+
+      Consider the following {+adl+} dataset name: 
+
+      .. code-block:: sh 
+         :copyable: false 
+
+         v1$atlas$snapshot$MyCluster$MyDB$MyCollection$snapshotDate
+
+      {+adf+} dynamically generates the following collection names for 
+      different trim levels: 
+
+      .. list-table::
+         :header-rows: 1 
+         :widths: 10 90
+      
+         * - Trim Level
+           - Collection Name
+
+         * - ``5``
+           - ``MyCollection_snapshotDate``
+
+         * - ``4``
+           - ``MyDB_MyCollection_snapshotDate``
+         
+         * - ``3``
+           - ``MyCluster_MyDB_MyCollection_snapshotDate``
+         
+         * - ``2``
+           - ``snapshot_MyCluster_MyDB_MyCollection_snapshotDate``
+         
+         * - ``1``
+           - ``atlas_snapshot_atlas_MyCluster_MyDB_MyCollection_snapshotDate``
+         
+         * - ``0``
+           - ``v1_atlas_snapshot_atlas_MyCluster_MyDB_MyCollection_snapshotDate``
+         
+   You can't configure this setting using the Visual Editor in the 
+   |service| UI. Therefore, this setting defaults to trim level ``5`` 
+   for configurations using the Visual Editor.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /data-federation/deployment/deploy-adl

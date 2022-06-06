@@ -1,0 +1,269 @@
+.. _adf-configuration-file-http:
+
+========
+HTTP URL
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+adf+} supports publicly accessible |url|\s as {+fdi+} stores. You 
+must define mappings in your {+fdi+} to your |http| data stores to run 
+queries against your data.
+
+.. important:: 
+
+   Information in your storage configuration is visible internally at 
+   MongoDB and stored as operational data to monitor and improve the 
+   performance of {+adf+}. So, we recommend that you do not use 
+   :abbr:`PII (Personally Identifiable Information)` in your 
+   configurations.
+
+Example Configuration for HTTP Data Store 
+-----------------------------------------
+
+.. include:: /includes/extracts/fact-http-beta-message.rst 
+
+Consider |url|\s ``https://www.datacenter-hardware.com/data.json``, 
+``https://www.datacenter-software.com/data.json``, and
+``https://www.datacenter-metrics.com/data.json`` containing data 
+collected from a datacenter. The following configuration:
+
+- Specifies the publicly accessible URLs that contain data in files as 
+  a {+fdi+} store. 
+- Creates a partition for each |url|.
+
+.. code-block:: json 
+
+   {
+     "stores" : [
+       {
+         "name" : "httpStore",
+         "provider" : "http",
+         "allowInsecure" : false,
+         "urls" : [
+           "https://www.datacenter-hardware.com/data.json",
+           "https://www.datacenter-software.com/data.json"
+         ],
+         "defaultFormat" : ".json"
+       }
+     ],
+     "databases" : [ 
+       {
+         "name" : "dataCenter", 
+         "collections" : [
+           {
+             "name" : "inventory",
+             "dataSources" : [
+               {
+                 "storeName" : "httpStore",
+                 "allowInsecure" : false,
+                 "urls" : [
+                   "https://www.datacenter-metrics.com/data"
+                 ],
+                 "defaultFormat" : ".json"
+               }
+             ]
+           }
+         ]
+       }
+     ]
+   }
+
+.. seealso:: 
+
+   :ref:`query-http`
+
+.. _adf-http-configuration-format:
+
+Configuration Format
+--------------------
+
+The {+fdi+} configuration has the following format:
+
+.. literalinclude:: /includes/data-federation/http-config-format.json
+   :language: json
+   :linenos:
+
+:ref:`adf-http-stores-reference`
+  The ``stores`` object defines each data store associated with the 
+  {+fdi+}. The {+fdi+} store captures files stored at publicly 
+  accessible |url|\s. {+df+} can only access data stores defined in 
+  the ``stores`` object.
+
+:ref:`adf-http-databases-reference`
+  The ``databases`` object defines the mapping between each
+  {+fdi+} store defined in ``stores`` and MongoDB collections 
+  in the databases. 
+
+.. _adf-http-stores-reference:
+
+``stores``
+~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/http-stores-config-format.json
+   :language: json
+   :linenos:
+
+.. datalakeconf-http:: stores
+
+   Array of objects where each object represents a data store to 
+   associate with the {+fdi+}. The {+fdi+} store captures files in an 
+   |s3| bucket, documents in |service| cluster, or files stored at 
+   publicly accessible |url|\s. {+adf+} can only access data stores 
+   defined in the ``stores`` object.
+
+.. datalakeconf-http:: stores.[n].name
+
+   Name of the {+fdi+} store. The :datalakeconf-http:`databases.[n].collections.[n].dataSources.[n].storeName`
+   field references this value as part of mapping configuration.
+
+   .. include:: /includes/data-federation/fact-atlas-data-source.rst
+
+.. datalakeconf-http:: stores.[n].provider
+
+   Defines where the data is stored. Value can be one of the following: 
+   
+   - ``s3`` for an |aws| |s3| bucket.
+   - ``atlas`` for a collection in an |service| cluster.
+   - ``http`` for data in files hosted at publicly accessible |url|\s.
+
+.. datalakeconf-http:: stores.[n].allowInsecure 
+
+   .. include:: /includes/extracts/param-allow-insecure.rst
+
+.. datalakeconf-http:: stores.[n].urls
+
+   *Optional.* Comma-separated list of publicly accessible |http| 
+   |url|\s where data is stored. You can't specify |url|\s that require 
+   authentication. If empty or omitted, the :ref:`storageGenerateConfig 
+   <adf-storagegenconfig>` command will not generate any virtual 
+   {+fdi+} databases or collections that reference the {+fdi+} store.
+
+.. datalakeconf-http:: stores.[n].defaultFormat
+      
+   .. include:: /includes/extracts/param-default-format.rst
+
+   The specified format only applies to the |url|\s specified in the 
+   :datalakeconf-http:`stores` object.
+
+   .. seealso:: 
+
+      :ref:`adf-data-formats`
+
+.. _adf-http-databases-reference:
+
+``databases``
+~~~~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/http-databases-config-format.json
+   :language: json
+   :linenos:
+
+.. datalakeconf-http:: databases
+
+   Array of objects where each object represents a database, its 
+   collections, and, optionally, any :manual:`views </core/views/>` on 
+   the collections. Each database can have multiple ``collections`` and 
+   ``views`` objects.
+
+.. datalakeconf-http:: databases.[n].name
+
+   Name of the database to which {+adf+} maps the data contained in the 
+   data store.  
+
+.. datalakeconf-http:: databases.[n].collections
+
+   Array of objects where each object represents a collection and data 
+   sources that map to a :datalakeconf-http:`stores` {+fdi+} store. 
+   For dynamically generated databases, you can define only one 
+   wildcard (``*``) collection object in the storage configuration.
+
+.. datalakeconf-http:: databases.[n].collections.name
+
+   Name of the collection to which {+adf+} maps the data contained in 
+   each :datalakeconf-http:`databases.[n].collections.[n].dataSources.[n].storeName`. 
+   Each object in the array represents the mapping between the 
+   collection and an object in the :datalakeconf-http:`stores` array. 
+
+   .. note::
+
+      You can't generate wildcard ``*`` collections.
+
+.. datalakeconf-http:: databases.[n].collections.[n].dataSources 
+
+   Array of objects where each object represents a 
+   :datalakeconf-http:`stores` {+fdi+} store to map with the 
+   collection.
+
+.. datalakeconf-http:: databases.[n].collections.[n].dataSources.[n].storeName
+
+   Name of a {+fdi+} store to map to the ``<collection>``. 
+   Must match the :datalakeconf-http:`~stores.[n].name` of an object in 
+   the :datalakeconf-http:`stores` array. 
+
+.. datalakeconf-http:: databases.[n].collections.[n].dataSources.[n].allowInsecure 
+
+   .. include:: /includes/extracts/param-allow-insecure.rst
+
+.. datalakeconf-http:: databases.[n].collections.[n].dataSources.[n].urls 
+
+   *Optional*. Comma-separated list of publicly accessible |url|\s 
+   where the data is stored. {+FDI+} creates a partition for each 
+   |url|. You can specify |url|\s that are not in the 
+   :datalakeconf-http:`~stores.[n].urls`; however, the collection will 
+   contain a union of data from |url|\s in both the 
+   :datalakeconf-http:`~stores.[n].urls` and 
+   :datalakeconf-http:`~databases.[n].collections.[n].dataSources.[n].urls`. 
+   If omitted, {+df+} uses the :datalakeconf-http:`~stores.[n].urls` in 
+   the specified :datalakeconf-http:`~databases.[n].collections.[n].dataSources.[n].storeName`.
+
+.. datalakeconf-http:: databases.[n].collections.[n].dataSources.[n].defaultFormat
+      
+   .. include:: /includes/extracts/param-default-format.rst
+
+   The specified format only applies to the |url|\s specified in the 
+   :datalakeconf-http:`databases.[n].collections.[n].dataSources` object.
+
+   .. seealso:: 
+
+      :ref:`adf-data-formats`
+
+.. datalakeconf-http:: databases.[n].views 
+
+   Array of objects where each object represents an 
+   :manual:`aggregation pipeline </core/aggregation-pipeline/#id1>` on 
+   a collection. To learn more about views, see :manual:`Views 
+   </core/views/>`.
+
+.. datalakeconf-http:: databases.[n].views.[n].name 
+
+   Name of the view. 
+
+.. datalakeconf-http:: databases.[n].views.[n].source 
+
+   Name of the source collection for the view.
+
+.. datalakeconf-http:: databases.[n].views.[n].pipeline 
+ 
+   :manual:`Aggregation pipeline stage(s) 
+   </core/aggregation-pipeline/#id1>` to apply to the 
+   :datalakeconf-http:`~databases.[n].views.[n].source` collection.
+
+.. seealso::
+
+   - :ref:`Configure Atlas Data Lake <config-adf>` 
+   - `Tutorial: Federated Queries and $out to S3 
+     <https://developer.mongodb.com/how-to/atlas-data-federation-federated-queries-out-aws-s3>`__
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /data-federation/deployment/deploy-http
+

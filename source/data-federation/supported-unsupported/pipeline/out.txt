@@ -1,0 +1,887 @@
+.. _adf-out-stage:
+
+========
+``$out``
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |out| replace:: :manual:`$out </reference/operator/aggregation/out>`
+.. |convert| replace:: :manual:`$convert </reference/operator/aggregation/convert>`
+
+
+|out| takes documents returned by the aggregation pipeline and writes
+them to a specified collection. The |out| operator must be the last
+stage in the :manual:`aggregation pipeline 
+</reference/operator/aggregation-pipeline/>`. In {+adf+}, you can use 
+|out| to write data from any one of the :ref:`supported 
+<config-adf>` {+fdi+} stores or multiple :ref:`supported <config-adf>` 
+{+fdi+} stores when using :ref:`federated queries <federated-queries>` 
+to any one of the following: 
+
+- |s3| buckets with read and write permissions
+- |service| cluster :manual:`namespace 
+  </reference/limits/#faq-dev-namespace>`
+  
+You must :ref:`connect <fdi-connect>` to your {+fdi+} to use |out|.
+
+.. tabs::
+
+   .. tab:: S3
+      :tabid: s3
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+
+.. _adf-out-stage-perms:
+
+Permissions Required
+--------------------
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
+      You must have:
+
+      - A {+fdi+} configured for |s3| bucket with read and write
+        permissions or :aws:`s3:PutObject 
+        </AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-objects>`
+        permissions.
+      - A MongoDB user with :atlas:`atlasAdmin 
+        </security-add-mongodb-users/#database-user-privileges>` 
+        role.
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+      .. note:: 
+
+         .. include:: /includes/data-federation/fact-out-stage-limitation.rst
+
+      You must be a database user with one of the following roles:
+
+      - :authrole:`readWriteAnyDatabase`
+      - :atlasrole:`atlasAdmin`
+      - A custom role with the following privileges:
+
+        - :manual:`insert </reference/privilege-actions/#insert>` and
+        - :manual:`remove </reference/privilege-actions/#remove>`
+
+.. _adf-out-stage-syntax:
+
+Syntax
+------
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
+      .. code-block:: json
+         :linenos:
+
+         {
+           "$out": {
+             "s3": {
+               "bucket": "<bucket-name>",
+               "region": "<aws-region>",
+               "filename": "<file-name>",
+               "format": {
+                 "name": "<file-format>",
+                 "maxFileSize": "<file-size>",
+                 "maxRowGroupSize": "<row-group-size>",
+                 "columnCompression": "<compression-type>"
+               },
+               "errorMode": "stop"|"continue"
+             }
+           }
+         }
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+      .. code-block:: json
+         :linenos:
+
+         {
+           "$out": {
+             "atlas": {
+               "projectId": "<atlas-project-ID>",
+               "clusterName": "<atlas-cluster-name>",
+               "db": "<atlas-database-name>",
+               "coll": "<atlas-collection-name>"
+             }
+           }
+         }
+
+.. _adf-out-stage-fields:
+
+Fields
+------
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 10 70 10
+
+         * - Field
+           - Type
+           - Description
+           - Necessity
+
+         * - ``s3``
+           - object
+           - Location to write the documents from the aggregation
+             pipeline.
+           - Required
+
+         * - ``s3.bucket``
+           - string
+           - Name of the |s3| bucket to write the documents from
+             the aggregation pipeline to.
+
+             .. important::
+
+                The generated call to |s3| inserts a ``/`` between
+                ``s3.bucket`` and ``s3.filename``. Don't append a
+                ``/`` after the ``s3.bucket``.
+
+                .. example::
+
+                   If you set ``s3.bucket`` to ``myBucket`` and
+                   ``s3.filename`` to ``myPath/myData``, {+adf+} writes
+                   this out as 
+                   ``s3://myBucket/myPath/myData.[n].json``.
+
+           - Required
+
+         * - ``s3.region``
+           - string
+           - Name of the |aws| region in which the bucket is hosted. If 
+             omitted, uses the {+fdi+} :ref:`configuration 
+             <config-adf>` to determine the region where the specified 
+             ``s3.bucket`` is hosted.
+           - Optional
+
+         * - ``s3.filename``
+           - string
+           - Name of the file to write the documents from the
+             aggregation pipeline to. Filename can be constant or
+             :ref:`created dynamically <adf-out-stage-egs>` from the
+             fields in the documents that reach the |out| stage. Any
+             filename expression you provide must evaluate to a
+             ``string`` data type. If there are any files on |s3| 
+             with the same name and path as the newly generated files, 
+             |out| overwrites the existing files with the newly 
+             generated files.
+
+             .. important::
+
+                The generated call to |s3| inserts a ``/`` between
+                ``s3.bucket`` and ``s3.filename``. Don't prepend a
+                ``/`` before the ``s3.filename``. If you set ``s3.
+                bucket`` to ``myBucket`` and ``s3.filename`` to 
+                ``myPath/myData``, {+adf+} writes this out as 
+                ``s3://myBucket/myPath/myData.[n].json``.
+
+           - Required
+
+         * - ``s3.format``
+           - object
+           - Details of the file in |s3|.
+           - Required
+
+         * - | ``s3``
+             | ``.format``
+             | ``.name``
+           - enum
+           - Format of the file in |s3|. Value can be one of the
+             following:
+
+             - ``bson``
+             - ``bson.gz``
+             - ``csv``
+             - ``csv.gz``
+             - ``json`` :sup:`1`
+             - ``json.gz`` :sup:`1`
+             - ``parquet``
+             - ``tsv``
+             - ``tsv.gz``
+
+             :sup:`1` For this format, |out| writes data in 
+             :manual:`MongoDB Extended JSON </reference/mongodb-extended-json/>` format.
+
+             .. seealso:: 
+             
+                :ref:`Limitations <adf-out-stage-limitations>` 
+
+           - Required
+
+         * - | ``s3``
+             | ``.format``
+             | ``.maxFileSize``
+           - bytes
+           - Maximum size of the file in |s3|. When the file size limit
+             for the current file is reached, a new file is created in
+             |s3|. The first file appends a ``1`` before the filename
+             extension. For each subsequent file, the {+adf+} increments
+             the appended number by one.
+
+             .. example::
+
+                ``<filename>.1.<fileformat>``
+
+                ``<filename>.2.<fileformat>``
+
+             If a document is larger than the ``maxFileSize``, {+df+}
+             writes the document to its own file. The following
+             suffixes are supported:
+
+             .. list-table::
+                :widths: 30 70
+
+                * - Base 10: scaling in multiples of 1000
+                  - - ``B``
+                    - ``KB``
+                    - ``MB``
+                    - ``GB``
+                    - ``TB``
+                    - ``PB``
+                * - Base 2: scaling in multiples of 1024
+                  - - ``KiB``
+                    - ``MiB``
+                    - ``GiB``
+                    - ``TiB``
+                    - ``PiB``
+
+             If omitted, defaults to ``200MiB``.
+
+           - Optional
+
+         * - | ``s3``
+             | ``.format``
+             | ``.maxRowGroupSize``
+           - string 
+           - Supported for Parquet file format only.
+
+             Maximum row group size to use when writing to Parquet 
+             file. If omitted, defaults to ``512 MB`` or the value of 
+             the ``s3.format.maxFileSize``, whichever is smaller. The 
+             maximum allowed value is ``1 GB``.
+           - Optional
+
+         * - | ``s3``
+             | ``.format``
+             | ``.columnCompression``
+           - string
+           - Supported for Parquet file format only.
+
+             Compression type to apply for compressing data inside a 
+             Parquet file when formatting the Parquet file. Valid 
+             values are: 
+
+             - ``gzip``
+             - ``snappy``
+             - ``uncompressed``
+
+             If omitted, defaults to ``snappy``. 
+             
+             .. seealso:: 
+             
+                :ref:`adf-data-formats`
+
+           - Optional
+
+         * - ``errorMode``
+           - enum
+           - Specifies how {+adf+} should proceed if there are errors 
+             when processing a document. For example, if {+adf+} 
+             encounters an array in a document when {+adf+} is writing 
+             to a CSV file, {+adf+} uses this value to determine 
+             whether or not to skip the document and process other 
+             documents. Valid values are: 
+
+             - ``continue`` to skip the document and continue 
+               processing the remaining documents. {+adf+} also writes 
+               the document that caused the error to an error file. 
+               
+               .. seealso:: 
+             
+                  :ref:`Errors <adf-out-stage-errors>`
+                
+             - ``stop`` to stop at that point and not process 
+               the remaining documents.
+
+             If omitted, defaults to ``continue``.
+
+           - Optional
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 10 10 70 10
+
+         * - Field
+           - Type
+           - Description
+           - Necessity
+
+         * - ``atlas``
+           - object
+           - Location to write the documents from the aggregation
+             pipeline.
+           - Required
+
+         * - ``clusterName``
+           - string
+           - Name of the |service| cluster.
+           - Required
+
+         * - ``coll``
+           - string
+           - Name of the collection on the |service| cluster.
+           - Required
+
+         * - ``db``
+           - string
+           - Name of the database on the |service| cluster that contains
+             the collection.
+           - Required
+
+         * - ``projectId``
+           - string
+           - Unique identifier of the project that contains the
+             |service| cluster. The project ID must be the ID of the
+             project that contains your {+fdi+}. If omitted, defaults to
+             the ID of the project that contains your {+fdi+}.
+           - Optional
+
+.. _adf-out-stage-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 60 10
+
+   * - Option
+     - Type
+     - Description 
+     - Necessity
+
+   * - ``background``
+     - boolean
+     - Flag to run aggregation operations in the background. If 
+       omitted, defaults to ``false``. When set to ``true``, {+adf+} 
+       runs the queries in the background. 
+
+       .. code-block:: json 
+          :copyable: false 
+
+          { "background" : true }
+       
+       Use this option if you want to submit other new queries without 
+       waiting for currently running queries to complete or disconnect 
+       your {+fdi+} connection while the queries continue to run in the 
+       background. 
+     
+     - Optional
+
+.. _adf-out-stage-egs:
+
+Examples
+--------
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
+      **Create a Filename**
+
+      The following examples show |out| syntaxes for dynamically
+      creating a filename from a constant string or from the fields of
+      the same or different data types in the documents that reach the
+      |out| stage.
+
+      *Simple String Example*
+
+      .. example::
+
+         You want to write 1 GiB of data as compressed |bson| files to
+         an |s3| bucket named ``my-s3-bucket``. 
+
+         Using the following |out| syntax:
+
+         .. code-block:: json
+            :linenos:
+
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "filename": "big_box_store/",
+                  "format": {
+                    "name": "bson.gz"
+                  }
+                }
+              }
+            }
+
+         The ``s3.region`` is omitted and so, {+df+} determines the 
+         region where the bucket named ``my-s3-bucket`` is hosted from 
+         the storage configuration. |out| writes five compressed |bson| 
+         files:
+
+         1. The first 200 MiB of data to a file that |out| names
+            ``big_box_store/1.bson.gz``.
+
+            .. note::
+
+               - The value of ``s3.filename`` serves as a constant in
+                 each filename. This value doesn't depend upon any
+                 document field or value.
+
+               - Your ``s3.filename`` ends with a delimiter, so {+adf+}
+                 appends the counter after the constant.
+
+               - If it didn't end with a delimiter, {+adf+} would have
+                 added a ``.`` between the constant and the counter,
+                 like ``big_box_store.1.bson.gz``
+
+               - As you didn't change the maximum file size using
+                 ``s3.format.maxFileSize``, {+adf+} uses the default
+                 value of 200 MiB.
+
+         2. The second 200 MiB of data to a new file that |out| names
+            ``big_box_store/2.bson.gz``.
+
+         3. Three more files that |out| names
+            ``big_box_store/3.bson.gz`` through
+            ``big_box_store/5.bson.gz``.
+
+      *Single Field from Documents*
+
+      .. example::
+
+         You want to write 90 MiB of data to |json| files to an |s3|
+         bucket named ``my-s3-bucket``.
+
+         Using the following |out| syntax:
+
+         .. code-block:: json
+            :linenos:
+
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {"$toString": "$sale-date"},
+                  "format": {
+                    "name": "json",
+                    "maxFileSize": "100MiB"
+                  }
+                }
+              }
+            }
+
+         |out| writes 90 MiB of data to |json| files in the root of the
+         bucket. Each |json| file contains all of the documents with the
+         same ``sale-date`` value. |out| names each file using the
+         documents' ``sale-date`` value converted to a string.
+
+      *Multiple Fields from Documents*
+
+      .. example::
+
+         You want to write 176 MiB of data as |bson| files to an |s3|
+         bucket named ``my-s3-bucket``.
+
+         Using the following |out| syntax:
+
+         .. code-block:: json
+            :linenos:
+
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {
+                    "$concat": [
+                      "persons/",
+                      "$name", "/",
+                      "$unique-id", "/"
+                    ]
+                  },
+                  "format": {
+                    "name": "bson",
+                    "maxFileSize": "200MiB"
+                  }
+                }
+              }
+            }
+
+         |out| writes 176 MiB of data to |bson| files. To name each
+         file, |out| concatenates:
+
+         - A constant string ``persons/`` and, from the documents:
+
+           - The string value of the ``name`` field,
+           - A forward slash (``/``), 
+           - The string value of the ``unique-id`` field, and
+           - A forward slash (``/``).
+
+         Each |bson| file contains all of the documents with the same
+         ``name`` and ``unique-id`` values. |out| names each file using
+         the documents' ``name`` and ``unique-id`` values.
+
+
+      *Multiple Types of Fields from Documents*
+
+      .. example::
+
+         You want to write 154 MiB of data as compressed |json| files
+         to an |s3| bucket named ``my-s3-bucket``.
+
+         Consider the following |out| syntax:
+
+         .. code-block:: json
+            :linenos:
+
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {
+                    "$concat": [
+                      "big-box-store/",
+                      {
+                        "$toString": "$store-number"
+                      }, "/",
+                      {
+                        "$toString": "$sale-date"
+                      }, "/",
+                      "$part-id", "/"
+                    ]
+                  },
+                  "format": {
+                    "name": "json.gz",
+                    "maxFileSize": "200MiB"
+                  }
+                }
+              }
+            }
+
+         |out| writes 154 MiB of data to compressed |json| files, where
+         each file contains all documents with the same 
+         ``store-number``, ``sale-date``, and ``part-id`` values.  To 
+         name each file, |out| concatenates:
+
+         - A constant string value of ``big-box-store/``,
+         - A string value of a unique store number in the
+           ``store-number`` field,
+         - A forward slash (``/``),
+         - A string value of the date from the ``sale-date`` field, 
+         - A forward slash (``/``), 
+         - A string value of part ID from the ``part-id`` field, and 
+         - A forward slash (``/``).
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+      **Write to Collection on Atlas Cluster**
+
+      This |out| syntax sends the aggregated data to a 
+      ``sampleDB.mySampleData`` collection in the |service| cluster 
+      named ``myTestCluster``. The syntax doesn't specify a project ID; 
+      |out| uses the ID of the project that contains your {+fdi+}.
+
+      .. example::
+
+         .. code-block:: json
+            :linenos:
+
+            {
+              "$out": {
+                "atlas": {
+                  "clusterName": "myTestCluster",
+                  "db": "sampleDB",
+                  "coll": "mySampleData"
+                }
+              }
+            }
+
+**Run Query in the background** 
+
+The following example shows |out| syntax for running an aggregation 
+pipeline that ends with the |out| stage in the background.
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
+      .. example::
+
+         .. code-block:: json 
+            :emphasize-lines: 13
+
+
+            db.mySampleData.aggregate(
+              [
+                { 
+                  "$out": { 
+                    "atlas": { 
+                      "clusterName":"myTestCluster", 
+                      "db":"sampleDB", 
+                      "coll":"mySampleData" 
+                    } 
+                  } 
+                }
+              ], 
+              { "background" : true }
+            )
+
+         |out| writes to |json| files in the root of the bucket in the 
+         background. Each |json| file contains all of the documents 
+         with the same ``sale-date`` value. |out| names each file using 
+         the documents' ``sale-date`` value converted to a string. 
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+      .. example:: 
+
+         .. code-block:: json 
+            :emphasize-lines: 9
+            
+            {
+              "$out": {
+                "atlas": {
+                  "clusterName": "myTestCluster",
+                  "db": "sampleDB",
+                  "coll": "mySampleData"
+                }
+              }
+            }, { background: true })
+
+         |out| writes to ``sampleDB.mySampleData`` collection in the 
+         |service| cluster named ``myTestCluster`` in the background.
+
+.. _adf-out-stage-limitations:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
+      **Limitations**
+
+      *String Data Type*
+
+      {+df+} interprets empty strings (``""``) as ``null`` values when
+      parsing filenames. If you want {+df+} to generate parseable
+      filenames, wrap the field references that could have ``null``
+      values using |convert| with an empty string ``onNull`` value.
+
+      .. example::
+
+         This example shows how to handle null values in the ``year``
+         field when creating a filename from the field value.
+
+         .. code-block:: json
+            :copyable: false
+            :linenos:
+
+            {
+              "$out": {
+                "s3": {
+                  "bucket": "my-s3-bucket",
+                  "region": "us-east-1",
+                  "filename": {
+                    "$concat": [
+                      "big-box-store/",
+                      {
+                        "$convert": {
+                          "input": "$year",
+                          "to": "string",
+                          "onNull": ""
+                        }
+                      }, "/"
+                    ]
+                  },
+                  "format": {
+                    "name": "json.gz",
+                    "maxFileSize": "200MiB"
+                  }
+                }
+              }
+            }
+
+      *CSV and TSV File Format*
+
+      When writing to CSV or TSV format, {+adf+} does not support the 
+      following data types in the documents: 
+
+      - Arrays 
+      - DB pointer 
+      - JavaScript 
+      - JavaScript code with scope
+      - Minimum or maximum key data type
+
+      In a CSV file, {+adf+} represents nested documents using the dot 
+      (``.``) notation. For example, {+adf+} writes 
+      ``{ x: { a: 1, b: 2 } }`` as the following in the CSV file: 
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         x.a,x.b 
+         1,2
+      
+      {+adf+} represents all other data types as strings. Therefore, 
+      the data types in MongoDB read back from the CSV file may not be 
+      the same as the data types in the original |bson| documents from 
+      which the data types were written.
+
+      *Parquet File Format*
+
+      For Parquet, {+adf+} reads back fields with null or undefined 
+      values as missing because Parquet doesn't distinguish between 
+      null or undefined values and missing values. Although {+adf+} 
+      supports all data types, for |bson| data types that do not have 
+      a direct equivalent in Parquet, such as JavaScript, regular 
+      expression, etc., it:
+             
+      - Chooses a representation that allows 
+        the resulting Parquet file to be read back using a non-MongoDB 
+        tool.
+      - Stores a MongoDB schema in the Parquet file's key/value 
+        metadata so that {+adf+} can reconstruct the original |bson| 
+        document with the correct data types if the Parquet file is 
+        read back by {+adf+}.
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+.. _adf-out-stage-errors:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: S3
+      :tabid: s3
+
+      **Errors**
+
+      - If the filename is not of type string, {+df+} writes documents
+        to a special error file in your bucket.
+
+      - If the documents cannot be written to a file with the specified
+        filename, {+df+} writes documents to ordinally-named files in
+        the specified format and specified size.
+
+        .. example::
+
+          - ``s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-docs/1.json``
+          - ``s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-docs/2.json``
+
+        {+df+} returns an error message that specifies the number of
+        documents that had invalid filenames and the directory where
+        these documents were written.
+
+      - If {+df+} encounters an error while processing a document, 
+        it writes the document to a special error file in your 
+        bucket. 
+
+        .. code-block:: sh
+           :copyable: false
+
+          s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-docs/{<n>}.json
+
+        where ``n`` is the index of the document being written.
+
+        {+df+} also writes the error message for each document to an 
+        error index file: 
+
+        .. code-block:: sh
+           :copyable: false
+
+           s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-index/{<i>}.json
+
+        where ``i`` begins with ``1``. {+df+} writes error messages to 
+        the file until the file reaches the ``maxFileSize`` and then, 
+        {+df+} increments the value of ``i`` and continues writing any 
+        further error messages to the new file. 
+
+        The error messages in the error index file look similar to the 
+        following: 
+
+        .. example::
+
+           .. code-block:: json
+              :copyable: false 
+
+              {
+	              "n": 1234, 
+	              "error": "field \"foo\" is of type array, which is not supported for CSV"
+              }
+
+           where ``n`` is the index of the document which caused the error.
+
+        {+df+} also creates an error summary file after running the entire 
+        query: 
+
+        .. code-block:: sh
+           :copyable: false
+
+           s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-summary.json
+
+        The summary file contains a single document for each type of error 
+        and a count of the number of documents which caused that type of 
+        error. 
+
+        .. example:: 
+
+           .. code-block:: sh
+              :copyable: false
+
+              {
+	              "errorType": "field is of type array, which is not supported for CSV",
+	              "count": 10
+              }
+
+   .. tab:: Atlas Cluster
+      :tabid: atlas
+
+.. seealso::
+
+   - :manual:`$out Aggregation Stage Reference 
+     </reference/operator/aggregation/out>` 
+   - `Tutorial: Federated Queries and $out to S3 
+     <https://developer.mongodb.com/how-to/atlas-data-federation-federated-queries-out-aws-s3>`__

@@ -1,0 +1,351 @@
+.. _adf-configuration-file-atlas:
+
+=================
+|service| Cluster
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+adf+} supports |service| clusters as {+fdi+} stores. You must define 
+mappings in your {+fdi+} to your |service| cluster to run queries 
+against your data.
+
+.. important:: 
+
+   Information in your storage configuration is visible internally at 
+   MongoDB and stored as operational data to monitor and improve the 
+   performance of {+adf+}. So, we recommend that you do not use 
+   :abbr:`PII (Personally Identifiable Information)` in your 
+   configurations.
+
+Example Configuration for |service| Data Store
+----------------------------------------------
+
+.. include:: /includes/data-federation/fact-atlas-data-source.rst
+
+.. example:: 
+
+   Consider a ``M10`` or higher |service| cluster named 
+   ``myDataCenter`` containing data in the ``metrics.hardware`` 
+   collection. The ``metrics.hardware`` collection contains JSON 
+   documents with metrics derived from the hardware in a datacenter. 
+   The following configuration:
+
+   - Specifies the |service| cluster named ``myDataCenter`` in the 
+     specified project as a {+fdi+} store.
+   - Maps documents from the ``metrics.hardware`` collection in the 
+     |service| cluster to the ``dataCenter.inventory`` collection in 
+     the storage configuration.
+
+   .. code-block:: json 
+
+      {
+        "stores" : [
+          {
+             "name" : "atlasClusterStore",
+             "provider" : "atlas",
+             "clusterName" : "myDataCenter",
+             "projectId" : "5e2211c17a3e5a48f5497de3"
+          }
+        ],
+        "databases" : [ 
+          {
+            "name" : "dataCenter", 
+            "collections" : [
+              {
+                "name" : "inventory",
+                "dataSources" : [
+                  {
+                    "storeName" : "atlasClusterStore",
+                    "database" : "metrics",
+                    "collection" : "hardware"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+   {+adf+} maps all the documents in the ``metrics.hardware`` 
+   collection to the ``dataCenter.inventory`` collection in the storage 
+   configuration.
+
+   Users connected to the {+fdi+} can use the MongoDB Query Language 
+   and supported aggregations to analyze data in the |service| cluster 
+   through the ``dataCenter.inventory`` collection. When you run 
+   queries, the query first goes to {+adf+}. Therefore, if you run 
+   aggregation queries that are supported by your |service| cluster but 
+   not by {+adf+}, the queries will fail. To learn more about supported 
+   and unsupported commands in {+df+}, see :ref:`adf-mql-support`.
+
+   .. seealso:: 
+
+      :ref:`query-atlas`
+
+.. _adf-atlas-configuration-format:
+
+Configuration Format
+--------------------
+
+The {+fdi+} configuration has the following format:
+
+.. literalinclude:: /includes/data-federation/atlas-config-format.json
+   :language: json
+   :linenos:
+
+:ref:`adf-atlas-stores-reference`
+  The ``stores`` object defines each data store associated with the 
+  {+fdi+}. The {+fdi+} store captures files in documents in |service| 
+  cluster. {+fdi+} can only access data stores defined in the ``stores`` 
+  object.
+
+:ref:`adf-atlas-databases-reference`
+  The ``databases`` object defines the mapping between each
+  {+fdi+} store defined in ``stores`` and MongoDB collections 
+  in the databases. 
+
+.. _adf-atlas-stores-reference:
+
+``stores``
+~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/atlas-stores-config-format.json
+   :language: json
+   :linenos:
+
+.. datalakeconf-atlas:: stores
+
+   Array of objects where each object represents a data store to 
+   associate with the {+fdi+}. The {+fdi+} store captures files in an 
+   |s3| bucket, documents in |service| cluster, or files stored at 
+   publicly accessible |url|\s. {+adf+} can only access data stores 
+   defined in the ``stores`` object.
+
+.. datalakeconf-atlas:: stores.[n].name
+
+   Name of the {+fdi+} store. The :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].storeName`
+   field references this value as part of mapping configuration.
+
+   .. include:: /includes/data-federation/fact-atlas-data-source.rst
+
+.. datalakeconf-atlas:: stores.[n].provider
+
+   Defines where the data is stored. Value must be ``atlas`` for a 
+   collection in an |service| cluster.
+
+.. datalakeconf-atlas:: stores.[n].clusterName 
+
+   Name of the |service| cluster on which the store is based. The 
+   cluster must exist in the same project as your {+fdi+}. The 
+   ``source`` field on the data partition is the name of the |service| 
+   cluster.
+
+.. datalakeconf-atlas:: stores.[n].projectId 
+
+   Unique identifier of the project that contains the |service| 
+   cluster on which the store is based.
+
+.. datalakeconf-atlas:: stores.[n].readPreference 
+
+   *Optional.* Cluster :manual:`read preference 
+   </core/read-preference/>`, which describes how to route read 
+   requests to the cluster.
+
+   .. example:: 
+
+      The following ``readPreference`` setting specifies ``secondary`` :manual:`mode 
+      </core/read-preference/#std-label-read-pref-modes-summary>` and 
+      ``ANALYTICS`` :ref:`nodeType <repl-set-node-types>`.
+
+      .. code-block:: json 
+         :copyable: false 
+         :emphasize-lines: 9-20
+
+         { 
+           ... 
+           "stores": [
+             {
+               "provider": "atlas",
+               "clusterName": <CLUSTER_NAME>,
+               "name": <STORE_NAME>,
+               "projectId": <PROJECT_ID>,
+               "readPreference": {
+                 "mode": "secondary",
+                 "tagSets": [
+                   [
+                     {
+                       "name": "nodeType",
+                       "value": "ANALYTICS"
+                     }
+                   ],
+                   ...
+                 ]
+               }
+             }
+           ]
+         }
+
+.. datalakeconf-atlas:: stores.[n].readPreference.mode 
+
+   *Optional.* :manual:`Read preference mode 
+   </core/read-preference/#read-preference-modes>` that specifies which 
+   replica set member to route the read requests to. Value can be one 
+   of the following: 
+
+   .. include:: /includes/data-federation/fact-read-preference-modes.rst
+         
+.. datalakeconf-atlas:: stores.[n].readPreference.tagSets
+
+   *Optional.* Arrays of :manual:`tag sets 
+   </core/read-preference-tags/>` or tag specification documents that 
+   contain name and value pairs for the replica set member. If 
+   specified, {+adf+} routes read requests to replica set member or 
+   members that are associated with the specified tags. To learn more, 
+   :manual:`Read Preference Tag Sets </core/read-preference-tags/>`.
+
+   .. note:: 
+
+      {+adf+} doesn't support ``tagSets`` for sharded clusters.
+         
+.. datalakeconf-atlas:: stores.[n].readPreference.maxStalenessSeconds
+
+   *Optional.* Maximum replication lag, or “staleness”, for reads from 
+   secondaries. To learn more about ``maxStalenessSeconds``, see 
+   :manual:`Read Preference maxStalenessSeconds </core/read-preference-staleness/>`.
+
+.. _adf-atlas-databases-reference:
+
+``databases``
+~~~~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/atlas-databases-config-format.json
+   :language: json
+   :linenos:
+
+.. datalakeconf-atlas:: databases
+
+   Array of objects where each object represents a database, its 
+   collections, and, optionally, any :manual:`views </core/views/>` on 
+   the collections. Each database can have multiple ``collections`` and 
+   ``views`` objects.
+
+.. datalakeconf-atlas:: databases.[n].name
+
+   Name of the database to which {+adf+} maps the data contained in the 
+   data store. You can generate databases dynamically by specifying 
+   ``*`` for the database name. Dynamically generated databases:
+
+   - Can exist alongside explicitly defined databases. However, {+adf+} 
+     won't dynamically generate databases with names that conflict with 
+     explicitly defined databases in the storage configuration.
+   - Can only be from a single |service| cluster. {+adf+} won't 
+     dynamically generate databases from multiple |service| clusters or 
+     other data stores.
+
+.. datalakeconf-atlas:: databases.[n].collections
+
+   Array of objects where each object represents a collection and data 
+   sources that map to a :datalakeconf-atlas:`stores` {+fdi+} store. 
+   For dynamically generated databases, you can define only one 
+   wildcard (``*``) collection object in the storage configuration.
+
+.. datalakeconf-atlas:: databases.[n].collections.name
+
+   Name of the collection to which {+adf+} maps the data contained in 
+   each :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].storeName`. 
+   Each object in the array represents the mapping between the 
+   collection and an object in the :datalakeconf-atlas:`stores` array. 
+
+   You can generate collection names dynamically by specifying ``*`` 
+   for the collection name and omitting the :datalakeconf-atlas:`~databases.[n].collections.[n].dataSources.[n].collection` 
+   field. To dynamically generate wildcard (``*``) collections for 
+   dynamically generated wilcard (``*``) databases, specify the 
+   :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].storeName` 
+   option and omit the :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].database` 
+   option. Note that for dynamically generated databases, you can 
+   define only one wildcard (``*``) collection object in the storage 
+   configuration.
+         
+   For wildcard (``*``) collections, you can also define regex patterns 
+   using :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].collectionRegex` 
+   field to filter the collections only. 
+
+.. datalakeconf-atlas:: databases.[n].collections.[n].dataSources 
+
+   Array of objects where each object represents a 
+   :datalakeconf-atlas:`stores` {+fdi+} store to map with the 
+   collection.
+
+.. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].storeName
+
+   Name of a {+fdi+} store to map to the ``<collection>``. 
+   Must match the :datalakeconf-atlas:`~stores.[n].name` of an object in the 
+   :datalakeconf-atlas:`stores` array. 
+
+.. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].database 
+
+   Name of the database on the |service| cluster that contains the 
+   collection. You must omit this parameter to create a wildcard 
+   (``*``) collection for a wilcard (``*``) database.
+
+.. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].collection 
+
+   Name of the collection in the |service| cluster on which the {+fdi+} 
+   store is based. You must omit this setting for: 
+         
+   - Creating a wildcard (``*``) collection.
+   - Creating wildcard collection names that match regex patterns.
+
+.. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].collectionRegex
+
+   *Optional*. Regex pattern to use for creating the wildcard (``*``) 
+   collection. If you specify this field, the {+fdi+} 
+   instance only contains collections with names that match the 
+   specified regular expression. Collections in the {+fdi+} storage 
+   configuration use their original name in the |service| cluster.
+          
+   To use regex patterns for wildcard (``*``) collection names, you 
+   must not specify :datalakeconf-atlas:`~databases.[n].collections.[n].dataSources.[n].collection`. 
+   To learn more about the regex syntax, see `Go programming language 
+   <https://golang.org/pkg/regexp/>`__.
+
+.. datalakeconf-atlas:: databases.[n].views 
+
+   Array of objects where each object represents an 
+   :manual:`aggregation pipeline </core/aggregation-pipeline/#id1>` on 
+   a collection. To learn more about views, see :manual:`Views 
+   </core/views/>`.
+
+.. datalakeconf-atlas:: databases.[n].views.[n].name 
+
+   Name of the view. 
+
+.. datalakeconf-atlas:: databases.[n].views.[n].source 
+
+   Name of the source collection for the view.
+
+.. datalakeconf-atlas:: databases.[n].views.[n].pipeline 
+ 
+   :manual:`Aggregation pipeline stage(s) 
+   </core/aggregation-pipeline/#id1>` to apply to the 
+   :datalakeconf-atlas:`~databases.[n].views.[n].source` collection.
+
+.. seealso::
+
+   - :ref:`Configure Atlas Data Federation <adf-configuration-file-atlas>` 
+   - `Tutorial: Federated Queries and $out to S3 
+     <https://developer.mongodb.com/how-to/atlas-data-federation-federated-queries-out-aws-s3>`__
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /data-federation/deployment/deploy-atlas
+   /data-federation/config/atlas-gen-wildcard-collections

@@ -1,0 +1,211 @@
+.. _sql-connect-shell:
+
+==============================
+Connect from the MongoDB Shell
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This page describes how to connect to a {+fdi+} through the `MongoDB Shell <https://www.mongodb.com/try/download/shell>`__ (``mongosh``).
+
+Prerequisites
+-------------
+
+- A {+fdi+} that is mapped to one or more data stores.
+
+  .. include:: includes/data-federation/fact-asql-recommended-mongodb-version
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to your {+fdi+}.
+
+      If it isn't already displayed, select :guilabel:`Data Federation` 
+      from the left navigation panel.
+   
+   .. step:: Click :guilabel:`Connect` to open the {+fdi+} connection modal.
+
+   .. step:: Select :guilabel:`Connect with the MongoDB Shell`.
+
+   .. step:: Install the MongoDB Shell if you haven't already.
+
+      If you do not have the MongoDB Shell installed:
+
+      .. procedure::
+         :style: connected
+      
+         .. step:: Select :guilabel:`I do not have the MongoDB Shell installed` inside the connection modal.
+      
+         .. step:: Select your operating system from the modal dropdown menu.
+
+         .. step:: Follow the installation instructions for your operating system provided in the modal.
+
+         .. step:: *(Optional)* Confirm that your ``mongosh`` installation was successful.
+
+            To check that your installation was successful, in your 
+            terminal, run:
+            
+            .. code-block:: sh
+               :copyable: true
+            
+               mongosh --version
+
+            If the installation was successful, ``mongosh`` 
+            displays a version.
+
+      If you already have the MongoDB Shell installed:
+
+      .. procedure::
+         :style: connected
+      
+         .. step:: Select :guilabel:`I have the MongoDB Shell installed` inside the connection modal.
+      
+         .. step:: Select ``mongosh`` from the modal dropdown menu.
+
+            .. note:: 
+
+               The MongoDB Shell, or ``mongosh``, is separate from 
+               the ``mongo`` versions in the modal dropdown menu. 
+               
+            If you want to ensure that you have ``mongosh`` installed, 
+            in your terminal, run:
+
+            .. code-block:: sh
+               :copyable: true
+            
+               mongosh --version
+
+            If ``mongosh`` is installed, it displays a version.
+
+   .. step:: Select your authentication method.
+
+      Your authentication method depends on how your 
+      :guilabel:`Database Access` is configured. To learn more about 
+      database access, see :ref:`mongodb-users`.
+
+      You can choose:
+     
+      - :guilabel:`Password (SCRAM)`, or
+      - :guilabel:`X.509`.
+
+      {+adf+} provides a connection string for your authentication 
+      method.
+
+   .. step:: Copy and run your connection string.
+
+      If you selected the :guilabel:`Password (SCRAM)` authentication 
+      method, you are prompted for a password for the connecting user.
+
+   .. step:: *(Optional)* Confirm the connection to your {+fdi+}.
+
+      To confirm that you are connected to your {+fdi+}, using 
+      ``mongosh``, run:
+
+      .. code-block:: sh
+         :copyable: true
+            
+         show dbs
+
+      If you successfully connected to your {+fdi+} that is 
+      mapped to a data store, ``mongosh`` displays the names of your 
+      virtual databases.
+
+Run SQL Queries
+---------------
+
+You can run {+asql+} queries against your {+fdi+} virtual collections using the 
+MongoDB Shell.
+
+For an {+asql+} command reference, see :ref:`sql-reference`.
+
+Syntax
+~~~~~~
+
+{+asql+} supports an aggregation pipeline stage syntax and a short-form syntax for constructing the SQL queries. You can use either of these syntaxes to write queries in the 
+MongoDB Shell:
+
+Aggregation Pipeline Stage Syntax
+``````````````````````````````````
+
+You can use the ``$sql`` 
+:manual:`aggregation </reference/command/aggregate>` pipeline stage to 
+write {+asql+} queries. See :ref:`adf-sql-stage` for a list of 
+properties you must provide to ``$sql``.
+
+.. note::
+
+   {+asql+} uses the dialect ``mongosql``.
+
+The following example uses ``$sql`` syntax to execute the {+asql+} statement ``select * from Users limit 2``:
+
+.. code-block:: shell
+   :copyable: true
+
+   db.aggregate( [ { $sql: { statement: "select * from Users limit 2", format: "jdbc", dialect: "mongosql" } } ] )
+
+.. _short-sql-syntax:
+
+Short-form Syntax
+``````````````````
+
+You can use a short-form syntax, ``db.sql``, to supply an 
+{+asql+} statement directly.
+
+.. important::
+
+   Short-form syntax is not stable and may change in the future.
+
+.. code-block:: shell
+   :copyable: true
+   
+   db.sql( "select * from Users limit 2" )
+
+Examples
+~~~~~~~~
+
+Try running the following {+asql+} queries against the 
+:ref:`sql-getting-started` sample {+fdi+}, or modify them to read your 
+own data.
+
+.. note::
+
+   These examples use :ref:`short-form syntax <short-sql-syntax>`.
+
+SELECT Statement
+`````````````````
+
+.. code-block:: sh
+   :copyable: true
+      
+   db.sql("select * from Sessions")
+
+{+asql+} returns all documents from the ``Sessions`` collection.
+
+LIMIT Statement
+```````````````
+
+.. code-block:: sh
+   :copyable: true
+      
+   db.sql("select * from Users limit 2")
+
+{+asql+} returns two documents from the ``Users`` collection.
+
+WHERE Statement
+```````````````
+
+.. code-block:: sh
+   :copyable: true
+      
+   db.sql("select * from Users where name='Jon Snow'")
+
+{+asql+} returns documents from the ``Users`` collection where the user's ``name`` is ``Jon Snow``.

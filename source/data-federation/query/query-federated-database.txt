@@ -1,0 +1,230 @@
+.. _query-fdi:
+
+===================================
+Query a {+FDI+} 
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol 
+
+You can use the MongoDB Query Language (MQL) on {+adf+} to query and 
+analyze data on your data store. {+adf+} supports most, but not all the 
+standard server commands. To learn more about the supported and 
+unsupported MongoDB server commands and aggregation pipleline stages, 
+see :ref:`adf-mql-support`.
+
+To query data on your data store, your {+fdi+} storage 
+:ref:`configuration <config-adf>` must 
+contain settings that define:
+
+- Your {+fdi+} store. 
+- {+fdi+} virtual databases and collections that map to your 
+  {+fdi+} store.
+
+You can create or update your {+fdi+} :ref:`storage configuration 
+<config-adf>` for your data store using the 
+:guilabel:`Visual Editor` or the :guilabel:`JSON Editor`. For more 
+information, see :ref:`deploy-atlas-datastore`.
+
+{+adf+} creates the virtual databases and collections you specified in 
+your {+fdi+} configuration for the data in your data store. When you 
+:doc:`connect </data-federation/tutorial/connect>` to your {+fdi+} and 
+:doc:`run queries </data-federation/tutorial/run-queries>`, {+adf+} 
+processes your queries against the data and returns the query results.
+
+A database user must have one of the following roles to run queries 
+against a {+fdi+}:
+
+- :atlas:`readWriteAnyDatabase </security-add-mongodb-users/#readWriteAnyDatabase>`
+
+- :atlas:`readAnyDatabase </security-add-mongodb-users/#readAnyDatabase>`
+
+- A :atlas:`custom role </security-add-mongodb-roles/>` with the  
+  :manual:`find </reference/privilege-actions/>` privilege
+
+You can run up to 30 simultaneous queries on your {+fdi+} against:
+
+- Data in your |s3| bucket.
+- Documents in your MongoDB |service| cluster.
+- Extracted data in {+adl+} datasets.
+- Data in files hosted at publicly accessible |url|\s.
+
+.. see:: 
+
+   - :doc:`How to Connect to Your Federated Database Instance </data-federation/tutorial/connect>`
+   - :doc:`How to Run Queries Against Your Data Using Your Federated 
+     Database Instance </data-federation/tutorial/run-queries>`
+
+The following sections contain informtaion pertaining to running 
+queries against data in your data store.
+
+.. _query-s3:
+
+Querying Data on S3 
+-------------------
+
+When :doc:`deploying </data-federation/tutorial/deploy>` your {+fdi+}, 
+if you specified an |s3| bucket with both read and write permissions or 
+|aws| |s3| :aws:`s3:PutObject </AmazonS3/latest/dev/using-with-s3-actions.html#using-with-s3-actions-related-to-objects>` 
+permission, you can also save your query results in your |s3| bucket 
+using :ref:`adf-out-stage` to |s3|.
+
+If you successfully create or update an object on your |s3| data store, 
+{+df+} returns the latest version of that object for any subsequent 
+read requests and all list operations of the objects also reflect the 
+changes. If your query contains multiple stages, each stage receives 
+the most recent data available from the data store as that stage is 
+processed.
+
+.. include:: /includes/data-federation/fact-doc-order-in-query-result.rst
+
+.. include:: /includes/data-federation/fact-partition-cost-benefit.rst 
+
+.. _query-atlas:
+
+Querying Data in Your |service| Cluster 
+---------------------------------------
+
+If you query a collection in {+adf+} that is mapped to only one 
+|service| collection, {+adf+} acts as a proxy and forwards your query 
+to |service|. When acting as a proxy, {+adf+} doesn't scan data into 
+its virtual collection to proces the query thus improving performance 
+and reducing cost. This optimization is not available for queries on 
+{+adf+} collections that are mapped to multiple |service| collections. 
+
+.. example:: 
+
+   Consider the following {+fdi+} storage configuration: 
+
+   .. code-block:: json
+
+      {
+        "stores" : [
+          {
+            "name" : "atlas-store",
+            "provider": "atlas",
+            "clusterName": "myCluster", 
+            "projectId": "5e2211c17a3e5a48f5497de3"
+          }
+        ],
+        "databases" : [
+          {
+            "name" : "atlas-db",
+            "collections" : [
+              {
+                "name" : "foo",
+                "dataSources" : [
+                  {
+                    "storeName" : "atlas-store",
+                    "database" : "myFooData",
+                    "collection" : "foo" 
+                  }
+                ]
+              },
+              {
+                "name" : "barbaz",
+                "dataSources" : [
+                  {
+                    "storeName" : "atlas-store",
+                    "database" : "myBarData",
+                    "collection" : "bar" 
+                  },
+                  {
+                    "storeName" : "atlas-store",
+                    "database" : "myBazData",
+                    "collection" : "baz" 
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+   For the above storage configuration, {+adf+} acts as a proxy for 
+   queries on ``foo`` collection and forwards the queries to |service|. 
+   This performance and cost optimization is not available for queries 
+   on ``barbaz`` collection because ``barbaz`` is mapped to multiple 
+   |service| collections.
+
+You can also save your query results in your |service| cluster using 
+:ref:`adf-out-stage` to |service|.
+
+If you successfully create or update a document in your collection on 
+the |service| cluster, {+df+} returns the latest version of that 
+document for any subsequent read requests and all list operations of 
+the collection also reflect the changes. If your query contains 
+multiple stages, each stage receives the most recent data available 
+from the data store as that stage is processed.
+
+.. _query-adl:
+
+Querying Data in Your {+dl+} Datasets
+-------------------------------------------
+
+For queries, {+adf+} uses the partitions that you created on fields
+during the creation of the {+adl+} pipeline. The order of fields in the 
+partitions is important in the same way as it is for :manual:`Compound 
+Indexes </core/index-compound/>`. Data is optimized for queries by the 
+first field, followed by the second field, and so on. {+adf+} parses 
+the partitions in order; if a query omits a particular partition, 
+{+adf+} is less efficient in making use of any partitions that follow 
+that. 
+
+{+adf+} is less performant in supporting queries on fields that don't 
+have partitions. {+adf+} doesn't support queries on fields that were 
+explicitly excluded when creating the {+adl+} pipeline. 
+
+.. _query-http:
+
+Querying Data at a |http| or |https| |url| 
+------------------------------------------
+
+.. include:: /includes/extracts/fact-http-beta-message.rst 
+
+{+df+} also creates one partition for each |url| in your collection. 
+When you :doc:`connect </data-federation/tutorial/connect>` to your 
+{+fdi+} and run queries, {+df+} processes your queries against the data 
+and returns the query results.
+
+.. _federated-queries:
+
+Running Federated Queries 
+-------------------------
+
+You can use {+adf+} to query and analyze a unified view of data in your 
+|service| cluster, |s3| bucket, and at your |http| URL. For federated 
+queries, your {+fdi+} storage :ref:`configuration <config-adf>` must 
+contain the settings that define: 
+
+- Your |s3|, |service|, and |http| data stores.
+- {+FDI+}\s with virtual collections that map to your |s3|, 
+  |service|, and |http| data stores.
+
+You can create or update your {+fdi+} :ref:`storage configuration 
+<config-adf>` using the :guilabel:`Visual Editor` or 
+the :guilabel:`JSON Editor`. For more information, see 
+:ref:`deploy-atlas-datastore`.
+
+When you :doc:`connect </data-federation/tutorial/connect>` to your 
+{+fdi+} and run federated queries, {+df+} combines data from your 
+|service| cluster, |s3| bucket, and |http| store in virtual databases 
+and collections and returns a union of data in the results. 
+
+.. _query-troubleshooting:
+
+Troubleshooting 
+---------------
+
+**Error:** We are currently experiencing increased query processing 
+wait times for {+adf+}. Our Engineering team is investigating. Normal 
+service will resume shortly, please try again.
+
+{+adf+} returns this error only when {+adf+} can't execute queries 
+because of resource contention. We recommend that you run your queries 
+again.

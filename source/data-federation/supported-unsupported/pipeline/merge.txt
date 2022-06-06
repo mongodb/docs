@@ -1,0 +1,508 @@
+.. _adf-merge-stage:
+
+==========
+``$merge``
+==========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+``$merge`` writes the results of the
+:manual:`aggregation pipeline </core/aggregation-pipeline/>`
+to a temporary collection on the |service| cluster. {+adf+} then runs 
+``$merge`` locally on the |service| cluster to merge that data into the
+target collection.
+
+In {+adf+}, ``$merge`` can:
+
+- Write data from any of the :ref:`supported 
+  <config-adf>` {+fdi+} stores.
+- Write to the same or different |service| cluster, database, or 
+  collection within the same |service| project. 
+
+To allow writes to an |service| cluster, {+adf+} introduces
+:ref:`alternate syntax <adf-merge-syntax>` for the required ``into``
+field. {+adf+} supports all other fields as described for
+:pipeline:`$merge`.
+
+To learn more, see :pipeline:`$merge` pipeline stage.
+
+.. _adf-merge-permissions: 
+
+Permissions Required 
+--------------------
+
+To use :pipeline:`$merge` to write to a collection on the |service| 
+cluster, you must be a database user with the following 
+:manual:`privileges </reference/privilege-actions/>`:
+
+- :manual:`find </reference/privilege-actions/#find>` and 
+- :manual:`insert </reference/privilege-actions/#insert>` 
+
+Considerations
+--------------
+
+If the aggregation fails, {+adf+} doesn't roll back any writes that the
+:pipeline:`$merge` completed before the error occurred.
+
+.. _adf-merge-syntax: 
+
+Syntax 
+------
+
+.. code-block:: json 
+
+   { 
+     "$merge": {
+       "into": {  
+         "atlas": {
+           "projectId": "<atlas-project-ID>",
+           "clusterName": "<atlas-cluster-name>",
+           "db": "<atlas-database-name>",
+           "coll": "<atlas-collection-name>"
+         }
+       },
+       "on": "<identifier field>"|[ "<identifier field1>", ...],  
+       "let": { <variables> },                                         
+       "whenMatched": "replace|keepExisting|merge|fail|pipeline",  
+       "whenNotMatched": "insert|discard|fail"                     
+     } 
+   }
+
+.. _adf-merge-fields: 
+
+Fields 
+------
+
+This section describes the alternate syntax that {+adf+} provides for
+the ``into`` field.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 70 10
+
+   * - Field 
+     - Type 
+     - Description 
+     - Necessity
+
+   * - ``atlas``
+     - object
+     - Location to write the documents from the aggregation pipeline.
+     - Required
+
+   * - ``clusterName``
+     - string
+     - Name of the |service| cluster.
+     - Required
+
+   * - ``coll``
+     - string
+     - Name of the collection on the |service| cluster.
+     - Required
+
+   * - ``db``
+     - string
+     - Name of the database on the |service| cluster that contains the 
+       collection.
+     - Required
+
+   * - ``projectId``
+     - string
+     - Unique identifier of the project that contains the |service| 
+       cluster. This is the ID of the project that contains your 
+       {+fdi+}. If omitted, defaults to the ID of the project that 
+       contains your {+fdi+}.
+     - Optional
+
+To learn more about the other fields, ``on``, ``let``, ``whenMatched``,
+and ``whenNotMatched``, see the MongoDB server documentation for
+:pipeline:`$merge`.
+
+.. _adf-merge-considerations: 
+
+Resolving Duplicate Document IDs 
+--------------------------------
+
+When writing documents from your archive or your data stores to your 
+|service| cluster, your documents might have duplicate ``_id`` fields. 
+This section describes how {+adf+} resolves duplicates and includes 
+recommendations for resolving duplicates in your aggregation pipeline. 
+
+Resolving Duplicate IDs in {+adf+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To resolve duplicates, {+adf+}:
+
+1. Writes documents to an |service| collection ``X`` in the order it 
+   receives the documents until it encounters a duplicate.
+#. Writes the document with the duplicate ``_id`` field and all 
+   subsequent documents to a new |service| collection ``Y``.
+#. Runs the specified ``$merge`` stage to merge collection ``Y`` into 
+   collection ``X``.
+#. Writes the resulting documents into the target collection on the 
+   specified |service| cluster.
+
+.. note:: 
+
+   {+adf+} only resolves duplicate values in the ``_id`` field. It 
+   doesn't resolve duplicate values in other fields with unique indexes.
+
+Remediating Duplicate IDs
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To remediate duplicate ``_id`` fields, you can:
+
+1. Include a :pipeline:`$sort` stage in your pipeline to specify the 
+   order in which {+adf+} must process the resulting documents. 
+#. Based on the order of documents flowing into the :pipeline:`$merge` 
+   stage, choose the value for the ``whenMatched`` and 
+   ``whenNotMatched`` options of the :pipeline:`$merge` stage carefully.
+
+   .. example:: 
+
+      The following examples show how {+adf+} resolves duplicates 
+      during the ``$merge`` stage when ``whenMatched`` option is set to 
+      ``keepExisting`` or ``replace``. These examples use the following 
+      documents: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "_id" : 1,
+           "state" : "FL"
+         },
+         {
+           "_id" : 1,
+           "state" : "NJ"
+         },
+         {
+           "_id" : 2,
+           "state" : "TX"
+         }
+
+      .. tabs:: 
+
+         .. tab:: keepExisting 
+            :tabid: keepexisting 
+
+            Suppose you run the following pipeline on the documents 
+            listed above:
+
+            .. code-block:: json 
+               :copyable: false 
+               :emphasize-lines: 18
+
+               db.s3coll.aggregate([
+                 {
+                   "$sort": {
+                     "_id": 1,
+                     "state": 1,
+                   } 
+                 },
+                 { 
+                   "$merge": {
+                     "into": {
+                       "atlas": {
+                         "clusterName": "clustername",
+                         "db": "clusterdb",
+                         "coll": "clustercoll"
+                       }
+                     },
+                     "on": "_id",
+                     "whenMatched": "keepExisting",
+                     "whenNotMatched": "insert"
+                   } 
+                 }
+               ])
+
+            {+adf+} writes the following data to two collections named 
+            ``X`` and ``Y``:
+
+            .. tabs:: 
+
+               .. tab:: Collection X
+                  :tabid: X 
+
+                  .. code-block:: json 
+                     :copyable: false 
+
+                     {
+                       "_id" : 1,
+                       "state" : "FL"
+                     }
+
+               .. tab:: Collection Y
+                  :tabid: Y 
+
+                  .. code-block:: json 
+                     :copyable: false 
+
+                     {
+                       "_id" : 1,
+                       "state" : "NJ"
+                     },
+                     {
+                       "_id" : 2,
+                       "state" : "TX"
+                     }
+
+            {+adf+} then merges documents from collection ``Y`` into 
+            collection ``X``. For ``whenMatched: keepExisting`` option 
+            in the pipeline, {+adf+} keeps the existing document with 
+            ``_id: 1`` in collection ``X``. Therefore, the result of 
+            the pipeline with duplicates contains the following 
+            documents:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               {
+                 "_id" : 1,
+                 "state" : "FL"
+               },
+               {
+                 "_id" : 2,
+                 "state" : "TX"
+               }
+
+            {+adf+} then merges these documents into the target 
+            collection on the specified |service| cluster.
+
+         .. tab:: replace 
+            :tabid: replace
+
+            Suppose you run the following pipeline on the documents 
+            listed above:
+
+            .. code-block:: json 
+               :copyable: false
+               :emphasize-lines: 18
+
+               db.s3coll.aggregate([
+                 {
+                   "$sort": {
+                     "_id": 1,
+                     "state": 1,
+                   } 
+                 },
+                 { 
+                   "$merge": {
+                     "into": {
+                       "atlas": {
+                         "clusterName": "clustername",
+                         "db": "clusterdb",
+                         "coll": "clustercoll"
+                       }
+                     },
+                     "on" "_id",
+                     "whenMatched": replace,
+                     "whenNotMatched": "insert"
+                   } 
+                 }
+               ])
+
+            {+adf+} writes the following data to two collections named 
+            ``X`` and ``Y``:
+
+            .. tabs:: 
+
+               .. tab:: Collection X
+                  :tabid: X 
+
+                  .. code-block:: json 
+                     :copyable: false 
+
+                     {
+                       "_id" : 1,
+                       "state" : "FL"
+                     }
+
+               .. tab:: Collection Y
+                  :tabid: Y 
+
+                  .. code-block:: json 
+                     :copyable: false 
+
+                     {
+                       "_id" : 1,
+                       "state" : "NJ"
+                     },
+                     {
+                       "_id" : 2,
+                       "state" : "TX"
+                     }
+
+            {+adf+} merges documents from collection ``Y`` into 
+            collection ``X``. For ``whenMatched: replace`` option in 
+            the pipeline, {+adf+} replaces the document with ``_id: 1`` 
+            in collection ``X`` with the document with ``_id: 1`` in 
+            collection ``Y``. Therefore, the result of the pipeline 
+            with duplicates contains the following documents:
+
+            .. code-block:: json 
+               :copyable: false 
+
+               {
+                 "_id" : 1,
+                 "state" : "NJ"
+               },
+               {
+                 "_id" : 2,
+                 "state" : "TX"
+               }
+
+            {+adf+} then merges these documents into the target 
+            collection on the specified |service| cluster.
+
+#. Avoid using the ``whenNotMatched: discard`` option. 
+
+   .. example:: 
+
+      This example shows how {+adf+} resolves duplicates when 
+      ``whenNotMatched`` option is set to ``discard`` using the 
+      following documents: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "_id" : 1,
+           "state" : "AZ"
+         },
+         {
+           "_id" : 1,
+           "state" : "CA"
+         },
+         {
+           "_id" : 2,
+           "state" : "NJ"
+         },
+         {
+           "_id" : 3,
+           "state" : "NY"
+         },
+         {
+           "_id" : 4,
+           "state" : "TX"
+         }
+         
+      Suppose you run the following pipeline on the documents listed 
+      above:
+
+      .. code-block:: json 
+         :copyable: false   
+
+         db.archivecoll.aggregate([
+           {
+             "$sort": {
+               "_id": 1,
+               "state": 1,
+             } 
+           },
+           { 
+             "$merge": {
+               "into": {
+                 "atlas": {
+                   "clusterName": "clustername",
+                   "db": "clusterdb",
+                   "coll": "clustercoll"
+                 }
+               },
+               "on": "_id",
+               "whenMatched": "replace",
+               "whenNotMatched": "discard"
+             } 
+           }
+         ])
+
+      {+adf+} writes the following data to two collections named ``X`` 
+      and ``Y``:
+
+      .. tabs:: 
+
+         .. tab:: Collection X
+            :tabid: X
+
+            .. code-block:: json 
+               :copyable: false 
+
+               {
+                 "_id" : 1,
+                 "state" : "AZ"	// gets replaced
+               }
+
+         .. tab:: Collection Y
+            :tabid: Y
+
+            .. code-block:: json 
+               :copyable: false 
+
+               {
+                 "_id" : 1,
+                 "state" : "CA"	
+               }
+               {
+                 "_id" : 2,
+                 "state" : "NJ"	// gets discarded
+               }
+               {
+                 "_id" : 3,
+                 "state" : "NY"	// gets discarded
+               }
+               {
+                 "_id" : 4,
+                 "state" : "TX"	// gets discarded
+               }
+
+      {+adf+} merges documents from collection ``Y`` into collection 
+      ``X``. For ``whenMatched: replace`` option in the pipeline, 
+      {+adf+} replaces the document with ``_id: 1`` in collection ``X`` 
+      with the document with ``_id: 1`` in collection ``Y``. For 
+      ``whenNotMatched: discard`` option in the pipeline, {+adf+} 
+      discards documents in collection ``Y`` that do not match a 
+      document in collection ``X``. Therefore, the result of the 
+      pipeline with duplicates contains only the following document: 
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "_id" : 1,
+           "state" : "CA"
+         }
+
+      {+adf+} then merges this document into the target collection on 
+      the specified |service| cluster.
+
+.. _adf-merge-egs: 
+
+Example 
+-------
+
+The following example :pipeline:`$merge` syntax writes the results to a 
+``sampleDB.mySampleData`` collection on the |service| cluster named 
+``myTestCluster``. The example doesn't specify a project ID; the 
+:pipeline:`$merge` stage uses the ID of the project that contains your 
+{+fdi+}.
+
+.. example::
+
+   .. code-block:: json
+      :linenos:
+
+      {
+        "$merge": {
+          "atlas": {
+            "clusterName": "myTestCluster",
+            "db": "sampleDB",
+            "coll": "mySampleData"
+          }
+        }
+      }

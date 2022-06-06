@@ -1,0 +1,248 @@
+.. _config-adf:
+
+====================================================
+Define Data Stores for a {+FDI+} 
+====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Creating a {+fdi+} starts with creating a storage configuration in 
+|json| format. The storage configuration defines your data stores and 
+maps those data stores to collections you can query.
+
+{+adf+} supports |s3| buckets, |service| clusters, and publicly 
+accessible |url|\s as data stores. You must define mappings in your 
+{+fdi+} to your |s3| bucket, |service| cluster, and |http| data stores 
+to run queries against your data.
+
+.. important:: 
+
+   Information in your storage configuration is visible internally at 
+   MongoDB and stored as operational data to monitor and improve the 
+   performance of {+adf+}. We recommend that you do not use :abbr:`PII 
+   (Personally Identifiable Information)` in your configurations.
+
+This page describes the administration commands you can use to set, 
+update, and retrieve {+fdi+} storage configuration. Other pages in this 
+section describe the settings you can define in your {+fdi+} storage 
+configuration for your various data stores:
+
+- :ref:`adf-configuration-file-aws`
+- :ref:`adf-configuration-file-atlas`
+- :ref:`adf-configuration-file-http`
+
+{+df+} Access 
+----------------------
+
+When you create a {+fdi+}, you grant |service| either read only or read 
+and write access to |s3| buckets in your |aws| account. To access your 
+|service| clusters, |service| uses your existing :manual:`Role Based 
+Access Controls</core/authorization>`. You can view and edit the data 
+storage configuration that maps data from your |s3| buckets and 
+|service| clusters to {+fdi+}\s and virtual collections.
+
+Privilege Actions 
+-----------------
+
+Privilege actions define the operations that you can perform on your 
+{+fdi+}. You can grant the following {+adf+} privileges: 
+
+- When you :atlas:`create or modify </security-add-mongodb-roles/>` 
+  custom roles from the |service| User Interface
+- In the ``actions.action`` request body parameter when you 
+  :atlas:`create </reference/api/custom-roles-create-a-role/>` or 
+  :atlas:`update </reference/api/custom-roles-update-a-role/>` a custom 
+  role from the |service| |api|
+
+.. authaction:: sqlGetSchema
+
+   Retrieve the schema stored for a collection or view using 
+   the :ref:`sqlgetschema-cmd` command. 
+
+.. authaction:: sqlSetSchema
+
+   Set or delete the schema for a collection or view using the 
+   :ref:`sqlsetschema-cmd` command.
+
+.. authaction:: viewAllHistory 
+
+   Retrieve details about the queries that were run in the past 
+   24 hours using :ref:`$queryHistory <adf-query-history-stage>`.
+
+.. authaction:: outToS3
+
+   Write data from any one of the :ref:`supported 
+   <config-adf>` {+fdi+} stores or multiple :ref:`supported 
+   <config-adf>` {+fdi+} stores to your |s3| bucket using 
+   :ref:`adf-out-stage`.
+
+.. authaction:: storageGetConfig 
+
+   Retrieve your {+fdi+} :ref:`storage configuration 
+   <config-adf>` using the :ref:`storageGetConfig 
+   <adf-getstorageconfig>` command.
+
+.. authaction:: storageSetConfig 
+
+   Set or update your {+fdi+} :ref:`storage configuration 
+   <config-adf>` using the :ref:`storageSetConfig 
+   <adf-setstorageconfig>` command.
+
+.. _adf-setstorageconfig:
+
+Set or Update {+FDI+} Configuration
+-------------------------------------------------------
+
+Once connected to the {+fdi+}, you can use the following database 
+commands to set or update the {+fdi+} configuration:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( { "storageSetConfig" : <config> } )
+
+Replace ``<config>`` with the configuration for the {+fdi+}. You can 
+validate your configuration before setting or updating the {+fdi+} 
+configuration by running the :ref:`storageValidateConfig 
+<adf-validatestorageconfig>` command.
+
+To set or update the storage configuration through the |service| UI: 
+
+.. include:: /includes/steps/manage-storage-configuration-ui.rst
+
+   .. important::
+
+      If you make changes to your {+fdi+} configuration, the changes 
+      can take up to 30 seconds to take effect. Examples of changes 
+      include adding or removing new users, or adding or removing IP 
+      addresses from the access list. This delay can impact your 
+      ability to connect. If you are already connected, you might have 
+      to disconnect and reconnect to use the most recent storage 
+      configuration.
+
+You can also set and manage the storage configuration using the 
+:ref:`adf-cli`.
+
+.. _adf-validatestorageconfig:
+
+Validate {+FDI+} Configuration
+---------------------------------------------------------
+
+You can run the following command to validate your {+fdi+} 
+:ref:`configuration <config-adf>`. 
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( { "storageValidateConfig" : <config> } )
+
+Replace ``<config>`` with the configuration for the {+fdi+}.
+
+The command returns the following if your {+fdi+} configuration is 
+valid:
+
+.. code-block:: sh 
+   :copyable: false
+
+   { "ok" : 1 }
+
+The command returns the list of errors in the ``errs`` field if your 
+{+fdi+} storage configuration is invalid:
+
+.. code-block:: sh 
+   :copyable: false
+
+   {
+	  "ok" : 1,
+	  "errs" : [
+		  "<error>",
+		  "<error>",
+		  ...
+	  ]
+   }
+
+.. _adf-storagegenconfig:
+
+Generate {+FDI+} Configuration
+-------------------------------------------------------------
+
+You can run the ``storageGenerateConfig`` command to regenerate a 
+{+fdi+} :ref:`configuration <config-adf>`. The command returns an 
+automatically generated configuration, which you can then modify and 
+:ref:`upload <adf-setstorageconfig>`. In the automatically generated 
+configuration, {+FDI+} regenerates a database for each store:
+
+- The ``databases.[n].name`` will be the same as the 
+  ``stores.[n].name`` that it maps to.
+- Each database will contain up to 3 collections and a wildcard (``*``) 
+  collection.
+
+As a result, the databases array in the generated configuration might 
+be different from the databases array in your existing configuration. 
+
+.. note::
+
+   You must have the ``storageSetConfig`` privilege to run the 
+   ``storageGenerateConfig`` command. The :atlas:`atlasAdmin 
+   </security-add-mongodb-users/#atlasAdmin>` role has the 
+   ``storageSetConfig`` privilege by default.
+
+To generate a configuration for a {+fdi+}, connect to the {+fdi+} and 
+run the following database commands: 
+
+.. code-block:: javascript 
+
+   use admin 
+   db.runCommand( { "storageGenerateConfig" : 1 } )
+
+.. _adf-getstorageconfig:
+
+Retrieve {+FDI+} Configuration
+--------------------------------------------------------------
+
+Once connected to the {+fdi+}, you can use the following database 
+commands to retrieve the {+fdi+} configuration:
+
+.. code-block:: javascript
+
+   use admin
+   db.runCommand( { "storageGetConfig" : 1 } )
+
+The command returns the current {+fdi+} configuration. 
+
+.. _generate-wildcard-collections:
+
+Generate Wildcard Collections 
+-----------------------------
+
+You can dynamically generate collection names that map to data in your 
+|s3| bucket or |service| cluster. To dynamically generate collection 
+names, specify the wildcard, ``*``, as the value for the collection 
+name setting in your {+fdi+} storage configuration. You can't 
+dynamically generate collection names in your {+fdi+} storage 
+configuration that map to data in your |http| or |https| data store. 
+
+You can use the :ref:`storageSetConfig <adf-setstorageconfig>` 
+command to configure the settings for generating wildcard (``*``) 
+collections. 
+
+To learn more about the configuration settings for generating wildcard 
+collections, see:
+
+- :doc:`/data-federation/config/aws-gen-wildcard-collections`
+- :doc:`/data-federation/config/atlas-gen-wildcard-collections`
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /data-federation/config/config-aws-s3
+   /data-federation/config/config-atlas-cluster
+   /data-federation/config/config-http-endpoint
+   /data-federation/config/config-adl-datasets

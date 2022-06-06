@@ -1,0 +1,409 @@
+.. _adf-configuration-file-aws:
+
+=============
+AWS S3 Bucket 
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _aws-configuration-file-overview:
+
+{+adf+} supports |s3| buckets as {+fdi+} stores. You must define 
+mappings in your {+fdi+} to your |s3| bucket to run queries against 
+your data.
+
+Example Configuration for S3 Data Store
+---------------------------------------
+
+.. example::
+
+   Consider a S3 bucket ``datacenter-alpha`` containing data 
+   collected from a datacenter:
+
+   .. code-block:: none
+      :copyable: false
+
+      |--metrics
+      |--hardware
+
+   The ``/metrics/hardware`` path stores JSON files with metrics 
+   derived from the datacenter hardware, where each filename is 
+   the UNIX timestamp in milliseconds of the 24 hour period 
+   covered by that file:
+
+   .. code-block:: none
+      :copyable: false
+
+      /hardware/1564671291998.json
+
+   The following configuration:
+
+   - Defines a {+fdi+} store on the ``datacenter-alpha`` S3 bucket in 
+     the ``us-east-1`` AWS region. The {+fdi+} store is specifically 
+     restricted to only datafiles in the ``metrics`` folder path.
+
+   - Maps files from the ``hardware`` folder to a MongoDB database 
+     ``datacenter-alpha-metrics`` and collection ``hardware``. The 
+     configuration mapping includes parsing logic for capturing the 
+     timestamp implied in the filename.
+
+   .. code-block:: json
+
+      {
+        "stores" : [
+          {
+            "name" : "datacenter-alpha",
+            "provider" : "s3",
+            "region" : "us-east-1",
+            "bucket" : "datacenter-alpha",
+            "additionalStorageClasses" : [
+              "STANDARD_IA"
+            ],
+            "prefix" : "/metrics",
+            "delimiter" : "/"
+          }
+        ],
+        "databases" : [ 
+          {
+            "name" : "datacenter-alpha-metrics", 
+            "collections" : [
+              {
+                "name" : "hardware",
+                "dataSources" : [
+                  {
+                    "storeName" : "datacenter-alpha",
+                    "path" : "/hardware/{date date}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+   {+adf+} parses the S3 bucket ``datacenter-alpha`` and processes all 
+   files under ``/metrics/hardware/``. The ``collections`` uses the 
+   :ref:`path parsing syntax <adf-path-syntax>` to map the filename to 
+   the ``date`` field, which is an ISO-8601 date, in each document. If 
+   a matching ``date`` field does not exist in a document, it will be 
+   added.
+
+   Users connected to the {+fdi+} can use the MongoDB Query Language 
+   and supported aggregations to analyze data in the |s3| bucket 
+   through the ``datacenter-metrics.hardware`` collection.
+
+   .. seealso:: 
+
+      :ref:`query-s3`
+
+.. _adf-aws-configuration-format:
+
+Configuration Format
+--------------------
+
+The {+fdi+} configuration has the following format:
+
+.. literalinclude:: /includes/data-federation/s3-config-format.json
+   :language: json
+   :linenos:
+
+
+:ref:`adf-aws-stores-reference`
+  The ``stores`` object defines each data store associated with the 
+  {+fdi+}. The {+fdi+} store captures files in an |s3| bucket, 
+  documents in |service| cluster, or files stored at publicly 
+  accessible |url|\s. {+df+} can only access data stores defined in the 
+  ``stores`` object.
+
+:ref:`adf-aws-databases-reference`
+  The ``databases`` object defines the mapping between each
+  {+fdi+} store defined in ``stores`` and MongoDB collections 
+  in the databases. 
+
+.. _adf-aws-stores-reference:
+
+``stores``
+~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/s3-stores-config-format.json
+   :language: json
+   :linenos:
+
+.. datalakeconf-aws:: stores
+
+   Array of objects where each object represents a data store to 
+   associate with the {+fdi+}. The {+fdi+} store captures files in an 
+   |s3| bucket, documents in |service| cluster, or files stored at 
+   publicly accessible |url|\s. {+adf+} can only access data stores 
+   defined in the ``stores`` object.
+
+.. datalakeconf-aws:: stores.[n].name
+
+   Name of the {+fdi+} store. The :datalakeconf-aws:`databases.[n].collections.[n].dataSources.[n].storeName`
+   field references this value as part of mapping configuration.
+
+   .. include:: /includes/data-federation/fact-atlas-data-source.rst
+
+.. datalakeconf-aws:: stores.[n].provider
+
+   Defines where the data is stored. Value must be ``s3`` for an |aws| 
+   |s3| bucket.
+
+.. datalakeconf-aws:: stores.[n].region
+
+   Name of the |aws| region in which the S3 bucket is hosted. For a 
+   list of valid region names, see :atlas:`Amazon Web Services (AWS) 
+   </reference/amazon-aws/#amazon-aws>`. 
+
+.. datalakeconf-aws:: stores.[n].bucket
+
+   Name of the |aws| S3 bucket. Must exactly match the name of an |s3| 
+   bucket which {+adf+} can access with the configured |aws| IAM 
+   credentials.
+
+.. datalakeconf-aws:: stores.[n].additionalStorageClasses
+
+   *Optional.* Array of |aws| |s3| `storage classes 
+   <https://aws.amazon.com/s3/storage-classes/>`__. {+adf+} will 
+   include the files in these storage classes in the query results. 
+   Valid values are: 
+
+   - ``INTELLIGENT_TIERING`` to include files in the `Intelligent 
+     Tiering <https://aws.amazon.com/s3/storage-classes/#Unknown_or_changing_access>`__ 
+     storage class
+   - ``STANDARD_IA`` to include files in the `Standard-Infrequent 
+     Access <https://aws.amazon.com/s3/storage-classes/#Infrequent_access>`__ 
+     storage class
+
+     .. note:: 
+
+        Files in the `Standard <https://aws.amazon.com/s3/storage-classes/#General_purpose>`__ 
+        storage class are supported by default.
+
+.. datalakeconf-aws:: stores.[n].prefix
+
+   *Optional.* Prefix {+adf+} applies when searching for files in the 
+   |s3| bucket. 
+
+   For example, consider an |s3| bucket ``metrics`` with the following 
+   structure:
+
+   .. code-block:: text
+      :copyable: false
+
+      metrics
+        |--hardware
+        |--software
+          |--computed
+
+   The {+fdi+} store prepends the value of ``prefix`` to the
+   :datalakeconf-aws:`databases.[n].collections.[n].dataSources.[n].path` 
+   to create the full path for files to ingest. Setting the ``prefix`` 
+   to ``/software`` restricts any :datalakeconf-aws:`databases` objects 
+   using the {+fdi+} store to only subpaths ``/software``.
+
+   If omitted, {+adf+} searches all files from the root of the |s3| 
+   bucket.
+
+.. datalakeconf-aws:: stores.[n].delimiter
+   
+   *Optional.* The delimiter that separates 
+   :datalakeconf-aws:`databases.[n].collections.[n].dataSources.[n].path` 
+   segments in the {+fdi+} store. {+df+} uses the delimiter to 
+   efficiently traverse |s3| buckets with a hierarchical directory 
+   structure. You can specify any character supported by the |s3| 
+   `object keys <https://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html>`__ 
+   as the delimiter. For example, you can specify an underscore (``_``) 
+   or a plus sign (``+``) or multiple characters such as double 
+   underscores (``__``) as the delimiter.
+
+   If omitted, defaults to ``"/"``.
+
+.. datalakeconf-aws:: stores.[n].includeTags
+
+   *Optional.* Determines whether or not to use |s3| tags on the files 
+   in the given path as additional partition attributes. Valid values 
+   are ``true`` and ``false``. 
+
+   If omitted, defaults to ``false``.
+
+   If set to ``true``, {+adf+} does the following:
+
+   - Adds the |s3| tags as additional partition attributes. 
+
+   - Adds new top level BSON elements that associate each tag to each 
+     document for the tagged files.
+
+   .. warning::
+
+      If set to ``true``, {+adf+} processes the files for additional 
+      partition attributes by making extra calls to |s3| to get the 
+      tags. This behavior might impact performance.
+
+.. datalakeconf-aws:: stores.[n].public 
+
+   *Optional.* Specifies whether the bucket is public. 
+
+   If set to ``true``, {+adf+} doesn't use the configured |aws| |iam| 
+   role to access the |s3| bucket. If set to ``false``, the configured 
+   |aws| |iam| must include permissions to access the |s3| bucket, even 
+   if that bucket is public.
+
+   If omitted, defaults to ``false``.
+
+.. _adf-aws-databases-reference:
+
+``databases``
+~~~~~~~~~~~~~
+
+.. literalinclude:: /includes/data-federation/s3-databases-config-format.json
+   :language: json
+   :linenos:
+
+.. datalakeconf-aws:: databases
+
+   Array of objects where each object represents a database, its 
+   collections, and, optionally, any :manual:`views </core/views/>` on 
+   the collections. Each database can have multiple ``collections`` and 
+   ``views`` objects.
+
+.. datalakeconf-aws:: databases.[n].name
+
+   Name of the database to which {+adf+} maps the data contained in the 
+   data store.
+
+.. datalakeconf-aws:: databases.[n].collections
+
+   Array of objects where each object represents a collection and data 
+   sources that map to a :datalakeconf-aws:`stores` {+fdi+} store. 
+
+.. datalakeconf-aws:: databases.[n].collections.name
+
+   Name of the collection to which {+adf+} maps the data contained in 
+   each :datalakeconf-aws:`databases.[n].collections.[n].dataSources.[n].storeName`. 
+   Each object in the array represents the mapping between the 
+   collection and an object in the :datalakeconf-aws:`stores` array. 
+
+   You can generate collection names dynamically from file paths by 
+   specifying ``*`` for the collection name and the 
+   ``collectionName()`` function in the 
+   :datalakeconf-aws:`~databases.[n].collections.[n].dataSources.[n].path`
+   field. See :ref:`adf-advanced-path-generate-collection` for 
+   examples. 
+
+.. datalakeconf-aws:: databases.[n].collections.[n].dataSources 
+
+   Array of objects where each object represents a 
+   :datalakeconf-aws:`stores` {+fdi+} store to map with the 
+   collection.
+
+.. datalakeconf-aws:: databases.[n].collections.[n].dataSources.[n].storeName
+
+   Name of a {+fdi+} store to map to the ``<collection>``. 
+   Must match the :datalakeconf-aws:`~stores.[n].name` of an object in 
+   the :datalakeconf-aws:`stores` array. 
+
+.. datalakeconf-aws:: databases.[n].collections.[n].dataSources.[n].path
+
+   Controls how {+adf+} searches for and parses files in the
+   :datalakeconf-aws:`~databases.[n].collections.[n].dataSources.[n].storeName` 
+   before mapping them to the ``<collection>``. {+fdi+} prepends the 
+   :datalakeconf-aws:`stores.[n].prefix` to the ``path`` to build the 
+   full path to search within. Specify ``/`` to capture all files and 
+   folders from the ``prefix`` path.
+
+   For example, consider an S3 bucket ``metrics`` with the following 
+   structure:
+
+   .. code-block:: text
+      :copyable: false
+
+      metrics
+      |--hardware
+      |--software
+        |--computed
+
+   A ``path`` of ``/`` directs {+adf+} to search all files and folders 
+   in the ``metrics`` bucket.
+
+   A ``path`` of ``/hardware`` directs {+adf+} to search only that path 
+   for files to ingest.
+
+   If the :datalakeconf-aws:`~stores.[n].prefix` is ``software``, {+adf+} 
+   searches for files only in the path ``/software/computed``.
+
+   Appending the ``*`` wildcard character to the path directs {+adf+} 
+   to include all files and folders from that point in the path. For 
+   example, ``/software/computed*`` would match files like 
+   ``/software/computed-detailed``, ``/software/computedArchive``, and 
+   ``/software/computed/errors``.
+
+   :datalakeconf-aws:`~databases.[n].collections.[n].dataSources.[n].path`
+   supports additional syntax for parsing filenames, including:
+
+   - Generating document fields from filenames.
+   - Using regular expressions to control field generation.
+   - Setting boundaries for bucketing filenames by timestamp.
+   
+   See :ref:`adf-path-syntax` for more information.
+
+   .. include:: /includes/data-federation/fact-path-delimiter.rst
+
+   .. datalakeconf-aws:: databases.[n].collections.[n].dataSources.[n].defaultFormat
+      
+   .. include:: /includes/extracts/param-default-format.rst
+
+   .. seealso:: 
+
+      :ref:`adf-data-formats`
+
+.. datalakeconf-aws:: databases.[n].maxWildcardCollections 
+
+   .. include:: /includes/extracts/param-max-wildcard-collections.rst 
+
+.. datalakeconf-aws:: databases.[n].views 
+
+   Array of objects where each object represents an 
+   :manual:`aggregation pipeline </core/aggregation-pipeline/#id1>` on 
+   a collection. To learn more about views, see :manual:`Views 
+   </core/views/>`.
+
+.. datalakeconf-aws:: databases.[n].views.[n].name 
+
+   Name of the view. 
+
+.. datalakeconf-aws:: databases.[n].views.[n].source 
+
+   Name of the source collection for the view.
+
+.. datalakeconf-aws:: databases.[n].views.[n].pipeline 
+ 
+   :manual:`Aggregation pipeline stage(s) 
+   </core/aggregation-pipeline/#id1>` to apply to the 
+   :datalakeconf-aws:`~databases.[n].views.[n].source` collection.
+
+.. seealso::
+
+   - :ref:`Configure Atlas Data Lake <adf-configuration-file-aws>` 
+   - `Tutorial: Federated Queries and $out to S3 
+     <https://developer.mongodb.com/how-to/atlas-data-federation-federated-queries-out-aws-s3>`__
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /data-federation/deployment/deploy-s3
+   /data-federation/config/aws-gen-wildcard-collections
+   /data-federation/config/path-syntax-examples
+   /data-federation/supported-unsupported/supported-partition-attributes
+   /data-federation/admin/optimize-query-performance
+   /data-federation/supported-unsupported/encryption
+   /data-federation/supported-unsupported/supported-data-formats
+   Limitations </data-federation/supported-unsupported/aws-s3-limitations>
+   

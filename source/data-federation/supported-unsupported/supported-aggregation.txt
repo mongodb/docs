@@ -1,0 +1,183 @@
+.. _adf-aggregation-pipeline-support:
+
+===================================================
+Supported Aggregation Pipeline Stages and Operators 
+===================================================
+
+This page describes the MongoDB :manual:`aggregation </aggregation/>` 
+pipeline :manual:`stages </reference/operator/aggregation-pipeline/>` 
+and :manual:`operators </reference/operator/aggregation/>` that {+adf+} 
+supports.
+
+.. note:: 
+
+   .. include:: /includes/data-federation/fact-doc-order-in-query-result.rst
+
+.. _supported-stages:
+
+Supported and Unsupported Aggregation Pipeline Stages 
+-----------------------------------------------------
+
+{+adf+} supports all the aggregation pipeline stages except the 
+following: 
+
+- :pipeline:`$indexStats`	
+- :pipeline:`$listSessions`	
+- :pipeline:`$listLocalSessions`
+- :pipeline:`$merge`	
+- :pipeline:`$planCacheStats`
+
+For the following stages in {+adf+} queries, {+adf+} introduces an 
+alternate syntax, includes a caveat, or deviates from :manual:`server 
+</reference/operator/aggregation-pipeline/>`. See the *Description* 
+column for details.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Pipeline Stage 
+     - Description
+
+   * - :pipeline:`$geoNear` 
+     - Outputs documents in order of nearest to farthest from a 
+       specified point. {+adf+} supports :pipeline:`$geoNear` in 
+       queries on virtual collections that are mapped to one or more 
+       |service| collections. {+adf+} doesn't support 
+       :pipeline:`$geoNear` for |s3| or |http| {+fdi+} stores.
+       
+       See :ref:`query-atlas` for more information. 
+
+   * - :pipeline:`$graphLookup` 
+     - Performs a recursive search on a collection. {+adf+} supports 
+       :pipeline:`$graphLookup` in queries on virtual collections 
+       that are mapped to one |service| collection only. {+adf+} 
+       doesn't support :pipeline:`$graphLookup` for:
+
+       - |s3| or |http| stores.
+       - Queries on virtual collections that are mapped to multiple 
+         |service| collections.
+       
+       See :ref:`query-atlas` for more information. 
+
+   * - :pipeline:`$group` 
+     - Groups input documents by the specified ``_id`` expression and 
+       for each distinct grouping, outputs a document. {+adf+} doesn't 
+       support empty string keys for the accumulator fields. 
+
+       .. example:: 
+
+          The following is **not** supported: 
+
+          .. code-block:: json 
+             :copyable: false 
+             :emphasize-lines: 4
+
+             {
+		           "$group" : {
+			           "_id" : "$representationType",
+			           "" : {
+				           "$sum" : NumberInt(1)
+			           }
+		           }
+	           }
+
+   * - :pipeline:`$lookup`
+     - Performs a left outer join to a collection in the same database. 
+       {+adf+} provides syntax for joining collections from different 
+       databases also. See :ref:`adf-lookup-stage` for more information.
+
+   * - :pipeline:`$match` 
+     - Filters the documents to pass only the documents that match the 
+       specified condition(s) to the next pipeline stage. {+adf+} 
+       supports :pipeline:`$match`. Note that the :ref:`partition 
+       attributes <adf-s3-path-attribute-types>` for selecting 
+       specific files on |s3| are only optimized for the following 
+       :manual:`aggregation pipeline operators 
+       </reference/operator/aggregation/>`: :manual:`$eq 
+       </reference/operator/aggregation/eq/>`, :manual:`$gt 
+       </reference/operator/aggregation/gt/>`, :manual:`$lt 
+       </reference/operator/aggregation/lt/>`, :manual:`$gte 
+       </reference/operator/aggregation/gte/>`, :manual:`$lte 
+       </reference/operator/aggregation/lte/>`, :manual:`$ne 
+       </reference/operator/aggregation/ne/>`, :manual:`$and 
+       </reference/operator/aggregation/and/>`, :manual:`$or 
+       </reference/operator/aggregation/or/>`.
+
+   * - :pipeline:`$merge` 
+     - Writes the results of the :manual:`aggregation pipeline 
+       </core/aggregation-pipeline/>` to a specified collection. 
+       {+adf+} provides alternate syntax for the required ``into`` 
+       field to allow writes to an |service| cluster. To learn more, 
+       see :ref:`adf-merge-stage`.
+
+   * - :pipeline:`$out`
+     - Takes the documents returned by the aggregation pipeline and 
+       writes them to a specified collection. {+adf+} provides 
+       alternate syntax for writing to |s3| and |service| cluster. 
+
+       .. include:: /includes/data-federation/fact-out-stage-limitation.rst
+       
+       See :ref:`adf-out-stage` for more information.
+
+   * - :pipeline:`$sample` 
+     - Randomly selects the specified number of documents from its 
+       input. {+adf+} supports ``$sample``, but does not provide a 
+       truly random sample and returns the first set of documents that 
+       it finds. 
+
+   * - :pipeline:`$skip` 
+     - Skips over the specified number of documents that pass into the 
+       stage and passes the remaining documents to the next stage in 
+       the pipeline. {+adf+} supports ``$skip``, but this does not 
+       reduce data scan because {+df+} accesses all partitions that 
+       correspond to your query. 
+
+.. _supported-operators:
+
+Supported Aggregation Pipeline Operators
+----------------------------------------
+
+{+adf+} supports all the aggregation pipeline operators. However, 
+{+adf+} supports all the :manual:`geospatial query operators 
+</reference/operator/query-geospatial/>` and the following 
+:manual:`evaluation query operators 
+</reference/operator/query-evaluation/>` only in queries on 
+collections that are mapped to an |service| cluster data store. 
+
+.. note:: 
+
+   {+adf+} doesn't include a server-side JavaScript engine. So, {+adf+} 
+   doesn't support operators such as :manual:`$where 
+   </reference/operator/query/where/>`, :manual:`$function 
+   </reference/operator/aggregation/function/>`, and 
+   :manual:`$accumulator 
+   </reference/operator/aggregation/accumulator/>` that require 
+   server-side scripting :manual:`enabled 
+   </reference/operator/query/where/#javascript-enablement>`.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Pipeline Stage 
+     - Description
+
+   * - :manual:`$text </reference/operator/query/text/>`
+     - Performs a text search on the content of the fields indexed with 
+       a text index.
+
+   * - :manual:`$where </reference/operator/query/where/>`
+     - Passes either a string containing a JavaScript expression or a 
+       full JavaScript function to the query system. 
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /data-federation/supported-unsupported/pipeline/collstats
+   /data-federation/supported-unsupported/pipeline/lookup-stage
+   /data-federation/supported-unsupported/pipeline/merge
+   /data-federation/supported-unsupported/pipeline/out
+   $queryHistory </data-federation/query/view-query-history/>
+   /data-federation/supported-unsupported/pipeline/sql

@@ -235,7 +235,6 @@
   on March 1, 2021. Communications sent beginning 2 years before this
   date notified users. We encourage you to use :ref:`Programmatic API Keys <about-org-api-keys>`.
 
-
 .. _atlas_20210511:
 
 11 May 2021 Release
@@ -246,7 +245,7 @@
 - Introduces |service| :ref:`Global Clusters <de-shard-collection-for-global-writes>`
   support for using a unique compound index as a shard key and using a
   compound shard with a hashed second field.
-- Introduces the ability for :adl:`{+data-lake+} <>` to target cluster 
+- Introduces the ability for {+df+} to target cluster 
   :ref:`analytics nodes <deploy-analytics-nodes>` for federated queries.
 
 .. _atlas_20210421:
@@ -274,8 +273,7 @@
 09 March 2021 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Introduces a new {+data-lake+}
-  :adl:`onboarding experience </tutorial/getting-started/>`.
+- Introduces a new {+df+} onboarding experience.
 - Adds |api| support for multi-cloud clusters.
 - Incorporates database and collection name drop-down menus
   in the {+fts+} :ref:`index builder <fts-tutorial-ref>`.
@@ -331,7 +329,7 @@
 
   - |aws| |kms| encryption keys for customer key management, or
   
-  - |s3| buckets for {+data-lake+}\s.
+  - |s3| buckets for {+fdi+}\s.
 
 - Introduces the ability to peer to |service| VPCs on |gcp| with a
   smaller |cidr| block. When you create the network peering container
