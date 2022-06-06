@@ -1,5 +1,7 @@
 
-.. note:: {+Serverless-Instances+} are in Preview
+.. important:: Feature unavailable in {+Serverless-Instances+}
 
-   {+Serverless-instances+} are in preview and do not support this
-   feature at this time. To learn more, see :doc:`{+Serverless-Instance+} Limitations </reference/serverless-instance-limitations/>`.
+   {+Serverless-instances+} don't support this
+   feature at this time. To learn more, see 
+   :doc:`{+Serverless-Instance+} Limitations 
+   </reference/serverless-instance-limitations/>`.

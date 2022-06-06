@@ -12,8 +12,6 @@ Serverless Instance Costs
    :depth: 2
    :class: singlecol
 
-.. include:: /includes/note-serverless-in-preview-release.rst
-
 {+Serverless-instances+} offer pay-per-operation pricing, meaning that 
 you only pay for the Processing Units consumed by your database 
 operations and storage consumed by your data and indexes. You do not 
@@ -25,8 +23,16 @@ may be more cost effective for applications with low or intermittent
 traffic. To learn more about {+serverless-instances+} and use cases, 
 see :ref:`Choose a Database Deployment Type <ref-deployment-types>`.
 
-Usage Costs
------------
+
+Usage Cost Summary
+----------------------
+
+Operation pricing varies between cloud providers and geographic 
+regions. All operations are billed *per day*.
+
+.. LK 6/3/22 - The intended final source of truth for this pricing info
+   is the Atlas UI itself; as of today, this information is not accessible
+   without special configuration.
 
 .. list-table::
    :widths: 20 40 40
@@ -47,9 +53,10 @@ Usage Costs
        ``RPU``.
       
      - The price for each million ``RPU``\s decreases based on volume 
-       of reads in a day, starting at $0.30 per million ``RPU``\s. 
+       of reads in a day. Starting prices range from 
+       $0.09 to $0.22 per million ``RPU``\s.
        [#prorated]_ 
-       See :ref:`rpu-pricing` for details.
+       See :ref:`rpu-pricing` for price tier details.
 
    * - Write Processing Unit (``WPU``)
      - Write operations to the database.
@@ -60,15 +67,16 @@ Usage Costs
        If a document and index exceed 1KB, |service| covers each excess 
        chunk of 1KB with an additional ``WPU``.
 
-     - $1.25 per million. [#prorated]_
+     - Range from $0.90 to $2.20 per million ``WPU``\s.
+       [#prorated]_
 
    * - Storage
      - Logical document and index storage.
-     - $0.25 per ``GB`` per month, prorated and billed *per day*.
+     - Range from $0.20 to $0.70 per ``GB`` per month.
 
-   * - Backup
-     - Daily snapshots.
-     - Two daily snapshots are included for free.
+   * - Continuous Backup
+     - Point-in-Time backups triggered by write events.
+     - Range from $0.20 to $0.60 per ``GB`` per month.
 
    * - Restore from Backup
      - The time required to restore your serverless instance.
@@ -78,35 +86,38 @@ Usage Costs
           Data transfer as part of the backup and restore process is 
           charged separately.
 
-     - $2.50 per restore hour.
+     - Range from $2.50 to $6.00 per restore hour.
 
    * - Data Transfer
-     - Data transfer to and from the database.
+     - Data transfer to and from the database. [#prorated]_
 
        .. tip::
           
           If your data transfer costs are a significant portion of your 
           bill, see :ref:`reducing-data-transfer-costs`.
 
-     - $0.015 per ``GB`` (preview pricing). [#prorated]_
+     -
 
-       .. important::
+       - Regional: $0.01 per ``GB`` for *all* cloud providers and 
+         regions.
 
-          During the preview period, data transfer costs may be updated 
-          to account for the source and destination regions of a 
-          transfer.
+       - Cross-Region: range from $0.02 to $0.20 per ``GB``.
 
-.. ZC - 7/6/21 - After public beta (for GA) update to:
-   $0.015-$0.09 per ``GB``, depending on the source and destination 
-   of the transfer.
+       - Public Internet: range from $0.09 to $0.20 per ``GB``.
+
+.. LK - 6/2/22 - Footnote about prorating must be included in the left
+   column; if it's included with the list items in the right column, it
+   will cause formatting errors and the only way to circumvent them
+   is to put all the text on a single line of source regardless of the
+   72 character rule.
 
 .. [#prorated]
 
    ``RPU`` and ``WPU`` prices are presented *per million*, but you are 
-   only charged for the amount you use. For example, ``WPU``\s 
-   cost $1.25 per million; using 500,000 would cost $0.63. The same is 
-   true for data transfer: you're only charged for the amount you 
-   transfer.
+   only charged for the amount you use. For example, if ``WPU``\s 
+   cost $1.25 per million in your region; using 500,000 would cost 
+   $0.63. The same is true for data transfer: you're only charged for 
+   the amount you transfer.
       
 .. _rpu-pricing:
 
@@ -125,43 +136,44 @@ tiers:
      - Description
      - Price
 
-   * - 0-5 MM ``RPU``\s 
-     - The first 5 million ``RPU``\s in a day.
-     - $0.30/MM
+   * - 0-50 MM ``RPU``\s 
+     - The first 50 million ``RPU``\s in a day.
+     - $0.09 to $0.22/MM
 
-   * - 5-25 MM ``RPU``\s 
-     - The next 20 million ``RPU``\s in a day.
-     - $0.25/MM
+   * - 50-550 MM ``RPU``\s 
+     - The next 500 million ``RPU``\s in a day.
+     - $0.05 to $0.110/MM
    
-   * - 25-75 MM ``RPU``\s 
-     - The next 50 million ``RPU``\s in a day.
-     - $0.20/MM
+   * - 550 MM-20.55 B ``RPU``\s 
+     - The next 20 billion ``RPU``\s in a day.
+     - $0.01 to $0.03/MM
    
-   * - 75+ MM ``RPU``\s 
+   * - 20.55+ B ``RPU``\s 
      - All subsequent ``RPU``\s in a day.
-     - $0.15/MM
+     - Free
 
 .. example::
    
-   If your application uses 31 million ``RPU``\s in a day, |service| 
-   charges you $7.70:
+   If your application uses 560 million ``RPU``\s in a day, in a region
+   with prices of $0.10/MM, $0.06/MM, and $0.02/MM by tier, |service| 
+   charges you $35.20:
 
-   - $0.30/MM for the first 5 million ($1.50).
+   - $0.10/MM for the first 50 million ($5.00).
 
-   - $0.25/MM for the next 20 million ($5).
+   - $0.06/MM for the next 500 million ($30.00).
 
-   - $0.20/MM for the last 6 million ($1.20).
+   - $0.02/MM for the last 10 million ($0.20).
 
    If that usage is typical for a day, your application costs 
-   approximately $231 per month ($7.70 per day x 30 days).
+   approximately $1056 per month ($35.20 per day x 30 days).
 
    In another example, if your application uses 0.5 million ``RPU``\s 
-   in a day, |service| charges you $0.15:
+   in a day in the same region, |service| charges you $0.05:
 
-   - $0.30/MM for the first 0.5 million ($0.15).
+   - $0.10/MM for the first 0.5 million ($0.05).
 
    If that usage is typical for a day, your application costs 
-   approximately $4.50 per month ($0.15 per day x 30 days).
+   approximately $1.50 per month ($0.05 per day x 30 days).
 
 Payment Methods
 ---------------

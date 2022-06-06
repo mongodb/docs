@@ -1,7 +1,7 @@
 .. _atlas-serverless-limits-csp:
 
-{+Serverless-instances+} don't currently support the following 
-|service| features. If you require the following capabilities, use a 
+{+Serverless-instances+} don't currently support the
+|service| features listed below. If you require these capabilities, please use a
 :doc:`{+dedicated-cluster+} </tutorial/create-new-cluster>`.
 
 {+Serverless-instances+} don't support some features even though they 
