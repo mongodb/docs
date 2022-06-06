@@ -1,7 +1,7 @@
 
-==============================================
-Read and Write with the {+data-api+} (Preview)
-==============================================
+====================================
+Read and Write with the {+data-api+}
+====================================
 
 .. contents:: On this page
    :local:
@@ -12,20 +12,23 @@ Read and Write with the {+data-api+} (Preview)
 .. toctree::
    
    {+data-api+} Resources </api/data-api-resources>
+   {+data-api+} Examples </api/data-api-examples>
 
 The |service-fullname| {+data-api+} lets you read and write data in
-|service| with standard HTTPS requests. The API includes endpoints that
-create, read, update, delete, and aggregate documents in your cluster.
-To use the {+data-api+}, all you need is an HTTPS client and a valid API
-key.
+|service| with standard HTTPS requests. To use the {+data-api+}, all you
+need is an HTTPS client and a valid API key.
 
-The {+data-api+} is not a direct connection to your database. Instead,
-the API is a fully-managed middleware service that sits between your
-cluster and client apps. Clients send requests to specific endpoints,
-which each represent a MongoDB operation. For each request, the
-{+data-api+} authorizes the request, decodes and runs the database
-operation, and then returns the results of the operation in an HTTPS
-response.
+Clients send requests to specific endpoints, which each represent a
+MongoDB operation. The API includes endpoints that create, read, update,
+delete, and aggregate documents in your cluster. Requests specify a
+collection and include operation-specific parameters like a query filter
+or update description. Additionally, all incoming requests must include
+a {+data-api+} key to authenticate the calling user.
+
+For each request, the {+data-api+} authenticates the user and checks the
+cluster's read/write permissions. If the user's request is authorized,
+then the API validates the request, runs the corresponding database
+operation, and returns the result in an HTTPS response.
 
 For example, this :mdn:`POST <Web/HTTP/Methods/POST>` request stores a
 document in |service| by calling the ``insertOne`` endpoint:
@@ -36,9 +39,8 @@ document in |service| by calling the ``insertOne`` endpoint:
       :language: bash
       
       curl --request POST \
-        'https://data.mongodb-api.com/app/data-xtest/endpoint/data/beta/action/insertOne' \
+        'https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/insertOne' \
         --header 'Content-Type: application/json' \
-        --header 'Access-Control-Request-Headers: *' \
         --header 'api-key: TpqAKQgvhZE4r6AOzpVydJ9a3tB1BLMrgDzLlBLbihKNDzSJWTAHMVbsMoIOpnM6' \
         --data-raw '{
             "dataSource": "Cluster0",
@@ -72,6 +74,29 @@ the corresponding MongoDB operation called through a connected MongoDB
 Driver. For high-load use-cases and latency sensitive applications, we
 recommend connecting directly to your database with a MongoDB driver. To
 learn more, visit the :driver:`MongoDB Drivers </>` documentation.
+
+How the {+data-api+} Works
+--------------------------
+
+The {+data-api+} is not a direct connection to your database. Instead,
+it routes requests through a fully-managed middleware layer, called
+|service| App Services, that sits between your cluster and client apps.
+This layer handles user authentication and enforces data access rules to
+ensure that your data is secure.
+
+You can :ref:`quickly set up and access <data-api-get-started>` the
+{+data-api+} through |service|, which creates and manages an App
+Services app for you. |service| supports API key authentication with
+several basic permissions models.
+
+You can also define more complex API access permissions and custom
+endpoints by accessing the managed |service| {+data-api+} app directly
+or enabling the API in your own app.
+
+To learn more about App Services and how the {+data-api+} works, see
+:appservices:`{+data-api+} (App Services) </data-api>`.
+
+.. _data-api-get-started:
 
 Get Started
 -----------
@@ -160,9 +185,8 @@ A. Insert a test document:
    .. code-block:: bash
       
       curl --request POST \
-        'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
+        'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/insertOne' \
         --header 'Content-Type: application/json' \
-        --header 'Access-Control-Request-Headers: *' \
         --header 'api-key: <{+data-api+} Key>' \
         --data-raw '{
             "dataSource": "<cluster name>",
@@ -179,9 +203,8 @@ B. Then, find the test document that you just inserted:
    .. code-block:: bash
       
       curl --request POST \
-        'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/findOne' \
+        'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/findOne' \
         --header 'Content-Type: application/json' \
-        --header 'Access-Control-Request-Headers: *' \
         --header 'api-key: <{+data-api+} Key>' \
         --data-raw '{
             "dataSource": "<cluster name>",
@@ -195,9 +218,8 @@ C. Finally, delete the test document:
    .. code-block:: bash
       
       curl --request POST \
-        'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/deleteOne' \
+        'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/deleteOne' \
         --header 'Content-Type: application/json' \
-        --header 'Access-Control-Request-Headers: *' \
         --header 'api-key: <{+data-api+} Key>' \
         --data-raw '{
             "dataSource": "<cluster name>",
@@ -206,29 +228,370 @@ C. Finally, delete the test document:
             "filter": { "name": "John Sample" }
         }'
 
-.. _data-api-ejson-responses:
+Configure the {+data-api+}
+--------------------------
 
-Extended JSON Responses
------------------------
+You can configure your API deployment and how users interact with the
+API.
 
-By default, the {+data-api+} encodes response body content in |json|.
-MongoDB stores data as |bson| and uses :manual:`MongoDB Extended JSON
-</reference/mongodb-extended-json/>`, or EJSON, to
-represent types that do not exist in the JSON format.
-To translate MongoDB EJSON data into JSON responses, the {+data-api+}
-translates fields into JSON values when possible and
-omits the values of EJSON fields that have no JSON equivalent.
+.. _data-api-permissions:
 
-The following table shows how JSON and EJSON can differ in responses
-from the {+data-api+}:
+Data Access Permissions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The |service| {+data-api+} allows you to define cluster-level read/write
+permissions that apply to all incoming requests. You can define one of the
+following for each cluster:
+
+- **Read and Write**: Requests can read all data and can insert, modify,
+  or delete data in any collection.
+- **Read Only**: Requests can read all data in any collection but cannot write any data.
+- **No Access**: Requests can't read or write any data in any collection.
+
+For more complex permissions, you can define custom :appservices:`data
+access rules </data-api/generated-endpoints/#access-permissions>` in
+the managed |service| {+data-api+} app.
+
+.. _data-api-authentication:
+
+Authentication and API Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |service| {+data-api+} supports user authentication with API keys.
+Incoming requests must include an API key in a request header. You can
+create up to 100 {+data-api+} keys.
+
+To allow users to authenticate requests with another method, like a
+username and password or a JSON web token, you can enable additional
+:appservices:`authentication providers
+</data-api/generated-endpoints/#authentication-and-api-keys>` in the
+managed |service| {+data-api+} app.
+
+.. _data-api-deployment-regions:
+
+Deployment Models & Regions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The App Services layer that runs the {+data-api+} processes requests on
+managed servers hosted in deployment regions around the world. You can
+control where you deploy your {+data-api+} and process requests using
+one of two deployment models:
+
+- **Global** deployment hosts your API on servers in every supported
+  region across the world. The API automatically routes and processes
+  incoming requests to the server that's nearest to the requesting user.
+
+- **Local** deployment hosts your API servers in one specific deployment
+  region. The API routes and processes all incoming requests to a server
+  in the local region.
+
+.. _data-api-response-type:
+
+Response Type
+~~~~~~~~~~~~~
+
+Endpoints can return data in one of two :ref:`data formats
+<data-api-data-formats>`, either JSON or EJSON.
+
+By default, endpoints return JSON, which is a standard data format that
+is widely supported modern langauges and platforms. However, JSON cannot
+represent every data type that you can store in MongoDB and loses type
+information for some data types.
+
+You can also configure endpoints to return EJSON, which uses structured
+JSON objects to fully represent the types that MongoDB supports. This
+preserves type information in responses but requires that your
+application understands how to parse and use EJSON.
+
+.. tip::
+   
+   The official MongoDB drivers include methods for working with EJSON.
+   You can also download a standalone parser like :npm:`bson
+   <package/bson>` on npm.
+
+Call a {+data-api+} Endpoint
+----------------------------
+
+You can call a {+data-api+} endpoint from any standard HTTP client. Each
+request can include configuration headers and arguments in the request
+body.
+
+Specify the Request Data Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+data-api+} requests must include a ``Content-Type`` header to specify
+the :ref:`data format <data-api-data-formats>` used in the request body.
+
+- Use ``Content-Type: application/json`` to represent standard JSON
+  types in a {+data-api+} request body.
+
+- Use ``Content-Type: application/ejson`` to represent standard JSON
+  types *and* additional EJSON types in a {+data-api+} request body.
+
+.. tabs::
+   
+   .. tab:: EJSON
+      :tabid: ejson
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 4
+            
+            curl -X GET \
+              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/insertOne \
+              -H 'api-key: <API Key>' \
+              -H 'Content-Type: application/ejson' \
+              -H 'Accept: application/ejson' \
+              --data-raw '{
+                  "dataSource": "mongodb-atlas",
+                  "database": "learn-data-api",
+                  "collection": "hello",
+                  "document": {
+                    "_id": { "$oid": "629971c0d71aad65bd59c595" },
+                    "greeting": "Hello, EJSON!",
+                    "date": { "$date": { "$numberLong": "1654589430998" } }
+                  }
+              }'
+         
+         .. output::
+            :language: json
+            
+            { "insertedId": { "$oid": "629971c0d71aad65bd59c595" } }
+   
+   .. tab:: JSON
+      :tabid: json
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 4
+            
+            curl -X POST \
+              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/updateOne \
+              -H 'api-key: <API Key>' \
+              -H 'Content-Type: application/json' \
+              --data-raw '{
+                 "dataSource": "mongodb-atlas",
+                 "database": "learn-data-api",
+                 "collection": "hello",
+                 "filter": { "greeting": "Hello, world!" },
+                 "update": {
+                     "$set": { "greeting": "Hello, universe!" }
+                 }
+              }'
+         
+         .. output::
+            :language: json
+            :visible: false
+            
+            { "matchedCount": 1, "modifiedCount": 1 }
+
+Choose a Response Data Format
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A request can include an ``Accept`` header to request a specific data
+format for the response body, either JSON or EJSON. If a request does
+not include a valid ``Accept`` header, the response uses the data format
+specified in your :ref:`Data API configuration
+<data-api-response-type>`.
+
+.. tabs::
+   
+   .. tab:: EJSON
+      :tabid: ejson
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 5
+            
+            curl -X GET \
+              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
+              -H 'api-key: <API Key>' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/ejson' \
+              --data-raw '{
+                 "dataSource": "mongodb-atlas",
+                 "database": "learn-data-api",
+                 "collection": "hello",
+                 "projection": { "greeting": 1, "date": 1 }
+              }'
+         
+         .. output::
+            :language: json
+            
+            {
+              "_id": { "$oid": "629971c0d71aad65bd59c545"},
+              "greeting": "Hello, Leafie!",
+              "date": { "$date": { "$numberLong": "1654589430998" } }
+            }
+   
+   .. tab:: JSON
+      :tabid: json
+      
+      .. io-code-block::
+         
+         .. input::
+            :language: bash
+            :emphasize-lines: 5
+            
+            curl -X POST \
+              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
+              -H 'api-key: <API Key>' \
+              -H 'Content-Type: application/json' \
+              -H 'Accept: application/json' \
+              --data-raw '{
+                 "dataSource": "mongodb-atlas",
+                 "database": "learn-data-api",
+                 "collection": "hello",
+                 "projection": { "greeting": 1, "date": 1 }
+              }'
+         
+         .. output::
+            :language: json
+            
+            {
+              "_id": "629971c0d71aad65bd59c545",
+              "greeting": "Hello, Leafie!",
+              "date": "2022-06-07T08:10:30.998Z"
+            }
+
+.. _data-api-authenticate:
+
+Authenticate the Request
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To keep your data secure and correct, generated {+data-api+} endpoints
+always run in the context of a specific, registered user and
+automatically enforce your app's :ref:`rules <rules>` and :ref:`schemas
+<schemas>`. Incoming requests must include one or more headers that
+contain valid user credentials for one of the following enabled
+authentication providers:
+
+- :ref:`Email/Password <email-password-authentication>`
+- :ref:`API Key <api-key-authentication>`
+- :ref:`Custom JWT <custom-jwt-authentication>`
+
+.. tabs-realm-auth-providers::
+   
+   .. tab::
+      :tabid: local-userpass
+
+      .. code-block:: bash
+         :emphasize-lines: 3-4
+         
+         curl -X POST \
+           https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
+           -H 'email: <Email Address>' \
+           -H 'password: <Password>' \
+           -H 'Content-Type: application/json' \
+           --data-raw '{
+             "dataSource": "mongodb-atlas",
+             "database": "learn-data-api",
+             "collection": "hello",
+           }'
+   
+   .. tab::
+      :tabid: api-key
+
+      .. code-block:: bash
+         :emphasize-lines: 3
+         
+         curl -X POST \
+           https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
+           -H 'api-key: <API Key>' \
+           -H 'Content-Type: application/json' \
+           --data-raw '{
+             "dataSource": "mongodb-atlas",
+             "database": "learn-data-api",
+             "collection": "hello",
+           }'
+   
+   .. tab::
+      :tabid: custom-token
+
+      .. code-block:: bash
+         :emphasize-lines: 3
+         
+         curl -X POST \
+           https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
+           -H 'jwtTokenString: <Custom JSON Web Token>' \
+           -H 'Content-Type: application/json' \
+           --data-raw '{
+             "dataSource": "mongodb-atlas",
+             "database": "learn-data-api",
+             "collection": "hello",
+           }'
+
+.. _data-api-data-formats:
+
+Data Formats
+------------
+
+MongoDB stores data in a format called BSON, which is similar to a JSON
+object in structure but supports additional data types and uses a binary
+encoding. BSON is efficient for computers but is not human readable so
+you can't work with it directly.
+
+Instead, the {+data-api+} uses two formats to represent data in requests
+and responses:
+
+- The **JSON** format uses standard types that any tool can parse and
+  understand. However, JSON cannot represent all BSON types so JSON
+  responses may lose type information for some fields. For example, BSON
+  has distinct types for 32-bit integers and 64-bit floats but a JSON
+  response represents both as a ``number``.
+
+- The **EJSON** format, short for :manual:`MongoDB Extended JSON
+  </reference/mongodb-extended-json/>`, is a superset of standard JSON
+  that uses structured fields to represent BSON data that don't have
+  corresponding JSON types. This fully represents your data but requires
+  your client to understand how to work with EJSON.
+
+.. example::
+   
+   The following document shows BSON types represented in JSON and EJSON:
+   
+   .. tabs::
+       
+       .. tab:: EJSON
+          :tabid: ejson
+          
+          .. code-block:: json
+             
+             {
+                "Name": "Mango",
+                "Year": { "$numberLong": "2022" },
+                "Weight": { "$numberDecimal": "9823.1297" },
+                "Date": { "$date": { "$numberLong": "1641954803067" } }
+             }
+       
+       .. tab:: JSON
+          :tabid: json
+          
+          .. code-block:: json
+             
+             {
+                "Name": "Mango",
+                "Year": 2022,
+                "Weight": "9823.1297",
+                "Date": "2022-01-12T02:33:23.067Z"
+             }
+
+The following table compares the JSON and EJSON representations of each
+supported type:
 
 .. list-table::
    :header-rows: 1
    :widths: 15 42 42
    
    * - Type
-     - EJSON Representation
-     - JSON Representation
+     - EJSON
+     - JSON
    
    * - ``Array``
      
@@ -315,6 +678,7 @@ from the {+data-api+}:
           :copyable: false
 
           10.5
+   
    * - ``Int32``
      
      - .. code-block:: json
@@ -326,7 +690,7 @@ from the {+data-api+}:
           :copyable: false
 
           10
-
+   
    * - ``Int64``
      
      - .. code-block:: json
@@ -338,7 +702,7 @@ from the {+data-api+}:
           :copyable: false
 
           50
-
+   
    * - ``MaxKey``
      
      - .. code-block:: json
@@ -350,6 +714,8 @@ from the {+data-api+}:
           :copyable: false
 
           {}
+       
+       *No JSON equivalent*
 
    * - ``MinKey``
      
@@ -362,6 +728,8 @@ from the {+data-api+}:
           :copyable: false
 
           {}
+       
+       *No JSON equivalent*
 
    * - ``ObjectId``
      
@@ -395,7 +763,7 @@ from the {+data-api+}:
           {
              "Pattern": "^H",
              "Options": "i"
-          },
+          }
 
    * - ``Timestamp``
      
@@ -417,296 +785,12 @@ from the {+data-api+}:
              "I": 1
           }
 
-.. important::
-
-   EJSON values with no JSON equivalent, such as ``MinKey`` and ``MaxKey``,
-   translate to an empty document (``{}``).
-
-
-To avoid any field value translations or omissions, configure the
-{+data-api+} to respond with EJSON. Use the ``Accept``
-header to control the response type:
-
-.. tabs::
-
-    .. tab:: JSON
-       :tabid: json
- 
-       ``Accept`` header value:
-
-       .. code-block::
-
-          application/json
-
-       Example request and response:
-
-       .. io-code-block::
-
-          .. input::
-             :language: bash
-             
-             curl --request POST \
-               'https://data.mongodb-api.com/app/data-xtest/endpoint/data/beta/action/findOne' \
-               --header 'Content-Type: application/json' \
-               --header 'Accept: application/json' \
-               --header 'Access-Control-Request-Headers: *' \
-               --header 'api-key: TpqAKQgvhZE4r6AOzpVydJ9a3tB1BLMrgDzLlBLbihKNDzSJWTAHMVbsMoIOpnM6' \
-               --data-raw '{
-                   "dataSource": "Cluster0",
-                   "database": "learn-data-api",
-                   "collection": "hello",
-                   "filter": {
-                     "_id": { "$oid" : "428bce77527c32e0f6f930e8"},
-                   }
-               }'
-          
-          .. output::
-             :language: json
-             :visible: true
-      
-             {
-                "Name": "Mango",
-                "Year": 2022,
-                "Weight": {},
-                "Date": "2022-01-12T02:33:23.067Z"
-             }
-
-
-    .. tab:: EJSON
-       :tabid: ejson
- 
- 
-       ``Accept`` header value:
- 
-       .. code-block::
- 
-          application/ejson
-
-       Example request and response:
- 
-       .. io-code-block::
- 
-          .. input::
-             :language: bash
-             
-             curl --request POST \
-               'https://data.mongodb-api.com/app/data-xtest/endpoint/data/beta/action/findOne' \
-               --header 'Content-Type: application/json' \
-               --header 'Accept: application/ejson' \
-               --header 'Access-Control-Request-Headers: *' \
-               --header 'api-key: TpqAKQgvhZE4r6AOzpVydJ9a3tB1BLMrgDzLlBLbihKNDzSJWTAHMVbsMoIOpnM6' \
-               --data-raw '{
-                   "dataSource": "Cluster0",
-                   "database": "learn-data-api",
-                   "collection": "hello",
-                   "filter": {
-                     "_id": { "$oid" : "428bce77527c32e0f6f930e8"},
-                   }
-               }'
-          
-          .. output::
-             :language: json
-             :visible: true
-      
-             {
-                "Name": "Mango",
-                "Year": { "$numberLong": "2022" },
-                "Weight": { "$numberDecimal": "9823.1297" },
-                "Date": { "$date": { "$numberLong": "1641954803067" } }
-             }
-
-.. _data-api-ejson-requests:
-
-Extended JSON Requests
-----------------------
-
-The {+data-api+} uses canonical :manual:`MongoDB Extended JSON
-</reference/mongodb-extended-json/>` to encode BSON data types in
-request bodies.
-
-The following sections demonstrate how to define EJSON types in your
-requests.
-
-Binary
-~~~~~~
-
-To specify a binary value, use ``$binary`` with the value encoded in
-Base64 and a `BSON subtype <https://bsonspec.org/spec.html>`_ encoded as
-a two-character hexadecimal string:
-
-.. code-block:: bash
-   :emphasize-lines: 11-16
-   :copyable: false
-   
-   curl --request POST \
-     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
-     --header 'Content-Type: application/json' \
-     --header 'Access-Control-Request-Headers: *' \
-     --header 'api-key: <{+data-api+} Key>' \
-     --data-raw '{
-         "dataSource": "<cluster name>",
-         "database": "<database name>",
-         "collection": "<collection name>",
-         "document": {
-           "data": {
-             "$binary": {
-               "base64": "46d989eaf0bde5258029534bc2dc2089",
-               "subType": "05"
-             }
-           }
-         }
-     }'
-
-Date
-~~~~
-
-To specify a date, use ``$date`` with the `UNIX timestamp in
-milliseconds <https://currentmillis.com/>`_ as a 64-bit integer:
-
-.. code-block:: bash
-   :emphasize-lines: 11
-   :copyable: false
-   
-   curl --request POST \
-     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
-     --header 'Content-Type: application/json' \
-     --header 'Access-Control-Request-Headers: *' \
-     --header 'api-key: <{+data-api+} Key>' \
-     --data-raw '{
-         "dataSource": "<cluster name>",
-         "database": "<database name>",
-         "collection": "<collection name>",
-         "document": {
-           "createdAt": { "$date": { "$numberLong": "1638551310749" } }
-         }
-     }'
-
-Decimal128
-~~~~~~~~~~
-
-To specify a 128-bit decimal, use ``$numberDecimal`` with the decimal
-value as a string:
-
-.. code-block:: bash
-   :emphasize-lines: 11
-   :copyable: false
-   
-   curl --request POST \
-     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
-     --header 'Content-Type: application/json' \
-     --header 'Access-Control-Request-Headers: *' \
-     --header 'api-key: <{+data-api+} Key>' \
-     --data-raw '{
-         "dataSource": "<cluster name>",
-         "database": "<database name>",
-         "collection": "<collection name>",
-         "document": {
-           "accountBalance": { "$numberDecimal": "128452.420523" }
-         }
-     }'
-
-Double
-~~~~~~
-
-To specify a 64-bit signed floating point value (commonly referred to as
-a "double"), use ``$numberDouble`` with the integer value as a string:
-
-.. code-block:: bash
-   :emphasize-lines: 11
-   :copyable: false
-   
-   curl --request POST \
-     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
-     --header 'Content-Type: application/json' \
-     --header 'Access-Control-Request-Headers: *' \
-     --header 'api-key: <{+data-api+} Key>' \
-     --data-raw '{
-         "dataSource": "<cluster name>",
-         "database": "<database name>",
-         "collection": "<collection name>",
-         "document": {
-           "temperatureCelsius": { "$numberDouble": "23.847" }
-         }
-     }'
-
-
-Int64
-~~~~~
-
-To specify a 64-bit signed integer value, use ``$numberLong`` with the
-integer value as a string:
-
-.. code-block:: bash
-   :emphasize-lines: 11
-   :copyable: false
-   
-   curl --request POST \
-     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
-     --header 'Content-Type: application/json' \
-     --header 'Access-Control-Request-Headers: *' \
-     --header 'api-key: <{+data-api+} Key>' \
-     --data-raw '{
-         "dataSource": "<cluster name>",
-         "database": "<database name>",
-         "collection": "<collection name>",
-         "document": {
-           "population": { "$numberLong": "8047923148" }
-         }
-     }'
-
-Int32
-~~~~~
-
-To specify a 32-bit signed integer value, use ``$numberInt`` with the
-integer value as a string:
-
-.. code-block:: bash
-   :emphasize-lines: 11
-   :copyable: false
-   
-   curl --request POST \
-     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
-     --header 'Content-Type: application/json' \
-     --header 'Access-Control-Request-Headers: *' \
-     --header 'api-key: <{+data-api+} Key>' \
-     --data-raw '{
-         "dataSource": "<cluster name>",
-         "database": "<database name>",
-         "collection": "<collection name>",
-         "document": {
-           "coins": { "$numberInt": "2147483647" }
-         }
-     }'
-
-ObjectId
-~~~~~~~~
-
-To specify an ObjectId value, use ``$oid`` with the ID as a byte string:
-
-.. code-block:: bash
-   :emphasize-lines: 11
-   :copyable: false
-   
-   curl --request POST \
-     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/beta/action/insertOne' \
-     --header 'Content-Type: application/json' \
-     --header 'Access-Control-Request-Headers: *' \
-     --header 'api-key: <{+data-api+} Key>' \
-     --data-raw '{
-         "dataSource": "<cluster name>",
-         "database": "<database name>",
-         "collection": "<collection name>",
-         "document": {
-           "_id": { "$oid": "61f02ea3af3561e283d06b91" }
-         }
-     }'
-
 Request Logs
 ------------
 
 The {+data-api+} logs all requests and stores the logs for 30 days.
 
-You can view them on the :guilabel:`Data API` screen in the :guilabel:`Logs` tab.
+You can view them on the :guilabel:`{+data-api+}` screen in the :guilabel:`Logs` tab.
 
 Request Limitations
 -------------------
@@ -720,9 +804,9 @@ The {+data-api+} enforces the following limitations on all requests:
 Billing
 -------
 
-The {+data-api+} uses the same usage-based pricing as {+app-services+}
-applications. For details, see :appservices:`{+app-services+} Billing
-</billing>`.
+The {+data-api+} has usage-based pricing measured by the underlying
+{+app-services+} application. For details, see
+:appservices:`{+app-services+} Billing </billing>`.
 
 {+data-api+} usage is billed based on the following dimensions:
 
