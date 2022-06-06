@@ -1,12 +1,253 @@
 .. _c2c-quickstart:
 
-===========
-Quick Start
-===========
+==========
+Quickstart
+==========
 
 .. include:: /includes/preview-warning
 
 .. default-domain:: mongodb
 
-Get going!
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+{+c2c-full-product-name+} connects MongoDB clusters and provides a way
+to synchronize data between them. The tool that makes the connection is
+:ref:`c2c-mongosync`. This page provides a short introduction to help
+you get started with {+c2c-product-name+}. For more details, please see
+the rest of the {+c2c-product-name+} documentation.
+
+Setup
+-----
+
+{+c2c-product-name+} synchronizes data between two clusters. To run
+``mongosync``, you will need to: 
+
+#. Define a source and a destination cluster.
+#. Define administrative users.
+#. Download and install ``mongosync``.
+#. Connect the clusters.
+
+Follow the instructions below to setup {+c2c-product-name+}.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Define a source and a destination cluster
+
+      If you already have a MongoDB cluster, either self-managed or
+      hosted in :atlas:`MongodDB Atlas </getting-started?jmp=docs>`, 
+      use that cluster as the source cluster. If you don't have a
+      cluster to work with, you will need to create one.
+
+      You will need a destination cluster that has the same topology
+      as your source cluster:
+      
+      - If the source cluster is a :ref:`replica  set <replication>`,
+        the destination cluster must also be a replica set. The number
+        of nodes in the destination replica set does not have to equal
+        the number of nodes in the source replica set.
+      - If the source cluster is :ref:`sharded  <sharding-background>`,
+        the destination cluster must have the same number of shards and
+        the same shard key. 
+
+      The source and destination clusters must be:
+      
+      - at least MongoDB 6.0.
+      - the same server version
+      - at least Feature Compatibility Version 6.0
+      - the same Feature Compatibility Version
+
+      If your clusters are self-managed, they must be MongoDB
+      Enterprise clusters. {+c2c-product-name+} is only supported on
+      MongoDB Community Edition in a limited number of cases. For more
+      information on using {+c2c-product-name+} with MongoDB Community
+      Edition, contact a MongoDB sales representative.
+
+      Creating a cluster is beyond the scope of this guide. If you need
+      help, refer to the documentation to create an :ref:`Atlas cluster
+      <create-new-cluster>` or to create a :ref:`self-managed cluster
+      <server-replica-set-deploy>`.
+
+   .. step:: Define administrative users
+
+      If either cluster is hosted in Atlas, or if either of them
+      requires authentication, you must create a database user that has
+      permissions in both clusters. 
+
+      Source Cluster Authentication Requirements
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The source user must have the following roles:
+
+      - :authrole:`readAnyDatabase` role
+      - :authrole:`clusterMonitor` role
+      - :authrole:`backup` role
+
+      In addition, the source user must be able to:
+
+      - Run the :dbcommand:`getParameter` command
+
+      If the source cluster is hosted in Atlas, the user must have the
+      :ref:`Atlas admin <atlas-user-privileges>` role. The user must
+      also be able to :ref:`read the change stream
+      <change-streams-access>` for the cluster.
+
+      Destination Cluster Authentication Requirements
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      If the destination cluster is hosted in Atlas, the user must have
+      the :ref:`Atlas admin <atlas-user-privileges>` role.
+
+      Cluster Authentication Notes
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      - To add an Atlas user, see: :ref:`mongodb-users`.
+      - To add a user to a self-managed cluster, see: :ref:`create-users`.
+      - To verify user permissions, run :method:`db.getUser()`.
+
+   .. step:: Download and install ``mongosync``
+
+      :ref:`c2c-mongosync` is the tool that connects the source and
+      destination clusters. You can host ``mongosync`` on its own
+      hardware, ``mongosync`` does not have to run on the hardware that
+      hosts your MongodDB clusters.
+
+      To install ``mongosync``:
+      
+      #. Locate a host server for the ``mongosync`` executable that has
+         network connectivity to your source and destination clusters.
+      #. Go to the {+mdb-download-center+}.
+      #. Download the ``mongosync`` package for your host system.
+      #. Unpack the ``mongosync`` package. The ``mongosync`` executable
+         is in the ``bin`` directory. 
+
+      For operating system specific installation instructions, see
+      :ref:`c2c-install`.
+
+   .. step:: Connect the Clusters
+
+      A connection string contains the network and authentication
+      details that ``mongosync`` needs to connect to the source and
+      destination clusters.
+
+      Determine the hostname or IP address and port for your source and
+      destination clusters. You will use this information and the user
+      authentication details to construct the connection strings. 
+
+      The standard URI connection scheme has the form:
+
+      .. code-block:: shell
+
+         mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
+
+      Your connections strings will resemble:
+
+      .. code-block:: shell
+
+         cluster0:
+         mongodb://clusterAdmin:superSecret@clusterOne01.fancyCorp.com:20020,clusterOne02.fancyCorp.com:20020,clusterOne03.fancyCorp.com:20020
+         cluster1:
+         mongodb://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020,clusterTwo02.fancyCorp.com:20020,clusterTwo03.fancyCorp.com:20020
+
+      For more details, see :ref:`c2c-connecting`.
+
+Initialize ``monogsync``
+------------------------
+
+``monogsync`` must create an initial connection to the source and
+destination clusters before it can start to sync data. To create the
+initial connection, issue the following command on a single line (the
+command is reformated here for clarity):
+
+.. code-block:: shell
+
+   ./bin/mongosync --cluster0 mongodb://clusterAdmin:superSecret@clusterOne01.fancyCorp.com:20020, \
+                              clusterOne02.fancyCorp.com:20020, \
+                              clusterOne03.fancyCorp.com:20020 \
+                   --cluster1 mongodb://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020, \
+                              clusterTwo02.fancyCorp.com:20020, \
+                              clusterTwo03.fancyCorp.com:20020
+
+Initialization Notes
+~~~~~~~~~~~~~~~~~~~~
+
+- When ``mongosync`` first connects to the source and destination
+  clusters it is in the :ref:`IDLE <c2c-states-descriptions>` state.
+- ``mongosync`` does not synchronize data until it receives the
+  :ref:`start <c2c-api-start>` command. 
+- Designate the source and destination clusters with the :ref:`start
+  <c2c-api-start>` command. "cluster0" and "cluster1" are just labels,
+  either cluster can be ``cluster0`` or ``cluster1``.
+
+Synchronize Data Between Clusters
+---------------------------------
+
+The command interface for ``mongosync`` is an HTTP server that
+publishes an HTTP API. To control ``mongosync``, use the API endpoints.
+
+The :ref:`start <c2c-api-start>` command initiates data synchronization.
+To start synchronizing, use ``curl`` or a similar program to issue the
+:ref:`start <c2c-api-start>` command:
+
+.. literalinclude:: /includes/api/requests/start.sh
+   :language: shell
+
+Once started, ``mongosync`` will synchronize existing data on the
+source cluster with the destination cluster. After the initial sync has
+completed, new writes to the source cluster will be synchronized with
+the destination cluster.
+
+The API documentation provides details on using the following endpoints:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Endpoint
+     - Description
+ 
+   * - :ref:`c2c-api-start`
+     - Starts the synchronization between a source and destination
+       cluster.
+   * - :ref:`c2c-api-progress`
+     - Returns the status of the synchronization process.
+   * - :ref:`c2c-api-pause`
+     - Pauses the current synchronization operation.
+   * - :ref:`c2c-api-resume`
+     - Resumes a paused synchronization session based on data stored on
+       the destination cluster.
+   * - :ref:`c2c-api-commit`
+     - Commits the synchronization operation to the destination
+       cluster.
+   * - :ref:`c2c-api-reverse`
+     - Reverses the direction of a committed sync operation.
+
+Synchronization Notes
+~~~~~~~~~~~~~~~~~~~~~
+
+- The default port for the HTTP API is ``27182``.  Use the ``--port``
+  option with ``mongosync`` to :ref:`configure another port
+  <c2c-mongosync>`
+
+- ``mongosync`` can swap the source and destination clusters to enable
+  :ref:`reverse synchronization <c2c-api-reverse>`. To use ``reverse
+  synchronization``, you must pass these additional fields when you
+  start ``mongosync``:
+
+  - ``reverse``
+  - ``enableUserWriteBlocking``
+
+  .. literalinclude:: /includes/api/requests/reverse.sh
+   :language: shell
+
+- You may need to increase the file descriptor ``ulimits`` on the host
+  that is running ``mongosync``. This applies to any UNIX-like system,
+  but macOS in particular has low defaults. See :ref:`UNIX ulimit
+  settings <system-resource-utilization>`.
 
