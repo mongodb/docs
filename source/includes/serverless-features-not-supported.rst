@@ -159,7 +159,11 @@ limitations and considerations:
        expressions.
 
        .. include:: /includes/fact-unsupported-stable-api.rst
-       
+
+       Aggregation pipelines for {+serverless-instances+} don't support
+       the :pipeline:`$currentOp`, :pipeline:`$listLocalSessions`,
+       :pipeline:`$listSessions`, and :pipeline:`$planCacheStats` stages.
+
        Aggregation pipelines for {+serverless-instances+} can have a 
        maximum of 50 stages.
 
