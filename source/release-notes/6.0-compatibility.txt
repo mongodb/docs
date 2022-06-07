@@ -249,11 +249,8 @@ evaluate to certain values. See :ref:`$mod behavior <mod-behavior>`.
 Legacy Opcodes Removed
 ~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB drivers have used :ref:`OP_MSG <wire-op-msg>` instead of
-:ref:`OP_QUERY <wire-op-query>` and the other legacy opcodes since
-MongoDB v3.6. 
-
-This release removes support for the following legacy opcodes:
+MongoDB 6.0 removes support for the following legacy opcodes and
+database commands:
 
 - :ref:`OP_INSERT <wire-op-insert>`
 - :ref:`OP_DELETE <wire-op-delete>`
@@ -261,9 +258,30 @@ This release removes support for the following legacy opcodes:
 - :ref:`OP_KILL_CURSORS <wire-op-kill-cursors>`
 - :ref:`OP_GET_MORE <wire-op-get-more>`
 - :ref:`OP_QUERY <wire-op-query>`
+- ``getLastError``
 
-To avoid disruption due to the removal of these op codes, please
-upgrade your driver to the latest version.
+.. warning:: Upgrade Drivers
+
+   To avoid disruption due to the removal of these opcodes, **upgrade your
+   driver to the latest version**.
+
+If you attempt to connect to a MongoDB 3.4 or older :binary:`mongod`
+instance with a MongoDB 5.1 or newer :binary:`~bin.mongo` shell, you
+will receive an error message like the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Connection handshake failed. Is your mongod 3.4 or older? 
+   :: caused by :: network error while attempting to run command
+   'isMaster' on host '127.0.0.1:27017'
+
+mongod Responses to Legacy Opcodes
+``````````````````````````````````
+
+Since MongoDB 3.6, MongoDB drivers have used :ref:`OP_MSG <wire-op-msg>`
+instead of :ref:`OP_QUERY <wire-op-query>` and the other legacy opcodes
+and commands.
 
 :binary:`mongod` will close the connection and will not respond to:
 
@@ -272,40 +290,31 @@ upgrade your driver to the latest version.
 - :ref:`OP_UPDATE <wire-op-update>`
 - :ref:`OP_KILL_CURSORS <wire-op-kill-cursors>`
 
-:binary:`mongod` will return an error for:
+:binary:`mongod` will keep the connection open and return an error for:
 
-- :ref:`OP_GET_MORE <wire-op-get-more>`
-- :ref:`OP_QUERY <wire-op-query>` legacy find 
+- The ``getLastError`` database command
+- :ref:`OP_GET_MORE <wire-op-get-more>` 
+- :ref:`OP_QUERY <wire-op-query>` finds
+- Most :ref:`OP_QUERY <wire-op-query>`
+  :abbr:`RPC (Remote Procedure Call)` command messages
 
-The :ref:`OP_QUERY <wire-op-query>` RPC protocol may be used with the
-following commands:
+.. note:: OP_QUERY RPC Commands
 
-- ``_isSelf``
-- ``authenticate``
-- ``buildinfo``
-- ``buildInfo``
-- ``hello``
-- ``ismaster``
-- ``isMaster``
-- ``saslContinue``
-- ``saslStart``
+   The :ref:`OP_QUERY <wire-op-query>` :abbr:`RPC (Remote Procedure Call)`
+   protocol may be used with the following commands:
 
-:ref:`OP_QUERY <wire-op-query>` will return an error if it is used for
-a find operation. All other commands will be rejected if issued as
-:ref:`OP_QUERY <wire-op-query>`.
+   - ``_isSelf``
+   - ``authenticate``
+   - ``buildinfo``
+   - ``buildInfo``
+   - ``hello``
+   - ``ismaster``
+   - ``isMaster``
+   - ``saslContinue``
+   - ``saslStart``
 
-If you attempt to connect to a MongoDB 3.4, or older, :binary:`mongod`
-instance with a MongoDB 5.1 or newer :binary:`~bin.mongo` shell, you
-will receive an error message like the following:
-
-.. code-block:: javascript
-   :copyable: false
-
-   // Reformated for clarity. The message appears on a single line.
-
-   Connection handshake failed. Is your mongod 3.4 or older? 
-   :: caused by :: network error while attempting to run command
-   'isMaster' on host '127.0.0.1:27017'
+   All other commands will be rejected if issued as :ref:`OP_QUERY
+   <wire-op-query>`.
 
 .. _6.0-js-engine-change:
 
