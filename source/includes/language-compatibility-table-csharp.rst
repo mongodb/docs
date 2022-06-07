@@ -18,6 +18,20 @@
      - .NET 4.6
      - .NET 4.5 [#4.5.2]_
 
+   * - 2.16
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+
    * - 2.15
      - |checkmark|
      - |checkmark|

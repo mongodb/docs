@@ -5,18 +5,21 @@
    :class: compatibility-large
 
    * - Rust Driver Version
-     - MongoDB 5.3
-     - MongoDB 5.2
-     - MongoDB 5.1
+     - MongoDB 6.0
      - MongoDB 5.0
      - MongoDB 4.4
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
+   * - 2.3 [#2.3-limitation]_
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
    * - 2.2 [#2.2-limitation]_
-     - ✓
-     - ✓
-     - ✓
+     -
      - ✓
      - ✓
      - ✓
@@ -24,16 +27,12 @@
      - ✓
    * - 2.1 [#2.1-limitation]_
      -
-     -
-     -
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
    * - 2.0 [#limitations]_
-     -
-     -
      -
      - ✓
      - ✓
@@ -43,14 +42,17 @@
    * - 1.1 [#limitations]_
      -
      -
-     -
-     -
      - ✓
      - ✓
      - ✓
      - ✓
 
 The Rust driver is not compatible with MongoDB server versions older than 3.6.
+
+.. [#2.3-limitation] The Rust driver does not support Decimal128,
+   :ref:`Client-Side Field Level Encryption <ecosystem-csfle>`,
+   :manual:`GridFS </core/gridfs/>`, and
+   :manual:`OCSP </core/security-transport-encryption/>`.
 
 .. [#2.2-limitation] The Rust driver does not support Decimal128,
    :ref:`Client-Side Field Level Encryption <ecosystem-csfle>`,
