@@ -118,7 +118,7 @@
      - Configuration details for mapping each {+fdi+}
        to queryable databases and collections. For complete
        documentation on this object and its nested fields, see 
-       :ref:`datalake-databases-reference`.
+       :ref:`config-adf`.
 
        An empty object indicates that the {+fdi+}
        has no mapping configuration for any {+fdi+}. 
@@ -130,7 +130,7 @@
        configuration details to map data in each {+fdi+}
        to queryable databases and collections. For complete
        documentation on this object and its nested fields, see 
-       :ref:`datalake-stores-reference`.
+       :ref:`config-adf`.
 
        An empty object indicates that the {+fdi+} has 
        no configured sources.
