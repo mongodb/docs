@@ -1,3 +1,20 @@
+- If `mongod` is enabled as a service on the deployment, this can 
+result in a race condition where `systemd` starts `mongod` on reboot, 
+rather than the Automation. To prevent this, ensure the `mongod` 
+service is disabled before adding your deployment to Automation:
+
+  - Check if the `mongod` service is enabled:
+
+  .. code-block:: sh
+     
+     sudo systemctl is-enabled mongod.service
+
+  - If the service is enabled, disable it:
+
+  .. code-block:: sh
+
+     sudo systemctl disable mongod.service
+
 - If the |mms| project does not have authentication settings enabled,
   but the MongoDB process requires authentication, add the {+mdbagent+}
   user for the |mms| project with the appropriate roles.
