@@ -44,6 +44,13 @@ stream response document can have.
             ...
          ]
       },
+      "operationDescription": {
+         "indexes": [
+            <document>
+         ]
+      },
+      "collectionUUID": <uuid>,
+      "wallTime": <isodate>,
       "clusterTime" : <Timestamp>,
       "txnNumber" : <NumberLong>,
       "lsid" : {
@@ -100,6 +107,8 @@ following table describes each field in the change stream response document:
        - ``rename``
        - ``dropDatabase``
        - ``invalidate``
+       - ``createIndexes``
+       - ``dropIndexes``
 
    * - ``fullDocument``
      - document
@@ -224,6 +233,36 @@ following table describes each field in the change stream response document:
        | ``newSize``
      - integer
      - The number of elements in the truncated array.
+   * - ``operationDescription``
+     - document
+     - A document describing the operation performed.
+
+       This document and its fields only appears if the ``operationType`` value
+       is an expanded event.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.indexes``
+     - array
+     - An array of documents listing the indexes that were created or dropped
+       by the operation.
+
+       This field only appears when the ``operationType`` value is ``createIndexes``
+       or ``dropIndexes``.
+
+       .. versionadded:: 6.0
+
+   * - ``wallTime``
+     - ISODate
+     - ISO date from the oplog entry associated with the event.
+
+       .. versionadded:: 6.0
+
+   * - ``collectionUUID``
+     - UUID
+     - UUID identifying the collection.
+
+       .. versionadded:: 6.0
 
    * - ``clusterTime``
 
@@ -555,3 +594,65 @@ watched database leads to an
 
 .. include:: /includes/extracts/changestream-invalid-events.rst
 
+
+.. _change-event-createIndexes:
+
+``createIndexes`` Event
+-----------------------
+
+.. versionadded:: 6.0
+
+A ``createIndexes`` event occurs when an index is created on the collection and
+the change stream has the ``showExpandedEvents`` option set to ``true``.
+
+The following example shows a ``createIndexes`` event:
+
+.. code-block:: text
+
+   {
+      _id: { <ResumeToken> },
+      operationType: 'createIndexes',
+      clusterTime: Timestamp({ t: 1651257835, i: 1 }),
+      collectionUUID: UUID("06bced37-7cc8-4267-96aa-a58a422153d8"),
+      wallTime: ISODate("2022-04-29T18:43:55.160Z"),
+      ns: {
+         db: 'test',
+         coll: 'authors'
+      },
+      operationDescription: {
+         indexes: [
+            { v: 2, key: { name: 1 }, name: 'name_1' }
+         ]
+      }
+   }
+
+
+.. _change-event-dropIndexes:
+
+``dropIndexes`` Event
+---------------------
+
+.. versionadded:: 6.0
+
+A ``dropIndexes`` event occurs when an index is dropped from the collection and
+the change stream has the ``showExpandedEvents`` option set to ``true``.
+
+The following example shows a ``dropIndexes`` event:
+
+.. code-block:: text
+
+   {
+      _id: { <ResumeToken> },
+      operationType: 'dropIndexes',
+      clusterTime: <Timestamp>
+      collectionUUID: <uuid>,
+      wallTime: <isodate>,
+      ns: {
+         db: 'test',
+         coll: 'authors' },
+      operationDescription: {
+         indexes: [
+            { v: 2, key: { name: 1 }, name: 'name_1' }
+         ]
+      }
+   }
