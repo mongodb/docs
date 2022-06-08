@@ -1,9 +1,9 @@
-- If ``mongod`` is enabled as a service on the deployment, this can 
-  result in a race condition where ``systemd`` starts ``mongod`` on reboot, 
-  rather than the Automation. To prevent this, ensure the ``mongod`` 
-  service is disabled before adding your deployment to Automation:
+- If :binary:`mongod <bin.mongod>` is enabled as a service on the deployment, 
+  a race condition might result where ``systemd`` starts ``mongod`` on reboot, 
+  rather than the Automation. To prevent this issue, ensure the ``mongod`` 
+  service is disabled before you add your deployment to Automation:
 
-  - Check if the `mongod` service is enabled:
+  - Verify whether the `mongod` service is enabled:
 
   .. code-block:: sh
      
