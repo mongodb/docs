@@ -18,6 +18,16 @@
                :dedent:
                :caption: insert_encrypted_document.js
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: python
+               :dedent:
+               :caption: insert_encrypted_document.py
+
    .. step:: Specify your Cloud Account Credentials
 
       Specify the cloud provider and your service account credentials:
@@ -34,6 +44,16 @@
                :dedent:
                :caption: insert_encrypted_document.js
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: python
+               :dedent:
+               :caption: insert_encrypted_document.py
+
    .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
       .. tabs-drivers::
@@ -48,6 +68,16 @@
                :dedent:
                :caption: insert_encrypted_document.js
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: python
+               :dedent:
+               :caption: insert_encrypted_document.py
+
    .. step:: Specify the Location of the {+shared-library+}
 
       .. tabs-drivers::
@@ -61,6 +91,16 @@
                :language: javascript
                :caption: insert_encrypted_document.js
                :dedent:
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: python
+               :dedent:
+               :caption: insert_encrypted_document.py
 
       .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
 
@@ -80,3 +120,13 @@
                :language: javascript
                :dedent:
                :caption: insert_encrypted_document.js
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+               :start-after: start-client
+               :end-before: end-client
+               :language: python
+               :dedent:
+               :caption: insert_encrypted_document.py

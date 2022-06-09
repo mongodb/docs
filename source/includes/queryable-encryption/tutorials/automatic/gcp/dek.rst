@@ -3,7 +3,7 @@
 
    .. step:: Add your GCP KMS Credentials
 
-      Add the service account credentials to your {+qe} enabled client
+      Add the service account credentials to your {+qe+} enabled client
       code.
 
       .. include:: /includes/queryable-encryption/tab-note.rst
@@ -21,6 +21,16 @@
                :language: javascript
                :dedent:
                :caption: make_data_key.js
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/make_data_key.py
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
 
       .. tip:: Learn More
 
@@ -49,6 +59,15 @@
                :dedent:
                :caption: make_data_key.js
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/make_data_key.py
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
 
    .. step:: Generate your {+dek-long+}s
 
@@ -78,9 +97,19 @@
                :dedent:
                :caption: make_data_key.js
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/make_data_key.py
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
+
    .. step:: Create Your Encrypted Collection
 
-      Use a {+qe} enabled ``MongoClient`` instance to specify what
+      Use a {+qe+} enabled ``MongoClient`` instance to specify what
       fields you must encrypt and create your encrypted collection:
 
       .. tabs-drivers::
@@ -94,6 +123,16 @@
                :language: javascript
                :dedent:
                :caption: make_data_key.js
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/make_data_key.py
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
 
 The output from the code in this section should resemble the following:
 

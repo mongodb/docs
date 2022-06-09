@@ -18,6 +18,16 @@ a client that is not configured for automatic {+qe+}.
          :language: javascript
          :dedent:
 
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+         :start-after: start-find
+         :end-before: end-find
+         :language: python
+         :dedent:
+         :caption: insert_encrypted_document.py
+
 The output of the preceding code snippet should look like this:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/find-output.out

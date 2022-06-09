@@ -17,6 +17,16 @@ snippet:
          :dedent:
          :caption: insert_encrypted_document.js
 
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+         :start-after: start-insert
+         :end-before: end-insert
+         :language: python
+         :dedent:
+         :caption: insert_encrypted_document.py
+
 When you insert a document, your {+qe+} enabled client
 encrypts the fields of your document such that it resembles the following:
 

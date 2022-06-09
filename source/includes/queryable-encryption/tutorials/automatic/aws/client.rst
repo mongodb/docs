@@ -18,6 +18,16 @@
                :caption: insert_encrypted_document.js
                :dedent:
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/aws/reader/insert_encrypted_document.py
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: python
+               :caption: insert_encrypted_document.py
+               :dedent:
+
    .. step:: Specify your AWS Credentials
 
       Specify the ``aws`` KMS provider and your {+aws-iam-abbr+} user
@@ -37,6 +47,15 @@
                :caption: insert_encrypted_document.js
                :dedent:
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/aws/reader/insert_encrypted_document.py
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: python
+               :caption: insert_encrypted_document.py
+               :dedent:
 
    .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
@@ -52,6 +71,16 @@
                :caption: insert_encrypted_document.js
                :dedent:
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/aws/reader/insert_encrypted_document.py
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: python
+               :caption: insert_encrypted_document.py
+               :dedent:
+
    .. step:: Specify the Location of the {+shared-library+}
 
       .. tabs-drivers::
@@ -64,6 +93,16 @@
                :end-before: end-extra-options
                :language: javascript
                :caption: insert_encrypted_document.js
+               :dedent:
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/aws/reader/insert_encrypted_document.py
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: python
+               :caption: insert_encrypted_document.py
                :dedent:
 
       .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
@@ -83,4 +122,14 @@
                :end-before: end-client
                :language: javascript
                :caption: insert_encrypted_document.js
+               :dedent:
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/aws/reader/insert_encrypted_document.py
+               :start-after: start-client
+               :end-before: end-client
+               :language: python
+               :caption: insert_encrypted_document.py
                :dedent:

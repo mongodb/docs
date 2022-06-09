@@ -12,7 +12,7 @@
       user in the AWS management console by
       following the official AWS documentation on
       `Adding a User <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html>`__.
-      You will use this {+aws-iam-abbr+} user as a service account for your {+qe} enabled application.
+      You will use this {+aws-iam-abbr+} user as a service account for your {+qe+} enabled application.
       Your application authenticates with AWS KMS using the {+aws-iam-abbr+}
       user to encrypt and decrypt your {+dek-long+}s (DEKs) with your {+cmk-long+}
       (CMK).
@@ -57,7 +57,7 @@
 
       .. important:: Authenticate with IAM Roles in Production
 
-          When deploying your {+qe} enabled application to a production environment,
+          When deploying your {+qe+} enabled application to a production environment,
           authenticate your application through an {+aws-iam-abbr+} role
           instead of an {+aws-iam-abbr+} user.
 
@@ -80,7 +80,7 @@
           - `Retrieve Credentials from EC2 Instance Metadata <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#instance-metadata-security-credentials>`__
 
           Your application must include logic to get new temporary credentials
-          and recreate your {+qe} enabled ``MongoClient`` instance when each set of
+          and recreate your {+qe+} enabled ``MongoClient`` instance when each set of
           temporary credentials expires.
 
           To learn more about {+aws-iam-abbr+} roles, see the following

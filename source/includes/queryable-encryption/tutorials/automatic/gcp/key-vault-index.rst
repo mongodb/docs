@@ -14,3 +14,13 @@ Create a unique index on the ``keyAltNames`` field in your
          :caption: make_data_key.js
          :language: javascript
          :dedent:
+
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/make_data_key.py
+         :start-after: start-create-index
+         :end-before: end-create-index
+         :language: python
+         :dedent:
+         :caption: make_data_key.py

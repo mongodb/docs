@@ -27,6 +27,17 @@
                :language: javascript
                :dedent:
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/make_data_key.py
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
+
+
    .. step:: Create your {+dek-long+}s
 
       .. _qe-local-create-dek:
@@ -55,6 +66,16 @@
                :dedent:
                :caption: make_data_key.js
 
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/make_data_key.py
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
+
    .. step:: Create Your Encrypted Collection
 
       Use a {+qe+} enabled ``MongoClient`` instance to specify what
@@ -71,6 +92,16 @@
                :language: javascript
                :dedent:
                :caption: make_data_key.js
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/make_data_key.py
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
 
 The output from the code in this section should resemble the following:
 
