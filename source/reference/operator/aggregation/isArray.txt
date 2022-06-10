@@ -1,3 +1,5 @@
+.. _agg-expr-isArray:
+
 ======================
 $isArray (aggregation)
 ======================
@@ -32,47 +34,61 @@ The ``<expression>`` can be any valid :ref:`expression
 
 .. list-table::
    :header-rows: 1
-   :widths: 90 10
 
    * - Example
      - Results
+     - Notes
+
+   * - ``{ $isArray: "hello" }``
+     - ``false``
+     - ``"hello"`` is a string, passed as a string.
 
    * - ``{ $isArray: [ "hello" ] }``
      - ``false``
+     - ``"hello"`` is a string, passed as part of an argument array.
 
-   * - ``{ $isArray: [ [ "hello", "world" ] ] }``
+   * - ``{ $isArray: [ [ "hello" ] ] }``
      - ``true``
+     - ``[ "hello" ]`` is an array, passed as part of an argument array.
+
+.. note::
+
+   .. include:: /includes/aggregation/fact-arrays-in-arguments.rst
 
 Example
 -------
 
-A collection named ``warehouses`` contains the following documents:
+Create the ``warehouses`` collection:
 
 .. code-block:: javascript
 
-   { "_id" : 1, instock: [ "chocolate" ], ordered: [ "butter", "apples" ] }
-   { "_id" : 2, instock: [ "apples", "pudding", "pie" ] }
-   { "_id" : 3, instock: [ "pears", "pecans"], ordered: [ "cherries" ] }
-   { "_id" : 4, instock: [ "ice cream" ], ordered: [ ] }
+   db.warehouses.insertMany( [
+      { "_id" : 1, instock: [ "chocolate" ], ordered: [ "butter", "apples" ] },
+      { "_id" : 2, instock: [ "apples", "pudding", "pie" ] },
+      { "_id" : 3, instock: [ "pears", "pecans"], ordered: [ "cherries" ] },
+      { "_id" : 4, instock: [ "ice cream" ], ordered: [ ] }
+   ] )
 
-The following example checks if the ``instock`` and the ``ordered``
-fields are arrays before concatenating the two:
+Check if the ``instock`` and the ``ordered`` fields are arrays. If both
+fields are arrays, concatenate them:
 
 .. code-block:: javascript
 
-   db.warehouses.aggregate([
+   db.warehouses.aggregate( [
       { $project:
          { items: 
              { $cond:
                {
-                 if: { $and: [ { $isArray: "$instock" }, { $isArray: "$ordered" } ] },
+                 if: { $and: [ { $isArray: "$instock" },
+                               { $isArray: "$ordered" } 
+                             ] },
                  then: { $concatArrays: [ "$instock", "$ordered" ] },
                  else: "One or more fields is not an array."
                }
              }
          }
       }
-   ])
+   ] )
 
 .. code-block:: javascript
 
