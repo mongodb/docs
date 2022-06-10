@@ -13,10 +13,12 @@ authentication mechanisms and how to configure them in |service|.
      - Configuration Method
 
    * - SCRAM
-     - :doc:`Create database users </security-add-mongodb-users>`.
+     - :doc:`Create database users with SCRAM for password authentication 
+       </security-add-mongodb-users>`.
 
    * - |ldap|
      - :ref:`Set up LDAP <ldaps-authentication-authorization>`.
 
    * - |aws| KMS, |azure| Key Vault, |gcp| KMS
      - :ref:`Set up KMS encryption <security-kms-encryption>`.
+

@@ -6,4 +6,6 @@ Specify the user name and password to |service| when prompted by
 the live migration procedure.
 
 |service| only supports :ref:`SCRAM <authentication-scram>` for
-connecting to source clusters that enforce authentication.
+connecting to source clusters that enforce authentication. 
+
+.. include:: /includes/fact-scram-pull-live-migration.rst
