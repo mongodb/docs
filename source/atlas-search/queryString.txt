@@ -90,6 +90,11 @@ Options
               search value must be present for a document to be
               included in the results.
 
+          * - ``NOT``
+            - Indicates ``NOT`` boolean operator. Specified search 
+              value must be absent for a document to be included in 
+              the results.
+
           * - ``()``
             - Delimiters for subqueries. Use the parentheses to group
               fields and values to search.
@@ -130,7 +135,7 @@ Basic Examples
 
    tabs:
      - id: beg1
-       name: Example 1
+       name: AND OR Example
        content: |
 
         The following example uses the ``queryString`` operator to query for
@@ -165,7 +170,7 @@ Basic Examples
                  }
               ])
 
-           For the above query, |fts| performs a search at ``defaultPath``
+           For this query, |fts| performs a search at ``defaultPath``
            because there are no fields in the ``query``. It returns the
            following results:
 
@@ -175,7 +180,59 @@ Basic Examples
               { "title" : "Rocky IV" }
 
      - id: beg2
-       name: Example 2
+       name: AND NOT Example
+       content: |
+
+        The following example uses the ``queryString`` operator to 
+        query for movies with the title ``Rocky`` and not ``II``, ``III``, ``VI``, or ``V``.
+
+        .. example::
+
+           The following query searches for the string ``Rocky`` and
+           not any form of the numbers ``2``, ``3``, ``4``, or ``5`` at 
+           path ``title`` in the ``movies`` collection. In the 
+           following query, a field is specified in the 
+           ``defaultPath``, but no fields are specified in the 
+           ``query``. The query includes a :pipeline:`$project` stage 
+           to exclude all fields except ``title``.
+
+           .. code-block:: javascript
+              :linenos:
+
+              db.movies.aggregate([
+                 {
+                    $search: {
+                       "queryString": {
+                          "defaultPath": "title",
+                          "query": "Rocky AND NOT ((II OR 2 OR Two) OR (III OR 3 OR Three) OR (IV OR 4 OR Four) OR (V OR 5 OR Five))"
+                       }
+                    }
+                 },
+                 {
+                    $project: {
+                       "_id": 0,
+                       "title": 1
+                    }
+                 }
+              ])
+
+           For this query, |fts| performs a search at ``defaultPath`` 
+           because there are no fields in the ``query``. It returns the 
+           following results:
+
+           .. code-block:: json
+              :copyable: false
+
+              [
+                { title: 'Rocky' },
+                { title: 'Rocky Marciano' },
+                { title: 'Rocky Balboa' },
+                { title: 'The Rocky Horror Picture Show' },
+                { title: 'The Adventures of Rocky & Bullwinkle' }
+              ]
+
+     - id: beg3
+       name: AND Example
        content: |
 
         The following example uses the ``queryString`` operator to query for
@@ -219,7 +276,7 @@ Basic Examples
                  }
               ])
 
-           The above query returns the following results:
+           This query returns the following results:
 
            .. code-block:: json
               :linenos:
@@ -254,8 +311,8 @@ Basic Examples
                 "score" : 3.4441356658935547
               }
 
-     - id: beg3
-       name: Example 3
+     - id: beg4
+       name: OR AND Example
        content: |
 
         The following example uses the ``queryString`` operator to query for
@@ -298,7 +355,7 @@ Basic Examples
                  }
               ])
 
-           The above query returns the following results:
+           This query returns the following results:
 
            .. code-block:: json
               :linenos:
@@ -391,7 +448,7 @@ included in the search results.
                 }
               ])
 
-           The above query returns the following results:
+           This query returns the following results:
 
            .. code-block:: json
               :copyable: false
@@ -441,7 +498,7 @@ included in the search results.
                 }
               ])
 
-           The above query returns the following results:
+           This query returns the following results:
 
            .. code-block:: json
               :copyable: false
