@@ -35,8 +35,8 @@
    * - ``export.frequencyType``
      - string 
      - Required
-     - Frequency associated with the export policy. Value must be 
-       ``monthly``.
+     - Frequency associated with the export policy. Value can be 
+       ``daily``, ``weekly``, or ``monthly``.
 
    * - | ``policies[]``
      - array

@@ -38,8 +38,8 @@
 
    * - ``export.frequencyType``
      - string 
-     - Frequency associated with the export policy. Value is 
-       ``monthly``.
+     - Frequency associated with the export policy. Value can be 
+       ``daily``, ``weekly``, or ``monthly``.
 
    * - ``links``
      - array
