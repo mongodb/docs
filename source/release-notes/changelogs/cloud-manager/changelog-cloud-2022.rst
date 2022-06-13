@@ -3,8 +3,6 @@
 01 June 2022 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Reduces rolling restarts for changed to :ref:`setParameters <cm-set-parameter>`. 
-  |mms| will now initate a rolling restart only if your change requires it.
 - Updates {+mdbagent+} to :ref:`12.0.4.7554 <12.0.4.7554>`.
 
 .. _cloudmanager_20220511:
