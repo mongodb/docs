@@ -5,12 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"io/ioutil"
-	"log"
-
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+import (
+	"io/ioutil"
+	"log"
 )
 
 func Insert() error {

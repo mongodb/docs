@@ -5,12 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+import (
 	"crypto/rand"
 	"io/ioutil"
 	"log"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 func localMasterKey() []byte {
