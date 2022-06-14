@@ -1,8 +1,8 @@
 .. _cross-collection-indexes-and-queries:
 
-==============================================
-How to Index and Query on Multiple Collections
-==============================================
+===========================================
+How to Run Queries on Multiple Collections
+===========================================
 
 .. default-domain:: mongodb
 
@@ -12,46 +12,48 @@ How to Index and Query on Multiple Collections
    :depth: 1
    :class: singlecol
 
-This tutorial describes how to index and query on multiple collections
-using a combination of 
-:manual:`On-Demand Materialized Views </core/materialized-views/>`
-and 
-:realm:`{+atlas-app-services+} Scheduled Triggers </triggers/scheduled-triggers/>`
+This tutorial describes how to create an index and run queries on multiple
+collections using a combination of
+:manual:`on-demand materialized views </core/materialized-views/>` and
+:realm:`{+atlas-app-services+} scheduled triggers </triggers/scheduled-triggers/>`
 on the  ``sample_supplies.sales`` collection from the :ref:`sample dataset <sample-data>`.
-An on-demand materialized view is a collection 
-that you create and update using a ``$merge`` aggregation pipeline stage. 
-You can create an |fts| index on the materialized view
-and query the materialized view using the 
-``$search`` aggregation pipeline stage.
+
+An on-demand materialized view is a collection that you create and update
+using a ``$merge`` aggregation pipeline stage. You can create an
+|fts| index on the materialized view and then run queries on the
+materialized view using the ``$search`` aggregation pipeline stage.
 
 This tutorial takes you through the following steps:
 
-1. Create an {+app-services+} function named ``updateMonthlySales`` in the {+app-services+} UI 
-   to initialize the ``monthlysales`` materialized view using data from the sample ``sample_supplies.sales`` collection on your |service| cluster. 
+1. Create an {+app-services+} function named ``updateMonthlySales`` in
+   the {+app-services+} UI to initialize the ``monthlysales`` materialized
+   view using data from the sample ``sample_supplies.sales`` collection
+   on your |service| {+cluster+}.
 #. Schedule the ``updateMonthlySales`` function to update ``monthlysales`` 
    on a periodic basis using an {+app-services+} scheduled trigger.
 #. Create an |fts| index on the ``monthlysales`` collection.
 #. Run a query on the ``monthlysales`` collection.
 
-Before you begin, ensure that your |service| cluster meets the 
+Before you begin, ensure that your |service| {+cluster+} meets the 
 requirements described in the :ref:`fts-tutorials-prereqs`.
 
 Create an {+app-services+} Function to Define the On-Demand Materialized View 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you will create a Javascript function in the {+app-services+} UI named 
-``updateMonthlySales``. The function defines a materialized view that contains 
-cumulative monthly sales information from ``sample_supplies.sales``. 
+Create a Javascript function in the {+app-services+} UI
+named ``updateMonthlySales``. The function defines a materialized view
+that contains cumulative monthly sales information from
+``sample_supplies.sales``.
 
 .. _odmv-function-explained:
 
-How the Function Works
-``````````````````````
+How the ``updateMonthlySales`` Function Works
+``````````````````````````````````````````````
 
 The ``updateMonthlySales`` function defines a materialized view ``monthlysales``
-that contains cumulative monthly sales information. The function 
-updates monthly sales information for sales conducted over the phone.
-The function is defined below:
+that contains cumulative monthly sales information. The function updates
+monthly sales information for sales conducted over the phone.
+The following example defines the function:
 
 .. code-block:: javascript
 
@@ -75,11 +77,11 @@ The function is defined below:
       return monthlysales.aggregate(pipeline);
    };
 
-The function uses three aggregation pipeline stages to update ``monthlysales``.
-Each stage is expalined below:
+The function uses the following  aggregation pipeline stages to update
+``monthlysales``:
 
 - The :pipeline:`$match` stage filters the data to process only those
-  sales completed over the ``Phone``.
+  sales that were completed over the ``Phone``.
 
 - The :pipeline:`$group` stage groups the sales information by the
   year-month. This stage outputs documents that have the form:
@@ -89,60 +91,61 @@ Each stage is expalined below:
 
      { "_id" : "<YYYY-mm>", "sales_quantity" : <num>, "sales_amount" : <NumberDecimal> }
 
-- The :pipeline:`$set` stage changes the data type of the ``sales_price`` field to ``double``.
-  |fts| ``$search`` operators currently don't support the ``Decimal128`` data type. Changing 
-  the ``sales_price`` field's data type allows you to query this field using |fts| indexes.
+- The :pipeline:`$set` stage changes the data type of the ``sales_price``
+  field to ``double``. |fts| ``$search`` operators don't support the
+  ``Decimal128`` data type. Changing the ``sales_price`` field's data
+  type allows you to query this field using |fts| indexes.
 
 - The :pipeline:`$merge` stage writes the output to the
   ``monthlysales`` collection.
-  
-  :ref:`Based on <merge-on>` the ``_id`` field (the default for
-  unsharded output collections), the stage checks if the document in
-  :ref:`the aggregation results matches <merge-whenMatched>` an
-  existing document in the collection:
 
-  - :ref:`When there is a match <merge-whenMatched>` (that is, a document
-    with the same year-month already exists in the collection), the
-    stage :ref:`replaces the existing document
-    <merge-whenMatched-replace>` with the document from the
-    aggregation results.
-  
-  - :ref:`When there isn't a match <merge-whenNotMatched>`, the stage
-    inserts the document from the aggregation results into the
-    collection (the default behavior when not matched).
+  :ref:`Based <merge-on>` on the ``_id`` field, (the default for
+  unsharded output collections), the stage checks if the document in the
+  aggregation results :ref:`matches <merge-whenMatched>` an existing
+  document in the collection:
+
+  - When |fts| finds a :ref:`match <merge-whenMatched>` (that is, a
+    document with the same year-month already exists in the collection),
+    |fts| :ref:`replaces <merge-whenMatched-replace>` the existing
+    document with the document from the aggregation results as specified
+    in the stage.
+
+  - When |fts| doesn't find a :ref:`match <merge-whenNotMatched>`, |fts|
+    inserts the document from the aggregation results into the collection
+    as specified in the stage. This is the default behavior when there
+    is no match for the field.
 
 .. _odmv-function-create-in-realm-ui:
 
 Create the Function in the {+app-services+} UI
 ````````````````````````````````````````````````````````
 
-Now that you understand :ref:`how the function works <odmv-function-explained>`,
-create the function in the {+app-services+} UI:
+Now that you understand how the :ref:`updateMonthlySales function
+<odmv-function-explained>` works, create the function
+in the {+app-services+} UI:
 
 .. include:: /includes/steps/cross-collection-index-define-realm-function.rst
 
 Create a Scheduled Trigger
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you will schedule the {+app-services+} function
-created in the previous step to run once a day
-to keep the materialized view up to date.
+Schedule the {+app-services+} function created in the previous step
+to run once a day to keep the materialized view up-to-date.
 
 .. include:: /includes/steps/cross-collection-index-create-realm-scheduled-trigger.rst
 
 Create an Atlas Search Index on the Materialized View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you will create an |fts| index on the 
-``monthlybakesales`` collection.
+Create an |fts| index on the ``monthlybakesales`` collection.
 
 .. include:: /includes/steps/cross-collection-index-create-index.rst
 
 Run a Query on the Materialized View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In this section, you will run a query against the 
-newly updated and indexed ``monthlybakesales`` collection.
+Run a query against the newly updated and indexed ``monthlybakesales``
+collection.
 
 .. include:: /includes/steps/cross-collection-index-run-query.rst
    
