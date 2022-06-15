@@ -32,18 +32,16 @@ The following table lists upgrade paths for all versions:
 
    * - 4.4.x
      - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
-       upgrade from |onprem| 4.4.x to the latest patch version of 5.0.
-
-       If your current |onprem| version precedes 4.4.13, MongoDB 
-       recommends using the procedure to upgrade to 4.4.13 before 
-       upgrading to the latest patch version of 5.0.
+       upgrade from |onprem| 4.4.x to 4.4.22 or later *first*, then to 
+       the latest patch version of 5.0.
      
        |onprem| version 4.4.13 fixes a bug that would re-enable
        |onprem| instances for |api| writes during an upgrade.
 
        .. seealso::
           
-          :ref:`Ops Manager 4.4.13 release notes <opsmgr-server-4.4.13>` 
+          :ref:`Ops Manager 4.4 releases <opsmgr-server-4.4>`
+          :ref:`Ops Manager 4.4.13 release notes <opsmgr-server-4.4.13>`
 
    * - 4.2.x
      - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
@@ -75,4 +73,6 @@ The following table lists upgrade paths for all versions:
        to upgrade from |onprem| 2.x or earlier.
 
 There are no supported downgrade paths for |onprem|.
+
+
 
