@@ -305,10 +305,11 @@
 
        - An explicitly declared ``notifications.[n].webhookURL``
 
-       You can only configure a ``webhookSecret`` for a default 
-       ``webhookURL`` either on the 
-       :doc:`Integrations </tutorial/third-party-service-integrations>` 
-       page, or with the :doc:`Integrations API <reference/api/third-party-integration-settings-create/>`.
+       You can configure a ``webhookSecret`` for a default 
+       ``webhookURL`` only on either the :ref:`Integrations page 
+       <third-party-integrations>`, or with the 
+       :ref:`Third-Party Integration Settings API 
+       <third-party-integration-settings-create>`.
 
        To explicitly declare a ``webhookURL`` without a 
        ``webhookSecret``, omit this field. If you set  
@@ -318,13 +319,14 @@
        | .webhookUrl
      - string
      - Conditional, optional
-     - Target URL for a webhook-based alert. If you do not 
+     - Target URL for a webhook-based alert. If you don't 
        explicitly declare a ``webhookUrl``, your request will default 
-       to the value you set either on the
-       :doc:`Integrations </tutorial/third-party-service-integrations>` 
-       page, or with the :doc:`Integrations API <reference/api/third-party-integration-settings-create/>`.
-       If you set ``notifications.[n].typeName`` to ``WEBHOOK`` and do
-       not set either an explicit or a default ``webhook URL``, alert
+       to the value that you set either on the :ref:`Integrations page 
+       <third-party-integrations>`, or with the 
+       :ref:`Third-Party Integration Settings API 
+       <third-party-integration-settings-create>`.
+       If you set ``notifications.[n].typeName`` to ``WEBHOOK`` and 
+       don't set either an explicit or a default ``webhook URL``, alert
        creation fails.
 
    * - | notifications.[n]
