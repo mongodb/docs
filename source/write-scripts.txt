@@ -1,8 +1,8 @@
 .. _mdb-shell-write-scripts:
 
-=============================
-Write Scripts for ``mongosh``
-=============================
+=============
+Write Scripts
+=============
 
 .. default-domain:: mongodb
 
@@ -12,13 +12,302 @@ Write Scripts for ``mongosh``
    :depth: 2
    :class: singlecol
 
-You can write scripts for the |mdb-shell| that manipulate data in
-MongoDB or perform administrative operations. You may also want to
-package your scripts as :ref:`snippets <snip-overview>` for
-easier distribution and management.
+You can write scripts for the |mdb-shell| that modify data in MongoDB or
+perform administrative operations. You may also want to package your
+scripts as :ref:`snippets <snip-overview>` for easier distribution and
+management.
 
 This tutorial introduces using the |mdb-shell| with JavaScript to
 access MongoDB.
+
+.. _mdb-shell-execute-file:
+
+Execute a JavaScript File
+-------------------------
+
+Execute a Script from Within mongosh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can execute a ``.js`` file from within the |mdb-shell|
+using the :method:`load()` method.
+
+File Paths
+``````````
+
+The :method:`load()` method accepts relative and absolute paths. If the
+current working directory of the |mdb-shell| is ``/data/db``, and
+``connect-and-insert.js`` is in the ``/data/db/scripts`` directory, then
+the following calls within the |mdb-shell| are equivalent: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   load( "scripts/connect-and-insert.js" )
+   load( "/data/db/scripts/connect-and-insert.js" )
+
+.. _mongosh-ex-run-script:
+
+Example
+```````
+
+The following example creates and executes a script that:
+
+- Connects to a local instance running on the default port.
+- Connects to the ``myDatabase`` database.
+- Populates the ``movies`` collection with sample documents.
+
+1. Create a file named ``connect-and-insert.js`` with the following
+   contents:
+
+   .. code-block:: javascript
+
+      db = connect( 'mongodb://localhost/myDatabase' );
+
+      db.movies.insertMany( [
+         {
+            title: 'Titanic',
+            year: 1997,
+            genres: [ 'Drama', 'Romance' ]
+         },
+         {
+            title: 'Spirited Away',
+            year: 2001,
+            genres: [ 'Animation', 'Adventure', 'Family' ]
+         },
+         {
+            title: 'Casablanca',
+            genres: [ 'Drama', 'Romance', 'War' ]
+         }
+      ] )
+
+#. To load and execute the ``connect-and-insert.js`` file, use
+   ``mongosh`` to connect to your deployment and run the following
+   command:
+
+   .. code-block:: javascript
+
+      load( "connect-and-insert.js" )
+
+#. To confirm that the documents loaded correctly, use the
+   ``myDatabase`` collection and query the ``movies`` collection.
+
+   .. code-block:: javascript
+
+      use myDatabase
+      db.movies.find()
+
+.. note::
+
+   There is no search path for the :method:`load()` method. If the target
+   script is not in the current working directory or the full specified
+   path, the |mdb-shell| cannot access the file.
+
+Execute a Script From the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use :binary:`~bin.mongosh` to execute a script from the command
+line without entering the :binary:`~bin.mongosh` console. 
+
+To specify the filename, use the ``--file`` or ``-f`` parameter to
+specify the filename. You may also need to specify connection
+information in addition to the ``--file`` or ``-f`` parameters. 
+
+.. tip::
+
+   If you pass a filename to :binary:`~bin.mongosh` without using the
+   parameter flags the connection may fail if there are other command
+   line arguments.
+   
+   To pass filenames always use ``--file`` or ``-f``.
+
+Example
+```````
+
+The following example creates scripts and runs them from the command
+line. 
+
+- ``loadMovies.js``, uses :method:`~db.collection.insertMany()` to a
+  update a local MongodDB instance.
+- ``queryMovies.js`` uses :method:`db.collection.find()` to verify
+  the update.
+
+#. Copy this script and save it as ``loadMovies.js``.
+
+   .. code-block:: javascript
+      :emphasize-lines: 1
+
+      db = connect( 'mongodb://localhost/films' );
+
+      db.movies.insertMany( [
+         {
+            title: 'Titanic',
+            year: 1997,
+            genres: [ 'Drama', 'Romance' ]
+         },
+         {
+            title: 'Spirited Away',
+            year: 2001,
+            genres: [ 'Animation', 'Adventure', 'Family' ]
+         },
+         {
+            title: 'Casablanca',
+            genres: [ 'Drama', 'Romance', 'War' ]
+         }
+      ] )
+
+   .. tip::
+
+      Verify the connection string in the highlighted line. If your
+      MongoDB instance is not running on ``localhost:27017``, you
+      must edit the connection string.
+      
+      For example, the following connection string connects to
+      ``localhost`` port ``27500``: 
+
+      .. code-block:: javascript
+
+         db = connect( 'mongodb://localhost:27500/films' );
+
+#. Copy this script and save it as ``queryMovies.js``.
+
+   .. code-block:: javascript
+
+      db = connect( 'mongodb://localhost/films' );
+      printjson( db.movies.find( {} ) ); 
+
+#. Run the scripts from the command line.
+
+   .. code-block:: javascript
+
+      mongosh --file loadMovies.js --file queryMovies.js
+
+#. Verify the output.
+
+   .. code-block:: javascript
+      :emphasize-lines: 1-2
+      
+      Loading file: loadMovies.js
+      Loading file: queryMovies.js
+      [
+         {
+            _id: ObjectId("616f1b8092dbee425b661117"),
+            title: 'Titanic',
+            year: 1997,
+            genres: [ 'Drama', 'Romance' ]
+         },
+         {
+            _id: ObjectId("616f1b8092dbee425b661118"),
+            title: 'Spirited Away',
+            year: 2001,
+            genres: [ 'Animation', 'Adventure', 'Family' ]
+         },
+         {
+            _id: ObjectId("616f1b8092dbee425b661119"),
+            title: 'Casablanca',
+            genres: [ 'Drama', 'Romance', 'War' ]
+         }
+      ]
+
+   The output of the :method:`db.collection.find()` command shows
+   that the ``movies`` collection was updated.
+
+   .. tip::
+
+      To make the output visible, use ``printjson()`` to call
+      :method:`db.collection.find()`.
+
+      .. code-block:: javascript
+
+         printjson( db.movies.find( {} ) ) ; 
+
+
+Execute a Script From the Command Line with Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To execute a script against a remote :binary:`mongod` instance that
+requires authentication, specify the connection and authentication
+details in addition to the filename. 
+
+For example:
+
+.. code-block:: javascript
+
+   mongosh --host 172.17.0.3 --port 27500 --username filmFan --password superSecret --file loadMovies.js 
+   
+You can also specify the shortened form of the options:
+
+.. code-block:: javascript
+
+   mongosh --host 172.17.0.3 --port 27500 -u filmFan -p superSecret -f loadMovies.js 
+
+.. tip::
+
+   In shells like ``bash`` and ``zsh``, if you begin a command with a
+   space it will not be saved in your command history. This minimizes
+   exposure if you enter passwords on the command line.
+
+.. _mongosh-write-scripts-config-file:
+
+Execute Code From a Configuration File
+--------------------------------------
+
+On startup, :binary:`mongosh` checks your ``HOME`` directory for a
+JavaScript file named ``.mongoshrc.js``. If this file is found,
+:binary:`mongosh` reads the content of ``.mongoshrc.js`` before
+displaying the prompt for the first time.
+
+.. seealso::
+
+   - :ref:`customize-the-mongosh-prompt`
+   - :ref:`mongoshrc-js`
+
+Execute JavaScript Code
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To update the :binary:`~bin.mongosh` prompt to display line numbers, add
+the following code to ``<your-home-directory>/.mongoshrc.js``
+
+.. code-block:: javascript
+
+   let cmdCount = 1;
+   prompt = function() {
+                return (cmdCount++) + "> ";
+            }
+
+The prompt will look like this:
+
+.. code-block:: javascript
+
+   1> show collections
+   2> use test
+   3>
+
+Execute MongoDB Code
+~~~~~~~~~~~~~~~~~~~~
+
+To create a log of when your :binary:`mongosh` client connects to a
+database, add the following code to
+``<your-home-directory>/.mongoshrc.js``:
+
+.. code-block:: javascript
+
+   db.clientConnections.insertOne( { connectTime: ISODate() } )
+
+Each time you connect to a database, the MongoDB server adds a
+document like the following to the ``clientConnections`` collection.
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: ObjectId("61d4bbf0fa4c85f53418070f"),
+     connectTime: ISODate("2022-01-04T21:28:16.367Z")
+   }
+
+Execute JavaScript and MongoDB Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/examples/ex-display-dbname-and-hostname.rst
 
 .. _mdb-shell-open-new-connections-in-shell:
 
@@ -178,314 +467,10 @@ To run ``portableGetUserCount.js`` on a different host or port, change
 the connection details on the command line. Unlike ``getUserCount.js``,
 you do not have to edit the script to run ``portableGetUserCount.js``.
 
-.. _mdb-shell-execute-file:
-
-Execute a JavaScript File
--------------------------
-
-Execute a Script from Within the mongosh Console
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can execute a ``.js`` file from within the |mdb-shell|
-using the :method:`load()` method.
-
-.. _mongosh-ex-run-script:
-
-.. example::
-
-   The following example creates and executes a script that:
-
-   - Connects to a local instance running on the default port.
-   - Connects to the ``myDatabase`` database.
-   - Populates the ``movies`` collection with sample documents.
-
-   1. Create a file named ``connect-and-insert.js`` with the following
-      contents:
-
-      .. code-block:: javascript
-
-         db = connect( 'mongodb://localhost/myDatabase' );
-
-         db.movies.insertMany( [
-            {
-               title: 'Titanic',
-               year: 1997,
-               genres: [ 'Drama', 'Romance' ],
-               rated: 'PG-13',
-               languages: [ 'English', 'French', 'German', 'Swedish', 'Italian', 'Russian' ],
-               released: ISODate("1997-12-19T00:00:00.000Z"),
-               awards: {
-                  wins: 127,
-                  nominations: 63,
-                  text: 'Won 11 Oscars. Another 116 wins & 63 nominations.'
-               },
-               cast: [ 'Leonardo DiCaprio', 'Kate Winslet', 'Billy Zane', 'Kathy Bates' ],
-               directors: [ 'James Cameron' ]
-            },
-            {
-               title: 'Spirited Away',
-               year: 2001,
-               genres: [ 'Animation', 'Adventure', 'Family' ],
-               rated: 'PG',
-               languages: [ 'Japanese' ],
-               released: ISODate("2003-03-28T00:00:00.000Z"),
-               awards: {
-                  wins: 52,
-                  nominations: 22,
-                  text: 'Won 1 Oscar. Another 51 wins & 22 nominations.'
-               },
-               cast: [ 'Rumi Hiiragi', 'Miyu Irino', 'Mari Natsuki', 'Takashi Naitè' ],
-               directors: [ 'Hayao Miyazaki' ]
-            },
-            {
-               title: 'Casablanca',
-               genres: [ 'Drama', 'Romance', 'War' ],
-               rated: 'PG',
-               cast: [ 'Humphrey Bogart', 'Ingrid Bergman', 'Paul Henreid', 'Claude Rains' ],
-               languages: [ 'English', 'French', 'German', 'Italian' ],
-               released: ISODate("1943-01-23T00:00:00.000Z"),
-               directors: [ 'Michael Curtiz' ],
-               awards: {
-                  wins: 9,
-                  nominations: 6,
-                  text: 'Won 3 Oscars. Another 6 wins & 6 nominations.'
-               },
-               lastupdated: '2015-09-04 00:22:54.600000000',
-               year: 1942
-            }
-         ] )
-
-   #. To load and execute the ``connect-and-insert.js`` file, run the
-      following command from ``mongosh``:
-
-      .. code-block:: javascript
-
-         load( "connect-and-insert.js" )
-
-   #. To confirm that the documents loaded correctly, use the
-      ``myDatabase`` collection and query the ``movies`` collection.
-
-      .. code-block:: javascript
-
-         use myDatabase
-         db.movies.find()
-
-The :method:`load()` method accepts relative and absolute paths. If the
-current working directory of the |mdb-shell| is ``/data/db``, and
-``connect-and-insert.js`` is in the ``/data/db/scripts`` directory, then
-the following calls within the |mdb-shell| are equivalent: 
-
-.. code-block:: javascript
-   :copyable: false
-
-   load( "scripts/connect-and-insert.js" )
-   load( "/data/db/scripts/connect-and-insert.js" )
-
-.. note::
-
-   There is no search path for the :method:`load()` method. If the target
-   script is not in the current working directory or the full specified
-   path, the |mdb-shell| cannot access the file.
-
-Execute a Script From the Command Line
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use :binary:`~bin.mongosh` to execute a script from the command
-line without entering the :binary:`~bin.mongosh` console. 
-
-Use the ``--file`` or ``-f`` parameters to specify the filename.
-
-.. code-block::
-
-   mongosh --port 27500 --file addMovies.js 
-
-.. tip::
-
-   If you pass a filename to :binary:`~bin.mongosh` without using the
-   parameter flags the connection may fail if there are other command
-   line arguments.
-   
-   To pass filenames always use ``--file`` or ``-f``.
-
-You may also need to specify connection information in addition to the
-``--file`` or ``-f`` parameters. 
-
-.. example::
-
-   The following example creates scripts and runs them from the command
-   line. 
-   
-   - ``loadMovies.js``, uses :method:`~db.collection.insertMany()` to a
-     update a local MongodDB instance.
-   - ``queryMovies.js`` uses :method:`db.collection.find()` to verify
-     the update.
-
-   #. Copy this script and save it as ``loadMovies.js``.
-
-      .. code-block:: javascript
-         :emphasize-lines: 1
-
-         db = connect( 'mongodb://localhost/films' );
-
-         db.movies.insertMany( [
-            {
-               title: 'Titanic',
-               year: 1997,
-               genres: [ 'Drama', 'Romance' ]
-            },
-            {
-               title: 'Spirited Away',
-               year: 2001,
-               genres: [ 'Animation', 'Adventure', 'Family' ]
-            },
-            {
-               title: 'Casablanca',
-               genres: [ 'Drama', 'Romance', 'War' ]
-            }
-         ] )
-
-      .. tip::
-   
-         Verify the connection string in the highlighted line. If your
-         MongoDB instance is not running on ``localhost:27017``, you
-         must edit the connection string. 
-
-         .. code-block:: javascript
-            :emphasize-lines: 1
-
-            db = connect( 'mongodb://localhost:27500/films' );
-
-      This connection string is for the:
-
-      - films database
-      - located on localhost
-      - listening on port 27500
-
-   #. Copy this script and save it as ``queryMovies.js``.
-
-      .. code-block:: javascript
-
-         db = connect( 'mongodb://localhost/films' );
-         printjson( db.movies.find( {} ) ); 
-
-   #. Run the scripts from the command line.
-
-      .. code-block:: javascript
-
-         mongosh --file loadMovies.js -f queryMovies.js
-
-   #. Verify the output.
-
-      .. code-block:: javascript
-         :emphasize-lines: 1-2
-       
-         Loading file: loadMovies.js
-         Loading file: queryMovies.js
-         [
-           {
-             _id: ObjectId("616f1b8092dbee425b661117"),
-             title: 'Titanic',
-             year: 1997,
-             genres: [ 'Drama', 'Romance' ]
-           },
-           {
-             _id: ObjectId("616f1b8092dbee425b661118"),
-             title: 'Spirited Away',
-             year: 2001,
-             genres: [ 'Animation', 'Adventure', 'Family' ]
-           },
-           {
-             _id: ObjectId("616f1b8092dbee425b661119"),
-             title: 'Casablanca',
-             genres: [ 'Drama', 'Romance', 'War' ]
-           }
-         ]
-
-      The output of the :method:`db.collection.find()` command shows
-      that the ``movies`` collection was updated.
-
-      .. tip::
-
-         To make the output visible, use ``printjson()`` to call
-         :method:`db.collection.find()`.
-
-         .. code-block:: javascript
-
-            printjson( db.movies.find( {} ) ) ; 
-
-
-Execute a Script From the Command Line with Authentication
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To execute a script against a remote :binary:`mongod` instance that
-requires authentication, specify the connection and authentication
-details in addition to the filename.  
-
-The following lines are equivalent.
-
-.. code-block:: javascript
-
-   mongosh --host 172.17.0.3 --port 27500 --username filmFan --password superSecret --file loadMovies.js 
-   mongosh --host 172.17.0.3 --port 27500 -u filmFan -p superSecret -f loadMovies.js 
-
-.. tip::
-
-   In shells like ``bash`` and ``zsh``, if you begin a command with a
-   space it will not be saved in your command history. This minimizes
-   exposure if you enter passwords on the command line.
-
-Execute Code From a Configuration File
---------------------------------------
-
-On startup, :binary:`mongosh` checks for a file named
-:ref:`.mongoshrc.js <mongoshrc-js>`. If :ref:`.mongoshrc.js
-<mongoshrc-js>` is found, :binary:`mongosh` interprets the file before
-displaying the prompt for the first time.
-
-.. seealso::
-
-   :ref:`.mongoshrc.js <mongoshrc-js>`, :ref:`mongosh-shell-settings`
-
-Execute JavaScript Code
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/examples/ex-display-line-numbers.rst
-
-Execute MongoDB Code
-~~~~~~~~~~~~~~~~~~~~
-
-To create a log of when your :binary:`mongosh` client connects to a
-database, add the following to ``<your-home-directory>/.mongoshrc.js``:
-
-.. code-block:: javascript
-
-   db.clientConnections.insertOne( { connectTime: ISODate() } )
-
-Each time you connect to a database, the MongoDB server adds a
-document like the following to the ``clientConnections`` collection.
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-     _id: ObjectId("61d4bbf0fa4c85f53418070f"),
-     connectTime: ISODate("2022-01-04T21:28:16.367Z")
-   }
-
-Execute JavaScript and MongoDB Code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/examples/ex-display-dbname-and-hostname.rst
-
-Limitations on Database Calls
------------------------------
-
-.. include:: /includes/fact-call-limitations.rst
-
 .. toctree::
    :titlesonly:
 
    /write-scripts/require-external-modules
    /write-scripts/require-load-differences
    /write-scripts/scoping
-
+   /write-scripts/limitations
