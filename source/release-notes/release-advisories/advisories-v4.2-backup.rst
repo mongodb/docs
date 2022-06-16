@@ -6,25 +6,19 @@ Backup Features Supported at Present
 .. cond:: onprem
 
    .. list-table::
-      :widths: 40 10 10 10 10 10
+      :widths: 40 10 10 10
       :header-rows: 1
 
       * - Feature
-        - MongoDB 4.4 with FCV : 4.4
-        - MongoDB 4.4 with FCV : 4.2
-        - MongoDB 4.2 with FCV : 4.2
+        - MongoDB 4.2 or later with FCV : 4.2 or later
         - MongoDB 4.2 with FCV : 4.0
         - MongoDB 4.0 or earlier
 
       * - Backs up Data using WiredTiger Snapshots
         - :icon:`check-circle`
-        - :icon:`check-circle`
-        - :icon:`check-circle`
         -
         -
       * - Backs up Data using the Backup Daemon
-        -
-        -
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -32,23 +26,15 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-        - :icon:`check-circle`
-        - :icon:`check-circle`
       * - Backs up Sharded Clusters
-        - :icon:`check-circle`
-        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Can Filter using Namespaces
         -
-        -
-        -
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Can Specify Sync Source Database
-        -
-        -
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -56,11 +42,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-        - :icon:`check-circle`
-        - :icon:`check-circle`
       * - Can Perform Incremental Backups [#]_
-        - :icon:`check-circle`
-        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -68,11 +50,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-        - :icon:`check-circle`
-        - :icon:`check-circle`
       * - Supports Snapshots that use Local Key Encryption [#]_
-        -
-        -
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -80,11 +58,7 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-        - :icon:`check-circle`
-        - :icon:`check-circle`
       * - Supports Saving to |s3| Snapshot Storage
-        - :icon:`check-circle`
-        - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
@@ -92,25 +66,17 @@ Backup Features Supported at Present
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-        - :icon:`check-circle`
-        - :icon:`check-circle`
       * - Supports Databases running MongoDB Enterprise
         - :icon:`check-circle`
         - :icon:`check-circle`
         - :icon:`check-circle`
-        - :icon:`check-circle`
-        - :icon:`check-circle`
       * - Supports Databases running MongoDB Community
-        -
-        -
         -
         - :icon:`check-circle`
         - :icon:`check-circle`
       * - Requires a MongoDB Agent with
           :ref:`backup enabled <activate-backup>` on every |mongod|
           cluster node
-        - :icon:`check-circle`
-        - :icon:`check-circle`
         - :icon:`check-circle`
         -
         -
