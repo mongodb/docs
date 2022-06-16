@@ -105,9 +105,6 @@
 - | ``REMOVED_FROM_GROUP``
   | User left the project
 
-- | ``USER_ROLES_CHANGED_AUDIT``
-  | User had their role changed
-
 **X.509**
 
 - | ``NDS_X509_USER_AUTHENTICATION_MANAGED_USER_CERTS_EXPIRATION_CHECK``
