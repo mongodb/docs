@@ -4,8 +4,26 @@
 
 **Backup**
 
+- | ``CPS_SNAPSHOT_SUCCESSFUL``
+  | Snapshot taken successfully
+
+- | ``CPS_SNAPSHOT_FALLBACK_SUCCESSFUL``
+  | Fallback snapshot taken
+
+- | ``CPS_SNAPSHOT_FALLBACK_FAILED``
+  | Fallback snapshot failed
+
 - | ``CPS_SNAPSHOT_BEHIND``
   | Snapshot schedule fell behind
+
+- | ``CPS_RESTORE_FAILED``
+  | Backup restore failed
+
+- | ``CPS_RESTORE_SUCCESSFUL``
+  | Backup restore succeeded
+
+- | ``CPS_SNAPSHOT_DOWNLOAD_REQUEST_FAILED``
+  | Snapshot download request failed
 
 **Billing**
      
@@ -53,6 +71,9 @@
 
 **Replica Set**
 
+- | ``PRIMARY_ELECTED``
+  | Replica set elected a new primary
+
 - | ``NO_PRIMARY``
   | Replica set has no primary
 
@@ -72,6 +93,17 @@
 
 - | ``CLUSTER_MONGOS_IS_MISSING``
   | Cluster is missing an active mongos
+
+**User**
+
+- | ``USER_ROLES_CHANGED_AUDIT``
+  | User had their role changed
+
+- | ``JOINED_GROUP``
+  | User joined the project
+
+- | ``REMOVED_FROM_GROUP``
+  | User left the project
 
 **X.509**
 
