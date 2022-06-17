@@ -122,7 +122,12 @@ Array Fields
 
 .. include:: /includes/extracts/fact-distinct-command-array-field.rst
 
-For an example, see :ref:`distinct-command-array`.
+.. include:: /includes/distinct-arrays-in-collections-and-views.rst
+
+For examples, see:
+
+- :ref:`distinct-command-array`
+- :ref:`distinct-arrays-in-collections-and-views`
 
 Index Use
 ~~~~~~~~~
@@ -238,6 +243,61 @@ contains the distinct ``sizes`` values:
 
 For information on :dbcommand:`distinct` and array fields, see the
 :ref:`Behavior <distinct-command-array-behavior>` section.
+
+.. _distinct-arrays-in-collections-and-views:
+
+Arrays in Collections and Views
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/distinct-arrays-in-collections-and-views.rst
+
+The following example creates a collection named ``sensor`` with
+an array of temperature values for each document:
+
+.. code-block:: javascript
+
+   db.sensor.insertMany( [
+      { _id: 0, temperatures: [ { value: 1 }, { value: 4 } ] },
+      { _id: 1, temperatures: [ { value: 2 }, { value: 8 } ] },
+      { _id: 2, temperatures: [ { value: 3 }, { value: 12 } ] },
+      { _id: 3, temperatures: [ { value: 1 }, { value: 4 } ] }
+   ] )
+
+The following example creates a view named ``sensorView`` from the
+``sensor`` collection:
+
+.. code-block:: javascript
+
+   db.createView( "sensorView", "sensor", [] )
+
+The following example uses :dbcommand:`distinct` to return the unique
+values from the ``temperatures`` array in the ``sensor`` collection:
+
+.. code-block:: javascript
+
+   db.sensor.distinct( "temperatures.1.value" )
+
+The ``1`` in ``temperatures.1.value`` specifies the ``temperatures``
+array index.
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [ 4, 8, 12 ]
+
+Example for ``sensorView``:
+
+.. code-block:: javascript
+
+   db.sensorView.distinct( "temperatures.1.value" )
+
+Example output:
+
+- ``[ 4, 8, 12 ]`` starting in MongoDB 6.0 (identical to result
+  returned from the ``sensor`` collection).
+- ``[]`` in MongoDB versions earlier than 6.0.
 
 Specify Query with ``distinct``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
