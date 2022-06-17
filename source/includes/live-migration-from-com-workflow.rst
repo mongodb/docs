@@ -7,8 +7,8 @@
 The stages in the live migration workflow are:
 
 - **Stage 1: Link with Atlas**. Perform this step in |service|,
-  after you have created your |service| account, organization,
-  project, deployed your paid cluster in this project, and can
+  after you have created your |service| account, organization, and
+  project; deployed your paid {+cluster+} in this project; and can
   connect to it.
 
   a. In the |service| organization, go to :guilabel:`Live Migration`.
@@ -27,7 +27,7 @@ The stages in the live migration workflow are:
   - :opsmgr:`Provision a migration host </tutorial/provision-migration-host>`
     in Ops Manager, or :cloudmgr:`provision a migration host </tutorial/provision-migration-host>`
     in |mms|. A migration host runs a dedicated MongoDB Agent
-    that orchestrates the Live Migration process from |com| to |service|.
+    that orchestrates the live migration process from |com| to |service|.
 
   - In the :guilabel:`Live Migration: Connect to Atlas` section of your
     |com| organization's :guilabel:`Settings` page, select
