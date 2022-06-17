@@ -338,7 +338,7 @@
           </release-notes/6.0/>`. |service| will upgrade the cluster
           to the stable release version when it is generally available.
 
-       You must deploy MongoDB **4.4** if
+       You must deploy MongoDB **5.0** if
        **"providerSettings.instanceSizeName" : "M0"**, **"M2"** or **"M5"**.
 
        |service| always deploys the cluster with the latest stable
