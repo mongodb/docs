@@ -11,6 +11,7 @@ from const import (
     PYTHON,
     PYTHON_FLE_2,
     JAVA,
+    JAVA_FLE_2,
     AWS_TEST,
     AZURE_TEST,
     GCP_TEST,
@@ -51,10 +52,10 @@ class TestTutorials(unittest.TestCase):
     def tearDown(self):
         self._dropData()
 
-    def _check_docs(self, language):
+    def _check_docs(self, project):
         """Checks that expected documents were added to key vault and collection and that fields were encrypted"""
 
-        if language in [NODE_FLE_2, PYTHON_FLE_2]:
+        if project in [NODE_FLE_2, PYTHON_FLE_2, JAVA_FLE_2]:
             self.assertEqual(
                 self.client[KEY_VAULT_DB][KEY_VAULT_COLL].count_documents({}),
                 NUM_QE_DEKS,
@@ -94,23 +95,23 @@ class TestTutorials(unittest.TestCase):
                 f"{TEST_FLE1_ENC_FIELD} must be encrypted",
             )
 
-    def _check_app(self, language):
+    def _check_app(self, project):
         """Build and test a sample application"""
 
         make_dek_file_name = None
         insert_file_name = None
         commands = []
-        if language == PYTHON or language == PYTHON_FLE_2:
-            make_dek_file_name = FILE_MAP[language][DEK]
-            insert_file_name = FILE_MAP[language][INSERT]
+        if project == PYTHON or project == PYTHON_FLE_2:
+            make_dek_file_name = FILE_MAP[project][DEK]
+            insert_file_name = FILE_MAP[project][INSERT]
             commands.append(f"python {make_dek_file_name}")
             commands.append(f"python {insert_file_name}")
-        elif language == JAVA:
+        elif project == JAVA or project == JAVA_FLE_2:
             make_dek_file_name = os.path.splitext(
-                ntpath.basename(FILE_MAP[language][DEK])
+                ntpath.basename(FILE_MAP[project][DEK])
             )[0]
             insert_file_name = os.path.splitext(
-                ntpath.basename(FILE_MAP[language][INSERT])
+                ntpath.basename(FILE_MAP[project][INSERT])
             )[0]
             commands.append(
                 f'mvn compile exec:java -Dexec.mainClass="com.mongodb.csfle.{make_dek_file_name}"'
@@ -118,28 +119,28 @@ class TestTutorials(unittest.TestCase):
             commands.append(
                 f'mvn compile exec:java -Dexec.mainClass="com.mongodb.csfle.{insert_file_name}"'
             )
-        elif language == CSHARP:
+        elif project == CSHARP:
             os.chdir("CSFLE")
             commands.append("dotnet run")
-        elif language == NODE or language == NODE_FLE_2:
-            make_dek_file_name = FILE_MAP[language][DEK]
-            insert_file_name = FILE_MAP[language][INSERT]
+        elif project == NODE or project == NODE_FLE_2:
+            make_dek_file_name = FILE_MAP[project][DEK]
+            insert_file_name = FILE_MAP[project][INSERT]
             commands.append("npm install")
             commands.append(f"node {make_dek_file_name}")
             commands.append(f"node {insert_file_name}")
-        elif language == GO:
-            make_dek_file_name = FILE_MAP[language][DEK]
-            insert_file_name = FILE_MAP[language][INSERT]
+        elif project == GO:
+            make_dek_file_name = FILE_MAP[project][DEK]
+            insert_file_name = FILE_MAP[project][INSERT]
             commands.append("go get .")
             commands.append(f"go fmt {make_dek_file_name}")
             commands.append(f"go fmt {insert_file_name}")
             commands.append("go run -tags=cse .")
         else:
-            Exception("Failed to Handle Language")
+            Exception("Failed to Handle project")
         for c in commands:
             print(c)
             os.system(c)
-        self._check_docs(language)
+        self._check_docs(project)
 
 
 class TestPython(TestTutorials):
@@ -284,3 +285,23 @@ class TestJava(TestTutorials):
     def test_java_local(self):
         os.chdir(os.path.join(BUILD_DIR, JAVA, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(JAVA)
+
+class TestJavaFLE2(TestTutorials):
+    """Test Java FLE2 Sample Apps"""
+
+    def test_java_fle_2_aws(self):
+        os.chdir(os.path.join(BUILD_DIR, JAVA_FLE_2, *AWS_TEST.split(DIR_SEPERATOR)))
+        self._check_app(JAVA_FLE_2)
+
+    def test_java_fle_2_azure(self):
+        os.chdir(os.path.join(BUILD_DIR, JAVA_FLE_2, *AZURE_TEST.split(DIR_SEPERATOR)))
+        self._check_app(JAVA_FLE_2)
+
+    def test_java_fle_2_gcp(self):
+        os.chdir(os.path.join(BUILD_DIR, JAVA_FLE_2, *GCP_TEST.split(DIR_SEPERATOR)))
+        self._check_app(JAVA_FLE_2)
+
+    def test_java_fle_2_local(self):
+        os.chdir(os.path.join(BUILD_DIR, JAVA_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
+        self._check_app(JAVA_FLE_2)
+

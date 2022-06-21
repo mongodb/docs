@@ -8,9 +8,9 @@ applications that use CSFLE with the following KMS providers:
 
 To build Dotnet applications, run the following command from the parent of this directory:
 
-    python build.py --langs dotnet
+    python build.py --project dotnet
 
-To test your build applications, run the following
+To test your built applications, run the following
 command from the parent of this directory:
 
     python -m unittest test.TestDotNet

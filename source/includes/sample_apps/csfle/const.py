@@ -4,6 +4,7 @@ BUILD_DIR = "build"
 PYTHON = "python"
 PYTHON_FLE_2 = "python-fle-2"
 JAVA = "java"
+JAVA_FLE_2 = "java-fle-2"
 CSHARP = "dotnet"
 NODE = "node"
 NODE_FLE_2 = "node-fle-2"
@@ -26,6 +27,21 @@ FILE_MAP = {
         FORMAT_COMMAND: f"black {os.path.join(BUILD_DIR,'*','*','*','*.py')}",
     },
     JAVA: {
+        DEK: os.path.join(
+            "src", "main", "java", "com", "mongodb", "csfle", "makeDataKey.java"
+        ),
+        INSERT: os.path.join(
+            "src",
+            "main",
+            "java",
+            "com",
+            "mongodb",
+            "csfle",
+            "insertEncryptedDocument.java",
+        ),
+        EXTRA_FILES: ["pom.xml", ".gitignore"],
+    },
+    JAVA_FLE_2: {
         DEK: os.path.join(
             "src", "main", "java", "com", "mongodb", "csfle", "makeDataKey.java"
         ),
@@ -88,9 +104,9 @@ BUILD_STATES = [
     LOCAL_TEST,
 ]
 
-MAKE_KEY = lambda language: FILE_MAP[language][DEK]
-MAKE_INSERT = lambda language: FILE_MAP[language][INSERT]
-GET_EXTRA_FILES = lambda language: FILE_MAP[language].get(EXTRA_FILES)
+MAKE_KEY = lambda project: FILE_MAP[project][DEK]
+MAKE_INSERT = lambda project: FILE_MAP[project][INSERT]
+GET_EXTRA_FILES = lambda project: FILE_MAP[project].get(EXTRA_FILES)
 BUILD_FILES = (MAKE_KEY, MAKE_INSERT)
 
 BLUEHAWK = "bluehawk"

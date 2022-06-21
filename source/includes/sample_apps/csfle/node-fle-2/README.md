@@ -9,9 +9,9 @@ KMS providers:
 
 To build the Node applications, run the following command from the parent of this directory:
 
-    python build.py --langs node-fle-2
+    python build.py --project node-fle-2
 
-To test your build applications, run the following
+To test your built applications, run the following
 command from the parent of this directory:
 
     python -m unittest test.TestNodeFLE2

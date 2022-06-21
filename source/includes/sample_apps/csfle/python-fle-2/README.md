@@ -8,9 +8,9 @@ applications that use Queryable Encryption with the following KMS providers:
 
 To build Python applications, run the following command from the parent of this directory:
 
-    python build.py --langs python-fle-2
+    python build.py --project python-fle-2
 
-To test your build applications, run the following
+To test your built applications, run the following
 command from the parent of this directory:
 
     python -m unittest test.TestPythonFLE2

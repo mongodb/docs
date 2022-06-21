@@ -5,36 +5,36 @@ import click
 from const import *
 
 
-def get_commands(language, get_file_name, state):
-    """Get list of commands to build language/state pair"""
-    file_path = os.path.join(language, get_file_name(language))
+def get_commands(project, get_file_name, state):
+    """Get list of commands to build project/state pair"""
+    file_path = os.path.join(project, get_file_name(project))
     output_file = os.path.join(
         BUILD_DIR,
-        language,
+        project,
         *state.split(DIR_SEPERATOR),
-        os.path.dirname(get_file_name(language)),
+        os.path.dirname(get_file_name(project)),
     )
     commands = [
         f"{BLUEHAWK} copy {file_path} --state {state} -o {output_file}"
     ]
-    if GET_EXTRA_FILES(language):
-        for l in GET_EXTRA_FILES(language):
-            next_file_name = os.path.join(language, l)
+    if GET_EXTRA_FILES(project):
+        for l in GET_EXTRA_FILES(project):
+            next_file_name = os.path.join(project, l)
             next_output_file = os.path.join(
-                BUILD_DIR, language, *state.split(DIR_SEPERATOR), os.path.dirname(l)
+                BUILD_DIR, project, *state.split(DIR_SEPERATOR), os.path.dirname(l)
             )
-            commands.append(f"{BLUEHAWK} copy {next_file_name} -o {next_output_file}")
+            commands.append(f"{BLUEHAWK} copy {next_file_name} --state {state} -o {next_output_file}")
     return commands
 
 
-def build_languages(language, build_states):
-    """Build sample apps for a language"""
+def build_projects(project, build_states):
+    """Build sample apps for a project"""
 
     all_commands = []
 
     for f in BUILD_FILES:
         for s in build_states:
-            commands = get_commands(language, f, s)
+            commands = get_commands(project, f, s)
             for c in commands:
                 all_commands += commands
     dedup_commands = list(set(all_commands))
@@ -42,9 +42,9 @@ def build_languages(language, build_states):
         os.system(c)
 
     # run formatter
-    if FILE_MAP[language].get(FORMAT_COMMAND):
-        print(f"\n\n$$$$   Formatting {language}:\n\n")
-        os.system(FILE_MAP[language][FORMAT_COMMAND])
+    if FILE_MAP[project].get(FORMAT_COMMAND):
+        print(f"\n\n$$$$   Formatting {project}:\n\n")
+        os.system(FILE_MAP[project][FORMAT_COMMAND])
 
 
 def check_bluehawk_installed():
@@ -55,14 +55,14 @@ def check_bluehawk_installed():
 
 
 @click.command()
-@click.option("--langs", default=None, help="What apps to build")
+@click.option("--project", default=None, help="What apps to build")
 @click.option(
     "--reader",
     is_flag=True,
     default=False,
     help="Whether or not to only build reader directories",
 )
-def build_apps(langs, reader):
+def build_apps(project, reader):
     """Get commmand line arguments and build sample applications"""
 
     check_bluehawk_installed()
@@ -73,19 +73,19 @@ def build_apps(langs, reader):
     file_map = {}
     build_states = []
 
-    if not langs:
+    if not project:
         file_map = FILE_MAP
     else:
-        langs_to_build = [l.strip() for l in langs.split(",")]
-        file_map = {l: FILE_MAP[l] for l in langs_to_build}
+        project_to_build = [l.strip() for l in project.split(",")]
+        file_map = {l: FILE_MAP[l] for l in project_to_build}
 
     if reader:
         build_states = [s for s in BUILD_STATES if TEST not in s]
     else:
         build_states = BUILD_STATES
 
-    for lang in file_map.keys():
-        build_languages(lang, build_states)
+    for proj in file_map.keys():
+        build_projects(proj, build_states)
 
 
 if __name__ == "__main__":

@@ -8,9 +8,9 @@ applications that use CSFLE with the following KMS providers:
 
 To build Python applications, run the following command from the parent of this directory:
 
-    python build.py --langs python
+    python build.py --project python
 
-To test your build applications, run the following
+To test your built applications, run the following
 command from the parent of this directory:
 
     python -m unittest test.TestPython
