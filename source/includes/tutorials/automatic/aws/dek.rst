@@ -6,8 +6,6 @@
       Add the service account credentials to your CSFLE-enabled client
       code.
 
-      .. include:: /includes/tab-note.rst
-
       .. include:: /includes/tutorials/automatic/aws/iam-credentials-note.rst
 
       .. tabs-drivers::

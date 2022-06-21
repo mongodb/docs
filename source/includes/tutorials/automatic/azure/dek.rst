@@ -8,8 +8,6 @@
       Add the service account credentials to your CSFLE-enabled client
       code.
 
-      .. include:: /includes/tab-note.rst
-
       .. tip::
 
          You recorded your {+azure-kv+} credentials in the
