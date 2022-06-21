@@ -72,9 +72,8 @@ Index Options
         - Description
 
       * - ``expireAfterSeconds``
-
         - The number of seconds that determines the expiration
-          threshold of a :doc:`TTL Collection </tutorial/expire-data>`.
+          threshold of a :ref:`TTL Collection <ttl-collections>`.
 
           If successful, the command returns a document that contains:
 
@@ -88,9 +87,8 @@ Index Options
           :pipeline:`$indexStats` for the index.
 
       * - ``hidden``
-
-        - A boolean that determines whether the index is :doc:`hidden
-          </core/index-hidden>` or not from the query planner.
+        - A boolean that determines whether the index is :ref:`hidden
+          <index-type-hidden>` or not from the query planner.
 
           If the ``hidden`` value changes, the command returns a
           document that contains both the old and new values for the
@@ -115,6 +113,38 @@ Index Options
 
           .. versionadded:: 4.4
 
+      * - ``prepareUnique``
+        - A boolean that determines whether the index will accept
+          new duplicate entries.
+
+          New duplicate entries fail with DuplicateKey errors when
+          ``prepareUnique`` is ``true``. The resulting index can be
+          converted to a unique index. To convert the index, use
+          ``collMod`` with the ``unique`` option.
+
+          If an existing index is updated so that ``prepareUnique`` is
+          ``true``, the index is not checked for pre-existing,
+          duplicate index entries.
+
+          .. versionadded:: 6.0
+
+      * - ``unique``
+        - A boolean that determines whether or not the index is unique.
+
+          When ``unique`` is ``true``, ``collMod`` scans the
+          ``keyPattern`` index for duplicates and then converts it to
+          a unique index if there are no duplicate index entries.
+          
+          If duplicates are detected during the initial scan,
+          ``collMod`` returns ``CannotConvertIndexToUnique`` and a list
+          of conflicting documents. To convert an index with duplicate
+          entries to a unique index, correct any reported conflicts and
+          rerun ``collMod``.
+          
+          To end a conversion, set ``prepareUnique`` to ``false``.
+
+          .. versionadded:: 6.0
+
    To change index options, specify either the key pattern or name of
    the existing index and the index option or options you wish to
    change:
@@ -125,18 +155,19 @@ Index Options
          collMod: <collection>,
          index: {
             keyPattern: <index_spec> || name: <index_name>,
-            expireAfterSeconds: <number>,  // If changing the TTL expiration threshold
-            hidden: <boolean>              // If changing the visibility of the index from the query planner
+            expireAfterSeconds: <number>,  // Set the TTL expiration threshold
+            hidden: <boolean>,             // Change index visibility in the query planner
+            prepareUnique: <boolean>,      // Reject new duplicate index entries 
+            unique: <boolean>              // Convert an index to a unique index
          }
       } )
-
 
    If the index does not exist, the command errors with the message
    ``"cannot find index <name|keyPattern> for ns <db.collection>"``.
 
    .. seealso::
 
-      - :doc:`/core/index-hidden`
+      - :ref:`index-type-hidden`
       - :method:`db.collection.hideIndex()`
       - :method:`db.collection.unhideIndex()`
 
@@ -517,4 +548,100 @@ proceed:
 
    2017-12-01T12:31:23.738-05:00 W STORAGE  [conn1] Document would fail validation collection: example.contacts doc: { _id: ObjectId('5a2191ebacbbfc2bdc4dcffc'), name: "Amanda", status: "Updated" }
 
-For more information, see :doc:`/core/schema-validation`.
+For more information, see :ref:`schema-validation-overview`.
+
+
+Convert an Existing Index to a Unique Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the ``apples`` collection:
+
+.. code-block:: javscript
+
+   db.apples.insertMany( [
+      { type: "Delicious", quantity: 12 },
+      { type: "Macintosh", quantity: 13 },
+      { type: "Delicious", quantity: 13 },
+      { type: "Fuji", quantity: 15 },
+      { type: "Washington", quantity: 10 },
+   ] )
+
+Add a single field index on ``type``:
+
+.. code-block:: javscript
+
+   db.apples.createIndex( { type: 1 } )
+
+Prepare the index on the ``type`` field for conversion:
+
+.. code-block:: javscript
+
+   db.runCommand( {
+       collMod: "apples",
+       index: {
+          keyPattern: { type: 1 },
+          prepareUnique: true
+       }
+    } )
+
+The existing index may contain duplicate entries, but it will not
+accept new documents that duplicate an index entry when
+``prepareUnique`` is ``true``. 
+
+Try to insert a document with a duplicate index value:
+
+.. code-block:: javscript
+
+   db.apples.insertOne( { type: "Delicious", quantity: 200 } )
+
+The operation returns an error. The index will not accept new
+duplicate entries. 
+
+Use the ``unique``option to convert the index to a unique index.
+``collMod`` checks the collection for duplicate index entries before
+converting the index:
+
+.. code-block:: javscript
+
+   db.runCommand( {
+       collMod: "apples",
+       index: {
+          keyPattern: { type: 1 },
+          unique: true
+       }
+    } )
+
+The response to this operation varies by driver. You will always
+receive an error message about the duplicate entries.
+
+.. code-block:: shell
+   :copyable: false
+   
+   "errmsg" : "Cannot convert the index to unique. Please resolve
+               conflicting documents before running collMod again."
+   
+Some drivers also return a list of ``ObjectIds`` for the duplicate
+entries:
+
+.. code-block:: shell
+   :copyable: false
+
+   {
+        "ok" : 0,
+        "errmsg" : "Cannot convert the index to unique. Please resolve \
+                    conflicting documents before running collMod again.",
+        "code" : 359,
+        "codeName" : "CannotConvertIndexToUnique",
+        "violations" : [
+                {
+                        "ids" : [
+                                ObjectId("62a2015777e2d47c4da33146"),
+                                ObjectId("62a2015777e2d47c4da33148")
+                        ]
+                }
+        ]
+   }
+
+To complete the conversion, modify the duplicate entries to remove any
+conflicts and re-run ``collMod()`` with the ``unique`` option.
+
