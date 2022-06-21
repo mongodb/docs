@@ -10,8 +10,8 @@
 
        .. include:: /includes/api/facts/invalid-integration-api-token.rst
 
-       Set this value if you set **notifications.[n].typeName** to
-       **SLACK**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``SLACK``.
 
    * - | notifications.[n]
        | .channelName
@@ -19,8 +19,8 @@
      - Conditional
      - Slack channel name.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **SLACK**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``SLACK``.
 
    * - | notifications.[n]
        | .datadogApiKey
@@ -28,8 +28,8 @@
      - Conditional
      - Datadog |api| Key. Found in the Datadog dashboard.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **DATADOG**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``DATADOG``.
 
    * - | notifications.[n]
        | .datadogRegion
@@ -43,8 +43,8 @@
 
        The default Datadog region is ``US``.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **DATADOG**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``DATADOG``.
 
    * - | notifications.[n]
        | .delayMin
@@ -59,13 +59,13 @@
      - Conditional
      - Email address to which alert notifications are sent.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **EMAIL**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``EMAIL``.
 
        You don't need to set this value to send emails to specific
        users, users with specific project roles, users with specific
        organization roles, or teams. Use the
-       **notifications.[n].emailEnabled** parameter for that purpose.
+       ``notifications.[n].emailEnabled`` parameter for that purpose.
 
    * - | notifications.[n]
        | .emailEnabled
@@ -74,8 +74,8 @@
      - Flag indicating if email notifications should be sent to this
        user's email address.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **GROUP**, **ORG**, or **USER**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``GROUP``, ``ORG``, or ``USER``.
 
    * - | notifications.[n]
        | .flowdockApiToken
@@ -85,8 +85,8 @@
 
        .. include:: /includes/api/facts/invalid-integration-api-token.rst
 
-       Set this value if you set **notifications.[n].typeName** to
-       **FLOWDOCK**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .flowName
@@ -97,8 +97,8 @@
 
        ``www.flowdock.com/app/<organization-name>/<flow-name>``.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **FLOWDOCK**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .intervalMin
@@ -116,13 +116,13 @@
      - Conditional
      - Mobile number to which alert notifications are sent.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **SMS**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``SMS``.
 
        You don't need to set this value to send emails to specific
        users, users with specific project roles, users with specific
        organization roles, or teams. Use the
-       **notifications.[n].smsEnabled** parameter for that purpose.
+       ``notifications.[n].smsEnabled`` parameter for that purpose.
 
    * - | notifications.[n]
        | .notificationToken
@@ -130,8 +130,8 @@
      - Conditional
      - HipChat |api| token.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **HIP_CHAT**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``HIP_CHAT``.
 
        If the token later becomes invalid, |service| sends an email to
        the Project owner and eventually removes the token.
@@ -144,8 +144,8 @@
 
        .. include:: /includes/api/facts/invalid-integration-api-key.rst
 
-       Set this value if you set **notifications.[n].typeName** to
-       **OPS_GENIE**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``OPS_GENIE``.
 
    * - | notifications.[n]
        | .opsGenieRegion
@@ -159,8 +159,8 @@
 
        The default Opsgenie region is ``US``.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **OPS_GENIE**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``OPS_GENIE``.
 
    * - | notifications.[n]
        | .orgName
@@ -170,8 +170,8 @@
        the name that appears after ``www.flowdock.com/app/`` in
        the |url| string.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **FLOWDOCK**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .roles
@@ -194,8 +194,8 @@
        assigned the roles you specify in the array. If you omit this
        field, |service| sends alerts to users assigned any role.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **GROUP** or **ORG**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``GROUP`` or ``ORG``.
 
    * - | notifications.[n]
        | .roomName
@@ -203,8 +203,8 @@
      - Conditional
      - HipChat room name.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **HIP_CHAT**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``HIP_CHAT``.
 
    * - | notifications.[n]
        | .serviceKey
@@ -214,8 +214,8 @@
 
        .. include:: /includes/api/facts/invalid-integration-api-key.rst
 
-       Set this value if you set **notifications.[n].typeName** to
-       **PAGER_DUTY**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``PAGER_DUTY``.
 
    * - | notifications.[n]
        | .smsEnabled
@@ -224,8 +224,8 @@
      - Flag indicating if text message notifications should be
        sent to this user's mobile phone.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **ORG**, **GROUP**, or **USER**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``ORG``, ``GROUP``, or ``USER``.
 
    * - | notifications.[n]
        | .teamId
@@ -233,8 +233,8 @@
      - Conditional
      - Unique identifier of a team.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **TEAM**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``TEAM``.
 
    * - | notifications.[n]
        | .typeName
@@ -269,8 +269,8 @@
        user must belong in the project that owns the alert
        configuration.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **USER**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``USER``.
 
    * - | notifications.[n]
        | .victorOpsApiKey
@@ -280,8 +280,8 @@
 
        .. include:: /includes/api/facts/invalid-integration-api-key.rst
 
-       Set this value if you set **notifications.[n].typeName** to
-       **VICTOR_OPS**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``VICTOR_OPS``.
 
    * - | notifications.[n]
        | .victorOpsRoutingKey
@@ -291,8 +291,39 @@
 
        .. include:: /includes/api/facts/invalid-integration-api-key.rst
 
-       Set this value if you set **notifications.[n].typeName** to
-       **VICTOR_OPS**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``VICTOR_OPS``.
+
+   * - | notifications.[n]
+       | .webhookSecret
+     - string
+     - Conditional
+     - Authentication secret for a webhook-based alert.
+
+       |service| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and either:
+
+       - You set ``notification.[n].webhookSecret`` to a non-empty 
+         string
+        
+       - You set a default ``webhookSecret`` either on the 
+         :ref:`Integrations <third-party-integrations>` page, or with
+         the :ref:`Integrations API <third-party-integration-settings-create>`
+
+   * - | notifications.[n]
+       | .webhookUrl
+     - string
+     - Conditional
+     - Target URL for a webhook-based alert.
+
+       |service| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and either:
+
+       - You set ``notification.[n].webhookURL`` to a non-empty string
+
+       - You set a default ``webhookUrl`` either on the 
+          :ref:`Integrations <third-party-integrations>` page, or with
+          the :ref:`Integrations API <third-party-integration-settings-create>`
 
    * - | notifications.[n]
        | .microsoftTeamsWebhookUrl
@@ -300,5 +331,5 @@
      - Conditional
      - Microsoft Teams channel incoming webhook URL.
 
-       Set this value if you set **notifications.[n].typeName** to
-       **MICROSOFT_TEAMS**.
+       Set this value if you set ``notifications.[n].typeName`` to
+       ``MICROSOFT_TEAMS``.

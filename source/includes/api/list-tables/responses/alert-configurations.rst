@@ -52,12 +52,12 @@
        | .[n].operator
      - string
      - Comparison operator to apply when checking the current metric
-       value against **matcher.[n].value**.
+       value against ``matcher.[n].value``.
 
    * - | matchers
        | .[n].value
      - string
-     - Value to match or exceed using **matchers.[n].operator**.
+     - Value to match or exceed using ``matchers.[n].operator``.
 
    * - metricThreshold
      - object
@@ -67,7 +67,7 @@
        | .metricName
      - string
      - Name of the metric to check. Supports the same values as
-       the **metricName** field of the **alerts** resource.
+       the ``metricName`` field of the ``alerts`` resource.
 
        To learn more about the available metrics, see 
        :ref:`measurement-types`.
@@ -88,14 +88,14 @@
    * - | metricThreshold
        | .threshold
      - number
-     - Value of **metricThreshold.metricName** that, when exceeded,
+     - Value of ``metricThreshold.metricName`` that, when exceeded,
        triggers an alert.
 
    * - | metricThreshold
        | .units
      - string
      - Units of capacity or time that define the scope of the
-       **metricThreshold.threshold**.
+       ``metricThreshold.threshold``.
 
    * - notifications
      - array of objects
@@ -106,19 +106,19 @@
        | .apiToken
      - string
      - Slack API token token. |service| returns this value if you set
-       **notifications.[n].typeName** to **SLACK**.
+       ``notifications.[n].typeName`` to ``SLACK``.
 
    * - | notifications.[n]
        | .channelName
      - string
      - Slack channel name. |service| returns this value if you set
-       **notifications.[n].typeName** to **SLACK**.
+       ``notifications.[n].typeName`` to ``SLACK``.
 
    * - | notifications.[n]
        | .datadogApiKey
      - string
      - DataDog API Key. |service| returns this value if you set
-       **notifications.[n].typeName** to **DATADOG**.
+       ``notifications.[n].typeName`` to ``DATADOG``.
 
    * - | notifications.[n]
        | .datadogRegion
@@ -135,27 +135,27 @@
        | .emailAddress
      - string
      - Email address to which to send notification. |service| returns
-       this value if you set **notifications.[n].typeName** to
-       **EMAIL**.
+       this value if you set ``notifications.[n].typeName`` to
+       ``EMAIL``.
 
    * - | notifications.[n]
        | .emailEnabled
      - boolean
      - Flag indicating email notifications must be sent. |service|
-       returns this value if you set **notifications.[n].typeName** to
-       **ORG**, **GROUP**, or **USER**.
+       returns this value if you set ``notifications.[n].typeName`` to
+       ``ORG``, ``GROUP``, or ``USER``.
 
    * - | notifications.[n]
        | .flowdockApiToken
      - string
      - Flowdock personal |api| token. |service| returns this value if
-       you set **notifications.[n].typeName** to **FLOWDOCK**.
+       you set ``notifications.[n].typeName`` to ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .flowName
      - string
      - Name of the Flowdock flow. |service| returns this value if
-       you set **notifications.[n].typeName** to **FLOWDOCK**.
+       you set ``notifications.[n].typeName`` to ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .intervalMin
@@ -169,20 +169,20 @@
        | .mobileNumber
      - string
      - Mobile number to which alert notifications are sent. |service|
-       returns this value if you set **notifications.[n].typeName** to
-       **SMS**.
+       returns this value if you set ``notifications.[n].typeName`` to
+       ``SMS``.
 
    * - | notifications.[n]
        | .microsoftTeamsWebhookUrl
      - string
      - Microsoft Teams incoming webhook URL. |service| returns this value if you set
-       **notifications.[n].typeName** to **MICROSOFT_TEAMS**.
+       ``notifications.[n].typeName`` to ``MICROSOFT_TEAMS``.
 
    * - | notifications.[n]
        | .notificationToken
      - string
      - HipChat API token. |service| returns this value if you set
-       **notifications.[n].typeName** to **HIP_CHAT**.
+       ``notifications.[n].typeName`` to ``HIP_CHAT``.
 
        .. include:: /includes/api/facts/invalid-integration-api-token.rst
 
@@ -190,46 +190,46 @@
        | .opsGenieApiKey
      - string
      - Opsgenie |api| Key. |service| returns this value if
-       you set **notifications.[n].typeName** to **OPS_GENIE**.
+       you set ``notifications.[n].typeName`` to ``OPS_GENIE``.
 
    * - | notifications.[n]
        | .opsGenieRegion
      - string
      - Region that indicates which |api| |url| to use. |service| returns
-       this value if you set **notifications.[n].typeName** to
-       **OPS_GENIE**.
+       this value if you set ``notifications.[n].typeName`` to
+       ``OPS_GENIE``.
 
    * - | notifications.[n]
        | .orgName
      - string
      - Name of the Flowdock organization. |service| returns this value
-       if you set **notifications.[n].typeName** to **FLOWDOCK**.
+       if you set ``notifications.[n].typeName`` to ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .roles
      - array of strings
      - |service| role in current Project or Organization. |service|
-       returns this value if you set **notifications.[n].typeName** to
-       **ORG** or **GROUP**.
+       returns this value if you set ``notifications.[n].typeName`` to
+       ``ORG`` or ``GROUP``.
 
    * - | notifications.[n]
        | .roomName
      - string
      - HipChat room name. |service| returns this value if
-       **"notifications.typeName" : "HIP_CHAT**.
+       ``"notifications.typeName" : "HIP_CHAT``.
 
    * - | notifications.[n]
        | .serviceKey
      - string
      - PagerDuty service key. |service| returns this value if
-       you set **notifications.[n].typeName** to **PAGER_DUTY**.
+       you set ``notifications.[n].typeName`` to ``PAGER_DUTY``.
 
    * - | notifications.[n]
        | .smsEnabled
      - boolean
      - Flag indicating text notifications must be sent. |service|
-       returns this value if you set **notifications.[n].typeName** to
-       **ORG**, **GROUP**, or **USER**.
+       returns this value if you set ``notifications.[n].typeName`` to
+       ``ORG``, ``GROUP``, or ``USER``.
 
    * - | notifications.[n]
        | .teamId
@@ -252,7 +252,7 @@
      - string
      - Name of |a-service| user to which to send notifications.
        |service| returns this value if you set
-       **notifications.[n].typeName** to **USER**.
+       ``notifications.[n].typeName`` to ``USER``.
 
    * - | notifications.[n]
        | .victorOpsApiKey
@@ -262,7 +262,7 @@
        .. include:: /includes/api/facts/invalid-integration-api-key.rst
 
        |service| returns this value if you set
-       **notifications.[n].typeName** to **VICTOR_OPS**.
+       ``notifications.[n].typeName`` to ``VICTOR_OPS``.
 
    * - | notifications.[n]
        | .victorOpsRoutingKey
@@ -272,13 +272,42 @@
        .. include:: /includes/api/facts/invalid-integration-api-key.rst
 
        |service| returns this value if you set
-       **notifications.[n].typeName** to **VICTOR_OPS**.
+       ``notifications.[n].typeName`` to ``VICTOR_OPS``.
+
+   * - | notifications.[n]
+       | .webhookSecret
+     - string
+     - Authentication secret for a webhook-based alert.
+
+       |service| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and either:
+
+       - You set ``notification.[n].webhookSecret`` to a non-empty 
+         string
+        
+       - You set a default ``webhookSecret`` either on the 
+         :ref:`Integrations <third-party-integrations>` page, or with
+         the :ref:`Integrations API <third-party-integration-settings-create>`
+
+   * - | notifications.[n]
+       | .webhookUrl
+     - string
+     - Target URL for a webhook-based alert.
+
+       |service| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and either:
+
+       - You set ``notification.[n].webhookURL`` to a non-empty string
+
+       - You set a default ``webhookUrl`` either on the 
+          :ref:`Integrations <third-party-integrations>` page, or with
+          the :ref:`Integrations API <third-party-integration-settings-create>`
 
    * - threshold
      - object
      - Threshold that triggers an alert. |service| returns this value if
-       **eventTypeName** is any value other than
-       **OUTSIDE_METRIC_THRESHOLD**.
+       ``eventTypeName`` is any value other than
+       ``OUTSIDE_METRIC_THRESHOLD``.
 
    * - | threshold
        | .operator
@@ -295,7 +324,7 @@
        | .units
      - string
      - Units of capacity or time that define the scope of the
-       **threshold.threshold**.
+       ``threshold.threshold``.
 
    * - typeName
      - string
