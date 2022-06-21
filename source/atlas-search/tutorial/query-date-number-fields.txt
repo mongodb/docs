@@ -1,0 +1,748 @@
+.. _query-nonstring-tutorial:
+
+===============================================================
+How to Run |fts| String Queries Against Date and Numeric Fields 
+===============================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial describes how to run |fts| queries against 
+``string``, ``date``, and ``number`` fields in the 
+``sample_airbnb.listingsAndReviews`` collection. We will create a 
+:manual:`materialized view </core/materialized-views/>` that stores 
+the numeric and date field values as strings. We will then create an 
+|fts| index on the materialized view and run queries against these 
+string fields using the :ref:`querystring-ref` and 
+:ref:`autocomplete-ref` operators. This tutorial takes you through 
+the following steps:
+
+1. Create a materialized view on the  
+   ``sample_airbnb.listingsAndReviews`` collection ``name``, 
+   ``property_type``, ``last_scraped``, and ``accomodates`` fields.
+#. Set up dynamic and static |fts| indexes on the materialized view.
+#. Run |fts| queries against the fields in the materialized view 
+   using the :ref:`querystring-ref` and :ref:`autocomplete-ref` 
+   operators to search for properties.
+
+Before you begin, ensure that your |service| {+cluster+} meets the 
+requirements described in the :ref:`Prerequisites 
+<fts-tutorials-prereqs>`.
+
+.. _query-nonstring-create-mv:
+
+Create a Materialized View on the Collection 
+--------------------------------------------
+
+In this section, you will create a :manual:`materialized view 
+</core/materialized-views/>` named ``airbnb-mat-view`` for ``name``, 
+``property_type``, ``last_scraped``, ``accomodates``, and 
+``maximum_nights`` fields in the ``airbnb_listingsAndReviews`` 
+collection. The materialized view allows you to take the numeric and 
+date fields in the source collection and store them as string fields in 
+the materialized view.
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Log in to |service| and connect to your {+cluster+} using {+mongosh+}.
+
+      Open {+mongosh+} in a terminal window and connect to your 
+      {+cluster+}. For detailed instructions on connecting, see 
+      :doc:`/mongo-shell-connection`.
+
+   .. step:: Verify and switch to the ``sample_airbnb`` database. 
+
+      a. Run the following command to verify that the database exists 
+         in your {+cluster+}: 
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: 
+               :language: sh
+
+               show dbs 
+
+            .. output:: 
+               :language: sh
+               :emphasize-lines: 1
+
+               sample_airbnb       55.3 MB
+               sample_analytics    9.59 MB
+               sample_geospatial   1.43 MB
+               sample_guides         41 kB
+               sample_mflix        51.1 MB
+               sample_restaurants  6.95 MB
+               sample_supplies     1.21 MB
+               sample_training     55.5 MB
+               sample_weatherdata  2.89 MB
+               admin                348 kB
+               local                2.1 GB
+
+      #. Run the following command to switch to the ``sample_airbnb`` 
+         database.
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: 
+               :language: sh
+
+               use sample_airbnb 
+
+            .. output:: 
+               :language: sh
+               :emphasize-lines: 1 
+
+               switched to db sample_airbnb
+
+   .. step:: Create a materialized view named ``airbnb_mat_view``.
+
+      To create a materialized view, run the following query. The query 
+      specifies the following aggregation pipeline stages:
+
+      - :pipeline:`$project`: In this stage, the query does the 
+        following:
+
+        - Converts the ``last_scraped`` date object to a string in the 
+          format ``YYYY-MM-DD`` using :manual:`$dateToString 
+          <reference/operator/aggregation/dateToString/>`.
+        - Includes ``name`` and ``property_type`` string fields.
+        - Converts ``accomodates`` number field to a string using 
+          :manual:`$toString <reference/operator/aggregation/toString/>`.
+        - Converts ``maximum_nights`` number field to a string using 
+          :manual:`$toString <reference/operator/aggregation/toString/>`.
+
+      - :pipeline:`$merge`: In this stage, the query writes the output 
+        fields from the :pipeline:`$project` stage to a  materialized 
+        view named ``airbnb_mat_view``.
+
+        .. code-block:: json 
+           :copyable: true 
+
+           db.listingsAndReviews.aggregate( [
+             {
+               $project: {
+                 lastScrapedDate: { $dateToString: { format: "%Y-%m-%d", date: "$last_scraped" } },
+                 propertyName: "$name",
+                 propertyType: "$property_type",
+                 accommodatesNumber: { $toString: "$accommodates" },
+                 maximumNumberOfNights: { $toString: "$maximum_nights" }
+               }
+             },
+             { $merge: { into: "airbnb_mat_view", whenMatched: "replace" } }
+           ] )
+
+   .. step:: Verify that the materialized view was successfully created. 
+
+      To verify, run the following command:
+
+      .. io-code-block::
+            :copyable: true 
+
+            .. input:: 
+               :language: sh
+
+               db.airbnb_mat_view.findOne() 
+
+            .. output:: 
+               :language: json
+               :emphasize-lines: 1 
+
+               {
+                 _id: '10006546',
+                 lastScrapedDate: '2019-02-16',
+                 propertyName: 'Ribeira Charming Duplex',
+                 propertyType: 'House',
+                 accommodatesNumber: '8',
+                 maximumNumberOfNights: '30'
+               }
+
+.. _query-nonstring-create-index:
+
+Create |fts| Indexes on Fields in the Materialized View 
+-------------------------------------------------------
+
+In this section, you will create |fts| indexes on the 
+``lastScrapedDate``, ``name``, ``propertyType``, 
+``accommodatesNumber``, and ``maximumNumberOfNights`` fields for 
+running queries against these fields. 
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Navigate to the |fts| page for your project.
+
+      a. If it is not already displayed, select the organization that
+         contains your desired project from the |ui-org-menu| in the
+         navigation bar.
+
+      #. If it is not already displayed, select your desired project
+         from the :guilabel:`Projects` menu in the navigation bar.
+
+      #. Click your {+cluster+}\'s name.
+
+      #. Click the :guilabel:`Search` tab.
+
+   .. step:: Click :guilabel:`Create Index`.
+
+   .. step:: Select a :guilabel:`Configuration Method` and click :guilabel:`Next`.
+
+      - For a guided experience, select :guilabel:`Visual Editor`.
+      - To edit the raw index definition, select 
+        :guilabel:`JSON Editor`.
+
+   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
+
+      a. In the :guilabel:`Index Name` field, enter ``default``.
+
+         .. include:: /includes/default-fts-index-name.rst 
+
+      #. In the :guilabel:`Database and Collection` section, find the 
+         ``sample_airbnb`` database, and select the ``airbnb_mat_view`` 
+         collection.
+
+   .. step:: Define an index on the fields in the materialized view.
+
+      You can create one of the following indexes:
+  
+      - Index that uses dynamic mappings for running queries using the 
+        :ref:`querystring-ref` operator. You can't run queries using 
+        the :ref:`autocomplete-ref` operator if your index definition 
+        uses dynamic mappings.
+      - Index that uses static mappings for running queries using 
+        :ref:`autocomplete-ref` operator. You can't run queries using 
+        the :ref:`querystring-ref` operator against fields indexed as 
+        type ``autocomplete``.
+
+      .. tabs:: 
+
+         .. tab:: Dynamic Mappings
+            :tabid: dynamic
+
+            You can use the :guilabel:`Visual Editor` or the 
+            :guilabel:`JSON Editor` in the |service| user interface to 
+            create the index. 
+
+            .. tabs:: 
+  
+               .. tab:: Visual Editor
+                  :tabid: vib
+  
+                  a. Click :guilabel:`Next`.
+                  #. Click :guilabel:`Create Search Index`.
+
+               .. tab:: JSON Editor 
+                  :tabid: jsoneditor
+
+                  a. Click :guilabel:`Next`.
+                  #. Review the index definition. 
+          
+                     Your index definition should look similar to the 
+                     following: 
+
+                     .. code-block:: json 
+
+                        {
+                          "mappings": {
+                            "dynamic": true
+                          }
+                        }
+
+                  #. Click :guilabel:`Create Search Index`.
+
+         .. tab:: Static Mappings
+            :tabid: static
+
+            You can use the :guilabel:`Visual Editor` or the 
+            :guilabel:`JSON Editor` in the |service| user interface 
+            to create the index. 
+
+            .. tabs:: 
+  
+               .. tab:: Visual Editor
+                  :tabid: vib
+  
+                  a. Click :guilabel:`Next`
+                  #. Click :guilabel:`Refine Your Index`.
+                  #. Click :guilabel:`Add Field`.
+                  #. Select :guilabel:`accommodatesNumber` from the 
+                     :guilabel:`Field Name` dropdown.
+                  #. Click :guilabel:`Add Data Type` under 
+                     :guilabel:`Data Type Configuration` to configure 
+                     the fields for running queries using the 
+                     :ref:`autocomplete-ref` operator.
+                  #. Select :guilabel:`Autocomplete` and configure the 
+                     following fields:
+
+                     .. list-table:: 
+                        :header-rows: 1
+                        :widths: 20 80
+   
+                        * - UI Field Name 
+                          - Configuration
+    
+                        * - :guilabel:`Max Grams`
+                          - ``15``
+
+                        * - :guilabel:`Min Grams`
+                          - ``1``
+
+                          .. note:: 
+
+                             This value is for demonstration purposes 
+                             only. We don't recommend such a low value 
+                             because it can result in a very large 
+                             index.
+
+                        * - :guilabel:`Tokenization`
+                          - :guilabel:`edgeGram`
+
+                        * - :guilabel:`Fold Diacritics`
+                          - :guilabel:`true`
+
+                  #. Click :guilabel:`Add Another Field` and repeat 
+                     step d to step f for the following fields: 
+
+                     - ``lastScrapedDate``
+                     - ``numberOfNights``
+
+                  #. Click :guilabel:`Save Changes`. 
+                  #. Click :guilabel:`Create Search Index`.
+
+                     .. note::
+
+                        The :guilabel:`You're All Set!` modal window 
+                        appears to let you know your index is 
+                        building.
+
+                  #. Click the :guilabel:`Close` button.
+
+               .. tab:: JSON Editor 
+                  :tabid: jsoneditor
+
+                  a. Replace the default index definition with the 
+                     following example index definition and click 
+                     :guilabel:`Next`.
+
+                     .. code-block:: json 
+
+                        {
+                          "mappings": {
+                          "dynamic": true,
+                            "fields": {
+                              "accommodatesNumber": [
+                                {
+                                  "dynamic": true,
+                                  "type": "document"
+                                },
+                                {
+                                  "minGrams": 1,
+                                  "type": "autocomplete"
+                                }
+                              ],
+                              "lastScrapedDate": [
+                                {
+                                  "dynamic": true,
+                                  "type": "document"
+                                },
+                                {
+                                  "type": "autocomplete"
+                                }
+                              ],
+                              "maximumNumberOfNights": [
+                                {
+                                  "dynamic": true,
+                                  "type": "document"
+                                },
+                                {
+                                  "minGrams": 1,
+                                  "type": "autocomplete"
+                                }
+                              ]
+                            }
+                          }
+                        }
+
+                  #. Click :guilabel:`Create Search Index`.
+
+.. _query-nonstring-run-queries:
+
+Perform Text Search on Converted Fields 
+---------------------------------------
+
+You can run queries against the numeric and date fields that were 
+converted to strings. This tutorial uses :ref:`querystring-ref` and 
+:ref:`autocomplete-ref` operators to search for properties. The query 
+uses the following pipeline stages:
+
+- :pipeline:`$search` stage to search the collection
+- :pipeline:`$limit` stage to limit the output to ``5`` results 
+- :pipeline:`$project` stage to exclude ``_id``
+
+In this section, you will connect to your |service| {+cluster+} and run 
+the sample queries using the operator against the fields in the 
+``airbnb_mat_view`` collection. 
+
+.. note:: 
+
+   You can't run :ref:`near-ref` or :ref:`range-ref` queries against 
+   the date and number fields that were converted to strings in your 
+   materialized view.
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Connect to your cluster using {+mongosh+}. 
+
+      Open {+mongosh+} in a terminal window and connect to your 
+      cluster. For detailed instructions on connecting, see 
+      :doc:`/mongo-shell-connection`.
+
+   .. step:: Use the ``sample_airbnb`` database. 
+
+      Run the following command at {+mongosh+} prompt:
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: 
+            :language: sh
+
+            use sample_airbnb 
+
+         .. output:: 
+            :language: sh
+            :emphasize-lines: 1 
+
+            switched to db sample_airbnb
+
+   .. step:: Run the following |fts| queries using the operator for which you created the index.
+
+      If you created an index that uses dynamic mappings, you can query 
+      the ``airbnb_mat_view`` collection using the 
+      :ref:`querystring-ref` operator. If you created an index that 
+      uses static mappings, you can query the ``airbnb_mat_view`` 
+      collection using the :ref:`autocomplete-ref` operator.
+
+      .. tabs:: 
+
+         .. tab:: queryString Operator 
+            :tabid: querystring
+
+            .. tabs:: 
+
+               .. tab:: AND Query 
+                  :tabid: and-query 
+
+                  The following query searches for properties where the 
+                  property type is ``Apartment`` or ``Condominium``, 
+                  accommodates ``2`` people, and was listed in 
+                  ``2019``. 
+
+                  .. io-code-block::
+                     :copyable: true 
+
+                     .. input:: 
+                        :language: json
+
+                        db.airbnb_mat_view.aggregate([
+                          {
+                            "$search": { 
+                              "queryString": { 
+                                "defaultPath": "propertyType",
+                                "query": "propertyType: (Apartment OR Condominium) AND accommodatesNumber: 4 AND lastScrapedDate: 2019"
+                              }
+                            }
+                          },
+                          { $limit: 5 },
+                          {
+                            $project: {
+                              "_id": 0
+                            }
+                          }
+                        ])
+
+                     .. output:: 
+                        :language: none
+                        :emphasize-lines: 1 
+
+                        [
+                          {
+                            lastScrapedDate: '2019-03-06',
+                            propertyName: 'LAHAINA, MAUI! RESORT/CONDO BEACHFRONT!! SLEEPS 4!',
+                            propertyType: 'Condominium',
+                            accommodatesNumber: '4'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-06',
+                            propertyName: 'Makaha Valley Paradise with OceanView',
+                            propertyType: 'Condominium',
+                            accommodatesNumber: '4'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-06',
+                            propertyName: 'March 2019 availability! Oceanview on Sugar Beach!',
+                            propertyType: 'Condominium',
+                            accommodatesNumber: '4'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-06',
+                            propertyName: 'Tropical Jungle Oasis',
+                            propertyType: 'Condominium',
+                            accommodatesNumber: '4'
+                          },
+                          {
+                            lastScrapedDate: '2019-02-11',
+                            propertyName: 'Hospede-se com acesso fácil.',
+                            propertyType: 'Condominium',
+                            accommodatesNumber: '4'
+                          }
+                        ]
+
+               .. tab:: OR Query 
+                  :tabid: or-query 
+
+                  The following query searches for properties where the 
+                  property type is ``House``, accommodates ``2`` 
+                  people, was listed in ``2019``, or allows stay for up 
+                  to ``30`` nights. 
+
+                  .. io-code-block::
+                     :copyable: true 
+
+                     .. input:: 
+                        :language: json
+
+                        db.airbnb_mat_view.aggregate([
+                          {
+                            "$search": {
+                              "queryString": {
+                                "defaultPath": "propertyType",
+                                "query": "propertyType: House OR accommodatesNumber: 2 OR lastScrapedDate: 2019 OR maximumNumberOfNights: 30"
+                              }
+                            }
+                          },
+                          { $limit: 5 },
+                          {
+                            $project: {
+                              "_id": 0
+                            }
+                          }
+                        ])
+
+                     .. output:: 
+                        :language: none
+
+                        [
+                          {
+                            lastScrapedDate: '2019-02-11',
+                            propertyName: '2017 , férias no Rio',
+                            propertyType: 'House',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '30'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-07',
+                            propertyName: 'Newly renovated home',
+                            propertyType: 'House',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '30'
+                          },
+                          {
+                            lastScrapedDate: '2019-02-18',
+                            propertyName: 'Vintage House For Rent',
+                            propertyType: 'House',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '30'
+                          },
+                          {
+                            lastScrapedDate: '2019-02-18',
+                            propertyName: '4floor house in Taksim,Taksimde 4katli müstakil ev',
+                            propertyType: 'House',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '30'
+                          },
+                          {
+                            lastScrapedDate: '2019-02-16',
+                            propertyName: '22 Oporto Guesthouse Cordoaria',
+                            propertyType: 'House',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '30'
+                          }
+                        ]
+
+         .. tab:: autocomplete Operator 
+            :tabid: autocomplete
+
+            .. tabs:: 
+
+               .. tab:: Year Search
+                  :tabid: yearquery
+
+                  The following query searches for properties listed 
+                  sometime starting with ``2``  and allows stay of 
+                  number of nights starting with ``1``. 
+
+                  .. io-code-block::
+                     :copyable: true 
+
+                     .. input:: 
+                        :language: json
+
+                        db.airbnb_mat_view.aggregate([
+                          {
+                            "$search": {
+                              "compound": {
+                                "should": [{
+                                  "autocomplete": {
+                                    "path": "lastScrapedDate",
+                                    "query": "2"
+                                  }
+                                },
+                                {
+                                  "autocomplete": {
+                                    "path": "maximumNumberOfNights",
+                                    "query": "1"
+                                  }
+                                }]
+                              }
+                            }
+                          },
+                          { $limit: 5 },
+                          {
+                            $project: {
+                              "_id": 0
+                            }
+                          }
+                        ])
+
+                     .. output:: 
+                        :language: none
+                        :emphasize-lines: 3, 7, 10, 14, 17, 21, 24, 28, 31, 35
+
+                        [
+                          {
+                              lastScrapedDate: '2019-02-11',
+                              propertyName: 'Horto flat with small garden',
+                              propertyType: 'Apartment',
+                              accommodatesNumber: '4',
+                              maximumNumberOfNights: '1125'
+                            },
+                            {
+                              lastScrapedDate: '2019-03-06',
+                              propertyName: 'Private Room in Bushwick',
+                              propertyType: 'Apartment',
+                              accommodatesNumber: '1',
+                              maximumNumberOfNights: '1125'
+                            },
+                            {
+                              lastScrapedDate: '2019-02-11',
+                              propertyName: 'Apt Linda Vista Lagoa - Rio',
+                              propertyType: 'Apartment',
+                              accommodatesNumber: '2',
+                              maximumNumberOfNights: '1125'
+                            },
+                            {
+                              lastScrapedDate: '2019-02-18',
+                              propertyName: 'Charming Flat in Downtown Moda',
+                              propertyType: 'House',
+                              accommodatesNumber: '6',
+                              maximumNumberOfNights: '1125'
+                            },
+                            {
+                              lastScrapedDate: '2019-02-11',
+                              propertyName: "Catete's Colonial Big Hause Room B",
+                              propertyType: 'House',
+                              accommodatesNumber: '8',
+                              maximumNumberOfNights: '1125'
+                            }
+                        ]
+
+               .. tab:: Number Search
+                  :tabid: numericquery
+
+                  The following query searches for properties that can 
+                  allow stay of number of nights starting with ``3`` 
+                  and accomodate number of people starting with ``2``. 
+
+                  .. io-code-block::
+                     :copyable: true 
+
+                     .. input:: 
+                        :language: json
+
+                        db.airbnb_mat_view.aggregate([
+                          {
+                            "$search": {
+                              "compound": {
+                                "should": [{
+                                  "autocomplete": {
+                                    "path": "maximumNumberOfNights",
+                                    "query": "3"
+                                  }
+                                },
+                                {
+                                  "autocomplete": {
+                                    "path": "accommodatesNumber",
+                                    "query": "2"
+                                  }
+                                }]
+                              }
+                            }
+                          },
+                          { $limit: 5 },
+                          {
+                            $project: {
+                              "_id": 0
+                            }
+                          }
+                        ])
+
+                     .. output:: 
+                        :language: none
+                        :emphasize-lines: 6-7, 13-14, 20-21, 27-28, 34-35
+
+                        [
+                          {
+                            lastScrapedDate: '2019-03-06',
+                            propertyName: 'Ocean View Waikiki Marina w/prkg',
+                            propertyType: 'Condominium',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '365'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-07',
+                            propertyName: 'New York City - Upper West Side Apt',
+                            propertyType: 'Apartment',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '360'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-07',
+                            propertyName: 'Sydney Hyde Park City Apartment (checkin from 6am)',
+                            propertyType: 'Apartment',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '30'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-07',
+                            propertyName: 'Private Room (2)  in Guest House at Coogee Beach',
+                            propertyType: 'House',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '365'
+                          },
+                          {
+                            lastScrapedDate: '2019-03-06',
+                            propertyName: '~Ao Lele~ Flying Cloud',
+                            propertyType: 'Treehouse',
+                            accommodatesNumber: '2',
+                            maximumNumberOfNights: '30'
+                          }
+                        ]
