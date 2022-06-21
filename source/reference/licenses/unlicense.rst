@@ -6,9 +6,8 @@
    * - Package
      - Copyright
 
-   * - :gh:`process\@0.11.10</shtylman/node-process>`
-     - Copyright © 2013 Roman Shtylman <shtylman\@gmail.com>
-   * - :gh:`text-encoding\@0.7.0</inexorabletash/text-encoding>`
+   * - :npmjs:`robust-predicates</robust-predicates/v/3.0.1>`
      - 
-   * - :gh:`tweetnacl\@0.14.5</dchest/tweetnacl-js>`
+
+   * - :npmjs:`tweetnacl</tweetnacl/v/0.14.5>`
      - 

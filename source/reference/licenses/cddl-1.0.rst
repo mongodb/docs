@@ -6,7 +6,5 @@
    * - Package
      - Copyright
 
-   * - com.sun.mail:javax.mail\@1.6.1
-     - 
-   * - javax.activation:activation\@1.1000000000000001
-     - 
+   * - opendmk-1.0-b02
+     - Copyright © 1998-2007 Sun Microsystems, Inc. 

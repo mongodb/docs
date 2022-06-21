@@ -6,7 +6,6 @@
    * - Package
      - Copyright
 
-   * - com.unboundid.product.scim2:scim2-sdk-common\@2.3.5
-     - 
-   * - :gh:`pikaday\@1.8.0</Pikaday/Pikaday>`
-     - Copyright © 2014 David Bushell
+   * - :mvn:`com.unboundid.product.scim2:scim2-sdk-common</com.unboundid.product.scim2/scim2-sdk-common/2.3.7>`
+    - Copyright 2015-2021 Ping Identity Corporation,
+      Portions Copyright © 2009-2015 FasterXML, LLC

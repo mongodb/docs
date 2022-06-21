@@ -6,115 +6,223 @@
    * - Package
      - Copyright
 
-   * - :gh:`abbrev\@1.1.1</isaacs/abbrev-js>`
-     - Copyright © Isaac Z. Schlueter and Contributors*
-   * - :gh:`aproba\@1.2.0</iarna/aproba>`
+   * - :npmjs:`abbrev</abbrev/v/1.1.1>`
+     - Copyright © Isaac Z. Schlueter and Contributors, Copyright Isaac
+       Z. Schlueter and Contributors
+
+   * - :npmjs:`aproba</aproba/v/1.2.0>`
      - Copyright © 2015, Rebecca Turner <me\@re-becca.org>
-   * - :gh:`are-we-there-yet\@1.1.5</iarna/are-we-there-yet>`
-     - Copyright © 2015, Rebecca Turner
-   * - :gh:`ast-types-flow\@0.0.7</kyldvs/ast-types-flow>`
-     - 
-   * - :gh:`\@braintree/uuid\@0.1.0</braintree/uuid>`
+
+   * - :npmjs:`are-we-there-yet</are-we-there-yet/v/1.1.7>`
+     - Copyright npm, Inc.
+
+   * - :npmjs:`\@braintree/uuid</\@braintree/uuid/v/0.1.0>`
      - Copyright © 2020 Braintree
-   * - :gh:`browser-stdout\@1.3.1</kumavis/browser-stdout>`
-     - Copyright 2018 kumavis
-   * - :gh:`chownr\@1.1.4</isaacs/chownr>`
+
+   * - :npmjs:`chownr</chownr/v/1.1.4>`
      - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`cli-width\@2.2.0</knownasilya/cli-width>`
+
+   * - :npmjs:`cliui</cliui/v/7.0.4>`
+     - Copyright © 2015, Copyright © npm, Inc. and Contributors
+
+   * - :npmjs:`cli-width</cli-width/v/2.2.1>`
      - Copyright © 2015, Ilya Radchenko <ilya\@burstcreations.com>
-   * - :gh:`console-control-strings\@1.1.0</iarna/console-control-strings>`
+
+   * - :npmjs:`console-control-strings</console-control-strings/v/1.1.0>`
      - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
-   * - :gh:`detect-node\@2.0.4</iliakan/detect-node>`
-     - Copyright © 2017 Ilya Kantor
-   * - :gh:`fs.realpath\@1.0.0</isaacs/fs.realpath>`
+
+   * - :npmjs:`d3-array</d3-array/v/3.1.1>`
+     - Copyright 2010-2021 Mike Bostock, Copyright 2018 Vladimir
+       Agafonkin
+
+   * - :npmjs:`d3-axis</d3-axis/v/3.0.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-color</d3-color/v/3.0.1>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-delaunay</d3-delaunay/v/6.0.2>`
+     - Copyright 2018-2021 Observable, Inc.,
+       Copyright 2021 Mapbox,
+       Copyright 2018-2021 Observable, Inc., 2021 Mapbox
+
+   * - :npmjs:`d3-dispatch</d3-dispatch/v/3.0.1>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-drag</d3-drag/v/3.0.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-dsv</d3-dsv/v/3.0.1>`
+     - Copyright 2013-2021 Mike Bostock
+
+   * - :npmjs:`d3-force</d3-force/v/3.0.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-format</d3-format/v/3.1.0>`
+     - 
+
+   * - :npmjs:`d3-geo</d3-geo/v/3.0.1>`
+     - Copyright 2010-2021 Mike Bostock,
+       Copyright 2008-2012 Charles Karney,
+       Copyright 2010-2021 Mike Bostock, 2008-2012 Charles Karney
+
+   * - :npmjs:`d3-geo-projection</d3-geo-projection/v/4.0.0>`
+     - Copyright 2013-2021 Mike Bostock,
+       Copyright 2015 Ricky Reusser,
+       Copyright 2013-2021 Mike Bostock, 2015 Ricky Reusser
+
+   * - :npmjs:`d3-hierarchy</d3-hierarchy/v/3.1.2>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-interpolate</d3-interpolate/v/3.0.1>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-path</d3-path/v/3.0.1>`
+     - Copyright 2015-2021 Mike Bostock
+
+   * - :npmjs:`d3-quadtree</d3-quadtree/v/3.0.1>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-scale</d3-scale/v/4.0.2>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-scale-chromatic</d3-scale-chromatic/v/3.0.0>`
+     - Copyright 2010-2021 Mike Bostock,
+       Copyright 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University,
+       Copyright 2010-2021 Mike Bostock 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University
+
+   * - :npmjs:`d3-selection</d3-selection/v/3.0.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-shape</d3-shape/v/3.1.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-time</d3-time/v/3.0.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-time-format</d3-time-format/v/4.1.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-timer</d3-timer/v/3.0.1>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-transition</d3-transition/v/3.0.1>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`d3-zoom</d3-zoom/v/3.0.0>`
+     - Copyright 2010-2021 Mike Bostock
+
+   * - :npmjs:`delaunator</delaunator/v/5.0.0>`
+     - Copyright © 2017, Mapbox
+
+   * - :npmjs:`fs.realpath</fs.realpath/v/1.0.0>`
+     - Copyright © Isaac Z. Schlueter and Contributors, Copyright
+       Joyent, Inc. and other Node contributors.
+
+   * - :npmjs:`gauge</gauge/v/2.7.4>`
+     - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
+
+   * - :npmjs:`get-caller-file</get-caller-file/v/2.0.5>`
+     - Copyright 2018 Stefan Penner
+
+   * - :npmjs:`glob</glob/v/7.2.0>`
      - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`gauge\@1.2.7</iarna/gauge>`
+
+   * - :npmjs:`graceful-fs</graceful-fs/v/4.2.10>`
+     - Copyright © 2011-2022 Isaac Z. Schlueter, Ben Noordhuis, and
+       Contributors
+
+   * - :npmjs:`har-schema</har-schema/v/2.0.0>`
+     - Copyright © 2015, Ahmad Nassri <ahmad\@ahmadnassri.com>,
+       copyright ahmadnassri.com (https://www.ahmadnassri.com/)
+
+   * - :npmjs:`has-unicode</has-unicode/v/2.0.1>`
      - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
-   * - :gh:`gauge\@2.7.4</iarna/gauge>`
-     - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
+
+   * - :npmjs:`inflight</inflight/v/1.0.6>`
+     - Copyright © Isaac Z. Schlueter
+
+   * - :npmjs:`inherits</inherits/v/2.0.4>`
+     - Copyright © Isaac Z. Schlueter
+
+   * - :npmjs:`ini</ini/v/1.3.8>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`internmap</internmap/v/2.0.3>`
+     - Copyright 2021 Mike Bostock
+
+   * - :npmjs:`is-json</is-json/v/2.0.1>`
+     - Copyright © Joaquim Jose F. Serafim
+
+   * - :npmjs:`json-stringify-safe</json-stringify-safe/v/5.0.1>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`lru-cache</lru-cache/v/4.1.5>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`minimatch</minimatch/v/3.1.2>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`mute-stream</mute-stream/v/0.0.7>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`nopt</nopt/v/5.0.0>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`npmlog</npmlog/v/4.1.2>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`once</once/v/1.4.0>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`proto-list</proto-list/v/1.2.4>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`pseudomap</pseudomap/v/1.0.2>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`reflux-state-mixin</reflux-state-mixin/v/0.8.0>`
+     - 
+
+   * - :npmjs:`rimraf</rimraf/v/3.0.2>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`semver</semver/v/5.7.1>`
+     - Copyright © Isaac Z. Schlueter and Contributors, Copyright Isaac
+       Z. Schlueter, Copyright Isaac Z.
+
+   * - :npmjs:`set-blocking</set-blocking/v/2.0.0>`
+     - Copyright © 2016
+
+   * - :npmjs:`sigmund</sigmund/v/1.0.1>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`signal-exit</signal-exit/v/3.0.7>`
+     - Copyright © 2015
+
+   * - :npmjs:`topojson-client</topojson-client/v/3.1.0>`
+     - Copyright 2012-2019 Michael Bostock, Copyright 2019 Mike Bostock
+
+   * - :npmjs:`wide-align</wide-align/v/1.1.5>`
+     - Copyright © 2015, Rebecca Turner <me\@re-becca.org>
+
+   * - :npmjs:`wrappy</wrappy/v/1.0.2>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`write-file-atomic</write-file-atomic/v/3.0.3>`
+     - Copyright © 2015, Rebecca Turner
+
+   * - :npmjs:`y18n</y18n/v/5.0.8>`
+     - Copyright © 2015
+
+   * - :npmjs:`yallist</yallist/v/2.1.2>`
+     - Copyright © Isaac Z. Schlueter and Contributors
+
+   * - :npmjs:`yaml</yaml/v/1.10.2>`
+     - Copyright 2018 Eemeli Aro <eemeli\@gmail.com>
+
+   * - :npmjs:`yargs-parser</yargs-parser/v/20.2.9>`
+     - Copyright © 2016
+
    * - :gh:`github.com/davecgh/go-spew</davecgh/go-spew>`
      - 
-   * - :gh:`glob\@7.1.2</isaacs/node-glob>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`glob\@7.1.6</isaacs/node-glob>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`gopass</howeyc/gopass>`
-     - Copyright © 2012 Chris Howey
-   * - :gh:`graceful-fs\@4.2.3</isaacs/node-graceful-fs>`
-     - Copyright © Isaac Z. Schlueter, Ben Noordhuis, and Contributors
-   * - :gh:`har-schema\@2.0.0</ahmadnassri/har-schema>`
-     - Copyright © 2015, Ahmad Nassri <ahmad\@ahmadnassri.com>
-   * - :gh:`has-unicode\@2.0.1</iarna/has-unicode>`
-     - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
-   * - :gh:`heliotrope\@2.0.0</10gen/heliotrope>`
-     - 
-   * - :gh:`inflight\@1.0.6</npm/inflight>`
-     - Copyright © Isaac Z. Schlueter
-   * - :gh:`inherits\@2.0.4</isaacs/inherits>`
-     - Copyright © Isaac Z. Schlueter
-   * - :gh:`ini\@1.3.5</isaacs/ini>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`internmap\@1.0.1</mbostock/internmap>`
-     - Copyright 2021 Mike Bostock
-   * - :gh:`is-json\@2.0.1</joaquimserafim/is-json>`
-     - Copyright © Joaquim José F. Serafim
-   * - :gh:`json-stringify-safe\@5.0.1</isaacs/json-stringify-safe>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`lru-cache\@4.1.5</isaacs/node-lru-cache>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`lru-cache\@5.1.1</isaacs/node-lru-cache>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`lru-cache\@6.0.0</isaacs/node-lru-cache>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`minimatch\@3.0.4</isaacs/minimatch>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`mute-stream\@0.0.6</isaacs/mute-stream>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`nopt\@4.0.3</npm/nopt>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`npmlog\@2.0.4</npm/npmlog>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`npmlog\@4.1.2</npm/npmlog>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`once\@1.4.0</isaacs/once>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`osenv\@0.1.5</npm/osenv>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`proto-list\@1.2.4</isaacs/proto-list>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`pseudomap\@1.0.2</isaacs/pseudomap>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`rimraf\@3.0.2</isaacs/rimraf>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`semver\@5.7.1</npm/node-semver>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`semver\@7.3.2</npm/node-semver>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`semver\@7.3.4</npm/node-semver>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`semver\@7.3.5</npm/node-semver>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`set-blocking\@2.0.0</yargs/set-blocking>`
-     - Copyright © 2016, Contributors
-   * - :gh:`sigmund\@1.0.1</isaacs/sigmund>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`signal-exit\@3.0.3</tapjs/signal-exit>`
-     - Copyright © 2015, Contributors
-   * - stitch-ui-toolbox\@5.1.1-atlas.11
-     - 
-   * - :gh:`topojson-client\@3.1.0</topojson/topojson-client>`
-     - Copyright 2012-2019 Michael Bostock
-   * - :gh:`wide-align\@1.1.3</iarna/wide-align>`
-     - Copyright © 2015, Rebecca Turner <me\@re-becca.org>
-   * - :gh:`wrappy\@1.0.2</npm/wrappy>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`write-file-atomic\@3.0.3</npm/write-file-atomic>`
-     - Copyright © 2015, Rebecca Turner
-   * - :gh:`yallist\@2.1.2</isaacs/yallist>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`yallist\@3.1.1</isaacs/yallist>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`yallist\@4.0.0</isaacs/yallist>`
-     - Copyright © Isaac Z. Schlueter and Contributors
-   * - :gh:`yaml\@1.8.3</eemeli/yaml>`
-     - Copyright 2018 Eemeli Aro <eemeli\@gmail.com>
