@@ -13,8 +13,6 @@
       you are using the Local Key Provider, set the provider name to
       ``local``.
 
-      .. include:: /includes/tab-note.rst
-
       .. tabs-drivers::
 
          .. tab::
