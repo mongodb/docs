@@ -70,6 +70,9 @@
 - Supports :ref:`online archive data expiration 
   <config-online-archive>`. This feature is in preview.
 
+- Fixes existing behavior where Metrics Chart only shows the duration
+  for which data is available.
+
 .. _atlas_20220331:
 
 31 March 2022 Release
