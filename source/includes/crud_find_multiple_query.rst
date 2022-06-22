@@ -14,7 +14,7 @@
                :language: python
                :linenos:
 
-            .. output:: /includes/crud/multi-query-out.txt
+            .. output:: /includes/crud/multi-query-out.rst
                :language: json
 
      - id: go
@@ -49,7 +49,7 @@
                :language: java
                :linenos:
 
-            .. output:: /includes/crud/multi-query-out.txt
+            .. output:: /includes/crud/multi-query-out.rst
                :language: json
 
      - id: nodejs
@@ -65,7 +65,7 @@
                :language: javascript
                :linenos:
 
-            .. output:: /includes/crud/multi-query-out.txt
+            .. output:: /includes/crud/multi-query-out.rst
                :language: json
 
      - id: csharp
@@ -80,6 +80,6 @@
                :language: csharp
                :linenos:
 
-            .. output:: /includes/crud/multi-query-out.txt
+            .. output:: /includes/crud/multi-query-out.rst
                :language: json
 

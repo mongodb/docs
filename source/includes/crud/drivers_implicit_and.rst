@@ -18,7 +18,7 @@
                    {"$and": [{"orderFromSun": {"$gt": 2}}, {"orderFromSun": {"$lt": 5}}]}
                )
 
-            .. output:: /includes/crud/implicit_and_out.txt
+            .. output:: /includes/crud/implicit_and_out.rst
                :language: json
 
      - id: nodejs
@@ -36,5 +36,5 @@
                  $and: [{ orderFromSun: { $gt: 2 } }, { orderFromSun: { $lt: 5 } }],
                });
 
-            .. output:: /includes/crud/implicit_and_out.txt
+            .. output:: /includes/crud/implicit_and_out.rst
                :language: json

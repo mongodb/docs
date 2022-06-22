@@ -13,7 +13,7 @@
                :language: python
                :linenos:
 
-            .. output:: /includes/crud/multiple-operators-or-out.txt
+            .. output:: /includes/crud/multiple-operators-or-out.rst
                :language: json
 
      - id: go
@@ -45,7 +45,7 @@
                :language: java
                :linenos:
 
-            .. output:: /includes/crud/multiple-operators-or-out.txt
+            .. output:: /includes/crud/multiple-operators-or-out.rst
                :language: json
 
      - id: nodejs
@@ -59,7 +59,7 @@
                :language: javascript
                :linenos:
 
-            .. output:: /includes/crud/multiple-operators-or-out.txt
+            .. output:: /includes/crud/multiple-operators-or-out.rst
                :language: json
 
      - id: csharp
@@ -73,6 +73,6 @@
                :language: csharp
                :linenos:
 
-            .. output:: /includes/crud/multiple-operators-or-out.txt
+            .. output:: /includes/crud/multiple-operators-or-out.rst
                :language: json
 
