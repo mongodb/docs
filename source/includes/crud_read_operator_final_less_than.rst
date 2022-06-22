@@ -14,7 +14,7 @@
                :language: python
                :linenos:
 
-            .. output:: /includes/crud/less-than-query-out.txt
+            .. output:: /includes/crud/less-than-query-out.rst
                :language: json
      - id: go
        content: |
@@ -48,7 +48,7 @@
                :language: java
                :linenos:
 
-            .. output:: /includes/crud/less-than-query-out.txt
+            .. output:: /includes/crud/less-than-query-out.rst
                :language: json
 
      - id: nodejs
@@ -62,7 +62,7 @@
                :language: javascript
                :linenos:
 
-            .. output:: /includes/crud/less-than-query-out.txt
+            .. output:: /includes/crud/less-than-query-out.rst
                :language: json
 
      - id: csharp
@@ -76,5 +76,5 @@
                :language: csharp
                :linenos:
 
-            .. output:: /includes/crud/less-than-query-out.txt
+            .. output:: /includes/crud/less-than-query-out.rst
                :language: json
