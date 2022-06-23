@@ -119,7 +119,8 @@ extlinks = {
     'vo-docs' : ('https://help.victorops.com%s',''),
     'cloudmgr' : ('https://www.mongodb.com/docs/cloud-manager%s',''),
     'gcpc' : ('https://cloud.google.com/compute/docs%s',''),
-    'msa' : ('https://docs.microsoft.com/en-us/azure%s','')
+    'msa' : ('https://docs.microsoft.com/en-us/azure%s',''),
+    'prom-docs' : ('https://prometheus.io/docs%s','')
 }
 
 source_constants = {
