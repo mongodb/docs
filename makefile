@@ -152,8 +152,8 @@ publish-onprem:
 ## Deploy artifacts from the working branch of Cloud Manager
 ## to the staging S3 bucket / EC2 for review
 stage-cloud:
-	mut-publish build/${GIT_BRANCH}/html-cloud ${DOTCOM_STAGING_BUCKET_CLOUDMGR} --prefix=${DOTCOM_CMSTGPREFIX} --stage ${ARGS}
-	@echo "\n\nHosted at ${DOTCOM_STAGING_URL_CLOUDMGR}/${DOTCOM_CMSTGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
+	mut-publish build/${GIT_BRANCH}/html-cloud ${STAGING_BUCKET_CLOUDMGR} --prefix=${PREFIX} --stage ${ARGS}
+	@echo "\n\nHosted at ${STAGING_URL_CLOUDMGR}/${USER}/${GIT_BRANCH}/index.html"
 
 	
 
@@ -212,9 +212,8 @@ endif
 ## Deploy artifacts from the working branch of Ops Manager
 ## to the staging S3 bucket / EC2 for review
 stage-onprem:
-	mut-publish build/${GIT_BRANCH}/html-onprem ${DOTCOM_STAGING_BUCKET_OPSMGR} --prefix=${DOTCOM_OPMSTGPREFIX} --stage --all-subdirectories ${ARGS}
-	@echo "\n\nHosted at ${DOTCOM_STAGING_URL_OPSMGR}/${DOTCOM_OPMSTGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
-
+	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
+	@echo "\n\nHosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
 	
 
 ## Create a fake deployment in the staging bucket
