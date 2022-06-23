@@ -4,9 +4,12 @@ from bson.binary import Binary
 from const import (
     BUILD_DIR,
     DIR_SEPERATOR,
+    FLE_1_LANGS,
+    FLE_2_LANGS,
     NODE,
     NODE_FLE_2,
     GO,
+    GO_FLE_2,
     CSHARP,
     PYTHON,
     PYTHON_FLE_2,
@@ -33,6 +36,9 @@ BSON_BINARY_VALUE = Binary(b"")
 TEST_FLE1_ENC_FIELD = "bloodType"
 TEST_FLE2_ENC_FIELD = "patientId"
 
+FLE2_ENC_COLLS = [f"enxcol_.{COLLECTION_NAME}.esc",
+f"enxcol_.{COLLECTION_NAME}.ecc",
+f"enxcol_.{COLLECTION_NAME}.ecoc"]
 
 class TestTutorials(unittest.TestCase):
 
@@ -41,6 +47,10 @@ class TestTutorials(unittest.TestCase):
     def _dropData(self):
         self.client[DB_NAME][COLLECTION_NAME].drop()
         self.client[KEY_VAULT_DB][KEY_VAULT_COLL].drop()
+
+        for c in FLE2_ENC_COLLS:
+            self.client[DB_NAME][c].drop()            
+
 
     def startTestRun(self):
         self._dropData()
@@ -55,7 +65,7 @@ class TestTutorials(unittest.TestCase):
     def _check_docs(self, project):
         """Checks that expected documents were added to key vault and collection and that fields were encrypted"""
 
-        if project in [NODE_FLE_2, PYTHON_FLE_2, JAVA_FLE_2]:
+        if project in FLE_2_LANGS:
             self.assertEqual(
                 self.client[KEY_VAULT_DB][KEY_VAULT_COLL].count_documents({}),
                 NUM_QE_DEKS,
@@ -75,7 +85,7 @@ class TestTutorials(unittest.TestCase):
                 type(BSON_BINARY_VALUE),
                 f"{TEST_FLE2_ENC_FIELD} must be encrypted",
             )
-        else:
+        elif language in FLE_1_LANGS:
             self.assertEqual(
                 self.client[KEY_VAULT_DB][KEY_VAULT_COLL].count_documents({}), 1
             )
@@ -94,6 +104,8 @@ class TestTutorials(unittest.TestCase):
                 type(BSON_BINARY_VALUE),
                 f"{TEST_FLE1_ENC_FIELD} must be encrypted",
             )
+        else:
+            raise ValueError(f"Lang not in either of the following:\nFLE_1_LANGS: {FLE_1_LANGS}\nFLE_2_LANGS: {FLE_2_LANGS}")
 
     def _check_app(self, project):
         """Build and test a sample application"""
@@ -128,7 +140,7 @@ class TestTutorials(unittest.TestCase):
             commands.append("npm install")
             commands.append(f"node {make_dek_file_name}")
             commands.append(f"node {insert_file_name}")
-        elif project == GO:
+        elif project == GO or project == GO_FLE_2:
             make_dek_file_name = FILE_MAP[project][DEK]
             insert_file_name = FILE_MAP[project][INSERT]
             commands.append("go get .")
@@ -266,6 +278,24 @@ class TestGo(TestTutorials):
         os.chdir(os.path.join(BUILD_DIR, GO, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(GO)
 
+class TestGoFLE2(TestTutorials):
+    """Test Go FLE1 Sample Apps"""
+
+    def test_go_fle_2_aws(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *AWS_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
+
+    def test_go_fle_2_azure(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *AZURE_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
+
+    def test_go_fle_2_gcp(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *GCP_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
+
+    def test_go_fle_2_local(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
 
 class TestJava(TestTutorials):
     """Test Java FLE1 Sample Apps"""

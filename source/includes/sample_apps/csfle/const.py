@@ -10,6 +10,10 @@ NODE = "node"
 NODE_FLE_2 = "node-fle-2"
 DEK = "dek"
 GO = "go"
+GO_FLE_2 = "go-fle-2"
+FLE_2_LANGS = [NODE_FLE_2, PYTHON_FLE_2, GO_FLE_2, JAVA_FLE_2]
+FLE_1_LANGS = [NODE, PYTHON, GO, JAVA, CSHARP]
+
 INSERT = "insert"
 EXTRA_FILES = "extra_files"
 FORMAT_COMMAND = "format"
@@ -17,13 +21,13 @@ FILE_MAP = {
     PYTHON: {
         DEK: "make_data_key.py",
         INSERT: "insert_encrypted_document.py",
-        EXTRA_FILES: ["requirements.txt", ".gitignore"],
+        EXTRA_FILES: ["requirements.txt"],
         FORMAT_COMMAND: f"black {os.path.join(BUILD_DIR,'*','*','*','*.py')}",
     },
     PYTHON_FLE_2: {
         DEK: "make_data_key.py",
         INSERT: "insert_encrypted_document.py",
-        EXTRA_FILES: ["requirements.sh", ".gitignore"],
+        EXTRA_FILES: ["requirements.sh"],
         FORMAT_COMMAND: f"black {os.path.join(BUILD_DIR,'*','*','*','*.py')}",
     },
     JAVA: {
@@ -39,7 +43,7 @@ FILE_MAP = {
             "csfle",
             "insertEncryptedDocument.java",
         ),
-        EXTRA_FILES: ["pom.xml", ".gitignore"],
+        EXTRA_FILES: ["pom.xml"],
     },
     JAVA_FLE_2: {
         DEK: os.path.join(
@@ -54,30 +58,36 @@ FILE_MAP = {
             "csfle",
             "insertEncryptedDocument.java",
         ),
-        EXTRA_FILES: ["pom.xml", ".gitignore"],
+        EXTRA_FILES: ["pom.xml"],
     },
     CSHARP: {
         DEK: "CSFLE/MakeDataKey.cs",
         INSERT: "CSFLE/InsertEncryptedDocument.cs",
-        EXTRA_FILES: ["CSFLE/CSFLE.csproj", "CSFLE/Main.cs", ".gitignore"],
+        EXTRA_FILES: ["CSFLE/CSFLE.csproj", "CSFLE/Main.cs"],
         FORMAT_COMMAND: f'find ./{BUILD_DIR} -name "*.csproj" | xargs -n1 dotnet format',
     },
     NODE: {
         DEK: "make_data_key.js",
         INSERT: "insert_encrypted_document.js",
-        EXTRA_FILES: ["package.json", ".gitignore"],
+        EXTRA_FILES: ["package.json"],
         FORMAT_COMMAND: f"prettier --write {BUILD_DIR}",
     },
     NODE_FLE_2: {
         DEK: "make_data_key.js",
         INSERT: "insert_encrypted_document.js",
-        EXTRA_FILES: ["package.json", ".gitignore"],
+        EXTRA_FILES: ["package.json"],
         FORMAT_COMMAND: f"prettier --write {BUILD_DIR}",
     },
     GO: {
         DEK: "make-data-key.go",
         INSERT: "insert-encrypted-document.go",
-        EXTRA_FILES: ["go.mod", "main.go", ".gitignore"],
+        EXTRA_FILES: ["go.mod", "main.go"],
+        FORMAT_COMMAND: f"gofmt -l -w -s {BUILD_DIR}",
+    },
+    GO_FLE_2: {
+        DEK: "make-data-key.go",
+        INSERT: "insert-encrypted-document.go",
+        EXTRA_FILES: ["go.mod", "main.go"],
         FORMAT_COMMAND: f"gofmt -l -w -s {BUILD_DIR}",
     },
 }
