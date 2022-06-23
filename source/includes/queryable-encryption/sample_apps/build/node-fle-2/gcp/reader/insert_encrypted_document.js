@@ -1,10 +1,8 @@
 const { MongoClient, Binary } = require("mongodb");
 
+// start-key-vault
 const eDB = "encryption";
 const eKV = "__keyVault";
-// start-key-vault
-const secretDB = "medicalRecords";
-const secretCollection = "patients";
 const keyVaultNamespace = `${eDB}.${eKV}`;
 // end-key-vault
 
@@ -28,6 +26,9 @@ async function run() {
   const dek2 = await keyVaultClient.findOne({ keyAltNames: "dataKey2" });
   const dek3 = await keyVaultClient.findOne({ keyAltNames: "dataKey3" });
   const dek4 = await keyVaultClient.findOne({ keyAltNames: "dataKey4" });
+
+  const secretDB = "medicalRecords";
+  const secretCollection = "patients";
 
   const encryptedFieldsMap = {
     [`${secretDB}.${secretCollection}`]: {
