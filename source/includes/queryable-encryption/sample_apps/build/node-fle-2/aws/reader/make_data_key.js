@@ -29,7 +29,9 @@ async function run() {
   const uri = "<Your Connection String>";
   const keyVaultClient = new MongoClient(uri);
   await keyVaultClient.connect();
-  const keyVaultColl = keyVaultDB.collection(eKV);
+  const keyVault = keyVaultClient.db(eDB);
+  const keyVaultColl = keyVault.collection(eKV);
+
   await keyVaultColl.createIndex(
     { keyAltNames: 1 },
     {
