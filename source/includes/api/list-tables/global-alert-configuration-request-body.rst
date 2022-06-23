@@ -197,6 +197,34 @@
        configuration triggers.
 
    * - | ``notifications``
+       | ``.webhookSecret``
+     - string
+     - Conditional
+     - A value used to authenticate with the Webhook that accepts and
+       forwards the notification. You can explicitly declare a secret 
+       only in a request that has both:
+
+       - A ``notifications.typeName`` of ``WEBHOOK``
+
+       - An explicitly declared ``notifications.webhookURL``
+
+       You can configure a ``webhookSecret`` for a default 
+       ``webhookURL`` only with the
+       :ref:`Admin Console <mms-manage-global-alerts>`.
+
+       To explicitly declare a ``webhookURL`` without a 
+       ``webhookSecret``, omit this field.
+
+   * - | ``notifications``
+       | ``.webhookUrl``
+     - string
+     - Optional
+     - |url| for the webhook that triggers this notification. If you do
+       not explicitly declare a ``webhookUrl``, your request will use
+       the default ``webhookUrl`` set in the
+       :ref:`Admin Console <mms-manage-global-alerts>`.
+
+   * - | ``notifications``
        | ``.microsoftTeamsWebhookUrl``
      - string
      - Conditional
