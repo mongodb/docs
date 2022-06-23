@@ -100,8 +100,8 @@
 
    * - :guilabel:`OpsGenie API Key`
 
-     - Sets an API key for alert notifications sent to an OpsGenie
-       account. This will be used as the default OpsGenie API key when
+     - Sets an API key for the `OpsGenie Alert API <https://docs.opsgenie.com/docs/alert-api>`__. 
+       This will be used as the default OpsGenie API key when 
        configuring alerts.
 
        - If you have an OpsGenie account, enter the following
