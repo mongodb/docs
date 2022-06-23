@@ -30,6 +30,7 @@ async function run() {
   const uri = "<Your Connection String>";
   const keyVaultClient = new MongoClient(uri);
   await keyVaultClient.connect();
+  const keyVaultColl = keyVaultDB.collection(eKV);
   await keyVaultColl.createIndex(
     { keyAltNames: 1 },
     {
@@ -67,8 +68,8 @@ async function run() {
       fields: [
         {
           keyId: dek1,
-          path: "phoneNumber",
-          bsonType: "string",
+          path: "patientId",
+          bsonType: "int",
           queries: { queryType: "equality" },
         },
         {

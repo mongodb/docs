@@ -147,8 +147,8 @@ async function run() {
   // :state-start: local-test aws-test azure-test gcp-test
   const keyVaultDB = keyVaultClient.db(eDB);
   await keyVaultDB.dropDatabase();
-  const keyVaultColl = keyVaultDB.collection(eKV);
   // :state-end:
+  const keyVaultColl = keyVaultDB.collection(eKV);
   await keyVaultColl.createIndex(
     { keyAltNames: 1 },
     {

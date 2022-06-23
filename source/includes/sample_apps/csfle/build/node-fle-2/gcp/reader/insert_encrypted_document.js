@@ -8,11 +8,10 @@ const keyVaultNamespace = `${eDB}.${eKV}`;
 
 // start-kmsproviders
 const kmsProviders = {
-  azure: {
-    tenantId: "<Your Tenant ID>",
-    clientId: "<Your Client ID>",
-    clientSecret: "<Your Client Secret>",
-  },
+ gcp: {
+   email: "<Your GCP Email>",
+   privateKey: "<Your GCP Private Key>",
+ },
 };
 // end-kmsproviders
 
