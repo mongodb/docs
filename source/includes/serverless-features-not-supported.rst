@@ -68,7 +68,11 @@ Capabilities
    * - :doc:`Live Migrate </import/live-import>` into |service| {+Serverless-instances+}
      - 
 
-   * - :doc:`Store More than 1 TB of Data </customize-storage>`
+   * - Store More than 1 TB of Data
+    
+       This value includes the number of bytes of all uncompressed BSON 
+       documents stored in all collections, plus the bytes stored in 
+       their associated indexes.
      - 
 
    * - :doc:`Configure Alerts </alerts>` on Service Metrics Billing Metrics
