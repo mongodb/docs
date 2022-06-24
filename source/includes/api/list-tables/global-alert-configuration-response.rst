@@ -170,6 +170,34 @@
        for unacknowledged, unresolved alerts that this alert 
        configuration triggers.
 
+   * - | notifications.[n]
+       | .webhookSecret
+     - string
+     - A value used to authenticate with the Webhook that accepts and
+       forwards the notification.
+
+       |mms| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and either:
+
+       - You set ``notification.[n].webhookSecret`` to a non-empty 
+         string
+        
+       - You set a default ``webhookSecret`` on the 
+         :ref:`Admin Console <mms-manage-global-alerts>`.
+
+   * - | notifications.[n]
+       | .webhookUrl
+     - string
+     - |url| for the webhook that triggers this notification.
+
+       |mms| returns this value if you set
+       ``notifications.[n].typeName`` to ``WEBHOOK`` and either:
+
+       - You set ``notification.[n].webhookURL`` to a non-empty string
+
+       - You set a default ``webhookUrl`` on the 
+         :ref:`Admin Console <mms-manage-global-alerts>` page.
+
    * - ``notifications.microsoftTeamsWebhookUrl``
      - string
      - Microsoft Teams channel incoming webhook URL. Only present 
