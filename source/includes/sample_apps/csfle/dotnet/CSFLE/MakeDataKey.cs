@@ -15,14 +15,13 @@ namespace Key
         {
 
             // :state-start: local-reader local-test
-            var localMasterKeyPath = "master-key.txt";
             using (var randomNumberGenerator = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
                 var bytes = new byte[96];
                 randomNumberGenerator.GetBytes(bytes);
                 var localMasterKeyBase64Write = Convert.ToBase64String(bytes);
                 Console.WriteLine(localMasterKeyBase64Write);
-                File.WriteAllText(localMasterKeyPath, localMasterKeyBase64Write);
+                File.WriteAllText("master-key.txt", localMasterKeyBase64Write);
             }
             // :state-end:
 
@@ -30,7 +29,7 @@ namespace Key
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             // :state-start: local-reader local-test
             var provider = "local";
-            string localMasterKeyBase64Read = File.ReadAllText(localMasterKeyPath);
+            string localMasterKeyBase64Read = File.ReadAllText("master-key.txt");
             var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64Read);
             var localOptions = new Dictionary<string, object>
             {
