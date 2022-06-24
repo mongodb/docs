@@ -10,7 +10,7 @@ snippet:
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/aws/reader/insert_encrypted_document.js
+      .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/aws/reader/insert_encrypted_document.js
          :start-after: start-insert
          :end-before: end-insert
          :language: javascript
@@ -20,12 +20,22 @@ snippet:
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/aws/reader/insert_encrypted_document.py
+      .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/aws/reader/insert_encrypted_document.py
          :start-after: start-insert
          :end-before: end-insert
          :language: python
          :caption: insert_encrypted_document.py
          :dedent:
+
+   .. tab::
+      :tabid: java-sync
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+         :start-after: start-insert
+         :end-before: end-insert
+         :language: java
+         :dedent:
+         :caption: insertEncryptedDocument.java
 
 When you insert a document, your {+qe+} enabled client
 encrypts the fields of your document such that it resembles the following:

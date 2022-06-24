@@ -7,23 +7,22 @@ const keyVaultNamespace = `${eDB}.${eKV}`;
 const secretDB = "medicalRecords";
 const secretCollection = "patients";
 
-
 // start-kmsproviders
 const provider = "gcp";
 const kmsProviders = {
- gcp: {
-   email: "<Your GCP Email>",
-   privateKey: "<Your GCP Private Key>",
- },
+  gcp: {
+    email: "<Your GCP Email>",
+    privateKey: "<Your GCP Private Key>",
+  },
 };
 // end-kmsproviders
 
 // start-datakeyopts
 const masterKey = {
- projectId: "<Your Project ID>",
- location: "<Your Key Location>",
- keyRing: "<Your Key Ring>",
- keyName: "<Your Key Name>",
+  projectId: "<Your Project ID>",
+  location: "<Your Key Location>",
+  keyRing: "<Your Key Ring>",
+  keyName: "<Your Key Name>",
 };
 // end-datakeyopts
 

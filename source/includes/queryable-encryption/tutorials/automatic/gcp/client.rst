@@ -11,7 +11,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/gcp/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/insert_encrypted_document.js
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: javascript
@@ -21,12 +21,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/insert_encrypted_document.py
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
 
    .. step:: Specify your Cloud Account Credentials
 
@@ -37,7 +47,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/gcp/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/insert_encrypted_document.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
@@ -47,12 +57,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/insert_encrypted_document.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
 
    .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
@@ -61,7 +81,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/gcp/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/insert_encrypted_document.js
                :start-after: start-schema
                :end-before: end-schema
                :language: javascript
@@ -71,12 +91,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/insert_encrypted_document.py
                :start-after: start-schema
                :end-before: end-schema
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
 
    .. step:: Specify the Location of the {+shared-library+}
 
@@ -85,7 +115,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/gcp/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/insert_encrypted_document.js
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: javascript
@@ -95,12 +125,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/insert_encrypted_document.py
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
 
       .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
 
@@ -114,7 +154,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/gcp/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/insert_encrypted_document.js
                :start-after: start-client
                :end-before: end-client
                :language: javascript
@@ -124,9 +164,19 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/gcp/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/insert_encrypted_document.py
                :start-after: start-client
                :end-before: end-client
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-client
+               :end-before: end-client
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java

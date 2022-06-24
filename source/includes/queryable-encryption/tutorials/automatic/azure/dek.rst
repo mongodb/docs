@@ -21,7 +21,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/azure/reader/make_data_key.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/azure/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
@@ -31,12 +31,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/azure/reader/make_data_key.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/azure/reader/make_data_key.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
                :caption: make_data_key.py
                :dedent:
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: java
+               :dedent:
+               :caption: makeDataKey.java
 
       .. tip:: Learn More
 
@@ -59,7 +69,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/azure/reader/make_data_key.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/azure/reader/make_data_key.js
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: javascript
@@ -69,12 +79,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/azure/reader/make_data_key.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/azure/reader/make_data_key.py
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: python
                :caption: make_data_key.py
                :dedent:
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: java
+               :dedent:
+               :caption: makeDataKey.java
 
    .. step:: Create your {+dek-long+}s
 
@@ -95,7 +115,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/azure/reader/make_data_key.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/azure/reader/make_data_key.js
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: javascript
@@ -105,12 +125,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/azure/reader/make_data_key.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/azure/reader/make_data_key.py
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: python
                :caption: make_data_key.py
                :dedent:
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: java
+               :dedent:
+               :caption: makeDataKey.java
 
    .. step:: Create Your Encrypted Collection
 
@@ -122,7 +152,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/azure/reader/make_data_key.js
+            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/azure/reader/make_data_key.js
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: javascript
@@ -132,12 +162,22 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/azure/reader/make_data_key.py
+            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/azure/reader/make_data_key.py
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: python
                :caption: make_data_key.py
                :dedent:
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: java
+               :dedent:
+               :caption: makeDataKey.java
 
 .. tip:: Learn More
 

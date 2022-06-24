@@ -7,21 +7,20 @@ const keyVaultNamespace = `${eDB}.${eKV}`;
 const secretDB = "medicalRecords";
 const secretCollection = "patients";
 
-
 // start-kmsproviders
 const provider = "aws";
 const kmsProviders = {
- aws: {
-   accessKeyId: "<Your AWS Access Key ID>",
-   secretAccessKey: "<Your AWS Secret Access Key>",
- },
+  aws: {
+    accessKeyId: "<Your AWS Access Key ID>",
+    secretAccessKey: "<Your AWS Secret Access Key>",
+  },
 };
 // end-kmsproviders
 
 // start-datakeyopts
 const masterKey = {
- key: "<Your AWS Key ARN>",
- region: "<Your AWS Key Region>",
+  key: "<Your AWS Key ARN>",
+  region: "<Your AWS Key Region>",
 };
 // end-datakeyopts
 

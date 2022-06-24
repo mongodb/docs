@@ -8,10 +8,10 @@ const keyVaultNamespace = `${eDB}.${eKV}`;
 
 // start-kmsproviders
 const kmsProviders = {
- gcp: {
-   email: "<Your GCP Email>",
-   privateKey: "<Your GCP Private Key>",
- },
+  gcp: {
+    email: "<Your GCP Email>",
+    privateKey: "<Your GCP Private Key>",
+  },
 };
 // end-kmsproviders
 

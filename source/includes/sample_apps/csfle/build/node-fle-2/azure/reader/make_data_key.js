@@ -7,22 +7,21 @@ const keyVaultNamespace = `${eDB}.${eKV}`;
 const secretDB = "medicalRecords";
 const secretCollection = "patients";
 
-
 // start-kmsproviders
 const provider = "azure";
 const kmsProviders = {
- azure: {
-   tenantId: "<Your Tenant ID>",
-   clientId: "<Your Client ID>",
-   clientSecret: "<Your Client Secret>",
- },
+  azure: {
+    tenantId: "<Your Tenant ID>",
+    clientId: "<Your Client ID>",
+    clientSecret: "<Your Client Secret>",
+  },
 };
 // end-kmsproviders
 
 // start-datakeyopts
 const masterKey = {
- keyVaultEndpoint: "<Your Key Vault Endpoint>",
- keyName: "<Your Key Name>",
+  keyVaultEndpoint: "<Your Key Vault Endpoint>",
+  keyName: "<Your Key Name>",
 };
 // end-datakeyopts
 

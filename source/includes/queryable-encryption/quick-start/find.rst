@@ -11,7 +11,7 @@ a client that is not configured for automatic {+qe+}.
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/local/reader/insert_encrypted_document.js
+      .. literalinclude::  /includes/sample_apps/csfle/build/node-fle-2/local/reader/insert_encrypted_document.js
          :start-after: start-find
          :end-before: end-find
          :caption: insert_encrypted_document.js
@@ -21,12 +21,22 @@ a client that is not configured for automatic {+qe+}.
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+      .. literalinclude::  /includes/sample_apps/csfle/build/python-fle-2/local/reader/insert_encrypted_document.py
          :start-after: start-find
          :end-before: end-find
          :language: python
          :dedent:
          :caption: insert_encrypted_document.py
+
+   .. tab::
+      :tabid: java-sync
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/local/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+         :start-after: start-find
+         :end-before: end-find
+         :language: java
+         :dedent:
+         :caption: insertEncryptedDocument.java
 
 The output of the preceding code snippet should look like this:
 

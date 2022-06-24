@@ -1,5 +1,5 @@
 import unittest
-from pymongo import MongoClient
+import pymongo
 from bson.binary import Binary
 from const import (
     BUILD_DIR,
@@ -40,9 +40,11 @@ FLE2_ENC_COLLS = [f"enxcol_.{COLLECTION_NAME}.esc",
 f"enxcol_.{COLLECTION_NAME}.ecc",
 f"enxcol_.{COLLECTION_NAME}.ecoc"]
 
+KEY_ALT_NAMES_FIELD = "keyAltNames"
+
 class TestTutorials(unittest.TestCase):
 
-    client = MongoClient(os.getenv("MONGODB_URI"))
+    client = pymongo.MongoClient(os.getenv("MONGODB_URI"))
 
     def _dropData(self):
         self.client[DB_NAME][COLLECTION_NAME].drop()
@@ -50,7 +52,6 @@ class TestTutorials(unittest.TestCase):
 
         for c in FLE2_ENC_COLLS:
             self.client[DB_NAME][c].drop()            
-
 
     def startTestRun(self):
         self._dropData()
@@ -61,6 +62,18 @@ class TestTutorials(unittest.TestCase):
 
     def tearDown(self):
         self._dropData()
+
+    def _check_index(self):
+        """Ensure index on Key Alt Names field exists"""
+
+        test_data_key_ids_document = {KEY_ALT_NAMES_FIELD : ["AltNameToTestForIndex"]}
+        test_data_key_ids_document_copy = test_data_key_ids_document.copy()
+        self.client[KEY_VAULT_DB][KEY_VAULT_COLL].insert_one(test_data_key_ids_document)
+        # make sure inserting a document with duplicate key alt name raises an error
+        with self.assertRaises(pymongo.errors.DuplicateKeyError):
+            self.client[KEY_VAULT_DB][KEY_VAULT_COLL].insert_one(test_data_key_ids_document_copy)
+
+        self.client[KEY_VAULT_DB][KEY_VAULT_COLL].delete_one(test_data_key_ids_document)
 
     def _check_docs(self, project):
         """Checks that expected documents were added to key vault and collection and that fields were encrypted"""
@@ -85,7 +98,7 @@ class TestTutorials(unittest.TestCase):
                 type(BSON_BINARY_VALUE),
                 f"{TEST_FLE2_ENC_FIELD} must be encrypted",
             )
-        elif language in FLE_1_LANGS:
+        elif project in FLE_1_LANGS:
             self.assertEqual(
                 self.client[KEY_VAULT_DB][KEY_VAULT_COLL].count_documents({}), 1
             )
@@ -105,7 +118,7 @@ class TestTutorials(unittest.TestCase):
                 f"{TEST_FLE1_ENC_FIELD} must be encrypted",
             )
         else:
-            raise ValueError(f"Lang not in either of the following:\nFLE_1_LANGS: {FLE_1_LANGS}\nFLE_2_LANGS: {FLE_2_LANGS}")
+            raise ValueError(f"Project not in either of the following:\nFLE_1_LANGS: {FLE_1_LANGS}\nFLE_2_LANGS: {FLE_2_LANGS}")
 
     def _check_app(self, project):
         """Build and test a sample application"""
@@ -152,6 +165,12 @@ class TestTutorials(unittest.TestCase):
         for c in commands:
             print(c)
             os.system(c)
+
+        # only check indexes of apps that create this index. eventually all apps should
+        # create this index, put at present only these apps do this
+        if project in [PYTHON_FLE_2, JAVA_FLE_2, NODE_FLE_2]:
+            self._check_index()
+        
         self._check_docs(project)
 
 
