@@ -23,6 +23,7 @@ namespace Insert
 
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var provider = "local";
             var localMasterKeyPath = "master-key.txt";
             string localMasterKeyBase64Read = File.ReadAllText(localMasterKeyPath);
             var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64Read);
@@ -30,7 +31,7 @@ namespace Insert
             {
                 { "key", localMasterKeyBytes }
             };
-            kmsProviders.Add("local", localOptions);
+            kmsProviders.Add(provider, localOptions);
             // end-kmsproviders
 
 

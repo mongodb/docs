@@ -22,13 +22,14 @@ namespace Insert
 
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var provider = "azure";
             var azureKmsOptions = new Dictionary<string, object>
             {
                { "tenantId", "<Your Azure Tenant ID>" },
                { "clientId", "<Your Azure Client ID>" },
                { "clientSecret", "<Your Azure Client Secret>" },
             };
-            kmsProviders.Add("azure", azureKmsOptions);
+            kmsProviders.Add(provider, azureKmsOptions);
             // end-kmsproviders
 
 
