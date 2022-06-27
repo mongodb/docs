@@ -230,3 +230,39 @@ Machine Memory vs. Container Memory
 
 MongoDB versions older than 3.6.13, 4.0.9, and 4.1.9 report host system 
 RAM, not container RAM.
+
+.. _pull_op_images_ibm:
+
+Unable to Pull Operator Images Hosted in IBM Cloud Paks
+-----------------------------------------------------------------
+
+If you pull resource images from a container registry hosted in IBM 
+Cloud Paks, they are re-tagged with digest SHA that produces an error 
+from the Operator. You may encounter an error message similar to the following:
+
+.. code-block:: sh
+
+   Failed to apply default image tag "cp.icr.io/cp/cpd/ibm-cpd-mongodb-agent@
+   sha256:10.14.24.6505-1": couldn't parse image reference "cp.icr.io/cp/cpd/
+   ibm-cpd-mongodb-agent@sha256:10.14.24.6505-1": invalid reference format
+
+As a workaround, update the Ops Manager Application Database resource definition 
+in ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podTemplate` to 
+configure the new image names with digest SHA, in a manner similar to the following:
+
+.. code-block:: sh
+
+   applicationDatabase:
+     # The version specified must match the one in the image provided in the `mongod` field
+     version: 4.4.11-ent
+     members: 3
+     podSpec:
+       podTemplate:
+         spec:
+           containers:
+             - name: mongodb-agent
+               image: 'quay.io/mongodb/mongodb-agent:10.29.0.6830-1'
+             - name: mongod
+               image: 'quay.io/mongodb/mongodb-enterprise-appdb-database:4.4.11-ent'
+             - name: mongodb-agent-monitoring
+               image: 'quay.io/mongodb/mongodb-agent:10.29.0.6830-1'
