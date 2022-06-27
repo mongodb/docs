@@ -4,6 +4,7 @@ for a period of time.
 
 .. note::
 
-   Log analysis rate limits apply only to the Performance Advisor UI and the
-   Access Tracking UI. :doc:`Downloadable log files </reference/api/logs/>`
-   are always complete.
+   Log analysis rate limits apply only to the Performance Advisor UI, 
+   the Query Profiler UI, and the Access Tracking UI. 
+   :doc:`Downloadable log files </reference/api/logs/>` are always 
+   complete.
