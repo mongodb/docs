@@ -553,3 +553,97 @@ see the :ref:`Encryption algorithms <csfle-reference-encryption-algorithms>` pag
 
 To learn more about {+csfle-abbrev+}-specific ``MongoClient`` options, 
 see the :ref:`mongo client <csfle-reference-mongo-client>` page.
+
+.. _field-level-encryption-auto-encrypt-with-pattern-properties:
+
+Encryption Schema -  Encrypt with Pattern Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``patternProperties`` keyword in your encryption schema to 
+define encryption rules for all fields with names that match a regular expression.
+
+Consider a collection ``MedCo.patients`` where each document has
+the following structure:
+
+.. code-block:: none
+
+   {
+     "fname" : "<string>",
+     "lname" : "<string>",
+     "passportId_PIIString" : "<string>",
+     "bloodType_PIIString" : "<string>",
+     "medicalRecords_PIIArray" : [
+       {<object>}
+     ],
+     "insurance" : {
+       "policyNumber_PIINumber" : "<number>",
+       "provider_PIIString" : "<string>"
+     }
+   }
+
+The fields that contain private data are identified by a "_PII<type>" 
+tag appended the end of the field name.
+
+- ``passportId_PIIString``
+- ``bloodType_PIIString``
+- ``medicalRecords_PIIArray``
+- ``insurance.policyNumber_PIINumber``
+- ``insurance.provider_PIIString``
+
+You can use the ``patternProperties`` keyword to configure these fields for 
+encryption, without identifying each field individually, and without using the 
+full field name. Do this by using regular expressions that match all fields that 
+end with the "_PII<type>" tag.
+
+The following JSON schema uses ``patternProperties`` and regular expressions to 
+specify which fields to encrypt.
+
+.. code-block:: json
+
+  {
+    "MedCo.patients": {
+    "bsonType": "object",
+    "patternProperties": {
+      "_PIIString$": {
+        "encrypt": {
+          "keyId": [UUID("6c512f5e-09bc-434f-b6db-c42eee30c6b1")],
+          "bsonType": "string",
+          "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+        },
+      },
+      "_PIIArray$": {
+        "encrypt": {
+          "keyId": [UUID("6c512f5e-09bc-434f-b6db-c42eee30c6b1")],
+          "bsonType": "array",
+          "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Random",
+        },
+      },
+      "insurance": {
+        "bsonType": "object",
+        "patternProperties": {
+          "_PIINumber$": {
+            "encrypt": {
+              "keyId": [UUID("6c512f5e-09bc-434f-b6db-c42eee30c6b1")],
+              "bsonType": "int",
+              "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+            },
+          },
+          "_PIIString$": {
+            "encrypt": {
+              "keyId": [UUID("6c512f5e-09bc-434f-b6db-c42eee30c6b1")],
+              "bsonType": "string",
+              "algorithm": "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
+            },
+          },
+        },
+      },
+    },
+    },
+  }
+
+The above automatic encryption rules mark the ``passportId_PIIString``, 
+``bloodType_PIIString``, ``medicalRecords_PIIArray``, ``insurance.policyNumber_PIINumber``,
+``insurance.provider_PIIString`` fields for encryption.
+
+To Learn more about the ``patternProperties`` keyword, see
+:ref:`csfle-fundamentals-pattern-properties`.
