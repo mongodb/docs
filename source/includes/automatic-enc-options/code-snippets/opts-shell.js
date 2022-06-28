@@ -1,4 +1,4 @@
-var ClientSideFieldLevelEncryptionOptions =
+var autoEncryptionOpts =
 {
    "keyVaultNamespace" : "<database>.<collection>",
    "kmsProviders" : { ... },
@@ -7,5 +7,5 @@ var ClientSideFieldLevelEncryptionOptions =
 
 cluster = Mongo(
   "<Your Connection String>",
-  ClientSideFieldLevelEncryptionOptions
+  autoEncryptionOpts
 );

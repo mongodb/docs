@@ -14,13 +14,13 @@ var connectionString = process.env.DRIVER_URL;
 var keyVaultNamespace = "encryption.__keyVault";
 
 // start_mongoclient
-var ClientSideFieldLevelEncryptionOptions = {
+var autoEncryptionOpts = {
   keyVaultNamespace: keyVaultNamespace,
   kmsProviders: kmsProviders,
 };
 var encryptedClient = Mongo(
   connectionString,
-  ClientSideFieldLevelEncryptionOptions
+  autoEncryptionOpts
 );
 // end_mongoclient
 // start_client_enc
