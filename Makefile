@@ -12,6 +12,8 @@ DOTCOM_PRODUCTION_URL="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
 DOTCOM_PREFIX=docs/php-library
 DOTCOM_STGPREFIX=docs/php-library
+SEARCH_INDEX_BUCKET=docs-search-indexes-test
+
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -83,8 +85,8 @@ deploy: publish ## Deploy to the production bucket
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o docs-php-library-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${PRODUCTION_BUCKET} -g -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-php-library-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -g -s; \
 	else \
-		mut-index upload build/public/${GIT_BRANCH} -o docs-php-library-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${PRODUCTION_BUCKET} -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o docs-php-library-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -s; \
 	fi
 
