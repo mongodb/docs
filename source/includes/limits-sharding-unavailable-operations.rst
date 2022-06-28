@@ -4,3 +4,6 @@ un-sharded collections.
 
 The :dbcommand:`geoSearch` command is not supported in sharded
 environments.
+
+In MongoDB 4.4 and earlier, you cannot specify :doc:`sharded collections
+</sharding>` in the ``from`` parameter of :pipeline:`$lookup` stages.
