@@ -4,3 +4,6 @@ un-sharded collections.
 
 The :dbcommand:`geoSearch` command is not supported in sharded
 environments.
+
+The  :pipeline:`$lookup` aggregation pipeline stage cannot read
+from a sharded collection.
