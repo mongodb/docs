@@ -38,4 +38,3 @@ See :ref:`prod-notes-supported-platforms` for more information.
    AlmaLinux version 8.0+, contingent upon those distributions meeting 
    their obligation to deliver full RHEL compatibility.
 
-.. include:: /includes/admonition-wsl.rst
