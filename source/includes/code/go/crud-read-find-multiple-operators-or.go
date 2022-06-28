@@ -10,7 +10,7 @@ filter := bson.D{
 	},
 }
 
-cursor, err := coll.Find(context.TODO(), bson.D{})
+cursor, err := coll.Find(context.TODO(), filter)
 if err != nil {
 	panic(err)
 }
