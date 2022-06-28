@@ -29,7 +29,9 @@ source.
       :tabid: atlas 
 
       This tab contains the syntax and parameters for creating a 
-      {+fdi+} store for data in an |service| cluster.
+      {+fdi+} store for data in an |service| cluster. 
+
+      .. include:: /includes/data-federation/fact-atlas-data-source.rst
 
    .. tab:: HTTP 
       :tabid: http 
@@ -39,6 +41,12 @@ source.
       accessible |url|\s.
 
       .. include:: /includes/extracts/fact-http-beta-message.rst
+
+   .. tab:: Atlas Data Lake Datasets 
+      :tabid: adl 
+
+      This tab contains the syntax and parameters for creating a 
+      {+fdi+} store for {+adl+} datasets.
 
 .. _adf-create-store-cmd-syntax:
 
@@ -52,6 +60,7 @@ Syntax
       :tabid: s3
 
       .. code-block:: sh 
+         :copyable: true
 
          db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, bucket: <bucket-name>, additionalStorageClasses: [ <storage-classes> ], delimiter: <delimiter>, prefix: <prefix>, public: true|false })
 
@@ -59,6 +68,7 @@ Syntax
       :tabid: atlas 
 
       .. code-block:: sh
+         :copyable: true
 
          db.runCommand({ createStore: <store-name>, provider: <storage-provider>, clusterName: <cluster-name>, projectId: <project-id>, readPreference: {mode: <read-preference-mode>, tagSets: [[{name: <name>, value: <value>},...],...], maxStalenessSeconds: <number-of-seconds>} })
 
@@ -66,8 +76,17 @@ Syntax
       :tabid: http 
 
       .. code-block:: sh
+         :copyable: true
 
          db.runCommand({ createStore: <store-name>, provider: <storage-provider>, allowInsecure: true|false, urls: [ <url> ], defaultFormat: <file-extension> })
+
+   .. tab:: Atlas Data Lake Configuration
+      :tabid: adl 
+
+      .. code-block:: sh
+         :copyable: true
+
+         db.runCommand({ createStore: <store-name>, provider: "dls:aws", region: <data-lake-region> })
 
 .. _adf-create-store-cmd-params:
 
@@ -242,6 +261,22 @@ Parameters
              |url|\s in the store.
            - no
 
+   .. tab:: Atlas Data Lake Configuration 
+      :tabid: adl 
+
+      .. include:: /includes/list-table-create-store-cli-common-params.rst
+
+      .. list-table::
+         :widths: 27 15 48 10 
+
+         * - ``region`` 
+           - string 
+           - Region of your {+dl+} dataset. If you have multiple 
+             datasets in different regions, you must add a store for 
+             each region to map data in that region to virtual 
+             databases and collections in {+fdi+}\s.
+           - yes
+
 .. _adf-create-store-cmd-output:
 
 Output 
@@ -312,6 +347,21 @@ fails, see :ref:`adf-create-store-cmd-errors` for recommended solutions.
 	         }
          }
 
+   .. tab:: Atlas Data Lake Configuration 
+      :tabid: adl 
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           ok: 1,
+           store: { 
+             name: '<store-name>', 
+             provider: 'dls:aws', 
+             region: '<data-lake-dataset-region>' 
+           }
+         }
+
 .. _adf-create-store-cmd-egs:
 
 Example
@@ -326,86 +376,116 @@ The following example uses the ``createStore`` command to create a new
    .. tab:: S3 Configuration 
       :tabid: s3
 
-      .. code-block:: json 
+      .. io-code-block::
+         :copyable: true
 
-         use sample
-         db.runCommand({ createStore: "myStore", provider: "s3", region: "us-east-1", bucket: "my-bucket", "additionalStorageClasses" : ["STANDARD_IA","INTELLIGENT_TIERING"] prefix: "/sample" })
+         .. input::
+            :language: javascript 
 
-      The previous command prints the following: 
+            use sample
+            db.runCommand({ createStore: "myStore", provider: "s3", region: "us-east-1", bucket: "my-bucket", "additionalStorageClasses" : ["STANDARD_IA","INTELLIGENT_TIERING"], prefix: "/sample" })
 
-      .. code-block:: json 
-         :copyable: false
+         .. output::
+            :language: json
 
-         {
-           "ok": 1,
-           "store": {
-             "name": "myStore",
-             "region": "us-east-1",
-             "bucket": "my-bucket",
-             "additionalStorageClasses" : [
-			         "STANDARD_IA",
-			         "INTELLIGENT_TIERING"
-		         ],
-             "delimiter": "/",
-             "prefix": "/sample",
-             "provider": "s3"
-           }
-         }
+            {
+              "ok": 1,
+              "store": {
+                "name": "myStore",
+                "region": "us-east-1",
+                "bucket": "my-bucket",
+                "additionalStorageClasses" : [
+			            "STANDARD_IA",
+			            "INTELLIGENT_TIERING"
+		            ],
+                "delimiter": "/",
+                "prefix": "/sample",
+                "provider": "s3"
+              }
+            }
 
    .. tab:: Atlas Configuration 
       :tabid: atlas 
 
-      .. code-block:: json 
+      .. io-code-block::
+         :copyable: true
+   
+         .. input::
+            :language: javascript 
 
-         use sample
-         db.runCommand({ createStore: "myStore", provider: "atlas", clusterName: "myTestCluster", projectId: "<project-id>", "readPreference": {"mode": "secondary", "tagSets": [[{"name": "provider", "value": "AWS" }, {"name": "region", "value": "US_EAST_1"}]], "maxStalenessSeconds": 120} })
+            use sample
+            db.runCommand({ createStore: "myStore", provider: "atlas", clusterName: "myTestCluster", projectId: "<project-id>", "readPreference": {"mode": "secondary", "tagSets": [[{"name": "provider", "value": "AWS" }, {"name": "region", "value": "US_EAST_1"}]], "maxStalenessSeconds": 120} })
 
-      The previous command prints the following: 
+         .. output::
+            :language: json
 
-      .. code-block:: json 
-         :copyable: false
-
-         {
-	         "ok" : 1,
-	         "store" : {
-		         "name" : "myStore",
-		         "provider" : "atlas",
-		         "clusterName" : "myTestCluster",
-		         "projectId" : "<project-id>",
-		         "readPreference" : {
-			        "mode" : "secondary",
-			        "tagSets": [[{"name": "provider", "value": "AWS" }, {"name": "region", "value": "US_EAST_1"}]],
-			        "maxStalenessSeconds" : 120
-		         }
-	         }
-         }
+            {
+	            "ok" : 1,
+	            "store" : {
+		            "name" : "myStore",
+		            "provider" : "atlas",
+		            "clusterName" : "myTestCluster",
+		            "projectId" : "<project-id>",
+		            "readPreference" : {
+			            "mode" : "secondary",
+			            "tagSets": [[{"name": "provider", "value": "AWS" }, {"name": "region", "value": "US_EAST_1"}]],
+			            "maxStalenessSeconds" : 120
+		            }
+	            }
+            }
 
    .. tab:: HTTP Configuration 
       :tabid: http 
 
-      .. code-block:: json 
+      .. io-code-block::
+         :copyable: true
+   
+         .. input::
+            :language: javascript 
 
-         use sample 
-         db.runCommand({ createStore: "myStore", provider: "http", urls: ["https://atlas-data-federation.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews","http://example.mongodb.com/sampleData"], allowInsecure: true, defaultFormat: ".json" })
+            use sample 
+            db.runCommand({ createStore: "myStore", provider: "http", urls: ["https://atlas-data-federation.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews","http://example.mongodb.com/sampleData"], allowInsecure: true, defaultFormat: ".json" })
 
-      The previous command prints the following: 
+         .. output::
+            :language: json
 
-      .. code-block:: json 
-         :copyable: false
+            {
+	            "ok" : 1,
+	            "store" : {
+		            "name" : "http-store",
+		            "provider" : "http",
+		            "urls" : [
+			            "https://atlas-data-federation.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews",
+			            "http://example.mongodb.com/sampleData"
+		            ],
+		            "defaultFormat" : ".json"
+		            "allowInsecure" : true
+	            }
+            }
 
-         {
-	        "ok" : 1,
-	        "store" : {
-		       "name" : "http-store",
-		       "provider" : "http",
-		       "urls" : [
-			       "https://atlas-data-federation.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews",
-			       "http://example.mongodb.com/sampleData"
-		       ],
-		       "defaultFormat" : ".json"
-		       "allowInsecure" : true
-	        }
-         }
+   .. tab:: Atlas Data Lake Configuration 
+      :tabid: adl 
+
+      .. io-code-block::
+         :copyable: true
+   
+         .. input::
+            :language: javascript 
+
+            use sample 
+            db.runCommand({ createStore: "myStore", provider: "dls:aws", region: "us-east-1" })
+
+         .. output::
+            :language: json
+
+            {
+              ok: 1,
+              store: { 
+                name: 'myStore', 
+                provider: 'dls:aws', 
+                region: 'us-east-1' 
+              }
+            }
 
 .. _adf-create-store-cmd-errors:
 
@@ -471,3 +551,6 @@ If the command fails, it returns one of the following errors.
       specified |url|\s have the insecure |http| scheme, set the ``allowInsecure`` flag to ``true``. Note that setting the 
       ``allowInsecure`` flag to ``true`` leaves your data vulnerable to 
       man-in-the-middle attacks.
+
+   .. tab:: Atlas Data Lake Configuration 
+      :tabid: adl 

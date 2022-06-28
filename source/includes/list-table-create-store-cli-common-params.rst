@@ -12,7 +12,7 @@
      - Name of the new {+fdi+} store. The {+fdi+} store 
        name must be unique.
 
-       .. include:: /includes/data-federation/fact-atlas-data-source.rst
+       
        
      - yes
 
@@ -24,6 +24,7 @@
        - ``s3`` for an |aws| |s3| bucket.
        - ``atlas`` for |service| cluster.
        - ``http`` for files hosted at publicly accessible |url|\s.
+       - ``dls:aws`` for {+adl+} datasets.
 
      - yes
      
