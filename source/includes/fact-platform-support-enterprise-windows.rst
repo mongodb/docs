@@ -9,3 +9,6 @@ MongoDB {+version+} Enterprise Edition supports the following
 MongoDB only supports the 64-bit versions of these platforms.
 
 See :ref:`prod-notes-supported-platforms` for more information.
+
+.. include:: includes/fact-wsl-not-supported.rst
+
