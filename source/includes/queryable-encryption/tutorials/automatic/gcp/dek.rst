@@ -52,6 +52,16 @@
                :dedent:
                :caption: make-data-key.go
 
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
+
       .. tip:: Learn More
 
          To learn more about the KMS provider object for GCP, see
@@ -108,6 +118,16 @@
                :language: go
                :dedent:
                :caption: make-data-key.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
 
    .. step:: Generate your {+dek-long+}s
 
@@ -167,6 +187,16 @@
                :dedent:
                :caption: make-data-key.go
 
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
+
    .. step:: Create Your Encrypted Collection
 
       Use a {+qe+} enabled ``MongoClient`` instance to specify what
@@ -213,6 +243,16 @@
                :language: go
                :dedent:
                :caption: make-data-key.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
 
 The output from the code in this section should resemble the following:
 

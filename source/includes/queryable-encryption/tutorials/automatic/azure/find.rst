@@ -48,6 +48,16 @@ a client that is not configured for automatic {+qe+}.
          :caption: insert-encrypted-document.go
          :dedent:
 
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/CSFLE/InsertEncryptedDocument.cs
+         :start-after: start-find
+         :end-before: end-find
+         :language: csharp
+         :dedent:
+         :caption: InsertEncryptedDocument.cs
+
 The output of the preceding code snippet should look like this:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/find-output.out

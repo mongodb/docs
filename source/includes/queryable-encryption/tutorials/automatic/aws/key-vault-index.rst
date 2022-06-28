@@ -44,3 +44,13 @@ Create a unique index on the ``keyAltNames`` field in your
          :language: go
          :caption: make-data-key.go
          :dedent:
+
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/CSFLE/MakeDataKey.cs
+         :start-after: start-create-index
+         :end-before: end-create-index
+         :language: csharp
+         :dedent:
+         :caption: MakeDataKey.cs

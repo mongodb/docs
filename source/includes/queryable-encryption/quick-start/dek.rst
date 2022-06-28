@@ -55,7 +55,17 @@
                :end-before: end-kmsproviders
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go
+               :caption: make-data-key.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
 
    .. step:: Create your {+dek-long+}s
 
@@ -113,7 +123,17 @@
                :end-before: end-create-dek
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go
+               :caption: make-data-key.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
 
    .. step:: Create Your Encrypted Collection
 
@@ -160,7 +180,17 @@
                :end-before: end-create-enc-collection
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go
+               :caption: make-data-key.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
 
 The output from the code in this section should resemble the following:
 
