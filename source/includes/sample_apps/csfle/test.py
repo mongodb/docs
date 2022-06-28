@@ -169,7 +169,7 @@ class TestTutorials(unittest.TestCase):
 
         # only check indexes of apps that create this index. eventually all apps should
         # create this index, put at present only these apps do this
-        if project in [PYTHON_FLE_2, JAVA_FLE_2, NODE_FLE_2, CSHARP_FLE_2]:
+        if project in [PYTHON_FLE_2, JAVA_FLE_2, NODE_FLE_2, CSHARP_FLE_2, GO_FLE_2]:
             self._check_index()
         
         self._check_docs(project)

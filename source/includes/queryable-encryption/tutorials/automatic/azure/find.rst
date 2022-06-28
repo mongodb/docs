@@ -38,6 +38,16 @@ a client that is not configured for automatic {+qe+}.
          :dedent:
          :caption: insertEncryptedDocument.java
 
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/azure/reader/insert-encrypted-document.go
+         :start-after: start-find
+         :end-before: end-find
+         :language: go
+         :caption: insert-encrypted-document.go
+         :dedent:
+
 The output of the preceding code snippet should look like this:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/find-output.out

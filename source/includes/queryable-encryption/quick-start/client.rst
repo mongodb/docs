@@ -40,6 +40,15 @@
                :dedent:
                :caption: insertEncryptedDocument.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
 
    .. step:: Specify the Local {+cmk-long+}
 
@@ -77,6 +86,15 @@
                :dedent:
                :caption: insertEncryptedDocument.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
 
    .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
@@ -114,6 +132,16 @@
                :dedent:
                :caption: insertEncryptedDocument.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+
    .. step:: Specify the Location of the {+shared-library+}
 
       .. _qe-quick-start-shared-lib:
@@ -149,6 +177,16 @@
                :language: java
                :dedent:
                :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
 
       .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
 
@@ -188,3 +226,13 @@
                :language: java
                :dedent:
                :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-client
+               :end-before: end-client
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go

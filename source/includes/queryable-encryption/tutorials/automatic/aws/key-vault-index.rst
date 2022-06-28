@@ -34,3 +34,13 @@ Create a unique index on the ``keyAltNames`` field in your
          :language: java
          :dedent:
          :caption: makeDataKey.java
+   
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/make-data-key.go
+         :start-after: start-create-index
+         :end-before: end-create-index
+         :language: go
+         :caption: make-data-key.go
+         :dedent:

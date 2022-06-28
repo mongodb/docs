@@ -42,6 +42,16 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/make-data-key.go
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: go
+               :caption: make-data-key.go
+               :dedent:
+
       .. tip:: Learn More
 
          To learn more about the KMS provider object for AWS, see
@@ -89,6 +99,16 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/make-data-key.go
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: go
+               :caption: make-data-key.go
+               :dedent:
+
    .. step:: Create your {+dek-long+}s
 
       Construct a client with your MongoDB connection string and {+key-vault-long+}
@@ -135,6 +155,16 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/make-data-key.go
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: go
+               :caption: make-data-key.go
+               :dedent:
+
    .. step:: Create Your Encrypted Collection
 
       Use a {+qe+} enabled ``MongoClient`` instance to specify what
@@ -171,6 +201,16 @@
                :language: java
                :dedent:
                :caption: makeDataKey.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/make-data-key.go
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: go
+               :caption: make-data-key.go
+               :dedent:
 
 The output from the code in this section should resemble the following:
 

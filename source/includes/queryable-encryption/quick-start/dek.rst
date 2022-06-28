@@ -47,6 +47,16 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/make-data-key.go
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+
    .. step:: Create your {+dek-long+}s
 
       .. _qe-local-create-dek:
@@ -95,6 +105,16 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/make-data-key.go
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+
    .. step:: Create Your Encrypted Collection
 
       Use a {+qe+} enabled ``MongoClient`` instance to specify what
@@ -131,6 +151,16 @@
                :language: java
                :dedent:
                :caption: makeDataKey.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/make-data-key.go
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
 
 The output from the code in this section should resemble the following:
 

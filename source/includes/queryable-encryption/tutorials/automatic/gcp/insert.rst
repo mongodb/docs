@@ -37,6 +37,16 @@ snippet:
          :dedent:
          :caption: insertEncryptedDocument.java
 
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/gcp/reader/insert-encrypted-document.go
+         :start-after: start-insert
+         :end-before: end-insert
+         :language: go
+         :dedent:
+         :caption: insert-encrypted-document.go
+
 When you insert a document, your {+qe+} enabled client
 encrypts the fields of your document such that it resembles the following:
 
