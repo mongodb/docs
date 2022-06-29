@@ -35,10 +35,29 @@ namespace Key
                });
             // end-datakeyopts
 
+            // start-create-index
             var connectionString = "<Your MongoDB URI>";
             // start-create-dek
             var keyVaultNamespace = CollectionNamespace.FromFullName("encryption.__keyVault");
             var keyVaultClient = new MongoClient(connectionString);
+            var indexOptions = new CreateIndexOptions<BsonDocument>();
+            indexOptions.Unique = true;
+            indexOptions.PartialFilterExpression = new BsonDocument { { "keyAltNames", new BsonDocument { { "$exists", new BsonBoolean(true) } } } };
+            var builder = Builders<BsonDocument>.IndexKeys;
+            var indexKeysDocument = builder.Ascending("keyAltNames");
+            var indexModel = new CreateIndexModel<BsonDocument>(indexKeysDocument, indexOptions);
+            var keyVaultDatabase = keyVaultClient.GetDatabase(keyVaultNamespace.DatabaseNamespace.ToString());
+            // Drop the Key Vault Collection in case you created this collection
+            // in a previous run of this application.  
+            keyVaultDatabase.DropCollection(keyVaultNamespace.CollectionName.ToString());
+            // Drop the database storing your encrypted fields as all
+            // the DEKs encrypting those fields were deleted in the preceding line.
+            keyVaultClient.GetDatabase("medicalRecords").DropCollection("patients");
+            var keyVaultCollection = keyVaultDatabase.GetCollection<BsonDocument>(keyVaultNamespace.CollectionName.ToString());
+            keyVaultCollection.Indexes.CreateOne(indexModel);
+            // end-create-index
+
+            // start-create-dek
             var clientEncryptionOptions = new ClientEncryptionOptions(
                 keyVaultClient: keyVaultClient,
                 keyVaultNamespace: keyVaultNamespace,

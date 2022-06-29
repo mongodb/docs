@@ -195,9 +195,9 @@ public class makeDataKey {
         String encryptedDbName = "medicalRecords";
         String encryptedCollName = "patients";
 
-        // :state-start: local-test aws-test azure-test gcp-test
-        keyVaultClient.getDatabase(encryptedDbName).drop();
-        // :state-end:
+        // Drop the Key Vault Collection in case you created this collection
+        // in a previous run of this application.
+        keyVaultClient.getDatabase(keyVaultDb).getCollection(keyVaultColl).drop();
 
         MongoCollection keyVaultCollection = keyVaultClient.getDatabase(keyVaultDb).getCollection(keyVaultColl);
         IndexOptions indexOpts = new IndexOptions().partialFilterExpression(new BsonDocument("keyAltNames", new BsonDocument("$exists", new BsonBoolean(true) ))).unique(true);
@@ -294,7 +294,9 @@ public class makeDataKey {
                 .build();
         MongoClient mongoClientSecure = MongoClients.create(clientSettings);
         MongoDatabase encDb = mongoClientSecure.getDatabase(encryptedDbName);
-        encDb.drop();
+        // Drop the encrypted collection in case you created this collection
+        // in a previous run of this application.
+        encDb.getCollection(encryptedCollName).drop();
         encDb.createCollection(encryptedCollName);
         // end-create-enc-collection
         System.out.println("Successfully created encrypted collection!");
