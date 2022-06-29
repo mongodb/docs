@@ -1,3 +1,12 @@
+.. _adf-v20220621:
+
+21 June 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Adds support for {+adl+} as a "Store Type" to the ``createStore`` command.
+- Improves error messaging for Federated ``$search`` queries.
+
 .. _adf-v20220607:
 
 07 June 2022 Release
