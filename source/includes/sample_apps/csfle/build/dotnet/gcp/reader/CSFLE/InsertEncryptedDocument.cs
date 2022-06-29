@@ -22,12 +22,13 @@ namespace Insert
 
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var provider = "gcp";
             var gcpKmsOptions = new Dictionary<string, object>
             {
                { "privateKey", "<Your GCP Private Key>" },
                { "email", "<Your GCP Email>" },
             };
-            kmsProviders.Add("gcp", gcpKmsOptions);
+            kmsProviders.Add(provider, gcpKmsOptions);
             // end-kmsproviders
 
 

@@ -29,6 +29,16 @@
                :dedent:
 
          .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: go
+               :caption: insert-encrypted-document.go
+               :dedent:
+
+         .. tab::
             :tabid: java-sync
 
             .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
@@ -37,6 +47,16 @@
                :language: java
                :dedent:
                :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/CSFLE/InsertEncryptedDocument.cs
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
 
    .. step:: Specify your AWS Credentials
 
@@ -77,6 +97,26 @@
                :dedent:
                :caption: insertEncryptedDocument.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: go
+               :caption: insert-encrypted-document.go
+               :dedent:
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/CSFLE/InsertEncryptedDocument.cs
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
+
    .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
       .. tabs-drivers::
@@ -111,6 +151,26 @@
                :dedent:
                :caption: insertEncryptedDocument.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: go
+               :caption: insert-encrypted-document.go
+               :dedent:
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/CSFLE/InsertEncryptedDocument.cs
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
+
    .. step:: Specify the Location of the {+shared-library+}
 
       .. tabs-drivers::
@@ -144,6 +204,26 @@
                :language: java
                :dedent:
                :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: go
+               :caption: insert-encrypted-document.go
+               :dedent:
+   
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/CSFLE/InsertEncryptedDocument.cs
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
 
       .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
 
@@ -184,3 +264,22 @@
                :dedent:
                :caption: insertEncryptedDocument.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+               :start-after: start-client
+               :end-before: end-client
+               :language: go
+               :caption: insert-encrypted-document.go
+               :dedent:
+         
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/CSFLE/InsertEncryptedDocument.cs
+               :start-after: start-client
+               :end-before: end-client
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs

@@ -34,3 +34,23 @@ Create a unique index on the ``keyAltNames`` field in your
          :language: java
          :dedent:
          :caption: makeDataKey.java
+
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/make-data-key.go
+         :start-after: start-create-index
+         :end-before: end-create-index
+         :language: go
+         :dedent:
+         :caption: insert-encrypted-document.go
+
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/MakeDataKey.cs
+         :start-after: start-create-index
+         :end-before: end-create-index
+         :language: csharp
+         :dedent:
+         :caption: MakeDataKey.cs

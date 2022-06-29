@@ -1,10 +1,10 @@
-var ClientSideFieldLevelEncryptionOptions = {
+var autoEncryptionOpts = {
   keyVaultNamespace: keyVaultNamespace,
   kmsProviders: kmsProviders,
 };
 var encryptedClient = Mongo(
   connectionString,
-  ClientSideFieldLevelEncryptionOptions
+  autoEncryptionOpts
 );
 var clientEncryption = encryptedClient.getClientEncryption();
 var masterKey = {

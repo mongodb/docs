@@ -6,12 +6,13 @@ PYTHON_FLE_2 = "python-fle-2"
 JAVA = "java"
 JAVA_FLE_2 = "java-fle-2"
 CSHARP = "dotnet"
+CSHARP_FLE_2 = "dotnet-fle-2"
 NODE = "node"
 NODE_FLE_2 = "node-fle-2"
 DEK = "dek"
 GO = "go"
 GO_FLE_2 = "go-fle-2"
-FLE_2_LANGS = [NODE_FLE_2, PYTHON_FLE_2, GO_FLE_2, JAVA_FLE_2]
+FLE_2_LANGS = [NODE_FLE_2, PYTHON_FLE_2, GO_FLE_2, JAVA_FLE_2, CSHARP_FLE_2]
 FLE_1_LANGS = [NODE, PYTHON, GO, JAVA, CSHARP]
 
 INSERT = "insert"
@@ -63,7 +64,13 @@ FILE_MAP = {
     CSHARP: {
         DEK: "CSFLE/MakeDataKey.cs",
         INSERT: "CSFLE/InsertEncryptedDocument.cs",
-        EXTRA_FILES: ["CSFLE/CSFLE.csproj", "CSFLE/Main.cs"],
+        EXTRA_FILES: ["CSFLE/CSFLE.csproj", "CSFLE/Program.cs"],
+        FORMAT_COMMAND: f'find ./{BUILD_DIR} -name "*.csproj" | xargs -n1 dotnet format',
+    },
+    CSHARP_FLE_2: {
+        DEK: "CSFLE/MakeDataKey.cs",
+        INSERT: "CSFLE/InsertEncryptedDocument.cs",
+        EXTRA_FILES: ["CSFLE/CSFLE.csproj", "CSFLE/Program.cs"],
         FORMAT_COMMAND: f'find ./{BUILD_DIR} -name "*.csproj" | xargs -n1 dotnet format',
     },
     NODE: {

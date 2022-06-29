@@ -48,6 +48,26 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/azure/reader/make-data-key.go
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: go
+               :caption: make-data-key.py
+               :dedent:
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
+
       .. tip:: Learn More
 
          To learn more about the KMS provider object for {+azure-kv+}, see
@@ -96,6 +116,26 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/azure/reader/make-data-key.go
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: go
+               :caption: make_data_key.py
+               :dedent:
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
+
    .. step:: Create your {+dek-long+}s
 
       Construct a client with your MongoDB connection string and {+key-vault-long+}
@@ -142,6 +182,26 @@
                :dedent:
                :caption: makeDataKey.java
 
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/azure/reader/make-data-key.go
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: go
+               :caption: make_data_key.py
+               :dedent:
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
+
    .. step:: Create Your Encrypted Collection
 
       Use a {+qe+} enabled ``MongoClient`` intance to specify what
@@ -178,6 +238,26 @@
                :language: java
                :dedent:
                :caption: makeDataKey.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/azure/reader/make-data-key.go
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: go
+               :caption: make_data_key.py
+               :dedent:
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
 
 .. tip:: Learn More
 

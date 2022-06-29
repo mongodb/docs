@@ -41,7 +41,7 @@ namespace Insert
             {
                 { "key", localMasterKeyBytes }
             };
-            kmsProviders.Add("local", localOptions);
+            kmsProviders.Add(provider, localOptions);
             // :state-end:
             // :state-uncomment-start: aws-reader
             //var provider = "aws";
@@ -50,7 +50,7 @@ namespace Insert
             //    { "accessKeyId", "<Your AWS Access Key ID>" },
             //    { "secretAccessKey", "<Your AWS Secret Access Key>" }
             //};
-            //kmsProviders.Add("aws", awsKmsOptions);
+            //kmsProviders.Add(provider, awsKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: aws-test
             //var provider = "aws"; 
@@ -61,7 +61,7 @@ namespace Insert
             //    { "accessKeyId", awsAccessKey },
             //    { "secretAccessKey", awsSecretAccessKey }
             //};
-            //kmsProviders.Add("aws", awsKmsOptions);
+            //kmsProviders.Add(provider, awsKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: azure-reader
             //var provider = "azure"; 
@@ -71,7 +71,7 @@ namespace Insert
             //    { "clientId", "<Your Azure Client ID>" },
             //    { "clientSecret", "<Your Azure Client Secret>" },
             //};
-            //kmsProviders.Add("azure", azureKmsOptions);
+            //kmsProviders.Add(provider, azureKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: azure-test
             //var provider = "azure"; 
@@ -84,7 +84,7 @@ namespace Insert
             //    { "clientId", azureClientId },
             //    { "clientSecret", azureClientSecret },
             //};
-            //kmsProviders.Add("azure", azureKmsOptions);
+            //kmsProviders.Add(provider, azureKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: gcp-reader
             //var provider = "gcp";
@@ -93,7 +93,7 @@ namespace Insert
             //    { "privateKey", "<Your GCP Private Key>" },
             //    { "email", "<Your GCP Email>" },
             //};
-            //kmsProviders.Add("gcp", gcpKmsOptions);
+            //kmsProviders.Add(provider, gcpKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: gcp-test
             //var provider = "gcp";
@@ -104,7 +104,7 @@ namespace Insert
             //    { "privateKey", gcpPrivateKey },
             //    { "email", gcpEmail },
             //};
-            //kmsProviders.Add("gcp", gcpKmsOptions);
+            //kmsProviders.Add(provider, gcpKmsOptions);
             // :state-uncomment-end:
             // end-kmsproviders
 

@@ -1,9 +1,9 @@
-var ClientSideFieldLevelEncryptionOptions = {
+var autoEncryptionOpts = {
   keyVaultNamespace: keyVaultNamespace,
   kmsProviders: kmsProviders,
   bypassAutoEncryption: true,
 };
 var encryptedClient = Mongo(
   connectionString,
-  ClientSideFieldLevelEncryptionOptions
+  autoEncryptionOpts
 );

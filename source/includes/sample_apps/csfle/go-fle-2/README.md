@@ -8,9 +8,9 @@ applications that use CSFLE with the following KMS providers:
 
 To build Go applications, run the following command from the parent of this directory:
 
-    python build.py --langs go
+    python build.py --project go-fle-2
 
 To test your build applications, run the following
 command from the parent of this directory:
 
-    python -m unittest test.TestGo
+    python -m unittest test.TestGoFLE2

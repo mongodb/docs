@@ -11,6 +11,7 @@ from const import (
     GO,
     GO_FLE_2,
     CSHARP,
+    CSHARP_FLE_2,
     PYTHON,
     PYTHON_FLE_2,
     JAVA,
@@ -51,7 +52,7 @@ class TestTutorials(unittest.TestCase):
         self.client[KEY_VAULT_DB][KEY_VAULT_COLL].drop()
 
         for c in FLE2_ENC_COLLS:
-            self.client[DB_NAME][c].drop()            
+            self.client[DB_NAME][c].drop()
 
     def startTestRun(self):
         self._dropData()
@@ -144,7 +145,7 @@ class TestTutorials(unittest.TestCase):
             commands.append(
                 f'mvn compile exec:java -Dexec.mainClass="com.mongodb.csfle.{insert_file_name}"'
             )
-        elif project == CSHARP:
+        elif project == CSHARP or project == CSHARP_FLE_2:
             os.chdir("CSFLE")
             commands.append("dotnet run")
         elif project == NODE or project == NODE_FLE_2:
@@ -168,7 +169,7 @@ class TestTutorials(unittest.TestCase):
 
         # only check indexes of apps that create this index. eventually all apps should
         # create this index, put at present only these apps do this
-        if project in [PYTHON_FLE_2, JAVA_FLE_2, NODE_FLE_2]:
+        if project in [PYTHON_FLE_2, JAVA_FLE_2, NODE_FLE_2, CSHARP_FLE_2, GO_FLE_2]:
             self._check_index()
         
         self._check_docs(project)
@@ -217,7 +218,6 @@ class TestPythonFLE2(TestTutorials):
         )
         self._check_app(PYTHON_FLE_2)
 
-
 class TestDotnet(TestTutorials):
     """Test Dotnet FLE1 Sample Apps"""
 
@@ -237,6 +237,24 @@ class TestDotnet(TestTutorials):
         os.chdir(os.path.join(BUILD_DIR, CSHARP, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(CSHARP)
 
+class TestDotnetFLE2(TestTutorials):
+    """Test Dotnet FLE2 Sample Apps"""
+
+    def test_dotnet_fle_2_aws(self):
+        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *AWS_TEST.split(DIR_SEPERATOR)))
+        self._check_app(CSHARP_FLE_2)
+
+    def test_dotnet_fle_2_azure(self):
+        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *AZURE_TEST.split(DIR_SEPERATOR)))
+        self._check_app(CSHARP_FLE_2)
+
+    def test_dotnet_fle_2_gcp(self):
+        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *GCP_TEST.split(DIR_SEPERATOR)))
+        self._check_app(CSHARP_FLE_2)
+
+    def test_dotnet_fle_2_local(self):
+        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
+        self._check_app(CSHARP_FLE_2)
 
 class TestNode(TestTutorials):
     """Test Node FLE1 Sample Apps"""
@@ -256,7 +274,6 @@ class TestNode(TestTutorials):
     def test_node_local(self):
         os.chdir(os.path.join(BUILD_DIR, NODE, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(NODE)
-
 
 class TestNodeFLE2(TestTutorials):
     """Test Node FLE2 Sample Apps"""

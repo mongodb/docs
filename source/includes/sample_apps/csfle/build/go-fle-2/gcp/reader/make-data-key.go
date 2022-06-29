@@ -30,14 +30,37 @@ func MakeKey() error {
 	}
 	// end-datakeyopts
 
-	// start-create-dek
+	// start-create-index
 	uri := "<Your MongoDB URI>"
-	keyVaultNamespace := "encryption.__keyVault"
-	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).SetKmsProviders(kmsProviders)
 	keyVaultClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		return fmt.Errorf("Client connect error %v", err)
+		return fmt.Errorf("Connect error for regular client: %v", err)
 	}
+	defer func() {
+		_ = keyVaultClient.Disconnect(context.TODO())
+	}()
+
+	keyVaultDb := "encryption"
+	keyVaultColl := "__keyVault"
+	keyVaultNamespace := keyVaultDb + "." + keyVaultColl
+	keyVaultIndex := mongo.IndexModel{
+		Keys: bson.D{{"keyAltNames", 1}},
+		Options: options.Index().
+			SetUnique(true).
+			SetPartialFilterExpression(bson.D{
+				{"keyAltNames", bson.D{
+					{"$exists", true},
+				}},
+			}),
+	}
+	_, err = keyVaultClient.Database(keyVaultDb).Collection(keyVaultColl).Indexes().CreateOne(context.TODO(), keyVaultIndex)
+	if err != nil {
+		panic(err)
+	}
+	// end-create-index
+
+	// start-create-dek
+	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).SetKmsProviders(kmsProviders)
 	clientEnc, err := mongo.NewClientEncryption(keyVaultClient, clientEncryptionOpts)
 	if err != nil {
 		return fmt.Errorf("NewClientEncryption error %v", err)
