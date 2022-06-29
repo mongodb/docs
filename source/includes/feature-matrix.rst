@@ -54,6 +54,10 @@
      -
      - :icon-fa5:`check` [#govcloud-backup]_
 
+   * - |service| Data Federation
+     - :icon-fa5:`check`
+     -
+
    * - |service| Data Lake
      - :icon-fa5:`check`
      -   
