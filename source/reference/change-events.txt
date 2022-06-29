@@ -44,11 +44,7 @@ stream response document can have.
             ...
          ]
       },
-      "operationDescription": {
-         "indexes": [
-            <document>
-         ]
-      },
+      "operationDescription": { <document> },
       "collectionUUID": <uuid>,
       "clusterTime" : <Timestamp>,
       "wallTime" : <ISODate>,  // Added in MongoDB 6.0
@@ -109,6 +105,9 @@ following table describes each field in the change stream response document:
        - ``invalidate``
        - ``createIndexes``
        - ``dropIndexes``
+       - ``create``
+       - ``modify``
+       - ``shardCollection``
 
    * - ``fullDocument``
      - document
@@ -164,13 +163,14 @@ following table describes each field in the change stream response document:
 
    * - ``to``
      - document
-     - When ``operationType : rename``, this document displays the new name for
-       the ``ns`` collection. This document is omitted for all other
-       values of ``operationType``.
+     - When ``operationType`` is ``rename``, this document displays the new name for
+       the ``ns`` collection. This document is omitted for all other values
+       of ``operationType``.
 
    * - ``to.db``
      - string
      - The new name of the database.
+     - 
 
    * - ``to.coll``
      - string
@@ -237,8 +237,35 @@ following table describes each field in the change stream response document:
      - document
      - A document describing the operation performed.
 
-       This document and its fields only appears if the ``operationType`` value
-       is an expanded event.
+       This document and its fields only appears for certain ``operationType``
+       values when the change stream uses
+       :ref:`expanded events <change-streams-expanded-events>`.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.dropTarget``
+     - UUID
+     - Provides the UUID of the collection that was dropped in the rename
+       operation.
+
+       This field only appears when the ``operationType`` value is ``rename``
+       and when the rename operation sets a ``dropTarget`` value.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.idIndex``
+     - document
+     - The primary key index for a new collection.
+
+       This field only appears when the ``operationType`` value is ``create``.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.index``
+     - document
+     - Describes the index that was modified.
+
+       This field only appears when the ``operationType`` value is ``modify``.
 
        .. versionadded:: 6.0
 
@@ -249,6 +276,67 @@ following table describes each field in the change stream response document:
 
        This field only appears when the ``operationType`` value is ``createIndexes``
        or ``dropIndexes``.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.numInitialChunks``
+     - long
+     - Numbers of chunks created on each shard during a :dbcommand:`shardCollection`
+       operation.
+
+       This field only appears when the ``operationType`` value is ``shardCollection``.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.presplitHashedZones``
+     - boolean
+     - Indicates whether the shards are pre-split into zones.
+
+       This field only appears when the ``operationType`` value is ``shardCollection``.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.shardKey``
+     - document
+     - Document showing the :ref:`shard key <shard-key>` for the collection.
+
+       This field only appears when the ``operationType`` value is ``shardCollection``.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.to``
+     - document
+     - When ``operationType : rename``, this document displays the new name for
+       the ``ns`` collection. This document is omitted for all other
+       values of ``operationType``.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.to.db``
+     - string
+     - Indicates the new dataname name of the renamed collection.
+     
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.to.coll``
+     - string
+     - Indicates the new collection name of the renamed collection.
+
+       .. versionadded:: 6.0
+
+   * - ``operationDescription.unique``
+     - boolean
+     - Indicates whether shard chunks were :ref:`pre-split
+       <method-shard-collection-presplitHashedZones>` according to zones
+       when the collection became sharded.
+
+       This field only appears when the ``operationType`` value is ``shardCollection``.
+
+       .. versionadded:: 6.0
+
+   * - ``wallTime``
+     - ISODate
+     - ISO date from the oplog entry associated with the event.
 
        .. versionadded:: 6.0
 
@@ -271,7 +359,7 @@ following table describes each field in the change stream response document:
        
        On a sharded cluster, events that occur on different shards can
        have the same ``clusterTime`` but be associated with different
-       transactions or even not be associcated with any transaction. To
+       transactions or even not be associated with any transaction. To
        identify events for a single transaction, you can use the
        combination of ``lsid`` and ``txnNumber`` in the change stream
        event document.
@@ -450,7 +538,7 @@ The following example illustrates a ``replace`` event:
 A ``replace`` operation uses the update command, and consists of two stages:
 
 - Delete the original document with the ``documentKey`` and
-- Insert the new document using the same ``documentkey``
+- Insert the new document using the same ``documentKey``
 
 The ``fullDocument`` of a ``replace`` event represents the document after the
 insert of the replacement document.
@@ -537,12 +625,27 @@ illustrates a ``rename`` event:
       to: {
          db: 'engineering',
          coll: 'people'
+      },
+      operationDescription: {
+         to: {
+            db: 'engineering',
+            coll: 'people'
+         }
       }
    }
 
 A ``rename`` event leads to an
 :ref:`invalidate event <change-event-invalidate>` for change streams opened
 against its ``ns`` collection or ``to`` collection.
+
+.. versionchanged:: 6.0
+
+Starting in MongoDB 6.0, when the :ref:`showExpandedEvents
+<change-streams-expanded-events>` option is enabled for the change stream, the
+``rename`` event includes an ``operationDescription`` document.  This document
+provides a ``to`` field showing the changed database and collection and a
+``dropTarget`` field indicating whether the ``rename`` operation removed the
+collection before the rename.
 
 .. _change-streams-dropDatabase-event:
 
@@ -666,5 +769,102 @@ The following example shows a ``dropIndexes`` event:
          indexes: [
             { v: 2, key: { name: 1 }, name: 'name_1' }
          ]
+      }
+   }
+
+.. _change-event-modify:
+
+``modify`` Event
+----------------
+
+.. versionadded:: 6.0
+
+A ``modify`` event occurs when a collection is modified, such as when the
+:dbcommand:`collMod` command adds or remove options from a collection or view.
+
+The following example shows a ``modify`` event:
+
+.. code-block:: text
+
+   {
+      _id: { <ResumeToken> },
+      operationType: 'modify',
+      clusterTime: Timestamp({ t: 1654878543, i: 1 }),
+      collectionUUID: UUID("47d6baac-eeaa-488b-98ae-893f3abaaf25"),
+      wallTime: ISODate("2022-06-10T16:29:03.704Z"),
+      ns: {
+         db: 'test',
+         coll: 'authors' },
+      operationDescription: {
+         index: {
+            name: 'age_1',
+            hidden: true
+         }
+      },
+      stateBeforeChange: {
+         collectionOptions: { uuid: UUID("47d6baac-eeaa-488b-98ae-893f3abaaf25") },
+         indexOptions: {
+            hidden: false
+         }
+      }
+   }
+
+.. _change-event-create:
+
+``create`` Event
+-----------------
+
+.. versionadded:: 6.0
+
+A ``create`` event occurs when a collection is created, such as when the
+:dbcommand:`create` command explicitly adds a collection to a database.
+
+The following example shows a ``create`` event:
+
+.. code-block:: text
+
+   {
+      _id: { <ResumeToken> },
+      operationType: 'create',
+      clusterTime: Timestamp({ t: 1654894547, i: 24 }),
+      collectionUUID: UUID("98046a1a-b649-4e5b-9c75-67594221ce19"),
+      wallTime: ISODate("2022-06-10T20:55:47.947Z"),
+      ns: {
+         db: 'test',
+         coll: 'names'
+      },
+      operationDescription: {
+         idIndex: { v: 2, key: { _id: 1 }, name: '_id_' }
+      }
+   }
+
+.. _change-event-shardCollection:
+
+``shardCollection`` Event
+-------------------------
+
+.. versionadded:: 6.0
+
+A ``shardCollection`` event occurs when a collection is sharded.
+
+The following example shows a ``shardCollection`` event:
+
+.. code-block:: text
+
+   {
+      _id: { <ResumeToken> },
+      operationType: 'shardCollection',
+      clusterTime: Timestamp({ t: 1654894852, i: 52 }),
+      collectionUUID: UUID("98046a1a-b649-4e5b-9c75-67594221ce19"),
+      wallTime: ISODate("2022-06-10T21:00:52.854Z"),
+      ns: {
+         db: 'test',
+         coll: 'authors'
+      },
+      operationDescription: {
+         shardKey: { age: 'hashed' },
+         unique: false,
+         numInitialChunks: Long("0"),
+         presplitHashedZones: false
       }
    }
