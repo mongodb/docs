@@ -18,26 +18,23 @@ const autoEncryptionOpts = {
   keyVaultNamespace: keyVaultNamespace,
   kmsProviders: kmsProviders,
 };
-const encryptedClient = Mongo(
-  connectionString,
-  autoEncryptionOpts
-);
+const encryptedClient = Mongo(connectionString, autoEncryptionOpts);
 // end_mongoclient
 // start_client_enc
 const clientEncryption = encryptedClient.getClientEncryption();
 // end_client_enc
 
 const keyVault = encryptedClient.getKeyVault();
-const keyId = keyVault.createKey("aws", masterKey);
+const dataKeyId = keyVault.createKey("aws", masterKey);
 
 // start_enc_and_insert
 const encName = clientEncryption.encrypt(
-  keyId,
+  dataKeyId,
   "Greg",
   "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
 );
 const encFoods = clientEncryption.encrypt(
-  keyId,
+  dataKeyId,
   ["Cheese", "Grapes"],
   "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
 );
@@ -48,7 +45,7 @@ db.getSiblingDB(database).getCollection(collection).insertOne({
 // end_enc_and_insert
 // start_find_decrypt
 const encNameQuery = clientEncryption.encrypt(
-  keyId,
+  dataKeyId,
   "Greg",
   "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
 );

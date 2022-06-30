@@ -11,6 +11,8 @@ your document and insert your document into MongoDB:
    .. tab::
      :tabid: java-sync
 
+     .. include:: /includes/fundamentals/manual-encryption/example/dek-note.rst
+
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.java
         :language: java
         :start-after: start_enc_and_insert
@@ -18,6 +20,8 @@ your document and insert your document into MongoDB:
 
    .. tab::
      :tabid: nodejs
+
+     .. include:: /includes/fundamentals/manual-encryption/example/dek-note.rst
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.js
         :language: javascript
@@ -27,6 +31,8 @@ your document and insert your document into MongoDB:
    .. tab::
      :tabid: python
 
+     .. include:: /includes/fundamentals/manual-encryption/example/dek-note-python.rst
+
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.py
         :language: python
         :start-after: start_enc_and_insert
@@ -34,6 +40,8 @@ your document and insert your document into MongoDB:
 
    .. tab::
      :tabid: csharp
+
+     .. include:: /includes/fundamentals/manual-encryption/example/dek-note.rst
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.cs
         :dedent:
@@ -44,6 +52,8 @@ your document and insert your document into MongoDB:
    .. tab::
      :tabid: go
 
+     .. include:: /includes/fundamentals/manual-encryption/example/dek-note.rst
+
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.go
         :dedent:
         :language: go
@@ -52,6 +62,8 @@ your document and insert your document into MongoDB:
 
    .. tab::
       :tabid: shell
+
+      .. include:: /includes/fundamentals/manual-encryption/example/dek-note.rst
 
       .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc-shell.js
          :language: javascript
