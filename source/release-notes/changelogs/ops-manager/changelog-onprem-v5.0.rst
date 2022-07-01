@@ -1,3 +1,19 @@
+.. _opsmgr-server-5.0.12:
+
+|onprem| Server 5.0.12
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-06-30*
+
+- Updates ``log4j-over-slf4j`` to 1.7.36 to address
+  :cve-id:`CVE-2020-9493 <CVE-2020-9493>`.
+- Fixes an issue where editing an Oplog Store's name that contains dots 
+  (``.``) might have resulted in errors.
+- Updates the {+mdbagent+} to :ref:`11.0.17.7086
+  <mongodb-11.0.17.7086>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.5.3 
+  </release-notes/database-tools-changelog#100.5.3-changelog>`.
+
 .. _opsmgr-server-5.0.11:
 
 |onprem| Server 5.0.11
