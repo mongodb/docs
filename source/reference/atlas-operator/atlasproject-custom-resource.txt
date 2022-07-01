@@ -39,6 +39,11 @@ configure the following options:
   :setting:`spec.projectIpAccessList` parameter. This IP access list 
   grants network access to |service| clusters in the project.
 
+- The :ref:`maintenance window <configure-maintenance-window>` with
+  the :setting:`spec.maintenanceWindow` parameter. The maintenance
+  window sets the hour and day that |service| starts weekly
+  maintenance on your {+database-deployments+}.
+
 - :ref:`Private endpoints <ak8so-private-endpoint>` with the 
   :setting:`spec.privateEndpoints` parameter.
 
@@ -119,6 +124,30 @@ specification that integrates with Prometheus:
          serviceDiscovery: "http"
 
 To learn more, see :ref:`ak8so-integrate-third-party`.
+
+.. _maintenance-window-example:
+
+Maintenance Window Example
+--------------------------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification that sets the maintenance window to 5:00 AM every Tuesday with automatic deferral disabled:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+    name: my-project
+   spec:
+    name: Test project
+    projectIpAccessList:
+      - ipAddress: "192.0.2.15"
+        comment: "IP address for Application Server A"
+   maintenanceWindow:
+    dayOfWeek: 3
+    hourOfDay: 5
+    autoDefer: false
 
 Parameters
 ----------
@@ -451,6 +480,122 @@ This section describes the ``AtlasProject`` custom resource parameters:
 
    Namespace that contains your write token for New Relic. If you want 
    to integrate with New Relic, you must specify this setting.
+
+.. setting:: spec.maintenanceWindow
+
+   *Type*: object
+
+   *Optional*
+
+   List that contains your maintenance window settings. You can specify
+   the following body parameters:
+
+   .. include:: /includes/api/list-tables/maintenance-window-request.rst
+
+   .. include:: /includes/fact-urgent-maintenance.rst
+
+.. setting:: spec.maintenanceWindow.autoDefer
+
+   *Type*: boolean
+
+   *Conditional*
+
+   Flag that indicates whether |service| should defer all maintenance
+   windows for one week after you enable them.
+
+.. setting:: spec.maintenanceWindow.defer
+
+   *Type*: boolean
+
+   *Conditional*
+
+   Flag that indicates whether |service| should defer scheduled
+   maintenance. You must schedule maintenance before you can
+   successfully defer maintenance. 
+   :setting:`spec.maintenanceWindow.defer` and 
+   :setting:`spec.maintenanceWindow.startASAP` can't both be set to
+   ``true`` at the same time.
+
+   .. important::
+
+      While :setting:`spec.maintenanceWindow.defer` is set to ``true``,
+      |ak8so| defers scheduled maintenance every time you apply changes
+      to the ``AtlasProject`` custom resource. If you set
+      :setting:`spec.maintenanceWindow.defer` to ``true``, you should
+      change :setting:`spec.maintenanceWindow.defer` to ``false`` after
+      you apply changes.
+
+.. setting:: spec.maintenanceWindow.dayOfWeek
+
+   *Type*: number
+
+   *Conditional*
+
+   One-based integer that represents the day of the week that the
+   maintenance window starts. Use the following table to find the
+   integer that corresponds to each day:
+   
+   .. list-table::
+      :header-rows: 1
+      :widths: 60 40
+
+      * - Day of Week
+        - Integer
+
+      * - Sunday
+        - **1**
+
+      * - Monday
+        - **2**
+
+      * - Tuesday
+        - **3**
+
+      * - Wednesday
+        - **4**
+
+      * - Thursday
+        - **5**
+
+      * - Friday
+        - **6**
+
+      * - Saturday
+        - **7**
+   
+   If you want to configure the maintenance window for your project,
+   you must specify this setting.
+
+.. setting:: spec.maintenanceWindow.hourOfDay
+
+   *Type*: number
+
+   *Conditional*
+
+   Zero-based integer that represents the hour of the of the day that
+   the maintenance window starts according to a 24-hour clock. Use
+   ``0`` for midnight and ``12`` for noon. If you want to configure the
+   maintenance window for your project, you must specify this setting.
+
+.. setting:: spec.maintenanceWindow.startASAP
+
+   *Type*: boolean
+
+   *Conditional*
+
+   Flag that indicates whether |service| should immediately start
+   maintenance. :setting:`spec.maintenanceWindow.defer` and
+   :setting:`spec.maintenanceWindow.startASAP` can't both be set to
+   ``true`` at the same time.
+
+   .. important::
+
+      While :setting:`spec.maintenanceWindow.startASAP` is set to
+      ``true``, |ak8so| starts maintenance every time you apply changes
+      to the ``AtlasProject`` custom resource. If you set
+      :setting:`spec.maintenanceWindow.startASAP` to ``true``, you
+      should change :setting:`spec.maintenanceWindow.startASAP` to
+      ``false`` after you apply changes.
 
 .. setting:: spec.projectIpAccessList
 
