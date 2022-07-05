@@ -10,7 +10,7 @@ are a part of the :manual:`Stable API v1
 features that are a part of the :manual:`Stable API v1 
 </reference/stable-api/#api-v1-commands>` inline.
 
-MongoDB plans to add support for more configurations and capabilities on
+MongoDB plans to add support for more configurations and actions on
 {+serverless-instances+} over time. A checkmark below indicates that 
 MongoDB plans to support the feature for {+serverless-instances+} in 
 the future.
@@ -52,8 +52,8 @@ Configurations
        {+Serverless-instances+} do support X.509 certificates and IAM for authentication.
      - 
 
-Capabilities
-------------
+Actions
+-------
 
 .. list-table::
    :header-rows: 1
