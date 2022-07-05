@@ -1,0 +1,196 @@
+---
+ref: configure-kubectl-user
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+title: "Copy the following example |k8s-crd|."
+level: 4
+stepnum: 2
+ref: copy-k8s-user-crd
+content: |
+
+  .. literalinclude:: /reference/k8s/example-ldap-user.yaml
+     :language: yaml
+
+---
+title: "Open your preferred text editor and paste the example |k8s-crd| into a new text file."
+stepnum: 3
+level: 4
+ref: paste-k8s-crd
+---
+title: "Change the lines for the following parameters, as needed."
+level: 4
+stepnum: 4
+ref: change-k8s-user-crd
+content: |
+
+  Use the following table to guide you through changing the relevant
+  lines in the|k8s-crd|. For a full list of LDAP user settings, see
+  :ref:`security settings <security-settings>` in the |k8s-op-short|
+  MongoDB resource specification.
+
+  .. list-table::
+     :widths: 20 10 50 20
+     :header-rows: 1
+
+     * - Key
+       - Type
+       - Description
+       - Example
+
+     * - ``metadata.name``
+       - string
+       - The name of the resource for the MongoDB database user.
+
+         .. include:: /includes/fact-resource-name-char-limit.rst
+       
+       - ``ldap-user-1``
+
+     * - ``spec.db``
+       - string
+       - The name of the MongoDB database where users will be added. This
+         value must be ``$external``.
+       - ``$external``
+
+     * - ``spec.mongodbResourceRef.name``
+       - string
+       - The name of the :ref:`MongoDB resource <k8s-deploy-mdb-resources>`
+         to which this user is associated.
+       - ``my-resource``
+
+     * - ``spec.opsManager.configMapRef.name``
+       - string
+       - The name of the project containing the MongoDB database
+         where the user will be added. The
+         :setting:`spec.cloudManager.configMapRef.name` setting is an
+         alias for this setting and can be used in its place.
+       - ``my-project``
+
+     * - ``spec.roles.db``
+       - string
+       - The database the :ref:`role <roles>` can act on.
+       - ``admin``
+
+     * - ``spec.roles.name``
+       - string
+       - The name of the :ref:`role <roles>` to grant the database user.
+         The role name can be any :ref:`built-in MongoDB role <built-in-roles>`
+         or :opsmgr:`custom role </tutorial/manage-mongodb-roles>` that
+         exists in |com|.
+       - ``readWriteAnyDatabase``
+
+     * - ``spec.username``
+       - string
+       - The authenticated username that is mapped to an LDAP Distinguished
+         Name (DN) according to
+         :setting:`spec.security.authentication.ldap.userToDNMapping`.
+         The DN must already exist in your LDAP deployment.
+         This username must comply with the `RFC 2253 <https://tools.ietf.org/html/rfc2253>`__
+         LDAPv3 Distinguished Name standard. :setting:`transformed <security.ldap.userToDNMapping>`
+       
+         To learn more, see
+         :manual:`LDAP Query Templates
+         </core/security-ldap-external/#ldap-query-template>` in the
+         MongoDB Manual.
+       - ``uid=mdb0,dc=example,dc=org``
+
+
+---
+title: "Add any additional roles for the user to the |k8s-crd|."
+level: 4
+stepnum: 5
+ref: add-additional-roles-k8s-user
+content: |
+  You may grant additional roles to this user using the format defined
+  in the following example:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     ---
+     apiVersion: mongodb.com/v1
+     kind: MongoDBUser
+     metadata:
+       name: ldap-user-1
+     spec:
+       username: "uid=mdb0,dc=example,dc=org"
+       db: "$external"
+       mongodbResourceRef:
+         name: ldap-replica-set
+       roles:
+       - db: "admin"
+         name: "clusterAdmin"
+       - db: "admin"
+         name: "readWriteAnyDatabase"
+       - db: "admin"
+         name: "dbAdminAnyDatabase"
+
+     ...
+
+---
+title: "Create the user."
+level: 4
+stepnum: 6
+ref: create-k8s-user
+content: |
+
+  Invoke the following |k8s| command to create your database user:
+
+  .. code-block:: sh
+
+     kubectl apply -f <database-user-conf>.yaml
+
+  The following examples illustrate the connection string formats that you
+  can use when enabling authentication with LDAP in |k8s-op-short| MongoDB
+  deployments. These examples use the ``mongodb`` namespace and a replica
+  set deployment named ``replica-set-ldap``. The examples are similar for
+  sharded clusters.
+
+  - ``connectionString.standard``::manual:`Standard connection string
+    </reference/connection-string#std-label-connections-standard-connection-string-format>`
+    that can connect you to the database as this database user.
+
+    .. code-block:: sh
+
+       mongodb://replica-set-ldap-0-0-svc.mongodb.svc.cluster.local/?connectTimeoutMS=20000&replicaSet=replica-set-ldap&serverSelectionTimeoutMS=20000&ssl=true&authSource=$external
+
+  - ``connectionString.standardSrv``: :manual:`DNS seed list connection string
+    </reference/connection-string/#dns-seed-list-connection-format>` that
+    can connect you to the database as this database user.
+
+    .. code-block:: sh
+
+       mongodb+srv://replica-set-ldap-svc.mongodb.svc.cluster.local/?connectTimeoutMS=20000&replicaSet=replica-set-ldap&serverSelectionTimeoutMS=20000&ssl=true&authSource=$external
+
+  Using the previously-shown formats, you can connect to the MongoDB
+  database with the MongoDB Shell (``mongosh``), as in the following
+  example:
+
+  .. code-block:: sh
+
+     mongosh <connection-string> \
+       --host <my-replica-set>/web1.example.com \
+       --port 30907 \
+       --authenticationMechanism PLAIN \
+       --username cn=rob,cn=Users,dc=ldaps-01,dc=myteam,dc=com
+
+  You can use these credentials to
+  :ref:`connect to a MongoDB Database Resource from Inside Kubernetes <connect-from-inside-k8s>`.
+
+---
+title: "View the newly created user in |com|."
+level: 4
+stepnum: 7
+ref: view-k8s-user
+content: |
+
+  You can view the newly-created user in |com|:
+
+  1. From the Project's :guilabel:`Deployment` view, click
+     the :guilabel:`Security` tab.
+
+  #. Click the :guilabel:`MongoDB Users` nested tab.
+
+...

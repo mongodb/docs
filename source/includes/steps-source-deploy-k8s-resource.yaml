@@ -38,7 +38,7 @@ content: |
 
   .. literalinclude:: /reference/k8s/example-configmap.yaml
      :language: yaml
-     :emphasize-lines: 5, 7-9
+
 ---
 title: "Open your preferred text editor and paste the example
 |k8s-configmap| into a new text file."
@@ -104,6 +104,103 @@ content: |
   settings in your |k8s| object:
 
   .. include:: /includes/list-tables/resource-keys-tls-custom-ca.rst
+
+---
+title: "Configure the LDAP settings for your {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: add-ldap-settings
+content: |
+
+  To enable |ldap| in your deployment, configure the following
+  settings in your |k8s| object:
+
+  .. include:: /includes/list-tables/ldap-settings.rst
+
+  The resulting configuration may look similar to the following
+  example:
+
+  .. code-block:: yaml
+
+     security:
+      authentication:
+        enabled: true
+        # Enabled LDAP Authentication Mode
+        modes:
+          - "LDAP"
+          - "SCRAM"
+          # LDAP related configuration
+        ldap:
+        # Specify the hostname:port combination of one or
+        # more LDAP servers
+          servers:
+            - "ldap1.example.com:636"
+            - "ldap2.example.com:636"
+ 
+        # Set to "tls" to use LDAP over TLS. Leave blank if
+        # the LDAP server doesn't accept TLS.
+        transportSecurity: "tls"
+ 
+        # If TLS is enabled, add a reference to a ConfigMap that
+        # contains a CA certificate that validates the LDAP server's
+        # TLS certificate.
+        caConfigMapRef:
+          name: "<configmap-name>"
+          key: "<configmap-entry-key>"
+ 
+        # Specify the LDAP Distinguished Name to which
+        # MongoDB binds when connecting to the LDAP server
+        bindQueryUser: "cn=admin,dc=example,dc=org"
+ 
+        # Specify the password with which MongoDB binds
+        # when connecting to an LDAP server. This is a
+        # reference to a Secret Kubernetes Object containing
+        # one "password" key.
+        bindQueryPasswordSecretRef:
+          name: "<secret-name>"
+
+  For a full list of LDAP settings, see :ref:`security settings
+  <security-settings>` in the |k8s-op-short| MongoDB resource specification.
+  Also see the :setting:`spec.security.authentication.agents.automationUserName`
+  setting for the MongoDB Agent user in your LDAP-enabled |k8s-op-short|
+  deployment.
+---
+title: "Configure the LDAP settings for the MongoDB Agent."
+stepnum: 0
+level: 4
+ref: add-ldap-settings-agent
+content: |
+
+  :ref:`Update your MongoDB resource <k8s-edit-database-resource>`
+  with :ref:`security settings <security-settings>` specific to the Agent,
+  from the |k8s-op-short| MongoDB resource specification. The resulting
+  configuration may look similar to the following example:
+
+  .. code-block:: yaml
+
+     security:
+       authentication:
+         agents:
+           automationPasswordSecretRef:
+             key: automationConfigPassword
+             name: automation-config-password
+           automationUserName: mms-automation-agent
+           clientCertificateSecretRef:
+             name: agent-client-cert
+           mode: LDAP
+         enabled: true
+         ldap:
+           bindQueryPasswordSecretRef:
+             name: bind-query-password
+           bindQueryUser: cn=admin,dc=example,dc=org
+           servers:
+             - openldap.namespace.svc.cluster.local:389
+           userToDNMapping: '[{match: "(.+)",substitution: "uid={0},ou=groups,dc=example,dc=org"}]'
+         modes:
+           - LDAP
+           - SCRAM
+         requireClientTLSAuthentication: false
+
 
 ---
 title: "Configure the general X.509 settings for your {{k8sResource}} resource."
@@ -371,16 +468,41 @@ content: |
   .. include:: /includes/facts/fact-if-use-vault.rst
 
   .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+---
+title: "Create the secret for your sharded cluster's |tls| certificate."
+stepnum: 0
+level: 4
+ref: create-sc-tls-secret
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the sharded cluster's certificate:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-cert \
+       --cert=<sharded-cluster-tls-cert> \
+       --key=<sharded-cluster-tls-key>
+
+  .. note::
+
+     .. include:: /includes/fact-req-secret-prefix.rst
+
+  .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+  
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
 
 ---
-title: "Create the |k8s-secret| for your agent's X.509 certificate."
+title: "Create the |k8s-secret| for your agent's TLS certificate."
 stepnum: 0
 level: 4
 ref: create-agent-tls-secret
 content: |
 
   Run this ``kubectl`` command to create a new |k8s-secret| that stores
-  the agent's X.509 certificate:
+  the agent's TLS certificate:
 
   .. code-block:: sh
 
@@ -732,8 +854,8 @@ level: 4
 ref: create-sc-tls-configmap
 content: |
 
-  Run this ``kubectl`` command to link your |certauth| to your replica
-  set:
+  Run this ``kubectl`` command to link your |certauth| to your sharded
+  cluster:
 
   .. code-block:: sh
 
