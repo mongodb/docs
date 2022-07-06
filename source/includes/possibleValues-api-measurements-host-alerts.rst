@@ -101,18 +101,14 @@ Host Measurements
        :serverstatus:`network` document that the 
        :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
-   * - - ``OPLOG_REPLICATION_LAG_TIME``
-       - ``OPLOG_SLAVE_LAG_MASTER_TIME``
+   * - - ``OPLOG_SLAVE_LAG_MASTER_TIME``
        - ``OPLOG_MASTER_TIME``
        - ``OPLOG_MASTER_LAG_TIME_DIFF``
        - ``OPLOG_RATE_GB_PER_HOUR``
 
      - Durations and throughput of the MongoDB process'
        :manual:`oplog </core/replica-set-oplog>`.
-       The ``OPLOG_SLAVE_LAG_MASTER_TIME`` metric is deprecated in the
-       measurement API. Use the ``OPLOG_REPLICATION_LAG_TIME`` metric
-       instead. It returns decimal values (seconds and milliseconds).
-       For example, the value 2.75 means 2 seconds and 750 milliseconds.
+
 
    * - - ``DB_STORAGE_TOTAL``
        - ``DB_DATA_SIZE_TOTAL``

@@ -2,12 +2,10 @@
    /reference/api/alerts.txt
    /reference/api/global-alerts.txt
    /reference/api/measurements.txt
-
 .. These rows are part of the table found in
    /includes/possibleValues-api-measurements-host.rst
    But because they make the first column so wide, they are kept
    in a separate table here.
-
 .. list-table::
    :widths: 40 60
 
