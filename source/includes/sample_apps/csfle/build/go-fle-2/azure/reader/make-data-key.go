@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,6 +52,11 @@ func MakeKey() error {
 					{"$exists", true},
 				}},
 			}),
+	}
+	// Drop the Key Vault Collection in case you created this collection
+	// in a previous run of this application.
+	if err = keyVaultClient.Database(keyVaultDb).Collection(keyVaultColl).Drop(context.TODO()); err != nil {
+		log.Fatalf("Collection.Drop error: %v", err)
 	}
 	_, err = keyVaultClient.Database(keyVaultDb).Collection(keyVaultColl).Indexes().CreateOne(context.TODO(), keyVaultIndex)
 	if err != nil {
@@ -154,6 +160,11 @@ func MakeKey() error {
 	defer func() {
 		_ = secureClient.Disconnect(context.TODO())
 	}()
+	// Drop the encrypted collection in case you created this collection
+	// in a previous run of this application.
+	if err = secureClient.Database(dbName).Collection(collName).Drop(context.TODO()); err != nil {
+		log.Fatalf("Collection.Drop error: %v", err)
+	}
 	err = secureClient.Database(dbName).CreateCollection(context.TODO(), collName)
 	if err != nil {
 		return fmt.Errorf("Error creating collection: %v", err)

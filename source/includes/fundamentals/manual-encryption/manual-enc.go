@@ -57,7 +57,7 @@ func main() {
 	dataKeyOpts := options.DataKey().
 		SetMasterKey(masterKey).
 		SetKeyAltNames([]string{KeyAltName})
-	dataKeyID, err := clientEnc.CreateDataKey(context.TODO(), provider, dataKeyOpts)
+	dataKeyId, err := clientEnc.CreateDataKey(context.TODO(), provider, dataKeyOpts)
 	if err != nil {
 		panic(fmt.Errorf("create data key error %v", err))
 	}
@@ -70,7 +70,7 @@ func main() {
 	nameRawValue := bson.RawValue{Type: nameRawValueType, Value: nameRawValueData}
 	nameEncryptionOpts := options.Encrypt().
 		SetAlgorithm("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").
-		SetKeyID(dataKeyID)
+		SetKeyID(dataKeyId)
 	nameEncryptedField, err := clientEnc.Encrypt(
 		context.TODO(),
 		nameRawValue,
@@ -85,7 +85,7 @@ func main() {
 	foodsRawValue := bson.RawValue{Type: foodsRawValueType, Value: foodsRawValueData}
 	encryptionOpts := options.Encrypt().
 		SetAlgorithm("AEAD_AES_256_CBC_HMAC_SHA_512-Random").
-		SetKeyID(dataKeyID)
+		SetKeyID(dataKeyId)
 	foodsEncryptedField, err := clientEnc.Encrypt(
 		context.TODO(),
 		foodsRawValue,
@@ -110,7 +110,7 @@ func main() {
 	nameQueryRawValue := bson.RawValue{Type: nameQueryRawValueType, Value: nameQueryRawValueData}
 	nameQueryEncryptionOpts := options.Encrypt().
 		SetAlgorithm("AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic").
-		SetKeyID(dataKeyID)
+		SetKeyID(dataKeyId)
 	nameQueryEncryptedField, err := clientEnc.Encrypt(
 		context.TODO(),
 		nameQueryRawValue,

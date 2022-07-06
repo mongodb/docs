@@ -43,6 +43,8 @@ f"enxcol_.{COLLECTION_NAME}.ecoc"]
 
 KEY_ALT_NAMES_FIELD = "keyAltNames"
 
+SUCCESS = 0
+
 class TestTutorials(unittest.TestCase):
 
     client = pymongo.MongoClient(os.getenv("MONGODB_URI"))
@@ -121,7 +123,7 @@ class TestTutorials(unittest.TestCase):
         else:
             raise ValueError(f"Project not in either of the following:\nFLE_1_LANGS: {FLE_1_LANGS}\nFLE_2_LANGS: {FLE_2_LANGS}")
 
-    def _check_app(self, project):
+    def _check_app(self, project, is_second_run = False):
         """Build and test a sample application"""
 
         make_dek_file_name = None
@@ -163,17 +165,19 @@ class TestTutorials(unittest.TestCase):
             commands.append("go run -tags=cse .")
         else:
             Exception("Failed to Handle project")
-        for c in commands:
-            print(c)
-            os.system(c)
-
-        # only check indexes of apps that create this index. eventually all apps should
-        # create this index, put at present only these apps do this
-        if project in [PYTHON_FLE_2, JAVA_FLE_2, NODE_FLE_2, CSHARP_FLE_2, GO_FLE_2]:
-            self._check_index()
         
-        self._check_docs(project)
+        def run_apps(name_of_run, message = ""):
+            for c in commands:
+                print(c)
+                exit_code = os.system(c)
+                self.assertEqual(exit_code, SUCCESS, f"Process did not exit with status code {SUCCESS} on {name_of_run} run. {message}")
 
+        run_apps("first", "There may be a problem in the application source code.")
+       
+        self._check_index()
+        self._check_docs(project)
+        # test that sample apps can run twice in a row
+        run_apps("second", "The application was unable to run twice in a row. Maybe you aren't cleaning up created collections before second run?")
 
 class TestPython(TestTutorials):
     """Test Python FLE1 Sample Apps"""

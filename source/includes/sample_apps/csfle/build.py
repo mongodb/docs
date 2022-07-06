@@ -27,7 +27,7 @@ def get_commands(project, get_file_name, state):
     return commands
 
 
-def build_projects(project, build_states):
+def build_projects(project, build_states, skip_format):
     """Build sample apps for a project"""
 
     all_commands = []
@@ -42,9 +42,10 @@ def build_projects(project, build_states):
         os.system(c)
 
     # run formatter
-    if FILE_MAP[project].get(FORMAT_COMMAND):
-        print(f"\n\n$$$$   Formatting {project}:\n\n")
-        os.system(FILE_MAP[project][FORMAT_COMMAND])
+    if not skip_format:
+        if FILE_MAP[project].get(FORMAT_COMMAND):
+            print(f"\n\n$$$$   Formatting {project}:\n\n")
+            os.system(FILE_MAP[project][FORMAT_COMMAND])
 
 
 def check_bluehawk_installed():
@@ -57,12 +58,36 @@ def check_bluehawk_installed():
 @click.command()
 @click.option("--project", default=None, help="What apps to build")
 @click.option(
+    "--skip-format",
+    is_flag=True,
+    default=False,
+    help="Whether or not to skip the formatting step of building code. Useful for shortening build times.",
+)
+@click.option(
     "--reader",
     is_flag=True,
     default=False,
     help="Whether or not to only build reader directories",
 )
-def build_apps(project, reader):
+@click.option(
+    "--test",
+    is_flag=True,
+    default=False,
+    help="Whether or not to only build test directories",
+)
+@click.option(
+    "--fle-1",
+    is_flag=True,
+    default=False,
+    help="Whether or not to only build FLE-1 apps",
+)
+@click.option(
+    "--fle-2",
+    is_flag=True,
+    default=False,
+    help="Whether or not to only build FLE-2 apps",
+)
+def build_apps(project, skip_format, reader, test, fle_1, fle_2):
     """Get commmand line arguments and build sample applications"""
 
     check_bluehawk_installed()
@@ -79,13 +104,28 @@ def build_apps(project, reader):
         project_to_build = [l.strip() for l in project.split(",")]
         file_map = {l: FILE_MAP[l] for l in project_to_build}
 
-    if reader:
+    if reader and test:
+        raise ValueError("Cannot specify reader and test at the same time.")
+
+    elif reader:
         build_states = [s for s in BUILD_STATES if TEST not in s]
+
+    elif test:
+        build_states = [s for s in BUILD_STATES if TEST in s]
+
     else:
         build_states = BUILD_STATES
 
+    if fle_1 and fle_2:
+        raise ValueError("Cannot specify FLE-1 and FLE-2 at the same time.")
+
     for proj in file_map.keys():
-        build_projects(proj, build_states)
+        if fle_2 and FLE_2 not in proj:
+            continue
+        elif fle_1 and FLE_2 in proj:
+            continue
+
+        build_projects(proj, build_states, skip_format)
 
 
 if __name__ == "__main__":

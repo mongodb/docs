@@ -1,17 +1,18 @@
 import os
 
+FLE_2 = "-fle-2"
 BUILD_DIR = "build"
 PYTHON = "python"
-PYTHON_FLE_2 = "python-fle-2"
+PYTHON_FLE_2 = f"python{FLE_2}"
 JAVA = "java"
-JAVA_FLE_2 = "java-fle-2"
+JAVA_FLE_2 = f"java{FLE_2}"
 CSHARP = "dotnet"
-CSHARP_FLE_2 = "dotnet-fle-2"
+CSHARP_FLE_2 = f"dotnet{FLE_2}"
 NODE = "node"
-NODE_FLE_2 = "node-fle-2"
+NODE_FLE_2 = f"node{FLE_2}"
 DEK = "dek"
 GO = "go"
-GO_FLE_2 = "go-fle-2"
+GO_FLE_2 = f"go{FLE_2}"
 FLE_2_LANGS = [NODE_FLE_2, PYTHON_FLE_2, GO_FLE_2, JAVA_FLE_2, CSHARP_FLE_2]
 FLE_1_LANGS = [NODE, PYTHON, GO, JAVA, CSHARP]
 

@@ -126,56 +126,76 @@ const kmsProviders = {
 // :state-uncomment-end:
 // end-datakeyopts
 
-// start-create-dek
-// :state-start: local-reader aws-reader azure-reader gcp-reader
-// :uncomment-start:
-//const connectionString = "<Your Connection String>";
-// :uncomment-end:
-// :state-end:
-// :state-start: local-test aws-test azure-test gcp-test
-const connectionString = process.env.MONGODB_URI;
-// :state-end:
-const keyVaultNamespace = "encryption.__keyVault";
-const client = new MongoClient(connectionString, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+
 
 async function main() {
-  try {
-    await client.connect();
-    const encryption = new ClientEncryption(client, {
-      keyVaultNamespace,
-      kmsProviders,
-    });
-    // :state-uncomment-start: local-reader
-    //const key = await encryption.createDataKey(provider);
-    // :state-uncomment-end:
-    // :state-start: local-test
-    const key = await encryption.createDataKey(provider, {
-      keyAltNames: ["demo-data-key"],
-    });
-    // :state-end:
-    // :state-start: aws-reader azure-reader gcp-reader
-    // :uncomment-start:
-    //const key = await encryption.createDataKey(
-    //  provider,
-    //  { masterKey: masterKey },
-    //);
-    // :uncomment-end:
-    // :state-end:
-    // :state-start: aws-test azure-test gcp-test
-    // :uncomment-start:
-    //const key = await encryption.createDataKey(
-    //  provider,
-    //  { masterKey: masterKey, keyAltNames: ["demo-data-key"] }
-    //);
-    // :uncomment-end:
-    // :state-end:
-    console.log("DataKeyId [base64]: ", key.toString("base64"));
-  } finally {
-    await client.close();
-  }
+  // start-create-index
+  // :state-start: local-reader aws-reader azure-reader gcp-reader
+  // :uncomment-start:
+  //const uri = "<Your Connection String>";
+  // :uncomment-end:
+  // :state-end:
+  // :state-start: local-test aws-test azure-test gcp-test
+  const uri = process.env.MONGODB_URI;
+  // :state-end:
+  const keyVaultDatabase = "encryption";
+  const keyVaultCollection = "__keyVault";
+  const keyVaultNamespace = `${keyVaultDatabase}.${keyVaultCollection}`;
+  const keyVaultClient = new MongoClient(uri);
+  await keyVaultClient.connect();
+  const keyVaultDB = keyVaultClient.db(keyVaultDatabase);
+  // Drop the Key Vault Collection in case you created this collection
+  // in a previous run of this application.
+  await keyVaultDB.dropDatabase();
+  // Drop the database storing your encrypted fields as all
+  // the DEKs encrypting those fields were deleted in the preceding line.
+  await keyVaultClient.db("medicalRecords").dropDatabase();
+  const keyVaultColl = keyVaultDB.collection(keyVaultCollection);
+  await keyVaultColl.createIndex(
+    { keyAltNames: 1 },
+    {
+      unique: true,
+      partialFilterExpression: { keyAltNames: { $exists: true } },
+    }
+  );
+  // end-create-index
+  // start-create-dek
+  const client = new MongoClient(uri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  await client.connect();
+  const encryption = new ClientEncryption(client, {
+    keyVaultNamespace,
+    kmsProviders,
+  });
+  // :state-uncomment-start: local-reader
+  //const key = await encryption.createDataKey(provider);
+  // :state-uncomment-end:
+  // :state-start: local-test
+  const key = await encryption.createDataKey(provider, {
+    keyAltNames: ["demo-data-key"],
+  });
+  // :state-end:
+  // :state-start: aws-reader azure-reader gcp-reader
+  // :uncomment-start:
+  //const key = await encryption.createDataKey(
+  //  provider,
+  //  { masterKey: masterKey },
+  //);
+  // :uncomment-end:
+  // :state-end:
+  // :state-start: aws-test azure-test gcp-test
+  // :uncomment-start:
+  //const key = await encryption.createDataKey(
+  //  provider,
+  //  { masterKey: masterKey, keyAltNames: ["demo-data-key"] }
+  //);
+  // :uncomment-end:
+  // :state-end:
+  console.log("DataKeyId [base64]: ", key.toString("base64"));
+  await keyVaultClient.close()
+  await client.close();
+  // end-create-dek  
 }
 main();
-// end-create-dek

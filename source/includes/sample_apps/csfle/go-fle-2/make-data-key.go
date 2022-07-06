@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 
 	// :state-start: local-test aws-test azure-test gcp-test
 	"os"
@@ -18,7 +19,6 @@ import (
 //import (
 //	"crypto/rand"
 //	"io/ioutil"
-//	"log"
 //)
 // :uncomment-end:
 // :state-end:
@@ -189,6 +189,11 @@ func MakeKey() error {
 				}},
 			}),
 	}
+	// Drop the Key Vault Collection in case you created this collection
+	// in a previous run of this application.
+	if err = keyVaultClient.Database(keyVaultDb).Collection(keyVaultColl).Drop(context.TODO()); err != nil {
+		log.Fatalf("Collection.Drop error: %v", err)
+	}
 	_, err = keyVaultClient.Database(keyVaultDb).Collection(keyVaultColl).Indexes().CreateOne(context.TODO(), keyVaultIndex)
 	if err != nil {
 		panic(err)
@@ -316,6 +321,11 @@ func MakeKey() error {
 	defer func() {
 		_ = secureClient.Disconnect(context.TODO())
 	}()
+	// Drop the encrypted collection in case you created this collection
+	// in a previous run of this application.
+	if err = secureClient.Database(dbName).Collection(collName).Drop(context.TODO()); err != nil {
+		log.Fatalf("Collection.Drop error: %v", err)
+	}
 	err = secureClient.Database(dbName).CreateCollection(context.TODO(), collName)
 	if err != nil {
 		return fmt.Errorf("Error creating collection: %v", err)
@@ -325,4 +335,3 @@ func MakeKey() error {
 
 	return nil
 }
-
