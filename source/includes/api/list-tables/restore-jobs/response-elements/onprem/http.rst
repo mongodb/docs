@@ -28,6 +28,24 @@
        is delivered.
 
    * - | ``delivery``
+       | ``.authBearer``
+     - string
+     - Authorization bearer for requests to ``urlV2``. Value must  
+       be ``Bearer``. 
+
+   * - | ``delivery``
+       | ``.authHeader``
+     - string
+     - Authorization header for requests to ``urlV2``. Value must 
+       be ``Authorization``.
+
+   * - | ``delivery``
+       | ``.authValue``
+     - string
+     - Value for the bearer for requests to ``urlV2``. The 
+       ``authValue`` for the bearer must be the token value.
+
+   * - | ``delivery``
        | ``.expirationHours``
      - number
      - Number of hours the download |url| is valid once the restore
@@ -67,6 +85,28 @@
      - string
      - |url| from which the restored :term:`snapshot` data can be
        downloaded.
+
+   * - | ``delivery``
+       | ``.urlV2``
+     - string
+     - |url| from which the restored :term:`snapshot` data can be
+       securely downloaded. Requests to this |url| must include the 
+       ``authHeader``, ``authBearer``, and ``authValue`` in the HTTP 
+       request header. The request header for securely downloading 
+       from ``urlv2`` must be in the following format:
+
+       .. code-block:: sh 
+          :copyable: false
+
+          "<authHeader>:<authBearer> <authValue>" <urlV2>
+
+       .. example:: 
+
+          .. code-block:: sh 
+             :copyable: false
+
+             curl -H "Authorization: Bearer {AUTH-TOKEN}" \
+                  https://{OPSMANAGER-HOST}:{PORT}/backup/restore/v3/pull/{restoreJobId}/{filename}"
 
    * - ``groupId``
      - string
