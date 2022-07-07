@@ -1,3 +1,15 @@
+.. _opsmgr-server-4.4.23:
+
+|onprem| Server 4.4.23
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-07-07*
+
+- Fixes an issue where editing an Oplog Store's name that contains dots 
+  (``.``) might have resulted in errors.
+- Updates the {+mdbagent+} to :ref:`10.14.34.6588
+  <mongodb-10.14.34.6588>`.
+
 .. _opsmgr-server-4.4.22:
 
 |onprem| Server 4.4.22
