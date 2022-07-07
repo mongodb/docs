@@ -340,54 +340,67 @@ The operation returns a document similar to the following:
    "defaultReadConcern" : {
      "level" : "majority"
    }
-   
 
 Unset Global Default Read and Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider a deployment with the following default read and write 
-concern:
+You can:
 
+- Unset the global default read concern.
+- Only unset the global default write concern if you haven't already
+  set it.
+
+For example, assume the global default read concern is set to
+:readconcern:`level: "majority" <"majority">`. To unset the global
+default read concern, use an empty document ``{}``:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      "setDefaultRWConcern" : 1, 
+      "defaultReadConcern" : {}
+   } )
+
+The operation returns a document that indicates the operation was
+successful:
 
 .. code-block:: javascript
    :copyable: false
 
    {
-     "defaultWriteConcern" : {
-       "w" : "majority"
-     },
-     "defaultReadConcern" : {
-       "level" : "majority"
-     },
-     "updateOpTime" : Timestamp(1586290895, 1),
-     "updateWallClockTime" : ISODate("2020-04-07T20:21:41.849Z"),
-     "localUpdateWallClockTime" : ISODate("2020-04-07T20:21:41.862Z"),
-     "ok" : 1,
-     "$clusterTime" : { ... }
-     "operationTime" : Timestamp(1586290925, 1)
+      defaultReadConcern: { level: 'local' },
+      defaultWriteConcern: { w: 2, wtimeout: 0 },
+      updateOpTime: Timestamp({ t: 1656696934, i: 1 }),
+      updateWallClockTime: ISODate("2022-07-01T17:35:40.578Z"),
+      defaultWriteConcernSource: 'global',
+      defaultReadConcernSource: 'implicit',
+      localUpdateWallClockTime: ISODate("2022-07-01T17:35:40.578Z"),
+      ok: 1,
+      '$clusterTime': {
+         ...
+      },
+      operationTime: Timestamp({ t: 1656632593, i: 1 })
    }
 
-The following operation unsets the global default read and write 
-concern settings:
+You can only unset the global default write concern if you haven't
+already set it.
+
+To unset the global default write concern, use an empty document ``{}``:
 
 .. code-block:: javascript
 
-   db.adminCommand({
-     "setDefaultRWConcern" : 1,
-     "defaultReadConcern" : {},
-     "defaultWriteConcern" : {}
-   })
+   db.adminCommand( {
+      "setDefaultRWConcern" : 1, 
+      "defaultWriteConcern" : {}
+   } )
 
-The operation returns a document similar to the following:
+If the global default write concern is:
+
+- Unset, the operation succeeds.
+- Already set, the operation returns the following error.
 
 .. code-block:: javascript
    :copyable: false
 
-   {
-     "updateOpTime" : Timestamp(1586290895, 1),
-     "updateWallClockTime" : ISODate("2020-04-07T20:21:41.849Z"),
-     "localUpdateWallClockTime" : ISODate("2020-04-07T20:21:41.862Z"),
-     "ok" : 1,
-     "$clusterTime" : { ... }
-     "operationTime" : Timestamp(1586290925, 1)
-   }
+   MongoServerError: The global default write concern cannot be unset
+   once it is set.
