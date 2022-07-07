@@ -1,0 +1,32 @@
+import java.util.Arrays;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Aggregates.limit;
+import static com.mongodb.client.model.Aggregates.project;
+import static com.mongodb.client.model.Projections.excludeId;
+import static com.mongodb.client.model.Projections.fields;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+
+public class DateNumberToStringQuery {
+	public static void main( String[] args ) {
+		// define query
+		Document agg = new Document("defaultPath", "propertyType")
+                .append("query", "propertyType: (Apartment OR Condominium) AND accommodatesNumber: 4 AND lastScrapedDate: 2019");
+		// specify connection
+		String uri = "<connection-string>";
+        // establish connection and set namespace
+		try (MongoClient mongoClient = MongoClients.create(uri)) {
+			MongoDatabase database = mongoClient.getDatabase("sample_airbnb");
+			MongoCollection<Document> collection = database.getCollection("airbnb_mat_view");
+			// run query and print results
+			collection.aggregate(Arrays.asList(
+					eq("$search", eq("queryString", agg)), 
+					limit(5), 
+					project(fields(excludeId()) ))
+			).forEach(doc -> System.out.println(doc.toJson()));	
+		}
+	}
+}

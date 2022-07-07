@@ -14,9 +14,9 @@ How to Run |fts| String Queries Against Date and Numeric Fields
 
 This tutorial describes how to run |fts| queries against 
 ``string``, ``date``, and ``number`` fields in the 
-``sample_airbnb.listingsAndReviews`` collection. We will create a 
+``sample_airbnb.listingsAndReviews`` collection. You will create a 
 :manual:`materialized view </core/materialized-views/>` that stores 
-the numeric and date field values as strings. We will then create an 
+the numeric and date field values as strings. You will then create an 
 |fts| index on the materialized view and run queries against these 
 string fields using the :ref:`querystring-ref` and 
 :ref:`autocomplete-ref` operators. This tutorial takes you through 
@@ -396,353 +396,46 @@ the sample queries using the operator against the fields in the
    the date and number fields that were converted to strings in your 
    materialized view.
 
-.. procedure:: 
-   :style: normal
+.. tabs-selector:: drivers
 
-   .. step:: Connect to your cluster using {+mongosh+}. 
+----------
 
-      Open {+mongosh+} in a terminal window and connect to your 
-      cluster. For detailed instructions on connecting, see 
-      :doc:`/mongo-shell-connection`.
+.. |arrow| unicode:: U+27A4
 
-   .. step:: Use the ``sample_airbnb`` database. 
+|arrow| Use the **Select your language** drop-down menu on this page to 
+set the language of the examples in this section.
 
-      Run the following command at {+mongosh+} prompt:
+----------
 
-      .. io-code-block::
-         :copyable: true 
+.. tabs-drivers::
 
-         .. input:: 
-            :language: sh
+   .. tab::
+      :tabid: shell
 
-            use sample_airbnb 
+      .. include:: /includes/steps-fts-date-number-query-mongosh.txt
 
-         .. output:: 
-            :language: sh
-            :emphasize-lines: 1 
+   .. tab::
+      :tabid: compass
 
-            switched to db sample_airbnb
+      .. include:: /includes/steps-fts-date-number-query-compass.txt
 
-   .. step:: Run the following |fts| queries using the operator for which you created the index.
+   .. tab:: 
+      :tabid: go
 
-      If you created an index that uses dynamic mappings, you can query 
-      the ``airbnb_mat_view`` collection using the 
-      :ref:`querystring-ref` operator. If you created an index that 
-      uses static mappings, you can query the ``airbnb_mat_view`` 
-      collection using the :ref:`autocomplete-ref` operator.
+      .. include:: /includes/steps-fts-date-number-query-query-go.txt
 
-      .. tabs:: 
+   .. tab:: 
+      :tabid: java-sync 
 
-         .. tab:: queryString Operator 
-            :tabid: querystring
+      .. include:: /includes/steps-fts-date-number-query-java.txt
 
-            .. tabs:: 
+   .. tab::
+      :tabid: nodejs
 
-               .. tab:: AND Query 
-                  :tabid: and-query 
+      .. include:: /includes/steps-fts-date-number-query-nodejs.txt
 
-                  The following query searches for properties where the 
-                  property type is ``Apartment`` or ``Condominium``, 
-                  accommodates ``2`` people, and was listed in 
-                  ``2019``. 
+   .. tab::
+      :tabid: python
 
-                  .. io-code-block::
-                     :copyable: true 
+      .. include:: /includes/steps-fts-date-number-query-python.txt
 
-                     .. input:: 
-                        :language: json
-
-                        db.airbnb_mat_view.aggregate([
-                          {
-                            "$search": { 
-                              "queryString": { 
-                                "defaultPath": "propertyType",
-                                "query": "propertyType: (Apartment OR Condominium) AND accommodatesNumber: 4 AND lastScrapedDate: 2019"
-                              }
-                            }
-                          },
-                          { $limit: 5 },
-                          {
-                            $project: {
-                              "_id": 0
-                            }
-                          }
-                        ])
-
-                     .. output:: 
-                        :language: none
-                        :emphasize-lines: 1 
-
-                        [
-                          {
-                            lastScrapedDate: '2019-03-06',
-                            propertyName: 'LAHAINA, MAUI! RESORT/CONDO BEACHFRONT!! SLEEPS 4!',
-                            propertyType: 'Condominium',
-                            accommodatesNumber: '4'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-06',
-                            propertyName: 'Makaha Valley Paradise with OceanView',
-                            propertyType: 'Condominium',
-                            accommodatesNumber: '4'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-06',
-                            propertyName: 'March 2019 availability! Oceanview on Sugar Beach!',
-                            propertyType: 'Condominium',
-                            accommodatesNumber: '4'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-06',
-                            propertyName: 'Tropical Jungle Oasis',
-                            propertyType: 'Condominium',
-                            accommodatesNumber: '4'
-                          },
-                          {
-                            lastScrapedDate: '2019-02-11',
-                            propertyName: 'Hospede-se com acesso fácil.',
-                            propertyType: 'Condominium',
-                            accommodatesNumber: '4'
-                          }
-                        ]
-
-               .. tab:: OR Query 
-                  :tabid: or-query 
-
-                  The following query searches for properties where the 
-                  property type is ``House``, accommodates ``2`` 
-                  people, was listed in ``2019``, or allows stay for up 
-                  to ``30`` nights. 
-
-                  .. io-code-block::
-                     :copyable: true 
-
-                     .. input:: 
-                        :language: json
-
-                        db.airbnb_mat_view.aggregate([
-                          {
-                            "$search": {
-                              "queryString": {
-                                "defaultPath": "propertyType",
-                                "query": "propertyType: House OR accommodatesNumber: 2 OR lastScrapedDate: 2019 OR maximumNumberOfNights: 30"
-                              }
-                            }
-                          },
-                          { $limit: 5 },
-                          {
-                            $project: {
-                              "_id": 0
-                            }
-                          }
-                        ])
-
-                     .. output:: 
-                        :language: none
-
-                        [
-                          {
-                            lastScrapedDate: '2019-02-11',
-                            propertyName: '2017 , férias no Rio',
-                            propertyType: 'House',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '30'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-07',
-                            propertyName: 'Newly renovated home',
-                            propertyType: 'House',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '30'
-                          },
-                          {
-                            lastScrapedDate: '2019-02-18',
-                            propertyName: 'Vintage House For Rent',
-                            propertyType: 'House',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '30'
-                          },
-                          {
-                            lastScrapedDate: '2019-02-18',
-                            propertyName: '4floor house in Taksim,Taksimde 4katli müstakil ev',
-                            propertyType: 'House',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '30'
-                          },
-                          {
-                            lastScrapedDate: '2019-02-16',
-                            propertyName: '22 Oporto Guesthouse Cordoaria',
-                            propertyType: 'House',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '30'
-                          }
-                        ]
-
-         .. tab:: autocomplete Operator 
-            :tabid: autocomplete
-
-            .. tabs:: 
-
-               .. tab:: Year Search
-                  :tabid: yearquery
-
-                  The following query searches for properties listed 
-                  sometime starting with ``2``  and allows stay of 
-                  number of nights starting with ``1``. 
-
-                  .. io-code-block::
-                     :copyable: true 
-
-                     .. input:: 
-                        :language: json
-
-                        db.airbnb_mat_view.aggregate([
-                          {
-                            "$search": {
-                              "compound": {
-                                "should": [{
-                                  "autocomplete": {
-                                    "path": "lastScrapedDate",
-                                    "query": "2"
-                                  }
-                                },
-                                {
-                                  "autocomplete": {
-                                    "path": "maximumNumberOfNights",
-                                    "query": "1"
-                                  }
-                                }]
-                              }
-                            }
-                          },
-                          { $limit: 5 },
-                          {
-                            $project: {
-                              "_id": 0
-                            }
-                          }
-                        ])
-
-                     .. output:: 
-                        :language: none
-                        :emphasize-lines: 3, 7, 10, 14, 17, 21, 24, 28, 31, 35
-
-                        [
-                          {
-                              lastScrapedDate: '2019-02-11',
-                              propertyName: 'Horto flat with small garden',
-                              propertyType: 'Apartment',
-                              accommodatesNumber: '4',
-                              maximumNumberOfNights: '1125'
-                            },
-                            {
-                              lastScrapedDate: '2019-03-06',
-                              propertyName: 'Private Room in Bushwick',
-                              propertyType: 'Apartment',
-                              accommodatesNumber: '1',
-                              maximumNumberOfNights: '1125'
-                            },
-                            {
-                              lastScrapedDate: '2019-02-11',
-                              propertyName: 'Apt Linda Vista Lagoa - Rio',
-                              propertyType: 'Apartment',
-                              accommodatesNumber: '2',
-                              maximumNumberOfNights: '1125'
-                            },
-                            {
-                              lastScrapedDate: '2019-02-18',
-                              propertyName: 'Charming Flat in Downtown Moda',
-                              propertyType: 'House',
-                              accommodatesNumber: '6',
-                              maximumNumberOfNights: '1125'
-                            },
-                            {
-                              lastScrapedDate: '2019-02-11',
-                              propertyName: "Catete's Colonial Big Hause Room B",
-                              propertyType: 'House',
-                              accommodatesNumber: '8',
-                              maximumNumberOfNights: '1125'
-                            }
-                        ]
-
-               .. tab:: Number Search
-                  :tabid: numericquery
-
-                  The following query searches for properties that can 
-                  allow stay of number of nights starting with ``3`` 
-                  and accomodate number of people starting with ``2``. 
-
-                  .. io-code-block::
-                     :copyable: true 
-
-                     .. input:: 
-                        :language: json
-
-                        db.airbnb_mat_view.aggregate([
-                          {
-                            "$search": {
-                              "compound": {
-                                "should": [{
-                                  "autocomplete": {
-                                    "path": "maximumNumberOfNights",
-                                    "query": "3"
-                                  }
-                                },
-                                {
-                                  "autocomplete": {
-                                    "path": "accommodatesNumber",
-                                    "query": "2"
-                                  }
-                                }]
-                              }
-                            }
-                          },
-                          { $limit: 5 },
-                          {
-                            $project: {
-                              "_id": 0
-                            }
-                          }
-                        ])
-
-                     .. output:: 
-                        :language: none
-                        :emphasize-lines: 6-7, 13-14, 20-21, 27-28, 34-35
-
-                        [
-                          {
-                            lastScrapedDate: '2019-03-06',
-                            propertyName: 'Ocean View Waikiki Marina w/prkg',
-                            propertyType: 'Condominium',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '365'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-07',
-                            propertyName: 'New York City - Upper West Side Apt',
-                            propertyType: 'Apartment',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '360'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-07',
-                            propertyName: 'Sydney Hyde Park City Apartment (checkin from 6am)',
-                            propertyType: 'Apartment',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '30'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-07',
-                            propertyName: 'Private Room (2)  in Guest House at Coogee Beach',
-                            propertyType: 'House',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '365'
-                          },
-                          {
-                            lastScrapedDate: '2019-03-06',
-                            propertyName: '~Ao Lele~ Flying Cloud',
-                            propertyType: 'Treehouse',
-                            accommodatesNumber: '2',
-                            maximumNumberOfNights: '30'
-                          }
-                        ]
