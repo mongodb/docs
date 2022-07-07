@@ -1,3 +1,10 @@
+.. _mongodb-10.14.34.6588:
+
+{+mdbagent+} 10.14.34.6588
+---------------------------
+
+:ref:`Released with Ops Manager 4.4.23 on 2022-07-07 <opsmgr-server-4.4.23>`
+
 .. _mongodb-10.14.33.6581:
 
 {+mdbagent+} 10.14.33.6581
