@@ -11,6 +11,12 @@ databases.
 
 Adds support to run |onprem| on Debian 11.
 
+Alerting
+--------
+
+- Deprecates |snmp| alerts. |onprem| 7.0.0 will not include |snmp|
+  alerts.
+
 Automation Platform Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

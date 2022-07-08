@@ -97,6 +97,9 @@ Alerting
 - Improves integration flow with PagerDuty through its Events v2 API
   for alert notifications.
 
+- Deprecates |snmp| alerts. |onprem| 7.0.0 will not include |snmp|
+  alerts.
+
 Automation
 ``````````
 .. https://jira.mongodb.org/browse/DOCSP-23017
@@ -111,7 +114,7 @@ Automation
   nodes.
 
   .. note::
-     This isn’t supported in Local mode.
+     This isn't supported in Local mode.
 
 - Improves usability by offering a modernized Deployment Security
   Configuration UI.
@@ -122,7 +125,7 @@ Automation
 User Interface
 ``````````````
 
-Changes to MongoDB’s current fonts, colors and UI components.
+Changes to MongoDB's current fonts, colors and UI components.
 
 |onprem| Platform Support
 `````````````````````````
