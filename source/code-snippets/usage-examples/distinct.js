@@ -7,8 +7,6 @@ const client = new MongoClient(uri);
 
 async function run() {
   try {
-    await client.connect();
-
     // define a database and collection on which to run the method
     const database = client.db("sample_mflix");
     const movies = database.collection("movies");

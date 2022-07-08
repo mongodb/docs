@@ -3,8 +3,6 @@ const uri = process.env.MONGDODB_URI;
 const client = new MongoClient(uri);
 
 async function run() {
-    await client.connect();
-
     // begin data insertion
     const db = client.db("aggregation");
     const coll = db.collection("restaurants");

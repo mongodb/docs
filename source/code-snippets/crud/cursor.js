@@ -82,8 +82,6 @@ async function count(collection) {
 
 async function run() {
   try {
-    await client.connect();
-
     const database = client.db("test");
     const orders = database.collection("orders");
 

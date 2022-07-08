@@ -19,8 +19,6 @@ interface Theater {
 
 async function run() {
   try {
-    await client.connect();
-
     const database = client.db("sample_mflix");
     const theaters = database.collection<Theater>("theaters");
 

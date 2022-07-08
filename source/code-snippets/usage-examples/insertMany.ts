@@ -12,8 +12,6 @@ interface Food {
 
 async function run() {
   try {
-    await client.connect();
-
     const database = client.db("insertDB");
     // Specifying a schema is optional, but it enables type hints on
     // finds and inserts

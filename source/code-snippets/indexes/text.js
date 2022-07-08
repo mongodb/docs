@@ -9,8 +9,6 @@ const client = new MongoClient(uri);
 
 async function run() {
   try {
-    await client.connect();
-
     // begin-idx
     const database = client.db("sample_mflix");
     const movies = database.collection("movies");

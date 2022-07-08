@@ -9,8 +9,6 @@ const client = new MongoClient(uri);
 
 async function loadData() {
   try {
-    await client.connect();
-
     const database = client.db("test");
     const pizza = database.collection("pizza");
 
@@ -76,8 +74,6 @@ async function loadData() {
 async function runAllArrayElements() {
 
   try {
-    await client.connect();
-
     const database = client.db("test");
     const pizza = database.collection("pizza");
 
@@ -99,8 +95,6 @@ async function runAllArrayElements() {
 async function runFirstArrayElement() {
 
   try {
-    await client.connect();
-
     const database = client.db("test");
     const pizza = database.collection("pizza");
 
@@ -123,8 +117,6 @@ async function runFirstArrayElement() {
 
 async function arrayFiltersOne() {
   try {
-    await client.connect();
-
     const database = client.db("test");
     const pizza = database.collection("pizza");
 
@@ -154,8 +146,6 @@ async function arrayFiltersOne() {
 
 async function arrayFiltersTwo() {
   try {
-    await client.connect();
-
     const database = client.db("test");
     const pizza = database.collection("pizza");
 

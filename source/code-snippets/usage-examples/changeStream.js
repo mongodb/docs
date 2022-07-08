@@ -13,7 +13,6 @@ const simulateAsyncPause = () =>
 let changeStream;
 async function run() {
   try {
-    await client.connect();
     const database = client.db("insertDB");
     const collection = database.collection("haikus");
 

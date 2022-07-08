@@ -12,8 +12,6 @@ interface Haiku {
 
 async function run() {
   try {
-    await client.connect();
-
     const database = client.db("insertDB");
     // Specifying a Schema is optional, but it enables type hints on
     // finds and inserts

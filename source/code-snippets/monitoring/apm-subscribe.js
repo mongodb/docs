@@ -15,8 +15,6 @@ client.on(eventName, event => {
 
 async function run() {
   try {
-    await client.connect();
-
     // Establish and verify connection
     await client.db("admin").command({ ping: 1 });
     console.log("Connected successfully");

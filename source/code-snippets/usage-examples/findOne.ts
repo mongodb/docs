@@ -24,8 +24,6 @@ type MovieSummary = Pick<Movie, "title" | "imdb">;
 
 async function run(): Promise<void> {
   try {
-    await client.connect();
-
     const database = client.db("sample_mflix");
     // Specifying a Schema is always optional, but it enables type hinting on
     // finds and inserts

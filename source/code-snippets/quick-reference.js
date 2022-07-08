@@ -154,8 +154,6 @@ async function distinct(coll) {
 
 async function run() {
   try {
-    await client.connect();
-
     const database = client.db("sample_mflix");
     const collection = database.collection("movies");
 

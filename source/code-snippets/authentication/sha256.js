@@ -17,9 +17,6 @@ const client = new MongoClient(uri);
 // Function to connect to the server
 async function run() {
   try {
-    // Connect the client to the server
-    await client.connect();
-
     // Establish and verify connection
     await client.db("admin").command({ ping: 1 });
     console.log("Connected successfully to server");

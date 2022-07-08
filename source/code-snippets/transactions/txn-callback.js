@@ -35,7 +35,6 @@ async function queryData() {
   const uri = process.env.MONGODB_URI;
   const client = new MongoClient(uri, { useUnifiedTopology: true });
   try {
-    await client.connect();
     await Promise.all(['customers', 'inventory', 'orders'].map(async c => {
       const coll = client.db('testdb').collection(c);
       console.log(JSON.stringify(await coll.find().toArray()));
@@ -96,7 +95,6 @@ const client = new MongoClient(uri, { useUnifiedTopology: true });
 
 async function run() {
   /* Test code: uncomment block to run
-  await client.connect();
   await cleanUp(client);
   await setup(client);
 

@@ -11,8 +11,6 @@ function sleep(ms) {
 
 async function run() {
   try {
-    await client.connect();
-
     const database = client.db("test");
     const orders = database.collection("orders");
 
