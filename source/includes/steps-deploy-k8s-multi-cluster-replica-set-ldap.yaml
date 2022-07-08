@@ -1,0 +1,86 @@
+stepnum: 1
+ref: create-mc-rs-tls-secret
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: create-k8s-mc-tls-secret
+---
+
+stepnum: 2
+ref: create-k8s-mc-rs-tls-configmap
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: create-k8s-mc-tls-configmap
+
+---
+stepnum: 3
+ref: update-mongodbmulti-resource-ldap
+title: "Update your ``MongoDBMulti`` custom resource to enable |ldap| authentication."
+level: 4
+content: |
+
+  :ref:`Update your MongoDBMulti custom resource <k8s-edit-database-resource>`
+  with :ref:`security settings <security-settings>` from the |k8s-op-short|
+  MongoDB resource specification.
+
+  To enable |ldap| in your deployment, configure the following
+  settings in your |k8s| object:
+
+  .. include:: /includes/list-tables/ldap-settings.rst
+
+  The resulting configuration may look similar to the following
+  example:
+
+  .. code-block:: yaml
+
+     security:
+      authentication:
+        enabled: true
+        # Enabled LDAP Authentication Mode
+        modes:
+          - "LDAP"
+          - "SCRAM"
+          # LDAP related configuration
+        ldap:
+        # Specify the hostname:port combination of one or
+        # more LDAP servers
+          servers:
+            - "ldap1.example.com:636"
+            - "ldap2.example.com:636"
+ 
+        # Set to "tls" to use LDAP over TLS. Leave blank if
+        # the LDAP server doesn't accept TLS.
+        transportSecurity: "tls"
+ 
+        # If TLS is enabled, add a reference to a ConfigMap that
+        # contains a CA certificate that validates the LDAP server's
+        # TLS certificate.
+        caConfigMapRef:
+          name: "<configmap-name>"
+          key: "<configmap-entry-key>"
+ 
+        # Specify the LDAP Distinguished Name to which
+        # MongoDB binds when connecting to the LDAP server
+        bindQueryUser: "cn=admin,dc=example,dc=org"
+ 
+        # Specify the password with which MongoDB binds
+        # when connecting to an LDAP server. This is a
+        # reference to a Secret Kubernetes Object containing
+        # one "password" key.
+        bindQueryPasswordSecretRef:
+          name: "<secret-name>"
+
+  For a full list of LDAP settings, see :ref:`security settings
+  <security-settings>` in the |k8s-op-short| MongoDB resource specification.
+  Also see the :setting:`spec.security.authentication.agents.automationUserName`
+  setting for the MongoDB Agent user in your LDAP-enabled |k8s-op-short|
+  deployment.
+
+---
+stepnum: 4
+level: 4
+ref: verify-mc-resources-tls
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: verify-mdb-resources-mc
+
+...
