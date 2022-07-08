@@ -7,12 +7,10 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Driver.Encryption;
 
-namespace Insert
+namespace QueryableEncryption
 {
-
-    class InsertEncryptedDocument
+    internal static class InsertEncryptedDocument
     {
-
         public static void Insert()
         {
             // :state-start: local-reader azure-reader aws-reader gcp-reader
@@ -30,18 +28,18 @@ namespace Insert
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             // :state-start: local-reader local-test
-            var provider = "local";
-            var localMasterKeyPath = "master-key.txt";
-            string localMasterKeyBase64Read = File.ReadAllText(localMasterKeyPath);
+            const string provider = "local";
+            const string localMasterKeyPath = "master-key.txt";
+            var localMasterKeyBase64Read = File.ReadAllText(localMasterKeyPath);
             var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64Read);
             var localOptions = new Dictionary<string, object>
             {
-                { "key", localMasterKeyBytes }
+                {"key", localMasterKeyBytes}
             };
             kmsProviders.Add(provider, localOptions);
             // :state-end:
             // :state-uncomment-start: aws-reader
-            //var provider = "aws";
+            //const string provider = "aws";
             //var awsKmsOptions = new Dictionary<string, object>
             //{
             //    { "accessKeyId", "<Your AWS Access Key ID>" },
@@ -50,7 +48,7 @@ namespace Insert
             //kmsProviders.Add(provider, awsKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: aws-test
-            //var provider = "aws"; 
+            //const string provider = "aws";
             //var awsAccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
             //var awsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
             //var awsKmsOptions = new Dictionary<string, object>
@@ -61,7 +59,7 @@ namespace Insert
             //kmsProviders.Add(provider, awsKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: azure-reader
-            //var provider = "azure"; 
+            //const string provider = "azure";
             //var azureKmsOptions = new Dictionary<string, object>
             //{
             //    { "tenantId", "<Your Azure Tenant ID>" },
@@ -71,7 +69,7 @@ namespace Insert
             //kmsProviders.Add(provider, azureKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: azure-test
-            //var provider = "azure"; 
+            //const string provider = "azure";
             //var azureTenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
             //var azureClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
             //var azureClientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
@@ -84,7 +82,7 @@ namespace Insert
             //kmsProviders.Add(provider, azureKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: gcp-reader
-            //var provider = "gcp";
+            //const string provider = "gcp";
             //var gcpKmsOptions = new Dictionary<string, object>
             //{
             //    { "privateKey", "<Your GCP Private Key>" },
@@ -93,7 +91,7 @@ namespace Insert
             //kmsProviders.Add(provider, gcpKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: gcp-test
-            //var provider = "gcp";
+            //const string provider = "gcp";
             //var gcpPrivateKey = Environment.GetEnvironmentVariable("GCP_PRIVATE_KEY");
             //var gcpEmail = Environment.GetEnvironmentVariable("GCP_EMAIL");
             //var gcpKmsOptions = new Dictionary<string, object>
@@ -105,52 +103,70 @@ namespace Insert
             // :state-uncomment-end:
             // end-kmsproviders
 
-
             // start-schema
-            var regularClientSettings = MongoClientSettings.FromConnectionString(connectionString);
-            var regularClient = new MongoClient(regularClientSettings);
-            var keyVaultCollection = regularClient.GetDatabase(keyVaultNamespace.DatabaseNamespace.ToString()).GetCollection<BsonDocument>(keyVaultNamespace.CollectionName.ToString());
+            var regularClient = new MongoClient(connectionString);
+            var keyVaultCollection = regularClient.GetDatabase(keyVaultNamespace.DatabaseNamespace.DatabaseName)
+                .GetCollection<BsonDocument>(keyVaultNamespace.CollectionName);
 
-            Func<string, FilterDefinition<BsonDocument>> getFilter = altName => Builders<BsonDocument>.Filter.Eq<BsonString>("keyAltNames", altName);
-            var dataKeyId1 = keyVaultCollection.Find<BsonDocument>(getFilter("dataKey1")).First<BsonDocument>().GetValue("_id"); 
-            var dataKeyId2 = keyVaultCollection.Find<BsonDocument>(getFilter("dataKey2")).First<BsonDocument>().GetValue("_id"); 
-            var dataKeyId3 = keyVaultCollection.Find<BsonDocument>(getFilter("dataKey3")).First<BsonDocument>().GetValue("_id"); 
-            var dataKeyId4 = keyVaultCollection.Find<BsonDocument>(getFilter("dataKey4")).First<BsonDocument>().GetValue("_id"); 
+            BsonBinaryData GetKeyId(string altName)
+            {
+                var filter = Builders<BsonDocument>.Filter.Eq<BsonString>("keyAltNames", altName);
+                return keyVaultCollection.Find(filter).First<BsonDocument>()["_id"].AsBsonBinaryData;
+            }
 
+            var dataKeyId1 = GetKeyId("dataKey1");
+            var dataKeyId2 = GetKeyId("dataKey2");
+            var dataKeyId3 = GetKeyId("dataKey3");
+            var dataKeyId4 = GetKeyId("dataKey4");
 
-            var encryptedDatabaseNamespace = CollectionNamespace.FromFullName("medicalRecords.patients");
-            var encryptedFieldsMap = new Dictionary<string, BsonDocument> {
-            { encryptedDatabaseNamespace.FullName, new BsonDocument{ 
-                    { "fields", new BsonArray{
-                            new BsonDocument {
-                                { "keyId", dataKeyId1 },
-                                { "path", new BsonString("patientId")},
-                                {"bsonType", new BsonString("int")},
-                                {"queries", new BsonDocument{
-                                    {"queryType", new BsonString("equality")}
-                                }}
-                            },
-                            new BsonDocument {
-                                { "keyId", dataKeyId2 },
-                                { "path", new BsonString("medications")},
-                                {"bsonType", new BsonString("array")},
-                            },
-                            new BsonDocument {
-                                { "keyId", dataKeyId3 },
-                                { "path", new BsonString("patientRecord.ssn")},
-                                {"bsonType", new BsonString("string")},
-                                {"queries", new BsonDocument{
-                                    {"queryType", new BsonString("equality")}
-                                }}
-                            },
-                            new BsonDocument {
-                                { "keyId", dataKeyId4 },
-                                { "path", new BsonString("patienRecord.billing")},
-                                {"bsonType", new BsonString("object")},
-                            },
+            var encryptedCollectionNamespace = CollectionNamespace.FromFullName("medicalRecords.patients");
+            var encryptedFieldsMap = new Dictionary<string, BsonDocument>
+            {
+                {
+                    encryptedCollectionNamespace.FullName, new BsonDocument
+                    {
+                        {
+                            "fields", new BsonArray
+                            {
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId1},
+                                    {"path", new BsonString("patientId")},
+                                    {"bsonType", new BsonString("int")},
+                                    {
+                                        "queries", new BsonDocument
+                                        {
+                                            {"queryType", new BsonString("equality")}
+                                        }
+                                    }
+                                },
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId2},
+                                    {"path", new BsonString("medications")},
+                                    {"bsonType", new BsonString("array")},
+                                },
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId3},
+                                    {"path", new BsonString("patientRecord.ssn")},
+                                    {"bsonType", new BsonString("string")},
+                                    {
+                                        "queries", new BsonDocument
+                                        {
+                                            {"queryType", new BsonString("equality")}
+                                        }
+                                    }
+                                },
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId4},
+                                    {"path", new BsonString("patientRecord.billing")},
+                                    {"bsonType", new BsonString("object")},
+                                },
+                            }
                         }
-                    }      
-                }
+                    }
                 }
             };
             // end-schema
@@ -167,7 +183,7 @@ namespace Insert
             // :state-start: aws-test azure-test local-test gcp-test
             var extraOptions = new Dictionary<string, object>()
             {
-                { "cryptSharedLibPath", Environment.GetEnvironmentVariable("SHARED_LIB_PATH")},
+                {"cryptSharedLibPath", Environment.GetEnvironmentVariable("SHARED_LIB_PATH")},
             };
             // :state-end:
             // end-extra-options
@@ -175,8 +191,8 @@ namespace Insert
             // start-client
             var clientSettings = MongoClientSettings.FromConnectionString(connectionString);
             var autoEncryptionOptions = new AutoEncryptionOptions(
-                keyVaultNamespace: keyVaultNamespace,
-                kmsProviders: kmsProviders,
+                keyVaultNamespace,
+                kmsProviders,
                 encryptedFieldsMap: encryptedFieldsMap,
                 extraOptions: extraOptions);
             clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
@@ -186,10 +202,10 @@ namespace Insert
             // start-insert
             var sampleDocument = new BsonDocument
             {
-                { "firstName", "Jon" },
-                { "lastName", "Doe" },
-                { "patientId", 12345678 },
-                { "address", "157 Electric Ave." },
+                {"firstName", "Jon"},
+                {"lastName", "Doe"},
+                {"patientId", 12345678},
+                {"address", "157 Electric Ave."},
                 {
                     "medications", new BsonArray
                     {
@@ -200,28 +216,33 @@ namespace Insert
                 {
                     "patientRecord", new BsonDocument
                     {
-                        { "ssn", new BsonString("987-65-4320") },
-                        { "billing", new BsonDocument {
-                            {"type", new BsonString("Visa")},
-                            {"number", "4111111111111111"}
-                        }
+                        {"ssn", new BsonString("987-65-4320")},
+                        {
+                            "billing", new BsonDocument
+                            {
+                                {"type", new BsonString("Visa")},
+                                {"number", "4111111111111111"}
+                            }
                         }
                     }
                 }
             };
 
-            var secureCollection = secureClient.GetDatabase(encryptedDatabaseNamespace.DatabaseNamespace.ToString()).GetCollection<BsonDocument>(encryptedDatabaseNamespace.CollectionName.ToString());
+            var secureCollection = secureClient.GetDatabase(encryptedCollectionNamespace.DatabaseNamespace.DatabaseName)
+                .GetCollection<BsonDocument>(encryptedCollectionNamespace.CollectionName);
             secureCollection.InsertOne(sampleDocument);
             // end-insert
-    
+
             // start-find
             Console.WriteLine("Finding a document with regular (non-encrypted) client.");
             var filter = Builders<BsonDocument>.Filter.Eq("firstName", "Jon");
-            var regularResult = regularClient.GetDatabase(encryptedDatabaseNamespace.DatabaseNamespace.ToString()).GetCollection<BsonDocument>(encryptedDatabaseNamespace.CollectionName.ToString()).Find(filter).Limit(1).ToList()[0];
+            var regularClientEncryptedCollection = regularClient.GetDatabase(encryptedCollectionNamespace.DatabaseNamespace.DatabaseName)
+                .GetCollection<BsonDocument>(encryptedCollectionNamespace.CollectionName);
+            var regularResult = regularClientEncryptedCollection.Find(filter).First();
             Console.WriteLine($"\n{regularResult}\n");
             Console.WriteLine("Finding a document with encrypted client, searching on an encrypted field");
             var encryptedFieldFilter = Builders<BsonDocument>.Filter.Eq("patientRecord.ssn", "987-65-4320");
-            var secureResult = secureClient.GetDatabase(encryptedDatabaseNamespace.DatabaseNamespace.ToString()).GetCollection<BsonDocument>(encryptedDatabaseNamespace.CollectionName.ToString()).Find(encryptedFieldFilter).Limit(1).ToList()[0];
+            var secureResult = secureCollection.Find(encryptedFieldFilter).First();
             Console.WriteLine($"\n{secureResult}\n");
             // end-find
         }

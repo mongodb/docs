@@ -37,9 +37,11 @@ BSON_BINARY_VALUE = Binary(b"")
 TEST_FLE1_ENC_FIELD = "bloodType"
 TEST_FLE2_ENC_FIELD = "patientId"
 
-FLE2_ENC_COLLS = [f"enxcol_.{COLLECTION_NAME}.esc",
-f"enxcol_.{COLLECTION_NAME}.ecc",
-f"enxcol_.{COLLECTION_NAME}.ecoc"]
+FLE2_ENC_COLLS = [
+    f"enxcol_.{COLLECTION_NAME}.esc",
+    f"enxcol_.{COLLECTION_NAME}.ecc",
+    f"enxcol_.{COLLECTION_NAME}.ecoc",
+]
 
 KEY_ALT_NAMES_FIELD = "keyAltNames"
 
@@ -69,12 +71,14 @@ class TestTutorials(unittest.TestCase):
     def _check_index(self):
         """Ensure index on Key Alt Names field exists"""
 
-        test_data_key_ids_document = {KEY_ALT_NAMES_FIELD : ["AltNameToTestForIndex"]}
+        test_data_key_ids_document = {KEY_ALT_NAMES_FIELD: ["AltNameToTestForIndex"]}
         test_data_key_ids_document_copy = test_data_key_ids_document.copy()
         self.client[KEY_VAULT_DB][KEY_VAULT_COLL].insert_one(test_data_key_ids_document)
         # make sure inserting a document with duplicate key alt name raises an error
         with self.assertRaises(pymongo.errors.DuplicateKeyError):
-            self.client[KEY_VAULT_DB][KEY_VAULT_COLL].insert_one(test_data_key_ids_document_copy)
+            self.client[KEY_VAULT_DB][KEY_VAULT_COLL].insert_one(
+                test_data_key_ids_document_copy
+            )
 
         self.client[KEY_VAULT_DB][KEY_VAULT_COLL].delete_one(test_data_key_ids_document)
 
@@ -121,9 +125,11 @@ class TestTutorials(unittest.TestCase):
                 f"{TEST_FLE1_ENC_FIELD} must be encrypted",
             )
         else:
-            raise ValueError(f"Project not in either of the following:\nFLE_1_LANGS: {FLE_1_LANGS}\nFLE_2_LANGS: {FLE_2_LANGS}")
+            raise ValueError(
+                f"Project not in either of the following:\nFLE_1_LANGS: {FLE_1_LANGS}\nFLE_2_LANGS: {FLE_2_LANGS}"
+            )
 
-    def _check_app(self, project, is_second_run = False):
+    def _check_app(self, project):
         """Build and test a sample application"""
 
         make_dek_file_name = None
@@ -148,7 +154,8 @@ class TestTutorials(unittest.TestCase):
                 f'mvn compile exec:java -Dexec.mainClass="com.mongodb.csfle.{insert_file_name}"'
             )
         elif project == CSHARP or project == CSHARP_FLE_2:
-            os.chdir("CSFLE")
+            project_dir = os.path.split(FILE_MAP[project][DEK])[0]
+            os.chdir(project_dir)
             commands.append("dotnet run")
         elif project == NODE or project == NODE_FLE_2:
             make_dek_file_name = FILE_MAP[project][DEK]
@@ -222,6 +229,7 @@ class TestPythonFLE2(TestTutorials):
         )
         self._check_app(PYTHON_FLE_2)
 
+
 class TestDotnet(TestTutorials):
     """Test Dotnet FLE1 Sample Apps"""
 
@@ -241,6 +249,7 @@ class TestDotnet(TestTutorials):
         os.chdir(os.path.join(BUILD_DIR, CSHARP, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(CSHARP)
 
+
 class TestDotnetFLE2(TestTutorials):
     """Test Dotnet FLE2 Sample Apps"""
 
@@ -249,7 +258,9 @@ class TestDotnetFLE2(TestTutorials):
         self._check_app(CSHARP_FLE_2)
 
     def test_dotnet_fle_2_azure(self):
-        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *AZURE_TEST.split(DIR_SEPERATOR)))
+        os.chdir(
+            os.path.join(BUILD_DIR, CSHARP_FLE_2, *AZURE_TEST.split(DIR_SEPERATOR))
+        )
         self._check_app(CSHARP_FLE_2)
 
     def test_dotnet_fle_2_gcp(self):
@@ -257,8 +268,11 @@ class TestDotnetFLE2(TestTutorials):
         self._check_app(CSHARP_FLE_2)
 
     def test_dotnet_fle_2_local(self):
-        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
+        os.chdir(
+            os.path.join(BUILD_DIR, CSHARP_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR))
+        )
         self._check_app(CSHARP_FLE_2)
+
 
 class TestNode(TestTutorials):
     """Test Node FLE1 Sample Apps"""
@@ -278,6 +292,7 @@ class TestNode(TestTutorials):
     def test_node_local(self):
         os.chdir(os.path.join(BUILD_DIR, NODE, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(NODE)
+
 
 class TestNodeFLE2(TestTutorials):
     """Test Node FLE2 Sample Apps"""
@@ -318,6 +333,7 @@ class TestGo(TestTutorials):
         os.chdir(os.path.join(BUILD_DIR, GO, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(GO)
 
+
 class TestGoFLE2(TestTutorials):
     """Test Go FLE1 Sample Apps"""
 
@@ -336,6 +352,7 @@ class TestGoFLE2(TestTutorials):
     def test_go_fle_2_local(self):
         os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(GO_FLE_2)
+
 
 class TestJava(TestTutorials):
     """Test Java FLE1 Sample Apps"""
@@ -356,6 +373,7 @@ class TestJava(TestTutorials):
         os.chdir(os.path.join(BUILD_DIR, JAVA, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(JAVA)
 
+
 class TestJavaFLE2(TestTutorials):
     """Test Java FLE2 Sample Apps"""
 
@@ -374,4 +392,3 @@ class TestJavaFLE2(TestTutorials):
     def test_java_fle_2_local(self):
         os.chdir(os.path.join(BUILD_DIR, JAVA_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(JAVA_FLE_2)
-

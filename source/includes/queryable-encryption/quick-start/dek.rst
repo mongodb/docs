@@ -60,7 +60,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
@@ -128,7 +128,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: csharp
@@ -185,7 +185,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: csharp

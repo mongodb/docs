@@ -1,11 +1,8 @@
-using Insert;
-using Key;
-
-namespace Run
+namespace QueryableEncryption
 {
-    class Run
+    internal static class Run
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             MakeDataKey.MakeKey();
             InsertEncryptedDocument.Insert();

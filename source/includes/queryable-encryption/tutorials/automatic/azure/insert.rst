@@ -55,7 +55,7 @@ snippet:
    .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/CSFLE/InsertEncryptedDocument.cs
+      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/QueryableEncryption/InsertEncryptedDocument.cs
          :start-after: start-insert
          :end-before: end-insert
          :language: csharp

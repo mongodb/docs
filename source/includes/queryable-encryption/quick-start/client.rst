@@ -53,7 +53,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: csharp
@@ -109,7 +109,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
@@ -165,7 +165,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-schema
                :end-before: end-schema
                :language: csharp
@@ -221,7 +221,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: csharp
@@ -280,7 +280,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/CSFLE/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-client
                :end-before: end-client
                :language: csharp

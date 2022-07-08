@@ -69,9 +69,12 @@ FILE_MAP = {
         FORMAT_COMMAND: f'find ./{BUILD_DIR} -name "*.csproj" | xargs -n1 dotnet format',
     },
     CSHARP_FLE_2: {
-        DEK: "CSFLE/MakeDataKey.cs",
-        INSERT: "CSFLE/InsertEncryptedDocument.cs",
-        EXTRA_FILES: ["CSFLE/CSFLE.csproj", "CSFLE/Program.cs"],
+        DEK: "QueryableEncryption/MakeDataKey.cs",
+        INSERT: "QueryableEncryption/InsertEncryptedDocument.cs",
+        EXTRA_FILES: [
+            "QueryableEncryption/QueryableEncryption.csproj",
+            "QueryableEncryption/Program.cs",
+        ],
         FORMAT_COMMAND: f'find ./{BUILD_DIR} -name "*.csproj" | xargs -n1 dotnet format',
     },
     NODE: {

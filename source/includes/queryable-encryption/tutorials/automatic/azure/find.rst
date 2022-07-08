@@ -51,7 +51,7 @@ a client that is not configured for automatic {+qe+}.
    .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/CSFLE/InsertEncryptedDocument.cs
+      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/QueryableEncryption/InsertEncryptedDocument.cs
          :start-after: start-find
          :end-before: end-find
          :language: csharp

@@ -6,14 +6,12 @@ using MongoDB.Driver;
 using MongoDB.Bson;
 using MongoDB.Driver.Encryption;
 
-namespace Key
+namespace QueryableEncryption
 {
-
-    class MakeDataKey
+    internal static class MakeDataKey
     {
         public static void MakeKey()
         {
-
             // :state-start: local-reader local-test
             using (var randomNumberGenerator = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
@@ -28,17 +26,17 @@ namespace Key
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             // :state-start: local-reader local-test
-            var provider = "local";
-            string localMasterKeyBase64Read = File.ReadAllText("master-key.txt");
+            const string provider = "local";
+            var localMasterKeyBase64Read = File.ReadAllText("master-key.txt");
             var localMasterKeyBytes = Convert.FromBase64String(localMasterKeyBase64Read);
             var localOptions = new Dictionary<string, object>
             {
-                { "key", localMasterKeyBytes }
+                {"key", localMasterKeyBytes}
             };
             kmsProviders.Add(provider, localOptions);
             // :state-end:
             // :state-uncomment-start: aws-reader
-            //var provider = "aws";
+            //const string provider = "aws";
             //var awsKmsOptions = new Dictionary<string, object>
             //{
             //    { "accessKeyId", "<Your AWS Access Key ID>" },
@@ -47,7 +45,7 @@ namespace Key
             //kmsProviders.Add(provider, awsKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: aws-test
-            //var provider = "aws"; 
+            //const string provider = "aws";
             //var awsAccessKey = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
             //var awsSecretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
             //var awsKmsOptions = new Dictionary<string, object>
@@ -58,7 +56,7 @@ namespace Key
             //kmsProviders.Add(provider, awsKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: azure-reader
-            //var provider = "azure"; 
+            //const string provider = "azure";
             //var azureKmsOptions = new Dictionary<string, object>
             //{
             //    { "tenantId", "<Your Azure Tenant ID>" },
@@ -68,7 +66,7 @@ namespace Key
             //kmsProviders.Add(provider, azureKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: azure-test
-            //var provider = "azure"; 
+            //const string provider = "azure";
             //var azureTenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID");
             //var azureClientId = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID");
             //var azureClientSecret = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET");
@@ -81,7 +79,7 @@ namespace Key
             //kmsProviders.Add(provider, azureKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: gcp-reader
-            //var provider = "gcp";
+            //const string provider = "gcp";
             //var gcpKmsOptions = new Dictionary<string, object>
             //{
             //    { "privateKey", "<Your GCP Private Key>" },
@@ -90,7 +88,7 @@ namespace Key
             //kmsProviders.Add(provider, gcpKmsOptions);
             // :state-uncomment-end:
             // :state-uncomment-start: gcp-test
-            //var provider = "gcp";
+            //const string provider = "gcp";
             //var gcpPrivateKey = Environment.GetEnvironmentVariable("GCP_PRIVATE_KEY");
             //var gcpEmail = Environment.GetEnvironmentVariable("GCP_EMAIL");
             //var gcpKmsOptions = new Dictionary<string, object>
@@ -107,19 +105,14 @@ namespace Key
             // :state-uncomment-end:
             // end-kmsproviders
 
-            DataKeyOptions[] dataKeyOptsArr = new DataKeyOptions[4];
-
-
             // :state-start: aws-reader aws-test gcp-reader gcp-test azure-reader azure-test
-            // :uncomment-start:
-            //for (int i = 0; i < dataKeyOptsArr.Length; i += 1)
-            //{
-            // :uncomment-end:
-                // start-datakeyopts
-                // :state-start: local-reader local-test
-                // :state-end:
+            // start-datakeyopts
+            DataKeyOptions GetDataKeyOptions(List<string> altNames)
+            {
+                var dataKeyOptions = new DataKeyOptions(); // :remove:
                 // :state-uncomment-start: aws-reader
                 //var dataKeyOptions = new DataKeyOptions(
+                //    alternateKeyNames: altNames,
                 //    masterKey: new BsonDocument
                 //    {
                 //        { "region", "<Your AWS Key Region>" },
@@ -130,6 +123,7 @@ namespace Key
                 //var awsKeyARN = Environment.GetEnvironmentVariable("AWS_KEY_ARN"); // e.g. "arn:aws:kms:us-east-2:111122223333:alias/test-key"
                 //var awsKeyRegion = Environment.GetEnvironmentVariable("AWS_KEY_REGION");
                 //var dataKeyOptions = new DataKeyOptions(
+                //    alternateKeyNames: altNames,
                 //    masterKey: new BsonDocument
                 //    {
                 //        { "region", awsKeyRegion },
@@ -139,16 +133,18 @@ namespace Key
                 // :state-uncomment-start: azure-reader
                 //kmsProviders.Add(provider, azureKmsOptions);
                 //var dataKeyOptions = new DataKeyOptions(
-                //masterKey: new BsonDocument
-                //{
-                //    { "keyName", "<Your Azure Key Name>" },
-                //    { "keyVaultEndpoint", "<Your Azure Key Vault Endpoint>" },
-                //});
+                //    alternateKeyNames: altNames,
+                //    masterKey: new BsonDocument
+                //    {
+                //        { "keyName", "<Your Azure Key Name>" },
+                //        { "keyVaultEndpoint", "<Your Azure Key Vault Endpoint>" },
+                //    });
                 // :state-uncomment-end:
                 // :state-uncomment-start: azure-test
                 //var azureKeyName = Environment.GetEnvironmentVariable("AZURE_KEY_NAME");
                 //var azureKeyVaultEndpoint = Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_ENDPOINT"); // typically <azureKeyName>.vault.azure.net
                 //var dataKeyOptions = new DataKeyOptions(
+                //    alternateKeyNames: altNames,
                 //    masterKey: new BsonDocument
                 //    {
                 //        { "keyName", azureKeyName },
@@ -157,16 +153,18 @@ namespace Key
                 // :state-uncomment-end:
                 // :state-uncomment-start: gcp-reader
                 //var dataKeyOptions = new DataKeyOptions(
+                //    alternateKeyNames: altNames,
                 //    masterKey: new BsonDocument
                 //    {
-                //        { "projectId", "Your GCP Project ID" },
-                //        { "location", "Your GCP Key Location" } ,
+                //        { "projectId", "<Your GCP Project ID>" },
+                //        { "location", "<Your GCP Key Location>" } ,
                 //        { "keyRing", "<Your GCP Key Ring>" },
                 //        { "keyName", "<Your GCP Key Name>" },
                 //    });
                 // :state-uncomment-end:
                 // :state-uncomment-start: gcp-test
                 //var dataKeyOptions = new DataKeyOptions(
+                //    alternateKeyNames: altNames,
                 //    masterKey: new BsonDocument
                 //    {
                 //        { "projectId", gcpDataKeyProjectId },
@@ -175,11 +173,9 @@ namespace Key
                 //        { "keyName", gcpDataKeyKeyName },
                 //    });
                 // :state-uncomment-end:
-                // end-datakeyopts
-            // :uncomment-start:
-            //    dataKeyOptsArr[i] = dataKeyOptions;
-            //}
-            // :uncomment-end:
+                return dataKeyOptions;
+            }
+            // end-datakeyopts
             // :state-end:
 
             // start-create-index
@@ -194,90 +190,105 @@ namespace Key
             // start-create-dek
             var keyVaultNamespace = CollectionNamespace.FromFullName("encryption.__keyVault");
             var keyVaultClient = new MongoClient(connectionString);
-            var indexOptions = new CreateIndexOptions<BsonDocument>();
-            indexOptions.Unique = true;
-            indexOptions.PartialFilterExpression = new BsonDocument{{"keyAltNames", new BsonDocument{{"$exists", new BsonBoolean(true) }}}};
+            var indexOptions = new CreateIndexOptions<BsonDocument>
+            {
+                Unique = true,
+                PartialFilterExpression = new BsonDocument
+                    {{"keyAltNames", new BsonDocument {{"$exists", new BsonBoolean(true)}}}}
+            };
             var builder = Builders<BsonDocument>.IndexKeys;
             var indexKeysDocument = builder.Ascending("keyAltNames");
             var indexModel = new CreateIndexModel<BsonDocument>(indexKeysDocument, indexOptions);
-            var keyVaultDatabase = keyVaultClient.GetDatabase(keyVaultNamespace.DatabaseNamespace.ToString());
+            var keyVaultDatabase = keyVaultClient.GetDatabase(keyVaultNamespace.DatabaseNamespace.DatabaseName);
             // Drop the Key Vault Collection in case you created this collection
-            // in a previous run of this application.  
-            keyVaultDatabase.DropCollection(keyVaultNamespace.CollectionName.ToString());
-            var keyVaultCollection = keyVaultDatabase.GetCollection<BsonDocument>(keyVaultNamespace.CollectionName.ToString());
+            // in a previous run of this application.
+            keyVaultDatabase.DropCollection(keyVaultNamespace.CollectionName);
+            var keyVaultCollection = keyVaultDatabase.GetCollection<BsonDocument>(keyVaultNamespace.CollectionName);
             keyVaultCollection.Indexes.CreateOne(indexModel);
             // end-create-index
 
             // start-create-dek
             var clientEncryptionOptions = new ClientEncryptionOptions(
-                keyVaultClient: keyVaultClient,
-                keyVaultNamespace: keyVaultNamespace,
-                kmsProviders: kmsProviders);
-            Func <Guid, BsonBinaryData> getBsonBinaryId = guid => new BsonBinaryData(guid, GuidRepresentation.Standard);
+                keyVaultClient,
+                keyVaultNamespace,
+                kmsProviders);
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);
             // :state-start: aws-test aws-reader azure-test azure-reader gcp-test gcp-reader
             // :uncomment-start:
-            //var dataKeyOptions1 = dataKeyOptsArr[0];
-            //var dataKeyOptions2 = dataKeyOptsArr[1];
-            //var dataKeyOptions3 = dataKeyOptsArr[2];
-            //var dataKeyOptions4 = dataKeyOptsArr[3];
+            //var dataKeyOptions1 = GetDataKeyOptions(new List<string> { "dataKey1" });
+            //var dataKeyOptions2 = GetDataKeyOptions(new List<string> { "dataKey2" });
+            //var dataKeyOptions3 = GetDataKeyOptions(new List<string> { "dataKey3" });
+            //var dataKeyOptions4 = GetDataKeyOptions(new List<string> { "dataKey4" });
             // :uncomment-end:
             // :state-end:
             // :state-start: local-test local-reader
-            var dataKeyOptions1 = new DataKeyOptions();
-            var dataKeyOptions2 = new DataKeyOptions();
-            var dataKeyOptions3 = new DataKeyOptions();
-            var dataKeyOptions4 = new DataKeyOptions();
+            var dataKeyOptions1 = new DataKeyOptions(alternateKeyNames : new List<string> { "dataKey1" });
+            var dataKeyOptions2 = new DataKeyOptions(alternateKeyNames : new List<string> { "dataKey2" });
+            var dataKeyOptions3 = new DataKeyOptions(alternateKeyNames : new List<string> { "dataKey3" });
+            var dataKeyOptions4 = new DataKeyOptions(alternateKeyNames : new List<string> { "dataKey4" });
             // :state-end:
-            List<string> keyNames1 = new List<string>();
-            keyNames1.Add("dataKey1");
-            var dataKeyId1 = getBsonBinaryId(clientEncryption.CreateDataKey(provider, dataKeyOptions1.With(keyNames1), CancellationToken.None));
-            List<string> keyNames2 = new List<string>();
-            keyNames2.Add("dataKey2");
-            var dataKeyId2 = getBsonBinaryId(clientEncryption.CreateDataKey(provider, dataKeyOptions2.With(keyNames2), CancellationToken.None));
-            List<string> keyNames3 = new List<string>();
-            keyNames3.Add("dataKey3");
-            var dataKeyId3 = getBsonBinaryId(clientEncryption.CreateDataKey(provider, dataKeyOptions3.With(keyNames3), CancellationToken.None));
-            List<string> keyNames4 = new List<string>();
-            keyNames4.Add("dataKey4");
-            var dataKeyId4 = getBsonBinaryId(clientEncryption.CreateDataKey(provider, dataKeyOptions4.With(keyNames4), CancellationToken.None));
+
+            
+            BsonBinaryData CreateKeyGetID(DataKeyOptions options){
+                var dateKeyGuid = clientEncryption.CreateDataKey(provider, options, CancellationToken.None);
+                return new BsonBinaryData(dateKeyGuid, GuidRepresentation.Standard);
+            }
+
+            var dataKeyId1 = CreateKeyGetID(dataKeyOptions1);
+            var dataKeyId2 = CreateKeyGetID(dataKeyOptions2);
+            var dataKeyId3 = CreateKeyGetID(dataKeyOptions3);
+            var dataKeyId4 = CreateKeyGetID(dataKeyOptions4);
             // end-create-dek
 
-
             // start-create-enc-collection
-            var encryptedDatabaseNamespace = CollectionNamespace.FromFullName("medicalRecords.patients");
-            var encryptedFieldsMap = new Dictionary<string, BsonDocument> {
-            { encryptedDatabaseNamespace.FullName, new BsonDocument{ 
-                    { "fields", new BsonArray{
-                            new BsonDocument {
-                                { "keyId", dataKeyId1 },
-                                { "path", new BsonString("patientId")},
-                                {"bsonType", new BsonString("int")},
-                                {"queries", new BsonDocument{
-                                    {"queryType", new BsonString("equality")}
-                                }}
-                            },
-                            new BsonDocument {
-                                { "keyId", dataKeyId2 },
-                                { "path", new BsonString("medications")},
-                                {"bsonType", new BsonString("array")},
-                            },
-                            new BsonDocument {
-                                { "keyId", dataKeyId3 },
-                                { "path", new BsonString("patientRecord.ssn")},
-                                {"bsonType", new BsonString("string")},
-                                {"queries", new BsonDocument{
-                                    {"queryType", new BsonString("equality")}
-                                }}
-                            },
-                            new BsonDocument {
-                                { "keyId", dataKeyId4 },
-                                { "path", new BsonString("patienRecord.billing")},
-                                {"bsonType", new BsonString("object")},
-                            },
+            var encryptedCollectionNamespace = CollectionNamespace.FromFullName("medicalRecords.patients");
+            var encryptedFieldsMap = new Dictionary<string, BsonDocument>
+            {
+                {
+                    encryptedCollectionNamespace.FullName, new BsonDocument
+                    {
+                        {
+                            "fields", new BsonArray
+                            {
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId1},
+                                    {"path", new BsonString("patientId")},
+                                    {"bsonType", new BsonString("int")},
+                                    {
+                                        "queries", new BsonDocument
+                                        {
+                                            {"queryType", new BsonString("equality")}
+                                        }
+                                    }
+                                },
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId2},
+                                    {"path", new BsonString("medications")},
+                                    {"bsonType", new BsonString("array")},
+                                },
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId3},
+                                    {"path", new BsonString("patientRecord.ssn")},
+                                    {"bsonType", new BsonString("string")},
+                                    {
+                                        "queries", new BsonDocument
+                                        {
+                                            {"queryType", new BsonString("equality")}
+                                        }
+                                    }
+                                },
+                                new BsonDocument
+                                {
+                                    {"keyId", dataKeyId4},
+                                    {"path", new BsonString("patientRecord.billing")},
+                                    {"bsonType", new BsonString("object")},
+                                },
+                            }
                         }
-                    }      
-                }
+                    }
                 }
             };
 
@@ -292,24 +303,24 @@ namespace Key
             // :state-start: aws-test azure-test local-test gcp-test
             var extraOptions = new Dictionary<string, object>()
             {
-                { "cryptSharedLibPath", Environment.GetEnvironmentVariable("SHARED_LIB_PATH")},
+                {"cryptSharedLibPath", Environment.GetEnvironmentVariable("SHARED_LIB_PATH")},
             };
             // :state-end:
 
             var autoEncryptionOptions = new AutoEncryptionOptions(
-                keyVaultNamespace: keyVaultNamespace,
-                kmsProviders: kmsProviders,
+                keyVaultNamespace,
+                kmsProviders,
                 encryptedFieldsMap: encryptedFieldsMap,
                 extraOptions: extraOptions);
 
             var clientSettings = MongoClientSettings.FromConnectionString(connectionString);
             clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
             var secureClient = new MongoClient(clientSettings);
-            var encryptedDatabase = secureClient.GetDatabase(encryptedDatabaseNamespace.DatabaseNamespace.ToString());
+            var encryptedDatabase = secureClient.GetDatabase(encryptedCollectionNamespace.DatabaseNamespace.DatabaseName);
             // Drop the encrypted collection in case you created this collection
             // in a previous run of this application.
-            encryptedDatabase.DropCollection(encryptedDatabaseNamespace.CollectionName.ToString());
-            encryptedDatabase.CreateCollection(encryptedDatabaseNamespace.CollectionName.ToString());
+            encryptedDatabase.DropCollection(encryptedCollectionNamespace.CollectionName);
+            encryptedDatabase.CreateCollection(encryptedCollectionNamespace.CollectionName);
             Console.WriteLine("Created encrypted collection!");
             // end-create-enc-collection
         }
