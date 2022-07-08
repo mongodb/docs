@@ -112,8 +112,9 @@
    * - Opsgenie API Key
 
      - |api| key for alert notifications sent to an Opsgenie
-       account. |mms| uses this value as the default Opsgenie API key
-       when configuring alerts.
+       account. |mms| uses this value as the default 
+       `OpsGenie Alert API <https://docs.opsgenie.com/docs/alert-api>`__ 
+       key when configuring alerts.
 
        Enter the following information from your Opsgenie account. If
        you do not have an existing Opsgenie account, you can
@@ -121,7 +122,6 @@
 
        - Opsgenie API Key
        - API Region (United States only)
-
    * - New Relic Settings
 
      - .. include:: /includes/fact-new-relic-deprecated.rst
