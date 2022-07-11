@@ -80,3 +80,7 @@
          .. figure:: /images/compass-delete-index.png
             :alt: Delete an index in Compass
 
+         .. seealso::
+
+            - :ref:`MongoDB Compass Documentation <compass-index>`
+            - :compass:`Compass Documentation for Indexes </indexes/>`
