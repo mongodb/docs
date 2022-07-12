@@ -1,0 +1,238 @@
+.. _multi-cluster-quick-start-prereqs:
+
+===========================
+Multi-Cluster Prerequisites
+===========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+.. _multi-cluster-prereqs:
+
+
+This Quick Start tutorial requires that you complete these tasks:
+
+
+Set Environment Variables and GKE zones
+----------------------------------------
+
+Set the environment variables with cluster names and the
+`available GKE zones <https://cloud.google.com/compute/docs/regions-zones#available>`__
+where you deploy the clusters, as in this example:
+
+.. code-block:: sh
+
+   export MDB_GKE_PROJECT={GKE project name}
+
+   export MDB_CENTRAL_CLUSTER="mdb-central"
+   export MDB_CENTRAL_CLUSTER_ZONE="us-west1-a"
+
+   export MDB_CLUSTER_1="mdb-1"
+   export MDB_CLUSTER_1_ZONE="us-west1-b"
+
+   export MDB_CLUSTER_2="mdb-2"
+   export MDB_CLUSTER_2_ZONE="us-east1-b"
+
+   export MDB_CLUSTER_3="mdb-3"
+   export MDB_CLUSTER_3_ZONE="us-central1-a"
+
+   export MDB_CENTRAL_CLUSTER_FULL_NAME="gke_${MDB_GKE_PROJECT}_${MDB_CENTRAL_CLUSTER_ZONE}_${MDB_CENTRAL_CLUSTER}"
+
+   export MDB_CLUSTER_1_FULL_NAME="gke_${MDB_GKE_PROJECT}_${MDB_CLUSTER_1_ZONE}_${MDB_CLUSTER_1}"
+   export MDB_CLUSTER_2_FULL_NAME="gke_${MDB_GKE_PROJECT}_${MDB_CLUSTER_2_ZONE}_${MDB_CLUSTER_2}"
+   export MDB_CLUSTER_3_FULL_NAME="gke_${MDB_GKE_PROJECT}_${MDB_CLUSTER_3_ZONE}_${MDB_CLUSTER_3}"
+
+Set up GKE clusters
+-------------------
+
+Set up |gke| clusters:
+
+1. Set up your Google Cloud account and the ``gcloud`` tool, using the
+   `Google Kubernetes Engine Quickstart <https://cloud.google.com/kubernetes-engine/docs/quickstart>`__.
+
+2. Create :ref:`one central cluster and one or more member clusters
+   <central-and-member-clusters>`, specifying the GKE zones, the number
+   of nodes, and the instance types, as in these examples:
+
+   .. code-block:: sh
+
+      gcloud container clusters create $MDB_CENTRAL_CLUSTER \
+        --zone=$MDB_CENTRAL_CLUSTER_ZONE \
+        --num-nodes=5 \
+        --machine-type "e2-standard-2"
+
+   .. code-block:: sh
+
+      gcloud container clusters create $MDB_CLUSTER_1 \
+        --zone=$MDB_CLUSTER_1_ZONE \
+        --num-nodes=5 \
+        --machine-type "e2-standard-2"
+
+   .. code-block:: sh
+
+      gcloud container clusters create $MDB_CLUSTER_2 \
+        --zone=$MDB_CLUSTER_2_ZONE \
+        --num-nodes=5 \
+        --machine-type "e2-standard-2"
+
+   .. code-block:: sh
+
+      gcloud container clusters create $MDB_CLUSTER_3 \
+        --zone=$MDB_CLUSTER_3_ZONE \
+        --num-nodes=5 \
+        --machine-type "e2-standard-2"
+
+
+Obtain User Authentication Credentials for Central and Member clusters
+----------------------------------------------------------------------
+
+Obtain user authentication credentials for the central and member |k8s|
+clusters and save the credentials. You will later use these credentials
+for running ``kubectl`` commands on these clusters.
+
+Run the following commands:
+
+.. code-block:: sh
+
+   gcloud container clusters get-credentials $MDB_CENTRAL_CLUSTER \
+     --zone=$MDB_CENTRAL_CLUSTER_ZONE
+
+   gcloud container clusters get-credentials $MDB_CLUSTER_1 \
+     --zone=$MDB_CLUSTER_1_ZONE
+
+   gcloud container clusters get-credentials $MDB_CLUSTER_2 \
+     --zone=$MDB_CLUSTER_2_ZONE
+
+   gcloud container clusters get-credentials $MDB_CLUSTER_3 \
+     --zone=$MDB_CLUSTER_3_ZONE
+
+Install Tools
+--------------
+
+Install the following tools:
+
+1. Install |istio| in a `multi-primary mode on different networks
+   <https://istio.io/latest/docs/setup/install/multicluster/multi-primary_multi-network/>`__,
+   using the :github:`install_istio_separate_network script
+   </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/install_istio_separate_network.sh>`.
+
+   To learn more, see the `Install Multicluster
+   <https://istio.io/latest/docs/setup/install/multicluster/>`__ Istio
+   documentation.
+
+2. `Install Go <https://golang.org/dl/>`__ v1.17 or later.
+
+3. `Install Helm <https://helm.sh/docs/intro/install/>`__.
+
+Check Connectivity Across Clusters
+----------------------------------
+
+Follow the steps in this procedure to verify that service FQDNs are
+reachable across |k8s| clusters.
+
+In this example, you deploy a sample application defined in
+:github:`sample-service.yaml
+</mongodb/mongodb-enterprise-kubernetes/blob/master/multi_cluster_verify/sample-service.yaml>`
+across two |k8s| clusters.
+
+1. Create a namespace in each of the |k8s| clusters to deploy the ``sample-service.yaml``.
+
+   .. code-block:: sh
+
+      kubectl create --context="${CTX_CLUSTER_1}" namespace sample
+      kubectl create --context="${CTX_CLUSTER_2}" namespace sample
+
+   .. note::
+
+      In certain service mesh solutions, you might need to annotate
+      or label the namespace.
+
+#. Deploy the ``sample-service.yaml`` in both |k8s| clusters.
+
+   .. code-block:: sh
+      
+      kubectl apply --context="${CTX_CLUSTER_1}" \
+         -f sample-service.yaml \
+         -l service=helloworld1 \
+         -n sample
+
+      kubectl apply --context="${CTX_CLUSTER_2}" \
+         -f sample-service.yaml \
+         -l service=helloworld2 \
+         -n sample
+
+#. Deploy the sample application on ``CLUSTER_1``.
+
+   .. code-block:: sh
+
+      kubectl apply --context="${CTX_CLUSTER_1}" \
+        -f sample-service.yaml \
+        -l version=v1 \
+        -n sample
+
+#. Check that the ``CLUSTER_1`` hosting Pod is in the ``Running`` state.
+
+   .. code-block:: sh
+
+      kubectl get pod --context="${CTX_CLUSTER_1}" 
+        -n sample \
+        -l app=helloworld
+
+#. Deploy the sample application on ``CLUSTER_2``.
+
+   .. code-block:: sh
+
+      kubectl apply --context="${CTX_CLUSTER_2}" \
+        -f sample-service.yaml \
+        -l version=v2 \
+        -n sample
+
+#. Check that the ``CLUSTER_2`` hosting Pod is in the ``Running`` state.
+
+   .. code-block:: sh
+
+      kubectl get pod --context="${CTX_CLUSTER_2}" \
+        -n sample \
+        -l app=helloworld
+
+#. Deploy the Pod in ``CLUSTER_1`` and check that you can reach the sample application in ``CLUSTER_2``.
+
+   .. code-block:: sh
+         
+      kubectl run  --context="${CTX_CLUSTER_1}" \
+        -n sample \
+        curl --image=radial/busyboxplus:curl \
+        -i --tty \
+        curl -sS helloworld2.sample:5000/hello
+
+   You should see output similar to this example:
+
+   .. code-block:: sh
+      :copyable: false
+
+      Hello version: v2, instance: helloworld-v2-758dd55874-6x4t8
+
+#. Deploy the Pod in ``CLUSTER_2`` and check that you can reach the sample application in ``CLUSTER_1``.
+
+   .. code-block:: sh
+
+      kubectl run --context="${CTX_CLUSTER_2}" \
+        -n sample \
+        curl --image=radial/busyboxplus:curl \
+        -i --tty \
+        curl -sS helloworld1.sample:5000/hello
+
+
+   You should see output similar to this example:
+
+   .. code-block:: sh
+      :copyable: false
+
+      Hello version: v1, instance: helloworld-v1-758dd55874-6x4t8
+
