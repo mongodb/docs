@@ -141,17 +141,16 @@ key_vault_coll = "__keyVault"
 key_vault_db = "encryption"
 key_vault_namespace = f"{key_vault_db}.{key_vault_coll}"
 key_vault_client = MongoClient(connection_string);
-# :state-start: local-test aws-test azure-test gcp-test
+# Drop the Key Vault Collection in case you created this collection
+# in a previous run of this application.
 key_vault_client.drop_database(key_vault_db);
-# :state-end:
 
 key_vault_client[key_vault_db][key_vault_coll].create_index(
     [("keyAltNames", ASCENDING )],
     unique = True,
     partialFilterExpression = { "keyAltNames": { "$exists": True } })
-
-
 # end-create-index
+
 # start-create-dek
 client = MongoClient(connection_string)
 client_encryption = ClientEncryption(
@@ -243,6 +242,8 @@ auto_encryption = AutoEncryptionOpts(
 )
 
 secure_client = MongoClient(connection_string, auto_encryption_opts=auto_encryption)
+# Drop the encrypted collection in case you created this collection
+# in a previous run of this application.
 secure_client.drop_database(encrypted_db_name)
 encrypted_db = secure_client[encrypted_db_name]
 encrypted_db.create_collection(encrypted_coll_name)

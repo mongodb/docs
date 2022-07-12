@@ -22,12 +22,13 @@ namespace Insert
 
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
+            var provider = "aws";
             var awsKmsOptions = new Dictionary<string, object>
             {
                { "accessKeyId", "<Your AWS Access Key ID>" },
                { "secretAccessKey", "<Your AWS Secret Access Key>" }
             };
-            kmsProviders.Add("aws", awsKmsOptions);
+            kmsProviders.Add(provider, awsKmsOptions);
             // end-kmsproviders
 
 

@@ -1,29 +1,28 @@
 const { MongoClient, Binary } = require("mongodb");
 const { ClientEncryption } = require("mongodb-client-encryption");
 
-const eDB = "encryption";
-const eKV = "__keyVault";
-const keyVaultNamespace = `${eDB}.${eKV}`;
+const keyVaultDatabase = "encryption";
+const keyVaultCollection = "__keyVault";
+const keyVaultNamespace = `${keyVaultDatabase}.${keyVaultCollection}`;
 const secretDB = "medicalRecords";
 const secretCollection = "patients";
-
 
 // start-kmsproviders
 const provider = "gcp";
 const kmsProviders = {
- gcp: {
-   email: "<Your GCP Email>",
-   privateKey: "<Your GCP Private Key>",
- },
+  gcp: {
+    email: "<Your GCP Email>",
+    privateKey: "<Your GCP Private Key>",
+  },
 };
 // end-kmsproviders
 
 // start-datakeyopts
 const masterKey = {
- projectId: "<Your Project ID>",
- location: "<Your Key Location>",
- keyRing: "<Your Key Ring>",
- keyName: "<Your Key Name>",
+  projectId: "<Your Project ID>",
+  location: "<Your Key Location>",
+  keyRing: "<Your Key Ring>",
+  keyName: "<Your Key Name>",
 };
 // end-datakeyopts
 
@@ -32,7 +31,11 @@ async function run() {
   const uri = "<Your Connection String>";
   const keyVaultClient = new MongoClient(uri);
   await keyVaultClient.connect();
-  const keyVaultColl = keyVaultDB.collection(eKV);
+  const keyVaultDB = keyVaultClient.db(keyVaultDatabase);
+  // Drop the Key Vault Collection in case you created this collection
+  // in a previous run of this application.
+  await keyVaultDB.dropDatabase();
+  const keyVaultColl = keyVaultDB.collection(keyVaultCollection);
   await keyVaultColl.createIndex(
     { keyAltNames: 1 },
     {
@@ -106,6 +109,8 @@ async function run() {
   });
   await encClient.connect();
   const newEncDB = encClient.db(secretDB);
+  // Drop the encrypted collection in case you created this collection
+  // in a previous run of this application.
   await newEncDB.dropDatabase();
   await newEncDB.createCollection(secretCollection);
   console.log("Created encrypted collection!");

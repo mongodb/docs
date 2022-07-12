@@ -27,7 +27,7 @@ def main():
 
     refreshKeyVault(client)
     # Create a new data key and json schema for the encryptedField.
-    uuid_of_data_encryption_key = client_encryption.create_data_key(
+    data_key_id = client_encryption.create_data_key(
         "local", key_alt_names=["pymongo_encryption_example_3"]
     )
 
@@ -35,12 +35,12 @@ def main():
     encrypted_name = client_encryption.encrypt(
         "Greg",
         Algorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic,
-        key_id=uuid_of_data_encryption_key,
+        key_id=data_key_id,
     )
     encrypted_foods = client_encryption.encrypt(
         ["Cheese", "Grapes"],
         Algorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Random,
-        key_id=uuid_of_data_encryption_key,
+        key_id=data_key_id,
     )
     coll.insert_one({"name": encrypted_name, "age": 83, "foods": encrypted_foods})
     # end_enc_and_insert
@@ -50,7 +50,7 @@ def main():
     encrypted_name_to_query = client_encryption.encrypt(
         name_to_query,
         Algorithm.AEAD_AES_256_CBC_HMAC_SHA_512_Deterministic,
-        key_id=uuid_of_data_encryption_key,
+        key_id=data_key_id,
     )
     doc = client.employees.foods.find_one({"name": encrypted_name_to_query})
     print("Encrypted document: %s" % (doc,))

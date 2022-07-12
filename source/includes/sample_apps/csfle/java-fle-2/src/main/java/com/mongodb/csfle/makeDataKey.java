@@ -21,18 +21,24 @@ import java.util.*;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import org.bson.BsonArray;
 import org.bson.BsonBinary;
 import org.bson.BsonDocument;
 import org.bson.BsonString;
+import org.bson.BsonInt32;
+import org.bson.BsonBoolean;
 
 import com.mongodb.AutoEncryptionSettings;
 import com.mongodb.ClientEncryptionSettings;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.vault.DataKeyOptions;
 import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
@@ -172,7 +178,8 @@ public class makeDataKey {
         // :state-uncomment-end:
         // end-datakeyopts
 
-        // start-create-dek
+
+        // start-create-index
         // :state-start: aws-test azure-test local-test gcp-test
         String connectionString = System.getenv("MONGODB_URI");
         // :state-end:
@@ -183,6 +190,22 @@ public class makeDataKey {
         // :state-end:
         String keyVaultDb = "encryption";
         String keyVaultColl = "__keyVault";
+        MongoClient keyVaultClient = MongoClients.create(connectionString);
+
+        String encryptedDbName = "medicalRecords";
+        String encryptedCollName = "patients";
+
+        // Drop the Key Vault Collection in case you created this collection
+        // in a previous run of this application.
+        keyVaultClient.getDatabase(keyVaultDb).getCollection(keyVaultColl).drop();
+
+        MongoCollection keyVaultCollection = keyVaultClient.getDatabase(keyVaultDb).getCollection(keyVaultColl);
+        IndexOptions indexOpts = new IndexOptions().partialFilterExpression(new BsonDocument("keyAltNames", new BsonDocument("$exists", new BsonBoolean(true) ))).unique(true);
+        keyVaultCollection.createIndex(new BsonDocument("keyAltNames", new BsonInt32(1)), indexOpts);
+        keyVaultClient.close();
+        // end-create-index 
+
+        // start-create-dek
         String keyVaultNamespace = keyVaultDb + "." + keyVaultColl;
         ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
                 .keyVaultMongoClientSettings(MongoClientSettings.builder()
@@ -230,8 +253,6 @@ public class makeDataKey {
                 .keyAltNames(keyAlts4));
         // end-create-dek
         // start-create-enc-collection
-        String encryptedDbName = "medicalRecords";
-        String encryptedCollName = "patients";
         String encryptedNameSpace = encryptedDbName + "." + encryptedCollName;
         BsonDocument encFields = new BsonDocument().append("fields",
                 new BsonArray(Arrays.asList(
@@ -253,7 +274,14 @@ public class makeDataKey {
         encryptedFieldsMap.put(encryptedNameSpace, encFields);
 
         Map<String, Object> extraOptions = new HashMap<String, Object>();
+        // :state-start: local-test aws-test azure-test gcp-test
         extraOptions.put("cryptSharedLibPath", System.getenv("SHARED_LIB_PATH"));
+        // :state-end:
+        // :state-start: local-reader aws-reader azure-reader gcp-reader
+        // :uncomment-start:
+        //extraOptions.put("cryptSharedLibPath", "<path to crypt_shared>");
+        // :uncomment-end:
+        // :state-end:
 
         MongoClientSettings clientSettings = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(connectionString))
@@ -266,7 +294,9 @@ public class makeDataKey {
                 .build();
         MongoClient mongoClientSecure = MongoClients.create(clientSettings);
         MongoDatabase encDb = mongoClientSecure.getDatabase(encryptedDbName);
-        encDb.drop();
+        // Drop the encrypted collection in case you created this collection
+        // in a previous run of this application.
+        encDb.getCollection(encryptedCollName).drop();
         encDb.createCollection(encryptedCollName);
         // end-create-enc-collection
         System.out.println("Successfully created encrypted collection!");

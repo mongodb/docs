@@ -48,58 +48,147 @@ fields:
 Use Secondary Indexes to Improve Sort Performance
 -------------------------------------------------
 
-Create secondary indexes on the ``timeField`` and ``metaField`` fields to 
-improve sort performance.
+Time Series collections can use indexes to improve sort performance on 
+the ``timeField`` and the ``metaField``. 
+ 
+For example, the following ``sensorData`` collection contains 
+measurements from weather sensors:
 
-For example, the following ``sensorData`` collection contains
-temperature readings:
-
-.. code-block:: javascript
-
-   db.sensorData.insertMany( [
-      {
-         "metadata": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate("2022-01-15T00:00:00.000Z"),
-         "temperatureReading": 12
-      },
-      {
-         "metadata": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate("2022-01-15T04:00:00.000Z"),
-         "temperatureReading": 11
-      },
-      {
-         "metadata": { "sensorId": 5579, "type": "temperature" },
-         "timestamp": ISODate("2022-01-15T08:00:00.000Z"),
-         "temperatureReading": 9
-      }
-   ] )
-
-The following command creates a compound ascending secondary index on
-the ``timestamp`` and ``metadata.sensorId``  fields:
 
 .. code-block:: javascript
 
-   db.sensorData.createIndex(
-      { "timestamp": 1, "metadata.sensorId": 1 }
+
+   db.sensorData.insertMany([{
+        "metadata": {
+            "sensorId": 5578,
+            "location": {
+                type: "Point",
+                coordinates: [-77.40711, 39.03335]
+            }
+        },
+        "timestamp": ISODate("2022-01-15T00:00:00.000Z"),
+        "currentConditions": {
+            "windDirecton": 127.0,
+            "tempF": 71.0,
+            "windSpeed": 2.0,
+            "cloudCover": null,
+            "precip": 0.1,
+            "humidity": 94.0,
+        }
+      },
+      {
+        "metadata": {
+            "sensorId": 5578,
+            "location": {
+                type: "Point",
+                coordinates: [-77.40711, 39.03335]
+            }
+        },
+        "timestamp": ISODate("2022-01-15T00:01:00.000Z"),
+        "currentConditions": {
+            "windDirecton": 128.0,
+            "tempF": 69.8,
+            "windSpeed": 2.2,
+            "cloudCover": null,
+            "precip": 0.1,
+            "humidity": 94.3,
+        }
+      },
+      {
+        "metadata": {
+            "sensorId": 5579,
+            "location": {
+                type: "Point",
+                coordinates: [-80.19773, 25.77481]
+            }
+        },
+        "timestamp": ISODate("2022-01-15T00:01:00.000Z"),
+        "currentConditions": {
+            "windDirecton": 115.0,
+            "tempF": 88.0,
+            "windSpeed": 1.0,
+            "cloudCover": null,
+            "precip": 0.0,
+            "humidity": 99.0,
+        }
+       } 
+     ] 
    )
-   
-The following sort operation on the ``timestamp`` field uses the index
-to improve performance:
+
+Time Series collections automatically create a clustered index. The 
+clustered index may automatically be used by the query planner to 
+improve sort performance in some situations. For more information on 
+clustered indexes, see :ref:`clustered index 
+<db.createCollection.clusteredIndex>`.
+
+The following sort operation on the timestamp field uses the clustered 
+index to improve performance:
 
 .. code-block:: javascript
-
+  
    db.sensorData.find().sort( { "timestamp": 1 } )
 
-To confirm that the sort operation used the index, run the operation
-again with the ``.explain()`` option:
+To confirm that the sort operation used the clustered index, run the 
+operation again with the ``.explain("executionStats")`` option:
 
 .. code-block:: javascript
 
-   db.sensorData.find().sort( { "timestamp": 1 } ).explain()
+   db.sensorData.find().sort( { "timestamp": 1 } ).explain(“executionStats”)
 
-The ``winningPlan.queryPlan.inputStage.stage`` is ``IXSCAN``, which
-indicates that the index was used. For more information on explain plan
-output, see :ref:`explain-results`.
+The ``winningPlan.queryPlan.inputStage.stage`` is ``COLLSCAN`` and an 
+``_internalBoundedSort`` stage is present in the explain plan output.
+The ``interalBoundedSort`` field indicates that the clustered index was 
+used. For more information on explain plan output, see :ref:`explain 
+results <explain-results>`.
+
+Secondary indexes on Time Series collections can improve 
+performance for sort operations and increase the number of scenarios 
+where indexes can be used. 
+
+Sort operations on Time Series collections can use secondary indexes 
+on the ``timeField``. Under certain conditions, sort operations can 
+also use compound secondary indexes on the ``metaField`` and 
+``timeField``.
+
+The Aggregation Pipeline Stages :pipeline:`$match` and 
+:pipeline:`$sort` determine which indexes a Time Series collection can
+use. The following list describes scenarios where an index can be used: 
+
+- Sort on ``{ <timeField:> ±1 }`` uses the clustered index
+- Sort on ``{ <timeField>: ±1 }`` uses a secondary index on 
+  ``<timeField>``
+- Sort on ``{ <metaField>: ±1, timeField: ±1 }`` uses a secondary 
+  index on ``{ <metaField>: ±1, timeField: ±1 }``
+- Sort on ``{ <timeField>: ±1 }`` uses a secondary index on 
+  ``{ metaField: ±1, timeField: ±1 }`` when there is a point predicate 
+  on ``<metaField>``
+
+Create a secondary index on the ``timestamp`` field:
+
+.. code-block:: javascript
+
+   db.sensorData.createIndex({ "timestamp": 1 }) 
+
+The following sort operation on the ``timestamp`` field uses the 
+Secondary Index to improve performance:
+
+.. code-block:: javascript 
+
+   db.sensorData.aggregate([
+     { $match: { "timestamp" : { $gte: ISODate("2022-01-15T00:00:00.000Z") } } },
+     { $sort: { "timestamp": 1 } } 
+   ])
+
+To confirm that the sort operation used the Secondary Index, run the 
+operation again with the ``.explain("executionStats")`` option:
+
+.. code-block:: javascript
+
+   db.sensorData.explain(“executionStats”).aggregate([
+     { $match: { "timestamp" : { $gte: ISODate("2022-01-15T00:00:00.000Z") } } },
+     { $sort: {"timestamp": 1 } } 
+   ])
+
 
 "Last Point" Queries on Time Series Collections
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 
 	// :state-start: local-test aws-test azure-test gcp-test
 	"os"
 	// :state-end:
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -18,7 +20,6 @@ import (
 //import (
 //	"crypto/rand"
 //	"io/ioutil"
-//	"log"
 //)
 // :uncomment-end:
 // :state-end:
@@ -158,7 +159,7 @@ func MakeKey() error {
 	// :state-uncomment-end:
 	// end-datakeyopts
 
-	// start-create-dek
+	// start-create-index
 	// :state-start: local-reader aws-reader gcp-reader azure-reader
 	// :uncomment-start:
 	//uri := "<Your MongoDB URI>"
@@ -167,12 +168,45 @@ func MakeKey() error {
 	// :state-start: local-test aws-test gcp-test azure-test
 	uri := os.Getenv("MONGODB_URI")
 	// :state-end:
-	keyVaultNamespace := "encryption.__keyVault"
-	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).SetKmsProviders(kmsProviders)
 	keyVaultClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		return fmt.Errorf("Client connect error %v", err)
+		return fmt.Errorf("Connect error for regular client: %v", err)
 	}
+	defer func() {
+		_ = keyVaultClient.Disconnect(context.TODO())
+	}()
+
+	keyVaultColl := "__keyVault"
+	keyVaultDb := "encryption"
+	keyVaultNamespace := keyVaultDb + "." + keyVaultColl
+	keyVaultIndex := mongo.IndexModel{
+		Keys: bson.D{{"keyAltNames", 1}},
+		Options: options.Index().
+			SetUnique(true).
+			SetPartialFilterExpression(bson.D{
+				{"keyAltNames", bson.D{
+					{"$exists", true},
+				}},
+			}),
+	}
+	// Drop the Key Vault Collection in case you created this collection
+	// in a previous run of this application.
+	if err = keyVaultClient.Database(keyVaultDb).Collection(keyVaultColl).Drop(context.TODO()); err != nil {
+		log.Fatalf("Collection.Drop error: %v", err)
+	}
+	// Drop the database storing your encrypted fields as all
+	// the DEKs encrypting those fields were deleted in the preceding line.
+	if err = keyVaultClient.Database("medicalRecords").Collection("patients").Drop(context.TODO()); err != nil {
+		log.Fatalf("Collection.Drop error: %v", err)
+	}
+	_, err = keyVaultClient.Database(keyVaultDb).Collection(keyVaultColl).Indexes().CreateOne(context.TODO(), keyVaultIndex)
+	if err != nil {
+		panic(err)
+	}
+	// end-create-index
+
+	// start-create-dek
+	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).SetKmsProviders(kmsProviders)
 	clientEnc, err := mongo.NewClientEncryption(keyVaultClient, clientEncryptionOpts)
 	if err != nil {
 		return fmt.Errorf("NewClientEncryption error %v", err)
@@ -199,6 +233,7 @@ func MakeKey() error {
 	// :state-start: local-test aws-test azure-test gcp-test
 	SetKeyAltNames([]string{"demo-data-key"})
 	// :state-end:
+
 	dataKeyID, err := clientEnc.CreateDataKey(context.TODO(), provider, dataKeyOpts)
 	if err != nil {
 		return fmt.Errorf("create data key error %v", err)

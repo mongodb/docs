@@ -1,13 +1,17 @@
 import unittest
-from pymongo import MongoClient
+import pymongo
 from bson.binary import Binary
 from const import (
     BUILD_DIR,
     DIR_SEPERATOR,
+    FLE_1_LANGS,
+    FLE_2_LANGS,
     NODE,
     NODE_FLE_2,
     GO,
+    GO_FLE_2,
     CSHARP,
+    CSHARP_FLE_2,
     PYTHON,
     PYTHON_FLE_2,
     JAVA,
@@ -33,14 +37,26 @@ BSON_BINARY_VALUE = Binary(b"")
 TEST_FLE1_ENC_FIELD = "bloodType"
 TEST_FLE2_ENC_FIELD = "patientId"
 
+FLE2_ENC_COLLS = [
+    f"enxcol_.{COLLECTION_NAME}.esc",
+    f"enxcol_.{COLLECTION_NAME}.ecc",
+    f"enxcol_.{COLLECTION_NAME}.ecoc",
+]
+
+KEY_ALT_NAMES_FIELD = "keyAltNames"
+
+SUCCESS = 0
 
 class TestTutorials(unittest.TestCase):
 
-    client = MongoClient(os.getenv("MONGODB_URI"))
+    client = pymongo.MongoClient(os.getenv("MONGODB_URI"))
 
     def _dropData(self):
         self.client[DB_NAME][COLLECTION_NAME].drop()
         self.client[KEY_VAULT_DB][KEY_VAULT_COLL].drop()
+
+        for c in FLE2_ENC_COLLS:
+            self.client[DB_NAME][c].drop()
 
     def startTestRun(self):
         self._dropData()
@@ -52,10 +68,24 @@ class TestTutorials(unittest.TestCase):
     def tearDown(self):
         self._dropData()
 
+    def _check_index(self):
+        """Ensure index on Key Alt Names field exists"""
+
+        test_data_key_ids_document = {KEY_ALT_NAMES_FIELD: ["AltNameToTestForIndex"]}
+        test_data_key_ids_document_copy = test_data_key_ids_document.copy()
+        self.client[KEY_VAULT_DB][KEY_VAULT_COLL].insert_one(test_data_key_ids_document)
+        # make sure inserting a document with duplicate key alt name raises an error
+        with self.assertRaises(pymongo.errors.DuplicateKeyError):
+            self.client[KEY_VAULT_DB][KEY_VAULT_COLL].insert_one(
+                test_data_key_ids_document_copy
+            )
+
+        self.client[KEY_VAULT_DB][KEY_VAULT_COLL].delete_one(test_data_key_ids_document)
+
     def _check_docs(self, project):
         """Checks that expected documents were added to key vault and collection and that fields were encrypted"""
 
-        if project in [NODE_FLE_2, PYTHON_FLE_2, JAVA_FLE_2]:
+        if project in FLE_2_LANGS:
             self.assertEqual(
                 self.client[KEY_VAULT_DB][KEY_VAULT_COLL].count_documents({}),
                 NUM_QE_DEKS,
@@ -75,7 +105,7 @@ class TestTutorials(unittest.TestCase):
                 type(BSON_BINARY_VALUE),
                 f"{TEST_FLE2_ENC_FIELD} must be encrypted",
             )
-        else:
+        elif project in FLE_1_LANGS:
             self.assertEqual(
                 self.client[KEY_VAULT_DB][KEY_VAULT_COLL].count_documents({}), 1
             )
@@ -93,6 +123,10 @@ class TestTutorials(unittest.TestCase):
                 ),
                 type(BSON_BINARY_VALUE),
                 f"{TEST_FLE1_ENC_FIELD} must be encrypted",
+            )
+        else:
+            raise ValueError(
+                f"Project not in either of the following:\nFLE_1_LANGS: {FLE_1_LANGS}\nFLE_2_LANGS: {FLE_2_LANGS}"
             )
 
     def _check_app(self, project):
@@ -119,8 +153,9 @@ class TestTutorials(unittest.TestCase):
             commands.append(
                 f'mvn compile exec:java -Dexec.mainClass="com.mongodb.csfle.{insert_file_name}"'
             )
-        elif project == CSHARP:
-            os.chdir("CSFLE")
+        elif project == CSHARP or project == CSHARP_FLE_2:
+            project_dir = os.path.split(FILE_MAP[project][DEK])[0]
+            os.chdir(project_dir)
             commands.append("dotnet run")
         elif project == NODE or project == NODE_FLE_2:
             make_dek_file_name = FILE_MAP[project][DEK]
@@ -128,7 +163,7 @@ class TestTutorials(unittest.TestCase):
             commands.append("npm install")
             commands.append(f"node {make_dek_file_name}")
             commands.append(f"node {insert_file_name}")
-        elif project == GO:
+        elif project == GO or project == GO_FLE_2:
             make_dek_file_name = FILE_MAP[project][DEK]
             insert_file_name = FILE_MAP[project][INSERT]
             commands.append("go get .")
@@ -137,11 +172,19 @@ class TestTutorials(unittest.TestCase):
             commands.append("go run -tags=cse .")
         else:
             Exception("Failed to Handle project")
-        for c in commands:
-            print(c)
-            os.system(c)
-        self._check_docs(project)
+        
+        def run_apps(name_of_run, message = ""):
+            for c in commands:
+                print(c)
+                exit_code = os.system(c)
+                self.assertEqual(exit_code, SUCCESS, f"Process did not exit with status code {SUCCESS} on {name_of_run} run. {message}")
 
+        run_apps("first", "There may be a problem in the application source code.")
+       
+        self._check_index()
+        self._check_docs(project)
+        # test that sample apps can run twice in a row
+        run_apps("second", "The application was unable to run twice in a row. Maybe you aren't cleaning up created collections before second run?")
 
 class TestPython(TestTutorials):
     """Test Python FLE1 Sample Apps"""
@@ -207,6 +250,30 @@ class TestDotnet(TestTutorials):
         self._check_app(CSHARP)
 
 
+class TestDotnetFLE2(TestTutorials):
+    """Test Dotnet FLE2 Sample Apps"""
+
+    def test_dotnet_fle_2_aws(self):
+        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *AWS_TEST.split(DIR_SEPERATOR)))
+        self._check_app(CSHARP_FLE_2)
+
+    def test_dotnet_fle_2_azure(self):
+        os.chdir(
+            os.path.join(BUILD_DIR, CSHARP_FLE_2, *AZURE_TEST.split(DIR_SEPERATOR))
+        )
+        self._check_app(CSHARP_FLE_2)
+
+    def test_dotnet_fle_2_gcp(self):
+        os.chdir(os.path.join(BUILD_DIR, CSHARP_FLE_2, *GCP_TEST.split(DIR_SEPERATOR)))
+        self._check_app(CSHARP_FLE_2)
+
+    def test_dotnet_fle_2_local(self):
+        os.chdir(
+            os.path.join(BUILD_DIR, CSHARP_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR))
+        )
+        self._check_app(CSHARP_FLE_2)
+
+
 class TestNode(TestTutorials):
     """Test Node FLE1 Sample Apps"""
 
@@ -267,6 +334,26 @@ class TestGo(TestTutorials):
         self._check_app(GO)
 
 
+class TestGoFLE2(TestTutorials):
+    """Test Go FLE1 Sample Apps"""
+
+    def test_go_fle_2_aws(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *AWS_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
+
+    def test_go_fle_2_azure(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *AZURE_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
+
+    def test_go_fle_2_gcp(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *GCP_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
+
+    def test_go_fle_2_local(self):
+        os.chdir(os.path.join(BUILD_DIR, GO_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
+        self._check_app(GO_FLE_2)
+
+
 class TestJava(TestTutorials):
     """Test Java FLE1 Sample Apps"""
 
@@ -286,6 +373,7 @@ class TestJava(TestTutorials):
         os.chdir(os.path.join(BUILD_DIR, JAVA, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(JAVA)
 
+
 class TestJavaFLE2(TestTutorials):
     """Test Java FLE2 Sample Apps"""
 
@@ -304,4 +392,3 @@ class TestJavaFLE2(TestTutorials):
     def test_java_fle_2_local(self):
         os.chdir(os.path.join(BUILD_DIR, JAVA_FLE_2, *LOCAL_TEST.split(DIR_SEPERATOR)))
         self._check_app(JAVA_FLE_2)
-

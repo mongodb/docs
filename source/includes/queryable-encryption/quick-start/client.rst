@@ -13,7 +13,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/local/reader/insert_encrypted_document.js
+            .. literalinclude::  /includes/sample_apps/csfle/build/node-fle-2/local/reader/insert_encrypted_document.js
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: javascript
@@ -23,13 +23,42 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+            .. literalinclude::  /includes/sample_apps/csfle/build/python-fle-2/local/reader/insert_encrypted_document.py
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
 
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/local/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
 
    .. step:: Specify the Local {+cmk-long+}
 
@@ -40,7 +69,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/local/reader/insert_encrypted_document.js
+            .. literalinclude::  /includes/sample_apps/csfle/build/node-fle-2/local/reader/insert_encrypted_document.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
@@ -50,12 +79,42 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+            .. literalinclude::  /includes/sample_apps/csfle/build/python-fle-2/local/reader/insert_encrypted_document.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/local/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
 
    .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
@@ -66,7 +125,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/local/reader/insert_encrypted_document.js
+            .. literalinclude::  /includes/sample_apps/csfle/build/node-fle-2/local/reader/insert_encrypted_document.js
                :start-after: start-schema
                :end-before: end-schema
                :language: javascript
@@ -76,12 +135,42 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+            .. literalinclude::  /includes/sample_apps/csfle/build/python-fle-2/local/reader/insert_encrypted_document.py
                :start-after: start-schema
                :end-before: end-schema
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/local/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
 
    .. step:: Specify the Location of the {+shared-library+}
 
@@ -92,7 +181,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/local/reader/insert_encrypted_document.js
+            .. literalinclude::  /includes/sample_apps/csfle/build/node-fle-2/local/reader/insert_encrypted_document.js
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: javascript
@@ -102,12 +191,42 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+            .. literalinclude::  /includes/sample_apps/csfle/build/python-fle-2/local/reader/insert_encrypted_document.py
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/local/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+         
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
+               :start-after: start-extra-options
+               :end-before: end-extra-options
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs
 
       .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
 
@@ -121,7 +240,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/node-fle-2/local/reader/insert_encrypted_document.js
+            .. literalinclude::  /includes/sample_apps/csfle/build/node-fle-2/local/reader/insert_encrypted_document.js
                :start-after: start-client
                :end-before: end-client
                :language: javascript
@@ -131,9 +250,39 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/queryable-encryption/sample_apps/build/python-fle-2/local/reader/insert_encrypted_document.py
+            .. literalinclude::  /includes/sample_apps/csfle/build/python-fle-2/local/reader/insert_encrypted_document.py
                :start-after: start-client
                :end-before: end-client
                :language: python
                :dedent:
                :caption: insert_encrypted_document.py
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/local/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+               :start-after: start-client
+               :end-before: end-client
+               :language: java
+               :dedent:
+               :caption: insertEncryptedDocument.java
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/local/reader/insert-encrypted-document.go
+               :start-after: start-client
+               :end-before: end-client
+               :language: go
+               :dedent:
+               :caption: insert-encrypted-document.go
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/local/reader/QueryableEncryption/InsertEncryptedDocument.cs
+               :start-after: start-client
+               :end-before: end-client
+               :language: csharp
+               :dedent:
+               :caption: InsertEncryptedDocument.cs

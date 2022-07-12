@@ -39,19 +39,19 @@ async function main() {
       kmsProviders,
     });
     // end_client_enc
-    const keyId = await encryption.createDataKey(provider, {
+    const dataKeyId = await encryption.createDataKey(provider, {
       masterKey: masterKey,
       keyAltNames: ["manual-enc-demo"],
     });
-    console.log(keyId);
+    console.log(dataKeyId);
     // start_enc_and_insert
     encryptedName = await encryption.encrypt("Greg", {
       algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
-      keyId: keyId,
+      keyId: dataKeyId,
     });
     encryptedFoods = await encryption.encrypt(["Cheese", "Grapes"], {
       algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random",
-      keyId: keyId,
+      keyId: dataKeyId,
     });
     await collection.insertOne({
       name: encryptedName,
@@ -62,7 +62,7 @@ async function main() {
     // start_find_decrypt
     queryEncryptedName = await encryption.encrypt("Greg", {
       algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic",
-      keyId: keyId,
+      keyId: dataKeyId,
     });
     let doc = await collection.findOne({ name: queryEncryptedName });
     console.log("Encrypted Document: ", doc);

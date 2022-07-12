@@ -15,7 +15,8 @@ Features
 Overview
 --------
 
-On this page, you can learn about the security benefits of {+qe+}, and how {+qe+} compares to other
+On this page, you can learn about the security benefits of {+qe+}, 
+how {+qe+} works and {+qe+} compares to other
 security mechanisms supported by MongoDB. You can also view a
 fictional scenario that demonstrates the value of
 {+qe+} in securing your data.
@@ -27,14 +28,60 @@ fictional scenario that demonstrates the value of
 
 {+qe+} is a feature of MongoDB that enables a client application to
 encrypt data before transporting it over the network using fully
-randomized encryption, while maintaining equality queryability.
+randomized encryption, while maintaining queryability.
 Sensitive data is transparently encrypted and decrypted by the client
 and only communicated to and from the server in encrypted form.
+The security guarantees for sensitive fields containing both low 
+cardinality (low-frequency) data and high cardinality data are identical
 
 Unlike :ref:`Client-Side Field Level Encryption <manual-csfle-feature>`
 that can use :ref:`Deterministic Encryption <csfle-deterministic-encryption>`,
-{+qe+} uses fast, searchable encryption schemes that always encrypt a
-given input value to a different encrypted output value.
+{+qe+} uses fast, searchable encryption schemes based on 
+`Structured Encryption 
+<https://dl.acm.org/doi/abs/10.1007/978-3-030-77883-5_13>`__
+that always encrypts a given cleartext input value to a different 
+encrypted output value.
+
+How {+qe+} Works
+------------------------------
+
+The diagram below shows the process and architecture of how {+qe+} is 
+used in a customer environment.
+
+.. image:: /images/QE-how-it-works.png
+    :alt: How Queryable Encryption works
+
+In this diagram, the user is able to query on fully randomly encrypted 
+data such as SSN number.
+
+The process and mechanisms that makes this possible within the
+{+qe+} framework are as follows:
+
+1. When the application submits the query, MongoDB drivers first analyze 
+   the query.
+
+2. The driver recognizes the query is against an encrypted field and 
+   requests the encryption keys from the customer-provisioned key 
+   provider such as:
+
+   - AWS Key Management Service (AWS KMS) 
+   - Google Cloud KMS
+   - Azure Key Vault
+   - Any KMIP-enabled provider
+
+3. The driver submits the query to the MongoDB server with the encrypted 
+   fields rendered as ciphertext.
+
+4. Queryable Encryption implements a fast, searchable scheme that allows 
+   the server to process queries on fully encrypted data, without knowing 
+   anything about the data. The data and the query itself remain encrypted 
+   at all times on the server.
+
+5. The MongoDB server returns the encrypted results of the query to the 
+   driver.
+
+6. The query results are decrypted with the keys held by the driver and 
+   returned to the client and shown as plaintext.
 
 {+qe+} functions with the help of the following data structures. It is critical
 that these are not modified or deleted, or query results will be incorrect.
@@ -140,6 +187,21 @@ cannot protect your data from a privileged user or as it sits on disk.
 
 To learn more, see
 :manual:`Transport Encryption using TLS/SSL </core/security-transport-encryption/>`
+
+.. important:: Use the Mechanisms Together
+
+   To secure a production deployment, use all the security mechanisms
+   discussed in this guide together. The mechanisms are not mutually
+   exclusive.
+
+Comparison of Features
+----------------------
+
+The following diagram describes security features MongoDB supports and 
+the potential security vulnerabilities that they address:
+
+.. image:: /images/QE_Security_Feature_Chart.png
+   :alt: Diagram that describes MongoDB security features and the potential vulnerabilities that they address
 
 .. important:: Use the Mechanisms Together
 

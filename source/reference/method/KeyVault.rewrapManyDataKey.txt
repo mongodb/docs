@@ -1,0 +1,161 @@
+.. _server-keyvault-rewrap-manydatakey-method:
+
+============================
+KeyVault.rewrapManyDataKey()
+============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. method:: KeyVault.rewrapManyDataKey(filter, options)
+
+   ``KeyVault.rewrapManyDataKey`` decrypts multiple data 
+   keys and re-encrypts them with a new ``masterKey``. If a new 
+   ``masterKey`` is not given, the current ``masterKey`` is used.
+   
+   ``KeyVault.rewrapManyDataKey`` has the following syntax:
+
+   .. code-block:: javascript
+
+      let keyVault = db.getMongo().getKeyVault()
+      
+      keyVault.rewrapManyDataKey(
+        <filter>,
+        <options>
+      )
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 20 80
+
+      * - Parameter
+   
+        - Type
+   
+        - Description
+
+      * - ``filter``
+        
+        - :ref:`query filter document <document-query-filter>` 
+
+        - The query filter for the keyvault collection.
+        
+      * - ``options``
+       
+        - document
+
+        - 
+          This document has two fields:
+
+          - ``provider``: A :ref:`KMS provider 
+            <qe-fundamentals-kms-providers>` (AWS KMS, Azure Key Vault, 
+            GCP KMS, the local provider, or KMIP)
+          - ``masterKey``: A KMS-specific key used to encrypt the new 
+            data key.
+
+   :returns:
+  
+     A :ref:`BulkWriteResult <server-bulkwriteresult-method>` object
+     that reports how many data keys were affected.
+
+Behavior
+--------
+
+This operation is not atomic and should not be run in parallel with 
+other key management operations.
+
+Requires Configuring Client-Side Field Level Encryption on Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/csfle-requires-enabling-encryption.rst
+
+Example
+-------
+
+These examples allow you to rapidly evaluate client-side field level 
+encryption. For specific examples using each supported 
+:abbr:`KMS (Key Management Service)` provider, see
+:ref:`field-level-encryption-data-key-manage`.
+
+.. include:: /includes/extracts/csfle-connection-boilerplate.rst
+
+Retrieve the :method:`KeyVault <getKeyVault()>` object and use the
+:method:`KeyVault.rewrapManyDataKey` method to re-wrap the existing
+keys in a new ``masterKey``. If no new ``masterKey`` is given, each
+data key retains its respective current ``masterKey``. 
+
+Re-wrap Data Keys with Current``masterKey``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+
+The following example show how you can re-wrap each data key with its 
+respective current ``masterKey``:
+
+.. code-block:: javascript
+
+   let keyVault = mongo.getKeyVault()
+
+   keyVault.rewrapManyDataKey()
+
+Migrate to a New ``masterKey``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	
+
+The following example shows how you can use 
+:method:KeyVault.rewrapManyDataKey()` to migrate to a new ``masterKey``:
+
+.. code-block:: javascript
+
+   let keyVault = mongo.getKeyVault()
+
+   keyVault.rewrapManyDataKey({}, {
+     provider: 'aws',
+     masterKey: {
+       region: 'us-east-2',
+       key: 'arn:aws:kms:us-east-2:...'
+     }
+   })
+
+Re-wrap Data Keys that have not been Re-wrapped Recently
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to re-wrap data keys that have not
+been re-wrapped in the previous thirty days.
+
+.. code-block:: javascript
+
+   let keyVault = mongo.getKeyVault()
+   
+   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+   keyVault.rewrapManyDataKey({ updateDate: { $lt: thirtyDaysAgo } });
+
+Output
+~~~~~~
+
+:method:`KeyVault.rewrapManyDataKey()` returns a ``BulkWriteResult``
+object detailing how many data keys were affected:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     bulkWriteResult: BulkWriteResult {
+       result: {
+         ok: 1,
+         writeErrors: [],
+         writeConcernErrors: [],
+         insertedIds: [],
+         nInserted: 0,
+         nUpserted: 0,
+         nMatched: 3,
+         nModified: 3,
+         nRemoved: 0,
+         upserted: [],
+         opTime: { ts: Timestamp({ t: 1655840760, i: 3 }), t: 23 }
+       }
+     }
+   }

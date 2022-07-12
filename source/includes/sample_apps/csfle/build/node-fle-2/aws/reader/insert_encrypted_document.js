@@ -8,10 +8,10 @@ const keyVaultNamespace = `${eDB}.${eKV}`;
 
 // start-kmsproviders
 const kmsProviders = {
- aws: {
-   accessKeyId: "<Your AWS Access Key ID>",
-   secretAccessKey: "<Your AWS Secret Access Key>",
- },
+  aws: {
+    accessKeyId: "<Your AWS Access Key ID>",
+    secretAccessKey: "<Your AWS Secret Access Key>",
+  },
 };
 // end-kmsproviders
 

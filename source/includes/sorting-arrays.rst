@@ -1,9 +1,9 @@
 In array comparisons:
 
-- A less-than comparison or descending sort compares the smallest
+- A less-than comparison, or an ascending sort, compares the smallest
   elements of the array according to the BSON type sort order.
 
-- A greater-than comparison or descending sort compares the largest
+- A greater-than comparison, or a descending sort, compares the largest
   elements of the array according to the reverse BSON type sort order.
 
 - When comparing a field whose value is a one element array (example,

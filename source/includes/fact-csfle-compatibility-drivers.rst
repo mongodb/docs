@@ -15,12 +15,12 @@ database connection object:
 
 - For ``mongosh``, use the :method:`Mongo()`
   constructor to create a database connection. Specify the automatic
-  encryption rules to the ``schemaMap`` key of the 
-  :ref:`ClientSideFieldLevelEncryptionOptions` parameter. See
-  :ref:`mongo-connection-automatic-client-side-encryption-enabled` 
+  encryption rules to the ``schemaMap`` key of the
+  :ref:`<{+auto-encrypt-options+}>` parameter. See
+  :ref:`mongo-connection-automatic-client-side-encryption-enabled`
   for a complete example.
 
-- For the official MongoDB 4.2+ compatible drivers, use the 
+- For the official MongoDB 4.2+ compatible drivers, use the
   driver-specific database connection constructor (``MongoClient``)
   to create the database connection with the automatic encryption rules
   included as part of the {+csfle+}
