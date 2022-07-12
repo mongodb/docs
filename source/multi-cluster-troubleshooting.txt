@@ -1,0 +1,66 @@
+.. _multi-cluster-troubleshooting:
+
+=======================================
+Troubleshoot Multi-Cluster Deployments
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To troubleshoot your |multi-clusters|, use the procedures in
+this section.
+
+Recovering from Cluster Failure
+-------------------------------
+
+This procedure uses the same cluster names as in the :ref:`Prerequisites <multi-cluster-prereqs>`.
+If the cluster ``MDB_CLUSTER_1`` that holds MongoDB nodes goes down, and
+if you provision a new cluster named ``MDB_CLUSTER_4`` instead of
+``MDB_CLUSTER_1`` to hold the new MongoDB nodes, run the
+:github:`multi-cluster kubeconfig creator </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/main.go>`
+tool with the updated list of member clusters, and then edit the ``MongoDBMulti``
+CustomResource spec on the central cluster.
+
+To reconfigure the multi-cluster deployment after a cluster failure,
+replace the failed cluster with the newly provisioned cluster as follows:
+
+1. Run the :github:`multi-cluster kubeconfig creator </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/main.go>`
+   tool with the new cluster ``MDB_CLUSTER_4`` specified in the
+   ``-member-clusters`` flag. This enables the |k8s-op-short| to 
+   communicate with the new cluster to schedule MongoDB nodes on it. In
+   the following example, ``-member-clusters`` contains ``${MDB_CLUSTER_4_FULL_NAME}``.
+
+   .. code-block:: sh
+
+      go run tools/multicluster/main.go \
+        -central-cluster="${MDB_CENTRAL_CLUSTER_FULL_NAME}" \
+        -member-clusters="${MDB_CLUSTER_4_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}" \
+        -member-cluster-namespace="mongodb" \
+        -central-cluster-namespace="mongodb"
+
+2. On the central cluster, locate and edit the ``MongoDBMulti``
+   CustomResource spec to add the new cluster name to the
+   ``clusterSpecList`` and remove the failed cluster from this list.
+   The resulting list of cluster names should be similar to the following:
+
+   .. code-block:: sh
+
+      clusterSpecList:
+         clusterSpecs:
+          - clusterName: ${MDB_CLUSTER_4_FULL_NAME}
+            members: 3
+          - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+            members: 2
+          - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+            members: 3
+
+3. Restart the |k8s-op-short| Pod. After the restart, the |k8s-op-short|
+   should reconcile the MongoDB deployment on the newly created
+   ``MDB_CLUSTER_4`` cluster that has been created as a replacement for
+   the ``MDB_CLUSTER_1`` failure. To learn more about resource
+   reconciliation, see :ref:`multi-cluster-diagram`.
