@@ -1,3 +1,19 @@
+.. _cloudmanager_20220713:
+
+13 July 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.2.0.7631 <12.2.0.7631>`
+
+.. _cloudmanager_20220622:
+
+22 June 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+) to :ref:`12.1.2.7597-1 <12.1.2.7597-1>`.
+- Adds the ability to enable and run the sharded cluster balancer 
+  through the |mms-full| UI using Automation.
+
 .. _cloudmanager_20220601:
 
 01 June 2022 Release

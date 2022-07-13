@@ -1,3 +1,22 @@
+.. _12.2.0.7631:
+
+MongoDB Agent 12.2.0.7631 
+-------------------------
+
+*Released* 2022-07-13
+
+- Improves logging
+- Adds support for the upcoming release of MongoDB 6.0
+
+.. _12.1.2.7597-1:
+
+MongoDB Agent 12.1.2.7597-1
+---------------------------
+
+*Released* 2022-06-22
+
+- Adds support for the upcoming release of MongoDB 6.0
+
 .. _12.0.4.7554:
 
 MongoDB Agent 12.0.4.7554
