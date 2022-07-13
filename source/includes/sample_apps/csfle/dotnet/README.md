@@ -13,4 +13,4 @@ To build Dotnet applications, run the following command from the parent of this 
 To test your built applications, run the following
 command from the parent of this directory:
 
-    python -m unittest test.TestDotNet
+    python -m unittest test.TestDotnet
