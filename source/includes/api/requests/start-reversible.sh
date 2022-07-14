@@ -1,4 +1,4 @@
-curl localhost:27182/api/v1/start -XPOST
+curl localhost:27182/api/v1/start -XPOST \
 --data '
    {
       "source": "cluster0",
