@@ -1,3 +1,14 @@
+.. _adf-v20220712:
+
+12 July 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- |service| now charges for the total number of bytes that {+adf+} 
+  processes from |http| sources.
+- Adds support for the background option on the :ref:`$merge 
+  <adf-merge-stage>` aggregation stage.
+
 .. _adf-v20220621:
 
 21 June 2022 Release
