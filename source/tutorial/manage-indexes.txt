@@ -35,6 +35,17 @@ View Existing Indexes
 Remove Indexes
 --------------
 
+.. tip:: Hide an Index Before Dropping It
+
+   If you drop an index that is actively used in production, your
+   application may incur a performance degradation. Before you drop an
+   index, you can evaluate the potential impact of the drop by
+   :ref:`hiding the index <hide-existing-index>`.
+   
+   Hidden indexes are not used to support queries. If you hide an index
+   and observe substantial negative performance impact, consider keeping
+   and unhiding the index so queries can resume using it.
+
 .. include:: /includes/driver-remove-indexes-tabs.rst
 
 Modify an Index
@@ -42,19 +53,128 @@ Modify an Index
 
 .. include:: /includes/driver-examples/driver-example-modify-index-tabs.rst
 
-.. tabs-drivers::
+Minimize Performance Impact With a Temporary Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   tabs:
-     - id: compass
-       content: |
-         .. seealso::
+If you drop an index that is actively used in production, your
+application may incur a performance degradation. To ensure queries can
+still use an index during modification, you can create a temporary,
+redundant index that contains the same fields as the modified index.
 
-            - :ref:`MongoDB Compass Documentation <compass-index>`
-            - :compass:`Compass Documentation for Indexes </indexes/>`
+Example
+```````
+
+This example creates a new index and modifies that index to make it
+:ref:`unique <index-type-unique>`.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a ``siteAnalytics`` collection with an index on the ``url`` field
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.createIndex( { "url": 1 } )
+
+      The command returns the name of the index:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         url_1
+
+   .. step:: Create a temporary index that contains the ``url`` field
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.createIndex( { "url": 1, "dummyField": 1 } )
+
+      The command returns the name of the index:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         url_1_dummyField_1
+
+      This temporary index lets you safely drop the original ``{ "url":
+      1 }`` index without impacting performance.
+
+   .. step:: Drop the original index
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.dropIndex( { "url": 1 } )
+
+      The command returns:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { nIndexesWas: 3, ok: 1 } 
+
+   .. step:: Recreate the ``{ "url": 1 }`` index with the ``unique`` property
+
+       Run this command:
+
+       .. code-block:: javascript
+
+         db.siteAnalytics.createIndex( { "url": 1 }, { "unique": true } )
+         
+       The command returns the name of the index:
+
+       .. code-block:: javascript
+          :copyable: false
+
+          url_1
+         
+       The ``url_1`` index is recreated and you can drop the temporary
+       index without impacting performance. Queries on the ``url`` field
+       can use the new unique index.
+
+   .. step:: Drop the temporary index
+
+      Run this command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.dropIndex( { "url": 1, "dummyField": 1 } )
+
+      The command returns:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { nIndexesWas: 3, ok: 1 } 
+
+   .. step:: Confirm that the index was updated
+
+      To view the indexes on the ``siteAnalytics`` collection, run this
+      command:
+
+      .. code-block:: javascript
+
+         db.siteAnalytics.getIndexes()
+
+      The command returns these indexes, indicating that the ``url_1``
+      index is now unique:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         [
+           { v: 2, key: { _id: 1 }, name: '_id_' },
+           { v: 2, key: { url: 1 }, name: 'url_1', unique: true }
+         ]       
 
 .. _manage-indexes-find-inconsistent-indexes:
 
-Find Inconsistent Indexes across Shards
+Find Inconsistent Indexes Across Shards
 ---------------------------------------
 
 A sharded collection has an inconsistent index if the collection does
