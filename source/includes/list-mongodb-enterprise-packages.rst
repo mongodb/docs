@@ -36,7 +36,11 @@ repository, and contains the following officially-supported packages:
 
   * - ``{+package-name+}-mongosh``
     - Contains the MongoDB Shell (:binary:`~bin.mongosh`).
- 
+
+  * - ``{+package-name+}-shared-openssl*``
+    - Contains the MongoDB Shell that uses the OpenSSL version already
+      installed on your computer (:binary:`~bin.mongosh`).
+
   * - ``{+package-name-enterprise+}-tools``
     - A ``metapackage`` that automatically installs the component
       packages listed below:
