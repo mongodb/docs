@@ -13,7 +13,7 @@
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Description
@@ -35,72 +35,31 @@ line options.
      standalone instance <server-replica-set-deploy-convert>` to a
      replica set before using {+c2c-product-name+}. 
 
+.. _c2c-cli-options:
+
 Options
 -------
+
+.. |opt-term| replace:: option
 
 Global Options
 ~~~~~~~~~~~~~~
 
 .. option:: --cluster0 <URI>
 
-   Sets the :ref:`connection URI <mongodb-uri>` for the first cluster.
-   The first cluster can serve as either the source or the destination
-   in the sync process. Designate the source and destination clusters
-   in the call to the :ref:`c2c-api-start` API endpoint.
+   .. include:: /includes/opts/cluster0.rst
 
-   For more information on connecting ``mongosync``, see
-   :ref:`Connections <c2c-connecting>`.
+   To set the ``--cluster0`` option from a configuration file,
+   see the :setting:`cluster0` setting.
+
 
 .. option:: --cluster1 <URI>
 
-   Sets the :ref:`connection URI <mongodb-uri>` for the second cluster.
-   The second cluster can serve as either the source or the destination
-   in the sync process. Designate the source and destination clusters
-   in the call to the :ref:`c2c-api-start` API endpoint.
+   .. include:: /includes/opts/cluster0.rst
 
-   For more information on connecting ``mongosync``, see
-   :ref:`Connections <c2c-connecting>`.
+   To set the ``--cluster1`` option from a configuration file,
+   see the :setting:`cluster1` setting.
 
-.. option:: --verbosity <level>
-
-   *Default*: ``INFO``
-
-   Sets the verbosity level to use in log messages.
-   {+c2c-product-name+} logs all messages at the specified level and
-   any messages at lower levels.
-
-   The ``--verbosity`` option supports the following values:
-
-   - ``TRACE``
-   - ``DEBUG``
-   - ``INFO``
-   - ``WARN``
-   - ``ERROR``
-   - ``FATAL``
-   - ``PANIC``
-
-.. option:: --logPath <DIR>
-
-   Sets the path to the log directory. {+c2c-product-name+} writes logs
-   to files in this directory.
-
-.. option:: --port
-
-   *Default*: ``27182``
-
-   Sets the port used by the HTTP server for the {+c2c-product-name+}
-   HTTP API.
-
-.. option:: --id <ID>
-
-   Sets an identifier for the ``mongosync`` instance.
-
-   Use this option when running multiple instances of ``mongosync`` on
-   a sharded cluster, to synchronize the shards individually. 
-   
-   The ``--id`` option must correspond to the shard ID of the shard it
-   syncs.  To find the shard ID, use the :dbcommand:`listShards`
-   command.
 
 .. option:: --config <filename>
 
@@ -108,13 +67,48 @@ Global Options
 
    For more information, see :ref:`c2c-mongosync-config`.
 
+
+.. option:: --help, -h
+
+   Prints usage information to stdout.
+
+
+.. option:: --id <ID>
+
+   .. include:: /includes/opts/id.rst
+
+   To set the ``--id`` option from a configuration file,
+   see the :setting:`id` setting.
+
+.. option:: --logPath <DIR>
+
+   .. include:: /includes/opts/logPath.rst
+
+   To set the ``--logPath`` option from a configuration file,
+   see the :setting:`logPath` setting.
+
+.. option:: --port
+
+   .. include:: /includes/opts/port.rst
+
+
+   To set the ``--port`` option from a configuration file,
+   see the :setting:`port` setting.
+
+
+.. option:: --verbosity <level>
+
+   .. |verbosity-opt-type| replace:: option
+   .. |verbosity-opt| replace:: ``--verbosity``
+
+   .. include:: /includes/opts/verbosity.rst
+
+   To set the ``--verbosity`` option from a configuration file,
+   see the :setting:`verbosity` setting.
+   
 .. option:: --version, -v
 
    Prints ``mongosync`` version information to stdout.
-
-.. option:: --help, h
-
-   Prints usage information to stdout.
 
 Behavior
 --------
@@ -139,18 +133,26 @@ To monitor the ``commit`` process, use the :ref:`progress
 
 .. _c2c-mongosync-config:
 
+Cluster Independence
+~~~~~~~~~~~~~~~~~~~~
+
+``mongosync`` synchronizes collection data between a source cluster and
+destination cluster. ``mongosync`` does not synchronize :ref:`users
+<users>` or :ref:`roles <built-in-roles>`. As a result, you can create
+users with different access permissions on each cluster.
+
 Configuration File
 ~~~~~~~~~~~~~~~~~~
 
 Options for ``mongosync`` can be set in a YAML configuration file. Use
-the :option:`--config` option. To specify the path to the configuration
-file. For example:
+the :option:`--config` option. For example:
 
-.. code-block:: yaml
+.. code-block:: console
 
-   # Cluster Configuration
-   cluster0: "mongodb://192.0.2.10:27017,192.0.2.11:27017,192.0.2.12:27017"
-   cluster1: "mongodb://192.0.2.20:27017,192.0.2.21:27017,192.0.2.22:27017"
+   $ mongosync --config /etc/mongosync.conf
+
+For information on available settings, see :ref:`Configuration <c2c-config>`.
+
 
 Consistency
 ~~~~~~~~~~~
@@ -159,14 +161,14 @@ Consistency
 cluster. Read Consistency is not guaranteed on the destination cluster,
 the source and destination clusters may differ at a given point in
 time. However, if new writes are halted on the source cluster, the
-source and destination clusters will eventually hold the same data. 
+source and destination clusters will eventually hold the same data.
 
 Individual writes may be reordered or combined as they are relayed from
 source to destination. For a given document, the total number of writes
 may differ between source and destination.
 
 Transactions may appear non-atomically on the destination cluster.
-Retryable writes may not be retryable on the destination cluster. 
+Retryable writes may not be retryable on the destination cluster.
 
 Profiling
 ~~~~~~~~~
@@ -179,6 +181,19 @@ source database is dropped at a later time. The ``<db>.system.profile``
 collection will not change the accuracy of user data on the
 destination.
 
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+{+c2c-product-name+} supports replication between sharded clusters.
+Individual shards are replicated in parallel from the source cluster to
+the destination cluster, however a :ref:`chunk migration
+<sharding-chunk-migration>` or similar source update could move
+documents to a new source shard during replication.
+
+Even if documents move between source shards during replication,
+{+c2c-product-name+} maintains the :term:`eventual consistency`
+guarantee on the destination cluster.
+
 Views
 ~~~~~
 
@@ -186,6 +201,27 @@ If a database with views is dropped on the source, the destination may
 show an empty ``system.views`` collection in that database. The empty
 ``system.views`` collection will not change the accuracy of user
 data on the destination.
+
+Write Blocking
+~~~~~~~~~~~~~~
+
+By default, write-blocking is not enabled during synchronization. When
+write-blocking is enabled, ``mongosync`` blocks writes:
+
+- On the destination cluster during replication
+- On the source cluster while committing
+
+To enable write-blocking, use the :ref:`start API <c2c-api-start>`
+to set ``enableUserWriteBlocking`` to ``true``.
+
+:ref:`Reverse synchronization <c2c-api-reverse>` requires
+write-blocking. To enable reverse synchronization between the source
+and destination clusters, use the ``start API`` to initiate replication
+with ``reversible`` and ``enableUserWriteBlocking`` set to ``true``.
+The options must be set when replication begins, they cannot be updated
+later.
+
+.. include:: /includes/fact-write-blocking-requirement.rst
 
 Examples
 --------
