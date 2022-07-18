@@ -1,7 +1,7 @@
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
-   :widths: 20 14 66
+   :widths: 20 20 60
 
    * - Field
      - Type
@@ -17,6 +17,12 @@
      - If ``true``, indicates that a :ref:`commit <c2c-api-commit>`
        request will succeed. This also means that the initial sync has
        completed and is applying change events.
+
+   * - ``canWrite``
+     - boolean
+     - If ``true``, indicates that it is possible to write to the
+       destination cluster. Index validation continues until the 
+       :ref:`commit <c2c-api-commit>` is complete.
 
    * - ``info``
      - string
