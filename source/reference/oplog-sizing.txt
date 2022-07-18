@@ -1,0 +1,93 @@
+.. _c2c-oplog-sizing:
+
+================
+``oplog`` Sizing
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The :ref:`mongosync <c2c-mongosync>` program uses :ref:`change streams
+<changeStreams>` to synchronize data between source and destination
+clusters. ``mongosync`` does not access the :term:`oplog` directly,
+but when a change stream returns events from the past, the events must
+be within the :term:`oplog` time range. 
+
+.. include:: /includes/fact-oplog-background.txt
+
+Estimate ``oplog`` Size Needed for Initial Sync
+-----------------------------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Determine the ``oplog`` Time Span
+
+      To get the difference in seconds between the first and last entry
+      in the ``oplog`` run :method:`db.getReplicationInfo()`. If you
+      are replicating a sharded cluster, run the command on each shard.
+      
+      .. code-block:: javascript
+       
+         db.getReplicationInfo().timeDiff
+         
+      The value returned is the minimum ``oplog`` window of the
+      cluster. If there are multiple shards, the smallest number is the
+      minimum ``oplog`` window.
+
+   .. step:: Estimate Copy Rate During Synching
+
+      .. _c2c-step-est-size:
+
+      To gather performance data while synching, start the sync process
+      and monitor how fast data is transferred between clusters.
+      
+      To start syncing, run the :ref:`/start <c2c-api-start>` command.
+
+      To get the ``copy_rate``:
+      
+      - run the  :ref:`/progress <c2c-api-progress>` command to get
+        ``estimatedCopiedBytes_time01``
+      - wait a second or two
+      - run the  :ref:`/progress <c2c-api-progress>` command to get
+        ``estimatedCopiedBytes_time02``
+      
+      The ``copy_rate`` is:
+
+      .. code-block:: shell
+
+         copy_rate = ( estimatedCopiedBytes_time02 - estimatedCopiedBytes_01) / time_between_requests
+
+   .. step:: Estimate Copy Time
+
+      Estimate the time needed to copy the entire collection. The
+      estimated copy time is:
+      
+      .. code-block:: shell
+
+         estimatedCopyTime = estimatedTotalBytes / copy_rate
+
+   .. step:: Validate ``oplog`` Size
+
+      If the estimated time is larger than the minimum oplog window you
+      must cancel synchronization. Before restarting, make one of the
+      following changes:
+
+      - Increase the oplog window. Use :dbcommand:`replSetResizeOplog`
+        to set ``minRetentionHours`` greater than the estimated copy
+        time.
+      - Scale up the ``mongosync`` instance. Add cpu or memory to scale
+        up the ``mongosync`` node so that it has a higher copy rate.
+
+.. note::
+
+   The copy rate may vary during synchronization. To monitor progress,
+   repeat the :ref:`steps to estimate the copy rate
+   <c2c-step-est-size>` and verify that the copy rate stays about the
+   same.
+
