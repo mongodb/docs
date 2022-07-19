@@ -7,5 +7,3 @@ The manual describes key concepts in MongoDB such as:
 - The query API
 - Operational and administrative references
 - Tutorials and procedures
-
-.. include:: /includes/rc-available.rst
