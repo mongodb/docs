@@ -55,7 +55,7 @@ pygments_style = 'sphinx'
 
 manifest_version = version
 if version == 'upcoming':
-    manifest_version = '5.0'
+    manifest_version = '7.0'
 
 rr_version = '4.5'
 # rr_version = str(float(manifest_version) + 0.1)
@@ -119,7 +119,8 @@ extlinks = {
     'vo-docs' : ('https://help.victorops.com%s',''),
     'cloudmgr' : ('https://www.mongodb.com/docs/cloud-manager%s',''),
     'gcpc' : ('https://cloud.google.com/compute/docs%s',''),
-    'msa' : ('https://docs.microsoft.com/en-us/azure%s','')
+    'msa' : ('https://docs.microsoft.com/en-us/azure%s',''),
+    'prom-docs' : ('https://prometheus.io/docs%s','')
 }
 
 source_constants = {
@@ -154,12 +155,11 @@ source_constants = {
     'agent-dl-deb-ubuntu-16-zSeries': 'Ubuntu 18.X Z-Series (s390x) - DEB',
     'agent-dl-msi-windows': 'Windows - MSI',
     'agent-dl-rpm-rhel-6-x64': 'Amazon Linux - RPM',
-    'agent-dl-rpm-rhel-6-zSeries': 'RHEL 6.X Z-Series (s390x) - RPM',
     'agent-dl-rpm-rhel-7-ppc': 'RHEL/CentOS (7.X) Power (ppc64le) - RPM',
     'agent-dl-rpm-rhel-7-x64': 'RHEL/CentOS (7.X/8.X), SUSE12, SUSE15, Amazon Linux2 - RPM',
-    'agent-dl-rpm-rhel-7-zSeries': 'RHEL 7.X Z-Series (s390x) - RPM',
+    'agent-dl-rpm-rhel-7-8-zSeries': 'RHEL 7.X/8.X Z-Series (s390x) - RPM',
     'agent-dl-rpm-rhel-8-arm64': 'RHEL 8.X, Amazon Linux 2 - RPM',
-    'agent-dl-tar-rhel-7-zSeries': 'RHEL 7.X Z-Series (s390x) - TAR',
+    'agent-dl-tar-rhel-7-8-zSeries': 'RHEL 7.X/8.X Z-Series (s390x) - TAR',
     'agent-dl-tar-other-linux': 'Other Linux - TAR',
     'agent-dl-tar-rhel-7-ppc': 'RHEL/CentOS (7.X) Power (ppc64le) - TAR',
     'agent-dl-tar-rhel-7-x64': 'RHEL/CentOS (7.X/8.X), SUSE12, SUSE15, Amazon Linux 2 - TAR',

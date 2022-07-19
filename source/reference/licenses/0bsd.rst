@@ -6,7 +6,11 @@
    * - Package
      - Copyright
 
-   * - :gh:`rc\@1.2.8</dominictarr/rc>`
-     - Copyright © 2011 Dominic Tarr
-   * - :gh:`tslib\@2.2.0</Microsoft/tslib>`
-     - Copyright © Microsoft Corporation.
+   * - :npmjs:`pikaday</pikaday/v/1.8.2>`
+     - Copyright © 2013-2014 David Bushell
+
+   * - :npmjs:`tslib</tslib/v/1.14.1>`
+     - Copyright © Microsoft Corporation
+
+   * - :gh:`github.com/davecgh/go-spew</davecgh/go-spew>`
+     - 

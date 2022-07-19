@@ -6,7 +6,9 @@
    * - Package
      - Copyright
 
-   * - org.eclipse.jetty:jetty-util-ajax\@9.4.38.v20210224
-     - 
-   * - org.json:json\@20210307
-     - 
+   * - :mvn:`org.json:json</org.json/json/20211205>`
+     - Copyright © 2002 JSON.org,
+       Copyright © 2006 JSON.org,
+       Copyright © 2008 JSON.org,
+       Copyright © 2015 JSON.org,
+       Copyright © 2018 JSON.org
