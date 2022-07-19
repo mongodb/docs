@@ -3,4 +3,4 @@ the following versions:
 
 - MongoDB 4.4.12+
 - MongoDB 5.0.6+
-- MongoDB 6.0+ (including release candidates)
+- MongoDB 6.0+
