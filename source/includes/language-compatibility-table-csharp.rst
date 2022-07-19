@@ -17,7 +17,19 @@
      - .NET 4.7 [#2.14-note]_
      - .NET 4.6
      - .NET 4.5 [#4.5.2]_
-
+   * - 2.17
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     - |checkmark|
+     -
+     -
+     - |checkmark|
+     - |checkmark|
+     -
+     -
    * - 2.16
      - |checkmark|
      - |checkmark|
