@@ -5,11 +5,6 @@ variable in all the supported :manual:`aggregation pipeline stages
 </reference/operator/aggregation-pipeline/>` to view the metadata 
 results for your :pipeline:`$search` query.
 
-.. note::
-
-   To run facet queries over sharded collections, your cluster 
-   must run MongoDB v6.0.
-
 MongoDB recommends using the ``$$SEARCH_META`` variable only if you 
 need both the search results and the metadata results. Otherwise, use 
 the: 
