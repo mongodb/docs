@@ -29,6 +29,4 @@
 
    For more information on the majority commit point, see 
    :doc:`Causal Consistency and Read and Write Concerns
-   </core/causal-consistency-read-write-concerns>`. For additional 
-   details on resolving performance issues see the
-   :ref:`replica set maintenance tutorial<performance-issues-psa>`.
+   </core/causal-consistency-read-write-concerns>`.
