@@ -1,13 +1,4 @@
-.. warning::
-
-   Your containers must have permissions to write to your |k8s-pv|.
-   The |k8s-op-short| sets ``fsGroup = 2000`` in 
-   `securityContext <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__
-   This makes |k8s|
-   `try to fix write permissions <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#discussion>`__
-   for the |k8s-pv|. If redeploying the deployment item does not fix
-   issues with your |k8s-pvs|, contact `MongoDB Support
-   <https://support.mongodb.com/welcome>`__.
+.. include:: /includes/admonitions/k8s-persistent-volumes-om.rst
 
 .. note::
 
