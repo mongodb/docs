@@ -21,11 +21,45 @@ Starts the synchronization between a source and destination cluster.
 Requirements
 ------------
 
+State
+~~~~~
+
 To use the ``start`` endpoint, ``mongosync`` must be in the ``IDLE``
 state.
 
+User Write Blocking
+~~~~~~~~~~~~~~~~~~~
+
 .. include:: /includes/fact-write-blocking-requirement.rst
+
+To set a custom role for the ``mongosync`` user:
  
+#. To create a custom role, use the :dbcommand:`createRole` command:
+
+   .. code-block:: javascript
+   
+      db.adminCommand( {
+         createRole: "reverseSync",
+         privileges: [ {
+             resource: { db: "", collection: "" },
+             actions: [ "setUserWriteBlockMode", "bypassWriteBlockingMode" ]
+         } ],
+         roles: []
+      } )
+ 
+#. To grant the custom role to the ``mongosync`` user, use the :dbcommand:`grantRolesToUser` command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( {
+         grantRolesToUser: "mongosync-user",
+         roles: [ { role: "reverseSync", db: "admin" } ]
+      } )
+
+Ensure that you use this configured ``mongosync`` user in the connection 
+strings for the :setting:`cluster0` or :setting:`cluster1` settings when
+you start ``mongosync``. 
+
 Request
 -------
 
