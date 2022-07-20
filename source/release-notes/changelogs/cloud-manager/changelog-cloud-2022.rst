@@ -3,7 +3,23 @@
 13 July 2022 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Updates {+mdbagent+} to :ref:`12.2.0.7631 <12.2.0.7631>`
+- Introduces the general availability of 
+  :manual:`MongoDB 6.0 </release-notes/6.0/>`, which includes 
+  support for:
+
+  - New aggregation stages and operators
+  - ``$lookup`` and ``$graphLookup`` with Sharded Collections
+  - Improvements to Change Streams
+  - New cluster administration options
+  - and more.
+- Updates {+mdbagent+} to :ref:`12.2.0.7631 <12.2.0.7631>`.
+- Improves the ability to disable audit log rotation.
+- Adds the ability to create hidden rolling indexes with the 
+  :guilabel:`Data Explorer`.
+- Adds the ability to detect NaN values in the 
+  :guilabel:`Data Explorer`.
+- Extends index shard key validation for managed sharding to include 
+  compound indexes.
 
 .. _cloudmanager_20220622:
 
