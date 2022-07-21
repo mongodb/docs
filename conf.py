@@ -55,7 +55,7 @@ pygments_style = 'sphinx'
 
 manifest_version = version
 if version == 'upcoming':
-    manifest_version = '5.0'
+    manifest_version = '6.0'
 
 rr_version = '4.5'
 # rr_version = str(float(manifest_version) + 0.1)
