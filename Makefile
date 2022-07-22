@@ -8,6 +8,8 @@ PRODUCTION_URL="https://docs.mongodb.com"
 STAGING_BUCKET=docs-mongodb-org-prd-staging
 PRODUCTION_BUCKET=docs-mongodb-org-prd
 
+SEARCH_INDEX_BUCKET=docs-search-indexes-test
+
 PROJECT=mongoid
 PREFIX=mongoid
 TARGET_DIR=source-${GIT_BRANCH}
@@ -73,9 +75,9 @@ deploy: build/public/${GIT_BRANCH} ## Deploy to the production bucket
 deploy-search-index: ## Update the search index for this branch
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${PRODUCTION_BUCKET} -g -s --exclude build/public/${GIT_BRANCH}/api; \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -g -s --exclude build/public/${GIT_BRANCH}/api; \
 	else \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH}  -b ${PRODUCTION_BUCKET} -s --exclude build/public/${GIT_BRANCH}/api; \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -s --exclude build/public/${GIT_BRANCH}/api; \
 	fi
 
 # in case you want to just generate the api-docs
