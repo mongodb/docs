@@ -1,8 +1,8 @@
 .. _c2c-failure-recovery:
 
-==========================
-Recovery From Sync Failure
-==========================
+=======================================
+Use ``mongosync`` for Disaster Recovery 
+=======================================
 
 .. default-domain:: mongodb
 
@@ -12,22 +12,49 @@ Recovery From Sync Failure
    :depth: 2
    :class: singlecol
 
+Setting up {+c2c-product-name+} to prepare for disaster recovery follows the 
+same procedure as other :ref:`connections <c2c-connecting>` between clusters.
+Synchronization keeps the destination cluster up to date with the source
+cluster and ready as a backup. In the event that the source cluster fails or
+becomes otherwise unavailable, the destination cluster can replace it as the
+primary cluster.
+
 :program:`mongosync` temporarily alters some collection characteristics
 during synchronization. The original values are restored during the
-:ref:`commit process <c2c-api-commit>`. However, a permanent system
-failure could disrupt synchronization before the sync is committed. If
-the sync ends prematurely, you must manually reset the collection
-characteristics on the destination cluster.
+:ref:`commit process <c2c-api-commit>`. If synchronization ends prematurely,
+you must manually reset these collection characteristics on the destination
+cluster before you can use it as the primary cluster.
 
-Manually revert the following temporary changes:
+To prepare the destination cluster to replace the source cluster, make the 
+following changes:
 
-- :ref:`Unique indexes set as non-unique <c2c-dr-unique>`
-- :ref:`TTL indexes with expireAfterSeconds set to MAX_INT
-  <c2c-dr-ttl>`
-- :ref:`Hidden indexes set as non-hidden <c2c-dr-hidden>`
-- :ref:`Capped collections with size/max set to the maximum possible
-  value <c2c-dr-capped>`
-- :ref:`Write blocking <c2c-dr-write-blocking>`
+.. list-table::
+   :header-rows: 1
+
+   * - Change
+     - Description
+   * - :ref:`Unique Indexes <c2c-dr-unique>`
+     - Unique indexes on the source cluster synchronize as non-unique indexes 
+       on the destination cluster.
+
+       Indexes that should be unique must be manually set to unique. 
+   * - :ref:`TTL Indexes <c2c-dr-ttl>`
+     - Synchronization sets ``expireAfterSeconds`` to the value of ``MAX_INT``
+       on the destination cluster.
+
+       Use the :dbcommand:`collMod` command to set ``expireAfterSeconds`` 
+       to the desired value.
+   * - :ref:`Hidden Indexes <c2c-dr-hidden>`
+     - Synchronization replicates hidden indexes as non-hidden.
+
+       Use the :dbcommand:`collMod` command to hide any indexes that should
+       be hidden.
+   * - :ref:`Write Blocking <c2c-dr-write-blocking>`
+     - ``mongosync`` can disable writes on the destination cluster. 
+
+       If synchronization was started with write blocking, disable the Write
+       Block Mode.
+
 
 .. _c2c-dr-unique:
 
@@ -38,7 +65,7 @@ Unique Indexes
 transient uniqueness violations on the destination cluster. To avoid
 these errors, unique indexes are replicated as non-unique. If
 synchronization ends early, manually resolve any uniqueness violations
-and convert the non-unique indexes back to unique indexes.
+and convert any non-unique indexes that should be unique into unique indexes.
 
 Prepare the Index for Conversion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,15 +112,6 @@ Hidden Indexes
 During synchronization, :ref:`hidden indexes <index-type-hidden>` are
 not hidden on the destination cluster. Use the ``collMod`` command to
 hide indexes that should be hidden.
-
-.. _c2c-dr-capped:
-
-Capped Collections
-------------------
-
-During synchronization, :ref:`capped collections
-<manual-capped-collection>` are set to the maximum allowable size. Use
-the ``collMod`` command to set the correct maximum size.
 
 .. _c2c-dr-write-blocking:
 
