@@ -1,11 +1,18 @@
+.. _opsmgr-server-6.0.1:
+
+|onprem| Server 6.0.1
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-07-20*
+
+- Updates the {+mdbagent+} to :ref:`12.0.9.7579 <mongodb-12.0.9.7579>`.
+
 .. _opsmgr-server-6.0.0:
 
 |onprem| Server 6.0.0
 ~~~~~~~~~~~~~~~~~~~~~
 
-*Released 2022-07-12*
-
-.. To be verified closer to the release.
+*Released 2022-07-19*
 
 MongoDB Cluster Management
 ``````````````````````````
