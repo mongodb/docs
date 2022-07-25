@@ -140,9 +140,13 @@
        "error" event. Subsequent updates are sent as "info" events.
        When the alert is closed, |service| sends a "success" event.
 
-       If prompted, enter your DataDog |api| key under 
+       Enter your DataDog |api| key under 
        :guilabel:`API Key` and click
-       :guilabel:`Validate Datadog API Key`.
+       :guilabel:`Validate Datadog API Key`. Then, enter the following:
+
+       - Your |api| region. 
+  
+         .. include:: /includes/fact-datadog-supported-regions.rst
 
    * - VictorOps
 

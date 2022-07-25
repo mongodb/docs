@@ -21,7 +21,9 @@
          `sign up for one <https://app.datadoghq.com/signup>`__.
 
        - Datadog API Key
-       - API Region (United States or Europe)
+       - API Region
+
+         .. include:: /includes/fact-datadog-supported-regions.rst
 
    * - :guilabel:`Flowdock Settings`
 
