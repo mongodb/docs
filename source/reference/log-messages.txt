@@ -81,10 +81,15 @@ analyzing structured log messages can be found in the
 JSON Log Output Format
 ~~~~~~~~~~~~~~~~~~~~~~
 
-With MongoDB 4.4, all log output is now in JSON format. This includes
-log output sent to the *file*, *syslog*, and *stdout* (standard out)
-:ref:`log destinations <log-message-destinations>`, as well as the
-output of the :dbcommand:`getLog` command.
+Starting in MongoDB 4.4, all log output is in JSON format including
+output sent to:
+
+- Log file
+- Syslog
+- Stdout (standard out) :ref:`log destinations
+  <log-message-destinations>`
+
+Output from the :dbcommand:`getLog` command is also in JSON format.
 
 Each log entry is output as a self-contained JSON object which follows
 the :doc:`Relaxed Extended JSON v2.0 </reference/mongodb-extended-json>`
@@ -97,8 +102,8 @@ specification, and has the following layout and field order:
      "t": <Datetime>, // timestamp
      "s": <String>, // severity
      "c": <String>, // component
-     "ctx": <String>, // context
      "id": <Integer>, // unique identifier
+     "ctx": <String>, // context
      "msg": <String>, // message body
      "attr": <Object> // additional attributes (optional)
      "tags": <Array of strings> // tags (optional)
@@ -106,46 +111,73 @@ specification, and has the following layout and field order:
      "size": <Integer> // original size of entry (if truncated)
    }
 
-- **Timestamp** - Timestamp of the log message, in ``ISO-8601``
-  format. See :ref:`log-message-timestamp`.
+Field descriptions:
 
-- **Severity** - String representing the short severity code of the log
-  message. See :ref:`log-severity-levels`.
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 50
 
-- **Component** - String representing the full component string of the
-  log message. See :ref:`log-message-components`.
+   * - Field Name
+     - Type
+     - Description
 
-- **Context** - String representing the name of the thread issuing the
-  log statement.
+   * - ``t``
+     - Datetime
+     - Timestamp of the log message in ISO-8601 format. For an example,
+       see :ref:`log-message-timestamp`.
 
-- **id** - Integer representing the unique identifier of the log
-  statement. See :ref:`log-message-parsing-example-filter-id` for an
-  example.
+   * - ``s``
+     - String
+     - Short severity code of the log message. For an example, see
+       :ref:`log-severity-levels`.
 
-- **Message** - String representing the raw log output message as passed
-  from the server or driver. This message is :ref:`escaped as needed
-  <log-message-json-escaping>` according to the JSON specification.
+   * - ``c``
+     - String
+     - Full component string for the log message. For an example, see
+       :ref:`log-message-components`.
 
-- **Attributes** - *(optional)* Object containing one or more
-  key-value pairs for any additional attributes provided. If a log
-  message does not include any additional attributes, this object is
-  omitted. Attribute values may be referenced by their key name in the
-  *message* body, depending on the message. Like **message**, attributes
-  are :ref:`escaped as needed <log-message-json-escaping>` according to
-  the JSON specification.
+   * - ``id``
+     - Integer
+     - Unique identifier for the log statement. For an example, see
+       :ref:`log-message-parsing-example-filter-id`.
 
-- **Tags** - *(optional)* Array of strings representing any tags
-  applicable to the log statement, for example: ``["startupWarnings"]``.
+   * - ``ctx``
+     - String
+     - Name of the thread that caused the log statement.
 
-- **Truncated** - *(if truncated)* Object containing information
-  regarding :ref:`log message truncation <log-message-truncation>`, if
-  applicable. This object will only be present if the log entry contains
-  at least one **attribute** that was truncated.
+   * - ``msg``
+     - String
+     - Log output message passed from the server or driver. If
+       necessary, the message is :ref:`escaped
+       <log-message-json-escaping>` according to the JSON specification.
 
-- **Size** - *(if truncated)* Integer representing the original size of
-  a log entry if it has been :ref:`truncated <log-message-truncation>`.
-  This field will only be present if the log entry contains
-  at least one **attribute** that was truncated.
+   * - ``attr``
+     - Object
+     - One or more key-value pairs for additional log attributes. If a
+       log message does not include any additional attributes, the
+       ``attr`` object is omitted.
+       
+       Attribute values may be referenced by their key name in the
+       ``msg`` message body, depending on the message. If necessary, the
+       attributes are :ref:`escaped <log-message-json-escaping>`
+       according to the JSON specification.
+
+   * - ``tags``
+     - Array of strings
+     - Strings representing any tags applicable to the log statement.
+       For example, ``["startupWarnings"]``.
+
+   * - ``truncated``
+     - Object
+     - Information about the :ref:`log message truncation
+       <log-message-truncation>`, if applicable. Only included if the
+       log entry contains at least one truncated ``attr`` attribute.
+
+   * - ``size``
+     - Integer
+     - Original size of a log entry if it has been :ref:`truncated
+       <log-message-truncation>`. Only included if the log entry
+       contains at least one truncated ``attr`` attribute.
 
 .. _log-message-json-escaping:
 
