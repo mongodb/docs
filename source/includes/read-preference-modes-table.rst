@@ -32,5 +32,5 @@
        - The :ref:`maxStalenessSeconds
          <replica-set-read-preference-max-staleness>` read preference
          option
-       - Any specified :doc:`tag sets
+       - Any specified :doc:`tag set lists
          </tutorial/configure-replica-set-tag-sets>`
