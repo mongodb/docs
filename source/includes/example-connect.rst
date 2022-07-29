@@ -38,7 +38,7 @@ strings for ``cluster0`` and ``cluster1``:
    mongodb://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020,clusterTwo02.fancyCorp.com:20020,clusterTwo03.fancyCorp.com:20020
 
 The ``mongosync`` command layout below is modified for display. To
-connect ``cluster0`` to ``cluster`` with ``mongosync``, enter the
+connect ``cluster0`` to ``cluster1`` with ``mongosync``, enter the
 following command on one line:
 
 .. code-block:: shell
