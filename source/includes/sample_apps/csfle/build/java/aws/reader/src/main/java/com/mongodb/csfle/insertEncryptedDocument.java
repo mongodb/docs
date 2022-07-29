@@ -87,6 +87,7 @@ public class insertEncryptedDocument {
                                         new Document().append("policyNumber", new Document().append("encrypt", new Document()
                                                 .append("bsonType", "int")
                                                 .append("algorithm", "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"))))));
+        
         HashMap<String, BsonDocument> schemaMap = new HashMap<String, BsonDocument>();
         schemaMap.put("medicalRecords.patients", BsonDocument.parse(jsonSchema.toJson()));
         // end-schema
@@ -136,6 +137,7 @@ public class insertEncryptedDocument {
         System.out.println("Finding a document with regular (non-encrypted) client.");
         Document docRegular = mongoClientRegular.getDatabase(recordsDb).getCollection(recordsColl).find(eq("name", "Jon Doe")).first();
         System.out.println(docRegular.toJson());
+
         System.out.println("Finding a document with encrypted client, searching on an encrypted field");
         Document docSecure = mongoClientSecure.getDatabase(recordsDb).getCollection(recordsColl).find(eq("ssn", 241014209)).first();
         System.out.println(docSecure.toJson());

@@ -162,6 +162,7 @@ public class insertEncryptedDocument {
         //                                 new Document().append("policyNumber", new Document().append("encrypt", new Document()
         //                                         .append("bsonType", "int")
         //                                         .append("algorithm", "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"))))));
+        //
         // :uncomment-end:
         // :state-end:
         // :state-start: aws-test azure-test local-test gcp-test
@@ -248,6 +249,7 @@ public class insertEncryptedDocument {
         System.out.println("Finding a document with regular (non-encrypted) client.");
         Document docRegular = mongoClientRegular.getDatabase(recordsDb).getCollection(recordsColl).find(eq("name", "Jon Doe")).first();
         System.out.println(docRegular.toJson());
+
         System.out.println("Finding a document with encrypted client, searching on an encrypted field");
         // :state-start: local-reader aws-reader azure-reader gcp-reader
         // :uncomment-start:
