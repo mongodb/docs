@@ -11,7 +11,7 @@ coll = db.comets
 
 # delete code goes here
 doc = {
-    "OrbitalPeriod": {
+    "orbitalPeriod": {
         "$gt": 5,
         "$lt": 85
     }

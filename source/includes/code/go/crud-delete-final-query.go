@@ -33,8 +33,8 @@ func main() {
 	filter := bson.D{
 		{"$and",
 			bson.A{
-				bson.D{{"OrbitalPeriod", bson.D{{"$gt", 5}}}},
-				bson.D{{"OrbitalPeriod", bson.D{{"$lt", 85}}}},
+				bson.D{{"orbitalPeriod", bson.D{{"$gt", 5}}}},
+				bson.D{{"orbitalPeriod", bson.D{{"$lt", 85}}}},
 			},
 		},
 	}

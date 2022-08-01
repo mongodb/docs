@@ -18,9 +18,9 @@ public class CrudDelete {
             MongoCollection<Document> coll = db.getCollection("comets");
 
             // delete code goes here
-            Bson filter = Filters.and(Filters.gt("OrbitalPeriod", 5), Filters.lt("OrbitalPeriod", 85));
+            Bson filter = Filters.and(Filters.gt("orbitalPeriod", 5), Filters.lt("orbitalPeriod", 85));
             DeleteResult result = coll.deleteMany(filter);
-            
+
             // amount deleted code goes here
             System.out.println("Number of documents deleted: " +result.getDeletedCount());
         }
