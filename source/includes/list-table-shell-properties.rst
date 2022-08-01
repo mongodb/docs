@@ -14,15 +14,21 @@
 
    * - ``enableTelemetry``
      - boolean
-     - true
+     - ``true``
      - Enables sending anonymized tracking and diagnostic data to
        MongoDB. 
 
    * - ``editor``
      - string
-     - null
+     - ``null``
      - Designates an editor to use within the :binary:`~bin.mongosh`
        console. Overrides the ``EDITOR`` environment variable if set.
+
+   * - ``forceDisableTelemetry``
+     - boolean
+     - ``true``
+     - Only available in the global configuration file. When true,
+       users cannot enable telemetry manually.
 
    * - ``historyLength``
      - integer
@@ -59,12 +65,12 @@
 
    * - ``showStackTraces``
      - boolean
-     - false
+     - ``false``
      - Controls display of a stack trace along with error messages.
 
    * - ``snippetAutoload``
      - boolean
-     - true
+     - ``true``
      - If ``true``, automatically load installed
        :ref:`snippets <snip-overview>` at startup.
 
