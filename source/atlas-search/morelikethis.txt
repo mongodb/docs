@@ -1,0 +1,741 @@
+.. _more-like-this-ref:
+
+============
+moreLikeThis
+============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. expression:: moreLikeThis
+
+   The ``moreLikeThis`` operator returns documents similar to input
+   documents. The ``moreLikeThis`` operator allows you to build features
+   for your applications that display similar or alternative results
+   based on one or more given documents.
+
+Behavior
+--------
+
+When you run a ``moreLikeThis`` query, |fts| performs these actions:
+
+- Extracts a limited number of most representative terms based on the
+  input documents that you specify in the operator's ``like`` option.
+- Creates a disjunction (*OR*) query to find similar documents based on
+  the most representative terms and returns the results.
+
+Similar to other operators, you must create an index on the fields that you intend to query. The operator
+ignores query fields that aren't indexed with either static or dynamic
+mappings.
+
+The ``moreLikeThis`` operator performs a search for similar documents
+using the :ref:`analyzer <analyzers-ref>` that you specify in the
+:ref:`index configuration <index-config-example>`. If you omit the
+analyzer, the ``moreLikeThis`` operator uses the default
+:ref:`standard analyzer <ref-standard-analyzer>`.
+
+If you define more than one analyzer on a field, for example a
+:ref:`standard analyzer <ref-standard-analyzer>` and a
+:ref:`keyword analyzer <ref-keyword-analyzer>` using a
+:ref:`multi-analyzer <ref-multi-analyzers>`, the ``moreLikeThis``
+operator runs the input text through each analyzer, searches in each
+corresponding field, and returns results for all analyzers.
+
+To view the disjunction (*OR*) that |fts| constructs to find similar
+documents, use :ref:`explain <explain-ref>` with your ``moreLikeThis``
+operator query.
+
+Usage
+-----
+
+Before you can run the ``moreLikeThis`` operator query, you must first
+retrieve one or more input documents. To retrieve input documents, you
+can do one of the following:
+
+- Run a query, such as :manual:`find()`, or another MQL query to find
+  |bson| documents.
+- Run any aggregation pipeline that returns |bson| documents.
+- Use any other source of documents in your application.
+
+Once you identify the input documents, you pass them to the
+``moreLikeThis`` operator.
+
+When you run a ``moreLikeThis`` operator query, |fts| returns the
+original input document in the query results. To omit the input document
+from the query results, use the ``moreLikeThis`` operator in a
+:ref:`compound <compound-ref>` operator query and exclude the input
+document by its ``_id`` using the ``equals`` operator in the
+:ref:`mustNot <must-must-not-example-ref>` clause.
+
+.. _more-like-this--syntax:
+
+Syntax
+------
+
+``moreLikeThis`` has the following syntax:
+
+.. code-block:: javascript
+   :copyable: false
+
+   
+   [{
+      $search: {
+         "index": index name, // optional, defaults to "default"
+         "moreLikeThis": [{
+            "like":
+               {<"field-name">: <"field-value">,
+               ...
+               }, 
+               ...
+            }]
+         },
+         ...
+    }]
+
+.. _more-like-this-options:
+
+Options
+-------
+
+``moreLikeThis`` uses the following option to constuct a query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``like``
+     - one |bson| document or an array of documents
+     - One or more |bson| documents that |fts| uses to extract
+       representative terms to query for.
+
+     - yes
+
+.. _more-like-this-limitations:
+
+Limitations
+-----------
+
+You can't use the ``moreLikeThis`` operator to query non-string values.
+To search for non-string values, you can combine a ``moreLikeThis`` query
+with a :ref:`near <near-ref>`, :ref:`range <range-ref>`, or any other
+operator in a :ref:`compound operator <compound-ref>` query.
+
+.. _more-like-this-examples-ref:
+
+Examples
+--------
+
+The examples use the ``movies`` collection in the ``sample_mflix``
+database.
+
+Before you can run the example queries on your cluster, 
+:ref:`load the sample data <sample-data>` on your |service| cluster, and
+create the following index with a :ref:`keyword analyzer
+<ref-keyword-analyzer>` on the ``sample_mflix.movies`` collection.
+The following index definition uses the name ``default``.
+
+.. include:: /includes/default-fts-index-name.rst
+
+The following index definition on the fields in the ``sample_mflix.movies``
+collection:
+
+- Configures an index on the ``_id``, ``title`` and ``genres`` fields.
+- Analyzes the ``title`` field using the ``lucene.standard`` analyzer
+  and an alternate analyzer named ``keywordAnalyzer`` that uses the
+  ``lucene.keyword`` analyzer.
+- Analyzes and searches the fields using the ``lucene.english`` analyzer.
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "title": {
+           "type": "string",
+           "analyzer": "lucene.standard",
+           "multi": {
+             "keywordAnalyzer": {
+               "type": "string",
+               "analyzer": "lucene.keyword"
+             }
+           }
+         },
+         "genres": {
+           "type": "string"
+         },
+         "_id": {
+           "type": "objectId"
+          }
+       }
+     },
+     "analyzer": "lucene.english"
+   }
+
+
+Example 1: Single Document with Multiple Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``moreLikeThis`` operator to find documents
+that are similar to multiple field values.
+
+.. example::
+
+   The following query searches for movies that are similar to the input
+   movie title "The Godfather" and input movie genre "action". It includes
+   a :pipeline:`$limit` stage to limit the output to ``5`` results and
+   a :pipeline:`$project` stage to exclude all fields except ``title``,
+   ``released``, and ``genres``.
+
+
+   .. io-code-block::
+      :copyable: true 
+
+      .. input:: 
+         :language: javascript
+         :linenos:
+
+         db.movies.aggregate([
+           {
+             "$search": {
+             moreLikeThis: {
+              like:
+               { 
+                 "title": "The Godfather",
+                 "genres": "action"
+               }
+             }
+            }
+           },
+           { "$limit": 5},
+           {
+             $project: {
+               "_id": 0,
+               "title": 1,
+               "released": 1,
+               "genres": 1
+             }
+           }
+         ])
+
+      .. output:: 
+         :language: javascript
+
+         [
+          { genres: [ 'Comedy', 'Drama', 'Romance' ], title: 'Godfather' },
+          {
+           genres: [ 'Crime', 'Drama' ],
+           title: 'The Godfather',
+           released: ISODate("1972-03-24T00:00:00.000Z")
+          },
+          {
+           genres: [ 'Crime', 'Drama' ],
+           title: 'The Godfather: Part II',
+           released: ISODate("1974-12-20T00:00:00.000Z")
+          },
+          {
+           genres: [ 'Crime', 'Drama' ],
+           title: 'The Godfather: Part III',
+           released: ISODate("1990-12-26T00:00:00.000Z")
+          },
+          {
+           genres: [ 'Action' ],
+           title: 'The Defender',
+           released: ISODate("1994-07-28T00:00:00.000Z")
+          }
+         ]
+
+   |fts| results contain movies similar to the input movie title
+   "The Godfather" and input movie genre "action".
+
+Example 2: Input Document Excluded in Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses ``find()`` to identify an input document, and
+then uses a ``moreLikeThis`` operator query to find similar documents.
+
+.. example::
+
+   The following ``find()`` query retrieves the movie with the title
+   "The Godfather". It specifies that the results should only contain
+   the ``title`` and ``plot`` fields for the matching documents. Note
+   that, by default, the ``find()`` command always returns the ``_id``
+   field, the value for which might be different on your cluster.
+
+   .. io-code-block::
+      :copyable: true 
+
+      .. input:: 
+         :language: javascript
+
+         db.movies.find( { title: "The Godfather" }, { plot: 1, title: 1} )
+
+
+      .. output:: 
+         :language: javascript
+
+         [
+          {
+           _id: ObjectId("573a1396f29313caabce4a9a"),
+           plot: 'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.',
+           title: 'The Godfather'
+          }
+         ]
+
+   The following query uses a :ref:`compound-ref` operator with the
+   the ``moreLikeThis`` operator to query the ``title`` and ``genres``
+   fields and the :ref:`equals-ref` operator to exclude the input
+   document using the following clauses:
+
+   - The ``must`` clause to query for movies similar to ``The Godfather``
+     in the "action" genre.
+   - The ``mustNot`` clause to exclude the input document from results by
+     its ``_id`` value. Note that the ``_id`` value used in the query
+     matches the ``_id`` value in the results of the preceding ``find()``
+     query.
+
+   The query limits the output to ``5`` results. The query uses
+   a :pipeline:`$project` stage to include the ``_id``, ``title``,
+   ``released``, and ``genres`` fields in the results.
+
+   .. note::
+
+      Before you run this query, replace the value of the ``_id`` field
+      on line 16 with the value of the ``_id`` field in your query
+      results.
+
+   .. io-code-block::
+      :copyable: true
+
+
+      .. input::
+         :language: json
+         :linenos:
+
+         db.movies.aggregate([
+           {
+             "$search": {
+                "compound":{
+                   "must":[{ 
+                     "moreLikeThis": { 
+                       "like": [{
+                         "title": "The Godfather",
+                         "genres": "action"
+                       }]
+                     }
+                   }],
+                   "mustNot":[{
+                     "equals": {
+                        "path": "_id",
+                        "value": ObjectId ("573a1396f29313caabce4a9a")
+                     }
+                   }]
+                  }
+                }
+              },
+         {"$limit": 5},
+         {
+          "$project": {
+            "_id": 1,
+            "title": 1,
+            "released": 1,
+            "genres": 1
+           }
+          }
+         ])
+
+      .. output:: 
+         :language: json
+
+         [
+          {
+           _id: ObjectId("573a13acf29313caabd27afc"),
+           genres: [ 'Comedy', 'Drama', 'Romance' ],
+           title: 'Godfather'
+          },
+          {
+           _id: ObjectId("573a1396f29313caabce557f"),
+           genres: [ 'Crime', 'Drama' ],
+           title: 'The Godfather: Part II',
+           released: ISODate("1974-12-20T00:00:00.000Z")
+          },
+          {
+           _id: ObjectId("573a1398f29313caabcebf7b"),
+           genres: [ 'Crime', 'Drama' ],
+           title: 'The Godfather: Part III',
+           released: ISODate("1990-12-26T00:00:00.000Z")
+          },
+          {
+           _id: ObjectId("573a1399f29313caabceed8d"),
+           genres: [ 'Action' ],
+           title: 'The Defender',
+           released: ISODate("1994-07-28T00:00:00.000Z")
+          },
+          {
+           _id: ObjectId("573a139af29313caabcef2a0"),
+           genres: [ 'Action' ],
+           title: 'The Enforcer',
+           released: ISODate("1995-03-02T00:00:00.000Z")
+          }
+         ]
+
+   |fts| results include documents that are similar to the query term
+   ``The Godfather`` in the  ``action`` genre. However, the results
+   don't include the document that was excluded by its ``_id``, which
+   is ``ObjectId("573a1396f29313caabce4a9a")``.
+
+Example 3: Multiple Analyzers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses ``find()`` to identify input documents, and
+then uses a ``moreLikeThis`` operator query to find similar documents.
+
+.. example::
+
+   The following ``find()`` query retrieves the movies with the title
+   "Alice in Wonderland". It specifies that the results should only
+   contain the ``title`` and ``plot`` fields for the matching documents.
+   Note that, by default, the ``find()`` command always returns the
+   ``_id`` field, the value for which might be different on your cluster.
+
+   .. io-code-block::
+      :copyable: true 
+
+      .. input:: 
+         :language: javascript
+
+         db.movies.find( { title: "Alice in Wonderland" }, { plot: 1, title: 1} )
+
+
+      .. output:: 
+         :language: javascript
+
+         [
+           {
+            _id: ObjectId("573a1394f29313caabcde9ef"),
+            plot: 'Alice stumbles into the world of Wonderland. Will she get home? Not if the Queen of Hearts has her way.',
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a1398f29313caabce963d"),
+            plot: 'Alice is in Looking Glass land, where she meets many Looking Glass creatures and attempts to avoid the Jabberwocky, a monster that appears due to her being afraid.',
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a1398f29313caabce9644"),
+            plot: 'Alice is in Looking Glass land, where she meets many Looking Glass creatures and attempts to avoid the Jabberwocky, a monster that appears due to her being afraid.',
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a139df29313caabcfb504"),
+            plot: `The wizards behind The Odyssey (1997) and Merlin (1998) combine Lewis Carroll's "Alice in Wonderland" and "Through the Looking Glass" into a two-hour special that just gets curiouser and curiouser.`,
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a13bdf29313caabd5933b"),
+            plot: "Nineteen-year-old Alice returns to the magical world from her childhood adventure, where she reunites with her old friends and learns of her true destiny: to end the Red Queen's reign of terror.",
+            title: 'Alice in Wonderland'
+           }
+         ]
+
+The following example uses a :ref:`compound-ref` operator to query the
+``title`` and ``genres`` fields using the following clauses:
+
+- The ``should`` clause uses the ``moreLikeThis`` operator to search
+  for documents similar to the ``title`` "Alice in Wonderland".
+  The movie "Alice in Wonderland" is analyzed with both the
+  ``lucene.standard`` and ``lucene.keyword`` analyzers used in the
+  ``title`` field.
+
+- The ``mustNot`` clause specifies that one of the input documents,
+  specified by its ``_id`` value, must not be included in the results.
+
+The query limits the results list to ``10`` documents. The query uses
+a :pipeline:`$project` stage to include the ``_id``, ``title``, and
+``genres`` fields in the results.
+
+
+.. example::
+
+   .. io-code-block::
+      :copyable: true 
+
+      .. input:: 
+         :language: json
+         :linenos:
+
+         db.movies.aggregate([
+         {
+            $search: {
+              "compound": {
+                "should": [{
+                   "moreLikeThis": {
+                      "like": [{
+                         "title": "Alice in Wonderland"
+                      }]
+                   }
+                }],
+              "mustNot": [
+              {
+              "equals": {
+              "path": "_id",
+               "value": ObjectId ("573a1394f29313caabcde9ef")
+             }
+            }]
+          }
+           }
+           },
+          { $limit: 10 },
+                   {
+          $project: {
+              "title": 1,
+              "genres": 1,
+              "_id": 1
+            }
+           }
+          ])
+
+      .. output::
+         :language: json
+
+         [
+           {
+            _id: ObjectId("573a1398f29313caabce963d"),
+            genres: [ 'Adventure', 'Family', 'Fantasy' ],
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a1398f29313caabce9644"),
+            genres: [ 'Adventure', 'Family', 'Fantasy' ],
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a139df29313caabcfb504"),
+            genres: [ 'Adventure', 'Comedy', 'Family' ],
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a13bdf29313caabd5933b"),
+            genres: [ 'Adventure', 'Family', 'Fantasy' ],
+            title: 'Alice in Wonderland'
+           },
+           {
+            _id: ObjectId("573a1396f29313caabce3e7e"),
+            genres: [ 'Comedy', 'Drama' ],
+            title: 'Alex in Wonderland'
+           },
+           {
+            _id: ObjectId("573a13bdf29313caabd5a44b"),
+            genres: [ 'Drama' ],
+            title: 'Phoebe in Wonderland'
+           },
+           {
+            _id: ObjectId("573a139af29313caabcf0e23"),
+            genres: [ 'Documentary' ],
+            title: 'Wonderland'
+           },
+           {
+            _id: ObjectId("573a139ef29313caabcfcebc"),
+            genres: [ 'Drama' ],
+            title: 'Wonderland'
+           },
+           {
+            _id: ObjectId("573a13a0f29313caabd03dab"),
+            genres: [ 'Drama' ],
+            title: 'Wonderland'
+           },
+           {
+            _id: ObjectId("573a13abf29313caabd2372a"),
+            genres: [ 'Crime', 'Drama', 'Mystery' ],
+            title: 'Wonderland'
+           }
+         ]
+
+
+   The following query uses :ref:`explain <explain-ref>` with the
+   preceding query to show the disjunction (*OR*) that |fts| constructs
+   to find similar documents.
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input::
+         :language: json
+
+         db.movies.explain("queryPlanner").aggregate([
+          {
+            $search: {
+              "compound": {
+                "should": [{
+                   "moreLikeThis": {
+                      "like": [{
+                         "title": "Alice in Wonderland"
+                      }]
+                   }
+                }],
+              "mustNot": [
+              {
+              "equals": {
+              "path": "_id",
+               "value": ObjectId ("573a1394f29313caabcde9ef")
+             }
+            }]
+          }
+           }
+           },
+         { $limit: 10 },
+                   {
+         $project: {
+              "title": 1,
+              "genres": 1,
+              "_id": 1
+            }
+          }
+         ])
+
+
+      .. output:: 
+         :language: json
+
+         {
+          explainVersion: '1',
+            stages: [
+              {
+               '$_internalSearchMongotRemote': {
+                  mongotQuery: {
+                  compound: {
+                  should: [
+                   {
+                     moreLikeThis: { like: [ { title: 'Alice in Wonderland' } ] }
+                   }
+                  ],
+                  mustNot: [
+                   {
+                     equals: {
+                       path: '_id',
+                       value: ObjectId("573a1394f29313caabcde9ef")
+                     }
+                   }
+                  ]
+               }
+              },
+              explain: {
+               type: 'BooleanQuery',
+                 args: {
+                  must: [],
+                  mustNot: [
+                    {
+                      path: 'compound.mustNot',
+                      type: 'ConstantScoreQuery',
+                      args: {
+                        query: {
+                        type: 'TermQuery',
+                      args: {
+                         path: '_id',
+                         value: '[57 3a 13 94 f2 93 13 ca ab cd e9 ef]'
+                        }
+                       }
+                     }
+                    }
+                  ],
+                  should: [
+                   {
+                     path: 'compound.should',
+                     type: 'BooleanQuery',
+                     args: {
+                      must: [],
+                      mustNot: [],
+                      should: [
+                       {
+                        type: 'TermQuery',
+                        args: { path: 'title', value: 'in' }
+                       },
+                       {
+                         type: 'TermQuery',
+                         args: {
+                           path: 'title.keywordAnalyzer',
+                           value: 'Alice in Wonderland'
+                         }
+                        },
+                       {
+                         type: 'TermQuery',
+                         args: { path: 'title', value: 'wonderland' }
+                       },
+                       {
+                         type: 'TermQuery',
+                         args: { path: 'title', value: 'alice' }
+                       }
+                      ],
+                      filter: [],
+                       minimumShouldMatch: 0
+                      }
+                     }
+                   ],
+                     filter: [],
+                      minimumShouldMatch: 0
+                     }
+                    }
+                   }
+                  },
+          { '$_internalSearchIdLookup': {} },
+          { '$limit': Long("10") },
+          { '$project': { _id: true, title: true, genres: true } }
+           ],
+          serverInfo: {
+          ...
+          },
+          serverParameters: {
+          ...
+          },
+          command: {
+            aggregate: 'movies',
+              pipeline: [
+                {
+                 '$search': {
+                    compound: {
+                      should: [
+                        {
+                          moreLikeThis: { like: [ { title: 'Alice in Wonderland' } ] }
+                        }
+                      ],
+                      mustNot: [
+                       {
+                         equals: {
+                           path: '_id',
+                           value: ObjectId("573a1394f29313caabcde9ef")
+                         }
+                       }
+                      ]
+                    }
+                   }
+                 },
+           { '$limit': 10 },
+           { '$project': { title: 1, genres: 1, _id: 1 } }
+           ],
+           cursor: {},
+           '$db': 'sample_mflix'
+           },
+           ok: 1,
+           '$clusterTime': {
+           clusterTime: Timestamp({ t: 1659133479, i: 1 }),
+           signature: {
+              hash: Binary(Buffer.from("865d9ef1187ae1a74c4a0da1e29882aebcf2be7c", "hex"), 0),
+              keyId: Long("7123262728533180420")
+           }
+          },
+          operationTime: Timestamp({ t: 1659133479, i: 1 })
+          }
