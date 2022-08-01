@@ -19,7 +19,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
@@ -29,7 +29,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node/azure/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/azure/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
@@ -39,7 +39,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python/azure/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/azure/reader/make_data_key.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
@@ -49,7 +49,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet/azure/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/MakeDataKey.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
@@ -59,7 +59,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go/azure/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/azure/reader/make-data-key.go
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
@@ -86,7 +86,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: java
@@ -96,7 +96,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node/azure/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/azure/reader/make_data_key.js
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: javascript
@@ -106,7 +106,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python/azure/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/azure/reader/make_data_key.py
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: python
@@ -116,7 +116,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet/azure/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/MakeDataKey.cs
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: csharp
@@ -126,7 +126,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go/azure/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/azure/reader/make-data-key.go
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: go
@@ -142,7 +142,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/azure/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: java
@@ -152,7 +152,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node/azure/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/azure/reader/make_data_key.js
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: javascript
@@ -162,7 +162,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python/azure/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/azure/reader/make_data_key.py
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: python
@@ -172,7 +172,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet/azure/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/MakeDataKey.cs
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: csharp
@@ -182,7 +182,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go/azure/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/azure/reader/make-data-key.go
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: go

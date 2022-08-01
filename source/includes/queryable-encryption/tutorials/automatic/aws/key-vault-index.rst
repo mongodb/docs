@@ -8,7 +8,7 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/aws/reader/make_data_key.js
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/make_data_key.js
          :start-after: start-create-index
          :end-before: end-create-index
          :caption: make_data_key.js
@@ -18,7 +18,7 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/aws/reader/make_data_key.py
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/aws/reader/make_data_key.py
          :start-after: start-create-index
          :end-before: end-create-index
          :language: python
@@ -28,7 +28,7 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/makeDataKey.java
          :start-after: start-create-index
          :end-before: end-create-index
          :language: java
@@ -38,7 +38,7 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: go
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/make-data-key.go
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/aws/reader/make-data-key.go
          :start-after: start-create-index
          :end-before: end-create-index
          :language: go
@@ -48,7 +48,7 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/QueryableEncryption/MakeDataKey.cs
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/aws/reader/QueryableEncryption/MakeDataKey.cs
          :start-after: start-create-index
          :end-before: end-create-index
          :language: csharp

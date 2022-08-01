@@ -15,7 +15,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
@@ -25,7 +25,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/gcp/reader/make_data_key.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
@@ -35,7 +35,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
@@ -45,7 +45,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/gcp/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/gcp/reader/make-data-key.go
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
@@ -55,7 +55,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/QueryableEncryption/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/gcp/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
@@ -82,7 +82,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: javascript
@@ -92,7 +92,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/gcp/reader/make_data_key.py
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: python
@@ -102,7 +102,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: java
@@ -112,7 +112,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/gcp/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/gcp/reader/make-data-key.go
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: go
@@ -122,7 +122,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/QueryableEncryption/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/gcp/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: csharp
@@ -150,7 +150,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: javascript
@@ -160,7 +160,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/gcp/reader/make_data_key.py
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: python
@@ -170,7 +170,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: java
@@ -180,7 +180,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/gcp/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/gcp/reader/make-data-key.go
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: go
@@ -190,7 +190,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/QueryableEncryption/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/gcp/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: csharp
@@ -207,7 +207,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/gcp/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: javascript
@@ -217,7 +217,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/gcp/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/gcp/reader/make_data_key.py
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: python
@@ -227,7 +227,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/gcp/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: java
@@ -237,7 +237,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/gcp/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/gcp/reader/make-data-key.go
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: go
@@ -247,7 +247,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/gcp/reader/QueryableEncryption/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/gcp/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: csharp

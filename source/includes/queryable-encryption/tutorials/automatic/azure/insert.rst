@@ -10,7 +10,7 @@ snippet:
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/azure/reader/insert_encrypted_document.js
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/azure/reader/insert_encrypted_document.js
          :start-after: start-insert
          :end-before: end-insert
          :language: javascript
@@ -25,7 +25,7 @@ snippet:
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/azure/reader/insert_encrypted_document.py
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/azure/reader/insert_encrypted_document.py
          :start-after: start-insert
          :end-before: end-insert
          :language: python
@@ -35,7 +35,7 @@ snippet:
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/azure/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/azure/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
          :start-after: start-insert
          :end-before: end-insert
          :language: java
@@ -45,7 +45,7 @@ snippet:
    .. tab::
       :tabid: go
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/azure/reader/insert-encrypted-document.go
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/azure/reader/insert-encrypted-document.go
          :start-after: start-insert
          :end-before: end-insert
          :language: go
@@ -55,7 +55,7 @@ snippet:
    .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/azure/reader/QueryableEncryption/InsertEncryptedDocument.cs
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/azure/reader/QueryableEncryption/InsertEncryptedDocument.cs
          :start-after: start-insert
          :end-before: end-insert
          :language: csharp

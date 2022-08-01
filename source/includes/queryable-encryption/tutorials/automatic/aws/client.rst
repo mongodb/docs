@@ -11,7 +11,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/aws/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: javascript
@@ -21,7 +21,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/aws/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/aws/reader/insert_encrypted_document.py
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: python
@@ -31,7 +31,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/aws/reader/insert-encrypted-document.go
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: go
@@ -41,7 +41,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: java
@@ -51,7 +51,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: csharp
@@ -70,7 +70,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/aws/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
@@ -80,7 +80,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/aws/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/aws/reader/insert_encrypted_document.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
@@ -90,7 +90,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
@@ -100,7 +100,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/aws/reader/insert-encrypted-document.go
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
@@ -110,7 +110,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
@@ -124,7 +124,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/aws/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
                :start-after: start-schema
                :end-before: end-schema
                :language: javascript
@@ -134,7 +134,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/aws/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/aws/reader/insert_encrypted_document.py
                :start-after: start-schema
                :end-before: end-schema
                :language: python
@@ -144,7 +144,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
                :start-after: start-schema
                :end-before: end-schema
                :language: java
@@ -154,7 +154,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/aws/reader/insert-encrypted-document.go
                :start-after: start-schema
                :end-before: end-schema
                :language: go
@@ -164,7 +164,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-schema
                :end-before: end-schema
                :language: csharp
@@ -178,7 +178,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/aws/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: javascript
@@ -188,7 +188,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/aws/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/aws/reader/insert_encrypted_document.py
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: python
@@ -198,7 +198,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: java
@@ -208,7 +208,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/aws/reader/insert-encrypted-document.go
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: go
@@ -218,7 +218,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: csharp
@@ -237,7 +237,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/node-fle-2/aws/reader/insert_encrypted_document.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
                :start-after: start-client
                :end-before: end-client
                :language: javascript
@@ -247,7 +247,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/python-fle-2/aws/reader/insert_encrypted_document.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/aws/reader/insert_encrypted_document.py
                :start-after: start-client
                :end-before: end-client
                :language: python
@@ -257,7 +257,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/java-fle-2/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
                :start-after: start-client
                :end-before: end-client
                :language: java
@@ -267,7 +267,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/go-fle-2/aws/reader/insert-encrypted-document.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/aws/reader/insert-encrypted-document.go
                :start-after: start-client
                :end-before: end-client
                :language: go
@@ -277,7 +277,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/sample_apps/csfle/build/dotnet-fle-2/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs
                :start-after: start-client
                :end-before: end-client
                :language: csharp
