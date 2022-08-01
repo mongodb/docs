@@ -27,7 +27,7 @@ func main() {
 	// set namespace
 	collection := client.Database("sample_mflix").Collection("movies")
 	// define pipeline
-	searchStage := bson.D{{"$search", bson.D{{"text", bson.D{{"path", "title"}, {"query", "boat"}, {"synonyms", "mySynonyms"}}}}}}
+	searchStage := bson.D{{"$search", bson.D{{"text", bson.D{{"path", "title"}, {"query", "automobile"}, {"synonyms", "transportSynonyms"}}}}}}
 	limitStage := bson.D{{"$limit", 10}}
 	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
 	// specify the amount of time the operation can run on the server

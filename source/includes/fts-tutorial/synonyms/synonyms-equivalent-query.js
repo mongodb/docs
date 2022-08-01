@@ -6,8 +6,8 @@ const agg = [
     $search: {
       text: {
         path: "title",
-        query: "boat",
-        synonyms: "mySynonyms",
+        query: "automobile",
+        synonyms: "transportSynonyms",
       },
     },
   },

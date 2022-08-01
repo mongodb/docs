@@ -12,10 +12,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-public class SynonymsEquivalentQuery {
+public class SynonymsExplicitQuery {
   public static void main( String[] args ) {
     // define query
-    Document agg = new Document("query", "automobile").append("path","title").append("synonyms", "mySynonyms");
+    Document agg = new Document("query", "boat").append("path","title").append("synonyms", "transportSynonyms");
     // specify connection
     String uri = "<connection-string>";
     // establish connection and set namespace

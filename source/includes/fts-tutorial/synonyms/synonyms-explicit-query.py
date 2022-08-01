@@ -8,7 +8,7 @@ result = client['sample_mflix']['movies'].aggregate([
       'text': {
         'path': 'title',
         'query': 'boat',
-        'synonyms': 'mySynonyms'
+        'synonyms': 'transportSynonyms'
       }
     }
   }, 
