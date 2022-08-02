@@ -1,0 +1,363 @@
+.. _appbase-tutorial:
+
+====================================================
+How to Build a Search UI with {+atlas-app-services+}
+====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial describes how to set up |fts| and use 
+:appservices:`{+atlas-app-services+} </>` to build a search UI with 
+`Searchbox <https://opensource.appbase.io/searchbox/>`_ and 
+`ReactiveSearch <https://opensource.appbase.io/reactivesearch/>`_ UI 
+libraries. It also demonstrates how to run |fts| queries using the 
+ReactiveSearch {+app-services+} function endpoint.
+
+This tutorial takes you through the following steps:
+
+1. Deploy the the `ReactiveSearch 
+   <https://opensource.appbase.io/reactivesearch/>`_ |api| as an 
+   :appservices:`{+app-services+} </>` function.
+
+#. Host a search UI with {+app-services+}\'s hosting.
+
+#. Run |fts| queries.
+
+Prerequisites
+-------------
+
+Before you begin:
+
+- Ensure that your |service| {+cluster+} meets the requirements  
+  described in the :ref:`Prerequisites <fts-tutorials-prereqs>`.
+
+-  Create an |fts| index named ``default`` that uses dynamic mappings 
+   against the ``sample_airbnb.listingsAndReviews`` collection 
+   from the :ref:`sample datasets <available-sample-datasets>`. To 
+   learn more, see :ref:`Create an Atlas Search Index <create-fts-index>`.
+
+Deploy the Reactive Search API
+------------------------------
+
+In this section, you will deploy the `ReactiveSearch 
+<https://opensource.appbase.io/reactivesearch/>`_ |api| as an 
+:appservices:`{+app-services+} </>` function.
+
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create API keys for your |service| organization or project and configure the API access list.
+
+      .. note::
+  
+         You need the public and private API key values to deploy 
+         the Reactive Search API.
+
+      To create the API keys and configure the API access list for the API keys, see the following pages:
+
+      - :ref:`create-org-api-key`
+
+        For an organization, you must assign the API key the
+        :authrole:`Organization Member` organization role or 
+        higher and 
+        :ref:`invite the organization API key to your project 
+        <invite-org-app-api-keys>`.
+
+      - :ref:`create-project-api-key`
+
+        For a project, you must assign the API key the 
+        :authrole:`Project Owner` project role.
+
+   .. step:: (Optional) Set the following environment variables for you API key.
+
+      .. note::
+
+         If you don't set the following variables, you must manually 
+         specify your API keys when you deploy the ReactiveSearch API.
+
+      a. Replace ``private_key_value`` with your private API key 
+         and run the following command:
+
+         .. code-block:: sh
+
+            private_key={private_key_value}
+
+      b. Replace ``public_key_value`` with your public API key and run 
+         the following command:
+
+         .. code-block:: sh
+
+            public_key={public_key_value}
+   
+   .. step:: Create an {+app-services+} app and copy its ID.
+
+      a. Go to {+app-services+}.
+
+      #. :appservices:`Create an app 
+         </manage-apps/create/create-with-ui/>`.
+
+      #. :appservices:`Find Your App ID 
+         </reference/find-your-project-or-app-id/#find-an-app-id>`.
+
+      #. Copy the :guilabel:`App ID` from the application dashboard.
+
+   .. step:: (Optional) Set the environment variable for your {+app-services+} app.
+
+      .. note::
+
+         If you don't set the following variable, you must manually 
+         specify your App ID when you deploy the ReactiveSearch API.
+
+      Replace ``app_id_value`` with your {+app-services+} 
+      :guilabel:`App ID` and run the following command:
+
+      .. code-block:: sh
+
+            app_id={app_id_value}
+
+   .. step:: Clone the ``reactivesearch-realm-project`` repository.
+
+      Run the following command to clone the 
+      :github:`reactivesearch-realm-project 
+      </appbaseio/reactivesearch-realm-function>` repository:
+      
+      .. code-block:: sh
+
+         git clone https://github.com/appbaseio/reactivesearch-realm-function.git
+
+   .. step:: Install dependencies.
+
+      a. Change the working directory:
+
+         .. code-block:: sh
+
+            cd reactivesearch-realm-function
+
+      #. Run one of the the following commands to install the project 
+         dependencies:
+
+         .. code-block:: sh
+
+            yarn
+         
+         .. code-block:: sh
+
+            npm install
+   
+   .. step:: Deploy the ReactiveSearch API.
+
+      .. note::
+
+         If you didn't set the environment variables, you must manually 
+         specify your API keys and App ID when you deploy the 
+         ReactiveSearch API.
+      
+      1. Run one of the following commands:
+
+         - To deploy the ReactiveSearch API without basic 
+           authentication enabled, run the following command:
+
+           .. code-block:: sh
+
+              node rs-cli --private-api-key $private_key --api-key $public_key --app-id $app_id
+   
+         - To deploy the Reactive Search API with basic authentication 
+           enabled replace ``my-user`` and ``my-password`` with your 
+           username and password, and run the following command:
+
+           .. code-block:: sh
+
+              node rs-cli --private-api-key $private_key --api-key &$public_key --app-id $app_id --app-authentication <my-user>:<my-password>
+
+         If the deploy succeeds, the output should resemble the 
+         following example:
+
+         .. code-block:: sh
+            :linenos:
+            :emphasize-lines: 3, 7
+
+             Successfully deployed webhook.
+
+             Deployed webhook endpoint : https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/application-0-tzwlw/service/http_endpoint/incoming_webhook/reactivesearch
+
+             You can make a test request to this webhook using this curl command
+
+            curl -XPOST https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/application-0-tzwlw/service/http_endpoint/incoming_webhook/reactivesearch  \
+                    -H "Content-Type: application/json" \
+                    -d '{
+	                 "query": [{
+		                      "id": "search",
+		                      "dataField": "*",
+		                      "size": 5
+	                 }],
+	                 "mongodb": {
+		                      "db": "'"$database"'",
+		                      "collection": "'"$collection"'"
+	                 }
+            }'
+
+      #. Copy the webhook URL (highlighted in the previous example) 
+         from your output.
+
+      #. (Optional) Copy the curl command from your output, specify a 
+         database and collection (highlighted in the following 
+         example), and run the command to verify the webhook:
+
+         .. code-block:: sh
+            :linenos:
+            :emphasize-lines: 10-11
+
+            curl -XPOST https://us-east-1.aws.webhooks.mongodb-realm.com/api/client/v2.0/app/application-0-tzwlw/service/http_endpoint/incoming_webhook/reactivesearch  \
+                    -H "Content-Type: application/json" \
+                    -d '{
+	                 "query": [{
+		                      "id": "search",
+		                      "dataField": "*",
+		                      "size": 5
+	                 }],
+	                 "mongodb": {
+		                      "db": "'"sample_airbnb"'",
+		                      "collection": "'"listingsAndReviews"'"
+	                 }
+            }'
+
+Host a Search UI
+----------------
+
+In this section, you will host a search UI with hosting from 
+{+app-services+}. The ReactiveSearch {+app-services+} function endpoint 
+exposes a REST API that all of the ReactiveSearch and Searchbox UI 
+libraries use to express the declarative search intent.
+
+.. note::
+
+   This tutorial uses the sample queries in ``facet-filters`` example. 
+   The ``by-usecases`` directory contains several other examples. 
+   Repeat the following steps for any other use cases that you want to 
+   try.
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Enable hosting from the {+app-services+} UI.
+
+      a. Log into {+app-services+}.
+
+      #. Click :guilabel:`Hosting` in the left navigation pane.
+      
+      #. Click :guilabel:`Enable Hosting` and complete the steps to 
+         enable hosting. To learn more, see 
+         :appservices:`Enable Hosting </hosting/enable-hosting/>`.
+
+   .. step:: Download the search UI files.
+
+      a. Open a terminal and run the following command to clone the 
+         :github:`searchbox </appbaseio/searchbox>` repository:
+
+         .. code-block:: sh
+
+            git clone https://github.com/appbaseio/searchbox.git
+      
+      #. Run the following command to make a temporary directory.
+
+         .. code-block:: sh
+
+            mkdir tmp
+
+      #. Copy the local :github:`search UI directory 
+         <appbaseio/searchbox/tree/master/packages/react-searchbox/examples/by-usecases/facet-filters>` to the temporary 
+         directory:
+
+         .. code-block:: sh
+
+            cp -R searchbox/packages/react-searchbox/examples/by-usecases/facet-filters tmp
+
+   .. step:: Edit the ``App.js`` file .
+
+      a. Open the ``App.js`` file from the following directory:
+
+         ``/tmp/facet-filters/src``
+
+      #. Replace the URL on line 11 with your webhook URL and save the 
+         file.
+
+   .. step:: Build the search UI.
+
+      1. Run the following command to change the working directory:
+
+         .. code-block::
+
+            cd ../
+      
+      #. Run one of the following commands to build the search UI 
+         application:
+
+         .. code-block:: sh
+
+            yarn && yarn build
+
+         .. code-block:: sh
+
+            npm install && npm run build
+
+         The command places the search UI files in the 
+         ``/tmp/facet-filters/build`` directory.
+
+   .. step:: Upload the search UI files from the ``build`` directory.
+
+      a. Log into {+app-services+}.
+
+      #. Click :guilabel:`Hosting` in the left navigation pane.
+
+      #. Drag and drop the search UI files from your local ``build`` 
+         directory including the ``static`` folder and subfolders onto 
+         the :guilabel:`Hosting` page.
+
+         .. note::
+
+            The new ``index.html`` file replaces the existing one.
+      
+      #. Click :guilabel:`Review Draft and Deploy`.
+
+         This action generates a public URL for your search UI 
+         application.
+         
+Run |fts| Queries
+-----------------
+
+You can now access the hosted URL and run |fts| queries using the 
+ReactiveSearch {+app-services+} function endpoint.
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Access the hosted URL.
+      
+      a. Click :guilabel:`Hosting` in the left navigation pane.
+
+      #. Select the :guilabel:`Files` tab.
+
+   .. step:: Copy the hosted URL.
+
+      The URL appears at the top of the :guilabel:`Files` pane in the 
+      following format:
+
+      .. code-block:: sh
+
+         {app-id}.mongodbstitch.com
+
+   .. step:: Open the hosted page.
+
+      Paste the URL into your browser.
+
+   .. step:: View |fts| query results.
+
+      View the search query results for the ``facet-filter`` use case 
+      in the Searchbox UI.
