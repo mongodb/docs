@@ -25,6 +25,8 @@
              ? Choose a default organization:  [Use arrows to move, type to filter]
              > Org1 (5e39bf1212121e685774c81c)
 
+          .. include:: /includes/fact-more-than-500-orgs.rst
+
 .. step:: Select your default project.
 
           Press the :kbd:`Down Arrow` and :kbd:`Up Arrow`  
