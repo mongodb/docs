@@ -1,3 +1,14 @@
+.. _opsmgr-server-4.4.24:
+
+|onprem| Server 4.4.24
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-07-29*
+
+- Updates the |jdk| to ``jdk-11.0.16+8``.
+- Updates the {+mdbagent+} to :ref:`10.14.35.6589
+  <mongodb-10.14.35.6589>`.
+
 .. _opsmgr-server-4.4.23:
 
 |onprem| Server 4.4.23
