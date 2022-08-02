@@ -1,6 +1,6 @@
 // delete code goes here
 const doc = {
-  OrbitalPeriod: {
+  orbitalPeriod: {
     $gt: 5,
     $lt: 85
   }
