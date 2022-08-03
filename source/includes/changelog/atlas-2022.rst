@@ -1,3 +1,11 @@
+.. _atlas_20220719:
+
+19 July 2022 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces the General Availability of 
+  :ref:`MongoDB 6.0 <release-notes-6.0>`.
+
 .. _atlas_20220601:
 
 01 June 2022 Release
