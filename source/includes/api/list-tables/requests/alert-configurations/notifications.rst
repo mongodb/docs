@@ -35,13 +35,9 @@
        | .datadogRegion
      - string
      - Conditional
-     - Region that indicates which |api| |url| to use. |service|
-       accepts the following values:
+     - Region that indicates the |api| |url| to use.
 
-       - ``US``
-       - ``EU``
-
-       The default Datadog region is ``US``.
+       .. include:: /includes/fact-datadog-supported-regions.rst
 
        Set this value if you set ``notifications.[n].typeName`` to
        ``DATADOG``.
@@ -151,7 +147,7 @@
        | .opsGenieRegion
      - string
      - Conditional
-     - Region that indicates which |api| |url| to use. |service|
+     - Region that indicates the |api| |url| to use. |service|
        accepts the following values:
 
        - ``US``
