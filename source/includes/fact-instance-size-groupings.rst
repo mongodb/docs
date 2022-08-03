@@ -36,3 +36,6 @@ memory, storage, and IOPS specification for each data-bearing
 server [#data-bearing]_ in the cluster. 
 
 .. include:: /includes/fact-free-tier-paid-tier.rst
+
+.. include:: /includes/fact-analytics-nodes-tier.rst
+  
