@@ -29,7 +29,7 @@ func main() {
 
 	// update code goes here
 	filter := bson.D{{}}
-	update := bson.D{{"$mul", bson.D{{"Radius", 1.60934}}}}
+	update := bson.D{{"$mul", bson.D{{"radius", 1.60934}}}}
 
 	result, err := coll.UpdateMany(context.TODO(), filter, update)
 	if err != nil {

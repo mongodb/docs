@@ -16,7 +16,7 @@ var coll = db.GetCollection<BsonDocument>("comets");
 
 // update code goes here
 var filter = Builders<Comet>.Filter.Empty;
-var update = Builders<Comet>.Update.Mul("Radius", 1.60934);
+var update = Builders<Comet>.Update.Mul("radius", 1.60934);
 var result = coll.UpdateMany(filter, update);
 
 // display the results of your operation

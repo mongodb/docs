@@ -10,7 +10,7 @@ db = client.sample_guides
 coll = db.comets
 
 # update code goes here
-doc = {"$mul": {"Radius": 1.60934}}
+doc = {"$mul": {"radius": 1.60934}}
 result = coll.update_many({}, doc)
 
 # display the results of your operation
