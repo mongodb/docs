@@ -9,7 +9,7 @@ Multi-Cluster Prerequisites
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
 
@@ -88,6 +88,7 @@ Set up |gke| clusters:
         --num-nodes=5 \
         --machine-type "e2-standard-2"
 
+.. _multi-cluster-user-auth-clusters-ref:
 
 Obtain User Authentication Credentials for Central and Member clusters
 ----------------------------------------------------------------------
@@ -129,6 +130,153 @@ Install the following tools:
 2. `Install Go <https://golang.org/dl/>`__ v1.17 or later.
 
 3. `Install Helm <https://helm.sh/docs/intro/install/>`__.
+
+
+.. _mc-namespace-scope-ref:
+
+Set the Deployment's Scope
+--------------------------
+
+By default, the multi-cluster |k8s-op-short| is scoped to the |k8s-ns|
+in which it is installed. The |k8s-op-short| reconciles the
+``MongoDBMulti`` custom resource deployed in the same namespace as the
+|k8s-op-short|.
+
+When you run the :github:`multi-cluster kubeconfig creator
+</mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/main.go>`
+tool as part of the :ref:`multi-cluster Quick Start procedure
+<multi-cluster-quick-start-procedure>`, and don't modify the tool's
+settings, the tool:
+
+- Creates a single ``mongodb`` namespace in the central cluster and
+  each member cluster.
+- Creates Service Accounts, Roles, and RoleBindings in the central
+  cluster and each member cluster.
+- Applies the correct permissions for service accounts.
+- Uses these settings to create your |multi-cluster|.
+
+Once the multi-cluster is deployed, the |k8s-op-short| starts watching
+|k8s-mdbrscs| in the ``mongodb`` |k8s-ns|.
+
+To configure the |k8s-op-short| with the correct permissions to deploy
+in multiple or all namespaces, run the following command and specify the
+namespaces that you would like the |k8s-op-short| to watch.
+
+.. code-block:: sh
+
+   cd tools/multicluster
+   go run main.go \
+    -central-cluster="e2e.operator.mongokubernetes.com" \
+    -member-clusters="e2e.cluster1.mongokubernetes.com,e2e.cluster2.mongokubernetes.com,e2e.cluster3.mongokubernetes.com" \
+    -member-cluster-namespace="mongodb2" \
+    -central-cluster-namespace="mongodb2" \
+    -cluster-scoped="true"
+
+When you install the |multi-cluster| to multiple or all |k8s-nss|, you
+can configure the |k8s-op-short| to:
+
+- :ref:`Watch Resources in Multiple Namespaces <mc-cluster-many-namespaces-ref>`
+- :ref:`Watch Resources in All Namespaces <mc-cluster-all-namespaces-ref>`
+
+.. _mc-cluster-many-namespaces-ref:
+
+Watch Resources in Multiple Namespaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you set the scope for the |multi-cluster| to many |k8s-nss|, you can
+configure the |k8s-op-short| to watch |k8s-mdbrscs| in these namespaces
+in the |multi-cluster|.
+
+.. tabs::
+
+   .. tab:: Using kubectl
+      :tabid: mc-kubectl
+
+
+      1. Use the :github:`mongodb-enterprise.yaml
+         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+         sample |yaml| file from the MongoDB Enterprise Kubernetes Operator GitHub
+         repository.
+      #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE`` in
+         :github:`mongodb-enterprise.yaml
+         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+         to the comma-separated list of namespaces that you would like
+         the |k8s-op-short| to watch:
+
+         .. code-block:: sh
+
+            WATCH_NAMESPACE: "$namespace1,$namespace2,$namespace3"
+
+
+   .. tab:: Using Helm
+      :tabid: mc-with-helm
+
+      Run the following command and replace the values in the last line
+      with the namespaces that you would like the |k8s-op-short| to
+      watch.
+
+      .. code-block:: sh
+
+         helm upgrade \
+           --install \
+           mongodb-enterprise-operator-multi-cluster \
+           mongodb/enterprise-operator \
+           --namespace mongodb \
+           --set namespace=mongodb \
+           --version <mongodb-kubernetes-operator-version>\
+           --set operator.name=mongodb-enterprise-operator-multi-cluster \
+           --set operator.createOperatorServiceAccount=false \
+           --set "multiCluster.clusters=$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME"
+           --set operator.watchNamespace="$namespace1,$namespace2,$namespace3"
+
+.. _mc-cluster-all-namespaces-ref:
+
+Watch Resources in All Namespaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you set the scope for the |multi-cluster| to all |k8s-nss| instead 
+of the default ``mongodb`` namespace, you can configure the |k8s-op-short|
+to watch |k8s-mdbrscs| in all namespaces in the |multi-cluster|.
+
+.. tabs::
+
+   .. tab:: Using kubectl
+      :tabid: mc-kubectl
+
+
+      1. Use the :github:`mongodb-enterprise.yaml
+         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+         sample |yaml| file from the MongoDB Enterprise Kubernetes
+         Operator GitHub repository.
+      #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE``
+         in :github:`mongodb-enterprise.yaml
+         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+         to ``*``:
+
+         .. code-block:: sh
+
+            WATCH_NAMESPACE: "*"
+
+   .. tab:: Using Helm
+      :tabid: mc-with-helm
+
+      Run the following command:
+
+      .. code-block:: sh
+
+         helm upgrade \
+           --install \
+           mongodb-enterprise-operator-multi-cluster \
+           mongodb/enterprise-operator \
+           --namespace mongodb \
+           --set namespace=mongodb \
+           --version <mongodb-kubernetes-operator-version>\
+           --set operator.name=mongodb-enterprise-operator-multi-cluster \
+           --set operator.createOperatorServiceAccount=false \
+           --set "multiCluster.clusters=$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME"
+           --set ​​operator.watchNamespace="*"
+
+.. _mc-cluster-check-connectivity-ref:
 
 Check Connectivity Across Clusters
 ----------------------------------
