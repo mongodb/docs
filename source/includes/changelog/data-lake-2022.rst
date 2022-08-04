@@ -1,3 +1,11 @@
+.. _adf-v20220802:
+
+02 August 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Performs :ref:`$merge <adf-merge-stage>` in chunks.
+
 .. _adf-v20220712:
 
 12 July 2022 Release
