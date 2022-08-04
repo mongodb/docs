@@ -17,7 +17,7 @@ async function run() {
     const filter = {};
     const updateDoc = {
       $mul: {
-        Radius: 1.60934,
+        radius: 1.60934,
       },
     };
 
