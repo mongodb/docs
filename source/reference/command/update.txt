@@ -203,6 +203,11 @@ Each document contains the following fields:
        ``false``, limit the update to one document that meet the query
        criteria. Defaults to ``false``.
 
+       When updating multiple documents, if a single document fails
+       to update, further documents are not updated. See
+       :ref:`multi-update failures <multi-update-failures>` for more 
+       details on this behavior.
+
    * - ``collation``
 
      - document
@@ -340,6 +345,73 @@ with the update document. The :dbcommand:`update` command can only
 replace a *single* matching document; i.e. the ``multi`` field cannot
 be ``true``. The :dbcommand:`update` command *does not* replace the
 ``_id`` value.
+
+.. _multi-update-failures:
+
+Multi-Update Failures
+~~~~~~~~~~~~~~~~~~~~~
+
+If a single document fails to update in an update command with the 
+``multi`` parameter set to ``true``, no further documents
+update as part of that command. 
+
+For example, create a ``members`` collection with the following documents: 
+
+.. code-block:: javascript
+
+   db.members.insertMany( [
+      { "_id" : 1, "member" : "Taylor", "status" : "pending", "points" : 1},
+      { "_id" : 2, "member" : "Alexis", "status" : "enrolled", "points" : 59},
+      { "_id" : 3, "member" : "Elizabeth", "status" : "enrolled", "points" : 34}
+   ] )
+
+The following operation creates a document validator on the 
+``members`` collection with a rule that the ``points`` value
+can not equal ``60``. 
+
+.. code-block:: javascript
+
+   db.runCommand( { 
+      collMod: "members",
+      validator: { points: { $ne: 60 } } 
+   } )
+
+This update command increases the ``points`` field of every document
+by ``1``.
+
+.. code-block:: javascript
+
+   db.runCommand( 
+    { 
+       update: "members",
+       updates: [
+        {
+            q: {}, 
+            u: { $inc: { points: 1 } },
+            multi: true
+        }
+       ]
+    }
+   )
+
+After running the command, the collection contains the following 
+documents: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 1, member: 'Taylor', status: 'A', points: 2 }
+   { _id: 2, member: 'Alexis', status: 'D', points: 59 }
+   { _id: 3, member: 'Elizabeth', status: 'C', points: 34 }
+
+The update command updated the ``points`` value of the first document 
+but failed to update the second document because of the validator rule 
+that the ``points`` value can not equal ``60``. The third document did
+not update because no further documents update following a write error. 
+
+.. seealso::
+
+   :ref:`Schema Validation<schema-validation-overview>`
 
 .. _update-command-behaviors-aggregation-pipeline:
 
