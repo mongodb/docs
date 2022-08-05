@@ -32,22 +32,14 @@ When you run a ``moreLikeThis`` query, |fts| performs these actions:
 - Creates a disjunction (*OR*) query to find similar documents based on
   the most representative terms and returns the results.
 
-Similar to other operators, you must create an index on the fields that you intend to query. The operator
-ignores query fields that aren't indexed with either static or dynamic
-mappings.
-
 The ``moreLikeThis`` operator performs a search for similar documents
 using the :ref:`analyzer <analyzers-ref>` that you specify in the
 :ref:`index configuration <index-config-example>`. If you omit the
-analyzer, the ``moreLikeThis`` operator uses the default
-:ref:`standard analyzer <ref-standard-analyzer>`.
-
-If you define more than one analyzer on a field, for example a
-:ref:`standard analyzer <ref-standard-analyzer>` and a
-:ref:`keyword analyzer <ref-keyword-analyzer>` using a
-:ref:`multi-analyzer <ref-multi-analyzers>`, the ``moreLikeThis``
-operator runs the input text through each analyzer, searches in each
-corresponding field, and returns results for all analyzers.
+analyzer in the index definition, the ``moreLikeThis`` operator uses 
+the default :ref:`standard analyzer <ref-standard-analyzer>`. If you 
+specify multiple analyzers, the ``moreLikeThis`` operator runs the 
+input text through each analyzer, searches, and returns results for all 
+analyzers.
 
 To view the disjunction (*OR*) that |fts| constructs to find similar
 documents, use :ref:`explain <explain-ref>` with your ``moreLikeThis``
@@ -56,16 +48,16 @@ operator query.
 Usage
 -----
 
-Before you can run the ``moreLikeThis`` operator query, you must first
-retrieve one or more input documents. To retrieve input documents, you
-can do one of the following:
+Before you can run the ``moreLikeThis`` operator query, we recommend 
+that you retrieve one or more input documents. To retrieve input 
+documents, you can do one of the following:
 
 - Run a query, such as :manual:`find()`, or another MQL query to find
   |bson| documents.
 - Run any aggregation pipeline that returns |bson| documents.
 - Use any other source of documents in your application.
 
-Once you identify the input documents, you pass them to the
+Once you identify the input documents, you can pass them to the
 ``moreLikeThis`` operator.
 
 When you run a ``moreLikeThis`` operator query, |fts| returns the
@@ -86,19 +78,21 @@ Syntax
    :copyable: false
 
    
-   [{
-      $search: {
-         "index": index name, // optional, defaults to "default"
-         "moreLikeThis": [{
-            "like":
-               {<"field-name">: <"field-value">,
-               ...
-               }, 
-               ...
-            }]
-         },
-         ...
-    }]
+    {
+      "$search": {
+        "index": index name, // optional, defaults to "default"
+        "moreLikeThis": {
+          "like": [
+            {
+              <"field-name">: <"field-value">,
+              ...
+            }, 
+            ... 
+          ],
+          ...
+        }
+      }
+    }
 
 .. _more-like-this-options:
 
@@ -129,9 +123,9 @@ Limitations
 -----------
 
 You can't use the ``moreLikeThis`` operator to query non-string values.
-To search for non-string values, you can combine a ``moreLikeThis`` query
-with a :ref:`near <near-ref>`, :ref:`range <range-ref>`, or any other
-operator in a :ref:`compound operator <compound-ref>` query.
+To search for non-string values, you can combine a ``moreLikeThis`` 
+query with a :ref:`near <near-ref>`, :ref:`range <range-ref>`, or any 
+other operator in a :ref:`compound operator <compound-ref>` query.
 
 .. _more-like-this-examples-ref:
 
@@ -139,67 +133,43 @@ Examples
 --------
 
 The examples use the ``movies`` collection in the ``sample_mflix``
-database.
+database. Each example in this section uses a different index 
+definition to demonstrate different features of the operator.
 
-Before you can run the example queries on your cluster, 
-:ref:`load the sample data <sample-data>` on your |service| cluster, and
-create the following index with a :ref:`keyword analyzer
-<ref-keyword-analyzer>` on the ``sample_mflix.movies`` collection.
-The following index definition uses the name ``default``.
+Before you run the example queries on your cluster, :ref:`load the 
+sample data <sample-data>` on your |service| cluster, and create the  
+suggested index. To learn more about creating an |fts| index using the 
+UI, API, or CLI, see :ref:`ref-create-index`. The index definitions use 
+the name ``default``.
 
 .. include:: /includes/default-fts-index-name.rst
-
-The following index definition on the fields in the ``sample_mflix.movies``
-collection:
-
-- Configures an index on the ``_id``, ``title`` and ``genres`` fields.
-- Analyzes the ``title`` field using the ``lucene.standard`` analyzer
-  and an alternate analyzer named ``keywordAnalyzer`` that uses the
-  ``lucene.keyword`` analyzer.
-- Analyzes and searches the fields using the ``lucene.english`` analyzer.
-
-.. code-block:: javascript
-   :linenos:
-
-   {
-     "mappings": {
-       "dynamic": false,
-       "fields": {
-         "title": {
-           "type": "string",
-           "analyzer": "lucene.standard",
-           "multi": {
-             "keywordAnalyzer": {
-               "type": "string",
-               "analyzer": "lucene.keyword"
-             }
-           }
-         },
-         "genres": {
-           "type": "string"
-         },
-         "_id": {
-           "type": "objectId"
-          }
-       }
-     },
-     "analyzer": "lucene.english"
-   }
-
 
 Example 1: Single Document with Multiple Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example uses the ``moreLikeThis`` operator to find documents
-that are similar to multiple field values.
+The following example uses the ``moreLikeThis`` operator to find 
+documents that are similar to multiple field values. For this example, 
+the index defition contains :ref:`dynamic mappings 
+<static-dynamic-mappings>` to dynamically index all :ref:`dynamically 
+indexable field types <bson-data-chart>` in the collection. Your index 
+definition for the ``sample_mflix.movies`` collection should look 
+similar to the following.
+
+.. code-block::
+
+   {
+     "mappings": {
+       "dynamic": true
+     }
+   }
 
 .. example::
 
    The following query searches for movies that are similar to the input
-   movie title "The Godfather" and input movie genre "action". It includes
-   a :pipeline:`$limit` stage to limit the output to ``5`` results and
-   a :pipeline:`$project` stage to exclude all fields except ``title``,
-   ``released``, and ``genres``.
+   movie title "The Godfather" and input movie genre "action". It 
+   includes a :pipeline:`$limit` stage to limit the output to ``5`` 
+   results and a :pipeline:`$project` stage to exclude all fields 
+   except ``title``, ``released``, and ``genres``.
 
 
    .. io-code-block::
@@ -266,15 +236,39 @@ Example 2: Input Document Excluded in Results
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example uses ``find()`` to identify an input document, and
-then uses a ``moreLikeThis`` operator query to find similar documents.
+then uses the ``moreLikeThis`` operator to find similar documents. For 
+this example, the index definition uses :ref:`static mappings 
+<static-dynamic-mappings>` to index only the ``title``, ``genres``, and 
+``_id`` fields.
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "title": {
+           "type": "string"
+         },
+         "genres": {
+           "type": "string"
+         },
+         "_id": {
+           "type": "objectId"
+         }
+       }
+     }
+   }
 
 .. example::
 
-   The following ``find()`` query retrieves the movie with the title
-   "The Godfather". It specifies that the results should only contain
-   the ``title`` and ``plot`` fields for the matching documents. Note
-   that, by default, the ``find()`` command always returns the ``_id``
-   field, the value for which might be different on your cluster.
+   The following ``find()`` query finds the movie with the title
+   "The Godfather" and stores the result inside ``movie``. It specifies 
+   that the results should only contain the ``title`` and ``genres`` 
+   fields for the matching documents. Note that, by default, the ``find
+   ()`` command always returns the ``_id`` field, the value for which 
+   might be different on your cluster.
 
    .. io-code-block::
       :copyable: true 
@@ -282,8 +276,7 @@ then uses a ``moreLikeThis`` operator query to find similar documents.
       .. input:: 
          :language: javascript
 
-         db.movies.find( { title: "The Godfather" }, { plot: 1, title: 1} )
-
+         movie = db.movies.find( { title: "The Godfather" }, { genres: 1, title: 1} ).toArray()
 
       .. output:: 
          :language: javascript
@@ -291,7 +284,7 @@ then uses a ``moreLikeThis`` operator query to find similar documents.
          [
           {
            _id: ObjectId("573a1396f29313caabce4a9a"),
-           plot: 'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.',
+           genres: [ 'Crime', 'Drama' ],
            title: 'The Godfather'
           }
          ]
@@ -301,12 +294,12 @@ then uses a ``moreLikeThis`` operator query to find similar documents.
    fields and the :ref:`equals-ref` operator to exclude the input
    document using the following clauses:
 
-   - The ``must`` clause to query for movies similar to ``The Godfather``
-     in the "action" genre.
-   - The ``mustNot`` clause to exclude the input document from results by
-     its ``_id`` value. Note that the ``_id`` value used in the query
-     matches the ``_id`` value in the results of the preceding ``find()``
-     query.
+   - The ``must`` clause to query for movies similar to the movie 
+     stored in ``movie``.
+   - The ``mustNot`` clause to exclude the input document from results 
+     by its ``_id`` value. Note that the ``_id`` value used in the query
+     matches the ``_id`` value in the results of the preceding 
+     ``find()`` query.
 
    The query limits the output to ``5`` results. The query uses
    a :pipeline:`$project` stage to include the ``_id``, ``title``,
@@ -315,7 +308,7 @@ then uses a ``moreLikeThis`` operator query to find similar documents.
    .. note::
 
       Before you run this query, replace the value of the ``_id`` field
-      on line 16 with the value of the ``_id`` field in your query
+      on line 13 with the value of the ``_id`` field in your query
       results.
 
    .. io-code-block::
@@ -332,10 +325,7 @@ then uses a ``moreLikeThis`` operator query to find similar documents.
                 "compound":{
                    "must":[{ 
                      "moreLikeThis": { 
-                       "like": [{
-                         "title": "The Godfather",
-                         "genres": "action"
-                       }]
+                       "like": movie
                      }
                    }],
                    "mustNot":[{
@@ -402,15 +392,55 @@ Example 3: Multiple Analyzers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example uses ``find()`` to identify input documents, and
-then uses a ``moreLikeThis`` operator query to find similar documents.
+then uses a ``moreLikeThis`` operator to find similar documents. For 
+this example, the index definition uses :ref:`static mappings 
+<static-dynamic-mappings>` to index the fields in the 
+``sample_mflix.movies`` collection with different analyzers. The index 
+definition:
+
+- Configures an index on the ``_id``, ``title`` and ``genres`` fields.
+- Analyzes the ``title`` field using the ``lucene.standard`` analyzer
+  and an alternate analyzer named ``keywordAnalyzer`` that uses the
+  ``lucene.keyword`` analyzer.
+- Analyzes and searches the fields using the ``lucene.english`` 
+  analyzer.
+
+.. code-block:: javascript
+   :linenos:
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "title": {
+           "type": "string",
+           "analyzer": "lucene.standard",
+           "multi": {
+             "keywordAnalyzer": {
+               "type": "string",
+               "analyzer": "lucene.keyword"
+             }
+           }
+         },
+         "genres": {
+           "type": "string"
+         },
+         "_id": {
+           "type": "objectId"
+         }
+       }
+     },
+     "analyzer": "lucene.english"
+   }
 
 .. example::
 
    The following ``find()`` query retrieves the movies with the title
-   "Alice in Wonderland". It specifies that the results should only
-   contain the ``title`` and ``plot`` fields for the matching documents.
-   Note that, by default, the ``find()`` command always returns the
-   ``_id`` field, the value for which might be different on your cluster.
+   "Alice in Wonderland" and stores the results in ``movie``. It 
+   specifies that the results should only contain the ``title`` and 
+   ``genres`` fields for the matching documents. Note that, by default, 
+   the ``find()`` command always returns the ``_id`` field, the value 
+   for which might be different on your cluster.
 
    .. io-code-block::
       :copyable: true 
@@ -418,7 +448,7 @@ then uses a ``moreLikeThis`` operator query to find similar documents.
       .. input:: 
          :language: javascript
 
-         db.movies.find( { title: "Alice in Wonderland" }, { plot: 1, title: 1} )
+         movie = db.movies.find( { title: "Alice in Wonderland" }, { genres: 1, title: 1} ).toArray
 
 
       .. output:: 
@@ -456,10 +486,9 @@ The following example uses a :ref:`compound-ref` operator to query the
 ``title`` and ``genres`` fields using the following clauses:
 
 - The ``should`` clause uses the ``moreLikeThis`` operator to search
-  for documents similar to the ``title`` "Alice in Wonderland".
-  The movie "Alice in Wonderland" is analyzed with both the
-  ``lucene.standard`` and ``lucene.keyword`` analyzers used in the
-  ``title`` field.
+  for documents similar to the document in ``movie``. Note that the 
+  ``title`` field is analyzed with both the ``lucene.standard`` and 
+  ``lucene.keyword`` analyzers.
 
 - The ``mustNot`` clause specifies that one of the input documents,
   specified by its ``_id`` value, must not be included in the results.
@@ -467,7 +496,6 @@ The following example uses a :ref:`compound-ref` operator to query the
 The query limits the results list to ``10`` documents. The query uses
 a :pipeline:`$project` stage to include the ``_id``, ``title``, and
 ``genres`` fields in the results.
-
 
 .. example::
 
@@ -484,9 +512,7 @@ a :pipeline:`$project` stage to include the ``_id``, ``title``, and
               "compound": {
                 "should": [{
                    "moreLikeThis": {
-                      "like": [{
-                         "title": "Alice in Wonderland"
-                      }]
+                      "like": movie
                    }
                 }],
               "mustNot": [
@@ -564,7 +590,6 @@ a :pipeline:`$project` stage to include the ``_id``, ``title``, and
             title: 'Wonderland'
            }
          ]
-
 
    The following query uses :ref:`explain <explain-ref>` with the
    preceding query to show the disjunction (*OR*) that |fts| constructs
