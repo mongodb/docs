@@ -1,3 +1,16 @@
+.. _opsmgr-server-5.0.14:
+
+|onprem| Server 5.0.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-08-04*
+
+- Removes spurious audit log rotation errors from the MongoDB Agent log 
+  files and corrects file suffix handling.
+- Updates JDK to jdk-11.0.16+8.
+- Updates the {+mdbagent+} to :ref:`11.0.19.7094
+  <mongodb-11.0.19.7094>`.
+
 .. _opsmgr-server-5.0.12:
 
 |onprem| Server 5.0.12
