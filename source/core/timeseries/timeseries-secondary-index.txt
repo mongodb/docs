@@ -37,7 +37,7 @@ fields:
 
 .. code-block:: javascript
 
-   db.weather24h.createIndex({ "metadata.sensorId": 1, "timestamp": 1 })
+   db.weather24h.createIndex( { "metadata.sensorId": 1, "timestamp": 1 } )
 
 .. see::
 
@@ -54,11 +54,9 @@ the ``timeField`` and the ``metaField``.
 For example, the following ``sensorData`` collection contains 
 measurements from weather sensors:
 
-
 .. code-block:: javascript
 
-
-   db.sensorData.insertMany([{
+   db.sensorData.insertMany( [ {
         "metadata": {
             "sensorId": 5578,
             "location": {
@@ -129,11 +127,11 @@ index to improve performance:
    db.sensorData.find().sort( { "timestamp": 1 } )
 
 To confirm that the sort operation used the clustered index, run the 
-operation again with the ``.explain("executionStats")`` option:
+operation again with the ``.explain( "executionStats" )`` option:
 
 .. code-block:: javascript
 
-   db.sensorData.find().sort( { "timestamp": 1 } ).explain(“executionStats”)
+   db.sensorData.find().sort( { "timestamp": 1 } ).explain( "executionStats" )
 
 The ``winningPlan.queryPlan.inputStage.stage`` is ``COLLSCAN`` and an 
 ``_internalBoundedSort`` stage is present in the explain plan output.
@@ -167,27 +165,27 @@ Create a secondary index on the ``timestamp`` field:
 
 .. code-block:: javascript
 
-   db.sensorData.createIndex({ "timestamp": 1 }) 
+   db.sensorData.createIndex( { "timestamp": 1 } ) 
 
 The following sort operation on the ``timestamp`` field uses the 
 Secondary Index to improve performance:
 
 .. code-block:: javascript 
 
-   db.sensorData.aggregate([
+   db.sensorData.aggregate( [
      { $match: { "timestamp" : { $gte: ISODate("2022-01-15T00:00:00.000Z") } } },
      { $sort: { "timestamp": 1 } } 
-   ])
+   ] )
 
 To confirm that the sort operation used the Secondary Index, run the 
-operation again with the ``.explain("executionStats")`` option:
+operation again with the ``.explain( "executionStats" )`` option:
 
 .. code-block:: javascript
 
-   db.sensorData.explain(“executionStats”).aggregate([
-     { $match: { "timestamp" : { $gte: ISODate("2022-01-15T00:00:00.000Z") } } },
-     { $sort: {"timestamp": 1 } } 
-   ])
+   db.sensorData.explain( "executionStats" ).aggregate( [
+     { $match: { "timestamp": { $gte: ISODate("2022-01-15T00:00:00.000Z") } } },
+     { $sort: { "timestamp": 1 } } 
+   ] )
 
 
 "Last Point" Queries on Time Series Collections
@@ -237,19 +235,19 @@ compound secondary index created above:
    ] )
 
 To confirm that the last point query used the secondary index, run the operation
-again using ``.explain("executionStats")``:
+again using ``.explain( "executionStats" )``:
 
 .. code-block:: javascript
 
-   db.getCollection('sensorData').explain("executionStats").aggregate( [
+   db.getCollection( 'sensorData' ).explain( "executionStats" ).aggregate( [
       {
          $sort: { "metadata.sensorId": 1, "timestamp": -1 }
       },
       {
          $group: {
             _id: "$metadata.sensorId",
-            ts: {$first: "$timestamp"},
-            temperatureF: {$first: "$currentConditions.tempF" }
+            ts: { $first: "$timestamp" },
+            temperatureF: { $first: "$currentConditions.tempF" }
          }
       }
    ] )
