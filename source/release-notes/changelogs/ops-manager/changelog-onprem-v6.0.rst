@@ -1,3 +1,18 @@
+.. _opsmgr-server-6.0.2:
+
+|onprem| Server 6.0.2
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-08-04*
+
+- Removes spurious audit log rotation errors from the MongoDB Agent log 
+  files and corrects file suffix handling.
+- Adds MongoDB 6.0.0 as a deployment option.
+- Introduces FCV 6.0 option in Ops Manager.
+- Updates JDK to jdk-11.0.16+8.
+- Updates the {+mdbagent+} to :ref:`12.0.10.7591
+  <mongodb-12.0.10.7591>`.
+
 .. _opsmgr-server-6.0.1:
 
 |onprem| Server 6.0.1
