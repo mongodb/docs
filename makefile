@@ -132,8 +132,8 @@ publish-cloud:
 
 ## Build Ops Manager publishable production artifacts
 publish-onprem:
+	if [ ${GIT_BRANCH} = master ]; then rm -rf build/public/on-prem; fi
 	rm -rf build/${GIT_BRANCH}
-	rm -rf build/public/onprem
 	giza make publish-onprem
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-onprem -o build/public/onprem/.htaccess; fi
 
