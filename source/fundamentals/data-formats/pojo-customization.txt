@@ -300,10 +300,20 @@ package:
        nested within the field.
 
    * - ``BsonExtraElements``
-     - Specifies any extra elements that aren't already mapped to a field.
+     - Specifies the POJO field on which to deserialize all elements that are
+       not mapped to a field. The POJO field must be one of the following
+       types:
+
+       - `Document <{+api+}/apidocs/bson/org/bson/Document.html>`__
+       - `BsonDocument <{+api+}/apidocs/bson/org/bson/BsonDocument.html>`__
+       - ``Map<String, Object>``
+
+       .. seealso::
+
+          :ref:`BsonExtraElements Annotation Example <bsonextraelements-annotation-code-example>`
 
 The following code snippet shows a sample POJO called ``Product`` that uses
-the preceding annotations.
+several of the preceding annotations.
 
 .. _bson-annotation-code-example:
 
@@ -363,6 +373,73 @@ The annotations in the example POJO specify the following behavior:
   ``_id`` field and value in the document
 - Omit the ``relatedItems`` field and value when converting data
 - Use the ``Product(String name)`` constructor when instantiating the POJO
+
+
+.. _bsonextraelements-annotation-code-example:
+
+BsonExtraElements Example
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``@BsonExtraElements`` annotation allows you to specify a field to
+deserialize data from a MongoDB document that lacks a corresponding POJO
+field mapping. This is useful when your application needs to work with data in
+a partially-defined schema. You can use this annotation to access data from
+any fields that do not correspond to the fields on your POJO.
+
+Consider a situation in which you store and retrieve data for an online store
+using the :ref:`Product POJO <bson-annotation-code-example>` from the previous
+example. As you offer a greater variety of products for the store, you
+discover that you need additional fields to describe them. Instead of
+mapping each additional field to the POJO, you can access them from a
+single field annotated with ``@BsonExtraElements`` as shown in the following
+code example:
+
+.. code-block:: java
+   :emphasize-lines: 12-13
+
+   public class Product {
+       @BsonProperty("modelName")
+       private String name;
+
+       @BsonId()
+       @BsonRepresentation(BsonType.OBJECT_ID)
+       private String serialNumber;
+
+       @BsonIgnore
+       private List<Product> relatedItems;
+
+       @BsonExtraElements
+       private Document additionalInfo;
+
+       // ...
+
+Suppose someone added additional fields for ``dimensions`` and ``weight`` to
+the product data such that the documents contained the following information:
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 4-5
+
+   {
+     "name": "MDB0123",
+     "serialNumber": "62e2...",
+     "dimensions": "3x4x5",
+     "weight": "256g"
+   }
+
+The preceding document retrieved using the ``Product`` POJO contains the
+following data:
+
+.. code-block::
+   :copyable: false
+   :emphasize-lines: 5
+
+   ProductWithBsonExtraElements [
+     name=MDB0123,
+     serialNumber=62eb...,
+     relatedItems=null,
+     additionalInfo=Document{{dimensions=3x4x5, weight=256g}}
+   ]
 
 .. _pojo-discriminators:
 
