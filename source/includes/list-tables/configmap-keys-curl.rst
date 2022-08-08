@@ -7,7 +7,7 @@
      - Description
      - Example
 
-   * - ``configmap-name``
+   * - ``metadata.name``
      - string
      - Name of the |k8s| |k8s-obj|.
 
@@ -15,30 +15,22 @@
 
        .. seealso::
 
-          - :setting:`metadata.name`
           - |k8s| documentation on `names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/>`__.
             This name must follow :rfc:`RFC1123 <1123>` naming
             conventions, using only lowercase alphanumeric
             characters, ``-`` or ``.``, and must start and end with an
             alphanumeric character.
 
-     - ``myconfigmap``
+     - ``my-project``
 
-   * - ``baseUrl``
+   * - ``metadata.namespace``
      - string
-     - |url| to your |application| including the |fqdn| and port
-       number.
+     - |k8s| |k8s-ns| where the |k8s-op-short| creates this
+       |k8s-mdbrsc| and other |k8s-objs|.
 
-       .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
+     - ``mongodb``
 
-       .. note::
-
-          If you're using |cloud-short|, set the ``data.baseUrl`` value
-          to ``https://cloud.mongodb.com``.
-
-     - ``https://ops.example.com:8443``
-
-   * - ``projectName``
+   * - ``data.projectName``
      - string
      - Label for your |mms|
        :opsmgr:`Project </tutorial/manage-projects>`.
@@ -57,9 +49,9 @@
        Each card in this list represents the
        combination of one |com| **Organization** and **Project**.
 
-     - ``Development``
+     - ``myProjectName``
 
-   * - ``orgId``
+   * - ``data.orgId``
      - string
      - 24 character hex string that uniquely
        identifies your
@@ -100,9 +92,18 @@
              role to create a new project within an existing
              |com| organization.
               
-     - ``5cc9b333dde384a625a6615``
-       
+     - ``5b890e0feacf0b76ff3e7183``
 
+   * - ``data.baseUrl``
+     - string
+     - |url| to your |application| including the |fqdn| and port
+       number.
 
+       .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
 
+       .. note::
 
+          If you're using |cloud-short|, set the ``data.baseUrl`` value
+          to ``https://cloud.mongodb.com``.
+
+     - ``https://ops.example.com:8443``
