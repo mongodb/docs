@@ -12,7 +12,7 @@ if you perform these steps:
 Example ``fullDocumentBeforeChange`` document in the change stream
 output:
 
-.. code-block:: javascript
+.. code-block:: json
    :copyable: false
 
    "fullDocumentBeforeChange" : {
