@@ -1,3 +1,14 @@
+.. _12.3.0.7658-1:
+
+MongoDB Agent 12.3.0.7658-1
+---------------------------
+
+*Released* 2022-08-04
+
+- Improves automatic race detection and fixes detected race conditions.
+- Improves audit log rotation by tightening regex for determining which 
+  files are audit logs.
+
 .. _12.2.0.7631:
 
 MongoDB Agent 12.2.0.7631 

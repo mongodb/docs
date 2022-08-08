@@ -1,3 +1,10 @@
+.. _cloudmanager_20220804:
+
+04 August 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.3.0.7658-1 <12.3.0.7658-1>`.
+
 .. _cloudmanager_20220713:
 
 13 July 2022 Release
