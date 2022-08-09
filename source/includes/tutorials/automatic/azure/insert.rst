@@ -10,7 +10,7 @@ snippet:
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/java/azure/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/azure/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
          :start-after: start-insert
          :end-before: end-insert
          :language: java
@@ -20,7 +20,7 @@ snippet:
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/node/azure/reader/insert_encrypted_document.js
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/azure/reader/insert_encrypted_document.js
          :start-after: start-insert
          :end-before: end-insert
          :language: javascript
@@ -30,7 +30,7 @@ snippet:
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/python/azure/reader/insert_encrypted_document.py
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/azure/reader/insert_encrypted_document.py
           :start-after: start-insert
           :end-before: end-insert
           :language: python
@@ -40,7 +40,7 @@ snippet:
    .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
           :start-after: start-insert
           :end-before: end-insert
           :language: csharp
@@ -50,7 +50,7 @@ snippet:
    .. tab::
       :tabid: go
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/go/azure/reader/insert-encrypted-document.go
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/azure/reader/insert-encrypted-document.go
           :start-after: start-insert
           :end-before: end-insert
           :language: go

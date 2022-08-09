@@ -26,169 +26,154 @@ Definition
       Starting in MongoDB 6.0, sharding a collection does **not** require you to
       first run the :dbcommand:`enableSharding` command to configure the database.
 
-   .. |command| replace:: :dbcommand:`shardCollection`
+Syntax
+------
 
-   .. include:: /includes/fact-dbcommand.rst
+.. |command| replace:: :dbcommand:`shardCollection`
 
-   :dbcommand:`shardCollection` has the following form:
+.. include:: /includes/fact-dbcommand.rst
 
-   .. code-block:: javascript
+The command has the following form:
 
+.. code-block:: javascript
+   
+   db.adminCommand(
       {
-         shardCollection: "<database>.<collection>",
-         key: { <field1>: <1|"hashed">, ... },
-         unique: <boolean>,
-         numInitialChunks: <integer>,
-         presplitHashedZones: <boolean>,
-         collation: { locale: "simple" },
-         timeseries: <object>
+        shardCollection: "<database>.<collection>",
+        key: { <field1>: <1|"hashed">, ... },
+        unique: <boolean>,
+        numInitialChunks: <integer>,
+        presplitHashedZones: <boolean>,
+        collation: { locale: "simple" },
+        timeseries: <object>
       }
+    )
 
-   :dbcommand:`shardCollection` has the following fields:
+Command Fields
+--------------
 
+The command takes the following fields:
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Field
-   
-        - Type
-   
-        - Description
-   
-      * - ``shardCollection``
-   
-        - string
-   
-        - The :term:`namespace` of the collection to shard in the form
-          ``<database>.<collection>``.
-          
-          
-   
-      * - ``key``
-   
-        - document
-   
-        - The document that specifies the field or fields to use as the
-          :doc:`shard key </core/sharding-shard-key/>`.
-
-          ``{ <field1>: <1|"hashed">, ... }``
-
-          Set the field values to either:
-          
-          - ``1`` for :doc:`ranged based sharding </core/ranged-sharding>`
-          
-          - ``"hashed"`` to specify a
-            :ref:`hashed shard key <hashed-shard-keys>`.
-          
-          :doc:`shard key </core/sharding-shard-key/>` must be
-          supported by an index. Unless the collection is empty, the
-          index must exist prior to the :dbcommand:`shardCollection`
-          command. If the collection is empty, MongoDB creates the
-          index prior to sharding the collection if the index that can
-          support the shard key does not already exist.
-          
-          See also :ref:`sharding-shard-key-indexes`
-          
-          
-   
-      * - ``unique``
-   
-        - boolean
-   
-        - Specify ``true`` to ensure that the underlying index
-          enforces a unique constraint. Defaults to ``false``. 
-
-          You cannot specify ``true`` when using :ref:`hashed shard keys 
-          <sharding-hashed>`.
-
-      * - ``numInitialChunks``
-   
-        - integer
-   
-        - Specifies the initial number of chunks to create across all shards in 
-          the cluster when sharding an *empty* collection with a
-          :ref:`hashed shard key <sharding-hashed-sharding>`. MongoDB
-          will then create and balance chunks across the cluster. The
-          ``numInitialChunks`` must result in less than ``8192`` per shard.
-          
-          If the collection is not empty or the shard key does not
-          contain a hashed field, the operation returns an error.
-
-          - If sharding with :ref:`presplitHashedZones: true
-            <cmd-shard-collection-presplitHashedZones>`,
-            MongoDB attempts to evenly distribute the specified
-            number of chunks across the zones in the cluster.
-
-          - If sharding with :ref:`presplitHashedZones: false
-            <cmd-shard-collection-presplitHashedZones>` or omitted and
-            no zones and zone ranges are defined for the empty
-            collection, MongoDB attempts to evenly distributed the
-            specified number of chunks across the shards in the cluster.
-
-          - If sharding with :ref:`presplitHashedZones: false
-            <cmd-shard-collection-presplitHashedZones>` or omitted and
-            zones and zone ranges have been defined for the empty
-            collection, ``numInitChunks`` has no effect.
-
-          .. versionchanged:: 4.4
-          
-   
-      * - ``collation``
-   
-        - document
-   
-        - Optional. If the collection specified to ``shardCollection``
-          has a default :doc:`collation </reference/collation>`,
-          you *must* include a collation document with
-          ``{ locale : "simple" }``, or
-          the ``shardCollection`` command fails. At least one of the indexes
-          whose fields support the shard key pattern must have the simple
-          collation.
-          
-          
-      * - :ref:`presplitHashedZones 
-          <cmd-shard-collection-presplitHashedZones>`
-
-        - boolean
-
-        - .. _cmd-shard-collection-presplitHashedZones:
-        
-          Optional. Specify ``true`` to perform initial chunk creation
-          and distribution for an empty or non-existing collection based
-          on the defined zones and zone ranges for the collection. For
-          :ref:`hashed sharding <sharding-hashed>` only.
-
-          ``shardCollection`` with ``presplitHashedZones: true`` returns
-          an error if any of the following are true:
-
-          - The shard key does not contain a hashed field 
-            (i.e. is not a :ref:`single field hashed index 
-            <index-hashed-index>` or :ref:`compound hashed index
-            <index-type-compound-hashed>`).
-
-          - The collection has no defined zones or zone ranges.
-
-          - The defined zone range or ranges do not meet the 
-            :ref:`requirements 
-            <shardCollection-zones>`.
-
-          .. versionadded:: 4.4
-
-      * - :ref:`timeseries <cmd-shard-collection-timeseries>`
-
-        - object
-
-        - .. _cmd-shard-collection-timeseries:
-
-          .. include:: /includes/time-series/fact-timeseries-param-desc.rst
-          
-          For detailed syntax, see
-          :ref:`cmd-sharded-time-series-collection-options`.
-
-          .. versionadded:: 5.1
-
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+     - Type
+     - Description
+ 
+   * - ``shardCollection``
+     - string
+     - The :term:`namespace` of the collection to shard in the form
+       ``<database>.<collection>``.
+ 
+   * - ``key``
+     - document
+     - The document that specifies the field or fields to use as the
+       :doc:`shard key </core/sharding-shard-key/>`.
+ 
+       ``{ <field1>: <1|"hashed">, ... }``
+ 
+       Set the field values to either:
+       
+       - ``1`` for :doc:`ranged based sharding </core/ranged-sharding>`
+       
+       - ``"hashed"`` to specify a
+         :ref:`hashed shard key <hashed-shard-keys>`.
+       
+       :doc:`shard key </core/sharding-shard-key/>` must be
+       supported by an index. Unless the collection is empty, the
+       index must exist prior to the :dbcommand:`shardCollection`
+       command. If the collection is empty, MongoDB creates the
+       index prior to sharding the collection if the index that can
+       support the shard key does not already exist.
+       
+       See also :ref:`sharding-shard-key-indexes`
+ 
+   * - ``unique``
+     - boolean
+     - Specify ``true`` to ensure that the underlying index
+       enforces a unique constraint. Defaults to ``false``. 
+ 
+       You cannot specify ``true`` when using :ref:`hashed shard keys 
+       <sharding-hashed>`.
+ 
+   * - ``numInitialChunks``
+     - integer
+     - Specifies the initial number of chunks to create across all shards in 
+       the cluster when sharding an *empty* collection with a
+       :ref:`hashed shard key <sharding-hashed-sharding>`. MongoDB
+       will then create and balance chunks across the cluster. The
+       ``numInitialChunks`` must result in less than ``8192`` per shard.
+       
+       If the collection is not empty or the shard key does not
+       contain a hashed field, the operation returns an error.
+ 
+       - If sharding with :ref:`presplitHashedZones: true
+         <cmd-shard-collection-presplitHashedZones>`,
+         MongoDB attempts to evenly distribute the specified
+         number of chunks across the zones in the cluster.
+ 
+       - If sharding with :ref:`presplitHashedZones: false
+         <cmd-shard-collection-presplitHashedZones>` or omitted and
+         no zones and zone ranges are defined for the empty
+         collection, MongoDB attempts to evenly distributed the
+         specified number of chunks across the shards in the cluster.
+ 
+       - If sharding with :ref:`presplitHashedZones: false
+         <cmd-shard-collection-presplitHashedZones>` or omitted and
+         zones and zone ranges have been defined for the empty
+         collection, ``numInitChunks`` has no effect.
+ 
+       .. versionchanged:: 4.4
+       
+   * - ``collation``
+     - document
+     - Optional. If the collection specified to ``shardCollection``
+       has a default :doc:`collation </reference/collation>`,
+       you *must* include a collation document with
+       ``{ locale : "simple" }``, or
+       the ``shardCollection`` command fails. At least one of the indexes
+       whose fields support the shard key pattern must have the simple
+       collation.
+       
+   * - :ref:`presplitHashedZones 
+       <cmd-shard-collection-presplitHashedZones>`
+     - boolean
+     - .. _cmd-shard-collection-presplitHashedZones:
+     
+       Optional. Specify ``true`` to perform initial chunk creation
+       and distribution for an empty or non-existing collection based
+       on the defined zones and zone ranges for the collection. For
+       :ref:`hashed sharding <sharding-hashed>` only.
+ 
+       ``shardCollection`` with ``presplitHashedZones: true`` returns
+       an error if any of the following are true:
+ 
+       - The shard key does not contain a hashed field 
+         (i.e. is not a :ref:`single field hashed index 
+         <index-hashed-index>` or :ref:`compound hashed index
+         <index-type-compound-hashed>`).
+ 
+       - The collection has no defined zones or zone ranges.
+ 
+       - The defined zone range or ranges do not meet the 
+         :ref:`requirements 
+         <shardCollection-zones>`.
+ 
+       .. versionadded:: 4.4
+ 
+   * - :ref:`timeseries <cmd-shard-collection-timeseries>`
+     - object
+     - .. _cmd-shard-collection-timeseries:
+ 
+       .. include:: /includes/time-series/fact-timeseries-param-desc.rst
+       
+       For detailed syntax, see
+       :ref:`cmd-sharded-time-series-collection-options`.
+ 
+       .. versionadded:: 5.1
+ 
 .. _cmd-sharded-time-series-collection-options:
 
 Time Series Options

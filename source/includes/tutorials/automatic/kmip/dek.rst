@@ -1,10 +1,6 @@
 
 Update and run the following code
 to generate a new {+dek-long+}:
-     
-.. TODO: Java Tech review: does it make sense to only specify endpoint
-         in order for KMS to randomly generate 96 byte DEK? Would you
-         rather I specify an ID value here or have a reader use their own?
 
 .. _csfle-kmip-create-dek:
 

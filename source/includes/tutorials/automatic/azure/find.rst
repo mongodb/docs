@@ -11,7 +11,7 @@ a client that is not configured for automatic {+csfle-abbrev+}.
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/java/azure/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/azure/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
          :start-after: start-find
          :end-before: end-find
          :language: java
@@ -21,7 +21,7 @@ a client that is not configured for automatic {+csfle-abbrev+}.
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/node/azure/reader/insert_encrypted_document.js
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/azure/reader/insert_encrypted_document.js
          :start-after: start-find
          :end-before: end-find
          :language: javascript
@@ -31,7 +31,7 @@ a client that is not configured for automatic {+csfle-abbrev+}.
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/python/azure/reader/insert_encrypted_document.py
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/azure/reader/insert_encrypted_document.py
          :start-after: start-find
          :end-before: end-find
          :language: python
@@ -41,7 +41,7 @@ a client that is not configured for automatic {+csfle-abbrev+}.
    .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
          :start-after: start-find
          :end-before: end-find
          :language: csharp
@@ -51,7 +51,7 @@ a client that is not configured for automatic {+csfle-abbrev+}.
    .. tab::
       :tabid: go
 
-      .. literalinclude:: /includes/sample_apps/csfle/build/go/azure/reader/insert-encrypted-document.go
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/azure/reader/insert-encrypted-document.go
          :start-after: start-find
          :end-before: end-find
          :language: go

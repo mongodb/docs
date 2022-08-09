@@ -17,15 +17,18 @@ Definition
 
    .. versionchanged:: 5.1
 
-   Performs a left outer join to a collection in the *same*
-   database to filter in documents from the "joined" collection for
-   processing. To each input document, the :pipeline:`$lookup` stage
-   adds a new array field whose elements are the matching documents
-   from the "joined" collection. The :pipeline:`$lookup` stage passes
-   these reshaped documents to the next stage.
+   Performs a left outer join to a collection in the *same* database to
+   filter in documents from the "joined" collection for processing. The
+   :pipeline:`$lookup` stage adds a new array field to each input
+   document. The new array field contains the matching documents from
+   the "joined" collection. The :pipeline:`$lookup` stage passes these
+   reshaped documents to the next stage.
 
    Starting in MongoDB 5.1, :pipeline:`$lookup` works across sharded 
-   collections. 
+   collections.
+
+   To combine elements from two different collections, use the
+   :pipeline:`$unionWith` pipeline stage. 
 
 Syntax
 ------
@@ -410,33 +413,70 @@ the ``pipeline`` field.
 Atlas Search Support 
 ~~~~~~~~~~~~~~~~~~~~
 
-Starting in v6.0, the ``pipeline`` can contain the :atlas:`Atlas Search 
-</atlas-search>` :pipeline:`$search` stage as the first stage inside 
-the pipeline. 
+Starting in MongoDB 6.0, you can specify the :atlas:`Atlas Search 
+</atlas-search>` :pipeline:`$search` or :pipeline:`$searchMeta` stage 
+in the ``$lookup`` pipeline to search collections on the Atlas 
+cluster. The :pipeline:`$search` or the :pipeline:`$searchMeta` stage 
+must be the first stage inside the ``$lookup`` pipeline.
 
 For example, when you :ref:`lookup-syntax-let-pipeline` or run 
 :ref:`lookup-syntax-concise-correlated-subquery`, you can specify 
-:pipeline:`$search` inside the pipeline as shown below:
+:pipeline:`$search` or :pipeline:`$searchMeta` inside the pipeline as 
+shown below:
 
-.. code-block:: 
-   :copyable: false 
-   :emphasize-lines: 7-11
+.. tabs:: 
 
-   [{
-     "$lookup": {
-       "from": <joined collection>,
-       "let": {<var_n>: <expression>, ...},
-       "as": <output array field>,
-       "pipeline": [{
-         "$search": {
-           "<operator>": {
-             <operator-specification>
+   .. tab:: $search
+      :tabid: search
+
+      .. code-block:: 
+         :copyable: false 
+         :emphasize-lines: 7-11
+
+         [{
+           "$lookup": {
+             "from": <joined collection>,
+             localField: <field from the input documents>,
+             foreignField: <field from the documents of the "from" collection>,
+             "as": <output array field>,
+             "pipeline": [{
+               "$search": {
+                 "<operator>": {
+                   <operator-specification>
+                 }
+               },
+               ... 
+             }]
            }
-         },
-         ... 
-       }]
-     }
-   }] 
+         }] 
+
+   .. tab:: $searchMeta
+      :tabid: searchmeta
+
+      .. code-block:: 
+         :copyable: false 
+         :emphasize-lines: 7-11
+
+         [{
+           "$lookup": {
+             "from": <joined collection>,
+             localField: <field from the input documents>,
+             foreignField: <field from the documents of the "from" collection>,
+             "as": <output array field>,
+             "pipeline": [{
+               "$searchMeta": {
+                 "<collector>": {
+                   <collector-specification>
+                 }
+               },
+               ... 
+             }]
+           }
+         }] 
+
+To see an example of :pipeline:`$lookup` with :pipeline:`$search`, 
+see the Atlas Search tutorial :atlas:`Run an Atlas Search $search Query 
+Using $lookup </atlas-search/tutorial/lookup-with-search/>`.
 
 .. _lookup-sharded-collections:
 

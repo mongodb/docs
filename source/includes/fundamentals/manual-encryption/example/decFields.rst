@@ -8,6 +8,7 @@ and manually decrypt the encrypted fields:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.java
         :language: java
+        :dedent:
         :start-after: start_find_decrypt
         :end-before: end_find_decrypt
 
@@ -16,6 +17,7 @@ and manually decrypt the encrypted fields:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.js
         :language: javascript
+        :dedent:
         :start-after: start_find_decrypt
         :end-before: end_find_decrypt
 
@@ -24,6 +26,7 @@ and manually decrypt the encrypted fields:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.py
         :language: python
+        :dedent:
         :start-after: start_find_decrypt
         :end-before: end_find_decrypt
 

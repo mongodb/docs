@@ -8,6 +8,7 @@ instance:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.java
         :language: java
+        :dedent:
         :start-after: start_client_enc
         :end-before: end_client_enc
 
@@ -16,6 +17,7 @@ instance:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.js
         :language: javascript
+        :dedent:
         :start-after: start_client_enc
         :end-before: end_client_enc
 
@@ -24,6 +26,7 @@ instance:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.py
         :language: python
+        :dedent:
         :start-after: start_client_enc
         :end-before: end_client_enc
       

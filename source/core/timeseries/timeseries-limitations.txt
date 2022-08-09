@@ -31,12 +31,8 @@ The following features are not supported for
 * :realm:`GraphQL API </graphql>`
 * :realm:`Realm Sync </sync>`
 * :dbcommand:`reIndex`
+* :dbcommand:`renameCollection`
 * :doc:`Schema validation rules </core/schema-validation>`
-
-Constraints
-~~~~~~~~~~~
-
-The maximum size of a measurement document is 4 MB.
 
 Aggregation $out and $merge
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -86,31 +82,51 @@ To remove all documents from a collection, use the
 Time Series Secondary Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can add :term:`secondary indexes <secondary index>` on the fields
-specified as the ``timeField`` and the ``metaField``. If the field value
-for the ``metaField`` field is a document, you can also create secondary
-indexes on fields inside that document.
+Time Series Secondary Indexes with MongoDB 6.0 and Later
+````````````````````````````````````````````````````````
 
-In MongoDB 5.1, the ``metaField`` doesn't support :doc:`text
-</core/index-text>` indexes.
+Starting in MongoDB 6.0, you can add a :term:`secondary index <secondary
+index>` to any field.
 
-In MongoDB 5.0, the ``metaField`` doesn't support the following index
-types:
+These index types aren't supported:
 
+- :doc:`Text </core/index-text>`
 - :doc:`2d </core/2d>`
-- :doc:`2dsphere </core/2dsphere>`
-- :doc:`text </core/index-text>`
 
-Secondary indexes don't support the following index properties:
+These index properties aren't supported:
 
-- :doc:`TTL </core/index-ttl>`
+- :doc:`TTL </core/index-ttl>`. For TTL deletion, use
+  :ref:`expireAfterSeconds <db.createCollection.expireAfterSeconds>`.
 - :doc:`Unique </core/index-unique>`
-- :doc:`Partial </core/index-partial>`
+
+The :doc:`multikey index </core/index-multikey>` type is allowed on the
+``metaField`` only.
+
+These index properties are partially supported:
+
+- :doc:`Partial indexes </core/index-partial>` are allowed on all fields
+  except the ``metaField`` and ``timeField``.
+- :doc:`Sparse indexes </core/index-sparse>` are allowed on the
+  ``metaField`` only.
 
 For improvements to time series secondary indexes available starting in
 MongoDB 6.0, see :ref:`timeseries-add-secondary-index-mongodb-6.0`.
 
 .. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst
+
+Time Series Secondary Indexes with MongoDB 5.0 and Earlier
+``````````````````````````````````````````````````````````
+
+In MongoDB 5.0 and earlier:
+
+- Secondary indexes can only be defined on the ``metaField`` or the
+  ``timeField``.
+- If the ``metaField`` is a document, you can add secondary indexes on
+  fields inside that document.
+
+.. seealso::
+
+   :ref:`indexes`
 
 Capped Collections
 ~~~~~~~~~~~~~~~~~~
@@ -201,6 +217,10 @@ You can't write to :ref:`time series collections
 Views
 ~~~~~
 
-You cannot create a :ref:`view <views-landing-page>` from a time series
-bucket collection namespace (namely, a collection prefixed with
-``system.buckets``).
+- Time series collections are writable non-materialized :ref:`views
+  <views-landing-page>`. Limitations for views apply to time series
+  collections.
+
+- You cannot create a view from a time series collection bucket
+  collection namespace (namely, a collection prefixed with
+  ``system.buckets``).

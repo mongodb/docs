@@ -15,6 +15,7 @@ your document and insert your document into MongoDB:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.java
         :language: java
+        :dedent:
         :start-after: start_enc_and_insert
         :end-before: end_enc_and_insert
 
@@ -25,6 +26,7 @@ your document and insert your document into MongoDB:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.js
         :language: javascript
+        :dedent:
         :start-after: start_enc_and_insert
         :end-before: end_enc_and_insert
 
@@ -35,6 +37,7 @@ your document and insert your document into MongoDB:
 
      .. literalinclude:: /includes/fundamentals/manual-encryption/manual-enc.py
         :language: python
+        :dedent:
         :start-after: start_enc_and_insert
         :end-before: end_enc_and_insert
 
