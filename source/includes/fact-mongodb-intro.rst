@@ -1,4 +1,4 @@
-Welcome to the MongoDB {+version-dev+} Manual! MongoDB is a
+Welcome to the MongoDB {+version+} Manual! MongoDB is a
 document database designed for ease of development
 and scaling. 
 

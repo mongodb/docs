@@ -1,6 +1,6 @@
-.. important:: MongoDB {+version-dev+} Release Candidates
+.. important:: MongoDB {+version+} Release Candidates
 
-   MongoDB {+version-dev+} binaries are currently available only as
+   MongoDB {+version+} binaries are currently available only as
    **release candidates**. Release candidates can be used for early
    testing of new features, but are not suitable for production
    deployments.
