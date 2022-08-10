@@ -41,7 +41,7 @@
       .. tip:: Add Your {+dek-long+} Base64 ID
 
          Make sure to update the following code to include your Base64
-         {+dek-abbr+} ID. You recieved this value in the
+         {+dek-abbr+} ID. You received this value in the
          :ref:`Generate your {+dek-long+} <csfle-kmip-create-dek>` step of this
          guide.
 
