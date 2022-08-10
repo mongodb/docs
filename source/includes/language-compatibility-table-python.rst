@@ -20,10 +20,10 @@ Python 3 Compatibility
      - Python 3.1
 
    * - 4.2
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
      -
@@ -33,11 +33,11 @@ Python 3 Compatibility
      -
 
    * - 4.1
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark| [#three-six-compat]_
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓ [#three-six-compat]_
      -
      -
      -
@@ -46,11 +46,11 @@ Python 3 Compatibility
      -
 
    * - 4.0
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
      -
@@ -59,41 +59,41 @@ Python 3 Compatibility
      -
 
    * - 3.12
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
    * - 3.11
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
    * - 3.10
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -101,12 +101,12 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -114,12 +114,12 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -127,12 +127,12 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -141,11 +141,11 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -154,11 +154,11 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
 
@@ -168,10 +168,10 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
 
@@ -181,10 +181,10 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
 
@@ -194,11 +194,11 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
 
    * - 3.1
@@ -207,11 +207,11 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
 
    * - 3.0
@@ -221,10 +221,10 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
 
    * - 2.9
@@ -232,13 +232,13 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - 2.8
      -
@@ -247,11 +247,11 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - 2.7
      -
@@ -260,11 +260,11 @@ Python 3 Compatibility
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
 Python 2 Compatibility
 ``````````````````````
@@ -294,101 +294,101 @@ Python 2 Compatibility
      -
 
    * - 3.12
-     - |checkmark|
+     - ✓
      -
      -
      -
 
    * - 3.11
-     - |checkmark|
+     - ✓
      -
      -
      -
 
    * - 3.10
-     - |checkmark|
+     - ✓
      -
      -
      -
 
    * - 3.9
-     - |checkmark|
+     - ✓
      -
      -
      -
 
    * - 3.8
-     - |checkmark|
+     - ✓
      -
      -
      -
 
    * - 3.7
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
 
    * - 3.6
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
    * - 3.5
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
    * - 3.4
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
    * - 3.3
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
    * - 3.2
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
    * - 3.1
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
    * - 3.0
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
      -
 
    * - 2.9
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - 2.8
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - 2.7
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
 .. [#python-2-compat] Versions of PyMongo 4.0 and later are not compatible
    with Python 2

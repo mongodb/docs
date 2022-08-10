@@ -10,11 +10,11 @@
      - C++03
 
    * - 3.x
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
      -
 
    * - 1.x
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓

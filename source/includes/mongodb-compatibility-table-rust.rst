@@ -1,3 +1,4 @@
+.. include:: /includes/compatibility-table-legend.rst
 
 .. list-table::
    :header-rows: 1
@@ -19,29 +20,29 @@
      - ✓
      - ✓
    * - 2.2 [#2.2-limitation]_
-     -
+     - ⊛
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
    * - 2.1 [#2.1-limitation]_
-     -
+     - ⊛
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
    * - 2.0 [#limitations]_
-     -
+     - ⊛
      - ✓
      - ✓
      - ✓
      - ✓
      - ✓
    * - 1.1 [#limitations]_
-     -
-     -
+     - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓

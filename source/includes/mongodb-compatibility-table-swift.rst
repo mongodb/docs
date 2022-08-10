@@ -1,3 +1,4 @@
+.. include:: /includes/compatibility-table-legend.rst
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -12,36 +13,36 @@
      - MongoDB 3.6
 
    * - 1.3.0 [#1.2-1.3-limitations]_
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - 1.2.0 [#1.2-1.3-limitations]_
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - 1.1.0 [#1.0-1.1-limitations]_
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ⊛
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
    * - 1.0.0 [#1.0-1.1-limitations]_
-     -
-     -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ⊛
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
 
 The Swift driver is not compatible with MongoDB server versions older than 3.6.
 

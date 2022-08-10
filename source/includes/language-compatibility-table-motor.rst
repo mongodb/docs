@@ -19,10 +19,10 @@
      - Python 2.5
 
    * - 3.0
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
      -
@@ -32,12 +32,12 @@
      -
      -
    * - 2.5
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
      -
@@ -47,12 +47,12 @@
 
 
    * - 2.4
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
      -
@@ -63,10 +63,10 @@
    * - 2.3
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
      -
@@ -77,10 +77,10 @@
    * - 2.2
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
      -
      -
@@ -91,14 +91,14 @@
    * - 2.1
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -106,13 +106,13 @@
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -120,13 +120,13 @@
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -134,13 +134,13 @@
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
-     - |checkmark|
+     - ✓
      -
      -
 
@@ -149,13 +149,13 @@
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
 
    * - 1.0
@@ -163,13 +163,13 @@
      -
      -
      -
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
      -
 
 - Motor 3.0 wraps PyMongo 4.1+

@@ -10,6 +10,6 @@
      - C89
      
    * - All Versions
-     - |checkmark|
-     - |checkmark|
-     - |checkmark|
+     - ✓
+     - ✓
+     - ✓
