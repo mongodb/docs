@@ -140,26 +140,18 @@ instructions for your preferred installation method.
                </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
                sample |yaml| file from the :github:`MongoDB Enterprise Kubernetes Operator GitHub repository
                </mongodb/mongodb-enterprise-kubernetes>`.
-            #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE`` in
-               :github:`mongodb-enterprise.yaml
-               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml#L239>`
-               to ``*``.
-            
-            #. Create the following local |k8s| |k8s-service-accounts|
-               for each namespace where you want to deploy |onprem| and
-               |k8s-mdbrscs|:
-               
-               - ``mongodb-enterprise-database-pods``, if deploying a
-                 MongoDB instance in the namespace.
+            #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE``
+               in :github:`mongodb-enterprise.yaml
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+               to ``"*"``. You must include the double quotation marks
+               (``"``) around the asterisk (``*``) in the |yaml| file.
 
-               - ``mongodb-enterprise-appdb``, if deploying |onprem| in
-                 the namespace.
-               
-               - ``mongodb-enterprise-ops-manager``, if deploying
-                 |onprem| in the namespace.
+               .. code-block:: sh
+
+                  WATCH_NAMESPACE: "*"
 
             #. In :github:`mongodb-enterprise.yaml
-               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml#L56>`,
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`,
                change:
 
                .. code-block:: sh
@@ -192,7 +184,7 @@ instructions for your preferred installation method.
                     - watch
             
             #. In :github:`mongodb-enterprise.yaml
-               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml#L122-134>`,
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`,
                change:
               
                .. code-block:: sh
@@ -229,45 +221,62 @@ instructions for your preferred installation method.
                    name: mongodb-enterprise-operator
                    namespace: mongodb
 
-            #. In the following sample |yaml| file, replace ``<namespace>``
-               with the namespace in which you want the |k8s-op-short|
-               to deploy resources.
-        
+            #. In the ``mongodb-enterprise.yaml`` file, change the
+               ``<namespace>`` value to the namespace where you want
+               the |k8s-op-short| to deploy resources and apply the
+               |yaml| fle.
+
                .. literalinclude:: /includes/service-accounts-and-secrets-cluster-wide-no-helm.yaml
                   :language: yaml
                   :linenos:
 
+            #. Create local |k8s| |k8s-service-accounts|:
+
+               .. include:: /includes/facts/fact-service-accounts-and-namespaces.rst
+
+               .. code-block:: sh
+
+                  ---
+                  kind: ServiceAccount
+                  apiVersion: v1
+                  metadata:
+                   name: mongodb-enterprise-database-pods
+                   namespace: <namespace>
+                  ---
+                  kind: ServiceAccount
+                  apiVersion: v1
+                  metadata:
+                   name: mongodb-enterprise-appdb
+                   namespace: <namespace>
+                  ---
+                  kind: ServiceAccount
+                  apiVersion: v1
+                  metadata:
+                   name: mongodb-enterprise-ops-manager
+                   namespace: <namespace>
+
          .. tab:: Using Helm
             :tabid: k8s-with-helm
 
-            Before you deploy the |k8s-op-short|, configure the following items:
+            Before you deploy the |k8s-op-short|, configure the following
+            items:
 
             1. Configure the |k8s-op-short| to watch all namespaces:
 
                .. code-block:: sh
 
                   helm install enterprise-operator mongodb/enterprise-operator \
-                    --set operator.watchNamespace=*
+                    --set operator.watchNamespace="*"
 
-            #. Create the following local |k8s| |k8s-service-accounts|
-               for each namespace where you want to deploy |onprem| and
-               |k8s-mdbrscs|:
-               
-               - ``mongodb-enterprise-database-pods``, if deploying a
-                 MongoDB instance in the namespace.
+            #. Create local |k8s| |k8s-service-accounts|:
 
-               - ``mongodb-enterprise-appdb``, if deploying |onprem| in
-                 the namespace.
-               
-               - ``mongodb-enterprise-ops-manager``, if deploying
-                 |onprem| in the namespace.
+               .. include:: /includes/facts/fact-service-accounts-and-namespaces.rst
 
                .. code-block:: sh
 
                   helm template mongodb/enterprise-operator \
                     --set namespace=<metadata.namespace>
-                    --show-only templates/database-roles.yaml | oc apply -f -
-
+                    --show-only templates/database-roles.yaml | kubectl apply -f -
 
    .. tab:: OpenShift
       :tabid: os
@@ -277,7 +286,8 @@ instructions for your preferred installation method.
          .. tab:: Using oc
             :tabid: openshift-no-helm
 
-            Before you deploy the |k8s-op-short|, configure the following items:
+            Before you deploy the |k8s-op-short|, configure the following
+            items:
 
             1. Use the :github:`mongodb-enterprise-openshift.yaml
                </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml>`
@@ -286,24 +296,17 @@ instructions for your preferred installation method.
 
             #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE`` in
                :github:`mongodb-enterprise-openshift.yaml
-               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml#L236>`
-               to ``*``.
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml>`
+               to ``"*"``. You must include the double quotation marks
+               (``"``) around the asterisk (``*``) in the |yaml| file.
 
-            #. Create the following local |k8s| |k8s-service-accounts| for
-               each namespace:
-               
-               - ``mongodb-enterprise-database-pods``, if deploying a
-                 MongoDB instance in the namespace.
+               .. code-block:: sh
 
-               - ``mongodb-enterprise-appdb``, if deploying |onprem| in
-                 the namespace.
-               
-               - ``mongodb-enterprise-ops-manager``, if deploying
-                 |onprem| in the namespace.
+                  WATCH_NAMESPACE: "*"
 
             #. Create the corresponding roles for these accounts. In
                :github:`mongodb-enterprise-openshift.yaml
-               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml#L56>`,
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml>`,
                change:
 
                .. code-block:: sh
@@ -336,7 +339,7 @@ instructions for your preferred installation method.
                     - watch
                 
             #. In :github:`mongodb-enterprise-openshift.yaml
-               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml#L122-134>`,
+               </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise-openshift.yaml>`,
                change:
 
                .. code-block:: sh
@@ -377,71 +380,64 @@ instructions for your preferred installation method.
                deploy the |k8s-op-short|.
                If you deploy MongoDB resources in :ref:`multiple namespaces
                <ns-scope-different-ns>` or with a :ref:`cluster-wide
-               scope <cluster-wide-scope>`,the |k8s-op-short|
+               scope <cluster-wide-scope>`, the |k8s-op-short|
                synchronizes the secret across all watched namespaces.
                To learn more, see the ``registry.imagePullSecrets``
                setting in the :doc:`Helm installation settings</reference/helm-operator-settings>`.
 
-               In the following sample |yaml| file, replace ``<namespace>``
-               with the namespace in which you want to install the
-               |k8s-op-short|. Use |oc| or the OpenShift Container
-               Platform user interface to apply the resulting |yaml|
-               file.
+               In the ``mongodb-enterprise.yaml`` file, replace
+               ``<namespace>`` with the namespace in which you want to
+               install the |k8s-op-short|. Use |oc| or the OpenShift
+               Container Platform UI to apply the resulting |yaml| file.
 
                .. literalinclude:: /includes/service-accounts-and-secrets-cluster-wide-no-helm.yaml
                   :language: yaml
                   :linenos:
 
+            #. Create local |k8s| |k8s-service-accounts|:
+
+               .. include:: /includes/facts/fact-service-accounts-and-namespaces.rst
+
          .. tab:: Using Helm
             :tabid: openshift-helm
 
-            Before you deploy the |k8s-op-short|, configure the following items:
+            Before you deploy the |k8s-op-short|, configure the following
+            items:
 
             1. Configure the |k8s-op-short| to watch all namespaces:
 
                .. code-block:: sh
 
                   helm install enterprise-operator mongodb/enterprise-operator \
-                    --set operator.watchNamespace=* \
+                    --set operator.watchNamespace="*" \
 
-            #. Create the following local |k8s-service-accounts| for each
-               namespace where you want to deploy |onprem| and
-               |k8s-mdbrscs|:
-               
-               - ``mongodb-enterprise-database-pods``, if deploying a
-                 MongoDB instance in the namespace.
+            #. Create the secret only in the namespace where you will
+               deploy the |k8s-op-short|.
+               If you deploy MongoDB resources in :ref:`multiple namespaces
+               <ns-scope-different-ns>` or with a :ref:`cluster-wide
+               scope <cluster-wide-scope>`, the |k8s-op-short|
+               synchronizes the secret across all watched namespaces.
+               To learn more, see the ``registry.imagePullSecrets``
+               setting in the :doc:`Helm installation settings</reference/helm-operator-settings>`.
 
-               - ``mongodb-enterprise-appdb``, if deploying |onprem| in
-                 the namespace.
-               
-               - ``mongodb-enterprise-ops-manager``, if deploying
-                 |onprem| in the namespace.
+               In the ``mongodb-enterprise.yaml`` file, replace ``<namespace>``
+               with the namespace in which you want to install the
+               |k8s-op-short|. Use |oc| or the OpenShift Container
+               Platform UI to apply the resulting |yaml| file.
+
+               .. literalinclude:: /includes/service-accounts-and-secrets-cluster-wide.yaml
+                  :language: yaml
+                  :linenos:
+
+            #. Create local |k8s| |k8s-service-accounts|:
+
+               .. include:: /includes/facts/fact-service-accounts-and-namespaces.rst
 
                .. code-block:: sh
 
                   helm template mongodb/enterprise-operator \
                     --set namespace=<metadata.namespace>
                     --show-only templates/database-roles.yaml | oc apply -f -
-
-
-            #. Create the secret only in the namespace where you will
-               deploy the |k8s-op-short|.
-               If you deploy MongoDB resources in :ref:`multiple namespaces
-               <ns-scope-different-ns>` or with a :ref:`cluster-wide
-               scope <cluster-wide-scope>`,the |k8s-op-short|
-               synchronizes the secret across all watched namespaces.
-               To learn more, see the ``registry.imagePullSecrets``
-               setting in the :doc:`Helm installation settings</reference/helm-operator-settings>`.
-
-               In the following sample |yaml| file, replace ``<namespace>``
-               with the namespace in which you want to install the
-               |k8s-op-short|. Use |oc| or the OpenShift Container
-               Platform user interface to apply the resulting |yaml|
-               file.
-
-               .. literalinclude:: /includes/service-accounts-and-secrets-cluster-wide.yaml
-                  :language: yaml
-                  :linenos:
 
 Next Steps
 ----------
