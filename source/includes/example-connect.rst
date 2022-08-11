@@ -50,3 +50,25 @@ following command on one line:
                        clusterTwo02.fancyCorp.com:20020,
                        clusterTwo03.fancyCorp.com:20020
 
+Atlas clusters require TLS/SSL connections. To use ``mongosync`` with
+Atlas clusters, you add the :urioption:`ssl=true <ssl>` option. For
+example:
+
+.. code-block:: shell
+
+   mongosync \
+      --cluster0 'mongodb://clusterAdmin:superSecret@clusterOne01.fancyCorp.com:20020,clusterOne02.fancyCorp.com:20020,clusterOne03.fancyCorp.com:20020/?ssl=true' \
+      --cluster1 'mongodb://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020,clusterTwo02.fancyCorp.com:20020,clusterTwo03.fancyCorp.com:20020/?ssl=true'
+
+You can also use ``mongodb+srv`` connection strings with ``mongosync``.
+You do not need to add the :urioption:`ssl=true <ssl>` option to a
+``mongodb+srv`` connection string. For example:
+
+.. code-block:: shell
+
+   mongosync \
+      --cluster0 'mongodb+srv://clusterAdmin:superSecret@clusterOne01.fancyCorp.com:20020/' \
+      --cluster1 'mongodb+srv://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020/'
+
+For more details about ``mongodb+srv`` connection strings, see
+:ref:`connections-dns-seedlist`.
