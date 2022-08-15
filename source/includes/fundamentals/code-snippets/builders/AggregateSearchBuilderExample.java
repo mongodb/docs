@@ -43,12 +43,26 @@ public class AggregateSearchBuilderExample {
                         SearchPath.fieldPath("title"), "Future"));
         // end atlasTextSearch
 
-        Bson projection = Aggregates.project(Projections.fields(Projections.include("title", "released")));
+        // To condense result data, add this projection into the pipeline
+        // Bson projection = Aggregates.project(Projections.fields(Projections.include("title", "released")));
 
-        List<Bson> aggregateStages = Arrays.asList(textSearch, projection);
+        List<Bson> aggregateStages = Arrays.asList(textSearch);
         System.out.println("aggregateStages: " + aggregateStages);
 
         System.out.println("explain:\n" + collection.aggregate(aggregateStages).explain());
+        collection.aggregate(aggregateStages).forEach(result -> System.out.println(result));
+    }
+
+    private static void runAtlasTextSearchMeta(MongoCollection<Document> collection) {
+        Bson textSearchMeta =
+        // begin atlasSearchMeta
+        Aggregates.searchMeta(
+                SearchOperator.near(2010, 1, SearchPath.fieldPath("year")));
+        // end atlasSearchMeta
+
+        List<Bson> aggregateStages = Arrays.asList(textSearchMeta);
+        System.out.println("aggregateStages: " + aggregateStages);
+
         collection.aggregate(aggregateStages).forEach(result -> System.out.println(result));
     }
 
@@ -59,8 +73,11 @@ public class AggregateSearchBuilderExample {
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("movies");
 
+
+            // Uncomment the methods that correspond to what you're testing
             // runMatch(collection);
-            runAtlasTextSearch(collection);
+            // runAtlasTextSearch(collection);
+            runAtlasTextSearchMeta(collection);
         }
     }
 }
