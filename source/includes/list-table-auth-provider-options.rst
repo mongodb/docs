@@ -19,7 +19,7 @@
 
            <prefix>.apps.googleusercontent.com
 
-    * - Realm
+    * - {+atlas-app-services+}
       - Provide the following values:
 
         .. include:: /includes/list-table-realm-auth-provider-options.rst

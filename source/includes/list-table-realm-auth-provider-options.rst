@@ -7,28 +7,29 @@
     - Value
 
   * - Project
-    - Project that contains your Realm application.
+    - Project that contains your app service.
 
-  * - Realm App
-    - Realm app that's issuing the user token.
+  * - App Service
+    - App service that's issuing the user token.
 
-  * - Fetch data using Realm app (**Optional**)
+  * - Fetch data using {+atlas-app-services+} (**Optional**)
     - Toggle to enable |charts-short| to fetch user data and rules from 
-      a Realm Service.
+      an app service.
 
       If enabled, |charts-short| retrieves data from the service you
-      specify in the :guilabel:`Realm Service Name` field.
+      specify in the :guilabel:`App Service Name` field.
 
-      Enabling this option allows you to define rules in Realm to 
+      Enabling this option allows you to define rules in {+atlas-app-services+} to 
       control the data that |charts-short| displays for specific 
       collections or users.
 
       For more information, see :stitch:`Filter Incoming Queries 
-      </mongodb/filter-incoming-queries/>` in the Realm documentation.
+      </mongodb/filter-incoming-queries/>` in the {+app-services+} 
+      documentation.
 
-  * - Realm Service Name
-    - The name of the service in your Realm app that |charts-short| uses 
-      to retrieve the data for your chart.
+  * - App Service Name
+    - The name of the service in your app service that |charts-short| 
+      uses to retrieve the data for your chart.
 
       .. example::
 
