@@ -1,0 +1,124 @@
+.. _collation-collection:
+
+==================================
+Create a Collection with Collation
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:manual:`Collation </reference/collation/>` allows you to specify 
+language-specific rules for string comparison, such as rules for lettercase 
+and accent marks.
+
+Procedure
+---------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Click the :guilabel:`Create Collection` button.
+
+      From the :guilabel:`Collections` screen, click the 
+      :guilabel:`Create Collection` button.
+
+   .. step:: Enter the collection name.
+
+   .. step:: Click the :guilabel:`Advanced Collection Options` dropdown.
+
+      Check the :guilabel:`Use Custom Collaton` option.
+
+   .. step:: Select a value for :guilabel:`locale`.
+
+      You are required to select a :guilabel:`locale` from the :manual:`MongoDB 
+      supported languages </reference/collation-locales-defaults/#supported-languages-and-locales>`.
+      
+      All other collation options parameters are optional. For descriptions of 
+      the fields, see :manual:`Collation </reference/collation/>`.
+
+   .. step:: Click :guilabel:`Create Collection` to create the collection.
+
+Restrictions and Limitations
+----------------------------
+
+The following restrictions apply when the parameter ``numericOrdering`` 
+is set to ``true``:
+
+- Only contiguous non-negative integer substrings of digits are 
+  considered in the comparisons. ``numericOrdering`` does not support:
+
+  - ``+``
+  - ``-``
+  - exponents
+
+- Only Unicode code points in the Number or Decimal Digit (Nd) category 
+  are treated as digits.
+
+- If the number length exceeds 254 characters, the excess characters are 
+  treated as a separate number.
+
+Example 
+~~~~~~~
+
+Consider a collection with the following string number and decimal values:
+
+.. code-block:: javascript
+
+  [
+    { "n": "1" },
+    { "n": "2" },
+    { "n": "-2.1" },
+    { "n": "2.0" },
+    { "n": "2.20" },
+    { "n": "10"},
+    { "n": "20" },
+    { "n": "20.1" },
+    { "n": "-10" },
+    { "n": "3" }
+  ]
+
+The following find query uses a collation document containing the 
+``numericOrdering`` parameter:
+
+.. code-block:: javascript
+
+   db.c.find(
+    { }, { _id: 0 }
+   ).sort(
+     { n: 1 }
+    ).collation( {
+     locale: 'en_US',
+     numericOrdering: true
+  } )
+
+For more information on querying documents in |compass-short|, see 
+:ref:`Query Your Data <compass-query-bar>`.
+
+The operations returns the following results:
+
+.. code-block:: javascript
+   :emphasize-lines: 2, 3
+
+   [
+      { "n": "-2.1" },
+      { "n": "-10" },
+      { "n": "1" },
+      { "n": "2" },
+      { "n": "2.0" }
+      { "n": "2.20" },
+      { "n": "3" },
+      { "n": "10" },
+      { "n": "20" },
+      {"n": "20.1" }
+   ]
+
+- ``numericOrdering: true`` sorts the string values in ascending order as if 
+  they were numeric values.
+
+- The two negative values ``-2.1`` and ``-10`` are not sorted in the 
+  expected sort order because they have unsupported ``-`` characters.
