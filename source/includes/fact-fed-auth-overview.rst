@@ -14,3 +14,8 @@ Using the |fim| model:
 This goes beyond |sso| as your |idp| manages your credentials, not
 MongoDB. Your users can use |service| without needing to remember
 another username and password.
+
+.. important::
+
+   While you have a federated |idp| enabled, |service| disables any 
+   other authentication mechanisms.
