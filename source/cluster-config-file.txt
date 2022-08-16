@@ -1,0 +1,178 @@
+.. _atlas-cli-cluster-config-file:
+
+==============================
+{+Cluster+} Configuration File
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use a {+cluster+} configuration file to specify the settings
+required when you create or update a {+cluster+} using the 
+{+atlas-cli+}. The {+atlas-cli+} accepts ``.json``
+{+cluster+} configuration files.
+
+Use the following resources to:
+
+- Learn the :ref:`required settings <required-cluster-settings>` you
+  can specify in the {+cluster+} configuration file.
+- View and copy :ref:`sample configuration files
+  <example-cluster-config-file>`.
+
+.. _required-cluster-settings:
+
+Required {+Cluster+} Settings
+-----------------------------
+
+|service| requires the following settings to create a {+cluster+} with
+the {+atlas-cli+}. You must specify these {+cluster+} settings either
+in the configuration file or as flags in the command:
+
+.. list-table:: 
+   :header-rows: 1 
+   :widths: 20 10 70 
+
+   * - Field 
+     - Type 
+     - Description 
+
+   * - ``clusterType``
+     - string
+     - Human-readable label that indicates the type of {+cluster+} to
+       create. Values include: ``REPLICASET``, ``SHARDED``, or
+       ``GEOSHARDED``.
+
+   * - ``name``
+     - string
+     - Human-readable label that identifies the {+cluster+}.
+
+   * - ``replicationSpecs``
+     - array
+     - List that contains the configuration settings for your 
+       {+cluster+} regions and the hardware provisioned in them.
+
+   * - ``replicationSpecs.``
+       ``regionConfigs``
+     - array
+     - List that contains the hardware specifications for the nodes set
+       within the region that you specify. Each ``regionConfigs``
+       object describes the region's priority in elections and the
+       number and type of MongoDB nodes that |service| deploys to the
+       region.
+       
+       Each ``regionConfigs`` object must have either an
+       ``analyticsSpecs`` object, ``electableSpecs`` object, or
+       ``readOnlySpecs`` object.
+
+       - Shared {+clusters+} require only ``electableSpecs``.
+       - Dedicated {+clusters+} can specify any of these
+         specifications, but must have at least one ``electableSpecs``
+         object within a ``replicationSpec``.
+       - Every hardware specification must use the same
+         ``instanceSize``.
+
+   * - ``replicationSpecs.``
+       ``regionConfigs.electableSpecs``
+     - object
+     - Hardware specifications for electable nodes in the region.
+       Electable nodes can become the 
+       :manual:`primary </core/replica-set-members/#std-label-replica-set-primary-member>` and can enable
+       local reads.
+
+   * - ``replicationSpecs.``
+       ``regionConfigs.``
+       ``electableSpecs.instanceSize``
+     - string
+     - Hardware specification for the instance sizes in this region. To
+       learn more, see :ref:`create-cluster-instance`.
+
+   * - ``replicationSpecs``
+       ``.regionConfigs.``
+       ``electableSpecs.nodeCount``
+     - number
+     - Number of electable nodes for |service| to deploy to the region.
+       Electable nodes can become the 
+       :manual:`primary </core/replica-set-members/#std-label-replica-set-primary-member>` and can enable
+       local reads.
+
+       The combined electableSpecs.nodeCount across all 
+       replicationSpecs[n].regionConfigs[m] objects must total 3, 5, or
+       7.
+
+   * - ``replicationSpecs.``
+       ``regionConfigs.priority``
+     - Integer
+     - Precedence that is given to this region when a primary election
+       occurs.
+
+       If your region has set ``electableSpecs.nodeCount`` to ``1`` or
+       higher, it must have a priority of exactly one (1) less than
+       another region in the ``replicationSpecs[n].regionConfigs[m]``
+       array. The highest-priority region must have a priority of
+       ``7``. The lowest possible priority is ``1``.
+
+       The priority ``7`` region identifies the preferred region of the
+       {+cluster+}. |service| places the 
+       :manual:`primary </core/replica-set-members/#std-label-replica-set-primary-member>` node in the
+       preferred region.
+
+   * - ``replicationSpecs.``
+       ``regionConfigs.providerName``
+     - string
+     - Human-readable label that identifies your cloud service
+       provider. Values include: ``AWS``, ``AZURE``, or ``GCP``.
+
+       To create a multi-cloud {+cluster+}, specify more than one
+       service provider for your ``regionConfigs`` objects. To
+       learn more, see the :ref:`multi-cloud example configuration file
+       <multi-cloud-example-cluster-config-file>`
+
+   * - ``replicationSpecs.``
+       ``regionConfigs.regionName``
+     - string
+     - Human-readable label that indicates the physical location of
+       your {+cluster+} nodes. The region you choose can affect network
+       latency for clients accessing your databases.
+     
+       For a complete list of region name values, refer to the the
+       cloud provider reference pages:
+   
+       - :atlas:`AWS </reference/amazon-aws/#amazon-aws>>`
+       - :atlas:`GCP </reference/google-gcp/#google-gcp>`
+       - :atlas:`Azure </reference/microsoft-azure/#microsoft-azure>`
+
+.. _optional-cluster-settings:
+
+Optional and Conditional {+Cluster+} Settings
+---------------------------------------------
+
+Your {+cluster+} configuration file may contain additional optional or
+conditional {+cluster+} settings. For a full list of available
+settings, see the API documentation for 
+:atlas:`Create One Multi-Cloud Cluster from One Project 
+</reference/api-resources-spec/#operation/createOneAdvancedClusterFromOneProject>`.
+
+.. _example-cluster-config-file:
+
+Example Cluster Configuration File
+----------------------------------
+
+To create a {+cluster+} using a single cloud provider, specify the same
+service provider for your ``regionConfigs`` objects as shown in the
+following example file:
+
+.. literalinclude:: /includes/json-cluster-config-file.json
+
+.. _multi-cloud-example-cluster-config-file:
+
+Multi-Cloud Example Cluster Configuration File
+----------------------------------------------
+
+To create a multi-cloud {+cluster+}, specify more than one
+service provider for your ``regionConfigs`` objects as shown in the
+following example file:
+
+.. literalinclude:: /includes/json-cluster-config-file-multi.json
