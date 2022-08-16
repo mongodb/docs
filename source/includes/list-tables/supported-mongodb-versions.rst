@@ -34,7 +34,7 @@
      - :icon-fa5:`check-circle`
 
    * - MongoDB 3.6
-     - :icon-fa5:`check-circle`
+     - 
      - :icon-fa5:`check-circle`
      - :icon-fa5:`check-circle`
 
@@ -47,3 +47,4 @@
      - 
      -
      -
+
