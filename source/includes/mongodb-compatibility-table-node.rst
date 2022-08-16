@@ -236,3 +236,4 @@
      - ✓
 
 .. [#unified-topology] When using Node.js Driver version 3.7, you must set the ``useUnifiedTopology`` flag to ``true`` for certain features.
+

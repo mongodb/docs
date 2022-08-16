@@ -11,7 +11,7 @@
      - Node.js v8.X.X
      - Node.js v6.X.X
      - Node.js v4.X.X
-     - Node.js v0.12.X  
+     - Node.js v0.12.X
      - Node.js v0.10.X
      - Node.js v0.8.X
    * - 4.X
@@ -168,5 +168,4 @@
      -
      - ✓
      - ✓
-
 
