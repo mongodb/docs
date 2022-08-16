@@ -507,256 +507,231 @@ Examples
 
 .. _bulkwrite-example-bulk-write-operation:
 
-Bulk Write Operations
-~~~~~~~~~~~~~~~~~~~~~
+Ordered Bulk Write Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``characters`` collection in the ``guidebook`` database contains the following documents:
+It is important that you understand :method:`~db.collection.bulkWrite()`
+operation ordering and error handling. By default,
+:method:`~db.collection.bulkWrite()` runs an ordered list of operations:
 
-.. code-block:: javascript
+- Operations run serially.
+- If an operation has an error, that operation and any following
+  operations are not run.
+- Operations listed before the error operation are completed.
 
-   { "_id" : 1, "char" : "Brisbane", "class" : "monk", "lvl" : 4 },
-   { "_id" : 2, "char" : "Eldon", "class" : "alchemist", "lvl" : 3 },
-   { "_id" : 3, "char" : "Meldane", "class" : "ranger", "lvl" : 3 }
-   
-The following :method:`~db.collection.bulkWrite()` performs multiple 
-operations on the collection:
+The :method:`~db.collection.bulkWrite()` examples use the ``pizzas``
+collection:
 
-.. code-block:: javascript
+.. include:: /includes/pizza-example-collection.rst
 
-   try {
-      db.characters.bulkWrite([
-         { insertOne: { "document": { "_id": 4, "char": "Dithras", "class": "barbarian", "lvl": 4 } } },
-         { insertOne: { "document": { "_id": 5, "char": "Taeln", "class": "fighter", "lvl": 3 } } },
-         { updateOne : { 
-            "filter" : { "char" : "Eldon" }, 
-            "update" : { $set : { "status" : "Critical Injury" } } 
-         } },
-         { deleteOne : { "filter" : { "char" : "Brisbane"} } },
-         { replaceOne : { 
-            "filter" : { "char" : "Meldane" },
-            "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl": 4 } 
-         } }
-      ]);
-   } catch (e) {
-      print(e);
-   }
+.. include:: /includes/pizza-bulk-write-example.rst
 
-The operation returns the following:
+If the collection already contained a document with an ``_id`` of ``4``
+before running the previous :method:`~db.collection.bulkWrite()`
+example, the following duplicate key exception is returned for the
+second ``insertOne`` operation:
 
 .. code-block:: javascript
+   :copyable: false
 
-   {
-      "acknowledged" : true,
-      "deletedCount" : 1,
-      "insertedCount" : 2,
-      "matchedCount" : 2,
-      "upsertedCount" : 0,
-      "insertedIds" : {
-         "0" : 4,
-         "1" : 5
-      },
-      "upsertedIds" : {
-      
+   writeErrors: [
+      WriteError {
+         err: {
+            index: 1,
+            code: 11000,
+            errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 4 }',
+            op: { _id: 4, type: 'sausage', size: 'large', price: 10 }
+         }
       }
-   }
-
-If the collection had contained a document with ``"_id" : 5"``
-before executing the bulk write, then when the bulk write is executed,
-the following duplicate key exception would be thrown for the second insertOne:
-
-.. code-block:: javascript
-
-   BulkWriteError({
-      "writeErrors" : [
-         {
-            "index" : 1,
-            "code" : 11000,
-            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { _id: 5.0 }",
-            "op" : {
-               "_id" : 5,
-               "char" : "Taeln",
-               "class" : "fighter",
-               "lvl" : 3
-            }
-         }
-      ],
-      "writeConcernErrors" : [ ],
-      "nInserted" : 1,
-      "nUpserted" : 0,
-      "nMatched" : 0,
-      "nModified" : 0,
-      "nRemoved" : 0,
-      "upserted" : [ ]
-   })
-
-
-Since ``ordered`` is true by default, only the first operation completes 
-successfully. The rest are not executed. Running the
-:method:`~db.collection.bulkWrite()` with ``ordered : false`` would allow the 
-remaining operations to complete despite the error.
-
-.. _bulkwrite-example-unordered-bulk-write:
-
-Unordered Bulk Write
-~~~~~~~~~~~~~~~~~~~~
-
-The ``characters`` collection in the ``guidebook`` database contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "char" : "Brisbane", "class" : "monk", "lvl" : 4 },
-   { "_id" : 2, "char" : "Eldon", "class" : "alchemist", "lvl" : 3 },
-   { "_id" : 3, "char" : "Meldane", "class" : "ranger", "lvl" : 3 }
-   
-The following :method:`~db.collection.bulkWrite()` performs multiple 
-``unordered`` operations on the ``characters`` collection. Note that one of 
-the ``insertOne`` stages has a duplicate ``_id`` value:
-
-.. code-block:: javascript
-
-   try {
-      db.characters.bulkWrite([
-         { insertOne: { "document": { "_id": 4, "char": "Dithras", "class": "barbarian", "lvl": 4 } } },
-         { insertOne: { "document": { "_id": 4, "char": "Taeln", "class": "fighter", "lvl": 3 } } },
-         { updateOne : { 
-            "filter" : { "char" : "Eldon" }, 
-            "update" : { $set : { "status" : "Critical Injury" } } 
-         } },
-         { deleteOne : { "filter" : { "char" : "Brisbane"} } },
-         { replaceOne : { 
-            "filter" : { "char" : "Meldane" },
-            "replacement" : { "char" : "Tanys", "class" : "oracle", "lvl": 4 } 
-         } }
-      ], { ordered : false } );
-   } catch (e) {
-      print(e);
-   }
-
-The operation returns the following:
-
-.. code-block:: javascript
-
-   BulkWriteError({
-      "writeErrors" : [
-         {
-            "index" : 1,
-            "code" : 11000,
-            "errmsg" : "E11000 duplicate key error collection: guidebook.characters index: _id_ dup key: { _id: 4.0 }",
-            "op" : {
-               "_id" : 4,
-               "char" : "Taeln",
-               "class" : "fighter",
-               "lvl" : 3
-            }
-         }
-      ],
-      "writeConcernErrors" : [ ],
-      "nInserted" : 1,
-      "nUpserted" : 0,
-      "nMatched" : 2,
-      "nModified" : 2,
-      "nRemoved" : 1,
-      "upserted" : [ ]
-   })
-
-Since this was an ``unordered`` operation, the writes remaining in the queue 
-were processed despite the exception.
-
-.. _bulkwrite-example-bulk-write-with-write-concern:
-
-Bulk Write with Write Concern
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``enemies`` collection contains the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "char" : "goblin", "rating" : 1, "encounter" : 0.24 },
-   { "_id" : 2, "char" : "hobgoblin", "rating" : 1.5, "encounter" : 0.30 },
-   { "_id" : 3, "char" : "ogre", "rating" : 3, "encounter" : 0.2 },
-   { "_id" : 4, "char" : "ogre berserker" , "rating" : 3.5, "encounter" : 0.12}
-   
-The following :method:`~db.collection.bulkWrite()` performs multiple 
-operations on the collection using a :ref:`write concern <wc-w>` value of 
-``"majority"`` and :ref:`timeout <wc-wtimeout>` value of 100 milliseconds:
-
-.. code-block:: javascript
-
-   try {
-      db.enemies.bulkWrite(
-         [
-            { updateMany : 
-               { 
-                  "filter" : { "rating" : { $gte : 3} },
-                  "update" : { $inc : { "encounter" : 0.1 } } 
-               },
-             
-            },
-            { updateMany : 
-               { 
-                  "filter" : { "rating" : { $lt : 2} },
-                  "update" : { $inc : { "encounter" : -0.25 } } 
-               },
-            },
-            { deleteMany : { "filter" : { "encounter": { $lt : 0 } } } },
-            { insertOne : 
-               { 
-                  "document" : 
-                     { 
-                        "_id" :5, "char" : "ogrekin" , "rating" : 2, "encounter" : 0.31 
-                     } 
+   ],
+   result: BulkWriteResult {
+      result: {
+         ok: 1,
+         writeErrors: [
+            WriteError {
+               err: {
+                  index: 1,
+                  code: 11000,
+                  errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 4 }',
+                  op: { _id: 4, type: 'sausage', size: 'large', price: 10 }
                }
             }
          ],
-         { writeConcern : { w : "majority", wtimeout : 100 } }
-      );
-   } catch (e) {
-      print(e);
+         writeConcernErrors: [],
+         insertedIds: [ { index: 0, _id: 3 }, { index: 1, _id: 4 } ],
+         nInserted: 1,
+         nUpserted: 0,
+         nMatched: 0,
+         nModified: 0,
+         nRemoved: 0,
+         upserted: []
+      }
    }
-   
-If the total time required for all required nodes in the replica set to 
-acknowledge the write operation is greater than ``wtimeout``, 
-the following ``writeConcernError`` is displayed when the ``wtimeout`` period 
-has passed.
+
+Because the :method:`~db.collection.bulkWrite()` example is ordered,
+only the first ``insertOne`` operation is completed.
+
+To complete all operations that do not have errors, run
+:method:`~db.collection.bulkWrite()` with ``ordered`` set to ``false``.
+For an example, see the following section.
+
+.. _bulkwrite-example-unordered-bulk-write:
+
+Unordered Bulk Write Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify an unordered :method:`~db.collection.bulkWrite()`, set
+``ordered`` to ``false``.
+
+In an unordered :method:`~db.collection.bulkWrite()` list of operations:
+
+- Operations can run in parallel (not guaranteed). For details. See
+  :ref:`bulk-write-operations-ordered-vs-unordered`.
+- Operations with errors are not completed.
+- All operations without errors are completed.
+
+Continuing the ``pizzas`` collection example, drop and recreate the
+collection:
+
+.. include:: /includes/pizza-example-collection.rst
+
+In the following example:
+
+- :method:`~db.collection.bulkWrite()` runs unordered operations on
+  the ``pizzas`` collection.
+- The second ``insertOne`` operation has the same ``_id`` as the first
+  ``insertOne``, which causes a duplicate key error.
 
 .. code-block:: javascript
 
-   BulkWriteError({
-      "writeErrors" : [ ],
-      "writeConcernErrors" : [
-         {
-            "code" : 64,
-            "codeName" : "WriteConcernFailed",
-            "errmsg" : "waiting for replication timed out",
-            "errInfo" : {
-               "wtimeout" : true
-            }
-         },
-         {
-            "code" : 64,
-            "codeName" : "WriteConcernFailed",
-            "errmsg" : "waiting for replication timed out",
-            "errInfo" : {
-               "wtimeout" : true
-            }
-         },
-         {
-            "code" : 64,
-            "codeName" : "WriteConcernFailed",
-            "errmsg" : "waiting for replication timed out",
-            "errInfo" : {
-               "wtimeout" : true
-            }
-         }
+   try {
+      db.pizzas.bulkWrite( [
+         { insertOne: { document: { _id: 3, type: "beef", size: "medium", price: 6 } } },
+         { insertOne: { document: { _id: 3, type: "sausage", size: "large", price: 10 } } },
+         { updateOne: {
+            filter: { type: "cheese" },
+            update: { $set: { price: 8 } }
+         } },
+         { deleteOne: { filter: { type: "pepperoni"} } },
+         { replaceOne: {
+            filter: { type: "vegan" },
+            replacement: { type: "tofu", size: "small", price: 4 }
+         } }
       ],
-      "nInserted" : 1,
-      "nUpserted" : 0,
-      "nMatched" : 4,
-      "nModified" : 4,
-      "nRemoved" : 1,
-      "upserted" : [ ]
-   })
+      { ordered: false } )
+   } catch( error ) {
+      print( error )
+   }
 
-The result set shows the operations executed since 
-``writeConcernErrors`` errors are *not* an indicator that any write 
-operations failed. 
+Example output, which includes the duplicate key error and a summary of
+the completed operations:
+
+.. code-block:: javascript
+   :copyable: false
+
+   writeErrors: [
+      WriteError {
+         err: {
+            index: 1,
+            code: 11000,
+            errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 3 }',
+            op: { _id: 3, type: 'sausage', size: 'large', price: 10 }
+         }
+      }
+   ],
+   result: BulkWriteResult {
+      result: {
+         ok: 1,
+         writeErrors: [
+            WriteError {
+               err: {
+                  index: 1,
+                  code: 11000,
+                  errmsg: 'E11000 duplicate key error collection: test.pizzas index: _id_ dup key: { _id: 3 }',
+                  op: { _id: 3, type: 'sausage', size: 'large', price: 10 }
+               }
+            }
+         ],
+         writeConcernErrors: [],
+         insertedIds: [ { index: 0, _id: 3 }, { index: 1, _id: 3 } ],
+         nInserted: 1,
+         nUpserted: 0,
+         nMatched: 2,
+         nModified: 2,
+         nRemoved: 1,
+         upserted: []
+      }
+   }
+
+The second ``insertOne`` operation fails because of the duplicate key
+error. In an unordered :method:`~db.collection.bulkWrite()`, any
+operation without an error is completed.
+
+.. _bulkwrite-example-bulk-write-with-write-concern:
+
+Bulk Write with Write Concern Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Continuing the ``pizzas`` collection example, drop and recreate the
+collection:
+
+.. include:: /includes/pizza-example-collection.rst
+
+The following :method:`~db.collection.bulkWrite()` example runs
+operations on the ``pizzas`` collection and sets a ``"majority"``
+:ref:`write concern <wc-w>` with a 100 millisecond :ref:`timeout
+<wc-wtimeout>`:
+
+.. code-block:: javascript
+
+   try {
+      db.pizzas.bulkWrite( [
+         { updateMany: {
+            filter: { size: "medium" },
+            update: { $inc: { price: 0.1 } }
+         } },
+         { updateMany: {
+            filter: { size: "small" },
+            update: { $inc: { price: -0.25 } }
+         } },
+         { deleteMany: { filter: { size: "large" } } },
+         { insertOne: {
+            document: { _id: 4, type: "sausage", size: "small", price: 12 }
+         } } ],
+         { writeConcern: { w: "majority", wtimeout: 100 } }
+      )
+   } catch( error ) {
+      print( error )
+   }
+
+If the time for the majority of replica set members to acknowledge the
+operations exceeds ``wtimeout``, the example returns a write concern
+error and a summary of completed operations:
+
+.. code-block:: javascript
+   :copyable: false
+
+   result: BulkWriteResult {
+      result: {
+         ok: 1,
+         writeErrors: [],
+         writeConcernErrors: [
+            WriteConcernError {
+               err: {
+                  code: 64,
+                  codeName: 'WriteConcernFailed',
+                  errmsg: 'waiting for replication timed out',
+                  errInfo: { wtimeout: true, writeConcern: [Object] }
+               }
+            }
+         ],
+         insertedIds: [ { index: 3, _id: 4 } ],
+         nInserted: 0,
+         nUpserted: 0,
+         nMatched: 2,
+         nModified: 2,
+         nRemoved: 0,
+         upserted: [],
+         opTime: { ts: Timestamp({ t: 1660329086, i: 2 }), t: Long("1") }
+      }
+   }
