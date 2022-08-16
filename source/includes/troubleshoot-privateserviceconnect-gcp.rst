@@ -16,8 +16,9 @@
     * - Failed
       - A system failure has occurred. 
 
-    * - Ready for connection requests
-      - |service| created the network load balancer and |vpc| endpoint service.
+    * - Available
+      - |service| created the network load balancer and |vpc| endpoint
+        service.
         The private endpoint service is ready to receive connection requests. 
 
     * - Deleting
