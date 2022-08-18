@@ -150,20 +150,6 @@
      - Toggle specifying whether |mms| sends email notifications. 
        Only present for ``GROUP`` and ``USER`` notifications.
 
-   * - ``notifications.flowdockApiToken``
-     - string
-     - Flowdock *personal API token*. Only present for ``FLOWDOCK``
-       notifications. If the token later becomes invalid, |mms| sends an
-       email to the project owner and removes the token.
-
-   * - ``notifications.flowName``
-     - string
-     - Flow name, in lower-case letters. Only present for ``FLOWDOCK``
-       notifications. The flow name appears after the organization name 
-       in the URL string:
-
-       ``www.flowdock.com/app/<organization-name>/<flow-name>``.
-
    * - ``notifications.intervalMin``
      - number
      - Number of minutes to wait between successive notifications 
@@ -209,12 +195,6 @@
        If the token later becomes invalid, |mms| sends an email to the 
        project owner and removes the token.
 
-   * - ``notifications.orgName``
-     - string
-     - Flowdock organization name in lower-case letters. This is the
-       name that appears after ``www.flowdock.com/app/`` in the URL
-       string. Only present for ``FLOWDOCK`` notifications.
-
    * - ``notifications.roomName``
      - string
      - HipChat room name. Only present for ``HIP_CHAT`` notifications.
@@ -253,7 +233,6 @@
        - ``SMS`` (Available only if |mms| is configured for :ref:`Twilio integration <twilio-sms-alert-settings>`.)
        - ``HIPCHAT``
        - ``SLACK``
-       - ``FLOWDOCK``
        - ``PAGER_DUTY``
 
    * - ``notifications.username``

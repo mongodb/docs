@@ -171,24 +171,6 @@
        Only accepted for ``GROUP`` and ``USER`` notifications.
 
    * - | ``notifications``
-       | ``.flowdockApiToken``
-     - string
-     - Conditional
-     - Flowdock *personal API token*. Only accepted for ``FLOWDOCK``
-       notifications. If the token later becomes invalid, |mms| sends an
-       email to the project owner and removes the token.
-
-   * - | ``notifications``
-       | ``.flowName``
-     - string
-     - Conditional
-     - Flow name, in lower-case letters. Only accepted for ``FLOWDOCK``
-       notifications. The flow name appears after the organization name 
-       in the URL string:
-
-       ``www.flowdock.com/app/<organization-name>/<flow-name>``.
-
-   * - | ``notifications``
        | ``.intervalMin``
      - number
      - Conditional
@@ -240,14 +222,6 @@
        project owner and removes the token.
 
    * - | ``notifications``
-       | ``.orgName``
-     - string
-     - Conditional
-     - Flowdock organization name in lower-case letters. This is the
-       name that appears after ``www.flowdock.com/app/`` in the URL
-       string. Only accepted for ``FLOWDOCK`` notifications.
-
-   * - | ``notifications``
        | ``.roomName``
      - string
      - Conditional
@@ -297,7 +271,6 @@
        - ``SMS`` (Available only if |mms| is configured for :ref:`Twilio integration <twilio-sms-alert-settings>`.)
        - ``HIPCHAT``
        - ``SLACK``
-       - ``FLOWDOCK``
        - ``PAGER_DUTY``
 
    * - | ``notifications``

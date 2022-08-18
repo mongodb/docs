@@ -35,11 +35,6 @@
         - :icon:`check`
         - .. include:: /includes/alert-notifications/slack.rst
 
-      * - Flowdock
-        - :icon:`check`
-        - :icon:`check`
-        - .. include:: /includes/alert-notifications/flowdock.rst
-
       * - PagerDuty
         -
         - :icon:`check`
@@ -96,11 +91,6 @@
         - :icon:`check`
         - :icon:`check`
         - .. include:: /includes/alert-notifications/slack.rst
-
-      * - Flowdock
-        - :icon:`check`
-        - :icon:`check`
-        - .. include:: /includes/alert-notifications/flowdock.rst
 
       * - PagerDuty
         -
