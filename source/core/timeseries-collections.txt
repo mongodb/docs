@@ -1,28 +1,36 @@
-.. _manual-timeseries-collection:
+.. _manual-timeseries-landing:
 
-=======================
-Time Series Collections
-=======================
+===========
+Time Series
+===========
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. meta::
    :description: Time series, IOT, time series analysis, time series data, time series db
    :keywords: Time series, IOT, time series analysis, time series data, time series db
 
-.. versionadded:: 5.0
+Time series data is a sequence of data points in which insights are
+gained by analyzing changes over time.
 
-Time series collections efficiently store sequences of measurements over
-a period of time. Time series data is any data that is collected over
-time and is uniquely identified by one or more rarely-changing
-parameters. The unchanging parameters that identify your time series
-data is generally your data source's metadata.
+Time series data is generally composed of these components:
+
+- **Time** when the data point was recorded.
+
+- **Metadata** (sometimes referred to as source), which is a label or tag
+  that uniquely identifies a series and rarely changes.
+
+- **Measurements** (sometimes referred to as metrics or values), which
+  are the data points tracked at increments in time. Generally these are
+  key-value pairs that change over time.
+
+This table shows examples of time series data:
 
 .. list-table::
    :header-rows: 1
@@ -31,42 +39,64 @@ data is generally your data source's metadata.
    * - **Example**
      - **Measurement**
      - **Metadata**
-   * - Weather data
-     - Temperature
-     - Sensor identifier, location
+
    * - Stock data
      - Stock price
      - Stock ticker, exchange
+
+   * - Weather data
+     - Temperature
+     - Sensor identifier, location
+     
    * - Website visitors
      - View count
      - URL
 
+For efficient time series data storage, MongoDB provides time series
+collections.
+
+.. _manual-timeseries-collection:
+
+Time Series Collections
+-----------------------
+
+.. versionadded:: 5.0
+
+Time series collections efficiently store time series data. In time
+series collections, writes are organized so that data from the same
+source is stored alongside other data points from a similar point in
+time.
+
 Benefits
---------
+~~~~~~~~
 
 Compared to normal collections, storing time series data in time series
 collections improves query efficiency and reduces the disk usage for
 time series data and :term:`secondary indexes <secondary index>`.
 
-When you insert data, time series collections use an optimized columnar
-storage format. Compared to normal collections, this storage format
-provides the following benefits:
+Time series collections use an underlying columnar storage format and
+store data in time-order with an automatically created :ref:`clustered
+index <clustered-collections>`. The columnar storage format provides the
+following benefits:
 
+- Reduced complexity for working with time series data
 - Improved query efficiency
+- Reduced disk usage
+- Reduced I/O for read operations
 - Increased WiredTiger cache usage
-- Decreased input and output
-- Reduced disk usage for both data and secondary indexes
 
 .. _timeseries-collections-behavior:
 
 Behavior
---------
+~~~~~~~~
 
 Time series collections behave like normal collections. You can insert
-and query your data as you normally would. MongoDB treats time series
-collections as writable non-materialized views on internal collections
-that automatically organize time series data into an optimized storage
-format on insert.
+and query your data as you normally would.
+
+MongoDB treats time series collections as writable non-materialized
+:ref:`views <views-landing-page>` backed by an internal collection. When
+you insert data, the internal collection automatically organizes time
+series data into an optimized storage format.
 
 When you query time series collections, you operate on one document per
 measurement. Queries on time series collections take advantage of the
@@ -77,12 +107,16 @@ optimized internal storage format and return results faster.
    .. include:: /includes/downgrade-for-timeseries-collections.rst
 
 Internal Index
-~~~~~~~~~~~~~~
+``````````````
 
-The implementation of time series collections uses internal collections
-that reduce disk usage and improve query efficiency. Time series
-collections automatically order and index data by time. The internal
-index for a time series collection is not displayed by
+When you create a time series collection, MongoDB automatically creates
+an internal :ref:`clustered index <clustered-collections>` on the time
+field. The internal index provides several performance benefits
+including improved query efficiency and reduced disk usage. To learn
+more about the performance benefits of clustered indexes, see
+:ref:`Clustered Collections <clustered-collections>`.
+
+The internal index for a time series collection is not displayed by
 :dbcommand:`listIndexes`.
 
 .. tip::
@@ -101,6 +135,7 @@ To get started with time series collections, see
    :titlesonly:
 
    /core/timeseries/timeseries-procedures
+   /core/timeseries/timeseries-check-type
    /core/timeseries/timeseries-automatic-removal
    /core/timeseries/timeseries-granularity
    /core/timeseries/timeseries-secondary-index
