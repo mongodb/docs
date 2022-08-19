@@ -4,5 +4,301 @@ Collations
 
 .. default-domain:: mongodb
 
-A collation is a set of character ordering and matching rules that
-apply to a specific language and locale.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use **collations** to order your query
+or aggregation operation results by string values. A collation is a set of character
+ordering conventions that apply to a specific language and locale.
+
+Collations in MongoDB
+---------------------
+
+MongoDB sorts strings using *binary collation* by default. This collation
+method uses the `ASCII standard <https://en.wikipedia.org/wiki/ASCII>`_
+character values to compare and order strings. Certain languages and locales
+have specific character ordering conventions that differ from the ASCII
+standard.
+
+For example, in Canadian French, the right-most accented character determines
+the ordering for strings when the other characters are the same. Consider the
+following Canadian French words: 
+
+- cote
+- coté
+- côte
+- côté
+
+When using the default binary collation, MongoDB sorts them in the following order:
+
+.. code-block:: none
+
+   cote
+   coté
+   côte
+   côté
+
+When using the Canadian French collation, MongoDB sorts them in the following order:
+
+.. code-block:: none
+
+   cote
+   côte
+   coté
+   côté
+
+Specify a Collation
+-------------------
+
+To specify a collation, create a ``Collation`` object. You must define the ``Locale`` field
+of the ``Collation`` object; all other fields are optional. For example, the following code
+snippet specifies a ``Collation`` object with the ``"en_US"`` locale collation:
+
+.. code-block:: go
+
+   myCollation := &options.Collation{Locale: "en_US"}
+
+For a complete list of ``Collation`` object fields, visit the `Collation API documentation 
+<{+api+}/mongo/options#Collation>`__. To see all the supported locales and the
+default values for the ``Locale`` fields, visit :manual:`Supported Languages and Locales
+</reference/collation-locales-defaults/#supported-languages-and-locales>`.
+
+Set a Collation on a Collection or View
+---------------------------------------
+
+You can apply a collation when you create a new collection or view. This defines the default
+collation for any operations called on that collection or view. Set a collation through a 
+``CreateCollectionOptions`` or ``CreateViewOptions`` object. Then, call the
+``CreateCollection()`` or ``CreateView()`` method with your options object as an argument.
+
+.. _golang-create-collection:
+
+Create a Collection Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example creates a new collection called ``books`` and specifies a default
+collation with the ``"fr"`` locale. The ``Strength`` collation field has a value of ``1``
+to ignore differences in letter accents.
+
+.. code-block:: go
+
+   myCollation := &options.Collation{Locale: "fr", Strength: 1}
+   opts := options.CreateCollection().SetCollation(myCollation)
+   err := db.CreateCollection(context.TODO(), "books", opts)
+
+   if err != nil {
+      panic(err)
+   }
+
+Use the Default Collation Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you call an operation that uses a collation on the ``books`` collection, the operation
+will now use the default collation specified in the :ref:`golang-create-collection`.
+
+Assume the ``books`` collection contains the following documents:
+
+.. code-block:: json
+
+   {"name" : "Emma", "length" : "474"}
+   {"name" : "Les Misérables", "length": "1462"}
+   {"name" : "Infinite Jest", "length" : "1104"}
+   {"name" : "Cryptonomicon", "length" : "918"}
+   {"name" : "Ça", "length" : "1138"}
+
+.. note::
+
+   To learn how to insert documents, see :ref:`golang-insert-guide`.
+   
+The following example uses the ``Find()`` method to return all documents with a ``name`` value
+that alphabetically precedes ``"Infinite Jest"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"name", bson.D{{"$lt", "Infinite Jest"}}}}
+      cursor, err := coll.Find(context.TODO(), filter)
+      if err != nil {
+         panic(err)
+      }
+
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      [{name Ça} {length 1138}]
+      [{name Cryptonomicon} {length 918}]
+      [{name Emma} {length 474}]
+
+Without specifying a default ``books`` collation, the ``Find()`` method would follow default
+binary collation rules to determine the ``name`` values that precede ``"Infinite Jest"``. These
+rules place words beginning with "Ç" after those beginning with "I". The output would resemble
+the following:
+
+.. code-block:: json
+   :copyable: false
+
+   [{name Cryptonomicon} {length 918}]
+   [{name Emma} {length 474}]
+
+To learn more about the ``Find()`` method, see :ref:`golang-retrieve`.
+
+.. _golang-index-collation:
+
+Set a Collation on an Index 
+---------------------------
+
+You can apply a collation when you create a new index on a collection. The index stores
+an ordered representation of the documents in the collection so your MongoDB instance
+does not need to perform the ordering for sorting operations in-memory. 
+
+To use the index in an operation, your operation must use the same collation as the one
+specified in the index. Additionally, ensure that the operation is covered by the index that
+contains the collation. Set a collation through an ``IndexOptions`` object and call the
+``CreateOne()`` method with your options object as an argument.
+
+Example
+~~~~~~~
+
+After creating the ``books`` collection and applying a default collation, as shown in the
+:ref:`golang-create-collection` section, you cannot change the collection's default collation.
+However, you can create an index for the collection with a different collation. 
+
+The following example uses the ``CreateOne()`` method to create an ascending index on the
+``name`` field and specifies a new collation with an ``"en_US"`` locale:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+       myCollation := &options.Collation{Locale: "en_US"}
+       opts := options.Index().SetCollation(myCollation)
+
+       indexModel := mongo.IndexModel{
+         Keys:    bson.D{{"name", 1}},
+         Options: opts,
+       }
+
+       name, err := coll.Indexes().CreateOne(context.TODO(), indexModel)
+       if err != nil {
+         panic(err)
+       }
+       fmt.Println("Name of Index Created: " + name)
+
+   .. output::
+      :language: none
+      :visible: false
+
+       Name of Index Created: name_1
+
+.. _golang-op-collation:
+
+Set a Collation on an Operation
+-------------------------------
+
+Operations that read, update, and delete documents from a collection can use collations.
+Applying a collation to an operation overrides any default collation previously defined
+for a collection. 
+
+If you apply a new collation to an operation that differs from an index's collation,
+you cannot use that index. As a result, the operation may not perform as well as one
+that is covered by an index. For more information on the disadvantages of sorting operations
+not covered by an index, see :manual:`Using Indexes to Sort Query Results </tutorial/sort-results-with-indexes/>`.
+See the :manual:`MongoDB manual </reference/collation/#collation-document>` for a list of
+operations that support collation.
+
+Example
+~~~~~~~
+
+You can use operations that support collation to update and query documents in the 
+``books`` collection. 
+
+The following example uses the ``Find()`` method to return documents with ``length`` 
+values greater than ``"1000"``. The ``NumericOrdering`` collation field has a value of
+``true`` to ensure that values are sorted in numerical order rather than alphabetical
+order:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+
+      filter := bson.D{{"length", bson.D{{"$gt", "1000"}}}}
+      myCollation := &options.Collation{Locale: "en_US", NumericOrdering: true}
+      opts := options.Find().SetCollation(myCollation)
+
+      cursor, err := coll.Find(context.TODO(), filter, opts)
+      if err != nil {
+         panic(err)
+      }
+      
+      var results []bson.D
+      if err = cursor.All(context.TODO(), &results); err != nil {
+         panic(err)
+      }
+      
+      for _, result := range results {
+         fmt.Println(result)
+      }
+
+   .. output::
+      :language: none
+      :visible: false
+
+      [{name Infinite Jest} {length 1104}]
+      [{name Ça} {length 1138}]
+      [{name Les Misérables} {length 1462}] 
+
+Without specifying a collation with a ``NumericOrdering`` field set to ``true``, the
+same ``Find()`` operation would compare ``length`` values as strings. For example, the
+operation would consider the string ``"824"`` as greater than ``"1000"``. The
+output would resemble the following:
+
+.. code-block:: json
+   :copyable: false
+   
+   [{name Emma} {length 474}]
+   [{name Cryptonomicon} {length 918}]
+
+Additional Information
+----------------------
+
+To learn more about the ``Find()`` method, see the :ref:`golang-retrieve` guide.
+
+To learn more about collations, visit the following manual pages:
+
+- :manual:`Collation </reference/collation/#collation-document>`
+- :manual:`Collation Locales and Default Parameters </reference/collation-locales-defaults/#supported-languages-and-locales>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods discussed in this guide, see the following
+API Documentation:
+
+- `Collation <{+api+}/mongo/options#Collation>`__
+- `CreateCollectionOptions <{+api+}/mongo/options#CreateCollectionOptions>`__
+- `IndexModel <{+api+}/mongo#IndexModel>`__
+- `CreateOne() <{+api+}/mongo#IndexView.CreateOne>`__
+- `IndexOptions <{+api+}/mongo/options#IndexOptions>`__
+- `UpdateOptions <{+api+}/mongo/options#UpdateOptions>`__
