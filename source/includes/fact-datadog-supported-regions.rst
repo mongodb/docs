@@ -1,4 +1,5 @@
-|service| supports the following Datadog |api| regions:
+|service| supports the following Datadog regions in the 
+{+atlas-ui+}:
 
 - ``US1``
 - ``US3``
@@ -7,5 +8,5 @@
 
 Datadog uses ``US1`` by default.
 
-To learn more about Datadog's |api| regions, see `Datadog Sites
+To learn more about Datadog's regions, see `Datadog Sites
 <https://docs.datadoghq.com/getting_started/site/>`__.

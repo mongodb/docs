@@ -37,7 +37,7 @@
      - Conditional
      - Region that indicates the |api| |url| to use.
 
-       .. include:: /includes/fact-datadog-supported-regions.rst
+       .. include:: /includes/fact-datadog-supported-regions-api.rst
 
        Set this value if you set ``notifications.[n].typeName`` to
        ``DATADOG``.
