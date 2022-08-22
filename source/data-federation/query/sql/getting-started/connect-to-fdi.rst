@@ -108,7 +108,7 @@
                   * - database
                     - The name of your database from step 5. If you are 
                       following the tutorial, this is 
-                      ``myFederatedVirtualDatabase``.
+                      ``myVirtualDatabase``.
 
                   * - user
                     - The MongoDB user to connect with. Not required if 
