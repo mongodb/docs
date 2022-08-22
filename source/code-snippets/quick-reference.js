@@ -8,14 +8,14 @@ const uri =
 const client = new MongoClient(uri);
 
 async function query(coll) {
-  await console.log("findOne");
+  console.log("findOne");
   const result = await coll.findOne({ title: 'Hamlet' });
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function queryMany(coll) {
-  await console.log("find");
-  const cursor = await coll.find({ year: 2005 });
+  console.log("find");
+  const cursor = coll.find({ year: 2005 });
   await cursor.forEach(console.dir);
 }
 
@@ -23,14 +23,14 @@ async function insertOne(coll) {
   const result = await coll.insertOne({
     title: 'Jackie Robinson',
   });
-  await console.dir(result);
+  console.dir(result);
 }
 async function insertMany(coll) {
   const result = await coll.insertMany([
     { title: 'Dangal', rating: 'Not Rated' },
     { title: 'The Boss Baby', rating: 'PG' }
   ]);
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function updateOne(coll) {
@@ -38,7 +38,7 @@ async function updateOne(coll) {
     { title: 'Amadeus' },
     { $set: { 'imdb.rating': 9.5 } }
   );
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function updateMany(coll) {
@@ -47,7 +47,7 @@ async function updateMany(coll) {
     { $inc: { 'imdb.votes': 100 } }
   );
 
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function updateArrayElement(coll) {
@@ -55,10 +55,10 @@ async function updateArrayElement(coll) {
     { title: 'Cosmos' },
     { $push: { genres: 'Educational' } }
   );
-  await console.dir(result);
+  console.dir(result);
 
   const findResult = await coll.findOne({title: 'Cosmos'});
-  await console.dir(findResult);
+  console.dir(findResult);
 }
 
 async function replaceDocument(coll) {
@@ -67,20 +67,20 @@ async function replaceDocument(coll) {
                 { name: 'Lord of the Wings', zipcode: 10001 },
                 { upsert: true}
              );
-  await console.dir(result);
+  console.dir(result);
 
   const findResult = await coll.findOne({name: 'Lord of the Wings'});
-  await console.dir(findResult);
+  console.dir(findResult);
 }
 
 async function deleteOne(coll) {
   const result = await coll.deleteOne({ title: 'Congo' });
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function deleteMany(coll) {
   const result = await coll.deleteMany({ title: { $regex: /^Shark.*/ } });
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function bulkWriteExample(coll) {
@@ -99,7 +99,7 @@ async function bulkWriteExample(coll) {
       }
     }
   ]);
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function watchStart(coll) {
@@ -119,21 +119,21 @@ async function accessCursorArray(coll) {
 
 async function createIndex(coll) {
   const result = await coll.createIndex({'title':1 , 'year':-1});
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function countExample(coll) {
   const result = await coll.countDocuments({year: 2000});
-  await console.dir(result);
+  console.dir(result);
 }
 
 async function skipExample(coll) {
-  const cursor = await coll.find({title: {$regex: /^Rocky/ }}, { skip: 2 });
-  await console.dir(await cursor.toArray());
+  const cursor = coll.find({title: {$regex: /^Rocky/ }}, { skip: 2 });
+  console.dir(await cursor.toArray());
 }
 
 async function sortExample(coll) {
-  const cursor = await coll.find().limit(50).sort({ year: 1});
+  const cursor = coll.find().limit(50).sort({ year: 1});
   await cursor.forEach(console.dir);
 }
 
@@ -143,13 +143,13 @@ async function projectExample(coll) {
 }
 
 async function searchText(coll) {
-  const result = await coll.find({$text: { $search: 'zissou' }}).limit(30).project({title: 1});
+  const result = coll.find({$text: { $search: 'zissou' }}).limit(30).project({title: 1});
   await result.forEach(console.dir);
 }
 
 async function distinct(coll) {
   const result = await coll.distinct('year');
-  await console.log(result);
+  console.log(result);
 }
 
 async function run() {
