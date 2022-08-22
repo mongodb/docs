@@ -6,22 +6,58 @@ Connection Options
 
 This section explains the MongoDB connection and authentication options
 supported by the driver. You can pass the connection options as
-parameters of the connection URI to specify the behavior of the client. 
+parameters of the connection URI to specify the behavior of the client.
 
 .. list-table::
    :header-rows: 1
-   :widths: 27 18 18 37
+   :widths: 1 1 1 1
 
-   * - Option Name
-     - Type
+   * - Name
+     - Accepted Values
      - Default Value
      - Description
 
+   * - **appname**
+     - string
+     - ``null``
+     - Specifies the app name the driver passes to the server in the client
+       metadata as part of the connection handshake. The server prints the
+       ``appname`` to the MongoDB logs upon establishing the connection.
+       It is also recorded in the slow query logs and profile collections.
+
+   * - **authMechanism**
+     - string
+     - ``null``
+     - Specifies the authentication mechanism method to use for connection to the
+       server. If you do not specify a value, the driver uses the default mechanism,
+       either ``SCRAM-SHA-1`` or ``SCRAM-SHA-256`` depending on the server version. See
+       :ref:`authentication mechanism <node-authentication-mechanisms>` for available
+       authentication mechanisms.
+
+   * - **authMechanismProperties**
+     - comma separated key:value pairs, e.g. "opt1:val1,opt2:val2"
+     - ``null``
+     - Specifies additional options provided for authentication, such as
+       enabling hostname canonicalization for GSSAPI.
+
+   * - **authSource**
+     - string
+     - ``null``
+     - Specifies the database that connections should authenticate against.
+
+   * - **compressors**
+     - comma separated list of strings, e.g. "snappy,zlib,zstd"
+     - ``null``
+     - Specifies the allowed compression types for wire protocol messages
+       sent to or received from the server. See :ref:`node-network-compression`
+       for more information.
+
    * - **connectTimeoutMS**
-     - integer
+     - non-negative integer
      - ``10000``
-     - Specifies the number of milliseconds to wait before timeout on a TCP
-       connection.
+     - Specifies the amount of time to wait to establish a single TCP
+       socket connection to the server before raising an error. Specifying
+       ``0`` disables the connection timeout.
 
    * - **directConnection**
      - boolean
@@ -29,180 +65,234 @@ parameters of the connection URI to specify the behavior of the client.
      - Specifies whether to force dispatch **all** operations to the host
        specified in the connection URI.
 
-   * - **family**
-     - number
+   * - **heartbeatFrequencyMS**
+     - integer greater than or equal to 500
      - ``null``
-     - Specifies the version of the Internet Protocol (IP). The valid values
-       are: ``4``, ``6``, ``0``, or ``null``. The ``0`` and ``null`` settings
-       attempt to connect with IPv6 and fall back to IPv4 upon failure.
+     - Specifies the interval between regular server monitoring checks.
 
-   * - **forceServerObjectId**
+   * - **journal**
      - boolean
-     - ``false``
-     - Specifies whether to force the server to assign ``_id`` values to
-       documents instead of the driver.
-
-   * - **ignoreUndefined**
-     - boolean
-     - ``false``
-     - Specifies whether the BSON serializer should ignore undefined fields.
-
-   * - **keepAlive**
-     - boolean
-     - ``true``
-     - Specifies whether to enable ``keepAlive`` on the TCP socket. For more
-       information, see the documentation for `Node.js socket.setKeepAlive
-       <https://nodejs.org/dist/latest-v10.x/docs/api/net.html#net_socket_setkeepalive_enable_initialdelay>`_.
-
-   * - **keepAliveInitialDelay**
-     - integer
-     - ``120000``
-     - Specifies the number of milliseconds to wait before initiating
-       ``keepAlive`` on the TCP socket. For more information, see the
-       documentation for `Node.js socket.setKeepAlive
-       <https://nodejs.org/dist/latest-v10.x/docs/api/net.html#net_socket_setkeepalive_enable_initialdelay>`_.
-
-   * - **logger**
-     - object
      - ``null``
-     - Specifies a custom logger for the client to use.
+     - Specifies the default write concern ``"j"`` field for the client. See
+       :ref:`write concern <wc-j>` for more information.
 
-   * - **loggerLevel**
-     - string
+   * - **loadBalanced**
+     - boolean
      - ``null``
-     - Specifies the logger level used by the driver. Valid choices are:
-       ``error``, ``warn``, ``info``, and ``debug``.
+     - Specifies whether the driver is connecting to a load balancer.
 
-   * - **maxConnecting**
-     - integer
-     - ``2``
-     - Specifies the maximum number of connections a connection pool can establish 
-       concurrently. 
+   * - **localThresholdMS**
+     - non-negative integer
+     - ``15``
+     - Specifies the size of the latency window on round trip time for
+       selecting between suitable servers. Specifying ``0`` means no wait,
+       meaning the fastest available server.
 
    * - **maxIdleTimeMS**
-     - integer
-     - ``∞``
-     - Specifies the maximum amount of time a connection can remain idle in the
-       connection pool before being removed and closed.
+     - non-negative integer
+     - ``0``
+     - Specifies the amount of time a connection can be idle before it's closed.
+       Specifying ``0`` means no minimum.
 
    * - **maxPoolSize**
-     - integer
+     - non-negative integer
      - ``100``
-     - Specifies the maximum number of connections that a connection pool may
-       have at a given time.
+     - Specifies the maximum number of clients or connections the driver
+       can create in its connection pool. This count includes connections
+       in use.
+
+   * - **maxConnecting**
+     - non-negative integer
+     - ``2``
+     - Specifies the maximum number of connections a driver's connection
+       pool may be establishing concurrently.
+
+   * - **maxStalenessSeconds**
+     - -1, or an integer greater than or equal 90
+     - ``null``
+     - Specifies the maximum replication lag, in wall clock time, that
+       a secondary can experience and still be eligible for server selection.
+       Specifying ``-1`` means no maximum.
 
    * - **minPoolSize**
-     - integer
+     - non-negative integer
      - ``0``
-     - Specifies the minimum number of connections that must exist at any moment
-       in a single connection pool.
+     - Specifies the number of connections the driver should create and
+       maintain in the connection pool even when no operations are occurring.
+       This count includes connections in use.
 
-   * - **noDelay**
-     - boolean
-     - ``true``
-     - Specifies whether to use the TCP socket no-delay option. For more
-       information, see the documentation for `Node.js socket.setNoDelay
-       <https://nodejs.org/dist/latest-v10.x/docs/api/net.html#net_socket_setnodelay_nodelay>`_.
-
-   * - **pkFactory**
-     - object
-     - ``null``
-     - Specifies a primary key factory object that generates custom ``_id``
-       keys.
-
-   * - **promiseLibrary**
-     - object
-     - ``null``
-     - Specifies the Promise library class the application uses (e.g. Bluebird).
-       This library must be compatible with ES6.
-
-   * - **promoteBuffers**
-     - boolean
-     - ``false``
-     - Specifies whether to promote Binary BSON values to native Node.js
-       ``Buffer`` type data.
-
-   * - **promoteLongs**
-     - boolean
-     - ``true``
-     - Specifies whether to convert ``Long`` values to a number if they fit
-       inside 53 bits of resolution.
-
-   * - **promoteValues**
-     - boolean
-     - ``true``
-     - Specifies whether to promote BSON values to Node.js native types when
-       possible. When set to false, it uses wrapper types to present
-       BSON values.
-
-   * - **raw**
-     - boolean
-     - ``false``
-     - Specifies whether to return document results as raw BSON buffers.
-
-   * - **serializeFunctions**
-     - boolean
-     - ``false``
-     - Specifies whether to serialize functions on any object passed to the
-       server.
-
-   * - **serverApi**
-     - string *or* enum
-     - ``null``
-     - Specifies the API version that operations must conform to. See the
-       MongoDB manual entry on :manual:`Stable API </reference/stable-api>`
-       for more information.
-
-   * - **srvMaxHosts**
-     - integer
-     - ``0``
-     - | Sets the maximum number of hosts the driver can connect to when using
-       | the DNS seedlist (SRV) connection protocol, identified by the
-       | ``mongodb+srv`` connection string prefix. When set to ``0``, the
-       | driver does not limit the number of hosts.
-       |
-       | Throws an exception if the value is not equal to ``0`` and you are
-         not using the SRV connection protocol.
-
-   * - **srvServiceName**
+   * - **proxyHost**
      - string
-     - ``mongodb``
-     - Specifies the SRV record service name to which the driver should
-       connect.
+     - ``null``
+     - Specifies the IPv4/IPv6 address or domain name of a SOCKS5 proxy
+       server used for connecting to MongoDB services.
+
+   * - **proxyPort**
+     - non-negative integer
+     - ``null``
+     - Specifies the port of the SOCKS5 proxy server specified in ``proxyHost``.
+
+   * - **proxyUsername**
+     - string
+     - ``null``
+     - Specifies the username for username/password authentication to the SOCKS5
+       proxy server specified in ``proxyHost``.
+
+   * - **proxyPassword**
+     - string
+     - ``null``
+     - Specifies the password for username/password authentication to the SOCKS5
+       proxy server specified in ``proxyHost``.
+
+   * - **readConcernLevel**
+     - string
+     - ``null``
+     - Specifies the default read concern for the client. See :ref:`read concern
+       <read-concern>` for more information.
+
+   * - **readPreference**
+     - string
+     - ``"primary"``
+     - Specifies the default read preference for the client (excluding tags). See :ref:`read preference <read-preference>` for more information.
+
+   * - **readPreferenceTags**
+     - comma-separated key:value pairs (e.g. "dc:ny,rack:1" and "dc:ny)
+       can be specified multiple times, each instance of this key is a
+       separate tag set
+     - ``null``
+     - Specifies the default read preference tags for the client. This option is
+       valid only if the read preference mode is not primary.
+
+       The driver uses the order of the tags in the URI as the order
+       for the read preference.
+
+   * - **replicaSet**
+     - string
+     - ``null``
+     - Specifies the name of the replica set to connect to.
+
+   * - **retryReads**
+     - boolean
+     - ``true``
+     - Enables retryable reads.
+
+   * - **retryWrites**
+     - boolean
+     - ``true``
+     - Enables retryable writes.
+
+   * - **serverSelectionTimeoutMS**
+     - non-negative integer
+     - ``30000``
+     - Specifies the timeout, in milliseconds, to block for server selection
+       before raising an error.
+
+   * - **serverSelectionTryOnce**
+     - boolean
+     - ``true``
+     - Specifies to scan the topology only once after a server selection
+       failure instead of repeatedly until the server selection times out.
 
    * - **socketTimeoutMS**
-     - integer
-     - ``360000``
-     - Specifies the number of milliseconds to wait before timeout on a TCP
-       socket.
+     - non-negative integer
+     - ``0``
+     - Specifies the amount of time spent attempting to send or receive on a
+       socket before timing out. Specifying ``0`` means no timeout.
+
+   * - **srvMaxHosts**
+     - non-negative integer
+     - ``0``
+     - Specifies the maximum number of SRV results to randomly select when initially
+       populating the seedlist or, during SRV polling, adding new hosts to the
+       topology.
+
+   * - **srvServiceName**
+     - a valid SRV service name according to `RFC 6335 <https://datatracker.ietf.org/doc/html/rfc6335#section-5.1>`_
+     - ``"mongodb"``
+     - Specifies the service name to use for SRV lookup in initial DNS seedlist discovery.
+
+   * - **ssl**
+     - boolean
+     - ``false``
+     - The ``ssl`` is an alias for the ``tls`` option.
 
    * - **tls**
      - boolean
      - ``false``
-     - Specifies whether to establish a Transport Layer Security (TLS)
-       connection with the instance. This is automatically set to ``true``
-       when using a DNS seedlist (SRV) in the connection string. You can
-       override this behavior by setting the value to ``false``.
+     - Specifies whether TLS is required for connections to the server.
+       Using a ``srvServiceName`` of  ``"mongodb+srv"``, or specifying other
+       ``tls`` prefixed options will default ``tls`` to ``true``.
 
-   * - **validateOptions**
+   * - **tlsAllowInvalidCertificates**
      - boolean
      - ``false``
-     - Specifies whether to error when the method parameters contain an
-       unknown or incorrect option. If ``false``, the driver produces warnings
-       only.
+     - Specifies whether the driver should error when the server’s
+       TLS certificate is invalid.
+
+   * - **tlsAllowInvalidHostnames**
+     - boolean
+     - ``false``
+     - Specifies whether the driver should error when there is a mismatch
+       between the server’s hostname and the hostname specified by the
+       TLS certificate.
+
+   * - **tlsCAFile**
+     - string
+     - ``null``
+     - Specifies the path to a file with either a single or bundle of certificate
+       authorities to trust when making a TLS connection.
+
+   * - **tlsCertificateKeyFile**
+     - string
+     - ``null``
+     - Specifies the path to the client certificate file or the client
+       private key file. If you need both, you must concatenate the files.
+
+   * - **tlsCertificateKeyFilePassword**
+     - string
+     - ``null``
+     - Specifies the password to decrypt the client private key to be used
+       for TLS connections.
+
+   * - **tlsDisableCertificateRevocationCheck**
+     - boolean
+     - ``false``
+     - Specifies whether the driver will check a certificate's
+       revocation status via CRLs or OCSP.
+
+   * - **tlsDisableOCSPEndpointCheck**
+     - boolean
+     - ``false``
+     - Specifies whether the driver will reach out to OCSP
+       endpoints if needed.
+
+   * - **tlsInsecure**
+     - boolean
+     - ``false``
+     - Specifies to relax TLS constraints as much as possible, such as
+       allowing invalid certificates or hostname mismatches.
+
+   * - **w**
+     - non-negative integer or string
+     - ``null``
+     - Specifies the default write concern ``"w"`` field for the client.
 
    * - **waitQueueTimeoutMS**
-     - integer
+     - non-negative integer
      - ``0``
-     - Specifies the maximum amount of time in milliseconds that operation
-       execution can wait for a connection to become available.
+     - Specifies the amount of time spent attempting to check out a connection
+       from a server's connection pool before timing out.
 
-   * - **writeConcern**
-     - string or integer
+   * - **wTimeoutMS**
+     - non-negative integer
      - ``null``
-     - Specifies the write concern. For more information on values, see the
-       server documentation on the
-       :manual:`w Option </reference/write-concern/#w-option>`.
+     - Specifies the default write concern ``"wtimeout"`` field for the client.
 
-For a complete list of options, see the `MongoClient
-<{+api+}/classes/MongoClient.html>`__ API reference page. 
+   * - **zlibCompressionLevel**
+     - integer between ``-1`` and ``9`` (inclusive)
+     - ``-1``
+     - Specifies the level of compression when using zlib to compress wire
+       protocol messages. ``-1`` signifies the default level, ``0`` signifies
+       no compression, ``1`` signifies the fastest speed, and ``9`` signifies
+       the best compression. See :ref`node-network-compression` for more
+
