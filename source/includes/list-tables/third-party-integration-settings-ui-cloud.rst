@@ -31,30 +31,6 @@
 
        .. include:: /includes/fact-pagerduty-decommission.rst
 
-   * - Flowdock Settings
-
-     - Default values for alert notifications sent to Flowdock.
-       |mms| enters the values by default when you add a Flowdock
-       notification to an `alert configuration`_ If you add Flowdock
-       notifications, and if credentials to send notifications become
-       invalid, |mms| sends an email to the project owner and
-       eventually removes the credentials.
-
-       Set the following:
-
-       - :guilabel:`Org Name`: The Flowdock organization name in
-         lower-case letters. This name appears after
-         ``www.flowdock.com/app/`` in the |url| string.
-
-       - :guilabel:`Flow Name`: The flow name in lower-case letters.
-         The flow name appears after the org name in the |url| string:
-         ``www.flowdock.com/app/<org-name>/<flow-name>``.
-
-       - :guilabel:`API Token`: Your Flowdock "personal API token"
-         found on the
-         `Tokens page <https://www.flowdock.com/account/tokens>`_
-         of your Flowdock account.
-
    * - HipChat Settings
 
      - .. cond:: onprem

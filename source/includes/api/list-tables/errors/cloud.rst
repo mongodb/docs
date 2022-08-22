@@ -432,10 +432,6 @@
      - Backup configuration cannot specify both included namespaces
        and excluded namespaces.
 
-   * - .. apierror:: INVALID_FLOWDOCK_FLOW_NAME
-     - `400`_
-     - Flowdock flow name cannot contain spaces.
-
    * - .. apierror:: INVALID_GRANULARITY
      - `400`_
      - An invalid granularity ``<granularity>`` was specified.

@@ -38,9 +38,6 @@
       * - `Slack <https://slack.com/>`_
         - .. include:: /includes/alert-notifications/slack.rst
 
-      * - `FlowDock <https://www.flowdock.com/>`_
-        - .. include:: /includes/alert-notifications/flowdock.rst
-
       * - `PagerDuty <https://www.pagerduty.com/>`__
         - .. include:: /includes/alert-notifications/pagerduty.rst
 
@@ -80,9 +77,6 @@
 
       * - `Slack <https://slack.com/>`_
         - .. include:: /includes/alert-notifications/slack.rst
-
-      * - `FlowDock <https://www.flowdock.com/>`_
-        - .. include:: /includes/alert-notifications/flowdock.rst
 
       * - `PagerDuty <https://www.pagerduty.com/>`__
         - .. include:: /includes/alert-notifications/pagerduty.rst
