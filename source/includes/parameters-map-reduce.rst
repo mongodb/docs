@@ -88,11 +88,6 @@ The ``reduce`` function exhibits the following behaviors:
 - The ``reduce`` function should *not* affect the outside
   system.
 
-- MongoDB will **not** call the ``reduce`` function for a key
-  that has only a single value. The ``values`` argument is an array
-  whose elements are the ``value`` objects that are "mapped" to the
-  ``key``.
-
 - MongoDB can invoke the ``reduce`` function more than once for the
   same key. In this case, the previous output from the ``reduce``
   function for that key will become one of the input values to the next
