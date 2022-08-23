@@ -11,6 +11,19 @@
 - Updates the {+mdbagent+} to :ref:`11.0.19.7094
   <mongodb-11.0.19.7094>`.
 
+.. _opsmgr-server-5.0.13:
+
+|onprem| Server 5.0.13
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-07-21*
+
+- Updates the {+mdbagent+} to :ref:`11.0.18.7089 
+  <mongodb-11.0.18.7089>`.
+- Fixes an issue that caused premature termination of sharded cluster 
+  snapshots when one shard completed its snapshot before the other 
+  shards.
+
 .. _opsmgr-server-5.0.12:
 
 |onprem| Server 5.0.12
