@@ -787,6 +787,61 @@ and ``temperature`` fields:
    :language: java
    :dedent:
 
+Densify
+-------
+
+Use the ``densify()`` method to create a
+`$densify <https://www.mongodb.com/docs/rapid/reference/operator/aggregation/densify/>`__
+pipeline stage that generates a sequence of documents to span a specified
+interval.
+
+.. tip::
+
+   You can use the ``$densify()`` aggregation stage only when running
+   MongoDB v5.1 or later.
+
+Consider the following documents retrieved from the :atlas:`Atlas sample weather dataset </sample-data/sample-weather>`
+that contain measurements for a similar ``position`` field, spaced one hour
+apart:
+
+.. code-block:: none
+   :copyable: false
+
+   Document{{ _id=5553a..., position=Document{{type=Point, coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 08:00:00 EST 1984, ... }}
+   Document{{ _id=5553b..., position=Document{{type=Point, coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 09:00:00 EST 1984, ... }}
+
+Suppose you needed to create a pipeline stage that performs the following
+actions on these documents:
+
+- Add a document at every 15-minute interval for which a ``ts`` value does not
+  already exist.
+- Group the documents by the ``position`` field.
+
+The call to the ``densify()`` aggregation stage builder that accomplishes
+these actions should resemble the following:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/builders/AggregateDensify.java
+   :start-after: // begin densify aggregate
+   :end-before: // end densify aggregate
+   :language: java
+   :dedent:
+
+The following output highlights the documents output by the aggregate stage
+which contain ``ts`` values every 15 minutes between the existing documents:
+
+.. code-block:: none
+   :emphasize-lines: 2-4
+   :copyable: false
+
+   Document{{ _id=5553a..., position=Document{{type=Point, coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 08:00:00 EST 1984, ... }}
+   Document{{ position=Document{{coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 08:15:00 EST 1984 }}
+   Document{{ position=Document{{coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 08:30:00 EST 1984 }}
+   Document{{ position=Document{{coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 08:45:00 EST 1984 }}
+   Document{{ _id=5553b..., position=Document{{type=Point, coordinates=[-47.9, 47.6]}}, ts=Mon Mar 05 09:00:00 EST 1984, ... }}
+
+See the `densify() API documentation <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html#densify(java.lang.String,com.mongodb.client.model.densify.DensifyRange)>`__
+for more information.
+
 Atlas Full-Text Search
 ----------------------
 

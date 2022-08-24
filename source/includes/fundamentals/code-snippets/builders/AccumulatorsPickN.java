@@ -9,10 +9,10 @@ import org.bson.conversions.Bson;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Accumulators;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Sorts;
+import static com.mongodb.client.model.Accumulators.*;
+import static com.mongodb.client.model.Aggregates.*;
+import static com.mongodb.client.model.Sorts.*;
+import static java.util.Arrays.asList;
 
 public class AccumulatorsPickN {
     private static final String CONNECTION_URI = "<your connection URI>";
@@ -20,15 +20,15 @@ public class AccumulatorsPickN {
     private static void runAggregation(MongoCollection<Document> collection, Bson ...stages) {
         System.out.println("aggregateStages: " + Arrays.toString(stages));
         System.out.println("=== [ Result ] ============================================");
-        collection.aggregate(Arrays.asList(stages)).forEach(result -> System.out.println(result));
+        collection.aggregate(asList(stages)).forEach(result -> System.out.println(result));
     }
     
     private static Bson createMinNStage() {
         return
                 // begin minN accumulator
-                Aggregates.group(
+                group(
                         "$year",
-                        Accumulators.minN(
+                        minN(
                                 "lowest_three_ratings",
                                 new BsonString("$imdb.rating"),
                                 3
@@ -38,9 +38,9 @@ public class AccumulatorsPickN {
     private static Bson createnMaxNStage() {
         return
                 // begin maxN accumulator
-                Aggregates.group(
+                group(
                         "$year",
-                        Accumulators.maxN(
+                        maxN(
                                 "highest_two_ratings",
                                 new BsonString("$imdb.rating"),
                                 2
@@ -50,9 +50,9 @@ public class AccumulatorsPickN {
     private static Bson createFirstNStage() {
         return
                 // begin firstN accumulator
-                Aggregates.group(
+                group(
                         "$year",
-                        Accumulators.firstN(
+                        firstN(
                                 "first_four_movies",
                                 new BsonString("$title"),
                                 4
@@ -62,9 +62,9 @@ public class AccumulatorsPickN {
     private static Bson createLastNStage() {
         return
                 // begin lastN accumulator
-                Aggregates.group(
+                group(
                         "$year",
-                        Accumulators.lastN(
+                        lastN(
                                 "last_three_movies",
                                 new BsonString("$title"),
                                 3
@@ -74,12 +74,12 @@ public class AccumulatorsPickN {
     private static Bson createTopStage() {
         return
                 // begin top accumulator
-                Aggregates.group(
+                group(
                         "$year", 
-                        Accumulators.top(
+                        top(
                                 "top_rated_movie",
-                                Sorts.descending("imdb.rating"),
-                                Arrays.asList(new BsonString("$title"), new BsonString("$imdb.rating"))
+                                descending("imdb.rating"),
+                                asList(new BsonString("$title"), new BsonString("$imdb.rating"))
                                 ));
                 // end top accumulator
     }
@@ -87,12 +87,12 @@ public class AccumulatorsPickN {
     private static Bson createTopNStage() {
         return
                 // begin topN accumulator
-                Aggregates.group(
+                group(
                         "$year", 
-                        Accumulators.topN(
+                        topN(
                                 "longest_three_movies",
-                                Sorts.descending("runtime"),
-                                Arrays.asList(new BsonString("$title"), new BsonString("$runtime")),
+                                descending("runtime"),
+                                asList(new BsonString("$title"), new BsonString("$runtime")),
                                 3
                                 ));
                 // end topN accumulator
@@ -100,24 +100,24 @@ public class AccumulatorsPickN {
     private static Bson createBottomStage() {
         return 
                 // begin bottom accumulator
-                Aggregates.group(
+                group(
                         "$year", 
-                        Accumulators.bottom(
+                        bottom(
                                 "shortest_movies",
-                                Sorts.descending("runtime"),
-                                Arrays.asList(new BsonString("$title"), new BsonString("$runtime"))
+                                descending("runtime"),
+                                asList(new BsonString("$title"), new BsonString("$runtime"))
                                 ));
                 // end bottom accumulator;
     }
     private static Bson createBottomNStage() {
         return 
                 // begin bottomN accumulator
-                Aggregates.group(
+                group(
                         "$year", 
-                        Accumulators.bottomN(
+                        bottomN(
                                 "lowest_rated_two_movies",
-                                Sorts.descending("imdb.rating"),
-                                Arrays.asList(new BsonString("$title"), new BsonString("$imdb.rating")),
+                                descending("imdb.rating"),
+                                asList(new BsonString("$title"), new BsonString("$imdb.rating")),
                                 2
                                 ));
                 // end bottomN accumulator;
