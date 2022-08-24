@@ -10,5 +10,5 @@ Individual ``find`` and ``aggregate`` commands may override the
 - Using ``{ allowDiskUse: true }`` to allow writing temporary files out 
   to disk when ``allowDiskUseByDefault`` is set to ``false``
 
-- Using ``{ allowDiskUse: false }`` to probibit writing temporary files
+- Using ``{ allowDiskUse: false }`` to prohibit writing temporary files
   out to disk when ``allowDiskUseByDefault`` is set to ``true``
