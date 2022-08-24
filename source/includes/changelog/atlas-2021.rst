@@ -158,8 +158,8 @@
 - Increases the maximum number of provisioned IOPS for clusters 
   ``M140`` and up on |aws| to 64,000 IOPS.
 
-- Introduces :ref:`embedded data visualizations <billing_visualizations>` 
-  on the Billing Overview page and within each invoice.
+- Introduces :ref:`embedded data visualizations <billing-visualizations>` 
+  on the :guilabel:`Billing Overview` page and within each invoice.
 
 - Lowers data transfer rates within the following |aws| regions:
 

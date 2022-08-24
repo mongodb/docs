@@ -35,4 +35,5 @@
 
    * - ``FAILED``
      - An attempt to charge your payment method for the amount due 
-       failed.
+       failed. To resolve a failed payment, :ref:`troubleshoot invoices
+       and payments <troubleshoot-invoice-payment>`.

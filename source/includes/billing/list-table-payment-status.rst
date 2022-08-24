@@ -22,6 +22,13 @@
    * - ``CANCELLED``
      - The payment was cancelled.
 
+   * - ``PENDING``
+     - The payment is pending.
+
+   * - ``CLOSED``
+     - All payments for the subscription cycle have been finalized, the 
+       balance is more than zero, and you have not been charged yet.
+
    * - ``FORGIVEN``	
      - The charge has been forgiven. If the charge succeeded, it has 
        been refunded.
@@ -31,11 +38,11 @@
        failed. Please confirm that your 
        :ref:`payment method <payment-method>` is authenticated.
 
-       For help resolving a failed payment, see 
-       :ref:`Troubleshooting Invoices and Payments <troubleshoot-invoice-payment>`.
+       To resolve a failed payment, :ref:`troubleshoot invoices and
+       payments <troubleshoot-invoice-payment>`.
 
    * - ``FAILED``	
      - The attempt to charge your payment method failed.
 
-       For help resolving a failed payment, see 
-       :ref:`Troubleshooting Invoices and Payments <troubleshoot-invoice-payment>`.
+       To resolve a failed payment, :ref:`troubleshoot invoices and payments
+       <troubleshoot-invoice-payment>`.

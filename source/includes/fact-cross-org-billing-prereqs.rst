@@ -30,6 +30,5 @@
 
 .. note::
 
-   To learn more or to purchase a subscription that enables
-   cross-organization billing, contact 
-   :website:`MongoDB Sales </contact/atlas>`.
+   To purchase a subscription that enables cross-organization billing,
+   contact :website:`MongoDB Sales </contact/atlas>`.
