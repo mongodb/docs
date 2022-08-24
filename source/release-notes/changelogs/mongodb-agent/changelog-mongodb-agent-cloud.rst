@@ -16,8 +16,11 @@ MongoDB Agent 12.2.0.7631
 
 *Released* 2022-07-13
 
-- Improves logging
-- Adds support for the upcoming release of MongoDB 6.0
+- Fixes a bug for {+mdbagent+} versions 12.1.1 and later where rolling 
+  index builds ignored the ``hidden`` property when built on Data 
+  Explorer.
+- Improves logging.
+- Adds support for the upcoming release of MongoDB 6.0.
 
 .. _12.1.2.7597-1:
 
@@ -26,7 +29,7 @@ MongoDB Agent 12.1.2.7597-1
 
 *Released* 2022-06-22
 
-- Adds support for the upcoming release of MongoDB 6.0
+- Adds support for the upcoming release of MongoDB 6.0.
 
 .. _12.0.4.7554:
 
