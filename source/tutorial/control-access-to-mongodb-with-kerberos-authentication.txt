@@ -78,12 +78,102 @@ control the :binary:`~bin.mongod` instance, you can set the ``KRB5_KTNAME``
 variable in the default environment settings file instead of setting
 the variable each time.
 
-For ``.rpm`` packages, the default environment settings file is
+Recent versions of Red Hat and Debian-based systems use ``systemd``.
+Older versions use ``init`` for system initialization. Follow the
+appropriate instructions to configure the ``KRB5_KTNAME`` variable for
+your system.
+
+``systemd`` Configuration Files
+```````````````````````````````
+
+``systemd`` stores configuration in unit files. Update the unit file to
+set the ``KRB5_KTNAME`` variable.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Find the unit file
+
+      .. code-block:: shell
+
+         sudo systemctl cat mongod
+
+      The ``systemctl`` command returns the file location and displays its
+      contents.
+
+   .. step:: Set ``KRB5_KTNAME``
+
+      To set the ``KRB5_KTNAME`` variable, edit the following line to reflect
+      the location of your ``keytab`` file:
+
+      .. code-block:: shell
+
+         Environment="KRB5_KTNAME=<path-to-your-mongod.keytab-file>" 
+
+   .. step:: Edit the unit file
+
+      Add the edited line to the unit file. The edited unit file will
+      resemble:
+
+      .. code-block:: shell
+         :copyable: false
+         :emphasize-lines: 9
+
+         [Unit]
+         Description=High-performance, schema-free document-oriented database
+         After=network.target
+         Documentation=https://docs.mongodb.org/manual
+          
+         [Service]
+         User=mongodb
+         Group=mongodb
+         ExecStart=/usr/bin/mongod --config /etc/mongod.conf
+         Environment="KRB5_KTNAME=/etc/mongod.keytab"
+         PIDFile=/var/run/mongodb/mongod.pid
+         # file size
+         LimitFSIZE=infinity
+         # cpu time
+         LimitCPU=infinity
+         # virtual memory size
+         LimitAS=infinity
+         # open files
+         LimitNOFILE=64000
+         # processes/threads
+         LimitNPROC=64000
+         # locked memory
+         LimitMEMLOCK=infinity
+         # total threads (user+kernel)
+         TasksMax=infinity
+         TasksAccounting=false
+          
+         # Recommended limits for for mongod as specified in
+         # http://docs.mongodb.org/manual/reference/ulimit/#recommended-settings
+          
+         [Install]
+         WantedBy=multi-user.target
+
+   .. step:: Reload the updated unit file:
+
+      .. code-block:: shell
+
+         sudo systemctl daemon-reload
+
+   .. step:: Restart the :binary:`mongod` service
+
+      .. code-block:: shell
+
+         sudo systemctl restart mongod
+ 
+``init`` Configuration Files
+````````````````````````````
+
+For ``.rpm`` installations, the default environment settings file is
 :file:`/etc/sysconfig/mongod`.
 
-For ``.deb`` packages, the file is :file:`/etc/default/mongodb`.
+For ``.deb`` installations, the file is :file:`/etc/default/mongodb`.
 
-Set the ``KRB5_KTNAME`` value in a line that resembles the following:
+Set the ``KRB5_KTNAME`` value by adding a line that resembles the
+following:
 
 .. code-block:: javascript
 
