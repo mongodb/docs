@@ -136,6 +136,13 @@ Supported Parsing Functions
 
           /path/{<fieldA> <data-type>}/{<fieldB> <data-type>}/{<fieldC> <data-type>}/*
 
+   * - You can specify regex for ``ISODate`` along the path to the 
+       filename.
+     - .. code-block:: none
+          :copyable: false 
+
+          /path/to/files/{<field-name> isodate("<date-format>"):\\<regex>}
+
 .. note::
 
    .. include:: /includes/data-federation/fact-path-delimiter.rst 
@@ -220,6 +227,7 @@ computed fields:
 - :ref:`adf-advanced-parse-nested-fields`
 - :ref:`adf-advanced-path-objectids`
 - :ref:`adf-advanced-path-create-partition`
+- :ref:`adf-advanced-path-isodate`
 - :ref:`adf-advanced-path-generate-collection`
 
 .. _adf-advanced-path-parse-single:
@@ -644,6 +652,57 @@ a small set of filtered files:
 .. seealso:: 
         
    :ref:`parse-padded-numeric-values`
+
+.. _adf-advanced-path-isodate:
+
+Create Partitions from ISODate 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify :manual:`ISODate </reference/glossary/#term-isodate>` 
+in the path to the files. For files that contain ``ISODate`` in the 
+filename, {+adf+} creates partitions for each ``ISODate``. 
+
+Consider the following {+fdi+} store, ``accountingArchive``. This data  
+store contains files that include ``ISODate`` in the filename:
+
+.. code-block:: text 
+   :copyable: false 
+
+   accountingArchive 
+   |--invoices
+      |--01_02_2022_2301.json
+      |--02_02_2022_2301.json
+      |--03_02_2022_2301.json
+      |--04_02_2022_2301.json
+      |--05_02_2022_2301.json
+     
+The following :ref:`adf-aws-databases-reference` object creates  
+partitions for the ``ISODate``. The ``path`` demonstrates how to use 
+regex for the date format if the date is not in `RFC 3339 
+<https://tools.ietf.org/html/rfc3339>`_ format.
+
+.. code-block:: text
+   :copyable: false
+
+   "databases" : [
+     {
+       "name" : "accounting",
+       "collections" : [
+         {
+           "name" : "invoices",
+           "dataSources" : [
+             {
+               "storeName" : "accountingArchive",
+               "path" : "/invoices/creationDate isodate('01_02_2006_1504'):\\d{2}_\\d{2}_\\d{4}_\\d{4}.json"
+             }
+           ]
+         }
+       ]
+     }
+   ]    
+
+To learn more about other supported formats, see 
+:ref:`adf-s3-path-attribute-types`.
 
 .. _adf-advanced-path-generate-collection:
 
