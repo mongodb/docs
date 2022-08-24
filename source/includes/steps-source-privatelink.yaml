@@ -83,8 +83,8 @@ replacement:
           :widths: 20 80
 
           * - :guilabel:`Your VPC ID`
-            - Unique identifier of the peer |aws| |vpc|. Find this value on 
-              the |vpc| dashboard in your |aws| account.
+            - Unique identifier of the peer |aws| |vpc|. Find this
+              value on the |vpc| dashboard in your |aws| account.
 
           * - :guilabel:`Your Subnet IDs`
             - Unique identifiers of the subnets your |aws| |vpc| uses. 
@@ -182,8 +182,8 @@ replacement:
 
           * - :guilabel:`VPC Name`
             - The name of the |vpc| that you want to use to connect to
-              |service|. Find this value on the :guilabel:`VPC Networks` 
-              page on your |gcp| dashboard.
+              |service|. Find this value on the 
+              :guilabel:`VPC Networks` page on your |gcp| dashboard.
 
           * - :guilabel:`Subnet Name`
             - The name of the subnet in your |gcp| |vpc|. Find this
@@ -204,6 +204,60 @@ replacement:
             
     #. Click :guilabel:`Create Private Endpoint`.
 
+  azure-serverless: |
+
+    a. Enter the following details about your |azure| VNet:
+
+       .. list-table::
+          :widths: 20 80
+
+          * - :guilabel:`Resource Group Name`
+            - Human-readable label that identifies the resource group
+              that contains the VNet that you want to use to connect to
+              |service|. Find this value on the 
+              :guilabel:`Resource Group Properties` page on your 
+              |azure| dashboard.
+
+          * - :guilabel:`Virtual Network Name`
+            - Human-readable label that identifies the VNet 
+              that you want to use to connect to
+              |service|. Find this value on the :guilabel:`Virtual
+              Network` page on your |azure| dashboard.
+
+          * - :guilabel:`Subnet Name`
+            - Human-readable label that identifies the subnet in your 
+              |azure| VNet. Find this value on the 
+              :guilabel:`Virtual Network Subnets` page on your |azure| 
+              dashboard.
+
+    #. Enter a unique name for your private endpoint in the
+       :guilabel:`Private Endpoint Name` field.
+
+    #. Create the private endpoint in your VNet by copying the ``az
+       network private-endpoint create`` command the dialog displays and
+       running it using the |azure| CLI.
+
+       .. note::
+        
+          You can't copy the command until |service| finishes
+          creating VNet resources in the background.
+
+          For more information about this command, see the 
+          `Azure documentation <https://docs.microsoft.com/en-us/cli/azure/network/private-endpoint?view=azure-cli-latest#az_network_private_endpoint_create>`__.
+
+    #. You might receive an error like the following when you create the 
+       private endpoint:
+
+       .. code-block:: sh
+          :copyable: false
+
+          ServiceError: code: LinkedAuthorizationFailed - , The client has permission to perform action 'Microsoft.Network/privateLinkServices/PrivateEndpointConnectionsApproval/action' on scope '/subscriptions/<subscription-id>/resourceGroups/privatelink/providers/Microsoft.Network/privateEndpoints/privatelink', however the current tenant '<tenant-id>' is not authorized to access linked subscription '<tenant-id>'.
+
+       If you receive this error, add the ``--manual-request
+       true`` parameter to the |azure| CLI command you used to create the private endpoint, then run the command again.
+            
+    #. Click :guilabel:`Next`.
+  
 ---
 stepnum: 0
 level: 4
@@ -288,6 +342,8 @@ replacement:
                       :copyable: false
                       :emphasize-lines: 25
 
+    #. Enter an optional description for the endpoint.
+
     #. Click :guilabel:`Create`.
 
   aws-serverless: |
@@ -296,9 +352,80 @@ replacement:
        22-character alphanumeric string that identifies your private 
        endpoint. Find this value on the |aws| VPC Dashboard under 
        :guilabel:`Endpoints` > :guilabel:`VPC ID`.
+    
+    #. Click :guilabel:`Create`.
+
+  azure-serverless: |
+
+    a. Enter the following details about your private endpoint:
+
+       .. list-table::
+          :widths: 20 80
+
+          * - :guilabel:`Private Endpoint Resource ID`
+            - Unique string that identifies the private endpoint you
+              created in your |azure| VNet. Find this value in one of
+              the following ways:
+
+              - The :guilabel:`Properties` page for your private
+                endpoint on your |azure| dashboard displays this
+                property in the :guilabel:`Resource ID` field.
+
+              - The output from the ``azure network private-endpoint
+                create`` command that you ran earlier to create the
+                private endpoint returns this value in the **id** field:
+
+                .. literalinclude:: /includes/api/responses/az-network-private-endpoint-create.json
+                   :language: json
+                   :linenos:
+                   :copyable: false
+                   :emphasize-lines: 4
+
+          * - :guilabel:`Private Endpoint IP Address`
+            - Private IP address of the private endpoint network
+              interface you created in your |azure| VNet. Find this
+              value in one of the following ways:
+
+              - Use the |azure| dashboard to retrieve this value. 
+                The :guilabel:`Overview` page for your private
+                endpoint on your |azure| dashboard displays this
+                property in the :guilabel:`Private IP` field.
+
+              - Use the |azure| CLI to retrieve this value:
+
+                i. The output from the ``azure network private-endpoint
+                   create`` command that you ran earlier to create the
+                   private endpoint includes the ID of the network
+                   interface in the **networkInterfaces.id** field:
+
+                   .. literalinclude:: /includes/api/responses/az-network-private-endpoint-create.json
+                      :language: json
+                      :linenos:
+                      :copyable: false
+                      :emphasize-lines: 33
+
+                #. Run the `az network nic show --id {networkInterface.id}
+                   <https://docs.microsoft.com/en-us/cli/azure/network/nic?view=azure-cli-latest#az_network_nic_show>`__
+                   |azure| CLI command with the value of the
+                   **networkInterfaces.id** field to retrieve the
+                   **ipConfigurations.privateIPAddress** for the private
+                   endpoint network interface. The value of this field is
+                   your :guilabel:`Private Endpoint IP Address`:
+
+                   .. code-block:: sh
+
+                      az network nic show --id /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/privatelink/providers/Microsoft.Network/networkInterfaces/privatelink.nic.00000000-0000-0000-0000-000000000000
+
+                   The response looks similar to the following:
+
+                   .. literalinclude:: /includes/api/responses/az-network-nic-show.json
+                      :language: json
+                      :linenos:
+                      :copyable: false
+                      :emphasize-lines: 25
 
     #. Enter an optional description for the endpoint.
-    
+
     #. Click :guilabel:`Create`.
 
 ---
@@ -375,7 +502,8 @@ content: |
 
   a. In the :guilabel:`Security` section of the left navigation,
      click :guilabel:`Network Access`.
-  #. On the :guilabel:`Private Endpoint` tab, verify the following 
+  #. On the :guilabel:`Private Endpoint` tab, select a 
+     {+database-deployment+} type and verify the following 
      statuses for the region that contains the {+database-deployment+} 
      you want to connect to using {+aws-pl+}:
 
@@ -408,7 +536,8 @@ content: |
 
   a. In the :guilabel:`Security` section of the left navigation,
      click :guilabel:`Network Access`.
-  #. On the :guilabel:`Private Endpoint` tab, verify the following 
+  #. On the :guilabel:`Private Endpoint` tab, select a 
+     {+database-deployment+} type and verify the following 
      statuses for the region that contains the cluster 
      you want to connect to using {+az-pl+}:
 

@@ -1,11 +1,3 @@
-- If this is the first private endpoint that you deploy to a   
-  region, you must first resume any paused 
-  {+database-deployments+} in your project with nodes deployed to
-  that region.
-
-  This limitation doesn't apply for additional private endpoints
-  that you deploy to the same region.
-
 - To connect to |service| {+database-deployments+} using 
   {+aws-pl+} from regions in which you haven't deployed a private
   endpoint connection, you must peer |vpc|\s in those regions to 

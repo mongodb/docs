@@ -37,9 +37,6 @@ Configurations
    * - :doc:`Global Clusters </global-clusters>`
      - 
 
-   * - :doc:`Private Endpoints on Azure using {+az-pl+} </security-private-endpoint>`
-     - :icon:`check-square`
-
    * - :doc:`Private Endpoints on Google Cloud using {+gcp-psc+} </security-private-endpoint>`
      - :icon:`check-square`
   
