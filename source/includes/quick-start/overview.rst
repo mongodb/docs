@@ -1,9 +1,9 @@
-This guide shows you how to create an application that uses the **C#/.NET driver**
+This guide shows you how to create an application that uses the **.NET/C# Driver**
 to connect to a **MongoDB Atlas cluster**. If you prefer to connect to MongoDB
 using a different driver or programming language, see our
 :driver:`list of official MongoDB drivers <>`.
 
-The C#/.NET driver lets you connect to and communicate with MongoDB clusters
+The .NET/C# driver lets you connect to and communicate with MongoDB clusters
 from a .NET application.
 
 MongoDB Atlas is a fully-managed cloud database service that hosts your data
