@@ -1,3 +1,16 @@
+.. _12.4.0.7703:
+
+MongoDB Agent 12.4.0.7703
+-------------------------
+
+*Released* 2022-08-24
+
+- Adds support for an upcoming feature that allows you to set 
+  cluster-wide parameters.
+- Fixes a bug that could cause the {+mdbagent+} self-update to stall if 
+  it encountered an issue downloading new binaries.
+- Fixes an issue with rotating MongoDB audit log files.
+
 .. _12.3.0.7658-1:
 
 MongoDB Agent 12.3.0.7658-1
