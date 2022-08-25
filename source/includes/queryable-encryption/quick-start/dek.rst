@@ -9,9 +9,9 @@
       in the :ref:`Create a {+cmk-long+} <qe-quick-start-create-master-key>` step of this guide.
 
       Pass the {+cmk-abbr+} value to your KMS provider settings. The
-      client uses these settings to discover the {+cmk-abbr+}. As
-      you are using the Local Key Provider, set the provider name to
-      ``local``.
+      client uses these settings to discover the {+cmk-abbr+}. Set the
+      provider name to ``local`` to inform the driver you are using a
+      Local Key Provider.
 
       .. include:: /includes/queryable-encryption/tab-note.rst
 
@@ -40,12 +40,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -108,12 +108,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -165,12 +165,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: java
                :dedent:
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go

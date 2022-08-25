@@ -1,4 +1,4 @@
-.. warning:: Do not Modify the __safecontent__ Field
+.. warning:: Do not Modify the __safeContent__ Field
 
-   The ``__safecontent__`` field is essential to {+qe+}. Do not modify
+   The ``__safeContent__`` field is essential to {+qe+}. Do not modify
    the contents of this field.

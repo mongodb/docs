@@ -35,12 +35,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -102,12 +102,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: java
                :dedent:
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -170,12 +170,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -227,12 +227,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: java
                :dedent:
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go

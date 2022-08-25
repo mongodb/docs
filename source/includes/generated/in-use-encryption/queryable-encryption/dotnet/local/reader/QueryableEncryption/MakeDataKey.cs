@@ -17,7 +17,6 @@ namespace QueryableEncryption
                 var bytes = new byte[96];
                 randomNumberGenerator.GetBytes(bytes);
                 var localMasterKeyBase64Write = Convert.ToBase64String(bytes);
-                Console.WriteLine(localMasterKeyBase64Write);
                 File.WriteAllText("master-key.txt", localMasterKeyBase64Write);
             }
 
@@ -36,7 +35,6 @@ namespace QueryableEncryption
 
             // start-create-index
             var connectionString = "<Your MongoDB URI>";
-            // start-create-dek
             var keyVaultNamespace = CollectionNamespace.FromFullName("encryption.__keyVault");
             var keyVaultClient = new MongoClient(connectionString);
             var indexOptions = new CreateIndexOptions<BsonDocument>

@@ -42,7 +42,6 @@ namespace QueryableEncryption
 
             // start-create-index
             var connectionString = "<Your MongoDB URI>";
-            // start-create-dek
             var keyVaultNamespace = CollectionNamespace.FromFullName("encryption.__keyVault");
             var keyVaultClient = new MongoClient(connectionString);
             var indexOptions = new CreateIndexOptions<BsonDocument>

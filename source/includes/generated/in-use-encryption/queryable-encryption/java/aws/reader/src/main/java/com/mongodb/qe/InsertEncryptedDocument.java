@@ -1,4 +1,4 @@
-package com.mongodb.csfle;
+package com.mongodb.qe;
 /*
  * Copyright 2008-present MongoDB, Inc.
 
@@ -50,7 +50,7 @@ import org.bson.Document;
  * - Attempts to find the upserted document with the normal client using an encrypted field
  * - Finds the upserted document with the normal client using a non-encrypted field
  */
-public class insertEncryptedDocument {
+public class InsertEncryptedDocument {
 
     public static void main(String[] args) throws Exception {
 

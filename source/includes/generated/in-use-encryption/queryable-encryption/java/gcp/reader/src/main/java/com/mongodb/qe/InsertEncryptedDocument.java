@@ -1,4 +1,4 @@
-package com.mongodb.csfle;
+package com.mongodb.qe;
 /*
  * Copyright 2008-present MongoDB, Inc.
 
@@ -40,7 +40,6 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import org.bson.Document;
 
-import java.io.FileInputStream;
 
 
 /*
@@ -51,7 +50,7 @@ import java.io.FileInputStream;
  * - Attempts to find the upserted document with the normal client using an encrypted field
  * - Finds the upserted document with the normal client using a non-encrypted field
  */
-public class insertEncryptedDocument {
+public class InsertEncryptedDocument {
 
     public static void main(String[] args) throws Exception {
 
@@ -69,20 +68,12 @@ public class insertEncryptedDocument {
         String connectionString = "<Your MongoDB URI>";
 
         // start-kmsproviders
-        String kmsProvider = "local";
-        String path = "master-key.txt";
-
-        byte[] localMasterKeyRead = new byte[96];
-
-        try (FileInputStream fis = new FileInputStream(path)) {
-            if (fis.read(localMasterKeyRead) < 96)
-                throw new Exception("Expected to read 96 bytes from file");
-        }
-        Map<String, Object> keyMap = new HashMap<String, Object>();
-        keyMap.put("key", localMasterKeyRead);
-
+        String kmsProvider = "gcp";
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
-        kmsProviders.put(kmsProvider, keyMap);
+        Map<String, Object> providerDetails = new HashMap<>();
+        providerDetails.put("email", "<Your GCP Email Address>");
+        providerDetails.put("privateKey", "<Your GCP Private Key>");
+        kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-schema

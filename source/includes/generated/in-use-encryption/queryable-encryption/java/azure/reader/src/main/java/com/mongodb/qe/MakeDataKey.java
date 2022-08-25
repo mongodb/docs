@@ -1,4 +1,4 @@
-package com.mongodb.csfle;
+package com.mongodb.qe;
 /*
  * Copyright 2008-present MongoDB, Inc.
 
@@ -44,31 +44,31 @@ import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 
 
+
 /*
  * - Reads master key from file "master-key.txt" in root directory of project, or creates one on a KMS
  * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
  * - Prints base 64-encoded value of the data encryption key
  */
-public class makeDataKey {
+public class MakeDataKey {
 
     public static void main(String[] args) throws Exception {
 
         // start-kmsproviders
-        String kmsProvider = "gcp";
+        String kmsProvider = "azure";
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
         Map<String, Object> providerDetails = new HashMap<>();
-        providerDetails.put("email", "<Your GCP Email Address>");
-        providerDetails.put("privateKey", "<Your GCP Private Key>");
+        providerDetails.put("tenantId", "<Azure account organization>");
+        providerDetails.put("clientId", "<Azure client ID>");
+        providerDetails.put("clientSecret", "<Azure client secret>");
         kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-datakeyopts
         BsonDocument masterKeyProperties = new BsonDocument();
         masterKeyProperties.put("provider", new BsonString(kmsProvider));
-        masterKeyProperties.put("projectId", new BsonString("<Your GCP Project ID>"));
-        masterKeyProperties.put("location", new BsonString("<Your GCP Key Location>"));
-        masterKeyProperties.put("keyRing", new BsonString("<Your GCP Key Ring>"));
-        masterKeyProperties.put("keyName", new BsonString("<Your GCP Key Name>"));
+        masterKeyProperties.put("keyName", new BsonString("<Azure key name>"));
+        masterKeyProperties.put("keyVaultEndpoint", new BsonString("<Azure key vault endpoint"));
         // end-datakeyopts
 
 
@@ -139,7 +139,8 @@ public class makeDataKey {
                                 .append("queries", new BsonDocument().append("queryType", new BsonString("equality"))),
                         new BsonDocument().append("keyId", dataKeyId4)
                                 .append("path", new BsonString("patientRecord.billing"))
-                                .append("bsonType", new BsonString("object")))));
+                                .append("bsonType", new BsonString("object"))
+                        )));
         Map<String, BsonDocument> encryptedFieldsMap = new HashMap<String, BsonDocument>();
         encryptedFieldsMap.put(encryptedNameSpace, encFields);
 

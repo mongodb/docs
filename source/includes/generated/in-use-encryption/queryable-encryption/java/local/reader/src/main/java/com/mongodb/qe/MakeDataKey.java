@@ -1,4 +1,4 @@
-package com.mongodb.csfle;
+package com.mongodb.qe;
 /*
  * Copyright 2008-present MongoDB, Inc.
 
@@ -43,6 +43,7 @@ import com.mongodb.client.model.vault.DataKeyOptions;
 import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 
+
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
 import java.security.SecureRandom;
@@ -52,7 +53,7 @@ import java.security.SecureRandom;
  * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
  * - Prints base 64-encoded value of the data encryption key
  */
-public class makeDataKey {
+public class MakeDataKey {
 
     public static void main(String[] args) throws Exception {
         byte[] localMasterKeyWrite = new byte[96];
@@ -145,7 +146,8 @@ public class makeDataKey {
                                 .append("queries", new BsonDocument().append("queryType", new BsonString("equality"))),
                         new BsonDocument().append("keyId", dataKeyId4)
                                 .append("path", new BsonString("patientRecord.billing"))
-                                .append("bsonType", new BsonString("object")))));
+                                .append("bsonType", new BsonString("object"))
+                        )));
         Map<String, BsonDocument> encryptedFieldsMap = new HashMap<String, BsonDocument>();
         encryptedFieldsMap.put(encryptedNameSpace, encFields);
 
