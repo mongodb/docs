@@ -1,0 +1,144 @@
+.. _c2c-logging:
+
+=======
+Logging
+=======
+
+.. default-domain:: mongodb
+
+:program:`mongosync` maintains a running log of events, including entries
+such as the copying collections and indexes, change stream events, and API 
+calls. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Destination
+-----------
+
+:program:`mongosync` can write log messages to stdout or to file.
+
+Standard Output
+^^^^^^^^^^^^^^^
+
+By default, ``mongosync`` outputs log messages to stdout:
+
+.. code-block:: console
+
+   $ mongosync --config /etc/mongosync.conf
+
+Example output:
+
+.. code-block:: json 
+   :copyable: false
+
+   {"level":"info","mongosyncID":"shard02","verbosity":"INFO","id":"shard02","port":27301,"time":"2022-06-21T11:15:33-04:00","message":"Mongosync Options"}
+   {"level":"info","mongosyncID":"shard02","time":"2022-06-21T11:15:33-04:00","message":"Initialized client0 with URI: mongodb://192.0.2.1:27130 and client1 with URI: mongodb://192.0.2.2:27140."}
+   {"level":"info","mongosyncID":"shard02","time":"2022-06-21T11:15:33-04:00","message":"Preflight checks completed."}
+   {"level":"info","mongosyncID":"shard02","time":"2022-06-21T11:15:33-04:00","message":"Launch replication thread"}
+
+Log to File
+^^^^^^^^^^^
+
+To output log messages to file, start ``mongosync`` with the 
+:option:`--logPath` option or set the :setting:`logPath` setting
+in the configuration file.
+
+When logging to file, ``mongosync`` writes logs to a file in the configured
+directory.  The directory is created if it does not exist.  If a ``mongosync.log``
+file already exists in the directory, ``mongosync`` rotates the log files to
+preserve the old logs as it begins a new file.
+
+.. code-block:: console
+
+   $ ls /var/log/mongosync
+
+For example: 
+
+.. code-block:: none
+   :copyable: false
+
+   mongosync-2022-06-17T16-27-58.187.log  mongosync.log
+   mongosync-2022-06-21T13-31-42.668.log
+
+The currently active log file is ``mongosync.log``.  The other files are older
+logs that ``mongosync`` has rotated.
+
+
+Verbosity
+---------
+
+:program:`mongosync` supports user-defined verbosity to increase or decrease
+the level of log messages ``mongosync`` outputs.
+
+The verbosity level can be set using the :option:`--verbosity` option from the
+command-line or the :setting:`verbosity` setting in the configuration file.
+
+Format
+------
+
+:program:`mongosync` outputs log messages in structured JSON format.
+Each log message is a document that holds the key-value pairs for that entry.
+The keys label the log message elements, the values are the reported events.
+
+For example:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+        "level": "info",
+        "mongosyncID": "shard01",
+        "componentName": "Change Event Application",
+        "time": "2022-06-21T09:31:42-04:00",
+        "message": "Starting change stream reader."
+   }
+
+Examples
+--------
+
+To view log messages, check the ``mongosync.log`` file in the log directory.
+You can format the log by piping its contents to ``jq`` or a similar command:
+
+.. code-block:: console
+
+   $ cat /var/log/mongosync/mongosync.log | jq
+
+Example output:
+
+.. code-block:: json
+   :copyable: false
+ 
+   {
+      "level": "info",
+      "mongosyncID": "shard02",
+      "verbosity": "INFO",
+      "id": "shard02",
+      "port":27301,
+      "time": "2022-06-21T11:15:33-04:00",
+      "message": "Mongosync Options"
+   }
+   {
+      "level": "info",
+      "mongosyncID": "shard02",
+      "time": "2022-06-21T11:15:33-04:00",
+      "message": "Initialized client0 with URI: mongodb://192.0.2.1:27130 and client1 with URI: mongodb://192.0.2.2:27140."
+   }
+   {
+      "level": "info",
+      "mongosyncID": "shard02",
+      "time": "2022-06-21T11:15:33-04:00",
+      "message": "Preflight checks completed."
+   }
+   {
+      "level": "info",
+      "mongosyncID": "shard02",
+      "time": "2022-06-21T11:15:33-04:00",
+      "message": "Launch replication thread"
+   }
+
+
