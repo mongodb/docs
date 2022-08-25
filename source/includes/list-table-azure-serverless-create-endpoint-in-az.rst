@@ -12,8 +12,7 @@
           property in the :guilabel:`Resource ID` field.
 
         - Use the output from the ``azure network private-endpoint
-          create`` command to create the
-          private endpoint returns this value in the ``id`` field:
+          create`` command, which returns this value in the ``id`` field:
 
           .. literalinclude:: /includes/api/responses/az-network-private-endpoint-create.json
               :language: json
@@ -37,8 +36,7 @@
         - Use the |azure| CLI to retrieve this value:
 
           i. Use the output from the ``azure network private-endpoint
-             create`` command to create the
-             private endpoint includes the ID of the network
+             create`` command, which returns the ID of the network
              interface in the ``networkInterfaces.id`` field:
 
              .. literalinclude:: /includes/api/responses/az-network-private-endpoint-create.json
