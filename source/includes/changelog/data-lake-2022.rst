@@ -1,3 +1,12 @@
+.. _adf-v20220823:
+
+23 August 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Adds support for optionally specifying an ISODate format to optimize 
+  performance for date-type partitions.
+
 .. _adf-v20220802:
 
 02 August 2022 Release
