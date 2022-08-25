@@ -1,0 +1,300 @@
+stepnum: 1
+level: 4
+ref: create-private-endpoint-az-serverless
+title: "Create the private endpoint in |service|."
+content: |
+
+  a. Run the command to 
+     :oas-atlas-op:`Create One Private Endpoint for One Serverless Instance 
+     </createOnePrivateEndpointForOneServerlessInstance>`,
+     replacing the placeholders with your values. To learn more
+     about the placeholders, see the path parameters in the
+     :oas-atlas-op:`{+atlas-admin-api+} spec
+     </createOnePrivateEndpointForOneServerlessInstance>`.
+
+     .. code-block:: json
+        :linenos:
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/{INSTANCE-NAME}/endpoint?pretty=true" \
+        --data '
+           {
+             "comment" : "example comment"
+           }'
+
+  b. Copy and save the value for the field ``_id`` in the response.
+
+     .. code-block:: json
+        :copyable: false
+        :linenos:
+        :emphasize-lines: 2
+        
+        {
+          "_id": "6313703ae1c4ba2707d18973",
+          "cloudProviderEndpointId": null,
+          "comment": "example comment",
+          "endpointServiceName": null,
+          "errorMessage": null,
+          "privateEndpointIpAddress": null,
+          "privateLinkServiceResourceId": null,
+          "status": "RESERVATION_REQUESTED"
+        }
+---
+stepnum: 2
+level: 4
+ref: get-private-endpoint-service-name-az-serverless
+title: "Retrieve information about the private endpoint."
+content: |
+
+  .. note::
+
+     It might take |service| some time to provision the private
+     endpoint. Wait 1-2 minutes before you perform this step.
+
+  a. Run the command to 
+     :oas-atlas-op:`Return One Private Endpoint for One Serverless Instance
+     </returnOnePrivateEndpointForOneServerlessInstance>`. You must
+     replace the placeholders with the exact values for the endpoint
+     that you created. Replace {ENDPOINT-ID} with the ``_id`` that you
+     retrieved previously. To learn more
+     about the {GROUP-ID} and {INSTANCE-NAME} placeholders, see the 
+     path parameters in the
+     :oas-atlas-op:`{+atlas-admin-api+} spec
+     </returnOnePrivateEndpointForOneServerlessInstance>`.
+
+     .. code-block:: json
+        :linenos:
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --header "Accept: application/json" \
+             --request GET "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/{INSTANCE-NAME}/endpoint/{ENDPOINT-ID}?pretty=true"
+
+  b. Copy and save the value for the following fields in the response: 
+   
+     - ``endpointServiceName``
+     - ``privateLinkServiceResourceId``
+
+     .. code-block:: json
+        :copyable: false
+        :linenos:
+        :emphasize-lines: 5, 8
+        
+        {
+          "_id": "6313703ae1c4ba2707d18973",
+          "cloudProviderEndpointId": null,
+          "comment": "example comment",
+          "endpointServiceName": "pls_62f5394fcbfe456e4ed881d6",
+          "errorMessage": null,
+          "privateEndpointIpAddress": null,
+          "privateLinkServiceResourceId": "/subscriptions/4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/providers/Microsoft.Network/privateLinkServices/pls_62f5394fcbfe456e4ed881d6"
+          "status": "RESERVED"
+        }
+
+  If ``endpointServiceName`` is ``null``, wait 1-2 more minutes for 
+  |service| to provision the private endpoint. Then, try this step
+  again.
+
+---
+stepnum: 3
+level: 4
+ref: create-interface-endpoint-azure-api
+inherit:
+  ref: finalize-private-endpoint
+  file: steps-source-privatelink.yaml
+title: "Configure your Azure private endpoint."
+content: |
+
+  a. Disable network policies for private endpoints, replacing the
+     following placeholders with your values:
+
+     .. list-table::
+        :widths: 20 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - {RESOURCE-GROUP-NAME}
+          - Name of the |azure| resource group that contains the VNet
+            that you want to use to connect to |service|. You can find
+            this value on the :guilabel:`Resource Group Properties`
+            page on your |azure| dashboard.
+
+        * - {VIRTUAL-NETWORK-NAME}
+          - Name of the VNet that you want to use to connect to
+            |service|. You can find this value on the 
+            :guilabel:`Virtual Network` page on your |azure| dashboard.
+
+        * - {SUBNET-NAME}
+          - Name of the subnet in your |azure| VNet. You can find this
+            value on the :guilabel:`Virtual Network Subnets` page on
+            your |azure| dashboard.
+
+     .. code-block:: sh
+
+        az network vnet subnet update --resource-group {RESOURCE-GROUP-NAME} --vnet-name {VIRTUAL-NETWORK-NAME} --name {SUBNET-NAME} --disable-private-endpoint-network-policies true
+  
+  b. Run the ``create-vpc-endpoint`` command in the |azure| CLI,
+     replacing the following placeholders with your values:
+
+     .. list-table::
+        :widths: 20 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - {RESOURCE-GROUP-NAME}
+          - Name of the |azure| resource group that contains the VNet
+            that you want to use to connect to |service|. You can find
+            this value on the :guilabel:`Resource Group Properties`
+            page on your |azure| dashboard.
+
+        * - {VIRTUAL-NETWORK-NAME}
+          - Name of the VNet that you want to use to connect to
+            |service|. You can find this value on the 
+            :guilabel:`Virtual Network` page on your |azure| dashboard.
+
+        * - {SUBNET-NAME}
+          - Name of the subnet in your |azure| VNet. You can find this
+            value on the :guilabel:`Virtual Network Subnets` page on
+            your |azure| dashboard.
+
+        * - {PRIVATE-ENDPOINT-NAME}
+          - Human-readable label that identifies the private
+            endpoint within your |azure| resource group.
+
+        * - {PRIVATE-LINK-SERVICE-RESOURCE-ID}
+          - Unique string that identifies the resource group and ID for
+            the private endpoint.
+
+        * - {ENDPOINT-SERVICE-NAME}
+          - Unique string that identifies the endpoint service. This is
+            the ``endpointServiceName`` returned in a previous
+            step.
+
+     .. code-block:: sh
+
+        az network private-endpoint create --resource-group {RESOURCE-GROUP-NAME} --name {PRIVATE-ENDPOINT-NAME} --vnet-name {VIRTUAL-NETWORK-NAME} --subnet {SUBNET-NAME} --private-connection-resource-id {PRIVATE-LINK-SERVICE-RESOURCE-ID} --connection-name {ENDPOINT-SERVICE-NAME} --manual-request true
+
+     To learn more about the |azure| CLI, see 
+     :azure:`Create a Private Endpoint by Using the Azure CLI 
+     </private-link/create-private-endpoint-cl>`.
+
+  b. Copy and save the following values:
+
+     .. include:: /includes/list-table-azure-serverless-create-endpoint-in-az.rst
+
+---
+stepnum: 4
+level: 4
+ref: update-private-endpoint-aws-api
+title: "Update your private endpoint in |service| with the Resource ID and IP Address."
+content: |
+
+  Run the command to 
+  :oas-atlas-op:`Update One Private Ednpoint for One Serverless Instance 
+  </updateOnePrivateEndpointForOneServerlessInstance>`,
+  replacing the placeholders with the values for the endpoint you
+  created. 
+  
+  Replace the following placeholders with the values for the endpoint you created:
+  
+  - ``cloudProviderEndpointId`` - replace with the ``id`` that |azure|
+    returned when you created the endpoint (the :guilabel:`Resource ID` in the |azure| UI). 
+  - ``privateEndpointIpAddress`` - replace with the 
+    ``ipConfigurations.privateIpAddress`` that |azure| returned for the endpoint (the :guilabel:`Private IP` in the |azure| UI).
+
+  .. note::
+
+     The Resource ID for the private endpoint differs from the resource ID for the private endpoint service.
+
+     In our example, the ``privateLinkServiceResourceId`` is:
+
+     .. code-block:: sh
+         
+        /subscriptions/4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/providers/Microsoft.Network/privateLinkServices/pls_62f5394fcbfe456e4ed881d6
+        
+     The ``cloudProviderEndpointId`` is: 
+      
+     .. code-block:: sh
+      
+        /subscriptions/4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/providers/Microsoft.Network/privateEndpoints/test-endpoint
+    
+  To learn more about the
+  placeholders, see the path parameters for
+  :oas-atlas-op:`Update One Private Endpoint for One Serverless Instance 
+  </updateOnePrivateEndpointForOneServerlessInstance>`.
+
+  .. code-block:: json
+     :linenos:
+
+     curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+          --header "Accept: application/json" \
+          --header "Content-Type: application/json" \
+          --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/{INSTANCE-NAME}/endpoint/{ENDPOINT-ID}" \
+          --data '
+            {
+              "cloudProviderEndpointId" : "/subscriptions/4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/providers/Microsoft.Network/privateEndpoints/test-endpoint",
+              "providerName" : "AZURE",
+              "privateEndpointIpAddress" : "10.0.0.6"
+            }'
+
+  .. note::
+   
+     You **must** include the ``providerName`` to successfully run this command.
+
+---
+stepnum: 5
+level: 4
+ref: get-private-endpoint-status
+title: "Verify the private endpoint's availability."
+content: |
+
+  You can connect to an |service| {+serverless-instance+} using 
+  the |azure| private endpoint after |service| finishes configuring all
+  of the resources and the private endpoint becomes available.
+
+  To verify that the |azure| private endpoint is available: 
+   
+  a. Run the command to 
+     :oas-atlas-op:`Return One Private Endpoint for One Serverless Instance 
+     </returnOnePrivateEndpointForOneServerlessInstance>`,
+     replacing the placeholders with the parameters for the endpoint you
+     created. To learn more about the placeholders, see the path
+     parameters for
+     :oas-atlas-op:`Return One Private Endpoint for One Serverless Instance 
+     </returnOnePrivateEndpointForOneServerlessInstance>`.
+
+     .. code-block:: json
+        :linenos:
+
+        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+             --header "Accept: application/json" \
+             --request GET "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/privateEndpoint/serverless/instance/{INSTANCE-NAME}/endpoint/{ENDPOINT-ID}?pretty=true"
+
+  b. Verify that the ``status`` field's value is ``AVAILABLE`` as
+     shown in the following example:
+
+     .. code-block:: json
+        :copyable: false
+        :linenos:
+        :emphasize-lines: 9
+        
+        {
+          "_id": "6313703ae1c4ba2707d18973",
+          "cloudProviderEndpointId": "/subscriptions/4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/providers/Microsoft.Network/privateEndpoints/test-endpoint",
+          "comment": "example comment",
+          "endpointServiceName": "pls_62f5394fcbfe456e4ed881d6",
+          "errorMessage": null,
+          "privateEndpointIpAddress" : "10.0.0.6",
+          "privateLinkServiceResourceId" : "/subscriptions/4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/providers/Microsoft.Network/privateLinkServices/pls_62f5394fcbfe456e4ed881d6",
+          "status": "AVAILABLE"
+        }
+
+  If ``cloudProviderEndpointId`` is ``Initiating``, wait 1-2 more minutes
+  for |service| to configure the private endpoint. Then, try this step
+  again.
+...
