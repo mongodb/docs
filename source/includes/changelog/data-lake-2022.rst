@@ -1,3 +1,12 @@
+.. _data-lake-v20220823:
+
+23 August 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+- Supports On-Demand Pipelines that can 
+  be triggered to ingest any existing backup snapshot.
+
 .. _data-lake-v20220621:
 
 21 June 2022 Release
