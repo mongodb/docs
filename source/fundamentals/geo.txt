@@ -1,0 +1,356 @@
+.. _golang-geo:
+
+=========================
+Work with Geospatial Data
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to work with **geospatial data**; data formats,
+indexes, and queries. Geospatial
+data represents a geographic location on the surface of the Earth, or data
+on a Euclidean plane.
+
+Examples of geospatial data include:
+
+- Locations of movie theaters
+- Borders of countries
+- Routes of bicycle rides
+- Dog exercise areas in New York City
+- Points on a graph
+
+Store Geospatial Data
+---------------------
+
+All geospatial data in MongoDB is stored in one of the following formats:
+
+- GeoJSON, a format that represents geospatial data on an earth-like
+  sphere.
+
+- Legacy Coordinate Pair, a format that represents geospatial data
+  on a Euclidean plane.
+
+GeoJSON
+~~~~~~~
+
+Use GeoJSON to store data that represents geospatial information on
+an earth-like sphere. GeoJSON is composed of one or more **positions**
+and a **type**.
+
+Positions
+`````````
+
+A position represents a single place on Earth and exists in code as an array
+containing the following values:
+
+- Longitude in the first position (required)
+- Latitude in the second position (required)
+- Elevation in the third position (optional)
+
+The following is the **position** of the MongoDB Headquarters in
+New York City, NY.
+
+.. code-block:: go
+   :copyable: False
+
+   []float64{-73.986805, 40.7620853}
+
+.. important:: Longitude then Latitude
+
+  GeoJSON orders coordinates as **longitude** first and **latitude** second.
+  This may be surprising as geographic coordinate system conventions generally list
+  latitude first and longitude second. Make sure to check what format any other
+  tools you are working with use. Popular tools such as OpenStreetMap and Google
+  Maps list coordinates as latitude first and longitude second.
+
+
+Types
+`````
+
+Your GeoJSON object's type determines the geometric shape it represents. Geometric shapes are
+made up of positions.
+
+Here are some common GeoJSON types and how you can specify them with positions:
+
+- ``Point``: a single position. The following ``Point`` represents the location of
+  the MongoDB Headquarters:
+
+  .. code-block:: go
+     :copyable: False
+
+     bson.D{
+         {"name", "MongoDB HQ"},
+         {"location", bson.D{
+             {"type", "Point"},
+             {"coordinates", []float64{-73.986805, 40.7620853}},
+         }},
+     }
+
+- ``LineString``: an array of two or more positions that forms a series of line
+  segments. A ``LineString`` can represent a path, route, border, or any other linear
+  geospatial data. The following ``LineString`` represents a segment of
+  `the Great Wall of China <https://commons.wikimedia.org/wiki/File:GreatWallChina4.png>`__:
+
+  .. code-block:: go
+     :copyable: False
+
+     bson.D{
+         {"name", "Great Wall of China"},
+         {"location", bson.D{
+             {"type", "LineString"},
+             {"coordinates", [][]float64{
+                 {116.572, 40.430},
+                 {116.570, 40.434},
+                 {116.567, 40.436},
+                 {116.566, 40.441},
+             }}},
+         },
+     }
+
+- ``Polygon``: an array of positions in which the first and last
+  position are the same and enclose some space. The following
+  ``Polygon`` represents `the land within Vatican City
+  <https://commons.wikimedia.org/wiki/File:Vatican_City_map_EN.png>`__:
+
+  .. code-block:: go
+     :copyable: False
+
+     bson.D{
+         {"name", "Vatican City"},
+         {"location", bson.D{
+             {"type", "Polygon"},
+             {"coordinates", [][][]float64{{
+                 {116.572, 40.430},
+                 {116.570, 40.434},
+                 {116.567, 40.436},
+                 {116.572, 40.430},
+             }}},
+         }},
+     }
+
+
+To learn more about the GeoJSON types you can use in MongoDB, see the
+:manual:`GeoJSON manual entry </reference/geojson/>`.
+
+For definitive information on GeoJSON, see the
+`official IETF specification <https://datatracker.ietf.org/doc/html/rfc7946>`__.
+
+Legacy Coordinate Pairs
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use legacy coordinate pairs to store data that represents geospatial information
+on a two-dimensional Euclidean plane.
+
+
+Your field should contain an array of two values in which the first represents
+the ``x`` axis value and the second represents the ``y`` axis value.
+
+.. code-block:: json
+   :copyable: False
+
+   bson.D{{"center", []int16{0, 0}}}
+
+
+For more information on legacy coordinate pairs, see the
+:manual:`MongoDB server manual page on legacy coordinate pairs </geospatial-queries/#legacy-coordinate-pairs>`.
+
+.. _golang-geospatial-indexes:
+
+Geospatial Indexes
+------------------
+
+To enable querying for geosptial data, you must first create a supporting
+index. The following index types that enable geospatial queries:
+
+
+- ``2dsphere`` for GeoJSON data
+- ``2d`` for legacy coordinate pairs
+
+2dsphere
+~~~~~~~~
+To query data stored in the GeoJSON format, add the field containing
+both the ``type`` and ``coordinates`` to a ``2dsphere`` index. The
+following snippet creates a ``2dsphere`` index on the ``location`` field:
+
+.. code-block:: go
+
+   indexModel := mongo.IndexModel{
+       Keys:    bson.D{{"location", "2dsphere"}},
+   }
+
+   name, err := coll.Indexes().CreateOne(context.TODO(), indexModel)
+   if err != nil {
+       panic(err)
+   }
+
+
+2d
+~~
+To query data stored as legacy coordinate pairs, you must add the field containing
+legacy coordinate pairs to  a ``2d`` index. The following snippet creates a
+``2d`` index on the ``coordinates`` field:
+
+.. code-block:: go
+
+   indexModel := mongo.IndexModel{
+       Keys:    bson.D{{"location.coordinates", "2d"}},
+   }
+
+   name, err := coll.Indexes().CreateOne(context.TODO(), indexModel)
+   if err != nil {
+       panic(err)
+   }
+
+Geospatial Queries
+------------------
+
+To perform a geospatial query, create a query filter with a field name and a geospatial
+query operator. You can specify additional options for certain geospatial query operators
+to limit the documents returned.
+
+If you have not done so, you must :ref:`create a geospatial index <golang-geospatial-indexes>`
+to enable geospatial queries.
+
+.. tip:: Supported Operators
+
+   Spherical (``2dsphere``) and flat (``2d``) indexes support some, but
+   not all, of the same query operators. For a full list of operators
+   and their index compatibility, see the
+   :manual:`manual entry for geospatial queries </geospatial-queries/#geospatial-query-operators>`.
+
+Query Operators
+~~~~~~~~~~~~~~~
+
+To query your geospatial data, use one of the following query operators:
+
+- ``$near``
+- ``$geoWithin``
+- ``$nearSphere``
+- ``$geoIntersects`` *requires a 2dsphere index*
+
+When using the ``$near`` operator, you can specify the following distance operators:
+
+- ``$minDistance``
+- ``$maxDistance``
+
+When using the ``$geoWithin`` operator, you can specify the following shape operators:
+
+- ``$box``
+- ``$polygon``
+- ``$center``
+- ``$centerSphere``
+
+For more information on geospatial query operators, see the
+:manual:`manual entry for geospatial queries </geospatial-queries/#geospatial-query-operators>`.
+
+Examples
+--------
+
+The following examples use the MongoDB Atlas sample dataset. You can load sample datasets into
+your database on the free tier of MongoDB Atlas by following the :atlas:`Get Started with Atlas Guide
+</getting-started/#atlas-getting-started>` or you can :guides:`import the sample dataset into a local MongoDB instance
+</server/import/>`.
+
+The examples use the ``theaters`` collection in the ``sample_mflix`` database
+from the sample dataset. The ``theaters`` collection contains a ``2dsphere`` index
+on the ``location.geo`` field.
+
+Query by Proximity
+~~~~~~~~~~~~~~~~~~
+
+The following example queries for documents with a ``location.geo`` field
+within 1000 meters of the MongoDB Headquarters in New York City, NY. It returns documents
+from nearest to farthest.
+
+.. io-code-block::
+
+   .. input::
+      :language: go
+
+      mongoDBHQ := bson.D{{"type", "Point"}, {"coordinates", []float64{-73.986805, 40.7620853}}}
+
+      filter := bson.D{
+          {"location.geo", bson.D{
+              {"$near", bson.D{
+                  {"$geometry", mongoDBHQ},
+                  {"$maxDistance", 1000},
+              }},
+          }},
+      }
+      var places []bson.D
+      output, err := coll.Find(context.TODO(), filter)
+      if err = output.All(context.TODO(), &places); err != nil {
+          panic(err)
+      }
+      fmt.Println(places)
+
+   .. output::
+      :language: json
+
+      [
+        [{_id ObjectID(...)} {theaterId 1908} {location [{address [...]} {geo [{type Point} {coordinates [-73.983487 40.76078]}]}]}]
+        [{_id ObjectID(...)} {theaterId 1448} {location [{address [...]} {geo [{type Point} {coordinates [-73.982094 40.76988]}]}]}]
+      ]
+
+
+Query Within a Range
+~~~~~~~~~~~~~~~~~~~~
+
+The following example queries for documents with a ``location.geo`` field
+no closer than 2000 meters and no farther than 3000 meters of the MongoDB
+Headquarters in New York City, NY. It returns documents from nearest to farthest.
+
+.. io-code-block::
+
+   .. input::
+      :language: go
+
+      mongoDBHQ := bson.D{{"type", "Point"}, {"coordinates", []float64{-73.986805, 40.7620853}}}
+
+      filter := bson.D{
+          {"location.geo",
+               bson.D{
+                   {"$nearSphere", bson.D{
+                       {"$geometry", MongoDBHQ},
+                       {"$minDistance", 2000},
+                       {"$maxDistance", 3000},
+                }},
+          }},
+      }
+      var places bson.D
+      err := coll.Find(context.TODO(), filter).Decode(&places)
+      if err != nil {
+          panic(err)
+      }
+      fmt.Println(places)
+
+   .. output::
+      :language: json
+
+      [[{_id ObjectID(...)} {theaterId 482} {location [...]} {geo [{type Point} {coordinates [-73.99295 40.74194]}]}]}]]
+
+Additional Resources
+--------------------
+
+- For more information about working with geospatial data, see the
+  :ref:`manual entry for geospatial data <geo-overview-location-data>`.
+
+- For more information about supported GeoJSON types, see the the
+  :manual:`GeoJSON manual entry </reference/geojson/>`.
+
+- For more information about geospatial query operators, see the
+  :manual:`manual entry for geospatial queries </geospatial-queries/#geospatial-query-operators>`.
+
+- For more information about working with indexes with the {+driver-short+}, see the
+  :ref:`index guide <golang-indexes>`.
+
+

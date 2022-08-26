@@ -11,6 +11,7 @@ Fundamentals section:
 - :ref:`Construct Indexes <golang-indexes>`
 - :ref:`Use a Time Series Collection <golang-time-series>`
 - :ref:`Encrypt Fields <golang-fle>`
+- :ref:`Work with Geospatial Data <golang-geo>`
 
 .. - :doc:`Use the Driver's Data Formats </fundamentals/data-formats>`
 .. - :doc:`Specify Collations </fundamentals/collations>`
