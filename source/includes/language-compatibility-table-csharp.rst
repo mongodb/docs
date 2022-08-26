@@ -264,5 +264,5 @@ through 4.8 only.
 .. [#2.14-note] {+driver-short+} versions 2.14 or later requires .NET Framework 4.7.2 or
    later.
 
-.. [#4.5.2] .NET/C# Driver versions 2.8 to 2.13 requires .NET Framework 4.5.2 or later.
+.. [#4.5.2] {+driver-short+} versions 2.8 to 2.13 requires .NET Framework 4.5.2 or later.
 
