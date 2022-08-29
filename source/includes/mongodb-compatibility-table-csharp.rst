@@ -1,10 +1,9 @@
-.. include:: /includes/compatibility-table-legend.rst
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
    :class: compatibility-large
 
-   * - C#/.NET Driver Version
+   * - {+driver-short+} Version
      - MongoDB 6.0
      - MongoDB 5.0
      - MongoDB 4.4
