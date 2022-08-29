@@ -332,4 +332,4 @@
    .. note:: Indexed and Unindexed Algorithms
 
       To learn more about the indexed and unindexed algorithms in
-      {+manual-enc+}, see :ref:`<qe-fundamentals>`.
+      {+manual-enc+}, see :ref:`<qe-fundadmentals-man-enc-algorithm-choice>`.
