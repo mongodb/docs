@@ -45,23 +45,26 @@ import com.mongodb.client.model.IndexOptions;
  * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
  * - Prints base 64-encoded value of the data encryption key
  */
-public class makeDataKey {
+public class MakeDataKey {
 
     public static void main(String[] args) throws Exception {
 
         // start-kmsproviders
+        String kmsProvider = "gcp";
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
-        String kmsProvider = "aws";
         Map<String, Object> providerDetails = new HashMap<>();
-        providerDetails.put("accessKeyId", new BsonString("<IAM User Access Key ID>"));
-        providerDetails.put("secretAccessKey", new BsonString("<IAM User Secret Access Key>"));
+        providerDetails.put("email", "<Your GCP Email Address>");
+        providerDetails.put("privateKey", "<Your GCP Private Key>");
         kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-datakeyopts
+        BsonDocument masterKeyProperties = new BsonDocument();
         masterKeyProperties.put("provider", new BsonString(kmsProvider));
-        masterKeyProperties.put("key", new BsonString("<Master Key ARN>"));
-        masterKeyProperties.put("region", new BsonString("<Master Key AWS Region>"));
+        masterKeyProperties.put("projectId", new BsonString("<Your GCP Project ID>"));
+        masterKeyProperties.put("location", new BsonString("<Your GCP Key Location>"));
+        masterKeyProperties.put("keyRing", new BsonString("<Your GCP Key Ring>"));
+        masterKeyProperties.put("keyName", new BsonString("<Your GCP Key Name>"));
         // end-datakeyopts
 
         // start-create-index

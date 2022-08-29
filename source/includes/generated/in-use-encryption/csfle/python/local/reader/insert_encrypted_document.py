@@ -64,11 +64,12 @@ json_schema = {
 
 patient_schema = {"medicalRecords.patients": json_schema}
 
+
 patient_schema = {"medicalRecords.patients": json_schema}
 # end-schema
 
 # start-extra-options
-extra_options = {"mongocryptd_spawn_path": "/usr/local/bin/mongocryptd"}
+extra_options = {"mongocryptd_spawn_path": "<your path to mongocryptd>"}
 # end-extra-options
 
 # start-client
@@ -109,6 +110,7 @@ regularClient = MongoClient(connection_string)
 print("Finding a document with regular (non-encrypted) client.")
 result = regularClient.medicalRecords.patients.find_one({"name": "Jon Doe"})
 pprint.pprint(result)
+
 print("Finding a document with encrypted client, searching on an encrypted field")
 pprint.pprint(secureClient.medicalRecords.patients.find_one({"ssn": 241014209}))
 # end-find

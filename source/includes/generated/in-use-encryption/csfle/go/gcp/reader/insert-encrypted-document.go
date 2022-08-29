@@ -87,9 +87,10 @@ func Insert() error {
 
 	// start-extra-options
 	extraOptions := map[string]interface{}{
-		"mongocryptdSpawnPath": "/usr/local/bin/mongocryptd",
+		"mongocryptdSpawnPath": "<your path to mongocryptd>",
 	}
 	// end-extra-options
+
 	regularClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
 		return fmt.Errorf("Connect error for regular client: %v", err)

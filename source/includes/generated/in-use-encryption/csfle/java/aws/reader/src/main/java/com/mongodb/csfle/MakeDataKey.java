@@ -39,43 +39,29 @@ import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
 import com.mongodb.client.model.IndexOptions;
 
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.SecureRandom;
 
 /*
  * - Reads master key from file "master-key.txt" in root directory of project, or creates one on a KMS
  * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
  * - Prints base 64-encoded value of the data encryption key
  */
-public class makeDataKey {
+public class MakeDataKey {
 
     public static void main(String[] args) throws Exception {
-        byte[] localMasterKeyWrite = new byte[96];
-        new SecureRandom().nextBytes(localMasterKeyWrite);
-        try (FileOutputStream stream = new FileOutputStream("master-key.txt")) {
-            stream.write(localMasterKeyWrite);
-        }
 
         // start-kmsproviders
-        String kmsProvider = "local";
-        String path = "master-key.txt";
-
-        byte[] localMasterKeyRead = new byte[96];
-
-        try (FileInputStream fis = new FileInputStream(path)) {
-            if (fis.read(localMasterKeyRead) < 96)
-                throw new Exception("Expected to read 96 bytes from file");
-        }
-        Map<String, Object> keyMap = new HashMap<String, Object>();
-        keyMap.put("key", localMasterKeyRead);
-
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
-        kmsProviders.put("local", keyMap);
+        String kmsProvider = "aws";
+        Map<String, Object> providerDetails = new HashMap<>();
+        providerDetails.put("accessKeyId", new BsonString("<IAM User Access Key ID>"));
+        providerDetails.put("secretAccessKey", new BsonString("<IAM User Secret Access Key>"));
+        kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-datakeyopts
+        masterKeyProperties.put("provider", new BsonString(kmsProvider));
+        masterKeyProperties.put("key", new BsonString("<Master Key ARN>"));
+        masterKeyProperties.put("region", new BsonString("<Master Key AWS Region>"));
         // end-datakeyopts
 
         // start-create-index
@@ -111,7 +97,7 @@ public class makeDataKey {
         MongoClient regularClient = MongoClients.create(connectionString);
 
         ClientEncryption clientEncryption = ClientEncryptions.create(clientEncryptionSettings);
-        BsonBinary dataKeyId = clientEncryption.createDataKey(kmsProvider, new DataKeyOptions());
+        BsonBinary dataKeyId = clientEncryption.createDataKey(kmsProvider, new DataKeyOptions().masterKey(masterKeyProperties));
         String base64DataKeyId = Base64.getEncoder().encodeToString(dataKeyId.getData());
         System.out.println("DataKeyId [base64]: " + base64DataKeyId);
         clientEncryption.close();

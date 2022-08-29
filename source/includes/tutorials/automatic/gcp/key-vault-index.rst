@@ -28,12 +28,12 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/gcp/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/gcp/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
          :start-after: start-create-index
          :end-before: end-create-index
          :language: java
          :dedent:
-         :caption: makeDataKey.java
+         :caption: MakeDataKey.java
 
    .. tab::
       :tabid: go

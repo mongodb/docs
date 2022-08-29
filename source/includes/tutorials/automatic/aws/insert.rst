@@ -10,11 +10,11 @@ snippet:
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
          :start-after: start-insert
          :end-before: end-insert
          :language: java
-         :caption: insertEncryptedDocument.java
+         :caption: InsertEncryptedDocument.java
          :dedent:
 
    .. tab::

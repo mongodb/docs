@@ -34,10 +34,6 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import org.bson.Document;
 
-import java.io.FileOutputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.SecureRandom;
 
 
 /*
@@ -48,7 +44,7 @@ import java.security.SecureRandom;
  * - Attempts to find the upserted document with the normal client using an encrypted field
  * - Finds the upserted document with the normal client using a non-encrypted field
  */
-public class insertEncryptedDocument {
+public class InsertEncryptedDocument {
 
     public static void main(String[] args) throws Exception {
         String recordsDb = "medicalRecords";
@@ -58,23 +54,16 @@ public class insertEncryptedDocument {
         String keyVaultNamespace = "encryption.__keyVault";
         // end-key-vault
 
-        String connectionString = "mongodb://localhost:27017";
+        String connectionString = "<Your MongoDB URI>";
 
         // start-kmsproviders
-        String kmsProvider = "local";
-        String path = "master-key.txt";
-
-        byte[] localMasterKeyRead = new byte[96];
-        
-        try (FileInputStream fis = new FileInputStream(path)) {
-            if (fis.read(localMasterKeyRead) < 96)
-                throw new Exception("Expected to read 96 bytes from file");
-        }
-        Map<String, Object> keyMap = new HashMap<String, Object>();
-        keyMap.put("key", localMasterKeyRead);
-        
+        String kmsProvider = "azure";
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
-        kmsProviders.put("local", keyMap);
+        Map<String, Object> providerDetails = new HashMap<>();
+        providerDetails.put("tenantId", "<Azure account organization>");
+        providerDetails.put("clientId", "<Azure client ID>");
+        providerDetails.put("clientSecret", "<Azure client secret>");
+        kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-schema
@@ -99,14 +88,13 @@ public class insertEncryptedDocument {
                                         new Document().append("policyNumber", new Document().append("encrypt", new Document()
                                                 .append("bsonType", "int")
                                                 .append("algorithm", "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"))))));
-        
         HashMap<String, BsonDocument> schemaMap = new HashMap<String, BsonDocument>();
         schemaMap.put("medicalRecords.patients", BsonDocument.parse(jsonSchema.toJson()));
         // end-schema
 
         // start-extra-options
         Map<String, Object> extraOptions = new HashMap<String, Object>();
-        extraOptions.put("mongocryptdSpawnPath", "/usr/local/bin/mongocryptd");
+        extraOptions.put("mongocryptdSpawnPath", "<your path to mongocryptd>"));
         // end-extra-options
 
         MongoClientSettings clientSettingsRegular = MongoClientSettings.builder()
@@ -156,6 +144,5 @@ public class insertEncryptedDocument {
         // end-find 
         mongoClientSecure.close();
         mongoClientRegular.close();    
-
     }
 }

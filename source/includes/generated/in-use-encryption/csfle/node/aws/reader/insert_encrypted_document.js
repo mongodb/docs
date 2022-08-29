@@ -59,13 +59,14 @@ const schema = {
     },
   },
 };
+
 var patientSchema = {};
 patientSchema[namespace] = schema;
 // end-schema
 
 // start-extra-options
 const extraOptions = {
-  mongocryptdSpawnPath: "/usr/local/bin/mongocryptd",
+  mongocryptdSpawnPath: "<your path to mongocryptd>",
 };
 // end-extra-options
 
@@ -115,6 +116,7 @@ async function main() {
       console.log(
         await regularClient.db(db).collection(coll).findOne({ name: /Jon/ })
       );
+
       console.log(
         "Finding a document with encrypted client, searching on an encrypted field"
       );

@@ -45,25 +45,20 @@ import com.mongodb.client.model.IndexOptions;
  * - Locates existing local encryption key from encryption.__keyVault collection, or from a KMS
  * - Prints base 64-encoded value of the data encryption key
  */
-public class makeDataKey {
+public class MakeDataKey {
 
     public static void main(String[] args) throws Exception {
 
         // start-kmsproviders
-        String kmsProvider = "azure";
+        String kmsProvider = "kmip";
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
         Map<String, Object> providerDetails = new HashMap<>();
-        providerDetails.put("tenantId", "<Azure account organization>");
-        providerDetails.put("clientId", "<Azure client ID>");
-        providerDetails.put("clientSecret", "<Azure client secret>");
+        providerDetails.put("endpoint", "<endpoint for your KMIP KMS>");
         kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-datakeyopts
-        BsonDocument masterKeyProperties = new BsonDocument();
-        masterKeyProperties.put("provider", new BsonString(kmsProvider));
-        masterKeyProperties.put("keyName", new BsonString("<Azure key name>"));
-        masterKeyProperties.put("keyVaultEndpoint", new BsonString("<Azure key vault endpoint"));
+        BsonDocument masterKeyProperties = new BsonDocument(); // an empty key object prompts your KMIP provider to generate a new Customer Master Key
         // end-datakeyopts
 
         // start-create-index
