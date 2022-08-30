@@ -56,6 +56,7 @@ import java.security.SecureRandom;
 public class MakeDataKey {
 
     public static void main(String[] args) throws Exception {
+
         byte[] localMasterKeyWrite = new byte[96];
         new SecureRandom().nextBytes(localMasterKeyWrite);
         try (FileOutputStream stream = new FileOutputStream("master-key.txt")) {

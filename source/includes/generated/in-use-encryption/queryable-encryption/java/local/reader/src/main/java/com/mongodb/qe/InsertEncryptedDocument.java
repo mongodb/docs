@@ -55,7 +55,6 @@ public class InsertEncryptedDocument {
 
     public static void main(String[] args) throws Exception {
 
-
         String encryptedDbName = "medicalRecords";
         String encryptedCollName = "patients";
         String encryptedNameSpace = encryptedDbName + "." + encryptedCollName;

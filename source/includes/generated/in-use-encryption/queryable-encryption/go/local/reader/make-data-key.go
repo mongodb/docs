@@ -178,7 +178,7 @@ func MakeKey() error {
 		return fmt.Errorf("Error creating collection: %v", err)
 	}
 	// end-create-enc-collection
-	print("Created Encrypted Collection\n")
+	fmt.Println("Created Encrypted Collection")
 
 	return nil
 }

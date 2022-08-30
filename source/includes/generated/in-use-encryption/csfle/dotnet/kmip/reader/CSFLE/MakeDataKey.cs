@@ -16,6 +16,7 @@ namespace Key
         {
 
 
+
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var provider = "kmip";
@@ -55,7 +56,7 @@ namespace Key
             // start-create-tls
             var tlsOptions = new Dictionary<string, SslSettings>();
             var sslSettings = new SslSettings();
-            var clientCertificate = new X509Certificate2("<path to your pkcs12 client certificate file>"));
+            var clientCertificate = new X509Certificate2("<path to your pkcs12 client certificate file>");
             sslSettings.ClientCertificates = new List<X509Certificate>() {
                 clientCertificate,
              };

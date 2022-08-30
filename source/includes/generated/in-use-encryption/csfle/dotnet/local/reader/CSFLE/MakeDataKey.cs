@@ -14,6 +14,7 @@ namespace Key
         public static void MakeKey()
         {
 
+
             using (var randomNumberGenerator = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
                 var bytes = new byte[96];

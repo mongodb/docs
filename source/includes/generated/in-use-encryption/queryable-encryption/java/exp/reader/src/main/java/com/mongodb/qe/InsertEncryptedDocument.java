@@ -48,7 +48,6 @@ public class InsertEncryptedDocument {
 
     public static void main(String[] args) throws Exception {
 
-
         // start-key-vault
         String db = "medicalRecords";
         String coll = "patients";
