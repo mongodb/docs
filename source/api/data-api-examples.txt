@@ -33,7 +33,7 @@ Base64 and a `BSON subtype <https://bsonspec.org/spec.html>`_ encoded as
 a two-character hexadecimal string:
 
 .. code-block:: bash
-   :emphasize-lines: 11-16
+   :emphasize-lines: 10-15
    :copyable: false
    
    curl --request POST \
@@ -61,7 +61,7 @@ To specify a date, use ``$date`` with the `UNIX timestamp in
 milliseconds <https://currentmillis.com/>`_ as a 64-bit integer:
 
 .. code-block:: bash
-   :emphasize-lines: 11
+   :emphasize-lines: 10
    :copyable: false
    
    curl --request POST \
@@ -84,7 +84,7 @@ To specify a 128-bit decimal, use ``$numberDecimal`` with the decimal
 value as a string:
 
 .. code-block:: bash
-   :emphasize-lines: 11
+   :emphasize-lines: 10
    :copyable: false
    
    curl --request POST \
@@ -107,7 +107,7 @@ To specify a 64-bit signed floating point value (commonly referred to as
 a "double"), use ``$numberDouble`` with the integer value as a string:
 
 .. code-block:: bash
-   :emphasize-lines: 11
+   :emphasize-lines: 10
    :copyable: false
    
    curl --request POST \
@@ -130,7 +130,7 @@ To specify a 32-bit signed integer value, use ``$numberInt`` with the
 integer value as a string:
 
 .. code-block:: bash
-   :emphasize-lines: 11
+   :emphasize-lines: 10
    :copyable: false
    
    curl --request POST \
@@ -153,7 +153,7 @@ To specify a 64-bit signed integer value, use ``$numberLong`` with the
 integer value as a string:
 
 .. code-block:: bash
-   :emphasize-lines: 11
+   :emphasize-lines: 10
    :copyable: false
    
    curl --request POST \
@@ -175,7 +175,7 @@ ObjectId
 To specify an ObjectId value, use ``$oid`` with the ID as a byte string:
 
 .. code-block:: bash
-   :emphasize-lines: 11
+   :emphasize-lines: 10
    :copyable: false
    
    curl --request POST \
@@ -188,5 +188,103 @@ To specify an ObjectId value, use ``$oid`` with the ID as a byte string:
          "collection": "<collection name>",
          "document": {
            "_id": { "$oid": "61f02ea3af3561e283d06b91" }
+         }
+     }'
+
+.. _atlas-data-api-query-examples:
+
+Query Examples
+--------------
+
+The code snippets in this section demonstrate common patterns you can
+use in your read and write operations.
+
+Find All Documents
+~~~~~~~~~~~~~~~~~~
+
+To match all documents in a collection, use an empty query object:
+
+.. code-block:: bash
+   :emphasize-lines: 9
+   :copyable: false
+   
+   curl --request POST \
+     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/find' \
+     --header 'Content-Type: application/ejson' \
+     --header 'api-key: <{+data-api+} Key>' \
+     --data-raw '{
+         "dataSource": "<cluster name>",
+         "database": "<database name>",
+         "collection": "<collection name>",
+         "filter": {}
+     }'
+
+Find Document by ID
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB stores each document with a unique identifier in the ``_id``
+field. For most apps, this is a BSON ObjectID value. You can match any
+ObjectID field, including a document using an EJSON ``$oid`` object:
+
+.. code-block:: bash
+   :emphasize-lines: 10
+   :copyable: false
+   
+   curl --request POST \
+     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/find' \
+     --header 'Content-Type: application/ejson' \
+     --header 'api-key: <{+data-api+} Key>' \
+     --data-raw '{
+         "dataSource": "<cluster name>",
+         "database": "<database name>",
+         "collection": "<collection name>",
+         "filter": {
+           "_id": { "$oid": "630e51b3f4cd7d9e606caab6" }
+         }
+     }'
+
+Find By Date
+~~~~~~~~~~~~
+
+You can match documents on a specific date by matching an EJSON
+``$date`` object with a field that contains a date value:
+
+.. code-block:: bash
+   :emphasize-lines: 10
+   :copyable: false
+   
+   curl --request POST \
+     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/find' \
+     --header 'Content-Type: application/ejson' \
+     --header 'api-key: <{+data-api+} Key>' \
+     --data-raw '{
+         "dataSource": "<cluster name>",
+         "database": "<database name>",
+         "collection": "<collection name>",
+         "filter": {
+           "createdAt": { "$date": { "$numberLong": "1661881925033" } }
+         }
+     }'
+
+You can query a range of dates with ``$gt``, ``$gte``, ``$lt``, and
+``$lte``:
+
+.. code-block:: bash
+   :emphasize-lines: 11-12
+   :copyable: false
+   
+   curl --request POST \
+     'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/find' \
+     --header 'Content-Type: application/ejson' \
+     --header 'api-key: <{+data-api+} Key>' \
+     --data-raw '{
+         "dataSource": "<cluster name>",
+         "database": "<database name>",
+         "collection": "<collection name>",
+         "filter": {
+           "createdAt": {
+             "$gte": { "$date": { "$numberLong": "1640995200000" } },
+             "$lt": { "$date": { "$numberLong": "1672531200000" } }
+           }
          }
      }'
