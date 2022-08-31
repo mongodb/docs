@@ -116,6 +116,9 @@ setting, go to the :guilabel:`Custom` tab in the
 Additional Information
 ----------------------
 
+To learn how to start and stop your Backup Daemon on a server, see
+:doc:`/tutorial/start-and-stop-backup-daemon`.
+
 To move jobs from a lost Backup server to another Backup server, see
 :doc:`/tutorial/move-jobs-to-new-backup-daemon`.
 
