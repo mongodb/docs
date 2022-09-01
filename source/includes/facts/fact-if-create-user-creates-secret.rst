@@ -13,6 +13,6 @@ contains the following information about the new database user:
 
    Alternatively, you can specify an optional 
    ``spec.connectionStringSecretName`` field in the 
-   ``MongoDBUser``custom resource to specify 
+   ``MongoDBUser`` custom resource to specify 
    the name of the connection string secret that the 
    |k8s-op-short| creates.
