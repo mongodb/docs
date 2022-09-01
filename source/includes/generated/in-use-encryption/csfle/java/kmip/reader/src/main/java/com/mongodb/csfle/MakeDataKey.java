@@ -53,12 +53,12 @@ public class MakeDataKey {
         String kmsProvider = "kmip";
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
         Map<String, Object> providerDetails = new HashMap<>();
-        providerDetails.put("endpoint", "<endpoint for your KMIP KMS>");
+        providerDetails.put("endpoint", "<endpoint for your KMIP-compliant key provider>");
         kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 
         // start-datakeyopts
-        BsonDocument masterKeyProperties = new BsonDocument(); // an empty key object prompts your KMIP provider to generate a new Customer Master Key
+        BsonDocument masterKeyProperties = new BsonDocument(); // an empty key object prompts your KMIP-compliant key provider to generate a new Customer Master Key
         // end-datakeyopts
 
         // start-create-index

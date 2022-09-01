@@ -10,7 +10,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/kmip/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
@@ -20,7 +20,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
@@ -30,7 +30,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/kmip/reader/make_data_key.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
@@ -40,7 +40,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/kmip/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
@@ -50,7 +50,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/kmip/reader/make-data-key.go
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
@@ -66,7 +66,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/kmip/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: java
@@ -76,7 +76,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: javascript
@@ -86,7 +86,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/kmip/reader/make_data_key.py
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: python
@@ -96,7 +96,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/kmip/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: csharp
@@ -106,23 +106,23 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/kmip/reader/make-data-key.go
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: go
                :dedent:
                :caption: make-data-key.go
 
-   .. step:: Generate your {+dek-long+}
+   .. step:: Generate your {+dek-long+}s
 
-      .. _csfle-kmip-create-dek:
+      .. _qe-kmip-create-dek:
 
       .. tabs-drivers::
 
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/kmip/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: java
@@ -132,7 +132,7 @@
          .. tab::
             :tabid: nodejs
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: javascript
@@ -142,7 +142,7 @@
          .. tab::
             :tabid: python
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/make_data_key.py
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/kmip/reader/make_data_key.py
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: python
@@ -152,7 +152,7 @@
          .. tab::
             :tabid: csharp
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/kmip/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: csharp
@@ -162,7 +162,7 @@
          .. tab::
             :tabid: go
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/make-data-key.go
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/kmip/reader/make-data-key.go
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: go

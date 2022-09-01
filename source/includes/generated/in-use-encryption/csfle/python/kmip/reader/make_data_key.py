@@ -9,13 +9,15 @@ from bson.binary import STANDARD, UUID
 
 # start-kmsproviders
 provider = "kmip"
-kms_providers = {provider: {"endpoint": "<endpoint for your KMIP KMS>"}}
+kms_providers = {
+    provider: {"endpoint": "<endpoint for your KMIP-compliant key provider>"}
+}
 # end-kmsproviders
 
 # start-datakeyopts
 master_key = (
     {}
-)  # an empty key object prompts your KMIP provider to generate a new Customer Master Key
+)  # an empty key object prompts your KMIP-compliant key provider to generate a new Customer Master Key
 # end-datakeyopts
 
 # start-create-index

@@ -19,11 +19,21 @@ namespace QueryableEncryption
             var provider = "kmip";
             var kmipKmsOptions = new Dictionary<string, object>
             {
-               { "endpoint", "<endpoint for your KMIP KMS>" },
+               { "endpoint", "<endpoint for your KMIP-compliant key provider>" },
             };
             kmsProviders.Add(provider, kmipKmsOptions);
             // end-kmsproviders
 
+            // start-datakeyopts
+            DataKeyOptions GetDataKeyOptions(List<string> altNames)
+            {
+                var dataKeyOptions = new DataKeyOptions(
+                    alternateKeyNames: altNames,
+                    masterKey: new BsonDocument { } // an empty key object prompts your KMIP-compliant key provider to generate a new Customer Master Key
+                );
+                return dataKeyOptions;
+            }
+            // end-datakeyopts
 
             // start-create-index
             var connectionString = "<Your MongoDB URI>";

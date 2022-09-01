@@ -22,14 +22,14 @@ namespace Key
             var provider = "kmip";
             var kmipKmsOptions = new Dictionary<string, object>
             {
-               { "endpoint", "<endpoint for your KMIP KMS>" },
+               { "endpoint", "<endpoint for your KMIP-compliant key provider>" },
             };
             kmsProviders.Add(provider, kmipKmsOptions);
             // end-kmsproviders
 
             // start-datakeyopts
             var dataKeyOptions = new DataKeyOptions(
-                masterKey: new BsonDocument { } // an empty key object prompts your KMIP provider to generate a new Customer Master Key
+                masterKey: new BsonDocument { } // an empty key object prompts your KMIP-compliant key provider to generate a new Customer Master Key
             );
             // end-datakeyopts
             // start-create-index

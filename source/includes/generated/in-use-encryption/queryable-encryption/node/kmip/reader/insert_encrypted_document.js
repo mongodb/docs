@@ -10,7 +10,7 @@ const keyVaultNamespace = `${eDB}.${eKV}`;
 const provider = "kmip";
 const kmsProviders = {
   kmip: {
-    endpoint: "<endpoint for your KMIP KMS>",
+    endpoint: "<endpoint for your KMIP-compliant key provider>",
   },
 };
 // end-kmsproviders

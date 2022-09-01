@@ -60,8 +60,8 @@
 
    .. step:: Specify your KMIP Endpoint
 
-      Specify the ``kmip`` KMS provider and the URI of your
-      {+kmip-kms+}:
+      Specify ``kmip`` in your ``kmsProviders`` object and enter
+      the URI endpoint of your {+kmip-kms+}:
 
       .. tabs-drivers::
 

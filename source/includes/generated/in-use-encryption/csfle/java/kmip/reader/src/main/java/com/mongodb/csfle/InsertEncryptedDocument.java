@@ -60,7 +60,7 @@ public class InsertEncryptedDocument {
         String kmsProvider = "kmip";
         Map<String, Map<String, Object>> kmsProviders = new HashMap<String, Map<String, Object>>();
         Map<String, Object> providerDetails = new HashMap<>();
-        providerDetails.put("endpoint", "<endpoint for your KMIP KMS>");
+        providerDetails.put("endpoint", "<endpoint for your KMIP-compliant key provider>");
         kmsProviders.put(kmsProvider, providerDetails);
         // end-kmsproviders
 

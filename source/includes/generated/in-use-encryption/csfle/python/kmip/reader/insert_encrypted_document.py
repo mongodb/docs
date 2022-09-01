@@ -15,7 +15,9 @@ connection_string = "<your connection string here>"
 
 # start-kmsproviders
 provider = "kmip"
-kms_providers = {provider: {"endpoint": "<endpoint for your KMIP KMS>"}}
+kms_providers = {
+    provider: {"endpoint": "<endpoint for your KMIP-compliant key provider>"}
+}
 # end-kmsproviders
 
 # start-schema

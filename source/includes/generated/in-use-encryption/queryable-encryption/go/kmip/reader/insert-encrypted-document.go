@@ -24,6 +24,12 @@ func Insert() error {
 	collName := "patients"
 
 	// start-kmsproviders
+	provider := "kmip"
+	kmsProviders := map[string]map[string]interface{}{
+		provider: {
+			"endpoint": "<endpoint for your KMIP-compliant key provider>",
+		},
+	}
 	// end-kmsproviders
 
 	uri := "<Your MongoDB URI>"

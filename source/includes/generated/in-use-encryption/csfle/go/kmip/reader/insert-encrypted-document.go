@@ -24,7 +24,7 @@ func Insert() error {
 	provider := "kmip"
 	kmsProviders := map[string]map[string]interface{}{
 		provider: {
-			"endpoint": "<endpoint for your KMIP KMS>",
+			"endpoint": "<endpoint for your KMIP-compliant key provider>",
 		},
 	}
 	// end-kmsproviders

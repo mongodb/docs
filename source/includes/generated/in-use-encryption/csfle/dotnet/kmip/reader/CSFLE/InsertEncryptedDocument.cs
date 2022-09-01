@@ -26,7 +26,7 @@ namespace Insert
             var provider = "kmip";
             var kmipKmsOptions = new Dictionary<string, object>
             {
-               { "endpoint", "<endpoint for your KMIP KMS>" },
+               { "endpoint", "<endpoint for your KMIP-compliant key provider>" },
             };
             kmsProviders.Add(provider, kmipKmsOptions);
             // end-kmsproviders

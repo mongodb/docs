@@ -24,7 +24,7 @@ a client certificate that your {+kmip-kms+} accepts:
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
          :start-after: start-create-tls
          :end-before: end-create-tls
          :language: javascript
@@ -34,7 +34,7 @@ a client certificate that your {+kmip-kms+} accepts:
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/make_data_key.py
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/kmip/reader/make_data_key.py
          :start-after: start-create-tls
          :end-before: end-create-tls
          :language: python
@@ -44,7 +44,7 @@ a client certificate that your {+kmip-kms+} accepts:
    .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/kmip/reader/QueryableEncryption/MakeDataKey.cs
          :start-after: start-create-tls
          :end-before: end-create-tls
          :language: csharp
@@ -64,7 +64,7 @@ a client certificate that your {+kmip-kms+} accepts:
    .. tab::
       :tabid: go
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/make-data-key.go
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/kmip/reader/make-data-key.go
          :start-after: start-create-tls
          :end-before: end-create-tls
          :language: go
