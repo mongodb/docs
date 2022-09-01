@@ -95,6 +95,7 @@ namespace QueryableEncryption
             };
             // end-schema
 
+
             // start-extra-options
             var extraOptions = new Dictionary<string, object>()
             {
@@ -108,7 +109,8 @@ namespace QueryableEncryption
                 keyVaultNamespace,
                 kmsProviders,
                 encryptedFieldsMap: encryptedFieldsMap,
-                extraOptions: extraOptions);
+                extraOptions: extraOptions
+                );
             clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
             var secureClient = new MongoClient(clientSettings);
             // end-client

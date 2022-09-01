@@ -58,6 +58,9 @@ json_schema = {
 
 patient_schema = {"medicalRecords.patients": json_schema}
 
+patient_schema = {"medicalRecords.patients": json_schema}
+# end-schema
+
 # start-create-tls
 tls_options = {
     "kmip": {
@@ -66,9 +69,6 @@ tls_options = {
     }
 }
 # end-create-tls
-
-patient_schema = {"medicalRecords.patients": json_schema}
-# end-schema
 
 # start-extra-options
 extra_options = {"mongocryptd_spawn_path": "<your path to mongocryptd>"}

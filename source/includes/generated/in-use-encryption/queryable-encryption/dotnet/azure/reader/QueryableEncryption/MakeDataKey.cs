@@ -61,11 +61,13 @@ namespace QueryableEncryption
             keyVaultCollection.Indexes.CreateOne(indexModel);
             // end-create-index
 
+
             // start-create-dek
             var clientEncryptionOptions = new ClientEncryptionOptions(
                 keyVaultClient,
                 keyVaultNamespace,
-                kmsProviders);
+                kmsProviders: kmsProviders
+                );
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);
             var dataKeyOptions1 = GetDataKeyOptions(new List<string> { "dataKey1" });
             var dataKeyOptions2 = GetDataKeyOptions(new List<string> { "dataKey2" });

@@ -46,6 +46,7 @@ key_vault_client[key_vault_db][key_vault_coll].create_index(
 )
 # end-create-index
 
+
 # start-create-dek
 client = MongoClient(connection_string)
 client_encryption = ClientEncryption(
