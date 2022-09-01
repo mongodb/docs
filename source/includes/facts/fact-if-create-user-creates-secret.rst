@@ -8,3 +8,11 @@ contains the following information about the new database user:
   that can connect you to the database as this database user.
 - ``connectionString.standardSrv``: :manual:`DNS seed list connection string </reference/connection-string/#dns-seed-list-connection-format>` that can
   connect you to the database as this database user.
+
+.. note::
+
+   Alternatively, you can specify an optional 
+   ``spec.connectionStringSecretName`` field in the 
+   ``MongoDBUser``custom resource to specify 
+   the name of the connection string secret that the 
+   |k8s-op-short| creates.
