@@ -1,3 +1,10 @@
+.. _mongodb-12.0.11.7606:
+
+MongoDB Agent 12.0.11.7606
+--------------------------
+
+:ref:`Released with Ops Manager 6.0.3 on 2022-09-01 <opsmgr-server-6.0.3>`
+
 .. _mongodb-12.0.10.7591:
 
 MongoDB Agent 12.0.10.7591

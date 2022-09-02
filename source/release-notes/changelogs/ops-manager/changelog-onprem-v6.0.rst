@@ -1,3 +1,23 @@
+.. _opsmgr-server-6.0.3:
+
+|onprem| Server 6.0.3
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-09-01*
+
+- Moves the :guilabel:`User to Distinguished Name Mapping` field in
+  :guilabel:`Security Settings` from the :guilabel:`LDAP Authorization`
+  section to the :guilabel:`Other Settings` section in
+  :guilabel:`Native LDAP Authentication`. To learn more, see
+  :ref:`Enable LDAP Authentication <enable-ldap-authentication>`.
+- Updates the delay of the ``Query Targeting: Scanned Objects / Returned``
+  default alert from 0 to 10 minutes, so that the alert fires only if
+  this threshold is maintained for 10 minutes. This affects only the
+  default alert configuration.
+- Updates JDK to ``jdk-11.0.16.1+1``.
+- Updates the {+mdbagent+} to :ref:`12.0.11.7606
+  <mongodb-12.0.11.7606>`.
+
 .. _opsmgr-server-6.0.2:
 
 |onprem| Server 6.0.2
@@ -9,7 +29,7 @@
   files and corrects file suffix handling.
 - Adds MongoDB 6.0.0 as a deployment option.
 - Introduces FCV 6.0 option in Ops Manager.
-- Updates JDK to jdk-11.0.16+8.
+- Updates JDK to ``jdk-11.0.16+8``.
 - Updates the {+mdbagent+} to :ref:`12.0.10.7591
   <mongodb-12.0.10.7591>`.
 
