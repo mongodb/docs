@@ -27,7 +27,9 @@
      - Provide the 
        :ref:`BSON timestamp <document-bson-type-timestamp>`
        for the first :term:`oplog <oplog>` entry
-       you want to include in the restore.
+       you want to include in the restore. This information appears in
+       the "Last Oplog Applied" entry in the ``restoreInfo.txt`` file
+       provided with the downloaded snapshot.
 
        .. note::
 
