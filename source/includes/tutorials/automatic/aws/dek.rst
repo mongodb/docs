@@ -13,11 +13,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
                :dedent:
 
          .. tab::
@@ -80,11 +80,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: java
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
                :dedent:
 
          .. tab::
@@ -136,11 +136,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/makeDataKey.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: java
-               :caption: makeDataKey.java
+               :caption: MakeDataKey.java
                :dedent:
 
          .. tab::

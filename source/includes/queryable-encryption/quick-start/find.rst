@@ -31,12 +31,12 @@ a client that is not configured for automatic {+qe+}.
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
          :start-after: start-find
          :end-before: end-find
          :language: java
          :dedent:
-         :caption: insertEncryptedDocument.java
+         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: go

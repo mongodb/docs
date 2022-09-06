@@ -41,12 +41,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: java
                :dedent:
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: csharp
@@ -90,12 +90,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: go
@@ -144,12 +144,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
                :start-after: start-schema
                :end-before: end-schema
                :language: java
                :dedent:
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: go
@@ -198,12 +198,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: java
                :dedent:
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: go
@@ -257,12 +257,12 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
                :start-after: start-client
                :end-before: end-client
                :language: java
                :dedent:
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: go

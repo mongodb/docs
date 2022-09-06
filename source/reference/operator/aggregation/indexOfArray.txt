@@ -26,21 +26,16 @@ Definition
 
       { $indexOfArray: [ <array expression>, <search expression>, <start>, <end> ] }
 
-
    .. list-table::
       :header-rows: 1
       :widths: 20 20 80
    
       * - Field
-   
         - Type
-   
         - Description
    
-      * - ``<array>``
-   
+      * - ``<array>``   
         - string
-   
         - Can be any valid :ref:`expression <aggregation-expressions>` as long
           as it resolves to an array. For more information on expressions, see
           :ref:`aggregation-expressions`.
@@ -52,22 +47,14 @@ Definition
           If the array expression does not resolve to an array or ``null`` nor
           refers to a missing field, :expression:`$indexOfArray` returns an
           error.
-          
-          
-   
-      * - ``<search value>``
-   
+
+      * - ``<search value>``   
         - string
-   
         - Can be any valid :ref:`expression <aggregation-expressions>`. For
           more information on expressions, see :ref:`aggregation-expressions`.
-          
-          
    
       * - ``<start>``
-   
         - integer
-   
         - Optional. An integer, or a number that can be represented as integers (such as
           2.0), that specifies the starting index position for the search. Can
           be any valid :ref:`expression <aggregation-expressions>` that
@@ -75,13 +62,9 @@ Definition
           
           If unspecified, the starting index position for the search is the
           beginning of the string.
-          
-          
-   
-      * - ``<end>``
-   
+
+      * - ``<end>``   
         - integer
-   
         - Optional. An integer, or a number that can be represented as integers (such as
           2.0), that specifies the ending index position for the search. Can
           be any valid :ref:`expression <aggregation-expressions>` that
@@ -92,10 +75,6 @@ Definition
           
           If unspecified, the ending index position for the search is the
           end of the string.
-          
-          
-   
-
 
 Behavior
 --------
@@ -167,45 +146,56 @@ position.
    * - ``{ $indexOfArray: [ "foo", "foo" ] }``
      - Error
 
-Examples
---------
+Example
+-------
 
-Consider an ``inventory`` collection with the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 1, "items" : ["one", "two", "three"] }
-   { "_id" : 2, "items" : [1, 2, 3] }
-   { "_id" : 3, "items" : [null, null, 2] }
-   { "_id" : 4, "items" : null }
-   { "_id" : 5, "amount" : 3 }
-
-The following operation uses the :expression:`$indexOfArray` operator to
-return the array index at which the string ``foo`` is located in each ``items`` array:
+The example uses this ``inventory`` collection:
 
 .. code-block:: javascript
 
-   db.inventory.aggregate(
-      [
-        {
-          $project:
-             {
-               index: { $indexOfArray: [ "$items", 2 ] },
-             }
-         }
-      ]
-   )
+   db.inventory.insertMany( [
+      { _id: 0, items: [ "one", "two", "three" ] },
+      { _id: 1, items: [ 1, 2, 3 ] },
+      { _id: 2, items: [ 1, 2, 3, 2 ] },
+      { _id: 3, items: [ null, null, 2 ] },
+      { _id: 4, items: [ 2, null, null, 2 ] },
+      { _id: 5, items: null },
+      { _id: 6, amount: 3 }
+   ] )
 
-The operation returns the following results:
+The following example uses :expression:`$indexOfArray` to find ``2`` in
+the ``items`` array:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "index" : "-1" }
-   { "_id" : 2, "index" : "1" }
-   { "_id" : 3, "index" : "2" }
-   { "_id" : 4, "index" : null }
-   { "_id" : 5, "index" : null }
+   db.inventory.aggregate( [ {
+      $project: {
+         index: { $indexOfArray: [ "$items", 2 ] }
+      }
+   } ] )
 
+The example returns:
+
+- The first array index for the value ``2`` in each ``items`` array, if
+  found. Array indexes start at ``0``.
+- ``-1`` for the index if ``2`` is not in the ``items`` array.
+- ``null`` for the index if ``items`` is not an array or ``items`` does
+  not exist.
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 0, index: -1 },
+      { _id: 1, index: 1 },
+      { _id: 2, index: 1 },
+      { _id: 3, index: 2 },
+      { _id: 4, index: 0 },
+      { _id: 5, index: null },
+      { _id: 6, index: null }
+   ]
 
 .. seealso::
 

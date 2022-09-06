@@ -200,6 +200,9 @@ Document Validation
 
    .. include:: /includes/extracts/table-validationLevel-values.rst
 
+   To see an example that uses ``validationLevel``, see
+   :ref:`schema-specify-validation-level`.
+
 .. collflag:: validationAction
 
    The ``validationAction`` option determines whether to ``error`` on
@@ -211,10 +214,8 @@ Document Validation
       Validation of documents only applies to those documents as
       determined by the ``validationLevel``.
 
-   .. include:: /includes/extracts/table-validationAction-values.rst
-
-To view the validation specifications for a collection, use the
-:method:`db.getCollectionInfos()` method.
+   To see an example that uses ``validationAction``, see
+   :ref:`schema-validation-handle-invalid-docs`.
 
 Views
 ~~~~~
@@ -487,68 +488,6 @@ To hide a text index, you must specify the index by ``name`` and not by
    - :method:`db.collection.hideIndex()`
    - :method:`db.collection.unhideIndex()`
 
-Add Document Validation to an Existing Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following example adds a validator to an existing collection named
-``contacts``.
-
-.. note::
-
-   MongoDB 3.6 adds the :query:`$jsonSchema` operator to support JSON
-   Schema validation.
-
-.. code-block:: javascript
-
-   db.runCommand( { collMod: "contacts",
-      validator: { $jsonSchema: {
-         bsonType: "object",
-         required: [ "phone" ],
-         properties: {
-            phone: {
-               bsonType: "string",
-               description: "must be a string and is required"
-            },
-            email: {
-               bsonType : "string",
-               pattern : "@mongodb\.com$",
-               description: "must be a string and match the regular expression pattern"
-            },
-            status: {
-               enum: [ "Unknown", "Incomplete" ],
-               description: "can only be one of the enum values"
-            }
-         }
-      } },
-      validationLevel: "moderate",
-      validationAction: "warn"
-   } )
-
-With the ``moderate`` :collflag:`validationLevel`, MongoDB applies
-validation rules to insert operations and to update operationss to
-existing documents that already fulfill the validation criteria.
-Updates to existing documents that do not fulfill the validation
-criteria are not checked for validity.
-
-With the ``warn`` :collflag:`validationAction`, MongoDB logs any
-violations but allows the insertion or update to proceed.
-
-For example, the following insert operation violates the validation rule.
-
-.. code-block:: javascript
-
-   db.contacts.insertOne( { name: "Amanda", status: "Updated" } )
-
-However, since the ``validationAction`` is ``warn`` only, MongoDB only
-logs the validation violation message and allows the operation to
-proceed:
-
-.. code-block:: bash
-
-   2017-12-01T12:31:23.738-05:00 W STORAGE  [conn1] Document would fail validation collection: example.contacts doc: { _id: ObjectId('5a2191ebacbbfc2bdc4dcffc'), name: "Amanda", status: "Updated" }
-
-For more information, see :ref:`schema-validation-overview`.
-
 
 Convert an Existing Index to a Unique Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -643,4 +582,3 @@ entries:
 
 To complete the conversion, modify the duplicate entries to remove any
 conflicts and re-run ``collMod()`` with the ``unique`` option.
-

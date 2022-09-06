@@ -1,42 +1,171 @@
+.. procedure::
+   :style: connected
 
-Update and run the following code
-to generate a new {+dek-long+}:
+   .. step:: Add your Endpoint
 
-.. _csfle-kmip-create-dek:
+      Specify the URI endpoint of your {+kmip-kms+}:
 
-.. tabs-drivers::
+      .. tabs-drivers::
 
-    .. tab::
-       :tabid: java-sync
+         .. tab::
+            :tabid: java-sync
 
-       .. code-block:: java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: java
+               :dedent:
+               :caption: MakeDataKey.java
 
-          Map<String, Map<String, Object>> kmsProviderProperties = new HashMap<>();
-          Map<String, Object> providerDetails = new HashMap<>();
-          providerDetails.put("endpoint", "<KMIP provider URI>");
-          kmsProviderProperties.put(kmsProvider,  providerDetails);
-          String keyVaultCollection = "<MongoDB namespace where you store your keys>"
+         .. tab::
+            :tabid: nodejs
 
-          ClientEncryption clientEncryption = ClientEncryptions.create(ClientEncryptionSettings.builder()
-              .keyVaultMongoClientSettings(MongoClientSettings.builder()
-                  .applyConnectionString(new ConnectionString("<MongoDB connection string>"))
-                  .build())
-              .keyVaultNamespace(keyVaultNamespace)
-              .kmsProviders(kmsProviders)
-              .build());
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
 
-          DataKeyOptions dataKeyOptions = new DataKeyOptions().masterKey(
-              new BsonDocument()
-                 .append("endpoint", new BsonString("<KMIP provider URI>")))
+         .. tab::
+            :tabid: python
 
-          BsonBinary dataKeyId = clientEncryption.createDataKey("kmip", dataKeyOptions);
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/make_data_key.py
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
 
-          System.out.println("DataKeyId [UUID]: " + dataKeyId.asUuid().toString());
+         .. tab::
+            :tabid: csharp
 
-.. note:: Create {+cmk-long+}
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
 
-   If you do not specify the ``keyId`` property in your ``dataKeyOpts``
-   object, your client-application creates a new key on your
-   {+kmip-kms+}.
+         .. tab::
+            :tabid: go
 
-   To learn more, see :ref:`csfle-reference-kms-providers-kmip-datakeyopts`.
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/make-data-key.go
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: go
+               :dedent:
+               :caption: make-data-key.go
+
+   .. step:: Add Your Key Information
+
+      The following code propmts your {+kmip-kms+} to automatically generate a {+cmk-long+}:
+
+      .. tabs-drivers::
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: java
+               :dedent:
+               :caption: MakeDataKey.java
+
+         .. tab::
+            :tabid: nodejs
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/make_data_key.py
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/make-data-key.go
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: go
+               :dedent:
+               :caption: make-data-key.go
+
+   .. step:: Generate your {+dek-long+}
+
+      .. _csfle-kmip-create-dek:
+
+      .. tabs-drivers::
+
+         .. tab::
+            :tabid: java-sync
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/kmip/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: java
+               :dedent:
+               :caption: MakeDataKey.java
+
+         .. tab::
+            :tabid: nodejs
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/kmip/reader/make_data_key.js
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
+
+         .. tab::
+            :tabid: python
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/kmip/reader/make_data_key.py
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: python
+               :dedent:
+               :caption: make_data_key.py
+
+         .. tab::
+            :tabid: csharp
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/MakeDataKey.cs
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: csharp
+               :dedent:
+               :caption: MakeDataKey.cs
+
+         .. tab::
+            :tabid: go
+
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/kmip/reader/make-data-key.go
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: go
+               :dedent:
+               :caption: make-data-key.go
+               

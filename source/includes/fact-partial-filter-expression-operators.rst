@@ -7,4 +7,8 @@
 
 - :query:`$type` expressions,
 
-- :query:`$and` operator at the top-level only
+- :query:`$and` operator,
+
+- :query:`$or` operator, 
+
+- :query:`$in` operator 

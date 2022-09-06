@@ -11,11 +11,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: java
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::
@@ -70,11 +70,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::
@@ -131,11 +131,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
                :start-after: start-schema
                :end-before: end-schema
                :language: java
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::
@@ -188,11 +188,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: java
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
                :dedent:
 
             .. note:: Encryption Binary Daemon
@@ -303,11 +303,11 @@
          .. tab::
             :tabid: java-sync
 
-            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+            .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
                :start-after: start-client
                :end-before: end-client
                :language: java
-               :caption: insertEncryptedDocument.java
+               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::

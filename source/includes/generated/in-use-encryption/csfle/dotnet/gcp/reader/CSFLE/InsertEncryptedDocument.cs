@@ -18,7 +18,7 @@ namespace Insert
             // end-key-vault
             var coll = "patients";
             var db = "medicalRecords";
-            var db_namespace = $"{db}.{coll}";
+            var dbNamespace = $"{db}.{coll}";
 
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();
@@ -108,8 +108,9 @@ namespace Insert
                }
             };
             var schemaMap = new Dictionary<string, BsonDocument>();
-            schemaMap.Add(db_namespace, schema);
+            schemaMap.Add(dbNamespace, schema);
             // end-schema
+
 
             // start-extra-options
             var mongoBinariesPath = "<Path to mongocryptd binary>";
@@ -129,7 +130,8 @@ namespace Insert
                 keyVaultNamespace: keyVaultNamespace,
                 kmsProviders: kmsProviders,
                 schemaMap: schemaMap,
-                extraOptions: extraOptions);
+                extraOptions: extraOptions
+                );
             clientSettings.AutoEncryptionOptions = autoEncryptionOptions;
             var secureClient = new MongoClient(clientSettings);
             // end-client
@@ -167,9 +169,10 @@ namespace Insert
             var filter = Builders<BsonDocument>.Filter.Eq("name", "Jon Doe");
             var regularResult = regularCollection.Find(filter).Limit(1).ToList()[0];
             Console.WriteLine($"\n{regularResult}\n");
+
             Console.WriteLine("Finding a document with encrypted client, searching on an encrypted field");
             var ssnFilter = Builders<BsonDocument>.Filter.Eq("ssn", 145014000);
-            var secureResult = secureCollection.Find(ssnFilter).Limit(1).ToList()[0];
+            var secureResult = secureCollection.Find(ssnFilter).Limit(1).First();
             Console.WriteLine($"\n{secureResult}\n");
             // end-find
         }

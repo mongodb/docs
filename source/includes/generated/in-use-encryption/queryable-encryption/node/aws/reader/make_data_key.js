@@ -42,6 +42,7 @@ async function run() {
     }
   );
   // end-create-index
+
   // start-create-dek
   const clientEnc = new ClientEncryption(keyVaultClient, {
     keyVaultNamespace: keyVaultNamespace,

@@ -28,12 +28,12 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/makeDataKey.java
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/aws/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
          :start-after: start-create-index
          :end-before: end-create-index
          :language: java
          :dedent:
-         :caption: makeDataKey.java
+         :caption: MakeDataKey.java
    
    .. tab::
       :tabid: go

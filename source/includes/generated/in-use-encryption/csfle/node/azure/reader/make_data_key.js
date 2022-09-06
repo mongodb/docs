@@ -44,12 +44,14 @@ async function main() {
     }
   );
   // end-create-index
+
   // start-create-dek
   const client = new MongoClient(uri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
   await client.connect();
+
   const encryption = new ClientEncryption(client, {
     keyVaultNamespace,
     kmsProviders,

@@ -7,15 +7,12 @@ Sharding
 ~~~~~~~~
 
 - :issue:`SERVER-57519` Make ARS use causally consistent ShardRegistry::getShard() function
-- :issue:`SERVER-61035` Increase zones in 'resharding_large_number_of_initial_chunks.js' to 175,000
-- :issue:`SERVER-61985` resharding_coordinator_recovers_abort_decision.js may report resharding operation as succeeding due to primary shard retrying _configsvrReshardCollection and running a second resharding operation
 - :issue:`SERVER-64340` Warn if balancer is disabled while draining shard
 - :issue:`SERVER-67457` Resharding operation aborted in the midst of contacting participants may stall on config server primary indefinitely
 - :issue:`SERVER-67477` Ensure range deletion index is created on addShard (6.0 only)
 - :issue:`SERVER-67492` Failed chunk migrations can lead recipient shard to have divergent config.transactions records between primary and secondaries
+- :issue:`SERVER-67535` move_chunk_large_chunk_map_workloads no longer reports timing breakdown of chunk migration due to server logging changes
 - :issue:`SERVER-68431` resharding_test_fixture doesn't configure failpoints for all nodes of config server
-- :issue:`SERVER-68495` Resharding a collection with a very large number of zones configured may stall on config server primary indefinitely
-- :issue:`SERVER-68628` Retrying a failed resharding operation after a primary failover can lead to server crash or lost writes
 
 Query
 ~~~~~
@@ -28,6 +25,11 @@ Aggregation
 
 :issue:`SERVER-68062` Multi-stage aggregations that use $geoNear may violate constraints.
 
+Build and Packaging
+~~~~~~~~~~~~~~~~~~~
+
+:issue:`SERVER-66808` Remove undocumented fields from the change stream error
+
 Internals
 ~~~~~~~~~
 
@@ -39,7 +41,6 @@ Internals
 - :issue:`SERVER-64416` Have view creation return the same error as collection creation
 - :issue:`SERVER-65006` Write conflict on commitIndexBuild oplog entry insertion can cause multikey to fail to be set
 - :issue:`SERVER-65262` Expand usage of WT numerical timestamp API
-- :issue:`SERVER-65317` mongod removes connection from connection pool after running simple $search query
 - :issue:`SERVER-65385` Disable signal processing for Google Microbenchmarks on DEBUG/Sanitizer variants
 - :issue:`SERVER-65454` Retried findAndModify requests can slow log/profile into the wrong namespace
 - :issue:`SERVER-65657` Reduce calls to the cappedInsertNotifier for the oplog 
@@ -47,6 +48,7 @@ Internals
 - :issue:`SERVER-66023` Do not constantly reset election and liveness timers
 - :issue:`SERVER-66027` Speedup tenant migration JS tests
 - :issue:`SERVER-66034` backports_required_for_multiversion_tests.yml is not blacklisting tenant migration tests from running on multiversion test suites
+- :issue:`SERVER-66246` Optimize Tenant Migration Concurrent test runtime
 - :issue:`SERVER-66247` Refactor api_version jstests to pass view name to assertViewSucceedsWithAPIStrict helper
 - :issue:`SERVER-66308` Restore views test for 'sbe' command to satisfy multiversion testing
 - :issue:`SERVER-66310` Make  ExpressionSetUnion::isCommutative() collation aware
@@ -57,8 +59,6 @@ Internals
 - :issue:`SERVER-66548` $lookup sequential cache can incorrectly treat a $facet as non-correlated 
 - :issue:`SERVER-66651` Role "restore" not sufficient for mongorestore --preserveUUID
 - :issue:`SERVER-66658` Shard registry might be accessed before initialization
-- :issue:`SERVER-66726` Fix serialization in killAllSessionsByPattern
-- :issue:`SERVER-66841` LOGV2: invalid JSON when truncation happens at a backslash character
 - :issue:`SERVER-66938` Drastically simplify command to generate ninja files
 - :issue:`SERVER-66943` Do not run aggregation for orphans against oplog.rs for collstats
 - :issue:`SERVER-66958` Handle potential multiple "processing" range deletions on step-up
@@ -67,7 +67,7 @@ Internals
 - :issue:`SERVER-67122` Add warning when building with --module=ninja that it is deprecated
 - :issue:`SERVER-67188` Use -large instance for replica_sets_jscore_passthrough on Windows
 - :issue:`SERVER-67227` Insert with collectionUUID could implicitly create a collection if command failed with collectionUUIDMismatch
-- :issue:`SERVER-67296` Mark the OpCtx of the configsvr commands used to commit chunk-related DDL ops as interruptible
+- :issue:`SERVER-67259` Change sleep for assert.soon in ttl_deletes_not_targeting_orphaned_documents.js
 - :issue:`SERVER-67305` Lock-free reads setup should validate writes permitted before and after setting up snapshot.
 - :issue:`SERVER-67377` Check whether $lookup pushdown feature availability on primary shard in mixed version cluster
 - :issue:`SERVER-67390` backup_restore.js should check for code -SIGINT due to unclean SIGINT
@@ -87,6 +87,7 @@ Internals
 - :issue:`SERVER-67683` Change some of the modes in fast and opt builds
 - :issue:`SERVER-67690` Use mongo-task-generator that randomizes test order
 - :issue:`SERVER-67700` limit does not get pushed to shards in search queries
+- :issue:`SERVER-67717` ${suffix} is not set in push task
 - :issue:`SERVER-67723` SessionCatalogMongoD reaper can interrupt expired internal transaction sessions for retryable writes that are still in use
 - :issue:`SERVER-67800` [6.0] Exclude clustered_collection_*.js from multiversion suites
 - :issue:`SERVER-67801` createIndexes should handle empty index specs on config.transactions
@@ -94,8 +95,8 @@ Internals
 - :issue:`SERVER-67804` [6.0] Exclude dbstats.js from multiversion suites
 - :issue:`SERVER-67845` Acquire critical section in rename "check preconditions" phase only if target not sharded
 - :issue:`SERVER-67885` shardCollection with a mismatched UUID on a capped collection will fail first with InvalidOptions
+- :issue:`SERVER-67911` Random distribution of test data in accumulator_fix_last_[continuous|lts].js can cause occasional test failure
 - :issue:`SERVER-67917` Use DBDirectClient in FLE count code path
-- :issue:`SERVER-67939` run_dbcheck_background.js should be resilient to CappedPositionLost
 - :issue:`SERVER-67992` Use operation timer tracker in fle mongos crud processing
 - :issue:`SERVER-68016` Use little endian for deserializing data serialized by BufBuilder
 - :issue:`SERVER-68041` Robustify merge_write_concern.js and add diagnostic log
@@ -110,10 +111,10 @@ Internals
 - :issue:`SERVER-68354` Set whenToClean to now when marking range deletion task as processing
 - :issue:`SERVER-68363` Mark 5.3 as EOL
 - :issue:`SERVER-68405` Constant Nothing in $group's _id expression should be converted to null in $group SBE stage builder
+- :issue:`SERVER-68443` InternalTransactionChunkMigrationTest and RetryableInternalTransactionTest fixtures should retry internal transactions on all transient errors
 - :issue:`SERVER-68463` [6.0] replsets/profile.js fails to set log level in replica_sets_multiversion suite
-- :issue:`SERVER-68479` collMod coordiantor V2 must block migration on bucket nss
 - :issue:`SERVER-68487` add BSONElement method to check for NaN field values
-- :issue:`SERVER-68511` MovePrimary update of config.databases entry must use dotted fields notation
+- :issue:`SERVER-68511` movePrimary might introduce sharding metadata inconsistency in MongoDB 5.0+
 - :issue:`SERVER-68513` The _configsvrRunRestore command should restore databases with unsharded collections
 - :issue:`SERVER-68526` Use mongo-task-generator that generates tasks separately for Windows, MacOS, Linux distro groups
 - :issue:`SERVER-68574` Switch to the new logkeeper cluster

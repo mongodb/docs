@@ -66,7 +66,8 @@ func MakeKey() error {
 	// end-create-index
 
 	// start-create-dek
-	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).SetKmsProviders(kmsProviders)
+	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).
+		SetKmsProviders(kmsProviders)
 	clientEnc, err := mongo.NewClientEncryption(keyVaultClient, clientEncryptionOpts)
 	if err != nil {
 		return fmt.Errorf("NewClientEncryption error %v", err)
@@ -171,7 +172,7 @@ func MakeKey() error {
 		return fmt.Errorf("Error creating collection: %v", err)
 	}
 	// end-create-enc-collection
-	print("Created Encrypted Collection")
+	fmt.Println("Created Encrypted Collection")
 
 	return nil
 }

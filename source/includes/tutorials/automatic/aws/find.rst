@@ -11,12 +11,12 @@ a client that is not configured for automatic {+csfle-abbrev+}.
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/insertEncryptedDocument.java
+      .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/aws/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
          :start-after: start-find
          :end-before: end-find
          :language: java
          :dedent:
-         :caption: insertEncryptedDocument.java
+         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: nodejs

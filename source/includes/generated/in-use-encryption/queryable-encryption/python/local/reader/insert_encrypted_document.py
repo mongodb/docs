@@ -69,6 +69,7 @@ encrypted_fields_map = {
 }
 # end-schema
 
+
 # start-extra-options
 auto_encryption = AutoEncryptionOpts(
     kms_providers,

@@ -35,12 +35,12 @@ snippet:
    .. tab::
       :tabid: java-sync
 
-      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/azure/reader/src/main/java/com/mongodb/qe/insertEncryptedDocument.java
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/azure/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
          :start-after: start-insert
          :end-before: end-insert
          :language: java
          :dedent:
-         :caption: insertEncryptedDocument.java
+         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: go

@@ -278,18 +278,9 @@ Definition
           the same operators as the :ref:`query operators <query-selectors>`
           with the exception of :query:`$near`, :query:`$nearSphere`,
           :query:`$text`, and :query:`$where`.
-          
-          .. note::
-          
-             - Validation occurs during updates and inserts. Existing
-               documents do not undergo validation checks until modification.
-          
-             - You cannot specify a validator for collections in the ``admin``,
-               ``local``, and ``config`` databases.
-          
-             - You cannot specify a validator for ``system.*`` collections.
-          
-          
+
+          To learn how to create a collection with schema validation,
+          see :ref:`schema-validation-json`.
    
       * - ``validationLevel``
    
@@ -299,9 +290,10 @@ Definition
           validation rules to existing documents during an update.
           
           .. include:: /includes/extracts/table-validationLevel-values.rst
-          
-          
-   
+
+          To see an example that uses ``validationLevel``, see
+          :ref:`schema-specify-validation-level`.
+
       * - ``validationAction``
    
         - string
@@ -314,7 +306,8 @@ Definition
              Validation of documents only applies to those documents as
              determined by the ``validationLevel``.
           
-          .. include:: /includes/extracts/table-validationAction-values.rst
+          To see an example that uses ``validationAction``, see
+          :ref:`schema-validation-handle-invalid-docs`.
           
           
    
@@ -497,86 +490,6 @@ The following example creates a collection that has
    );
 
 .. include:: /includes/change-stream-pre-and-post-images-additional-information.rst
-
-Create a Collection with Document Validation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Collections with validation compare each inserted or updated document
-against the criteria specified in the ``validator`` option. Depending
-on the ``validationLevel`` and ``validationAction``, MongoDB either
-returns a warning, or refuses to insert or update the document if it
-fails to meet the specified criteria.
-
-The following example creates a ``contacts`` collection with a JSON
-Schema validator:
-
-.. code-block:: json
-
-   db.createCollection( "contacts", {
-      validator: { $jsonSchema: {
-         bsonType: "object",
-         required: [ "phone" ],
-         properties: {
-            phone: {
-               bsonType: "string",
-               description: "must be a string and is required"
-            },
-            email: {
-               bsonType : "string",
-               pattern : "@mongodb\.com$",
-               description: "must be a string and match the regular expression pattern"
-            },
-            status: {
-               enum: [ "Unknown", "Incomplete" ],
-               description: "can only be one of the enum values"
-            }
-         }
-      } }
-   } )
-
-With the validator in place, the following insert operation fails validation:
-
-.. code-block:: javascript
-
-   db.contacts.insertOne( { name: "Amanda", status: "Updated" } )
-
-The method returns the error:
-
-.. code-block:: javascript
-
-     Uncaught:
-     MongoServerError: Document failed validation
-     Additional information: {
-       failingDocumentId: ObjectId("61a8f4847a818411619e952e"),
-       details: {
-         operatorName: '$jsonSchema',
-         schemaRulesNotSatisfied: [
-           {
-             operatorName: 'properties',
-             propertiesNotSatisfied: [
-               {
-                 propertyName: 'status',
-                 description: 'can only be one of the enum values',
-                 details: [ [Object] ]
-               }
-             ]
-           },
-           {
-             operatorName: 'required',
-             specifiedAs: { required: [ 'phone' ] },
-             missingProperties: [ 'phone' ]
-           }
-         ]
-       }
-     }
-
-To view the validation specifications for a collection, use
-:method:`db.getCollectionInfos()`.
-
-.. seealso::
-
-   - :doc:`/core/schema-validation`
-   - :query:`$jsonSchema`
 
 .. _createCollection-collation-example:
 

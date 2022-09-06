@@ -43,6 +43,7 @@ key_vault_client[key_vault_db][key_vault_coll].create_index(
 )
 # end-create-index
 
+
 # start-create-dek
 key_vault_database = "encryption"
 key_vault_collection = "__keyVault"

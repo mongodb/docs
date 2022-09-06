@@ -83,7 +83,8 @@ func MakeKey() error {
 	// end-create-index
 
 	// start-create-dek
-	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).SetKmsProviders(kmsProviders)
+	clientEncryptionOpts := options.ClientEncryption().SetKeyVaultNamespace(keyVaultNamespace).
+		SetKmsProviders(kmsProviders)
 	clientEnc, err := mongo.NewClientEncryption(keyVaultClient, clientEncryptionOpts)
 	if err != nil {
 		return fmt.Errorf("NewClientEncryption error %v", err)
