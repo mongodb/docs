@@ -223,5 +223,5 @@
      -
      - ✓
      - ✓
-
-.. include:: /includes/older-server-versions-unsupported.rst
+    
+The driver doesn't support older versions of MongoDB.
