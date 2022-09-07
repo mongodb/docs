@@ -151,16 +151,32 @@ must use :query:`$options` for both:
 PCRE vs JavaScript
 ``````````````````
 
-To use PCRE supported features in the regex pattern that are
-unsupported in JavaScript, you must use the :query:`$regex` operator
-expression with the pattern as a string. For example, to use ``(?i)``
-in the pattern to turn case-insensitivity on for the remaining pattern
-and ``(?-i)`` to turn case-sensitivity on for the remaining pattern, you
-must use the :query:`$regex` operator with the pattern as a string:
+To use PCRE supported features in a regular expression that aren't
+supported in JavaScript, you must use the :query:`$regex` operator and
+specify the regular expression as a string.
+
+To match case-insensitive strings:
+
+- ``"(?i)"`` begins a case-insensitive match.
+- ``"(?-i)"`` ends a case-insensitive match.
+
+For example, the regular expression ``"(?i)a(?-i)cme"`` matches strings
+that:
+
+- Begin with ``"a"`` or ``"A"``. This is a case-insensitive match.
+- End with ``"cme"``. This is a case-sensitive match.
+
+These strings match the example regular expression:
+
+- ``"acme"``
+- ``"Acme"``
+
+The following example uses the :query:`$regex` operator to find ``name``
+field strings that match the regular expression ``"(?i)a(?-i)cme"``:
 
 .. code-block:: javascript
 
-   { name: { $regex: '(?i)a(?-i)cme' } }
+   { name: { $regex: "(?i)a(?-i)cme" } }
 
 ``$regex`` and ``$not``
 ```````````````````````
@@ -199,6 +215,7 @@ Index Use
 For case sensitive regular expression queries, if an index exists for
 the field, then MongoDB matches the regular expression against the
 values in the index, which can be faster than a collection scan.
+
 Further optimization can occur if the regular expression is a "prefix
 expression", which means that all potential matches start with the same
 string. This allows MongoDB to construct a "range" from that prefix and
@@ -223,15 +240,17 @@ and is unable to utilize case-insensitive indexes.
 Examples
 --------
 
-The following examples use a collection ``products`` with the following
-documents:
+The examples in this section use the following ``products`` collection:
 
 .. code-block:: javascript
 
-   { "_id" : 100, "sku" : "abc123", "description" : "Single line description." }
-   { "_id" : 101, "sku" : "abc789", "description" : "First line\nSecond line" }
-   { "_id" : 102, "sku" : "xyz456", "description" : "Many spaces before     line" }
-   { "_id" : 103, "sku" : "xyz789", "description" : "Multiple\nline description" }
+   db.products.insertMany( [
+      { _id: 100, sku: "abc123", description: "Single line description." },
+      { _id: 101, sku: "abc789", description: "First line\nSecond line" },
+      { _id: 102, sku: "xyz456", description: "Many spaces before     line" },
+      { _id: 103, sku: "xyz789", description: "Multiple\nline description" },
+      { _id: 104, sku: "Abc789", description: "SKU starts with A" }
+   ] )
 
 Perform a ``LIKE`` Match
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,6 +269,17 @@ The example is analogous to the following SQL LIKE statement:
    SELECT * FROM products
    WHERE sku like "%789";
 
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 101, sku: 'abc789', description: 'First line\nSecond line' },
+      { _id: 103, sku: 'xyz789', description: 'Multiple\nline description' },
+      { _id: 104, sku: 'Abc789', description: 'SKU starts with A' }
+   ]
+
 .. _regex-case-insensitive:
 
 Perform Case-Insensitive Regular Expression Match
@@ -263,12 +293,16 @@ with ``ABC``.
 
    db.products.find( { sku: { $regex: /^ABC/i } } )
 
-The query matches the following documents:
+Example output:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : 100, "sku" : "abc123", "description" : "Single line description." }
-   { "_id" : 101, "sku" : "abc789", "description" : "First line\nSecond line" }
+   [
+      { _id: 100, sku: 'abc123', description: 'Single line description.' },
+      { _id: 101, sku: 'abc789', description: 'First line\nSecond line' },
+      { _id: 104, sku: 'Abc789', description: 'SKU starts with A' }
+   ]
 
 .. _regex-multiline-match:
 
@@ -282,18 +316,26 @@ with the letter ``S`` for multiline strings:
 
    db.products.find( { description: { $regex: /^S/, $options: 'm' } } )
 
-The query matches the following documents:
+Example output:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : 100, "sku" : "abc123", "description" : "Single line description." }
-   { "_id" : 101, "sku" : "abc789", "description" : "First line\nSecond line" }
+   [
+      { _id: 100, sku: 'abc123', description: 'Single line description.' },
+      { _id: 101, sku: 'abc789', description: 'First line\nSecond line' },
+      { _id: 104, sku: 'Abc789', description: 'SKU starts with A' }
+   ]
 
-Without the ``m`` option, the query would match just the following document:
+Without the ``m`` option, the example output is:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : 100, "sku" : "abc123", "description" : "Single line description." }
+   [
+      { _id: 100, sku: 'abc123', description: 'Single line description.' },
+      { _id: 104, sku: 'Abc789', description: 'SKU starts with A' }
+   ]
 
 If the :query:`$regex` pattern does not contain an anchor, the pattern
 matches against the string as a whole, as in the following example:
@@ -302,12 +344,16 @@ matches against the string as a whole, as in the following example:
 
    db.products.find( { description: { $regex: /S/ } } )
 
-Then, the :query:`$regex` would match both documents:
+Example output:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : 100, "sku" : "abc123", "description" : "Single line description." }
-   { "_id" : 101, "sku" : "abc789", "description" : "First line\nSecond line" }
+   [
+      { _id: 100, sku: 'abc123', description: 'Single line description.' },
+      { _id: 101, sku: 'abc789', description: 'First line\nSecond line' },
+      { _id: 104, sku: 'Abc789', description: 'SKU starts with A' }
+   ]
 
 .. _regex-dot-new-line:
 
@@ -322,18 +368,24 @@ character (i.e. ``.``) to match all characters *including* new line as well as t
 
    db.products.find( { description: { $regex: /m.*line/, $options: 'si' } } )
 
-The query matches the following documents:
+Example output:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : 102, "sku" : "xyz456", "description" : "Many spaces before     line" }
-   { "_id" : 103, "sku" : "xyz789", "description" : "Multiple\nline description" }
+   [
+      { _id: 102, sku: 'xyz456', description: 'Many spaces before     line' },
+      { _id: 103, sku: 'xyz789', description: 'Multiple\nline description' }
+   ]
 
-*Without* the ``s`` option, the query would have matched only the following document:
+*Without* the ``s`` option, the example output is:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : 102, "sku" : "xyz456", "description" : "Many spaces before     line" }
+   [
+      { _id: 102, sku: 'xyz456', description: 'Many spaces before     line' }
+   ]
 
 .. _regex-ignore-white-spaces:
 
@@ -349,8 +401,37 @@ matching pattern:
    var pattern = "abc #category code\n123 #item number"
    db.products.find( { sku: { $regex: pattern, $options: "x" } } )
 
-The query matches the following document:
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 100, sku: 'abc123', description: 'Single line description.' }
+   ]
+
+.. _regex-match-case-in-strings:
+
+Use a Regular Expression to Match Case in Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the regular expression ``"(?i)a(?-i)bc"`` to
+match ``sku`` field strings that contain:
+
+- ``"abc"``
+- ``"Abc"``
 
 .. code-block:: javascript
 
-   { "_id" : 100, "sku" : "abc123", "description" : "Single line description." }
+   db.products.find( { sku: { $regex: "(?i)a(?-i)bc" } } )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      { _id: 100, sku: 'abc123', description: 'Single line description.' },
+      { _id: 101, sku: 'abc789', description: 'First line\nSecond line' },
+      { _id: 104, sku: 'Abc789', description: 'SKU starts with A' }
+   ]
