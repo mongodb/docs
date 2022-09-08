@@ -1,5 +1,5 @@
 MongoDB 5.1 removes the following parameters from the
-:binary:`~bin.mongo` shell:
+``mongo`` shell:
 
 .. list-table::
     :header-rows: 1
