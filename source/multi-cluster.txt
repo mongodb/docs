@@ -1,5 +1,6 @@
 :noprevnext:
 
+.. _multi-cluster-quick-start-overview:
 .. _multi-cluster:
 
 ===================================================================
@@ -15,40 +16,79 @@ Deploy MongoDB Resources across Multiple Kubernetes Clusters (Beta)
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-:ref:`multi-cluster-quick-start-overview`
-  Learn about |multi-clusters|, terminology, and services and tools used
-  to deploy |multi-clusters| in this Quick Start.
+.. important::
 
-:ref:`multi-cluster-arch-ref`
-  Review the architecture diagram and limitations of the beta release.
+   This feature is a beta release. Use |multi-cluster| 
+   deployments only in development environments.
 
-:ref:`multi-cluster-quick-start-ref`
-  Deploy MongoDB replica sets on multiple |k8s| clusters that span
-  different regions and availability zones.
+Overview
+--------
 
+Using |multi-clusters|, you can deploy |k8s-op-full| to manage
+MongoDB deployments that span two or more |k8s| clusters. During the
+beta, the |k8s-op-short| supports deploying only replica sets across two or
+more |k8s| clusters. Deploying sharded clusters across two or
+more |k8s| clusters is not supported.
 
-:ref:`multi-cluster-secure-ref`
-  Secure database resources with |tls|, configure X.509 for client
-  authentication, and configure |tls| and X.509 for internal
-  communication in |multi-clusters|.
+The beta release of the |multi-clusters| enables different levels of resilience, depending on the needs of your enterprise application:
 
-:ref:`multi-cluster-connect-ref`
-  Access database resources in |multi-clusters| from inside or
-  outside |k8s|.
+- **Single Region, Multi AZ**. One or more |k8s| clusters where each
+  cluster has nodes deployed in different zones in the same region.
+  Such deployments protect MongoDB instances backing your enterprise
+  applications against zone and |k8s| cluster failures and offer increased
+  availability, disaster recovery, and data distribution within one
+  cloud region.
 
-:ref:`multi-cluster-troubleshooting`
-  Use the procedures in this section to troubleshoot your
-  |multi-clusters|.
+- **Multi Region**. One or more |k8s| clusters where you deploy each
+  cluster in a different region, and within each region, deploy cluster
+  nodes in different availability zones. This gives your database
+  resilience against the loss of a |k8s| cluster, a zone, or an entire
+  cloud region.
+
+|Multi-cluster| deployments allow you to add MongoDB instances 
+in global clusters that span multiple geographic regions for increased
+availability and global distribution of data.
+
+A service mesh is required to enable inter-cluster communication between
+the replica set members deployed in different |k8s| clusters. MongoDB
+development has tested this feature using |istio|, but any service mesh 
+that provides FQDN resolution between Pods across clusters should work.
+
+.. _central-and-member-clusters:
+
+Central Cluster and Member Clusters
+-----------------------------------
+
+MongoDB recommends that you identify one cluster to act as 
+a **central cluster**. The central cluster hosts the |k8s-op-short| and 
+acts as the control plane for the multi-cluster deployment. This central
+cluster can also host replica set members. This documentation refers to
+other |k8s| clusters that host replica set members as **member clusters**.
+
+Communication between replica
+set members occurs over a service mesh, which means that your database 
+doesn't rely on the central cluster to function. Note that if the 
+central cluster fails, you can't use the |k8s-op-short| to change your
+deployment until access to this cluster is restored or until you
+redeploy the |k8s-op-short| to an available |k8s| cluster.
+
+You can host your application on any |k8s| cluster in the
+service mesh. Your application can be co-located on a
+member cluster with one of the replica set nodes that you deployed using
+the |k8s-op-short|, or you can host your application on a cluster that
+doesn't host replica set nodes or the |k8s-op-short|.
+
+To learn more, see the :ref:`multi-cluster-diagram`.
+
 
 .. class:: hidden
 
    .. toctree::
       :titlesonly:
 
-      Overview </multi-cluster-quick-start-overview>
       Architecture and Limitations </multi-cluster-arch>
       Quick Start </multi-cluster-quick-start>
       Secure </multi-cluster-secure>
