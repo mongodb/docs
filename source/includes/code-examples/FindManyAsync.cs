@@ -7,7 +7,7 @@ using static System.Console;
 
 namespace CSharpExamples.UsageExamples;
 
-public class FindOneAsync
+public class FindManyAsync
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
     private static string _mongoConnectionString = "<Your MongoDB URI>";
@@ -16,38 +16,51 @@ public class FindOneAsync
     {
         Setup();
 
-        // Find one document using builders
-        var buildersDocument = FindOneRestaurantBuilderAsync().Result.ToBsonDocument();
-        WriteLine("Finding a document with builders...");
-        WriteLine(buildersDocument);
+        // Find multiple documents using builders
+        WriteLine("Finding documents with builders...:");
+        var restaurantsBuilders = FindMultipleRestaurantsBuilderAsync();
+        WriteLine("Number of documents found: " + restaurantsBuilders.Result.Count);
 
-        // Extra space for console readability
+        // Extra space for console readability 
         WriteLine();
 
-        // Find one document using LINQ
-        var linqDocument = FindOneRestaurantLINQAsync().Result.ToBsonDocument();
-        WriteLine("Finding a document with LINQ...");
-        WriteLine(linqDocument);
+        // Find multiple documents using LINQ
+        WriteLine("Finding documents with LINQ...:");
+        var restaurantsLINQ = FindMultipleRestaurantsLINQAsync();
+        WriteLine("Number of documents found: " + restaurantsLINQ.Result.Count);
+
+        WriteLine();
+
+        // Find all documents
+        WriteLine("Finding all documents...:");
+        var allRestaurants = FindAllRestaurantsAsync();
+        WriteLine("Number of documents found: " + allRestaurants.Result.Count);
     }
 
-    private static async Task<Restaurant> FindOneRestaurantBuilderAsync()
+    private static async Task<List<Restaurant>> FindMultipleRestaurantsBuilderAsync()
     {
-        // start-find-builders
+        // start-find-builders-async
         var filter = Builders<Restaurant>.Filter
-            .Eq("name", "Bagels N Buns");
+            .Eq("cuisine", "Pizza");
 
-        return await _restaurantsCollection.Find(filter).FirstAsync();
-        // end-find-builders
+        return await _restaurantsCollection.Find(filter).ToListAsync();
+        // end-find-builders-async
+    }
+
+    private static async Task<List<Restaurant>> FindMultipleRestaurantsLINQAsync()
+    {
+        // start-find-linq-async
+        return await _restaurantsCollection.AsQueryable()
+            .Where(r => r.Cuisine == "Pizza").ToListAsync();
+        // end-find-linq-async
 
     }
 
-    private static async Task<Restaurant> FindOneRestaurantLINQAsync()
+    private static async Task<List<Restaurant>> FindAllRestaurantsAsync()
     {
-        // start-find-linq
-        return await _restaurantsCollection.AsQueryable()
-            .Where(r => r.Name == "Bagels N Buns").FirstAsync();
-        // end-find-linq
-
+        // start-find-all-async
+        return await _restaurantsCollection.Find(new BsonDocument()).ToListAsync();
+        // end-find-all-async
     }
 
     private static void Setup()

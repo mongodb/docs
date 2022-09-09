@@ -2,12 +2,11 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using MongoDB.Driver.Linq;
 using static System.Console;
 
 namespace CSharpExamples.UsageExamples;
 
-public class FindOneAsync
+public class FindOne
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
     private static string _mongoConnectionString = "<Your MongoDB URI>";
@@ -17,36 +16,38 @@ public class FindOneAsync
         Setup();
 
         // Find one document using builders
-        var buildersDocument = FindOneRestaurantBuilderAsync().Result.ToBsonDocument();
         WriteLine("Finding a document with builders...");
-        WriteLine(buildersDocument);
+        FindOneRestaurantBuilder();
 
-        // Extra space for console readability
+        // Extra space for console readability 
         WriteLine();
 
         // Find one document using LINQ
-        var linqDocument = FindOneRestaurantLINQAsync().Result.ToBsonDocument();
         WriteLine("Finding a document with LINQ...");
-        WriteLine(linqDocument);
+        FindOneRestaurantLINQ();
     }
 
-    private static async Task<Restaurant> FindOneRestaurantBuilderAsync()
+    private static void FindOneRestaurantBuilder()
     {
         // start-find-builders
         var filter = Builders<Restaurant>.Filter
             .Eq("name", "Bagels N Buns");
 
-        return await _restaurantsCollection.Find(filter).FirstAsync();
+        var restaurant = _restaurantsCollection.Find(filter).First();
         // end-find-builders
+
+        WriteLine(restaurant.ToBsonDocument());
 
     }
 
-    private static async Task<Restaurant> FindOneRestaurantLINQAsync()
+    private static void FindOneRestaurantLINQ()
     {
         // start-find-linq
-        return await _restaurantsCollection.AsQueryable()
-            .Where(r => r.Name == "Bagels N Buns").FirstAsync();
+        var query = _restaurantsCollection.AsQueryable()
+            .Where(r => r.Name == "Bagels N Buns");
         // end-find-linq
+
+        WriteLine(query.ToBsonDocument());
 
     }
 
