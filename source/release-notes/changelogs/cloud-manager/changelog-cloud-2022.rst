@@ -33,8 +33,6 @@
   - and more.
 - Updates {+mdbagent+} to :ref:`12.2.0.7631 <12.2.0.7631>`.
 - Improves the ability to disable audit log rotation.
-- Adds the ability to create hidden rolling indexes with the 
-  :guilabel:`Data Explorer`.
 - Adds the ability to detect NaN values in the 
   :guilabel:`Data Explorer`.
 - Extends index shard key validation for managed sharding to include 
@@ -45,7 +43,9 @@
 22 June 2022 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Updates {+mdbagent+} to :ref:`12.1.2.7597-1 <12.1.2.7597-1>`.
+- Updates {+mdbagent+} to :ref:`12.1.0.7593 <12.1.0.7593>`.
+- Adds the ability to create hidden rolling indexes with the 
+  :guilabel:`Data Explorer`.
 - Adds the ability to enable and run the sharded cluster balancer 
   through the |mms-full| UI using Automation.
 - Compatible with :db-tools:`MongoDB Database Tools 100.5.3 
