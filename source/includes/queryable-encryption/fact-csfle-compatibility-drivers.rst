@@ -9,9 +9,9 @@ encryption rules specified :autoencryptkeyword:`encrypt` or
 fails and returns an errors.
 
 The official MongoDB 4.2+ compatible drivers, :binary:`~bin.mongosh`,
-and the 4.2 or later legacy :binary:`~bin.mongo` shell require
-specifying the automatic encryption rules as part of creating the
-database connection object:
+and the 4.2 or later legacy ``mongo`` shell require specifying the 
+automatic encryption rules as part of creating the database connection 
+object:
 
 - For ``mongosh``, use the :method:`Mongo()`
   constructor to create a database connection. Specify the automatic

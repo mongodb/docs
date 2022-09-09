@@ -3,10 +3,10 @@ The methods listed on this table of contents page are
 ``Node.js`` or other programming language specific driver methods.
 
 In most cases, :binary:`~bin.mongosh` methods work the same way as the
-legacy :binary:`~bin.mongo` shell methods. However, some legacy methods
+legacy ``mongo`` shell methods. However, some legacy methods
 are unavailable in ``mongosh``.
 
-For the legacy :binary:`~bin.mongo` shell documentation, refer to the
+For the legacy ``mongo`` shell documentation, refer to the
 documentation for the corresponding MongoDB Server release:
 
 - :v4.4:`mongo shell v4.4 </mongo>`
