@@ -9,7 +9,7 @@ MongoDB databases. Configure firewalls to allow the
 Monitoring Agent to connect across data centers and servers.
 
 Beginning with Monitoring Agent version 5.0.0, you can run multiple
-agents to to distribute monitoring assignments and provide failover.
+agents to distribute monitoring assignments and provide failover.
 |mms| distributes monitoring assignments among up to 100 running
 Monitoring Agents. If you run more than 100 Monitoring Agents, the
 additional agents behave as "standby" agents.

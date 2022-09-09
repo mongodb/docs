@@ -1,6 +1,6 @@
 .. _upgrade-mode-for-ha-apps:
 
-.. note:: **Upgrade Mode for Highly Available |application|\s**
+.. note:: **Upgrade Mode for Highly Available applications**
 
    If you have an |onprem| 4.2 or later installation with more than one |onprem|
    host pointing to the same Application Database, you can upgrade
@@ -58,7 +58,7 @@
       .. tab::
          :tabid: rhel
 
-         1. Log into the first host that serves a Backup Daemon.
+         1. Log in to the first host that serves a Backup Daemon.
 
          2. Issue the following command:
 

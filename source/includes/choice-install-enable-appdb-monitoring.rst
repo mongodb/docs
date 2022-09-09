@@ -13,8 +13,8 @@
 
             .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            On x86_64 architecture running Debian 8, Debian 9, Ubuntu 18.04,
-            or Ubuntu 20.04:
+            On x86_64 architecture running Debian 10 or 11, and
+            Ubuntu 18.04 or 20.04:
 
             .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
 
