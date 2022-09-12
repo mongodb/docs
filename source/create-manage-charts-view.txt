@@ -1,0 +1,248 @@
+.. _data-sources-pipeline:
+.. _charts-views:
+
+==============================
+Create and Manage Charts Views
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you are the :authrole:`Project Owner`, you can create and modify
+a charts view. A charts view is a data source that applies an
+:manual:`aggregation pipeline </core/aggregation-pipeline/>`
+to a collection to pre-process data before it is used for 
+|charts-short|. You can create multiple charts views from a single
+collection.
+
+After you create a charts view, you can select the charts view as a
+data source when you create a chart.
+
+Use Cases
+---------
+
+Pre-processing a data source with a pipeline is useful when your
+collection data is not optimized for data visualization.
+
+Pre-processing your data can help accomplish the following tasks:
+
+- Join data from multiple collections into a single data source using
+  :pipeline:`$lookup`. :ref:`See example <join-data>`.
+
+- Hide fields which may contain sensitive data from |charts-short| users
+  using :pipeline:`$project`. :ref:`See example <hide-data>`.
+
+- Convert data types, such as a string field to a date.
+  :ref:`See example <convert-data-tye>`.
+
+Create a Charts View from a Collection
+--------------------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect your deployment. 
+
+      To learn more, see :ref:`connect-deployment`.
+
+   .. step:: Select a database and collection.
+
+      a. In the deployment's :guilabel:`Data Access` section, click the
+         name of the database that contains the collection to use for
+         the charts view. The collections list appears.
+      b. Click the collection to use for the charts view. 
+         |charts-short| also displays any existing charts views that
+         use the collection.
+
+   .. step:: Click :icon-fa5:`plus`:guilabel:`Charts View` next to the collection's information.
+
+      |charts-short| opens the :guilabel:`Add Charts View` modal.
+
+   .. step:: Specify a :guilabel:`Name` for your charts view.
+
+   .. step:: Add an aggregation pipeline.
+
+      Your pipeline must be an array. Specify each
+      stage of your pipeline as an object within the array.
+      
+   .. step:: (Optional) Click :guilabel:`Test Pipeline`.
+
+      |charts| validates your pipeline. |charts-short| reports any
+      errors in your pipeline below the editor. If the pipeline is
+      valid, |charts-short| shows a sample document from the results or
+      displays :guilabel:`No documents returned`.
+
+      .. tip::
+
+         For help creating your pipeline, you can utilize the 
+         :atlas:`Aggregation Pipeline Builder
+         </data-explorer/cloud-agg-pipeline/>` in the |service| Data
+         Explorer.
+
+         You can create your pipeline using the |service| pipeline
+         builder and paste it into the |charts| pipeline editor.
+
+   .. step:: Click :guilabel:`Save`.
+
+      After you save the charts view, it displays in the
+      :guilabel:`Data Access` section for the collection it uses.
+
+Example Pipelines
+-----------------
+
+.. _join-data:
+
+Join Data from Two Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example adds a pipeline to a data source pointing to
+the ``sample_mflix.movies`` collection from the
+:atlas:`Sample Mflix Dataset </sample-data/sample-mflix/>` provided by
+|service|. The pipeline performs a :pipeline:`$lookup` to join data
+from the ``comments`` collection based on ``movie_id``. The result is
+a new field in this data source called ``comments`` containing data
+from a separate collection.
+
+.. code-block:: js
+
+   [
+    {
+      $lookup:
+        {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'movie_id',
+          as: 'comments'
+        }
+    }  
+   ]
+
+.. _hide-data:
+
+Hide Sensitive Data
+~~~~~~~~~~~~~~~~~~~
+
+The following example adds a pipeline to a data source pointing to the
+``sample_supplies.sales`` collection from the
+:atlas:`Sample Supply Store Dataset </sample-data/sample-supplies/>`
+provided by |service|. The pipeline hides the ``customer.email`` field,
+making that field unavailable to charts using this data source:
+
+.. code-block:: js
+
+   [
+     {
+       $project: { "customer.email": 0 }
+     }
+   ]
+
+To learn more about the ``$project`` aggregation stage,
+see :pipeline:`$project`.
+
+.. _convert-data-tye:
+
+Convert the Type of a Data Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example adds a pipeline to a data source containing a
+string field that we want to convert to a date. The pipeline adds a new
+field to the data source with the string field ``saleDate`` converted to
+a date field called ``saleDateAsDate``:
+
+.. code-block:: js
+
+   [
+     {
+       $addFields: {
+         saleDateAsDate: { $toDate: '$saleDate' }
+       }
+     }
+   ]
+
+Modify a Charts View's Pipeline
+-------------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect your deployment. 
+
+      To learn more, see :ref:`connect-deployment`.
+
+   .. step:: Select the database and collection.
+
+      a. In the deployment's :guilabel:`Data Access` section, click the
+         name of the database that contains the collection associated
+         with the charts view.
+
+      b. Click the name of the collection associated with the charts
+         view. |charts-short| displays information for all existing
+         charts view that use the collection.
+
+   .. step:: Click :guilabel:`Manage` next to the chart view's information.
+
+   .. step:: Click :guilabel:`Pipeline` tab to edit the charts view's pipeline.
+
+      .. seealso::
+
+         To learn about other settings on this page, see
+         :ref:`charts-modify-data-source`.
+
+   .. step:: Edit the aggregation pipeline.
+      
+   .. step:: (Optiona) Click :guilabel:`Test Pipeline`.
+
+      |charts-short| reports any errors in your pipeline next to the
+      editor. If the pipeline is valid, |charts-short| shows a sample
+      document from the results or displays 
+      :guilabel:`No documents returned`.
+
+   .. step:: Click :guilabel:`Save`.
+
+      |charts-short| validates your pipeline when you save your changes.
+
+Disconnect a Charts View
+------------------------
+
+To disconnect a charts view, see 
+:ref:`disconnect a data source <disconnect-data-source>`.
+
+Delete a Charts View
+--------------------
+
+If you are the :authrole:`Project Owner`, you can permanently delete a
+charts view. 
+
+To delete a charts view:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect your deployment. 
+
+      To learn more, see :ref:`connect-deployment`.
+
+   .. step:: Select the database and collection.
+
+      a. In the deployment's :guilabel:`Data Access` section, click the
+         name of the database that contains the collection associated
+         with the charts view.
+      b. Click the name of the collection associated with the charts
+         view. |charts-short| displays information for all existing
+         charts views based upon the collection.
+
+   .. step:: Click :guilabel:`Manage` next to the chart view's information.
+
+   .. step:: Click the ellipsis :icon-fa5:`mms` and click :guilabel:`Delete`.
+
+      On the modal that appears: 
+
+      a. Click :guilabel:`Check for connected charts` to
+         learn whether any charts use the charts view as a
+         data source.
+      #. Click :guilabel:`Delete`.
