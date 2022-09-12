@@ -135,13 +135,6 @@
 
           - Datadog API Key
 
-          .. important::
-
-             If you use the ``EU`` |api| Datadog region or if you have
-             deployed Datadog locally, you must configure the base
-             Datadog |api| |url| with the :setting:`datadog.api.url`
-             |onprem| configuration setting.
-
        .. cond:: cloud
 
           Datadog is not supported with |mms|.
