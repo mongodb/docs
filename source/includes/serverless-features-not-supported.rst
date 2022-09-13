@@ -88,9 +88,6 @@ Actions
    * - Use :doc:`Online Archive </online-archive/manage-online-archive>`
      - 
 
-   * - Use :charts:`MongoDB Charts </>`
-     - 
-
    * - Use :appservices:`Atlas Device Sync </sync/learn/overview/>`
      - 
 
