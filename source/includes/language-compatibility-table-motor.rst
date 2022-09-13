@@ -17,7 +17,19 @@
      - Python 2.7
      - Python 2.6
      - Python 2.5
-
+   * - 3.1
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+     -
    * - 3.0
      - ✓
      - ✓
@@ -172,6 +184,7 @@
      - ✓
      -
 
+- Motor 3.1 wraps PyMongo 4.2+
 - Motor 3.0 wraps PyMongo 4.1+
 - Motor 2.4 wraps PyMongo 3.11+
 - Motor 2.3 wraps PyMongo 3.11+
