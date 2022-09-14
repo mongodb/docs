@@ -245,6 +245,7 @@ extlinks = {
     'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
     'v1.2': ('https://www.mongodb.com/docs/kubernetes-operator/v1.2%s', ''),
+    'v1.13': ('https://www.mongodb.com/docs/kubernetes-operator/v1.13%s', ''),
     'github' : ('https://github.com%s', ''),
     'github-raw' : ('https://raw.githubusercontent.com%s', ''),
     'mdb-github' : ('https://mongodb.github.io%s', ''),
