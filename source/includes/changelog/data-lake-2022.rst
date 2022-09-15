@@ -1,3 +1,21 @@
+.. _adf-v20220913:
+
+13 September 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Fixes ``$not`` and ``$in`` pipeline issue that caused unsupported 
+  expression panic.
+- Improves performance for ``$out`` to |s3| queries that write to 
+  Parquet file format.
+- Updates the default max row group size to 128MB for the parquet 
+  writer.
+- Improves :pipeline:`$group` stages on {+dl+} Dataset partition 
+  fields.
+- Fixes aggregation pipelines with multiple ``$lookup`` stages where
+  one stage defines a field and another removes the same field.
+- Fixes how {+adf+} handles files in |s3| that end with the delimiter 
+  character (e.g. '/').
+
 .. _adf-v20220823:
 
 23 August 2022 Release
