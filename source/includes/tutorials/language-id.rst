@@ -40,3 +40,13 @@
          // You are viewing the Golang driver code examples.
          // Use the dropdown menu to select a different driver.
 
+      .. important::
+
+         When building or running the Golang code in this guide using 
+         ``go build`` or ``go run``, always include the ``cse`` build 
+         constraint to enable {+csfle-abbrev+}. See the following shell
+         command for an example of including the build constraint:
+
+         .. code-block:: bash 
+
+            go run -tags cse insert-encrypted-document.go

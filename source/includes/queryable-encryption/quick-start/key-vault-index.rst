@@ -38,6 +38,17 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: go
 
+      .. important::
+
+         When building or running the Golang code in this guide using
+         ``go build`` or ``go run``, always include the ``cse`` build
+         constraint to enable {+qe+}. See the following shell
+         command for an example of including the build constraint:
+
+         .. code-block:: bash
+
+            go run -tags cse insert-encrypted-document.go
+
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/local/reader/make-data-key.go
          :start-after: start-create-index
          :end-before: end-create-index
