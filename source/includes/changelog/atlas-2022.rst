@@ -1,3 +1,34 @@
+.. _atlas_2022_0914:
+
+14 September 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ``enableSharding`` privilege to custom database roles.
+- Adds the ability to set the 
+  `maximum lifetime <https://www.mongodb.com/docs/atlas/cluster-additional-settings/#set-transaction-lifetime>`__
+  of multi-document transactions per cluster.
+
+.. _atlas_2022_0824:
+
+24 August 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports Azure Private Link connections for Atlas serverless 
+  instances.
+- Enhancements to the Atlas billing experience for tax invoices.
+
+.. _atlas_2022_0803:
+
+3 August 2022 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces 
+  `analytics node tiers <https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#select-a-cluster-tier-for-your-analytics-nodes>`__.
+- Adds support for VPC peering for Prometheus monitoring integration.
+- Adds support for VPC peering for `Live Migrate (Push) <https://www.mongodb.com/docs/atlas/import/migrate-from-com-rs/#support-for-vpc-peering-and-vpc-private-endpoints>`__.
+- Disallows Atlas clusters on MongoDB 5.0+ from configuring a default 
+  read concern of ``available``.
+
 .. _atlas_20220719:
 
 19 July 2022 Release
