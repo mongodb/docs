@@ -35,6 +35,10 @@
        - 4.4
        - 5.0
 
+       .. note:: 
+
+          .. include:: /includes/fact-fcv-in-cluster-card.rst
+
    * - :guilabel:`Configuration`
      - Additional configuration options for the {+database-deployment+} including
        authentication, backup, and |tls|.
