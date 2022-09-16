@@ -154,7 +154,7 @@ consider before starting a backup.
    .. [2]
           |onprem| 4.4.5 and later ignores GZIP compression for File
           System Store. Trying to create snapshots to File System
-          Stores using GZIP compression fail in previous |onprem|
+          Stores using GZIP compression fails in previous |onprem|
           versions.
 
    .. note:: **When Do You Use a Particular Backup Method?**
@@ -291,13 +291,14 @@ and retention through the
      snapshot still occurs after the current next snapshot time. The snapshot
      occurs at the new reference time plus the number of intervals needed to
      surpass the current next snapshot time. If this time has already passed
-     when you make the change, the next snapshot occurs at the next occurrance of
-     the new reference time. See the first two rows of the following
-     table for examples.
+     when you make the change, the |mms| takes the next snapshot at the
+     next occurrence of the new reference time. See the first two rows of
+     the following table for examples.
 
-   - If the new reference time is after the current next snapshot time, the next snapshot
-     occurs at the next occurrance of the new reference time. See the third and
-     fourth row of the following table for examples.
+   - If the new reference time is after the current next snapshot time,
+     |mms| takes the next snapshot at the next occurrence of the new
+     reference time. See the third and fourth row of the following table
+     for examples.
 
    .. list-table::
       :widths: 20 20 20 20 20 20
@@ -408,8 +409,8 @@ Encryption
 Backup Considerations
 ---------------------
 
-Databases Running FCV 4.2 and 4.4
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Databases Running FCV 4.2 and Later
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /release-notes/release-advisories/advisories-v4.2-backup.rst
 
@@ -502,31 +503,30 @@ engines, see :manual:`Storage </core/storage>` in the MongoDB manual.
 Resyncing Production Deployments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For production deployments, it is recommended that as a best practice
-you periodically (annually) :doc:`resync </tutorial/resync-backup>` all
-backed-up replica sets. When you resync, data is read from a secondary
-in each replica set. During resync, no new snapshots are generated.
+For production deployments, :doc:`resync </tutorial/resync-backup>` all
+backed up replica sets periodically, such as once a year. When you resync,
+data is read from a secondary in each replica set. During resync,
+no new snapshots are generated.
 
-You may also want to resync your backup after:
+You may also want to resync your backup if you:
 
-- A reduction in data size, such that the size on disk of |mms|'s copy
-  of the data is also reduced. This scenario also includes if you:
+- Reduce the size of the data, such that the size of |mms|'s copy of the
+  data on disk is also reduced.
 
-  - Have a :manual:`TTL index </core/index-ttl>` in place, which
-    periodically deletes documents.
+- Create a :manual:`TTL index </core/index-ttl>`, which periodically
+  deletes documents.
 
-  - :manual:`Drop a collection </reference/method/db.collection.drop>`
-    (MMAPv1 only).
+- :manual:`Drop a collection </reference/method/db.collection.drop>`
+  (MMAPv1 only).
 
-  - Run a :term:`sharded cluster <sharded cluster>`, and there have
-    been a lot of chunks moved off a particular shard.
+- Run a :term:`sharded cluster <sharded cluster>`, and move chunks
+  from a particular shard.
 
-- A switch in storage engines, if you want |mms| to provide snapshots
+- Switch storage engines, if you want |mms| to provide snapshots
   in the new storage engine format.
 
-- A manual build of an index on a replica set in a rolling fashion
-  (as per :manual:`Build Indexes on Replica Sets
-  </tutorial/build-indexes-on-replica-sets>` in the MongoDB manual).
+- :manual:`Build an Index on a replica set in a rolling fashion
+  </tutorial/build-indexes-on-replica-sets>`.
 
 .. _checkpoint:
 
@@ -543,10 +543,10 @@ additional restore points between snapshots. With checkpoints enabled,
 
 To create a checkpoint, |mms| stops the :term:`balancer` and inserts a
 token into the :term:`oplog` of each :term:`shard` and :term:`config
-server` in the cluster. These checkpoint tokens are lightweight and do
-not have a consequential impact on performance or disk use.
+server` in the cluster. These checkpoint tokens are lightweight and don't
+affect performance or disk use.
 
-Backup does not require checkpoints, and they are disabled by default.
+Backup doesn't require checkpoints, and they are disabled by default.
 
 Restoring from a checkpoint requires |mms| to apply the :term:`oplog`
 of each shard and config server to the last snapshot captured before
@@ -555,23 +555,22 @@ restoration from a snapshot.
 
 .. _snapshot-while-balancer-enabled:
 
-Snapshots when Agent Cannot Stop Balancer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Snapshots when Agent Can't Stop Balancer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For :term:`sharded clusters <sharded cluster>` running with FCV 4.0 or
 earlier, |mms| disables the :term:`balancer` before taking a cluster
 snapshot. In certain situations, such as a long migration or no running
 :program:`mongos`, |mms| tries to disable the balancer but cannot. In
 such cases, |mms| continues to take cluster snapshots but flags the
-snapshots that may have incomplete and/or inconsistent data. Cluster
+snapshots that may have incomplete or inconsistent data. Cluster
 snapshots taken during an active balancing operation run the risk of
 data loss or orphaned data.
 
-Snapshots when Agent Cannot Contact a ``mongod``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Snapshots when Agent Can't Contact a ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For :term:`sharded clusters <sharded cluster>`, if the {+bagent+}
-cannot reach a :program:`mongod` process, whether a shard or config
-server, then the agent cannot insert a synchronization :term:`oplog`
-token. If this happens, |mms| does not create the snapshot and
-displays a warning message.
+For :term:`sharded clusters <sharded cluster>`, if the {+bagent+} can't
+reach a :program:`mongod` process, whether a shard or config server, then
+the agent can't insert a synchronization :term:`oplog` token. In these
+cases, |mms| doesn't create the snapshot and displays a warning message.

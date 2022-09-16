@@ -18,14 +18,10 @@ To choose which versions of MongoDB are available to |mms|, see
 
 .. include:: /includes/considerations-change-mongodb-version.rst
 
-Backup Considerations for MongoDB 4.2
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Backup Considerations for MongoDB Versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:doc:`Backup </tutorial/nav/backup-deployments/>` support for MongoDB
-4.2 with ``"featureCompatibilityVersion" : 4.2`` is extremely limited
-at present. Support will be extended in future releases of |mms|.
-
-To learn more about backup considerations specific to MongoDB 4.2, see
+To learn more about backup considerations, see
 :ref:`4.2-backup-considerations`.
 
 .. cond:: cloud
