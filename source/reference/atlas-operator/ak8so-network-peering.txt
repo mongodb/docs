@@ -1,0 +1,283 @@
+.. _ak8so-network-peering:
+
+=========================
+Configure Network Peering
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+.. include:: /includes/serverless-preview-dont-use.rst
+
+.. include:: /includes/fact-network-peering.rst
+
+|service| doesn't support network peering
+between {+clusters+} you deploy in a single region on different cloud
+providers.
+
+To manage your network peering connections with |ak8so|, you can
+specify and update the :setting:`spec.networkPeers` parameter for the 
+:ref:`atlasproject-custom-resource`. Each time you change the ``spec`` 
+field in any of the supported custom resources, |ak8so|
+:ref:`creates or updates <ak8so-create-update-process>` the 
+corresponding |service| configuration.
+
+Prerequisites
+-------------
+
+To configure network peering using |ak8so|, you require:
+
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      - A running |k8s| cluster with |ak8so| :ref:`deployed 
+        <ak8so-quick-start-ref>`.
+
+      - The :authrole:`Project Owner` or
+        :authrole:`Organization Owner` role in |service|.
+
+      - If you have not already done so, create your |vpc| in |aws|. To
+        learn more, see :aws:`Get Started with Amazon VPC 
+        </vpc/latest/userguide/vpc-getting-started>`.
+
+      - A :aws:`network traffic rule 
+        </vpc/latest/userguide/vpc-network-acls>` for outbound traffic.
+
+        .. include:: /includes/fact-aws-vpc-prereqs.rst
+
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      - A running |k8s| cluster with |ak8so| :ref:`deployed 
+        <ak8so-quick-start-ref>`.
+
+      - The :authrole:`Project Owner` or
+        :authrole:`Organization Owner` role in |service|.
+
+      - If you have not already done so, create your VNet in |azure|.
+        To learn more, see :azure:`Create a virtual network using the Azure portal 
+        </virtual-network/quick-create-portal>`.
+
+      - Azure roles required to configure a network peering connection.
+
+        To learn more, see the 
+        :azure:`Azure Permissions 
+        </virtual-network/virtual-network-manage-peering#permissions>`.
+
+      - A service principal for the |service| peering application ID.
+
+        .. include:: /includes/api/vpc-create-peering-azure-api-prereqs.rst
+
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      - A running |k8s| cluster with |ak8so| :ref:`deployed 
+        <ak8so-quick-start-ref>`.
+
+      - The :authrole:`Project Owner` or
+        :authrole:`Organization Owner` role in |service|.
+
+      - A |gcp| user account with an |iam| user policy and a 
+        :gcp:`Compute Network Admin
+        </iam/docs/understanding-roles#compute.networkAdmin>`
+        role that grants permissions to create, modify, and delete 
+        networking resources. To learn more about managing private 
+        endpoints and connections in |gcp|, see 
+        :gcp:`Create and Modify Virtual Private Cloud (VPC) Networks 
+        </vpc/docs/overview.html>`.
+
+      - If you have not already done so, create your |vpc| in |gcp|. 
+        To learn more, see the 
+        :gcp:`GCP documentation </vpc/docs/using-vpc.html>`.
+
+Procedure
+---------
+
+.. _ak8so-configure-network-peering:
+
+Enable clients to connect to |service| clusters using a network peering connection with the following procedure:
+
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Specify the ``spec.networkPeers`` parameter.
+
+            You can configure network peering to use an existing
+            container or a new container.
+
+            Use an Existing Container
+            ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            .. include:: /includes/steps-existing-container-peering-ak8so-aws.rst
+
+            Create a New Container
+            ~~~~~~~~~~~~~~~~~~~~~~
+
+            .. include:: /includes/steps-new-container-peering-ak8so-aws.rst
+
+         .. step:: Check for the ``WAITING FOR USER`` status.
+
+            a. Run the following command:
+
+               .. io-code-block::
+
+                  .. input::
+                     :language: sh
+
+                     kubectl get atlasprojects my-project -o=jsonpath='{.status.networkPeers.statusName}'
+
+                  .. output::
+                     :language: json
+                     :visible: true
+
+                     WAITING FOR USER
+
+            #. If the ``statusName`` value is ``WAITING FOR USER``,
+               proceed
+               to the next step. If the ``statusName`` is not 
+               ``WAITING FOR USER``, wait a few minutes and try this
+               step again.
+
+         .. step:: Accept the |vpc| peering connection in |aws|.
+
+            To learn more, see :aws:`Accept a VPC peering connection 
+            </vpc/latest/peering/create-vpc-peering-connection.html#accept-vpc-peering-connection>`.
+
+         .. step:: Check the status of your |vpc| connection using |ak8so|.
+
+            Run the following command again to check the status of the
+            |vpc| connection. |ak8so| returns ``READY`` when the network peering connection is complete.
+
+            .. io-code-block::
+
+               .. input::
+                  :language: sh
+
+                  kubectl get atlasprojects my-project -o=jsonpath='{.status.networkPeers.statusName}'
+
+               .. output::
+                  :language: json
+                  :visible: true
+
+                  READY
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Specify the ``spec.networkPeers`` parameter.
+
+            You can configure network peering to use an existing
+            container or a new container.
+
+            Use an Existing Container
+            ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            .. include:: /includes/steps-existing-container-peering-ak8so-azure.rst
+
+            Create a New Container
+            ~~~~~~~~~~~~~~~~~~~~~~
+
+            .. include:: /includes/steps-new-container-peering-ak8so-azure.rst
+
+         .. step:: Check the status of your |vpc| connection using |ak8so|.
+
+            Run the following command to check the status of the
+            |vpc| connection. |ak8so| returns ``READY`` when the network peering connection is complete.
+
+            .. io-code-block::
+
+               .. input::
+                  :language: sh
+
+                  kubectl get atlasprojects my-project -o=jsonpath='{.status.networkPeers.status}'
+
+               .. output::
+                  :language: json
+                  :visible: true
+
+                  READY
+
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Specify the ``spec.networkPeers`` parameter.
+
+            You can configure network peering to use an existing
+            container or a new container.
+
+            Use an Existing Container
+            ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+            .. include:: /includes/steps-existing-container-peering-ak8so-gcp.rst
+
+            Create a New Container
+            ~~~~~~~~~~~~~~~~~~~~~~
+
+            .. include:: /includes/steps-new-container-peering-ak8so-gcp.rst
+
+         .. step:: Check for the ``PENDING ACCEPTANCE`` status.
+
+            a. Run the following command:
+
+               .. io-code-block::
+
+                  .. input::
+                     :language: sh
+
+                     kubectl get atlasprojects my-project -o=jsonpath='{.status.networkPeers.status}'
+
+                  .. output::
+                     :language: json
+                     :visible: true
+
+                     PENDING ACCEPTANCE
+
+            #. If the ``status`` value is ``PENDING ACCEPTANCE``,
+               proceed
+               to the next step. If the ``status`` is not 
+               ``PENDING ACCEPTANCE``, wait a few minutes and try this
+               step again.
+
+         .. step:: Create the |vpc| peering connection in |gcp|.
+
+            To learn more, see :gcp:`Using VPC Network Peering 
+            </vpc/docs/using-vpc-peering>`.
+
+         .. step:: Check the status of your |vpc| connection using |ak8so|.
+
+            Run the following command again to check the status of the
+            |vpc| connection. |ak8so| returns ``READY`` when the network peering connection is complete.
+
+            .. io-code-block::
+
+               .. input::
+                  :language: sh
+
+                  kubectl get atlasprojects my-project -o=jsonpath='{.status.networkPeers.status}'
+
+               .. output::
+                  :language: json
+                  :visible: true
+
+                  READY
