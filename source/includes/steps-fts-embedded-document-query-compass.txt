@@ -1,0 +1,146 @@
+.. procedure:: 
+   :style: normal
+
+   .. step:: Connect to your {+cluster+} in |compass|.
+
+      Open |compass| and connect to your {+cluster+}. For detailed 
+      instructions on connecting, see :ref:`atlas-connect-via-compass`.
+
+   .. step:: Use the ``schools`` collection in the ``local_school_district`` database.
+
+      On the :guilabel:`Databases` screen, click the 
+      ``local_school_district`` database, and then click the ``schools`` 
+      collection.
+
+   .. step:: Run the following |fts| queries against the ``schools`` collection.
+
+      .. include:: /includes/extracts/fts-embedded-document-query-intro.rst  
+
+      .. tabs:: 
+
+         .. tab:: Basic Search 
+            :tabid: basic
+
+            .. include:: /includes/extracts/fts-embedded-document-simple-query-intro.rst 
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 15 85
+
+               * - Pipeline Stage
+                 - Query
+
+               * - ``$search``
+                 - .. code-block:: javascript
+
+                      {
+                        "embeddedDocument": {
+                          "path": "teachers",
+                          "operator": {
+                            "compound": {
+                              "must": [{
+                                "text": {
+                                  "path": "teachers.first",
+                                  "query": "John"
+                                }
+                              }],
+                              "should":[{
+                                "text": {
+                                  "path": "teachers.last",
+                                  "query": "Smith"
+                                }
+                              }]
+                            }
+                          }
+                        }
+                      }
+
+               * - ``$project``
+                 - .. code-block:: javascript
+                    
+                      {
+                        "_id": 1,
+                        "teachers": 1,
+                        "score": { $meta: "searchScore" }
+                      }
+
+                   If you enabled :guilabel:`Auto Preview`, |compass| 
+                   displays the following documents next to the 
+                   :pipeline:`$project` pipeline stage:
+
+            .. literalinclude:: /includes/fts-tutorial/embedded-document/simple-mongosh-query-results.sh 
+               :language: shell
+               :linenos:  
+
+            .. include:: /includes/extracts/fts-embedded-document-basic-query-results.rst
+
+         .. tab:: Nested Array Search 
+            :tabid: nestedarray
+
+            .. include:: /includes/extracts/fts-embedded-document-advanced-query-intro.rst
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 15 85
+
+               * - Pipeline Stage
+                 - Query
+
+               * - ``$search``
+                 - .. code-block:: javascript
+
+                      {
+                        "embeddedDocument": {
+                          "path": "teachers",
+                          "operator": {
+                            "compound": {
+                              "must": [{
+                                "embeddedDocument": {
+                                 "path": "teachers.classes",
+                                  "operator": {
+                                    "compound": {
+                                      "must": [{
+                                        "text": {
+                                          "path": "teachers.classes.grade",
+                                          "query": "12th"
+                                        }
+                                      },
+                                      {
+                                        "text": {
+                                          "path": "teachers.classes.subject",
+                                          "query": "science"
+                                        }
+                                      }]
+                                    }
+                                  }
+                                }
+                              }],
+                              "should": [{
+                                "text": {
+                                  "path": "teachers.last",
+                                  "query": "smith"
+                                }
+                              }]
+                            }
+                          }
+                        }
+                      }
+
+               * - ``$project``
+                 - .. code-block:: javascript
+                    
+                      {
+                        "_id": 1,
+                        "teachers": 1,
+                        "score": { $meta: "searchScore" }
+                      }
+
+                   If you enabled :guilabel:`Auto Preview`, |compass| 
+                   displays the following documents next to the 
+                   :pipeline:`$project` pipeline stage:
+
+            .. literalinclude:: /includes/fts-tutorial/embedded-document/advanced-mongosh-query-results.json  
+               :language: json
+               :linenos: 
+
+            .. include:: /includes/extracts/fts-embedded-document-advanced-query-results.rst

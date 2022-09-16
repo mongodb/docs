@@ -1,0 +1,297 @@
+.. _embedded-documents-tutorial:
+
+==================================================
+How to Run |fts| Queries Against Objects in Arrays 
+==================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial describes how to index and run queries against fields in 
+documents that are inside an array. This tutorial takes you through the 
+following steps:
+
+1. Create a sample collection named ``schools`` with embedded documents 
+   in your |service| {+cluster+}.
+#. Set up an |fts| index with :ref:`bson-data-types-embedded-documents` 
+   fields configured at the ``teachers`` and ``teachers.classes`` paths.
+#. Run |fts| queries that search the embedded documents in the  
+   the ``schools`` collection using the :ref:`compound-ref` operator with 
+   the :ref:`embedded-document-ref` and :ref:`text-ref` operators.
+
+Before you begin, ensure that your |service| {+cluster+} meets the 
+requirements described in the :ref:`fts-tutorials-prereqs`. For this 
+tutorial, you don't need to upload the sample data because you will 
+create a new collection and load the documents that you need to run the 
+queries in this tutorial.
+
+Create a Sample Collection and Load the Data 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each document in the sample collection named ``schools`` contains the 
+``name`` and ``mascot`` of the school, school teacher's ``first`` and 
+``last`` name, the ``classes`` that each teacher teaches including the 
+``subject`` name and ``grade`` level.
+
+You must begin by creating a collection named ``schools`` in an 
+existing or new database on your |service| {+cluster+}. After creating the 
+collection, you must upload the sample data into your collection. 
+The steps in this section walk you through creating a new database 
+and collection, and loading the sample data into your collection.
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Log in to |service| and navigate to the :guilabel:`Collections` tab.
+    
+      a. Log in to your {+cluster+}.
+      #. Click your {+cluster+} name.
+      #. Click :guilabel:`Collections`.
+
+   .. step:: Create a new collection. 
+
+      a. Click :guilabel:`Create Database` to create a new database.
+      #. Enter the database name and collection name.
+         
+         - In the :guilabel:`Database Name` field, specify
+           ``local_school_district``.
+         - For the :guilabel:`Collection Name` field, specify
+           ``schools``.
+
+   .. step:: Load the following documents into the collection. 
+
+      a. Select the ``schools`` collection if it's not selected.
+      #. Click :guilabel:`Insert Document` for each of the sample 
+         documents to add to the collection.
+      #. Click the |json| view (:guilabel:`{}`) to replace the default 
+         document.
+      #. Copy and paste the following sample documents, one at a time, 
+         and click :guilabel:`Insert` to add the documents, one at a 
+         time, to the collection.
+
+         .. code-block:: json 
+
+            {
+              "_id": 0,
+              "name": "Springfield High",
+              "mascot": "Pumas",
+              "teachers": [{
+                "first": "Jane",
+                "last": "Smith",
+                "classes": [{
+                  "subject": "art of science",
+                  "grade": "12th"
+                },
+                {
+                  "subject": "applied science and practical science",
+                  "grade": "9th"
+                },
+                {
+                  "subject": "remedial math",
+                  "grade": "12th"
+                },
+                {
+                  "subject": "science",
+                  "grade": "10th"
+                }]
+              },
+              {
+                "first": "Bob",
+                "last": "Green",
+                "classes": [{
+                  "subject": "science of art",
+                  "grade": "11th"
+                },
+                {
+                  "subject": "art art art",
+                  "grade": "10th"
+                }]
+              }]
+            }
+
+         .. code-block:: json 
+
+            {
+              "_id": 1,
+              "name": "Evergreen High",
+              "mascot": "Jaguars",
+              "teachers": [{
+                "first": "Jane",
+                "last": "Earwhacker",
+                "classes": [{
+                  "subject": "art",
+                  "grade": "9th"
+                },
+                {
+                  "subject": "science",
+                  "grade": "12th"
+                }]
+              },
+              {
+                "first": "John",
+                "last": "Smith",
+                "classes": [{
+                  "subject": "math",
+                  "grade": "12th"
+                },
+                {
+                  "subject": "art",
+                  "grade": "10th"
+                }]
+              }]
+            }
+
+         .. code-block:: json 
+
+            {
+              "_id": 2,
+              "name": "Lincoln High",
+              "mascot": "Sharks",
+              "teachers": [{
+                "first": "Jane",
+                "last": "Smith",
+                "classes": [{
+                  "subject": "science",
+                  "grade": "9th"
+                },
+                {
+                  "subject": "math",
+                  "grade": "12th"
+                }]
+              },
+              {
+                "first": "John",
+                "last": "Redman",
+                "classes": [{
+                  "subject": "art",
+                  "grade": "12th"
+                }]
+              }]
+            }
+
+Create an |fts| Index 
+~~~~~~~~~~~~~~~~~~~~~
+
+In this section, you will create an |fts| index for the fields in the 
+embedded documents in the ``local_school_district.schools`` collection. 
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Navigate to the |fts| page for your project.
+
+      a. If it isn't already displayed, select the organization that
+         contains your desired project from the |ui-org-menu| in the
+         navigation bar.
+
+      #. If it isn't already displayed, select your desired project
+         from the :guilabel:`Projects` menu in the navigation bar.
+
+      #. Click your {+cluster+}\'s name.
+
+      #. Click the :guilabel:`Search` tab.
+
+   .. step:: Click :guilabel:`Create Index`.
+
+   .. step:: Select the :guilabel:`JSON Editor` :guilabel:`Configuration Method` and click :guilabel:`Next`.
+
+   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
+
+      a. In the :guilabel:`Index Name` field, enter ``default``.
+
+         .. include:: /includes/default-fts-index-name.rst 
+
+      #. In the :guilabel:`Database and Collection` section, find the 
+         ``local_school_district`` database, and select the ``schools`` 
+         collection.
+
+   .. step:: Specify an index configuration that indexes embedded documents.
+
+      a. Replace the default index definition with the following 
+         index definition and click :guilabel:`Next`.
+
+         The following index definition specifies that documents in the 
+         arrays at the ``teachers`` and ``teachers.classes`` paths must be 
+         indexed as :ref:`bson-data-types-embedded-documents`, and the 
+         fields inside the documents must be dynamically indexed.  
+
+         .. code-block:: json 
+            :linenos: 
+
+            {
+              "mappings": {
+                "fields": {
+                  "teachers": {
+                    "type": "embeddedDocuments",
+                    "dynamic": true,
+                    "fields": {
+                      "classes": {
+                        "type": "embeddedDocuments",
+                        "dynamic": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Create Search Index`.
+
+Run |fts| Queries Against Embedded Document Fields 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run queries against the embedded document fields. This 
+tutorial uses :ref:`embedded-document-ref` and :ref:`text-ref` 
+operators inside the :ref:`compound-ref` operator in the queries. 
+
+In this section, you will connect to your |service| {+cluster+} and run 
+the sample queries using the operators against the fields in the 
+``schools`` collection. 
+
+.. tabs-selector:: drivers
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu on this page to 
+set the language of the examples in this section.
+
+----------
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/steps-fts-embedded-document-query-mongosh.txt 
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/steps-fts-embedded-document-query-compass.txt
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/steps-fts-embedded-document-query-go.txt
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/steps-fts-embedded-document-query-java.txt
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/steps-fts-embedded-document-query-nodejs.txt
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/steps-fts-embedded-document-query-python.txt
