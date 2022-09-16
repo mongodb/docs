@@ -1,0 +1,170 @@
+.. _ak8so-unified-access:
+
+====================================
+Set Up Unified Cloud Provider Access
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/unified-access-intro.rst
+   
+You can use |ak8so| to set up unified access for an |aws| |iam| role
+in the :ref:`atlasproject-custom-resource`.
+
+Prerequisites
+-------------
+
+.. include:: /includes/fact-ak8so-api-key-permission.rst
+
+To learn more, see :ref:`ak8so-access-to-atlas-ref`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Add the ``spec.cloudProviderAccessRoles`` fields to the ``AtlasProject`` custom resource.
+
+      a. Specify an empty value placeholder within the
+         ``spec.cloudProviderAccessRoles.iamAssumedRoleArn``
+         parameter of the :ref:`atlasproject-custom-resource`.
+         
+      #. Specify ``AWS`` within the 
+         ``spec.cloudProviderAccessRoles.providerName``
+         parameter of the :ref:`atlasproject-custom-resource`.
+
+      **Example:**
+
+      .. code-block:: sh
+         :emphasize-lines: 12,13
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject     
+         metadata:
+           name: my-project      
+         spec:                 
+           name: Test Project
+           projectIpAccessList:     
+             - ipAddress: "192.0.2.15"
+               comment: "IP address for Application"
+           cloudProviderAccessRoles:
+           - providerName: "AWS"
+             iamAssumedRoleArn: ""
+         EOF
+
+      .. important::
+
+         Complete this entire procedure to configure the role for the
+         empty value placeholder before adding any additional access
+         roles to your ``AtlasProject`` custom resource.
+
+   .. step:: Retrieve the project's ``atlasAWSAccountArn`` and ``atlasAssumedRoleExternalId``.
+
+      a. Run the command to retrieve the ``atlasAWSAccountArn``, which
+         you need for the next steps.
+
+         .. io-code-block::
+   
+            .. input::
+               :language: sh
+
+               kubectl get atlasprojects my-project -o=jsonpath='{.status.cloudProviderAccessRoles.atlasAWSAccountArn.type}'
+
+            .. output::
+               :language: json
+               :visible: true
+
+               arn:aws:iam::198765432109:root         
+
+      #. Run the command to retrieve the ``atlasAssumedRoleExternalId``, which
+         you need for the next steps.
+
+         .. io-code-block::
+   
+            .. input::
+               :language: sh
+
+               kubectl get atlasprojects my-project -o=jsonpath='{.status.cloudProviderAccessRoles.atlasAssumedRoleExternalId.type}'
+            
+            .. output::
+               :language: json
+               :visible: true
+
+               1a234b56-c789-0d12-345e-67f89012345a
+
+   .. step:: Modify your |aws| |iam| role trust policy.
+
+      You can use an existing |iam| role or create a new |iam| role
+      for unified access.
+
+      .. tabs:: 
+         
+         .. tab:: Use existing IAM role
+            :tabid: existing-role
+   
+            .. include:: /includes/modify-trust-policy.rst
+
+         .. tab:: Create new IAM role
+            :tabid: new-role
+
+            .. include:: /includes/create-iam-role.rst
+
+   .. step:: Find the |iam| role's |arn| in |aws|.
+
+      In the :guilabel:`Roles` section of the |aws| Management
+      Console, click on the |iam| role you edited or created for 
+      |service| access. |aws| displays the |arn| in the
+      :guilabel:`Summary` section.
+
+   .. step:: Authorize the |iam| role's access using {+ak8so+}.
+            
+      Replace the empty value placeholder within the 
+      ``spec.cloudProviderAccessRoles.iamAssumedRoleArn``
+      parameter of the :ref:`atlasproject-custom-resource` with
+      the |iam| role's |aws| |arn| from the previous step.
+
+      **Example:**
+
+      .. code-block:: sh
+         :emphasize-lines: 13
+
+         cat <<EOF | kubectl apply -f -
+         apiVersion: atlas.mongodb.com/v1
+         kind: AtlasProject     
+         metadata:
+           name: my-project      
+         spec:                 
+           name: Test Project
+           projectIpAccessList:     
+             - ipAddress: "192.0.2.15"
+               comment: "IP address for Application"
+           cloudProviderAccessRoles:
+           - providerName: "AWS"
+             iamAssumedRoleArn: "arn:aws:iam::123456789012:role/aws-service-role/support.amazonaws.com/myRole"
+         EOF
+
+   .. step:: Check the status of the ``cloudProviderAccessRole``.
+
+      a. Run the command to retrieve the status:
+
+         .. code-block:: sh
+
+            kubectl get atlasprojects my-project -o=jsonpath='{.status.cloudProviderAccessRoles}'
+
+      #. Check for the ``READY`` status.
+   
+         - If the status is ``CREATED``, |service| created the role but
+           you have not authorized it within |aws|. 
+         - If the status is ``EMPTY_ARN``, |service| created the role
+           but you have not specified the 
+           ``spec.cloudProviderAccessRoles.iamAssumedRoleArn``.
+         - If the status is ``READY``, |service| has created the role
+           and you have authorized it within |aws|.
