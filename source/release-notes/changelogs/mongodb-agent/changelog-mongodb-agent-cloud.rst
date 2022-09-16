@@ -1,3 +1,58 @@
+.. _12.4.0.7703:
+
+MongoDB Agent 12.4.0.7703
+-------------------------
+
+*Released* 2022-08-24
+
+- Adds support for an upcoming feature that allows you to set 
+  cluster-wide parameters.
+- Fixes a bug that could cause the {+mdbagent+} self-update to stall if 
+  it encountered an issue downloading new binaries.
+- Fixes an issue with rotating MongoDB audit log files.
+
+.. _12.3.0.7658-1:
+
+MongoDB Agent 12.3.0.7658-1
+---------------------------
+
+*Released* 2022-08-04
+
+- Improves automatic race detection and fixes detected race conditions.
+- Improves audit log rotation by tightening regex for determining which 
+  files are audit logs.
+
+.. _12.2.0.7631:
+
+MongoDB Agent 12.2.0.7631
+-------------------------
+
+*Released* 2022-07-13
+
+- Fixes a bug for {+mdbagent+} versions 12.1.1 and later where rolling 
+  index builds ignored the ``hidden`` property when built on Data 
+  Explorer.
+- Improves logging.
+- Adds support for the upcoming release of MongoDB 6.0.
+
+.. _12.1.0.7593:
+
+MongoDB Agent 12.1.0.7593
+--------------------------
+
+*Released* 2022-06-22
+
+- Adds support for the upcoming release of MongoDB 6.0.
+
+.. _12.0.4.7554:
+
+MongoDB Agent 12.0.4.7554
+-------------------------
+
+*Released* 2022-06-01
+
+- Adds support for the upcoming release of MongoDB 6.0.0.
+
 .. _12.0.0.7536:
 
 MongoDB Agent 12.0.0.7536
