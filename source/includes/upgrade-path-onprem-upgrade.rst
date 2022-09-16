@@ -26,9 +26,14 @@ The following table lists upgrade paths for all versions:
 
      - Upgrade Path
 
+   * - 6.0.x
+     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
+       upgrade from |onprem| 6.0.x to the latest patch version of 6.0.
+
    * - 5.0.x
      - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
-       upgrade from |onprem| 5.0.x to the latest patch version of 5.0.
+       upgrade from |onprem| 5.0.x to the latest patch version of 5.0,
+       then to the latest patch version of 6.0.
 
    * - 4.4.x
      - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
