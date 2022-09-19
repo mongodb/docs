@@ -10,6 +10,8 @@
 - Updates JDK to jdk-11.0.16+8.
 - Updates the {+mdbagent+} to :ref:`11.0.19.7094
   <mongodb-11.0.19.7094>`.
+  
+  .. include:: /includes/extracts/om5-warning-server-68925.rst
 
 .. _opsmgr-server-5.0.13:
 
@@ -20,6 +22,8 @@
 
 - Updates the {+mdbagent+} to :ref:`11.0.18.7089 
   <mongodb-11.0.18.7089>`.
+  
+  .. include:: /includes/extracts/om5-warning-server-68925.rst
 - Fixes an issue that caused premature termination of sharded cluster 
   snapshots when one shard completed its snapshot before the other 
   shards.
@@ -35,10 +39,12 @@
   :cve-id:`CVE-2020-9493 <CVE-2020-9493>`.
 - Fixes an issue where editing an Oplog Store's name that contains dots 
   (``.``) might have resulted in errors.
-- Updates the {+mdbagent+} to :ref:`11.0.17.7086
-  <mongodb-11.0.17.7086>`.
 - Compatible with :db-tools:`MongoDB Database Tools 100.5.3 
   </release-notes/database-tools-changelog#100.5.3-changelog>`.
+- Updates the {+mdbagent+} to :ref:`11.0.17.7086
+  <mongodb-11.0.17.7086>`.
+  
+  .. include:: /includes/extracts/om5-warning-server-68925.rst
 
 .. _opsmgr-server-5.0.11:
 
@@ -52,6 +58,8 @@
 - Fixes an issue where updating {+mdbagent+} versions via the API fails when you 
   use controlled features.
 - Updates the {+mdbagent+} to :ref:`11.0.16.7080 <mongodb-11.0.16.7080>`.
+  
+  .. include:: /includes/extracts/om5-warning-server-68925.rst
 
 .. _opsmgr-server-5.0.10:
 
@@ -63,8 +71,10 @@
 - Adds support for Debian 10 when you use the :bic:`BI Connector </>`.
 - Fixes an issue that occured when you changed the default server usage
   for organizations.
-- Updates the {+mdbagent+} to :ref:`11.0.15.7073 <mongodb-11.0.15.7073>`.
 - Updates the |jdk| to ``jdk-11.0.15+10``.
+- Updates the {+mdbagent+} to :ref:`11.0.15.7073 <mongodb-11.0.15.7073>`.
+  
+  .. include:: /includes/extracts/om5-warning-server-68925.rst
 
 .. _opsmgr-server-5.0.9:
 

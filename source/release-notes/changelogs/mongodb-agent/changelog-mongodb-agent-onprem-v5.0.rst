@@ -5,12 +5,16 @@ MongoDB Agent 11.0.19.7094
 
 :ref:`Released with Ops Manager 5.0.14 on 2022-08-04 <opsmgr-server-5.0.14>`
 
+.. include:: /includes/extracts/om5-warning-server-68925.rst
+
 .. _mongodb-11.0.18.7089:
 
 MongoDB Agent 11.0.18.7089
 --------------------------
 
 :ref:`Released with Ops Manager 5.0.13 on 2022-07-21 <opsmgr-server-5.0.13>`
+
+.. include:: /includes/extracts/om5-warning-server-68925.rst
 
 .. _mongodb-11.0.17.7086:
 
@@ -19,6 +23,8 @@ MongoDB Agent 11.0.17.7086
 
 :ref:`Released with Ops Manager 5.0.12 on 2022-06-30 <opsmgr-server-5.0.12>`
 
+.. include:: /includes/extracts/om5-warning-server-68925.rst
+
 .. _mongodb-11.0.16.7080:
 
 MongoDB Agent 11.0.16.7080
@@ -26,12 +32,16 @@ MongoDB Agent 11.0.16.7080
 
 :ref:`Released with Ops Manager 5.0.11 on 2022-06-02 <opsmgr-server-5.0.11>`
 
+.. include:: /includes/extracts/om5-warning-server-68925.rst
+
 .. _mongodb-11.0.15.7073:
 
 MongoDB Agent 11.0.15.7073
 --------------------------
 
 :ref:`Released with Ops Manager 5.0.10 on 2022-05-05 <opsmgr-server-5.0.10>`
+
+.. include:: /includes/extracts/om5-warning-server-68925.rst
 
 .. _mongodb-11.0.14.7064:
 

@@ -16,6 +16,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~
 
 - Updates {+mdbagent+} to :ref:`12.3.0.7658-1 <12.3.0.7658-1>`.
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220713:
 
@@ -31,25 +33,29 @@
   - Improvements to Change Streams
   - New cluster administration options
   - and more.
-- Updates {+mdbagent+} to :ref:`12.2.0.7631 <12.2.0.7631>`.
 - Improves the ability to disable audit log rotation.
 - Adds the ability to detect NaN values in the 
   :guilabel:`Data Explorer`.
 - Extends index shard key validation for managed sharding to include 
   compound indexes.
+- Updates {+mdbagent+} to :ref:`12.2.0.7631 <12.2.0.7631>`.
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220622:
 
 22 June 2022 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Updates {+mdbagent+} to :ref:`12.1.0.7593 <12.1.0.7593>`.
 - Adds the ability to create hidden rolling indexes with the 
   :guilabel:`Data Explorer`.
 - Adds the ability to enable and run the sharded cluster balancer 
   through the |mms-full| UI using Automation.
 - Compatible with :db-tools:`MongoDB Database Tools 100.5.3 
   </release-notes/database-tools-changelog#100.5.3-changelog>`.
+- Updates {+mdbagent+} to :ref:`12.1.0.7593 <12.1.0.7593>`.
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220601:
 
@@ -57,6 +63,8 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 - Updates {+mdbagent+} to :ref:`12.0.4.7554 <12.0.4.7554>`.
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220511:
 
@@ -69,8 +77,8 @@
   the :doc:`Measurements Administration API resource </reference/api/measures/measurement-types>`.
 - Deprecates the ``OPLOG_SLAVE_LAG_MASTER_TIME`` metric.
 - Updates {+mdbagent+} to :ref:`12.0.0.7536 <12.0.0.7536>`.
-
-
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220420:
 
@@ -78,6 +86,8 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Updates {+mdbagent+} to :ref:`11.15.0.7497 <11.15.0.7497>`.
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220331:
 
@@ -85,14 +95,18 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Updates {+mdbagent+} to :ref:`11.14.0.7475 <11.14.0.7475>`.
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220309:
 
 9 March 2022 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Introduces a :ref:`metrics integration with Prometheus <prometheus-integration-mms>`.
+- Introduces a :ref:`metrics integration with Prometheus  <prometheus-integration-mms>`.
 - Updates {+mdbagent+} to :ref:`11.13.0.7438 <11.13.0.7438>`.
+  
+  .. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 .. _cloudmanager_20220216:
 

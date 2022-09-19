@@ -18,6 +18,8 @@ MongoDB Agent 12.3.0.7658-1
 
 *Released* 2022-08-04
 
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
+
 - Improves automatic race detection and fixes detected race conditions.
 - Improves audit log rotation by tightening regex for determining which 
   files are audit logs.
@@ -28,6 +30,8 @@ MongoDB Agent 12.2.0.7631
 -------------------------
 
 *Released* 2022-07-13
+
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 - Fixes a bug for {+mdbagent+} versions 12.1.1 and later where rolling 
   index builds ignored the ``hidden`` property when built on Data 
@@ -42,6 +46,8 @@ MongoDB Agent 12.1.0.7593
 
 *Released* 2022-06-22
 
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
+
 - Adds support for the upcoming release of MongoDB 6.0.
 
 .. _12.0.4.7554:
@@ -50,6 +56,8 @@ MongoDB Agent 12.0.4.7554
 -------------------------
 
 *Released* 2022-06-01
+
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 - Adds support for the upcoming release of MongoDB 6.0.0.
 
@@ -60,6 +68,8 @@ MongoDB Agent 12.0.0.7536
 
 *Released* 2022-05-10
 
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
+
 - Adds support for the upcoming release of MongoDB 6.0.0.
 
 .. _11.15.0.7497:
@@ -69,6 +79,8 @@ MongoDB Agent 11.15.0.7497
 
 *Released* 2022-04-20
 
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
+
 - Adds support for the upcoming release of MongoDB 6.0.
 
 .. _11.14.0.7475:
@@ -77,6 +89,8 @@ MongoDB Agent 11.14.0.7475
 --------------------------
 
 *Released* 2022-03-31
+
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 - Removes support for managing MongoDB 3.4 clusters, but still 
   supports monitoring and backup.
@@ -90,6 +104,8 @@ MongoDB Agent 11.13.0.7438
 --------------------------
 
 *Released* 2022-03-09
+
+.. include:: /includes/extracts/cloud-warning-server-68925.rst
 
 - Reduces the rate of DNS lookups performed by the {+mdbagent+}.
 

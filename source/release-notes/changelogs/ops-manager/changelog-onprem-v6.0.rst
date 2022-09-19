@@ -33,6 +33,8 @@
 - Updates the {+mdbagent+} to :ref:`12.0.10.7591
   <mongodb-12.0.10.7591>`.
 
+  .. include:: /includes/extracts/om6-warning-server-68925.rst
+
 .. _opsmgr-server-6.0.1:
 
 |onprem| Server 6.0.1
@@ -40,13 +42,15 @@
 
 *Released 2022-07-20*
 
-- Updates the {+mdbagent+} to :ref:`12.0.9.7579 <mongodb-12.0.9.7579>`.
 - Supports MongoDB 6.0 as a deployment option, but doesn't display 
   MongoDB 6.0.0 as an available deployment option by default. To 
   display MongoDB 6.0.0 as a deployment option, set  
   ``mms.featureFlag.automation.enableV6`` :ref:`configuration 
   <conf-mms.properties>` option in the ``conf-mms.properties`` file to 
   ``enabled``.
+- Updates the {+mdbagent+} to :ref:`12.0.9.7579 <mongodb-12.0.9.7579>`.
+
+  .. include:: /includes/extracts/om6-warning-server-68925.rst
 
 .. _opsmgr-server-6.0.0:
 
@@ -54,6 +58,10 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2022-07-19*
+
+- Updates the {+mdbagent+} to :ref:`12.0.8.7575 <mongodb-12.0.8.7575>`.
+
+  .. include:: /includes/extracts/om6-warning-server-68925.rst
 
 MongoDB Cluster Management
 ``````````````````````````
