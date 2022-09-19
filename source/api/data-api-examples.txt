@@ -288,3 +288,186 @@ You can query a range of dates with ``$gt``, ``$gte``, ``$lt``, and
            }
          }
      }'
+
+Data Access Permissions
+-----------------------
+
+You can secure {+data-api+} requests using the underlying Atlas App's
+built-in role-based permissions. The examples in this section
+demonstrate how to set up common permissions schemes. You can mix and
+match these and more complex schemes to meet your API's needs. For more
+examples and information on how permissions work, see :ref:`Role-based
+Permissions <permissions>` in the {+atlas-app-services+} docs.
+
+Define Permissions for Specific API Keys
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define multiple roles with different data access permissions and
+assign specific API keys to each role. For example, you can create a
+``read-only`` role that allows users to read all data but not insert,
+delete, or modify data.
+
+You map each role to an API key in the role's ``apply_when`` expression.
+
+Each API key corresponds to a separate user account with a unique
+account ID. You can access the account ID and other data of the user
+making a request with the :json-expansion:`%%user` expansion.
+
+To associate a role with a single API key, set the ``apply_when``
+expression to match the API key's account ID:
+
+.. code-block:: json
+   :caption: apply_when - One user per role
+   :emphasize-lines: 7-9
+   
+   {
+     "database": "<database>",
+     "collection": "<collection>",
+     "roles": [
+       {
+          "name": "SpecificUser",
+          "apply_when": {
+            "%%user.id": "61f9a5e69cd3c0199dc1bb88"
+          },
+          "insert": true,
+          "delete": true,
+          "read": true,
+          "write": true
+       }
+     ],
+     "filters": []
+   }
+
+To associate a role with multiple API keys, set the ``apply_when``
+expression to match an array of API key account IDs:
+
+.. code-block:: json
+   :caption: apply_when - Multiple users per role
+   :emphasize-lines: 7-14
+   
+   {
+     "database": "<database>",
+     "collection": "<collection>",
+     "roles": [
+       {
+          "name": "MultipleUsers",
+          "apply_when": {
+            "%%user.id": {
+               "$in": [
+                 "61f9a5e69cd3c0199dc1bb88",
+                 "61f9a5e69cd3c0199dc1bb89"
+               ]
+            }
+          },
+          "insert": true,
+          "delete": true,
+          "read": true,
+          "write": true
+       }
+     ],
+     "filters": []
+   }
+
+You can also use a custom system to determine if a user has a role. For
+example, you can write a function that looks up a user's roles from an
+Atlas cluster.
+
+.. code-block:: javascript
+   :caption: functions/hasRole.js
+   
+   exports = async function hasRole({
+     userId, // The user account ID, e.g. "60d0c1bdee9d3c23b677f929"
+     roleName, // The name of a role the user might have, e.g. "admin"
+   }) {
+     // 1. Get a reference to a custom user data collection
+     const users = context.services.get("mongodb-atlas").db("app").collection("users")
+     // 2. Query the user's document and make sure it exists
+     const user = await users.findOne({ userId })
+     if(!user) {
+       console.error(`User.id ${userId} not found in custom user data collection`)
+       return false
+     }
+     // 3. Decide if the user has the role we're checking
+     return user.roles.includes(roleName)
+   };
+
+And then call that function from the role's ``apply_when`` expression
+with the :json-operator:`%function` operator:
+
+.. code-block:: json
+   :caption: apply_when - Custom function
+   :emphasize-lines: 7-17
+   
+   {
+     "database": "<database>",
+     "collection": "<collection>",
+     "roles": [
+       {
+          "name": "SomeCustomRole",
+          "apply_when": {
+            "%%true": {
+              "%function": {
+                "name": "hasRole",
+                "arguments": [{
+                  "userId": "%%user.id",
+                  "roleName": "SomeCustomRole"
+                }]
+              }
+            }
+          },
+          "insert": true,
+          "delete": true,
+          "read": true,
+          "write": true
+       }
+     ],
+     "filters": []
+   }
+
+This example uses a custom user data collection, but you can use any
+external service to determine if a user has a role. The function code
+and arguments you pass are up to you.
+
+Define Permissions for a Specific Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can define roles that control data access permissions for a specific
+collection in your cluster. For example, you can create a ``read-only``
+role that allows users to read all data in a collection but not insert,
+delete, or modify any data.
+
+To define roles for a specific collection, update the collection's
+configuration file with the :ref:`collection-specific role
+configurations <role-config>`:
+
+.. code-block:: json
+   :caption: /data_sources/<data source>/<database>/<collection>/rules.json
+   
+   {
+     "database": "<database>",
+     "collection": "<collection>",
+     "roles": [
+       {
+          "name": "IsOwner",
+          "apply_when": { "owner_id": "%%user.id" },
+          "insert": false,
+          "delete": false,
+          "read": true,
+          "write": true
+       }
+     ],
+     "filters": []
+   }
+
+If no collection roles match, then the request is also evaluated against
+the data source's default roles. If you don't want to apply default
+roles, remove any roles and filters from the default rule configuration
+file.
+
+.. code-block:: json
+   :caption: /data_sources/<data source>/default_rule.json
+
+   {
+     "roles": [],
+     "filters": []
+   }
