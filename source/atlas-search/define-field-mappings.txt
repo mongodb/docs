@@ -12,11 +12,15 @@ Define Field Mappings
    :depth: 2
    :class: singlecol
 
-When you create an |fts| index, you can explicitly specify the fields 
-to index using static mappings. For the fields in the collection that 
-you want to index, you must include a ``type`` field that describes the 
+When you create an |fts| index, you can:
+
+- Specify the fields to index using static mappings. 
+- Configure |fts| to automatically index all supported field types using dynamic mappings.
+
+To use static mappings, you must explicitly include the fields in the collection that 
+you want to index. In the ``type`` field, specify the 
 :ref:`data type <bson-data-chart>` of the field in the field 
-definition. You can specify an array of field definitions for a field, 
+definition. Alternatively, you can specify an array of field definitions for a field, 
 one for each data type.
 
 .. code-block:: json  
@@ -37,9 +41,6 @@ one for each data type.
        ...  
      }
    }
-
-Alternatively, you can configure |fts| to automatically index all the 
-supported field types in the collection using dynamic mappings.
 
 .. include:: /includes/fact-fts-index-field-order.rst 
 
@@ -69,7 +70,8 @@ automatically indexes the fields of :ref:`supported types
 Use dynamic mappings if your schema changes regularly or is unknown, or 
 when experimenting with |fts|. You can configure an entire index to use 
 dynamic mappings, or specify individual fields, such as fields of type 
-``document``, to be dynamically mapped.
+``document``, to be dynamically mapped. Before using dynamic mappings, see 
+:ref:`bson-data-types-limitations`. 
 
 .. note::
 
@@ -206,7 +208,7 @@ in an array or is in a document that is contained in an array:
 Index Field as Multiple Data Types 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To index a field as multiple types, define the types inside the field 
+To index a field as multiple types, define the types in the field 
 definition array for the field.  
 
 .. example:: 
@@ -277,7 +279,7 @@ array in the index definition.
       }
 
 For indexing string fields in embedded documents, which are documents 
-nested inside an array, you must use the 
+contained in an array, you must use the 
 :ref:`bson-data-types-embedded-documents` type.
 
 .. _bson-data-types:
@@ -522,7 +524,7 @@ The ``autocomplete`` type takes the following options:
 .. note:: 
 
    You can index a field as other types also by specifying the other 
-   types inside the array. For example, the following index definition 
+   types in the array. For example, the following index definition 
    indexes the field as both ``autocomplete`` and ``string`` types.
 
    .. code-block:: json 
@@ -565,7 +567,7 @@ operator.
      <static-dynamic-mappings>`.
 
    - |fts| doesn't index fields of type ``boolean`` in an array or in a 
-     document inside an array.
+     document contained in an array.
 
 .. _boolean-objectid-example:
 
@@ -623,8 +625,8 @@ It takes the ``type`` option. The value of ``type`` must be
 
 .. note::
 
-   You can't index date field if it's inside an array or if it's inside 
-   a document in an array for faceting. 
+   You can't index a date field for faceting if the field is in an array or in 
+   a document contained in an array. 
 
    |fts| doesn't support date faceting over fields indexed as part of 
    an ``embeddedDocuments`` field.
@@ -680,12 +682,11 @@ It takes the following parameters:
      - Flag that indicates whether |fts| recursively indexes all fields 
        and embedded documents. If set to ``true``, |fts| recursively 
        indexes all fields and embedded documents in the ``document`` 
-       except:
-
-       - Fields of certain data types. To learn more, see 
-         :ref:`bson-data-chart`.
-       - Any fields that you explicitly exclude using the ``fields`` 
-         parameter.
+       except fields of :ref:`certain data types <bson-data-chart>`.
+       
+       To index all fields in a document including fields that 
+       |fts| doesn't dynamically index, define the fields 
+       in the index definition.
 
        If omitted or set to ``false``, you must specify individual 
        fields to index.
@@ -754,10 +755,10 @@ It takes the following options:
      - boolean
      - Optional
      - Flag that specifies whether to index every dynamically indexable 
-       field inside the document unless excluded by a field definition 
-       using ``fields``. Value can be one of the following: 
+       field in the document. Value can be one of 
+       the following: 
 
-       - ``true`` - index all indexable fields 
+       - ``true`` - index all indexable fields
        - ``false`` - don't index all the indexable fields 
 
      - ``false``
@@ -765,15 +766,12 @@ It takes the following options:
    * - ``fields``
      - document
      - Conditional
-     - Fields to index or exclude from indexing. 
+     - Fields to index. 
      
-       If ``dynamic`` is ``true``, you can specify the fields to 
-       exclude from indexing in the field definition for the fields. By 
-       default, |fts| indexes all indexable fields if ``dynamic`` is 
-       ``true``. 
+       If ``dynamic`` is ``true``, |fts| indexes all indexable fields.
        
        If ``dynamic`` is ``false``, you can specify the fields to index 
-       in the field definition for the fields.
+       in the field definition for ``fields``.
 
        .. note:: 
 
@@ -814,10 +812,10 @@ collection in the :ref:`sample dataset <sample-data>`.
 
       .. note:: 
 
-         To index all fields inside an embedded document including 
+         To index all fields in an embedded document including 
          fields that |fts| doesn't dynamically index, define the fields 
          in the index definition. For example, the following index 
-         definition shows how to dynamically index all fields inside an 
+         definition shows how to dynamically index all fields in an 
          embedded document field named ``a``, including field ``a.d`` 
          of type :ref:`objectId-ref`, which |fts| doesn't dynamically 
          index: 
@@ -943,7 +941,7 @@ Use the ``number`` type to index fields with numeric values of
 
 .. note::
 
-   You can't index numeric values in arrays or in a document in an 
+   You can't index numeric values in arrays or in a document contained in an 
    array. 
    
    You must index the ``number`` fields using 
@@ -1099,7 +1097,7 @@ the specified ``representation`` for faceting. You can index numbers of
 limitations apply:
 
 - You can't index ``decimal128`` for faceting. 
-- You can't index numeric values in arrays or in a document in an array 
+- You can't index numeric values in arrays or in a document contained in an array 
   for faceting.
 - You can't facet over numeric fields indexed as part of an 
   ``embeddedDocuments`` field.
