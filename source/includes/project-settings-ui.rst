@@ -18,8 +18,14 @@ You can set the following in the {+atlas-ui+}:
 
   * - :guilabel:`Project Time Zone`
 
-    - Sets your project's time zone. This does not affect the
-      timezones set for individual user accounts. [#user-settings]_
+    - Sets your project's time zone. This affects the maintenance window
+      timezone and alerts, but not the timezone set for individual user
+      accounts. [#user-settings]_
+      
+      .. note::
+        
+         There is also a :guilabel:`User Preferences` timezone, which 
+         only affects the activity feed.
 
   * - :guilabel:`Connect via Peering Only (GCP and Azure)`
 
