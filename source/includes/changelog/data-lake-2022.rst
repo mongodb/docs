@@ -1,3 +1,11 @@
+.. _data-lake-v20220913:
+
+13 September 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for the Public API for configuring and utilizing Data 
+  Lake Pipelines.
+
 .. _data-lake-v20220823:
 
 23 August 2022 Release
