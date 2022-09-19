@@ -21,9 +21,9 @@ Definition
    single query. Each element of a ``compound`` query is called a
    clause, and each clause consists of one or more sub-queries.
 
-   Documents in the result set are returned with a match score, which
-   is calculated by summing the score that each document received for
-   each individual clause which generated a match. The result set is
+   Documents in the result set are returned with a match score, which 
+   is calculated by summing the score that each document received for 
+   each individual clause which generated a match. The result set is 
    ordered by score, highest to lowest.
 
 .. _compound-syntax:
@@ -40,14 +40,16 @@ Syntax
      $search: {
        "index": <index name>, // optional, defaults to "default"
        "compound": {
-         <must | mustNot | should | filter>: [ { <clauses> } ]
+         <must | mustNot | should | filter>: [ { <clauses> } ],
+         "score": <options>
        }
      }
    }
 
-Each ``must``, ``mustNot``, ``should``, and ``filter`` clause contains an
-array of sub-clauses. Use array syntax even if the array contains only one
-sub-clause. See the :ref:`examples <compound-examples>` on this page.
+Each ``must``, ``mustNot``, ``should``, and ``filter`` clause contains 
+an array of subclauses. Use array syntax even if the array contains 
+only one subclause. See the :ref:`examples <compound-examples>` on 
+this page.
 
 .. _compound-options:
 
@@ -61,13 +63,15 @@ Options
 
    * - .. data:: must
      - Clauses that must match to for a document to be included in the
-       results.
+       results. The returned score is the sum of the scores of all the 
+       subqueries in the clause.
 
        Maps to the ``AND`` boolean operator.
 
    * - .. data:: mustNot
      - Clauses that must not match for a document to be included in
-       the results.
+       the results. ``mustNot`` clauses don't contribute to a returned 
+       document's score.
 
        Maps to the ``AND NOT`` boolean operator.
 
@@ -75,7 +79,8 @@ Options
      - Clauses that you prefer to match in documents that are included
        in the results. Documents that contain a match for a ``should`` 
        clause have higher scores than documents that don't contain a
-       ``should`` clause.
+       ``should`` clause. The returned score is the sum of the scores 
+       of all the subqueries in the clause.
 
        If you use more than one ``should`` clause, you can use the
        ``minimumShouldMatch`` option to specify a minimum number of
@@ -125,17 +130,34 @@ Options
 
        See another :ref:`filter-example`.
 
-Any of the above clauses may contain query criteria using any
-top-level operator, such as :ref:`term <term-ref>`,
-:ref:`search <search-ref>`, or :ref:`span <span-ref>`.
+   * - ``score``
+     - Modify the :ref:`score <scoring-ref>` of the entire ``compound`` 
+       clause. You can use ``score`` to boost, replace, or otherwise 
+       alter the score. If you don't specify ``score``, the returned 
+       score is the sum of the scores of all the subqueries in the 
+       ``must`` and ``should`` clauses that generated a match. 
+
+Usage 
+-----
+
+You can use any of the clauses with any top-level operator, such as 
+:ref:`autocomplete <autocomplete-ref>`, :ref:`text <text-ref>`, or 
+:ref:`span <span-ref>`, to specify query criteria. 
+
+You can boost or replace the score of the entire compound query. For an 
+example of replacing the entire compound score, see :ref:`Compound 
+Score Example <must-should-example>` below. You can use :ref:`score 
+<scoring-ref>` to also boost or alter the score for each subquery in 
+each clause. For some examples of altered scores in ``compound`` 
+operator clauses, see :ref:`scoring-ref`. 
 
 .. _compound-examples:
 
 Examples
 --------
 
-The examples on this page use a collection called ``fruit`` which contains
-the following documents:
+The examples on this page use a collection called ``fruit``, which 
+contains the following documents:
 
 .. code-block:: json
    :linenos:
@@ -157,8 +179,7 @@ the following documents:
    {
      "_id" : 3,
      "type" : "pear",
-     "description" : "Bosc and Bartlett are the most common varieties of 
-     pears.",
+     "description" : "Bosc and Bartlett are the most common varieties of pears.",
      "category" : "organic",
      "in_stock" : true
    }
@@ -214,52 +235,108 @@ contain ``apples``.
 ``must`` and ``should`` Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following query uses ``must`` to specify search conditions
-which must be met and ``should`` to specify preference for documents
-containing the word ``Fuji``. The ``$project`` pipeline stage excludes
-all document fields except ``_id`` and adds a ``score`` field, which
-displays the document's relevance score.
+The following queries use ``must`` to specify search conditions
+that must be met and ``should`` to specify preference for documents
+that contain the word ``Fuji``. 
 
-.. code-block:: javascript
-   :linenos:
+.. tabs:: 
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "compound": {
-           "must": [{
-             "text": {
-               "query": "varieties",
-               "path": "description"
+   .. tab:: Basic Example
+      :tabid: basic
+
+      For this query, the ``$project`` pipeline stage excludes all 
+      document fields except ``_id`` and adds a ``score`` field, which
+      displays the document's relevance score.
+
+      .. code-block:: javascript
+         :linenos:
+
+         db.fruit.aggregate([
+           {
+             "$search": {
+               "compound": {
+                 "must": [{
+                   "text": {
+                     "query": "varieties",
+                     "path": "description"
+                   }
+                 }],
+                 "should": [{
+                   "text": {
+                     "query": "Fuji",
+                     "path": "description"
+                   }
+                 }]
+               }
              }
-           }],
-           "should": [{
-             "text": {
-               "query": "Fuji",
-               "path": "description"
+           },
+           {
+             "$project": {
+               "score": { "$meta": "searchScore" }
              }
-           }]
-         }
-       }
-     },
-     {
-       $project: {
-         "score": { "$meta": "searchScore" }
-       }
-     }
-   ])
+           }
+         ])
 
-The above query returns the following results:
+      The above query returns the following results:
 
-.. code-block:: json
-   :copyable: false
+      .. code-block:: json
+         :copyable: false
 
-   { "_id" : 1, "score" : 0.6425117254257202 }
-   { "_id" : 3, "score" : 0.21649497747421265 }
+         { "_id" : 1, "score" : 0.6425117254257202 }
+         { "_id" : 3, "score" : 0.21649497747421265 }
 
-The document with ``_id: 1`` has a higher score because its
-``description`` field contains the word ``Fuji``, satisfying the
-``should`` clause.
+      The document with ``_id: 1`` has a higher score because its
+      ``description`` field contains the word ``Fuji``, satisfying the
+      ``should`` clause.
+
+   .. tab:: Compound Score Example
+      :tabid: compoundscore 
+
+      The following query also specifies a :ref:`scoring-constant` 
+      score of ``3`` for all the documents in the results. For this 
+      query, the ``$project`` pipeline stage excludes all document 
+      fields except ``_id`` and adds a ``score`` field.
+
+      .. code-block:: javascript
+         :linenos:
+
+         db.fruit.aggregate([
+           {
+             "$search": {
+               "compound": {
+                 "must": [{
+                   "text": {
+                     "query": "varieties",
+                     "path": "description"
+                   }
+                 }],
+                 "should": [{
+                   "text": {
+                     "query": "Fuji",
+                     "path": "description"
+                   }
+                 }],
+                 "score": { "constant": { "value": 3 } }
+               }
+             }
+           },
+           {
+             "$project": {
+               "score": { "$meta": "searchScore" }
+             }
+           }
+         ])
+
+      The above query returns the following results:
+
+      .. code-block:: json
+         :copyable: false
+
+         [ { _id: 1, score: 3 }, { _id: 3, score: 3 } ]
+
+      Both the documents receive the same score because the 
+      ``constant`` option in the query replaces the score of each 
+      document in the result with the number ``3``. 
 
 .. _min-example:
 
