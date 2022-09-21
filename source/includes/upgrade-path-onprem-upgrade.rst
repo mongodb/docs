@@ -80,7 +80,3 @@ The following table lists upgrade paths for all versions:
 
 There are no supported downgrade paths for |onprem|.
 
-<<<<<<< HEAD
-=======
-
->>>>>>> b8e1f93ab ((DOCSP-25365): Fix upgrade path for version 4.4.x to 5.0 (#4651))
