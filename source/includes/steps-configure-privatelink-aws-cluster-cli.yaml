@@ -1,0 +1,117 @@
+stepnum: 1
+level: 4
+ref: create-private-endpoint-cli
+title: "Create the private endpoint in |service|."
+content: |
+
+  a. Run the {+atlas-cli+} command to 
+     create a private endpoint in |service|:
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-aws-create.rst
+
+  b. Note the private endpoint's ID in the response. In this example,
+     the ID is ``6344ac8f51b94c6356527881``.
+
+     .. code-block:: json 
+
+        Private endpoint '6344ac8f51b94c6356527881' created.
+
+---
+stepnum: 2
+level: 4
+ref: get-private-endpoint-service-name-cli
+title: "Retrieve the service name for the private endpoint."
+content: |
+
+  .. note::
+
+     It might take |service| some time to provision the private
+     endpoint. Wait 1-2 minutes before you complete this step.
+
+  a. Run the {+atlas-cli+} command to 
+     describe the private endpoint using its ID:
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-aws-describe.rst
+
+  b. Note the value for ``ENDPOINT SERVICE`` in the
+     response, which shows the endpoint service name. In this example,
+     the endpoint service name is ``com.amazonaws.vpce.us-east-1.vpce-svc-0705499aae25ac77c``:
+
+     .. code-block:: json 
+
+        ID                         ENDPOINT SERVICE                                           STATUS         ERROR
+        6344ac8f51b94c6356527881   com.amazonaws.vpce.us-east-1.vpce-svc-0705499aae25ac77c   WAITING_FOR_USER   
+
+     If the ``ENDPOINT SERVICE`` value is ``null``, wait 1-2 more
+     minutes for |service| to provision the private endpoint. Then, try this step again.
+
+---
+stepnum: 3
+level: 4
+ref: create-interface-endpoint-aws-cli
+inherit:
+  ref: create-interface-endpoint-aws-api
+  file: steps-configure-privatelink-aws-serverless-api.yaml
+title: "Create the interface endpoint in AWS."
+
+---
+stepnum: 4
+level: 4
+ref: update-private-endpoint-aws-cli
+title: "Update your private endpoint with the VPC Endpoint ID."
+content: |
+
+  In the {+atlas-ui+}:
+
+  a. Click :guilabel:`Network Access` in the left navigation menu.
+  #. Click the :guilabel:`Private Endpoint` tab.
+  #. Click :guilabel:`Edit` next to the private endpoint that matches
+     the endpoint service name you retrieved in a previous step.
+  #. Click :guilabel:`Next` to skip to the next screen.
+  #. Enter the :guilabel:`VPC Endpoint ID` you retrieved in a previous
+     step.
+  #. Click :guilabel:`Create`.
+
+     
+---
+ref: resource-sg-pl-aws
+level: 4
+stepnum: 5
+inherit:
+  ref: resource-sg-pl
+  file: steps-source-privatelink.yaml
+
+---
+ref: attach-sg-pl-aws
+level: 4
+stepnum: 6
+inherit:
+  ref: attach-sg-pl
+  file: steps-source-privatelink.yaml
+
+---
+stepnum: 7
+level: 4
+ref: get-private-endpoint-status-cli
+title: "Verify the private endpoint's availability."
+content: |
+
+  You can connect to the {+database-deployment+} using the 
+  {+aws-pl+} private endpoint after |service| finishes configuring all
+  of the resources and the private endpoint becomes available.
+
+  To verify that the |aws| private endpoint is available: 
+   
+  a. Run the {+atlas-cli+} command to 
+     describe the private endpoint using its ID:
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-aws-describe.rst
+
+  b. Verify that the ``STATUS`` field's value is ``AVAILABLE`` as shown
+     in the following example:
+
+     .. code-block:: json 
+
+        ID                         ENDPOINT SERVICE                                           STATUS         ERROR
+        6344ac8f51b94c6356527881   com.amazonaws.vpce.us-east-1.vpce-svc-0705499aae25ac77c   AVAILABLE  
+...
