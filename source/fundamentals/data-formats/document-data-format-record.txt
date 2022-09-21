@@ -15,9 +15,9 @@ Document Data Format: Records
 Overview
 --------
 
-In this guide, you can learn how to store and retrieve data in the {+driver-long+}
-using **Java records**. Java records are a type of Java class often used to
-model data and separate business logic from data representation.
+In this guide, you can learn how to store and retrieve data in the
+{+driver-long+} using **Java records**. Java records are a type of Java class
+often used to model data and separate business logic from data representation.
 
 .. tip::
 
@@ -28,21 +28,21 @@ model data and separate business logic from data representation.
    objects instead. See the :ref:`<fundamentals-pojos>` guide for
    implementation details.
 
-.. _fundamentals-example-record:
-
 Serialize and Deserialize a Record
 ----------------------------------
 
 The driver natively supports encoding and decoding Java records for
 MongoDB read and write operations using the **default codec registry**. The
 default codec registry is a collection of classes called **codecs** that
-define how to convert encode and decode Java types.  Learn more about
+define how to convert encode and decode Java types. Learn more about
 codecs and the default codec registry in the guide on :ref:`<fundamentals-codecs>`.
+
+.. _fundamentals-example-record:
 
 Example Record
 ~~~~~~~~~~~~~~
 
-The code examples in this guide reference the following sample record, which
+The code examples in this section reference the following sample record, which
 describes a data storage device:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/records/DataStorageRecord.java
@@ -85,4 +85,101 @@ as shown in the following code:
       :language: none
 
       DataStorageRecord[productName=1TB SSD, capacity=1.71]
+
+
+.. _fundamentals-records-annotations:
+
+Specify Component Conversion Using Annotations
+----------------------------------------------
+
+This section describes the annotations you can use to configure the
+serialization behavior of record components and provides an example to
+demonstrate the annotation behavior.
+
+.. tip::
+
+   The ``org.bson.codecs.records.annotations`` package is deprecated. Use the
+   equivalent ones from the `org.bson.codecs.pojo.annotations <{+api+}/apidocs/bson/org/bson/codecs/pojo/annotations/package-summary.html>`__
+   package instead.
+
+You can use the following annotations on record components:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 10 10
+
+   * - Annotation Name
+     - Description
+
+   * - ``BsonId``
+     - Specifies the component to serialize as the _id property.
+
+   * - ``BsonProperty``
+     - Specifies a custom document field name when converting the record
+       component to BSON. Accepts the field name as the parameter.
+
+   * - ``BsonRepresentation``
+     - Specifies a BSON type to store when different from the record component
+       type. Accepts the BSON type as the parameter.
+
+Example Annotated Record
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The code examples in this section reference the following sample record, which
+describes a network device:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/records/NetworkDeviceRecord.java
+   :language: java
+   :start-after: start networkDeviceRecord
+   :end-before: end networkDeviceRecord
+
+Insert an Annotated Record
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can insert a ``DataStorageRecord`` instance as shown in the following code:
+
+.. code-block:: java
+
+   MongoCollection<NetworkDeviceRecord> collection = database.getCollection("network_devices", NetworkDeviceRecord.class);
+
+   // insert the record
+   String deviceId = new ObjectId().toHexString();
+   collection.insertOne(new NetworkDeviceRecord(deviceId, "Enterprise Wi-fi", "router"));
+
+The inserted document in MongoDB should resemble the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     _id: ObjectId("fedc..."),
+     name: 'Enterprise Wi-fi',
+     type: 'router'
+   }
+
+
+Retrieve an Annotated Record
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can retrieve documents as ``NetworkDeviceRecord`` instances and print them
+as shown in the following code:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: java
+
+      MongoCollection<NetworkDeviceRecord> collection = database.getCollection("network_devices", NetworkDeviceRecord.class);
+
+      // return all documents in the collection as records
+      List<NetworkDeviceRecord> records = new ArrayList<NetworkDeviceRecord>();
+      collection.find().into(records);
+      records.forEach(System.out::println);
+
+   .. output::
+      :language: none
+
+      NetworkDeviceRecord[deviceId=fedc..., name=Enterprise Wi-fi, deviceType=router]
 
