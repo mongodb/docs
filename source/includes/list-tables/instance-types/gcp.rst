@@ -102,6 +102,9 @@
 - ``EUROPE_WEST_3``
 - ``NORTHEASTERN_ASIA_PACIFIC``
 - ``SOUTH_AMERICA_EAST_1``
+- ``EUROPE_WEST_8``
+- ``EUROPE_WEST_9``
+- ``EUROPE_SOUTHWEST_1``
 
 :icon-fa4:`exclamation-circle` |service| limits **R**-class instances 
 to the following regions:
@@ -138,3 +141,6 @@ Europe
 - ``EUROPE_WEST_3``
 - ``EUROPE_WEST_4``
 - ``EUROPE_WEST_6``
+- ``EUROPE_WEST_8``
+- ``EUROPE_WEST_9``
+- ``EUROPE_SOUTHWEST_1``
