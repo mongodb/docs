@@ -80,13 +80,6 @@
            - London (europe-west2)
          * - EUROPE_WEST_4
            - Netherlands (europe-west4)
-         * - EUROPE_WEST_8
-           - Milan (europe-west8)
-         * - EUROPE_WEST_9
-           - Paris (europe-west9)
-         * - EUROPE_SOUTHWEST_1
-           - Madrid (europe-southwest1)
-
 
    .. tab:: Australia
       :tabid: australia
