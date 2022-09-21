@@ -1,3 +1,14 @@
+.. _12.5.0.7738-1:
+
+MongoDB Agent 12.5.0.7738-1
+===========================
+
+*Released* 2022-09-15
+
+- Fixes an issue where new indexes created with the Rolling Index Build
+  feature are vulnerable to index key inconsistencies during subsequent
+  replication rollback or server crash.
+
 .. _12.4.0.7703:
 
 MongoDB Agent 12.4.0.7703
