@@ -52,9 +52,6 @@ settings that you may adapt to your local configuration:
       destination: file
       path: "/var/log/mongodb/mongod.log"
       logAppend: true
-   storage:
-      journal:
-         enabled: true
    processManagement:
       fork: true
    net:
@@ -3684,6 +3681,10 @@ LDAP Parameters
 ``storage`` Options
 ~~~~~~~~~~~~~~~~~~~
 
+.. versionchanged:: 6.1 
+
+   - .. include:: /includes/journal-always-enabled-change.rst
+
 .. versionchanged:: 4.4
 
    - MongoDB removes the ``storage.indexBuildRetry`` option and the
@@ -3698,7 +3699,6 @@ LDAP Parameters
    storage:
       dbPath: <string>
       journal:
-         enabled: <boolean>
          commitIntervalMs: <num>
       directoryPerDB: <boolean>
       syncPeriodSecs: <int>
@@ -3765,23 +3765,6 @@ LDAP Parameters
             - ``/usr/local/var/mongodb``
    
       .. include:: /includes/extracts/linux-config-expectations-storage-dbpath.rst
-
-.. setting:: storage.journal.enabled
-
-   *Type*: boolean
-
-   *Default*: ``true`` on 64-bit systems, ``false`` on 32-bit systems
-
-   Enable or disable the durability :term:`journal` to ensure data files remain valid
-   and recoverable. This option applies only when you specify the
-   :setting:`storage.dbPath` setting. :binary:`~bin.mongod` enables journaling by default.
-
-   The :setting:`storage.journal.enabled` setting is available only for :binary:`~bin.mongod`.
-   
-   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-   
-   .. include:: /includes/wiredtiger-node-nojournal.rst
-
 
 .. setting:: storage.journal.commitIntervalMs
 
@@ -3875,12 +3858,9 @@ LDAP Parameters
       memory mapped files to disk.
    
    The :binary:`~bin.mongod` process writes data very quickly to the journal and
-   lazily to the data files. :setting:`storage.syncPeriodSecs` has no effect on the
-   :setting:`journal <storage.journal.enabled>` files or :doc:`journaling </core/journaling>`,
-   but if :setting:`storage.syncPeriodSecs` is set to ``0`` the journal will eventually consume
-   all available disk space. If you set :setting:`storage.syncPeriodSecs` to ``0`` for testing
-   purposes, you should also set :option:`--nojournal <mongod --nojournal>`
-   to ``true``.
+   lazily to the data files. :setting:`storage.syncPeriodSecs` has no effect on 
+   :ref:`<journaling-internals>`, but if :setting:`storage.syncPeriodSecs` is 
+   set to ``0`` the journal will eventually consume all available disk space. 
 
    The :setting:`storage.syncPeriodSecs` setting is available only for :binary:`~bin.mongod`.
    
@@ -4393,12 +4373,6 @@ LDAP Parameters
    
    - The setting :setting:`replication.replSetName` cannot be used in conjunction with
      ``storage.indexBuildRetry``.
-   
-   - For the WiredTiger storage engine,
-     :setting:`storage.journal.enabled: false
-     <storage.journal.enabled>` cannot be used in conjunction with
-     :setting:`replication.replSetName`.
-
 
 .. setting:: replication.enableMajorityReadConcern
 
