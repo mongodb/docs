@@ -67,7 +67,8 @@
 
 - Adds additional privileges to custom database roles.
 - Adds the ``OPLOG_REPLICATION_LAG_TIME`` host measurement series to
-  the :ref:`Measurements Administration API resource <process-measurement-types>`.
+  the :oas-atlas-op:`Measurements Administration API resource 
+  </returnMeasurementsForOneMongodbProcess>`.
 - Updates PagerDuty integration to use the
   `PagerDuty Events API v2 <https://developer.pagerduty.com/docs/ZG9jOjExMDI5NTgw-events-api-v2-overview>`__.
 
@@ -140,11 +141,11 @@
 31 March 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Adds support for :ref:`upgrading shared tiers 
-  <upgrade-one-shared-tier-cluster-ref>` through the |service| Admin 
+- Adds support for :oas-atlas-op:`upgrading shared tiers 
+  </upgradeOneTenantCluster>` through the |service| Admin 
   API.
-- Adds support for :ref:`managing project settings 
-  <atlas-update-one-project-settings-api>` through the |service| Admin 
+- Adds support for :oas-atlas-op:`managing project settings 
+  </patchGroupSettings>` through the |service| Admin 
   API.
 
 .. _atlas_20220309:
@@ -154,7 +155,9 @@
 
 - Introduces a :ref:`metrics integration with Prometheus <prometheus-integration>`.
 - Introduces a new :authrole:`Project Search Index Editor` role to manage |fts| indexes using the |service| UI or Administration API.
-- Introduces the ability to :doc:`configure Federated Authentication with the Atlas Administration API </reference/api/federation-configuration/>`.
+- Introduces the ability to :oas-atlas-tag:`configure Federated 
+  Authentication with the Atlas Administration API 
+  </Federated-Authentication>`.
 - Introduces the :ref:`M140 and M250 cluster tiers in all GCP regions <google-gcp>`. 
 
 .. _atlas_20220216:

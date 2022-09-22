@@ -6,6 +6,6 @@ connection information to make |api| calls to |service|.
    Sometimes |ak8so| makes multiple |api| calls in |service| during 
    the reconciliation of a custom resource. For example, 
    ``AtlasProject`` has an :ref:`IP Access List <access-list>` 
-   configuration for calling the matching :doc:`API 
-   </reference/api/access-lists>`.
+   configuration for calling the matching :oas-atlas-tag:`API 
+   </Project-IP-Access-List>`.
    

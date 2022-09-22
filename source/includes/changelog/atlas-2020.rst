@@ -76,8 +76,8 @@
 13 October 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports |azure| Private Link with |service| :doc:`Private Endpoints
-  </reference/api/private-endpoints/>`.
+- Supports |azure| Private Link with |service| :oas-atlas-tag:`Private 
+  Endpoints </Private-Endpoint-Services>`.
 - Improved filtering for the :doc:`Activity Feed </tutorial/activity-feed/>`.
 - Optimizes :doc:`slow query logging </performance-advisor/>` by automatically
   adjusting the slowMS threshold based on the workload to capture more
@@ -377,4 +377,5 @@ Introduces easier authorization management for S3 access:
   customers revoke MongoDB |service| encryption keys that they manage
   with |aws| |kms|, |gcp| |kms|, or |azure| Key Vault.
 
-- Provides ability to manage :ref:`{+aws-pl+} via API <private-endpoint-api>`.
+- Provides ability to manage :oas-atlas-tag:`{+aws-pl+} via API 
+  </Private-Endpoint-Services>`.

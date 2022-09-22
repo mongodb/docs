@@ -115,7 +115,8 @@
 ~~~~~~~~~~~~~~~~~~~~
 
 - Allows downloading {+df+} query logs from the :ref:`UI 
-  <query-fdi>` and :ref:`API <api-download-query-log>`.
+  <query-fdi>` and :oas-atlas-op:`API 
+  </downloadQueryLogsForOneFederatedDatabase>`.
 - Removes restriction on large collection namespaces.
 - Adds option to bypass cache for :manual:`collStats 
   </reference/command/collStats>` and :manual:`dbStats 

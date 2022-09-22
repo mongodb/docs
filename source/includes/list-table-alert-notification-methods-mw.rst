@@ -112,7 +112,7 @@
        request to an endpoint for programmatic processing. The 
        request body contains a |json| document that uses the same
        format as the {+atlas-admin-api+}
-       :doc:`Alerts resource </reference/api/alerts>`. 
+       :oas-atlas-tag:`Alerts resource </Alerts>`. 
         
        This option is available only if you have configured Webhook 
        settings on the :doc:`Integrations 

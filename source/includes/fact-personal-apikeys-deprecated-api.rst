@@ -5,4 +5,5 @@
    - You cannot use your existing Personal |api| Keys for accessing the 
      |api| from March 1, 2021. 
    - You must update any existing scripts or tools to use 
-     :doc:`Programmatic API Keys </reference/api/apiKeys>` instead.
+     :oas-atlas-tag:`Programmatic API Key </Programmatic-API-Keys>` 
+     instead.

@@ -45,5 +45,5 @@
      - array of strings
      - |service| regions where the container resides. |service| 
        returns values for this field only if you provided 
-       them in the request when you :ref:`created the network peering
-       container <atlas-create-peering-container-api>`.
+       them in the request when you :oas-atlas-op:`created the network 
+       peering container </createOneNewNetworkPeeringConnection>`.

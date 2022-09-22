@@ -6,5 +6,6 @@ for a period of time.
 
    Log analysis rate limits apply only to the Performance Advisor UI, 
    the Query Profiler UI, and the Access Tracking UI. 
-   :doc:`Downloadable log files </reference/api/logs/>` are always 
+   :oas-atlas-op:`Downloadable log files 
+   </downloadLogsForOneClusterHostInOneProject>` are always 
    complete.

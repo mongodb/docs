@@ -127,8 +127,7 @@
 - Introduces the ability to visualize slow queries in times series 
   collections.
 - Introduces the ability to deploy ``M0`` {+free-clusters+} using the
-  :ref:`create-one-cluster-ref`  and :ref:`create-one-advanced-cluster-ref`
-  endpoints.
+  :oas-atlas-op:`create </createOneCluster>` endpoint.
 
 .. _atlas_20210824:
 
@@ -148,7 +147,8 @@
   </reference/collation/>` query options when you :ref:`query your data
   <atlas-ui-view-documents>` using the {+atlas-ui+}.
 - Adds the ability for a user with the 
-  :authrole:`Project Cluster Manager` role to :ref:`test-failover-api`.
+  :authrole:`Project Cluster Manager` role to :oas-atlas-op:`test 
+  failover </testFailoverForOneCluster>`.
 
 .. _atlas_20210803:
 
@@ -173,17 +173,17 @@
 
 - Introduces the ability to set an |service| user account to be granted 
   the :authrole:`Project Owner` role on a specified project 
-  :ref:`via the API <atlas-create-one-project-api>`.
+  :oas-atlas-op:`via the API </createOneProject>`.
 
 - Removes IP Whitelist resources. The 
-  :ref:`IP Access List <security-access-list>` resource replaces the 
-  whitelist resource. We encourage you to update your applications to 
-  use this new resource.
+  :oas-atlas-tag:`IP Access List </Project-IP-Access-List>` resource 
+  replaces the whitelist resource. We encourage you to update your 
+  applications to use this new resource.
 
 - Removes the API Key Whitelist endpoints. The 
-  :ref:`API Key Access List <api-key-access-list-api>` endpoints 
-  replace the whitelist endpoints. We encourage you to update your 
-  applications to use these new endpoints.
+  :oas-atlas-tag:`API Key Access List </Programmatic-API-Keys>` 
+  endpoints replace the whitelist endpoints. We encourage you to update 
+  your applications to use these new endpoints.
 
 - Introduces email verification for all new |service| user 
   registrations.
@@ -333,7 +333,8 @@
 
 - Introduces the ability to peer to |service| VPCs on |gcp| with a
   smaller |cidr| block. When you create the network peering container
-  using the |service| :ref:`API <atlas-create-peering-container-api>`,
+  using the |service| :oas-atlas-op:`API 
+  </createOneNewNetworkPeeringConnection>`,
   you can specify a |cidr| block between ``/21`` and ``/24``, inclusive,
   insead of the default, ``/18``.
 - Adds the ability to specify an |aws| |arn| with a compound path when

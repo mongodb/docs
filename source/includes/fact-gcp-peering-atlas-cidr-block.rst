@@ -24,9 +24,9 @@ block must be at least an ``/18`` in one of the following
      - 192.168/16
 
 If your application requires |service| to use a smaller |cidr| block,
-use the |service| :ref:`API <atlas-create-peering-container-api>` to 
-create an |service| network peering container with a |cidr| block of 
-``/21`` to ``/24``.
+use the |service| :oas-atlas-op:`API 
+</createOneNewNetworkPeeringContainer>` to create an |service| network 
+peering container with a |cidr| block of ``/21`` to ``/24``.
 
 When you choose a smaller |cidr| block, the IP address space of the 
 |cidr| block you choose is distributed evenly across the |gcp| regions 
@@ -54,7 +54,7 @@ container based on the |cidr| block you choose.
 
    You can't use the |service| user interface to specify an |service| 
    |cidr| block smaller than ``/18``. You must use the |service| 
-   :ref:`API <atlas-create-peering-container-api>` and
+   :oas-atlas-op:`API </createOneNewNetworkPeeringContainer>` and
    specify the regions (up to eight, based on the |cidr| block you
    choose) to which to deploy the network peering container. You can 
    deploy |service| clusters only to these regions in this project.
