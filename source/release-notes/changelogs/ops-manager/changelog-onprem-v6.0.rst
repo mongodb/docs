@@ -160,8 +160,6 @@ Automation
 ``````````
 .. https://jira.mongodb.org/browse/DOCSP-23017
 
-- Can change setParameters without a rolling restart.
-
 - Adds support for MongoDB log rotate configuration and commands for
   independent log rotation configuration of MongoDB Log and MongoDB
   Audit Log Files.
