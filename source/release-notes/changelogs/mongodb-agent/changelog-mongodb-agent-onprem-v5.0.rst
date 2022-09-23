@@ -1,3 +1,12 @@
+.. _mongodb-11.0.20.7108:
+
+MongoDB Agent 11.0.20.7108
+--------------------------
+
+:ref:`Released with Ops Manager 5.0.15 on 2022-09-19 <opsmgr-server-5.0.15>`
+
+- Prevents unnecessary audit log rotations when using with MongoDB 5.0 releases.
+
 .. _mongodb-11.0.19.7094:
 
 MongoDB Agent 11.0.19.7094
