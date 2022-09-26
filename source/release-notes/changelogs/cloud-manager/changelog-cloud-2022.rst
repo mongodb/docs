@@ -1,3 +1,24 @@
+.. _cloudmanager_20220914:
+
+14 September 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.5.0.7738-1 <12.5.0.7738-1>`.
+- Fixes an issue where the :guilabel:`Backup Jobs Project` page did not
+  correctly display backup labels.
+- Adds an alert configuration ``id`` to error messages to help identify
+  the location of a failing alert.
+- Adds pre-migration TLS validation to the Push Live Migration 
+  Service
+- Fixes an issue where UI did not display the ``defaultRWConcern`` 
+  field correctly.
+- Optimizes the automation status UI for large clusters.
+- Adds the ability to filter statuses in the automation cluster view by
+  process type.
+- Adds pagination to the automation cluster view.
+- Adds VPC peering validation to the Push Live Migration Service.
+- Adds ``PKCS#8`` encrypted private key support.
+
 .. _cloudmanager_20220824:
 
 24 August 2022 Release
