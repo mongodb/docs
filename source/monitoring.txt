@@ -1,8 +1,8 @@
-.. _kafka-monitoring-logging:
+.. _kafka-monitoring:
 
-======================
-Monitoring and Logging
-======================
+==========
+Monitoring
+==========
 
 .. default-domain:: mongodb
 
@@ -12,8 +12,208 @@ Monitoring and Logging
    :depth: 2
    :class: singlecol
 
+Overview
+--------
+
+Learn how to observe the behavior of your MongoDB source or sink
+connector through **monitoring**.
+Monitoring is the process of getting information about the
+activities a running program performs for use in an application
+or an application performance management library.
+
+To learn how monitoring works in the connector and how to use
+it, see the :ref:`<kafka-monitoring-information>` section.
+
+To view an example that shows how to monitor a running connector,
+see the :ref:`<kafka-monitoring-example>` section. 
+
+To view a list of all metrics produced by MongoDB source and sink
+connectors, see the :ref:`<kafka-monitoring-all-attributes>` section.
+
+To learn more about logging in the connector, see the
+:ref:`<kafka-logging>` guide.
+
+.. _kafka-monitoring-information:
+
+Monitor the Connector
+---------------------
+
+The {+mkc+} uses **{+jmx-long+} (JMX)** to enable monitoring.
+JMX is a technology included in the {+java-se+} that provides
+tools to monitor applications and devices. You can view the
+metrics produced by the connector with any JMX console, such
+as {+jconsole+}.
+
+The {+mkc+} provides metrics for individual **tasks**.
+Tasks are classes instantiated by {+kc+} that copy
+data to and from datastores and {+ak+}. The names and
+responsibilities of the two types of tasks in {+kc+} are as
+follows:
+
+- A source task copies data from a data store to {+ak+}.
+- A sink task copies data from {+ak+} to a data store.
+
+A sink connector configures one or more sink tasks.
+A source connector configures one or more source tasks.
+
+To learn more about JMX, see the following resources from Oracle:
+
+- `Java Management Extensions Guide <https://docs.oracle.com/en/java/javase/17/jmx/introduction-jmx-technology.html>`__
+- `Using {+jconsole+} <https://docs.oracle.com/en/java/javase/17/management/using-jconsole.html>`__
+
+To learn more about tasks and connectors in {+kc+}, see the following resources:
+
+- `Kafka Connect Concepts from Confluent <https://docs.confluent.io/platform/current/connect/concepts.html#tasks>`__
+- `{+kc+} API documentation for the Task interface <{+kafka_api_docs_base+}javadoc/index.html?org/apache/kafka/connect/connector/Task.html>`__
+- `{+kc+} API documentation for the Connector abstract class <{+kafka_api_docs_base+}javadoc/org/apache/kafka/connect/connector/Connector.html>`__
+
+Enable Monitoring
+~~~~~~~~~~~~~~~~~
+
+The {+mkc+} uses {+kc+}'s metrics infrastructure to
+serve metrics. To read the metrics produced by your connector,
+enable JMX in your {+kc+} deployment.
+
+To learn how to enable JMX for a {+kc+} instance
+running on your host machine, see the
+`Official Kafka Documentation <https://kafka.apache.org/documentation/#monitoring>`__.
+
+To learn how to enable JMX for a containerized {+kc+}
+deployment, see
+`Kafka Monitoring and Metrics Using JMX with Docker <https://docs.confluent.io/platform/current/installation/docker/operations/monitoring.html>`__.
+
+JMX Paths
+~~~~~~~~~
+
+The {+mkc+} and {+kc+} both produce metrics for MongoDB connector
+tasks.
+
+Both sets of metrics provide information about how your tasks
+interact with {+kc+}, but only the {+mkc+}
+metrics provide information about how your tasks interact with
+MongoDB.
+
+The {+mkc+} produces metrics under the following JMX
+paths:
+
+- ``{+metrics-path+}.sink-task-metrics.sink-task-<monitonically increasing number>``
+- ``{+metrics-path+}.source-task-metrics.source-task-<monitonically increasing number>``
+- ``{+metrics-path+}.source-task-metrics.source-task-change-stream-<monitonically increasing number>``
+- ``{+metrics-path+}.source-task-metrics.source-task-copy-existing-<monitonically increasing number>``
+
+{+kc+} produces metrics under the following JMX paths:
+
+- ``kafka.connect.sink-task-metrics.<connector-name>``
+- ``kafka.connect.source-task-metrics.<connector-name>``
+- ``kafka.connect.connector-task-metrics.<connector-name>``
+
+To relate {+kc+} metrics to {+mkc+} metrics, you must remember the
+order in which you added your connectors to {+kc+}.
+
+.. note:: Naming Conflicts
+
+   If the {+mkc+} ever encounters a naming conflict when it attempts
+   to register an ``MBean`` on a JMX path, the {+mkc+} adds a version suffix
+   to the ``MBean``.
+
+   For example, if the connector tries to register an ``MBean`` under the path 
+   ``{+metrics-path+}.sink-task-metrics.sink-task-0`` and is unable to do
+   so, it attempts to register the ``MBean`` under
+   ``{+metrics-path+}.sink-task-metrics.sink-task-0-v1``. 
 
 
+Example
+```````
+
+Assume you add a single MongoDB source connector
+named ``my-source-connector`` to your deployment.
+
+The MongoDB source connector writes metrics to the following
+JMX path:  
+
+- ``{+metrics-path+}.sink-task-metrics.sink-task-0``
+
+{+kc+} writes metrics for this task under the following
+path:
+
+- ``kafka.connect.sink-task-metrics.my-source-connector``
+
+.. _kafka-monitoring-example:
+
+Example - Monitor the Quick Start
+---------------------------------
+
+The sample environment provided in the Quick Start exposes metrics
+on your host machine at the URI ``localhost:35000``.
+
+To view these metrics with {+jconsole+}, perform the following actions:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download {+jconsole+}.
+
+      {+jconsole+} is part of the {+java-se+}. To download {+jconsole+}, download the
+      `Java SE Development Kit <https://www.oracle.com/java/technologies/downloads/>`__
+      from Oracle.
+
+   .. step:: Start the Quick Start pipeline and add connectors.
+
+      Follow the Quick Start until the :ref:`<kafka-quick-start-send-a-document>`
+      step.
+
+   .. step:: Start {+jconsole+}.
+
+      Run the following command from your command line to start {+jconsole+}:
+
+      .. code-block:: shell
+
+         {+jconsole_command+}
+
+   .. step:: Connect to the {+kc+} JMX server.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Enter your JMX Server URI.
+
+            Enter the URI ``localhost:35000`` into the :guilabel:`Remote Process`
+            text input box in the {+jconsole+} interface.
+
+         .. step:: Click :guilabel:`Connect`.
+
+         .. step:: In the dialog box, click :guilabel:`Insecure Connection`.
+
+   .. step:: Explore your connectors' metrics.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Navigate to the :guilabel:`MBeans` tab in {+jconsole+}.
+
+         .. step:: Inspect connector metrics.
+
+            Notice that the ``{+metrics-path+}.sink-task-metrics.sink-task-0.records``
+            attribute has a value of ``0``. This value indicates that
+            your sink task has not recieved any records from {+ak+}.
+
+         .. step:: Continue the Quick Start.
+
+            Continue the Quick Start until, but not through, the
+            :ref:`<kafka-quickstart-remove-the-sandbox>` step.
+
+         .. step:: Return to {+jconsole+}.
+
+            Navigate back to the :guilabel:`MBeans` tab in {+jconsole+}.
+            The ``{+metrics-path+}.sink-task-metrics.sink-task-0.records``
+            attribute should now have a value of ``1``.
+
+   .. step:: Stop and remove the Quick Start environment.
+
+      To stop and remove the Quick Start environment, follow the
+      :ref:`<kafka-quickstart-remove-the-sandbox>` step of the Quick Start.
+ 
+.. _kafka-monitoring-all-attributes:
 
 Available Metrics
 -----------------
@@ -27,6 +227,21 @@ sink connectors through {+jmx-long+} (JMX).
    To learn more about attributes and ``MBeans``, see the
    `Standard MBeans Tutorial <https://docs.oracle.com/javase/tutorial/jmx/mbeans/standard.html>`__
    from Oracle.
+
+.. note:: Poll and Put Methods
+
+   A MongoDB source connector task has a ``poll()`` method to retrieve
+   documents from MongoDB and send them to {+ak+}. A MongoDB sink
+   connector task has a ``put()`` method to retrieve documents from {+ak+}
+   and send them to MongoDB.
+
+   To learn more about ``poll()`` and ``put()`` methods, see the following
+   resources:
+
+   - `{+kc+} API documentation for SourceTask interface <{+kafka_api_docs_base+}javadoc/org/apache/kafka/connect/source/SourceTask.html>`__
+   - `{+kc+} API documentation for SinkTask interface <{+kafka_api_docs_base+}javadoc/org/apache/kafka/connect/sink/SinkTask.html>`__
+
+.. _kafka-monitoring-sink-attributes:
 
 Sink Connector JMX Metrics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -56,11 +271,11 @@ Sink Connector JMX Metrics
        of the last record the task received.
 
    * - **in-task-put**
-     - The total number of times the {+kafka-connect+} framework executed the
+     - The total number of times the {+kc+} framework executed the
        ``put()`` method of the MongoDB sink task.
 
-   * - **in-task-put-duration**
-     - The total number of milliseconds the {+kafka-connect+} framework spent
+   * - **in-task-put-duration-ms**
+     - The total number of milliseconds the {+kc+} framework spent
        executing the ``put()`` method of a MongoDB sink task.
 
    * - **in-task-put-duration-over-1-ms**
@@ -84,34 +299,34 @@ Sink Connector JMX Metrics
        with a duration that exceeded 10000 milliseconds.
 
    * - **in-connect-framework**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed after the first invocation of the ``put()`` method of the
        MongoDB sink task.
 
-   * - **in-connect-framework-duration**
+   * - **in-connect-framework-duration-ms**
      - The total number of milliseconds spent executing code in the Kafka
        Connect framework since the framework first invoked the ``put()``
        method of the MongoDB sink task. This metric does not count time
        executing code in the MongoDB sink task towards the total.
 
    * - **in-connect-framework-duration-over-1-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 1 millisecond.
 
    * - **in-connect-framework-duration-over-10-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 10 milliseconds.
 
    * - **in-connect-framework-duration-over-100-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 100 milliseconds.
 
    * - **in-connect-framework-duration-over-1000-ms**
-     - The total number of times code in the {+kafka-connect+} framework executed
+     - The total number of times code in the {+kc+} framework executed
        for a duration that exceeded 1000 milliseconds.
 
    * - **in-connect-framework-duration-over-10000-ms**
-     - The total number of times code in the {+kafka-connect+} framework executed
+     - The total number of times code in the {+kc+} framework executed
        for a duration that exceeded 10000 milliseconds.
 
    * - **processing-phases**
@@ -120,7 +335,7 @@ Sink Connector JMX Metrics
        MongoDB sink task is the set of actions that starts after records are
        obtained from Kafka and ends before records are written to MongoDB.
 
-   * - **processing-phases-duration**
+   * - **processing-phases-duration-ms**
      - The total number of milliseconds a MongoDB sink task spent processing
        records before writing them to MongoDB.
 
@@ -148,7 +363,7 @@ Sink Connector JMX Metrics
      - The total number of batches a MongoDB sink task successfully wrote
        to the MongoDB server.
 
-   * - **batch-writes-successful-duration**
+   * - **batch-writes-successful-duration-ms**
      - The total number of milliseconds a MongoDB sink task spent successfully
        writing to the MongoDB server.
 
@@ -176,7 +391,7 @@ Sink Connector JMX Metrics
      - The total number of batches a MongoDB sink task failed to write
        to the MongoDB server.
 
-   * - **batch-writes-failed-duration**
+   * - **batch-writes-failed-duration-ms**
      - The total number of milliseconds a MongoDB sink task spent
        unsuccessfully attempting to write batches to the MongoDB server.
 
@@ -200,8 +415,22 @@ Sink Connector JMX Metrics
      - The total number of failed batch writes attempted by the MongoDB sink
        task with a duration that exceeded 10000 milliseconds.
 
+.. _kafka-monitoring-source-attributes:
+
 Source Connector JMX Metrics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note:: Initial Commands and ``getMore`` Commands
+
+   Some metrics for source connector tasks distinguish between
+   **initial commands** and ``getMore`` commands. An initial
+   command is a ``find`` or ``aggregate`` command sent to a MongoDB
+   instance that retrieves the first set of documents in a client-side
+   MongoDB cursor. The ``getMore`` command is the MongoDB command that fetches
+   the subsequent sets of documents in a cursor.
+
+   To learn more about ``getMore`` commands, see the
+   :manual:`getMore </reference/command/getMore>` page.
 
 .. list-table::
    :header-rows: 1
@@ -212,21 +441,33 @@ Source Connector JMX Metrics
 
    * - **records**
      - The total number of records a MongoDB source task passed to the
-       {+kafka-connect+} framework.
+       {+kc+} framework.
 
    * - **records-filtered**
      - The number of records a MongoDB source task passed to the
-       {+kafka-connect+} framework that were then filtered by the framework.
+       {+kc+} framework that were then filtered by the framework.
        A filtered record is not written to Kafka.
 
    * - **records-acknowledged**
      - The total number of records a MongoDB source task passed to the
-       {+kafka-connect+} framework that were then successfully
+       {+kc+} framework that were then successfully
        written to Kafka.
 
    * - **mongodb-bytes-read**
      - The total number of bytes a MongoDB source task read from the
        MongoDB server.
+
+       .. tip:: Average Record size
+
+          To calculate the average size of the records your sink connector
+          processed over a span of time, perform the following actions:
+
+          #. Determine the change in the value of the ``mongodb-bytes-read``
+             attribute for a span of time.
+          #. Determine the change in the value of the ``records`` attribute
+             for the same span of time you used for the preceding step.
+          #. Divide the change in the value of the ``mongodb-bytes-read`` attribute
+             by the change in the value of the ``records`` attribute.
 
    * - **latest-mongodb-time-difference-secs**
      - The number of seconds of the most recent time difference recorded between
@@ -236,11 +477,11 @@ Source Connector JMX Metrics
        the most recent successful MongoDB command executed by the task.
 
    * - **in-task-poll**
-     - The total number of times the {+kafka-connect+} framework executed
+     - The total number of times the {+kc+} framework executed
        the ``poll()`` method of a MongoDB source task.
 
    * - **in-task-poll-duration-ms**
-     - The total number of milliseconds the {+kafka-connect+} framework
+     - The total number of milliseconds the {+kc+} framework
        spent executing the ``poll()`` method of a MongoDB source task.
 
    * - **in-task-poll-duration-over-1-ms**
@@ -264,34 +505,34 @@ Source Connector JMX Metrics
        with a duration that exceeded 10000 milliseconds.
 
    * - **in-connect-framework**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed after the first invocation of the ``poll()`` method of the
        MongoDB source task.
 
    * - **in-connect-framework-duration-ms**
      - The total number of milliseconds spent executing code in the
-       {+kafka-connect+} framework since the framework first invoked the
+       {+kc+} framework since the framework first invoked the
        ``poll()`` method of the MongoDB source task. This metric does
        not count time executing code in the MongoDB sink task towards the total.
 
    * - **in-connect-framework-duration-over-1-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 1 millisecond.
 
    * - **in-connect-framework-duration-over-10-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 10 milliseconds.
 
    * - **in-connect-framework-duration-over-100-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 100 milliseconds.
 
    * - **in-connect-framework-duration-over-1000-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 1000 milliseconds.
 
    * - **in-connect-framework-duration-over-10000-ms**
-     - The total number of times code in the {+kafka-connect+} framework
+     - The total number of times code in the {+kc+} framework
        executed for a duration that exceeded 10000 milliseconds.
 
    * - **initial-commands-successful**
