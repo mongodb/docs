@@ -1,0 +1,236 @@
+stepnum: 1
+level: 4
+ref: create-private-endpoint-cli-az
+title: "Create the private endpoint in |service|."
+content: |
+
+  a. Run the {+atlas-cli+} command to 
+     create a private endpoint in |service|:
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-azure-create.rst
+
+  b. Note the private endpoint's ID in the response. In this example,
+     the ID is ``6344ac8f51b94c6356527881``.
+
+     .. code-block:: json
+        :copyable: false 
+
+        Private endpoint '6344ac8f51b94c6356527881' created.
+
+---
+stepnum: 2
+level: 4
+ref: get-private-endpoint-service-name-cli
+title: "Retrieve the service name for the private endpoint."
+content: |
+
+  .. note::
+
+     It might take |service| some time to provision the private
+     endpoint. Wait 1-2 minutes before you complete this step.
+
+  a. Run the {+atlas-cli+} command to 
+     describe the private endpoint using its ID:
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-azure-describe.rst
+
+  b. Note the value for ``ENDPOINT SERVICE`` in the
+     response, which shows the endpoint service name. In this example,
+     the endpoint service name is ``pls_6344ac8f51b94c6356527881``:
+
+     .. code-block:: json 
+        :copyable: false
+
+        ID                         ENDPOINT SERVICE                                                STATUS         ERROR
+        6344ac8f51b94c6356527881   pls_6344ac8f51b94c6356527881   AVAILABLE   
+
+     If the ``STATUS`` value is ``INITIATING``, wait 1-2 more
+     minutes for |service| to provision the private endpoint. Then, try this step again.
+
+---
+stepnum: 3
+level: 4
+ref: create-interface-endpoint-azure-cli
+title: "Create the interface endpoint in Azure."
+content: |
+
+  a. Disable network policies for private endpoints, replacing the
+     following placeholders with your values:
+
+     .. list-table::
+        :widths: 20 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - {RESOURCE-GROUP-NAME}
+          - Name of the |azure| resource group that contains the VNet
+            that you want to use to connect to |service|. You can find
+            this value on the :guilabel:`Resource Group Properties`
+            page on your |azure| dashboard.
+
+        * - {VIRTUAL-NETWORK-NAME}
+          - Name of the VNet that you want to use to connect to
+            |service|. You can find this value on the 
+            :guilabel:`Virtual Network` page on your |azure| dashboard.
+
+        * - {SUBNET-NAME}
+          - Name of the subnet in your |azure| VNet. You can find this
+            value on the :guilabel:`Virtual Network Subnets` page on
+            your |azure| dashboard.
+
+     .. code-block:: sh
+
+        az network vnet subnet update --resource-group {RESOURCE-GROUP-NAME} --vnet-name {VIRTUAL-NETWORK-NAME} --name {SUBNET-NAME} --disable-private-endpoint-network-policies true
+  
+  b. Run the ``az network private-endpoint create`` command in the 
+     |azure| CLI, replacing the following placeholders with your values:
+
+     .. list-table::
+        :widths: 20 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - {RESOURCE-GROUP-NAME}
+          - Name of the |azure| resource group that contains the VNet
+            that you want to use to connect to |service|. You can find
+            this value on the :guilabel:`Resource Group Properties`
+            page on your |azure| dashboard.
+
+        * - {VIRTUAL-NETWORK-NAME}
+          - Name of the VNet that you want to use to connect to
+            |service|. You can find this value on the 
+            :guilabel:`Virtual Network` page on your |azure| dashboard.
+
+        * - {SUBNET-NAME}
+          - Name of the subnet in your |azure| VNet. You can find this
+            value on the :guilabel:`Virtual Network Subnets` page on
+            your |azure| dashboard.
+
+        * - {PRIVATE-ENDPOINT-NAME}
+          - Human-readable label that identifies the private
+            endpoint within your |azure| resource group.
+
+        * - {SUBSCRIPTION-ID}
+          - Unique string that identifies your subscription in |azure|.
+            You can find this value on the :guilabel:`Subscriptions` page in |azure|.
+
+        * - {RESOURCE-GROUP-ID}
+          - Unique string that identifies your |azure| resource group.  
+            You can find
+            this value on the :guilabel:`Resource Group Properties`
+            page on your |azure| dashboard.
+
+        * - {ENDPOINT-SERVICE-NAME}
+          - Unique string that identifies the endpoint service. This is
+            the endpoint service name returned in a previous
+            step.
+
+     .. code-block:: sh
+
+        az network private-endpoint create --resource-group {RESOURCE-GROUP-NAME} --name {PRIVATE-ENDPOINT-NAME} --vnet-name {VIRTUAL-NETWORK-NAME} --subnet {SUBNET-NAME} --private-connection-resource-id /subscriptions/{SUBSCRIPTION-ID}/resourceGroups/{RESOURCE-GROUP-ID}/providers/Microsoft.Network/privateLinkServices/{ENDPOINT-SERVICE-NAME} --connection-name {ENDPOINT-SERVICE-NAME} --manual-request true
+
+     To learn more about the |azure| CLI, see 
+     :azure:`Create a Private Endpoint by Using the Azure CLI 
+     </private-link/create-private-endpoint-cl>`.
+
+  c. Copy and save the following values:
+
+     .. include:: /includes/list-table-azure-serverless-create-endpoint-in-az.rst
+
+---
+stepnum: 4
+level: 4
+ref: update-private-endpoint-aws-cli
+title: "Update your private endpoint with the Resource ID and Private IP."
+content: |
+
+  a. Run the {+atlas-cli+} command to 
+     create an interface endpoint in |service| using the |service|
+     endpoint ID, the |azure| Resource ID, and the |azure| Private IP. In this example, you would set the following parameters:
+     
+     .. list-table::
+        :widths: 30 20 50
+        :header-rows: 1
+
+        * - Parameter
+          - Type
+          - Example Value
+     
+        * - ``atlasPrivateEndpointId``
+          - Argument
+          - ``6344ac8f51b94c6356527881``
+
+        * - ``privateEndpointId``
+          - Option
+          - ``/subscriptions/4e133d35-e734-4385-a565-c0945567ae346/``
+            ``resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/``
+            ``providers/Microsoft.Network/privateEndpoints/``
+            ``test-endpoint``
+
+        * - ``privateEndpointIpAddress``
+          - Option
+          - ``10.0.0.4``
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-azure-interfaces-create.rst
+
+  b. Note the private endpoint's interface endpoint ID in the response.
+     In this example, the ID is ``/subscriptions/``
+     ``4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/``
+     ``rg_95847a959b876e255dbb9b33_dfragd7w/providers/``
+     ``Microsoft.Network/privateEndpoints/cli-test``.
+
+     .. code-block:: json
+        :copyable: false
+
+        Interface endpoint '/subscriptions/4e133d35-e734-4385-a565-c0945567ae346/resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/providers/Microsoft.Network/privateEndpoints/cli-test' created.
+
+---
+stepnum: 5
+level: 4
+ref: get-private-endpoint-status-cli-azure
+title: "Verify the private endpoint's availability."
+content: |
+
+  You can connect to the {+database-deployment+} using the 
+  {+az-pl+} private endpoint after |service| finishes configuring all
+  of the resources and the private endpoint becomes available.
+
+  To verify that the |azure| private endpoint is available: 
+   
+  a. Run the {+atlas-cli+} command to 
+     describe the interface endpoint using its ID and the interface endpoint ID you retrieved in the previous step. In this example, you
+     would set the following parameters:
+     
+     .. list-table::
+        :widths: 30 20 50
+        :header-rows: 1
+
+        * - Parameter
+          - Type
+          - Example Value
+     
+        * - ``endpointId``
+          - Argument
+          - ``/subscriptions/4e133d35-e734-4385-a565-c0945567ae346/``
+            ``resourceGroups/rg_95847a959b876e255dbb9b33_dfragd7w/``
+            ``providers/Microsoft.Network/privateEndpoints/cli-test``
+
+        * - ``endpointServiceId``
+          - Option
+          - ``6344ac8f51b94c6356527881``
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-azure-interfaces-describe.rst
+
+  b. Verify that the ``STATUS`` field's value is ``AVAILABLE`` as shown
+     in the following example:
+
+     .. code-block:: json
+        :copyable: false
+
+        ID                             STATUS         ERROR
+        pls_6344ac8f51b94c6356527881   AVAILABLE  
+...
