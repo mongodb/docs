@@ -17,6 +17,8 @@
 - Updates JDK to ``jdk-11.0.16.1+1``.
 - Updates the {+mdbagent+} to :ref:`12.0.11.7606
   <mongodb-12.0.11.7606>`.
+- Fixes incorrect version information in ``rpm`` |onprem| packages. To
+  learn more, see :ref:`Install Ops Manager <rpm-install-onprem>`.
 
 .. _opsmgr-server-6.0.2:
 
