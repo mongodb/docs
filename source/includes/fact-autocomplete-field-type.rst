@@ -9,7 +9,9 @@ strategy and diacritic folding, see
 
 .. note:: 
 
-   You can't use the ``autocomplete`` type to index: 
-   
-   - Fields whose value is an array of strings.
-   - Fields in a document that is contained in an array.
+   - You can't use the ``autocomplete`` type to index fields whose 
+     value is an array of strings.
+
+   - You can use the ``autocomplete`` type to index string fields 
+     inside an array of documents indexed as the
+     :ref:`bson-data-types-embedded-documents` type.
