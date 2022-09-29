@@ -7,5 +7,6 @@
    To configure access for each |api|, use these resources:
 
    - :doc:`/configure-api-access`
-   - :doc:`/api/data-api`
    - :appservices:`{+app-services+} Administration API docs </admin/api/v3/>`
+   - :doc:`/api/data-api`
+   - :appservices:`Expose Collection Data with the Atlas GraphQL API </graphql/expose-data/>`
