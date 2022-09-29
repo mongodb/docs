@@ -1,0 +1,275 @@
+.. _dedicated-cluster-backups:
+
+=========================
+Dedicated Cluster Backups
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. _single-region-cloud-backup:
+
+Single-Region Cluster Backups
+-----------------------------
+
+With single-region cluster backups, |service|:
+
+- Determines the order of nodes to try to snapshot using the following 
+  algorithm:
+
+  i. Snapshots on a secondary. :sup:`1` Then,
+  #. Snapshots the node with the lowest priority if possible. :sup:`2` 
+     Then,
+  #. Snapshots incrementally from one snapshot to the next if possible. 
+     :sup:`3` Then,
+  #. Snapshots node lexically first by hostname.
+
+  :sup:`1` If there is a tie, |service| skips to the next step to determine the node to snapshot.
+
+  :sup:`2` If there is a tie, |service| then favors the node that can be snapshotted incrementally from the previous snapshot (i.e., node using the same disk). 
+  
+  :sup:`3` If there is a tie, |service| then favors the node with the lexicographically smallest hostname.
+
+- Once the node order is determined, tries to snapshot a node. If a 
+  selected node is unhealthy, |service| tries to snapshot the next 
+  node that it favors.
+
+- Stores the snapshots in the same cloud region as the cluster.
+- Retains snapshots based on your
+  :ref:`retention policy <cloud-provider-retention-policy>`.
+
+.. .. include:: /images/cloud-provider-snapshot-single-region-primary.rst
+
+.. .. include:: /images/cloud-provider-snapshot-single-region-secondary.rst
+
+|service| automatically creates a new snapshot storage volume if the
+existing snapshot storage volume becomes invalid. |service| creates the
+new volume in the same region as the cluster's current primary.
+|service| then takes a full-copy snapshot to maintain backup
+availability and continues using that member and its corresponding
+region for further incremental snapshots.
+
+Events that can cause an election to select a new node for the snapshot
+storage volume include:
+
+- Changing the |service| cluster tier,
+- Modifying the |service| cluster's storage volume or speed,
+- Changing the |service| cluster's region, and
+- Maintenance performed by |service| or the cluster's cloud provider.
+
+.. seealso::
+
+   To learn more about snapshot retention, see
+   :ref:`cloud-provider-retention-policy`.
+
+.. _multi-region-cloud-backup:
+
+Multi-Region Cluster Backups
+----------------------------
+
+With multi-region cluster backups, |service|:
+
+- Determines the order of nodes to snapshot using the following 
+  algorithm:
+
+  i. Snapshots in the highest priority region if possible. :sup:`1` 
+     Then,  
+  #. Snapshots on a secondary. :sup:`2` Then,
+  #. Snapshots the node with the lowest priority if possible. :sup:`3` 
+     Then,
+  #. Snapshots incrementally from one snapshot to the next if possible. 
+     :sup:`4` Then,
+  #. Snapshots node lexically first by hostname.
+
+  :sup:`1` If there is a tie, |service| then compares based on the descending order of priority. 
+
+  :sup:`2` If there is a tie, |service| skips to the next step to determine the node to snapshot.
+
+  :sup:`3` If there is a tie, |service| then favors the node that can be snapshotted incrementally from the previous snapshot (i.e., node using the same disk). 
+  
+  :sup:`4` If there is a tie, |service| then favors the node with the lexicographically smallest hostname.
+
+- Tries to snapshot a node once the node order is determined. If a 
+  selected node is unhealthy, |service| tries to snapshot the next 
+  node that it favors.
+
+- Retains snapshots based on your :ref:`retention policy 
+  <cloud-provider-retention-policy>`.
+
+.. .. include:: /images/cloud-provider-snapshot-multi-region-primary.rst
+
+.. .. include:: /images/cloud-provider-snapshot-multi-region-secondary.rst
+
+|service| automatically creates a new snapshot storage volume if the
+existing snapshot storage volume becomes invalid. |service| creates the
+new volume in the same region as the cluster's current primary.
+|service| then takes a full-copy snapshot to maintain backup
+availability and continues using that member and its corresponding
+region for further incremental snapshots.
+
+Events that can cause an election to select a new node for the snapshot
+storage volume include:
+
+- Changing the |service| cluster tier,
+- Modifying the |service| cluster's storage volume or speed,
+- Changing the |service| cluster's highest priority region, and
+- Maintenance performed by |service| or the cluster's cloud provider.
+
+.. seealso::
+
+   To learn more about snapshot retention, see
+   :ref:`cloud-provider-retention-policy`.
+
+.. _sharded-global-cluster-backup:
+
+Global Cluster Backups
+----------------------
+
+|service| can back up :doc:`Global Clusters </global-clusters>` using
+{+Cloud-Backup+}s as their backup method. |service| restores the shards
+in the source cluster to the corresponding shards in the target cluster
+using the same order as specified in the cluster configuration.
+
+.. example::
+
+   ``shard0`` in the source cluster is restored to ``shard0`` in the
+   target cluster.
+
+.. note::
+
+   If you used the |api| to create your Global Cluster, the zones are
+   defined in the ``replicationSpecs`` parameter in the
+   :doc:`Create a Cluster </reference/api/clusters-create-one>` and
+   :doc:`Modify a Cluster </reference/api/clusters-modify-one>`
+   |api| endpoints.
+
+If the cluster configurations of the source and target clusters do not
+match, shard data may migrate to a different cloud provider zone than
+where it resided in the source cluster. After |service| completes the
+restore operation, the MongoDB :term:`balancer` for the target cluster
+migrates the data back to the zone where it resided in the source
+cluster if your clusters meet the following requirements:
+
+- Both clusters have enabled a |global-write-cluster| on the same
+  collection
+
+- Both clusters use the same :term:`shard key` for the
+  |global-write|-enabled collection
+
+.. note::
+
+   If the |global-write|-enabled collection on the target cluster does
+   not contain any data, the MongoDB balancer for the cluster
+   automatically distributes any data that you later add to the
+   collection among the target cluster's shards.
+
+To enable global writes on the target cluster:
+
+1. Click :guilabel:`Databases` in the top-left corner of |service|.
+   
+#. Click :guilabel:`Browse Collections` beneath the target cluster on the
+   :guilabel:`{+Database-Deployments+}` page.
+
+#. Click :guilabel:`Enable Global Writes`.
+
+.. _pit-restore:
+
+{+PIT-Restore+}s
+----------------
+
+{+PIT-Restore+}s replay the :term:`oplog` to restore a cluster from a
+particular point in time within a window specified in the Backup
+Policy.
+
+You may opt to
+:ref:`enable {+PIT-Restore+} restores <create-cluster-backups>`.
+Configure your {+pit-restore+} window with the
+:ref:`Backup Policy Editor <cps-backup-policies>`.
+
+.. note::
+
+   Enabling {+pit-restore+}s increases the monthly cost of your
+   cluster.
+
+   To learn more about the cost implications, see
+   :ref:`billing <billing-backup-cloud-provider-snapshots>`.
+
+Your cluster's snapshots stay within the cloud provider's storage
+service under the cluster or shard's
+:ref:`highest priority region <deploy-across-multiple-regions>`. Oplog
+backups on |aws| clusters use standard |aws| |s3| encryption.
+
+.. note::
+
+   All clusters with {+pit-restore+}s enabled store :term:`oplog` data
+   on |aws| |s3|, including clusters backed by Azure and |gcp|.
+
+The following actions cause all existing oplog backups to be deleted.
+All existing snapshots remain intact, but |service| removes previously
+preserved oplog data when:
+
+- You disable {+pit-restore+}s for your cluster.
+- The cluster receives an excessive number of writes. The cluster 
+  processes a large number of writes that causes the oplog to roll over 
+  before backup collects it.
+
+  .. example::
+
+     1. You sized your oplog for one hour of its usual write traffic,
+        say 1,000 operations.
+
+     #. Database activity results in a large number of writes to the
+        oplog, say 2,000 operations.
+
+     #. The number of writes result in the oplog dropping older
+        records. This example would lose 1,000 operations.
+
+     #. Backup should collect operation #1, but it collects #1,001
+        instead.
+
+If you :ref:`change <move-cluster>` your cluster's :ref:`highest 
+priority region <deploy-across-multiple-regions>` or if MongoDB 
+migrates oplog data to a different region:
+
+- |service| retains data in both the old and new regions until your 
+  {+pit-restore+} window is represented in the new region. Once 
+  the {+pit-restore+} window is represented in the new region, 
+  |service| deletes the data in the old region.
+- You will be billed for storage in both the old and new regions for   
+  the days following the region change. You must disable 
+  {+pit-restore+} and reenable it to prevent billing in both regions. 
+
+  .. note:: 
+
+   If you disable {+pit-restore+}, |service| will delete the 
+   {+pit-restore+} history.
+
+When you use {+pit-restore+}s to restore a {+cluster+} from a previous 
+point in time, |service| retains the {+cluster+}'s :term:`oplog`. You 
+can use {+pit-restore+}s repeatedly to restore the {+cluster+} to any point
+in its {+pit-restore+} window **except** between when you initiated a
+restore and when |service| completes a snapshot after the restore.
+
+Consistency and Snapshots
+-------------------------
+
+For {+clusters+} running MongoDB version 4.2 or and later: 
+
+- |service| maintains
+  :manual:`causal consistency </core/read-isolation-consistency-recency/#std-label-sessions>` 
+  when taking snapshots except for size statistics reported by :manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>`
+  and ``db.[collection].count()``. Size statistics reported
+  by :manual:`collStats </reference/command/collStats/#mongodb-dbcommand-dbcmd.collStats>` and ``db.[collection].count()`` may be inccurate.
+- |service| coordinates the time across all
+  shards for sharded {+clusters+}. This ensures that snapshots include all documents written to every
+  shard and node as of the scheduled snapshot time.
+
+For {+clusters+} running MongoDB version 4.0 and earlier:
+
+- |service| maintains crash-consistent snapshots.
+- |service| takes snapshots from each of the shards for sharded {+clusters+}
+  and the Config Server Replica Sets at approximately the same time.
+  
