@@ -7,6 +7,7 @@
 - :ref:`Connect to your cluster <connect-mongo-shell>`
   from all client servers where your applications run.
 - If migrating from |onprem|, upgrade |onprem| to version 5.0.
+- .. include:: /includes/fact-migrate-drop-geoHaystack.rst
 - On your source {+cluster+}  in |com|, prepare the following items:
 
   - :opsmgr:`Provision a migration host
