@@ -7,8 +7,6 @@
      - | Target |service| Replica Set
        | MongoDB Version
 
-   * - 4.0
-     - 4.0 and later
    * - 4.2
      - 4.2 and later
    * - 4.4
