@@ -1,4 +1,2 @@
-.. note:: Before You Get Started
-
-   Before you start this tutorial, you must complete the steps in the
-   :ref:`<kafka-tutorials-docker-setup>`.
+Complete the steps in the :ref:`<kafka-tutorials-docker-setup>` to start the
+the {+kafka-connect+} and MongoDB environment.
