@@ -18,6 +18,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/make_data_key.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :caption: make_data_key.js
+               :language: javascript
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/local/reader/make_data_key.js
@@ -84,6 +94,16 @@
          permissions on the ``encryption.__keyVault`` namespace.
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/make_data_key.js
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs
