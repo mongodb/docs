@@ -59,8 +59,9 @@
        | :setting:`.authentication.ldap.transportSecurity<spec.security.authentication.ldap.transportSecurity>`
      - | string,
        | optional
-     - Set to ``tls`` to use LDAPS (LDAP over |tls|). Leave blank if your
-       LDAP server doesn't accept TLS.
+     - Set to ``tls`` to use LDAPS (LDAP over |tls|). Leave blank if
+       your LDAP server doesn't accept TLS. You must enable TLS when you
+       deploy the database resource to use this setting.
      - ``tls``
 
    * - | ``spec.security``
@@ -84,21 +85,3 @@
        | required
      - Set to ``LDAP`` to enable authentication through LDAP.
      - ``LDAP``
-
-   * - | ``spec.security``
-       | :setting:`.certsSecretPrefix<spec.security.certsSecretPrefix>`
-     - | string,
-       | optional
-     - Add the ``<prefix>`` of the secret name that contains your
-       MongoDB deployment's |tls| certificates.
-
-       .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
-     - ``devDb``
-
-   * - | ``spec.security``
-       | :setting:`.tls.ca<spec.security.tls.ca>`
-     - | string,
-       | optional
-     - Add the |k8s-configmap|\'s name that stores the custom |certauth|
-       that you used to sign your deployment's |tls| certificates.
-     - ``<custom-ca>``
