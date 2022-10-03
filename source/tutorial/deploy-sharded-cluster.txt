@@ -18,6 +18,8 @@ Deploy a Sharded Cluster
 
 .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
 
+.. include:: /includes/fact-arbiter-nodes.rst
+
 :term:`Sharded clusters <sharded cluster>` provide horizontal scaling
 for large data sets and enable high throughput operations by
 distributing the data set across a group of servers.
@@ -30,37 +32,87 @@ Use this procedure to deploy a new sharded cluster that |mms| manages.
 Later, you can use |mms| to add shards and perform other maintenance
 operations on the cluster.
 
-Prerequisites
--------------
-
-.. |deployment| replace:: sharded cluster
-
-.. include:: /includes/prereqs-deploy-resource.rst
-
 Considerations
 --------------
 
-.. include:: /includes/facts/fact-appdb-version-specified.rst
-
-.. include:: /includes/fact-arbiter-nodes.rst
-
-Do Not Deploy Monitoring Agents inside and outside |k8s|
+Do Not Deploy Monitoring Agents Inside and Outside |k8s|
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Do not mix MongoDB deployments outside |k8s| with ones inside |k8s|
-in the same Project.
-
-Due to |k8s| network translation, a Monitoring Agent outside |k8s|
+Due to |k8s| network translation, a monitoring agent outside |k8s|
 cannot monitor MongoDB instances inside |k8s|. For this reason, k8s
-and non-k8s deployments in the same Project are not supported. Use
+and non-k8s deployments in the same project are not supported. Use
 separate projects.
 
+Choose Whether to Encrypt Connections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Procedure
----------
+When you deploy your sharded cluster via the |k8s-op-short|, you must
+choose whether to encrypt connections using |tls| certificates.
 
-The procedure for deploying a sharded cluster depends on whether you
-require the deployment to run with |tls| enabled for intra-cluster
-communication and clients connecting to the database:
+The following procedure for :guilabel:`Non-Encrypted Connections`:
 
-.. include:: /includes/steps/deploy-k8s-sharded-cluster.rst
+- Doesn't encrypt connections between cluster shards.
+- Doesn't encrypt connections between client applications
+  and MongoDB deployments.
+- Has fewer setup requirements than a deployment with |tls|-encrypted
+  connections.
+
+The following procedure for :guilabel:`TLS-Encrypted` connections:
+
+- Establishes |tls|-encrypted connections between cluster shards.
+- Establishes |tls|-encrypted connections between client applications
+  and MongoDB deployments.
+- Requires valid certificates for |tls| encryption.
+
+.. include:: /includes/admonitions/cannot-secure-standalone.rst
+
+To set up |tls| encryption for a replica set, see 
+:ref:`deploy-replica-set`.
+
+Select the appropriate tab based on whether you want to encrypt your
+replica set connections with |tls|.
+
+.. tabs::
+
+   .. tab:: Non-Encrypted Connections
+      :tabid: non-encrypted
+
+      Prerequisites
+      -------------
+
+      .. |deployment| replace:: sharded cluster
+
+      .. include:: /includes/prereqs-deploy-resource.rst
+
+   .. tab:: TLS-Encrypted Connections
+      :tabid: encrypted
+
+      .. include:: /includes/prereqs/custom-ca-prereqs-sc-tls-only.rst
+
+.. _tls-for-sharded-cluster:
+
+Deploy a Sharded Cluster
+------------------------
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Non-Encrypted Connections
+      :tabid: non-encrypted
+
+      .. include:: /includes/steps/deploy-k8s-sharded-cluster.rst
+
+   .. tab:: TLS-Encrypted Connections
+      :tabid: encrypted
+
+      .. include:: /includes/steps/deploy-k8s-sharded-cluster-with-tls.rst
+
+      .. include:: /includes/facts/fact-after-deploy-with-tls.rst
+
+      Renew TLS Certificates for a Sharded Cluster
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Renew your |tls| certificates periodically
+      using the following procedure:
+
+      .. include:: /includes/steps/deploy-k8s-sc-tls-custom-renew.rst
