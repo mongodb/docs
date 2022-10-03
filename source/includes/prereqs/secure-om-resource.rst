@@ -1,8 +1,5 @@
-- :doc:`Install the Kubernetes Operator </tutorial/install-k8s-operator>`.
-
-- :ref:`Deploy the Ops Manager application <deploy-om-container>` that
-  you want to secure.
-
+- Complete the :ref:`Prerequisites <om-rsrc-prereqs>`.
+- Read the :ref:`Considerations <om-rsrc-considerations>`.
 - Create one |tls| certificate for the Application
   Database's :term:`replica set`.
 

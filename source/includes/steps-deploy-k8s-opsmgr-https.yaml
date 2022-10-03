@@ -5,31 +5,44 @@ inherit:
   file: steps-configure-kubectl-namespace.yaml
   ref: configure-kubectl-namespace
 ---
-title: "Create a secret for your certificates."
+title: "Create secrets for your certificates."
 stepnum: 2
 ref: create-cert-secret
 content: |
 
-   Once you have your |tls| certificate and Private Key, run the 
-   following command to store the certificates in a |k8s-secret|:
+  .. include:: /includes/facts/fact-if-use-vault.rst
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
 
-   .. code-block:: sh
+  a. Once you have your |tls| certificates and private keys, run the 
+     following command to create a |k8s-secret| that stores |onprem|\'s
+     |tls| certificate:
 
-      kubectl create secret tls <prefix>-<metadata.name>-cert \
-       --cert=<om-tls-cert> \
-       --key=<om-tls-key>
+     .. code-block:: sh
 
-   .. include:: /includes/facts/fact-if-use-vault.rst
+        kubectl create secret tls <prefix>-<metadata.name>-cert \
+          --cert=<om-tls-cert> \
+          --key=<om-tls-key>
+
+  b. Run the following command to create a new |k8s-secret| that stores
+     the application database's |tls| certificate:
+
+     .. code-block:: sh
+
+        kubectl create secret tls <prefix>-<metadata.name>-db-cert \
+          --cert=<appdb-tls-cert> \
+          --key=<appdb-tls-key>
+
 ---
-title: "If necessary, validate your TLS Certificate."
+title: "If necessary, validate your TLS certificates."
 stepnum: 3
 ref: validate-tls-cert
 content: |
 
-  If your |tls| certificate is signed by a Custom Certificate
+  If your |onprem| |tls| certificate or your application database 
+  |tls| certificate is signed by a Custom Certificate
   Authority, you must provide a :abbr:`CA (Certificate Authority)`
-  certificate to validate the |tls| certificate. To validate the
-  |tls| certificate, create a |k8s-configmap| to hold the
+  certificate to validate the |tls| certificate(s). To validate the
+  |tls| certificate(s), create a |k8s-configmap| to hold the
   :abbr:`CA (Certificate Authority)` certificate:
 
   .. warning::
@@ -41,10 +54,15 @@ content: |
 
   .. important::
 
-     The |k8s-op-short| requires that the certificate is named
-     ``mms-ca.crt`` in the ConfigMap.
+     The |k8s-op-short| requires that:
+     
+     - Your |onprem| certificate is named ``mms-ca.crt`` in the
+       ConfigMap.
+     - Your application database certficate is named ``ca-pem`` in
+       the ConfigMap.
 
-  a. Obtain the entire |tls| certificate chain from
+  a. Obtain the entire |tls| certificate chain for both |onprem| and
+     the application database from
      ``downloads.mongodb.com``. The following ``openssl`` command
      outputs each certificate in the chain to your current working
      directory, in ``.crt`` format:
@@ -55,18 +73,33 @@ content: |
         -connect downloads.mongodb.com:443 -servername downloads.mongodb.com < /dev/null \
         | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="cert"a".crt"; print >out}'
 
-  #. Concatenate your |certauth|\'s certificate file with the
-     entire |tls| certificate chain from ``downloads.mongodb.com`` that
+  #. Concatenate your |certauth|\'s certificate file for |onprem|
+     with the entire |tls| certificate chain from 
+     ``downloads.mongodb.com`` that
      you obtained in the previous step:
 
      .. code-block:: sh
 
         cat cert1.crt cert2.crt cert3.crt cert4.crt  >> mms-ca.crt
-  #. Create the |k8s-configmap|:
+  #. Concatenate your |certauth|\'s certificate file for the application
+     database with the entire |tls| certificate chain from 
+     ``downloads.mongodb.com`` that
+     you obtained in the previous step:
+
+     .. code-block:: sh
+
+        cat cert1.crt cert2.crt cert3.crt cert4.crt  >> ca-pem
+  #. Create the |k8s-configmap| for |onprem|:
 
      .. code-block:: sh
 
         kubectl create configmap om-http-cert-ca --from-file="mms-ca.crt"
+
+  #. Create the |k8s-configmap| for the application database:
+
+     .. code-block:: sh
+
+        kubectl create configmap ca --from-file="ca-pem"
 
 ---
 title: "Copy the following example |onprem| |k8s| |k8s-obj|."
@@ -75,13 +108,13 @@ level: 4
 ref: copy-k8s-example
 content: |
 
-   Change the highlighted settings to match your desired
-   |onprem| configuration.
+  Change the highlighted settings to match your desired
+  |onprem| and application database configuration.
 
-   .. literalinclude:: /reference/k8s/example-opsmgr-https.yaml
-      :language: yaml
-      :linenos:
-      :emphasize-lines: 5,7-11,14-23,25-27
+  .. literalinclude:: /reference/k8s/example-opsmgr-https.yaml
+     :language: yaml
+     :linenos:
+     :emphasize-lines: 5,7-11,14-23,25-37
 ---
 title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
 stepnum: 5
@@ -162,12 +195,14 @@ content: |
           | ``.tls``
           | ``.``:opsmgrkube:`~spec.security.tls.ca`
         - string
-        - Name of the |k8s-configmap| you created to verify |tls|
+        - Name of the |k8s-configmap| you created to verify your
+          |onprem| |tls|
           certificates signed using a Custom Certificate Authority.
 
           .. important::
 
-             This field is required if you signed your |tls|
+             This field is required if you signed your 
+             |onprem| |tls|
              certificates using a Custom Certificate Authority.
 
         - ``om-http-cert-ca``
@@ -219,6 +254,41 @@ content: |
           :ref:`release-version-numbers` in the MongoDB Manual.
 
         - .. include:: /includes/facts/fact-which-appdb-version.rst
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.security``
+          | ``.``:opsmgrkube:`~spec.applicationDatabase.security.certsSecretPrefix`
+        - string
+        - *Required*.
+        
+          Text to prefix to the name of the secret that contains
+          the application database's |tls| certificates.
+        - ``appdb-prod``
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.security``
+          | ``.tls``
+          | ``.``:opsmgrkube:`~spec.applicationDatabase.security.tls.ca`
+        - string
+        - Name of the |k8s-configmap| you created to verify your
+          application database |tls|
+          certificates signed using a Custom Certificate Authority.
+
+          .. important::
+
+             This field is required if you signed your 
+             application database |tls|
+             certificates using a Custom Certificate Authority.
+
+        - ``ca``
+
+   .. note::
+
+      The |k8s-op-short| mounts the |certauth| you add using the
+      :opsmgrkube:`spec.applicationDatabase.security.tls.ca` setting to
+      both the |onprem| and the Application Database pods.
 
 ---
 title: "Configure Backup settings"
@@ -696,4 +766,5 @@ content: |
 
   See :doc:`/reference/troubleshooting` for information about the
   resource deployment statuses.
+
 ...
