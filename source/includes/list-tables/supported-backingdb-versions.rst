@@ -9,12 +9,6 @@
      - MongoDB 5.0
      - MongoDB 6.0
 
-   * - |onprem| 4.4
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
-     -
-     -
-
    * - |onprem| 5.0
      - :icon-fa5:`check-square`
      - :icon-fa5:`check-circle`

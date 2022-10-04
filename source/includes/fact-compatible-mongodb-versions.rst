@@ -8,7 +8,7 @@ last release.
 
 .. example::
 
-   |onprem| 4.4 supports the entire MongoDB release series from
+   |onprem| 5.0 supports the entire MongoDB release series from
    4.0.0 to 4.0.20.
 
 To learn more about MongoDB versioning, see
