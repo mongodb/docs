@@ -218,6 +218,7 @@ html_theme_options = {
     'version': version,
     'eol': False,
     'eol_msg': False,
+    'backup_monitoring_eol_past': True,
 }
 
 onprem_latex_documents = []
@@ -250,7 +251,6 @@ try:
                                                   'opsmanager-manual.pdf'])
         html_theme_options['edition'] = 'hosted'
         html_theme_options['sitename'] = 'Ops Manager Docs'
-        html_theme_options['backup_monitoring_eol'] = True
 
         if release in ["Upcoming", "upcoming", "Rapid", "rapid"]:
             rst_epilog.append(".. |release-string| replace:: \   ")
@@ -282,7 +282,6 @@ try:
         html_theme_options['edition'] = 'saas'
         html_theme_options['pdfpath'] = '/' + 'cloudmanager-manual.pdf'
         html_theme_options['sitename'] = 'Cloud Manager Docs'
-        html_theme_options['backup_monitoring_eol'] = True
         source_constants['admin-api'] = 'Cloud Manager Administration API'
 except NameError:
     pass
