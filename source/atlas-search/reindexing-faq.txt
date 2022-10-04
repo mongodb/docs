@@ -13,28 +13,29 @@ What's New in This Release?
 ---------------------------
 
 The upcoming |fts| release includes optimizations to your index 
-storage. This change will decrease the size of your |fts| index and 
-increase indexing throughput.
-
-The upcoming |fts| release will also support the following capabilities:
+storage. Additonally, this release will support the following 
+capabilities:
 
 - Statically index arrays of strings as 
   :ref:`bson-data-types-autocomplete` type. 
 - Dynamically and statically index :ref:`bson-data-types-number`\s in 
   arrays.
-- Dynamically index :ref:`boolean-ref`\s, :ref:`objectId-ref`\s, arrays 
-  of :ref:`boolean-ref`\s, and arrays of :ref:`objectId-ref`\s.
+- Dynamically and statically index :ref:`objectId-ref`\s and arrays of 
+  :ref:`objectId-ref`\s.
+- Dynamically and statically index :ref:`boolean-ref`\s and arrays of 
+  :ref:`boolean-ref`\s. 
 
 The preceding list of new capabilities could increase the size of your 
 index on disk. Your |fts| query results could differ because |fts| 
 might index fields and values that it didn't index before.
 
-When rolling out these changes, we will rebuild your |fts| indexes. If 
-you enabled :ref:`dynamic mappings <static-dynamic-mappings>`, you 
-might notice a significant increase in disk size, CPU, and disk 
-utilization during reindexing, which could trigger auto-scaling. While 
-your new index builds, your old index will continue to be available to 
-serve your |fts| queries. 
+- When rolling out these changes, we will rebuild all your |fts| 
+  indexes. You might notice an increase in index size on disk, CPU, and 
+  disk utilization (|iops|) during reindexing, which could trigger 
+  auto-scaling. While your new index builds, your old index will 
+  continue to be available to serve your |fts| queries. 
+- During reindexing, |fts| will use additional disk space that is  
+  comparable to the two largest |fts| indexes on your cluster.
 
 What Should I Do to Prepare for This Release?
 ---------------------------------------------
@@ -47,10 +48,12 @@ You can do the following to prepare for this release:
   the maintenance window.
 - Review all your |fts| indexes to: 
 
-  - Release disk space to accommodate increases in the size of your 
-    other indexes. During reindexing, |fts| uses additional disk space 
-    that is comparable to the sum of the top two |fts| indexes on your 
-    {+cluster+}.
+  - Release or provision disk space to accommodate increases in the size 
+    of your other indexes. We recommend that you provision disk space 
+    equivalent to 125% of the size of your existing |fts| indexes on 
+    your cluster. During reindexing, |fts| will use additional 
+    disk space that is comparable to the two largest |fts| indexes on 
+    your cluster.
   - Delete any unused |fts| indexes to avoid unnecessary 
     reindexing, which saves memory and CPU utilization.
 
@@ -60,6 +63,14 @@ You can do the following to prepare for this release:
   indexes to use :ref:`static mappings <static-dynamic-mappings>` on 
   only the fields that need to be indexed to prevent :ref:`mapping 
   explosions <index-document-mapping-explosions>`.
+
+  Ensure that you have :ref:`static mappings <static-dynamic-mappings>` 
+  enabled for indexes on collections that contain geographical data. 
+  GeoJSON format documents might contain arrays of many numerical 
+  coordinates; thus, dynamically indexing GeoJSON format documents might 
+  reduce indexing throughput and cause indexes to occupy more disk 
+  space.
+  
 - :ref:`Monitor <review-atlas-search-metrics>` the following |fts| 
   metrics: 
   
