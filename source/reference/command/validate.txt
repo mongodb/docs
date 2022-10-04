@@ -13,12 +13,14 @@ validate
 Definition
 ----------
 
+.. versionchanged:: 6.2
+
 .. dbcommand:: validate
 
    The :dbcommand:`validate` command checks a collection's data and
    indexes for correctness and returns the results.
 
-   Starting in version 5.0, the :dbcommand:`validate` command can also
+   Starting in MongoDB 5.0, the :dbcommand:`validate` command can also
    find inconsistencies in the collection and fix them if possible.
 
    .. include:: /includes/fact-validate-standalone-inconsistencies.rst
@@ -35,18 +37,17 @@ Definition
 Syntax
 ------
 
-.. versionchanged:: 5.0
-
 The command has the following syntax:
 
 .. code-block:: javascript
 
    db.runCommand( 
       { 
-        validate: <string>,          // Collection name
-        full: <boolean>,             // Optional
-        repair: <boolean>,           // Optional, added in MongoDB 5.0
-        metadata: <boolean>          // Optional, added in MongoDB 5.0.4
+        validate: <string>,  // Collection name
+        full: <boolean>,  // Optional
+        repair: <boolean>,  // Optional, added in MongoDB 5.0
+        metadata: <boolean>,  // Optional, added in MongoDB 5.0.4
+        checkBSONConformance: <boolean>  // Optional, added in MongoDB 6.2
       } 
    )
 
@@ -60,7 +61,7 @@ The command takes the following fields:
 
 .. list-table::
    :header-rows: 1
-   :widths: 10 10 50
+   :widths: 15 15 70
 
    * - Field
      - Type
@@ -103,6 +104,12 @@ The command takes the following fields:
 
        .. include:: /includes/fact-validate-metadata.rst
 
+   * - :ref:`checkBSONConformance <cmd-validate-checkBSONConformance>`
+     - boolean
+     - .. _cmd-validate-checkBSONConformance:
+
+       .. include:: /includes/fact-validate-conformance.rst
+
 Behavior
 --------
 
@@ -130,6 +137,11 @@ Data Throughput Metrics
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/4.4-validate-data-throughput.rst
+
+Collection Validation Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/validate-improvements-introduction.rst
 
 Restrictions
 ~~~~~~~~~~~~~
@@ -173,6 +185,14 @@ Examples
 
     db.runCommand( { validate: "myCollection", metadata: true } )
 
+- To perform additional BSON conformance checks in ``myCollection``,
+  specify :ref:`checkBSONConformance: true
+  <cmd-validate-checkBSONConformance>`:
+
+  .. code-block:: javascript
+
+    db.runCommand( { validate: "myCollection", checkBSONConformance: true } )
+
 .. _validate-output:
 
 Validate Output
@@ -181,6 +201,12 @@ Validate Output
 .. include:: /includes/note-output-may-vary.rst
 
 Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
+
+.. data:: validate.uuid
+
+   The universally unique identifier (UUID) for the collection.
+
+   .. versionadded:: 6.2
 
 .. data:: validate.nInvalidDocuments
 
@@ -193,6 +219,11 @@ Specify :ref:`full: true <cmd-validate-full>` for more detailed output.
    The number of documents not conforming to the collection's schema.
    Non-compliant documents are not counted as invalid in
    :data:`~validate.nInvalidDocuments`.
+
+   Starting in MongoDB 6.2, ``nNonCompliantDocuments`` also includes the
+   number of documents that do not conform to the :term:`BSON`
+   or :ref:`time series collection <manual-timeseries-collection>`
+   requirements.
 
 .. data:: validate.nrecords
 
