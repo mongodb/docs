@@ -13,6 +13,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/make_data_key.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: javascript
+               :caption: make_data_key.js
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/make_data_key.js
@@ -78,6 +88,16 @@
          step of this guide.
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/make_data_key.js
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: javascript
+               :caption: make_data_key.js
+               :dedent:
 
          .. tab::
             :tabid: nodejs
@@ -146,6 +166,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/make_data_key.js
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/make_data_key.js
@@ -201,6 +231,16 @@
       fields you must encrypt and create your encrypted collection:
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/make_data_key.js
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs

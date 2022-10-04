@@ -163,6 +163,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/make_data_key.js
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/local/reader/make_data_key.js

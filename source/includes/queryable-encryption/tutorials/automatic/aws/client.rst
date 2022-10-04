@@ -9,6 +9,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: javascript
+               :caption: insert_encrypted_document.js
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
@@ -68,6 +78,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: javascript
+               :caption: insert_encrypted_document.js
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
@@ -122,6 +142,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: javascript
+               :caption: insert_encrypted_document.js
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
@@ -174,6 +204,14 @@
    .. step:: Specify the Location of the {+shared-library+}
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. code-block:: none
+
+               // mongosh does not require you to specify the
+               // location of the {+shared-library+} 
 
          .. tab::
             :tabid: nodejs
@@ -233,6 +271,16 @@
       automatic encryption settings:
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-client
+               :end-before: end-client
+               :language: javascript
+               :caption: insert_encrypted_document.js
+               :dedent:
 
          .. tab::
             :tabid: nodejs
