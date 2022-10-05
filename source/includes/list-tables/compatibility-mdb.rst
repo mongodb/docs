@@ -1,7 +1,8 @@
 .. important::
 
-   Starting with the |k8s-op-short| 1.17 release, Ubuntu base images 
-   are deprecated and will be removed in a future release.
+   Starting with the |k8s-op-short| 1.17
+   release, Ubuntu base images 
+   are deprecated and will be removed in the |k8s-op-short| 1.19 release.
 
    MongoDB will continue to support the Red Hat UBI 8 base images.
 
