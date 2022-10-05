@@ -1,16 +1,3 @@
-.. _adf-v20221004:
-
-04 October 2022 Release
-~~~~~~~~~~~~~~~~~~~~~~~
-
-- Improves query performance on {+adl+} Datasets using sort metadata 
-  to optimize queries.
-- Fixes an issue that caused {+adf+} to fail to read a Parquet file 
-  when the top-level or root schema was marked as ``REPEATED`` or 
-  ``OPTIONAL``.
-- Improves stability of Parquet when writing to Parquet using 
-  :ref:`adf-out-stage` to |s3|.
-
 .. _adf-v20220913:
 
 13 September 2022 Release
