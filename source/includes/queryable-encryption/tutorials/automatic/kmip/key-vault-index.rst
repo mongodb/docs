@@ -16,6 +16,16 @@ Create a unique index on the ``keyAltNames`` field in your
          :caption: MakeDataKey.java
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/make_data_key.js
+         :start-after: start-create-index
+         :end-before: end-create-index
+         :caption: make_data_key.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
       :tabid: nodejs
 
       .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js

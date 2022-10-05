@@ -18,6 +18,15 @@ snippet:
          :caption: InsertEncryptedDocument.java
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/insert_encrypted_document.js
+         :start-after: start-insert
+         :end-before: end-insert
+         :language: javascript
+         :dedent:
+
+   .. tab::
       :tabid: nodejs
 
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/insert_encrypted_document.js
