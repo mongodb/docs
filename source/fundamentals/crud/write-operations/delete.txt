@@ -1,0 +1,225 @@
+.. _csharp-delete-guide:
+
+================
+Delete Documents
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to remove documents from your MongoDB
+collections using delete operations.
+
+Sample Data
+~~~~~~~~~~~
+
+The example in this guide use the ``restaurants`` collection
+from the ``sample_restaurants`` database. The documents in this
+collection are modeled by the following ``Restaurant`` class:
+
+.. literalinclude:: /includes/fundamentals/code-examples/crud/delete.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-model
+   :end-before: end-model
+
+This collection is from the :atlas:`sample datasets </sample-data>` provided
+by Atlas. See the :ref:`<csharp-quickstart>` to learn how to create a free MongoDB cluster
+and load this sample data.
+
+Delete Operations
+-----------------
+
+Use delete operations to remove documents that match a **query filter**.
+The query filter determines which records are selected for deletion
+based on the criteria in :manual:`the query filter
+document</core/document/#query-filter-documents>`. You can perform
+delete operations in MongoDB with the following methods:
+
+- ``DeleteOne()``, which deletes *the first document* that matches the query filter
+- ``DeleteMany()``, which deletes *all documents* that match the query filter
+
+Delete One Document
+~~~~~~~~~~~~~~~~~~~
+
+The following code shows how to use the asynchronous
+``DeleteOneAsync()`` method or the synchronous ``DeleteOne()`` method to
+delete one document.
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: delete-one-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var result = await _restaurantsCollection.DeleteOneAsync(filter);
+
+   .. tab:: Synchronous
+      :tabid: delete-one-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var result = _restaurantsCollection.DeleteOne(filter);
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code shows how to use the asynchronous
+``DeleteManyAsync()`` method or the synchronous ``DeleteMany()`` method to
+delete all matched documents.
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: delete-many-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var result = await _restaurantsCollection.DeleteManyAsync(filter);
+
+   .. tab:: Synchronous
+      :tabid: delete-many-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var result = _restaurantsCollection.DeleteMany(filter);
+
+.. tip::
+
+   Find runnable examples using these methods under :ref:`additional
+   information <additional-info>`.
+
+Parameters
+~~~~~~~~~~
+
+The ``DeleteOne()`` and ``DeleteMany()`` methods require you to pass a
+query filter specifying which documents to match. More information
+on how to construct a query filter is available in :manual:`the Query Documents
+tutorial</tutorial/query-documents/>`.
+
+Both methods optionally take a ``DeleteOptions`` type as an additional parameter,
+which represents options you can use to configure the delete operation.
+If you don't specify any ``DeleteOptions`` properties, the driver does
+not customize the delete operation.
+
+The ``DeleteOptions`` type allows you to configure options with the
+following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``Collation``
+     - | Gets or sets the type of language collation to use when sorting
+         results. See :manual:`the delete
+         statements</reference/command/delete/#std-label-deletes-array-collation>`
+         for more information.
+
+   * - ``Comment``
+     - | Gets or sets the comment for the operation. See :manual:`the delete command
+         fields</reference/command/delete/#command-fields>`
+         for more information.
+
+   * - ``Hint``
+     - | Gets or sets the index to use to scan for documents. See :manual:`the delete
+         statements</reference/command/delete/#std-label-deletes-array-hint>`
+         for more information.
+
+   * - ``Let``
+     - | Gets or sets the let document. See :manual:`the delete command
+         fields</reference/command/delete/#command-fields>`
+         for more information.
+
+Example
+~~~~~~~
+
+The following code uses the ``DeleteMany()`` method to search on the
+"borough_1" index and delete all documents where the ``address.street``
+field value includes the phrase "Pearl Street":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: csharp
+
+      var filter = Builders<Restaurant>.Filter
+          .Regex("address.street", "Pearl Street");
+
+      DeleteOptions opts = new DeleteOptions { Hint = "borough_1" };
+
+      WriteLine("Deleting documents...");
+      var result = _restaurantsCollection.DeleteMany(filter, opts);
+      
+      WriteLine($"Deleted documents: {result.DeletedCount}");
+      WriteLine($"Result acknowledged? {result.IsAcknowledged}");
+
+   .. output::
+      :language: none
+      :visible: false
+      
+      Deleting documents...
+      Deleted documents: 26
+      Result acknowledged? True
+
+.. tip::
+
+   If the preceding example used the ``DeleteOne()`` method instead of
+   ``DeleteMany()``, the driver would delete the first of the 26
+   matched documents.
+
+Return Value
+~~~~~~~~~~~~
+
+The ``DeleteOne()`` and ``DeleteMany()`` methods return a
+``DeleteResult`` type. This type contains the ``DeletedCount`` property,
+which indicates the number of documents deleted, and the
+``IsAcknowledged`` property, which indicates if the result is
+acknowledged. If the query filter does not match any documents, no documents
+are deleted and ``DeletedCount`` is 0.
+
+.. _additional-info:
+
+Additional Information
+----------------------
+
+For runnable examples of the delete operations, see the following usage
+examples:
+
+- :ref:`csharp-delete-one`
+- :ref:`csharp-delete-many`
+
+.. To learn more about performing the operations mentioned, see the
+.. following guides:
+
+.. TODO create specify a query 
+.. - :ref:`csharp-query-document`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `DeleteOne() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteOne.htm>`__
+- `DeleteOneAsync() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteOneAsync.htm>`__
+- `DeleteMany() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteMany.htm>`__
+- `DeleteManyAsync() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteManyAsync.htm>`__
+- `DeleteOptions <{+api-root+}/T_MongoDB_Driver_DeleteOptions.htm>`__
+- `DeleteResult <{+api-root+}/Properties_T_MongoDB_Driver_DeleteResult.htm>`__
