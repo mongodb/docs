@@ -11,6 +11,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/insert_encrypted_document.js
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: javascript
+               :dedent:
+               :caption: insert_encrypted_document.js
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/local/reader/insert_encrypted_document.js
@@ -65,6 +75,16 @@
       Specify the KMS provider and specify your {+cmk-long+} inline:
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/insert_encrypted_document.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: javascript
+               :dedent:
+               :caption: insert_encrypted_document.js
 
          .. tab::
             :tabid: nodejs
@@ -123,6 +143,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/insert_encrypted_document.js
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: javascript
+               :dedent:
+               :caption: insert_encrypted_document.js
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/local/reader/insert_encrypted_document.js
@@ -177,6 +207,14 @@
       .. _qe-quick-start-shared-lib:
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. code-block:: shell
+
+               // mongosh does not require you to specify the
+               // location of the {+shared-library+} 
 
          .. tab::
             :tabid: nodejs
@@ -236,6 +274,16 @@
       automatic encryption settings:
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/insert_encrypted_document.js
+               :start-after: start-client
+               :end-before: end-client
+               :language: javascript
+               :dedent:
+               :caption: insert_encrypted_document.js
 
          .. tab::
             :tabid: nodejs

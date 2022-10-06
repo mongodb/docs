@@ -9,6 +9,16 @@ a client that is not configured for automatic {+qe+}.
 .. tabs-drivers::
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/insert_encrypted_document.js
+         :start-after: start-find
+         :end-before: end-find
+         :caption: insert_encrypted_document.js
+         :language: javascript
+         :dedent:
+
+   .. tab::
       :tabid: nodejs
 
       .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/local/reader/insert_encrypted_document.js
