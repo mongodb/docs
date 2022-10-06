@@ -18,6 +18,16 @@
                :caption: MakeDataKey.java
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/make_data_key.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
@@ -74,6 +84,16 @@
                :caption: MakeDataKey.java
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/make_data_key.js
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
@@ -128,6 +148,16 @@
                :language: java
                :dedent:
                :caption: MakeDataKey.java
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/make_data_key.js
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: javascript
+               :dedent:
+               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs

@@ -22,6 +22,16 @@ a client certificate that your {+kmip-kms+} accepts:
          method.
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/make_data_key.js
+         :start-after: start-create-tls
+         :end-before: end-create-tls
+         :language: javascript
+         :dedent:
+         :caption: make_data_key.js
+
+   .. tab::
       :tabid: nodejs
 
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
