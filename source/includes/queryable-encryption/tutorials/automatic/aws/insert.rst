@@ -8,6 +8,16 @@ snippet:
 .. tabs-drivers::
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+         :start-after: start-insert
+         :end-before: end-insert
+         :language: javascript
+         :caption: insert_encrypted_document.js
+         :dedent:
+
+   .. tab::
       :tabid: nodejs
 
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
