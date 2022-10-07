@@ -1,0 +1,276 @@
+.. csharp-insert-guide:
+
+================
+Insert Documents
+================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to add documents to your MongoDB
+collections using insert operations.
+
+Sample Data
+~~~~~~~~~~~
+
+The example in this guide uses the ``restaurants`` collection
+from the ``sample_restaurants`` database. The inserted documents in the
+example are modeled by the following ``Restaurant`` class:
+
+.. literalinclude:: /includes/fundamentals/code-examples/crud/insert.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-model
+   :end-before: end-model
+
+This collection is from the :atlas:`sample datasets </sample-data>` provided
+by Atlas. See the :ref:`<csharp-quickstart>` to learn how to create a free MongoDB cluster
+and load this sample data.
+
+The ``_id`` Field
+-----------------
+
+In a MongoDB collection, each document *must* contain an ``_id`` field
+with a unique field value.
+
+MongoDB allows you to manage this field in two ways:
+
+- You can set this field for each document yourself, ensuring each
+  ``_id`` field value is unique.
+- You can let the driver automatically generate unique ``ObjectId``
+  values for each document ``_id``. If you do not manually set an
+  ``_id`` field value for a document, the driver will populate the field
+  with an ``ObjectId``.
+
+Unless you provide strong guarantees for uniqueness, MongoDB recommends
+you let the driver automatically generate ``_id`` values.
+
+.. note::
+
+   Duplicate ``_id`` values violate unique index constraints, which
+   causes the driver to return a ``MongoWriteException`` from
+   ``InsertOne()`` or a ``MongoBulkWriteException`` from
+   ``InsertMany()``.
+
+To learn more about the ``_id`` field, see the Server Manual Entry on
+:manual:`Unique Indexes </core/index-unique/>`.
+
+To learn more about document structure and rules, see the
+Server Manual Entry on :manual:`Documents </core/document>`.
+
+Insert Operations
+-----------------
+
+Use insert operations to add documents to a collection. You can perform
+inserts in MongoDB with the following methods:
+
+- ``InsertOne()``, which inserts a single document
+- ``InsertMany()``, which inserts multiple documents stored in an
+  ``IEnumerable`` interface
+
+Insert One Document
+~~~~~~~~~~~~~~~~~~~
+
+The following code shows how to use the asynchronous
+``InsertOneAsync()`` method or the synchronous ``InsertOne()`` method to
+insert one document.
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: insert-one-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         await _restaurantsCollection.InsertOneAsync(document);
+
+   .. tab:: Synchronous
+      :tabid: insert-one-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         _restaurantsCollection.InsertOne(document);
+
+Insert Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code shows how to use the asynchronous
+``InsertManyAsync()`` method or the synchronous ``InsertMany()`` method to
+insert multiple documents.
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: insert-many-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         await _restaurantsCollection.InsertManyAsync(docs);
+
+   .. tab:: Synchronous
+      :tabid: insert-many-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         _restaurantsCollection.InsertMany(docs);
+
+.. tip::
+
+   Find runnable examples using these methods under :ref:`additional
+   information <additional-info>`.
+
+Parameters
+~~~~~~~~~~
+
+The ``InsertOne()`` method takes the document you seek to insert as a
+parameter. The ``InsertMany()`` method takes an ``IEnumerable``
+interface of documents, such as a list or array, as a parameter.
+
+The ``InsertOne()`` method optionally takes a ``InsertOneOptions`` type as an additional parameter,
+which represents options you can use to configure the insert operation.
+If you don't specify any ``InsertOneOptions`` properties, the driver does
+not customize the insert.
+
+The ``InsertOneOptions`` type allows you to configure options with the
+following properties:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``BypassDocumentValidation``
+     - | Gets or sets a value indicating whether to bypass document
+         validation. If ``true``, allows the write to opt-out of
+         :manual:`document level validation </core/schema-validation>`.
+
+   * - ``Comment``
+     - | Gets or sets the comment for the operation. See :manual:`the delete command
+         fields</reference/command/delete/#command-fields>`
+         for more information.
+
+The ``InsertMany()`` method optionally takes a ``InsertManyOptions``
+type as an additional parameter, which has the preceding
+``BypassDocumentValidation`` and ``Comment`` properties and the
+additional ``IsOrdered`` property:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``IsOrdered``
+     - | Gets or sets a value indicating whether the requests are
+         fulfilled in order. If ``true``, the driver sends documents to the
+         server in the order provided. If an error occurs, the driver
+         and server abort all remaining insert operations.
+         To learn more, see :ref:`Ordered Behavior<csharp-ordered-behavior>`.
+         
+       | Default: ``true``
+
+Example
+~~~~~~~
+
+The following code uses the ``InsertMany()`` method to insert four new
+``Restaurant`` documents into a collection with
+``BypassDocumentValidation`` set to ``true``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/crud/insert.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-insert
+   :end-before: end-insert
+
+The ``InsertMany()`` method has no return value. You can verify that
+your documents were successfully inserted by executing a ``Find()``
+operation on the collection. For an example on how to find a document,
+see :ref:`csharp-find-one`.
+
+.. _csharp-ordered-behavior:
+
+Ordered Behavior
+~~~~~~~~~~~~~~~~
+
+Assume you want to insert the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "name" : "Restaurant A" }
+   { "_id" : 2, "name" : "Restaurant B" }
+   { "_id" : 1, "name" : "Restaurant C" }
+   { "_id" : 3, "name" : "Restaurant D" }
+
+If you attempt to insert these documents with default
+``InsertManyOptions``, the driver throws a ``MongoBulkWriteException`` at the third
+document because of the repeated ``_id`` value, but the documents before
+the error-producing document are still inserted into your collection.
+
+If you look inside your collection, you should be able to see the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "name" : "Restaurant A" }
+   { "_id" : 2, "name" : "Restaurant B" }
+
+If you set ``IsOrdered`` to ``false`` in your insert operation, the driver will
+continue to insert your documents even if some documents produce errors.
+With this modified insert behavior, the driver throws an exception but inserts all documents
+that do not produce errors.
+
+If you look inside your collection, you should be able to see the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "name" : "Restaurant A" }
+   { "_id" : 2, "name" : "Restaurant B" }
+   { "_id" : 3, "name" : "Restaurant D" }
+
+.. _additional-info:
+
+Additional Information
+----------------------
+
+For runnable examples of the insert operations, see the following usage
+examples:
+
+- :ref:`csharp-insert-one`
+- :ref:`csharp-insert-many`
+
+.. To learn more about performing the operations mentioned, see the
+.. following guides:
+
+.. - :ref:`csharp-query-document`
+
+.. - :doc:`Bulk Operations </fundamentals/crud/write-operations/bulk>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `InsertOne() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_InsertOne.htm>`__
+- `InsertOneAsync() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_InsertOneAsync.htm>`__
+- `InsertMany() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_InsertMany.htm>`__
+- `InsertManyAsync() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_InsertManyAsync.htm>`__
+- `InsertOneOptions <{+api-root+}/T_MongoDB_Driver_InsertOneOptions.htm>`__
+- `InsertManyOptions <{+api-root+}/T_MongoDB_Driver_InsertManyOptions.htm>`__
