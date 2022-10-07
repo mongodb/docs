@@ -1,0 +1,333 @@
+:noprevnext:
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+=====================
+Define Field Mappings
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When you create an |fts| index, you can explicitly specify the fields 
+to index using static mappings. For the fields in the collection that 
+you want to index, you must include a ``type`` field that describes the 
+:ref:`data type <bson-data-chart>` of the field in the field 
+definition. You can specify an array of field definitions for a field, 
+one for each data type.
+
+.. code-block:: json  
+   :caption: Syntax 
+   :emphasize-lines: 3-12
+   :linenos:
+
+   "mappings": { 
+     "dynamic": <boolean>, 
+     "fields": { 
+       "<field-name>": [
+         {
+           "type": "<field-type>",
+           ...
+         },
+         ...
+       ],
+       ...  
+     }
+   }
+
+Alternatively, you can configure |fts| to automatically index all the 
+supported field types in the collection using dynamic mappings.
+
+.. include:: /includes/fact-fts-index-field-order.rst 
+
+Static and Dynamic Mappings 
+---------------------------
+
+For **Static mappings**, set ``mappings.dynamic`` to ``false`` and 
+specify the fields to index using ``mappings.fields``. |fts| only 
+indexes the specified fields with specific options. 
+
+Use static mappings to configure index options for fields that
+shouldn't be indexed dynamically, or to configure a single field 
+independently from others in an index.
+
+.. note:: 
+
+   You must specify static mappings when ``mappings.dynamic`` is 
+   ``false``.
+
+For **Dynamic mappings**, set ``mappings.dynamic`` to ``true``. |fts| 
+automatically indexes the fields of :ref:`supported types 
+<bson-data-chart>` in each document. 
+
+Use dynamic mappings if your schema changes regularly or is unknown, or 
+when experimenting with |fts|. You can configure an entire index to use 
+dynamic mappings, or specify individual fields, such as fields of type 
+``document``, to be dynamically mapped.
+
+.. note::
+
+   Dynamically mapped indexes occupy more disk space than statically 
+   mapped indexes and may be less performant.
+
+BSON Data Types
+---------------
+
+|fts| doesn't support the following :manual:`BSON data types 
+</reference/bson-types/>`\:
+
+- Binary Data
+- Decimal128
+- JavaScript code with scope
+- Max key
+- Min key
+- Null
+- Regular Expression
+- Timestamp
+
+The following table lists the supported :manual:`BSON data types
+</reference/bson-types/>` and the |fts| field type for the 
+:manual:`BSON data types </reference/bson-types/>`. The table also  
+indicates whether the field type is automatically indexed when you 
+enable :ref:`dynamic mappings <static-dynamic-mappings>`. 
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - BSON Type
+     - Atlas Search Field Type
+     - Dynamic Indexing?
+
+   * - :ref:`Array <fts-array-ref>`
+     - 
+     -  
+
+   * - Boolean
+     - :ref:`boolean <boolean-ref>`
+     - 
+
+   * - Date
+     - :ref:`date <bson-data-types-date>`
+     - ✓ 
+
+   * - Date
+     - :ref:`dateFacet <bson-data-types-date-facet>`
+     -  
+
+   * - Double
+     - :ref:`number <bson-data-types-number>`
+     - ✓ 
+
+   * - Double
+     - :ref:`numberFacet <bson-data-types-number-facet>`
+     - 
+
+   * - Double
+     - :ref:`bson-data-types-knn-vector`
+     - 
+
+   * - 32-bit integer
+     - :ref:`number <bson-data-types-number>`
+     - ✓ 
+
+   * - 32-bit integer
+     - :ref:`numberFacet <bson-data-types-number-facet>`
+     - 
+
+   * - 32-bit integer
+     - :ref:`bson-data-types-knn-vector`
+     - 
+
+   * - 64-bit integer
+     - :ref:`number <bson-data-types-number>` 
+     - ✓ 
+
+   * - 64-bit integer
+     - :ref:`numberFacet <bson-data-types-number-facet>` 
+     - 
+
+   * - 64-bit integer
+     - :ref:`bson-data-types-knn-vector` 
+     -  
+
+   * - Object
+     - :ref:`document <bson-data-types-document>`
+     - ✓ 
+
+   * - Object
+     - :ref:`embeddedDocuments <bson-data-types-embedded-documents>` 
+       (for array of objects)
+     - 
+
+   * - ObjectId
+     - :ref:`objectId <objectId-ref>`
+     - 
+
+   * - String 
+     - :ref:`string <bson-data-types-string>`
+     - ✓ 
+
+   * - String 
+     - :ref:`stringFacet <bson-data-types-string-facet>`
+     - 
+
+   * - String 
+     - :ref:`bson-data-types-autocomplete`
+     - 
+
+.. note:: 
+
+   You can store fields of all supported :ref:`bson-data-chart` on 
+   |fts| using the ``storedSource`` :ref:`option 
+   <index-definition-options>`.
+
+|fts| Field Types
+-----------------
+
+.. _bson-data-types-knn-vector:
+
+knnVector
+~~~~~~~~~
+
+Use the ``knnVector`` type to index vector embeddings. The vector 
+field should be represented as an array of :ref:`numbers 
+<bson-data-types-number>` (|bson| ``int32``, ``int64``, or ``double`` 
+data types only).
+
+.. note:: 
+
+   .. include:: /includes/fact-fts-vector-search-ea.rst
+
+The ``knnVector`` type has the following options:
+
+.. list-table::
+   :widths: 25 10 15 50
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+
+   * - ``type``
+     - string
+     - Required
+     - Human-readable label that identifies this field type. Value must 
+       be ``knnVector``.
+
+   * - ``dimensions``
+     - int
+     - Required
+     - Number of vector dimensions, which |fts| enforces at index- and 
+       query-time. This value can't be greater than ``1024``. 
+
+   * - ``similarity``
+     - string
+     - Required
+     - Vector similarity function to use to search for top K-nearest 
+       neighbors. Value can be one of the following:
+
+       - ``euclidean`` - measures the distance between ends of vectors. 
+         This allows you to measure similarity based on varying 
+         dimensions. To learn more, see :wikipedia:`Euclidean 
+         <Euclidean_distance>`.
+       - ``cosine`` - measures similarity based on the angle between 
+         vectors. This allows you to measure similarity that isn't 
+         scaled by magnitude. You can't use zero magnitude vectors with 
+         ``cosine``. To measure cosine similarity, we recommend that 
+         you normalize your vectors and use ``dotProduct`` instead. To 
+         learn more, see :wikipedia:`Cosine <Cosine_similarity>`.
+       - ``dotProduct`` - measures similar to ``cosine``, but takes 
+         into account the magnitude of the vector. This allows you to 
+         efficiently measure similarity based on both angle and 
+         magnitude. To use ``dotProduct``, you must normalize the 
+         vector to unit length at index- and query-time. To learn more, 
+         see :wikipedia:`Dot Product <Dot_product>`.
+
+       .. note:: 
+
+          If you normalize the magnitude, ``cosine`` and 
+          ``dotProduct`` are almost identical in measuring similarity. 
+
+.. _knn-vector-egs:
+
+.. example:: 
+
+   Consider a collection named ``cheese_varieties`` with the following 
+   documents:
+
+   .. code-block:: json 
+      
+      {
+        "_id": 1,
+        "name": "mozzarella",
+        "description": "Italian cheese typically made from buffalo's milk.",
+        "countryOfOrigin": "Italy",
+        "egVector": [-0.09950768947601318,-0.02402166835963726,-0.046839360147714615,0.06274440884590149,-0.0920015424489975],
+        "aging": "none",
+        "yearProduced": 2022,
+        "brined": false
+      }
+
+   .. code-block:: json 
+
+      {
+        "_id": 2,
+        "name": "parmesan",
+        "description": "Italian hard, granular cheese produced from cow's milk.",
+        "countryOfOrigin": "Italy",
+        "egVector": [-0.04228218272328377,-0.024080513045191765,-0.029374264180660248,-0.04369240626692772,-0.01295427419245243],
+        "aging": "at least 1 year",
+        "yearProduced": 2021,
+        "brined": false
+      }
+
+   .. code-block:: json 
+
+      {
+        "_id": 3,
+        "name": "feta",
+        "description": "Greek brined white cheese made from sheep's milk or from a mixture of sheep and goat's milk.",
+        "countryOfOrigin": "Greece",
+        "egVector": [-0.015739429742097855,0.04937680810689926,-0.1067470908164978,0.1293928325176239,-0.03162907809019089],
+        "aging": "about 3 months",
+        "yearProduced": 2021,
+        "brined": true
+      }
+
+   The following index definition for the ``cheese_varieties`` 
+   collection dynamically indexes all the dynamically indexable fields 
+   in the collection and statically indexes ``egVector`` as 
+   a ``knnVector`` type. The index definition also specifies ``5`` vector 
+   dimensions and measures similarity using ``euclidean``.
+
+   .. code-block:: json 
+      :linenos:
+
+      {
+        "mappings": {
+          "dynamic": true,
+          "fields": {
+            "egVector": {
+              "type": "knnVector",
+              "dimensions": 5,
+              "similarity": "euclidean"
+            }
+          }
+        }
+      }
+
+   If you add the ``cheese_varieties`` collection to a database on your 
+   cluster and create the preceding |fts| index for this collection, 
+   you can run :ref:`knn-beta-ref` queries against this collection. To 
+   learn more about the sample queries that you can run, see 
+   :ref:`knn-beta-egs`.
+

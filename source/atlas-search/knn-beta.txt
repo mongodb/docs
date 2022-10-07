@@ -1,0 +1,458 @@
+:noprevnext:
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _knn-beta-ref:
+
+========
+knnBeta 
+========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note:: 
+
+   .. include:: /includes/fact-fts-vector-search-ea.rst
+
+Definition
+----------
+
+.. expression:: knnBeta 
+
+   The ``knnBeta`` operator uses |hnsw| algorithm to perform semantic 
+   search. You can use |fts| support for :abbr:`kNN (K-nearest 
+   neighbors)` query to search similar to a selected product, search 
+   for images, etc.
+
+.. _knn-beta-syntax:
+
+Syntax 
+------
+
+``knnBeta`` has the following syntax:
+
+.. code-block:: json
+   :linenos:
+
+   {
+     $search: {
+       "index": "<index name>", // optional, defaults to "default"
+       "knnBeta": {
+         "vector": [<array-of-numbers>],
+         "path": "<field-to-search>",
+         "filter": {<filter-specification>},
+         "k": <number>,
+         "score": {<options>}
+       }
+     }
+   }
+
+.. _knn-beta-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10 
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``filter``
+     - document
+     - Any |fts| :ref:`operator <operators-ref>` to filter the 
+       documents based on metadata or certain search criteria, which 
+       can help narrow down the scope of vector search.
+     - Optional
+
+   * - ``k``
+     - number
+     - Number of nearest neighbors to return. You can specify a number 
+       higher than the number of documents to return 
+       (:pipeline:`$limit`) to increase accuracy. 
+     - Required
+
+   * - ``path``
+     - string
+     - Indexed :ref:`bson-data-types-knn-vector` type field to search. 
+       See :ref:`Path Construction <ref-path>` for more information.
+     - Required
+
+   * - ``vector``
+     - array of numbers
+     - Array of numbers of |bson| types ``int`` or ``double`` that 
+       represent the query vector. The array size must match the number 
+       of vector ``dimensions`` specified in the :ref:`index 
+       <bson-data-types-knn-vector>` for the field.
+     - Required
+
+.. _knn-beta-behavior:
+
+Behavior 
+--------
+
+You can run :abbr:`kNN (K-nearest neighbors)` queries against fields 
+that were indexed as |fts| type :ref:`bson-data-types-knn-vector` only.
+
+You can use :pipeline:`$skip` and :pipeline:`$limit` after the 
+:pipeline:`$search` stage to paginate the ``knnBeta`` query results. 
+However, the value that you specify for ``k`` must be greater than or 
+equal to the sum of the numbers you specify for :pipeline:`$skip` and 
+:pipeline:`$limit`. 
+
+.. example:: 
+
+   The following query finds ``150`` nearest neighbors to the query, 
+   skips the first ``100`` results, and limits the remaining number of 
+   results to ``50``. 
+
+   .. code-block:: json 
+      :copyable: false 
+      :linenos:
+
+      db.<collection>.aggregate({
+        "$search": {
+          "knnBeta": {
+            "vector": <array-of-numbers-to-search>,
+            "path": <indexed-field-to-search>,
+            "k": 150
+          }
+        } 
+      },
+      {
+        "$skip": 100
+      },
+      {
+        "$limit": 50
+      })
+
+   For the preceding query, the value of ``k`` (on line 6) shouldn't be 
+   less than the sum of the number of documents skipped (on line 11), 
+   which is ``100``, and the number of documents returned (on line 14), 
+   which is ``50``.
+
+.. _knn-beta-usage:
+
+Usage 
+~~~~~
+
+You can use ``knnBeta`` within the :ref:`compound-ref` operator to 
+perform a hybrid of keyword search and semantic search. ``knnBeta`` 
+always returns only ``k`` results, which is the number of nearest 
+neighbors. Therefore, if you use ``knnBeta`` inside the 
+:ref:`compound-ref` operator ``must`` clause with other operators, 
+|fts| uses the other operators for post-filtering of the semantic 
+search results. For pre-filtering, you can use the ``filter`` option 
+inside ``knnBeta``. On sharded clusters, |fts| returns ``k`` results 
+from each shard, but you can use :pipeline:`$limit` to limit the total 
+number of results.
+
+|fts| scores the results for :abbr:`kNN (K-nearest neighbors)` queries 
+in a fixed range from ``0`` to ``1`` only. You can customize the 
+default score for your keyword and semantic subqueries using 
+:ref:`scoring-boost` and other :ref:`scoring options <scoring-ref>`. 
+
+.. _knn-beta-egs:
+
+Examples 
+--------
+
+The following queries search the sample ``cheese_varieties`` collection 
+using the ``knnVector`` operator. If you added the sample collection to 
+a database on your |service| cluster and created the :ref:`sample index 
+definition <knn-vector-egs>` for the collection, you can switch to the 
+database where you added this collection and run the following queries 
+against the collection. 
+
+.. tabs:: 
+
+   .. tab:: Basic Example 
+      :tabid: basic 
+
+      The following query searches the ``egVector`` field using the 
+      ``knnVector`` operator for ``vector`` dimensions and requests up 
+      to ``3`` nearest neighbors in the results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.cheese_varieties.aggregate([
+              {
+                "$search": {
+                  "index": "default",
+                  "knnBeta": {
+                    "vector": [-0.015739429742097855,0.04937680810689926,-0.1067470908164978,0.1293928325176239,-0.03162907809019089],
+                    "path": "egVector",
+                    "k": 3
+                  }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: js
+            :linenos: 
+
+            [
+              {
+                _id: 3,
+                name: 'feta',
+                description: "Greek brined white cheese made from sheep's milk or from a mixture of sheep and goat's milk.",
+                countryOfOrigin: 'Greece',
+                egVector: [
+                  -0.015739429742097855,
+                  0.04937680810689926,
+                  -0.1067470908164978,
+                  0.1293928325176239,
+                  -0.03162907809019089
+                ],
+                aging: 'about 3 months',
+                yearProduced: 2021,
+                brined: true
+              },
+              {
+                _id: 1,
+                name: 'mozzarella',
+                description: "Italian cheese typically made from buffalo's milk.",
+                countryOfOrigin: 'Italy',
+                egVector: [
+                  -0.09950768947601318,
+                  -0.02402166835963726,
+                  -0.046839360147714615,
+                  0.06274440884590149,
+                  -0.0920015424489975
+                ],
+                aging: 'none',
+                yearProduced: 2022,
+                brined: false
+              },
+              {
+                _id: 2,
+                name: 'parmesan',
+                description: "Italian hard, granular cheese produced from cow's milk.",
+                countryOfOrigin: 'Italy',
+                egVector: [
+                  -0.04228218272328377,
+                  -0.024080513045191765,
+                  -0.029374264180660248,
+                  -0.04369240626692772,
+                  -0.01295427419245243
+                ],
+                aging: 'at least 1 year',
+                yearProduced: 2021,
+                brined: false
+              }
+            ]
+
+   .. tab:: Filter Example 
+      :tabid: filter 
+
+      The following query filters the documents for cheese produced 
+      before or in (``≤``) the year ``2021``, then searches the 
+      ``egVector`` field in the filtered documents for ``vector`` 
+      dimensions, and requests up to ``3`` nearest neighbors in the 
+      results. The query also specifies a :pipeline:`$project` stage 
+      to: 
+
+      - Exclude all fields except ``name``, ``egVector``, 
+        ``yearProduced``, and ``_id`` in the results.
+      - Add a field named ``score`` in the results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :linenos:
+
+            db.cheese_varieties.aggregate([
+              {
+                "$search": {
+                  "index": "default",
+                  "knnBeta": {
+                    "vector": [-0.04228218272328377,-0.024080513045191765,-0.029374264180660248,-0.04369240626692772,-0.01295427419245243],
+                    "path": "egVector",
+                    "filter": {
+                      "range": {
+                        "lte": 2021,
+                        "path": "yearProduced"
+                      }
+                   },
+                    "k": 3
+                 }
+                }
+              },
+              {
+                "$project": {
+                  "name": 1,
+                  "egVector": 1,
+                  "yearProduced": 1,
+                  "score": { $meta: "searchScore" }
+                }
+              }
+            ])
+
+         .. output::
+            :language: js
+            :linenos:
+
+            [
+              {
+                _id: 2,
+                name: 'parmesan',
+                egVector: [
+                  -0.04228218272328377,
+                  -0.024080513045191765,
+                  -0.029374264180660248,
+                  -0.04369240626692772,
+                  -0.01295427419245243
+                ],
+                yearProduced: 2021,
+                score: 1
+              },
+              {
+                _id: 3,
+                name: 'feta',
+                egVector: [
+                  -0.015739429742097855,
+                  0.04937680810689926,
+                  -0.1067470908164978,
+                  0.1293928325176239,
+                  -0.03162907809019089
+                ],
+                yearProduced: 2021,
+                score: 0.9593299031257629
+              }
+            ]
+
+      |fts| filters the documents based on the ``yearProduced`` field 
+      value that is lesser than or equals to ``2021``. It scores 
+      document with ``"_id": 2`` higher because it matches the search 
+      criteria in the ``filter`` option and also the ``vector`` 
+      dimensions in the query.
+
+   .. tab:: Compound Example 
+      :tabid: compound
+
+      The following query uses the :ref:`compound-ref` operator to run 
+      subqueries using the ``knnVector`` and ``text`` operators. The 
+      query uses the ``should`` clause to search the following fields:
+      
+      - ``egVector`` field for ``vector`` dimensions and requests up to 
+        ``3`` nearest neighbors in the results.
+      - ``countryOfOrigin`` field for the term ``italy``.
+      
+      The query also specifies a :pipeline:`$project` stage 
+      to: 
+
+      - Exclude all fields except ``name``, ``description``, 
+        ``egVector``, ``countryOfOrigin``, and ``_id`` in the results.
+      - Add a field named ``score`` in the results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :linenos:
+
+            db.cheese_varieties.aggregate([
+              {
+                "$search": {
+                  "index": "default",
+                  "compound": {
+                    "should": [{
+                      "knnBeta": {
+                        "vector": [-0.09950768947601318,-0.02402166835963726,-0.046839360147714615,0.06274440884590149,-0.0920015424489975],
+                        "path": "egVector",
+                        "k": 3
+                      }
+                    },
+                    {
+                      "text": {
+                        "path": "countryOfOrigin",
+                        "query": "italy"
+                      }
+                    }]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "name": 1,
+                  "description": 1,
+                  "egVector": 1,
+                  "countryOfOrigin": 1,
+                  "score": { $meta: "searchScore" }
+                }
+              }
+            ])
+
+         .. output::
+            :language: js
+            :linenos:
+
+            [
+              {
+                _id: 1,
+                name: 'mozzarella',
+                description: "Italian cheese typically made from buffalo's milk.",
+                countryOfOrigin: 'Italy',
+                egVector: [
+                  -0.09950768947601318,
+                  -0.02402166835963726,
+                  -0.046839360147714615,
+                  0.06274440884590149,
+                  -0.0920015424489975
+                ],
+                score: 1.2136380672454834
+              },
+              {
+                _id: 2,
+                name: 'parmesan',
+                description: "Italian hard, granular cheese produced from cow's milk.",
+                countryOfOrigin: 'Italy',
+                egVector: [
+                  -0.04228218272328377,
+                  -0.024080513045191765,
+                  -0.029374264180660248,
+                  -0.04369240626692772,
+                  -0.01295427419245243
+                ],
+                score: 1.1929192543029785
+              },
+              {
+               _id: 3,
+                name: 'feta',
+                description: "Greek brined white cheese made from sheep's milk or from a mixture of sheep and goat's milk.",
+                countryOfOrigin: 'Greece',
+                egVector: [
+                  -0.015739429742097855,
+                  0.04937680810689926,
+                  -0.1067470908164978,
+                  0.1293928325176239,
+                  -0.03162907809019089
+                ],
+                score: 0.9764859676361084
+              }
+            ]
+
+      In the preceding results, documents ``"_id":1`` and ``"_id": 2`` 
+      contain the query term ``italy`` in the ``countryOfOrigin`` 
+      field, and document with ``"_id": 1`` contains the ``vector`` 
+      dimensions also in the query. 
