@@ -287,7 +287,7 @@ extlinks = {
     'compass': ('https://www.mongodb.com/docs/compass/current%s', ''),
     'stitch': ('https://www.mongodb.com/docs/realm%s', ''),
     'realm': ('https://www.mongodb.com/docs/realm%s', ''),
-    'charts': ('https://www.mongodb.com/docs/charts/saas%s', ''),
+    'charts': ('https://www.mongodb.com/docs/charts%s', ''),
     'bic': ('https://www.mongodb.com/docs/bi-connector/current%s',''),
     'website': ('https://www.mongodb.com%s?tck=docs_atlas', ''),
     'legal': ('https://www.mongodb.com/legal%s?tck=docs_atlas', ''),
