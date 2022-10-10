@@ -212,6 +212,99 @@ content: |
 
 ---
 stepnum: 0
+title: "Deploy the MongoDB resource with |tls|."
+ref: deploy-mdbresource-mc-tls
+content: |
+
+   a. Create a secret so that the |k8s-op-short|
+      can create and update objects in your |mms| project.
+      To learn more, see :ref:`create-k8s-credentials`.
+
+   #. Create a ConfigMap to link the |k8s-op-short|
+      to your |mms| project. To learn more, see :ref:`create-k8s-project`.
+
+   #. Configure the required service accounts
+      for each member cluster:
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           mongodb/enterprise-operator \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_1_FULL_NAME \
+           --namespace mongodb
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           mongodb/enterprise-operator \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_2_FULL_NAME \
+           --namespace mongodb
+
+      .. code-block:: sh
+
+         helm template --show-only \
+           templates/database-roles.yaml \
+           mongodb/enterprise-operator \
+           --set namespace=mongodb | \
+         kubectl apply -f - \
+           --context=$MDB_CLUSTER_3_FULL_NAME \
+           --namespace mongodb
+
+   #. Set :setting:`spec.credentials`, 
+      :setting:`spec.opsManagerconfigMapRef.name`, and 
+      :ref:`security settings <security-settings>` 
+      and deploy the MongoDB resource.
+      In the following code sample, ``duplicateServiceObjects``
+      is set to ``true`` to enable
+      `DNS proxying <https://istio.io/latest/docs/ops/configuration/traffic-management/dns-proxy/>`__
+      in Istio.
+      
+      .. note::
+         To enable the cross-cluster DNS resolution by the Istio
+         service mesh, this tutorial creates service objects with a
+         single ClusterIP address per each |k8s| Pod.
+
+      .. code-block:: sh
+
+         kubectl apply -f - <<EOF
+         apiVersion: mongodb.com/v1
+         kind: MongoDBMulti
+         metadata:
+          name: multi-replica-set
+         spec:
+          version: 4.4.0-ent
+          type: ReplicaSet
+          persistent: false
+          duplicateServiceObjects: true
+          credentials: my-credentials
+          opsManager:
+            configMapRef:
+              name: my-project
+          security:
+            tls:
+              ca: custom-ca
+          clusterSpecList:
+            clusterSpecs:
+            - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+              members: 3
+            - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+              members: 2
+            - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+              members: 3
+         EOF
+
+   The |k8s-op-short| copies the ConfigMap with the |certauth| that you
+   created in step 2 to each member cluster, generates a
+   concatenated |pem| secret, and distributes it to the member clusters.
+
+---
+stepnum: 0
 level: 4
 title: "Verify that the MDB resources are running."
 ref: verify-mdb-resources-mc
