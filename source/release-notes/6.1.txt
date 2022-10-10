@@ -9,7 +9,7 @@ Release Notes for MongoDB 6.1 (Release Candidate)
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: twocols
 
 .. include:: /includes/in-dev.rst
@@ -80,6 +80,271 @@ Improved Efficiency for Multiple Document Deletions
 
 .. include:: /includes/multi-deletes.rst
 
+.. _6.1-rel-notes-reshard:
+
+Resharding
+~~~~~~~~~~
+
+Starting in MongoDB 6.1, there are new metrics available 
+:ref:`resharding <sharding-resharding>`. The output of the following
+commands has changed:
+
+- :dbcommand:`currentOp`
+- :method:`db.currentOp()`
+- :dbcommand:`serverStatus`
+- :method:`db.serverStatus()`
+
+For details, see the release notes for :ref:`currentOp
+<6.1-rel-notes-currentOp>` and :ref:`serverStatus
+<6.1-rel-notes-serverStatus>`.
+
+.. _6.1-rel-notes-currentOp:
+
+``currentOp`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, the :dbcommand:`currentOp` command and the
+:method:`db.currentOp()` method have expanded output for resharding.
+
+Resharding operations can involve multiple MongoDB instances, and
+MongoDB instances can play different roles in the resharding operation.
+The particular operation and the role the host instance plays in the 
+:ref:`resharding <sharding-resharding>` process determine when each
+metric updates. 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Metric
+     - Role Tracked
+     - Description
+
+   * - ``opStatus``
+     -  
+     -  Removed.
+
+   * - ``desc`` 
+     - All
+     - Describes the action taken. The value is one of:
+
+       - ReshardingDonorService<operationUUID>
+       - ReshardingRecipientService<operationUUID>
+       - ReshardingCoordinatorService<operationUUID>
+        
+       For ``$currentOp``, the command UUID is added to each role's
+       state document.
+
+   * - ``op``
+     - All
+     - This metric has a constant value: "command".
+
+   * - ``ns``
+     - All
+     - The namespace for the resharded index. The value is a string in
+       the form: ``<database>.<collection>``.
+
+   * - ``originatingCommand``
+     - All
+     - A document that lists the command options for the operation.
+
+   * - ``donorState``
+     - Donor
+     - The current state of the role's state machine.
+
+   * - ``coordinatorState``
+     - Coordinator
+     - The current state of the role's state machine.
+
+   * - ``recipientState``
+     - Recipient
+     - The current state of the role's state machine.
+
+   * - approxDocumentsToCopy
+     - Recipient
+     - The number of documents in the source collection.
+
+   * - documentsCopied
+     - Recipient
+     - The number of documents already copied.
+
+   * - approxBytesToCopy
+     - Recipient
+     - The total size, in bytes, of the documents in the source
+       collection.
+
+   * - bytesCopied
+     - Recipient
+     - The number of bytes copied. When resharding completes, this value
+       is similar to the value of ``approxBytesToCopy``. 
+
+   * - oplogEntriesFetched
+     - Recipient
+     - The number of oplog entries written to the oplog buffer
+       collection.
+
+   * - oplogEntriesApplied
+     - Recipient
+     - The number of oplog entries applied from the oplog buffer
+       collection.
+
+   * - insertsApplied
+     - Recipient
+     - The number of inserts applied to the temporary resharding
+       collection. Each oplog entry that involves an insert increments
+       the counter by 1.
+
+   * - updatesApplied
+     - Recipient
+     - The number of updates applied to the temporary resharding
+       collection. Each oplog entry that involves an update increments
+       the counter by 1.
+
+   * - deletesApplied
+     - Recipient
+     - The number of deletes applied to the temporary resharding
+       collection. Each oplog entry that involves a delete increments the
+       counter by 1.
+
+   * - totalOperationTimeElapsedSecs
+     - All
+     - The number of seconds since the operation began.
+
+   * - totalCopyTimeElapsedSecs
+     - Recipient
+     - The number of seconds spent cloning.
+
+   * - totalCopyTimeElapsedSecs
+     - Coordinator
+     - The maximum number of seconds a Recipient could have spent
+       cloning.
+
+   * - totalApplyTimeElapsedSecs
+     - Recipient
+     - The number of seconds spent applying changes.
+
+   * - totalApplyTimeElapsedSecs
+     - Coordinator
+     - The approximate maximum number of seconds a Recipient could have
+       spent applying changes.
+
+   * - totalCriticalSectionTimeElapsedSecs
+     - Recipient
+     - The number of seconds spent in the critical section.
+
+   * - totalCriticalSectionTimeElapsedSecs
+     - Coordinator
+     - The number of seconds the critical section could have been held.
+
+   * - remainingOperationTimeEstimatedSecs
+     - Recipient
+     - The estimated number of seconds until the operation completes.
+
+   * - allShardsLowestRemainingOperationTimeEstimatedSecs
+     - Coordinator
+     - Calculated across all shards, the lowest estimate of the number of
+       seconds remaining. 
+
+   * - allShardsHighestRemainingOperationTimeEstimatedSecs
+     - Coordinator
+     - Calculated across all shards, the highest estimate of the number
+       of seconds remaining.
+
+   * - countWritesToStashCollections
+     - Recipient
+     - The number of writes to the recipient stash collections.
+
+   * - countWritesDuringCriticalSection
+     - Donor
+     - The number of writes attempted during the donor's critical
+       section. 
+
+   * - countReadsDuringCriticalSection
+     - Donor
+     - The number of reads attempted during the donor's critical section.
+
+.. _6.1-rel-notes-serverStatus:
+
+``serverStatus`` Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, the :dbcommand:`serverStatus` command and the
+:method:`db.serverStatus()` method have these output changes:
+
+New Metrics
+```````````
+
+- :serverstatus:`~shardingStatistics.resharding.active.countWritesToStashCollections`
+  The number of writes to the recipient stash collection.
+- :serverstatus:`~shardingStatistics.resharding.latencies` Timing
+  metrics for resharding operations. 
+
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalRemoteBatchRetrievalTimeMillis`
+    Total time recipients spent retrieving batches of documents from
+    donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalRemoteBatchesRetrieved`
+    Total number of batches of documents recipients retrieved from
+    donors.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalLocalInsertTimeMillis`
+    Total time recipients spent inserting batches of document from
+    donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.collectionCloningTotalLocalInserts`
+    Total number of batches of documents from donors that recipients
+    inserted.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalRemoteBatchRetrievalTimeMillis`
+    Total time recipients spent retrieving batches of oplog entries
+    from donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalRemoteBatchesRetrieved`
+    Total number of batches of oplog entries recipients retrieved from
+    donors.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalLocalInsertTimeMillis`
+    Total time recipients spent inserting batches of oplog entries
+    from donors, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogFetchingTotalLocalInserts`
+    Total number of batches of oplog entries from donors that
+    recipients inserted.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchRetrievalTimeMillis`
+    Total time recipients spent retrieving batches of oplog entries
+    that were inserted during fetching, in milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchesRetrieved`
+    Total number of batches of oplog entries that were inserted during
+    fetching that recipients retrieved.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchApplyTimeMillis`
+    Total time recipients spent applying batches of oplog entries, in
+    milliseconds.
+  - :serverstatus:`~shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchesApplied`
+    Total number of batches of oplog entries that recipients applied.
+
+Replaced Metrics
+````````````````
+
+``resharding.remainingOperationTimeEstimatedMillis`` is replaced by:
+
+- :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsHighestRemainingOperationTimeEstimatedMillis`
+- :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsLowestRemainingOperationTimeEstimatedMillis`
+- :serverstatus:`~shardingStatistics.resharding.oldestActive.recipientRemainingOperationTimeEstimatedMillis`
+
+Renamed Metrics
+```````````````
+
+- ``countReshardingSuccessful`` is now :serverstatus:`~shardingStatistics.resharding.countSucceeded`
+- ``countReshardingFailures`` is now :serverstatus:`~shardingStatistics.resharding.countFailed`
+- ``countReshardingOperations`` is now :serverstatus:`~shardingStatistics.resharding.countStarted`
+- ``countReshardingCanceled`` is now :serverstatus:`~shardingStatistics.resharding.countCanceled`
+- ``minShardRemainingOperationTimeEstimatedMillis`` is now :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsLowestRemainingOperationTimeEstimatedMillis`
+- ``maxShardRemainingOperationTimeEstimatedMillis`` is now :serverstatus:`~shardingStatistics.resharding.oldestActive.coordinatorAllShardsHighestRemainingOperationTimeEstimatedMillis`
+- ``resharding.opcounters.insert`` is now :serverstatus:`~shardingStatistics.resharding.active.insertsApplied`
+- ``resharding.opcounters.update`` is now :serverstatus:`~shardingStatistics.resharding.active.updatesApplied`
+- ``resharding.opcounters.delete`` is now :serverstatus:`~shardingStatistics.resharding.active.deletesApplied`
+
+Removed Metrics
+```````````````
+
+- ``oplogApplierApplyBatchLatencyMillis``
+- ``collClonerFillBatchForInsertLatencyMillis``
+
+
+
 Storage Engine
 ~~~~~~~~~~~~~~
 
@@ -115,3 +380,4 @@ of the related projects.
    :hidden:
 
    /release-notes/6.1-compatibility
+

@@ -206,12 +206,19 @@ The following example returns information on index creation operations:
        }
    )
 
-
-
 Output Example
 --------------
 
 .. include:: /includes/currentOp-output-example.rst
+
+.. _currentOp-specific-output-examples:
+
+Specific Output Examples
+------------------------
+
+.. include:: /includes/metrics/txt-section-intro.rst
+.. include:: /includes/metrics/ex-resharding.rst
+.. include:: /includes/metrics/ex-global-index.rst
 
 .. _currentOp-output-fields:
 
@@ -1106,7 +1113,7 @@ Output Fields
 
       .. versionadded:: 4.2
 
-.. data:: currentOp.totalOperationTimeElapsed
+.. data:: currentOp.totalOperationTimeElapsedSecs
 
    The total time elapsed, in seconds, for the current :ref:`resharding
    operation <sharding-resharding>`. The time is set to 0 when a new
@@ -1116,7 +1123,19 @@ Output Fields
 
    .. versionadded:: 5.0
 
-.. data:: currentOp.remainingOperationTimeEstimated
+   Starting in MongoDB 6.1, this metric is also available on the
+   coordinator during resharding.
+
+.. data:: currentOp.updatesApplied
+
+   The number of updates applied.
+
+   Only present on a recipient shard when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
+
+.. data:: currentOp.remainingOperationTimeEstimatedSecs
 
    The estimated time remaining in seconds for the current
    :ref:`resharding operation <sharding-resharding>`. The time is set to
@@ -1126,6 +1145,29 @@ Output Fields
    when a resharding operation is taking place.
 
    .. versionadded:: 5.0
+
+   Starting in MongoDB 6.1, this metric is also available on the
+   coordinator during resharding.
+
+.. data:: currentOp.allShardsLowestRemainingOperationTimeEstimatedSecs
+
+   Calculated across all shards, the lowest estimate of the number of
+   seconds remaining. 
+
+   Only present on a coordinator when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
+
+.. data:: currentOp.allShardsHighestRemainingOperationTimeEstimatedSecs
+
+   Calculated across all shards, the highest estimate of the number of
+   seconds remaining. 
+
+   Only present on a coordinator when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
 
 .. data:: currentOp.approxDocumentsToCopy
 
@@ -1185,7 +1227,57 @@ Output Fields
 
    .. versionadded:: 5.0
 
-.. data:: currentOp.totalCopyTimeElapsed
+.. data:: currentOp.countWritesToStashCollections
+
+   The number of writes to the recipient :term:`stash collections
+   <stash collection>`.
+
+   Only present on a recipient shard when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
+
+.. data:: currentOp.countWritesDuringCriticalSection
+
+   The number of writes attempted during the donor's critical
+   section.
+
+   Only present on a donor shard when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
+
+.. data:: currentOp.countReadsDuringCriticalSection
+
+   The number of reads attempted during the donor's critical
+   section.
+
+   Only present on a donor shard when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
+
+.. data:: currentOp.deletesApplied
+
+   The number of deletes applied to the temporary resharding collection.
+   Each oplog entry that involves a delete increments the counter by 1.
+
+   Only present on a recipient shard when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
+
+.. data:: currentOp.insertsApplied
+
+   The number of inserts applied to the temporary resharding collection.
+   Each oplog entry that involves an insert increments the counter by 1.
+
+   Only present on a recipient shard when a resharding operation is
+   taking place.
+
+   .. versionadded:: 6.1
+
+.. data:: currentOp.totalCopyTimeElapsedSecs
 
    The total elapsed time, in seconds, for ongoing data copy tasks from
    donor shards to recipient shards for the current :ref:`resharding
@@ -1196,6 +1288,9 @@ Output Fields
    taking place.
 
    .. versionadded:: 5.0
+
+   Starting in MongoDB 6.1, this metric is also available on the
+   coordinator during resharding.
 
 .. data:: currentOp.oplogEntriesFetched
 
@@ -1219,7 +1314,7 @@ Output Fields
 
    .. versionadded:: 5.0
 
-.. data:: currentOp.totalApplyTimeElapsed
+.. data:: currentOp.totalApplyTimeElapsedSecs
 
    The total elapsed time, in seconds, for the apply step of the
    current :ref:`resharding operation <sharding-resharding>`. In the
@@ -1231,6 +1326,9 @@ Output Fields
    taking place.
 
    .. versionadded:: 5.0
+
+   Starting in MongoDB 6.1, this metric is also available on the
+   coordinator during resharding.
 
 .. data:: currentOp.countWritesDuringCriticalSection
 
@@ -1245,7 +1343,7 @@ Output Fields
 
    .. versionadded:: 5.0
 
-.. data:: currentOp.totalCriticalSectionTimeElapsed
+.. data:: currentOp.totalCriticalSectionTimeElapsedSecs
 
    The total elapsed time, in seconds, for the critical section of the
    current :ref:`resharding operation <sharding-resharding>`. The
@@ -1257,6 +1355,9 @@ Output Fields
    place.
 
    .. versionadded:: 5.0
+
+   Starting in MongoDB 6.1, this metric is also available on the
+   coordinator during resharding.
 
 .. data:: currentOp.donorState
 
@@ -1429,30 +1530,9 @@ Output Fields
 
 .. data:: currentOp.opStatus
 
-   The current state of a :ref:`resharding operation
-   <sharding-resharding>`.
+   This metric is removed in version 6.1. For a list of new metrics that
+   replace and expand the reporting ``currentOp.opStatus`` provided,
+   see the :ref:`release notes <6.1-rel-notes-currentOp>`.
 
-   Only present if a resharding operation is taking place. Once the
-   operation has completed, the operation is removed from ``currentOp``
-   output.
+   .. versionchanged:: 6.1
 
-   .. list-table::
-      :widths: 20 80
-      :header-rows: 1
-
-      * - State
-        - Description
-
-      * - ``actively running``
-        - The resharding operation is actively running.
-
-      * - ``success``
-        - The resharding operation has succeeded.
-
-      * - ``failure``
-        - The resharding operation has failed.
-
-      * - ``canceled``
-        - The resharding operation was canceled.
-
-   .. versionadded:: 5.0
