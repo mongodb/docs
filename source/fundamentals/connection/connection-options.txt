@@ -4,222 +4,412 @@
 Connection Options
 ==================
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
 This section describes the MongoDB connection and authentication options
-available in the {+driver-short+}. To use these options, include them as parameters in the connection URI when connecting your client to MongoDB.
+available in the {+driver-short+}. You can configure your connection using either 
+the connection URI or a ``MongoClientSettings`` object.
+
+----------------------------------
+Using the Connection URI
+----------------------------------
+
+If you pass a connection URI to the ``MongoClient`` constructor, you can include
+connection options in the string as ``<name>=<value>`` pairs. In the following example,
+the connection URI contains the ``connectTimeoutMS`` option with a value of ``60000``
+and the ``tls`` option with a value of ``true``: 
+
+.. literalinclude:: /includes/fundamentals/code-examples/connection/LocalConnectionConfig.cs
+   :language: csharp
+   :dedent:
+
+-----------------------------
+Using ``MongoClientSettings`` 
+-----------------------------
+
+You can use a ``MongoClientSettings`` object to configure connection settings in code
+rather than in a connection URI. Configuring the connection this way makes it easier to 
+change settings at runtime, helps you catch errors during compilation, and provides 
+more configuration options than the connection URI.
+
+To use a ``MongoClientSettings`` object, create an instance of the class, set 
+its properties, and pass it as an argument to the ``MongoClient`` constructor:
+
+.. literalinclude:: /includes/fundamentals/code-examples/connection/MongoClientSettingsConfig.cs
+   :language: csharp
+   :dedent:
+
+Connection Options
+------------------
+
+The following table lists each connection option available in the
+``MongoClientSettings`` class and, if possible, how to achieve the same result in 
+the connection string. If a ``MongoClientSettings`` property maps to more than one 
+option in the connection string, the **Connection URI Example** column shows all 
+relevant options. 
 
 .. note::
-  
-  You can set any of the following options, as well as some others not on this list, with a ``MongoClientSettings`` object instead. See :ref:`csharp-mongo-client-settings` for more information.
+
+  If you're using a query parameter for a time duration, the value must be in 
+  milliseconds. For example, to specify 60 seconds, use the value ``60000``. If you're 
+  using a ``MongoClientSettings`` object for a time duration, use the appropriate 
+  ``TimeSpan`` value.
 
 .. list-table::
    :header-rows: 1
-   :widths: 1 1 1 1
+   :widths: 40 30 30
 
-   * - Name
-     - Accepted Values
-     - Default Value
+   * - **MongoClientSettings** Property
+     - Connection URI Example
      - Description
 
-   * - **appName**
-     - String
-     - ``null``
-     - The app name the driver passes to the server in the client
-       metadata as part of the connection handshake. The server prints this value to the MongoDB logs once the connection is established. The value is also recorded in the slow query logs and profile collections.
+   * - **AllowInsecureTls**
+     - ``tlsInsecure=true``
+     - | Specifies whether to relax TLS constraints as much as possible. This can include 
+         allowing invalid certificates or hostname mismatches.
+       |
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``false``
 
-   * - **authMechanism**
-     - String
-     - ``null``
-     - The authentication mechanism the driver uses when connecting to the
-       server. If you don't include this option, the driver uses either ``SCRAM-SHA-1`` or ``SCRAM-SHA-256``, depending on the server version. 
-       
-       See
-       :ref:`authentication mechanisms <csharp-authentication-mechanisms>` for available
-       authentication mechanisms.
+   * - **ApplicationName**
+     - ``appName=yourApp``
+     - | The app name the driver passes to the server in the client metadata as part of 
+         the connection handshake. The server prints this value to the MongoDB logs once 
+         the connection is established. The value is also recorded in the slow query logs 
+         and profile collections.
+       |
+       | **Data Type**: {+string-data-type+}
+       | **Default**: ``null``
 
-   * - **authMechanismProperties**
-     - Comma-separated ``key:value`` pairs (for example, ``opt1:val1,opt2:val2``)
-     - ``null``
-     - Other authentication options, such as enabling hostname canonicalization for  GSSAPI.
+   * - **AutoEncryptionOptions**
+     - {+not-available+}
+     - | Settings for automatic client-side encryption.
+       |
+       | **Data Type**: ``AutoEncryptionOptions``
+       | **Default**: ``null``
 
-   * - **authSource**
-     - String
-     - ``null``
-     - The database that connections should authenticate against.
+   * - **ClusterConfigurator**
+     - {+not-available+}
+     - | Low-level configuration options for sockets, TLS, cluster, and others. 
+       | 
+       | **Data Type**: ``Action<ClusterBuilder>``
+       | **Default**: ``null``
 
-   * - **compressors**
-     - Comma-separated list of strings (for example, ``snappy,zlib,zstd``)
-     - ``null``
-     - The preferred compression types, in order, for wire-protocol messages
-       sent to or received from the server. The driver uses the first of these compression types that the server supports.
-       
-       See :ref:`csharp-network-compression` for more information.
+   * - **Compressors**
+     - ``compressors=snappy,zstd``
+     - | The preferred compression types, in order, for wire-protocol messages sent to 
+         or received from the server. The driver uses the first of these compression types 
+         that the server supports. See :ref:`csharp-network-compression` for 
+         more information. 
+       | 
+       | **Data Type**: ``CompressorConfiguration``
+       | **Default**: ``null``
 
-   * - **connectTimeoutMS**
-     - Nonnegative integer
-     - ``30000``
-     - The length of time the driver tries to establish a single TCP
-       socket connection to the server before timing out. Specifying ``0`` disables the connection timeout.
+   * - **ConnectTimeout**
+     - ``connectTimeoutMS=0``
+     - | The length of time the driver tries to establish a single TCP socket connection 
+         to the server before timing out. Specifying ``0`` disables the connection timeout.
+       |
+       | **DataType**: ``TimeSpan``
+       | **Default**: 30 seconds
 
-   * - **directConnection**
-     - Boolean
-     - ``false``
-     - Specifies whether to force dispatch **all** operations to the host
-       specified in the connection URI.
 
-   * - **heartbeatFrequencyMS**
-     - Integer greater than or equal to 500
-     - ``10000``
-     - The interval between regular server-monitoring checks.
-
-   * - **journal**
-     - Boolean
-     - ``null``
-     - Specifies the default write concern ``"j"`` field for the client. See
-       :ref:`write concern <wc-j>` for more information.
-
-   * - **loadBalanced**
-     - Boolean
-     - ``false``
-     - Specifies whether the driver is connecting to a load balancer.
-
-   * - **localThresholdMS**
-     - Nonnegative integer
-     - ``15``
-     - The latency window for server eligibility. If a server's round trip takes longer than the fastest server's round-trip time plus this value, the server isn't eligible for selection. Specifying ``0`` selects the fastest eligible server.
-
-   * - **maxIdleTimeMS**
-     - Nonnegative integer
-     - ``10000``
-     - The length of time a connection can be idle before the driver closes it.
-       Specifying ``0`` means no minimum.
-
-   * - **maxPoolSize**
-     - Nonnegative integer
-     - ``100``
-     - The greatest number of clients or connections the driver
-       can create in its connection pool. This count includes connections
-       in use.
-
-   * - **maxConnecting**
-     - Nonnegative integer
-     - ``2``
-     - The greatest number of connections a driver's connection
-       pool may be establishing concurrently.
-
-   * - **maxStalenessSeconds**
-     - Integer equal to -1 or greater than or equal to 90
-     - ``-1``
-     - The longest replication lag, in wall-clock time, that
-       a secondary can experience and still be eligible for server selection.
-       Specifying ``-1`` means no maximum.
-
-   * - **minPoolSize**
-     - Nonnegative integer
-     - ``0``
-     - The number of connections the driver should create and
-       keep in the connection pool even when no operations are occurring.
-       This count includes connections in use.
-
-   * - **readConcernLevel**
-     - String
-     - ``null``
-     - The client's default read concern. See :ref:`read concern
-       <read-concern>` for more information.
-
-   * - **readPreference**
-     - String
-     - ``"primary"``
-     - The client's default read preference (excluding tags). See :ref:`read preference <read-preference>` for more information.
-
-   * - **readPreferenceTags**
-     - Comma-separated ``key:value`` pairs (for example, ``opt1:val1,opt2:val2``)
-     - ``null``
-     - The default read-preference tags for the client. This option is
-       valid only if the read-preference mode is not ``primary``.
-       
-       You can include this parameter in the connection URI more than once. If you do, the client treats each instance as a separate tag set. The order of the tags in the URI determines the order for read preference.
-
-   * - **replicaSet**
-     - String
-     - ``null``
-     - The name of the replica set to connect to.
-
-   * - **retryReads**
-     - Boolean
-     - ``true``
-     - Enables retryable reads.
-
-   * - **retryWrites**
-     - Boolean
-     - ``true``
-     - Enables retryable writes.
-
-   * - **serverSelectionTimeoutMS**
-     - Nonnegative integer
-     - ``30000``
-     - The length of time the driver tries to select a server before timing out.
-
-   * - **socketTimeoutMS**
-     - Nonnegative integer
-     - ``0``
-     - The length of time the driver tries to send or receive on a
-       socket before timing out. Specifying ``0`` means no timeout.
-
-   * - **srvMaxHosts**
-     - Nonnegative integer
-     - ``0``
-     - The greatest number of SRV results to randomly select when initially
-       populating the seedlist or, during SRV polling, adding new hosts to the
-       topology. Specifying ``0`` means no maximum.
-
-   * - **ssl**
-     - Boolean
-     - ``false``
-     - This option is an alias for the ``tls`` option.
-
-   * - **tls**
-     - Boolean
-     - ``false``
-     - Specifies whether to require TLS for connections to the server. If you use a scheme of ``"mongodb+srv"``, or specify other ``tls``-prefixed options, this option defaults to ``true``.
-
-   * - **tlsDisableCertificateRevocationCheck**
-     - Boolean
-     - ``false``
-     - Specifies whether the driver checks a certificate's revocation status using either CRLs or OCSP.
-
-   * - **tlsInsecure**
-     - Boolean
-     - ``false``
-     - Specifies whether to relax TLS constraints as much as possible. This can include allowing invalid certificates or hostname mismatches.
-
-   * - **w**
-     - String or nonnegative integer 
-     - ``null``
-     - The default write concern ``"w"`` field for the client. See
-       :ref:`write concern <wc-j>` for more information.
-
-   * - **wTimeoutMS**
-     - Nonnegative integer
-     - ``0``
-     - The default write concern ``"wtimeout"`` field for the client. Specifying ``0`` means no timeout. See
-       :ref:`write concern <wc-j>` for more information.
-
-   * - **waitQueueTimeoutMS**
-     - Nonnegative integer
-     - ``0``
-     - The length of time the driver tries to check out a connection
-       from a server's connection pool before timing out. Specifying ``0`` means no timeout.
-
-   * - **zlibCompressionLevel**
-     - Integer between ``-1`` and ``9`` (inclusive)
-     - ``-1``
-     - When using the zlib compressor, the level of compression for wire-protocol messages. 
+   * - **Credential**
+     - .. code-block:: none
+        :copyable: false
+        :source: none
      
-       - ``-1`` signifies the default compression level.
-       - ``0`` signifies no compression.
-       - ``1`` signifies the fastest compression.
-       - ``9`` signifies the greatest compression.
-       - An integer between ``2`` and ``8`` (inclusive) signifies a compromise between speed and compression.
-     
-       See :ref:`csharp-network-compression` for more information.
+        mongodb://user1:password1
+        &authMechanism=GSSAPI
+        &authMechanismProperties=SERVICE_NAME:other,REALM:otherrealm
+        &authSource=$external
+     - | Settings for how the driver authenticates to the server. This includes 
+         authentication credentials, mechanism, source, and other settings.
+       |
+       | If you don't specify an authentication mechanism, the driver uses either 
+       | ``SCRAM-SHA-1`` or ``SCRAM-SHA-256``, depending on the server version. See
+       | :ref:`authentication mechanisms <csharp-authentication-mechanisms>` for available
+       | authentication mechanisms.
+       |
+       | **Data Type**: ``MongoCredentialStore``
+       | **Default**: ``null``
 
+   * - **DirectConnection**
+     - ``directConnection=true``
+     - | Specifies whether to force dispatch **all** operations to the host.
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+   * - **HeartbeatInterval**
+     - ``heartbeatFrequencyMS=5000``
+     - | The interval between regular server-monitoring checks. Must be greater than or 
+         equal to 500 milliseconds.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 10 seconds
+
+   * - **HeartbeatTimeout**
+     - {+not-available+}
+     - | The length of time a monitoring socket can be idle before timing out.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: Same value as ``ConnectTimeout``
+     
+   * - **IPv6**
+     - {+not-available+}
+     - | Specifies whether the host address is in IPv6 format.
+       | 
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+   * - **IsFrozen**
+     - {+not-available+}
+     - | Indicates whether the settings have been frozen. Frozen settings can't be changed.
+       | 
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+   * - **LinqProvider**
+     - {+not-available+}
+     - | The LINQ provider to use.
+       |
+       | **Data Type**: ``LinqProvider``
+       | **Default**: ``LinqProvider.V2``
+
+   * - **LoadBalanced**
+     - ``loadBalanced=true``
+     - | Specifies whether the driver is connecting to a load balancer.
+       | 
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+   * - **LocalThreshold**
+     - ``localThresholdMS=0``
+     - | The latency window for server eligibility. If a server's round trip takes longer 
+         than the fastest server's round-trip time plus this value, the server isn't 
+         eligible for selection. Specifying ``0`` selects the fastest eligible server.
+       | 
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 15 milliseconds
+
+   * - **MaxConnecting**
+     - ``maxConnecting=3``
+     - | The greatest number of connections a driver's connection pool may be 
+         establishing concurrently.
+       |
+       | **Data Type**: ``int``
+       | **Default**: ``2``
+
+   * - **MaxConnectionIdleTime**
+     - ``maxIdleTimeMS=300000``
+     - | The length of time a connection can be idle before the driver closes it. 
+         Specifying ``0`` means no maximum.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 10 minutes
+
+   * - **MaxConnectionLifeTime**
+     - {+not-available+}
+     - | The length of time a connection can be pooled before expiring.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 30 minutes
+
+   * - **MaxConnectionPoolSize**
+     - ``maxPoolSize=150``
+     - | The greatest number of clients or connections the driver can create in its 
+         connection pool. This count includes connections in use.
+       |
+       | **Data Type**: {+int-data-type+}
+       | **Default**: ``100``
+
+   * - **MinConnectionPoolSize**
+     - ``minPoolSize=1``
+     - | The number of connections the driver should create and keep in the connection 
+         pool even when no operations are occurring. This count includes connections 
+         in use.
+       |
+       | **Data Type**: {+int-data-type+}
+       | **Default**: ``0``
+
+   * - **ReadConcern**
+     - ``readConcernLevel=local``
+     - | The client's default read concern. 
+         See :ref:`read concern <read-concern>` for more information.
+       |
+       | **Data Type**: ``ReadConcern``
+       | **Default**: ``ReadConcern.Default``
+
+   * - **ReadEncoding**
+     - {+not-available+}
+     - | Specifies whether UTF-8 string deserialization is strict or lenient. 
+         Strict encoding will throw an exception when an invalid UTF-8 byte sequence 
+         is encountered.
+       |
+       | **Data Type**: ``UTF8Encoding``
+       | **Default**: Strict encoding
+
+   * - **ReadPreference**
+     - .. code-block:: language
+        :copyable: false
+     
+        readPreference=primaryPreferred
+        &maxStalenessSeconds=90
+        &readPreferenceTags=dc:ny,rack:1
+
+       .. tip::
+        You can include the ``readPreferenceTags`` parameter in the connection URI more 
+        than once. If you do, the client treats each instance as a separate tag set. 
+        The order of the tags in the URI determines the order for read preference. You can
+        use this parameter only if the read-preference mode is not ``primary``.
+     - | The client's default read-preference settings. ``MaxStaleness`` represents the 
+         longest replication lag, in wall-clock time, that a secondary can experience and 
+         still be eligible for server selection. Specifying ``-1`` means no maximum.
+         See :ref:`read preference <read-preference>` for more information.
+       |
+       | **Data Type**: ``ReadPreference``
+       | **Default**: ``ReadPreference.Primary``
+
+   * - **ReplicaSetName**
+     - ``replicaSet=yourReplicaSet``
+     - | The name of the replica set to connect to.
+       |
+       | **Data Type**: {+string-data-type+}
+       | **Default**: ``null``
+
+   * - **RetryReads**
+     - ``retryReads=false``
+     - | Enables retryable reads.
+       |
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``true``
+
+   * - **RetryWrites**
+     - ``retryWrites=false``
+     - | Enables retryable writes.
+       |
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``true``
+
+   * - **Scheme**
+     - ``mongodb+srv://``
+     - | Specifies whether to use the standard connection string format (``MongoDB``) 
+         or the DNS seed list format (``MongoDBPlusSrv``). 
+         See :manual:`the MongoDB Manual</reference/connection-string/>` for more 
+         information about connection string formats. 
+       |
+       | **Data Type**: ``ConnectionStringScheme``
+       | **Default**: ``ConnectionStringScheme.MongoDB``
+      
+   * - **SdamLogFilename**
+     - {+not-available+}
+     - | The name of the SDAM (Server Discovery and Monitoring) log file.
+       | TODO: Link to Monitoring page when finished
+       |
+       | **Data Type**: {+string-data-type+}
+       | **Default**: ``null``
+     
+   * - **Server**
+     - ``mongodb://sample.host:27017``
+     - | The host and port number where MongoDB is running.
+       |
+       | **Data Type**: ``MongoServerAddress``
+       | **Default**: ``localhost:27017``
+
+   * - **ServerApi**
+     - {+not-available+}
+     - | Allows opting into Stable API versioning. See 
+         :manual:`the MongoDB Manual</reference/stable-api>` for more information about
+         Stable API versioning.
+       |
+       | **Data Type**: ``ServerApi``
+       | **Default**: ``null``
+
+   * - **Servers**
+     - .. code-block:: none
+        :copyable: false
+     
+        mongodb://sample.host1:27017,
+        sample.host2:27017,
+        sample.host3:27017
+     - | The cluster members where MongoDB is running. 
+       |
+       | **Data Type**: ``List<MongoServerAddress>``
+       | **Default**: ``localhost:27017``
+     
+   * - **ServerSelectionTimeout**
+     - ``serverSelectionTimeoutMS=15000``
+     - | The length of time the driver tries to select a server before timing out.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 30 seconds
+
+   * - **SocketTimeout**
+     - ``socketTimeoutMS=0``
+     - | The length of time the driver tries to send or receive on a socket before 
+         timing out. Specifying ``0`` means no timeout.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: OS default
+
+   * - **SrvMaxHosts**
+     - ``srvMaxHosts=3``
+     - | The greatest number of SRV results to randomly select when initially populating 
+         the seedlist or, during SRV polling, adding new hosts to the topology. 
+         Specifying ``0`` means no maximum.
+       |
+       | **Data Type**: {+int-data-type+}
+       | **Default**: ``0``
+
+   * - **SslSettings**
+     - ``tlsDisableCertificateRevocationCheck=false``
+     - | TLS/SSL options, including client certificates, revocation handling, and 
+         enabled and disabled TLS/SSL protocols.
+       |
+       | **Data Type**: ``SslSettings``
+       | **Default**: ``null``
+
+   * - **UseTls**
+     - ``tls=true`` or ``ssl=true``
+     - | Specifies whether to require TLS for connections to the server. If you use 
+         a scheme of ``\"mongodb+srv\"`` or specify other TLS options, 
+         this option defaults to ``true``.
+       |
+       | **Data Type**: {+bool-data-type+}
+       | **Default**: ``false``
+
+   * - **WaitQueueTimeout**
+     - ``waitQueueTimeoutMS=0``
+     - | The length of time the driver tries to check out a connection from a 
+         server's connection pool before timing out. Specifying ``0`` means no timeout.
+       |
+       | **Data Type**: ``TimeSpan``
+       | **Default**: 2 minutes
+
+   * - **WriteConcern**
+     - .. code-block:: none
+        :copyable: false
+     
+        w=majority
+        &wTimeoutMS=0
+        &journal=true
+
+     - | The default write-concern settings, including write timeout and 
+         journaling, for the client. Specifying ``0`` for the timeout means no timeout. 
+         See :ref:`write concern <wc-j>` for more information.
+       |
+       | **Data Type**: ``WriteConcern``
+       | **Default**: ``WriteConcern.Acknowledged``
+
+   * - **WriteEncoding**
+     - {+not-available+}
+     - | Specifies whether UTF-8 string serialization is strict or lenient. With strict
+         encoding, the driver will throw an exception when it encounters an invalid 
+         UTF-8 byte sequence.
+       |
+       | **Data Type**: ``UTF8Encoding``
+       | **Default**: Strict encoding
