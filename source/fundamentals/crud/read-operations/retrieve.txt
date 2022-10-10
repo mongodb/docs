@@ -1,0 +1,254 @@
+.. _charp-retrieve:
+
+=============
+Retrieve Data
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to retrieve data from your MongoDB
+collections with the {+driver-long+}.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``sample_restaurants.restaurants`` collection
+from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the :ref:`<csharp-quickstart>`.
+
+The following ``Restaurants`` class models the documents in this collection:
+
+.. literalinclude:: ../../../includes/fundamentals/code-examples/crud/Retrieve.cs
+   :language: csharp
+   :copyable:
+   :dedent:
+
+.. _csharp-retrieve-find:
+
+Find Documents
+--------------
+
+Use the ``Find()`` method to retrieve documents from a collection. 
+The ``Find()`` method takes a **query filter** and returns all matching documents.
+A query filter is an object that specifies the documents you want to retrieve in
+your query. 
+
+To learn more about query filters, see :ref:`csharp-specify-query`.
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find a single document in a collection, pass a query filter that specifies the
+criteria of the document you want to find, then chain the ``FirstOrDefault()`` or 
+``FirstOrDefaultAsync()`` method. If more than one document matches the query
+filter, these methods return the *first* matching document from the retrieved
+results. If no documents match the query filter the methods return ``null``.
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: find-one-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var restaurants = await _restaurantsCollection.Find(filter).FirstOrDefaultAsync();
+
+   .. tab:: Synchronous
+      :tabid: find-one-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var restaurants = _restaurantsCollection.Find(filter).FirstOrDefault();
+
+.. tip:: First Document
+
+   The ``FirstOrDefault()`` method returns the first document in 
+   :manual:`natural order </reference/glossary/#std-term-natural-order>`
+   on disk if no sort criteria is specified.
+
+   To learn more about sorting, see the TODO: sorting page.
+
+To see a full example of using the ``Find()`` method to find a single document, see
+:ref:`csharp-retrieve-additional-information`.
+
+Find Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To find multiple documents in a collection, pass a query filter to the ``Find()``
+method that specifies the criteria of the documents you want to retrieve.
+
+You can use a **cursor** to iterate over the documents returned by the ``Find()``
+method. A cursor is a mechanism that allows an application to iterate over database 
+results while holding only a subset of them in memory at a given time. Cursors
+are useful when your ``Find()`` method returns a large amount of documents.
+
+To use a cursor to iterate over the documents, pass a 
+query filter to the ``Find()`` method that specifies the criteria of the documents 
+you want to find, then chain the ``ToCursor()`` or ``ToCursorAsync()`` method.
+To view a synchronous or asynchronous example, select the corresponding tab. 
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: find-cursor-async
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var restaurants = await _restaurantsCollection.Find(filter).ToCursorAsync();
+
+   .. tab:: Synchronous
+      :tabid: find-cursor-sync
+
+      .. code-block:: csharp
+         :copyable: true
+
+         var restaurants = _restaurantsCollection.Find(filter).ToCursor();
+
+If you are returning a small number of documents, or need your results returned
+as a ``List`` object, use the ``ToList()`` or ``ToListAsync()`` methods.
+
+To find multiple documents in a collection and hold them in memory as a list, pass a query filter 
+to the ``Find()`` method that specifies the criteria of the documents you want 
+to find, then chain the ``ToList()`` or ``ToListAsync()`` method.To view a
+synchronous or asynchronous example, select the corresponding tab.
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: find-list-async
+
+      .. code-block:: csharp
+
+         var restaurants = await _restaurantsCollection.Find(filter).ToList();
+
+   .. tab:: Synchronous
+      :tabid: find-list-sync
+
+      .. code-block:: csharp
+
+         var restaurants = _restaurantsCollection.Find(filter).ToListAsync();
+
+To see a full example of using the ``Find()`` method to find multiple documents,
+see :ref:`csharp-retrieve-additional-information`.
+
+.. note:: Find All Documents
+
+   To find all documents in a collection, pass an empty ``BsonDocument`` as a 
+   query filter to the ``Find()`` method.
+
+   To see a fully runnable example of using the ``Find()`` method to find all documents, see 
+   :ref:`csharp-retrieve-additional-information`.   
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``Find()`` method by passing
+a ``FindOptions`` object.
+
+You can configure the commonly used options with the following methods:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``BatchSize`` 
+     - | Gets or sets the number of documents to hold in a cursor at a given time.
+
+   * - ``Collation`` 
+     - | Sets the collation options. 
+
+   * - ``Comment`` 
+     - | Sets the comment to the query. To learn more about query comments, 
+         see the :manual:`$comment </reference/operator/query/comment/>` page.
+
+   * - ``Hint`` 
+     - | Sets the hint for which index to use.
+
+   * - ``MaxTime`` 
+     - | Sets the maximum execution time on the server for this operation.
+
+To see a full list of available options, see 
+`FindOptions Properties <{+api-root+}/Properties_T_MongoDB_Driver_FindOptions.htm>`__.
+
+Example
+~~~~~~~
+
+The following example performs these actions:
+
+- Finds all documents with "Pizza" in the ``cuisine`` field
+- Sets the ``BatchSize`` to ``3``
+- Stores the results in a cursor
+- Prints the number of documents currently held in the cursor
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: csharp
+
+      var filter = Builders<Restaurant>.Filter.Eq("cuisine", "Pizza");
+
+      var findOptions = new FindOptions
+      {
+         BatchSize = 3
+      };
+
+      using (var cursor = _restaurantsCollection.Find(filter, findOptions).ToCursor())
+      {
+         cursor.MoveNext();
+         WriteLine($"Number of documents in cursor: {cursor.Current.Count()}");
+      }
+
+   .. output::
+      
+      Number of documents in cursor: 3
+
+.. tip:: Clean Up
+
+   Create a cursor with a `using statement <https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/using-statement>`__ to
+   automatically invoke the 
+   `Dispose() <https://learn.microsoft.com/en-us/dotnet/api/system.idisposable.dispose?view=net-7.0>`__
+   method once the cursor is no longer in use.
+
+
+.. _csharp-retrieve-additional-information:
+
+Additional Information
+----------------------
+
+.. TODO: Links to creating filter with Builders and LINQ
+
+To learn more about query filters, see :ref:`csharp-specify-query`
+
+To view runnable examples of the ``Find()`` method, see the 
+:ref:`csharp-find-one` page.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `Find() <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_Find.htm>`__
+- `FirstOrDefault() <{+api-root+}/M_MongoDB_Driver_IFindFluentExtensions_FirstOrDefault__2.htm>`__
+- `FirstOrDefaultAsync() <{+api-root+}/M_MongoDB_Driver_IAsyncCursorSourceExtensions_FirstOrDefaultAsync__1.htm>`__
+- `FindOptions <{+api-root+}/T_MongoDB_Driver_FindOptions.htm>`__
+- `ToList() <{+api-root+}/M_MongoDB_Driver_IAsyncCursorSourceExtensions_ToList__1.htm>`__
+- `ToListAsync() <{+api-root+}/M_MongoDB_Driver_IAsyncCursorSourceExtensions_ToListAsync__1.htm>`__
+- `ToCursor() <{+api-root+}/M_MongoDB_Driver_IAsyncCursorSource_1_ToCursor.htm>`__
+- `ToCursorAsync() <{+api-root+}/M_MongoDB_Driver_IAsyncCursorSource_1_ToCursorAsync.htm>`__
