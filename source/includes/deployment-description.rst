@@ -5,4 +5,5 @@ valid |charts-short| data sources, including:
   <create-database-deployment>` in your |service|
   project for which you have the 
   :authrole:`Project Data Access Read Only` role or higher.
-- All :atlas:`{+fdis+} </data-federation>` in your project.
+- All :atlas:`{+fdis+} </data-federation>` in your project, including 
+  :atlas:`Online Archives </online-archive/manage-online-archive/>`.
