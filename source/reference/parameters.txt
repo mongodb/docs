@@ -4743,42 +4743,64 @@ Transaction Parameters
 
 .. parameter:: coordinateCommitReturnImmediatelyAfterPersistingDecision
 
-   .. versionadded:: 5.0
+   .. versionadded:: 5.0 
+    
+   *Updated in version 6.1*
 
    *Type*: boolean
 
-   *Default*: true
+   *Default*: false
 
    |mongod-only|
 
-   If ``true``, the :doc:`shard </core/sharded-cluster-shards>`
-   transaction coordinator returns a :ref:`multi-document transaction
-   <transactions-atomicity>` commit decision to the client as soon as
-   the commit is made :term:`durable` with the requested transaction
-   :doc:`write concern </reference/write-concern>`. If the client
-   requested a write concern that is less than
+   Behavior When ``false``
+   ```````````````````````
+
+   The :ref:`shard <shards-concepts>` transaction coordinator waits for
+   all members to acknowledge the decision to either commit or cancel a
+   :ref:`multi-document transaction <transactions-atomicity>` before
+   returning the result to the client.
+
+   Behavior When ``true``
+   ``````````````````````
+
+   The shard transaction coordinator returns a :ref:`multi-document
+   transaction <transactions-atomicity>` commit decision to the client
+   as soon as the decision is made :term:`durable` with the requested
+   transaction :ref:`write concern <write-concern>`.
+
+   If the client requested a write concern that is less than
    :writeconcern:`"majority"`, the commit may roll back after the
    decision is returned to the client.
 
-   If ``false``, the :doc:`shard </core/sharded-cluster-shards>`
-   transaction coordinator waits for all members to acknowledge a
-   :ref:`multi-document transaction <transactions-atomicity>` commit
-   before returning the commit decision to the client.
+   Transactions may not have "read your writes" consistency. That is, a
+   read operation may not reflect the results of a write operation that
+   preceded it. This can happen in the following cases:
+
+   - A transaction has to write to multiple shards.
+   - The read and the earlier write take place in different sessions.
+
+   :ref:`Causal consistency <causal-consistency>` only guarantees the
+   causal relationship of reads and writes that occurr within the same
+   session.
+
+   Example
+   ```````
 
    The following example sets
-   :parameter:`coordinateCommitReturnImmediatelyAfterPersistingDecision`
-   to ``false``:
+   ``coordinateCommitReturnImmediatelyAfterPersistingDecision`` to
+   ``true``:
 
    .. code-block:: javascript
 
-      mongod --setParameter coordinateCommitReturnImmediatelyAfterPersistingDecision=false
+      mongod --setParameter coordinateCommitReturnImmediatelyAfterPersistingDecision=true
 
    During runtime, you can also set the parameter with the
    :dbcommand:`setParameter` command:
 
    .. code-block:: bash
 
-      db.adminCommand( { setParameter: 1, coordinateCommitReturnImmediatelyAfterPersistingDecision: false } )
+      db.adminCommand( { setParameter: 1, coordinateCommitReturnImmediatelyAfterPersistingDecision: true } )
 
 .. parameter:: transactionLifetimeLimitSeconds
 
