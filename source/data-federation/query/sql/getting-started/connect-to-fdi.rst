@@ -19,14 +19,8 @@
 
    .. step:: Copy your connection information.
 
-      {+adf+} provides the following information to connect to your 
-      {+fdi+}:
-
-      - URL
-      - Port
-      - Database
-
-      You'll need this information in a later step.
+      {+adf+} provides a connection string to connect to your 
+      {+fdi+}. You'll need this in a later step.
 
    .. step:: Connect from DBeaver.
 
@@ -89,7 +83,7 @@
                   :widths: 10 20
                
                   * - JDBC URL
-                    - Your JDBC URL from step 5.
+                    - Your connection string from step 5.
 
                   * - Username
                     - The MongoDB user to connect with.
@@ -106,10 +100,8 @@
                   :widths: 10 20
 
                   * - database
-                    - The name of your database from step 5. If you are 
-                      following the tutorial, this is 
-                      ``myVirtualDatabase``.
-
+                    - The name of your virtual database.
+                      
                   * - user
                     - The MongoDB user to connect with. Not required if 
                       you entered a ``Username`` in the previous step.
@@ -117,6 +109,8 @@
                   * - password
                     - The MongoDB user's password. Not required if you 
                       entered a ``Password`` in the previous step.
+
+               .. include:: /includes/data-federation/atlas-sql-tutorial-database-tip.rst
 
          .. step:: Click :guilabel:`Finish`.
 
