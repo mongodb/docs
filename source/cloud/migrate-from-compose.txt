@@ -1,0 +1,246 @@
+:orphan:
+:template: guide
+
+.. _guide-migrate-compose:
+
+=====================================
+Migrate from Compose to MongoDB Atlas
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+ 
+.. short-description::
+    
+   Migrate data from Compose to MongoDB Atlas.
+ 
+This guide walks you through how to migrate data from Compose to MongoDB Atlas 
+using the Atlas Live Migration process. 
+
+.. include:: /includes/live_migration_description.rst
+ 
+.. time:: 20
+
+What You'll Need
+----------------
+
+.. include:: /includes/migration_pr_compose.rst
+
+Procedure
+---------
+ 
+.. procedure::
+   :style: normal
+
+   .. step:: Create an Atlas deployment.
+
+      If you don't already have an Atlas deployment, `create one
+      <https://docs.atlas.mongodb.com/tutorial/create-new-cluster/>`_ now. 
+      You'll need a `cluster tier
+      <https://docs.atlas.mongodb.com/create-new-cluster/#c-select-the-cluster-tier>`__
+      of ``M10`` or larger to perform Live Migration.
+
+   .. step:: Log in to your Compose account.
+
+      Log in to your `Compose account <https://app.compose.io/session/new>`_
+      and navigate to the deployment you want to migrate to Atlas.
+        
+      .. note::
+         It will be helpful during the migration process to keep one
+         browser window open on your Compose deployment console and one
+         window open on your `Atlas console <https://cloud.mongodb.com>`_.
+   
+   .. step:: Create an oplog user.
+      
+      .. procedure::
+         :style: connected
+      
+         .. step:: Click the :guilabel:`Add-ons` link in the left-side navigation. 
+            If you don't have the :guilabel:`Oplog Access` add-on, add it with the
+            :guilabel:`Add` button.
+
+         .. step:: If you already have the :guilabel:`Oplog Access` add-on, click
+            :guilabel:`Configure` to see the oplog user username and password.
+     
+            .. figure:: /images/compose-oplog-addon.png
+               :figwidth: 700px  
+               :alt: Shows the oplog username and password fields within the 
+                     Oplog Access add-on.
+  
+      To perform the migration process, the oplog user must have
+      the following privileges:
+
+      - The :authrole:`readAnyDatabase` role.
+      - The :authrole:`clusterMonitor` role.
+      - The :authrole:`backup` role.
+
+
+      If you can't grant these permissions to the oplog user,
+      the Live Migration process will not work. In this case, use
+      :atlas:`mongodump and mongorestore </import/mongorestore/>` to migrate
+      your data to Atlas.
+
+   .. step:: Review migration steps.
+     
+      Read through the overview of migration steps in the Live Migration
+      dialog window, then click the green :guilabel:`I'm ready to migrate`
+      button.
+
+   .. step:: Add IP address ranges to your Compose deployment whitelist.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Open two browser tabs:
+
+            - For the Atlas Live Migration process dialog from the previous step.
+            - For your Compose deployment dashboard.
+
+
+         .. step:: On your Compose deployment dashboard, click the :guilabel:`Security`
+            link in the left-side navigation. The :guilabel:`Whitelist TCP/HTTP
+            IPs` section displays a list of IP address ranges which are allowed
+            to access your Compose deployment.
+
+         .. step:: Add the IP address range which is listed at the top of the
+            Atlas Migration process dialog window.
+     
+            .. figure:: /images/compose-add-ips.png
+               :figwidth: 700px
+               :alt: Shows IP address range entered in the Whiltelist TCP/HTTP 
+                     IPs section. 
+     
+            .. note::
+               Your Atlas migration IP address ranges may be different from
+               those shown here. 
+
+   .. step:: Add the hostname and port of your Compose deployment to the
+      Atlas Live Migration dialog.
+
+      On the :guilabel:`Oplog Access` add-on page, you'll find a connection
+      string with a hostname and port for oplog access. Copy them to the Atlas
+      Live Migration dialog.
+
+      .. figure:: /images/compose-hostname.png
+         :figwidth: 650px
+         :alt: Shows field filled in with a hostname and port.
+   
+   .. step:: Enter the oplog user's credentials in the Live Migration dialog.
+
+      Enter the username and password for :guilabel:`oploguser` in the
+      Atlas Live Migration dialog window.
+
+   .. step:: Enter your Compose TLS/SSL Certificate data.
+
+      If you don't have TLS/SSL enabled on your Compose deployment, skip this
+      step.
+      
+      .. important::
+         
+         In some Compose deployments, you can no longer view your TLS/SSL
+         certificate in the Compose UI. If this is the case for your
+         deployment, you have two options:
+
+         - Contact Compose directly to request your TLS/SSL certificate.
+         - Use :atlas:`MongoMirror </import/mongomirror/>` to migrate your data to Atlas.
+
+
+         See the `Compose documentation
+         <https://help.compose.com/docs/lets-encrypt-certificates>`__ for more
+         information about SSL certificates.
+  
+      On the :guilabel:`Oplog Access` add-on page, you'll find an SSL
+      certificate. Copy it to the CAFile text box on the Atlas Live
+      Migration dialog.
+
+      .. figure:: /images/compose-cafile.png
+         :figwidth: 664px
+         :alt: Shows an SSL certificate pasted into the CAFile text box.
+
+      .. note::
+         Copy the entire certificate file, including the
+         ``BEGIN CERTIFICATE`` and ``END CERTIFICATE`` lines. 
+
+   .. step:: Validate your Live Migration form.
+
+      Click the :guilabel:`Validate` button to check that all your form
+      fields are valid and your clusters are ready for migration. When your
+      form is validated, you're ready to begin the migration.
+
+   .. step:: Click :guilabel:`Start Migration`.
+
+      A countdown timer in a progress bar indicates how much time remains
+      before your target cluster is ready to migrate data from your source
+      cluster. Wait until the countdown timer and the :guilabel:`Prepare to Cutover`
+      button are green before proceeding to the next step.
+
+   .. step:: Click :guilabel:`Prepare to Cutover`.
+
+   .. step:: Perform the cutover.
+
+      When Atlas detects that the source and destination clusters are nearly
+      in sync, it starts an extendable 72 hour timer to begin the cutover
+      procedure. If the 72 hour period passes, Atlas stops synchronizing with
+      the source cluster. You can extend the time remaining by 24 hours by
+      clicking the :guilabel:`Extend time` hyperlink below the :guilabel:`<time>
+      left to cut over` timer.
+
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Once you are prepared to cut your applications over to the
+            destination Atlas cluster, click :guilabel:`Prepare to Cutover`.
+
+         .. step:: Atlas displays a walk-through screen with instructions
+            on how to proceed with the cutover. These steps are also outlined
+            below:
+
+            1. Stop your application. This ensures that no additional writes
+               are generated to the source cluster.
+
+            #. Wait for the optime gap to reach zero. When the counter reaches
+               zero, the source and destination clusters are in sync.
+
+            #. Restart your application using the new connection string
+               provided in step 3 of the Live Migrate cutover UI.
+
+               .. step:: Once you are prepared to cut your applications over to the
+                  destination Atlas cluster, click :guilabel:`Prepare to Cutover`.
+
+         .. step:: Once you have completed the cutover procedure and confirmed
+            your applications are working normally with the Atlas cluster,
+            click :guilabel:`Cut Over` to complete the migration procedure.
+            This allows Atlas to:
+
+            - Mark the migration plan as complete.
+            - Remove the Application Server subnets from the destination
+              cluster IP access list.
+            - Remove the MongoDB user that Live Migrate used to import data
+              to the destination cluster.   
+
+
+Migration Support
+-----------------
+
+If you have any questions regarding migration beyond what is covered
+in this documentation, or if you encounter an error during migration, please
+see the Atlas documentation on
+`requesting support <https://docs.atlas.mongodb.com/support/#request-support>`__.
+
+Summary
+-------
+   
+You created an Atlas cluster, migrated data from your old Compose cluster, and
+updated your applications to use the new Atlas Cluster. Congratulations and
+welcome to MongoDB Atlas!
+   
+.. guide-next::
