@@ -43,7 +43,7 @@ func main() {
 	}
 	// end find
 
-	var results []bson.M
+	results := []bson.M{}
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)
 	}
