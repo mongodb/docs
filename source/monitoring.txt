@@ -31,6 +31,137 @@ To view a list of all metrics produced by MongoDB source and sink
 connectors, see the :ref:`<kafka-monitoring-all-attributes>` section.
 
 .. _kafka-monitoring-information:
+.. _kafka-monitoring-use-cases:
+
+Use Cases
+---------
+
+This section describes use cases for monitoring MongoDB source and sink
+connectors, and how you can use the metrics your connector provides
+to satisfy those use cases.
+
+.. tip:: Computed Values
+
+   To learn what types of metrics the connector provides and when
+   you must implement logic to compute a value, see
+   :ref:`<kafka-monitoring-types-of-metrics>`.
+
+Sink Connector
+~~~~~~~~~~~~~~
+
+The following table describes some use cases for monitoring the MongoDB
+sink connector and the metrics the sink connector provides
+to satisfy those use cases:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Use Case
+     - Metrics to Use
+
+   * - You need to know if a component of your pipeline is falling behind.
+     - Use the ``latest-kafka-time-difference-ms``
+       metric. This metric indicates the interval of time between
+       when a record arrived in a Kafka topic and when your connector
+       received that record. If the value of this metric is increasing,
+       it signals that there may be a problem with {+ak+} or MongoDB. 
+
+   * - You need to know the total number of records your connector
+       wrote to MongoDB.
+     - Use the ``records`` metric.
+
+   * - You need to know the total number of write errors your connector
+       encountered when attempting to write to MongoDB.
+     - Use the ``batch-writes-failed`` metric.
+
+   * - You need to know if your MongoDB performance is getting slower
+       over time.
+     - Use the ``in-task-put-duration-ms`` metric to initally diagnose
+       a slowdown.
+
+       Use the following metrics to further diagnose any issues:
+     
+       - ``batch-writes-successful-duration-over-<number>-ms``
+       - ``batch-writes-failed-duration-over-<number>-ms``
+       - ``processing-phase-duration-over-<number>-ms``
+ 
+   * - You need to find a bottleneck in how {+kc+} and your MongoDB sink
+       connector write {+ak+} records to MongoDB.
+     - Compare the values of the following metrics:
+     
+       - ``in-task-put-duration-ms``
+       - ``in-connect-framework-duration-ms``
+
+You can find descriptions of all MongoDB sink connector metrics in the
+:ref:`<kafka-monitoring-sink-attributes>` section.
+
+Source Connector
+~~~~~~~~~~~~~~~~
+
+The following table describes some use cases for monitoring the MongoDB
+source connector and the metrics the source connector provides
+to satisfy those use cases:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Use Case
+     - Metrics to Use
+
+   * - You need to know if a component of your pipeline is falling behind.
+     - Use the ``latest-mongodb-time-difference-secs``
+       metric. This metric indicates how old the most recent change
+       stream event your connector processed is. If this metric is increasing,
+       it signals that there may be a problem with {+ak+} or MongoDB. 
+
+   * - You need to know the total number of change stream events your source connector
+       has processed. 
+     - Use the ``records`` metric.
+
+   * - You need to know the percentage of records your connector
+       received but failed to write to {+ak+}.
+     - Perform the following calculation with the ``records``,
+       ``records-filtered``, and ``records-acknowledged`` metrics:
+
+       .. code-block:: text
+      
+          (records - (records-acknowledged + records-filtered)) / records
+
+   * - You need to know the average size of the documents your connector
+       has processed.
+     - Perform the following calculation with the ``mongodb-bytes-read`` and
+       ``records`` metrics:
+
+       .. code-block:: text
+
+          mongodb-bytes-read / records
+      
+       To learn how to calculate the average size of records over a span of
+       time, see :ref:`mongodb-bytes-read <kafka-monitoring-averge-record-size-span>`.
+
+   * - You need to find a bottleneck in how {+kc+} and your MongoDB source
+       connector write MongoDB documents to {+ak+}.
+     - Compare the values of the following metrics:
+     
+       - ``in-task-poll-duration-ms``
+       - ``in-connect-framework-duration-ms``
+
+   * - You need to know if your MongoDB performance is getting slower
+       over time.
+     - Use the ``in-task-poll-duration-ms`` metric to initially diagnose
+       a slowdown.
+     
+       Use the following metrics to further diagnose any issues:
+     
+       - ``initial-commands-successful-duration-over-<number>-ms``
+       - ``initial-commands-failed-duration-over-<number>-ms``
+       - ``getmore-commands-successful-duration-over-<number>-ms``
+       - ``getmore-commands-failed-duration-over-<number>-ms``
+
+You can find descriptions of all MongoDB source connector metrics in the
+:ref:`<kafka-monitoring-source-attributes>` section.
 
 Monitor the Connector
 ---------------------
@@ -78,6 +209,28 @@ running on your host machine, see the
 To learn how to enable JMX for a containerized {+kc+}
 deployment, see
 `Kafka Monitoring and Metrics Using JMX with Docker <https://docs.confluent.io/platform/current/installation/docker/operations/monitoring.html>`__.
+
+.. _kafka-monitoring-types-of-metrics:
+
+Types of Metrics
+~~~~~~~~~~~~~~~~
+
+The connector provides metrics related to the following
+types of quantities:
+
+- The number of times an event has occurred in total for a connector task
+- The value related to the most recent occurrence of an event
+
+For some use cases, you must perform extra computations with the
+metrics the connector provides. For example, you must compute the
+following values from provided metrics:
+
+- The rate of change of a metric
+- The value of a metric over a span of time
+- The difference between one metric and another metric    
+
+To view some examples of computed metrics, see the
+:ref:`<kafka-monitoring-use-cases>` section.
 
 JMX Paths
 ~~~~~~~~~
@@ -454,7 +607,9 @@ Source Connector JMX Metrics
      - The total number of bytes a MongoDB source task read from the
        MongoDB server.
 
-       .. tip:: Average Record size
+       .. _kafka-monitoring-averge-record-size-span:      
+
+       .. tip:: Average Record Size Over a Span of Time
 
           To calculate the average size of the records your sink connector
           processed over a span of time, perform the following actions:
