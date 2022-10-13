@@ -10,24 +10,82 @@ Configure a Highly Available |mms| Backup Service
    :depth: 1
    :class: singlecol
 
-Backups depend upon which
-:manual:`version of MongoDB your database is compatible </reference/command/setFeatureCompatibilityVersion>`.
-This Feature Compatibility Version ranges from the current version to
-one version earlier. For example, with MongoDB 5.0, the FCV can be
-``4.4`` or ``5.0``. Backup changed with the MongoDB 4.2. Backup configuration and execution changed between FCV 4.0 and FCV 4.2.
+.. _multiple-backup-daemons:
+.. _restore-dedicated-query:
 
-.. tabs::
+Considerations
+--------------
 
-   .. tab:: FCV 4.2 or later
-      :tabid: fcv42
+The following considerations apply to making backups highly available:
 
-      The |application| manages backups. Deploy sufficient |onprem| hosts with a load balancer to meet your backup needs.
+- The |application| manages backups. To meet your backup needs, deploy
+  a sufficient number of |onprem| hosts with a load balancer.
 
-      To learn how to deploy |onprem| with high availability, see
-      :doc:`/tutorial/configure-application-high-availability`.
+- |onprem| expects that all stores are available at all times. High
+  availability of |s3| and filesystem stores is outside of the |application|
+  scope.
 
-   .. tab:: FCV 4.0 or earlier
-      :tabid: fcv40
+- :manual:`Create a replica set </tutorial/deploy-replica-set>` rather
+  than a standalone for each :doc:`dedicated MongoDB process
+  </tutorial/prepare-backing-mongodb-instances>` that hosts the
+  |application| and for each backing database. A backing database can
+  include a MongoDB blockstore snapshot store, a MongoDB oplog store,
+  or an |s3| metadata store.
+  
+  |onprem| uses ``w: 2`` :manual:`write concern </reference/write-concern>`,
+  which requires acknowledgement from the :term:`primary` and one
+  :term:`secondary` for each write operation. When deploying a replica set
+  with members in many facilities, ensure that a single facility has enough
+  votes to elect a primary, if needed. When choosing between facilities
+  for this single facility, choose the facility that hosts the |application|
+  and application database. Place a majority of voting members and all the
+  members that can become primary in this facility. Otherwise, network
+  partitions could prevent the set from being able to form a majority. 
 
-      .. include:: /includes/backup/legacy-config-ha.rst
+  To learn more, see:
 
+  - :manual:`Replica Sets Distributed Across Two or More Data Centers
+    </core/replica-set-architecture-geographically-distributed/>`
+  - :manual:`Replica Set Elections </core/replica-set-elections>`
+
+- If you choose to
+  :doc:`assign snapshot stores to specific data centers
+  </tutorial/assign-snapshot-stores-to-data-center/>`, consider each region's
+  high availability requirements based on your deployment needs. For example,
+  in some deployments, configuring a replica set may provide sufficient
+  availability. If your deployment has 24/7 high availability requirements
+  even if a data center goes down, configure enough nodes in each data
+  center to accommodate writes. To learn more, see :ref:`highly-available-deployment`.
+
+- Configure more than one :term:`Backup Daemon` instance for
+  :doc:`queryable restore jobs </tutorial/query-backup>` and
+  :ref:`groom jobs <grooms-page>`, which are useful for large deployments.
+
+  For each Backup Daemon, you can:
+
+  - :doc:`Assign Backup jobs </tutorial/assign-snapshot-stores-to-data-center>`.
+    If you don't assign jobs to specific daemons and stores, |mms| uses
+    all available Backup Daemons for each group.
+
+  - Adjust the settings on the :guilabel:`Daemon` :ref:`configuration <daemons-interface>`
+    page. For example, for the dedicated queryable Daemon host, you can
+    clear all checkboxes except :guilabel:`Queryable Restore Jobs`.
+
+Additional Information
+----------------------
+
+- You install the Backup Daemon component with the |onprem| package.
+  To run the Daemon, you must activate it. To learn more, select the
+  procedure specific to your platform in the :doc:`/installation` section.
+
+- To view all active Backup Daemons and access their configuration options,
+  see :ref:`Daemons <daemons-interface>`.
+
+- To start and stop a Backup Daemon on a server, see
+  :doc:`/tutorial/start-and-stop-backup-daemon`.
+
+- To move jobs from a lost Backup server to another Backup server, see
+  :doc:`/tutorial/move-jobs-to-new-backup-daemon`.
+
+- To make the |application| highly available, see
+  :doc:`/tutorial/configure-application-high-availability`.
