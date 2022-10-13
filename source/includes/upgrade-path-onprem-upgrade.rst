@@ -16,6 +16,8 @@ upgrade path you must take to upgrade to |onprem| 4.4 or later.
    - To protect your data, |onprem| refuses to start direct upgrades
      from versions 1.8.x and 2.0.x to version 3.4 or later.
 
+   - There are no supported downgrade paths for |onprem|.
+
 The following table lists upgrade paths for all versions:
 
 .. list-table::
@@ -77,6 +79,3 @@ The following table lists upgrade paths for all versions:
      - Use the
        :om-v3.4:`v3.4 upgrade tutorial </tutorial/nav/upgrade-application>`
        to upgrade from |onprem| 2.x or earlier.
-
-There are no supported downgrade paths for |onprem|.
-

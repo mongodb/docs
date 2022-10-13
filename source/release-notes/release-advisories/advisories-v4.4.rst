@@ -7,6 +7,8 @@ Backing Databases
 |onprem| 4.4.0 requires a minimum of MongoDB 4.0.0 for |onprem| backing
 databases.
 
+.. include:: /includes/fact-opsmanager-backingdb-version.rst
+
 Compatible MongoDB Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~
 

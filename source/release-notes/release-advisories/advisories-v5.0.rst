@@ -7,6 +7,8 @@ Backing Databases
 |onprem| 5.0.0 requires a minimum of MongoDB 4.2.0 for |onprem| backing
 databases.
 
+.. include:: /includes/fact-opsmanager-backingdb-version.rst
+
 Personal API Keys
 ~~~~~~~~~~~~~~~~~
 
