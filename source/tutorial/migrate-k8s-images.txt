@@ -1,0 +1,84 @@
+.. _migrate-k8s-images:
+
+=============================================================
+Migrate |k8s-op| from Ubuntu-based Images to UBI-based Images
+=============================================================
+
+.. default-domain:: mongodb
+
+To migrate |k8s-op| from Ubuntu-based images to UBI-based images, edit
+your Kubernetes Operator 
+:ref:`configuration file <meko-op-install-settings-kubectl-oc>` to pull
+images from the appropriate UBI repositories by suffixing the existing
+image repository path with ``-ubi``. You don't need to perform this
+procedure if you are using OpenShift, as you are already using UBI 
+images.
+
+The following example compares a default configuration for the 
+``INIT_APPDB_IMAGE_REPOSITORY`` setting with an updated configuration
+that pulls a UBI image.
+
+.. example::
+
+   .. code-block:: yaml
+      :linenos:
+
+      spec:
+        template:
+          spec:
+            serviceAccountName: mongodb-enterprise-operator
+            containers:
+              - name: mongodb-enterprise-operator
+                image: <operatorVersionUrl>
+                imagePullPolicy: <policyChoice>
+                env:
+                  - name: INIT_APPDB_IMAGE_REPOSITORY
+                    value: quay.io/mongodb/mongodb-enterprise-init-appdb
+
+   After adding the necessary suffix, your configuration should match the
+   configuration below:
+
+   .. code-block:: yaml
+      :linenos:
+
+      spec:
+        template:
+          spec:
+            serviceAccountName: mongodb-enterprise-operator
+            containers:
+              - name: mongodb-enterprise-operator
+                image: <operatorVersionUrl>
+                imagePullPolicy: <policyChoice>
+                env:
+                  - name: INIT_APPDB_IMAGE_REPOSITORY
+                    value: quay.io/mongodb/mongodb-enterprise-init-appdb-ubi
+
+After saving the changes, reapply your configuration file.
+
+For users running vanilla Kubernetes: 
+
+.. code-block:: sh
+
+   kubectl apply -f mongodb-enterprise.yaml
+
+.. Code end marker, please don't delete this comment
+
+For users running OpenShift:
+
+.. code-block:: sh
+
+   oc apply -f mongodb-enterprise-openshift.yaml
+
+.. Code end marker, please don't delete this comment
+
+Repeat this procedure for the following repository 
+configurations by applying the same ``-ubi`` suffix, saving the changes
+and reapplying the configuration each time to migrate the images 
+separately:
+
+- ``AGENT_IMAGE``
+- ``APPDB_IMAGE_REPOSITORY``
+- ``INIT_DATABASE_IMAGE_REPOSITORY``
+- ``INIT_OPS_MANAGER_IMAGE_REPOSITORY``
+- ``MONGODB_ENTERPRISE_DATABASE_IMAGE``
+- ``OPS_MANAGER_IMAGE_REPOSITORY``
