@@ -11,6 +11,7 @@
        "autoPwd": "<string>",
        "disabled": "<boolean>",
        "deploymentAuthMechanisms": ["<string>", "<string>"],
+       "autoAuthMechanisms": ["<string>"],
        "key": "<string>",
        "keyfile": "<string>",
        "newAutoPwd": "<string>",

@@ -75,8 +75,10 @@
             - Authentication Mechanism
 
           * - MONGODB-CR
-            - :manual:`MONGODB-CR </core/security-mongodb-cr>` /
-              :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>`
+            - :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>`
+
+          * - SCRAM-SHA-256
+            - :manual:`SCRAM-SHA-256 </core/security-scram>`
 
           * - MONGODB-X509
             - :manual:`x.509 Client Certificate </core/security-x.509>`
@@ -86,6 +88,45 @@
 
           * - GSSAPI
             - :ref:`Kerberos <security-auth-kerberos>`
+
+   * - auth.autoAuthMechanisms
+     - array of strings
+     - Conditional
+     - Sets the authentication mechanism used by the {+aagent+}. 
+       If not specified, **disabled** defaults to **false**.
+    
+       Required if **"auth" : true**.
+
+       .. note::
+
+          This parameter contains more than one element only when 
+          it's configured for both SCRAM-SHA-1 and SCRAM-SHA-256.
+
+       Specify:
+
+       .. list-table::
+          :widths: 30 70
+          :header-rows: 1
+
+          * - Value
+            - Authentication Mechanism
+
+          * - MONGODB-CR
+            - :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>`
+
+          * - SCRAM-SHA-256
+            - :manual:`SCRAM-SHA-256 </core/security-scram>`
+
+          * - MONGODB-X509
+            - :manual:`x.509 Client Certificate </core/security-x.509>`
+
+          * - PLAIN
+            - :ref:`LDAP <security-auth-ldap>`
+
+          * - GSSAPI
+            - :ref:`Kerberos <security-auth-kerberos>`
+
+          
 
    * - auth.key
      - string
