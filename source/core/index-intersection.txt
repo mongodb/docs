@@ -13,7 +13,7 @@ Index Intersection
 .. important::
 
    This page documents cases where the :doc:`query optimizer 
-   </core/query-plans>` **may** be able to use index intersection. 
+   </core/query-plans>`  **may** be able to use index intersection. 
    
    In practice, the :doc:`query optimizer </core/query-plans>` rarely 
    selects plans that use index intersection.
@@ -24,7 +24,7 @@ Index Intersection
    
    Schema designs should not rely on index intersection. Instead,
    :doc:`compound indexes </core/index-compound>` should be used.
-   
+
    Future improvements to the query optimizer may allow the system to 
    better identify cases where an index intersection plan would be 
    beneficial.
@@ -89,7 +89,13 @@ index) and the sort order (i.e. ascending or descending), matter in
 :doc:`compound indexes </core/index-compound>`, a compound index may
 not support a query condition that does not include the :ref:`index
 prefix keys <compound-index-prefix>` or that specifies a different sort
-order.
+order. 
+
+.. note::
+
+   For deployments hosted on MongoDB Atlas, consider using 
+   :ref:`Atlas Search indexes <index-intersection-search>`
+   to avoid limitations due to field order.
 
 For example, if a collection ``orders`` has the following compound
 index, with the ``status`` field listed before the ``ord_date`` field:
@@ -171,3 +177,33 @@ part of the query predicate.
 .. code-block:: javascript
 
    db.orders.find( { qty: { $gt: 10 } , status: "A" } ).sort( { ord_date: -1 } )
+
+.. _index-intersection-search:
+
+Index Intersection and Atlas Search Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use MongoDB Atlas, you can create an Atlas Search index to
+fulfill queries when the query optimizer selects a plan that involves 
+index intersection. Unlike :ref:`compound indexes 
+<index-intersection-compound-indexes>`, fields in Atlas Search indexes 
+can be defined in any order. As a result, the Atlas Seach index can 
+support queries that:
+
+- Specify a different sort order than the index sort order.
+- Contain fields that are not part of the :ref:`index prefix 
+  <compound-index-prefix>`.
+
+For a tutorial on using Atlas Search indexes when index 
+intersection is required, see `Flexible Querying with Atlas Search 
+<https://www.mongodb.com/developer/products/atlas/flexible-querying-with-atlas-search/>`__.
+
+.. note::
+
+   Atlas Search Indexes are only available for MongoDB Atlas clusters,
+   and is not available for self-managed deployments. To 
+   learn more, see:
+   
+   - :atlas:`Atlas Search Overview </atlas-search/>`
+   - :atlas:`Atlas Search Index Definitions </reference/atlas-search/index-definitions/>`
+   
