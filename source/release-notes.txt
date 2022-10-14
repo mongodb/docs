@@ -23,7 +23,65 @@ Release Notes for |k8s-op-full|
 ~~~~~~~~~~~~~~~~~~~~
 
 *Released 2022-10-10*
- 
+
+Breaking Changes
+````````````````
+
+.. warning:: **Installations for OpenShift**
+  
+   This release has invalid `quay.io <quay.io/mongodb/mongodb-agent-ubi>`__
+   digests referenced in the certified bundle's CSV. This affects only
+   OpenShift deployments when you install or upgrade |k8s-op-short| from
+   the certified bundle (OperatorHub) in `quay.io <quay.io/mongodb/mongodb-agent-ubi>`__.
+
+   If you use |k8s-op-short| with OpenShift, we recommend that you do NOT
+   upgrade to this release (v1.17.1), and instead upgrade to the
+   |k8s-op-short| v1.17.2, which is due the week commencing 17th October 2022.
+
+As a result of this issue, installing this release could result in
+``ImagePullBackOff`` errors in Pods hosting AppDB, the  database for |onprem|.
+Errors will look similar to the following:
+
+.. code-block:: sh
+
+   Failed to pull image "quay.io/mongodb/mongodb-agent-ubi@sha256:a4cadf209ab87eb7d121ccd8b1503fa5d88be8866b5c3cb7897d14c36869abf6": rpc error: code = Unknown desc = reading manifest sha256:a4cadf209ab87eb7d121ccd8b1503fa5d88be8866b5c3cb7897d14c36869abf6 in quay.io/mongodb/mongodb-agent-ubi: manifest unknown: manifest unknown
+
+To continue using the |k8s-op-short| v1.17.1, use the following workaround
+and update the |k8s-op-short| Subscription with the following ``spec.config.env``:
+
+.. code-block:: yaml
+
+   spec:
+    config:
+      env:
+        - name: AGENT_IMAGE
+          value: >-
+          quay.io/mongodb/mongodb-agent-ubi@sha256:ffa842168cc0865bba022b414d49e66ae314bf2fd87288814903d5a430162620
+        - name: RELATED_IMAGE_AGENT_IMAGE_11_0_5_6963_1
+          value: >-
+          quay.io/mongodb/mongodb-agent-ubi@sha256:e7176c627ef5669be56e007a57a81ef5673e9161033a6966c6e13022d241ec9e
+        - name: RELATED_IMAGE_AGENT_IMAGE_11_12_0_7388_1
+          value: >-
+          quay.io/mongodb/mongodb-agent-ubi@sha256:ffa842168cc0865bba022b414d49e66ae314bf2fd87288814903d5a430162620
+        - name: RELATED_IMAGE_AGENT_IMAGE_12_0_4_7554_1
+          value: >-
+          quay.io/mongodb/mongodb-agent-ubi@sha256:3e07e8164421a6736b86619d9d72f721d4212acb5f178ec20ffec045a7a8f855
+
+Remove this workaround as soon as you install the new |k8s-op-short| v1.17.2.
+
+This release has the following additional breaking change:
+
+- Removes the ``operator.deployment_name`` parameter from |k8s-op-short| Helm charts.
+  In previous releases, you might have used this parameter to customize the name of the
+  |k8s-op-short| container.
+
+  Starting with this release, the value of the ``operator.name`` Helm chart parameter 
+  determines the name of the |k8s-op-short| container.
+
+  This is a breaking change only if you set ``operator.deployment_name`` to a different 
+  value than ``operator.name`` and if you configured tooling to rely on the value of
+  ``operator.deployment_name``.
+
 Improvements
 ````````````
  
@@ -32,19 +90,7 @@ Improvements
   deployment, it automatically pulls new images from Quay. You don't need to 
   take any action.
  
-Breaking Changes
-````````````````
- 
-- Removes the ``operator.deployment_name`` parameter from |k8s-op-short| Helm charts.
-  In previous releases, you might have used this parameter to customize the name of the
-  |k8s-op-short| container.
 
-  Starting with this release, the value of the ``operator.name`` Helm chart parameter 
-  determines the name of the |k8s-op-short| container.
-  
-  This is a breaking change only if you set ``operator.deployment_name`` to a different 
-  value than ``operator.name`` and if you configured tooling to rely on the value of
-  ``operator.deployment_name``.
 
 .. _ent_op-1.17.0:
 
