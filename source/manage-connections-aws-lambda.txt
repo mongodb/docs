@@ -12,8 +12,15 @@ Manage Connections with AWS Lambda
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
+
+.. tabs-selector:: drivers
+
+.. _lambda-aws-best-practices:
+
+Best Practices
+~~~~~~~~~~~~~~
 
 Use the following best practices to properly manage connections
 between :aws:`AWS Lambda </lambda/latest/dg/welcome.html>`
@@ -37,24 +44,41 @@ and |service|:
   keep connection counts to the database at a reasonable level with
   respect to application traffic.
 
-- If your handler takes a callback as its last argument, set the
-  ``callbackWaitsForEmptyEventLoop`` property on the
-  :aws:`AWS Lambda Context </lambda/latest/dg/nodejs-context.html#nodejs-prog-model-context-properties>`
-  object to **false**.
+.. tabs-drivers::
 
-  .. code-block:: java
+   .. tab::
+      :tabid: csharp
 
-     context.callbackWaitsForEmptyEventLoop = false;
+   .. tab::
+      :tabid: java-sync
+   
+   .. tab::
+      :tabid: nodejs
 
-  This allows a Lambda function to return its result to the caller
-  without requiring that the MongoDB database connection be closed.
-  Setting this property is not applicable for `async handlers
-  <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html>`__.
+      - If your handler takes a callback as its last argument, set the
+        ``callbackWaitsForEmptyEventLoop`` property on the
+        :aws:`AWS Lambda Context </lambda/latest/dg/nodejs-context.html#nodejs-prog-model-context-properties>`
+        object to **false**.
+
+        .. code-block:: js
+
+           context.callbackWaitsForEmptyEventLoop = false;
+
+        This allows a Lambda function to return its result to the caller
+        without requiring that the MongoDB database connection be closed.
+        Setting this property is not applicable for `async handlers
+        <https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html>`__.
+   
+   .. tab::
+      :tabid: python
+
+   .. tab::
+      :tabid: ruby
 
 - Restrict network access to your |service| cluster.
-
+  
   Connect to your |service| cluster over private networking using a
-  :doc:`Network Peering connection </security-vpc-peering>`
+  :doc:`Network Peering connection </security-vpc-peering>` 
   between your |service| cluster and your |aws| Lambda function, or,
   alternatively, a :doc:`private endpoint </security-private-endpoint/>`,
   so that you can allow only private IP addresses to your
@@ -80,128 +104,139 @@ and |service|:
   a security risk. With |aws| IAM authentication, |service| accesses |aws| Lambda
   through an `assumed IAM role <https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html>`__,
   so you don't need credentials in your connection strings.
-
+  
   |service| supports |aws| IAM authentication for {+clusters+} running
   MongoDB version 4.4 or higher. We strongly advise using |aws| IAM
   authentication for Lambda connections if your {+cluster+} meets the
   requirements.
 
-  To use |aws| IAM authentication, :doc:`/security/set-up-unified-aws-access`.
-
-  .. note::
-
-     For the connection examples on this page, you can use AWS IAM
-     authentication instead of hardcoded credentials by doing the following:
-
-     1. :doc:`/security/set-up-unified-aws-access`
-     2. In the :ref:`first Node.js example <lambda-aws-example>`, replace
-        ``const { MongoClient } = require('mongodb');`` with the following lines of code:
-
-        .. code-block:: javascript
-           :caption: index.js
-           :linenos:
-
-           const MONGODB_CONNECTION_STRING = new URL(process.env.MONGODB_URI);
-           MONGODB_CONNECTION_STRING.username = process.env.AWS_ACCESS_KEY_ID;
-           MONGODB_CONNECTION_STRING.password = encodeURIComponent(process.env.AWS_SECRET_ACCESS_KEY);
-           MONGODB_CONNECTION_STRING.searchParams.set('authSource', '$external');
-           MONGODB_CONNECTION_STRING.searchParams.set('authMechanism', 'AWS_SESSION_TOKEN:' + encodeURIComponent(process.env.AWS_SESSION_TOKEN));
-
-     3. In the :ref:`first Node.js example <lambda-aws-example>`, replace
-        ``process.env.MONGODB_URI`` with ``MONGODB_CONNECTION_STRING.toString()``
-
 .. _lambda-aws-example:
 
-Connection Examples
-```````````````````
+Connection Example
+~~~~~~~~~~~~~~~~~~
 
-This section includes examples for two approaches:
+.. tabs-drivers::
 
-- In the first Node.js example, the ``index.js`` file shows how to reuse
-  ``Mongoclient.connect`` across function invocations.
-- In the second Node.js example, the ``index.js`` and
-  ``mongodb-client.js`` files show how to isolate the call to
-  ``MongoClient.connect`` into its own module so that the connections
-  can be reused across functions. Use this approach if you package
-  multiple logical functions together in a single Lambda handler function.
+   .. tab::
+      :tabid: csharp
 
-The following example shows the best practice of defining the
-``MongoClient.connect`` function in your application's Node.js code
-outside the handler so it can be reused across function invocations.
+      |aws| IAM Authentication
+      ````````````````````````
+      
+      .. literalinclude:: /includes/drivers-examples/AwsLambdaExamples.cs 
+         :start-after: // Start AWS Lambda Example 2
+         :end-before: // End AWS Lambda Example 2
+         :language: csharp
+         :copyable:
+         :dedent:
 
-.. code-block:: javascript
-   :caption: index.js
-   :linenos:
+      Other Authentication
+      ````````````````````
 
-   "use strict";
+      .. literalinclude:: /includes/drivers-examples/AwsLambdaExamples.cs 
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: csharp
+         :copyable:
+         :dedent:
 
-   // Import the dependency.
-   const { MongoClient } = require('mongodb');
+   .. tab::
+      :tabid: java-sync
 
-   // Create a module-scoped MongoClient promise.
-   // CRITICAL: You must call connect() outside the handler so that the client
-   // can be reused across function invocations.
-   let client = new MongoClient(process.env.MONGODB_URI,
-       { useNewUrlParser: true, useUnifiedTopology: true });
-   const clientPromise = client.connect();
+      .. literalinclude:: /includes/drivers-examples/ExampleAwsLambdaHandler.java
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: java
+         :copyable:
+         :dedent:
 
-   // Handler
-   module.exports.handler = async function(event, context) {
+   .. tab::
+      :tabid: nodejs
 
-   // Get the MongoClient by calling await on the promise.
-   // Because this is a promise, it will only resolve once.
-   client = await clientPromise;
+      |aws| IAM Authentication
+      ````````````````````````
+      .. literalinclude:: /includes/drivers-examples/aws_handler.js
+         :start-after: // begin lambda connection
+         :end-before: // end lambda connection
+         :language: js
+         :copyable:
+         :dedent:
 
-   // Use the client to return the name of the connected database.
-   return client.db().databaseName;
-   }
+      Other Authentication
+      ````````````````````
 
-Some serverless frameworks that run on top of Lambda allow for
-multiple logical functions to be packaged together in a single
-Lambda handler function. If your application runs multiple functions
-within the same Lambda process, we recommend isolating the call to
-the ``MongoClient.connect`` function into its own module so that
-the connections can be reused across functions.
+      .. literalinclude:: /includes/drivers-examples/handler.js
+         :start-after: // begin lambda connection
+         :end-before: // end lambda connection
+         :language: js
+         :copyable:
+         :dedent:
 
-In the following code examples:
+   .. tab::
+      :tabid: python
 
-- ``mongo-client.js`` organizes the ``MongoClient.connect`` function
-  into its own module (mongo-client).
-- ``index.js`` imports that module and uses it to connect.
+      .. literalinclude:: /includes/drivers-examples/test_auth_aws.py
+         :start-after: # Start AWS Lambda Example 1
+         :end-before: # End AWS Lambda Example 1
+         :language: python
+         :copyable:
+         :dedent:
 
-.. code-block:: javascript
-   :caption: mongodb-client.js
-   :linenos:
+   .. tab::
+      :tabid: ruby
 
-   "use strict";
+      |aws| IAM Authentication
+      ````````````````````````
 
-   // Import the dependency.
-   const { MongoClient } = require('mongodb');
+      .. literalinclude:: /includes/drivers-examples/aws_lambda_examples_spec.rb
+         :start-after: # Start AWS Lambda Example 2
+         :end-before: # End AWS Lambda Example 2
+         :language: ruby
+         :copyable:
+         :dedent:
 
-   // Export a module-scoped MongoClient promise. By doing this in a separate
-   // module, the client can be shared across functions.
-   const client = new MongoClient(process.env.MONGODB_URI,
-     { useNewUrlParser: true,  useUnifiedTopology: true });
-   module.exports = client.connect();
+      Other Authentication
+      ````````````````````
 
+      .. literalinclude:: /includes/drivers-examples/aws_lambda_examples_spec.rb
+         :start-after: # Start AWS Lambda Example 1
+         :end-before: # End AWS Lambda Example 1
+         :language: ruby
+         :copyable:
+         :dedent:
 
+.. MM - 10/5/22 - The following drivers aren't yet released in a release tag
 
-.. code-block:: javascript
-   :caption: index.js
-   :linenos:
+..   .. tab::
+      :tabid: rust
 
-   "use strict";
+..      AWS IAM Authentication
+      ````````````````````````
 
-   // Import the dependency.
-   const clientPromise = require('./mongodb-client');
+..      .. literalinclude:: /drivers-examples/auth.rs
+         :start-after: // begin lambda connection example 2
+         :end-before: // end lambda connection example 2
+         :language: rust
+         :copyable:
+         :dedent:
 
-   // Handler
-   module.exports.handler = async function(event, context) {
+..      Other Authentication
+      ```````````````````````
 
-      // Get the MongoClient by calling await on the connection promise. Because
-      // this is a promise, it will only resolve once.
-      const client = await clientPromise;
+..      .. literalinclude:: /drivers-examples/no_auth.rs
+         :start-after: // begin lambda connection example 1
+         :end-before: // end lambda connection example 1
+         :language: rust
+         :copyable:
+         :dedent:
 
-      // Use the connection to return the name of the connected database.
-      return client.db().databaseName;
-   }
+..   .. tab::
+      :tabid: swift-sync
+
+..      .. literalinclude:: /drivers-examples/MongoHandler.swift
+         :start-after: // begin lambda connection example 1
+         :end-before: // end lambda connection example 1
+         :language: swift
+         :copyable:
+         :dedent:
+
