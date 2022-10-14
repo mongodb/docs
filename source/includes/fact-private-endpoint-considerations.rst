@@ -33,6 +33,39 @@ endpoint connects to the |mongos| instances in that region.
 .. include:: /includes/enable-regionalized-privatelink.rst
 
 To use this feature, you must enable the regionalized private 
-endpoint setting:
+endpoint setting.
 
-.. include:: /includes/steps/enable-regionalized-private-endpoints.rst
+To enable or disable the regionalized private endpoint setting:
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli 
+
+      Enable Regionalized Private Endpoints
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-enable.rst
+
+      Disable Regionalized Private Endpoints
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-disable.rst
+
+      View Regionalized Private Endpoint Settings
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/extracts/atlas-privateEndpoints-regionalModes-describe.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      Enable Regionalized Private Endpoints
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/steps/enable-regionalized-private-endpoints.rst
+
+      Disable Regionalized Private Endpoints
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/steps/disable-regionalized-private-endpoints.rst     
