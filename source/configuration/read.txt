@@ -21,7 +21,8 @@ You can configure the following properties to read from MongoDB:
 
 .. note::
 
-   If you use ``SparkConf`` to set the connector's read configurations, 
+
+   If you use ``SparkConf`` to set the connector's read configurations,
    prefix ``spark.mongodb.read.`` to each property.
 
 .. list-table::
@@ -31,144 +32,109 @@ You can configure the following properties to read from MongoDB:
    * - Property name
      - Description
 
-   * - ``connection.uri``
-     - **Required.**
-       The connection string in the form
-       ``mongodb://host:port/``. The ``host`` can be a hostname, IP
-       address, or UNIX domain socket. If the connection string doesn't
-       specify a ``port``, it uses the default MongoDB port, ``27017``.
+   * - ``mongoClientFactory``
+     - | MongoClientFactory configuration key.
+       | You can specify a custom implementation which must implement the
+         ``com.mongodb.spark.sql.connector.connection.MongoClientFactory``
+         interface.
+       |
+       | **Default:** ``com.mongodb.spark.sql.connector.connection.DefaultMongoClientFactory``
 
-       You can append the other remaining read options to the ``connection.uri``
-       setting. See :ref:`configure-input-uri`.
+   * - ``connection.uri``
+     - | **Required.**
+       | The connection string configuration key.
+       |
+       | **Default:** ``mongodb://localhost:27017/``
 
    * - ``database``
-     - **Required.**
-       The database name to read data from.
+     - | **Required.**
+       | The database name configuration.
 
    * - ``collection``
-     - **Required.**
-       The collection name to read data from.
-
-   * - ``localThreshold``
-     - The time in milliseconds to choose among multiple MongoDB servers to send a request.
-
-       **Default:** ``15``
-
-   * - ``readPreference.name``
-     - The name of the :ref:`Read Preference <replica-set-read-preference-modes>` mode to use.
-       
-       **Default:** Primary
-
-   * - ``readPreference.tagSets``
-     - The ``ReadPreference`` TagSets to use.
-
-   * - ``readConcern.level``
-     - The :manual:`Read Concern </reference/read-concern>` level to use.
-
-   * - ``sampleSize``
-     - The sample size to use when analyzing the schema.
-
-       **Default:** ``1000``
-
-   * - ``samplePoolSize``
-     - The size of the pool to sample from when analyzing the schema.
-
-       **Default:** ``10000``
+     - | **Required.**
+       | The collection name configuration.
 
    * - ``partitioner``
-     - The name of the partitioner to use to split collection data into 
-       partitions. Partitions are based on a range of values of a field 
-       (e.g. ``_id``\s 1 to 100).
+     - | The partitioner full class name.
 
-       The connector provides the following partitioners:
+       | You can specify a custom implementation which must implement the
+         ``com.mongodb.spark.sql.connector.read.partitioner.Partitioner``
+          interface.
+       | See the
+         :ref:`Partitioner Configuration <partitioner-conf>` section for more
+         information on partitioners.
+       |
+       | **Default:** ``com.mongodb.spark.sql.connector.read.partitioner.SamplePartitioner``
 
-       - ``SamplePartitioner``
-             A general purpose partitioner for
-             all deployments. Uses the average document size and random
-             sampling of the collection to determine suitable
-             partitions for the collection. To learn more about the 
-             ``SamplePartitioner``, see the 
-             :ref:`configuration settings description <conf-samplepartitioner>`.
+   * - ``partioner.options.``
+     - | Partitioner configuration prefix.
+       | See the
+         :ref:`Partitioner Configuration <partitioner-conf>` section for more
+         information on partitioners.
 
-       - ``ShardedPartitioner``
-             A partitioner for sharded clusters. Partitions the
-             collection based on the data chunks. Requires read access
-             to the ``config`` database. To learn more about the 
-             ``ShardedPartitioner``, see the 
-             :ref:`configuration settings description <conf-shardedpartitioner>`.
+   * - ``sampleSize``
+     - | The number of documents to sample from the collection when inferring
+       | the schema.
+       |
+       | **Default:** ``1000``
 
-       - ``PaginateBySizePartitioner``
-             A slow, general purpose partitioner for all deployments.
-             Creates partitions based on data size. Requires a query
-             for every partition. To learn more about the 
-             ``PaginateBySizePartitioner``, see the 
-             :ref:`configuration settings description <conf-paginatebysizepartitioner>`.
+   * - ``sql.inferSchema.mapTypes.enabled``
+     - | Whether to enable Map types when inferring the schema.
+       | When enabled, large compatible struct types are inferred to a
+         ``MapType`` instead.
+       |
+       | **Default:** ``true``
 
-       - ``PaginateIntoPartitionsPartitioner``
-             A partitioner that creates a specified number of 
-             partitions for a collection. Uses the total number of 
-             documents and the average document size in a collection to 
-             calculate the number of documents to include in each 
-             partition. To learn more about the 
-             ``PaginateIntoPartitionsPartitioner``, see the 
-             :ref:`configuration settings description <conf-paginateintopartitionspartitioner>`.
+   * - ``sql.inferSchema.mapTypes.minimum.key.size``
+     - | Minimum size of a ``StructType`` before inferring as a ``MapType``.
+       |
+       | **Default:** ``250``
 
-       You can also specify a custom partitioner implementation. For
-       custom implementations of the ``Partitioner`` interface, provide
-       the full class name.
+   * - ``aggregation.pipeline``
+     - | Specifies a custom aggregation pipeline to apply to the collection
+         before sending data to Spark.
+       | The value must be either an extended JSON single document or list
+         of documents.
+       | A single document should resemble the following:
 
-       To configure options for the various partitioners, see
-       :ref:`partitioner-conf`.
-      
-       **Default:** ``SamplePartitioner``
+       .. code-block:: json
 
-   * - ``partitionerOptions``
-     - The custom options to configure the partitioner.
+          {"$match": {"closed": false}}
 
-   * - ``registerSQLHelperFunctions``
-     - Registers SQL helper functions to allow easy querying of BSON
-       types inside SQL queries.
+       | A list of documents should resemble the following:
 
-       **Default:** ``false``
+       .. code-block:: json
 
-   * - ``sql.inferschema.mapTypes.enabled``
-     - Enables you to analyze ``MapType`` and ``StructType`` in the data's schema.
+          [{"$match": {"closed": false}}, {"$project": {"status": 1, "name": 1, "description": 1}}]
 
-       **Default:** ``true``
+       .. important::
 
-   * - ``sql.inferschema.mapTypes.minimumKeys``
-     - The minimum number of keys a ``StructType`` needs for the
-       connector to detect it as a ``MapType``.
+          Custom aggregation pipelines must be compatible with the
+          partitioner strategy. For example, aggregation stages such as
+          ``$group`` do not work with any partitioner that creates more than
+          one partition.
 
-       **Default:** ``250``
+   * - ``aggregation.allowDiskUse``
+     - | Specifies whether to allow storage to disk when running the
+         aggregation.
+       |
+       | **Default:** ``true``
 
-   * - ``sql.pipeline.includeNullFilters``
-     - Includes ``null`` filters in the aggregation pipeline.
-      
-   * - ``sql.pipeline.includeFiltersAndProjections``
-     - Includes any filters and projections in the aggregation pipeline.
 
-   * - ``pipeline``
-     - Enables you to apply custom aggregation pipelines to the collection
-       before sending it to Spark.
 
-   * - ``hint``
-     - The JSON representation of the :manual:`hint </reference/operator/meta/hint/>` to use in the aggregation.
-
-   * - ``collation``
-     - The JSON representation of a collation to use in the aggregation.
-       The connector creates this with ``Collation.asDocument.toJson``.
-
-   * - ``allowDiskUse``
-     -  Enables writing to temporary files during aggregation.
-
-   * - ``batchSize``
-     -  The size of the internal batches within the cursor.
-     
 .. _partitioner-conf:
 
-Partitioner Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Partitioner Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This section contains configuration information for the following 
+partitioners:
+
+- :ref:`SamplePartitioner <conf-samplepartitioner>`
+- :ref:`ShardedPartitioner <conf-shardedpartitioner>`
+- :ref:`PaginateBySizePartitioner <conf-paginatebysizepartitioner>`
+- :ref:`PaginateIntoPartitionsPartitioner <conf-paginateintopartitionspartitioner>`
+- :ref:`SinglePartitionPartitioner <conf-singlepartitionpartitioner>`
 
 .. _conf-mongosamplepartitioner:
 .. _conf-samplepartitioner:
@@ -178,6 +144,10 @@ Partitioner Configuration
 
 .. include:: /includes/sparkconf-partitioner-options-note.rst
 
+You must specify this partitioner using the full classname:
+``com.mongodb.spark.sql.connector.read.partitioner.SamplePartitioner``.
+
+
 .. list-table::
    :header-rows: 1
    :widths: 35 65
@@ -185,59 +155,54 @@ Partitioner Configuration
    * - Property name
      - Description
 
-   * - ``partitioner.options.partitionKey``
-     - A comma-delimited list of fields by which to split the 
-       collection data. The fields should be indexed and contain unique 
-       values.
+   * - ``partitioner.options.partition.field``
+     - The field to use for partitioning, which must be a unique field.
 
        **Default:** ``_id``
 
-   * - ``partitioner.options.partitionSizeMB``
-     - The size (in MB) for each partition. Smaller partition sizes 
+   * - ``partitioner.options.partition.size``
+     - The size (in MB) for each partition. Smaller partition sizes
        create more partitions containing fewer documents.
 
        **Default:** ``64``
 
-   * - ``partitioner.options.samplesPerPartition``
-     - The number of sample documents to take for each partition in 
-       order to establish a ``partitionKey`` range for each partition. 
-       
-       A greater number of ``samplesPerPartition`` helps to find 
-       ``partitionKey`` ranges that more closely match the 
-       ``partitionSizeMB`` you specify.
-       
-       .. note::
-       
-          For sampling to improve performance, ``samplesPerPartition`` 
-          must be fewer than the number of documents within each of 
-          your partitions.
 
-          You can estimate the number of documents within each of your 
-          partitions by dividing your ``partitionSizeMB`` by the 
-          average document size (in MB) in your collection.
+   * - ``partitioner.options.samples.per.partition``
+     - The number of samples to take per partition. The total number of
+       samples taken is:
+
+       .. code-block:: none
+
+          samples per partiion * ( count / number of documents per partition)
 
        **Default:** ``10``
 
 .. example::
 
-   For a collection with 640 documents with an average document 
-   size of 0.5 MB, the default ``SamplePartitioner`` configuration 
-   values creates 5 partitions with 128 documents per partition.
+   For a collection with 640 documents with an average document
+   size of 0.5 MB, the default SamplePartitioner configuration values creates
+   5 partitions with 128 documents per partition.
 
-   The MongoDB Spark Connector samples 50 documents (the default 10 
-   per intended partition) and defines 5 partitions by selecting 
-   ``partitionKey`` ranges from the sampled documents.
+   The MongoDB Spark Connector samples 50 documents (the default 10
+   per intended partition) and defines 5 partitions by selecting
+   partition field ranges from the sampled documents.
 
 .. _conf-mongoshardedpartitioner:
 .. _conf-shardedpartitioner:
 
 ``ShardedPartitioner`` Configuration
-````````````````````````````````````
+`````````````````````````````````````
 
-The ``ShardedPartitioner`` automatically determines 
-partitions to use based on your shard configuration. 
+The ``ShardedPartitioner`` automatically determines the partitions to use
+based on your shard configuration.
 
-This partitioner is not compatible with hashed shard keys.
+You must specify this partitioner using the full classname:
+``com.mongodb.spark.sql.connector.read.partitioner.ShardedPartitioner``.
+
+.. warning::
+
+   This partitioner is not compatible with hashed shard keys.
+
 
 .. _conf-mongopaginatebysizepartitioner:
 .. _conf-paginatebysizepartitioner:
@@ -247,6 +212,9 @@ This partitioner is not compatible with hashed shard keys.
 
 .. include:: /includes/sparkconf-partitioner-options-note.rst
 
+You must specify this partitioner using the full classname:
+``com.mongodb.spark.sql.connector.read.partitioner.PaginateBySizePartitioner``.
+
 .. list-table::
    :header-rows: 1
    :widths: 35 65
@@ -254,15 +222,14 @@ This partitioner is not compatible with hashed shard keys.
    * - Property name
      - Description
 
-   * - ``partitioner.options.partitionKey``
-     - A comma-delimited list of fields by which to split the 
-       collection data. The fields should be indexed and contain unique 
-       values.
+   * - ``partitioner.options.partition.field``
+     - The field to use for partitioning, which must be a unique field.
 
        **Default:** ``_id``
 
-   * - ``partitioner.options.partitionSizeMB``
-     - The size (in MB) for each partition. Smaller partition sizes 
+   * - ``partitioner.options.partition.size``
+     - The size (in MB) for each partition. Smaller partition sizes
+
        create more partitions containing fewer documents.
 
        **Default:** ``64``
@@ -274,17 +241,19 @@ This partitioner is not compatible with hashed shard keys.
 
 .. include:: /includes/sparkconf-partitioner-options-note.rst
 
+You must specify this partitioner using the full classname:
+``com.mongodb.spark.sql.connector.read.partitioner.PaginateIntoPartitionsPartitioner``.
+
+
 .. list-table::
    :header-rows: 1
    :widths: 35 65
 
    * - Property name
      - Description
-
-   * - ``partitioner.options.partitionKey``
-     - A comma-delimited list of fields by which to split the 
-       collection data. The fields should be indexed and contain unique 
-       values.
+     
+   * - ``partitioner.options.partition.field``
+     - The field to use for partitioning, which must be a unique field.
 
        **Default:** ``_id``
 
@@ -293,6 +262,21 @@ This partitioner is not compatible with hashed shard keys.
 
        **Default:** ``64``
 
+.. _conf-singlepartitionpartitioner:
+
+``SinglePartitionPartitioner`` Configuration
+````````````````````````````````````````````
+
+.. include:: /includes/sparkconf-partitioner-options-note.rst
+
+You must specify this partitioner using the full classname:
+``com.mongodb.spark.sql.connector.read.partitioner.SinglePartitionPartitioner``.
+
+This partitioner creates a single partition.
+
+
+
+
 .. _spark-change-stream-conf:
 
 Change Streams
@@ -300,8 +284,9 @@ Change Streams
 
 .. note::
 
-   If you use ``SparkConf`` to set the connector's change stream 
-   configurations, prefix ``spark.mongodb.change.stream.`` to each 
+   If you use ``SparkConf`` to set the connector's change stream
+   configurations, prefix ``spark.mongodb.change.stream.`` to each
+
    property.
 
 .. list-table::
@@ -311,34 +296,42 @@ Change Streams
    * - Property name
      - Description
 
-   * - ``lookup.full.document``
+   * - ``change.stream.lookup.full.document``
 
-     - Determines what values your change stream returns on update 
+     - Determines what values your change stream returns on update
        operations.
 
-       The default setting returns the differences between the original 
+       The default setting returns the differences between the original
        document and the updated document.
 
-       The ``updateLookup`` setting returns the differences between the 
-       original document and updated document as well as a copy of the 
+       The ``updateLookup`` setting returns the differences between the
+       original document and updated document as well as a copy of the
        entire updated document.
 
        .. tip::
 
-          For more information on how this change stream option works, 
-          see the MongoDB server manual guide 
+          For more information on how this change stream option works,
+          see the MongoDB server manual guide
           :manual:`Lookup Full Document for Update Operation </changeStreams/#lookup-full-document-for-update-operations>`.
 
        **Default:** "default"
 
-   * - ``publish.full.document.only``
+   * - ``change.stream.publish.full.document.only``
+     - | Specifies whether to publish the changed document or the full
+         change stream document.
+       |
+       | When set to ``true``, the connector filters out messages that
+         omit the ``fullDocument`` field and only publishes the value of the
+         field.
 
-     - If ``true``, this property returns only the changed document 
-       instead of the full change stream document. The connector 
-       automatically sets the ``lookup.full.document`` property to 
-       ``updateLookup`` to receive the updated documents.
+       .. note::
 
-       **Default:** ``false``
+          This setting overrides the ``change.stream.lookup.full.document``
+          setting.
+
+       |
+       | **Default**: ``false``
+
 
 .. _configure-input-uri:
 
@@ -348,23 +341,24 @@ Change Streams
 You can set all :ref:`spark-input-conf` via the read ``connection.uri`` setting.
 
 For example, consider the following example which sets the read
-``connection.uri`` setting via ``SparkConf``:
+``connection.uri`` setting:
 
 .. note::
 
-   If you use ``SparkConf`` to set the connector's read configurations, 
+   If you use ``SparkConf`` to set the connector's read configurations,
    prefix ``spark.mongodb.read.`` to the setting.
 
 .. code:: cfg
 
-  spark.mongodb.read.connection.uri=mongodb://127.0.0.1/databaseName.collectionName?readPreference=primaryPreferred
+   spark.mongodb.read.connection.uri=mongodb://127.0.0.1/databaseName.collectionName?readPreference=primaryPreferred
+
 
 The configuration corresponds to the following separate configuration
 settings:
 
 .. code:: cfg
 
-  spark.mongodb.read.connection.uri=mongodb://127.0.0.1/
+   spark.mongodb.read.connection.uri=mongodb://127.0.0.1/
    spark.mongodb.read.database=databaseName
    spark.mongodb.read.collection=collectionName
    spark.mongodb.read.readPreference.name=primaryPreferred
@@ -376,5 +370,5 @@ database for the connection is ``foobar``:
 
 .. code:: cfg
 
-  spark.mongodb.read.connection.uri=mongodb://127.0.0.1/foobar
+   spark.mongodb.read.connection.uri=mongodb://127.0.0.1/foobar
    spark.mongodb.read.database=bar

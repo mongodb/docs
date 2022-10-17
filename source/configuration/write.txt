@@ -31,74 +31,97 @@ The following options for writing to MongoDB are available:
    * - Property name
      - Description
 
-   * - ``connection.uri``
-     - **Required.** 
-       The connection string in the form
-       ``mongodb://host:port/``. The ``host`` can be a hostname, IP
-       address, or UNIX domain socket. If the connection string doesn't
-       specify a ``port``, it uses the default MongoDB port, ``27017``.
-       
-       .. note:: 
+   * - ``mongoClientFactory``
+     - | MongoClientFactory configuration key.
+       | You can specify a custom implementation which must implement the
+         ``com.mongodb.spark.sql.connector.connection.MongoClientFactory``
+         interface.
+       |
+       | **Default:** ``com.mongodb.spark.sql.connector.connection.DefaultMongoClientFactory``
 
-          The other remaining options may be appended to the ``connection.uri``
-          setting. See :ref:`configure-output-uri`.
+   * - ``connection.uri``
+     - | **Required.**
+       | The connection string configuration key.
+       |
+       | **Default:** ``mongodb://localhost:27017/``
 
    * - ``database``
-     - **Required.**
-       The database name to write data.
+     - | **Required.**
+       | The database name configuration.
 
    * - ``collection``
-     - **Required.**
-       The collection name to write data to
+     - | **Required.**
+       | The collection name configuration.
 
-   * - ``extendedBsonTypes``
-     - Enables extended BSON types when writing data to MongoDB.
 
-       **Default:** ``true``
-
-   * - ``localThreshold``
-     - The threshold (milliseconds) for choosing a server from multiple
-       MongoDB servers.
-
-       **Default:** ``15``
-
-   * - ``replaceDocument``
-     - Replace the whole document when saving Datasets that contain an ``_id`` field.
-       If false it will only update the fields in the document that match the fields in the Dataset.
-
-       **Default:** ``true``
-       
    * - ``maxBatchSize``
-     - The maximum batch size for bulk operations when saving data.
+     - | Specifies the maximum number of operations to batch in bulk
+         operations.
 
-       **Default:** ``512``
-
-   * - ``writeConcern.w``
-     - The write concern :ref:`w <wc-w>` value.
-
-       **Default:** ``w: 1``
-   
-   * - ``writeConcern.journal``
-     - The write concern :ref:`journal <wc-j>` value.
-
-   * - ``writeConcern.wTimeoutMS``
-     - The write concern :ref:`wTimeout <wc-wtimeout>` value.
-
-   * - ``shardKey``
-     - The field by which to split the collection data. The field
-       should be indexed and contain unique values.
-
-       **Default:** ``_id``
-
-   * - ``forceInsert``
-     - Forces saves to use inserts, even if a Dataset contains ``_id``.
-
-       **Default:** ``false``
+       |
+       | **Default:** ``512``
 
    * - ``ordered``
-     - Sets the bulk operations ordered property.
+     - | Specifies whether to perform ordered bulk operations.
+       |
+       | **Default:** ``true``
 
-       **Default:** ``true``
+   * - ``operationType``
+     - | Specifies the type of write operation to perform. You can set
+         this to one of the following values:
+
+       - ``insert``: insert the data.
+       - ``replace``: replace an existing document that matches the
+         ``idFieldList`` value with the new data, or insert the data if
+         no match exists.
+       - ``update``: update an existing document that matches the
+         ``idFieldList`` value with the new data, or inserts the data if
+         no match exists.
+
+       |
+       | **Default:** ``replace``
+
+   * - ``idFieldList``
+     - | Field or list of comma-separated fields to use to identify a document.
+       |
+       | **Default:** ``_id``
+
+   * - ``writeConcern.w``
+     - | Specifies ``w``, a write concern option to acknowledge the level to
+         which the change propagated in the MongoDB replica set. You can
+         specify one of the following values:
+
+       - ``MAJORITY``
+       - ``W1``, ``W2``, or ``W3``
+       - ``ACKNOWLEDGED``
+       - ``UNACKNOWLEDGED``
+
+       |
+       | For more information on ``w`` values, see the MongoDB server guide on
+         the :manual:`WriteConcern w option
+         </reference/write-concern/#w-option>`.
+
+       |
+       | **Default:** ``ACKNOWLEDGED``
+
+   * - ``writeConcern.journal``
+     - | Specifies ``j``, a write concern option to enable request for
+         acknowledgment that the data is confirmed on on-disk journal for
+         the criteria specified in the ``w`` option. You can specify
+         either ``true`` or ``false``.
+       |
+       | For more information on ``j`` values, see the MongoDB server
+         guide on the
+         :manual:`WriteConcern j option </reference/write-concern/#j-option>`.
+
+   * - ``writeConcern.wTimeoutMS``
+     - | Specifies ``wTimeoutMS``, a write concern option to return an error
+         when a write operation exceeds the number of milliseconds. If you
+         use this optional setting, you must specify a non-negative integer.
+       |
+       | For more information on ``wTimeoutMS`` values, see the MongoDB server
+         guide on the
+         :manual:`WriteConcern wtimeout option </reference/write-concern/#wtimeout>`.
 
 .. _configure-output-uri:
 
@@ -106,9 +129,6 @@ The following options for writing to MongoDB are available:
 ----------------------------------------
 
 You can set all :ref:`spark-output-conf` via the write ``connection.uri``.
-
-For example, consider the following example which sets the write
-``connection.uri`` setting via ``SparkConf``:
 
 .. note::
 

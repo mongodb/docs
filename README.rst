@@ -4,7 +4,6 @@ MongoDB Spark Connector Documentation
 
 This repository contains documentation for the MongoDB Spark Connector.
 
-
 File JIRA Tickets
 -----------------
 
