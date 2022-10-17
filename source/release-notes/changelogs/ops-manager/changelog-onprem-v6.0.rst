@@ -1,3 +1,21 @@
+.. _opsmgr-server-6.0.4:
+
+|onprem| Server 6.0.4
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-10-13*
+
+- Updates the {+mdbagent+} to :ref:`12.0.12.7624 <mongodb-12.0.12.7624>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.6.0 
+  </release-notes/database-tools-changelog/#100.6.0-changelog>`.
+- Uses amazon2 packages instead of RHEL7 packages on amazon2 hosts for
+  MongoDB Database Tools. If you run |onprem| in the :doc:`Local Mode
+  </tutorial/configure-local-mode>`, you can download
+  amazon2 MongoDB Database Tools binaries via the {+mdbagent+}.
+- Fixes an issue where the :guilabel:`Project List` was overriden in the
+  left navigation bar in the UI.
+
+
 .. _opsmgr-server-6.0.3:
 
 |onprem| Server 6.0.3
