@@ -36,7 +36,7 @@ public class FindOneAsync
         var filter = Builders<Restaurant>.Filter
             .Eq("name", "Bagels N Buns");
 
-        return await _restaurantsCollection.Find(filter).FirstAsync();
+        return await _restaurantsCollection.Find(filter).FirstOrDefaultAsync();
         // end-find-builders
 
     }
@@ -45,7 +45,7 @@ public class FindOneAsync
     {
         // start-find-linq
         return await _restaurantsCollection.AsQueryable()
-            .Where(r => r.Name == "Bagels N Buns").FirstAsync();
+            .Where(r => r.Name == "Bagels N Buns").FirstOrDefaultAsync();
         // end-find-linq
 
     }

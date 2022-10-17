@@ -33,7 +33,7 @@ public class FindOne
         var filter = Builders<Restaurant>.Filter
             .Eq("name", "Bagels N Buns");
 
-        var restaurant = _restaurantsCollection.Find(filter).First();
+        var restaurant = _restaurantsCollection.Find(filter).FirstOrDefault();
         // end-find-builders
 
         WriteLine(restaurant.ToBsonDocument());
