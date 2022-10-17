@@ -18,9 +18,9 @@
   plans.
   
 - You can use the {+atlas-ui+} to manually link a paying organization 
-  to a maximum of 10 other organizations. To link a paying organization 
-  to more than 10 other organizations, :ref:`contact support 
-  <request-support>`.
+  to a maximum of 20 other organizations.
+  To link a paying organization to more than 20 other organizations,
+  :ref:`contact support <request-support>`.
 
 - A paying organization can't link more than 100 other organizations.
 
