@@ -1,5 +1,14 @@
 Before upgrading |onprem| from 5.0 to 6.0, review the following considerations:
 
+Connection Strings
+~~~~~~~~~~~~~~~~~~
+
+Use
+:ref:`standard connection strings <connections-standard-connection-string-format>`
+when connecting to the AppDB during the upgrade procedure. Using 
+:ref:`DNS SRV connection strings <connections-dns-seedlist>`
+can cause the upgrade to fail.
+
 Backing Databases
 ~~~~~~~~~~~~~~~~~
 
