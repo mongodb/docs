@@ -384,21 +384,52 @@ option, the ``explain`` output shows the coalesced stage:
    }
 
 Indexes
--------
+~~~~~~~
+
+The :ref:`query planner <query-plans-query-optimization>` analyzes
+an aggregation pipeline to determine if :ref:`indexes <indexes>`
+can be used to improve pipeline performance.
+
+The following list shows some pipeline stages that can use indexes:
+
+``$match`` stage
+  :pipeline:`$match` can use an index to filter documents if
+  :pipeline:`$match` is the first stage in a pipeline.
+
+``$sort`` stage
+  :pipeline:`$sort` can use an index if :pipeline:`$sort` is not
+  preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or
+  :pipeline:`$group` stage.
+
+``$group`` stage
+  :pipeline:`$group` can potentially use an index to find the first
+  document in each group if:
+  
+  - :pipeline:`$group` is preceded by :pipeline:`$sort` that sorts the
+    field to group by, and
+
+  - there is an index on the grouped field that matches the sort order,
+    and
+
+  - :group:`$first` is the only accumulator in :pipeline:`$group`.
+
+  See :ref:`group-pipeline-optimization` for an example.
+
+``$geoNear`` stage
+  :pipeline:`$geoNear` can use a geospatial index. :pipeline:`$geoNear`
+  must be the first stage in an aggregation pipeline.
 
 Starting in MongoDB 4.2, in some cases, an aggregation pipeline can use
 a ``DISTINCT_SCAN`` index plan that returns one document per index key 
 value.
 
-.. note::
-   ``DISTINCT_SCAN`` executes faster than ``IXSCAN`` if multiple 
-   documents per index value exist. However, index scan parameters
-   might affect the time comparison of ``DISTINCT_SCAN`` and
-   ``IXSCAN``. 
+Additionally, stages later in the pipeline that retrieve data from 
+other, unmodified collections can use indexes on those collections 
+for optimization. These stages include:
 
-Indexes can :ref:`cover <read-operations-covered-query>` queries in an
-aggregation pipeline. A covered query uses an index to return all of the
-documents and has high performance.
+- :pipeline:`$lookup`
+- :pipeline:`$graphLookup`
+- :pipeline:`$unionWith`
 
 Example
 -------
