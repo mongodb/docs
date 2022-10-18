@@ -50,6 +50,10 @@
      - 128 GB
      - 64 GB
 
+   * - M60_NVME
+     - 1600 GB
+     - 64 GB
+
    * - R60 :icon-fa5:`star`
      - 128 GB
      - 64 GB
@@ -62,6 +66,10 @@
      - 256 GB
      - 128 GB
 
+   * - M80_NVME
+     - 1600 GB
+     - 128 GB
+
    * - M200 :icon-fa5:`star`
      - 256 GB
      - 256 GB
@@ -70,13 +78,29 @@
      - 256 GB
      - 256 GB
 
+   * - M200_NVME
+     - 3100 GB
+     - 256 GB
+
    * - R300 :icon-fa4:`times-circle` :icon-fa5:`star`
      - 512 GB
+     - 384 GB
+
+   * - M300_NVME
+     - 3600 GB
      - 384 GB
 
    * - R400 :icon-fa5:`star`
      - 512 GB
      - 432 GB
+
+   * - M400_NVME
+     - 4000 GB
+     - 512 GB
+
+   * - M600_NVME
+     - 4000 GB
+     - 640 GB
 
 :icon-fa5:`star` Can use this tier for a multi-cloud cluster.
 
