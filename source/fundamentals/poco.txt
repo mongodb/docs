@@ -1,0 +1,282 @@
+.. _csharp-poco:
+
+===============
+Work with POCOs
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about how you can use ":wikipedia:`Plain Old CLR/Class
+Objects <Plain_old_CLR_object>`", or **POCOs**, with the {+driver-short+} for your operations
+and queries. POCOs are simple class objects that do not inherit
+features from any framework-specific base class and do not return any
+special types. We recommend using POCOs in your {+language+} code to
+adhere to idiomatic driver usage and achieve the best performance.
+
+You should read this guide if you want to learn more about how to use
+POCOs with the {+driver-short+} or if you need to adjust the driver's default
+field mapping behavior.
+
+Create a POCO
+-------------
+
+You can create a POCO by defining a simple class that does not
+implement interfaces or extend classes from a framework. When you
+execute an operation such as a read or write using a POCO, the driver
+internally *serializes*, or converts, the POCO to BSON.
+
+Select the :guilabel:`POCO` or :guilabel:`BSON` tab to see how the
+driver serializes a sample POCO to BSON:
+
+.. tabs::
+
+   .. tab:: POCO
+      :tabid: poco-representation
+
+      .. code-block:: csharp
+         :copyable: false
+
+         public class Clothing
+         {
+             public ObjectId Id { get; set; }
+             public string Name { get; set; }
+             public bool InStock { get; set; }
+             public double Price { get; set; }
+             public List<string> ColorSelection { get; set; }
+         }
+
+   .. tab:: BSON
+      :tabid: bson-representation
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+           "_id": ObjectId("..."),
+           "Name": "Long Sleeve Shirt",
+           "InStock": true,
+           "Price": 17.99,
+           "ColorSelection": [ "black", "navy", "red" ]
+         }
+
+You can define a POCO with any object structure that suits your
+needs, including nested objects, arrays, lists, and any data types.
+
+Custom Serialization
+--------------------
+
+If the default field mapping behavior does not meet your needs, you can
+specify custom behavior using serialization-related attributes. These
+attributes change the way that the driver serializes each property of
+your POCO. This section describes some of the common
+serialization-related attributes.
+
+Set Field Names
+~~~~~~~~~~~~~~~
+
+The driver serializes POCO properties to BSON fields with the same field
+name and capitalization. To store a property under a different name, use
+the ``[BsonElement()]`` attribute. The following code maps the
+``YearBuilt`` property of the ``House`` class to the ``year_built``
+field in the serialized BSON document:
+
+.. code-block:: csharp
+   :copyable: true
+
+   public class House
+   {
+       public ObjectId Id { get; set; }
+
+       [BsonElement("year_built")]
+       public int YearBuilt { get; set; }
+   }
+
+Though it is common to use the Pascal case naming convention when
+defining {+language+} classes, using the ``[BsonElement()]`` attribute
+allows you to select a different or custom naming convention in your
+MongoDB collection.
+
+.. tip:: Set Custom Field Name Convention
+   
+   If you want to serialize every property with a custom field name, you
+   can define a ``ConventionPack`` instead of using the
+   ``[BsonElement()]`` attribute. For example, if you define your class
+   using the Pascal case naming convention, you can use the following
+   code to use camel case field names in the serialized document:
+
+   .. literalinclude:: ../includes/fundamentals/code-examples/poco.cs
+      :start-after: start-conventionpack
+      :end-before: end-conventionpack
+      :language:  csharp
+      :copyable:
+      :dedent:
+
+Select Type Representation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To serialize a {+language+} property to a specific BSON type, use the
+``[BsonRepresentation()]`` attribute. This works only if the
+{+language+} primitive type is convertible to the BSON type you specify.
+In the following code sample, the ``YearBuilt`` property, defined as a
+``char`` in {+language+}, is serialized as a BSON ``Int32`` type:
+
+.. code-block:: csharp
+   :copyable: true
+
+   public class House
+   {
+       public ObjectId Id { get; set; }
+
+       [BsonRepresentation(BsonType.Int32)]
+       public char YearBuilt { get; set; }
+   }
+
+For more information on valid type conversions, see the `{+language+}
+Conversions Specification
+<https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/language-specification/conversions>`__.
+
+Set Field Order
+~~~~~~~~~~~~~~~
+
+The driver serializes properties to BSON fields in the order they
+are specified in the POCO. To store properties in a custom order to
+match an existing schema, you can specify the ``Order`` named
+parameter in the ``[BsonElement()]`` attribute. In the following code
+sample, the driver stores the ``YearBuilt`` property after the
+``Style`` property:
+
+.. code-block:: csharp
+   :copyable: true
+
+   public class House
+   {
+       public ObjectId Id { get; set; }
+
+       [BsonElement(Order = 2)]
+       public int YearBuilt { get; set; }
+
+       [BsonElement(Order = 1)]
+       public string Style { get; set; }
+   }
+
+If any properties don't have an explicit ``Order``, the driver will
+serialize them in the default order after those that do.
+
+Identify ``Id`` Property
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the driver maps any public property named ``Id``, ``id``, or
+``_id`` to the BSON ``_id`` field. To explicitly select the
+property to map to the ``_id`` field, use the ``[BsonId()]`` attribute.
+The following code sample maps the ``Identifier`` property to the
+``_id`` field:
+
+.. code-block:: csharp
+   :copyable: true
+
+   public class House
+   {
+       [BsonId]
+       public string Identifier { get; set; }
+   }
+
+.. warning:: Multiple Id Fields
+
+   If you identify more than one property as the ``_id`` field using the
+   ``[BsonId()]`` attribute, the driver throws a
+   ``DuplicateBsonMemberMapAttributeException``. If your POCO
+   properties use more than one of the three recognized field
+   names (``Id``, ``id``, and ``_id``), the driver throws a
+   ``BsonSerializationException``.
+
+Omit Empty Fields
+~~~~~~~~~~~~~~~~~
+
+By default, the driver serializes undefined properties to fields with ``null``
+values. To ignore undefined properties during serialization, use the ``[BsonIgnore()]``
+attribute. The following code shows how you can prevent the driver from
+serializing the ``YearBuilt`` property if it is undefined:
+
+.. code-block:: csharp
+   :copyable: true
+
+   public class House
+   {
+       public ObjectId Id { get; set; }
+
+       [BsonIgnore]
+       public int YearBuilt { get; set; }
+       public string Style { get; set; }
+   }
+
+Example
+-------
+
+The following example shows how to insert a ``Clothing`` document with custom field
+mapping specifications into MongoDB.
+
+The following code defines the ``Clothing`` class with these
+serialization-related attributes:
+
+- ``[BsonElement()]``, which specifies custom field names in the camel case naming convention
+- ``[BsonRepresentation()]``, which specifies serialization of the ``Price`` field as a BSON ``Double`` type
+
+.. literalinclude:: ../includes/fundamentals/code-examples/poco.cs
+   :start-after: start-model
+   :end-before: end-model
+   :language:  csharp
+   :copyable:
+   :dedent:
+
+The following code instantiates a ``Clothing`` object and inserts the document into a collection:
+
+.. literalinclude:: ../includes/fundamentals/code-examples/poco.cs
+   :start-after: start-insert
+   :end-before: end-insert
+   :language:  csharp
+   :copyable:
+   :dedent:
+
+The BSON representation of the inserted document looks like this:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": ObjectId("..."),
+     "name": "Denim Jacket",
+     "inStock": false,
+     "price": 32.99,
+     "colorSelection": [ "dark wash", "light wash" ]
+   }
+
+Additional Information
+----------------------
+
+For a full list of serialization-related attributes, see the
+`Serialization.Attributes API documentation <{+api-root+}/N_MongoDB_Bson_Serialization_Attributes.htm>`__.
+
+For additional read and write operation examples using POCOs, see the :ref:`Usage Examples
+<csharp-usage-examples>` or the :ref:`CRUD Fundamentals Pages <csharp-crud>`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `[BsonElement()] <{+api-root+}/T_MongoDB_Bson_Serialization_Attributes_BsonElementAttribute.htm>`__
+- `[BsonRepresentation()] <{+api-root+}/T_MongoDB_Bson_Serialization_Attributes_BsonRepresentationAttribute.htm>`__
+- `[BsonId()] <{+api-root+}/T_MongoDB_Bson_Serialization_Attributes_BsonIdAttribute.htm>`__
+- `[BsonIgnore()] <{+api-root+}/T_MongoDB_Bson_Serialization_Attributes_BsonIgnoreAttribute.htm>`__
+- `ConventionPack <{+api-root+}/T_MongoDB_Bson_Serialization_Conventions_ConventionPack.htm>`__
+- `InsertOne() <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_InsertOne.htm>`__
