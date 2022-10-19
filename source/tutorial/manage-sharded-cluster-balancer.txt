@@ -1,3 +1,5 @@
+.. _sharded-cluster-balancer:
+
 ===============================
 Manage Sharded Cluster Balancer
 ===============================
@@ -23,9 +25,10 @@ to the primary member of the config server replica set.
 Check the Balancer State
 ------------------------
 
-:method:`sh.getBalancerState()` checks if the balancer is enabled (i.e. that the
-balancer is permitted to run). :method:`sh.getBalancerState()` does not check if the balancer
-is actively balancing chunks.
+:method:`sh.getBalancerState()` checks if the balancer is enabled 
+(i.e. that the balancer is permitted to run). 
+:method:`sh.getBalancerState()` does not check if the balancer is 
+actively migrating data.
 
 To see if the balancer is enabled in your :term:`sharded cluster`,
 issue the following command, which returns a boolean:
@@ -58,22 +61,23 @@ To see if the balancer process is active in your :term:`cluster
       sh.isBalancerRunning()
 
 .. _sharded-cluster-config-default-chunk-size:
+.. _sharded-cluster-config-default-range-size:
 
-Configure Default Chunk Size
+Configure Default Range Size
 ----------------------------
 
-The default chunk size for a sharded cluster is 128 megabytes. In most
+The default range size for a sharded cluster is 128 megabytes. In most
 situations, the default size is appropriate for splitting and migrating
-chunks. For information on how chunk size affects deployments, see
-details, see :ref:`sharding-chunk-size`.
+chunks. For information on how range size affects deployments, see
+details, see :ref:`sharding-range-size`.
 
-Changing the default chunk size affects chunks that are processes during
-migrations and auto-splits but does not retroactively affect all chunks.
+Changing the default range size affects ranges that are processes during
+migrations and auto-splits but does not retroactively affect all ranges.
 
 .. include:: /includes/autosplit-no-operation.rst
 
-To configure default chunk size, see
-:doc:`modify-chunk-size-in-sharded-cluster`.
+To configure default range size, see 
+:ref:`tutorial-modifying-chunk-size`.
 
 
 .. _sharding-schedule-balancing-window:
@@ -419,17 +423,17 @@ Once set to ``true``, to revert to the default behavior:
 
 .. _balance-chunks-that-exceed-size-limit:
 
-Balance Chunks that Exceed Size Limit
+Balance Ranges that Exceed Size Limit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-By default, MongoDB cannot move a chunk if the number of documents in
-the chunk is greater than 1.3 times the result of dividing the
-configured :ref:`chunk size<sharding-chunk-size>` by the average
+By default, MongoDB cannot move a range if the number of documents in
+the range is greater than 2 times the result of dividing the
+configured :ref:`range size<sharding-range-size>` by the average
 document size.
 
 Starting in MongoDB 4.4, by specifying the balancer setting
 ``attemptToBalanceJumboChunks`` to ``true``, the balancer can migrate
-these large chunks as long as they have not been labeled as
+these large ranges as long as they have not been labeled as
 :ref:`jumbo <jumbo-chunk>`. 
 
 To set the balancer's ``attemptToBalanceJumboChunks`` setting, connect
@@ -446,22 +450,22 @@ instance, issue the following command:
       { upsert: true }
    )
 
-When the balancer attempts to move the chunk, if the queue of writes
+When the balancer attempts to move the range, if the queue of writes
 that modify any documents being migrated surpasses 500MB of memory the
 migration will fail. For details on the migration procedure, see
-:ref:`chunk-migration-procedure`.
+:ref:`range-migration-procedure`.
 
-If the chunk you want to move is labeled ``jumbo``, you can
+If the range you want to move is labeled ``jumbo``, you can
 :ref:`manually clear the jumbo flag <clear-jumbo-flag-manually>` to
-have the balancer attempt to migrate the chunk.
+have the balancer attempt to migrate the range.
 
-You can also manually migrate chunks that exceed the size limit 
+You can also manually migrate ranges that exceed the size limit 
 (with or without the ``jumbo`` label) using either:
 
 - the :dbcommand:`moveRange` command with the 
   :ref:`forceJumbo: true <moverange-forceJumbo>` option
 - the :dbcommand:`moveChunk` command with the
-  :ref:`forceJumbo: true <movechunk-forceJumbo>` option
+  :ref:`forceJumbo: true <moverange-forceJumbo>` option
 
 However, when you run :dbcommand:`moveRange` or :dbcommand:`moveChunk`
 with ``forceJumbo: true``, write operations to the collection may block 
