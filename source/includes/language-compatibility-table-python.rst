@@ -7,6 +7,7 @@ Python 3 Compatibility
    :class: compatibility-large
 
    * - PyMongo Driver Version
+     - Python 3.11
      - Python 3.10 [#ssl-4.0-issue]_
      - Python 3.9
      - Python 3.8
@@ -19,7 +20,22 @@ Python 3 Compatibility
      - Python 3.2
      - Python 3.1
 
+   * - 4.3
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+
    * - 4.2
+     - 
      - ✓
      - ✓
      - ✓
@@ -33,6 +49,7 @@ Python 3 Compatibility
      -
 
    * - 4.1
+     -
      - ✓
      - ✓
      - ✓
@@ -46,6 +63,7 @@ Python 3 Compatibility
      -
 
    * - 4.0
+     -
      - ✓
      - ✓
      - ✓
@@ -59,6 +77,7 @@ Python 3 Compatibility
      -
 
    * - 3.12
+     -
      - ✓
      - ✓
      - ✓
@@ -73,6 +92,7 @@ Python 3 Compatibility
 
    * - 3.11
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -85,6 +105,7 @@ Python 3 Compatibility
      -
 
    * - 3.10
+     -
      -
      -
      - ✓
@@ -101,6 +122,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -114,6 +136,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -124,6 +147,7 @@ Python 3 Compatibility
      -
 
    * - 3.7
+     -
      -
      -
      -
@@ -141,6 +165,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -150,6 +175,7 @@ Python 3 Compatibility
      -
 
    * - 3.5
+     -
      -
      -
      -
@@ -168,6 +194,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -176,6 +203,7 @@ Python 3 Compatibility
      -
 
    * - 3.3
+     -
      -
      -
      -
@@ -194,6 +222,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -202,6 +231,7 @@ Python 3 Compatibility
      -
 
    * - 3.1
+     -
      -
      -
      -
@@ -221,6 +251,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -228,6 +259,7 @@ Python 3 Compatibility
      -
 
    * - 2.9
+     -
      -
      -
      -
@@ -247,6 +279,7 @@ Python 3 Compatibility
      -
      -
      -
+     -
      - ✓
      - ✓
      - ✓
@@ -254,6 +287,7 @@ Python 3 Compatibility
      - ✓
 
    * - 2.7
+     -
      -
      -
      -
