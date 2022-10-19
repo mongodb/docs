@@ -84,5 +84,4 @@ a client certificate that your {+kmip-kms+} accepts:
       .. important::
       
          You must use certificates with `ECDSA keys <https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm>`__ 
-         when using the Go driver.
-         
+         when using the Go driver with `PyKMIP <https://github.com/OpenKMIP/PyKMIP>`__.
