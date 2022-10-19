@@ -1,5 +1,3 @@
-.. _`alert configuration`: /manage-alert-configurations
-
 .. list-table::
    :widths: 30 70
    :header-rows: 1
@@ -14,7 +12,7 @@
      - Default service key for alert notifications sent to a
        `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`__
        account. |mms| enters the key by default when you add a
-       PagerDuty notification to an `alert configuration`_. If you add
+       PagerDuty notification to an :ref:`alert configuration <configure-alerts>`. If you add 
        PagerDuty notifications and if the key used to send the
        notifications becomes invalid, |mms| sends an email to the
        project owner and eventually removes the key.
@@ -37,7 +35,7 @@
 
           Default room and |api| token for alert notifications sent to
           a HipChat account. |mms| enters the values by default when
-          you add a HipChat notification to an `alert configuration`_.
+          you add a HipChat notification to an :ref:`alert configuration <configure-alerts>`.
           If you add HipChat notifications and the token used to send
           notifications becomes invalid, |mms| sends an email to the
           :authrole:`Project Owner` and eventually removes the token.
@@ -80,7 +78,7 @@
 
        Enter the following information from your VictorOps account. If
        you do not have an existing VictorOps account, you can
-       `sign up <https://help.victorops.com/knowledge-base/new-user-sign/>`__.
+       `sign up <https://portal.victorops.com/membership/#/onboarding/create-org>`__.
 
        - VictorOps API Key
        - VictorOps Routing Key (optional)
@@ -98,27 +96,6 @@
 
        - Opsgenie API Key
        - API Region (United States only)
-   * - New Relic Settings
-
-     - .. include:: /includes/fact-new-relic-deprecated.rst
-
-       Configuration |mms| uses to send metric data about your
-       deployment to `New Relic <http://newrelic.com/>`__ for viewing
-       through the New Relic MongoDB plugin. You can also use Insights
-       for New Relic to run analytics on the collected data.
-
-       Enter the following information from your New Relic account. If
-       you do not have an existing New Relic account, you can
-       `sign up <http://newrelic.com/mongodb>`_.
-
-       - Account ID
-       - License Key
-       - Insights API Insert Key
-       - Insights API Query Key
-
-       If any of the keys later become invalid, |mms| sends an
-       email to the project owner and eventually removes the invalid
-       credentials.
 
    * - Datadog Settings
 
@@ -151,12 +128,12 @@
 
        To send alert notifications to a Webhook, select the Webhook
        notification option when creating or editing an
-       `alert configuration`_. If you add a Webhook notification and
+       :ref:`alert configuration <configure-alerts>`. If you add a Webhook notification and
        the |url| or optional key becomes invalid, |mms| sends an email
        to the :authrole:`Project Owner` and eventually removes the
        Webhook settings.
 
-   * - :guilabel:`Microsoft Teams Webhook URL`
+   * - Microsoft Teams Webhook URL
 
      - Configures |mms| to send alerts about your project to 
        your `Microsoft Teams <https://www.microsoft.com/en-us/microsoft-teams/group-chat-software/>`_  
@@ -172,3 +149,10 @@
 
        To setup the integration, see 
        :ref:`Integrate with Microsoft Teams <mms-integrate-with-microsoft-teams>`.
+
+   * - Prometheus Settings
+   
+     - Configures |mms| to send metric data about your deployment
+       to your |prometheus| instance. To learn more, see
+       :ref:`prometheus-integration-mms`.
+  
