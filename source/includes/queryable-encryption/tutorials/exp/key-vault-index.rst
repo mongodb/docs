@@ -35,6 +35,8 @@ Create a unique index on the ``keyAltNames`` field in your
    .. tab::
       :tabid: go
 
+      .. include:: /includes/queryable-encryption/tutorials/go-build-constraint.rst
+
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
          :start-after: start-create-index
          :end-before: end-create-index
