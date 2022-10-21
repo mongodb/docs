@@ -1,3 +1,15 @@
+.. _mongodb-11.0.21.7116:
+
+MongoDB Agent 11.0.21.7116
+--------------------------
+
+:ref:`Released with Ops Manager 5.0.16 on 2022-10-20 <opsmgr-server-5.0.16>`
+
+- Removes support for unsetting the global default write concern on 
+  MongoDB 5.0 and later. The MongoDB Agent now treats 
+  ``DefaultRWConcern`` with null or empty values as unmanaged and no 
+  longer attempts to unset the value.
+
 .. _mongodb-11.0.20.7108:
 
 MongoDB Agent 11.0.20.7108
