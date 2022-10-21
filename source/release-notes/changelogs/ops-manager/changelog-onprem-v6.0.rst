@@ -1,3 +1,13 @@
+.. _opsmgr-server-6.0.5:
+
+|onprem| Server 6.0.5
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-10-20*
+
+- Updates ``commons-text`` to 1.10.0 to address 
+  :cve-id:`CVE-2022-42889 <CVE-2022-42889>`.
+
 .. _opsmgr-server-6.0.4:
 
 |onprem| Server 6.0.4
