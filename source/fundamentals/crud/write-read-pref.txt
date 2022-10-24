@@ -1,0 +1,269 @@
+.. _golang-write-read-pref:
+
+===================================
+Modify Execution of CRUD Operations
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to modify the way that the {+driver-long+}
+executes create, read, update, and delete (CRUD) operations using
+**write concern**, **read concern**, and **read preference** configurations
+for replica sets.
+
+You can set write concern, read concern, and read preference options at
+the following levels:
+
+- Client level, which sets the *default for all operation executions*
+  unless overridden
+- Session level
+- Transaction level
+- Database level
+- Collection level
+- Query level
+
+You should read this guide if you need to customize the consistency and
+availability of the data in your replica sets.
+
+Write Concern
+-------------
+
+A write concern describes the number of data-bearing
+members in a replica set that must acknowledge a write operation, such
+as an insert or update, before the operation is returned as successful.
+By default, the write concern requires only the primary
+replica set member to acknowledge the write operation before the
+operation is deemed successful.
+
+Options
+~~~~~~~
+
+The {+driver-long+} provides the ``writeconcern`` package, which lets
+you specify the write concern for a replica set. Set the write
+concern using the ``SetWriteConcern()`` method with an ``Option``
+type. The ``Option`` type has the following methods to specify the
+write concern:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``J()``
+     - | The client requests acknowledgement that write operations are written to the
+         journal. For more information, see the
+         :rapid:`Write Concern specification </reference/write-concern/#j-option>`.
+       |
+       | **Parameter**: ``bool``
+
+   * - ``W()``
+     - | The client requests acknowledgement that write operations propagate to the
+         specified number of ``mongod`` instances. For more information, see the
+         :rapid:`Write Concern specification </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->`.
+       |
+       | **Parameter**: ``int``
+
+   * - ``WMajority()``
+     - | The client requests acknowledgement that write operations propagate to the
+         majority of ``mongod`` instances. For more information, see the
+         :rapid:`Write Concern specification
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-majority->`.
+       |
+       | **Parameter**: none
+
+   * - ``WTagSet()``
+     - | The client requests acknowledgement that write operations propagate to the
+         specified ``mongod`` instance. For more
+         information, see the :rapid:`Write Concern specification
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-custom-write-concern-name->`.
+       |
+       | **Parameter**: ``string``
+       
+.. tip::
+
+   You can alternatively specify a write concern in your connection
+   string. See the :manual:`Server Manual entry on Write Concern Options
+   </reference/connection-string/#write-concern-options>` for more information.
+
+Example
+~~~~~~~
+
+The following code shows how you can specify a write concern to request
+acknowledgement from two replica set members. The code then creates a ``Client``
+with this option.
+
+.. code-block:: go
+   :emphasize-lines: 2-3
+   
+   uri := "mongodb://<hostname>:<port>"
+   wc := writeconcern.W(2)
+   opts := options.Client().ApplyURI(uri).SetWriteConcern(writeconcern.New(wc))
+   client, err := mongo.Connect(context.TODO(), opts)
+
+Read Concern
+------------
+
+The read concern option allows you to determine which data the client
+returns from a query. The default read concern level is "local", meaning
+that the client returns the instance’s most recent data, with no guarantee that
+the data has been written to a majority of the replica set members.
+
+Options
+~~~~~~~
+
+The {+driver-long+} provides the ``readconcern`` package, which lets
+you specify the read concern for a replica set. Set the read concern using the
+``SetReadConcern()`` method with a ``ReadConcern`` type. The ``ReadConcern``
+type has the following methods to specify the read concern:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``Available()``
+     - The query returns data from the instance
+       with no guarantee that the data has been written to a majority of
+       the replica set members. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-available/#mongodb-readconcern-readconcern.-available->`.
+
+   * - ``Linearizable()``
+     - The query returns data that reflects all
+       successful writes issued with a write concern of ``majority`` and
+       acknowledged prior to the start of the read operation. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-linearizable/#mongodb-readconcern-readconcern.-linearizable->`.
+
+   * - ``Local()``
+     - The query returns the instance’s most recent
+       data. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-local/#mongodb-readconcern-readconcern.-local->`.
+
+   * - ``Majority()``
+     - The query returns the instance’s most recent
+       data acknowledged as having been written to a majority of members
+       in the replica set. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-majority/#mongodb-readconcern-readconcern.-majority->`.
+
+   * - ``Snapshot()``
+     - The query returns a complete copy of the
+       data in a ``mongod`` instance at a specific point in time. Only
+       available for operations within multi-document transactions. For more information, see the
+       :rapid:`Read Concern specification </reference/read-concern-snapshot/#mongodb-readconcern-readconcern.-snapshot->`.
+
+Example
+~~~~~~~
+
+The following code shows how you can specify a read concern of
+"majority". The code then selects a ``Collection``
+with this option.
+
+.. code-block:: go
+   :emphasize-lines: 1-2
+
+   rc := readconcern.Majority()
+   opts := options.Collection().SetReadConcern(rc)
+   database := client.Database("myDB")
+   coll := database.Collection("myCollection", opts)
+
+Read Preference
+---------------
+
+The read preference option specifies how the MongoDB client routes read
+operations to the members of a replica set. By default, an application
+directs its read operations to the primary member in a replica set.
+
+Read preference consists of the read preference mode and, optionally, a
+:rapid:`tag set list </core/read-preference-tags/>`, the
+:rapid:`maxStalenessSeconds </core/read-preference-staleness/>` option, and the
+:rapid:`hedged read </core/read-preference-hedge-option/>` option.
+
+Options
+~~~~~~~
+
+The {+driver-long+} provides the ``readpref`` package, which lets
+you specify the read preference for a replica set. Set the read preference using the
+``SetReadPreference()`` method with a ``ReadPref`` type. The ``ReadPref``
+type has the following methods to specify the read preference:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Method
+     - Description
+
+   * - ``Nearest()``
+     - The client reads from a random eligible replica set member,
+       primary or secondary, based on a specified latency threshold. For more information, see the
+       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-nearest>`.
+
+   * - ``Primary()``
+     - The client reads from the current replica set primary node. For more information, see the
+       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-primary>`.
+
+   * - ``PrimaryPreferred()``
+     - The client reads from the primary node in most situations. If the primary is
+       unavailable, operations read from secondary members. For more
+       information, see the :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-primaryPreferred>`.
+
+   * - ``Secondary()``
+     - The client reads from the secondary members of the replica set. For more information, see the
+       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-secondary>`.
+
+   * - ``SecondaryPreferred()``
+     - The client reads from the secondary nodes in most situations. If the secondaries are
+       unavailable, operations read from the primary member. For more information, see the
+       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-secondaryPreferred>`.
+
+.. tip::
+
+   You can alternatively specify a read preference in your connection
+   string. See the :manual:`Server Manual entry on Read Preference
+   Options </reference/connection-string/#read-preference-options>` for
+   more information.
+
+Example
+~~~~~~~
+
+The following code shows how you can specify a read preference to read
+from secondary nodes. The code then selects a ``Database``
+with this option.
+
+.. code-block:: go
+   :emphasize-lines: 1-2
+
+   rp := readpref.Secondary()
+   opts := options.Database().SetReadPreference(rp)
+   database := client.Database("myDB", opts)
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following
+Server documentation:
+
+- :ref:`Connection Guide <golang-connection-guide>`
+- :rapid:`Write Concern for Replica Sets </core/replica-set-write-concern/>`
+- :rapid:`Read Concern </reference/read-concern/>`
+- :rapid:`Read Preference </core/read-preference/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `Option <{+api+}/mongo/writeconcern#Option>`__
+- `WriteConcern <{+api+}/mongo/writeconcern#WriteConcern>`__
+- `ReadConcern <{+api+}/mongo/readconcern#ReadConcern>`__
+- `ReadPref <{+api+}/mongo/readpref#ReadPref>`__
