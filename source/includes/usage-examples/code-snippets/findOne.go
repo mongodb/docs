@@ -36,24 +36,25 @@ func main() {
 
 	type Address struct {
 		Building    string
-		Coordinates [2]float64
+		Coordinates [2]float64 `bson:"coord"`
 		Street      string
 		Zipcode     string
 	}
 
 	type Grades struct {
 		Date  primitive.DateTime
-		Grade string `bson:"grade"`
-		Score int    `bson:"score"`
+		Grade string
+		Score int
 	}
 
 	type Restaurant struct {
-		Address      Address  `bson:"address"`
-		Borough      string   `bson:"borough"`
-		Cuisine      string   `bson:"cuisine"`
+		ID           primitive.ObjectID `bson:"_id"`
+		Name         string
+		RestaurantId string `bson:"restaurant_id"`
+		Cuisine      string
+		Address      Address
+		Borough      string
 		Grades       []Grades `bson:"grades"`
-		Name         string   `bson:"name"`
-		RestaurantId string   `bson:"restaurant_id"`
 	}
 
 	// begin findOne
@@ -62,6 +63,7 @@ func main() {
 
 	var result Restaurant
 	err = coll.FindOne(context.TODO(), filter).Decode(&result)
+
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// This error means your query did not match any documents.
