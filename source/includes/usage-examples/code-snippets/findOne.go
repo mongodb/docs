@@ -55,7 +55,7 @@ func main() {
 		Cuisine      string
 		Address      Address
 		Borough      string
-		Grades       []Grades `bson:"grades"`
+		Grades       []Grades
 	}
 	// end-restaurant-struct
 
