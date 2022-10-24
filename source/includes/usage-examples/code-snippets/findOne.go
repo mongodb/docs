@@ -47,6 +47,7 @@ func main() {
 		Score int
 	}
 
+	// start-restaurant-struct
 	type Restaurant struct {
 		ID           primitive.ObjectID `bson:"_id"`
 		Name         string
@@ -56,6 +57,7 @@ func main() {
 		Borough      string
 		Grades       []Grades `bson:"grades"`
 	}
+	// end-restaurant-struct
 
 	// begin findOne
 	coll := client.Database("sample_restaurants").Collection("restaurants")
