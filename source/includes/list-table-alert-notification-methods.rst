@@ -183,3 +183,16 @@
 
        To setup the integration, see 
        :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
+
+   * - Webhook
+        
+     - Sends an |http| POST
+       request to an endpoint for programmatic processing. The 
+       request body contains a |json| document that uses the same
+       format as the {+atlas-admin-api+}
+       :ref:`Alerts resource <reference-api-alerts>`. 
+        
+       This option is available only if you have configured Webhook 
+       settings on the :ref:`Integrations 
+       <third-party-integrations>` page.
+  
