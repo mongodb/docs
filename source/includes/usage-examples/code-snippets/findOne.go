@@ -14,6 +14,19 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-restaurant-struct
+type Restaurant struct {
+	ID           primitive.ObjectID `bson:"_id"`
+	Name         string
+	RestaurantId string `bson:"restaurant_id"`
+	Cuisine      string
+	Address      interface{}
+	Borough      string
+	Grades       []interface{}
+}
+
+// end-restaurant-struct
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -33,31 +46,6 @@ func main() {
 			panic(err)
 		}
 	}()
-
-	type Address struct {
-		Building    string
-		Coordinates [2]float64 `bson:"coord"`
-		Street      string
-		Zipcode     string
-	}
-
-	type Grades struct {
-		Date  primitive.DateTime
-		Grade string
-		Score int
-	}
-
-	// start-restaurant-struct
-	type Restaurant struct {
-		ID           primitive.ObjectID `bson:"_id"`
-		Name         string
-		RestaurantId string `bson:"restaurant_id"`
-		Cuisine      string
-		Address      Address
-		Borough      string
-		Grades       []Grades
-	}
-	// end-restaurant-struct
 
 	// begin findOne
 	coll := client.Database("sample_restaurants").Collection("restaurants")
