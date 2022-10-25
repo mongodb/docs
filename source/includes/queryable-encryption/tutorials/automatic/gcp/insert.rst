@@ -1,7 +1,7 @@
 .. _qe-gcp-insert:
 
 Use your {+qe+} enabled
-``MongoClient`` instance to insert an encrypted document into the
+``MongoClient`` instance to insert a {+in-use-doc+} into the
 ``medicalRecords.patients`` namespace using the following code
 snippet:
 

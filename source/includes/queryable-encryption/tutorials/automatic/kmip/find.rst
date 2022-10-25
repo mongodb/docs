@@ -1,4 +1,4 @@
-Retrieve the encrypted document you inserted in the
+Retrieve the {+in-use-doc+} you inserted in the
 :ref:`Insert a Document with Encrypted Fields <qe-kmip-insert>`
 step of this guide.
 
