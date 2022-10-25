@@ -54,7 +54,8 @@ a client certificate that your {+kmip-kms+} accepts:
       .. important::
       
          Your client certificate must be in pcks12 format. You can convert
-         your certificate using openssl with the following command:
+         your certificate using your certificate using `OpenSSL <https://www.openssl.org/source/>`__
+         with the following command:
 
          .. code-block:: shell
          

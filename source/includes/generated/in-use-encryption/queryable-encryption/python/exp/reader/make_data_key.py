@@ -8,10 +8,12 @@ from bson.binary import STANDARD, UUID
 
 import os
 
+# start-local-cmk
 path = "master-key.txt"
 file_bytes = os.urandom(96)
 with open(path, "wb") as f:
     f.write(file_bytes)
+# end-local-cmk
 
 # start-kmsproviders
 provider = "local"

@@ -6,15 +6,68 @@ You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
 Create a 96-byte {+cmk-long+} and save it to your filesystem,
 as the file ``master-key.txt``:
 
-.. code-block:: shell
+.. tabs-drivers::
 
-   openssl rand 96 > master-key.txt
+   .. tab::
+      :tabid: shell
 
-.. note:: Use a Programming Language to Create a {+cmk-long+}
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/make_data_key.js
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: javascript
+         :caption: make_data_key.js
+         :dedent:
 
-   If you would rather use your preferred programming language to generate
-   your {+cmk-abbr+}, you can view code snippets demonstrating how to generate a
-   {+cmk-long+} in each of the supported languages of this
-   guide on `GitHub <{+csfle-code-snippets-gen-keys+}>`__.
+   .. tab::
+      :tabid: nodejs
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/local/reader/make_data_key.js
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: javascript
+         :caption: make_data_key.js
+         :dedent:
+
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/local/reader/make_data_key.py
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: python
+         :caption: make_data_key.py
+         :dedent:
+
+   .. tab::
+      :tabid: java-sync
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/local/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: java
+         :dedent:
+         :caption: MakeDataKey.java
+
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/local/reader/make-data-key.go
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: go
+         :caption: make-data-key.go
+         :dedent:
+
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/local/reader/QueryableEncryption/MakeDataKey.cs
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: csharp
+         :dedent:
+         :caption: MakeDataKey.cs
 
 .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
+
+.. include:: /includes/in-use-encryption/cmk-bash.rst
