@@ -1,0 +1,265 @@
+stepnum: 1
+level: 4
+ref: create-private-endpoint-cli
+title: "Create the private endpoint in |service|."
+content: |
+
+  a. Run the {+atlas-cli+} command to create a private endpoint in |service|:
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-gcp-create-2.rst
+
+  b. Note the private endpoint's ID in the response. In this example,
+     the ID is ``6344ac8f51b94c6356527881``. 
+
+     .. code-block:: json 
+        :copyable: false
+
+        Private endpoint '6344ac8f51b94c6356527881' created.
+
+---
+stepnum: 2
+level: 4
+ref: get-private-endpoint-service-name-cli
+title: "Wait for the private endpoint to become available."
+content: |
+
+  .. note::
+
+     It might take |service| some time to provision the private
+     endpoint. Wait 1-2 minutes before you complete this step.
+
+  Run the {+atlas-cli+} command to describe the private endpoint using its ID:
+
+  .. include:: /includes/extracts/atlas-privateEndpoints-gcp-describe-2.rst
+
+  The following shows a sample output:
+
+  .. code-block:: json
+     :copyable: false
+
+     ID                          GROUP NAME      REGION        STATUS          ERROR
+     6344ac8f51b94c6356527881    N/A             CENTRAL_US    AVAILABLE  
+
+  If the ``STATUS`` value is ``INITIATING``, wait 1-2 more
+  minutes for |service| to provision the private endpoint. Then, try this step again.
+
+---
+stepnum: 3
+level: 4
+ref: create-interface-endpoint-gcp-cli
+title: "Create the interface endpoint in GCP."
+content: |
+
+  a. Create a shell script file named ``setup_psc.sh``.
+  #. Copy and paste the following code into the
+     ``setup_psc.sh`` file, replacing the following placeholders
+     with your values:
+
+     .. list-table::
+        :widths: 20 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - {PROJECT-ID}
+          - Unique string that identifies your project.
+
+        * - {ENDPOINT}
+          - Unique string that identifies your private endpoint. This is
+            the prefix for all forwarding rules you create.
+
+        * - {REGION}
+          - |gcp| region in which your database deployment resides.
+
+        * - {SUBNET}
+          - When you create Private Service Connect endpoints, you
+            specify a subnet in your VPC network; you may either create a
+            new subnet to encapsulate your endpoints or use an existing
+            one. This subnet needs to have at least 50 unassigned IP
+            addresses.
+
+        * - {VPC-NAME}
+          - Name of the VNet that you want to use to connect to Atlas.
+            You can find this value on the VPC Network page on your |gcp|
+            dashboard.
+
+        * - {ENDPOINT-ID}
+          - Unique string that identifies your endpoint. This is the
+            prefix value from the previous step.
+
+     .. code-block:: sh
+        
+        #!/bin/bash
+        gcloud config set project {PROJECT-ID}
+        for i in {0..5}
+        do
+          gcloud compute addresses create {ENDPOINT}-ip-$i --region{REGION}= --subnet={SUBNET}
+        done
+        for i in {0..5}
+        do
+          if [ $(gcloud compute addresses describe {ENDPOINT}-ip-$i --region={REGION} --format="value(status)") != "RESERVED" ]; then
+            echo "{ENDPOINT}-ip-$i is not RESERVED";
+            exit 1;
+          fi
+        done
+        for i in {0..5}
+        do
+          gcloud compute forwarding-rules create {ENDPOINT}-$i --region={REGION} --network={VPC-NAME} --address={ENDPOINT}-ip-$i --target-service-attachment=projects/p-pwotcuahitpx0qg19rjvx5kp/regions/{REGION}/serviceAttachments/sa-{REGION}-{ENDPOINT-ID}-$i
+        done
+
+  #. Run the shell file
+     
+     .. io-code-block::
+        :copyable: true 
+
+        .. input::
+           :language: bash
+
+           sh setup_psc.sh
+        
+        .. output::
+
+           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/addresses/-ip-0].,
+           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/addresses/-ip-1].,
+           ...
+           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/addresses/-ip-49].,
+           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/forwardingRules/-ip-0].,
+           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/forwardingRules/-ip-1].,
+           ...
+           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/forwardingRules/-ip-49].
+
+  #. Run the following command to generate a list of your |gcp|
+     forwarding addresses and store them in a file called
+     ``atlasEndpoints.txt``, replacing the following placeholders from
+     the previous step:
+
+     .. list-table::
+        :widths: 20 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - {REGION}
+          - |gcp| region in which your database deployment resides.
+
+        * - {ENDPOINT}
+          - Unique string that identifies your private endpoint. This is
+            the prefix for all forwarding rules you create.
+
+     .. code-block:: sh
+  
+        gcloud compute forwarding-rules list --regions={REGION} --format="csv(name,IPAddress)" --filter="name:({ENDPOINT}*)" > atlasEndpoints.txt
+
+---
+stepnum: 4
+level: 4
+ref: reformat-private-endpoint-gcp-cli-file
+title: "Update the format of the ``atlasEndpoints.txt`` file."
+content: |
+
+  Run the following command to reformat the contents of 
+  ``atlasEndpoints.txt``:
+
+  .. code-block::
+     
+     sed -i '' '1d' atlasEndpoints.txt
+     tr -s ',' '@' <atlasEndpoints.txt>atlasEndpoints2.txt
+     tr -s '\n' ',' <atlasEndpoints2.txt>atlasEndpoints.txt
+     sed -i '' '$ s/.$//' atlasEndpoints.txt
+     rm atlasEndpoints2.txt
+
+  .. note::
+
+     You use the contents of ``atlasEndpoints.txt`` in the next step 
+     as the value for the ``endpoint`` parameter.
+---
+stepnum: 5
+level: 4
+ref: update-private-endpoint-gcp-cli
+title: "Update your private endpoint with the VPC Endpoint ID."
+content: |
+
+  a. Run the {+atlas-cli+} command to 
+     create an interface endpoint in |service| using the |service|
+     endpoint ID and the VPC Endpoint ID. In this example, you
+     would set the following parameters:
+     
+     .. list-table::
+        :widths: 33 33 33
+        :header-rows: 1
+
+        * - Parameter
+          - Type
+          - Example Value
+     
+        * - ``endpointGroupId``
+          - Argument
+          - ``tester-1``
+     
+        * - ``endpointServiceId``
+          - Option
+          - ``6344ac8f51b94c6356527881``
+
+        * - ``gcpProjectId``
+          - Option
+          - ``atlascli-private-endpoints``
+        
+        * - ``endpoint``
+          - Option
+          - ``tester-1@10.142.0.1,tester-2@10.142.0.2, ... , tester-49@10.142.0.49, tester-50@10.142.0.50``
+            
+            .. note:: 
+
+               The ``...`` represents 46 other endpoints in between.
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-gcp-interfaces-create-2.rst
+
+---
+stepnum: 6
+level: 4
+ref: get-private-endpoint-status-cli
+title: "Verify the private endpoint's availability."
+content: |
+
+  You can connect to the {+database-deployment+} using the 
+  {+gcp-psc+} private endpoint after |service| finishes configuring all
+  of the resources and the private endpoint becomes available.
+
+  To verify that the |gcp| private endpoint is available: 
+   
+  a. Run the {+atlas-cli+} command to 
+     describe the interface endpoint using its ID. In this example, you
+     would use the following parameters from the previous step:
+     
+     .. list-table::
+        :header-rows: 1
+
+        * - Parameter
+          - Type
+          - Example Value
+     
+        * - ``id``
+          - Argument
+          - ``tester-1``
+
+        * - ``endpointServiceId``
+          - Option
+          - ``6344ac8f51b94c6356527881``
+
+     .. include:: /includes/extracts/atlas-privateEndpoints-gcp-interfaces-describe-2.rst
+
+  b. Verify that the ``STATUS`` field's value is ``AVAILABLE`` as shown
+     in the following example:
+
+     .. code-block:: json
+        :copyable: false
+
+        ENDPOINT              STATUS            DELETE REQUESTED
+        tester-1              AVAILABLE         false
+
+     If the ``STATUS`` value is ``VERIFIED``, wait 1-2 more minutes for
+     |service| to make your private endpoint available.
+
+...
