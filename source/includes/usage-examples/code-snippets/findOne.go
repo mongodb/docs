@@ -9,9 +9,23 @@ import (
 
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// start-restaurant-struct
+type Restaurant struct {
+	ID           primitive.ObjectID `bson:"_id"`
+	Name         string
+	RestaurantId string `bson:"restaurant_id"`
+	Cuisine      string
+	Address      interface{}
+	Borough      string
+	Grades       []interface{}
+}
+
+// end-restaurant-struct
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -34,10 +48,12 @@ func main() {
 	}()
 
 	// begin findOne
-	coll := client.Database("sample_mflix").Collection("movies")
-	
-	var result bson.M
-	err = coll.FindOne(context.TODO(), bson.D{{"title", "The Room"}}).Decode(&result)
+	coll := client.Database("sample_restaurants").Collection("restaurants")
+	filter := bson.D{{"name", "Bagels N Buns"}}
+
+	var result Restaurant
+	err = coll.FindOne(context.TODO(), filter).Decode(&result)
+
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// This error means your query did not match any documents.
