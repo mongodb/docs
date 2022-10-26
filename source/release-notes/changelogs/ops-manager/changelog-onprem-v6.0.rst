@@ -19,7 +19,7 @@
 - Compatible with :db-tools:`MongoDB Database Tools 100.6.0 
   </release-notes/database-tools-changelog/#100.6.0-changelog>`.
 - Uses amazon2 packages instead of RHEL7 packages on amazon2 hosts for
-  MongoDB Database Tools. If you run |onprem| in the :doc:`Local Mode
+  :dl:`MongoDB Database Tools <database-tools>`. If you run |onprem| in the :doc:`local mode
   </tutorial/configure-local-mode>`, you can download
   amazon2 MongoDB Database Tools binaries via the {+mdbagent+}.
 - Fixes an issue where the :guilabel:`Project List` was overriden in the

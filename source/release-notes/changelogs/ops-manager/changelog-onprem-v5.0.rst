@@ -7,6 +7,12 @@
 
 - Updates ``commons-text`` to 1.10.0 to address 
   :cve-id:`CVE-2022-42889 <CVE-2022-42889>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.6.0 
+  </release-notes/database-tools-changelog/#100.6.0-changelog>`.
+- Uses amazon2 packages instead of RHEL7 packages on amazon2 hosts for
+  :dl:`MongoDB Database Tools <database-tools>`. If you run |onprem| in the :doc:`local mode
+  </tutorial/configure-local-mode>`, you can download
+  amazon2 MongoDB Database Tools binaries via the {+mdbagent+}.
 
 .. _opsmgr-server-5.0.15:
 
