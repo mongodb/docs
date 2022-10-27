@@ -196,10 +196,21 @@ limitations and considerations:
      - Changes to :doc:`custom roles </security-add-mongodb-roles/>` may
        take up to 30 seconds to deploy in {+serverless-instances+}.
 
-   * - Reading from the Oplog
-     - {+Serverless-instances+} don't provide direct
-       read access to the oplog or any other collection in the ``local``
-       database.
+   * - Access to Collections in ``local``, ``admin``, and ``config`` Databases
+     - {+Serverless-instances+} don't allow:
+     
+       - Read access to the oplog or any other collection in the ``local`` database.
+       - Write access to any collection in the ``local`` and ``config`` databases.
+       - Read or write access to any collection in the ``admin`` database. 
+
+       |service| issues an error similar to the following if you attempt
+       to read or write to collections in these databases:
+       
+       .. code-block:: none
+          :copyable: false
+       
+          command <cmd name> is not allowed in this Atlas tier
+          (Unauthorized) not authorized on <db name> to execute command <cmd name>
 
    * - :manual:`Change Streams </changeStreams/>`
      - {+Serverless-instances+} don't support change streams.
