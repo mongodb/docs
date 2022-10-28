@@ -72,3 +72,4 @@ The output of the preceding code snippet should look like this:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/find-output.out
    :language: text
+   :copyable: false

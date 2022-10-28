@@ -298,6 +298,7 @@ The output from the code in this section should resemble the following:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/dek-output.out
    :language: text
+   :copyable: false
 
 .. tip:: Learn More
 

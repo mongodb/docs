@@ -67,4 +67,4 @@ encrypts the fields of your document such that it resembles the following:
 
 .. literalinclude:: /includes/quick-start/inserted-doc-enc.json
    :language: json
-   :copyable:
+   :copyable: false

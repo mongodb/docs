@@ -138,5 +138,6 @@
       The output from the code above should resemble the following:
 
       .. code-block:: none
+         :copyable: false
 
          DataKeyId [base64]: 3k13WkSZSLy7kwAAP4HDyQ==

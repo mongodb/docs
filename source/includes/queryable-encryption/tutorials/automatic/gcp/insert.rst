@@ -72,6 +72,6 @@ encrypts the fields of your document such that it resembles the following:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/inserted-doc-enc.json
    :language: json
-   :copyable:
+   :copyable: false
 
 .. include:: /includes/queryable-encryption/safe-content-warning.rst
