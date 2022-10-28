@@ -12,8 +12,8 @@ Review Index Ranking
    :depth: 1
    :class: singlecol
 
-The :manual:`indexes </indexes>` suggested by the |pa| are ordered by
-their respective :guilabel:`Impact` scores. :guilabel:`Impact` indicates
+The |pa| orders the :manual:`indexes </indexes>` that it suggests by
+their respective :guilabel:`Impact`. :guilabel:`Impact` indicates
 the estimated performance improvement that the suggested index would
 bring.
 
@@ -34,18 +34,20 @@ the shape:
 
 - Number of documents returned.
 
+- Average object size.
+
 To establish recommended indexes, the |pa| uses these metrics in a
 formula to calculate the :guilabel:`Impact`, or performance improvement
-that creating an index matching that query shape would cause. The |pa|
-compares the amount of time spent executing index-specific operations to
-the total operational latency in the deployment. When the |pa| suggests
-indexes, the indexes are ranked by their :guilabel:`Impact` score.
+that creating an index matching that query shape would cause. When the 
+|pa| suggests indexes, it ranks the indexes by their 
+:guilabel:`Impact`. The :guilabel:`Impact` indicates :guilabel:`High` 
+or :guilabel:`Medium` based on the total wasted bytes read.
 
 Index Field Order
 -----------------
 
 The type of query operation in the query shape affects the order of the
-fields used to construct the index. In general, fields are ranked by
+fields used to construct the index. In general, the |pa| ranks fields by
 their :term:`cardinality`.
 
 The following table shows how the |pa| ranks various operation types by
@@ -90,24 +92,17 @@ order of relative importance:
 Limiting Proposed Indexes
 -------------------------
 
-The |pa| does not suggest indexes which:
+The |pa| doesn't suggest indexes that have more than 16 fields.
 
-- Have more than 16 fields, and/or
+Also, the |pa| suggests the index only if the difference between 
+scanned documents and returned documents is greater than 500 for 
+impacted queries.
 
-- Contain ``_id`` as a field key.
-
-Additionally, the |pa| only suggests the index if:
-
-- For impacted queries, the difference between scanned documents and
-  returned documents is greater than 500, and
-
-- At least 60 seconds cumulatively were spent executing impacted
-  queries over the past 24 hours.
 
 Index De-Duplication
 ~~~~~~~~~~~~~~~~~~~~
 
-The |pa| de-duplicates overlapping indexes before making suggestions.
+The |pa| de-duplicates overlapping indexes before it makes suggestions.
 For example, consider if the |pa| calculates the following potential
 suggested indexes:
 
@@ -117,17 +112,17 @@ suggested indexes:
    { a : 1 }
    { a : 1, b : 1 }
 
-Since ``{ a : 1 }`` is a prefix of ``{ a : 1, b : 1 }``, |pa| only
-suggests ``{ a : 1, b : 1 }``. For more information on index prefixes,
+Since ``{ a : 1 }`` is a prefix of ``{ a : 1, b : 1 }``, |pa|
+suggests only ``{ a : 1, b : 1 }``. To learn more about index prefixes,
 see :manual:`Prefixes </core/index-compound/#prefixes>`.
 
 Example: New York City Taxi Data
 --------------------------------
 
-This example uses a database named ``cab-db`` containing information about
-New York City taxi rides, with fields for the times of pickup and dropoff,
-ride distance, and a breakdown of ride costs. A typical document in the
-collection ``yellow`` looks like this:
+This example uses a database named ``cab-db`` that contains information 
+about New York City taxi rides, with fields for the times of pickup and 
+dropoff, ride distance, and a breakdown of ride costs. A typical 
+document in the collection ``yellow`` looks like the following example:
 
 .. code-block:: json
    :copyable: false
@@ -143,11 +138,12 @@ collection ``yellow`` looks like this:
     	"total_amount" : 15.6
    }
 
-The collection contains more than 10 million documents, so an application
-which needs to run queries based on specific field data is going to generate
-some very inefficient operations unless the collection is properly indexed.
+The collection contains more than 10 million documents, so an 
+application that needs to run queries based on specific field data will 
+generate some very inefficient operations unless you properly index the 
+collection.
 
-Typical queries for this application search for documents which contain
+Typical queries for this application search for documents that contain
 a specific dropoff time, combined with one or more other fields. For
 example:
 
@@ -174,9 +170,8 @@ The |pa| recommends the following indexes to improve performance:
    collection, select one from the :guilabel:`Collection` dropdown
    menu.
 
-The recommended indexes are listed in order of performance impact, from
-greatest to least. In this example, the first recommended index is
-estimated to decrease overall cluster operation latency time by 50%.
+The |pa| lists recommended indexes in order of performance impact, from
+greatest to least.
 
 The first recommendation is for an index on three fields:
 
@@ -186,15 +181,16 @@ The first recommendation is for an index on three fields:
 
 Click the :guilabel:`Create Index` button to create the index with
 any desired additional options. To learn more about creating an index
-in the Performance Advisor, see :ref:`pa-create-suggested-indexes`.
+in the |pa|, see :ref:`pa-create-suggested-indexes`.
 
-Creating this index improves performance by removing the need for the
-database engine to scan the entire collection to find documents which
-match the query. Queries with the shape shown in the :ref:`example
-<taxi-example-query>` return results in 50 milliseconds or less on the
-indexed collection, as opposed to several seconds on the unindexed
-collection.
+If you create this index, you remove the need for the database engine 
+to scan the entire collection to find documents that match the query, 
+which improves performance. Queries with the shape shown in the 
+:ref:`example <taxi-example-query>` return results in 50 milliseconds 
+or less on the indexed collection, as opposed to several seconds on the 
+unindexed collection.
 
 .. note::
 
-   You can also create indexes with the :ref:`{+atlas-ui+} <atlas-ui-indexes>`.
+   You can also create indexes with the :ref:`{+atlas-ui+} 
+   <atlas-ui-indexes>`.
