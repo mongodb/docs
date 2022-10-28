@@ -1,3 +1,20 @@
+.. _cloudmanager_20221027:
+
+27 October 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.7.0.7844-1 <12.7.0.7844-1>`.
+- Adds the ability to easily remove replica set member tags.
+
+.. _cloudmanager_20221005:
+
+5 October 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to 12.6.2.7803-1.
+- Adds support for :doc:`Debian 11 
+  </tutorial/install-mongodb-agent-to-manage>`.
+
 .. _cloudmanager_20220914:
 
 14 September 2022 Release

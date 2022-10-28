@@ -1,3 +1,17 @@
+.. _12.7.0.7844-1:
+
+MongoDB Agent 12.7.0.7844-1
+===========================
+
+*Released* 2022-10-27
+
+- Adds support for new methods of retrieving sharded data distribution
+  on MongoDB 6.0.
+- Adds support for the rotation of the log file used for system
+  start-up errors.
+- Fixes an issue that caused log errors in ``systemd`` services on
+  ``mkdir`` if the directory already existed.
+
 .. _12.5.0.7738-1:
 
 MongoDB Agent 12.5.0.7738-1
