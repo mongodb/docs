@@ -463,46 +463,14 @@ collection may block for a long period of time during the migration.
 Change the Maximum Storage Size for a Given Shard
 -------------------------------------------------
 
-By default shards have no constraints in storage size. However, you can set a
-maximum storage size for a given shard in the sharded cluster. When 
-selecting potential destination shards, the balancer ignores shards 
-where a migration would exceed the configured maximum storage size.
+Changing a shard's maximum storage size is deprecated. Starting in
+version 4.2, MongoDB uses the :ref:`storage-wiredtiger` to manage 
+how data is stored. WiredTiger compresses data to minimize storage 
+use. To learn more, see :ref:`storage-wiredtiger-compression`.
 
-The :data:`~config.shards` collection in the :ref:`config
-database<config-database>` stores configuration data related to shards. 
+For MongoDB versions 6.1 and earlier, you can still set a
+maximum storage size for a given shard in the sharded cluster by
+using the ``maxSize`` field. You can find configuration 
+data related to shards in the :data:`config.shards` collection.
 
-.. code-block:: javascript
-
-   { "_id" : "shard0000", "host" : "shard1.example.com:27100" }
-   { "_id" : "shard0001", "host" : "shard2.example.com:27200" }
-   
-To limit the storage size for a given shard, use the
-:method:`db.collection.updateOne()` method with the :update:`$set` operator to
-create the ``maxSize`` field and assign it an ``integer`` value. The
-``maxSize`` field represents the maximum storage size for the shard in
-``megabytes``.
-
-The following operation sets a maximum size on a shard of ``1024 megabytes``:
-
-.. code-block:: javascript
-
-   config = db.getSiblingDB("config")
-   config.shards.updateOne( { "_id" : "<shard>"}, { $set : { "maxSize" : 1024 } } )
-
-This value includes the mapped size of *all* data files on the
-shard, including the ``local`` and ``admin`` databases.
-
-By default, ``maxSize`` is not specified, allowing shards to consume the
-total amount of available space on their machines if necessary.
-
-You can also set ``maxSize`` when adding a shard.
-
-To set ``maxSize`` when adding a shard, set the :dbcommand:`addShard`
-command's ``maxSize`` parameter to the maximum size in ``megabytes``. The
-following command run in the :binary:`~bin.mongosh` shell adds a shard 
-with a maximum size of 125 megabytes:
-
-.. code-block:: javascript
-
-   config = db.getSiblingDB("config")
-   config.runCommand( { addshard : "example.net:34008", maxSize : 125 } )
+.. include:: /includes/fact-remove-maxSize-addShard.rst
