@@ -46,6 +46,11 @@
 
    * - Slack Settings
 
+       .. warning::
+
+          Before proceeding, you must complete the steps to 
+          :ref:`integrate with Slack <integrate-with-slack>`.
+
      - Team name, API token and a channel name for
        alert notifications sent to a Slack account. You can
        configure a Slack integration with OAuth2 by clicking
