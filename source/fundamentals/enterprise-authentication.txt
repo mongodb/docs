@@ -3,3 +3,263 @@
 ====================================
 Enterprise Authentication Mechanisms
 ====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to authenticate with MongoDB using the
+**authentication mechanisms** available only in the {+mongo-enterprise+}.
+Authentication mechanisms are processes by which the driver and server confirm
+the identity of a client to ensure security before connecting.
+
+You can use the following authentication mechanisms with the latest version of
+{+mongo-enterprise+}.
+
+- :ref:`GSSAPI/Kerberos <csharp-kerberos>`
+- :ref:`LDAP (Plain) <csharp-LDAP>`
+
+To authenticate using another mechanism, see the
+:ref:`<csharp-authentication-mechanisms>` fundamentals page. For
+more information on establishing a connection to your MongoDB cluster, see the
+:ref:`csharp-connect-to-mongodb`.
+
+You can specify your authentication mechanism and credentials when connecting to
+MongoDB using either of the following methods:
+
+- A **connection string**, also known as a **connection URI**, which is a string
+  that tells the driver how to connect to a MongoDB deployment and how to behave while
+  connected.
+
+- A factory method for the supported authentication mechanism, contained in the 
+  ``MongoCredential`` class.
+
+.. _csharp-kerberos:
+
+Authenticate with GSSAPI/Kerberos
+---------------------------------
+
+The Generic Security Services API (GSSAPI) authentication mechanism allows the 
+user to authenticate to a Kerberos service using the user's principal name.
+
+The following examples specify the authentication mechanism using the following
+placeholders:
+
+- ``<username>``: Your :wikipedia:`URL-encoded <Percent-encoding>` principal name; for example "username%40REALM.ME"
+- ``<password>``: Your Kerberos user's password
+- ``<hostname>``: The network address of your MongoDB server, accessible by your client
+
+Select the :guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax for specifying the GSSAPI/Kerberos authentication
+mechanism:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>/?authMechanism=GSSAPI");
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      .. code-block:: csharp
+         :emphasize-lines: 1
+
+         var credential = MongoCredential.CreateGssapiCredential("<username>", "<password>");
+         var settings = MongoClientSettings.FromConnectionString("<connection string>");
+         settings.Credential = credential;
+         var mongoClient = new MongoClient(settings);
+
+.. tip:: Omitting the Password
+
+   You can omit the password if one of the following are true:
+
+   - On Windows, the process owner running the application is the same as the
+     user needing authentication.
+
+   - On Linux, the user has initialized their keytab via ``kinit username@REALM.COM``.
+  
+Additional Properties
+~~~~~~~~~~~~~~~~~~~~~
+
+You can specify additional properties with your authentication
+mechanism using the connection string or a factory method in the ``MongoCredential``
+class.
+
+Fully Qualified Domain Name
+```````````````````````````
+
+The following example shows how to use the DNS server to retrieve the fully
+qualified domain name of the host:
+  
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>/?authMechanism=GSSAPI&authMechanismProperties=CANONICALIZE_HOSTNAME:true");
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      .. code-block:: csharp
+         :emphasize-lines: 1, 2
+
+         var credential = MongoCredential.CreateGssapiCredential("<username>", "<password>");
+         credential = credential.WithMechanismProperty("CANONICALIZE_HOST_NAME", "true");
+         
+         var settings = MongoClientSettings.FromConnectionString("<connection string>");
+         settings.Credential = credential;
+         var mongoClient = new MongoClient(settings);
+
+Realm
+`````
+
+The following example shows how to specify the user's realm when it is different
+from the service's realm:
+  
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>/?authMechanism=GSSAPI&authMechanismProperties=REALM:<user's realm>");
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      .. code-block:: csharp
+         :emphasize-lines: 1, 2
+
+         var credential = MongoCredential.CreateGssapiCredential("<username>", "<password>");
+         credential = credential.WithMechanismProperty("REALM", "<user's realm>");
+         
+         var settings = MongoClientSettings.FromConnectionString("<connection string>");
+         settings.Credential = credential;
+         var mongoClient = new MongoClient(settings);
+
+Service name
+````````````
+
+The following example shows how to specify the service name when it is not the
+default ``mongodb``:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>/?authMechanism=GSSAPI&authMechanismProperties=SERVICE_NAME:<service name>");
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      .. code-block:: csharp
+         :emphasize-lines: 1, 2
+
+         var credential = MongoCredential.CreateGssapiCredential("<username>", "<password>");
+         credential = credential.WithMechanismProperty("SERVICE_NAME", "<service name>");
+         
+         var settings = MongoClientSettings.FromConnectionString("<connection string>");
+         settings.Credential = credential;
+         var mongoClient = new MongoClient(settings);
+
+Multiple properties
+```````````````````
+  
+The following example shows how to specify multiple authentication mechanism
+properties:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>/?authMechanism=GSSAPI&authMechanismProperties=SERVICE_NAME:<service name>,REALM:<user's realm>");
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      .. code-block:: csharp
+         :emphasize-lines: 2, 3
+
+         var credential = MongoCredential.CreateGssapiCredential("<username>", "<password>");
+         credential = credential.WithMechanismProperty("REALM", "<user's realm>")
+             .WithMechanismProperty("SERVICE_NAME", "<service name>");
+         
+         var settings = MongoClientSettings.FromConnectionString("<connection string>");
+         settings.Credential = credential;
+         var mongoClient = new MongoClient(settings);
+
+.. _csharp-LDAP:
+
+Authenticate with LDAP (PLAIN)
+------------------------------
+
+You can authenticate to a Lightweight Directory Access Protocol (LDAP) server 
+using your directory-server username and password.
+
+The following examples specify the authentication mechanism using the following
+placeholders:
+
+- ``<username>``: Your LDAP username
+- ``<password>``: Your LDAP password
+- ``<hostname>``: The network address of your MongoDB server, accessible by your client
+
+Select the :guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax for specifying the LDAP authentication
+mechanism:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>/?authSource=$external&authMechanism=PLAIN");
+
+   .. tab:: MongoCredential
+      :tabid: mongo-credential
+
+      .. code-block:: csharp
+         :emphasize-lines: 1
+
+         var credential = MongoCredential.CreatePlainCredential("$external", "<username>", "<password>");
+         var settings = MongoClientSettings.FromConnectionString("<connection string>");
+         settings.Credential = credential;
+         var mongoClient = new MongoClient(settings);
+
+      .. tip::
+
+         The method refers to PLAIN instead of LDAP since it
+         authenticates using the PLAIN Simple Authentication and Security Layer
+         (SASL) defined in `RFC-4616 <https://tools.ietf.org/html/rfc4616>`__.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `MongoCredential() <{+api-root+}/T_MongoDB_Driver_MongoCredential.htm>`__
+- `MongoClient() <{+api-root+}/T_MongoDB_Driver_MongoClient.htm>`__
+- `MongoClientSettings <{+api-root+}/T_MongoDB_Driver_MongoClientSettings.htm>`__
+- `CreateGssapiCredential() <{+api-root+}/M_MongoDB_Driver_MongoCredential_CreateGssapiCredential_2.htm>`__
+- `CreatePlainCredential() <{+api-root+}/M_MongoDB_Driver_MongoCredential_CreatePlainCredential_1.htm>`__
