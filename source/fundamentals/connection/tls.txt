@@ -1,0 +1,228 @@
+.. _csharp-tls:
+
+==========================
+Enable TLS on a Connection
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to connect to MongoDB instances with the 
+:wikipedia:`TLS/SSL <Transport_Layer_Security>`
+security protocol using the underlying TLS/SSL support in the {+framework+}. To
+configure your connection to use TLS/SSL, enable the TLS/SSL settings in either
+the :ref:`connection string <csharp-connection-uri>` or 
+:ref:`MongoClientSettings <csharp-mongo-client-settings>`.
+
+.. _csharp-tls-enable:
+
+Enable TLS
+----------
+
+You can enable TLS for the connection to your MongoDB instance
+in two different ways: using a property on a ``MongoClientSettings`` object or
+through a parameter in your connection string.
+
+.. tabs::
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      To enable TLS with a ``MongoClientSettings`` object, set the ``UseTls`` property
+      to ``true``:
+
+      .. code-block:: csharp
+
+         var settings = new MongoClientSettings() { UseTls = true };
+         var client = new MongoClient(settings);
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      To enable TLS with a connection string, assign the 
+      parameter ``tls`` a value of ``true`` in the connection string passed to the
+      ``MongoClient`` constructor:
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>:<port>?tls=true");
+
+Configure a Client Certificate
+------------------------------
+
+You can configure your X.509 certificate using ``MongoClientSettings``. The following
+code sample creates a new X.509 certificate object using the certificate file named 
+``client.pfx``, which is protected by the password ``mySuperSecretPassword``. The code
+then adds this certificate to the ``SslSettings.ClientCertificates`` array in 
+``MongoClientSettings``.
+
+.. code-block:: csharp
+
+   var cert = new X509Certificate2("client.pfx", "mySuperSecretPassword");
+
+   var settings = new MongoClientSettings
+   {
+      SslSettings = new SslSettings
+      {
+         ClientCertificates = new[] { cert }
+      },
+      UseTls = true
+   };
+
+.. important:: 
+
+   When loading a certificate with a password, the certificate object must contain a private 
+   key. If it doesn't, your certificate will not be passed to the server.
+
+Allow Insecure TLS
+------------------
+
+When TLS is enabled, the {+driver-short+} automatically verifies the certificate that
+the server presents. When testing your code, you can disable certificate verification.
+This is known as *insecure TLS.* 
+
+When using insecure TLS, the only requirement is that the server present an X.509 
+certificate. The driver will accept a certificate even if any of the following are true: 
+
+- The hostname of the server and the subject name (or subject alternative name) 
+  on the certificate don't match.
+- The certificate is expired or not yet valid. 
+- The certificate doesn't have a trusted root certificate in the chain. 
+- The certificate purpose isn't valid for server identification.
+
+You can allow insecure TLS in two different ways: using a property on a 
+``MongoClientSettings`` object or through a parameter in your connection string.
+
+.. tabs::
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      To allow insecure TLS with a ``MongoClientSettings`` 
+      object, set the ``AllowInsecureTls`` property to ``true``:
+
+      .. code-block:: csharp
+         :emphasize-lines: 4
+
+         var settings = new MongoClientSettings 
+         { 
+            UseTls = true,
+            AllowInsecureTls = true 
+         };
+         var client = new MongoClient(settings);
+      
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      To allow insecure TLS using a connection string, 
+      assign the connection string parameter ``tlsInsecure`` a value of ``true``:
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>:<port>?tls=true&tlsInsecure=true");
+      
+.. warning::
+
+   Always set this option to ``false`` in production. For security reasons, it's 
+   important that the server certificate is properly validated.
+
+.. _tls_configure-certificates:
+
+Check Certificate Revocation
+----------------------------
+
+When an X.509 certificate should no longer be trusted--for example, if its private key
+has been compromised--the certificate authority will revoke the certificate. 
+
+By default, the {+driver-short+} doesn't check whether a server's certificate has been
+revoked before it connects. You can enable revocation checking using either 
+``MongoClientSettings`` or the connection string.
+
+.. tabs::
+
+   .. tab:: MongoClientSettings
+      :tabid: mongoclientsettings
+
+      To enable revocation checking using ``MongoClientSettings``, set 
+      ``SslSettings.CheckCertificateRevocation`` to ``true``:
+
+      .. code-block:: csharp
+         :emphasize-lines: 5
+
+         var settings = new MongoClientSettings
+         {
+            SslSettings = new SslSettings
+            {
+               CheckCertificateRevocation = true
+            },
+            UseTls = true
+         };
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      To enable revocation checking using a connection string, 
+      assign the connection string parameter ``tlsDisableCertificateRevocationCheck`` 
+      a value of ``false``:
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>:<port>?tls=true&tlsDisableCertificateRevocationCheck=false");
+
+.. note::
+
+   The {+driver-short+} doesn't check revocation by default because this is the default
+   behavior of the ``SslStream`` class in both the 
+   `{+framework+} <https://learn.microsoft.com/en-us/dotnet/api/system.net.security.sslstream.authenticateasclient?view=netframework-{+framework-version+}#System_Net_Security_SslStream_AuthenticateAsClient_System_String_>`__ 
+   and the `.NET standard. <https://learn.microsoft.com/en-us/dotnet/api/system.net.security.sslstream.authenticateasclient?view=netstandard-{+standard-version+}#System_Net_Security_SslStream_AuthenticateAsClient_System_String_>`__
+
+Revocation Checking by Operating System
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-short+} supports the following revocation-checking mechanisms differently on 
+Windows, macOS, and Linux:
+
+- :wikipedia:`Online Certificate Status Protocol (OCSP) <Online_Certificate_Status_Protocol>`,
+  a common mechanism for checking revocation 
+- :wikipedia:`OCSP stapling <OCSP_stapling>`, a mechanism in which the server 
+  includes a time-stamped OCSP response to the client along with the certificate
+- :wikipedia:`Certificate revocation lists (CRLs), <Certificate_revocation_list>`,
+  an alternative to OCSP
+
+Windows
+```````
+
+On Windows, the {+driver-short+} supports OCSP, OCSP stapling, and CRLs without OCSP,
+in both the .NET Framework and .NET Core. 
+
+.. warning:: 
+   
+   On Windows, the {+driver-short+} will report a "hard fail" and cancel the TLS 
+   handshake if the OCSP responder is unavailable. Other operating systems and drivers 
+   will report a "soft fail" and continue connecting.
+
+macOS
+`````
+
+On macOS, the {+driver-short+} supports OCSP and OCSP stapling. 
+
+Beginning with .NET Core 2.0, the driver does **not** support CRLs without OCSP.
+
+Linux
+`````
+
+On Linux, the {+driver-short+} supports OCSP, OCSP stapling, and CRLs without OCSP.
+
+API Documentation
+-----------------
+
+To learn more about any of the connection options discussed in this
+guide, see the following API documentation:
+
+- `MongoClientSettings <{+api-root+}/T_MongoDB_Driver_MongoClientSettings.htm>`__
