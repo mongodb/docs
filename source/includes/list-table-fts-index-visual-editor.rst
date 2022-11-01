@@ -34,3 +34,10 @@
 
        Corresponds to the  ``mappings.fields`` setting.
      - Conditional   
+
+   * - :guilabel:`Synonyms Mappings`
+     - .. include:: /includes/extracts/fts-field-synonyms-vib.rst
+
+       Corresponds to the ``synonyms`` setting.
+
+     - Optional.

@@ -48,6 +48,5 @@
      - Optional
 
    * - ``synonyms`` 
-     - Specify synonym mappings to use in your index. To learn more, 
-       see :ref:`synonyms-ref`.  
+     - .. include:: /includes/extracts/fts-field-synonyms-json.rst
      - Optional 
