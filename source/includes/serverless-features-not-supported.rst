@@ -168,6 +168,23 @@ limitations and considerations:
    * - Sort
      - The :manual:`$sort </reference/operator/aggregation/sort/>` stage has
        a limit of 32 megabytes of RAM.
+
+   * - Authentication
+     
+     - {+Serverless-instances+} support the following
+       authentication methods only:
+      
+       - Password (SCRAM-SHA1)
+       - X.509 Certificates
+       - AWS IAM
+
+   * - Build Index with Rolling Build
+     - {+Serverless-instances+} don't support :manual:`building indexes
+       with a rolling build </tutorial/build-indexes-on-replica-sets/>`.
+
+   * - Real-Time Performance Panel
+     - {+Serverless-instances+} don't provide access to the
+       :doc:`Real-Time Performance Panel </real-time-performance-panel>`.
    
    * - Throughput
      - {+Serverless-instances+} don't routinely cap operation throughput. |service| may
