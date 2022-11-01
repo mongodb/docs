@@ -26,8 +26,9 @@ Learn what's new in:
 What's New in 1.10.1
 --------------------
 
-The 1.10.1 driver patches a bug that affects Client-Side Field Level Encryption 
-and Queryable Encryption. The bug can cause data corruption when rotating 
+The 1.10.1 driver, along with the 1.5.2 ``libmongocrypt`` release, patches a bug 
+that affects Client-Side Field Level Encryption and Queryable Encryption. The 
+bug can cause data corruption when rotating 
 :ref:`Data Encryption Keys <csfle-key-architecture>` (DEKs) encrypted with a 
 :ref:`Customer Master Key <csfle-key-architecture>` hosted on Google Cloud Key 
 Management Service or Azure Key Vault. The bug was present in version 1.10.0 of 
@@ -50,25 +51,34 @@ New features of the 1.10 Go driver release include:
 - Added full support for MongoDB 6.0.
   
 - Support for new features related to :ref:`qe-manual-feature-qe`,
-  including new options to ``AutoEncryptionOpts`` and ``EncryptOpts``. MongoDB 
-  v6.0 or later is required.
+  including new options for automatic and manual encryption.
 
-- Support for the new Queryable Encryption shared library, which removes the 
-  need for the ``mongocryptd`` process. The queryable encryption shared library 
-  requires `MongoCrypt <https://mvnrepository.com/artifact/org.mongodb/mongodb-crypt>`__
-  version ``1.5.1.2`` or later.
+- Support for the new Automatic Encryption Shared Library, which replaces the 
+  ``mongocryptd`` process. The shared library requires MongoDB v6.0 Enterprise 
+  or later and ``libmongocrypt`` 1.5.0 or later.
+
+  -  **Warning**: Calling ``RewrapManyDataKey`` with ``libmongocrypt`` 
+     versions less than 1.5.2 that may result in data corruption. Use 
+     ``libmongocrypt`` 1.5.2 or higher when calling ``RewrapManyDataKey``.
 
 - Added :ref:`clustered index <golang-clustered-indexes>` creation support.
 
-- Added a new API and ``ClientEncryption`` entity operations for encryption 
-  key management.
+- New API and ``ClientEncryption`` entity operations for encryption key 
+- management.
 
-- Added a new ``Timeout`` client option to set a default context timeout.
+- Added a new ``Timeout`` client option to set a default context timeout for 
+  each operation sent thorugh that client.
+
+- Defaulting data to either ``primitive.M`` or ``primitive.D`` when decoding 
+  empty types.
+
+- Support for encoding atypical map key types for data that can be unmarshalled 
+  into a textual representation of itself. 
 
 - Performance optimizations including:
   
-  - Improved full document requests for before and after updating change stream 
-    events.
+  - Improved full document requests for before and after updates in change 
+    stream events.
 
   - Improved PRN and UUID generation 
 
@@ -107,12 +117,15 @@ New features of the 1.8 Go driver release include:
 
 - Added full support for MongoDB 5.1.
 
-- Supports KMIP as a KMS provider for client side encryption. 
+- Support for KMIP (Key Management Interoperability Protocol) as a KMS 
+  provider for client side encryption. 
 
 - Redesigned driver connection pool for low operation ``Context`` timeouts and 
-  reduced connection churn.
+  to reduced connection churn. Behavior changes include: 
 
-  - New connection creation is timed out at 
+  - New connection creation times out at ``connectTimeoutMS``.
+
+  - At most, two new connections are established at the same time.
 
 - Removed oppressive and unncessarily gendered language in the Go driver 
   documentation, code, tests, and spec tests. 
