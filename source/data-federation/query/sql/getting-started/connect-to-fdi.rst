@@ -1,5 +1,5 @@
 .. procedure::
-   :style: normal
+   :style: connected
 
    .. step:: Navigate to your {+fdi+}.
 
@@ -25,7 +25,7 @@
    .. step:: Connect from DBeaver.
 
       .. procedure::
-         :style: connected
+         :style: normal
 
          .. step:: Launch DBeaver.
 

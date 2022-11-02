@@ -1,5 +1,5 @@
 .. procedure::
-   :style: normal
+   :style: connected
 
    .. step:: Navigate to the {+df+} dashboard in |service|.
 
@@ -35,7 +35,7 @@
       :guilabel:`Federated Database Instance` panel:
       
       .. procedure::
-         :style: connected
+         :style: normal
 
          .. step:: Rename the default collection.
 
