@@ -114,6 +114,7 @@
 - :alert-type:`HOST_RECOVERING`
 - :alert-type:`HOST_RESTARTED`
 - :alert-type:`HOST_ROLLBACK`
+- :alert-type:`HOST_SECURITY_CHECKUP_NOT_MET`
 - :alert-type:`HOST_SSL_CERTIFICATE_CURRENT`
 - :alert-type:`HOST_SSL_CERTIFICATE_STALE`
 - :alert-type:`OUTSIDE_METRIC_THRESHOLD`

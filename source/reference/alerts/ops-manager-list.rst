@@ -371,6 +371,10 @@ Host
      - Host experienced a rollback
      - Project, Global
 
+   * - :alert-type:`HOST_SECURITY_CHECKUP_NOT_MET``
+     -  Authentication or |tls| is disabled.
+     -  Project, Global
+
    * - :alert-type:`HOST_SSL_CERTIFICATE_CURRENT`
      - Host's SSL certificate is current
      - Project, Global
