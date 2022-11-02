@@ -11,7 +11,7 @@
 5 October 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- Updates {+mdbagent+} to 12.6.2.7803-1.
+- Updates {+mdbagent+} :ref:`12.6.0.7792 <12.6.0.7792>`.
 - Adds support for :doc:`Debian 11 
   </tutorial/install-mongodb-agent-to-manage>`.
 

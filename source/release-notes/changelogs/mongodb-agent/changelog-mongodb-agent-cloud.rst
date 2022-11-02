@@ -12,6 +12,17 @@ MongoDB Agent 12.7.0.7844-1
 - Fixes an issue that caused log errors in ``systemd`` services on
   ``mkdir`` if the directory already existed.
 
+.. _12.6.0.7792:
+
+MongoDB Agent 12.6.0.7792
+=========================
+
+*Released* 2022-10-05
+
+- Fixes an issue that race detector identified.
+- Fixes a float64 issue that occurred when |mms| collected hardware 
+  metrics.
+
 .. _12.5.0.7738-1:
 
 MongoDB Agent 12.5.0.7738-1
