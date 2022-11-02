@@ -74,8 +74,7 @@ Options
        - For number fields, the value can be an ``int32``, ``int64``, 
          or ``double`` data type.
        - For date fields, the value must be an 
-         :term:`ISODate` formatted 
-         date. 
+         :term:`ISODate` formatted date. 
 
      - no
 
@@ -87,8 +86,7 @@ Options
        - For number fields, the value can be an ``int32``, ``int64``,
          or ``double`` data type.
        - For date fields, the value must be an
-         :term:`ISODate`
-         formatted date.
+         :term:`ISODate` formatted date.
 
      - no
 
@@ -108,21 +106,22 @@ Options
 
        For information on using ``score`` in your query, see
        :ref:`scoring-ref`.
+
+       .. note:: 
+
+          When querying values in arrays, |fts| doesn't alter the score
+          based on the number of values inside the array that matched
+          the query. The score would be the same as a single match
+          irrespective of the number of matches inside an array.
+
      - no
-
-Limitation
-----------
-
-You cannot use the ``range`` operator to query values stored in an
-array. |fts| cannot index numeric or date values if they are part of an
-array.
 
 Examples
 --------
 
-The following examples use the ``movies`` collection in the
-``sample_mflix`` database. If you loaded the :ref:`sample dataset
-<available-sample-datasets>` on your cluster, you can create the static
+The following examples use the collection in the :ref:`sample data
+<available-sample-datasets>`. If you loaded the :ref:`sample data
+<available-sample-datasets>` on your cluster, you can create the 
 indexes using the index definitions in the examples below and run the
 example queries on your cluster. 
 
@@ -131,210 +130,315 @@ example queries on your cluster.
 Number Example
 ~~~~~~~~~~~~~~
 
-The following examples uses the ``range`` operator to query a number
-field.
+The following examples use indexes on numeric fields in the  
+:ref:`sample data <available-sample-datasets>` and run 
+``range`` queries against the indexed fields. 
 
-Example 1
-`````````
+.. tabs:: 
+   
+   .. tab:: Example 1
+      :tabid: eg1
 
-The following example uses ``gte`` and ``lte`` fields to define the
-numeric range to search.
+      The following example indexes and searches the numeric field 
+      ``runtime`` in the ``sample_mflix.movies collection``. The query 
+      uses ``gte`` and ``lte`` fields to define the numeric range to 
+      search.
 
-.. example::
+      .. example::
 
-   The following index definition named ``runtimes`` indexes the
-   ``runtime`` field in the ``movies`` collection.
+         The following index definition named ``default`` indexes the
+         ``runtime`` field in the ``movies`` collection.
 
-   .. code-block:: javascript
+         .. code-block:: javascript
 
-      {
-         "mappings": {
-            "dynamic": false,
-            "fields": {
-               "runtime": {
-                  "type": "number"
+            {
+               "mappings": {
+                  "dynamic": false,
+                  "fields": {
+                     "runtime": {
+                        "type": "number"
+                     }
+                  }
                }
             }
-         }
-      }
 
-   The following query searches for movies with a runtime greater than
-   or equal to 2 and less than equal to 3. It includes a
-   :pipeline:`$limit` stage to limit the output to 5 results
-   and a :pipeline:`$project` stage to exclude all fields
-   except ``title`` and ``runtime``.
+         The following query searches for movies with a runtime greater 
+         than or equal to ``2`` and less than equal to ``3``. It 
+         includes a :pipeline:`$limit` stage to limit the output to 
+         ``5`` results and a :pipeline:`$project` stage to exclude all 
+         fields except ``title`` and ``runtime``.
 
-   .. code-block:: javascript
-      :linenos:
+         .. code-block:: javascript
+            :linenos:
 
-      db.movies.aggregate([
-         {
-            $search: {
-               "index": "runtimes",
-               "range": {
-                  "path": "runtime",
-                  "gte": 2,
-                  "lte": 3
+            db.movies.aggregate([
+               {
+                  $search: {
+                     "range": {
+                        "path": "runtime",
+                        "gte": 2,
+                        "lte": 3
+                     }
+                  }
+               },
+               {
+                  $limit: 5
+               },
+               {
+                  $project: {
+                     "_id": 0,
+                     "title": 1,
+                     "runtime": 1
+                  }
+               }
+            ])
+
+         The above query returns the following search results:
+
+         .. code-block:: json
+            :copyable: false
+
+            { "runtime" : 3, "title" : "Dots" }
+            { "runtime" : 3, "title" : "Sisyphus" }
+            { "runtime" : 3, "title" : "The Fly" }
+            { "runtime" : 2, "title" : "Andrè and Wally B." }
+            { "runtime" : 2, "title" : "Luxo Jr." }
+
+   .. tab:: Example 2
+      :tabid: eg2
+
+      The following example indexes and searches the numeric field 
+      ``runtime`` in the ``sample_mflix.movies collection``.  The 
+      query uses the ``lte`` field to search for all values less than 
+      or equal to the given value.
+
+      .. example::
+
+         The following index definition named ``default`` indexes the
+         ``runtime`` field in the ``movies`` collection.
+
+         .. code-block:: javascript
+            :linenos:
+
+            {
+               "mappings": {
+                  "dynamic": false,
+                  "fields": {
+                     "runtime": {
+                        "type": "number"
+                     }
+                  }
                }
             }
-         },
-         {
-            $limit: 5
-         },
-         {
-            $project: {
-               "_id": 0,
-               "title": 1,
-               "runtime": 1
-            }
-         }
-      ])
 
-   The above query returns the following search results:
+         The following query searches for all movies with a runtime 
+         less than or equal to ``2``. It includes a :pipeline:`$limit` 
+         stage to limit the output to ``5`` results and 
+         :pipeline:`$project` stage to:
 
-   .. code-block:: json
-      :copyable: false
+         - Exclude all fields except ``title`` and ``runtime``
+         - Add a field named ``score``
 
-      { "runtime" : 3, "title" : "Dots" }
-      { "runtime" : 3, "title" : "Sisyphus" }
-      { "runtime" : 3, "title" : "The Fly" }
-      { "runtime" : 2, "title" : "Andrè and Wally B." }
-      { "runtime" : 2, "title" : "Luxo Jr." }
+         .. code-block:: javascript
+            :linenos:
 
-Example 2
-`````````
-
-The following example uses the ``lte`` field to search for all values
-less than or equal to the given value.
-
-.. example::
-
-   The following index definition named ``runtimes`` indexes the
-   ``runtime`` field in the ``movies`` collection.
-
-   .. code-block:: javascript
-      :linenos:
-
-      {
-         "mappings": {
-            "dynamic": false,
-            "fields": {
-               "runtime": {
-                  "type": "number"
+            db.movies.aggregate([
+               {
+                  $search: {
+                     "range": {
+                        "path": "runtime",
+                        "lte": 2
+                     }
+                  }
+               },
+               {
+                  $limit: 5
+               },
+               {
+                  $project: {
+                     "_id": 0,
+                     "title": 1,
+                     "runtime": 1,
+                     score: { $meta: "searchScore" }
+                  }
                }
+            ])
+
+         The above query returns the following search results:
+
+         .. code-block:: json
+            :copyable: false
+
+            { "runtime" : 1, "title" : "Blacksmith Scene", "score" : 1 }
+            { "runtime" : 2, "title" : "Andrè and Wally B.", "score" : 1 }
+            { "runtime" : 2, "title" : "Luxo Jr.", "score" : 1 }
+            { "runtime" : 1, "title" : "The Kiss", "score" : 1 }
+            { "runtime" : 1, "title" : "Dickson Experimental Sound Film", "score" : 1 }
+
+   .. tab:: Example 3
+      :tabid: eg3
+
+      The following example dynamically indexes all the dynamically 
+      indexable fields, including fields with array of numeric values, 
+      in the ``sample_analytics.customers`` collection. The sample 
+      query uses the ``gte`` and ``lte`` fields to search for all 
+      values between the given values in an array of numeric values.
+
+      .. example:: 
+
+         The following index definition named ``default`` dynamically 
+         indexes all fields, including the ``accounts`` field, which is 
+         an array of numeric values.
+
+         .. code-block:: javascript
+
+            {
+              "mappings": {
+                "dynamic": true
+              }
             }
-         }
-      }
 
-   The following query searches for all movies with a runtime less than
-   or equal to 2. It includes a :pipeline:`$limit` stage to
-   limit the output to 5 results and a :pipeline:`$project`
-   stage to:
+         The following query searches for customer accounts between 
+         ``250000`` and ``300000``. It includes a :pipeline:`$limit`
+         stage to limit the output to ``5`` results and a
+         :pipeline:`$project` stage to exclude all fields except
+         ``accounts`` and ``name``.
 
-   - Exclude all fields except ``title`` and ``runtime``
-   - Add a field named ``score``
+         .. io-code-block:: 
+            :copyable: true
+            
+            .. input:: 
+               :language: javascript
+               :linenos:
 
-   .. code-block:: javascript
-      :linenos:
+               db.customers.aggregate([
+                  {
+                     $search: {
+                        "range": {
+                           "path": "accounts",
+                           "gt": 250000,
+                           "lt": 400000
+                              }
+                     }
+                  },
+                  {
+                     $limit: 5
+                  },
+                  {
+                     $project: {
+                        "_id": 0,
+                        "accounts": 1,
+                        "name": 1
+                     }
+                  }
+               ])
 
-      db.movies.aggregate([
-         {
-            $search: {
-               "index": "runtimes",
-               "range": {
-                  "path": "runtime",
-                  "lte": 2
-               }
-            }
-         },
-         {
-            $limit: 5
-         },
-         {
-            $project: {
-               "_id": 0,
-               "title": 1,
-               "runtime": 1,
-               score: { $meta: "searchScore" }
-            }
-         }
-      ])
+            .. output:: 
+               :language: javascript
+               :linenos:
 
-   The above query returns the following search results:
-
-   .. code-block:: json
-      :copyable: false
-
-      { "runtime" : 1, "title" : "Blacksmith Scene", "score" : 1 }
-      { "runtime" : 2, "title" : "Andrè and Wally B.", "score" : 1 }
-      { "runtime" : 2, "title" : "Luxo Jr.", "score" : 1 }
-      { "runtime" : 1, "title" : "The Kiss", "score" : 1 }
-      { "runtime" : 1, "title" : "Dickson Experimental Sound Film", "score" : 1 }
+               [
+                 {
+                   name: 'Elizabeth Ray',
+                   accounts: [ 371138, 324287, 276528, 332179, 422649, 387979 ]
+                 },
+                 {
+                   name: 'Katherine David',
+                   accounts: [ 462501, 228290, 968786, 515844, 377292 ]
+                 },
+                 {
+                   name: 'Brad Cardenas',
+                   accounts: [ 721914, 817222, 973067, 260799, 87389 ]
+                 },
+                 {
+                   name: 'Gary Nichols',
+                   accounts: [ 385397, 337979, 325377, 440243, 586395, 86702 ]
+                 },
+                 { name: 'Jennifer Lawrence', accounts: [ 344885, 839927, 853542 ] }
+               ]
 
 Date Example
 ~~~~~~~~~~~~
 
 The following example uses the ``range`` operator to query a date
-field.
+field in the ``sample_mflix.movies`` collection. For this example, you 
+can use either static or dynamic mappings to index the ``date`` type 
+field named ``released`` in the collection.
 
-.. example::
+.. tabs:: 
+   
+   .. tab:: Dynamic Mapping Example
+      :tabid: dme
 
-   The following index definition named ``releaseddate`` indexes the 
-   ``released`` field in the ``movies`` collection:
+      The following index definition named ``default`` indexes all the 
+      dynamically indexable fields in the ``movies`` collection, 
+      including the ``released`` field, which is of type ``date``.
 
-   .. code-block:: javascript
+      .. code-block:: javascript
 
-      {
-         "mappings": {
-            "dynamic": false,
-            "fields": {
-               "released": {
-                  "type": "date"
+         {
+            "mappings": {
+               "dynamic": true
+            }
+         }
+
+   .. tab:: Static Mapping Example
+      :tabid: sme
+
+      The following index definition named ``default`` indexes the 
+      ``released`` field in the ``movies`` collection:
+
+      .. code-block:: javascript
+
+         {
+            "mappings": {
+               "dynamic": false,
+               "fields": {
+                  "released": {
+                     "type": "date"
+                  }
                }
             }
          }
-      }
 
-   The following query searches for movies released between January 1,
-   2010 and January 1, 2015. It includes a :pipeline:`$limit`
-   stage to limit the output to 5 results and a
-   :pipeline:`$project` stage to exclude all fields except
-   ``title`` and ``released``.
+The following query searches for movies released between January 1, 
+2010 and January 1, 2015. It includes a :pipeline:`$limit` stage to 
+limit the output to 5 results and a :pipeline:`$project` stage to 
+exclude all fields except ``title`` and ``released``.
 
-   .. code-block:: javascript
-      :linenos:
+.. code-block:: javascript
+   :linenos:
 
-      db.movies.aggregate([
-         {
-            $search: {
-               "index": "releaseddate",
-               "range": {
-                  "path": "released",
-                  "gt": ISODate("2010-01-01T00:00:00.000Z"),
-                  "lt": ISODate("2015-01-01T00:00:00.000Z")
-               }
-            }
-         },
-         {
-            $limit: 5
-         },
-         {
-            $project: {
-               "_id": 0,
-               "title": 1,
-               "released": 1
-            }
+   db.movies.aggregate([
+     {
+       "$search": {
+         "range": {
+           "path": "released",
+           "gt": ISODate("2010-01-01T00:00:00.000Z"),
+           "lt": ISODate("2015-01-01T00:00:00.000Z")
          }
-      ])
+       }
+     },
+     {
+       "$limit": 5
+     },
+     {
+       "$project": {
+         "_id": 0,
+         "title": 1,
+         "released": 1
+       }
+     }
+   ])
 
-   The above query returns the following search results:
+The above query returns the following search results:
 
-   .. code-block:: json
-      :linenos:
-      :copyable: false
+.. code-block:: json
+   :linenos:
+   :copyable: false
 
-      { "title" : "The Fall of the House of Usher", "released" : ISODate("2011-09-20T00:00:00Z") }
-      { "title" : "The Blood of a Poet", "released" : ISODate("2010-05-20T00:00:00Z") }
-      { "title" : "Too Much Johnson", "released" : ISODate("2014-08-30T00:00:00Z") }
-      { "title" : "Stolen Desire", "released" : ISODate("2012-07-01T00:00:00Z") }
-      { "title" : "The Monkey King", "released" : ISODate("2012-01-12T00:00:00Z") }
+   { "title" : "The Fall of the House of Usher", "released" : ISODate("2011-09-20T00:00:00Z") }
+   { "title" : "The Blood of a Poet", "released" : ISODate("2010-05-20T00:00:00Z") }
+   { "title" : "Too Much Johnson", "released" : ISODate("2014-08-30T00:00:00Z") }
+   { "title" : "Stolen Desire", "released" : ISODate("2012-07-01T00:00:00Z") }
+   { "title" : "The Monkey King", "released" : ISODate("2012-01-12T00:00:00Z") }

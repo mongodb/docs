@@ -17,8 +17,12 @@ Definition
 
 .. expression:: equals
 
-   The ``equals`` operator supports querying :ref:`boolean <boolean-ref>` and 
-   :ref:`objectId <objectId-ref>` values.
+   The ``equals`` operator supports querying :ref:`boolean 
+   <boolean-ref>` and :ref:`objectId <objectId-ref>` values. You can 
+   use the ``equals`` operator to query booleans and objectIds in 
+   arrays. If at least one element in the array matches the “value” 
+   field in the ``equals`` operator, |fts| adds the document to the 
+   result set.
 
 .. _equals-syntax:
 
@@ -62,7 +66,7 @@ Options
 
    * - ``value``
      - :ref:`boolean <boolean-ref>` or :ref:`objectId <objectId-ref>`
-     -  Value to query for.
+     - Value to query for.
      - yes
 
    * - ``score``
@@ -82,8 +86,8 @@ Behavior
 
 ``equals`` uses constant scoring. Each matching document receives
 a score of ``1`` for each search clause matched. A document that matches
-one search clause receives a score of ``1``, while a document that matches
-three search clauses receives a score of ``3``. See the
+one search clause receives a score of ``1``, while a document that 
+matches three search clauses receives a score of ``3``. See the
 :ref:`equals-query-examples` section for scoring examples.
 
 .. _equals-query-examples:
@@ -91,51 +95,68 @@ three search clauses receives a score of ``3``. See the
 Examples
 --------
 
-The examples on this page use a collection named ``users`` containing the
-following three documents:
-
-.. code-block:: javascript
-
-   {
-   	 "_id" : ObjectId("5ed698faa1199b471010d70c"),
-   	 "name" : "Jim Hall",
-   	 "verified_user" : true,
-   	 "teammates" : [
-   	 	ObjectId("5a9427648b0beebeb69579d0"),
-   	 	ObjectId("59b99dbdcfa9a34dcd7885c8")
-   	 ],
-   	 "region" : "East"
-   }
-   {
-   	 "_id" : ObjectId("5ed6990aa1199b471010d70d"),
-   	 "name" : "Ellen Smith",
-   	 "verified_user" : true,
-   	 "teammates" : [
-   		ObjectId("5a9427648b0beebeb69537a5"),
-		ObjectId("59b99dbdcfa9a34dcd7881d1")
-     ],
-   	 "region" : "Southwest"
-   }
-   {
-   	 "_id" : ObjectId("5ed6994fa1199b471010d70e"),
-   	 "name" : "Fred Osgood",
-   	 "verified_user" : false,
-   	 "teammates" : [
-    	ObjectId("5a9427648b0beebeb69589a1"),
-    	ObjectId("59b99dbdcfa9a34dcd7897d3")
-     ],
-   	 "region" : "Northwest"
-   }
-
-The ``users`` collection is indexed with the following :ref:`index definition
-<ref-index-definitions>`:
+The examples on this page use a collection named ``users`` containing 
+the following three documents:
 
 .. code-block:: json
+   :copyable: false
+
+   {
+     "_id" : ObjectId("5ed698faa1199b471010d70c"),
+     "name" : "Jim Hall",
+     "verified_user" : true,
+     "account" : {
+      "new_user" : true,
+      "active_user" : true
+     },
+     "teammates" : [
+      ObjectId("5ed6990aa1199b471010d70d"),
+      ObjectId("59b99dbdcfa9a34dcd7885c8")
+     ],
+     "region" : "East"
+   }
+   {
+     "_id" : ObjectId("5ed6990aa1199b471010d70d"),
+     "name" : "Ellen Smith",
+     "verified_user" : true,
+     "account" : {
+      "new_user" : false,
+      "active_user" : true
+     },
+     "teammates" : [
+      ObjectId("5a9427648b0beebeb69537a5"),
+      ObjectId("59b99dbdcfa9a34dcd7881d1")
+     ],
+     "region" : "Southwest"
+   }
+   {
+     "_id" : ObjectId("5ed6994fa1199b471010d70e"),
+     "name" : "Fred Osgood",
+     "verified_user" : false,
+     "account" : {
+      "new_user" : false,
+      "active_user" : false
+     },
+     "teammates" : [
+      ObjectId("5a9427648b0beebeb69589a1"),
+      ObjectId("59b99dbdcfa9a34dcd7897d3")
+     ],
+     "region" : "Northwest"
+   }
+
+The ``users`` collection is indexed with the following 
+:ref:`index definition <ref-index-definitions>`:
+
+.. code-block:: javascript
 
    {
      "mappings": {
        "dynamic": false,
        "fields": {
+         "account": {
+           "dynamic": true,
+           "type": "document"
+         },
          "teammates": {
            "type": "objectId"
          },
@@ -152,9 +173,9 @@ The ``users`` collection is indexed with the following :ref:`index definition
 Basic Examples
 ~~~~~~~~~~~~~~
 
-The following example uses the ``equals`` operator to search the ``users``
-collection for documents in which the ``verified_user`` field is set to
-``true``.
+The following example uses the ``equals`` operator to search the 
+``users`` collection for documents in which the ``verified_user`` field 
+is set to ``true``.
 
 .. code-block:: javascript
 
@@ -206,13 +227,33 @@ collection for documents in which the ``teammates`` field contains the value
 The above query returns the document for "Fred Osgood", because that document
 contains ``ObjectId("5a9427648b0beebeb69589a1")`` in the ``teammates`` array.
 
+The following example uses the ``equals`` operator to search the 
+``users`` collection for documents in which the ``account.new_user`` 
+field contains the boolean value ``true``.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "equals": {
+           "path": "account.new_user",
+           "value": true
+         }
+       }
+     }
+   ])
+
+The above query returns the document for "Jim Hall", because that 
+document contains ``"new_user": true`` in the ``account`` object.
+
 Compound Examples
 ~~~~~~~~~~~~~~~~~
 
-The following example uses the :ref:`compound <compound-ref>` operator in
-conjunction with ``must``, ``mustNot``, and ``equals`` to search for documents
-in which the ``region`` field is ``Southwest`` and the ``verified_user`` field
-is not ``false``.
+The following example uses the :ref:`compound <compound-ref>` operator 
+in conjunction with ``must``, ``mustNot``, and ``equals`` to search for 
+documents in which the ``region`` field is ``Southwest`` and the 
+``verified_user`` field is not ``false``.
 
 .. code-block:: javascript
 
