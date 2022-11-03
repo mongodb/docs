@@ -1,3 +1,10 @@
+.. _adf-v20221015:
+
+25 October 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance and stability.
+
 .. _adf-v20220913:
 
 13 September 2022 Release
