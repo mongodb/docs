@@ -3,24 +3,23 @@
   rather than the Automation. To prevent this issue, ensure the ``mongod`` 
   service is disabled before you add your deployment to Automation:
 
-  - Verify whether the `mongod` service is enabled:
+  1. Verify whether the `mongod` service is enabled:
 
   .. code-block:: sh
      
      sudo systemctl is-enabled mongod.service
 
-  - If the service is enabled, disable it:
+  2. If the service is enabled, disable it:
 
   .. code-block:: sh
 
      sudo systemctl disable mongod.service
 
-- If the |mms| project does not have authentication settings enabled,
-  but the MongoDB process requires authentication, add the {+mdbagent+}
-  user for the |mms| project with the appropriate roles.
-
-  - The import process displays the required roles for the user.
-  - The added user becomes the project's {+mdbagent+} user.
+- If the |mms| project doesn't have authentication settings enabled but
+  the MongoDB process requires authentication, add the {+mdbagent+} user
+  for the |mms| project with the appropriate roles. The import process
+  displays the required roles for the user. The added user becomes the
+  project's {+mdbagent+} user.
 
 - If the |mms| project has authentication settings enabled, add the
   |mms| project's {+mdbagent+} user to the MongoDB process.
@@ -45,27 +44,32 @@
       Open the :setting:`mmsConfigBackup` file in your preferred text
       editor and find the ``autoPwd`` value.
 
-.. example::
+  .. example::
 
-   If the |mms| project has
-   :doc:`Username/Password </tutorial/enable-mongodbcr-authentication-for-group>`
-   mechanism selected for its authentication settings, add the
-   project's |mms| {+mdbagent+}s User ``mms-automation`` to the
-   ``admin`` database in the MongoDB deployment to import.
+     If the |mms| project has
+     :doc:`Username/Password </tutorial/enable-mongodbcr-authentication-for-group>`
+     mechanism selected for its authentication settings, add the
+     project's |mms| {+mdbagent+}s User ``mms-automation`` to the
+     ``admin`` database in the MongoDB deployment to import.
 
-   .. code-block:: javascript
+     .. code-block:: javascript
 
-      db.getSiblingDB("admin").createUser(
-         {
-           user: "mms-automation",
-           pwd: <password>,
-           roles: [
-             'clusterAdmin',
-             'dbAdminAnyDatabase',
-             'readWriteAnyDatabase',
-             'userAdminAnyDatabase',
-             'restore',
-             'backup'
-           ]
-         }
-      )
+        db.getSiblingDB("admin").createUser(
+           {
+             user: "mms-automation",
+             pwd: <password>,
+             roles: [
+               'clusterAdmin',
+               'dbAdminAnyDatabase',
+               'readWriteAnyDatabase',
+               'userAdminAnyDatabase',
+               'restore',
+               'backup'
+             ]
+           }
+        
+- The import process requires that the authentication credentials and
+  keyfiles are the same on the source and destination clusters. To learn
+  more, see :ref:`Authentication Credentials on Source and Destination Clusters
+  <auth-creds-on-source-and-destination>`.
+  

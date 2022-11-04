@@ -13,13 +13,16 @@ Add Existing MongoDB Processes to |mms|
    :class: singlecol
 
 |mms| provides a wizard for adding your existing MongoDB deployments to
-monitoring and management. The wizard prompts you to install an
-{+aagent+} if none exists, and then prompts you to identify the
-:term:`cluster <sharded cluster>`, the :term:`replica set`, or the
-:term:`standalone` to add. You can choose to add the deployment to
-:ref:`Monitoring <monitoring-functional-overview>` or to both
-:ref:`Monitoring <monitoring-functional-overview>` and
-:ref:`Automation <automation>`.
+monitoring and management. The wizard prompts you to:
+
+- Install an {+aagent+} if it doesn't already exist
+- Identify the :term:`sharded cluster <sharded cluster>`, the :term:`replica set`,
+  or the :term:`standalone` to add. You can choose to add the deployment to
+  :ref:`Monitoring <monitoring-functional-overview>` or to both
+  :ref:`Monitoring <monitoring-functional-overview>` and
+  :ref:`Automation <automation>`.
+
+  .. include:: /includes/fact-import-add-creds-to-monitoring-only-if-live-migration.rst
 
 Considerations
 --------------
@@ -34,9 +37,8 @@ Deployments must have unique names within the projects.
 MongoDB Configuration Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Automation doesn't support all MongoDB options. To review which
-options are supported, see
-:doc:`/reference/cluster-configuration-process-options`.
+Automation doesn't support all MongoDB options. To review which options
+are supported, see :doc:`/reference/cluster-configuration-process-options`.
 
 |tls|
 ~~~~~
@@ -47,12 +49,11 @@ certificate on that host.
 
 .. caution::
 
-   Though you can use one |tls| certificate with many
-   :abbr:`SANs (Subject Alternative Names)` or a wildcard |tls|
-   certificate on each host, you should not. You should follow
-   :rfc:`RFC 2818, section 3.1 <2818#section-3.1>`: keep the scope of
-   |tls| certificates as narrow as possible. This prevents
-   man-in-the-middle attacks.
+   To prevent man-in-the-middle attacks, keep the scope of |tls| certificates
+   as narrow as possible. Although you can use one |tls| certificate with
+   many :abbr:`SANs (Subject Alternative Names)`, or a wildcard |tls|
+   certificate on each host, you should not. To learn more, see
+   :rfc:`RFC 2818, section 3.1 <2818#section-3.1>`.
 
 Preferred Hostnames
 ~~~~~~~~~~~~~~~~~~~
@@ -79,47 +80,69 @@ Service to Automation, Automation:
 - Stops and disables the existing service
 - Creates and starts a new service
 
+.. _auth-creds-on-source-and-destination:
+
+Authentication Credentials on Source and Destination Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the |mms| project has MongoDB authentication settings enabled for its
+deployments, the MongoDB deployment you import must support the project's
+authentication mechanism.
+
+We recommend that you import to a **new** destination project that has no
+running processes and doesn't have authentication enabled.
+
+If the source cluster uses authentication, and the destination |mms| project
+doesn't have any existing managed processes, |mms| enables authentication
+in the destination project, imports the existing keyfile from the source
+cluster, and uses it to authenticate the user that conducts the import process.
+
+If the source cluster and the destination |mms| project both use authentication,
+and the project has processes, |mms| attempts to use existing authentication
+settings in the destination project during the import process. For the
+import process to succeed, authentication credentials on the source cluster
+and the |mms| destination project must be the same.
+
+To ensure that import is successful, before you start the import process,
+add the |mms| destination project's credentials on the source cluster.
+To learn more, see :manual:`Rotate Keys for Replica Set </tutorial/rotate-key-replica-set/>`
+or :manual:`Rotate Keys for Sharded Clusters </tutorial/rotate-key-sharded-cluster/>`.
+
 .. _add-existing-mongodb-processes-auth:
 
-Authentication
-~~~~~~~~~~~~~~
+Authentication Use Cases
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If the |mms| project has MongoDB authentication settings enabled
-for its deployments, the MongoDB deployment you import must support
-the project's authentication mechanism.
+If your MongoDB deployment requires authentication, when you add the
+deployment to |mms| for monitoring, you must
+:doc:`provide the necessary credentials </tutorial/edit-host-authentication-credentials/>`.
 
-If your MongoDB deployment requires authentication, you must
-:doc:`provide the necessary credentials </tutorial/edit-host-authentication-credentials/>`
-for monitoring when adding the deployment to |mms|.
-
-- If the deployment doesn't use Automation, but *did* use Backup,
-  Monitoring, or both, you can find those credentials where the
-  credentials were before updating to the {+mdbagent+}.
+- If the deployment doesn't use Automation, but *did* use Backup, Monitoring,
+  or both, you can find those credentials where the credentials were
+  before updating to the {+mdbagent+}.
 
 - If the deployment doesn't use Automation, but *will* use Backup,
   Monitoring, or both:
 
-  - Create the credentials to the MongoDB Deployment.
+  1. Create the credentials for the MongoDB Deployment. To learn more, see
+     :ref:`Required Access for MongoDB Agent for Monitoring <mms-req-cred-monitoring>`
+     and :ref:`Required Access for MongoDB Agent for Backup <mms-req-cred-backup>`.
 
-    - :ref:`Required Access for MongoDB Agent for Monitoring <mms-req-cred-monitoring>`
-    - :ref:`Required Access for MongoDB Agent for Backup <mms-req-cred-backup>`
-
-  - Add the credentials you granted those functions to |mms| after you
-    add the MongoDB processes.
-
-    - :ref:`Add Credentials for Monitoring <add-auth-credentials-monitoring>`
-    - :ref:`Add Credentials for Backup <add-auth-credentials-backup>`
+  2. Add the credentials that you granted to those functions to |mms| after
+     you add the MongoDB processes. To learn more, see
+     :ref:`Add Credentials for Monitoring <add-auth-credentials-monitoring>`
+     and :ref:`Add Credentials for Backup <add-auth-credentials-backup>`.
 
 - If the deployment *uses* Automation, |mms| uses the credentials from
-  the legacy Automation Agent. You can delete the credentials from the
-  legacy Backup, and Monitoring Agents. The {+mdbagent+} uses those
-  credentials for its Automation, Backup, and Monitoring functions.
+  the {+mdbagent+}. You can delete the credentials from the legacy Backup,
+  and Monitoring Agents. The {+mdbagent+} uses those credentials for its
+  Automation, Backup, and Monitoring functions.
 
-- If the deployment *will* use Automation but did not prior to being
-  imported, you need to add the ``mms-automation`` user to the database
-  processes you imported and add the user's credentials to |mms|.
+- If the deployment *will* use Automation but didn't use it before you
+  import it, add the ``mms-automation`` user to the database processes
+  you imported and add the user's credentials to |mms|.
 
-  To learn more, see :ref:`add-auth-credentials-automation`.
+To learn more, see :ref:`add-auth-credentials-automation`.
 
 .. _automation-updated-security-settings:
 
@@ -163,12 +186,8 @@ enabled for the project into which you imported the deployment. See
 you must add Automation, Monitoring, or Backup credentials for your new
 deployment.
 
-.. note:: 
-   
-   If you are adding a deployment that you intend to 
-   :ref:`live migrate <migrate-community-to-atlas>` to 
-   |service-short|, you need to add credentials for Monitoring only.
-   
+.. include:: /includes/fact-import-add-creds-to-monitoring-only-if-live-migration.rst
+
 Select the authentication mechanism that you want to use:
 
 .. include:: /includes/tabsets/auth-mechanisms.rst
@@ -178,8 +197,8 @@ Select the authentication mechanism that you want to use:
 Add Credentials for Automation
 ``````````````````````````````
 
-To add credentials for a deployment that will use Automation but did
-not before you imported it to |mms|:
+To add credentials for a deployment that will use Automation but didn't
+use it before you imported it to |mms|:
 
 .. include:: /includes/steps/add-credentials-for-automation.rst
 

@@ -1,136 +1,98 @@
 Adding a MongoDB deployment to automation may affect the security
-settings of the |mms| project or the MongoDB deployment or both.
+settings of the |mms| project and the MongoDB deployment.
 
-Enables |mms| Project Security Setting
-``````````````````````````````````````
+- **Automation enables the Project Security Setting**. If the
+  MongoDB deployment requires authentication but the |mms| project doesn't
+  have authentication settings enabled, when you add the MongoDB deployment
+  to automation, |mms| updates the project's security settings to the security
+  settings of the newly imported deployment.
+  
+  The import process only updates the |mms| project's security setting
+  if the project's security setting is currently disabled. The import
+  process doesn't disable the project's security setting or change its
+  enabled authentication mechanism.
 
-If the MongoDB deployment requires authentication but the |mms| project
-does not have authentication settings enabled, upon successful addition
-of the MongoDB deployment to automation, the project's security settings
-will have the security settings of the newly imported deployment.
+- **Automation Imports MongoDB Users and Roles**. The following statements
+  apply to situations where a MongoDB deployment requires authentication
+  or the |mms| project has authentication settings enabled.
 
-.. note::
+  If the MongoDB deployment contains users or user-defined roles, you can
+  choose to import these users and roles for |mms| to manage. The imported
+  users and roles are :guilabel:`Synced` to all managed deployments in
+  the |mms| project.
 
-   The import process only enables the |mms| project's security setting
-   if the project's security setting is currently not enabled. If the
-   project's security setting is currently enabled, the import process
-   does not disable the project's security setting or change its enabled
-   authentication mechanism.
+  - If you set the project's :guilabel:`Enforce Consistent Set` value to ``Yes``,
+    |mms| deletes from the MongoDB deployments those users and roles
+    that are *not* imported.
 
-Imports MongoDB Users and Roles
-```````````````````````````````
-.. note::
+  - If you set the project's :guilabel:`Enforce Consistent Set` value to ``No``,
+    |mms| stops managing non-imported users and roles in the project. These
+    users and roles remain in the MongoDB deployment. To manage these
+    users and roles, you must connect directly to the MongoDB deployment.
 
-   The following applies for situations where at least either the
-   MongoDB deployment requires authentication or the |mms| project has
-   authentication settings enabled.
+  If you don't want the |mms| project to manage specific users and roles,
+  use the :guilabel:`Authentication & Users` and
+  :guilabel:`Authentication & Roles` pages to remove these users and roles
+  during import before you confirm and deploy the changes. To learn more,
+  see :ref:`manage-unmanage-mongodb-users`.
 
-If the MongoDB deployment contains users or user-defined roles, you can
-choose to import these users and roles for |mms| to manage. The
-imported users and roles are :guilabel:`Synced` to all managed
-deployments in the |mms| project.
+  If the imported MongoDB deployment already has ``mms-backup-agent`` and
+  ``mms-monitoring-agent`` users in its ``admin`` database, the import
+  process overrides these users' roles with the roles for ``mms-backup-agent``
+  and ``mms-monitoring-agent`` users as set in the |mms| project.
 
-If the ``Enforce Consistent Set`` value for the |mms| project is ``YES``,
-users and roles *not* imported are deleted from the MongoDB deployment.
+- **Automation Applies to All Deployments in the Project**.
+  The project's updated security settings, including all users and roles
+  managed by the |mms| project, apply to *all* deployments in the project,
+  including the imported MongoDB deployment.
 
-If the ``Enforce Consistent Set`` value for the |mms| project is ``No``,
-non-imported users and roles are not managed by |mms| project but remain
-in the MongoDB deployment. To manage these users and roles, you must
-connect directly to the MongoDB deployment.
+  |mms| restarts all deployments in the project with the new setting,
+  including the imported MongoDB deployment. After import, all deployments
+  in the project use the |mms| automation keyfile upon restart.
 
-If importing users and roles, before you confirm and deploy the
-changes, you can, from the :guilabel:`Authentication & Users` and
-:guilabel:`Authentication & Roles` screens, remove specific users and
-roles from being imported by unmanaging these users. For details on
-unmanaging MongoDB users, see :ref:`manage-unmanage-mongodb-users`.
+  The deployment that you import must use the same keyfile as the existing
+  processes in the destination project or the import process may not
+  proceed. To learn more, see :ref:`Authentication Credentials on Source
+  and Destination Clusters <auth-creds-on-source-and-destination>`.
 
-If the imported MongoDB deployment already has ``mms-backup-agent`` and
-``mms-monitoring-agent`` users in its ``admin`` database, the import
-procedure overrides the roles of these users with the roles for
-``mms-backup-agent`` and ``mms-monitoring-agent`` users as set in the
-|mms| project.
-
-Applies to All Deployments in |mms| Project
-```````````````````````````````````````````
-
-The project's updated security settings, including all users and roles
-managed as part of the |mms| project, apply to *all* deployments in the
-project, including the imported MongoDB deployment.
-
-|mms| restarts all deployments in the project with the new setting,
-including the imported MongoDB deployment. All deployments in the project
-will use the |mms| automation keyfile upon restart.
-
-If the existing deployment or deployments in the project require a
-different security profile from the imported process, create a new
-project into which you can import the MongoDB deployment.
+  If the existing deployments in the project require a different security
+  profile from the imported process, create a new project into which you
+  can import the source MongoDB deployment.
 
 Examples of Imported Users
 ``````````````````````````
 
-.. note::
+The following examples apply to situations where the MongoDB deployment
+requires authentication or the |mms| project has authentication settings enabled.
 
-   The following applies for situations where at least either the
-   MongoDB deployment requires authentication or the |mms| project has
-   authentication settings enabled.
+If you import the MongoDB users and custom roles, once the |mms| project
+begins to manage the MongoDB deployment, the following happens, regardless
+of the :guilabel:`Enforce Consistent Set` value:
 
-If you choose to import the MongoDB users and custom roles, once |mms|
-project manages the MongoDB deployment, regardless of the value of ``Enforce
-Consistent Set``:
+- The |mms| project enables authentication, manages imported users and roles,
+  and syncs the new users and roles to all its managed deployments.
+- The MongoDB deployment's access control is enabled and requires
+  authentication. The MongoDB deployment has all users and roles that
+  the |mms| project manages. These users and roles have ``Synced`` set to
+  ``Yes``.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
+If you don't import the MongoDB users and custom roles, once the |mms|
+project begins to manage the MongoDB deployment, the following happens:
 
-   * - ``Enforce Consistent Set``
-     - Results
+If :guilabel:`Enforce Consistent Set` is set to ``Yes``:
 
-   * - ``Yes`` or ``No``
-     - |mms| project:
-         - Authentication is enabled.
-         - Manages the imported users and roles.
-         - Syncs the new users and roles to all its managed deployments.
+- The |mms| project enables authentication and doesn't change its managed
+  users and roles.
+- The MongoDB deployment's access control is enabled and requires authentication.
+- |mms| deletes the non-imported MongoDB users and roles from the deployment.
+- The MongoDB deployment has all users and roles that the |mms| project
+  manages. These users and roles have ``Synced`` set to ``Yes``.
 
-       The MongoDB deployment:
-         - Has access control enabled and requires authentication.
-         - All users and roles that the |mms| project manages (i.e. has
-           ``Synced`` set to ``Yes`` ) exist in the MongoDB deployment.
+If :guilabel:`Enforce Consistent Set` is set to ``No``:
 
-If you choose not to import the users, once |mms| project manages the
-MongoDB deployment:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 80
-
-   * - ``Enforce Consistent Set``
-     - Results
-
-   * - ``Yes``
-     - |mms| project:
-         - Authentication is enabled.
-         - Has no changes to its managed users and roles.
-
-       The MongoDB deployment:
-         - Has access control enabled and requires authentication.
-
-         - The non-imported MongoDB users and roles will be deleted
-           from the MongoDB deployment.
-
-         - All users and roles that the |mms| project manages (i.e. has
-           ``Synced`` set to ``Yes`` ) exist in the MongoDB deployment.
-
-   * - ``No``
-
-     - |mms| project:
-         - Authentication is enabled.
-         - Has no changes to its security settings, including users and roles.
-
-       The MongoDB deployment:
-         - Has access control enabled and requires authentication.
-
-         - The non-imported MongoDB users and roles remain in the
-           MongoDB deployment.
-
-         - All users and roles managed by the |mms| project (i.e. has
-           ``Synced`` set to ``Yes`` ) exist in the MongoDB deployment.
+- The |mms| project enables authentication and doesn't change its security
+  settings, including users and roles.
+- The MongoDB deployment's access control is enabled and requires authentication.
+- The non-imported MongoDB users and roles remain in the MongoDB deployment.
+- The MongoDB deployment has all users and roles managed by the |mms| project.
+  These users and roles have ``Synced`` set to ``Yes``.
