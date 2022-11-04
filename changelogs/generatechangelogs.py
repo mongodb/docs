@@ -94,9 +94,9 @@ def get_issue_structure(config, issues, version):
         # format issue summary to remove backticks
         # (necessary for next-gen)
 
-        issue_summary = issue.fields.summary.encode("utf-8").replace('`', '')
+        issue_summary = issue.fields.summary.replace('`', '')
         
-        issue_pair = (issue.key.encode("utf-8"), issue_summary)
+        issue_pair = (issue.key, issue_summary)
 
         if len(components) == 0:
             # if there isn't a component put this in the last grouping.
@@ -169,11 +169,11 @@ def generate_changelog_rst(config, headings, fixVersion):
 
             if len(issues) == 1:
                 r.content("{1} {0}".format(issues[0][1], r.role(
-                    "issue", issues[0][0])), wrap=False)
+                    "issue", issues[0][0])))
             else:
                 for issue in issues:
                     r.li("{1} {0}".format(issue[1], r.role(
-                        "issue", issue[0])), wrap=False)
+                        "issue", issue[0])))
             r.newline()
 
             # repeat the above formatting with minor variations to do the nesting.
@@ -190,11 +190,11 @@ def generate_changelog_rst(config, headings, fixVersion):
                     sub_issues = headings[sub]
                     if len(sub_issues) == 0:
                         r.content("{1} {0}".format(sub_issues[0][1].strip(), r.role(
-                            "issue", sub_issues[0][0])), wrap=False)
+                            "issue", sub_issues[0][0])))
                     else:
                         for issue in sub_issues:
                             r.li("{1} {0}".format(issue[1].strip(), r.role(
-                                "issue", issue[0])), wrap=False)
+                                "issue", issue[0])))
                     r.newline()
 
     return r
@@ -207,18 +207,19 @@ def write_changelog_file(rst, fixVersion):
     fn = fixVersion + ".rst"
     outputDir = os.path.join(
         sourceDir, "source/includes/changelogs/releases", fn)
-    rst.write(outputDir)
-    logger.info(
-        "wrote changelog '{0}'. Commit this file independently.".format(outputDir))
 
-    print(
-        "wrote changelog '{0}'. Commit this file independently.".format(outputDir))
+    with open (outputDir, 'w') as f:
+        f.write(str(rst))
 
+        logger.info(
+            "wrote changelog '{0}'. Commit this file independently.".format(outputDir))
 
+        print(
+            "wrote changelog '{0}'. Commit this file independently.".format(outputDir))
 
 def main():
     # Prompt user for the version to generate the changelog for:
-    fixVersion = raw_input("Enter changelog version: ")
+    fixVersion = input("Enter changelog version: ")
 
     # Get list of JIRA issues to include in changelog
     issues = get_jira_issues(fixVersion)
