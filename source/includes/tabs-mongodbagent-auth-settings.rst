@@ -115,10 +115,20 @@
            - Enter the |ldap|\v3 distinguished name derived from the
              MongoDB Agent's |pem| Key file.
 
+         * - :guilabel:`TLS/SSL CA File Path`
+           - The path on disk that contains the trusted certificate
+             authority (CA) certificates in |pem| format. These certificates
+             verify the server certificate returned from any MongoDB
+             instances running with |tls-ssl|. You must enter at least one
+             |tls-ssl| CA file path.
+
          * - :guilabel:`MongoDB Agent PEM Key file`
-           - Provide the path and filename for the MongoDB Agent's
-             |pem| Key file on the server on the line for the
-             appropriate operating system.
+           - If your MongoDB deployment requires client certificates, on
+             the line for the appropriate operating system, provide the
+             path and ``.pem`` filename for the client certificate used by
+             the MongoDB Agent's |pem| Key file on the server.
+             You must enter a value for at least one MongoDB Agent PEM
+             Key File.
 
          * - :guilabel:`MongoDB Agent PEM Key Password`
            - Provide the password to the |pem| Key file if it was
