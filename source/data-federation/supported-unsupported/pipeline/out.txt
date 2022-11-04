@@ -424,7 +424,8 @@ Examples
       the same or different data types in the documents that reach the
       |out| stage.
 
-      *Simple String Example*
+      Simple String Example
+      ~~~~~~~~~~~~~~~~~~~~~
 
       .. example::
 
@@ -480,7 +481,8 @@ Examples
             ``big_box_store/3.bson.gz`` through
             ``big_box_store/5.bson.gz``.
 
-      *Single Field from Documents*
+      Single Field from Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       .. example::
 
@@ -511,7 +513,8 @@ Examples
          same ``sale-date`` value. |out| names each file using the
          documents' ``sale-date`` value converted to a string.
 
-      *Multiple Fields from Documents*
+      Multiple Fields from Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       .. example::
 
@@ -558,7 +561,8 @@ Examples
          the documents' ``name`` and ``unique-id`` values.
 
 
-      *Multiple Types of Fields from Documents*
+      Multiple Types of Fields from Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       .. example::
 
@@ -612,7 +616,8 @@ Examples
    .. tab:: Atlas Cluster
       :tabid: atlas
 
-      **Write to Collection on Atlas Cluster**
+      Write to Collection on Atlas Cluster
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       This |out| syntax sends the aggregated data to a 
       ``sampleDB.mySampleData`` collection in the |service| cluster 
@@ -634,7 +639,8 @@ Examples
               }
             }
 
-**Run Query in the background** 
+Run Query in the background
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example shows |out| syntax for running an aggregation 
 pipeline that ends with the |out| stage in the background.
@@ -694,15 +700,17 @@ pipeline that ends with the |out| stage in the background.
 
 .. _adf-out-stage-limitations:
 
+Limitations
+-----------
+
 .. tabs::
    :hidden:
 
    .. tab:: S3
       :tabid: s3
 
-      **Limitations**
-
-      *String Data Type*
+      String Data Type
+      ~~~~~~~~~~~~~~~~
 
       {+df+} interprets empty strings (``""``) as ``null`` values when
       parsing filenames. If you want {+df+} to generate parseable
@@ -743,7 +751,8 @@ pipeline that ends with the |out| stage in the background.
               }
             }
 
-      *CSV and TSV File Format*
+      CSV and TSV File Format
+      ~~~~~~~~~~~~~~~~~~~~~~~
 
       When writing to CSV or TSV format, {+adf+} does not support the 
       following data types in the documents: 
@@ -769,7 +778,8 @@ pipeline that ends with the |out| stage in the background.
       the same as the data types in the original |bson| documents from 
       which the data types were written.
 
-      *Parquet File Format*
+      Parquet File Format
+      ~~~~~~~~~~~~~~~~~~~
 
       For Parquet, {+adf+} reads back fields with null or undefined 
       values as missing because Parquet doesn't distinguish between 
@@ -785,6 +795,92 @@ pipeline that ends with the |out| stage in the background.
         metadata so that {+adf+} can reconstruct the original |bson| 
         document with the correct data types if the Parquet file is 
         read back by {+adf+}.
+
+      .. example:: 
+
+         Consider the following |bson| documents:
+
+         .. code-block:: json
+            :copyable: false 
+
+            {
+              "clientId": 102, 
+              "phoneNumbers": ["123-4567", "234-5678"], 
+              "clientInfo": {
+                "name": "Taylor",
+                "occupation": "teacher"
+              }
+            }
+            {
+              "clientId": "237", 
+              "phoneNumbers" ["345-6789"]
+              "clientInfo": {
+                "name": "Jordan"
+              }
+            }
+
+         If you write the preceding |bson| documents to Parquet format using
+         :ref:`$out to S3 <adf-out-stage>`, the Parquet file schema for your
+         |bson| documents would look similar to the following: 
+
+         .. code-block:: shell 
+            :copyable: false 
+
+            message root {
+              optional group clientId {
+                optional int32 int;
+                optional binary string; (STRING)
+              }
+              optional group phoneNumbers (LIST) {
+                repeated group list {
+                  optional binary element (STRING);
+                }
+              }
+              optional group clientInfo {
+                optional binary name (STRING);
+                optional binary occupation (STRING);
+              }
+            }
+
+         Your Parquet data on |s3| would look similar to the following: 
+
+         .. code-block:: shell
+            :copyable: false 
+            :linenos:
+
+            clientId:
+            .int = 102
+            phoneNumbers:
+            .list:
+            ..element = "123-4567"
+            .list:
+            ..element = "234-5678"
+            clientInfo:
+            .name = "Taylor"
+            .occupation = "teacher"
+
+            clientId:
+            .string = "237"
+            phoneNumbers:
+            .list:
+            ..element = "345-6789"
+            clientInfo:
+            .name = "Jordan"
+
+         The preceding example demonstrates how {+adf+} handles complex data
+         types: 
+
+         - {+adf+} maps documents at all levels to a Parquet group.
+         - {+adf+} encodes arrays using the ``LIST`` logical type and the
+           mandatory three-level list or element structure. To learn more,
+           see `Lists
+           <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__. 
+         - {+adf+} maps polymorphic |bson| fields to a group of multiple single-type
+           columns because Parquet doesn't support polymorphic columns. 
+           {+adf+} names the group after the |bson| field. In the preceding
+           example, {+adf+} creates a Parquet group named ``clientId`` for
+           the poymorphic field named ``clientId`` with two children named
+           after its |bson| types, ``int`` and ``string``.
 
    .. tab:: Atlas Cluster
       :tabid: atlas
