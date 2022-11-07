@@ -1,8 +1,8 @@
 .. _text-to-search:
 
-===============================
-Update $text Queries with |fts|
-===============================
+===============================================================
+Update $text Queries with |fts| for Improved Search Performance
+===============================================================
 
 .. default-domain:: mongodb
 
@@ -12,3 +12,398 @@ Update $text Queries with |fts|
    :depth: 1
    :class: singlecol
 
+If your queries rely heavily on the :query:`$text` aggregation pipeline 
+stage, you can modify these queries to use :pipeline:`$search` instead 
+to improve both the flexibility and performance of these queries.
+
+.. _search-text-features:
+
+|fts| Feature Advantages
+------------------------
+
+The :pipeline:`$search` aggregation stage provides the following 
+features which are either not available through the :query:`$text` 
+operator, available but less performant, or available only with 
+significant implementation work by the user:
+
+- :ref:`Language awareness <ref-language-analyzers>`
+- Case-insensitive and :ref:`diacritic-insensitive <diacritic-insensitive-tutorial>` search
+- Result text :ref:`highlighting <highlight-ref>`
+- :ref:`Geospatial-aware <run-geo-search-tutorial>` queries
+- Character and word autocompletion with different 
+  :ref:`tokenization <bson-data-types-autocomplete>` strategies
+- :ref:`Fuzzy matching <text-ref-fuzzy-eg>`
+- Filtering on 10 or more strings with the :ref:`compound-ref` operator
+- Customizable :ref:`relevance scoring <scoring-ref>` and 
+  :ref:`sorting <sort-tutorial>`
+- Single compound indexes on arrays
+- :ref:`Synonym <synonyms-ref>` search
+- Bucketing for :ref:`faceted navigation <fts-facet-ref>`
+- :ref:`Custom analyzers <custom-analyzers>`
+- :ref:`Partial matching <partial-match-tutorial>`
+- :ref:`Phrase <phrase-ref>` queries
+
+Examples
+--------
+Create the Indexes
+~~~~~~~~~~~~~~~~~~
+
+The examples in the following sections use queries against the 
+``sample_mflix.movies`` collection in the 
+:doc:`sample data </sample-data>` to illustrate the improvements to 
+flexibility and performance that |fts| offers over :query:`$text`. You 
+can run the queries from both examples using the following indexes:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Text Index
+     - |fts| Index
+   
+   * - .. code-block:: javascript
+
+          db.movies.createIndex(
+            { 
+              genres: "text",
+              plot: "text", 
+              year: -1 
+            }
+          )
+
+     - .. code-block:: json
+      
+          {
+            "mappings": {
+              "dynamic": false,
+              "fields": {
+                "genres": {
+                  "type": "string"
+                },
+                "plot": {
+                  "type": "string"
+                },
+                "year": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+
+Either index definition will index the ``genres`` and ``plot`` fields
+as text, and the ``year`` field as numeric. For instructions on 
+creating :query:`$text` indexes, see 
+:manual:`Create Text Index <create-text-index>`. For instructions on
+creating |fts| indexes, see 
+:ref:`Create an Atlas Search Index <ref-create-index>`.
+
+.. _search-text-flexibility:
+
+Improve Flexibility of Full-Text Queries with |fts|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can update your :query:`$text`-based queries to use ``$search`` for 
+greater flexibility and convenience. In this example, you will query 
+the ``sample_mflix.movies`` collection in the 
+:doc:`sample data </sample-data>` to retrieve entries with the word
+'poet' in the ``plot`` field, sorted in ascending order by year.
+
+The index definitions laid out in the previous section illustrate one
+of the flexibility enhancements of ``$search``: in order to create the
+``$text`` index on ``sample_mflix.movies``, you must first 
+:manual:`delete any existing text index <text-index-storage-requirements>` on the 
+sample data, as MongoDB supports only a single text index per 
+collection.
+
+In contrast, you can create multiple
+:ref:`Atlas Search indexes <ref-create-index>` for a single 
+collection, allowing your applications to leverage distinct full text 
+queries in parallel.
+
+The following queries return the five most recent movies with 'poet' in 
+the ``plot`` field, showing their titles, genres, plots, and years of 
+release.
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Regex Index
+     - |fts| Index
+   
+   * - .. code-block:: javascript
+
+          db.movies.find(
+             { 
+               $text: { $search: "poet" }
+             },
+             {
+               _id: 0,
+               title: 1,
+               genres: 1,
+               plot: 1,
+               year: 1
+             }
+          ).limit(5)
+
+     - .. code-block:: json
+      
+          db.movies.aggregate([
+             {
+               "$search": {
+                 "text": {
+                   "path": "plot",
+                   "query": "poet"
+                 }
+               }
+             },
+             {
+               "$limit": 5
+             },
+             {
+               "$project": {
+                 "_id": 0,
+                 "title": 1,
+                 "genres": 1,
+                 "plot": 1,
+                 "year": 1,
+               }
+             }
+          ])
+
+Both of these queries return the following results:
+
+.. code-block:: javascript
+
+   {
+    plot: `It's the story of the murder of a poet, a man, a great film director: Pier Paolo Pasolini. The story begin with the arrest of "Pelosi", a young man then accused of the murder of the poet. ...`,
+    genres: [ 'Crime', 'Drama' ],
+    title: 'Who Killed Pasolini?',
+    year: 1995
+   },
+   {
+    plot: 'Friendship and betrayal between two poets during the French Revolution.',
+    genres: [ 'Biography', 'Drama' ],
+    title: 'Pandaemonium',
+    year: 2000
+   },
+   {
+    year: 2003,
+    plot: 'Story of the relationship between the poets Ted Hughes and Sylvia Plath.',
+    genres: [ 'Biography', 'Drama', 'Romance' ],
+    title: 'Sylvia'
+   },
+   {
+    year: 2003,
+    plot: 'Story of the relationship between the poets Ted Hughes and Sylvia Plath.',
+    genres: [ 'Biography', 'Drama', 'Romance' ],
+    title: 'Sylvia'
+   },
+   {
+    plot: 'A love-struck Italian poet is stuck in Iraq at the onset of an American invasion.',
+    genres: [ 'Comedy', 'Drama', 'Romance' ],
+    title: 'The Tiger and the Snow',
+    year: 2005
+   }
+
+Unique to |fts|, you can add :ref:`highlights <highlight-ref>` to the 
+results, displaying matches in the contexts in which they were found.
+To do so, replace the |fts| query above with the following:
+
+.. code-block:: json
+   :linenos:
+   :emphasize-lines: 8-10, 23
+      
+   db.movies.aggregate([
+     {
+       "$search": {
+         "text": {
+           "path": "plot",
+           "query": "poet"
+         },
+         "highlight": {
+           "path": "plot"
+         }
+       }
+     },
+     {
+       "$limit": 1
+     },
+     {
+       "$project": {
+         "_id": 0,
+         "title": 1,
+         "genres": 1,
+         "plot": 1,
+         "year": 1,
+         "highlights": { "$meta": "searchHighlights" }
+       }
+     }
+   ])
+
+The results of the above query include the ``highlights`` field, which 
+contains both the context in which all matches occurred, and relevance 
+scores for each. For example, the following shows the ``highlights`` 
+field for the first document in the ``$search`` results.
+
+.. code-block:: javascript
+
+     {
+       plot: `It's the story of the murder of a poet, a man, a great film director: Pier Paolo Pasolini. The story begin with the arrest of "Pelosi", a young man then accused of the murder of the poet. ...`,
+       genres: [ 'Crime', 'Drama' ],
+       title: 'Who Killed Pasolini?',
+       year: 1995,
+       highlights: [
+         {
+           score: 1.0902210474014282,
+           path: 'plot',
+           texts: [
+             { value: "It's the story of the murder of a ", type: 'text' },
+             { value: 'poet', type: 'hit' },
+             {
+               value: ', a man, a great film director: Pier Paolo Pasolini. ',
+               type: 'text'
+             }
+           ]
+         },
+         {
+           score: 1.0202842950820923,
+           path: 'plot',
+           texts: [
+             {
+               value: 'The story begin with the arrest of "Pelosi", a young man then accused of the murder of the ',
+               type: 'text'
+             },
+             { value: 'poet', type: 'hit' },
+             { value: '. ...', type: 'text' }
+           ]
+         }
+       ]
+     }
+
+Improve Performance of Queries using |fts|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In addition to greater flexibility and convenience, |fts| provides
+significant performance advantages over analogous :query:`$text` queries.
+Consider a query against the ``sample_mflix.movies`` collection to 
+retrieve movies released between 2000 and 2010, in the comedy genre, 
+with 'poet' in the ``plot`` field.
+
+Run the following queries:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Text Index
+     - |fts| Index
+   
+   * - .. code-block:: json
+
+          db.movies.aggregate([
+            {
+              $match: {
+                year: {$gte: 2000, $lte: 2010},
+                $text: { $search: "poet" },
+                genres : { $eq: "Comedy" }
+              } 
+            },
+            { "$sort": { "year": 1 } },
+            {
+              "$limit": 3
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "genres": 1,
+                "plot": 1,
+                "year": 1
+              },
+              
+            }
+          ])
+
+     - .. code-block:: json
+      
+          db.movies.aggregate([
+            {
+              "$search": {
+                "compound": {
+                  "filter": [{
+                    "range": {
+                      "gte": 2000,
+                      "lte": 2010,
+                      "path": "year"
+                    }
+                  },
+                  {
+                    "text": {
+                      "path": "plot",
+                      "query": "poet"
+                    }
+                  },
+                  {
+                    "text": {
+                      "path": "genres",
+                      "query": "comedy"
+                    }
+                  }]
+                }
+              }
+            },
+            { "$sort": { "year": 1 } },
+            {
+              "$limit": 3
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "genres": 1,
+                "plot": 1,
+                "year": 1
+              }
+            }
+          ])
+
+Both of these queries will return the following three documents.
+
+.. code-block:: javascript
+
+     {
+    year: 2000,
+    plot: 'A film poem inspired by the Peruvian poet Cèsar Vallejo. A story about our need for love, our confusion, greatness and smallness and, most of all, our vulnerability. It is a story with many...',
+    genres: [ 'Comedy', 'Drama' ],
+    title: 'Songs from the Second Floor'
+  },
+  {
+    plot: 'When his mother, who has sheltered him his entire 40 years, dies, Elling, a sensitive, would-be poet, is sent to live in a state institution. There he meets Kjell Bjarne, a gentle giant and...',
+    genres: [ 'Comedy', 'Drama' ],
+    title: 'Elling',
+    year: 2001
+  },
+  {
+    plot: 'Heart-broken after several affairs, a woman finds herself torn between a Poet and a TV Host.',
+    genres: [ 'Comedy', 'Romance', 'Drama' ],
+    title: 'Easy',
+    year: 2003
+  }
+
+Although :query:`$text` is adequate for simple, narrow searches such as 
+this, as the size of the datasets and breadth of your queries 
+increases, the performance advantages of ``$search`` will significantly 
+improve the responsiveness of your applications. We recommend that you 
+use an :ref:`Atlas Search query <searching-ref>` through the 
+:ref:`$search <query-syntax-ref>` aggregation pipeline stage.
+
+Learn More
+----------
+
+- To learn more about |fts| queries, see :ref:`searching-ref`.
+
+- MongoDB University offers a free course on optimizing MongoDB
+  Performance. To learn more, see
+  `M201: MongoDB Performance 
+  <https://university.mongodb.com/courses/M201/about>`__.
