@@ -144,12 +144,12 @@ S
      .. seealso:: :term:`as`
 
    slash
-     Use *slash* to refer to the / character, and use *backslash* to
-     refer to the \\ character. Don't use :term:`slash mark`.
+     Use *slash* to refer to the ``/`` character, and use *backslash* to
+     refer to the ``\`` character. Don't use *slash mark*.
 
    slash mark
-     :icon-fa5:`trash-alt` Use *slash* to refer to the / character,
-     and use *backslash* to refer to \\ the character.
+     :icon-fa5:`trash-alt` Use *slash* to refer to the ``/`` character,
+     and use *backslash* to refer to ``\\`` the character.
 
    slave
      :icon-fa4:`times-circle` Don't use. Use *secondary* as an
