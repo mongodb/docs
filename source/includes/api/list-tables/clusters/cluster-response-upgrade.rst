@@ -342,7 +342,7 @@
 
              :ref:`storage-capacity`.
 
-       .. include:: /includes/cluster-settings/storage-limitation.rst
+       .. include:: /includes/cluster-settings/extended-storage-limit.rst
 
    * - encryptionAtRestProvider
      - string

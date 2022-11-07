@@ -246,7 +246,7 @@
           whether you choose the default value or a custom value. For
           details, see :ref:`storage-capacity`.
 
-       .. include:: /includes/cluster-settings/storage-limitation.rst
+       .. include:: /includes/cluster-settings/extended-storage-limit.rst
 
        .. note::
 

@@ -74,10 +74,7 @@ depending on the selected cloud provider and cluster tier.
       To support 3 TB of disk storage you must select a cluster
       with at least 32 GB of RAM (M50 or higher).
 
-   |service| has a 4 TB disk storage limit on all replica sets and
-   shards, regardless of cluster. To expand total cluster
-   storage beyond 4 TB, enable :ref:`sharding
-   <cluster-option-sharding>`.
+   .. include:: /includes/cluster-settings/extended-storage-limit.rst
 
    For clusters with :guilabel:`Auto-Expand Storage` enabled,
    |service| respects the calculated maximum storage for the

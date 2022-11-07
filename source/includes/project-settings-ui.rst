@@ -14,7 +14,9 @@ You can set the following in the {+atlas-ui+}:
 
       .. note::
 
-          Only a user with the :authrole:`Project Owner` role for the project or the :authrole:`Organization Owner` role for the project's organization can edit the project name.
+          You must have the :authrole:`Project Owner` role for the 
+          project or the :authrole:`Organization Owner` role for the 
+          project's organization to edit the project name.
 
   * - :guilabel:`Project Time Zone`
 
@@ -30,14 +32,14 @@ You can set the following in the {+atlas-ui+}:
   * - :guilabel:`Connect via Peering Only (GCP and Azure)`
 
     - Allows you to enable or disable connections between MongoDB
-      Atlas dedicated clusters and public |ipaddr| addresses outside
+      Atlas dedicated {+clusters+} and public |ipaddr| addresses outside
       of the peered |vpc|/VNet. You can only enable or disable this
-      setting when there are no active dedicated GCP or Azure clusters
+      setting when there are no active dedicated GCP or Azure {+clusters+}
       in your project.
 
       .. important:: Feature Deprecated
 
-         This feature has been deprecated. Existing clusters can
+         This feature has been deprecated. Existing {+clusters+} can
          continue to use this feature. Use both Standard and Private
          IP for Peering connection strings to connect to your project.
          These connection strings allow you to connect using both
@@ -48,7 +50,7 @@ You can set the following in the {+atlas-ui+}:
   * - :guilabel:`Using Custom DNS on AWS with VPC peering`
 
     - Allows you to expose a second connection string for your
-      dedicated |service| clusters on |aws| that resolves to private IPs.
+      dedicated |service| {+clusters+} on |aws| that resolves to private IPs.
 
       Enable this setting if you use custom DNS that cannot take
       advantage of |aws| built-in split-horizon DNS across a VPC peering
@@ -63,10 +65,10 @@ You can set the following in the {+atlas-ui+}:
 
     - Allows you to create more than one :ref:`Private Endpoint
       <private-endpoint>` in more than one region for multi-region and
-      global sharded clusters.
+      global sharded {+clusters+}.
 
       Enable this setting if you want to connect to multi-region or
-      global sharded clusters using private endpoints.
+      global sharded {+clusters+} using private endpoints.
 
       .. include:: /includes/admonitions/warnings/regionalized-pls-change-connection-strings.rst
 
@@ -82,7 +84,7 @@ You can set the following in the {+atlas-ui+}:
     - Set which hour of the day that |service| should start weekly
       maintenance on your cluster.
 
-      To learn more about cluster maintenance windows, see
+      To learn more about {+cluster+} maintenance windows, see
       :ref:`configure-maintenance-window`. 
 
   * - :guilabel:`Real Time Performance Panel`
@@ -112,6 +114,18 @@ You can set the following in the {+atlas-ui+}:
       :ref:`{+atlas-ui+} <atlas-ui-dbs>`.
       
       .. include:: /includes/fact-serverless-schema-advisor.rst
+
+  * - :guilabel:`Enable Extended Storage Sizes`
+
+    - Allows you to configure M40+ {+clusters+} with greater maximum
+      storage than the standard limit. Only {+clusters+} which meet the
+      following criteria support extended storage:
+
+      - The {+cluster+} is on AWS or GCP
+      - The {+cluster+} is either General or Low-CPU class
+      - The {+cluster+} is single-region
+
+      .. include:: /includes/fact-extended-storage.rst
 
   * - :guilabel:`Delete Charts`
 

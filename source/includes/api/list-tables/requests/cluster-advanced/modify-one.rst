@@ -96,7 +96,7 @@
        |service| calculates storage charges differently depending on
        whether you choose the default value or a custom value.
 
-       .. include:: /includes/cluster-settings/storage-limitation.rst
+       .. include:: /includes/cluster-settings/extended-storage-limit.rst
 
        If your cluster spans cloud service providers, this value
        defaults to the minimum default of the providers involved.
