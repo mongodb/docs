@@ -1,5 +1,5 @@
 {+az-pl+} supports 150 addressable targets. |service| can use port 1024
-through port 65536, but typically starts with port 1024. The ports 
+through port 65535, but typically starts with port 1024. The ports 
 can change under specific circumstances, including (but not limited to)
 {+database-deployment+} changes.
 
