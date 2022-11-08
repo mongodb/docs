@@ -1,3 +1,19 @@
+.. _opsmgr-server-6.0.6:
+
+|onprem| Server 6.0.6
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-11-08*
+
+- Updates the {+mdbagent+} to :ref:`12.0.14.7630 
+  <mongodb-12.0.14.7630>`.
+- Updates JDK to ``jdk-11.0.17+8``.
+- Updates jetty to 10.0.12 to fix a bug that occurred when SSL 
+  connection errors prevented the release of the memory associated 
+  with the connection.
+- Fixes an issue that prevented downloading the {+mdbagent+} for 
+  PowerPC (ppc64le) and zSeries (s390x) architectures.
+
 .. _opsmgr-server-6.0.5:
 
 |onprem| Server 6.0.5
