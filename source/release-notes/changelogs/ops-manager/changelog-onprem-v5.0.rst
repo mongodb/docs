@@ -70,6 +70,9 @@
   </release-notes/database-tools-changelog#100.5.3-changelog>`.
 - Updates the {+mdbagent+} to :ref:`11.0.17.7086
   <mongodb-11.0.17.7086>`.
+- Switches to the BCFIPS Java Security Provider library.
+- Switches from using ``/dev/random`` for random number generation to
+  using ``/dev/urandom``.
   
   .. include:: /includes/extracts/om5-warning-server-68925.rst
 
