@@ -41,7 +41,7 @@ public class FindManyAsync
     {
         // start-find-builders-async
         var filter = Builders<Restaurant>.Filter
-            .Eq("cuisine", "Pizza");
+            .Eq(r => r.Cuisine, "Pizza");
 
         return await _restaurantsCollection.Find(filter).ToListAsync();
         // end-find-builders-async

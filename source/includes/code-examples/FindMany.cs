@@ -37,7 +37,7 @@ public class FindMany
     {
         // start-find-builders-sync
         var filter = Builders<Restaurant>.Filter
-            .Eq("cuisine", "Pizza");
+            .Eq(r => r.Cuisine, "Pizza");
 
         var restaurants = _restaurantsCollection.Find(filter).ToList();
         // end-find-builders-sync

@@ -32,7 +32,7 @@ public class UpdateOne
         const string newValue = "2 Bagels 2 Buns";
 
         var filter = Builders<Restaurant>.Filter
-            .Eq("name", oldValue);
+            .Eq(restaurant => restaurant.Name, oldValue);
 
         var update = Builders<Restaurant>.Update
             .Set(restaurant => restaurant.Name, newValue);
@@ -57,7 +57,7 @@ public class UpdateOne
     private static void ResetSampleData()
     {
         var filter = Builders<Restaurant>.Filter
-            .Eq("name", "2 Bagels 2 Buns");
+            .Eq(restaurant => restaurant.Name, "2 Bagels 2 Buns");
 
         var update = Builders<Restaurant>.Update
             .Set(restaurant => restaurant.Name, "Bagels N Buns");

@@ -34,7 +34,7 @@ public class FindOneAsync
     {
         // start-find-builders
         var filter = Builders<Restaurant>.Filter
-            .Eq("name", "Bagels N Buns");
+            .Eq(r => r.Name, "Bagels N Buns");
 
         return await _restaurantsCollection.Find(filter).FirstOrDefaultAsync();
         // end-find-builders

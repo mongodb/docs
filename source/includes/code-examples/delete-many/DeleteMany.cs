@@ -10,20 +10,20 @@ public class DeleteMany
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
     private static string _mongoConnectionString = "<Your MongoDB URI>";
-    
+
     public static void Main(string[] args)
     {
         Setup();
-        
+
         var docs = _restaurantsCollection.Find(Builders<Restaurant>.Filter
-            .Regex("name", "Green")).ToList();
+            .Regex(r => r.Name, "Green")).ToList();
 
         // Deleting documents using builders
         WriteLine("Deleting documents...");
         var result = DeleteMultipleRestaurantsBuilder();
 
         WriteLine($"Deleted documents: {result.DeletedCount}");
-        
+
         Restore(docs);
     }
 
@@ -31,7 +31,7 @@ public class DeleteMany
     {
         // start-delete-many-builders
         var filter = Builders<Restaurant>.Filter
-            .Regex("name", "Green");
+            .Regex(r => r.Name, "Green");
 
         var result = _restaurantsCollection.DeleteMany(filter);
         return result;

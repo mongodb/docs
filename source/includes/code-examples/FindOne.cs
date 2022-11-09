@@ -31,7 +31,7 @@ public class FindOne
     {
         // start-find-builders
         var filter = Builders<Restaurant>.Filter
-            .Eq("name", "Bagels N Buns");
+            .Eq(r => r.Name, "Bagels N Buns");
 
         var restaurant = _restaurantsCollection.Find(filter).FirstOrDefault();
         // end-find-builders

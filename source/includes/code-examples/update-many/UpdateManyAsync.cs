@@ -43,7 +43,7 @@ namespace UsageExamples.UpdateMany
             const string newValue = "Pasta and breadsticks";
 
             var filter = Builders<Restaurant>.Filter
-                .Eq("cuisine", oldValue);
+                .Eq(restaurant => restaurant.Cuisine, oldValue);
 
             var update = Builders<Restaurant>.Update
                 .Set(restaurant => restaurant.Cuisine, newValue);

@@ -16,14 +16,14 @@ public class DeleteOneAsync
         Setup();
 
         var doc = _restaurantsCollection.Find(Builders<Restaurant>.Filter
-            .Eq("name", "Ready Penny Inn")).First();
-        
+            .Eq(r => r.Name, "Ready Penny Inn")).First();
+
         // Delete a document using builders
         WriteLine("Deleting a document with builders...");
         var result = DeleteARestaurantBuilderAsync();
-        
+
         WriteLine($"Deleted documents: {result.Result.DeletedCount}");
-        
+
         Restore(doc);
     }
 
@@ -31,7 +31,7 @@ public class DeleteOneAsync
     {
         // start-delete-one-builders-async
         var filter = Builders<Restaurant>.Filter
-            .Eq("name", "Ready Penny Inn");
+            .Eq(r => r.Name, "Ready Penny Inn");
 
         var result = await _restaurantsCollection.DeleteOneAsync(filter);
         return result;

@@ -20,7 +20,7 @@ public class InsertOne
 
         // find and print newly inserted document
         var document = _restaurantsCollection.Find(Builders<Restaurant>.Filter
-            .Eq("name", "Mongo's Pizza")).FirstOrDefault();
+            .Eq(r => r.Name, "Mongo's Pizza")).FirstOrDefault();
 
         WriteLine("Document Inserted: " + document.ToBsonDocument());
 

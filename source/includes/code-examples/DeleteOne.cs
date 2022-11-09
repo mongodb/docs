@@ -14,16 +14,16 @@ public class DeleteOne
     public static void Main(string[] args)
     {
         Setup();
-        
+
         var doc = _restaurantsCollection.Find(Builders<Restaurant>.Filter
-            .Eq("name", "Ready Penny Inn")).First();
+            .Eq(r => r.Name, "Ready Penny Inn")).First();
 
         // Delete a document using builders
         WriteLine("Deleting a document with builders...");
         var result = DeleteARestaurantBuilder();
 
         WriteLine($"Deleted documents: {result.DeletedCount}");
-        
+
         Restore(doc);
     }
 
@@ -31,7 +31,7 @@ public class DeleteOne
     {
         // start-delete-one-builders
         var filter = Builders<Restaurant>.Filter
-            .Eq("name", "Ready Penny Inn");
+            .Eq(r => r.Name, "Ready Penny Inn");
 
         var result = _restaurantsCollection.DeleteOne(filter);
         return result;

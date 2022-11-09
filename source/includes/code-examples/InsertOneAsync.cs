@@ -20,7 +20,7 @@ public class InsertOneAsync
 
         // find and print newly inserted document
         var document = _restaurantsCollection.Find(Builders<Restaurant>.Filter
-            .Eq("name", "Mongo's Pizza")).FirstOrDefault();
+            .Eq(r => r.Name, "Mongo's Pizza")).FirstOrDefault();
 
         WriteLine("Document Inserted: " + document.ToBsonDocument());
 
@@ -66,7 +66,7 @@ public class InsertOneAsync
     private static void Cleanup()
     {
         _restaurantsCollection.DeleteOne(Builders<Restaurant>.Filter
-            .Eq("name", "Mongo's Pizza"));
+            .Eq(r => r.Name, "Mongo's Pizza"));
     }
 }
 

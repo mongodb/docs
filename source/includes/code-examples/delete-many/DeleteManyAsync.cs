@@ -10,20 +10,20 @@ public class DeleteManyAsync
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
     private static string _mongoConnectionString = "<Your MongoDB URI>";
-    
+
     public static void Main(string[] args)
     {
         Setup();
-        
+
         var docs = _restaurantsCollection.Find(Builders<Restaurant>.Filter
-            .Regex("name", "Green")).ToList();
+            .Regex(r => r.Name, "Green")).ToList();
 
         // Deleting documents using builders
         WriteLine("Deleting documents...");
         var result = DeleteMultipleRestaurantsBuilderAsync();
 
         WriteLine($"Deleted documents: {result.Result.DeletedCount}");
-        
+
         Restore(docs);
     }
 
@@ -31,7 +31,7 @@ public class DeleteManyAsync
     {
         // start-delete-many-async
         var filter = Builders<Restaurant>.Filter
-            .Regex("name", "Green");
+            .Regex(r => r.Name, "Green");
 
         var result = await _restaurantsCollection.DeleteManyAsync(filter);
         return result;
