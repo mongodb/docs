@@ -1,19 +1,12 @@
-To deploy a |deployment| using an |k8s-obj|, you need to complete the
-following procedures:
+To deploy a |deployment| using an |k8s-obj|, you must:
 
-- :doc:`Install Ops Manager <installation>`
+- Have or create an :doc:`Ops Manager instance <installation>` or a :ref:`Cloud Manager organization <create-organization>`.
 
-- :doc:`Install Kubernetes Operator </tutorial/install-k8s-operator>`
+- Have or install the :ref:`MongoDB Enterprise Kubernetes Operator <install-k8s>`.
 
-- :ref:`create-k8s-project`
+- Create or generate a :ref:`Kubernetes Operator ConfigMap <create-k8s-project>`.
 
-- :ref:`create-k8s-credentials` or 
-  :ref:`configure a different secret storage tool <k8s-set-secret-storage-tool>`
-
-Alternatively, for |cloud|, after installing the Kubernetes Operator, 
-you can use the |cloud-short| :cloudmgr:`UI 
-</tutorial/nav/k8s-config-for-mdb-resource/>` to automatically generate 
-the ConfigMap and Kubernetes secret YAML files, which you can then 
-apply to your Kubernetes environment. 
+- Create :ref:`credentials for the Kubernetes Operator <create-k8s-credentials>` or 
+  configure :ref:`a different secret storage tool <k8s-set-secret-storage-tool>`.
 
 .. include:: /includes/facts/fact-can-change-secret-storage-tool.rst
