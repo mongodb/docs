@@ -4,6 +4,14 @@ MongoDB Spark Connector Documentation
 
 This repository contains documentation for the MongoDB Spark Connector.
 
+Branch Organization
+-------------------
+
+- The master branch contains the latest changes for the Spark MongoDB Connector v10.
+- The `v10.x` branches apply to the Spark MongoDB Connector v10.
+- The `v1.x` - `v3.x` branches apply to the original Spark MongoDB Connector.
+
+
 File JIRA Tickets
 -----------------
 
