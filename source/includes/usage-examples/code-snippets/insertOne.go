@@ -7,10 +7,21 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// start-restaurant-struct
+type Restaurant struct {
+	Name         string
+	RestaurantId string `bson:"restaurant_id,omitempty"`
+	Cuisine      string
+	Address      interface{} `bson:"address,omitempty"`
+	Borough      string
+	Grades       []interface{} `bson:"grades,omitempty"`
+}
+
+// end-restaurant-struct
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -33,10 +44,10 @@ func main() {
 	}()
 
 	// begin insertOne
-	coll := client.Database("insertDB").Collection("haikus")
-	doc := bson.D{{"title", "Record of a Shriveled Datum"}, {"text", "No bytes, no problem. Just insert a document, in MongoDB"}}
+	coll := client.Database("sample_restaurants").Collection("restaurants")
+	newRestaurant := Restaurant{Name: "8282", Cuisine: "Korean", Borough: "Manhattan"}
 
-	result, err := coll.InsertOne(context.TODO(), doc)
+	result, err := coll.InsertOne(context.TODO(), newRestaurant)
 	if err != nil {
 		panic(err)
 	}
