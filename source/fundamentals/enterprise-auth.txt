@@ -1,27 +1,205 @@
+.. _golang-enterprise-authentication-mechanisms:
+
 ====================================
 Enterprise Authentication Mechanisms
 ====================================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-In this guide, we show you how to authenticate with MongoDB using each
-**authentication mechanism** available exclusively in the MongoDB Enterprise
-Edition.
+Overview
+--------
 
-You can use the following mechanisms with the latest version of the MongoDB
-Enterprise Edition:
+In this guide, you can learn how to authenticate in MongoDB using the
+**authentication mechanisms** available in the MongoDB Enterprise Edition.
+Authentication mechanisms are processes by which the driver and server confirm
+the identity of a client to ensure security before connecting.
 
-Kerberos (GSSAPI)
-LDAP (PLAIN)
+You can use the following authentication mechanisms with the latest version of
+the MongoDB Enterprise Edition:
 
-To authenticate using another mechanism, see
-:ref:`golang-authentication-mechanisms`. To learn more about 
-establishing a connection to your MongoDB cluster, see 
+- :ref:`GSSAPI/Kerberos <golang-kerberos>`
+- :ref:`LDAP (Plain) <golang-LDAP>`
+
+To authenticate using another mechanism, see the
+:ref:`<golang-authentication-mechanisms>` fundamentals page. To learn
+more about establishing a connection to your MongoDB cluster, see the
 :ref:`golang-connection-guide`.
 
+You can specify your authentication mechanism and credentials when connecting to
+MongoDB through the following methods:
+
+- Using a **connection string URI**. To learn more about using a
+  connection string URI for enterprise authentication, see the :manual:`Server manual
+  entry on connection string URIs </reference/connection-string/#authentication-options>`.
+
+- Specifying credentials and an authentication mechanism in the
+  ``Credential`` type.
+
+.. _golang-kerberos:
+
+Authenticate to GSSAPI/Kerberos
+-------------------------------
+
+The Generic Security Services API (GSSAPI) authentication mechanism allows the 
+user to authenticate to a Kerberos service using the user's principal.
+
+You must use the ``gssapi`` `build tag <https://pkg.go.dev/go/build#hdr-Build_Constraints>`__
+and specify `cgo support <https://pkg.go.dev/cmd/cgo>`__ during
+compilation to use Kerberos authentication. ``cgo`` support is enabled by
+default unless you previously set environment variables to
+cross-compile to a different platform. To use the ``gssapi`` build tag,
+compile your code with the following command:
+
+.. code-block:: sh
+   
+   go build -tags gssapi
+
+Example
+~~~~~~~
+
+This example specifies the authentication mechanism using the following
+placeholders:
+
+- ``username``: Your Kerberos principal. A sample username is ``myuser@KERBEROS.EXAMPLE.COM``.
+- ``password``: Your Kerberos user's password. You can also store your
+  password in a ``keytab`` file to avoid exposing your
+  password in your code.
+- ``connection uri``: Your connection string URI.
+
+The following code shows how you can define a ``Credential`` struct to
+authenticate to Kerberos and create a client with your authentication
+preferences:
+
+.. code-block:: go
+
+   credential := options.Credential{
+           AuthMechanism: "GSSAPI",
+           Username:      "<username>",
+           Password:      "<password>",
+           PasswordSet:   true,
+   }
+
+   uri := "<connection uri>"
+   clientOpts := options.Client().ApplyURI(uri).SetAuth(credential)
+   
+   client, err := mongo.Connect(context.TODO(), clientOpts)
+
+You don't need to define a password or the ``PasswordSet`` field in
+your ``Credential`` struct if you store authentication keys in
+``keytab`` files. You can initialize a credential cache for
+authenticating the Kerberos principal using the ``kinit`` binary. To
+learn more about the ``kinit`` binary, see the `Oracle documentation
+<https://docs.oracle.com/javase/7/docs/technotes/tools/windows/kinit.html>`__.
+
+The following command shows how you can invoke a credential cache for a
+sample username:
+
+.. code-block:: sh
+   
+   kinit myuser@KERBEROS.EXAMPLE.COM
+
+You can alternatively authenticate using a connection string URI,
+specifying your :wikipedia:`URL-encoded <Percent-encoding>` Kerberos
+principal, password, and ``hostname``, the network address of your
+MongoDB server:
+
+.. code-block:: go
+   
+   uri := "mongodb://<username>:<password>@<hostname>/?authMechanism=GSSAPI"
+
+Set Custom ``SERVICE_NAME`` and ``SERVICE_REALM`` Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify additional properties with your authentication
+mechanism using the ``AuthMechanismProperties`` field in the
+``Credential`` struct. The default service name for Kerberos is
+"mongodb". The following code shows how you can set custom values
+for the ``SERVICE_NAME`` and ``SERVICE_REALM`` fields when defining a
+``Credential`` struct:
+
+.. code-block:: go
+
+   credential := options.Credential{
+           AuthMechanism: "GSSAPI",
+           Username:      "<username>",
+           Password:      "<password>",
+           AuthMechanismProperties: map[string]string{
+                   "SERVICE_REALM": "<Kerberos service realm>",
+                   "SERVICE_NAME":  "<service name>",
+           },
+   }
+
+For additional properties, see the
+:manual:`Server manual entry on authentication properties </reference/connection-string/#mongodb-urioption-urioption.authMechanismProperties>`.
+
+.. _golang-LDAP:
+
+Authenticate to LDAP (PLAIN)
+----------------------------
+
+You can authenticate to a Lightweight Directory Access Protocol (LDAP) server 
+using your directory server username and password.
+
+.. warning::
+
+   This authentication mechanism sends the password to the server in
+   plaintext, so you should use this mechanism only with TLS connections.
+
+Example
+~~~~~~~
+
+This example specifies the authentication mechanism using the following
+placeholders:
+
+- ``username``: Your LDAP username
+- ``password``: Your LDAP password
+- ``connection uri``: Your connection string URI
+
+The following code shows how you can define a ``Credential`` struct to
+authenticate to LDAP and create a client with your authentication
+preferences:
+
+.. code-block:: go
+
+   credential := options.Credential{
+           AuthMechanism: "PLAIN",
+           Username:      "<username>",
+           Password:      "<password>",
+	}
+
+   uri := "<connection uri>"
+   clientOpts := options.Client().ApplyURI(uri).SetAuth(credential)
+   
+   client, err := mongo.Connect(context.TODO(), clientOpts)
+
+You can alternatively authenticate using a connection string URI,
+specifying your LDAP username, password, and ``hostname``, the network
+address of your MongoDB server:
+
+.. code-block:: go
+   
+   uri := "mongodb://<username>:<password>@<hostname>/?authMechanism=PLAIN"
+
+.. note::
+
+   The method refers to PLAIN instead of LDAP since it
+   authenticates using the PLAIN Simple Authentication and Security Layer
+   (SASL) defined in `RFC-4616 <https://tools.ietf.org/html/rfc4616>`__.
+
+Additional Information
+----------------------
+
+To learn more about the concepts in this guide, see the following documentation:
+
+- :manual:`MongoDB Server Support for Kerberos Authentication </core/kerberos/>`
+- :manual:`MongoDB Server Support for LDAP Proxy Authentication </core/security-ldap/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `Credential <{+api+}/mongo/options#Credential>`__ type
+- `SetAuth() <{+api+}/mongo/options#ClientOptions.SetAuth>`__ method
