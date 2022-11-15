@@ -7,10 +7,21 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// start-restaurant-struct
+type Restaurant struct {
+	Name         string
+	RestaurantId string `bson:"restaurant_id,omitempty"`
+	Cuisine      string
+	Address      interface{} `bson:"address,omitempty"`
+	Borough      string
+	Grades       []interface{} `bson:"grades,omitempty"`
+}
+
+// end-restaurant-struct
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -33,20 +44,21 @@ func main() {
 	}()
 
 	// begin insertMany
-	coll := client.Database("insertDB").Collection("haikus")
-	docs := []interface{}{
-		bson.D{{"title", "Record of a Shriveled Datum"}, {"text", "No bytes, no problem. Just insert a document, in MongoDB"}},
-		bson.D{{"title", "Showcasing a Blossoming Binary"}, {"text", "Binary data, safely stored with GridFS. Bucket the data"}},
+	coll := client.Database("sample_restaurants").Collection("restaurants")
+	newRestaurants := []interface{}{
+		Restaurant{Name: "Rule of Thirds", Cuisine: "Japanese", Borough: "Brooklyn"},
+		Restaurant{Name: "Soothr", Cuisine: "Thai", Borough: "Manhattan"},
+		Restaurant{Name: "Madame Vo", Cuisine: "Vietnamese", Borough: "Manhattan"},
 	}
 
-	result, err := coll.InsertMany(context.TODO(), docs)
+	result, err := coll.InsertMany(context.TODO(), newRestaurants)
 	if err != nil {
 		panic(err)
 	}
 	// end insertMany
 
 	// When you run this file, it should print:
-	// 2 documents inserted with IDs: ObjectID("..."), ObjectID("...")
+	// 3 documents inserted with IDs: ObjectID("..."), ObjectID("...")
 	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
 	for _, id := range result.InsertedIDs {
 		fmt.Printf("\t%s\n", id)
