@@ -21,3 +21,6 @@ from the same source.
 
 If you do not specify ``timeseries.metaField``, consider the time
 span between all measurements that are inserted in the collection.
+
+If you set the ``granularity`` parameter, you can't set the 
+``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds`` parameters.
