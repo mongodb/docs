@@ -1,0 +1,314 @@
+.. _csharp-class-mapping:
+
+=============
+Class Mapping
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Overview
+--------
+
+In this guide, you can learn how to customize the way the {+driver-long+}
+maps BSON documents to and from {+language+} classes.
+
+Creating A Class Map
+--------------------
+
+When you use a class to store or access data in a MongoDB collection, the
+{+driver-short+} automatically creates a class map that serializes or deserializes
+that data. You can manually control the creation of the class map by using the
+``RegisterClassMap()``.
+
+The following example shows a ``Person`` class:
+
+.. code-block:: csharp
+
+   public class Person
+   {
+       public string Name { get; set; }
+
+       public int Age { get; set; }
+
+       public List<string> Hobbies {get; set;}
+   }
+
+You can register the class map for the ``Person`` class as follows: 
+
+.. code-block:: csharp
+   
+   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   {
+       classmap.MapMember(p => p.Name);
+       classmap.MapMember(p => p.Age);
+       classmap.MapMember(p => p.Hobbies);
+   });
+
+.. important::
+
+   You must register a class map *before* it's needed in your code. We recommend
+   registering them prior to initializing a connection with MongoDB.
+
+You can also manually map a subset of class properties, while still
+allowing the remaining properties to be mapped automatically. To do this, register a
+class map and call the ``AutoMap()`` method before manually specifying your
+properties.
+
+The following example uses the ``AutoMap()`` method to automatically map the properties
+of the ``Person`` class. It then manually maps the ``Hobbies`` property.
+
+.. code-block:: csharp
+   
+   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   {
+       classmap.AutoMap();
+       classmap.MapMember(p => p.Hobbies);
+   });
+
+Customize A Class
+-----------------
+
+You can customize how the driver serializes and deserializes documents at the class
+level by using attributes with the class, or by calling methods while registering
+a class map.
+
+Ignore Extra Elements
+~~~~~~~~~~~~~~~~~~~~~
+
+When a BSON document is deserialized to a {+language+} class, the {+driver-short+}
+looks at the name of each field in the document and tries to find a matching property
+name in the class. By default, if a field in the document doesn't have a match in the class,
+the driver throws an exception. However, you can choose to ignore any elements that do 
+not have a matching class property by using the ``BsonIgnoreExtraElements`` attribute.
+This prevents the driver from throwing an exception maps any document fields that
+have a matching class property.
+
+The following example shows how to add a ``BsonIgnoreExtraElements`` attribute
+to a class.
+
+.. code-block:: csharp
+
+   [BsonIgnoreExtraElements]
+   public class Person
+   {
+       public string Name { get; set; }
+
+       public int Age { get; set; }
+
+       public List<string> Hobbies {get; set;}
+   }
+
+You can also ignore any extra elements when initializing a class map as follows:
+
+.. code-block:: csharp
+   
+   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   {
+        classmap.AutoMap();
+        classmap.SetIgnoreExtraElements(true);
+   });
+
+Support Extra Elements
+~~~~~~~~~~~~~~~~~~~~~~
+
+You can design your {+language+} class to support any elements that don't have
+matching class properties. To do this your class must have a ``BsonDocument`` type
+property to hold the extra elements.
+
+You can use the ``BsonExtraElements`` attribute to specify the property 
+to use to hold extra elements as follows:
+
+.. code-block:: csharp
+
+   public class Person
+   {
+       public string Name { get; set; }
+
+       public int Age { get; set; }
+
+       public List<string> Hobbies {get; set;}
+
+       [BsonExtraElements]
+       public BsonDocument ExtraElements {get; set;}
+   }
+
+You can also support extra elements when initializing a class map as follows:
+
+.. code-block:: csharp
+   
+   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   {
+       classmap.AutoMap();
+       classmap.MapExtraElementsMember(person => person.ExtraElements);
+   });
+
+.. tip::
+
+   When serializing the class back to BSON documents, the extra elements may
+   not be in the same order as they were before deserialization.
+
+Using Class Discriminators
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify **discriminators** to help identify **polymorphic** classes that
+are serialized to the same collection. Polymorphic classes are classes that
+inherit properties and methods from a parent class. A discriminator is an
+element that's added to a document to identify which class the document was
+serialized from.
+
+You can specify a discriminator using the ``BsonDiscriminator`` attribute as
+follows:
+
+.. code-block:: csharp
+
+   [BsonDiscriminator("personClass")]
+   public class Person 
+   {
+       public string Name { get; set; }
+
+       public int Age { get; set; }
+
+       public List<string> Hobbies {get; set;}
+   }
+
+You can also specify a discriminator when registering a class map as follows:
+
+.. code-block:: csharp
+
+   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   {
+       classmap.AutoMap();
+       classmap.SetDiscriminator("personClass");
+   });
+
+.. tip:: 
+
+   The driver stores your discriminator in the BSON document after the ``_id``
+   field with the name ``_t``.
+
+.. TODO: Link to page on polymorphism/discriminators
+
+Mapping with Constructors
+-------------------------
+
+By default the {+driver-short+} requires a constructor with no arguments in
+order to map classes. However, you can use attributes or expressions in your class
+map registration code to tell the driver map documents to a constructor with
+arguments.
+
+The following example shows how to customize your constructor using attributes:
+
+.. code-block:: csharp
+   :emphasize-lines: 9
+
+   public class Person 
+   {
+       public string Name { get; set; }
+
+       public int Age { get; set; }
+
+       public List<string> Hobbies {get; set;}
+
+       [BsonConstructor]
+       public Person(string name, string age)
+       {
+           Name = name;
+           Age = age;
+       }
+   }
+
+.. tip:: Multiple BsonConstructors
+
+   If there are more than one constructors with the ``BsonConstructor``
+   attribute, the driver uses the constructor that has the most
+   parameters with matching fields in the document.
+
+The following example shows how map documents to your constructor while
+registering a class map:
+
+.. code-block:: csharp
+   :emphasize-lines: 19
+
+   public class Person 
+   {
+       public string Name { get; set; }
+
+       public int Age { get; set; }
+
+       public List<string> Hobbies {get; set;}
+
+       public Person(string name, string age)
+       {
+           Name = name;
+           Age = age;
+       }
+   }
+
+   BsonClassMap.RegisterClassMap<Person>(classmap =>
+   {
+       classmap.AutoMap();
+       classmap.MapCreator(person => new Person(person.Name, person.Age));
+   });
+
+Customize Class Properties
+--------------------------
+
+You can customize how the driver serializes specific properties in a class by
+using attributes on the property, or by calling methods while registering
+a class map. To learn how to customize properties in your {+language+} class,
+see :ref:`csharp-custom-serialization`.
+
+Dynamically Serialize Properties
+--------------------------------
+
+You can use a method to determine whether or not to serialize a property. For
+the driver to automatically use the method when serializing, the method must be
+named ``ShouldSerialize<property name>``. When the driver sees a method with
+this naming convention, it will use the method to determine whether or not to
+serialize properties of the given name.
+
+The following example creates a method that only serializes the ``Age`` property
+if its value is greater than ``0``:
+
+.. code-block:: csharp
+
+   public class Person 
+   {
+       public string Name { get; set; }
+
+       public int Age { get; set; }
+
+       public List<string> Hobbies {get; set;}
+
+       public bool ShouldSerializeAge()
+       {
+          return Age > 0;
+       }
+   }
+
+You can also specify the method while registering a class map as follows:
+
+.. code-block:: csharp
+
+   BsonClassMap.RegisterClassMap<Employee>(classmap => 
+   {
+       classmap.AutoMap();
+       classmap.MapMember(p => c.Age).SetShouldSerializeMethod(
+           obj => ((Person) obj).Age > 0
+       );
+   });
+
+API Documentation
+-----------------
+
+- `BsonClassMap
+  <{+api-root+}/T_MongoDB_Bson_Serialization_BsonClassMap_1.htm>`__
+- `RegisterClassMap
+  <{+api-root+}/M_MongoDB_Bson_Serialization_BsonClassMap_RegisterClassMap__1_1.htm>`__
+- `AutoMap
+  <{+api-root+}/M_MongoDB_Bson_Serialization_BsonClassMap_AutoMap.htm>`__
