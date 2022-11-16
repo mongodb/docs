@@ -1,9 +1,24 @@
+.. _adf-v20221115:
+
+15 November 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :ref:`killOp <terminate-running-query>` for
+  :manual:`collStats </reference/command/collStats>`. 
+
 .. _adf-v20221015:
 
 25 October 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Improves performance and stability.
+- Improves query performance on {+adl+} Datasets using sort metadata 
+  to optimize queries.
+- Fixes an issue that caused {+adf+} to fail to read a Parquet file 
+  when the top-level or root schema was marked as ``REPEATED`` or 
+  ``OPTIONAL``.
+- Improves stability when writing to Parquet using :ref:`adf-out-stage`
+  to |s3|. 
 
 .. _adf-v20220913:
 
