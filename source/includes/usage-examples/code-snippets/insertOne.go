@@ -14,10 +14,10 @@ import (
 // start-restaurant-struct
 type Restaurant struct {
 	Name         string
-	RestaurantId string `bson:"restaurant_id,omitempty"`
-	Cuisine      string
-	Address      interface{} `bson:"address,omitempty"`
-	Borough      string
+	RestaurantId string        `bson:"restaurant_id,omitempty"`
+	Cuisine      string        `bson:"cuisine,omitempty"`
+	Address      interface{}   `bson:"address,omitempty"`
+	Borough      string        `bson:"borough,omitempty"`
 	Grades       []interface{} `bson:"grades,omitempty"`
 }
 
@@ -45,7 +45,7 @@ func main() {
 
 	// begin insertOne
 	coll := client.Database("sample_restaurants").Collection("restaurants")
-	newRestaurant := Restaurant{Name: "8282", Cuisine: "Korean", Borough: "Manhattan"}
+	newRestaurant := Restaurant{Name: "8282", Cuisine: "Korean"}
 
 	result, err := coll.InsertOne(context.TODO(), newRestaurant)
 	if err != nil {

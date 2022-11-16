@@ -14,10 +14,10 @@ import (
 // start-restaurant-struct
 type Restaurant struct {
 	Name         string
-	RestaurantId string `bson:"restaurant_id,omitempty"`
-	Cuisine      string
-	Address      interface{} `bson:"address,omitempty"`
-	Borough      string
+	RestaurantId string        `bson:"restaurant_id,omitempty"`
+	Cuisine      string        `bson:"cuisine,omitempty"`
+	Address      interface{}   `bson:"address,omitempty"`
+	Borough      string        `bson:"borough,omitempty"`
 	Grades       []interface{} `bson:"grades,omitempty"`
 }
 
@@ -46,9 +46,8 @@ func main() {
 	// begin insertMany
 	coll := client.Database("sample_restaurants").Collection("restaurants")
 	newRestaurants := []interface{}{
-		Restaurant{Name: "Rule of Thirds", Cuisine: "Japanese", Borough: "Brooklyn"},
-		Restaurant{Name: "Soothr", Cuisine: "Thai", Borough: "Manhattan"},
-		Restaurant{Name: "Madame Vo", Cuisine: "Vietnamese", Borough: "Manhattan"},
+		Restaurant{Name: "Rule of Thirds", Cuisine: "Japanese"},
+		Restaurant{Name: "Madame Vo", Cuisine: "Vietnamese"},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), newRestaurants)
@@ -58,7 +57,7 @@ func main() {
 	// end insertMany
 
 	// When you run this file, it should print:
-	// 3 documents inserted with IDs: ObjectID("..."), ObjectID("...")
+	// 2 documents inserted with IDs: ObjectID("..."), ObjectID("...")
 	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
 	for _, id := range result.InsertedIDs {
 		fmt.Printf("\t%s\n", id)

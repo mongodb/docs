@@ -12,6 +12,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-restaurant-struct
+type Restaurant struct {
+	Name         string
+	RestaurantId string        `bson:"restaurant_id,omitempty"`
+	Cuisine      string        `bson:"cuisine,omitempty"`
+	Address      interface{}   `bson:"address,omitempty"`
+	Borough      string        `bson:"borough,omitempty"`
+	Grades       []interface{} `bson:"grades,omitempty"`
+}
+
+// end-restaurant-struct
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -33,9 +45,9 @@ func main() {
 	}()
 
 	// begin replace
-	coll := client.Database("insertDB").Collection("haikus")
-	filter := bson.D{{"title", "Record of a Shriveled Datum"}}
-	replacement := bson.D{{"title", "Dodging Greys"}, {"text", "When there're no matches, no longer need to panic. You can use upsert"}}
+	coll := client.Database("sample_restaurants").Collection("restaurants")
+	filter := bson.D{{"name", "Madame Vo"}}
+	replacement := Restaurant{Name: "Monsieur Vo", Cuisine: "Asian Fusion"}
 
 	result, err := coll.ReplaceOne(context.TODO(), filter, replacement)
 	if err != nil {
