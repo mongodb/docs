@@ -166,7 +166,6 @@ The inserted document in MongoDB should resemble the following:
      type: 'router'
    }
 
-
 Retrieve an Annotated Record
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -191,3 +190,39 @@ as shown in the following code:
 
       NetworkDeviceRecord[deviceId=fedc..., name=Enterprise Wi-fi, deviceType=router]
 
+Operations with Recursive Types
+-------------------------------
+
+The driver natively supports encoding and decoding of recursively
+defined records without causing runtime recursion. This support extends
+to cycles of multiple record types in type definitions. The following
+code provides an example of a recursive record design:
+
+.. code-block:: java
+
+   public record RecordTree(
+           String content,
+           RecordTree left,
+           RecordTree right
+   ) {}
+
+You can perform read and write operations on recursively defined records the same
+way you would for other records. The following code shows how you can
+execute a find operation on a collection of ``RecordTree`` types:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: java
+
+      MongoDatabase database = mongoClient.getDatabase("myDB");
+      MongoCollection<RecordTree> collection = database.getCollection("myCollection", RecordTree.class);
+      
+      Bson filter = Filters.eq("left.left.right.content", "Ikatere");
+      collection.find(filter).forEach(doc -> System.out.println(doc));
+
+   .. output::
+      :language: sh
+
+      RecordTree[content=Ranginui, left=RecordTree[content=..., left=RecordTree[content=..., right=RecordTree[content=Ikatere...]]
