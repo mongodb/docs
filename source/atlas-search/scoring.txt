@@ -1,8 +1,8 @@
 .. _scoring-ref:
 
-==============================
-Customize the Score in Results
-==============================
+============================================
+Customize and Normalize the Score in Results
+============================================
 
 .. default-domain:: mongodb
 
@@ -17,9 +17,10 @@ on relevance, and the documents included in a result set are returned
 in order from highest score to lowest.
 
 .. _scoring-behavior:
+.. _scoring-options:
 
-Behavior
---------
+Modify the Score 
+----------------
 
 Many factors can influence a document's score, including:
 
@@ -60,15 +61,11 @@ field named ``score`` to the returned documents:
    ])
 
 More information about the Lucene scoring algorithm can be found in the
-`Lucene documentation <https://lucene.apache.org/core/3_5_0/scoring.html>`__.
-
-.. _scoring-options:
-
-Options
--------
+`Lucene documentation
+<https://lucene.apache.org/core/3_5_0/scoring.html>`__.
 
 The following score modifying options are available to all operators.
-For details and examples, click any of the following options:
+For details and examples, click any of the following options: 
 
 - :ref:`scoring-boost`
 - :ref:`scoring-constant`
@@ -312,6 +309,7 @@ importance of one search criteria over another. The queries include a
 
 ``constant``
 ~~~~~~~~~~~~
+
 The ``constant`` option replaces the base score with a specified number. 
 
 .. note::
@@ -606,6 +604,7 @@ is less than ``0``, |fts| replaces the score with ``0``.
 
 Expressions
 ```````````
+
 Use the following expressions with the ``function`` option 
 to alter the final score of the document:
 
@@ -1430,3 +1429,597 @@ and ``score``.
             { "title" : "No Country for Old Men", "score" : 0.9084849953651428 }
             { "title" : "X-Men: Days of Future Past", "score" : 0.9084849953651428 }
             { "title" : "The Best of Men", "score" : 0.9084849953651428 }
+
+.. _fts-normalize-score:
+
+Normalize the Score 
+-------------------
+
+You can normalize your :pipeline:`$search` query score in the range from
+``0`` to ``1`` in the subsequent stages of your aggregation pipeline.
+You can use the following stages after your :pipeline:`$search` stage in
+the following order to normalize the score: 
+
+- :pipeline:`$addFields`
+  
+  .. code-block:: json
+
+     {
+       "$addFields": {
+         "score": {
+           "$meta": "searchScore"
+         }
+       }
+     }
+
+- :pipeline:`$setWindowFields`
+  
+  .. code-block:: json 
+
+     {
+       "$setWindowFields": {
+         "output": {
+           "maxScore": {
+             "$max": "$score"
+           }
+         }
+       }
+     }
+
+- :pipeline:`$addFields`
+  
+  .. code-block:: json 
+
+     {
+       "$addFields": {
+         "normalizedScore": {
+           "$divide": [
+             "$score", "$maxScore"
+           ]
+         }
+       }
+     }
+
+Examples 
+~~~~~~~~
+
+The following examples demonstrate how to normalize the score for 
+some of the queries against the ``sample_mflix.movies`` collection in
+the preceding :ref:`function-score-egs` using the :pipeline:`$addFields`
+and :pipeline:`$setWindowFields` stages after the :pipeline:`$search`
+stage. 
+
+.. tabs:: 
+
+   .. tab:: Basic 
+      :tabid: Basic 
+
+      .. io-code-block::
+
+         .. input:: 
+            :language: json
+            :linenos:
+            
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "query": "Helsinki",
+                  "path": "plot"
+                }
+              }
+            },
+            {
+              "$limit": 5
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "score": 1,
+                "maxScore": 1,
+                "normalizedScore": 1
+            },
+            {
+              "$addFields": {
+                "score": {
+                  "$meta": "searchScore"
+                }
+              }
+            },
+            {
+              "$setWindowFields": {
+                "output": {
+                  "maxScore": {
+                    "$max": "$score"
+                  }
+                }
+              }
+            },
+            {
+              "$addFields": {
+                "normalizedScore": {
+                  "$divide": [
+                    "$score", "$maxScore"
+                  ]
+                }
+              }
+            }])
+
+         .. output::
+            :language: json
+            :linenos:
+            :emphasize-lines: 8,16,24,32,40 
+
+            [
+              {
+                _id: ObjectId("573a139af29313caabcf0042"),
+                plot: 'The recession hits a couple in Helsinki.',
+                title: 'Drifting Clouds',
+                score: 4.5660295486450195,
+                maxScore: 4.5660295486450195,
+                normalizedScore: 1
+              },
+              {
+                _id: ObjectId("573a139af29313caabcf0353"),
+                plot: 'Two teenagers from Helsinki are sent on a mission by their drug dealer.',
+                title: 'Sairaan kaunis maailma',
+                score: 4.041563034057617,
+                maxScore: 4.5660295486450195,
+                normalizedScore: 0.8851372929150143
+              },
+              {
+                _id: ObjectId("573a13a0f29313caabd039cd"),
+                plot: 'A murderer tries to leave his criminal past in East Helsinki and make a new life for his family',
+                title: 'Bad Luck Love',
+                score: 3.6251673698425293,
+                maxScore: 4.5660295486450195,
+                normalizedScore: 0.79394303764817
+              },
+              {
+                _id: ObjectId("573a13a3f29313caabd0efac"),
+                plot: 'A murderer tries to leave his criminal past in East Helsinki and make a new life for his family',
+                title: 'Bad Luck Love',
+                score: 3.6251673698425293,
+                maxScore: 4.5660295486450195,
+                normalizedScore: 0.79394303764817
+              },
+              {
+                _id: ObjectId("573a13c0f29313caabd63214"),
+                plot: 'Two teen girls from a very restrictive Conservative Laestadian faith community, go alone to Helsinki for the first time.',
+                title: 'Forbidden Fruit',
+                score: 3.6251673698425293,
+                maxScore: 4.5660295486450195,
+                normalizedScore: 0.79394303764817
+              }
+            ]
+
+
+   .. tab:: Arithmetic
+      :tabid: arithmetic
+
+      .. io-code-block::  
+
+         .. input:: 
+            :language: json
+            :linenos:
+            
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "multiply":[
+                        {
+                          "path": {
+                            "value": "imdb.rating",
+                            "undefined": 2
+                          }
+                        },
+                        {
+                          "score": "relevance"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "$limit": 5
+            },
+            {
+              "$addFields": {
+                "score": {
+                  "$meta": "searchScore"
+                }
+              }
+            },
+            {
+              "$setWindowFields": {
+                "output": {
+                  "maxScore": {
+                    "$max": "$score"
+                  }
+                }
+              }
+            },
+            {
+              "$addFields": {
+                "normalizedScore": {
+                  "$divide": [
+                    "$score", "$maxScore"
+                  ]
+                }
+              }
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "score": 1,
+                "maxScore": 1,
+                "normalizedScore": 1
+              }
+            }])
+
+         .. output::
+            :language: json
+            :linenos:
+            :emphasize-lines: 6,12,18,24,30
+
+            [
+              {
+                title: 'Men...',
+                score: 23.431293487548828,
+                maxScore: 23.431293487548828,
+                normalizedScore: 1
+              },
+              {
+                title: '12 Angry Men',
+                score: 22.080968856811523,
+                maxScore: 23.431293487548828,
+                normalizedScore: 0.9423708882544255
+              },
+              {
+                title: 'X-Men',
+                score: 21.34803581237793,
+                maxScore: 23.431293487548828,
+                normalizedScore: 0.911090795039637
+              },
+              {
+                title: 'X-Men',
+                score: 21.34803581237793,
+                maxScore: 23.431293487548828,
+                normalizedScore: 0.911090795039637
+              },
+              {
+                title: 'Matchstick Men',
+                score: 21.05954933166504,
+                maxScore: 23.431293487548828,
+                normalizedScore: 0.8987787781692841
+              }
+            ]     
+
+   .. tab:: Gaussian
+      :tabid: gauss 
+
+      .. io-code-block::  
+
+         .. input:: 
+            :language: json
+            :linenos:
+            
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "shop",
+                  "score": {
+                    "function":{
+                      "gauss": {
+                        "path": {
+                          "value": "imdb.rating",
+                          "undefined": 4.6
+                        },
+                        "origin": 9.5,
+                        "scale": 5,
+                        "offset": 0,
+                        "decay": 0.5
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "$limit": 5
+            },
+            {
+              "$addFields": {
+                "score": {
+                  "$meta": "searchScore"
+                }
+              }
+            },
+            {
+              "$setWindowFields": {
+                "output": {
+                  "maxScore": {
+                    "$max": "$score"
+                  }
+                }
+              }
+            },
+            {
+              "$addFields": {
+                "normalizedScore": {
+                  "$divide": [
+                    "$score", "$maxScore"
+                  ]
+                }
+              }
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "score": 1,
+                "maxScore": 1,
+                "normalizedScore": 1
+              }
+            }])
+
+         .. output::
+            :language: json
+            :linenos:
+            :emphasize-lines: 6,12,18,24,30
+
+            [
+              {
+                title: 'The Shop Around the Corner',
+                score: 0.9471074342727661,
+                maxScore: 0.9471074342727661,
+                normalizedScore: 1
+              },
+              {
+                title: 'Exit Through the Gift Shop',
+                score: 0.9471074342727661,
+                maxScore: 0.9471074342727661,
+                normalizedScore: 1
+              },
+              {
+                title: 'The Shop on Main Street',
+                score: 0.9395227432250977,
+                maxScore: 0.9471074342727661,
+                normalizedScore: 0.9919917310611205
+              },
+              {
+                title: 'Chop Shop',
+                score: 0.8849083781242371,
+                maxScore: 0.9471074342727661,
+                normalizedScore: 0.9343273488331464
+              },
+              {
+                title: 'Little Shop of Horrors',
+                score: 0.8290896415710449,
+                maxScore: 0.9471074342727661,
+                normalizedScore: 0.8753913353110349
+              }
+            ]
+
+   .. tab:: Path
+      :tabid: path 
+
+      .. io-code-block::  
+
+         .. input:: 
+            :language: json
+            :linenos:
+            
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "path": {
+                        "value": "imdb.rating",
+                        "undefined": 4.6
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "$limit": 5
+            },
+            {
+              "$addFields": {
+                "score": {
+                  "$meta": "searchScore"
+                }
+              }
+            },
+            {
+              "$setWindowFields": {
+                "output": {
+                  "maxScore": {
+                    "$max": "$score"
+                  }
+                }
+              }
+            },
+            {
+              "$addFields": {
+                "normalizedScore": {
+                  "$divide": [
+                    "$score", "$maxScore"
+                  ]
+                }
+              }
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "score": 1,
+                "maxScore": 1,
+                "normalizedScore": 1
+              }
+            }])
+
+         .. output::
+            :language: json
+            :linenos:
+            :emphasize-lines: 6,12,18,24,30
+
+            [
+              {
+                title: '12 Angry Men',
+                score: 8.899999618530273,
+                maxScore: 8.899999618530273,
+                normalizedScore: 1
+              },
+              {
+                title: 'The Men Who Built America',
+                score: 8.600000381469727,
+                maxScore: 8.899999618530273,
+                normalizedScore: 0.9662922191102197
+              },
+              {
+                title: 'No Country for Old Men',
+                score: 8.100000381469727,
+                maxScore: 8.899999618530273,
+                normalizedScore: 0.9101124414213563
+              },
+              {
+                title: 'X-Men: Days of Future Past',
+                score: 8.100000381469727,
+                maxScore: 8.899999618530273,
+                normalizedScore: 0.9101124414213563
+              },
+              {
+                title: 'The Best of Men',
+                score: 8.100000381469727,
+                maxScore: 8.899999618530273,
+                normalizedScore: 0.9101124414213563
+              }
+            ]
+
+   .. tab:: Unary
+      :tabid: unary 
+
+      .. io-code-block::  
+
+         .. input:: 
+            :language: json
+            :linenos:
+            
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function": {
+                      "log": {
+                        "path": {
+                          "value": "imdb.rating",
+                          "undefined": 10
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "$limit": 5
+            },
+            {
+              "$addFields": {
+                "score": {
+                  "$meta": "searchScore"
+                }
+              }
+            },
+            {
+              "$setWindowFields": {
+                "output": {
+                  "maxScore": {
+                    "$max": "$score"
+                  }
+                }
+              }
+            },
+            {
+              "$addFields": {
+                "normalizedScore": {
+                  "$divide": [
+                    "$score", "$maxScore"
+                  ]
+                }
+              }
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "score": 1,
+                "maxScore": 1,
+                "normalizedScore": 1
+              }
+            }])
+
+         .. output::
+            :language: json
+            :linenos:
+            :emphasize-lines: 6,12,18,24,30
+
+            [
+              {
+                title: '12 Angry Men',
+                score: 0.9493899941444397,
+                maxScore: 0.9493899941444397,
+                normalizedScore: 1
+              },
+              {
+                title: 'The Men Who Built America',
+                score: 0.9344984292984009,
+                maxScore: 0.9493899941444397,
+                normalizedScore: 0.9843145968064908
+              },
+              {
+                title: 'No Country for Old Men',
+                score: 0.9084849953651428,
+                maxScore: 0.9493899941444397,
+                normalizedScore: 0.9569144408182233
+              },
+              {
+                title: 'X-Men: Days of Future Past',
+                score: 0.9084849953651428,
+                maxScore: 0.9493899941444397,
+                normalizedScore: 0.9569144408182233
+              },
+              {
+                title: 'The Best of Men',
+                score: 0.9084849953651428,
+                maxScore: 0.9493899941444397,
+                normalizedScore: 0.9569144408182233
+              }
+            ]
+
+|fts| results contain the following scores:
+
+- The modified score for the :pipeline:`$search` query in the ``score``
+  field from the :pipeline:`$addFields` stage. 
+- The maximum score assigned to the documents in the results in the
+  ``maxScore`` field from the :pipeline:`$setWindowFields` stage.  
+- The normalized score in the ``normalizedScore`` field from the
+  :pipeline:`$addFields` stage, which is computed by dividing the
+  modified score in ``$score`` by the maximum score in ``$maxScore``
+  using :manual:`$divide </reference/operator/aggregation/divide/>`. 
