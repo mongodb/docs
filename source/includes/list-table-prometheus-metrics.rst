@@ -22,6 +22,14 @@
      - Counter
      - Total wait time for read requests.
 
+   * - ``hardware_disk_metrics_sectors_read``
+     - Counter
+     - Number of sectors read.
+
+   * - ``hardware_disk_metrics_sectors_written``
+     - Counter
+     - Number of sectors written.
+
    * - ``hardware_disk_metrics_total_time_milliseconds``
      - Counter
      - Total time this block device is active.
