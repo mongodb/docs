@@ -109,8 +109,6 @@ stage:
 	@echo "\n\nHosted at ${DOTCOM_STAGING_URL}/${DOTCOM_STGPREFIX}/${USER}/${GIT_BRANCH}/index.html"
 
 
-
-
 #################################################################
 ####  DEPLOY KUBERNETES OPERATOR DOCUMENTATION TO PRODUCTION ####
 #################################################################
