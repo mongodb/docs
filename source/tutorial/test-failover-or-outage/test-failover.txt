@@ -1,0 +1,127 @@
+.. _test-failover:
+
+=============
+Test Failover
+=============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|service| conducts :manual:`replica set elections
+</core/replica-set-elections/>` when it makes configuration changes,
+such as patch updates, scaling events, and when failures occur. Your
+applications should handle replica set elections without any downtime.
+To learn how to build a resilient application, see
+:ref:`resilient-application`. 
+
+You can enable retryable writes by adding :manual:`retryWrites=true
+</reference/connection-string/#urioption.retryWrites>` to your |service|
+URI connection string. To learn more, see
+:manual:`Retryable Writes </core/retryable-writes/>`.
+
+You can use the {+atlas-ui+} and |api| to test the failure of the
+replica set :term:`primary` in your |service| cluster and observe how 
+your application handles a replica set failover. 
+
+.. _test-failover-process:
+
+Test Failover Process 
+---------------------
+
+When you submit a request to test failover using the {+atlas-ui+} 
+or |api|, |service| simulates a failover event. During this 
+process:
+
+a. |service| shuts down the current :term:`primary`.
+
+#. The members of the replica set hold an 
+   :manual:`election </core/replica-set-elections/>` to choose which
+   of the secondaries will become the new primary.
+
+#. |service| brings the original primary back to the
+   :term:`replica set` as a :term:`secondary`. When the old primary
+   rejoins the replica set, it will sync with the new primary to
+   catch up any writes that occurred during its downtime.
+
+The following statements describe |service| behavior during rollovers
+and when testing failover in sharded clusters: 
+
+- If the original primary accepted write operations that had not
+  been successfully replicated to the secondaries when the
+  primary stepped down, the primary rolls back those write
+  operations when it re-joins the replica set and begins
+  synchronizing. To learn more, see
+  :manual:`Rollbacks During Replica Set Failover 
+  </core/replica-set-rollbacks/>`.
+  Contact |mdb-support| for assistance with resolving rollbacks.
+- Only the :binary:`~bin.mongos` processes that are on the same 
+  instances as the primaries of the replica sets in the sharded cluster 
+  are restarted. 
+- The primaries of the replica sets in the sharded cluster are restarted 
+  in parallel.
+
+Test Failover Using the {+atlas-ui+} 
+------------------------------------
+
+To perform a Test Failover in the {+atlas-ui+}:
+
+1. Log in to the {+atlas-ui+}.
+
+#. Click :guilabel:`Database`.
+
+#. For the cluster you wish to perform failover testing, click the
+   :guilabel:`...` button.
+
+#. Click :guilabel:`Test Failover`. |service| displays a 
+   :guilabel:`Test Failover` modal with the steps |service| takes to 
+   simulate a failover event. To learn more, see 
+   :ref:`Test Failover Process <test-failover-process>`. 
+
+#. Click :guilabel:`Restart Primary` to begin the test. |service|
+   displays the results of your simulated failover process in the 
+   :guilabel:`Test Failover` modal.
+
+Test Failover Using the API 
+---------------------------
+
+You can use the 
+:oas-atlas-op:`Test Failover </testFailoverForOneCluster>` 
+|api| endpoint to simulate a failover 
+event. To learn more about the failover process, see :ref:`Test 
+Failover Process <test-failover-process>`.
+
+Verify the Failover
+-------------------
+
+To verify that the failover is successful:
+
+1. Log in to the {+atlas-ui+} and click :guilabel:`Database`.
+
+#. Click the name of the cluster for which you performed the failover 
+   test.
+
+#. Observe the following changes in the list of nodes in 
+   the :guilabel:`Overview` tab:
+
+   - The original ``PRIMARY`` node is now a ``SECONDARY`` node.
+
+   - A former ``SECONDARY`` node is now the ``PRIMARY`` node.
+
+.. _troubleshoot-replica-set-failover-issues:
+
+Troubleshoot Failover Issues 
+----------------------------
+
+If your application doesn't handle the failover gracefully, ensure the
+following:
+
+- The connection string includes all members of the replica set.
+- You are using the latest version of the driver.
+- You have implemented appropriate retry logic in your application.

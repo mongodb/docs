@@ -27,7 +27,7 @@ Configurations
 
    * - Multi-Region Deployments
      - 
-
+     
    * - Multi-Cloud Deployments
      - 
 
@@ -97,7 +97,10 @@ Actions
    * - Use Predefined :doc:`Replica Set Tags </reference/replica-set-tags>`
      - 
 
-   * - :doc:`Test Failover </tutorial/test-failover>`
+   * - :doc:`Test Failover </tutorial/test-failover-or-outage/test-failover>`
+     - 
+
+   * - :doc:`Test Outage </tutorial/test-failover-or-outage/test-outage>`
      - 
 
    * - :doc:`Encryption at Rest Using Key Management </security-kms-encryption/>`
