@@ -124,5 +124,3 @@
 
       .. include:: /includes/steps/monitor-appdb-on-linux-x86-64-tar.rst
 
-
-
