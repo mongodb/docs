@@ -10,9 +10,13 @@ tab and analytic nodes:
    might result. The analytics node might fall off the :term:`oplog` 
    altogether.
 
-- Currently, if a {+cluster+} has an analytics node with a different 
-  {+cluster+} tier, compute auto-scaling isn't available for the 
-  {+cluster+}. We will introduce this functionality in a future release.
+- If you select a :guilabel:`General` {+cluster+} tier on the 
+  :guilabel:`Analytics Tier` tab and a :guilabel:`Low-CPU` {+cluster+} 
+  tier on the :guilabel:`Base Tier` tab, disk auto-scaling isn't 
+  supported for the {+cluster+}. Disk auto-scaling also isn't 
+  supported if you select a :guilabel:`General` {+cluster+} tier on the 
+  :guilabel:`Base Tier` tab and a :guilabel:`Low-CPU` {+cluster+} 
+  tier on the :guilabel:`Analytics Tier` tab.
 
 - Disk size and IOPS must remain the same across all node 
   types.
