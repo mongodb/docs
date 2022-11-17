@@ -115,5 +115,3 @@
 
       .. include:: /includes/steps/update-monitoring-to-mongodb-agent-linux-x86-64-tar.rst
 
-
-

@@ -153,5 +153,3 @@
 
       .. include:: /includes/steps/install-mongodb-agent-monitor-linux-x86-64-tar.rst
 
-
-

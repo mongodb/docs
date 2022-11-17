@@ -29,8 +29,6 @@ endif
 STAGING_URL_CLOUDMGR="https://docs-cloudmanager-staging.mongodb.com"
 STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-prd-staging
 
-
-
 PRODUCTION_URL_CLOUDMGR="https://docs.cloudmanager.mongodb.com"
 PRODUCTION_BUCKET_CLOUDMGR=docs-cloudmanager-prd
 
@@ -170,8 +168,6 @@ fake-deploy-cloud: build/public/cloud
 	mut-publish build/public/cloud ${DOTCOM_STAGING_BUCKET_CLOUDMGR} --prefix=${DOTCOM_CMSTGPREFIX}  --all-subdirectories --deploy ${ARGS}
 	@echo "\n\nHosted at ${DOTCOM_STAGING_URL_CLOUDMGR}/${DOTCOM_CMSTGPREFIX}/index.html"
 
-
-
 ##########################################################
 #### DEPLOY CLOUD MANAGER DOCUMENTATION TO PRODUCTION ####
 ##########################################################
@@ -185,8 +181,6 @@ endif
 	mut-publish build/public/cloud ${DOTCOM_PRODUCTION_BUCKET_CLOUDMGR} --prefix=${DOTCOM_CMPREFIX} --deploy --all-subdirectories ${ARGS}
 
 	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL_CLOUDMGR}/${DOTCOM_CMPREFIX}/index.html"
-
-
 
 	$(MAKE) deploy-cloud-search-index
 

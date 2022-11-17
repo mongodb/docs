@@ -435,8 +435,6 @@ Automation Agent 4.8.0.2438
 - Support MongoDB authentication for managed BI Connectors, without also
   requiring |tls-ssl|.
 
-
-
 .. _automation-4.7.0.2418:
 
 Automation Agent 4.7.0.2418
