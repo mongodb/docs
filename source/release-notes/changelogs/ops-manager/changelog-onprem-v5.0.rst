@@ -21,6 +21,8 @@
 
 *Released 2022-09-19*
 
+- Removes spurious audit log rotation errors from the MongoDB Agent log 
+  files and corrects file suffix handling.
 - Updates JDK to ``jdk-11.0.16.1+1``.
 - Updates the {+mdbagent+} to :ref:`11.0.20.7108
   <mongodb-11.0.20.7108>`.
@@ -32,8 +34,6 @@
 
 *Released 2022-08-04*
 
-- Removes spurious audit log rotation errors from the MongoDB Agent log 
-  files and corrects file suffix handling.
 - Updates JDK to jdk-11.0.16+8.
 - Updates the {+mdbagent+} to :ref:`11.0.19.7094
   <mongodb-11.0.19.7094>`.
