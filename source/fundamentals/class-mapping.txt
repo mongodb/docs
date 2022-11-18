@@ -72,8 +72,8 @@ allowing the driver to automatically map the remaining properties. To do this,
 register a class map and call the ``AutoMap()`` method before manually 
 specifying your properties.
 
-The following example uses the ``AutoMap()`` method to automatically map the properties
-of the ``Person`` class. It then manually maps the ``Hobbies`` property.
+In the following code example, the ``AutoMap()`` method maps all properties
+of the ``Person`` class except ``Hobbies``, which is mapped manually:
 
 .. code-block:: csharp
    
@@ -87,7 +87,7 @@ Customize Class Serialization
 -----------------------------
 
 You can customize how the driver serializes and deserializes documents at the class
-level by using attributes with the class, or by calling methods while registering
+level by using attributes with the class or by calling methods while registering
 a class map.
 
 Ignore Extra Elements
@@ -96,7 +96,9 @@ Ignore Extra Elements
 When a BSON document is deserialized to a {+language+} class, the {+driver-short+}
 looks at the name of each field in the document and tries to find a matching property
 name in the class. By default, if a field in the document doesn't have a match in the class,
-the driver throws an exception. However, you can choose to ignore any elements that do 
+the driver throws an exception. 
+
+You can choose to ignore any elements that do 
 not have a matching class property by using the ``BsonIgnoreExtraElements`` attribute.
 This prevents the driver from throwing an exception, and maps any other fields
 that have matching class properties.
@@ -156,12 +158,10 @@ You can also specify a discriminator when registering a class map as follows:
        classmap.SetDiscriminator("personClass");
    });
 
-.. note:: 
+In BSON, discriminators have the field name ``_t``. 
 
-   The driver stores your discriminator in BSON with the field name ``_t``.
-
-A document from the ``Person`` class with the "personClass" discriminator is
-stored in the collection as follows:
+The following example shows how a document from the ``Person`` class with the
+"personClass" discriminator appears in the collection after serialization:
 
 .. code-block:: json
 
@@ -172,16 +172,18 @@ stored in the collection as follows:
 Mapping with Constructors
 -------------------------
 
-By default the {+driver-short+} requires a class to have a constructor with no 
-arguments in order to automatically create a class map. However, you can
-instruct the driver to automatically map the class using a constructor that takes one
-or more arguments.
+By default, the {+driver-short+} can automatically map a class only if the class has
+a constructor with no arguments. If you want the driver to use a constructor that accepts
+one or more arguments, you can add the ``BsonConstructor`` attribute to the constructor.
+In this case, the driver parses the expression tree to determine how to map the   
+constructor arguments to class properties or fields.
 
-The following example uses attributes to instruct the driver to create
-a class map with a constructor that accepts multiple arguments.
+When the driver creates a class map for the following ``Person`` class, it will use the 
+constructor marked with the ``BsonConstructor`` attribute. The ``name`` argument will
+map to the ``Name`` property and the ``age`` argument will map to the ``Age`` property.
 
 .. code-block:: csharp
-   :emphasize-lines: 6
+   :emphasize-lines: 7
 
    public class Person 
    {
@@ -199,7 +201,7 @@ a class map with a constructor that accepts multiple arguments.
 
 .. tip:: Multiple ``BsonConstructor`` attributes
 
-   If there are more than one constructors with the ``BsonConstructor``
+   If there is more than one constructor with the ``BsonConstructor``
    attribute, the driver uses the constructor that has the most
    parameters with matching fields in the document.
 
@@ -230,9 +232,9 @@ You can also specify the constructor to use when registering your class map:
 Customize Property Serialization
 --------------------------------
 
-You can customize how the driver serializes specific properties in a class by
-using attributes on the property. For more information on ways to customize
-properties in your {+language+} class, see :ref:`csharp-custom-serialization`.
+You can customize how the driver serializes a class property by
+adding attributes to the property. For more information about custom
+property serialization, see :ref:`csharp-custom-serialization`.
 
 Support Extra Elements
 ~~~~~~~~~~~~~~~~~~~~~~
