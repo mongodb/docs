@@ -31,18 +31,12 @@
 
    * - HipChat Settings
 
-     - .. cond:: onprem
-
-          Default room and |api| token for alert notifications sent to
-          a HipChat account. |mms| enters the values by default when
-          you add a HipChat notification to an :ref:`alert configuration <configure-alerts>`.
-          If you add HipChat notifications and the token used to send
-          notifications becomes invalid, |mms| sends an email to the
-          :authrole:`Project Owner` and eventually removes the token.
-
-       .. cond:: cloud
-
-          |mms| doesn't support HipChat.
+     - Default room and |api| token for alert notifications sent to
+       a HipChat account. |mms| enters the values by default when
+       you add a HipChat notification to an :ref:`alert configuration <configure-alerts>`.
+       If you add HipChat notifications and the token used to send
+       notifications becomes invalid, |mms| sends an email to the
+       :authrole:`Project Owner` and eventually removes the token.
 
    * - Slack Settings
 
@@ -119,7 +113,7 @@
 
        .. cond:: cloud
 
-          Datadog is not supported with |mms|.
+          The Datadog Metrics integration is not supported with |mms|.
 
    * - Webhook Settings
 
