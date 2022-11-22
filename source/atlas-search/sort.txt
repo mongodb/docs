@@ -1,0 +1,721 @@
+:noprevnext:
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _sort-ref:
+
+==================
+Sort |fts| Results 
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. important:: 
+
+   This feature is in Beta. Make a note of the following: 
+
+   - The name and syntax of the field types and operator might 
+     change during Beta and will change for GA.
+   - Resource usage might change. For more information, see 
+     :ref:`sort-considerations`.
+   
+Overview
+--------
+
+|fts| supports sorting in ascending or descending order on fields that
+you define in your |fts| index for sorting. You can sort by date, number
+(integer, float, and double values), and string values using the
+``sortBetaV1`` operator. 
+
+Usage 
+~~~~~
+
+To sort your |fts| results, you must do the following:
+
+1. Create an |fts| index on the fields your wish to sort your results
+   by. To learn more, see :ref:`sort-beta-index`.
+#. Create and run your query using the ``sortBetaV1`` operator against
+   the fields you defined in the index for sorting. To learn more, see 
+   :ref:`sort-beta-v1-ref`.
+   
+.. _sort-considerations:
+
+Considerations 
+~~~~~~~~~~~~~~
+
+Consistency 
+```````````
+
+|fts| indexes are eventually :ref:`consistent
+<index-eventual-consistency-and-latency>`, and values returned in
+results might be different from values used in sorting. We recommend
+that you consider using :ref:`storedSource
+<fts-stored-source-definition>` to return the values used to sort
+documents in results. 
+
+Performance 
+```````````
+
+This feature optimizes queries that use :pipeline:`$search` with
+:pipeline:`$limit` as a subsequent stage. If |fts| needs to sort all 
+documents in the collection, the response might be slow.
+
+Scoring 
+```````
+
+|fts| returns :ref:`scores <scoring-ref>` for all documents in the
+results. 
+
+Limitations 
+~~~~~~~~~~~
+
+The following limitations apply:
+
+- You can't index and sort on fields in sharded collections.
+- You can't sort and :ref:`fts-facet-ref` in the same query.
+- You can't sort on fields in :ref:`bson-data-types-embedded-documents`. 
+- You can't configure a field with more than one of
+  ``sortableDateBetaV1``, ``sortableNumberBetaV1``, or 
+  ``sortableStringBetaV1`` field types. 
+
+.. _sort-beta-index:
+
+Index Definition 
+----------------
+
+To sort by date, number, or string values, you must index these
+fields as a ``sortableDateBetaV1``, ``sortableNumberBetaV1``, or 
+``sortableStringBetaV1`` type respectively.
+
+Sort by Date
+~~~~~~~~~~~~
+
+Use ``sortableDateBetaV1`` type to index date fields for sorting. 
+
+Option 
+``````
+
+The ``sortableDateBetaV1`` type has the following option: 
+
+.. list-table::
+   :widths: 20 10 10 60
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+
+   * - ``type``
+     - string 
+     - Required
+     - Human-readable label that identifies this field type. 
+       Value must be ``sortableDateBetaV1``.
+
+Example 
+```````
+
+The following index definition for the ``sample_mflix.movies``
+collection in the :ref:`sample dataset <available-sample-datasets>`
+indexes the date field  ``released`` for sorting.
+
+.. code-block:: 
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "released": {
+           "type": "sortableDateBetaV1"
+         }
+       }
+     }
+   }
+
+Sort by Number
+~~~~~~~~~~~~~~
+
+Use ``sortableNumberBetaV1`` type to index numeric fields for sorting. 
+
+Option 
+``````
+
+The ``sortableNumberBetaV1`` type has the following option: 
+
+.. list-table::
+   :widths: 20 10 10 60
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+
+   * - ``type``
+     - string 
+     - Required
+     - Human-readable label that identifies this field type. 
+       Value must be ``sortableNumberBetaV1``.
+
+Example 
+```````
+
+The following index definition for the ``sample_mflix.movies``
+collection in the :ref:`sample dataset <available-sample-datasets>`
+indexes the numeric field  ``awards.wins`` for sorting.
+
+.. code-block:: 
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "awards": {
+           "type": "document",
+           "dynamic": false,
+           "fields": {
+             "wins": {
+               "type": "sortableNumberBetaV1"
+             }
+           }
+         }
+       }
+     }
+   }
+
+Sort by String
+~~~~~~~~~~~~~~
+
+Use ``sortableStringBetaV1`` type to index string fields for sorting.  
+
+Option 
+``````
+
+The ``sortableStringBetaV1`` type has the following option: 
+
+.. list-table::
+   :widths: 20 10 10 60
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+
+   * - ``type``
+     - string 
+     - Required
+     - Human-readable label that identifies this field type. 
+       Value must be ``sortableStringBetaV1``.
+
+Example 
+```````
+
+The following index definition for the ``sample_mflix.movies``
+collection in the :ref:`sample dataset <available-sample-datasets>`
+indexes the string field  ``title`` for sorting.
+
+.. code-block:: 
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "title": {
+           "type": "sortableStringBetaV1"
+         }
+       }
+     }
+   }
+
+.. _sort-beta-v1-ref:
+
+``sortBetaV1`` Operator
+-----------------------
+
+.. expression:: sortBetaV1
+
+   The ``sortBetaV1`` operator sorts your |fts| results in ascending or
+   descending order based on the fields you defined in your |fts| index
+   for sorting. 
+
+Syntax 
+~~~~~~
+
+``sortBetaV1`` operator has the following syntax: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     "sortBetaV1": {
+       "<field-name-to-sort-by>": <sort-order>,
+       ...
+     }
+   }
+
+Behavior 
+~~~~~~~~
+
+The ``sortBetaV1`` takes a document that specifies the fields to sort
+by and the respective sort order. 
+
+You can specify the following sort order to sort your results by: 
+
+.. list-table:: 
+   :widths: 10 90 
+
+   * - ``1`` 
+     - Sort in ascending order. 
+  
+       When you sort in ascending order, |fts| returns documents with
+       missing values before documents with values. 
+
+   * - ``-1`` 
+     - Sort in descending order .
+  
+|fts| flattens the arrays for sorting. 
+
+.. example:: 
+
+   Consider the following array: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      [1, [2, [6,7], 8], 9]
+
+   |fts| flattens the preceding array similar to the following:
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      1, 2, 6, 7, 8, 9
+
+   For an ascending sort, |fts| uses ``1`` to compare the array to other
+   values. For a descending sort, |fts| uses ``9`` to compare the array
+   to other values.
+
+When comparing with elements inside an array:
+
+- For an ascending sort, |fts| compares the smallest elements of the
+  array or performs a less than (``<``) comparison. 
+
+  .. example:: 
+
+     |fts| sorts results in the following order if you sort by numbers
+     in ascending order:
+
+     .. code-block:: shell 
+        :copyable: false 
+
+        -20
+        [-3, 12] // <- -3 comes before 5.
+        5
+        [6, 18]  // <- 6 comes after 5.
+        13
+        14
+
+- For a descending sort, |fts| compares the largest elements of the
+  array or performs a greater than (``>``) comparison. 
+
+  .. example:: 
+
+     |fts| sorts results in the following order if you sort by numbers
+     in descending order:
+
+     .. code-block:: shell 
+        :copyable: false 
+
+        [6, 18]  // <- 18 comes before 14.
+        14
+        13
+        [-3, 12] // <- 12 comes after 13.
+        5
+        -20
+
+Examples 
+~~~~~~~~
+
+The following examples use the ``sample_mflix.movies`` collection in the
+:ref:`sample data <sample-data>`. 
+
+Index Definition
+````````````````
+
+The example queries in this section use the following index. The index
+definition for the collection specifies the following: 
+
+- Index ``awards.wins`` field as ``sortableNumberBetaV1`` and ``number`` types. 
+- Index ``released`` field as ``sortableDateBetaV1`` and ``date`` types. 
+- Index ``title`` field as ``sortableStringBetaV1`` and ``string`` types. 
+
+.. code-block:: json
+   :copyable: true 
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "awards": {
+           "dynamic": false,
+           "fields": {
+             "wins": [
+               {
+                 "type": "sortableNumberBetaV1"
+               },
+               {
+                 "type": "number"
+               }
+             ]
+           },
+           "type": "document"
+         },
+         "released": [{
+           "type": "sortableDateBetaV1"
+         }, {
+           "type": "date"
+         }],
+         "title": [{
+           "type": "sortableStringBetaV1"
+         }, {
+           "type": "string"
+         }]
+       }
+     }
+   }
+
+For the preceding index definition, |fts| creates an index named
+``default`` with :ref:`static mappings <static-dynamic-mappings>` on the
+specified fields. 
+
+Date Search and Sort 
+````````````````````
+
+The following query uses the :pipeline:`$search` stage to do the
+following: 
+
+- Search for movies released between 01 January, 2010 and 01, January,
+  2015 using the :ref:`range-ref` operator. 
+- Sort the results in descending order of released date using
+  ``sortBetaV1`` operator. 
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+documents. It also uses the :pipeline:`$project` stage to omit all fields
+except ``title`` and ``released`` in the results.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "released",
+              "gt": ISODate("2010-01-01T00:00:00.000Z"),
+              "lt": ISODate("2015-01-01T00:00:00.000Z")
+            },
+            "sortBetaV1": {
+              "released": -1
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "released": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+
+      [
+        {
+          title: 'Cold in July',
+          released: ISODate("2014-12-31T00:00:00.000Z")
+        },
+        {
+          title: 'The Gambler',
+          released: ISODate("2014-12-31T00:00:00.000Z")
+        },
+        {
+          title: 'Force Majeure',
+          released: ISODate("2014-12-30T00:00:00.000Z")
+        },
+        { 
+          title: 'LFO', 
+          released: ISODate("2014-12-27T00:00:00.000Z") 
+        },
+        {
+          title: 'Peace After Marriage',
+          released: ISODate("2014-12-26T00:00:00.000Z")
+        }
+      ]
+
+Number Search and Sort 
+``````````````````````
+
+The following query uses the :pipeline:`$search` stage to do the
+following: 
+
+- Search for movies that have won awards.  
+- Sort the results in descending order using ``sortBetaV1`` operator. 
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+documents. It also uses the :pipeline:`$project` stage to omit all fields
+except ``title`` and ``awards.wins`` in the results.
+
+.. io-code-block::
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          $search: {
+             "range": {
+               "path": "awards.wins",
+               "gt": 3
+            },
+            "sortBetaV1": {
+              "awards.wins": -1
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "awards.wins": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+
+      [
+        { title: '12 Years a Slave', awards: { wins: 267 } },
+        { title: 'Gravity', awards: { wins: 231 } },
+        { title: 'Gravity', awards: { wins: 231 } },
+        {
+          title: 'Birdman: Or (The Unexpected Virtue of Ignorance)',
+          awards: { wins: 210 }
+        },
+        { title: 'Boyhood', awards: { wins: 185 } },
+      ]
+
+String Search and Sort 
+``````````````````````
+
+The following query uses the :pipeline:`$search` stage to do the
+following: 
+
+- Search for movies that have the term ``country`` in the title.  
+- Sort the results in ascending order using ``sortBetaV1`` operator. 
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+documents. It also uses the :pipeline:`$project` stage to do the
+following: 
+
+- Omit all fields except ``title`` in the results.
+- Add a field named ``score``.
+
+.. io-code-block::
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "path": "title",
+              "query": "country"
+            },
+            "sortBetaV1": {
+              "title": 1
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+
+      [
+        { title: 'A Country Called Home', score: 2.5108444690704346 },
+        { title: 'A Day in the Country', score: 2.2362313270568848 },
+        { title: 'A Month in the Country', score: 2.2362313270568848 },
+        { title: 'A Quiet Place in the Country', score: 2.01576566696167 },
+        { title: 'A Sunday in the Country', score: 2.2362313270568848 }
+      ]
+
+Compound Search and Sort 
+````````````````````````
+
+The following query uses the :pipeline:`$search` stage to do the
+following: 
+
+- Search for movies that have the term ``dance`` in the title, with
+  a preference for movies that have won 2 or more awards and were
+  released after 01 January, 1990.  
+- Sort the results by the number of awards in descending order, then by
+  the movie title in ascending order, and then by the release date in
+  descending order. 
+
+The query uses the :pipeline:`$limit` stage to limit the output to ``10``
+documents. It also uses the :pipeline:`$project` stage to do the
+following: 
+
+- Omit all fields except ``title``, ``released``, and ``awards.wins`` in
+  the results. 
+- Add a field named ``score``.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "compound": {
+              "must": [{
+                "text": {
+                  "path": "title",
+                  "query": "dance"
+                }
+              }],
+              "should": [{
+                "range": {
+                  "path": "awards.wins",
+                  "gte": 2
+                }
+              }, {
+                "range": {
+                  "path": "released",
+                  "gte": ISODate("1990-01-01T00:00:00.000Z")
+                }
+              }]
+            },
+            "sortBetaV1": {
+              "awards.wins": -1, 
+              "title": 1, 
+              "released": -1
+            }
+          }
+        },
+        {
+          "$limit": 10
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "released": 1,
+            "awards.wins": 1,
+            "score": { "$meta": "searchScore" }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+
+      [
+        {
+          title: 'Shall We Dance?',
+          released: ISODate("1997-07-11T00:00:00.000Z"),
+          awards: { wins: 57 },
+          score: 3.9811458587646484
+        },
+        {
+          title: 'Shall We Dance?',
+          released: ISODate("1997-07-11T00:00:00.000Z"),
+          awards: { wins: 57 },
+          score: 3.9811458587646484
+        },
+        {
+          title: 'War Dance',
+          released: ISODate("2008-11-01T00:00:00.000Z"),
+          awards: { wins: 11 },
+          score: 4.466421127319336
+        },
+        {
+          title: 'Dance with the Devil',
+          released: ISODate("1997-10-31T00:00:00.000Z"),
+          awards: { wins: 6 },
+          score: 3.615056037902832
+        },
+        {
+          title: 'Save the Last Dance',
+          released: ISODate("2001-01-12T00:00:00.000Z"),
+          awards: { wins: 6 },
+          score: 3.615056037902832
+        },
+        {
+          title: 'Dance with a Stranger',
+          released: ISODate("1985-08-09T00:00:00.000Z"),
+          awards: { wins: 4 },
+          score: 3.615056037902832
+        },
+        {
+          title: 'The Baby Dance',
+          released: ISODate("1998-08-23T00:00:00.000Z"),
+          awards: { wins: 4 },
+          score: 3.9811458587646484
+        },
+        {
+          title: 'Three-Step Dance',
+          released: ISODate("2004-02-19T00:00:00.000Z"),
+          awards: { wins: 4 },
+          score: 3.9811458587646484
+        },
+        {
+          title: "Cats Don't Dance",
+          released: ISODate("1997-03-26T00:00:00.000Z"),
+          awards: { wins: 3 },
+          score: 3.9811458587646484
+        },
+        {
+          title: 'Dance Me Outside',
+          released: ISODate("1995-03-10T00:00:00.000Z"),
+          awards: { wins: 3 },
+          score: 3.9811458587646484
+        }
+      ]
+
