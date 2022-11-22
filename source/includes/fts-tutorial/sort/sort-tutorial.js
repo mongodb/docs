@@ -17,9 +17,9 @@ async function run() {
     // define pipeline
     const agg = [
       {$search: {
-        wildcard: {
+        autocomplete: {
           path: "title",
-          query: "Happy*"
+          query: "Happy"
         },
       returnStoredSource: true }},
     {$limit: 5},

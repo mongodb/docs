@@ -15,9 +15,9 @@ public class SortSpeedPrecision {
         new Document(
             "$search",
             new Document(
-                    "wildcard",
+                    "autocomplete",
                     new Document("path", "title")
-                    .append("query", "Happy*"))
+                    .append("query", "Happy"))
             .append("returnStoredSource", true));
     
     // specify connection

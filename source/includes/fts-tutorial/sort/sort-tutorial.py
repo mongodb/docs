@@ -7,9 +7,9 @@ client = pymongo.MongoClient('<connection-string>')
 # define pipeline
 pipeline = [
   {'$search': {
-      'wildcard': {
+      'autocomplete': {
         'path': 'title', 
-        'query': 'Happy*'
+        'query': 'Happy'
         },
         'returnStoredSource': True
     }},

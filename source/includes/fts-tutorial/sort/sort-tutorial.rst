@@ -9,9 +9,9 @@
      - .. code-block:: javascript
 
           {
-            wildcard: {
+            autocomplete: {
               path: 'title',
-              query: "Happy*"
+              query: "Happy"
             },
             returnStoredSource: true
           }

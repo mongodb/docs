@@ -22,9 +22,9 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
-		"wildcard": bson.M{
+		"autocomplete": bson.M{
 			"path":  "title",
-			"query": "Happy*",
+			"query": "Happy",
 		},
 		"returnStoredSource": true,
 	}}}
