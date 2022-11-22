@@ -28,6 +28,9 @@
 
 - A paying organization must have an |service| subscription.
 
+- A paying and all linked organizations must be in good standing
+  and have no failed payments.
+
 .. note::
 
    To purchase a subscription that enables cross-organization billing,
