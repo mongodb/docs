@@ -3,6 +3,11 @@
   :authrole:`Organization Owner`
   privileges for both organizations.
 
+- A paying organization must have an |service| subscription.
+
+- A paying organization and all linked organizations must be in good standing
+  and have no failed payments.
+
 - A paying organization and any linked organizations
   must be on the same subscription plan.
 
@@ -25,11 +30,6 @@
 - A paying organization can't link more than 100 other organizations.
 
 - A paying organization can't already be a linked organization.
-
-- A paying organization must have an |service| subscription.
-
-- A paying organization and all linked organizations must be in good standing
-  and have no failed payments.
 
 .. note::
 
