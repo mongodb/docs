@@ -6,20 +6,20 @@
    * - since
      - number
      - Optional
-     - |Epoch-time| from which to retrieve suggested indexes.
+     - |Epoch-time| from which to retrieve slow queries.
      -
 
    * - duration
      - number
      - Optional
      - Length of time in milliseconds during which to find
-       suggested indexes among the managed namespaces in the cluster.
+       slow queries among the managed namespaces in the cluster.
      -
 
    * - namespaces
      - string
      - Optional
-     - Namespaces from which to retrieve suggested indexes. A namespace
+     - Namespaces from which to retrieve slow queries. A namespace
        consists of the database and collection resource separated by a
        ``.``, such as ``<database>.<collection>``.
 
