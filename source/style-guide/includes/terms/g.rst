@@ -31,7 +31,7 @@ G
      :icon-fa4:`exclamation-triangle` Use *gray* (not *grey*) only to
      express color. When referring to the state of inactive commands,
      options, or buttons on an interface, use *unavailable* (not
-     *dimmed* or *gray* or :term:`grayed out`).
+     *dimmed* or *gray* or :term:`grayed out <grayed>`).
 
      .. seealso:: :term:`dimmed`
 
@@ -44,17 +44,18 @@ G
 
         * - The printed report uses gray shading to identify the data
             categories.
-          -
+          - The printed report uses grey shading to identify the data
+            categories.
 
    grayed
-   grayed out
+     **grayed out**
      :icon-fa5:`trash-alt` Use *dimmed* to describe the appearance of
      an unavailable command, option, or button. Use *unavailable* to
      refer to the state, not the appearance, of inactive commands,
      options, or buttons on the interface.
 
    guarantee
-   guaranteed to
+     **guaranteed to**
      :icon-fa5:`trash-alt` Don't make guarantees in MongoDB content.
      Use terms like *intended to*, *expected to*, or *designed to*
      instead.

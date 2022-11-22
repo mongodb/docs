@@ -1,3 +1,8 @@
+K
+_
+
+.. glossary::
+     
    keep in mind
      :icon-fa5:`trash-alt` Use *remember* or *consider*, or rewrite to
      eliminate the need for the term.

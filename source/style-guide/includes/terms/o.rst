@@ -7,7 +7,7 @@ O
      Don't hyphenate this term.
 
    offsite
-   onsite
+     **onsite**
      Don't hyphenate these terms.
 
    on
@@ -44,7 +44,7 @@ O
 
 
    on-premises
-   off-premises
+     **off-premises**
      Use these terms to distinguish local computing (in which
      resources are located on a customer’s own site) from remote
      computing (in which resources are provided partially or totally
@@ -70,11 +70,11 @@ O
      .. seealso:: :term:`close`, :term:`open`
 
    open source
-   open-source
+     **open-source**
      Use lowercase. Hyphenate when used as a modifier.
 
    operating system
-   OS
+     **OS**
      *OS* is a common abbreviation for *operating system* and you can
      use it without first spelling it out if the context is clear. To
      form the plural of *OS*, add an *s* without an apostrophe—\
@@ -110,7 +110,7 @@ O
           - Reporting is available OOTB.
 
    over
-   more than
+     **more than**
      Don't use *over* to indicate quantities; use *more than*
      instead. Also, don't use *over* to refer to version numbers.
 

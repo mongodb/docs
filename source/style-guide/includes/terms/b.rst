@@ -4,7 +4,7 @@ B
 .. glossary::
 
    back end
-   back-end
+     **back-end**
      :icon-fa4:`times-circle` Use a more specific term such as
      *server*, *operating system*, or *network*. If you need to use the
      term, show it as noted.
@@ -14,7 +14,7 @@ B
      refer to the / character. Don't use *slash mark*.
 
    back up
-   backup
+     **backup**
 
      Use *back up* as a verb. Use *backup* as a noun or adjective.
 
@@ -119,7 +119,7 @@ B
             follow this example.
 
    between
-   among
+     **among**
      When referring to three or more persons or items or when the
      number is unspecified, use *among*.
 
@@ -165,7 +165,7 @@ B
      short-scale system.
 
    biweekly
-   bimonthly
+     **bimonthly**
      :icon-fa4:`times-circle` Because these terms can be interpreted
      as *twice a week or month* or *once every two weeks or months*,
      avoid using them. For clarity, instead use longer terms such as
@@ -217,9 +217,10 @@ B
             organizations an alternative to closed cloud environments.
 
    bottom left
-   bottom right
+     **bottom right**
      :icon-fa5:`trash-alt` When referring to the location of an item
-     on a UI, use :term:`lower left` and :term:`lower right` instead.
+     on a UI, use :term:`lower left` and :term:`lower right 
+     <lower left>` instead.
 
      .. seealso:: :term:`left` and :term:`right`
 
@@ -297,4 +298,3 @@ B
 
    by using
      .. seealso:: :term:`using`, :term:`by using`, :term:`with`
-

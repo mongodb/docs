@@ -45,7 +45,7 @@ N
           -
 
    not applicable
-   NA
+     **NA**
      Use the abbreviation *NA* to mean *not applicable*. For example,
      if you have a table cell for which no information is available
      and space constraints prevent spelling out *Not applicable* or

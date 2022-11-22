@@ -24,7 +24,7 @@ C
           -
 
    canceled
-   canceling
+     **canceling**
      Use each word as shown, with a single *l*.
 
    cannot
@@ -126,7 +126,7 @@ C
      server*.
 
    close
-   open
+     **open**
      For folders in a tree, use *open* to refer to the action of
      opening a folder. Use *close* to refer to the action of closing
      the folder.
@@ -143,14 +143,14 @@ C
      *o*, such as *co-op*.
 
    collapse
-   expand
+     **expand**
      For directories or other navigational trees, use *expand* to
      mean the action of opening the tree to view more objects (such
      as folders). Use *collapse* to mean the action of closing the
      tree to view fewer objects.
 
    colocate
-   colocation
+     **colocation**
      Use as shown, with one *l* and no hyphen, when referring to
      locating customer equipment in a third-party data center.
 
@@ -201,7 +201,7 @@ C
             :guilabel:`OK` button, and an :guilabel:`Exit` button.
 
    command line
-   command-line
+     **command-line**
      Don't hyphenate *command line* when it's used as a noun.
      Hyphenate it when used as an adjective, as in *command-line
      interface*.

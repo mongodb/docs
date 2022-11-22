@@ -41,7 +41,7 @@ L
             the pane.
 
    less
-   fewer
+     **fewer**
      Use *fewer* to modify countable nouns. Use *less* to modify
      collective or mass nouns.
 
@@ -79,7 +79,7 @@ L
             option to specify the pools.
 
    life cycle
-   life-cycle
+     **life-cycle**
      In most cases, use as two words. Use *lifecycle* only if it's
      used in a product interface, is part of a product name, or is
      part of the name of an external standard.
@@ -124,16 +124,19 @@ L
      Use *log file* as two words.
 
    log in
-   log off
-   login
-   logoff
+     **log off**
+     **login**
+     **logoff**
+
      - Use *log in* and *log off* as verbs for connecting to and
        disconnecting from a computer, system, or network.
 
      - Use *login* and *logoff* as nouns or adjectives.
 
      - Don't use *log into*; use *log in to*. *Log in* is a single
-       :mw:`phrasal verb`. *To* links that verb to the next word.
+       `phrasal verb 
+       <https://www.merriam-webster.com/dictionary/phrasal-verb>`__. 
+       *To* links that verb to the next word.
 
      .. list-table::
         :widths: 50 50
@@ -149,10 +152,10 @@ L
      Don't use *lower-case*. Don't use *upper/lowercase* to mean
      mixed case.
 
-     .. seealso:: `mixed case`
+     .. seealso:: :term:`mixed case`
 
    lower
-   higher
+     **higher**
      :icon-fa4:`exclamation-triangle` Don't use these terms when
      referring to product releases and version numbers. Use *earlier*
      or *later* instead.
@@ -171,7 +174,7 @@ L
           - Windows 3.1 or higher
 
    lower left
-   lower right
+     **lower right**
      When referring to the location of an item on a UI, use *lower
      left* and *lower right* instead of *bottom left* or *bottom
      right*.

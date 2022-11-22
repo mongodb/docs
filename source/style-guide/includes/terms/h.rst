@@ -4,13 +4,13 @@ H
 .. glossary::
 
    high availability
-   high-availability
+     **high-availability**
      Use the spelled out term on first use in an article or document,
      and introduce the abbreviation in parentheses. Hyphenate the
      spelled-out term when it's used as a modifier.
 
    higher
-   lower
+     **lower**
      :icon-fa4:`exclamation-triangle` Don't use these terms when
      referring to product releases and version numbers. Use
      :term:`earlier` or :term:`later` instead.
@@ -42,7 +42,7 @@ H
      a Kubernetes cluster. That uncertainty requires this broader term.
 
    host list
-   host name
+     **host name**
      Use each of these terms as two words.
 
    How-To

@@ -38,7 +38,7 @@ M
             man-hours needed to run it all.
 
    managed hosting
-   Managed Hosting
+     **Managed Hosting**
      Use lowercase when referring generally to the industry and
      providers. Capitalize when referring to it as a MongoDB
      offering.
@@ -103,7 +103,7 @@ M
         :ref:`helping-verbs`.
 
    mixed case
-   mixed-case
+     **mixed-case**
      Use *mixed case* to refer to terms that have been formatted with
      a combination of uppercase and lowercase letters. Don't use
      *upper- and lowercase* or *upper/lowercase* to mean mixed case.

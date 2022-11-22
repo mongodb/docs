@@ -74,7 +74,7 @@ S
      *catastrophic*, or *fatal*.
 
    set up
-   setup
+     **setup**
      Use *set up* as a verb. Use *setup* as an adjective or noun.
 
      .. list-table::
@@ -104,7 +104,7 @@ S
         :ref:`helping-verbs`
 
    shut down (v)
-   shutdown (adj, n)
+     **shutdown (adj, n)**
      Use *shut down* as a verb. Use *shutdown* as a noun or adjective.
 
      .. list-table::
@@ -171,7 +171,7 @@ S
      Hyphenate *stand-alone* and use it as an adjective only.
 
    start
-   startup
+     **startup**
      Use *start* as a verb instead of *start up* or *launch* to refer
      to programs, services, jobs, routines, or hardware operations. Use
      *startup* as a noun or adjective.

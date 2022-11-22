@@ -34,7 +34,7 @@ F
      :icon-fa4:`times-circle` Use *serious* instead.
 
    fewer
-   less
+     **less**
      Use *fewer* for countable items. Use *less* for collective or
      mass items.
 
@@ -50,7 +50,7 @@ F
           -
 
    file name
-   file system
+     **file system**
      Use these terms as two words unless the context requires
      otherwise.
 
@@ -58,7 +58,7 @@ F
      Use *firewall* as one word.
 
    follow
-   follow-up
+     **follow-up**
      Use *follow* as a verb. Use *follow-up* as a noun or adjective.
 
      .. list-table::
@@ -78,7 +78,7 @@ F
           - Complete the follow up.
 
    following
-   preceding
+     **preceding**
      Use these terms as adjectives, not as nouns.
 
      .. list-table::
@@ -113,6 +113,6 @@ F
      or *at no cost* instead.
 
    front end
-   front-end
+     **front-end**
      Use a more specific term if possible. If you need to use the
      term, use *front-end* as an adjective and *front end* as a noun.

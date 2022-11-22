@@ -4,7 +4,7 @@ A
 .. glossary::
 
    about
-   on
+     **on**
      :icon-fa4:`exclamation-triangle` Don't use *on* to mean *about*.
 
      .. example::
@@ -105,9 +105,9 @@ A
      as a modifier (for example, *ad hoc tasks*).
 
    admin
-   administrator
-   administer
-   administrative
+     **administrator**
+     **administer**
+     **administrative**
      - Use *admin* in code as needed, such as ``role: "admin"``.
 
      - Use *administrator* in descriptive content, such as "The
@@ -121,7 +121,7 @@ A
        *administrative role*.
 
    affect
-   effect
+     **effect**
      Use *affect* as a verb to mean influence, change, or have an
      effect on. Use *effect* as a noun to mean the result of an
      action or the power to bring about a result.
@@ -142,7 +142,7 @@ A
           -
 
    after
-   once
+     **once**
      Use *after* to mean occurring subsequently in time or order. Use
      *once* to mean one time.
 
@@ -214,7 +214,7 @@ A
             capacity of your cloud server.
 
    alternate
-   alternative
+     **alternative**
      Use *alternate* as a verb to refer to performing by turns or
      changing from one state to another state repeatedly.
 
@@ -238,7 +238,7 @@ A
 
 
    AM
-   PM
+     **PM**
      Show in uppercase, with no periods after each letter, and a
      space before.
 
@@ -253,7 +253,7 @@ A
           - Between 8:00 a.m. and 5:00 p.m.
 
    among
-   between
+     **between**
      When referring to three or more persons or items or when the
      number is unspecified, use *among*.
 
@@ -379,7 +379,7 @@ A
 
 
    API
-   APIs
+    **APIs**
      Use *API* to refer to either an API for a service or a
      language-Specific API. Don't use it when referring to a method
      or a class. The plural form of API is APIs, not API's.
@@ -428,7 +428,7 @@ A
      general usage, *app* is preferable.
 
    architect
-   architected
+     **architected**
      :icon-fa5:`trash-alt` Use *architect* as a noun only. For a verb,
      use *design*, *create*, *plan*, or another appropriate verb.
 
@@ -439,7 +439,7 @@ A
      :icon-fa5:`trash-alt` In a command-line context, use *option*.
 
    as
-   since
+     **since**
      :icon-fa4:`exclamation-triangle` Don't use *as* or *since* when describing the reason for a
      situation, event, and so on. Use *because* instead.
 

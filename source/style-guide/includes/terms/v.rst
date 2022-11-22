@@ -4,7 +4,7 @@ V
 .. glossary::
 
    versus
-   vs.
+     **vs.**
      :icon-fa4:`times-circle` Use *compared with* instead. In a title,
      you can use *versus* to save space.
 

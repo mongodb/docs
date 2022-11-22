@@ -18,7 +18,7 @@ T
           - Not Recommended
 
         * - From the Settings screen, tap
-            :menuselection:`Mail, Contacts, Calendars > Add Account > Microsoft Exchange`.
+            :guilabel:`Mail, Contacts, Calendars > Add Account > Microsoft Exchange`.
           -
 
    terminate
@@ -42,7 +42,7 @@ T
      Use *text box* as two words.
 
    that
-   which
+     **which**
      Use *that* to introduce a restrictive clause, and don't use a
      comma. Use *which* to introduce a nonrestrictive clause, and use
      a comma. If a nonrestrictive clause occurs in midsentence, set
@@ -87,7 +87,7 @@ T
             cache size.
 
    there are
-   there is
+     **there is**
      :icon-fa4:`times-circle` Avoid using these ambiguous phrases at
      the beginning of sentences or clauses.
 
@@ -107,7 +107,7 @@ T
             information to the message log.
 
    third party
-   third-party
+     **third-party**
      Use *third party* as a noun. Use *third-party* as an adjective.
 
      .. list-table::
@@ -131,7 +131,7 @@ T
      Use *timeline* as one word.
 
    time out
-   timeout
+     **timeout**
      Use *time out* as two words when using the term as a verb. Use
      *timeout* as one word when using the term as a noun or adjective.
 
@@ -142,13 +142,13 @@ T
      Use *time zone* as two words.
 
    toolbar
-   toolbox
-   toolkit
-   tooltip
+     **toolbox**
+     **toolkit**
+     **tooltip**
      Use each of these terms as one word.
 
    top left
-   top right
+     **top right**
      :icon-fa5:`trash-alt` When referring to the location of an item on
      a UI, use *upper left* and *upper right* instead.
 

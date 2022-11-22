@@ -30,7 +30,7 @@ P
      Partner Program.
 
    path
-   path name
+     **path name**
      Use *path name* as two words unless the software requires
      otherwise. Don't use *path* when referring to a *path name*.
 

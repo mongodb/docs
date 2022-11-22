@@ -4,7 +4,7 @@ E
 .. glossary::
 
    earlier
-   later
+     **later**
      Use these terms (instead of *lower* and *higher* or *below* and
      *above*) when referring to product releases and version numbers.
      Don't use *earlier* or *later* to refer to information in text.
@@ -42,7 +42,7 @@ E
           -
 
    effect
-   affect
+     **affect**
      Use *affect* as a verb to mean influence, change, or have an
      effect on. Use *effect* as a noun to mean the result of an
      action or the power to bring about a result.
@@ -131,7 +131,7 @@ E
             on Ubuntu or Red Hat Enterprise Linux.
 
    end user
-   end-user
+     **end-user**
      :icon-fa4:`exclamation-triangle` When addressing your audience, use *customer*, *you*, or the
      imperative mood instead. You can use *end user* to refer to the
      users of your audience.
@@ -211,9 +211,10 @@ E
      Don't make up new e-words.
 
    exit
-   close
-   quit
-   stop
+     **close**
+     **quit**
+     **stop**
+     
      - Use *exit* to refer to closing a program or application.
      - Don't use *end*, *leave*, *stop*, or *terminate* to refer to
        closing a program or application.
