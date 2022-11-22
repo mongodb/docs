@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -24,13 +23,6 @@ func main() {
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
 		"compound": bson.M{
-			"filter": bson.M{
-				"near": bson.M{
-					"path":   "released",
-					"origin": time.Date(2012, time.June, 25, 0, 0, 0, 0, time.UTC),
-					"pivot":  5,
-				},
-			},
 			"should": bson.A{
 				bson.M{
 					"wildcard": bson.D{

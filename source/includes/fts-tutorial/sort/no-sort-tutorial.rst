@@ -10,13 +10,6 @@
 
           {
             compound: {
-              filter: [{
-                near: {
-                  path: 'released',
-                  origin: ISODate("2012-06-25T00:00:00.000+00:00"),
-                  pivot: 7776000000
-                }
-              }],
               should: [{
                 wildcard: {
                 query: "Prance*",

@@ -18,7 +18,6 @@ async function run() {
     const agg = [
       {$search: {
         compound: {
-          filter: [{near: {path: "released", origin: new Date("2012-06-25T00:00:00.000Z"), pivot: 7776000000}}],
           should: [{wildcard: {query: "Prance*", path: "title", score: {constant: {value: 99}}, allowAnalyzedField: true}},
                      {wildcard: {query: "Prince*", path: "title", score: {constant: {value: 95}}, allowAnalyzedField: true}}]
         }, 

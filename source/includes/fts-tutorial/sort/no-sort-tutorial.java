@@ -14,14 +14,7 @@ import java.util.Date;
 
 public class SortForPrecision {
   public static void main( String[] args ) {
-    // define clauses
-    List<Document> filterClause =
-        List.of(
-            new Document(
-                "near", 
-                new Document("path", "released")
-                    .append("origin", new Date(1340582400000L))
-                    .append("pivot", 7776000000L)));
+    // define clause
     List<Document> shouldClause =
         List.of(
             new Document(
@@ -42,10 +35,9 @@ public class SortForPrecision {
         new Document(
             "$search",
             new Document(
-                    "compound",
-                    new Document("filter", filterClause)
-                    .append("should", shouldClause))
-                    .append("returnStoredSource", true));
+                "compound",
+                new Document("should", shouldClause))
+                .append("returnStoredSource", true));
     
     // specify connection
     String uri = "<connection-string>";
