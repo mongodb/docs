@@ -14,6 +14,8 @@ Oracle Linux [#oracle-linux]_, Rocky Linux, and AlmaLinux
 [#rocky-almalinux-note]_
 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
+- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky / AlmaLinux 9
+
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky / AlmaLinux 8
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
@@ -41,4 +43,3 @@ See :ref:`prod-notes-supported-platforms` for more information.
    compatible with and supported on Rocky Linux version 8.0+ and 
    AlmaLinux version 8.0+, contingent upon those distributions meeting their 
    obligation to deliver full RHEL compatibility.
-
