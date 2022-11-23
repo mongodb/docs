@@ -157,6 +157,7 @@ rst_epilog = '\n'.join([
     '.. |k8s-pods| replace:: `Pods <https://kubernetes.io/docs/concepts/workloads/pods/pod/>`__',
     '.. |k8s-pod| replace:: `Pod <https://kubernetes.io/docs/concepts/workloads/pods/pod/>`__',
     '.. |k8s-pvcs| replace:: `Persistent Volume Claims <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims>`__',
+    '.. |k8s-api-ref| replace:: `Kubernetes API Reference <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.25/>`__',
     '.. |k8s-pvc| replace:: `Persistent Volume Claim <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims>`__',
     '.. |k8s-pvs| replace:: `Persistent Volumes <https://kubernetes.io/docs/concepts/storage/persistent-volumes/>`__',
     '.. |k8s-pv| replace:: `Persistent Volume <https://kubernetes.io/docs/concepts/storage/persistent-volumes/>`__',
