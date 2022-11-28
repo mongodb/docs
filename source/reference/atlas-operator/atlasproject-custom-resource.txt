@@ -68,7 +68,14 @@ configure the following options:
   - :ref:`Performance Advisor <performance-advisor>`
   - :ref:`Realtime Performance Panel <review-real-time-metrics>`
   - :ref:`Schema Advisor <schema-suggestions>`
-   
+
+  - :ref:`Project alerts configurations <ak8so-alert-configurations>`
+    with the :setting:`spec.alertConfigurationSyncEnabled` 
+    and :setting:`spec.alertConfigurations` parameters.
+
+    For information on how these settings interact,
+    see the :ref:`ak8so-ac-considerations`.
+
 If you remove the ``AtlasProject`` resource from your |k8s| cluster, 
 |ak8so| removes the project from |service|. You must remove all the 
 clusters in the project beforehand. Otherwise, |service| rejects the 
@@ -188,6 +195,42 @@ specification that disables the collection of database statistics in
       isRealtimePerformancePanelEnabled: false
       isSchemaAdvisorEnabled: false
 
+.. _ak8so-ac-example:
+
+Alert Configuration Example
+---------------------------
+
+The following example shows an ``AtlasProject`` custom resource
+specification that configures an alert that triggers if the oplog
+window reaches less than one hour:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+     name: my-project
+   spec:
+     name: Test Atlas Operator Project
+     connectionSecretRef:
+       name: my-atlas-key
+     alertConfigurations:
+       - eventTypeName: "REPLICATION_OPLOG_WINDOW_RUNNING_OUT",
+         enabled: true,
+         notifications:
+         -  delayMin: 0
+            emailEnabled: true
+            intervalMin: 60
+            roles: [ "GROUP_OWNER" ]
+            smsEnabled: false
+            typeName: “GROUP” 
+         threshold: 
+            operator: "LESS_THAN",
+            threshold: 1,
+            units: "HOURS"
+     alertConfigurationSyncEnabled: true
+     withDefaultAlertsSettings: false
+
 Parameters
 ----------
 
@@ -202,6 +245,712 @@ This section describes the ``AtlasProject`` custom resource parameters:
    Name of the project created or updated in |service|. The name 
    length must not exceed 64 characters. The name can contain only 
    letters, numbers, spaces, dashes, and underscores.
+
+.. setting:: spec.alertConfigurations
+
+   *Type: array of objects*
+
+   *Optional*
+
+   List that contains :ref:`alert configurations <configure-alerts>` 
+   for this project.
+
+   If you use this setting, you must also set 
+   :setting:`spec.alertConfigurationSyncEnabled` to ``true``
+   for |ak8so| to modify project alert configurations.
+
+   If you omit or leave this setting empty, |ak8so| doesn't alter the project's
+   alert configurations. If creating a project, |service| applies 
+   the default project alert configurations.
+
+.. setting:: spec.alertConfigurations.eventTypeName
+
+   *Type: string*
+
+   *Required*
+
+   Event that triggers an alert that this alert configration describes.
+
+   To learn about the values that |ak8so| accepts,
+   see the request body schema for the
+   :oas-atlas-op:`Create One Alert Configuration in One Project 
+   <createOneAlertConfigurationInOneProject>` endpoint
+   in the MongoDB Atlas Administration API documentation.
+
+.. setting:: spec.alertConfigurations.enabled
+
+  *Type: boolean*
+
+  *Optional*
+
+  *Default*: ``false``
+
+  Flag that indicates whether this alert configuration is enabled.
+  If omitted, defaults to ``false``.
+
+.. setting:: spec.alertConfigurations.matchers
+
+   *Type: array of objects*
+
+   *Conditional*
+
+   List of rules that determine whether |service| checks an object 
+   for the alert configuration. You can filter using the matchers 
+   array if :setting:`spec.alertConfigurations.eventTypeName` 
+   specifies an event for a host, replica set, or sharded {+cluster+}.
+
+.. setting:: spec.alertConfigurations.matchers.fieldName
+
+   *Type: string*
+
+   *Conditional*
+
+   Human-readable label that identifies the parameter in the target object that |service| checks. 
+   The parameter must match all rules for |service| to check for 
+   alert configurations.
+
+   |ak8so| accepts the following values:
+
+   - ``CLUSTER_NAME``
+   - ``HOSTNAME``
+   - ``HOSTNAME_AND_PORT``
+   - ``PORT``
+   - ``REPLICA_SET_NAME``
+   - ``SHARD_NAME``
+   - ``TYPE_NAME``
+
+   |ak8so| requires this setting if you include an object in the  
+   :setting:`spec.alertConfigurations.matchers`
+   array.
+
+.. setting:: spec.alertConfigurations.matchers.operator
+
+   *Type: string*
+
+   *Conditional*
+
+   Comparison operator to apply when checking the current metric value 
+   against :setting:`spec.alertConfigurations.matchers.value`.
+
+   |ak8so| accepts the following values:
+
+   - ``EQUALS`` 
+   - ``CONTAINS`` 
+   - ``STARTS_WITH`` 
+   - ``ENDS_WITH`` 
+   - ``NOT_EQUALS`` 
+   - ``NOT_CONTAINS`` 
+   - ``REGEX``
+
+   |ak8so| requires this setting if you include an object in the  
+   :setting:`spec.alertConfigurations.matchers`
+   array.
+
+.. setting:: spec.alertConfigurations.matchers.value
+
+   *Type: string*
+
+   *Conditional*
+
+   Value to match or exceed using the specified
+   :setting:`spec.alertConfigurations.matchers.operator`.
+
+   |ak8so| requires this setting if you include an object in the  
+   :setting:`spec.alertConfigurations.matchers`
+   array.
+
+.. setting:: spec.alertConfigurations.metricThreshold
+
+   *Type: object*
+
+   *Conditional*
+
+   Threshold for the metric that, when exceeded, triggers an alert.
+
+   |ak8so| requires this setting when
+   :setting:`spec.alertConfigurations.eventTypeName` is 
+   ``OUTSIDE_METRIC_THRESHOLD``.
+
+.. setting:: spec.alertConfigurations.metricThreshold.metricName
+
+   *Type: string*
+
+   *Conditional*
+
+   Human-readable label that identifies the metric against 
+   which |service| checks the configured
+   :setting:`spec.alertConfigurations.metricThreshold.threshold`.
+
+   To learn about the values that |ak8so| accepts,
+   see the request body schema for the
+   :oas-atlas-op:`Create One Alert Configuration in One Project 
+   <createOneAlertConfigurationInOneProject>` endpoint
+   in the MongoDB Atlas Administration API documentation.
+
+   |ak8so| requires this setting if you include the  
+   :setting:`spec.alertConfigurations.metricThreshold`
+   object.
+
+.. setting:: spec.alertConfigurations.metricThreshold.mode
+
+   *Type: string*
+
+   *Optional*
+
+   *Default*: ``AVERAGE``
+
+   |service| computes the current metric value as an average.
+
+   |ak8so| accepts only a value of ``AVERAGE``.
+
+.. setting:: spec.alertConfigurations.metricThreshold.operator
+
+   *Type: string*
+
+   *Conditional*
+
+   Comparison operator to apply when checking the current metric value.
+
+   |ak8so| accepts the following values:
+
+   - ``GREATER_THAN``
+   - ``LESS_THAN``
+
+   |ak8so| requires this setting if you include the  
+   :setting:`spec.alertConfigurations.metricThreshold`
+   object.
+
+.. setting:: spec.alertConfigurations.metricThreshold.threshold
+
+   *Type: integer*
+
+   *Conditional*
+
+   Value of metric that, when exceeded, triggers an alert.
+
+   |ak8so| requires this setting if you include the  
+   :setting:`spec.alertConfigurations.metricThreshold`
+   object.
+
+.. setting:: spec.alertConfigurations.metricThreshold.units
+
+   *Type: string*
+
+   *Conditional*
+
+   Element used to express the quantity. This value can be an 
+   element of time, storage capacity, and so on
+
+   |ak8so| accepts the following values:
+
+   - ``BITS``
+   - ``BYTES``
+   - ``DAYS``
+   - ``GIGABITS``
+   - ``GIGABYTES``
+   - ``HOURS``
+   - ``KILOBITS``
+   - ``KILOBYTES``
+   - ``MEGABITS``
+   - ``MEGABYTES``
+   - ``MILLISECONDS``
+   - ``MINUTES``
+   - ``PETABYTES``
+   - ``RAW``
+   - ``SECONDS``
+   - ``TERABYTES``
+
+   |ak8so| requires this setting if you include the  
+   :setting:`spec.alertConfigurations.metricThreshold`
+   object.
+
+.. setting:: spec.alertConfigurations.notifications
+
+   *Type: array*
+
+   *Conditional*
+
+   List that describes the notifications that |service| 
+   sends for alerts that this alert configuration describes.
+
+.. setting:: spec.alertConfigurations.notifications.apiToken
+
+   *Type: string*
+
+   *Conditional*
+
+   Slack API token or Bot token that |service| needs to send 
+   alert notifications via Slack. If the token later becomes 
+   invalid, |service| sends an email to the project owners. 
+   If the token remains invalid, |service| removes the token.
+
+   |ak8so| requires this setting if you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``SLACK``.
+
+.. setting:: spec.alertConfigurations.notifications.channelName
+
+   *Type: string*
+
+   *Conditional*
+
+   Human-readable label that identifies the Slack channel to which |service| sends alert 
+   notifications. 
+   
+   |ak8so| requires this setting when  you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``SLACK``.
+
+.. setting:: spec.alertConfigurations.notifications.datadogApiKey
+
+   *Type: string*
+
+   *Conditional*
+
+   Datadog API key that |service| needs to send alert 
+   notifications to Datadog. You can find this API key 
+   in the Datadog dashboard.
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``DATADOG``.
+
+.. setting:: spec.alertConfigurations.notifications.datadogRegion
+
+   *Type: string*
+
+   *Optional*
+
+   *Default*: ``US``
+
+   Datadog region that indicates which API Uniform Resource Locator
+   (URL) to use.
+
+   |ak8so| accepts the following values:
+
+   - ``US``
+   - ``EU``
+
+.. setting:: spec.alertConfigurations.notifications.delayMins
+
+   *Type: integer*
+
+   *Optional*
+
+   *Default*: ``0``
+
+   Number of minutes that |service| waits after it detects 
+   an alert condition before it sends out the first notification.
+
+.. setting:: spec.alertConfigurations.notifications.emailAddress
+
+   *Type: string*
+
+   *Conditional* 
+
+   Email address to which |service| sends alert notifications. 
+   
+   |ak8so| requires this setting if you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``EMAIL``.
+   
+   |ak8so| doesn't require this setting to send 
+   email notifications when you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to one of the following values:
+
+   - ``GROUP``
+   - ``ORG``
+   - ``TEAM``
+   - ``USERS``
+
+   To send emails to one |service| user or group of users, set the 
+   :setting:`spec.alertConfigurations.notifications.emailEnabled` parameter.
+
+.. setting:: spec.alertConfigurations.notifications.emailEnabled
+
+   *Type: boolean*
+
+   *Conditional*
+
+   Flag that indicates whether |service| sends email notifications.
+
+   |ak8so| requires this setting when you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to one of the following values:
+
+   - ``GROUP``
+   - ``ORG``
+   - ``TEAM``
+
+.. setting:: spec.alertConfigurations.notifications.intervalMin
+
+   *Type: integer*
+
+   *Optional*
+
+   .. what's the default value here?
+
+   Number of minutes to wait between successive notifications. 
+   |service| sends notifications until someone acknowledges 
+   the unacknowledged alert. |ak8so| accepts values greater
+   than or equal to ``5``.
+
+   PagerDuty, VictorOps, and OpsGenie notifications don't 
+   use this field. Configure and manage the notification 
+   interval within each of those services.
+
+.. setting:: spec.alertConfigurations.notifications.microsoftTeamsWebhookUrl
+
+   *Type: string*
+
+   *Conditional*
+
+   Microsoft Teams Webhook Uniform Resource Locator (URL) that 
+   |service| needs to send this notification via Microsoft Teams. 
+   If the URL later becomes invalid, |service| sends an email to 
+   the project owners. If the key remains invalid, |service| removes it.
+
+   |ak8so| requires this setting if you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``MICROSOFT_TEAMS``.
+
+.. setting:: spec.alertConfigurations.notifications.mobileNumber
+
+   *Type: string*
+
+   *Conditional*
+
+   Mobile phone number to which |service| sends alert notifications.
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``SMS``.
+
+.. setting:: spec.alertConfigurations.notifications.opsGenieApiKey
+
+   *Type: string*
+
+   *Conditional*
+
+   API Key that |service| needs to send this notification via Opsgenie.
+   If the key later becomes invalid, |service| sends an email to the 
+   project owners. If the key remains invalid, |service| removes it.
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``OPS_GENIE``.
+
+.. setting:: spec.alertConfigurations.notifications.opsGenieRegion
+
+   *Type: string*
+
+   *Optional*
+
+   *Default*: ``US``
+
+   Opsgenie region that indicates which API Uniform Resource Locator 
+   (URL) to use. 
+   
+   |ak8so| accepts the following values:
+
+   - ``US``
+   - ``EU``
+
+   |ak8so| applies this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``OPS_GENIE``.
+
+.. setting:: spec.alertConfigurations.notifications.roles
+
+   *Type: array*
+
+   *Optional*
+
+   List that contains the one or more organization or 
+   project roles that receive the configured alert.
+   If you include this parameter, |service| sends 
+   alerts only to users assigned the roles you specify 
+   in the list. If you omit this parameter, |service| 
+   sends alerts to users assigned any role.
+
+   |ak8so| accepts the following values:
+
+   - ``GROUP_CLUSTER_MANAGER``
+   - ``GROUP_DATA_ACCESS_ADMIN``
+   - ``GROUP_DATA_ACCESS_READ_ONLY`` 
+   - ``GROUP_DATA_ACCESS_READ_WRITE`` 
+   - ``GROUP_OWNER``
+   - ``GROUP_READ_WRITE`` 
+   - ``ORG_OWNER`` 
+   - ``ORG_MEMBER`` 
+   - ``ORG_GROUP_CREATOR``
+   - ``ORG_BILLING_ADMIN`` 
+   - ``ORG_READ_ONLY``
+
+   |ak8so| applies this setting when you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to one of the following values:
+
+   - ``GROUP``
+   - ``ORG``
+
+.. setting:: spec.alertConfigurations.notifications.serviceKey
+
+   *Type: string*
+
+   *Conditional*
+
+   PagerDuty service key that |service| needs to send 
+   notifications via PagerDuty. If the key later becomes 
+   invalid, |service| sends an email to the project 
+   owners. If the key remains invalid, |service| removes it.
+
+   |ak8so| requires this setting if you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``PAGER_DUTY``.
+
+.. setting:: spec.alertConfigurations.notifications.severity
+
+   *Type: string*
+
+   *Optional*
+
+   .. is there a default value here?
+
+   Degree of seriousness given to this notification.
+
+   |ak8so| accepts the following values:
+
+   - ``CRITICAL``
+   - ``ERROR``
+   - ``WARNING``
+
+.. setting:: spec.alertConfigurations.notifications.smsEnabled
+
+   *Type: boolean*
+
+   *Conditional*
+
+   Flag that indicates whether |service| sends text message 
+   notifications.
+
+   |ak8so| requires this setting when you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to one of the following values:
+
+   - ``GROUP``
+   - ``ORG``
+   - ``TEAM``
+
+.. setting:: spec.alertConfigurations.notifications.teamId
+
+   *Type: string*
+
+   *Conditional*
+
+   Unique 24-hexadecimal digit string that identifies one 
+   |service| team.
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``TEAM``.
+
+.. setting:: spec.alertConfigurations.notifications.teamName
+
+   *Type: string*
+
+   *Conditional*
+
+   Name of the |service| team that receives this notification. 
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``TEAM``.
+
+.. setting:: spec.alertConfigurations.notifications.typeName
+
+   *Type: string*
+
+   *Conditional*
+
+   Human-readable label that displays the alert notification type.
+   This setting is required if you specify a value for the 
+   :setting:`spec.alertConfigurations.notifications` setting.
+   |service| supports the following values:
+
+   - ``DATADOG``
+   - ``EMAIL``
+   - ``OPS-GENIE``
+   - ``ORG``
+   - ``PAGER_DUTY``
+   - ``PROMETHEUS``
+   - ``SLACK``
+   - ``SMS``
+   - ``TEAM``
+   - ``USER``
+   - ``VICTOR_OPS``
+   - ``WEBHOOK``
+
+.. setting:: spec.alertConfigurations.notifications.username
+
+   *Type: string*
+
+   *Conditional*
+
+   |service| username of the person to whom |service| sends 
+   notifications. Specify only |service| users who belong to 
+   the project that owns the alert configuration.
+
+   |ak8so| requires this setting if you set
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``USER``.
+
+.. setting:: spec.alertConfigurations.notifications.victorOpsApiKey
+
+   *Type: string*
+
+   *Conditional*
+
+   API key that |service| needs to send alert notifications 
+   to Splunk On-Call. If the key later becomes invalid, 
+   |service| sends an email to the project owners. If the 
+   key remains invalid, |service| removes it.
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``VICTOR_OPS``.
+
+.. setting:: spec.alertConfigurations.notifications.victorOpsRoutingKey
+
+   *Type: string*
+
+   *Conditional*
+
+   Routing key that |service| needs to send alert notifications 
+   to Splunk On-Call. If the key later becomes invalid, 
+   |service| sends an email to the project owners. If the 
+   key remains invalid, |service| removes it.
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``VICTOR_OPS``.
+
+.. setting:: spec.alertConfigurations.notifications.webhookSecret
+
+   *Type: string*
+
+   *Optional*
+
+   Authentication secret for a webhook-based alert.
+
+   |ak8so| applies this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``WEBHOOK``.
+
+.. setting:: spec.alertConfigurations.notifications.webhookUrl
+
+   *Type: string*
+
+   *Conditional*
+
+   String that indicates your webhook URL.
+
+   |ak8so| requires this setting if you set 
+   :setting:`spec.alertConfigurations.notifications.typeName`
+   to ``WEBHOOK``.
+
+.. setting:: spec.alertConfigurations.threshold
+
+   *Type: object*
+
+   *Conditional*
+
+   Limit that triggers an alert when exceeded.
+
+   |ak8so| applies this setting if you set 
+   :setting:`spec.alertConfigurations.eventTypeName`
+   to a value other than ``OUTSIDE_METRIC_THRESHOLD``.
+
+.. setting:: spec.alertConfigurations.threshold.operator
+
+   *Type: string*
+
+   *Conditional*
+
+   Comparison operator to apply when |service| checks the current metric value.
+
+   |ak8so| accepts the following values:
+
+   - ``GREATER_THAN``
+   - ``LESS_THAN``
+
+   |ak8so| requires this setting if you include the  
+   :setting:`spec.alertConfigurations.threshold`
+   object.
+
+.. setting:: spec.alertConfigurations.threshold.threshold
+
+   *Type: integer*
+
+   *Conditional*
+
+   Value of metric that, when exceeded, triggers an alert.
+
+   |ak8so| requires this setting if you include the  
+   :setting:`spec.alertConfigurations.threshold`
+   object.
+
+.. setting:: spec.alertConfigurations.threshold.units
+
+   *Type: string*
+
+   *Conditional*
+
+   Element that expresses the quantity. You can specify an 
+   element of time, storage capacity, and so on.
+
+   |ak8so| accepts the following values:
+
+   - ``BITS``
+   - ``BYTES``
+   - ``DAYS``
+   - ``GIGABITS``
+   - ``GIGABYTES``
+   - ``HOURS``
+   - ``KILOBITS``
+   - ``KILOBYTES``
+   - ``MEGABITS``
+   - ``MEGABYTES``
+   - ``MILLISECONDS``
+   - ``MINUTES``
+   - ``PETABYTES``
+   - ``RAW``
+   - ``SECONDS``
+   - ``TERABYTES``
+
+   |ak8so| requires this setting if you include the  
+   :setting:`spec.alertConfigurations.threshold`
+   object.
+
+.. setting:: spec.alertConfigurationSyncEnabled
+
+   *Type: boolean*
+
+   *Optional*
+
+   *Default*: ``false``
+
+   Flag that indicates whether |ak8so| applies the project
+   alert settings defined in :setting:`spec.alertConfigurations`. 
+   If you omit or set to this parameter to ``false``,
+   |ak8so| doesn't syncronize the project's alert 
+   configurations with the ones that you define in 
+   the ``AtlasProject`` custom resource.
+
+   For information on how this setting interacts with
+   :setting:`spec.withDefaultAlertsSettings`,
+   see the :ref:`ak8so-ac-considerations`.
 
 .. setting:: spec.auditing.auditAuthorizationSuccess
 
@@ -249,6 +998,7 @@ This section describes the ``AtlasProject`` custom resource parameters:
    :setting:`spec.auditing.auditAuthorizationSuccess` to ``true``, you 
    must specify this setting. To learn more, see 
    :ref:`enable-audit-logs`.
+
 
 .. setting:: spec.connectionSecretRef.name
 
@@ -972,6 +1722,33 @@ This section describes the ``AtlasProject`` custom resource parameters:
    List that contains the :ref:`private endpoint 
    <ak8so-private-endpoint>` configurations for the project.
  
+.. setting:: spec.withDefaultAlertsSettings
+
+   *Type*: boolean
+
+   *Optional*
+
+   *Default*: ``true``
+
+   Flag that indicates whether |ak8so| creates a project
+   with the :atlas:`default alert configurations 
+   <configure-alerts/#default-alert-settings-1>`.
+   If omitted, defaults to ``true``.
+
+   If you use this setting, you must also set 
+   :setting:`spec.alertConfigurationSyncEnabled` to ``true``
+   for |ak8so| to modify project alert configurations.
+
+   If you set this parameter to ``false`` when you 
+   create a project, |service| doesn't add the default
+   alert configurations to your project.
+
+   This setting has no effect on existing projects.
+
+   For information on how this setting interacts with
+   :setting:`spec.alertConfigurationSyncEnabled`,
+   see the :ref:`ak8so-ac-considerations`.
+
 .. setting:: spec.X509CertRef.name
 
    *Type*: string
