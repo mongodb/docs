@@ -16,6 +16,18 @@
      - MongoDB 3.2
      - MongoDB 3.0
      - MongoDB 2.6
+  
+   * - ext 1.15 + lib 1.15 [#PHP1.15-version-parity]_
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     -
+     -
+     -
    * - ext 1.14 + lib 1.13
      - ✓
      - ✓
@@ -181,6 +193,9 @@
      -
      - ✓
      - ✓
+
+.. [#PHP1.15-version-parity] Version 1.14 of the MongoDB PHP library has been 
+   skipped to restore version parity between the library and extension.
 
 .. [#PHPC1.10-PHPLIB1.9-driver-support] The extension 1.10 + library 1.9
    driver does not support snapshot reads on secondaries. For more
