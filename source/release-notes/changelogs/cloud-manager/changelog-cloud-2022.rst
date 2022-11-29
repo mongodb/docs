@@ -1,3 +1,14 @@
+.. _cloudmanager_20221116:
+
+16 November 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.8.0.7876-1 <12.8.0.7876-1>`.
+- Deprecates :ref:`manage sharded collections <om-manage-sharding-ui>`
+  functionality in the :abbr:`UI (User Interface)`. Note that
+  :guilabel:`Manage Sharding` will be removed from the :abbr:`UI (User
+  Interface)` in a future release. 
+
 .. _cloudmanager_20221027:
 
 27 October 2022 Release
