@@ -4,7 +4,7 @@ To add a {+dek-abbr+} to your {+key-vault-long+}, use the ``createKey`` method o
 To delete or update a {+dek-abbr+}, use one of the following mechanisms:
 
 - The ``rewrapManyDataKey`` method
-- Standard :manual:`CRUD </crud>` operations 
+- Standard :ref:`CRUD <crud>` operations 
 
 To learn more about the ``rewrapManyDataKey`` method, see the documentation
 of the method for your client or driver:
