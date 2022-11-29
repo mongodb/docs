@@ -38,6 +38,8 @@ publish: ## Build docs locally
 
 	# get the latest for mongo-php-libray/docs git submodule:
 	git submodule update --remote --init
+	# create the source/ directory if it doesn't exist
+	mkdir -p source/
 	# rsync the docs source from the submodule to the source/ directory:
 	rsync -a --delete mongo-php-library/docs/ source/
 	# build the publish artefacts using giza:
