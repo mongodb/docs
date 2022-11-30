@@ -16,8 +16,8 @@
      - MongoDB 3.2
      - MongoDB 3.0
      - MongoDB 2.6
-  
-   * - ext 1.15 + lib 1.15 [#PHP1.15-version-parity]_
+
+   * - ext + lib 1.15 [#PHP1.15-version-parity]_
      - ✓
      - ✓
      - ✓
