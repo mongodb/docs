@@ -1,3 +1,10 @@
+.. _adf-v20221130:
+
+30 November 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+adf+} to MongoDB 6.0.2.
+
 .. _adf-v20221115:
 
 15 November 2022 Release
