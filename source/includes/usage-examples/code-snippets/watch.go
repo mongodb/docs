@@ -34,7 +34,7 @@ func main() {
 	}()
 
 	// begin watch
-	coll := client.Database("insertDB").Collection("haikus")
+	coll := client.Database("sample_restaurants").Collection("restaurants")
 	pipeline := mongo.Pipeline{bson.D{{"$match", bson.D{{"operationType", "insert"}}}}}
 	cs, err := coll.Watch(context.TODO(), pipeline)
 	if err != nil {
