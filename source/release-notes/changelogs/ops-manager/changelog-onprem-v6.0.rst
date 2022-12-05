@@ -1,3 +1,20 @@
+.. _opsmgr-server-6.0.7:
+
+|onprem| Server 6.0.7
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-12-01*
+
+- Updates the {+mdbagent+} to :ref:`12.0.15.7646 
+  <mongodb-12.0.15.7646>`.
+- Fixes an issue where the list of projects was overriden in the left
+  navigation bar.
+- Adds global alerts for backup groom jobs running late.
+- Adds system alerts for AppDB, Oplog Store, and Blockstore disk space
+  filling up.
+- Adds a new summary page in the Administration UI, under the Backup tab,
+  with the status of the most recent snapshots.
+
 .. _opsmgr-server-6.0.6:
 
 |onprem| Server 6.0.6
