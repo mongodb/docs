@@ -69,46 +69,51 @@ To learn more, see the `v4.12.0 Release Highlights <https://github.com/mongodb/n
 What's New in 4.11
 ------------------
 
-The 4.11 {+driver-short+} release includes **recursive schema support**,
-meaning that you can use recursive types as the schema in the
-``Collection`` class. The driver also provides type safety for dot
-notation queries up to a depth of nine in this release. Typescript compiles
-your code beyond a depth of nine, but types fall back to ``any`` at
-this level. The recursive type depth limit is a current limitation in
-TypeScript.
+The 4.11 {+driver-short+} release includes added support for **mutually 
+recursive** collection schema types. The driver also provides type safety for 
+dot-notation queries up to a depth of eight in this release. At a depth greater 
+than or equal to eight, Typescript successfully compiles your code but does not 
+provide type safety. This depth limit on recursive types is a current limitation 
+of TypeScript.
 
-Recursive Schema Type Checking Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Mutually Recursive Schema Type Checking Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Suppose we have a collection of type ``Collection<CircularSchema>``:
+Suppose we have a collection of type ``Collection<Author>`` that contains the 
+following mutually recursive types:
 
 .. code-block:: js
    :copyable: false
 
-   interface CircularSchema {
+   interface Author {
        name: string;
-       ref: CircularSchema;
+       bestBook: Book;
    }
 
-TypeScript enforces type checking below a depth of nine. The following
+   interface Book { 
+       title: string;
+       author: Author;
+    }
+
+TypeScript enforces type checking up to a depth of eight. The following
 code causes a TypeScript compilation error because the ``name`` property
 value must be a ``string`` type:
 
 .. code-block:: js
    :copyable: false
 
-   collection.findOne({ 'ref.ref.ref.name': 25 })
+   collection.findOne({ 'bestBook.author.bestBook.title': 25 })
 
-At a depth greater than nine, TypeScript compiles your code but no
-longer type checks it. The following code assigns an ``int`` to a ``string``
-property but does not cause a compilation error because the
-referenced property is at a depth of 11:
+At a depth greater than or equal to eight, TypeScript compiles your code but no
+longer type checks it. For example, the following code assigns a ``number`` to a 
+``string`` property but does not cause a compilation error because the
+referenced property is at a depth of 10:
 
 .. code-block:: js
    :copyable: false
 
    collection.findOne({
-       'ref.ref.ref.ref.ref.ref.ref.ref.ref.ref.name': 25
+       'bestBook.author.bestBook.author.bestBook.author.bestBook.author.bestBook.author.name': 25
    })
 
 To learn more, see the `v4.11.0 Release Highlights <https://github.com/mongodb/node-mongodb-native/releases/tag/v4.11.0>`__.
