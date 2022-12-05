@@ -25,7 +25,7 @@ The ``AtlasProject`` custom resource configures the project in
   |ak8so| skips creation. After the reconciliation, |ak8so| updates 
   the ``status.id`` field with the id of the project.
 
-The ``AtasProject`` custom resouce has an optional 
+The ``AtlasProject`` custom resource has an optional 
 :setting:`spec.connectionSecretRef.name` parameter. This parameter 
 overrides the default ``global`` connection |k8s-secret|. To 
 :ref:`connect <ak8so-access-to-atlas-ref>` to the {+atlas-admin-api+}, 
@@ -38,6 +38,10 @@ configure the following options:
 - An :ref:`IP access list <add-to-access-list>` with the 
   :setting:`spec.projectIpAccessList` parameter. This IP access list 
   grants network access to |service| clusters in the project.
+
+- :ref:`Teams <ak8so-team>` with the :setting:`spec.teams` parameter. A team 
+  lets you grant an access role to an entire group of |service| users for a 
+  particular project.
 
 - The :ref:`maintenance window <configure-maintenance-window>` with
   the :setting:`spec.maintenanceWindow` parameter. The maintenance
@@ -139,6 +143,32 @@ specification that integrates with Prometheus:
 To learn more, see :ref:`ak8so-integrate-third-party`.
 
 .. include:: /includes/fact-ak8so-grafana.rst
+
+.. _teams-example:
+
+Teams Example
+-------------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification that gives the ``green-leaf-team`` the :authrole:`Organization Owner` 
+role for this project. The team members are defined in the 
+:ref:`AtlasTeam custom resource <atlasteam-custom-resource>`.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+     name: my-project
+   spec:
+     name: Test project
+     teams:
+       - teamRef:
+           name: green-leaf-team
+         roles:
+         - ORGANIZATION_OWNER
+
+To learn more, see :ref:`ak8so-team`.
 
 .. _maintenance-window-example:
 
@@ -1722,6 +1752,41 @@ This section describes the ``AtlasProject`` custom resource parameters:
    List that contains the :ref:`private endpoint 
    <ak8so-private-endpoint>` configurations for the project.
  
+.. setting:: spec.teams
+
+   *Type*: object
+
+   *Optional*
+
+   Object that contains your team specifications. To learn more, see :ref:`ak8so-team`.
+
+.. setting:: spec.teams.teamRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label from the :ref:`atlasteam-custom-resource` in the 
+   :setting:`metadata.name` field. If you want to assign a :ref:`team <ak8so-team>` 
+   to this project, you must specify this setting.
+
+.. setting:: spec.teams.teamRef.namespace
+
+   *Type*: string
+
+   *Conditional*
+
+   Namespace specified in the :ref:`atlasteam-custom-resource` if other than ``default``.
+
+.. setting:: spec.teams.teamRef.roles
+
+   *Type*: string
+
+   *Conditional*
+
+   :ref:`user-roles` that a team uses for this project. If you want to assign a 
+   :ref:`team <ak8so-team>` to this project, you must specify this setting.
+
 .. setting:: spec.withDefaultAlertsSettings
 
    *Type*: boolean
