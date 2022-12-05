@@ -27,46 +27,62 @@
   - To find the {+mdbagent+} user, click :guilabel:`Deployments`, then
     :guilabel:`Security`, then :guilabel:`Users`.
 
-  - To find the password for the |mms| project's {+mdbagent+} user, you
-    can use the |api| or the configuration backup file:
+  - To find the password for the |mms| project's {+mdbagent+} user, use
+    one of the following methods:
 
-    Using the |api|
-      Use the :doc:`/reference/api/automation-config` endpoint:
+    .. tabs::
 
-      .. code-block:: sh
+       .. tab:: Using the UI
+          :tabid: ui
+    
+          Follow the steps in the :ref:`Add MongoDB Processes procedure
+          <add-existing-mongodb-hosts>` to launch the wizard in the UI.
+          When you reach the modal that says :guilabel:`Do you want to add automation to this deployment?`:
 
-         curl --user "{username}:{apiKey}" --digest \
-           --header "Accept: application/json" \
-           --include \
-           --request GET "<host>/api/public/v1.0/groups/<Group-ID>/automationConfig"
+          1. Select 
+             :guilabel:`Add Automation and Configure Authentication`.
+          #. Click :guilabel:`Show Password`.
 
-    Using the |mms| Configuration Backup file
-      Open the :setting:`mmsConfigBackup` file in your preferred text
-      editor and find the ``autoPwd`` value.
+       .. tab:: Using the API
+          :tabid: api
+      
+          Use the :doc:`/reference/api/automation-config` endpoint:
 
-  .. example::
+          .. code-block:: sh
 
-     If the |mms| project has
-     :doc:`Username/Password </tutorial/enable-mongodbcr-authentication-for-group>`
-     mechanism selected for its authentication settings, add the
-     project's |mms| {+mdbagent+}s User ``mms-automation`` to the
-     ``admin`` database in the MongoDB deployment to import.
+             curl --user "{username}:{apiKey}" --digest \
+               --header "Accept: application/json" \
+               --include \
+               --request GET "<host>/api/public/v1.0/groups/<Group-ID>/automationConfig"
 
-     .. code-block:: javascript
+       .. tab:: Using the Configuration Backup file
+          :tabid: file
+      
+          Open the :setting:`mmsConfigBackup` file in your preferred text editor and find the ``autoPwd`` value.
 
-        db.getSiblingDB("admin").createUser(
-           {
-             user: "mms-automation",
-             pwd: <password>,
-             roles: [
-               'clusterAdmin',
-               'dbAdminAnyDatabase',
-               'readWriteAnyDatabase',
-               'userAdminAnyDatabase',
-               'restore',
-               'backup'
-             ]
-           }
+          .. example::
+
+             If the |mms| project has :doc:`Username/Password 
+             </tutorial/enable-mongodbcr-authentication-for-group>`
+             mechanism selected for its authentication settings, add the
+             project's |mms| {+mdbagent+}s User ``mms-automation`` to
+             the ``admin`` database in the MongoDB deployment to import.
+
+             .. code-block:: javascript
+
+                db.getSiblingDB("admin").createUser(
+                   {
+                     user: "mms-automation",
+                     pwd: <password>,
+                     roles: [
+                       'clusterAdmin',
+                       'dbAdminAnyDatabase',
+                       'readWriteAnyDatabase',
+                       'userAdminAnyDatabase',
+                       'restore',
+                       'backup'
+                     ]
+                   }
         
 - The import process requires that the authentication credentials and
   keyfiles are the same on the source and destination clusters. To learn
