@@ -12,6 +12,18 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-restaurant-struct
+type Restaurant struct {
+	Name         string
+	RestaurantId string        `bson:"restaurant_id,omitempty"`
+	Cuisine      string        `bson:"cuisine,omitempty"`
+	Address      interface{}   `bson:"address,omitempty"`
+	Borough      string        `bson:"borough,omitempty"`
+	Grades       []interface{} `bson:"grades,omitempty"`
+}
+
+// end-restaurant-struct
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found")
@@ -33,12 +45,12 @@ func main() {
 	}()
 
 	// begin bulk
-	coll := client.Database("insertDB").Collection("haikus")
+	coll := client.Database("sample_restaurants").Collection("restaurants")
 	models := []mongo.WriteModel{
-		mongo.NewReplaceOneModel().SetFilter(bson.D{{"title", "Record of a Shriveled Datum"}}).
-			SetReplacement(bson.D{{"title", "Dodging Greys"}, {"text", "When there're no matches, no longer need to panic. You can use upsert"}}),
-		mongo.NewUpdateOneModel().SetFilter(bson.D{{"title", "Dodging Greys"}}).
-			SetUpdate(bson.D{{"$set", bson.D{{"title", "Dodge The Greys"}}}}),
+		mongo.NewReplaceOneModel().SetFilter(bson.D{{"name", "Cafe Tomato"}}).
+			SetReplacement(Restaurant{Name: "Cafe Zucchini", Cuisine: "French"}),
+		mongo.NewUpdateOneModel().SetFilter(bson.D{{"name", "Cafe Zucchini"}}).
+			SetUpdate(bson.D{{"$set", bson.D{{"name", "Zucchini Land"}}}}),
 	}
 	opts := options.BulkWrite().SetOrdered(true)
 
