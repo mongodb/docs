@@ -168,19 +168,22 @@ the following documents:
      "_id" : 1,
      "type" : "fruit",
      "summary" : "Apple varieties",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith."
+     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.",
+     "category": "organic"
    },
    {
      "_id" : 2,
      "type" : "fruit",
      "summary" : "Banana",
-     "description" : "Bananas are usually sold in bunches of five or six."
+     "description" : "Bananas are usually sold in bunches of five or six.",
+     "category": "nonorganic"
    },
    {
      "_id" : 3,
      "type" : "fruit",
      "summary" : "Pear varieties",
-     "description" : "Bosc and Bartlett are the most common varieties of pears."
+     "description" : "Bosc and Bartlett are the most common varieties of pears.",
+     "category": "nonorganic"
    }
 
 The ``fruit`` collection also has an :ref:`index definition 
@@ -828,3 +831,113 @@ field in the ``fruit`` collection contains the characters
 ``var`` at the beginning of a word. |fts| matches a highlight ``hit`` 
 more coarsely to your query terms when a highlighted path is referenced 
 only in the autocomplete operators of the highlighted query.
+
+.. _highlight-compound:
+
+Compound Example 
+~~~~~~~~~~~~~~~~
+
+The following query searches for the term ``organic`` in the
+``category`` field and ``variety`` in the ``description`` field. The
+``highlight`` option in the :pipeline:`$search`  :ref:`compound-ref` 
+query requests highlighting information only for the :ref:`text-ref`
+query against the ``description`` field. Note that the ``highlight``
+option inside the :pipeline:`$search` stage must be a child of the
+:pipeline:`$search` stage, and not of any operator inside the
+:pipeline:`$search` stage.  
+
+The :manual:`$project </reference/operator/aggregation/project>` 
+pipeline stage adds a new field called ``highlights``, which 
+contains highlighting information. 
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      db.fruit.aggregate([
+        {
+          "$search": {
+            "compound": {
+              "should": [{
+                "text": {
+                  "path": "category",
+                  "query": "organic"
+                }
+              },
+              {
+                "text": {
+                  "path": "description",
+                  "query": "variety"
+                }
+              }]
+            },
+            "highlight": {
+              "path": "description"
+            }
+          }
+        },
+        {
+          "$project": {
+            "description": 1,
+            "category": 1,
+            "_id": 0,
+            "highlights": { "$meta": "searchHighlights" }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
+
+      [
+        {
+          description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.',
+          category: 'organic',
+          highlights: [
+            {
+              score: 1.0330637693405151,
+              path: 'description',
+              texts: [
+                { value: 'Apples come in several ', type: 'text' },
+                { value: 'varieties', type: 'hit' },
+                {
+                  value: ', including Fuji, Granny Smith, and Honeycrisp. ',
+                  type: 'text'
+                }
+              ]
+            },
+            {
+              score: 1.0940992832183838,
+              path: 'description',
+              texts: [
+                { value: 'The most popular ', type: 'text' },
+                { value: 'varieties', type: 'hit' },
+                {
+                  value: ' are McIntosh, Gala, and Granny Smith.',
+                  type: 'text'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          description: 'Bosc and Bartlett are the most common varieties of pears.',
+          category: 'nonorganic',
+          highlights: [
+            {
+              score: 1.2691514492034912,
+              path: 'description',
+              texts: [
+                {
+                  value: 'Bosc and Bartlett are the most common ',
+                  type: 'text'
+                },
+                { value: 'varieties', type: 'hit' },
+                { value: ' of pears.', type: 'text' }
+              ]
+            }
+          ]
+        }
+      ]
