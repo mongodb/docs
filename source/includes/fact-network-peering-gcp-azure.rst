@@ -22,10 +22,13 @@ at least a ``/24`` and at most a ``/21`` in one of the following :rfc:`private n
      - ``192.168.255.255``
      - 192.168/16
 
-|service| locks this value if an ``M10+`` cluster or a Network Peering
-connection already exists. To modify the |cidr| block, ensure there are
-no ``M10+`` clusters in the project *and* no other Network Peering
-connections in the project.
+|service| locks this value for all regions if an ``M10`` or greater
+cluster or a Network Peering connection already exists in that project.  
+
+To modify the |cidr| block, the target project cannot have:
+
+- Any ``M10`` or greater clusters
+- Any other |vpc| peering connections
 
 Alternatively, :ref:`create a new project <atlas-create-atlas-project>`
 and create a Network Peering Connection to set the desired |service| 
