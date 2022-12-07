@@ -11,6 +11,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-tea-struct
+type Tea struct {
+	Type   string
+	Rating int32
+}
+
+// end-tea-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -27,28 +35,27 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
-
 	// begin insert docs
 	coll := client.Database("tea").Collection("ratings")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Matcha"}, {"rating", 7}},
-		bson.D{{"type", "Assam"}, {"rating", 4}},
-		bson.D{{"type", "Oolong"}, {"rating", 9}},
-		bson.D{{"type", "Chrysanthemum"}, {"rating", 5}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 8}},
-		bson.D{{"type", "Jasmine"}, {"rating", 3}},
-		bson.D{{"type", "English Breakfast"}, {"rating", 6}},
-		bson.D{{"type", "White Peony"}, {"rating", 4}},
+		Tea{Type: "Masala", Rating: 10},
+		Tea{Type: "Matcha", Rating: 7},
+		Tea{Type: "Assam", Rating: 4},
+		Tea{Type: "Oolong", Rating: 9},
+		Tea{Type: "Chrysanthemum", Rating: 5},
+		Tea{Type: "Earl Grey", Rating: 8},
+		Tea{Type: "Jasmine", Rating: 3},
+		Tea{Type: "English Breakfast", Rating: 6},
+		Tea{Type: "White Peony", Rating: 4},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insert docs
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	//end insert docs
 
 	{
 		// begin count documents
@@ -58,7 +65,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Number of ratings less than six: %d\n", count)
+		fmt.Printf("Number of documents with a rating less than six: %d\n", count)
 		// end count documents
 	}
 
