@@ -94,7 +94,9 @@ D
      option, or button. Don't use :term:`disabled`, :term:`grayed`, or
      :term:`grayed out <grayed>`.
 
-     .. seealso:: :term:`unavailable`
+     .. seealso:: 
+       
+        :term:`unavailable`
 
      .. list-table::
         :widths: 50 50
@@ -163,7 +165,9 @@ D
      to express the action of quickly touching and releasing an item on
      the device screen twice in quick succession. Always hyphenate.
 
-     .. seealso:: :term:`tap`
+     .. seealso:: 
+       
+        :term:`tap`
 
      .. list-table::
         :widths: 50 50

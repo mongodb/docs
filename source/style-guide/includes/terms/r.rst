@@ -163,7 +163,9 @@ R
      Don't use :term:`permissions`, :term:`privileges`, and
      :term:`rights` interchangeably to mean the same thing.
 
-     .. seealso:: :term:`permissions` and :term:`privileges`
+     .. seealso:: 
+       
+        :term:`permissions` and :term:`privileges`
 
      .. list-table::
         :widths: 50 50

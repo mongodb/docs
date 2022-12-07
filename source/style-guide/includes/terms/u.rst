@@ -14,7 +14,9 @@ U
      state, not the appearance, of inactive commands, options, or
      buttons on the interface.
 
-     .. seealso:: :term:`dimmed`
+     .. seealso:: 
+       
+        :term:`dimmed`
 
      .. list-table::
         :widths: 50 50
@@ -76,14 +78,18 @@ U
    uppercase
      Don't use *upper-case* or *upper-lowercase*.
 
-     .. seealso:: :term:`mixed case`
+     .. seealso:: 
+       
+        :term:`mixed case`
 
    upper left
      **upper right**
      When referring to the location of an item on a UI, use *upper
      left* and *upper right* instead of *top left* or *top right*.
 
-     .. seealso:: :term:`left` and :term:`right`
+     .. seealso:: 
+       
+        :term:`left` and :term:`right`
 
    uptime
      Use *uptime* as one word.
@@ -95,7 +101,9 @@ U
    us
      :icon-fa4:`exclamation-triangle` Use first person judiciously.
 
-     .. seealso:: :ref:`write-to-the-user`
+     .. seealso:: 
+       
+        :ref:`write-to-the-user`
 
    usable
      Use *usable* instead of *useable*.

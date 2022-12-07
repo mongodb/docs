@@ -222,7 +222,9 @@ B
      on a UI, use :term:`lower left` and :term:`lower right 
      <lower left>` instead.
 
-     .. seealso:: :term:`left` and :term:`right`
+     .. seealso:: 
+       
+        :term:`left` and :term:`right`
 
    box
      Use *box* instead of *field* to describe a box (including a text
@@ -297,4 +299,6 @@ B
           -
 
    by using
-     .. seealso:: :term:`using`, :term:`by using`, :term:`with`
+     .. seealso:: 
+       
+        :term:`using`, :term:`by using`, :term:`with`

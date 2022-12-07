@@ -8,7 +8,9 @@ P
      displayed windows of the wizard. Don't use :term:`dialog box`,
      :term:`pane`, :term:`screen`, or :term:`window`.
 
-     .. seealso:: :term:`web` and :term:`wizard page`
+     .. seealso:: 
+       
+        :term:`web` and :term:`wizard page`
 
    pane
      Use *pane* to refer to a portion of a window, screen, or console
@@ -43,7 +45,9 @@ P
 
      Don't use *per* to mean *according to* or *by way of*.
 
-     .. seealso:: :ref:`avoid-obscure-words`.
+     .. seealso:: 
+       
+        :ref:`avoid-obscure-words`.
 
      .. list-table::
         :widths: 50 50
@@ -106,7 +110,9 @@ P
      Don't use :term:`permissions`, :term:`privileges`, and
      :term:`rights` interchangeably to mean the same thing.
 
-     .. seealso:: :term:`privileges` and :term:`rights`
+     .. seealso:: 
+       
+        :term:`privileges` and :term:`rights`
 
      .. list-table::
         :widths: 50 50
@@ -123,7 +129,9 @@ P
    permit
      :icon-fa4:`exclamation-triangle`
 
-     .. seealso:: :term:`allow`
+     .. seealso:: 
+       
+        :term:`allow`
 
    platform as a service (PaaS)
      Note the capitalization of the spelled-out term and the
@@ -194,13 +202,17 @@ P
      proper noun or a date.
 
    preceding
-     .. seealso:: :term:`following`, :term:`preceding`
+     .. seealso:: 
+       
+        :term:`following`, :term:`preceding`
 
    press
      Use *press* to mean to push down a key or keys. Don't use the
      verbs *strike*, *punch*, *depress*, *push*, or *hit*.
 
-     .. seealso:: :term:`click`
+     .. seealso:: 
+       
+        :term:`click`
 
      .. list-table::
         :widths: 50 50
@@ -221,7 +233,9 @@ P
      You can use *prior* as an adjective, but the preferred term is
      :term:`earlier`.
 
-     .. seealso:: :term:`earlier`, :term:`later`
+     .. seealso:: 
+       
+        :term:`earlier`, :term:`later`
 
    privileges
      In general, you can use *privilege* to refer to the capability
@@ -238,7 +252,9 @@ P
      Don't use :term:`permissions`, :term:`privileges`, and
      :term:`rights` interchangeably to mean the same thing.
 
-     .. seealso:: :term:`permissions` and :term:`rights`
+     .. seealso:: 
+       
+        :term:`permissions` and :term:`rights`
 
      .. list-table::
         :widths: 50 50
