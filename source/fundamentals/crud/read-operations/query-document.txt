@@ -52,6 +52,18 @@ method to match a subset of documents.
 Sample Data
 ~~~~~~~~~~~
 
+The examples in this section use the following ``Tea`` struct as a model for documents
+in the ``ratings`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/query.go
+   :start-after: start-tea-struct
+   :end-before: end-tea-struct
+   :language: go
+   :dedent:
+
+The ``omitempty`` :ref:`struct tag<golang-struct-tags>` omits the corresponding 
+field from the inserted document when left empty.
+
 To run the examples in this guide, load the sample data into the
 ``tea.ratings`` collection with the following
 snippet:
@@ -64,11 +76,9 @@ snippet:
 
 .. include:: /includes/fundamentals/automatic-db-coll-creation.rst
 
-Each document contains a rating for a type of tea and the vendors that
-carry them, which corresponds to the ``rating``, ``type``, and
+Each document describes a tea type, its rating, and the vendors that
+carry that variety. These items correspond to the ``type``, ``rating``, and
 ``vendor`` fields.
-
-.. include:: /includes/fundamentals/truncated-id.rst
 
 .. _golang-literal-values:
 
@@ -95,25 +105,26 @@ The following example matches documents where the ``type`` is "Oolong":
       :language: go
 
       filter := bson.D{{"type", "Oolong"}}
-
+      
       cursor, err := coll.Find(context.TODO(), filter)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      var results []bson.D
+      
+      var results []Tea
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Oolong} {rating 7} {vendor [C]}]
+      {"Type":"Oolong","Rating":7,"Vendor":["C"]}
 
 .. tip::
 
@@ -158,20 +169,21 @@ than ``7``:
          panic(err)
       }
 
-      var results []bson.D
+      var results []Tea
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      {"Type":"English Breakfast","Rating":6}
+      {"Type":"Assam","Rating":5}
 
 For a full list of comparison operators, see the :manual:`Comparison
 Query Operators </reference/operator/query-comparison/>` page.
@@ -211,20 +223,21 @@ than ``7`` and less than or equal to ``10``:
          panic(err)
       }
 
-      var results []bson.D
+      var results []Tea
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {rating 10} {vendor [A C]}]
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8} {vendor [A B]}]
+      {"Type":"Masala","Rating":10,"vendor":["A","C"]}
+      {"Type":"Earl Grey","Rating":8,"vendor":["A","B"]}
 
 For a full list of logical operators, see the :manual:`Logical
 Query Operators </reference/operator/query-logical/>` page.
@@ -273,20 +286,21 @@ not exist:
          panic(err)
       }
 
-      var results []bson.D
+      var results []Tea
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      {"Type":"English Breakfast","Rating":6}
+      {"Type":"Assam","Rating":5}
 
 For a full list of element operators, see the :manual:`Element
 Query Operators </reference/operator/query-element/>` page.
@@ -319,20 +333,21 @@ the letter "E":
          panic(err)
       }
 
-      var results []bson.D
+      var results []Tea
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8} {vendor [A B]}]
+      {"Type":"English Breakfast","Rating":6}
+      {"Type":"Earl Grey","Rating":8,"vendor":["A","B"]}
 
 For a full list of evaluation operators, see the :manual:`Evaluation
 Query Operators </reference/operator/query-evaluation/>` page.
@@ -360,20 +375,21 @@ The following example matches documents where the ``vendor`` contains "C":
          panic(err)
       }
 
-      var results []bson.D
+      var results []Tea
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {rating 10} {vendor [A C]}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7} {vendor [C]}]
+      {"Type":"Masala","Rating":10,"vendor":["A","C"]}
+      {"Type":"Oolong","Rating":7,"vendor":["C"]}
 
 For a full list of array operators, see the :manual:`Array
 Query Operators </reference/operator/query-array/>` page.
@@ -405,20 +421,21 @@ bits set as ``6`` (which is "00000110"):
          panic(err)
       }
 
-      var results []bson.D
+      var results []Tea
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type English Breakfast} {rating 6}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7} {vendor [C]}]
+      {"Type":"English Breakfast","Rating":6}
+      {"Type":"Oolong","Rating":7,"vendor":["C"]}
 
 For a full list of bitwise operators, see the :manual:`Bitwise
 Query Operators </reference/operator/query-bitwise/>` page.

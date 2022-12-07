@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// start-tea-struct
+type Tea struct {
+	Type   string
+	Rating int32
+	Vendor []string `bson:"vendor,omitempty" json:"vendor,omitempty"`
+}
+
+// end-tea-struct
 
 func main() {
 	var uri string
@@ -28,32 +38,30 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
-
 	// begin insert docs
 	coll := client.Database("tea").Collection("ratings")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}, {"vendor", bson.A{"A", "C"}}},
-		bson.D{{"type", "English Breakfast"}, {"rating", 6}},
-		bson.D{{"type", "Oolong"}, {"rating", 7}, {"vendor", bson.A{"C"}}},
-		bson.D{{"type", "Assam"}, {"rating", 5}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 8}, {"vendor", bson.A{"A", "B"}}},
+		Tea{Type: "Masala", Rating: 10, Vendor: []string{"A", "C"}},
+		Tea{Type: "English Breakfast", Rating: 6},
+		Tea{Type: "Oolong", Rating: 7, Vendor: []string{"C"}},
+		Tea{Type: "Assam", Rating: 5},
+		Tea{Type: "Earl Grey", Rating: 8, Vendor: []string{"A", "B"}},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	// end insert docs
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
-	// end insert docs
 
 	for _, id := range result.InsertedIDs {
 		fmt.Printf("\t%s\n", id)
 	}
 
-	fmt.Println("Literal:")
+	fmt.Println("\nLiteral Value:\n")
 	{
-		// begin literal
 		filter := bson.D{{"type", "Oolong"}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
@@ -61,19 +69,18 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
-		// end literal
 	}
 
-	fmt.Println("Comparison:")
+	fmt.Println("\nComparison:\n")
 	{
-		// begin comparison
 		filter := bson.D{{"rating", bson.D{{"$lt", 7}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
@@ -81,18 +88,18 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
-		// end comparison
 	}
-	fmt.Println("Logical:")
+
+	fmt.Println("\nLogical:\n")
 	{
-		// begin logical
 		filter := bson.D{
 			{"$and",
 				bson.A{
@@ -107,19 +114,18 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
-		// end logical
 	}
 
-	fmt.Println("Element:")
+	fmt.Println("\nElement:\n")
 	{
-	// begin element
 		filter := bson.D{{"vendor", bson.D{{"$exists", false}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
@@ -127,19 +133,18 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
-		// end element
 	}
 
-	fmt.Println("Evaluation:")
+	fmt.Println("\nEvaluation:\n")
 	{
-		// begin evaluation
 		filter := bson.D{{"type", bson.D{{"$regex", "^E"}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
@@ -147,19 +152,18 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
-		// end evaluation
 	}
 
-	fmt.Println("Array:")
+	fmt.Println("\nArray:\n")
 	{
-		// begin array
 		filter := bson.D{{"vendor", bson.D{{"$all", bson.A{"C"}}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
@@ -167,19 +171,18 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
-		// end array
 	}
 
-	fmt.Println("Bitwise:")
+	fmt.Println("\nBitwise:\n")
 	{
-		// begin bitwise
 		filter := bson.D{{"rating", bson.D{{"$bitsAllSet", 6}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
@@ -187,13 +190,14 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
-		// end bitwise
 	}
+
 }
