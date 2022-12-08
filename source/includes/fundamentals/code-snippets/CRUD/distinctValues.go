@@ -11,6 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-course-struct
+type Course struct {
+	Title      string
+	Department string
+	Enrollment int32
+}
+
+// end-course-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("DRIVER_REF_URI"); uri == "" {
@@ -27,31 +36,25 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
-
 	// begin insert docs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("courses")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Matcha"}, {"rating", 7}},
-		bson.D{{"type", "Masala"}, {"rating", 4}},
-		bson.D{{"type", "Oolong"}, {"rating", 9}},
-		bson.D{{"type", "Matcha"}, {"rating", 5}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 8}},
-		bson.D{{"type", "Oolong"}, {"rating", 3}},
-		bson.D{{"type", "Matcha"}, {"rating", 6}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 4}},
+		Course{Title: "World Fiction", Department: "English", Enrollment: 35},
+		Course{Title: "Abstract Algebra", Department: "Mathematics", Enrollment: 60},
+		Course{Title: "Modern Poetry", Department: "English", Enrollment: 12},
+		Course{Title: "Plate Tectonics", Department: "Earth Science", Enrollment: 30},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insert docs
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	//end insert docs
 
 	// begin distinct
-	results, err := coll.Distinct(context.TODO(), "type", bson.D{})
+	results, err := coll.Distinct(context.TODO(), "department", bson.D{{"enrollment", bson.D{{"$lt", 50}}}})
 	if err != nil {
 		panic(err)
 	}
