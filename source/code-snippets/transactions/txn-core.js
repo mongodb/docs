@@ -28,7 +28,7 @@ async function setup(client) {
 
 async function queryData() {
   const uri = process.env.MONGODB_URI;
-  const client = new MongoClient(uri, { useUnifiedTopology: true });
+  const client = new MongoClient(uri);
   try {
     await Promise.all(['customers', 'inventory', 'orders'].map(async c => {
       const coll = client.db('testdb').collection(c);
@@ -112,7 +112,7 @@ async function placeOrder(client, cart, payment) {
 
 async function run() {
   const uri = process.env.MONGODB_URI;
-  const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+  const client = new MongoClient(uri);
 
   await cleanUp(client);
   await setup(client);
