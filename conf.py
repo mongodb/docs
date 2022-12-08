@@ -243,7 +243,7 @@ extlinks = {
     'bic': ('https://www.mongodb.com/docs/bi-connector/current%s',''),
     'compass': ('https://www.mongodb.com/docs/compass/current%s',''),
     'product': ('https://www.mongodb.com/products/%s?tck=docs',''),
-    'dl': ('https://www.mongodb.com/download-center/%s?tck=docs',''),
+    'dl': ('https://www.mongodb.com/try%s?tck=docs',''),
     'website': ('https://www.mongodb.com%s?tck=docs',''),
     'wikipedia' : ('https://en.wikipedia.org/wiki%s', ''),
     'k8sdocs': ('https://kubernetes.io/docs%s', ''),
