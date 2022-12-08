@@ -26,8 +26,17 @@ Read operations allow you to do the following:
 Sample Data
 ~~~~~~~~~~~
 
+The examples in this section use the following ``Review`` struct as a model for documents
+in the ``reviews`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
+   :start-after: start-review-struct
+   :end-before: end-review-struct
+   :language: go
+   :dedent:
+
 To run the examples in this guide, load these documents into the
-``tea.ratings`` collection with the following
+``tea.reviews`` collection with the following
 snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
@@ -36,7 +45,11 @@ snippet:
    :start-after: begin insert docs
    :end-before: end insert docs
 
-.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document describes the tea variety a customer ordered, their
+rating, and the date of the order. These descriptions correspond to the
+``item``, ``rating``, and ``date_ordered`` fields.
 
 .. _golang-retrieve-find:
 
@@ -109,14 +122,15 @@ following methods:
      - | The field and type of sort to order the matched documents. You can specify an ascending or descending sort.
        | Default: none
 
-Example
-```````
+Find Example
+````````````
 
 The following example passes a context, filter, and ``FindOptions`` to
 the ``Find()`` method, which performs the following actions:
 
-- Matches documents where the ``rating`` falls between ``5`` and ``10``
-- Returns the ``type`` and ``rating``, but excludes the ``_id`` 
+- Matches documents where the ``rating`` value is between ``5`` and
+  ``9`` (exclusive)
+- Sorts matched documents in ascending order by ``date_ordered``
 
 .. io-code-block::
    :copyable: true
@@ -125,44 +139,45 @@ the ``Find()`` method, which performs the following actions:
       :language: go
 
       filter := bson.D{
-         {"$and",
-            bson.A{
-               bson.D{{"rating", bson.D{{"$gt", 5}}}},
-               bson.D{{"rating", bson.D{{"$lt", 10}}}},
-            }},
+          {"$and",
+              bson.A{
+                  bson.D{{"rating", bson.D{{"$gt", 5}}}},
+                  bson.D{{"rating", bson.D{{"$lt", 9}}}},
+              }},
       }
-      projection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
-      opts := options.Find().SetProjection(projection)
-
+      sort := bson.D{{"date_ordered", 1}}
+      opts := options.Find().SetSort(sort)
+      
       cursor, err := coll.Find(context.TODO(), filter, opts)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      var results []bson.D
+      
+      var results []Review
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{type Masala} {rating 7}]
-      [{type Earl Grey} {rating 9}]
+      {"Item":"Sencha","Rating":7,"DateOrdered":"2009-11-18T05:00:00Z"}
+      {"Item":"Masala","Rating":8,"DateOrdered":"2009-12-01T05:00:00Z"}
 
-Example
-```````
+Find One Example
+````````````````
 
 The following example passes a context, filter, and ``FindOneOptions``
 to the ``FindOne()`` method, which performs the following actions:
 
-- Matches all documents
-- A descending sort on the ``rating`` field
-- Returns the ``type`` and ``rating``, but excludes the ``_id`` 
+- Matches documents where the ``date_ordered`` value is on or before November
+  30, 2009
+- Skips the first two matched documents
 
 .. io-code-block::
    :copyable: true
@@ -170,24 +185,23 @@ to the ``FindOne()`` method, which performs the following actions:
    .. input::
       :language: go
 
-      filter := bson.D{}
-      sort := bson.D{{"rating", -1}}
-      projection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
-      opts := options.FindOne().SetSort(sort).SetProjection(projection)
-
-      var result bson.D
+      filter := bson.D{{"date_ordered", bson.D{{"$lte", time.Date(2009, 11, 30, 0, 0, 0, 0, time.Local)}}}}
+      opts := options.FindOne().SetSkip(2)
+      
+      var result Review
       err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      fmt.Println(result)
+      
+      res, _ := json.Marshal(result)
+      fmt.Println(string(res))
 
    .. output::
       :language: none
       :visible: false
 
-      [{type Masala} {rating 10}]
+      {"Item":"Masala","Rating":9,"DateOrdered":"2009-11-12T05:00:00Z"}
 
 .. _golang-retrieve-aggregation:
 
@@ -272,8 +286,8 @@ Example
 The following example passes a context and an aggregation pipeline that
 performs the following actions:
 
-- Groups reviews by types
-- Calculates the average rating of each type
+- Groups reviews by item ordered
+- Calculates the average rating for each item
 
 .. io-code-block::
    :copyable: true
@@ -283,7 +297,7 @@ performs the following actions:
 
       groupStage := bson.D{
          {"$group", bson.D{
-            {"_id", "$type"},
+            {"_id", "$item"},
             {"average", bson.D{
                {"$avg", "$rating"},
             }},
@@ -299,15 +313,16 @@ performs the following actions:
          panic(err)
       }
       for _, result := range results {
-         fmt.Printf("%v has an average rating of %v \n", result["_id"], result["average"])
+         fmt.Printf("%v had an average rating of %v \n", result["_id"], result["average"])
       }
 
    .. output::
       :language: none
       :visible: false
 
-      Masala has an average rating of 8.5
-      Earl Grey has an average rating of 7
+      Sencha had an average rating of 8.5 
+      Hibiscus had an average rating of 4 
+      Masala had an average rating of 9
 
 To learn more about how to construct an aggregation pipeline, see
 the MongoDB server manual page on :manual:`Aggregation

@@ -2,14 +2,25 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// start-review-struct
+type Review struct {
+	Item        string
+	Rating      int32
+	DateOrdered time.Time `bson:"date_ordered"`
+}
+
+// end-review-struct
 
 func main() {
 	var uri string
@@ -27,77 +38,78 @@ func main() {
 			panic(err)
 		}
 	}()
-	
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
 
 	// begin insert docs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("tea").Collection("reviews")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 5}},
-		bson.D{{"type", "Masala"}, {"rating", 7}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 9}},
+		Review{Item: "Masala", Rating: 10, DateOrdered: time.Date(2009, 11, 17, 0, 0, 0, 0, time.Local)},
+		Review{Item: "Sencha", Rating: 7, DateOrdered: time.Date(2009, 11, 18, 0, 0, 0, 0, time.Local)},
+		Review{Item: "Masala", Rating: 9, DateOrdered: time.Date(2009, 11, 12, 0, 0, 0, 0, time.Local)},
+		Review{Item: "Masala", Rating: 8, DateOrdered: time.Date(2009, 12, 1, 0, 0, 0, 0, time.Local)},
+		Review{Item: "Sencha", Rating: 10, DateOrdered: time.Date(2009, 12, 17, 0, 0, 0, 0, time.Local)},
+		Review{Item: "Hibiscus", Rating: 4, DateOrdered: time.Date(2009, 12, 18, 0, 0, 0, 0, time.Local)},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	// end insert docs
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	// end insert docs
 
-	fmt.Println("Find:")
+	fmt.Println("\nFind:\n")
 	{
 		// begin find docs
 		filter := bson.D{
 			{"$and",
 				bson.A{
 					bson.D{{"rating", bson.D{{"$gt", 5}}}},
-					bson.D{{"rating", bson.D{{"$lt", 10}}}},
+					bson.D{{"rating", bson.D{{"$lt", 9}}}},
 				}},
 		}
-		projection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
-		opts := options.Find().SetProjection(projection)
+		sort := bson.D{{"date_ordered", 1}}
+		opts := options.Find().SetSort(sort)
 
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 		if err != nil {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Review
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
 		// end find docs
 	}
 
-	fmt.Println("Find One:")
+	fmt.Println("\nFind One:\n")
 	{
 		// begin find one docs
-		filter := bson.D{}
-		sort := bson.D{{"rating", -1}}
-		projection := bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}
-		opts := options.FindOne().SetSort(sort).SetProjection(projection)
+		filter := bson.D{{"date_ordered", bson.D{{"$lte", time.Date(2009, 11, 30, 0, 0, 0, 0, time.Local)}}}}
+		opts := options.FindOne().SetSkip(2)
 
-		var result bson.D
+		var result Review
 		err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println(result)
+		res, _ := json.Marshal(result)
+		fmt.Println(string(res))
 		// end find one docs
 	}
 
-	fmt.Println("Aggregation:")
+	fmt.Println("\nAggregation:\n")
 	{
 		// begin aggregate docs
 		groupStage := bson.D{
 			{"$group", bson.D{
-				{"_id", "$type"},
+				{"_id", "$item"},
 				{"average", bson.D{
 					{"$avg", "$rating"},
 				}},
@@ -113,7 +125,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Printf("%v has an average rating of %v \n", result["_id"], result["average"])
+			fmt.Printf("%v had an average rating of %v \n", result["_id"], result["average"])
 		}
 		// end aggregate docs
 	}
