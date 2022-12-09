@@ -33,6 +33,12 @@
        to the disk partition that MongoDB uses over the time 
        period specified by the metric granularity.
 
+   * - | ``MAX_DISK_PARTITION_UTILIZATION_DATA``
+       | (mongodb.atlas.system.disk.max.iops.percentutilization)
+     - Disk
+     - Maximum disk utilization percent value over the time period
+       specified by the metric granularity.
+
    * - | ``MAX_DISK_QUEUE_DEPTH``
        | (mongodb.atlas.system.disk.max.queuedepth)
      - Disk
