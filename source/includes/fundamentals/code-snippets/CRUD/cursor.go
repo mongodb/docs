@@ -11,6 +11,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-sample-struct
+type MyStruct struct {
+	MyProperty string
+}
+
+// end-sample-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -28,19 +35,18 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
-
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("sample_data")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 5}},
-		bson.D{{"type", "Assam"}, {"rating", 7}},
+		MyStruct{MyProperty: "abc"},
+		MyStruct{MyProperty: "def"},
+		MyStruct{MyProperty: "ghi"},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
 	if err != nil {
 		panic(err)
 	}
+
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 
 	fmt.Println("Cursor Elements:")
@@ -54,7 +60,7 @@ func main() {
 		// begin close
 		defer cursor.Close(context.TODO())
 		// end close
-		
+
 		for cursor.Next(context.TODO()) {
 			// begin current
 			fmt.Println(cursor.Current)
@@ -73,22 +79,22 @@ func main() {
 
 	fmt.Println("Cursor.All():")
 	{
-		// begin find
+		// begin cursor def
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
 			panic(err)
 		}
-		// end find
+		// end cursor def
 
 		defer cursor.Close(context.TODO())
-		
+
 		// begin cursor all
-		var results []bson.D
+		var results []MyStruct
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			fmt.Printf("%+v\n", result)
 		}
 		// end cursor all
 	}
@@ -104,11 +110,11 @@ func main() {
 
 		// begin cursor next
 		for cursor.Next(context.TODO()) {
-			var result bson.D
+			var result MyStruct
 			if err := cursor.Decode(&result); err != nil {
 				log.Fatal(err)
 			}
-			fmt.Println(result)
+			fmt.Printf("%+v\n", result)
 		}
 		if err := cursor.Err(); err != nil {
 			log.Fatal(err)
@@ -128,11 +134,11 @@ func main() {
 		// begin cursor try next
 		for {
 			if cursor.TryNext(context.TODO()) {
-				var result bson.D
+				var result MyStruct
 				if err := cursor.Decode(&result); err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println(result)
+				fmt.Printf("%+v\n", result)
 				continue
 			}
 
