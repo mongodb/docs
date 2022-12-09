@@ -1,7 +1,7 @@
-Starting in MongoDB 5.0, :doc:`map-reduce </core/map-reduce>` is
+Starting in MongoDB 5.0, :ref:`map-reduce <map-reduce>` is
 deprecated:
 
-- Instead of :doc:`map-reduce </core/map-reduce>`, you should use an
+- Instead of :ref:`map-reduce <map-reduce>`, you should use an
   :ref:`aggregation pipeline <aggregation-pipeline>`. Aggregation
   pipelines provide better performance and usability than map-reduce.
 
