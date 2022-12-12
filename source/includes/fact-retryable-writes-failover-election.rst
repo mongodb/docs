@@ -4,7 +4,5 @@ can detect the loss of the primary and automatically
 :ref:`retry certain write operations <retryable-writes>` a single time, 
 providing additional built-in handling of automatic failovers and elections:
 
-.. versionchanged:: 4.2
-
-Starting in MongoDB 4.2, compatible drivers enable retryable writes by default
+Compatible drivers enable retryable writes by default
 
