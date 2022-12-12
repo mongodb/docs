@@ -56,9 +56,8 @@ or view in the current database.
 Options
 -------
 
-Index Options
-~~~~~~~~~~~~~
-
+Change Index Properties
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. collflag:: index
 
@@ -167,8 +166,8 @@ Index Options
 
       - :ref:`index-type-hidden`
 
-Document Validation
-~~~~~~~~~~~~~~~~~~~
+Validate Documents
+~~~~~~~~~~~~~~~~~~
 
 .. collflag:: validator
 
@@ -216,8 +215,8 @@ Document Validation
    To see an example that uses ``validationAction``, see
    :ref:`schema-validation-handle-invalid-docs`.
 
-Views
-~~~~~
+Modify Views
+~~~~~~~~~~~~
 
 .. note::
 
@@ -258,33 +257,66 @@ Views
         { $project: { user: 1, date: 1, description: 1} } ]
    } )
 
-Time Series Collections
-~~~~~~~~~~~~~~~~~~~~~~~
+Modify Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To enable automatic removal of documents or change the
-``expireAfterSeconds`` parameter value for an existing :ref:`time
-series collection <manual-timeseries-collection>`, issue the following
-:dbcommand:`collMod` command:
+.. collflag:: expireAfterSeconds
 
-.. code-block:: javascript
+   .. note::
 
-   db.runCommand( {
-      collMod: <collection>,
-      expireAfterSeconds: <Number> || "off"
-   } )
+      This is distinct from using the :collflag:`index` option with the
+      ``expireAfterSeconds`` property to change the expiration time
+      for a :ref:`TTL Collection <ttl-collections>`.
 
-The ``expireAfterSeconds`` field must be either:
+   To enable automatic document removal or modify the current 
+   expiration interval for a :ref:`time series collection
+   <manual-timeseries-collection>`, change the ``expireAfterSeconds``
+   value:
 
-- A non-negative decimal number (``>=0``)
-- The string ``"off"``.
+   .. code-block:: javascript
 
-A number specifies the number of seconds after which documents expire.
-The string ``"off"`` removes the ``expireAfterSeconds`` parameter and
-disables automatic removal.
+      db.runCommand( {
+         collMod: <collection>,
+         expireAfterSeconds: <number> || "off"
+      } )
+
+   Set ``expireAfterSeconds`` to ``"off"`` to disable automatic removal,
+   or a non-negative decimal number (``>=0``) to specify the number of
+   seconds after which documents expire.
 
 .. seealso::
 
    :ref:`manual-timeseries-automatic-removal`
+
+.. collflag:: timeseries-granularity
+
+   To modify the :ref:`granularity <timeseries-granularity>` of a time 
+   series collection, change the ``timeseries.granularity`` value:
+
+   .. code-block:: javascript
+
+      db.runCommand({
+         collMod: "weather24h",
+         timeseries: { granularity: "seconds" || "minutes" || "hours" }
+      })
+
+   You cannot decrease granularity. For example, if granularity is set
+   to ``minutes``, you can increase it to ``hours``, but you cannot
+   decrease it to ``seconds``.
+
+   The following table shows the maximum time interval included in one bucket of data when using a given ``granularity`` value:
+
+   .. include:: /includes/table-timeseries-granularity-intervals.rst
+
+   .. important::
+
+      As with all :ref:`system collections
+      <metadata-system-collections>`, do not run any operations on the
+      underlying ``system.buckets`` collection. 
+
+   .. seealso::
+
+      :ref:`timeseries-granularity`
 
 .. _resize-capped-collection:
 
@@ -293,10 +325,10 @@ Resize a Capped Collection
 
 .. versionadded:: 6.0
 
-Starting in MongoDB 6.0, you can resize a capped collection. To change a  
-:ref:`capped collection's <manual-capped-collection>` maximum size in bytes, use
-the ``cappedSize`` option. To change the maximum number of documents in 
-an existing capped collection, use the ``cappedMax`` option.
+Starting in MongoDB 6.0, you can resize a capped collection. To change a
+:ref:`capped collection's <manual-capped-collection>` maximum size in
+bytes, use the ``cappedSize`` option. To change the maximum number of
+documents in an existing capped collection, use the ``cappedMax`` option.
 
 .. note:: 
 
@@ -329,9 +361,13 @@ to 100000 bytes and sets the maximum number of documents in the collection to 50
 Change Streams with Document Pre- and Post-Images
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. versionadded:: 6.0
+
+.. collflag:: changeStreamPreAndPostImages
+
 .. include:: /includes/change-stream-pre-and-post-images-introduction.rst
 
-To use :dbcommand:`collMod` to enable change stream pre- and post-images
+To use ``collMod`` to enable change stream pre- and post-images
 for a collection, use the ``changeStreamPreAndPostImages`` field:
 
 .. code-block:: javascript
@@ -368,7 +404,7 @@ Write Concern
 ~~~~~~~~~~~~~
 
 Optional. A document expressing the :doc:`write concern
-</reference/write-concern>` of the :dbcommand:`collMod` command.
+</reference/write-concern>` of the ``collMod`` command.
 
 Omit to use the default write concern.
 
@@ -376,7 +412,7 @@ Access Control
 --------------
 
 If the deployment enforces authentication/authorization, you must have
-the following privilege to run the :dbcommand:`collMod` command:
+the following privilege to run the ``collMod`` command:
 
 .. list-table::
    :header-rows: 1
