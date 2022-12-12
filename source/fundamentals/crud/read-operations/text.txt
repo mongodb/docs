@@ -26,8 +26,17 @@ In this guide, you can learn how to run a :ref:`text search
 Sample Data
 ~~~~~~~~~~~
 
+The examples in this guide use the following ``Dish`` struct as a model for documents
+in the ``menu`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
+   :start-after: start-dish-struct
+   :end-before: end-dish-struct
+   :language: go
+   :dedent:
+
 To run the examples in this guide, load the sample data into the
-``marvel.movies`` collection with the following
+``db.menu`` collection with the following
 snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
@@ -36,12 +45,10 @@ snippet:
    :start-after: begin insert docs
    :end-before: end insert docs
 
+Each document contains the ``name`` and ``description`` of a dish on a
+restaurant's menu.
+
 .. include:: /includes/fundamentals/automatic-db-coll-creation.rst
-
-Each document contains the name and release year of the Marvel movie
-that corresponds to the ``title`` and ``year`` fields.
-
-.. include:: /includes/fundamentals/truncated-id.rst
 
 Text Index
 ~~~~~~~~~~
@@ -51,8 +58,8 @@ index specifies the string or string array field on which to run a text
 search.
 
 The examples in the following sections run text searches on the
-``title`` field in the ``movies`` collection. To enable text searches on
-the ``title`` field, create a text index with the following snippet: 
+``description`` field of documents in the ``menu`` collection. To enable text searches on
+the ``description`` field, create a text index with the following snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/textSearch.go
    :language: go
@@ -97,7 +104,7 @@ To search for multiple terms, separate each term with spaces in the string.
 Example
 ```````
 
-The following example runs a text search for titles that contain the term "War":
+The following example runs a text search for descriptions that contain the term "herb":
 
 .. io-code-block::
    :copyable: true
@@ -105,27 +112,37 @@ The following example runs a text search for titles that contain the term "War":
    .. input::
       :language: go
 
-      filter := bson.D{{"$text", bson.D{{"$search", "War"}}}}
+      filter := bson.D{{"$text", bson.D{{"$search", "herb"}}}}
 
       cursor, err := coll.Find(context.TODO(), filter)
       if err != nil {
          panic(err)
       }
 
-      var results []bson.D
+      var results []Dish
       if err = cursor.All(context.TODO(), &results); err != nil {
          panic(err)
       }
+
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
-      [{_id ObjectID("...")} {title Captain America: Civil War} {year 2016}]
+      {"Name":"Kale Tabbouleh","Description":"A bright, herb-based salad. A perfect starter for vegetarians and vegans."}
+      {"Name":"Herbed Whole Branzino","Description":"Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4."}
+
+.. tip::
+
+   Although the search term was "herb", the method also matches
+   descriptions containing "herbs" because a MongoDB text index uses suffix
+   stemming to match similar words. To learn more about how
+   MongoDB matches terms, see :manual:`Index Entries
+   </core/index-text/#index-entries>`.
 
 Search by a Phrase
 ~~~~~~~~~~~~~~~~~~
@@ -142,8 +159,8 @@ phrase, the ``Find()`` method runs a :ref:`term search <golang-term-search>`.
 Example
 ```````
 
-The following example runs a text search for titles that contain the
-phrase "Infinity War":
+The following example runs a text search for descriptions that contain the
+phrase "serves 2":
 
 .. io-code-block::
    :copyable: true
@@ -151,26 +168,29 @@ phrase "Infinity War":
    .. input::
       :language: go
 
-      filter := bson.D{{"$text", bson.D{{"$search", "\"Infinity War\""}}}}
+      filter := bson.D{{"$text", bson.D{{"$search", "\"serves 2\""}}}}
 
       cursor, err := coll.Find(context.TODO(), filter)
       if err != nil {
          panic(err)
       }
 
-      var results []bson.D
+      var results []Dish
       if err = cursor.All(context.TODO(), &results); err != nil {
          panic(err)
       }
+
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+      {"Name":"Shepherd’s Pie","Description":"A vegetarian take on the classic dish that uses lentils as a base. Serves 2."}
+      {"Name":"Garlic Butter Trout","Description":"Baked trout seasoned with garlic, lemon, dill, and, of course, butter. Serves 2."}
 
 Search with Terms Excluded
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,8 +208,8 @@ your query filter.
 Example
 ```````
 
-The following example runs a text search for titles that contain the
-term "Avenger", but does not contain the phrase "Captain America":
+The following example runs a text search for descriptions that contain the
+term "vegan", but do not contain the term "tofu":
 
 .. io-code-block::
    :copyable: true
@@ -197,27 +217,28 @@ term "Avenger", but does not contain the phrase "Captain America":
    .. input::
       :language: go
 
-      filter := bson.D{{"$text", bson.D{{"$search", "Avenger -\"Captain America\""}}}}
+      filter := bson.D{{"$text", bson.D{{"$search", "vegan -tofu"}}}}
 
       cursor, err := coll.Find(context.TODO(), filter)
       if err != nil {
          panic(err)
       }
 
-      var results []bson.D
+      var results []Dish
       if err = cursor.All(context.TODO(), &results); err != nil {
          panic(err)
       }
+
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {title The Avengers} {year 2012}]
-      [{_id ObjectID("...")} {title Avengers: Infinity War} {year 2018}]
+      {"Name":"Kale Tabbouleh","Description":"A bright, herb-based salad. A perfect starter for vegetarians and vegans."}
 
 Sort by Relevance
 ~~~~~~~~~~~~~~~~~
@@ -233,9 +254,9 @@ Example
 
 The following example performs the following actions:
 
-- Runs a text search for titles that contain the term "Avenger"
+- Runs a text search for descriptions that contain the term "vegetarian"
 - Sorts the results in descending order based on their text score
-- Includes the ``title`` and ``score`` fields from the results
+- Includes only the ``name`` and ``score`` fields in the final output document
 
 .. io-code-block::
    :copyable: true
@@ -243,9 +264,9 @@ The following example performs the following actions:
    .. input::
       :language: go
 
-      filter := bson.D{{"$text", bson.D{{"$search", "Avenger"}}}}
+      filter := bson.D{{"$text", bson.D{{"$search", "vegetarian"}}}}
       sort := bson.D{{"score", bson.D{{"$meta", "textScore"}}}}
-      projection := bson.D{{"title", 1}, {"score", bson.D{{"$meta", "textScore"}}}, {"_id", 0}}
+      projection := bson.D{{"name", 1}, {"score", bson.D{{"$meta", "textScore"}}}, {"_id", 0}}
       opts := options.Find().SetSort(sort).SetProjection(projection)
 
       cursor, err := coll.Find(context.TODO(), filter, opts)
@@ -265,17 +286,9 @@ The following example performs the following actions:
       :language: none
       :visible: false
 
-      [{title The Avengers} {score 1}]
-      [{title Avengers: Infinity War} {score 0.6666666666666666}]
-      [{title Captain America: The First Avenger} {score 0.625}]
-
-.. tip::
-
-   Although the search term was "Avenger", the method also matches
-   titles containing "Avengers" because a MongoDB text index uses suffix
-   stemming to match similar words. To learn more about how
-   MongoDB matches terms, see :manual:`Index Entries
-   </core/index-text/#index-entries>`.
+      [{name Green Curry} {score 0.8999999999999999}]
+      [{name Kale Tabbouleh} {score 0.5625}]
+      [{name Shepherd’s Pie} {score 0.5555555555555556}]
 
 .. _golang-search-text-aggregation:
 
@@ -286,10 +299,10 @@ You can also include the ``$text`` evaluation query operator in the
 :manual:`$match </reference/operator/aggregation/match/>` stage to
 perform a text search in an aggregation pipeline.
 
-Term Search Example
+Match a Search Term
 ~~~~~~~~~~~~~~~~~~~
 
-The following example runs a text search for titles that contain the term "Winter":
+The following example runs a text search for descriptions that contain the term "herb":
 
 .. io-code-block::
    :copyable: true
@@ -297,35 +310,38 @@ The following example runs a text search for titles that contain the term "Winte
    .. input::
       :language: go
 
-      matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "Winter"}}}}}}
+      matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "herb"}}}}}}
 
       cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage})
       if err != nil {
          panic(err)
       }
 
-      var results []bson.D
+      var results []Dish
       if err = cursor.All(context.TODO(), &results); err != nil {
          panic(err)
       }
+
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {title Captain America: The Winter Soldier} {year 2014}]
+      {"Name":"Kale Tabbouleh","Description":"A bright, herb-based salad. A perfect starter for vegetarians and vegans."}
+      {"Name":"Herbed Whole Branzino","Description":"Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4."}
 
-Text Score Example
-~~~~~~~~~~~~~~~~~~
+Sort by Relevance
+~~~~~~~~~~~~~~~~~
 
 The following example performs the following actions:
 
-- Runs a text search for titles that contain the term "Avenger"
+- Runs a text search for descriptions that contain the term "vegetarian"
 - Sorts the results in descending order based on their text score
-- Includes the ``title`` and ``score`` fields from the results
+- Includes only the ``name`` and ``score`` fields in the final output document
 
 .. io-code-block::
    :copyable: true
@@ -333,9 +349,9 @@ The following example performs the following actions:
    .. input::
       :language: go
 
-      matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "Avenger"}}}}}}
+      matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "vegetarian"}}}}}}
       sortStage := bson.D{{"$sort", bson.D{{"score", bson.D{{ "$meta", "textScore" }}}}}}
-      projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"score", bson.D{{ "$meta", "textScore" }}}, {"_id", 0}}}}
+      projectStage := bson.D{{"$project", bson.D{{"name", 1}, {"score", bson.D{{ "$meta", "textScore" }}}, {"_id", 0}}}}
 
       cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage, sortStage, projectStage})
       if err != nil {
@@ -354,17 +370,9 @@ The following example performs the following actions:
       :language: none
       :visible: false
 
-      [{title The Avengers} {score 1}]
-      [{title Avengers: Infinity War} {score 0.6666666666666666}]
-      [{title Captain America: The First Avenger} {score 0.625}]
-
-.. tip::
-
-   Although the search term was "Avenger", the method also matches
-   titles containing "Avengers" because a MongoDB text index uses suffix
-   stemming to match similar words. To learn more about how
-   MongoDB matches terms, see :manual:`Index Entries
-   </core/index-text/#index-entries>`.
+      [{name Green Curry} {score 0.8999999999999999}]
+      [{name Kale Tabbouleh} {score 0.5625}]
+      [{name Shepherd’s Pie} {score 0.5555555555555556}]
 
 Additional Information
 ----------------------

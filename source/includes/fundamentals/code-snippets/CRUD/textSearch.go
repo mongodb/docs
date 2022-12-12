@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// start-dish-struct
+type Dish struct {
+	Name        string
+	Description string
+}
+
+// end-dish-struct
 
 func main() {
 	var uri string
@@ -28,101 +37,103 @@ func main() {
 		}
 	}()
 
-	client.Database("marvel").Collection("movies").Drop(context.TODO())
-
 	// begin insert docs
-	coll := client.Database("marvel").Collection("movies")
+	coll := client.Database("db").Collection("menu")
 	docs := []interface{}{
-		bson.D{{"title", "Captain America: Civil War"}, {"year", 2016}},
-		bson.D{{"title", "The Avengers"}, {"year", 2012}},
-		bson.D{{"title", "Captain America: The Winter Soldier"}, {"year", 2014}},
-		bson.D{{"title", "Avengers: Infinity War"}, {"year", 2018}},
-		bson.D{{"title", "Captain America: The First Avenger"}, {"year", 2011}},
+		Dish{Name: "Shepherd’s Pie", Description: "A vegetarian take on the classic dish that uses lentils as a base. Serves 2."},
+		Dish{Name: "Green Curry", Description: "A flavorful Thai curry, made vegetarian with fried tofu. Vegetarian and vegan friendly."},
+		Dish{Name: "Herbed Whole Branzino", Description: "Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4."},
+		Dish{Name: "Kale Tabbouleh", Description: "A bright, herb-based salad. A perfect starter for vegetarians and vegans."},
+		Dish{Name: "Garlic Butter Trout", Description: "Baked trout seasoned with garlic, lemon, dill, and, of course, butter. Serves 2."},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insert docs
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	//end insert docs
 
 	//begin text index
-	model := mongo.IndexModel{Keys: bson.D{{"title", "text"}}}
+	model := mongo.IndexModel{Keys: bson.D{{"description", "text"}}}
 	name, err := coll.Indexes().CreateOne(context.TODO(), model)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Name of Index Created: " + name)
+	fmt.Println("Name of index created: " + name)
 	//end text index
 
-	fmt.Println("Term Search:")
+	fmt.Println("\nTerm Search:\n")
 	{
 		//begin term search
-		filter := bson.D{{"$text", bson.D{{"$search", "War"}}}}
+		filter := bson.D{{"$text", bson.D{{"$search", "herb"}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Dish
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
 		//end term search
 	}
 
-	fmt.Println("Phrase Search:")
+	fmt.Println("\nPhrase Search:\n")
 	{
 		//begin phrase search
-		filter := bson.D{{"$text", bson.D{{"$search", "\"Infinity War\""}}}}
+		filter := bson.D{{"$text", bson.D{{"$search", "\"serves 2\""}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Dish
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
 		//end phrase search
 	}
 
-	fmt.Println("Excluded Term Search:")
+	fmt.Println("\nExcluded Term Search:\n")
 	{
 		//begin exclude term search
-		filter := bson.D{{"$text", bson.D{{"$search", "Avenger -\"Captain America\""}}}}
+		filter := bson.D{{"$text", bson.D{{"$search", "vegan -tofu"}}}}
 
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Dish
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
 		//end exclude term search
 	}
 
-	fmt.Println("Sort By Relevance:")
+	fmt.Println("\nSort By Relevance:\n")
 	{
 		//begin text score
-		filter := bson.D{{"$text", bson.D{{"$search", "Avenger"}}}}
+		filter := bson.D{{"$text", bson.D{{"$search", "vegetarian"}}}}
 		sort := bson.D{{"score", bson.D{{"$meta", "textScore"}}}}
-		projection := bson.D{{"title", 1}, {"score", bson.D{{"$meta", "textScore"}}}, {"_id", 0}}
+		projection := bson.D{{"name", 1}, {"score", bson.D{{"$meta", "textScore"}}}, {"_id", 0}}
 		opts := options.Find().SetSort(sort).SetProjection(projection)
 
 		cursor, err := coll.Find(context.TODO(), filter, opts)
@@ -140,12 +151,33 @@ func main() {
 		//end text score
 	}
 
-	fmt.Println("Aggregation Text Score:")
+	fmt.Println("\nAggregation Text Search:\n")
+	{
+		// begin aggregate text search
+		matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "herb"}}}}}}
+
+		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage})
+		if err != nil {
+			panic(err)
+		}
+
+		var results []Dish
+		if err = cursor.All(context.TODO(), &results); err != nil {
+			panic(err)
+		}
+		for _, result := range results {
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
+		}
+		// end aggregate text search
+	}
+
+	fmt.Println("\nAggregation Sort By Relevance:\n")
 	{
 		// begin aggregate text score
-		matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "Avenger"}}}}}}
-		sortStage := bson.D{{"$sort", bson.D{{"score", bson.D{{ "$meta", "textScore" }}}}}}
-		projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"score", bson.D{{ "$meta", "textScore" }}}, {"_id", 0}}}}
+		matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "vegetarian"}}}}}}
+		sortStage := bson.D{{"$sort", bson.D{{"score", bson.D{{"$meta", "textScore"}}}}}}
+		projectStage := bson.D{{"$project", bson.D{{"name", 1}, {"score", bson.D{{"$meta", "textScore"}}}, {"_id", 0}}}}
 
 		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage, sortStage, projectStage})
 		if err != nil {
@@ -162,23 +194,4 @@ func main() {
 		// end aggregate text score
 	}
 
-	fmt.Println("Aggregation Text Search:")
-	{
-		// begin aggregate text search
-		matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "Winter"}}}}}}
-
-		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{matchStage})
-		if err != nil {
-			panic(err)
-		}
-
-		var results []bson.D
-		if err = cursor.All(context.TODO(), &results); err != nil {
-			panic(err)
-		}
-		for _, result := range results {
-			fmt.Println(result)
-		}
-		// end aggregate text search
-	}
 }
