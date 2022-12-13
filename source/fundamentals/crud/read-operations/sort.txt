@@ -21,9 +21,17 @@ from read operations.
 Sample Data
 ~~~~~~~~~~~
 
-To run the examples in this guide, load these documents into the
-``tea.ratings`` collection with the following
-snippet:
+The example in this guide uses the following ``Course`` struct as a model for documents
+in the ``courses`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
+   :start-after: start-course-struct
+   :end-before: end-course-struct
+   :language: go
+   :dedent:
+
+To run the examples in this guide, load the sample data into the
+``db.courses`` collection with the following snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
    :language: go
@@ -31,17 +39,20 @@ snippet:
    :start-after: begin insertDocs
    :end-before: end insertDocs
 
-.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document contains a description of a university course that
+includes the course title and maximum enrollment, corresponding to
+the ``title`` and ``enrollment`` fields in each document.
 
 Sort Direction
 --------------
 
 To specify the order of your results, pass an interface specifying the
-sort fields and directions to the ``SetSort()`` method of a read
+sort fields and direction to the ``SetSort()`` method of a read
 operation's options.
 
-Specify the options as the last parameter to the following read
-operation methods:
+The following read operations take options as a parameter:
 
 - ``Find()``
 - ``FindOne()``
@@ -50,7 +61,7 @@ operation methods:
 - ``FindOneAndReplace()``
 - ``gridfs.Bucket.Find()``
 
-The sort direction can be **ascending** or **descending**.
+You can set an **ascending** or **descending** sort direction.
 
 Ascending
 ~~~~~~~~~
@@ -69,7 +80,7 @@ specify this sort, pass the field you want to sort by and ``1`` to the
 Example 
 ```````
 
-The following example specifies an ascending sort on the ``rating`` field:
+The following example specifies an ascending sort on the ``enrollment`` field:
 
 .. io-code-block::
    :copyable: true
@@ -78,27 +89,27 @@ The following example specifies an ascending sort on the ``rating`` field:
       :language: go
 
       filter := bson.D{}
-      opts := options.Find().SetSort(bson.D{{"rating", 1}})
-
+      opts := options.Find().SetSort(bson.D{{"enrollment", 1}})
+      
       cursor, err := coll.Find(context.TODO(), filter, opts)
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
-      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7}]
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-      [{_id ObjectID("...")} {type Masala} {rating 10}]
+      {"Title":"Modern Poetry","Enrollment":12}
+      {"Title":"World Fiction","Enrollment":35}
+      {"Title":"Plate Tectonics","Enrollment":35}
+      {"Title":"Abstract Algebra","Enrollment":60}
 
 Descending
 ~~~~~~~~~~
@@ -117,7 +128,7 @@ specify this sort, pass the field you want to sort by and ``-1`` to the
 Example
 ```````
 
-The following example specifies a descending sort on the ``rating`` field:
+The following example specifies a descending sort on the ``enrollment`` field:
 
 .. io-code-block::
    :copyable: true
@@ -126,27 +137,27 @@ The following example specifies a descending sort on the ``rating`` field:
       :language: go
 
       filter := bson.D{}
-      opts := options.Find().SetSort(bson.D{{"rating", -1}})
-
+      opts := options.Find().SetSort(bson.D{{"enrollment", -1}})
+      
       cursor, err := coll.Find(context.TODO(), filter, opts)
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {rating 10}]
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7}]
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
-      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      {"Title":"Abstract Algebra","Enrollment":60}
+      {"Title":"World Fiction","Enrollment":35}
+      {"Title":"Plate Tectonics","Enrollment":35}
+      {"Title":"Modern Poetry","Enrollment":12}
 
 Handling Ties
 ~~~~~~~~~~~~~
@@ -155,23 +166,24 @@ A tie occurs when two or more documents have identical values in the
 field you are using to sort your results. MongoDB does not guarantee
 order if ties occur. 
 
-For example, in the sample data, there is a tie for the ``rating`` in
+For example, in the sample data, there is a tie for ``enrollment`` in
 the following documents:
 
 .. code-block:: none
    :copyable: false
 
-   [{_id ObjectID("...")} {type Assam} {rating 5}]
-   [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+   {"Title":"World Fiction","Enrollment":35}
+   {"Title":"Plate Tectonics","Enrollment":35}
 
-To guarantee a specific order for documents when ties occur, specify
-additional fields to sort by.
+You can sort on additional fields to resolve ties in the original sort.
+If you want to guarantee a specific order for documents, you should
+select sort fields that will not result in additional ties.
 
 Example
 ```````
 
-The following example specifies an ascending sort on the ``rating`` field,
-then a descending sort on the ``type`` field:
+The following example specifies a descending sort on the ``enrollment`` field,
+then an ascending sort on the ``title`` field:
 
 .. io-code-block::
    :copyable: true
@@ -179,28 +191,29 @@ then a descending sort on the ``type`` field:
    .. input::
       :language: go
 
+
       filter := bson.D{}
-      opts := options.Find().SetSort(bson.D{{"rating", 1}, {"type", -1}})
-
+      opts := options.Find().SetSort(bson.D{{"enrollment", -1}, {"title", 1}})
+      
       cursor, err := coll.Find(context.TODO(), filter, opts)
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7}]
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-      [{_id ObjectID("...")} {type Masala} {rating 10}]
+      {"Title":"Abstract Algebra","Enrollment":60}
+      {"Title":"Plate Tectonics","Enrollment":35}
+      {"Title":"World Fiction","Enrollment":35}
+      {"Title":"Modern Poetry","Enrollment":12}
 
 Aggregation
 ~~~~~~~~~~~
@@ -211,8 +224,8 @@ stage to specify a  sort in an aggregation pipeline.
 Example
 ```````
 
-The following example specifies a descending sort on the ``rating``
-field, then an ascending sort on the ``type`` field:
+The following example specifies a descending sort on the ``enrollment``
+field, then an ascending sort on the ``title`` field:
 
 .. io-code-block::
    :copyable: true
@@ -220,30 +233,30 @@ field, then an ascending sort on the ``type`` field:
    .. input::
       :language: go
 
-      sortStage := bson.D{{"$sort", bson.D{{"rating", -1}, {"type", 1}}}}
+      sortStage := bson.D{{"$sort", bson.D{{"enrollment", -1}, {"title", 1}}}}
 
       cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage})
       if err != nil {
-         panic(err)
+          panic(err)
       }
 
-      var results []bson.D
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {rating 10}]
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7}]
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
-      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      {"Title":"Abstract Algebra","Enrollment":60}
+      {"Title":"Plate Tectonics","Enrollment":35}
+      {"Title":"World Fiction","Enrollment":35}
+      {"Title":"Modern Poetry","Enrollment":12}
 
 Additional Information
 ----------------------
