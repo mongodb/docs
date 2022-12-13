@@ -26,7 +26,6 @@
                :end-before: end-kmsproviders
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs
@@ -36,7 +35,6 @@
                :end-before: end-kmsproviders
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -45,7 +43,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -56,7 +53,6 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -65,7 +61,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
-               :caption: make-data-key.py
                :dedent:
 
          .. tab::
@@ -76,7 +71,6 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
       .. tip:: Learn More
 
@@ -103,7 +97,6 @@
                :end-before: end-datakeyopts
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs
@@ -113,7 +106,6 @@
                :end-before: end-datakeyopts
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -122,7 +114,6 @@
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: python
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -133,7 +124,6 @@
                :end-before: end-datakeyopts
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -142,7 +132,6 @@
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: go
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -153,7 +142,6 @@
                :end-before: end-datakeyopts
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
    .. step:: Create your {+dek-long+}s
 
@@ -179,7 +167,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs
@@ -189,7 +176,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -198,7 +184,6 @@
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: python
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -209,7 +194,6 @@
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -218,7 +202,6 @@
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: go
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -229,7 +212,6 @@
                :end-before: end-create-dek
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
    .. step:: Create Your Encrypted Collection
 
@@ -246,7 +228,6 @@
                :end-before: end-create-enc-collection
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs
@@ -256,7 +237,6 @@
                :end-before: end-create-enc-collection
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -265,7 +245,6 @@
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: python
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -276,7 +255,6 @@
                :end-before: end-create-enc-collection
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -285,7 +263,6 @@
                :start-after: start-create-enc-collection
                :end-before: end-create-enc-collection
                :language: go
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -296,7 +273,6 @@
                :end-before: end-create-enc-collection
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
 .. tip:: Learn More
 

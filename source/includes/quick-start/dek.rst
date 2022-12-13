@@ -23,7 +23,6 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: nodejs
@@ -31,7 +30,6 @@
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/local/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
-               :caption: make_data_key.js
                :language: javascript
                :dedent:
 
@@ -41,7 +39,6 @@
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/make_data_key.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
-               :caption: make_data_key.py
                :language: python
                :dedent:
 
@@ -52,7 +49,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
-               :caption: MakeDataKey.cs
                :dedent:
 
          .. tab::
@@ -62,7 +58,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
-               :caption: make-data-key.go
                :dedent:
 
    .. step:: Create a Data Encryption Key
@@ -91,7 +86,6 @@
                :end-before: end-create-dek
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: java-sync
@@ -101,7 +95,6 @@
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: nodejs
@@ -111,7 +104,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -121,7 +113,6 @@
                :end-before: end-create-dek
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
 
          .. tab::
@@ -132,7 +123,6 @@
                :end-before: end-create-dek
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
 
       The output from the code above should resemble the following:

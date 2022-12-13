@@ -16,7 +16,6 @@ as the file ``master-key.txt``:
          :start-after: start-local-cmk
          :end-before: end-local-cmk
          :language: javascript
-         :caption: make_data_key.js
          :dedent:
 
    .. tab::
@@ -26,7 +25,6 @@ as the file ``master-key.txt``:
          :start-after: start-local-cmk
          :end-before: end-local-cmk
          :language: python
-         :caption: make_data_key.py
          :dedent:
 
    .. tab::
@@ -37,7 +35,6 @@ as the file ``master-key.txt``:
          :end-before: end-local-cmk
          :language: java
          :dedent:
-         :caption: MakeDataKey.java
 
    .. tab::
       :tabid: go
@@ -46,7 +43,6 @@ as the file ``master-key.txt``:
          :start-after: start-local-cmk
          :end-before: end-local-cmk
          :language: go
-         :caption: make-data-key.go
          :dedent:
 
    .. tab::
@@ -57,7 +53,6 @@ as the file ``master-key.txt``:
          :end-before: end-local-cmk
          :language: csharp
          :dedent:
-         :caption: MakeDataKey.cs
 
 .. include:: /includes/csfle-warning-local-keys.rst
 

@@ -29,7 +29,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: javascript
          :dedent:
-         :caption: make_data_key.js
 
    .. tab::
       :tabid: nodejs
@@ -39,7 +38,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: javascript
          :dedent:
-         :caption: make_data_key.js
 
    .. tab::
       :tabid: python
@@ -49,7 +47,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: python
          :dedent:
-         :caption: make_data_key.py
 
    .. tab::
       :tabid: csharp
@@ -59,7 +56,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: csharp
          :dedent:
-         :caption: MakeDataKey.cs
 
       .. important::
       
@@ -80,7 +76,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: go
          :dedent:
-         :caption: make-data-key.go
 
       .. important::
       

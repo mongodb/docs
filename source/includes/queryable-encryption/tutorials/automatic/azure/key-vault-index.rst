@@ -11,7 +11,6 @@ Create a unique index on the ``keyAltNames`` field in your
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/azure/reader/make_data_key.js
          :start-after: start-create-index
          :end-before: end-create-index
-         :caption: make_data_key.js
          :language: javascript
          :dedent:
 
@@ -21,7 +20,6 @@ Create a unique index on the ``keyAltNames`` field in your
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/azure/reader/make_data_key.js
          :start-after: start-create-index
          :end-before: end-create-index
-         :caption: make_data_key.js
          :language: javascript
          :dedent:
 
@@ -32,7 +30,6 @@ Create a unique index on the ``keyAltNames`` field in your
          :start-after: start-create-index
          :end-before: end-create-index
          :language: python
-         :caption: make_data_key.py
          :dedent:
 
    .. tab::
@@ -43,7 +40,6 @@ Create a unique index on the ``keyAltNames`` field in your
          :end-before: end-create-index
          :language: java
          :dedent:
-         :caption: MakeDataKey.java
 
    .. tab::
       :tabid: go
@@ -54,7 +50,6 @@ Create a unique index on the ``keyAltNames`` field in your
          :start-after: start-create-index
          :end-before: end-create-index
          :language: go
-         :caption: make-data-key.go
          :dedent:
 
    .. tab::
@@ -65,4 +60,3 @@ Create a unique index on the ``keyAltNames`` field in your
          :end-before: end-create-index
          :language: csharp
          :dedent:
-         :caption: MakeDataKey.cs

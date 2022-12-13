@@ -14,7 +14,6 @@ a client that is not configured for automatic {+qe+}.
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/gcp/reader/insert_encrypted_document.js
          :start-after: start-find
          :end-before: end-find
-         :caption: insert_encrypted_document.js
          :language: javascript
          :dedent:
 
@@ -24,7 +23,6 @@ a client that is not configured for automatic {+qe+}.
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/insert_encrypted_document.js
          :start-after: start-find
          :end-before: end-find
-         :caption: insert_encrypted_document.js
          :language: javascript
          :dedent:
 
@@ -36,7 +34,6 @@ a client that is not configured for automatic {+qe+}.
          :end-before: end-find
          :language: python
          :dedent:
-         :caption: insert_encrypted_document.py
 
    .. tab::
       :tabid: java-sync
@@ -46,7 +43,6 @@ a client that is not configured for automatic {+qe+}.
          :end-before: end-find
          :language: java
          :dedent:
-         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: go
@@ -56,7 +52,6 @@ a client that is not configured for automatic {+qe+}.
          :end-before: end-find
          :language: go
          :dedent:
-         :caption: insert-encrypted-document.go
 
    .. tab::
       :tabid: csharp
@@ -66,7 +61,6 @@ a client that is not configured for automatic {+qe+}.
          :end-before: end-find
          :language: csharp
          :dedent:
-         :caption: InsertEncryptedDocument.cs
 
 The output of the preceding code snippet should look like this:
 

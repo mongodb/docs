@@ -16,7 +16,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: java
          :dedent:
-         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: shell
@@ -26,7 +25,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: javascript
          :dedent:
-         :caption: insert_encrypted_document.js
 
    .. tab::
       :tabid: nodejs
@@ -36,7 +34,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: javascript
          :dedent:
-         :caption: insert_encrypted_document.js
 
    .. tab::
       :tabid: python
@@ -46,7 +43,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: python
          :dedent:
-         :caption: insert_encrypted_document.py
 
    .. tab::
       :tabid: csharp
@@ -56,7 +52,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: csharp
          :dedent:
-         :caption: InsertEncryptedDocument.cs
 
    .. tab::
       :tabid: go
@@ -66,7 +61,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: go
          :dedent:
-         :caption: insert-encrypted-document.go
 
 The output of the preceding code snippet should look like this:
 

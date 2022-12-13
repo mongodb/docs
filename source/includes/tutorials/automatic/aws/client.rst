@@ -15,7 +15,6 @@
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: java
-               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::
@@ -25,7 +24,6 @@
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -35,7 +33,6 @@
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -45,7 +42,6 @@
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: csharp
-               :caption: InsertEncryptedDocument.cs
                :dedent:
 
          .. tab::
@@ -55,7 +51,6 @@
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
 
    .. step:: Specify your AWS Credentials
@@ -74,7 +69,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
-               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::
@@ -84,7 +78,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -94,7 +87,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -104,7 +96,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
-               :caption: InsertEncryptedDocument.cs
                :dedent:
 
          .. tab::
@@ -114,7 +105,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
 
    .. step:: Create an Encryption Schema For Your Collection
@@ -135,7 +125,6 @@
                :start-after: start-schema
                :end-before: end-schema
                :language: java
-               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::
@@ -145,7 +134,6 @@
                :start-after: start-schema
                :end-before: end-schema
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -155,7 +143,6 @@
                :start-after: start-schema
                :end-before: end-schema
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -165,7 +152,6 @@
                :start-after: start-schema
                :end-before: end-schema
                :language: csharp
-               :caption: InsertEncryptedDocument.cs
                :dedent:
 
          .. tab::
@@ -175,7 +161,6 @@
                :start-after: start-schema
                :end-before: end-schema
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
 
    .. step:: Specify the Location of the Encryption Binary
@@ -192,7 +177,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: java
-               :caption: InsertEncryptedDocument.java
                :dedent:
 
             .. note:: Encryption Binary Daemon
@@ -213,7 +197,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
             .. note:: Encryption Binary Daemon
@@ -234,7 +217,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
             .. note:: Encryption Binary Daemon
@@ -260,7 +242,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: csharp
-               :caption: InsertEncryptedDocument.cs
                :dedent:
 
          .. tab::
@@ -278,7 +259,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
 
             .. note:: Encryption Binary Daemon
@@ -307,7 +287,6 @@
                :start-after: start-client
                :end-before: end-client
                :language: java
-               :caption: InsertEncryptedDocument.java
                :dedent:
 
          .. tab::
@@ -317,7 +296,6 @@
                :start-after: start-client
                :end-before: end-client
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -327,7 +305,6 @@
                :start-after: start-client
                :end-before: end-client
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -337,7 +314,6 @@
                :start-after: start-client
                :end-before: end-client
                :language: csharp
-               :caption: InsertEncryptedDocument.cs
                :dedent:
 
          .. tab::
@@ -347,4 +323,3 @@
                :start-after: start-client
                :end-before: end-client
                :language: go
-               :caption: insert-encrypted-document.go

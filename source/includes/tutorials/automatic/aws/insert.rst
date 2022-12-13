@@ -14,7 +14,6 @@ snippet:
          :start-after: start-insert
          :end-before: end-insert
          :language: java
-         :caption: InsertEncryptedDocument.java
          :dedent:
 
    .. tab::
@@ -24,7 +23,6 @@ snippet:
          :start-after: start-insert
          :end-before: end-insert
          :language: javascript
-         :caption: insert_encrypted_document.js
          :dedent:
 
    .. tab::
@@ -34,7 +32,6 @@ snippet:
           :start-after: start-insert
           :end-before: end-insert
           :language: python
-          :caption: insert_encrypted_document.py
           :dedent:
 
    .. tab::
@@ -44,7 +41,6 @@ snippet:
           :start-after: start-insert
           :end-before: end-insert
           :language: csharp
-          :caption: InsertEncryptedDocument.cs
 
    .. tab::
       :tabid: go
@@ -53,7 +49,6 @@ snippet:
           :start-after: start-insert
           :end-before: end-insert
           :language: go
-          :caption: insert-encrypted-document.go
 
       .. note::
 

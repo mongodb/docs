@@ -15,7 +15,6 @@ snippet:
          :end-before: end-insert
          :language: javascript
          :dedent:
-         :caption: insert_encrypted_document.js
 
    .. tab::
       :tabid: nodejs
@@ -25,7 +24,6 @@ snippet:
          :end-before: end-insert
          :language: javascript
          :dedent:
-         :caption: insert_encrypted_document.js
 
       .. note::
 
@@ -39,7 +37,6 @@ snippet:
          :start-after: start-insert
          :end-before: end-insert
          :language: python
-         :caption: insert_encrypted_document.py
          :dedent:
 
    .. tab::
@@ -50,7 +47,6 @@ snippet:
          :end-before: end-insert
          :language: java
          :dedent:
-         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: go
@@ -59,7 +55,6 @@ snippet:
          :start-after: start-insert
          :end-before: end-insert
          :language: go
-         :caption: insert-encrypted-document.go
          :dedent:
 
    .. tab::
@@ -70,7 +65,6 @@ snippet:
          :end-before: end-insert
          :language: csharp
          :dedent:
-         :caption: InsertEncryptedDocument.cs
 
 When you insert a document, your {+qe+} enabled client
 encrypts the fields of your document such that it resembles the following:

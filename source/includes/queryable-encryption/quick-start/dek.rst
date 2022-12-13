@@ -23,7 +23,6 @@
             .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/mongosh/local/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
-               :caption: make_data_key.js
                :language: javascript
                :dedent:
 
@@ -33,7 +32,6 @@
             .. literalinclude::  /includes/generated/in-use-encryption/queryable-encryption/node/local/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
-               :caption: make_data_key.js
                :language: javascript
                :dedent:
 
@@ -45,7 +43,6 @@
                :end-before: end-kmsproviders
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: java-sync
@@ -55,7 +52,6 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -65,7 +61,6 @@
                :end-before: end-kmsproviders
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: csharp
@@ -75,7 +70,6 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
    .. step:: Create your {+dek-long+}s
 
@@ -103,7 +97,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs
@@ -113,7 +106,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -123,7 +115,6 @@
                :end-before: end-create-dek
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: java-sync
@@ -133,7 +124,6 @@
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -143,7 +133,6 @@
                :end-before: end-create-dek
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: csharp
@@ -153,7 +142,6 @@
                :end-before: end-create-dek
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
    .. step:: Create Your Encrypted Collection
 
@@ -170,7 +158,6 @@
                :end-before: end-create-enc-collection
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: nodejs
@@ -180,7 +167,6 @@
                :end-before: end-create-enc-collection
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -190,7 +176,6 @@
                :end-before: end-create-enc-collection
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: java-sync
@@ -200,7 +185,6 @@
                :end-before: end-create-enc-collection
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -210,7 +194,6 @@
                :end-before: end-create-enc-collection
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: csharp
@@ -220,7 +203,6 @@
                :end-before: end-create-enc-collection
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
 The output from the code in this section should resemble the following:
 
