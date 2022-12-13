@@ -21,8 +21,17 @@ results from read operations.
 Sample Data
 ~~~~~~~~~~~
 
-To run the example in this guide, load these documents into the
-``tea.ratings`` collection with the following
+The examples in this guide use the following ``Course`` struct as a model for documents
+in the ``courses`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/skip.go
+   :start-after: start-course-struct
+   :end-before: end-course-struct
+   :language: go
+   :dedent:
+
+To run the examples in this guide, load these documents into the
+``db.courses`` collection with the following
 snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/skip.go
@@ -31,7 +40,11 @@ snippet:
    :start-after: begin insertDocs
    :end-before: end insertDocs
 
-.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document contains a description of a university course that
+includes the course title and maximum enrollment, corresponding to
+the ``title`` and ``enrollment`` fields.
 
 Skip
 ----
@@ -40,8 +53,7 @@ To skip a specified number of returned results from a query, pass the
 number of documents you want to skip to the ``SetSkip()`` method of
 the read operation's options.
 
-Specify the options as the last parameter to the following read
-operation methods:
+The following read operations take an options object as a parameter:
 
 - ``Find()``
 - ``FindOne()``
@@ -53,20 +65,21 @@ query, that query returns no documents.
 
 .. tip::
 
-    Passing in a negative number to the ``SetSkip()`` method results
-    in a runtime error.
+   Passing in a negative number to the ``SetSkip()`` method results
+   in a runtime error.
 
-Documents return in a natural order, which can lead to skipping random
-documents. To avoid this, use a ``SetSort()`` method before the
-``SetSkip()`` method.
+Find operations return documents in a natural order that is not sorted
+on any field. To avoid skipping random documents, use the ``SetSort()``
+method to sort documents on a field with unique values before setting a
+skip option.
 
 Example
 ~~~~~~~
 
-The following example performs the following actions in order with the
-``Find()`` method:
+The following example performs a ``Find()`` operation with the following
+behavior:
 
-- An ascedning sort on the ``rating`` field
+- Sorts results in ascending order on the ``enrollment`` field
 - Skips the first two documents
 
 .. io-code-block::
@@ -75,26 +88,25 @@ The following example performs the following actions in order with the
    .. input::
       :language: go
 
-      filter := bson.D{}
-      opts := options.Find().SetSort(bson.D{{"rating", 1}}).SetSkip(2)
-
-      cursor, err := coll.Find(context.TODO(), filter, opts)
-
-      var results []bson.D
+      opts := options.Find().SetSort(bson.D{{"enrollment", 1}}).SetSkip(2)
+      
+      cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Oolong} {rating 7}]
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-      [{_id ObjectID("...")} {type Masala} {rating 10}]
+      {"Title":"Plate Tectonics","Enrollment":45}
+      {"Title":"Abstract Algebra","Enrollment":60}
 
 .. _golang-skip-aggregation:
 
@@ -102,16 +114,16 @@ Aggregation
 -----------
 
 You can also include the :manual:`$skip </reference/operator/aggregation/skip/>`
-stage to specify a skip in an aggregation pipeline.
+stage in an aggregation pipeline to skip documents.
 
 Example
 ~~~~~~~
 
-The following example performs the following actions in order with the
-``Aggregate()`` method:
+The following example performs an ``Aggregate()`` operation with the following
+behavior:
 
-- A descending sort on the ``rating`` field
-- Skips the first three documents
+- Sorts results in descending order on the ``enrollment`` field
+- Skips the first document
 
 .. io-code-block::
    :copyable: true
@@ -119,28 +131,30 @@ The following example performs the following actions in order with the
    .. input::
       :language: go
 
-      sortStage := bson.D{{"$sort", bson.D{{"rating", -1}}}}
-      skipStage := bson.D{{"$skip", 3}}
-
+      sortStage := bson.D{{"$sort", bson.D{{"enrollment", -1}}}}
+      skipStage := bson.D{{"$skip", 1}}
+      
       cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{sortStage, skipStage})
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
-      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      {"Title":"Plate Tectonics","Enrollment":45}
+      {"Title":"World Fiction","Enrollment":35}
+      {"Title":"Modern Poetry","Enrollment":12}
 
 Additional Information
 ----------------------
