@@ -30,13 +30,14 @@
     migration hosts.
 
   - Consider configuring a :ref:`VPC peering connection <vpc-peering>`
-    between each migration host and the target |service| {+cluster+} on
-    the same cloud provider as the target {+cluster+}.
+    or a :ref:`private endpoint <private-endpoint>` between each
+    migration host and the target |service| {+cluster+} on the same cloud
+    provider and in the same region as the target {+cluster+}.
 
     .. note::
 
-       If you choose not to use VPC peering, the live migration process
-       runs over public IP addresses that you add to the |service|
-       project's :ref:`IP access list <access-list>` as part of the live
-       migration procedure.
+       If you choose not to use VPC peering or private endpoints, the
+       live migration process runs over public IP addresses that you add
+       to the |service| project's :ref:`IP access list <access-list>` as
+       part of the live migration procedure.
 
