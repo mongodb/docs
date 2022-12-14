@@ -1,7 +1,7 @@
 We recommend that you review the amount of data that you are backing up
 to the blockstore. If the amount of data that you back up negatively 
 affects the performance of the blockstore or if you can't meet your
-:abbr:`RTO (Recovery Time Objective)`requirements with a single
+:abbr:`RTO (Recovery Time Objective)` requirements with a single
 blockstore, distribute the workload across multiple blockstores to
 balance the backup operations. You can even configure a single
 blockstore per shard to meet your scaling needs. 
