@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +11,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// start-course-struct
+type Course struct {
+	Title      string
+	Enrollment int32
+}
+
+// end-course-struct
 
 func main() {
 	var uri string
@@ -28,62 +37,62 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
-
 	// begin insertDocs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("courses")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Assam"}, {"rating", 5}},
-		bson.D{{"type", "Oolong"}, {"rating", 7}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 8}},
-		bson.D{{"type", "English Breakfast"}, {"rating", 5}},
+		Course{Title: "Romantic Era Music", Enrollment: 15},
+		Course{Title: "Concepts in Topology", Enrollment: 35},
+		Course{Title: "Ancient Greece", Enrollment: 100},
+		Course{Title: "Physiology I", Enrollment: 60},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insertDocs
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	//end insertDocs
 
-	fmt.Println("Limit:")
+	fmt.Println("\nLimit:\n")
 	{
 		//begin limit
-		filter := bson.D{}
+		filter := bson.D{{"enrollment", bson.D{{"$gt", 20}}}}
 		opts := options.Find().SetLimit(2)
 
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 
-		var results []bson.D
+		var results []Course
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
 		//end limit
 	}
 
-	fmt.Println("Limit, Skip and Sort:")
+	fmt.Println("\nLimit, Skip, and Sort:\n")
 	{
 		//begin multi options
 		filter := bson.D{}
-		opts := options.Find().SetSort(bson.D{{"rating", -1}}).SetLimit(2).SetSkip(1)
+		opts := options.Find().SetSort(bson.D{{"enrollment", -1}}).SetLimit(2).SetSkip(1)
 
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 
-		var results []bson.D
+		var results []Course
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
 		//end multi options
 	}
 
-	fmt.Println("Aggregation Limit:")
+	fmt.Println("\nAggregation Limit:\n")
 	{
 		// begin aggregate limit
 		limitStage := bson.D{{"$limit", 3}}
@@ -93,12 +102,13 @@ func main() {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Course
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := json.Marshal(result)
+			fmt.Println(string(res))
 		}
 		// end aggregate limit
 	}

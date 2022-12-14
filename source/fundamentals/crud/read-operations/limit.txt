@@ -21,9 +21,17 @@ returned from a read operation.
 Sample Data
 ~~~~~~~~~~~
 
-To run the examples in this guide, load these documents into the
-``tea.ratings`` collection with the following
-snippet:
+The examples in this guide use the following ``Course`` struct as a model for documents
+in the ``courses`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/limit.go
+   :start-after: start-course-struct
+   :end-before: end-course-struct
+   :language: go
+   :dedent:
+
+To run the examples in this guide, load the sample data into the
+``db.courses`` collection with the following snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/limit.go
    :language: go
@@ -31,7 +39,11 @@ snippet:
    :start-after: begin insertDocs
    :end-before: end insertDocs
 
-.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document contains a description of a university course that
+includes the course title and maximum enrollment, corresponding to
+the ``title`` and ``enrollment`` fields in each document.
 
 Limit
 -----
@@ -40,23 +52,23 @@ To limit the number of documents returned from a query, pass the
 number of documents you want returned to the ``SetLimit()`` method of
 the read operation's options.
 
-Specify the options as the last parameter to the following read
-operation methods:
+The following read operations take an options object as a parameter:
 
 - ``Find()``
 - ``CountDocuments()``
 - ``gridfs.Bucket.Find()``
 
 If the limit is ``0`` or exceeds the number of matched
-documents, the method returns all the documents.  If the limit is a
-negative number, the method behaves as if the limit was the absolute
-value of the negative number and closes the cursor after retrieving
+documents, the method returns all the documents. If the limit is a
+negative number, the method uses the absolute value of the negative
+number as the limit and closes the cursor after retrieving
 documents.
 
 Example
 ~~~~~~~
 
-The following example shows how to return two documents:
+The following example shows how to return two documents that have an
+``enrollment`` field value greater than 20:
 
 .. io-code-block::
    :copyable: true
@@ -64,42 +76,41 @@ The following example shows how to return two documents:
    .. input::
       :language: go
 
-      filter := bson.D{}
+      filter := bson.D{{"enrollment", bson.D{{"$gt", 20}}}}
       opts := options.Find().SetLimit(2)
-
+      
       cursor, err := coll.Find(context.TODO(), filter, opts)
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {rating 10}]
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      {"Title":"Concepts in Topology","Enrollment":35}
+      {"Title":"Ancient Greece","Enrollment":100}
 
 Multiple Options
 ----------------
 
-If you configure other options alongside the ``SetLimit()`` method,
-the driver performs the limit last regardless of the order you list
-the options.
+The driver performs the limit behavior last regardless of the order in which you set
+any other options.
 
 Example
 ~~~~~~~
 
-The following example performs the following actions in order using the
-``Find()`` method:
+The following example performs a ``Find()`` operation with the following behavior:
 
-- Sort the ``rating`` field in descending order
-- Skip the first document
-- Return the first two of the remaining documents
+- Sorts the results in descending order on the ``enrollment`` field
+- Skips the first document
+- Returns the first two of the remaining documents
 
 .. io-code-block::
    :copyable: true
@@ -108,37 +119,38 @@ The following example performs the following actions in order using the
       :language: go
 
       filter := bson.D{}
-      opts := options.Find().SetSort(bson.D{{"rating", -1}}).SetLimit(2).SetSkip(1)
-
+      opts := options.Find().SetSort(bson.D{{"enrollment", -1}}).SetLimit(2).SetSkip(1)
+      
       cursor, err := coll.Find(context.TODO(), filter, opts)
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Earl Grey} {rating 8}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7}]
+      {"Title":"Physiology I","Enrollment":60}
+      {"Title":"Concepts in Topology","Enrollment":35}
 
 .. tip::
 
-   Using any of the following option declarations also produce the same result:
+   Using any of the following option configurations also produces the same result:
 
    .. code-block:: go
       :copyable: false
 
-      multiOptions := options.Find().SetSort(bson.D{{"rating", -1}}).SetSkip(1).SetLimit(2)
-      multiOptions := options.Find().SetLimit(2).SetSort(bson.D{{"rating", -1}}).SetSkip(1)
-      multiOptions := options.Find().SetLimit(2).SetSkip(1).SetSort(bson.D{{"rating", -1}})
-      multiOptions := options.Find().SetSkip(1).SetSort(bson.D{{"rating", -1}}).SetLimit(2)
-      multiOptions := options.Find().SetSkip(1).SetLimit(2).SetSort(bson.D{{"rating", -1}})
+      opts := options.Find().SetSort(bson.D{{"enrollment", -1}}).SetSkip(1).SetLimit(2)
+      opts := options.Find().SetLimit(2).SetSort(bson.D{{"enrollment", -1}}).SetSkip(1)
+      opts := options.Find().SetLimit(2).SetSkip(1).SetSort(bson.D{{"enrollment", -1}})
+      opts := options.Find().SetSkip(1).SetSort(bson.D{{"enrollment", -1}}).SetLimit(2)
+      opts := options.Find().SetSkip(1).SetLimit(2).SetSort(bson.D{{"enrollment", -1}})
 
 .. _golang-limit-aggregation:
 
@@ -160,27 +172,28 @@ The following example shows how to return three documents:
       :language: go
 
       limitStage := bson.D{{"$limit", 3}}
-
+      
       cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{limitStage})
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := json.Marshal(result)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {rating 10}]
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
-      [{_id ObjectID("...")} {type Oolong} {rating 7}]
+      {"Title":"Romantic Era Music","Enrollment":15}
+      {"Title":"Concepts in Topology","Enrollment":35}
+      {"Title":"Ancient Greece","Enrollment":100}
 
 Additional Information
 ----------------------
