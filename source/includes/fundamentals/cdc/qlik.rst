@@ -21,7 +21,7 @@ Qlik Replicate CDC events:
    change.data.capture.handler=com.mongodb.kafka.connect.sink.cdc.qlik.rdbms.RdbmsHandler
 
 To view the source code for the Qlik Replicate CDC handler, see
-:github:`the {+mkc+} source code </mongodb/mongo-kafka/tree/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/qlik/rdbms/RdbmsHandler.java>`.
+:github:`the {+connector+} source code </mongodb/mongo-kafka/tree/{+connector_version_github_tag+}/src/main/java/com/mongodb/kafka/connect/sink/cdc/qlik/rdbms/RdbmsHandler.java>`.
 
 .. note:: Customize the Qlik Replicate CDC Handler
 

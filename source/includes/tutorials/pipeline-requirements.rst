@@ -14,7 +14,7 @@ Download and install the following packages:
    `Get Started Guide <https://docs.docker.com/get-started/>`__.
 
 The sandbox uses Docker for convenience and consistency. To learn more about
-deployment options for {+ak+}, see the following resources:
+deployment options for {+kafka+}, see the following resources:
 
-- `Official {+ak+} Quick Start <https://kafka.apache.org/quickstart>`__
+- `Official {+kafka+} Quick Start <https://kafka.apache.org/quickstart>`__
 - `Official Install Confluent Platform Guide <https://docs.confluent.io/platform/current/installation/index.html>`__

@@ -3,5 +3,5 @@
 
 .. note::
 
-   Send your tutorial feedback or ideas for future {+mkc+} tutorials through
+   Send your tutorial feedback or ideas for future {+connector+} tutorials through
    this `feedback form <https://tinyurl.com/mongokafkatutorialfeedback>`__.
