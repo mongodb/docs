@@ -69,12 +69,10 @@
 
       .. note:: {+key-vault-long-title+} Namespace Permissions
 
-         The {+key-vault-long+} in this guide is the ``__keyVault``
-         collection in the ``encryption`` database.
-         Ensure that the database user your application uses to connect
-         to MongoDB has `ReadWrite
-         <https://www.mongodb.com/docs/manual/reference/built-in-roles/#readWrite>`_
-         permissions on the ``encryption.__keyVault`` namespace.
+         The {+key-vault-long+} is in the ``encryption.__keyVault``
+         namespace. Ensure that the database user your application uses to connect
+         to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+         permissions on this namespace.
 
       .. tabs-drivers::
 

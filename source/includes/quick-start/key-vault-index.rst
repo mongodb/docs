@@ -1,5 +1,5 @@
 Create a unique index on the ``keyAltNames`` field in your
-``encryption.__keyVault`` collection.
+``encryption.__keyVault`` namespace.
 
 .. include:: /includes/queryable-encryption/tab-note.rst
 
