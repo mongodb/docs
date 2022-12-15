@@ -23,9 +23,8 @@ include the :method:`explain <db.collection.aggregate()>` option in the
 
 In addition to learning about the aggregation pipeline optimizations
 performed during the optimization phase, you will also see how to
-improve aggregation pipeline performance using indexes and document
-filters. See
-:ref:`aggregation-pipeline-optimization-indexes-and-filters`.
+improve aggregation pipeline performance using :ref:`indexes and
+document filters <aggregation-pipeline-optimization-indexes-and-filters>`.
 
 .. _aggregation-pipeline-projection-optimization:
 
@@ -34,8 +33,8 @@ Projection Optimization
 
 The aggregation pipeline can determine if it requires only a subset of
 the fields in the documents to obtain the results. If so, the pipeline
-will only use those required fields, reducing the amount of data
-passing through the pipeline.
+only uses those fields, reducing the amount of data passing through the
+pipeline.
 
 .. _aggregation-pipeline-sequence-optimization:
 
@@ -488,15 +487,15 @@ For example, a pipeline that consists of :pipeline:`$match`,
 :pipeline:`$sort`, :pipeline:`$group` can benefit from indexes at 
 every stage:
 
-- An index on the :pipeline:`$match` query field can efficiently 
-  identify the relevant data
+- An index on the ``$match`` query field efficiently 
+  identifies the relevant data
 
-- An index on the sorting field can return data in sorted order for the 
-  :pipeline:`$sort` stage
+- An index on the sorting field returns data in sorted order for the 
+  ``$sort`` stage
 
-- An index on the grouping field that matches the :pipeline:`$sort` 
-  order can return all of the field values needed to execute the 
-  :pipeline:`$group` stage (a covered query)
+- An index on the grouping field that matches the ``$sort`` 
+  order returns all of the field values needed for the
+  ``$group`` stage, making it a covered query.
 
 To determine whether a pipeline uses indexes, review the query plan and 
 look for ``IXSCAN`` or ``DISTINCT_SCAN`` plans.
@@ -511,34 +510,29 @@ look for ``IXSCAN`` or ``DISTINCT_SCAN`` plans.
 For early stages in your aggregation pipeline, consider indexing the 
 query fields. Stages that can benefit from indexes are:
 
-``$match`` stage
-  :pipeline:`$match` can use an index to filter documents if it is the 
-  first stage in the pipeline, after any optimizations from the 
-  :ref:`query planner <query-plans-query-optimization>`.
+:pipeline:`$match` stage
+  During the ``$match`` stage, the server can use an index if ``$match`` is the first stage in the pipeline, after any optimizations from the :ref:`query planner <query-plans-query-optimization>`.
 
-``$sort`` stage
-   :pipeline:`$sort` can benefit from an index as long as it is not 
-   preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or 
+:pipeline:`$sort` stage
+   During the ``$sort`` stage, the server can use an index if the stage is not preceded by a :pipeline:`$project`, :pipeline:`$unwind`, or 
    :pipeline:`$group` stage.
 
-``$group`` stage
-  :pipeline:`$group` can use an index to find the first document in 
-  each group if it meets all of the following conditions:
-  
-  - a :pipeline:`$sort` stage sorts the grouping field before 
-    :pipeline:`$group`
+:pipeline:`$group` stage
+  During the ``$group`` stage, the server can use an index to quickly
+  find the :group:`$first <$first>` or :group:`$last <$last>` document
+  in each group if the stage meets both of these conditions:
 
-  - an index exists that matches the sort order on the grouped field
+  - The pipeline :pipeline:`sorts <$sort>` and :pipeline:`groups
+    <$group>` by the same field.
 
-  - :group:`$first` is the only accumulator in the :pipeline:`$group` 
-    stage
+  - The ``$group`` stage only uses the :group:`$first` or 
+    :group:`$last` accumulator operator.
 
-  See :ref:`$group Performance Optimizations <group-pipeline-optimization>` 
-  for an example.
+  See :ref:`$group Performance Optimizations <group-pipeline-optimization>` for an example.
 
-``$geoNear`` stage 
-  :pipeline:`$geoNear` always uses an index, since it must be the first 
-  stage in a pipeline and requires a :ref:`geospatial index <index-feature-geospatial>`.
+:pipeline:`$geoNear` stage 
+  The server always uses an index for the ``$geoNear`` stage, since it 
+  requires a :ref:`geospatial index <index-feature-geospatial>`.
 
 Additionally, stages later in the pipeline that retrieve data from 
 other, unmodified collections can use indexes on those collections 
