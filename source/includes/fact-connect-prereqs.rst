@@ -10,5 +10,5 @@ to.
 Supported MongoDB Versions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use the |mdb-shell| to connect to MongoDB version 4.0 or
+You can use the |mdb-shell| to connect to MongoDB version 4.2 or
 greater.
