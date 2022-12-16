@@ -11,6 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-course-struct
+type Course struct {
+	Title      string `bson:"title,omitempty"`
+	CourseId   string `bson:"course_id,omitempty"`
+	Enrollment int32  `bson:"enrollment,omitempty"`
+}
+
+// end-course-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -28,81 +37,82 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
-
 	// begin insertDocs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("courses")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Assam"}, {"rating", 5}},
-		bson.D{{"type", "Oolong"}, {"rating", 7}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 8}},
-		bson.D{{"type", "English Breakfast"}, {"rating", 5}},
+		Course{Title: "Primate Behavior", CourseId: "PSY2030", Enrollment: 40},
+		Course{Title: "Revolution and Reform", CourseId: "HIST3080", Enrollment: 12},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insertDocs
+
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	//end insertDocs
 
-	fmt.Println("Exclude Projection:")
+	fmt.Println("\nExclude Projection:\n")
 	{
 		//begin exclude projection
-		opts := options.Find().SetProjection(bson.D{{"rating", 0}})
+		filter := bson.D{}
+		opts := options.Find().SetProjection(bson.D{{"course_id", 0}, {"enrollment", 0}})
 
-		cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
+		cursor, err := coll.Find(context.TODO(), filter, opts)
 		if err != nil {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Course
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 		//end exclude projection
 	}
 
-	fmt.Println("Include Projection:")
+	fmt.Println("\nInclude Projection:\n")
 	{
 		//begin include projection
-		opts := options.Find().SetProjection(bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}})
+		filter := bson.D{}
+		opts := options.Find().SetProjection(bson.D{{"title", 1}, {"enrollment", 1}})
 
-		cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
+		cursor, err := coll.Find(context.TODO(), filter, opts)
 		if err != nil {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Course
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 		//end include projection
 	}
 
-	fmt.Println("Aggregation Projection:")
+	fmt.Println("\nAggregation Projection:\n")
 	{
 		// begin aggregate projection
-		projectStage := bson.D{{"$project", bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}}}
+		projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"course_id", 1}}}}
 
 		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{projectStage})
 		if err != nil {
 			panic(err)
 		}
 
-		var results []bson.D
+		var results []Course
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 		// end aggregate projection
 	}

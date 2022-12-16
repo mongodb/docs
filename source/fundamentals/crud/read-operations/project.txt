@@ -21,27 +21,44 @@ document from read operations.
 Sample Data
 ~~~~~~~~~~~
 
-To run the examples in this guide, load these documents into the
-``tea.ratings`` collection with the following
-snippet:
+The examples in this guide use the following ``Course`` struct as a model for documents
+in the ``courses`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/projection.go 
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/projection.go
+   :start-after: start-course-struct
+   :end-before: end-course-struct
+   :language: go
+   :dedent:
+
+The ``omitempty`` :ref:`struct tag<golang-struct-tags>` directs the
+driver to exclude fields when unmarshalling based on your projection
+specification.
+
+To run the examples in this guide, load the sample data into the
+``db.courses`` collection with the following snippet:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/projection.go
    :language: go
    :dedent:
    :start-after: begin insertDocs
    :end-before: end insertDocs
 
-.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
+
+Each document contains a description of a university course that
+includes the course title, course ID, and maximum enrollment, corresponding to
+the ``title``, ``course_id``, and ``enrollment`` fields in each document.
 
 Projection
 ----------
 
-A projection specifies which fields to return in matched documents. It
-contains field names followed by a ``1`` (to include) or ``0`` (to
-exclude). Projections can only include or exclude fields.
+A projection specifies which fields to return in matched documents. The
+projection document contains field names with a ``1`` to include the
+corresponding field or ``0`` to exclude it. If you are using an aggregation framework,
+you can also specify a projection to include newly computed fields.
 
-You can specify a projection by passing one to the ``SetProjection()``
-method in the options of the following read operation methods:
+You can specify a projection by passing a projection document to the ``SetProjection()``
+method. The following read operations take an options object as a parameter:
 
 - ``Find()``
 - ``FindOne()``
@@ -57,15 +74,16 @@ method in the options of the following read operation methods:
 Exclude a Field
 ~~~~~~~~~~~~~~~
 
-To exclude a field, pass the field you want to exclude and a ``0`` to
-the ``SetProjection()`` method. For all fields you don't explicitly
-list in the projection, the driver includes them.
+To exclude a field, pass the field you want to exclude with a ``0`` to
+the ``SetProjection()`` method. The driver includes all fields that are
+not explicitly excluded in the projection document, if you specify any
+fields to exclude.
 
 Example
 ```````
 
-The following example excludes the ``rating`` from the matched documents
-from the ``Find()`` method:
+The following example excludes the ``course_id`` and ``enrollment``
+fields from the matched documents returned by the ``Find()`` method:
 
 .. io-code-block::
    :copyable: true
@@ -73,56 +91,46 @@ from the ``Find()`` method:
    .. input::
       :language: go
 
-      opts := options.Find().SetProjection(bson.D{{"rating", 0}})
-
-      cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
+      filter := bson.D{}
+      opts := options.Find().SetProjection(bson.D{{"course_id", 0}, {"enrollment", 0}})
+      
+      cursor, err := coll.Find(context.TODO(), filter, opts)
       if err != nil {
-         panic(err)
+          panic(err)
+      }
+      
+      var results []Course
+      if err = cursor.All(context.TODO(), &results); err != nil {
+          panic(err)
       }
 
-      var results []bson.D
-      if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
-      }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      //results truncated
-      [{_id ObjectID("...")} {type Masala}]
-      [{_id ObjectID("...")} {type Assam}]
-      [{_id ObjectID("...")} {type Oolong}]
-      [{_id ObjectID("...")} {type Earl Grey}]
-      [{_id ObjectID("...")} {type English Breakfast}]
+      {"title":"Primate Behavior"}
+      {"title":"Revolution and Reform"}
 
 Include a Field
 ~~~~~~~~~~~~~~~
 
-To include a field, pass the field you want to include and a ``1`` to
-the ``SetProjection()`` method. For all fields you don't explicitly
-list in the projection, the driver excludes them.
-
-.. important::
-
-    You can exclude the ``_id`` field even if you specified to include
-    certain fields. By default, the driver includes the ``_id`` field.
-    You must explicitly exclude the ``_id`` field if you do not want it
-    returned.
+To include a field, pass the field you want to include with a ``1`` to
+the ``SetProjection()`` method. The driver excludes all fields that are
+not explicitly included in the projection document, if you specify any
+fields to include.
 
 .. _golang-include-projection:
 
 Example
 ```````
 
-The following example performs the following projection on the matched
-documents from the ``Find()`` method:
-
-- Include the ``type`` and ``rating`` field
-- Exclude the ``_id`` field
+The following example includes only the ``title`` and ``enrollment`` fields
+from the matched documents returned by the ``Find()`` method:
 
 .. io-code-block::
    :copyable: true
@@ -130,45 +138,41 @@ documents from the ``Find()`` method:
    .. input::
       :language: go
 
-      opts := options.Find().SetProjection(bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}})
-
-      cursor, err := coll.Find(context.TODO(), bson.D{}, opts)
+      filter := bson.D{}
+      opts := options.Find().SetProjection(bson.D{{"title", 1}, {"enrollment", 1}})
+      
+      cursor, err := coll.Find(context.TODO(), filter, opts)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{type Masala} {rating 10}]
-      [{type Assam} {rating 5}]
-      [{type Oolong} {rating 7}]
-      [{type Earl Grey} {rating 8}]
-      [{type English Breakfast} {rating 5}]
+      {"title":"Primate Behavior","enrollment":40}
+      {"title":"Revolution and Reform","enrollment":12}
 
 Aggregation
 ~~~~~~~~~~~
 
-You can also include the :manual:`$project </reference/operator/aggregation/project/>`
+You can also create a :manual:`$project </reference/operator/aggregation/project/>`
 stage to specify a projection in an aggregation pipeline.
 
 Example
 ```````
 
-The following example performs the following projection on the matched
-documents from the ``Aggregate()`` method:
-
-- Include the ``type`` and ``rating`` field
-- Exclude the ``_id`` field
+The following example includes only the ``title`` and ``course_id`` fields
+from the matched documents returned by the ``Aggregate()`` method:
 
 .. io-code-block::
    :copyable: true
@@ -176,30 +180,28 @@ documents from the ``Aggregate()`` method:
    .. input::
       :language: go
 
-      projectStage := bson.D{{"$project", bson.D{{"type", 1}, {"rating", 1}, {"_id", 0}}}}
-
+      projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"course_id", 1}}}}
+      
       cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{projectStage})
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      var results []bson.D
+      
+      var results []Course
       if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
+          panic(err)
       }
       for _, result := range results {
-         fmt.Println(result)
+          res, _ := bson.MarshalExtJSON(result, false, false)
+          fmt.Println(string(res))
       }
 
    .. output::
       :language: none
       :visible: false
 
-      [{type Masala} {rating 10}]
-      [{type Assam} {rating 5}]
-      [{type Oolong} {rating 7}]
-      [{type Earl Grey} {rating 8}]
-      [{type English Breakfast} {rating 5}]
+      {"title":"Primate Behavior","course_id":"PSY2030"}
+      {"title":"Revolution and Reform","course_id":"HIST3080"}
 
 Additional Information
 ----------------------
