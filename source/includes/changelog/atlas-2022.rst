@@ -1,5 +1,12 @@
 .. _atlas_2022_0914:
 
+14 December 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to configure some Atlas project limits using the :oas-atlas-op:`Projects Administration API resource </updateOneProjectInvitationByInvitationId>`.
+- Adds the ability to push live migrations of replica sets using :ref:`private endpoints <migrate-from-com-vpc-support>`.
+- Introduces :ref:`atlas-go-to`. 
+
 14 September 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
