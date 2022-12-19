@@ -7,6 +7,20 @@
 - Adds the ability to push live migrations of replica sets using :ref:`private endpoints <migrate-from-com-vpc-support>`.
 - Introduces :ref:`atlas-go-to`. 
 
+05 October 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds three more :ref:`google-gcp` regions:
+
+  - ``europe-west8`` (Milan, Italy)
+  - ``europe-west9`` (Paris, France)
+  - ``europe-southwest1`` (Madrid, Spain)
+
+- Adds the ability to automatically :ref:`copy backup snapshots to other 
+  regions <snapshot-distribution>`.
+- Improves the :ref:`memory utilization calculation <howitworks-scale-cluster-tier>` 
+  used to auto-scale clusters. 
+
 14 September 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
