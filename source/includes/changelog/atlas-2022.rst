@@ -7,6 +7,19 @@
 - Adds the ability to push live migrations of replica sets using :ref:`private endpoints <migrate-from-com-vpc-support>`.
 - Introduces :ref:`atlas-go-to`. 
 
+16 November 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to :ref:`simulate a regional outage <test-outage>` for Atlas.
+
+26 October 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces :ref:`Termination Protection <scale-cluster-termination-protection>` 
+  for database deployments.
+- Adds :ref:`a project setting <atlas-modify-project-settings>` that lets you 
+  configure some M40+ clusters with greater maximum storage than the standard limit.
+
 05 October 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -20,11 +33,6 @@
   regions <snapshot-distribution>`.
 - Improves the :ref:`memory utilization calculation <howitworks-scale-cluster-tier>` 
   used to auto-scale clusters.
-
-16 November 2022 Release
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-- Adds the ability to :ref:`simulate a regional outage <test-outage>` for Atlas.
 
 14 September 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
