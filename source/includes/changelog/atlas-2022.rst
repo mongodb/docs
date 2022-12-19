@@ -19,7 +19,12 @@
 - Adds the ability to automatically :ref:`copy backup snapshots to other 
   regions <snapshot-distribution>`.
 - Improves the :ref:`memory utilization calculation <howitworks-scale-cluster-tier>` 
-  used to auto-scale clusters. 
+  used to auto-scale clusters.
+
+16 November 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to :ref:`simulate a regional outage <test-outage>` for Atlas.
 
 14 September 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
