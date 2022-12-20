@@ -1,3 +1,10 @@
+.. _data-lake-v20221219:
+
+19 December 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds :ref:`AWS region <atlas-data-lake-regions>`: ``ap-southeast-1`` (Singapore).
+
 .. _data-lake-v20220913:
 
 13 September 2022 Release
