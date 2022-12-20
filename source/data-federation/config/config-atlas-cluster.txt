@@ -256,7 +256,7 @@ The {+fdi+} configuration has the following format:
    For dynamically generated databases, you can define only one 
    wildcard (``*``) collection object in the storage configuration.
 
-.. datalakeconf-atlas:: databases.[n].collections.name
+.. datalakeconf-atlas:: databases.[n].collections.[n].name
 
    Name of the collection to which {+adf+} maps the data contained in 
    each :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].storeName`. 
@@ -264,7 +264,8 @@ The {+fdi+} configuration has the following format:
    collection and an object in the :datalakeconf-atlas:`stores` array. 
 
    You can generate collection names dynamically by specifying ``*`` 
-   for the collection name and omitting the :datalakeconf-atlas:`~databases.[n].collections.[n].dataSources.[n].collection` 
+   for the collection name and omitting the
+   :datalakeconf-atlas:`~databases.[n].collections.[n].dataSources.[n].collection` 
    field. To dynamically generate wildcard (``*``) collections for 
    dynamically generated wilcard (``*``) databases, specify the 
    :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].storeName` 
@@ -292,8 +293,66 @@ The {+fdi+} configuration has the following format:
 .. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].database 
 
    Name of the database on the |service| cluster that contains the 
-   collection. You must omit this parameter to create a wildcard 
-   (``*``) collection for a wilcard (``*``) database.
+   collection. You must omit this setting to: 
+   
+   - Create a wildcard (``*``) collection for a wilcard (``*``) database.
+   - Glob multiple databases.
+
+.. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].databaseRegex
+
+   *Optional*. Regex pattern to use for globbing databases to combine
+   multiple collections. If you specify this option, the {+fdi+}
+   instance contains a single database with collections from multiple
+   databases. For globbing databases, you must do the following:
+   
+   - Omit the
+     :datalakeconf-atlas:`~databases.[n].collections.[n].dataSources.[n].database` 
+     field. 
+   - Specify a valid name for the
+     :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].collection`
+     field. 
+
+   .. example:: 
+
+      Suppose you have 2 databases named ``foo`` and ``bar`` that each
+      have a collection named ``Sales``. You can combine the ``Sales``
+      collection from ``foo`` and ``bar`` using the ``databaseRegex``
+      option in your storage configuration:
+
+      .. code-block:: json 
+         :copyable: false 
+
+         {
+           "databases": [
+             {
+               "name": "Transactions",
+               "collections": [
+                 {
+                   "name": "AllSales",
+                   "dataSources": [
+                     {
+                       "storeName": "atlasStore",
+                       "databaseRegex": ".*",
+                       "collection": "Sales"
+                     }
+                   ]
+                 } 
+               ]
+             }
+           ]
+         }
+
+      For the preceding :datalakeconf-atlas:`databases` object, {+adf+}
+      generates the following in your {+fdi+}: 
+
+      - A virtual database named ``Transactions``.
+      - A virtual collection named ``AllSales`` that contains data from
+        the collection named ``Sales`` in all the databases whose name
+        match the regex pattern specified in the ``databaseRegex`` 
+        option.
+   
+   If you specify this option, you must specify the name of
+   the collection. You can't specify this option for wildcard collections.
 
 .. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].collection 
 
@@ -302,19 +361,78 @@ The {+fdi+} configuration has the following format:
          
    - Creating a wildcard (``*``) collection.
    - Creating wildcard collection names that match regex patterns.
+   - Combining multiple collections in a database using regex patterns.
 
 .. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].collectionRegex
 
-   *Optional*. Regex pattern to use for creating the wildcard (``*``) 
-   collection. If you specify this field, the {+fdi+} 
-   instance only contains collections with names that match the 
-   specified regular expression. Collections in the {+fdi+} storage 
-   configuration use their original name in the |service| cluster.
+   *Conditional: Optional for wildcard collections, required for
+   combining collections in a database*. 
+   
+   Regex pattern to use for creating the wildcard (``*``) 
+   collection or for combining mulitple collections in a database. 
           
-   To use regex patterns for wildcard (``*``) collection names, you 
-   must not specify :datalakeconf-atlas:`~databases.[n].collections.[n].dataSources.[n].collection`. 
+   **To use regex patterns for wildcard (``*``) collection names**, you
+   must do the following:
+
+   - Specify wildcard (``*``) as the value for
+     :datalakeconf-atlas:`databases.[n].collections.[n].name`.
+   - Omit :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].collection`.
+
+   If you specify this field for generating wildcard collections, the
+   {+fdi+} instance only contains collections with names that match the
+   specified regular expression. The collections in the {+fdi+} storage
+   configuration use their original names in the |service| cluster.
+  
+   **To use regex patterns for combining multiple collections in a 
+   database**, you must do the following:
+
+   - Specify a name that isn't the wildcard (``*``) as the value for 
+     :datalakeconf-atlas:`databases.[n].collections.[n].name`.
+   - Omit :datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].collection`.
+
+   If you specify this field for combining multiple collections, the
+   collection in the {+fdi+} instance contains data from all the
+   |service| collections with names that match the specified regular
+   expression. The collection in the {+fdi+} storage configuration uses 
+   the name that you specify as value for 
+   :datalakeconf-atlas:`databases.[n].collections.[n].name`. 
+ 
    To learn more about the regex syntax, see `Go programming language 
    <https://golang.org/pkg/regexp/>`__.
+
+.. datalakeconf-atlas:: databases.[n].collections.[n].dataSources.[n].provenanceFieldName
+
+   Name for the field that includes the provenance of the documents in
+   the results. If you specify this setting in the storage
+   configuration, {+adf+} returns the following fields for each document
+   in the result: 
+
+   .. list-table:: 
+      :widths: 20 80
+      :header-rows: 1
+   
+      * - Field Name 
+        - Description
+   
+      * - ``provider`` 
+        - Provider (:datalakeconf-atlas:`stores.[n].provider`) in the
+          {+fdi+} storage configuration 
+
+      * - ``clusterName``
+        - Name of the |service| cluster
+          (:datalakeconf-atlas:`stores.[n].clusterName`) 
+   
+      * - ``databaseName`` 
+        - Name of the database
+          (:datalakeconf-atlas:`databases.[n].collections.[n].dataSources.[n].database`)
+          in the |service| cluster 
+   
+      * - ``collectionName`` 
+        - Name of the collection
+          (:datalakeconf-atlas:`databases.[n].collections.[n].name`) 
+
+   You can't configure this setting using the Visual Editor in the 
+   |service| UI.
 
 .. datalakeconf-atlas:: databases.[n].views 
 
