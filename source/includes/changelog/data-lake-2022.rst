@@ -1,3 +1,11 @@
+.. _adf-v20221219:
+
+19 December 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds new capabilities to the storage configuration to support data provenance and improved flexibility for :ref:`federation <config-adf>`.
+- Adds :ref:`AWS region <atlas-data-federation-regions>` ``ap-southeast-1`` (Singapore).
+
 .. _adf-v20221130:
 
 30 November 2022 Release
