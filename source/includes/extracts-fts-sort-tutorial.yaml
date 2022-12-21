@@ -13,14 +13,12 @@ content: |
   The query uses the following pipeline stages:
   
   - :pipeline:`$search` to search the ``title`` field
-    using the following :ref:`compound-ref` clauses: 
-
-    - ``should`` clause with the :ref:`wildcard-ref` operator to
-      search for titles that begin with ``Prance`` and ``Prince``.
-      Each subquery specifies a score that replaces the base score for
-      matching results with the specified number, which allows the
-      results to be sorted based on the score. The scores from highest
-      to lowest sort the movie titles alphabetically.
+    using the ``should`` clause with the :ref:`wildcard-ref` operator to
+    search for titles that begin with ``Prance`` and ``Prince``.
+    Each subquery specifies a score that replaces the base score for
+    matching results with the specified number, which allows the
+    results to be sorted based on the score. The scores from highest
+    to lowest sort the movie titles alphabetically.
   
   - :pipeline:`$limit` stage to limit the output to ``5`` results.
   - :pipeline:`$project` stage to:
@@ -39,6 +37,7 @@ content: |
   constant value of ``99`` and ``95`` respectively. If you want to sort
   the results by ``Prince`` first, modify its score value to be greater
   than ``Prance``.
+
 ---
 ref: fts-sort-speed-precision-constant-desc
 content: | 
@@ -65,7 +64,14 @@ content: |
   The following query shows how to sort a numeric field to decrease the
   time your query executes. It uses the :ref:`near-ref` operator to
   search for movies that were released in and about five years before or
-  after 2015.
+  after 2015. 
+  
+  .. note::
+  
+     When you use ``pivot`` on a numeric field, its unit of measure is
+     equal to the data type of the ``path`` field. Since the query is on
+     the ``year`` field, and the unit of measure is in years, then 
+     ``pivot`` is also in years. To learn more, see :ref:`near-ref`.
 
 ---
 ref: fts-sort-for-speed-stage
@@ -83,5 +89,45 @@ content: |
      This method omits the :pipeline:`$sort` stage because
      the :ref:`near-ref` operator automatically sorts the results in
      ascending order based on ``_id`` field.
+
+---
+ref: fts-sort-date-for-speed-constant-desc
+content: | 
+
+  The following query shows how to sort a date field to decrease the
+  time your query executes. It uses the following operators:
+  
+  - :ref:`wildcard-ref` operator to search for movie titles that begin
+    with ``Summer``.
+
+  - :ref:`near-ref` operator to search for movies that were released in
+    and about five months before or after April 18, 2014.
+
+    .. note::
+  
+       When you use ``pivot`` on a date field, its unit of measure is
+       in milliseconds. |fts| calculates a score for each document based
+       on how close the date field is to the specified date and then sorts
+       them in descending order based on their score. To learn more, see
+       :ref:`near-ref`.
+
+---
+ref: fts-sort-date-for-speed-stage
+content: | 
+
+  The query uses the following pipeline stages:
+  
+  - :pipeline:`$search` stage to search the ``title`` and ``released`` fields.
+  - :pipeline:`$limit` stage to limit the output to ``5`` results.
+  - :pipeline:`$project` stage to:
+    
+    - Exclude all fields except ``title``, and ``released``.
+    - Add a field named ``score``.
+
+  .. note:: 
+
+     This method omits the :pipeline:`$sort` stage because
+     the :ref:`near-ref` operator automatically sorts the results in
+     descending order based on ``score`` field.
 
 ...
