@@ -35,7 +35,7 @@
      -
 
    * - ``SCRAM-SHA256`` database authentication
-     - :icon-fa5:`check`
+     - 
      - :icon-fa5:`check`
 
    * - AWS IAM database authentication
