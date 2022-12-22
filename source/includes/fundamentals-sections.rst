@@ -12,7 +12,7 @@ Fundamentals section:
 - :ref:`Perform Aggregations <golang-aggregation>`
 - :ref:`Construct Indexes <golang-indexes>`
 - :ref:`Specify Collations to Order Results <golang-collations>`
-- :ref:`Use Driver Events in your Code <golang-monitoring>`
+- :ref:`Use Driver Events in Your Code <golang-monitoring>`
 - :ref:`Store and Retrieve Files in MongoDB <golang-gridfs>`
 - :ref:`Use a Time Series Collection <golang-time-series>`
 - :ref:`Encrypt Fields <golang-fle>`
@@ -20,4 +20,3 @@ Fundamentals section:
 
 .. - :doc:`Use the Driver's Data Formats </fundamentals/data-formats>`
 .. - :doc:`Record Events in the Driver </fundamentals/logging>`
-.. - :doc:`Use Driver Events in your Code </fundamentals/monitoring>`
