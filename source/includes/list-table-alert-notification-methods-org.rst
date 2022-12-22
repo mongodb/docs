@@ -178,8 +178,9 @@
      - :icon:`check`
 
      - Sends the alert to an `Opsgenie <https://www.opsgenie.com/>`_
-       account. Enter only the Opsgenie API key. Define escalation
-       rules and alert assignments in Opsgenie.
+       account. Enter only the Opsgenie API key from an Opsgenie |rest| 
+       |api| integration. Define escalation rules and alert assignments 
+       in Opsgenie.
 
        This option is available only for alerts that you must
        acknowledge. Informational alerts like |a-service| user has 
