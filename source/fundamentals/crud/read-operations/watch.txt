@@ -24,7 +24,7 @@ Sample Data
 ~~~~~~~~~~~
 
 To run the examples in this guide, load these documents into the
-``tea.ratings`` collection with the following
+``db.courses`` collection with the following
 snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/sort.go
@@ -39,13 +39,14 @@ snippet:
    you perform a write operation, the server implicitly creates
    them.
 
-Each document contains a rating for a type of tea that corresponds to the ``type``
-and ``rating`` fields.
+Each document contains a description of a university course that
+includes the course title and maximum enrollment, corresponding to
+the ``title`` and ``enrollment`` fields in each document.
 
 .. note::
 
-   Each example truncates the ``_data``, ``clusterTime``, and ``ObjectID`` values
-   because the driver generates them uniquely.
+   Each example output shows truncated ``_data``, ``clusterTime``, and
+   ``ObjectID`` values because the driver generates them uniquely.
 
 Open a Change Stream
 --------------------
@@ -56,12 +57,12 @@ parameter and a pipeline parameter. To return all changes, pass in an empty Pipe
 Example
 ~~~~~~~
 
-The following example opens a change stream on the ``tea.ratings`` collection and
+The following example opens a change stream on the ``db.courses`` collection and
 outputs all changes:
 
 .. code-block:: go
 
-   coll := client.Database("tea").Collection("ratings")
+   coll := client.Database("db").Collection("courses")
 
    // open a change stream with an empty pipeline parameter
    changeStream, err := coll.Watch(context.TODO(), mongo.Pipeline{})
@@ -70,21 +71,22 @@ outputs all changes:
    }
    defer changeStream.Close(context.TODO())
 
-   // iterate over the cursor to print the change stream events
+   // iterate over the cursor to print the change-stream events
    for changeStream.Next(context.TODO()) {
       fmt.Println(changeStream.Current)
    }
 
-If you modify the ``tea.ratings`` collection in a separate shell, this code will print
-your changes. Inserting a document with a ``type`` value of ``"White Peony"`` and a
-``rating`` value of ``4`` will output the following change event:
+If you modify the ``db.courses`` collection in a separate program or shell, this code will print
+your changes as they occur. Inserting a document with a ``title`` value
+of "Advanced Screenwriting" and an ``enrollment`` value of ``20``
+results in the following change-stream event:
 
 .. code-block:: go
    :copyable: false
 
    map[_id:map[_data:...] clusterTime: {...} documentKey:map[_id:ObjectID("...")]
-   fullDocument:map[_id:ObjectID("...") rating:4 type:White Peony] ns:
-   map[coll:ratings db:tea] operationType:insert]
+   fullDocument:map[_id:ObjectID("...") enrollment:20 title:Advanced Screenwriting] ns:
+   map[coll:courses db:db] operationType:insert]
 
 Modify the Change Stream Output
 -------------------------------
@@ -107,12 +109,12 @@ You can use the following pipeline stages in this parameter:
 Example
 ~~~~~~~
 
-The following example opens a change stream on the ``tea`` database, but only watches for
+The following example opens a change stream on the ``db`` database, but only watches for
 new delete operations:
 
 .. code-block:: go
 
-   db := client.Database("tea")
+   db := client.Database("db")
 
    pipeline := bson.D{{"$match", bson.D{{"operationType", "delete"}}}}
    changeStream, err := db.Watch(context.TODO(), mongo.Pipeline{pipeline})
@@ -125,21 +127,20 @@ new delete operations:
       fmt.Println(changeStream.Current)
    }
 
-If you delete the ``tea.ratings`` document with a ``type`` value of
-``"White Peony"`` in a separate shell, this code will output the following:
+Deleting the document with the ``title`` value of "Advanced Screenwriting"
+in a separate program or shell results in the following change-stream event:
 
 .. code-block:: go
    :copyable: false
 
    {"_id": {"_data": "..."},"operationType": "delete","clusterTime":
-   {"$timestamp":{"t":"...","i":"..."}},"ns": {"db": "tea","coll": "ratings"},
+   {"$timestamp":{"t":"...","i":"..."}},"ns": {"db": "db","coll": "courses"},
    "documentKey": {"_id": {"$oid":"..."}}}
 
 .. note::
 
-   The ``Watch()`` method was called on the ``tea`` database, so the code outputs
-   new delete operations in any ``tea`` collection.
-
+   The ``Watch()`` method was called on the ``db`` database, so the code outputs
+   new delete operations in any collection within this database.
 
 Modify the Behavior of Watch()
 ------------------------------
@@ -162,12 +163,12 @@ For more information on these fields, visit the
 Example
 ~~~~~~~
 
-The following example calls the ``Watch()`` method on the ``tea.ratings`` collection. It
-specifies the ``FullDocument`` opts parameter to output a copy of the entire modified document:
+The following example calls the ``Watch()`` method on the ``db.courses`` collection. It
+specifies the ``FullDocument`` options parameter to output a copy of the entire modified document:
 
 .. code-block:: go
 
-   coll := client.Database("tea").Collection("ratings")
+   coll := client.Database("db").Collection("courses")
    opts := options.ChangeStream().SetFullDocument(options.UpdateLookup)
 
    changeStream, err := coll.Watch(context.TODO(), mongo.Pipeline{}, opts)
@@ -180,16 +181,18 @@ specifies the ``FullDocument`` opts parameter to output a copy of the entire mod
      fmt.Println(changeStream.Current)
    }
 
-If you update the ``rating`` value of the ``"Masala"`` tea from ``10`` to ``9``,
-this code outputs the following:
+Updating the ``enrollment`` value of the document with the
+``title`` of "World Fiction" from ``35`` to ``30`` results in the
+following change-stream event:
 
 .. code-block:: go
    :copyable: false
 
    {"_id": {"_data": "..."},"operationType": "update","clusterTime": {"$timestamp":
-   {"t":"...","i":"..."}},"fullDocument": {"_id": {"$oid":"..."},"type": "Masala","rating":
-   {"$numberInt":"9"}}, "ns": {"db": "tea","coll": "ratings"},"documentKey": {"_id":
-   {"$oid":"..."}}, "updateDescription": {"updatedFields": {"rating": {"$numberInt":"9"}},
+   {"t":"...","i":"..."}},"fullDocument": {"_id":
+   {"$oid":"..."},"title": "World Fiction","enrollment":
+   {"$numberInt":"30"}}, "ns": {"db": "db","coll": "courses"},"documentKey": {"_id":
+   {"$oid":"..."}}, "updateDescription": {"updatedFields": {"enrollment": {"$numberInt":"30"}},
    "removedFields": [],"truncatedArrays": []}}
 
 Without specifying the ``FullDocument`` option, the same update operation no longer
