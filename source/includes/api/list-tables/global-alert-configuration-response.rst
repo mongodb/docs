@@ -131,6 +131,8 @@
        notifications. If the token later becomes invalid, |mms| sends an
        email to the project owner and removes the token.
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - ``notifications.channelName``
      - string
      - Slack channel name. Only present for ``SLACK`` notifications.
@@ -171,6 +173,8 @@
        - You set a default ``webhookSecret`` on the 
          :ref:`Admin Console <mms-manage-global-alerts>`.
 
+       .. include:: /includes/fact-webhook-redacted.rst
+
    * - | notifications.[n]
        | .webhookUrl
      - string
@@ -184,16 +188,22 @@
        - You set a default ``webhookUrl`` on the 
          :ref:`Admin Console <mms-manage-global-alerts>` page.
 
+       .. include:: /includes/fact-webhook-redacted.rst
+
    * - ``notifications.microsoftTeamsWebhookUrl``
      - string
      - Microsoft Teams channel incoming webhook URL. Only present 
        for ``MICROSOFT_TEAMS`` notifications.
+
+       .. include:: /includes/fact-microsoft-redacted.rst
 
    * - ``notifications.notificationToken``
      - string
      - HipChat API token. Only present for ``HIP_CHAT`` notifications.
        If the token later becomes invalid, |mms| sends an email to the 
        project owner and removes the token.
+
+       .. include:: /includes/fact-api-key-redacted.rst
 
    * - ``notifications.roomName``
      - string
@@ -204,6 +214,8 @@
      - PagerDuty integration key. Only present for ``PAGER_DUTY`` 
        notifications. If the key later becomes invalid, |mms| sends an 
        email to the project owner and removes the key.
+
+       .. include:: /includes/fact-api-key-redacted.rst
 
    * - ``notifications.smsEnabled``
      - boolean
