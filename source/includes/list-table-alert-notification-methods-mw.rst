@@ -87,6 +87,8 @@
        account. To learn more about Bot users in Slack, see
        `<https://api.slack.com/bot-users>`__.
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Flowdock
 
      - Sends the alert to a Flowdock account. Enter the following:
@@ -116,7 +118,10 @@
         
        This option is available only if you have configured Webhook 
        settings on the :doc:`Integrations 
-       </tutorial/third-party-service-integrations>` page.          
+       </tutorial/third-party-service-integrations>` page.         
+
+       .. include:: /includes/fact-webhook-redacted.rst
+       
 
    * - Datadog
 
@@ -134,6 +139,8 @@
   
           .. include:: /includes/fact-datadog-supported-regions.rst
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Microsoft Teams
 
      - Sends the alert to a 
@@ -150,5 +157,7 @@
 
        To setup the integration, see 
        :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
+
+       .. include:: /includes/fact-ms-teams-redacted.rst
 
 

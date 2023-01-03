@@ -87,6 +87,8 @@
        account. To learn more about Bot users in Slack, see
        `<https://api.slack.com/bot-users>`__.
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Flowdock
 
      - Sends the alert to a Flowdock account. Enter the following:
@@ -119,6 +121,8 @@
 
        .. include:: /includes/fact-pagerduty-api-key-decommission.rst
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Datadog
 
      - Sends the alert to a `Datadog <https://www.datadoghq.com/alerts/>`_
@@ -134,6 +138,8 @@
        #. Enter your |api| region. 
   
           .. include:: /includes/fact-datadog-supported-regions.rst
+
+       .. include:: /includes/fact-api-key-redacted.rst
 
    * - VictorOps
 
@@ -157,6 +163,8 @@
        Users can acknowledge VictorOps alerts only from the VictorOps 
        dashboard.
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Opsgenie
 
      - Sends the alert to an `Opsgenie <https://www.opsgenie.com/>`_
@@ -169,6 +177,8 @@
 
        Users can acknowledge Opsgenie alerts only from the Opsgenie
        dashboard.
+
+       .. include:: /includes/fact-api-key-redacted.rst
 
    * - Microsoft Teams
 
@@ -187,6 +197,8 @@
        To setup the integration, see 
        :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
 
+       .. include:: /includes/fact-ms-teams-redacted.rst
+
    * - Webhook
         
      - Sends an |http| POST
@@ -198,4 +210,7 @@
        This option is available only if you have configured Webhook 
        settings on the :ref:`Integrations 
        <third-party-integrations>` page.
+
+       .. include:: /includes/fact-webhook-redacted.rst
+
   

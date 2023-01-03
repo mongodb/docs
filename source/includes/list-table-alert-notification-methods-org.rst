@@ -87,6 +87,8 @@
        :ref:`Authorize Slack to Receive Organization Alerts <add-slack-to-organization>`.
        Enter the channel name.
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Flowdock
 
      - :icon:`check`
@@ -126,6 +128,8 @@
 
        .. include:: /includes/fact-pagerduty-api-key-decommission.rst
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Datadog
 
      - :icon:`check`
@@ -145,6 +149,8 @@
        #. Enter your |api| region. 
   
           .. include:: /includes/fact-datadog-supported-regions.rst
+
+       .. include:: /includes/fact-api-key-redacted.rst
 
    * - VictorOps
 
@@ -171,6 +177,8 @@
 
        Acknowledge VictorOps alerts from the VictorOps dashboard.
 
+       .. include:: /includes/fact-api-key-redacted.rst
+
    * - Opsgenie
 
      - 
@@ -189,6 +197,8 @@
        `Acknowledge Opsgenie 
        alerts <https://docs.opsgenie.com/docs/acknowledge-and-unacknowledge>`_ 
        from the Opsgenie dashboard.
+
+       .. include:: /includes/fact-api-key-redacted.rst
 
    * - Microsoft Teams
 
@@ -209,3 +219,5 @@
 
        To setup the integration, see 
        :ref:`Integrate with Microsoft Teams <integrate-with-microsoft-teams>`.
+
+       .. include:: /includes/fact-ms-teams-redacted.rst
