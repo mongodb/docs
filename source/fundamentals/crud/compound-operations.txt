@@ -32,19 +32,35 @@ MongoDB supports the following compound operations:
 .. tip::
     
    If you need to read and write to more than one document, use
-   :manual:`transactions </core/transactions/>`.
+   :ref:`transactions <golang-transactions>`.
 
 Sample Data
 ~~~~~~~~~~~
 
-Run the following snippet to load the documents into the ``tea.ratings`` collection:
+The examples in this guide use the following ``Course`` struct as a model for documents
+in the ``courses`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/compoundOperations.go
+   :start-after: start-course-struct
+   :end-before: end-course-struct
+   :language: go
+   :dedent:
+
+To run the examples in this guide, load the sample data into the
+``db.courses`` collection with the following
+snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/compoundOperations.go
    :language: go
    :dedent:
    :start-after: begin insertDocs
    :end-before: end insertDocs
-.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+
+Each document contains a description of a university course that
+includes the course title and maximum enrollment, corresponding to
+the ``title`` and ``enrollment`` fields in each document.
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
 
 .. _golang-find-and-delete:
 
@@ -107,8 +123,9 @@ with the following methods:
 Example
 ```````
 
-The following example matches and deletes a document where the ``type``
-is "Assam" with the ``FindOneAndDelete()`` method:
+The following example uses the ``FindOneAndDelete()`` method 
+to match and delete the first document where the ``enrollment`` 
+field value is less than 20:
 
 .. io-code-block::
    :copyable: true
@@ -116,21 +133,22 @@ is "Assam" with the ``FindOneAndDelete()`` method:
    .. input::
       :language: go
 
-      filter := bson.D{{"type", "Assam"}}
+      filter := bson.D{{"enrollment", bson.D{{"$lt", 20}}}}
 
-      var deletedDoc bson.D
+      var deletedDoc Course
       err := coll.FindOneAndDelete(context.TODO(), filter).Decode(&deletedDoc)
       if err != nil {
          panic(err)
       }
 
-      fmt.Println(deletedDoc)
+      res, _ := bson.MarshalExtJSON(deletedDoc, false, false)
+      fmt.Println(string(res))
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Assam} {rating 5}]
+      {"title":"Animal Communication","enrollment":18}
 
 .. _golang-find-and-update:
 
@@ -210,11 +228,11 @@ with the following methods:
 Example
 ```````
 
-The following example performs the following actions in order with the
-``FindOneAndUpdate()`` method:
+The following example uses the ``FindOneAndUpdate()`` method to 
+perform the following actions in order:
 
-- Matches a document where the ``type`` is "Oolong"
-- Updates the matched document's ``rating`` to ``9``
+- Matches the first document where the ``title`` field value includes "Modern"
+- Updates the matched document's ``enrollment`` field value to ``32``
 - Returns the updated document
 
 .. io-code-block::
@@ -223,23 +241,24 @@ The following example performs the following actions in order with the
    .. input::
       :language: go
 
-      filter := bson.D{{"type", "Oolong"}}
-      update := bson.D{{"$set", bson.D{{"rating", 9}}}}
+      filter := bson.D{{"title", bson.D{{"$regex", "Modern"}}}}
+      update := bson.D{{"$set", bson.D{{"enrollment", 32}}}}
       opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-
-      var updatedDoc bson.D
+      
+      var updatedDoc Course
       err := coll.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedDoc)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      fmt.Println(updatedDoc)
+      
+      res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+      fmt.Println(string(res))
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Oolong} {rating 9}]
+      {"title":"Early Modern Philosophy","enrollment":32}
 
 .. _golang-find-and-replace:
 
@@ -311,11 +330,12 @@ with the following methods:
 Example
 ```````
 
-The following example performs the following actions in order with the
-``FindOneAndReplace()`` method:
+The following example uses the ``FindOneAndReplace()`` method to 
+perform the following actions in order:
 
-- Matches a document where the ``type`` is "English Breakfast"
-- Replaces the matched document with a new document where the ``type`` is "Ceylon" and  ``rating`` is ``6``
+- Matches the first document where the ``title`` is "Representation Theory"
+- Replaces the matched document with a new document where the ``title``
+  is "Combinatorial Theory" and the ``enrollment`` is ``35``
 
 .. io-code-block::
    :copyable: true
@@ -323,22 +343,23 @@ The following example performs the following actions in order with the
    .. input::
       :language: go
 
-      filter := bson.D{{"type", "English Breakfast"}}
-      replacement := bson.D{{"type", "Ceylon"}, {"rating", 6}}
-
-      var previousDoc bson.D
+      filter := bson.D{{"title", "Representation Theory"}}
+      replacement := Course{Title: "Combinatorial Theory", Enrollment: 35}
+      
+      var outdatedDoc Course
       err := coll.FindOneAndReplace(context.TODO(), filter, replacement).Decode(&previousDoc)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      fmt.Println(previousDoc)
+      
+      res, _ := bson.MarshalExtJSON(outdatedDoc, false, false)
+      fmt.Println(string(res))
       
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type English Breakfast} {rating 5}]
+      {"title":"Representation Theory","enrollment":40}
 
 Additional Information
 ----------------------

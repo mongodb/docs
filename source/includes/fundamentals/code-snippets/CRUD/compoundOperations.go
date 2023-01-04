@@ -11,6 +11,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-course-struct
+type Course struct {
+	Title      string
+	Enrollment int32
+}
+
+// end-course-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -28,70 +36,71 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
+	client.Database("db").Collection("courses").Drop(context.TODO())
 
 	// begin insertDocs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("courses")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Assam"}, {"rating", 5}},
-		bson.D{{"type", "Oolong"}, {"rating", 7}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 8}},
-		bson.D{{"type", "English Breakfast"}, {"rating", 5}},
+		Course{Title: "Representation Theory", Enrollment: 40},
+		Course{Title: "Early Modern Philosophy", Enrollment: 25},
+		Course{Title: "Animal Communication", Enrollment: 18},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insertDocs
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	//end insertDocs
 
-	fmt.Println("FindOneAndDelete:")
+	fmt.Println("\nFindOneAndDelete:\n")
 	{
 		//begin FindOneAndDelete
-		filter := bson.D{{"type", "Assam"}}
+		filter := bson.D{{"enrollment", bson.D{{"$lt", 20}}}}
 
-		var deletedDoc bson.D
+		var deletedDoc Course
 		err := coll.FindOneAndDelete(context.TODO(), filter).Decode(&deletedDoc)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println(deletedDoc)
+		res, _ := bson.MarshalExtJSON(deletedDoc, false, false)
+		fmt.Println(string(res))
 		//end FindOneAndDelete
 	}
 
-	fmt.Println("FindOneAndReplace:")
-	{
-		//begin FindOneAndReplace
-		filter := bson.D{{"type", "English Breakfast"}}
-		replacement := bson.D{{"type", "Ceylon"}, {"rating", 6}}
-
-		var previousDoc bson.D
-		err := coll.FindOneAndReplace(context.TODO(), filter, replacement).Decode(&previousDoc)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(previousDoc)
-		//end FindOneAndReplace
-	}
-
-	fmt.Println("FindOneAndUpdate:")
+	fmt.Println("\nFindOneAndUpdate:\n")
 	{
 		//begin FindOneAndUpdate
-		filter := bson.D{{"type", "Oolong"}}
-		update := bson.D{{"$set", bson.D{{"rating", 9}}}}
+		filter := bson.D{{"title", bson.D{{"$regex", "Modern"}}}}
+		update := bson.D{{"$set", bson.D{{"enrollment", 32}}}}
 		opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
-		var updatedDoc bson.D
+		var updatedDoc Course
 		err := coll.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedDoc)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println(updatedDoc)
+		res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+		fmt.Println(string(res))
 		//end FindOneAndUpdate
+	}
+
+	fmt.Println("\nFindOneAndReplace:\n")
+	{
+		//begin FindOneAndReplace
+		filter := bson.D{{"title", "Representation Theory"}}
+		replacement := Course{Title: "Combinatorial Theory", Enrollment: 35}
+
+		var previousDoc Course
+		err := coll.FindOneAndReplace(context.TODO(), filter, replacement).Decode(&previousDoc)
+		if err != nil {
+			panic(err)
+		}
+
+		res, _ := bson.MarshalExtJSON(previousDoc, false, false)
+		fmt.Println(string(res))
+		//end FindOneAndReplace
 	}
 }
