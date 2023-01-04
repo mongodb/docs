@@ -1,3 +1,11 @@
+.. _cloudmanager_20221214:
+
+14 December 2022 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.9.0.7902-1 <12.9.0.7902-1>`. 
+- Adds support for :atlas:`private endpoints </security-private-endpoint>` with :ref:`live migration of replica sets <migrate-to-atlas-cm>`. 
+
 .. _cloudmanager_20221116:
 
 16 November 2022 Release
