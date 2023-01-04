@@ -63,7 +63,7 @@
        or dashboard using this data.
 
    * - ``true``
-     - Number greater than or equal to ``10``
+     - Number greater than or equal to ``60``
      - The chart or dashboard automatically refreshes at the 
        ``maxDataAge`` interval you specify, in seconds.
 
@@ -77,15 +77,15 @@
        dashboard using this data.
 
    * - ``true``
-     - Number less than ``10``
+     - Number less than ``60``
      - The chart or dashboard automatically refreshes at the minimum 
-       period of 10 seconds. 
+       period of 60 seconds. 
 
        When you initially load, manually refresh, or automatically
        refresh the chart or dashboard, |charts| renders the chart or 
        dashboard with data from the cache if the age of the data is 
-       less than the minimum ``maxDataAge`` value of 10 seconds. If 
-       the age of the data data from the cache is older than 10 
+       less than the minimum ``maxDataAge`` value of 60 seconds. If 
+       the age of the data data from the cache is older than 60 
        seconds, |charts-short| queries the data source for the latest 
        data, refreshes the cache, and renders the chart or dashboard 
        using this data.
