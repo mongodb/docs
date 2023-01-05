@@ -12,7 +12,7 @@
        Corresponds to the  ``analyzer`` setting.
      - Optional
        
-   * - :guilabel:`Search Analyzer` 
+   * - :guilabel:`Query Analyzer` 
      - .. include:: /includes/extracts/fts-field-search-analyzer.rst
 
        Corresponds to the  ``searchAnalyzer`` setting.
@@ -23,21 +23,3 @@
 
        Corresponds to the  ``mappings.dynamic`` setting.
      - Required
-     
-   * - :guilabel:`Store Full Document`
-     - .. include:: /includes/extracts/fts-stored-source-vib.rst 
-
-     - Required
-
-   * - :guilabel:`Field Mappings`
-     - .. include:: /includes/extracts/fts-field-mappings-fields-vib.rst
-
-       Corresponds to the  ``mappings.fields`` setting.
-     - Conditional   
-
-   * - :guilabel:`Synonyms Mappings`
-     - .. include:: /includes/extracts/fts-field-synonyms-vib.rst
-
-       Corresponds to the ``synonyms`` setting.
-
-     - Optional.
