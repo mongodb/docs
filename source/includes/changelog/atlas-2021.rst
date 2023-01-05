@@ -173,7 +173,7 @@
 
 - Introduces the ability to set an |service| user account to be granted 
   the :authrole:`Project Owner` role on a specified project 
-  :oas-atlas-op:`via the API </createOneProject>`.
+  :oas-atlas-op:`via the API </createProject>`.
 
 - Removes IP Whitelist resources. The 
   :oas-atlas-tag:`IP Access List </Project-IP-Access-List>` resource 

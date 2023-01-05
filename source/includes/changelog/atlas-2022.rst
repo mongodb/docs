@@ -3,7 +3,7 @@
 14 December 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds the ability to configure some Atlas project limits using the :oas-atlas-op:`Projects Administration API resource </updateOneProjectInvitationByInvitationId>`.
+- Adds the ability to configure some Atlas project limits using the :oas-atlas-op:`Projects Administration API resource </updateProjectInvitationById>`.
 - Adds the ability to push live migrations of replica sets using :ref:`private endpoints <migrate-from-com-vpc-support>`.
 - Introduces :ref:`atlas-go-to`. 
 
@@ -179,7 +179,7 @@
   </upgradeOneTenantCluster>` through the |service| Admin 
   API.
 - Adds support for :oas-atlas-op:`managing project settings 
-  </patchGroupSettings>` through the |service| Admin 
+  </updateProjectSettings>` through the |service| Admin 
   API.
 
 .. _atlas_20220309:
