@@ -1,0 +1,630 @@
+.. _csharp-quick-reference:
+
+===============
+Quick Reference
+===============
+
+.. default-domain:: mongodb
+
+This page shows the driver syntax for several MongoDB commands and links to
+their related reference and API documentation. The examples in this guide use the 
+``restaurants`` collection from the ``sample_restaurants`` database, part of the 
+:atlas:`sample datasets </sample-data>` provided by Atlas. 
+See the :ref:`<csharp-quickstart>` to learn how to create a free MongoDB cluster
+and load this sample data.
+
+The examples on this page use the following ``Restaurant``, ``Address``, and ``GradeEntry`` 
+classes as models:
+
+.. literalinclude:: includes/quick-start/Restaurant.cs
+   :language: csharp
+   :copyable:
+   :dedent:
+
+.. literalinclude:: includes/quick-start/Address.cs
+   :language: csharp
+   :copyable:
+   :dedent:
+
+.. literalinclude:: includes/quick-start/GradeEntry.cs
+   :language: csharp
+   :copyable:
+   :dedent:
+
+After you've loaded the sample data into your MongoDB instance, you can use the 
+following code to access the ``restaurants`` collection:
+
+.. code-block:: csharp
+   :copyable: true
+
+   using MongoDB.Driver;
+
+   var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
+   ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
+
+   const string connectionUri = "<your MongoDB connection URI>";
+   var client = new MongoClient(connectionUri);
+   var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
+   _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
+
+.. tip:: Using LINQ
+
+  You can perform many of the operations on this page using LINQ. For more 
+  information on using LINQ with the {+driver-short+}, see the 
+  :ref:`LINQ Fundamentals page. <csharp-linq>` 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Command
+     - Syntax
+
+   * - | **Find a Document**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_Find.htm>`__
+       | :ref:`Usage Example <csharp-find-one>`
+       | :ref:`Fundamentals <csharp-retrieve-find-one>`
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Name, "Bagels N Buns");
+
+             var restaurant = _restaurantsCollection.Find(filter).FirstOrDefault();
+
+             Console.WriteLine(restaurant);
+
+          .. output::
+             :language: json
+
+             { name : "Bagels N Buns", restaurant_id : "40363427", ... }
+
+   * - | **Find a Document (Async)**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_Find.htm>`__
+       | :ref:`Usage Example <csharp-find-one>`
+       | :ref:`Fundamentals <csharp-retrieve-find-one>`
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Name, "Bagels N Buns");
+
+             var restaurant = await _restaurantsCollection.Find(filter).FirstOrDefaultAsync();
+
+             Console.WriteLine(restaurant);
+
+          .. output::
+             :language: json
+
+             { name : "Bagels N Buns", restaurant_id : "40363427", ... }
+
+
+   * - | **Find Multiple Documents**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_Find.htm>`__
+       | :ref:`Usage Example <csharp-find-multiple>`
+       | :ref:`Fundamentals <csharp-retrieve-find-multiple>`
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(r => restaurant.Cuisine, "Pizza");
+
+             var restaurants = _restaurantsCollection.Find(filter).ToList();
+
+             Console.WriteLine(restaurants);
+
+          .. output::
+             :language: json
+
+             [
+               { name: "Como Pizza", cuisine: "Pizza", ... },
+               { name: "New York Pizza Suprema", cuisine: "Pizza", ... },
+               ...
+             ]
+
+   * - | **Find Multiple Documents (Async)**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_Find.htm>`__
+       | :ref:`Usage Example <csharp-find-multiple>`
+       | :ref:`Fundamentals <csharp-retrieve-find-multiple>`
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(r => restaurant.Cuisine, "Pizza");
+
+             var restaurants = await _restaurantsCollection.Find(filter).ToListAsync();
+
+             Console.WriteLine(restaurants); 
+
+          .. output::
+             :language: json
+
+             [
+               { name: "Como Pizza", cuisine: "Pizza", ... },
+               { name: "New York Pizza Suprema", cuisine: "Pizza", ... },
+               ...
+             ]
+
+   * - | **Insert a Document**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_InsertOne.htm>`__ 
+       | :ref:`Usage Example <csharp-insert-one>`
+       | :ref:`Fundamentals <csharp-insert-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var insertResult = _restaurantsCollection.InsertOne(new Restaurant { Name = "Mongo's Pizza" });
+
+   * - | **Insert a Document (Async)**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_InsertOneAsync.htm>`__
+       | :ref:`Usage Example <csharp-insert-one>`
+       | :ref:`Fundamentals <csharp-insert-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var insertResult = await _restaurantsCollection.InsertOneAsync(new Restaurant { Name = "Mongo's Pizza" });
+
+   * - | **Insert Multiple Documents**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_InsertMany.htm>`__ 
+       | :ref:`Usage Example <csharp-insert-many>`
+       | :ref:`Fundamentals <csharp-insert-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          _restaurantsCollection.InsertMany(new List<Restaurant>
+          {
+              new Restaurant { Name = "Mongo's Pizza" },
+              new Restaurant { Name = "Mongo Grill" }
+          });
+
+   * - | **Insert Multiple Documents (Async)**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_InsertManyAsync.htm>`__
+       | :ref:`Usage Example <csharp-insert-many>`
+       | :ref:`Fundamentals <csharp-insert-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          await _restaurantsCollection.InsertManyAsync(new List<Restaurant>
+          {
+              new Restaurant { Name = "Mongo's Pizza" },
+              new Restaurant { Name = "Mongo Grill" }
+          });
+
+   * - | **Update a Document**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_UpdateOne.htm>`__
+       | :ref:`Usage Example <csharp-update-one>`
+       | :ref:`Fundamentals <csharp-update-operation>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Name, "Bagels N Buns");
+
+          var update = Builders<Restaurant>.Update
+            .Set(restaurant => restaurant.Name, "2 Bagels 2 Buns");
+
+          var result = _restaurantsCollection.UpdateOne(filter, update);
+
+   * - | **Update a Document (Async)**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_UpdateOneAsync.htm>`__
+       | :ref:`Usage Example <csharp-update-one>`
+       | :ref:`Fundamentals <csharp-update-operation>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Name, "Bagels N Buns");
+
+          var update = Builders<Restaurant>.Update
+            .Set(restaurant => restaurant.Name, "2 Bagels 2 Buns");
+
+          var updateResult = await _restaurantsCollection.UpdateOneAsync(filter, update);
+
+   * - | **Update Multiple Documents**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_UpdateMany.htm>`__
+       | :ref:`Usage Example <csharp-update-many>`
+       | :ref:`Fundamentals <csharp-update-operation>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Cuisine, "Pizza");
+
+          var update = Builders<Restaurant>.Update
+            .Set(restaurant => restaurant.Cuisine, "Pasta and breadsticks");
+
+          var result = _restaurantsCollection.UpdateMany(filter, update);
+
+   * - | **Update Multiple Documents (Async)**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_UpdateManyAsync.htm>`__ 
+       | :ref:`Usage Example <csharp-update-many>`
+       | :ref:`Fundamentals <csharp-update-operation>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Cuisine, "Pizza");
+
+          var update = Builders<Restaurant>.Update
+            .Set(restaurant => restaurant.Cuisine, "Pasta and breadsticks");
+
+          var updateResult = await _restaurantsCollection.UpdateManyAsync(filter, update);
+
+   * - | **Update an Array in a Document**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_UpdateOne.htm>`__
+       | :ref:`Fundamentals <csharp-update-operation>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Name, "Bagels N Buns");
+
+          var update = Builders<Restaurant>.Update
+            .Push(restaurant => restaurant.Grades, new GradeEntry
+            {
+              Date = DateTime.Now.ToUniversalTime(),
+              Grade = "A", 
+              Score = 10
+            });
+
+          var result = _restaurantsCollection.UpdateOne(filter, update);
+             
+   * - | **Replace a Document**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_ReplaceOne.htm>`__
+       | :ref:`Usage Example <csharp-replace-one>`
+       | :ref:`Fundamentals <csharp-replace-operation>`  
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Cuisine, "Pizza");
+
+          // Find ID of first pizza restaurant
+          var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
+          var oldId = oldPizzaRestaurant.Id;
+
+          Restaurant newPizzaRestaurant = new()
+          {
+              Id = oldId,
+              Name = "Mongo's Pizza",
+              Cuisine = "Pizza",
+              Address = new Address
+              {
+                  Building = "123",
+                  Coordinates = [123, 456],
+                  Street = "Pizza St",
+                  ZipCode = "10003"
+              },
+              Borough = "Manhattan",
+          };
+
+          var replaceResult = _restaurantsCollection.ReplaceOne(filter, newPizzaRestaurant);
+
+   * - | **Replace a Document (Async)**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_ReplaceOneAsync.htm>`__
+       | :ref:`Usage Example <csharp-replace-one>`
+       | :ref:`Fundamentals <csharp-replace-operation>` 
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Cuisine, "Pizza");
+
+          // Find ID of first pizza restaurant
+          var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
+          var oldId = oldPizzaRestaurant.Id;
+
+          Restaurant newPizzaRestaurant = new()
+          {
+              Id = oldId,
+              Name = "Mongo's Pizza",
+              Cuisine = "Pizza",
+              Address = new Address
+              {
+                  Building = "123",
+                  Coordinates = [12.3, 45.6],
+                  Street = "Pizza St",
+                  ZipCode = "10003"
+              },
+              Borough = "Manhattan",
+          };
+
+          var replaceResult = await _restaurantsCollection.ReplaceOneAsync(filter, newPizzaRestaurant);
+
+   * - | **Delete a Document**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteOne.htm>`__
+       | :ref:`Usage Example <csharp-delete-one>`
+       | :ref:`Fundamentals <csharp-delete-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Name, "Ready Penny Inn");
+
+          var deleteResult = _restaurantsCollection.DeleteOne(filter);
+          
+   * - | **Delete a Document (Async)**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteOneAsync.htm>`__
+       | :ref:`Usage Example <csharp-delete-one>`
+       | :ref:`Fundamentals <csharp-delete-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var filter = Builders<Restaurant>.Filter
+            .Eq(restaurant => restaurant.Name, "Ready Penny Inn");
+
+          var deleteResult = await _restaurantsCollection.DeleteOneAsync(filter);
+          
+   * - | **Delete Multiple Documents**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteMany.htm>`__ 
+       | :ref:`Usage Example <csharp-delete-many>`
+       | :ref:`Fundamentals <csharp-delete-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+ 
+          var filter = Builders<Restaurant>.Filter
+            .Regex(restaurant => restaurant.Name, "Green");
+
+          var deleteResult = _restaurantsCollection.DeleteMany(filter);
+
+   * - | **Delete Multiple Documents (Async)**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollectionExtensions_DeleteManyAsync.htm>`__ 
+       | :ref:`Usage Example <csharp-delete-many>`
+       | :ref:`Fundamentals <csharp-delete-guide>`
+
+     - .. code-block:: csharp
+          :copyable: true
+ 
+          var filter = Builders<Restaurant>.Filter
+            .Regex(restaurant => restaurant.Name, "Green");
+
+          var deleteResult = await _restaurantsCollection.DeleteManyAsync(filter);
+
+   * - | **Access Data from a Cursor Iteratively**
+       |
+       | `API Documentation <{+api-root+}/T_MongoDB_Driver_IAsyncCursor_1.htm>`__
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Cuisine, "Afghan)";
+
+             var cursor = _restaurantsCollection.Find(filter).ToCursor(); 
+             while (cursor.MoveNext())
+             {
+                 foreach (var r in cursor.Current)
+                 {
+                     Console.WriteLine(r.Name);
+                 }
+             }
+
+          .. output::
+             :language: json
+
+             [
+               Afghan Kebab House
+               Khyber Pass
+               ...
+             ]
+
+   * - | **Count Documents**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoCollection_1_CountDocuments.htm>`__
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+             
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Cuisine, "Pizza");
+
+             var count = _restaurantsCollection.Find(filter).CountDocuments();
+
+             Console.WriteLine(count);
+
+          .. output::
+             :language: none
+
+             1163
+
+   * - | **List the Distinct Documents or Field Values**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_MongoCollection_Distinct.htm>`__
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+            
+             var filter = Builders<Restaurant>.Filter.Empty;
+             var restaurants = _restaurantsCollection
+               .Distinct(r => r.Cuisine, filter);
+             
+             Console.WriteLine(restaurants); 
+
+          .. output::
+             :language: json
+
+             [ Afghan, African, American, Armenian, Asian, ... ]
+
+   * - | **Limit the Number of Documents Retrieved**
+       |
+       | `API Documentation <{+api-root+}/P_MongoDB_Driver_Core_Operations_FindOperation_1_Limit.htm>`__
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Cuisine, "Asian");
+             var restaurants = _restaurantsCollection.Find(filter).Limit(3).ToList();
+
+             Console.WriteLine(restaurants);
+
+          .. output::
+             :language: json
+
+             [
+               { name: "China Grill", ... },
+               { name: "Indo Chine", ... },
+               { name: "Le Colonial", ... }
+             ]
+
+   * - | **Skip Retrieved Documents**
+       |
+       | `API Documentation <{+api-root+}/P_MongoDB_Driver_Core_Operations_FindOperation_1_Skip.htm>`__
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Cuisine, "Asian");
+
+             var restaurants = _restaurantsCollection.Find(filter).Skip(2).ToList();
+
+             Console.WriteLine(restaurants);
+
+          .. output::
+             :language: json
+
+             [
+               { name: "Le Colonial", ... },
+               { name: "Citrus Bar & Grill", ... },
+               { name: "Mangez Avec Moi", ... },
+               ...
+             ]
+
+   * - | **Sort the Documents When Retrieving Them**
+       |
+       | `API Documentation <{+api-root+}/M_MongoDB_Driver_IFindFluentExtensions_SortBy__2.htm>`__
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Cuisine, "Brazilian");
+
+             var restaurants =  _restaurantsCollection.Find(filter)
+               .SortBy(r => r.Name).ToList();
+
+             Console.WriteLine(restaurants);
+
+          .. output::
+             :language: json
+
+             [
+               { name: "Barzinho", ... },
+               { name: "Beco", ... },
+               { name: "Beija-Flor", ... },
+               ...
+             ]
+
+   * - | **Project Document Fields When Retrieving Them**
+       |
+       | `API Documentation <{+api-root+}/T_MongoDB_Driver_ProjectionDefinitionBuilder_1.htm>`__
+       | :ref:`Fundamentals <csharp-builders-projection>`
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: csharp
+
+             var filter = Builders<Restaurant>.Filter
+               .Eq(restaurant => restaurant.Cuisine, "Italian");
+
+             var projection = Builders<Restaurant>.Projection
+               .Include(restaurant => restaurant.Name)
+               .Include(restaurant => restaurant.Borough)
+               .Exclude(restaurant => restaurant.Id);
+
+             var restaurants = _restaurantsCollection.Find(filter).Project(projection).ToList(); 
+
+             Console.WriteLine(restaurants);
+
+          .. output::
+             :language: json
+
+             [
+               { borough : "Brooklyn", name : "Philadelphia Grille Express" }
+               { borough : "Manhattan", name : "Isle Of Capri Restaurant" }
+               { borough : "Manhattan", name : "Marchis Restaurant" }
+               ...
+             ]
+
+   * - | **Create an Index**
+       |
+       | `API Documentation <{+api-root+}/Overload_MongoDB_Driver_IMongoIndexManager_1_CreateOne.htm>`__
+       | :ref:`Fundamentals <csharp-builders-indexes>`
+
+     - .. code-block:: csharp
+          :copyable: true
+
+          var index = Builders<Restaurant>.IndexKeys
+            .Ascending(restaurant => restaurant.Cuisine);
+
+          _restaurantsCollection.Indexes
+            .CreateOne(new CreateIndexModel<Restaurant>(index));
