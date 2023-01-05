@@ -15,9 +15,11 @@
        | (mongodb.atlas.stats.totalstoragesize)
        | ``DB_DATA_SIZE_TOTAL``
        | (mongodb.atlas.stats.totaldatasize)
+       | ``DB_INDEX_SIZE_TOTAL``
+       | (mongodb.atlas.stats.totalindexsize)
      - Process
-     - Total database storage size and data size on the cluster in
-       bytes.
+     - Total database storage size, data size, and index size on the
+       {+cluster+} in bytes.
 
    * - | ``DISK_PARTITION_UTILIZATION``
        | (mongodb.atlas.system.disk.iops.percentutilization)
@@ -103,6 +105,20 @@
        </tutorial/resync-replica-set-member/>` is required if 
        replication lag on a secondary node exceeds the replication 
        oplog window and replication headroom reaches zero.
+
+   * - | ``REPLICATION_STATUS_HEALTH``
+       | (mongodb.atlas.replstatus.health)
+     - Process
+     - Number that indicates a replica set member's health. A value of
+       ``1`` indicates that the replica set member is up/running. A
+       value of ``0`` indicates that the replica set member is down/not
+       running.
+
+   * - | ``REPLICATION_STATUS_STATE``
+       | (mongodb.atlas.replstatus.state)
+     - Process
+     - Integer between ``0`` and ``10`` that represents a replica set
+       member's :manual:`replica state </reference/replica-states/>`.
 
    * - | ``SYSTEM_NORMALIZED_CPU_USER`` 
        | (mongodb.atlas.system.cpu.norm.user)
