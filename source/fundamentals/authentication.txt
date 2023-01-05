@@ -1,0 +1,224 @@
+.. _csharp-authentication-mechanisms:
+
+=========================
+Authentication Mechanisms
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to authenticate with MongoDB using the
+**authentication mechanisms** available in the {+mongo-community+}.
+Authentication mechanisms are processes by which the driver and server confirm
+the identity of a client to ensure security before connecting.
+
+You can use the following authentication mechanisms with the latest version
+of {+mongo-community+}:
+
+- :ref:`csharp-scram-sha-256`
+- :ref:`csharp-scram-sha-1`
+- :ref:`csharp-x509`
+
+To authenticate using ``GSSAPI/Kerberos`` or ``LDAP``, see the
+:ref:`csharp-enterprise-authentication-mechanisms` fundamentals page. For more 
+information on establishing a connection to your MongoDB cluster, see the
+:ref:`csharp-connect-to-mongodb`.
+
+Specify an Authentication Mechanism
+-----------------------------------
+
+You can specify your authentication mechanism and credentials when connecting to
+MongoDB using either of the following methods:
+
+- A **connection string**, also known as a **connection URI**, which is a string
+  that tells the driver how to connect to a MongoDB deployment and how to behave while
+  connected.
+
+- A factory method for the supported authentication mechanism, contained in the 
+  ``MongoCredential`` class.
+
+Mechanisms
+----------
+
+The following examples specify authentication mechanisms using the following
+placeholders:
+
+- ``<username>``: Your MongoDB username.
+- ``<password>``: Your MongoDB user's password.
+- ``<hostname>``: The network address of your MongoDB server, accessible by your client.
+- ``<port>``: The port number of your MongoDB server.
+- ``<authenticationDb>``: The MongoDB database that contains your user's authentication
+  data. If you omit this parameter, the driver uses the default value ``admin``.
+
+.. _csharp-authentication-default:
+
+Default
+~~~~~~~
+
+The default authentication mechanism setting uses one of the following
+authentication mechanisms, depending on which MongoDB versions your server supports:
+
+- ``SCRAM-SHA-256``
+- ``SCRAM-SHA-1``
+- ``MONGODB-CR``
+
+.. note::
+
+   MongoDB version 4.0 uses SCRAM as the default mechanism, and no longer
+   supports ``MONGODB-CR``.
+
+
+Select the :guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax for specifying the default authentication mechanism:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: default-connection-string
+
+      .. code-block:: csharp
+
+         var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>:<port>/?authSource=<authenticationDb>");
+
+   .. tab:: MongoCredential
+      :tabid: default-mongo-credential
+
+      .. code-block:: csharp
+
+         var credential = MongoCredential.CreateCredential("<authenticationDb>", "<username>", "<password>");
+         var settings = MongoClientSettings.FromConnectionString("<connection string>");
+         settings.Credential = credential;
+         var mongoClient = new MongoClient(settings);
+
+.. _csharp-scram-sha-256:
+
+SCRAM-SHA-256
+~~~~~~~~~~~~~
+
+``SCRAM-SHA-256`` is a salted challenge-response authentication mechanism (SCRAM)
+that uses your username and password, encrypted with the ``SHA-256`` algorithm,
+to authenticate your user.
+
+You can specify the ``SCRAM-SHA-256`` authentication mechanism with your connection
+string as follow:
+
+.. code-block:: csharp
+
+   var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-256"); 
+
+.. tip:: Default Mechanism
+
+   MongoDB version 4.0 and later uses ``SCRAM-SHA-256`` as the default 
+   authentication mechanism if the MongoDB server version supports it.
+
+   To learn more on specifying the default mechanism, see :ref:`csharp-authentication-default`.
+
+.. _csharp-scram-sha-1:
+
+SCRAM-SHA-1
+~~~~~~~~~~~
+
+``SCRAM-SHA-1`` is s a salted challenge-response mechanism (SCRAM) that uses 
+your username and password, encrypted with the ``SHA-1`` algorithm, to authenticate 
+your user.
+
+You can specify the ``SCRAM-SHA-1`` authentication mechanism with your connection
+string as follow:
+
+.. code-block:: csharp
+
+   var mongoClient = new MongoClient("mongodb://<username>:<password>@<hostname>:<port>/?authSource=<authenticationDb>&authMechanism=SCRAM-SHA-1");
+
+.. tip:: Default Mechanism
+
+   MongoDB version 4.0 uses ``SCRAM-SHA-1`` as the default authorization mechanism
+   if the server does not support ``SCRAM-SHA-256``.
+
+   To learn more on specifying the default mechanism, see :ref:`csharp-authentication-default`.
+
+.. _csharp-x509:
+
+X.509
+~~~~~
+
+The ``X.509`` authentication mechanism uses :wikipedia:`TLS <Transport_Layer_Security>`
+with ``X.509`` certificates to authenticate your user, identified by the
+distinguished names of your client certificate. When you specify the 
+``X.509`` authentication mechanism, the server authenticates the connection using 
+the subject name of the client certificate.
+
+To learn more about using TLS/SSL, see our :ref:`TLS/SSL guide <csharp-tls>`.
+
+To learn more about ``X.509`` certificates, see the :ref:`X.509 Server Manual Entry <x509-client-authentication>`.
+
+Select the :guilabel:`Connection String` or :guilabel:`MongoCredential` tab to
+see the corresponding syntax for specifying the ``X.509`` authentication mechanism:
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: default-connection-string
+
+      .. code-block:: csharp
+
+         var connectionString = "mongodb://<hostname>/?authMechanism=MONGODB-X509";
+         var settings = MongoClientSettings.FromConnectionString(connectionString);
+
+         settings.useTls = true;
+         settings.SslSettings = new SslSettings
+         {
+            ClientCertificates = new List<X509Certificate>()
+            {
+                new X509Certificate2("<path to X.509 certificate>", "<X.509 certificate password>")
+            }
+         };
+
+   .. tab:: MongoCredential
+      :tabid: default-mongo-credential
+
+      .. code-block:: csharp
+
+         var credential = MongoCredential.CreateMongoX509Credential("<X.509 certificate username>")
+         var settings = new MongoClientSettings 
+         {
+             Credential =  credential
+             SslSettings = new SslSettings
+             {
+                 ClientCertificates = new List<X509Certificate>()
+                 {
+                     new X509Certificate2("<path to X.509 certificate>", "<X.509 certificate password>")
+                 },
+             },
+             UseTls = true,
+             Server = new MongoServerAddress("<hostname", "<port>"),
+         };
+
+      .. note:: Certificate Type
+
+         Your certificate must be a :wikipedia:`PCKS #12<PKCS_12>` type certificate
+         with a ``.p12`` extension.
+
+      .. tip:: Username parameter
+
+         The username parameter provided to ``CreateMongoX509Credential`` must
+         match the distinguished subject name of your ``X.509`` certificate exactly.
+         You can alternatively pass ``null`` as the parameter to prompt the MongoDB
+         server to infer the username based on your ``X.509`` certificate.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `MongoCredential() <{+api-root+}/T_MongoDB_Driver_MongoCredential.htm>`__
+- `MongoClient() <{+api-root+}/T_MongoDB_Driver_MongoClient.htm>`__
+- `MongoClientSettings <{+api-root+}/T_MongoDB_Driver_MongoClientSettings.htm>`__
+- `CreateCredential() <{+api-root+}/M_MongoDB_Driver_MongoCredential_CreateCredential_1.htm>`__
+- `CreateMongoX509Credential() <{+api-root+}/M_MongoDB_Driver_MongoCredential_CreateMongoX509Credential.htm>`__
