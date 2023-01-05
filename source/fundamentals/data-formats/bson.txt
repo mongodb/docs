@@ -1,0 +1,226 @@
+.. _csharp-bson:
+
+==============
+Work with BSON
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create BSON documents, read BSON from a file, 
+and write BSON to a file using the {+driver-short+}.
+
+BSON Data Format
+----------------
+
+**BSON**, or Binary JSON, is the data format that MongoDB uses to organize
+and store data. This data format includes all JSON data structure types and
+adds support for types including dates, different size integers, ObjectIds, and
+binary data. For a complete list of supported types, see the
+:manual:`BSON Types </reference/bson-types>` server manual page.
+
+The code samples in this guide use the following BSON document as an example:
+
+.. code-block:: none
+
+   {
+       "address" : {
+           "street" : "Pizza St", 
+           "zipcode" : "10003" 
+       },
+       "coord" : [-73.982419, 41.579505]
+       "cuisine" : "Pizza",
+       "name" : "Mongo's Pizza"
+   }
+
+Create a BSON Document
+----------------------
+
+To build a BSON document in {+language+}, create an instance of the ``BsonDocument`` class.
+The ``BsonDocument`` constructor accepts ``BsonElement`` arguments that map to the fields
+and values in the document. Each ``BsonElement`` can be either an instance of the 
+``BsonElement`` class or a field-value pair inside curly braces ( ``{}`` ).
+
+The following code sample shows how to create a ``BsonDocument`` object to represent the 
+example BSON document. Each key-value pair in the ``BsonDocument`` object is a 
+``BsonElement`` object. 
+
+.. literalinclude:: ../../includes/fundamentals/code-examples/Bson.cs
+   :start-after: start-create
+   :end-before: newRestaurant.Add
+   :language: csharp 
+   :copyable:
+   :dedent:
+
+Change a BSON Document
+----------------------
+
+The ``BsonDocument`` class includes methods that let you change the contents of the
+BSON document. The following code sample makes three changes to the previous
+``BsonDocument`` object:
+
+1. Adds a new field, ``"restaurant_id"``, with the value ``"12345"``
+#. Removes the ``"cuisine"`` field
+#. Sets the value of the ``"name"`` field to ``"Mongo's Pizza Palace"``
+
+.. literalinclude:: ../../includes/fundamentals/code-examples/Bson.cs
+   :start-after: start-create
+   :end-before: end-change
+   :language: csharp
+   :copyable:
+   :dedent:
+   :emphasize-lines: 15-17
+
+.. note::
+
+   For a full list of methods in the ``BsonDocument`` class, see the 
+   :ref:`csharp-bson-api`.
+
+Write BSON to a File
+--------------------
+
+You can write BSON to a file using the methods in the ``BsonBinaryWriter`` class. To
+write to a file, perform the following steps:
+
+1. Open a file stream for the file containing BSON data.
+#. Create a ``BsonBinaryWriter`` using the file stream.
+#. For each BSON document and subdocument you want to create, call 
+   ``WriteStartDocument()``.
+#. Within each BSON document and subdocument, call ``WriteName()`` to set the field
+   name and the appropriate ``Write*`` method to set its value. Each data type has a 
+   dedicated ``Write*`` method that you should use.
+#. To start and end arrays, use ``WriteStartArray()`` and ``WriteEndArray()``.
+#. At the end of each document and subdocument, call ``WriteEndDocument()``. 
+
+The following code sample shows how to write the sample BSON document to ``myFile.bson``:
+
+.. code-block:: csharp
+
+   string outputFileName = "myFile.bson";
+
+   using (var stream = File.OpenWrite(outputFileName))
+   using (var writer = new BsonBinaryWriter(stream))
+   {
+       writer.WriteStartDocument();
+
+       //address
+       writer.WriteName("address");
+       writer.WriteStartDocument();
+       writer.WriteName("street");
+       writer.WriteString("Pizza St");
+       writer.WriteName("zipcode");
+       writer.WriteString("10003");
+       writer.WriteEndDocument();
+
+       //coord
+       writer.WriteName("coord");
+       writer.WriteStartArray();
+       writer.WriteDouble(-73.982419);
+       writer.WriteDouble(41.579505);
+       writer.WriteEndArray();
+
+       //cuisine
+       writer.WriteName("cuisine");
+       writer.WriteString("Pizza");
+
+       //name
+       writer.WriteName("name");
+       writer.WriteString("Mongo's Pizza");
+
+       writer.WriteEndDocument();
+   }
+
+The resulting BSON document looks like the following:
+
+.. code-block:: none
+
+   {
+       "address" : {
+           "street" : "Pizza St", 
+           "zipcode" : "10003" 
+       },
+       "coord" : [-73.982419, 41.579505]
+       "cuisine" : "Pizza",
+       "name" : "Mongo's Pizza"
+   }
+
+Read BSON from a File
+---------------------
+
+To read a BSON document from a file, follow the same steps used for writing a BSON 
+document to a file, with two differences:
+
+- Use ``BsonBinaryReader`` instead of ``BsonBinaryWriter``.
+- Use ``Read*`` methods instead of ``Write*`` methods. These methods return field names
+  and values from the BSON document.
+
+The following code sample shows how to read the fields and values from the sample 
+BSON document stored in ``myFile.bson``:
+
+.. code-block:: csharp
+
+   string inputFileName = "myFile.bson";
+
+   using (var stream = File.OpenRead(inputFileName))
+   using (var reader = new BsonBinaryReader(stream))
+   {
+       reader.ReadStartDocument();
+
+       //address
+       string addressFieldName = reader.ReadName();
+       reader.ReadStartDocument();
+       string streetFieldName = reader.ReadName();
+       string streetValue = reader.ReadString();
+       string zipFieldName = reader.ReadName();
+       string zipValue = reader.ReadString();
+       reader.ReadEndDocument();
+
+       //coord
+       string coordFieldName = reader.ReadName();
+       reader.ReadStartArray();
+       double coord1 = reader.ReadDouble();
+       double coord2 = reader.ReadDouble();
+       reader.ReadEndArray();
+
+       //cuisine
+       string cuisineFieldName = reader.ReadName();
+       string cuisineValue = reader.ReadString();
+
+       //name
+       string nameFieldName = reader.ReadName();
+       string nameValue = reader.ReadString();
+
+       reader.ReadEndDocument();
+   }
+
+.. warning:: 
+
+   If you call ``ReadName()`` twice in a row without reading a value,
+   the driver will throw an ``InvalidOperationException``.
+
+.. tip::
+
+   The ``BsonBinaryReader`` and ``BsonBinaryWriter`` constructors accept any 
+   ``System.IO.Stream`` object. This means that you can read or write any location 
+   that can be accessed by a stream.
+
+.. _csharp-bson-api:
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `BsonDocument <{+api-root+}/T_MongoDB_Bson_BsonDocument.htm>`__
+- `BsonElement <{+api-root+}/T_MongoDB_Bson_BsonElement.htm>`__
+- `BsonBinaryReader <{+api-root+}/T_MongoDB_Bson_IO_BsonBinaryReader.htm>`__
+- `BsonBinaryWriter <{+api-root+}/T_MongoDB_Bson_IO_BsonBinaryWriter.htm>`__
