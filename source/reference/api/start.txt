@@ -94,11 +94,29 @@ Request Body Parameters
    * - ``reversible``
      - boolean
      - Optional
-     - If set to ``true``, enables the synchronization operation to be
-       reversed. For more information, see the :ref:`reverse
-       <c2c-api-reverse>` endpoint.
+     - If set to ``true``, enables the sync operation to be
+       reversed. 
+
+       This option is not supported for the following configurations:
+
+       * Sync from a replica set to a sharded cluster
+
+       * Sync sharded clusters that have different numbers of shards
+       
+       For more information, see the :ref:`reverse <c2c-api-reverse>` endpoint.
        
        Default value is ``false``.
+
+   * - ``sharding``
+     - document
+     - Optional
+     - Configure sync between a replica set and sharded cluster.
+       Sync from a replica set to a sharded cluster requires this
+       option.
+
+       For more information, see :ref:`c2c-api-start-sharding`. 
+
+       .. versionadded:: 1.1
 
    * - ``enableUserWriteBlocking``
      - boolean
@@ -110,6 +128,69 @@ Request Body Parameters
        accepts writes.
 
        Default value is ``false``.
+
+
+.. _c2c-api-start-sharding:
+
+Sharding Parameters
+~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.1
+
+To sync from a replica set to a sharded cluster, set the 
+``sharding`` option to shard collections on the destination cluster.
+
+The ``sharding`` option has the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 15 15 70
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``createSupportedIndexes``
+     - boolean
+     - Optional. Sets whether sync creates a supporting index 
+       for the shard key, if none exists.  Defaults to ``false``.
+
+   * - ``shardingEntries``
+     - array of documents
+     - Required. Sets the namespace and key of collections to shard 
+       during sync.
+
+       Collections not included in this array sync to unsharded 
+       collections on the destination cluster.  If set with an empty array, 
+       no collections are sharded.
+
+   * - | ``shardingEntries``
+       | ``.collection``
+     - string
+     - Sets the collection to shard. 
+
+   * - | ``shardingEntries``
+       | ``.database``
+     - string
+     - Sets the database of the collection to shard.
+ 
+   * - | ``shardingEntries``
+       | ``.shardCollection``
+     - document 
+     - Sets the shard key to generate on the destination cluster.
+
+   * - | ``shardingEntries``
+       | ``.shardCollection``
+       | ``.key``
+     - array 
+     - Sets the fields to use for the shard key.
+
+       For more information, see :ref:`shard-key`.
+
+``mongosync`` throws an error if the ``sharding`` option is not set when
+syncing from a replica set to a sharded cluster.  ``mongosync`` also
+throws an error if the ``sharding`` option is set with any other configuration.
 
 Response
 --------
@@ -155,8 +236,129 @@ Response
    :language: json
    :copyable: false
 
+Example 3 - Start Sync from Replica Set to Sharded Cluster
+----------------------------------------------------------
+
+Request
+~~~~~~~
+
+.. literalinclude:: /includes/api/requests/start-rs-shard.sh
+   :language: shell
+
+Response
+~~~~~~~~
+
+.. literalinclude:: /includes/api/responses/success.json
+   :language: json
+   :copyable: false
+
 Behavior
 --------
 
+State
+~~~~~
+
 If the ``start`` request is successful, ``mongosync`` enters the
 ``RUNNING`` state.
+
+Pre-Split Chunks
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.1
+
+When ``mongosync`` syncs to a sharded cluster, it pre-splits chunks for
+sharded collections on the destination cluster.  This is supported in the
+following configurations:
+
+* Sync from a replica set to a sharded cluster.
+
+* Sync between sharded clusters that differ in the number of shards.
+
+
+Shard Replica Sets 
+~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.1
+
+Sync from a replica set to a sharded cluster requires the 
+``sharding`` option. This option configures how ``mongosync`` shards
+collections.
+
+The ``sharding.shardEntries`` array specifies the collections to shard.
+Collections that are not listed in this array replicate as unsharded.
+
+Supporting Indexes
+~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.1
+
+``mongosync`` syncs indexes from the source cluster to the destination
+cluster.  But, when syncing from a replica set to a sharded cluster,
+``mongosync`` may require an additional index to support the shard key,
+which may not exist on the source cluster.
+
+``mongosync`` can create supporting indexes for sharded collections during sync.
+This is done by setting the ``sharding.createSupportingIndexes`` option.
+
+When ``sharding.createSupportingIndexes`` is ``false`` (the default): 
+
+* Each shard key you provide for the ``sharding.shardEntries`` option
+  must have an existing index on the source cluster.
+
+* One of the indexes used for the shard key must have simple collation if the 
+  collection uses any other collation.
+
+* To use a unique index in the shard key, you must specify its uniqueness when
+  you create the index on the source cluster. 
+
+* Unique indexes on the source cluster that are incompatible with the requested
+  shard key on the destination cluster, such as a unique index on the source
+  that does not contain the requested shard key as a prefix on the destination,
+  can cause ``mongosync`` to fail.
+
+When ``sharding.createSupportingIndexes`` is ``true``: 
+
+* If the supporting indexes exist on the source cluster, ``mongosync`` 
+  syncs the indexes to the destination cluster and uses them 
+  as shard keys. 
+
+* If the supporting indexes don't exist, ``mongosync`` creates them on the
+  destination cluster.
+
+The ``sharding.createSupportingIndexes`` option affects all sharded collections.
+
+Rename During Sync
+~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 1.1
+
+Collections listed in the ``sharding.shardEntries`` array 
+when synced from a replica set to a sharded cluster 
+become sharded collections on the destination cluster.
+
+Renaming a collection (such as with the :dbcommand:`renameCollection` command)
+on the source cluster after calling ``start`` but before ``mongosync`` begins 
+to copy the collection can block the collection from sharding on the destination.
+
+.. note:: 
+
+   Renaming collections to use a different database while syncing from a
+   replica set to a sharded cluster is not supported.
+    
+
+To check whether it is safe to rename collections, call the 
+:ref:`c2c-api-progress` endpoint and check the value of the 
+``collectionCopy.estimatedCopiedBytes`` field in the return document.  
+
+* A value of 0 indicates that ``mongosync`` has not started to copy the
+  collection.
+
+  Renaming a collection at this point may result in an unsharded collection 
+  on the destination cluster, as the transition to copying can happen before
+  the rename takes effect on the source.
+
+* A value greater than 0 indicates that ``mongosync`` has started the copy.
+  Renaming the collection from this point on does not block
+  its sharding on the destination cluster, even in the event  of a crash.
+
+
