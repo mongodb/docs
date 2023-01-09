@@ -1,0 +1,136 @@
+title: "Create a PersistentVolumeClaim object."
+stepnum: 1
+level: 4
+ref: filestore-create-pvc-object
+content: |
+
+  Create a :k8sdocs:`PersistentVolumeClaim </concepts/storage/persistent-volumes/>` 
+  object, and allocate storage as needed. Set 
+  :k8sdocs:`accessModes </concepts/storage/persistent-volumes/#access-modes>` 
+  to ``ReadWriteMany``:
+
+    .. code-block:: yaml
+
+       apiVersion: v1
+       kind: PersistentVolumeClaim
+       metadata:
+         name: snapshot-store-ops-manager
+       spec:
+         storageClassName: managed-nfs-storage #SC that supports(RWX)
+         accessModes:
+           - ReadWriteMany
+         resources:
+           requests:
+             storage: 10G
+           ...
+
+---
+title: "Create and apply an Ops Manager Custom Resource Definition specifying your PersistentVolumeClaim."
+stepnum: 2
+level: 4
+ref: filestore-create-apply-crd
+content: |
+
+  Create an |onprem| |k8s-crd| that specifies your 
+  ``PersistentVolumeClaim`` object and the ``backup.fileSystemStores``
+  field, which is the name of your file system snapshot store.
+
+  The following example creates a |k8s-crd| file named 
+  ``ops-manager-fs.yaml``, for the MongoDB 
+  :term:`oplog store <oplog store database>` with a ``kube-user``.
+
+    .. code-block:: yaml
+
+      apiVersion: mongodb.com/v1
+        kind: MongoDBOpsManager
+        metadata:
+          name: ops-manager
+        spec:
+          replicas: 1
+          version: 6.0.7
+          adminCredentials: ops-manager-admin-secret
+          statefulSet:
+            spec:
+              template:
+                spec:
+                  volumes:
+                    - name: snapshot-store
+                      persistentVolumeClaim:
+                        claimName: snapshot-store-ops-manager
+                  containers:
+                    - name: mongodb-ops-manager
+                      volumeMounts:
+                        - name: snapshot-store
+                          mountPath: /snapshot_store  
+          backup:
+            enabled: true
+            fileSystemStores: filesystem1
+            opLogStores:
+              - name: oplog1
+                mongodbResourceRef:
+                  name: oplog-db
+                # mongodbUserRef:
+                #   name: kube-user
+            statefulSet:
+              spec:
+                template:
+                  spec:
+                    volumes:
+                      - name: snapshot-store
+                        persistentVolumeClaim:
+                          claimName: snapshot-store-ops-manager
+                    containers:
+                      - name: mongodb-backup-daemon
+                        volumeMounts:
+                          - name: snapshot-store
+                            mountPath: /snapshot_store  
+          applicationDatabase:
+            members: 3
+            version: 5.0.7-ent
+
+---
+title: "Apply changes to your |onprem| deployment."
+stepnum: 3
+level: 4
+ref: apply-changes-om-k8s
+content: |
+
+  Invoke the following ``kubectl`` command on the filename of your
+  |onprem| resource definition:
+
+    .. code-block:: sh
+
+      kubectl apply -f <opsmgr-resource>.yaml
+
+---
+title: "Configure your oplog store."
+stepnum: 4
+level: 4
+ref: filestore-config-oplog-store
+content: |
+
+  Wait for your |onprem| object to report its state as ``Running``, then 
+  configure your oplog store as described in the 
+  **Configure Backup Settings** step of the 
+  :ref:`Deploy an Ops Manager Resource <deploy-om-tls>` procedure.
+
+---
+title: "Create a File System Snapshot Store in |onprem|."
+stepnum: 5
+level: 4
+ref: filestore-create-snapshot-store
+content: |
+
+  Log into your |onprem| instance and navigate to: :guilabel:`Admin`
+  :icon-fa5:`arrow-right` :guilabel:`Backup` :icon-fa5:`arrow-right`
+  :guilabel:`Snapshot Store` :icon-fa5:`arrow-right`
+  :guilabel:`Create New File System Store`.
+
+  Set the name to the value you set for ``backup.fileSystemStores``
+  in your |k8s-crd|. Set the other values as appropriate, then click
+  :guilabel:`Create`.
+
+  Your |onprem| object will report a ``BACKUP`` state of ``Pending``
+  after you create the new file system store.
+
+...
