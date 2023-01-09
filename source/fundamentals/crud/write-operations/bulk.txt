@@ -24,23 +24,35 @@ perform multiple operations with one call to the database.
 Sample Data
 ~~~~~~~~~~~
 
-To run the example in this guide, load the sample data into the
-``tea.ratings`` collection with the following
-snippet:
+The examples in this guide use the following ``Book`` struct as a model for documents
+in the ``books`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
+   :start-after: start-book-struct
+   :end-before: end-book-struct
+   :language: go
+   :dedent:
+
+To run the examples in this guide, load the sample data into the
+``db.books`` collection with the following snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
    :dedent:
-   :start-after: begin insert docs
-   :end-before: end insert docs
+   :start-after: begin insertDocs
+   :end-before: end insertDocs
 
-.. include:: /includes/fundamentals/tea-sample-data-ending.rst
+Each document contains a description of a book that
+includes the title, author, and page length corresponding to
+the ``title``, ``author``, and ``length`` fields in each document.
+
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
 
 Bulk Write
 ----------
 
-To perform a bulk operation, pass a slice of :ref:`WriteModel
-<golang-write-model>` documents to the ``BulkWrite()`` method. 
+To perform a bulk operation, pass an array of :ref:`WriteModel
+<golang-write-model>` documents to the ``BulkWrite()`` method.
 
 Modify Behavior
 ~~~~~~~~~~~~~~~
@@ -176,8 +188,7 @@ Example
 ```````
 
 The following example creates a ``ReplaceOneModel`` to replace a
-document where the ``type`` is "Earl Grey" with a document where the
-``type`` is "Matcha" and the ``rating`` is ``8``:
+document where the ``title`` is "Lucy" with a new document:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
@@ -225,7 +236,7 @@ Example
 ```````
 
 The following example creates an ``UpdateOneModel`` to decrement a
-documents ``rating`` by ``2`` if their ``type`` is "Masala":
+document's ``length`` by ``15`` if the ``author`` is "Elena Ferrante":
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
@@ -263,7 +274,7 @@ Example
 ```````
 
 The following example creates a ``DeleteManyModel`` to delete
-documents where the ``rating`` is greater than ``7``:
+documents where the ``length`` is greater than ``300``:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/bulkOps.go
    :language: go
@@ -306,9 +317,10 @@ Example
 The following example performs the following actions in any order: 
 
 - Inserts two documents.
-- Replaces a document where the type is "Earl Grey" with a new document.
-- Increments all documents ``rating`` by ``3`` if their current rating is less than ``7``.
-- Deletes all documents where the rating is ``9``.
+- Replaces a document where the ``title`` is "My Brilliant Friend" with a new document.
+- Increments every document's ``length`` by ``10`` if the current
+  ``length`` value is less than ``200``.
+- Deletes all documents where the ``author`` field value includes "Jam".
 
 .. io-code-block::
    :copyable: true
@@ -317,16 +329,16 @@ The following example performs the following actions in any order:
       :language: go
 
       models := []mongo.WriteModel{
-         mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Oolong"}, {"rating", 9}}),
-         mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Assam"}, {"rating", 6}}),
-         mongo.NewReplaceOneModel().SetFilter(bson.D{{"type", "Earl Grey"}}).
-            SetReplacement(bson.D{{"type", "Matcha"}, {"rating", 4}}),
-         mongo.NewUpdateManyModel().SetFilter(bson.D{{"rating", bson.D{{"$lt", 7}}}}).
-            SetUpdate(bson.D{{"$inc", bson.D{{"rating", 3}}}}),
-         mongo.NewDeleteManyModel().SetFilter(bson.D{{"rating", 9}}),
+        mongo.NewInsertOneModel().SetDocument(Book{Title: "Middlemarch", Author: "George Eliot", Length: 904}),
+        mongo.NewInsertOneModel().SetDocument(Book{Title: "Pale Fire", Author: "Vladimir Nabokov", Length: 246}),
+        mongo.NewReplaceOneModel().SetFilter(bson.D{{"title", "My Brilliant Friend"}}).
+      	  SetReplacement(Book{Title: "Atonement", Author: "Ian McEwan", Length: 351}),
+        mongo.NewUpdateManyModel().SetFilter(bson.D{{"length", bson.D{{"$lt", 200}}}}).
+      	  SetUpdate(bson.D{{"$inc", bson.D{{"length", 10}}}}),
+        mongo.NewDeleteManyModel().SetFilter(bson.D{{"author", bson.D{{"$regex", "Jam"}}}}),
       }
       opts := options.BulkWrite().SetOrdered(false)
-
+      
       results, err := coll.BulkWrite(context.TODO(), models, opts)
       if err != nil {
          panic(err)
@@ -341,8 +353,8 @@ The following example performs the following actions in any order:
       :visible: false
 
       Number of documents inserted: 2
-      Number of documents replaced or updated: 3
-      Number of documents deleted: 2
+      Number of documents replaced or updated: 2
+      Number of documents deleted: 1
 
 The following documents are present in the ``ratings`` collection after
 the bulk operation:
@@ -350,8 +362,9 @@ the bulk operation:
 .. code-block:: none
    :copyable: false
 
-   [{_id ObjectID("...")} {type Masala} {rating 10}]
-   [{_id ObjectID("...")} {type Matcha} {rating 7}]
+   {"title":"Atonement","author":"Ian McEwan","length":351}
+   {"title":"Middlemarch","author":"George Eliot","length":904}
+   {"title":"Pale Fire","author":"Vladimir Nabokov","length":246}
 
 Additional Information
 ----------------------

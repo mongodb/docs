@@ -11,6 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-drink-struct
+type Drink struct {
+	Description string
+	Sizes       []int32 `bson:"sizes,truncate"`
+	Styles      []string
+}
+
+// end-drink-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -28,93 +37,101 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("quantity").Drop(context.TODO())
+	client.Database("db").Collection("drinks").Drop(context.TODO())
 
-	// begin insert docs
-	coll := client.Database("tea").Collection("quantity")
+	// begin insertDocs
+	coll := client.Database("db").Collection("drinks")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"qty", bson.A{15, 12, 18}}},
+		Drink{Description: "Matcha Latte", Sizes: []int32{12, 16, 20}, Styles: []string{"iced", "hot", "extra hot"}},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insertDocs
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
-	// end insert docs
+	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 
-	for _, id := range result.InsertedIDs {
-		fmt.Printf("\t%s\n", id)
-	}
-
-	fmt.Println("Positional $ Operator:")
+	fmt.Println("\nPositional $ Operator:\n")
 	{
 		// begin positional
-		filter := bson.D{{"qty", bson.D{{"$gt", 10}}}}
-		update := bson.D{{"$inc", bson.D{{"qty.$", -5}}}}
-		opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+		filter := bson.D{{"sizes", bson.D{{"$lte", 16}}}}
+		update := bson.D{{"$inc", bson.D{{"sizes.$", -2}}}}
+		opts := options.FindOneAndUpdate().
+			SetReturnDocument(options.After)
 
-		var updatedDoc bson.D
+		var updatedDoc Drink
 		err := coll.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedDoc)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println(updatedDoc)
+		res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+		fmt.Println(string(res))
 		// end positional
 	}
 
 	{
-		update := bson.D{{"$set", bson.D{{"qty", bson.A{15, 12, 18} }}}}
+		// Reset data
+		filter := bson.D{{"sizes", bson.D{{"$lt", 14}}}}
+		update := bson.D{{"$inc", bson.D{{"sizes.$", 2}}}}
 
-		result, err := coll.UpdateOne(context.TODO(), bson.D{}, update)
+		_, err := coll.UpdateOne(context.TODO(), filter, update)
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("%v document was updated.\n", result.ModifiedCount)
+
+		fmt.Println("\nData Restored\n")
 	}
 
-	fmt.Println("Positional $[] Operator:")
+	fmt.Println("\nPositional $[<identifier>] Operator:\n")
 	{
-		// begin positional all
-		update := bson.D{{"$mul", bson.D{{"qty.$[]", 2}}}}
-		opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+		// begin filtered positional
+		identifier := []interface{}{bson.D{{"hotOptions", bson.D{{"$regex", "hot"}}}}}
+		update := bson.D{{"$unset", bson.D{{"styles.$[hotOptions]", ""}}}}
+		opts := options.FindOneAndUpdate().
+			SetArrayFilters(options.ArrayFilters{Filters: identifier}).
+			SetReturnDocument(options.After)
 
-		var updatedDoc bson.D
+		var updatedDoc Drink
 		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Println(updatedDoc)
+		res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+		fmt.Println(string(res))
+		// end filtered positional
+	}
+
+	{
+		// Reset data
+		update := bson.D{{"$set", bson.D{{"styles", bson.A{"iced", "hot", "extra hot"}}}}}
+
+		_, err := coll.UpdateOne(context.TODO(), bson.D{}, update)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println("\nData Restored\n")
+	}
+
+	fmt.Println("\nPositional $[] Operator:\n")
+	{
+		// begin positional all
+		update := bson.D{{"$mul", bson.D{{"sizes.$[]", 29.57}}}}
+		opts := options.FindOneAndUpdate().
+			SetReturnDocument(options.After)
+
+		var updatedDoc Drink
+		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
+		if err != nil {
+			panic(err)
+		}
+
+		res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+		fmt.Println(string(res))
 		// end positional all
 	}
 
-
-	{
-		update := bson.D{{"$set", bson.D{{"qty", bson.A{15, 12, 18} }}}}
-
-		result, err := coll.UpdateOne(context.TODO(), bson.D{}, update)
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Printf("%v document was updated.\n", result.ModifiedCount)
-	}
-
-	fmt.Println("Positional $[<identifier>] Operator:")
-	{
-		// begin filtered positional
-		identifier := []interface{}{bson.D{{"smaller", bson.D{{"$lt", 18}}}}}
-		update := bson.D{{"$inc", bson.D{{"qty.$[smaller]", 7}}}}
-		opts := options.FindOneAndUpdate().SetArrayFilters(options.ArrayFilters{Filters: identifier}).SetReturnDocument(options.After)
-
-		var updatedDoc bson.D
-		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(updatedDoc)
-		// end filtered positional
-	}
 }

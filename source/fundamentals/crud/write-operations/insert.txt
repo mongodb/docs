@@ -25,9 +25,8 @@ the ``InsertOne()`` method, or insert multiple documents using either
 the ``InsertMany()`` or ``BulkWrite()`` method.
 
 The following sections focus on ``InsertOne()`` and ``InsertMany()``.
-
-..
-  For an example on how to use the ``BulkWrite()`` method, see :ref:`golang-bulk-ops-usage-example`.
+To learn how to use the ``BulkWrite()`` method, see the
+:ref:`golang-bulk` guide.
 
 The ``_id`` Field
 -----------------
@@ -36,8 +35,8 @@ In MongoDB, each document *must* contain a unique ``_id`` field.
 
 The two options for managing this field are:
 
-- You can manage this field yourself, ensuring each value you use is unique.
-- You can let the driver automatically generate unique ``ObjectId`` values. The
+- Managing this field yourself, ensuring that each value you use is unique.
+- Letting the driver automatically generate unique ``ObjectId`` values. The
   driver generates unique ``ObjectId`` values for documents that you do
   not explicitly specify an ``_id``.
 
@@ -67,9 +66,17 @@ the new document.
 Example
 ~~~~~~~
 
+This example uses the following ``Book`` struct as a model for documents
+in the ``books`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/insertOptions.go
+   :start-after: start-book-struct
+   :end-before: end-book-struct
+   :language: go
+   :dedent:
+
 The following example creates and inserts a document into the
-``favorite_books`` collection using the
-``InsertOne()`` method:
+``books`` collection using the ``InsertOne()`` method:
 
 .. io-code-block::
    :copyable: true
@@ -77,8 +84,8 @@ The following example creates and inserts a document into the
    .. input::
       :language: go
 
-      coll := client.Database("myDB").Collection("favorite_books")
-      doc := bson.D{{"title", "Invisible Cities"}, {"author", "Italo Calvino"}, {"year_published", 1974}}
+      coll := client.Database("db").Collection("books")
+      doc := Book{Title: "Atonement", Author: "Ian McEwan"}
 
       result, err := coll.InsertOne(context.TODO(), doc)
 
@@ -93,7 +100,7 @@ The following example creates and inserts a document into the
 Modify ``InsertOne`` Behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You can modify the behavior of ``InsertOne()`` by constructing and passing
-an optional ``InsertOneOptions`` struct.  The available options to tune with
+an optional ``InsertOneOptions`` struct.  The available options to set with
 ``InsertOneOptions`` are:
 
 .. list-table::
@@ -130,26 +137,25 @@ instance that contains the ``_id`` fields of the inserted documents.
 Example
 ~~~~~~~
 
-The following example creates and inserts some documents into the
-``favorite_books`` collection using the ``InsertMany()`` method:
+The following example creates and inserts multiple documents into the
+``books`` collection using the ``InsertMany()`` method:
 
 .. code-block:: go
 
    coll := client.Database("myDB").Collection("favorite_books")
    docs := []interface{}{
-       bson.D{{"title", "My Brilliant Friend"}, {"author", "Elena Ferrante"}, {"year_published", 2012}},
-       bson.D{{"title", "Lucy"}, {"author", "Jamaica Kincaid"}, {"year_published", 2002}},
-       bson.D{{"title", "Cat's Cradle"}, {"author", "Kurt Vonnegut Jr."}, {"year_published", 1998}},
+       Book{Title: "Cat's Cradle", Author: "Kurt Vonnegut Jr."},
+       Book{Title: "In Memory of Memory", Author: "Maria Stepanova"},
+       Book{Title: "Pride and Prejudice", Author: "Jane Austen"},
    }
-
+   
    result, err := coll.InsertMany(context.TODO(), docs)
-   list_ids := result.InsertedIDs
-   fmt.Printf("Documents inserted: %v\n", len(list_ids))
-
-   for _, id := range list_ids {
-	   fmt.Printf("Inserted document with _id: %v\n", id)
+   fmt.Printf("Documents inserted: %v\n", len(result.InsertedIDs))
+   
+   for _, id := range result.InsertedIDs {
+       fmt.Printf("Inserted document with _id: %v\n", id)
    }
-
+   
 Your output should look like this:
 
 .. code-block:: none
@@ -164,8 +170,8 @@ Modify ``InsertMany`` Behavior
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can modify the behavior of ``InsertMany()`` by constructing
-and passing an optional ``InsertOneOptions`` struct. The available options
-to tune with ``InsertOneOptions`` are:
+and passing an optional ``InsertManyOptions`` struct. The available options
+to set with ``InsertManyOptions`` are:
 
 .. list-table::
    :header-rows: 1
@@ -206,10 +212,10 @@ Assume you want to insert the following documents:
 .. code-block:: json
    :copyable: false
 
-   { "_id": 1, "country": "Tanzania" }
-   { "_id": 2, "country": "Lithuania" }
-   { "_id": 1, "country": "Vietnam" }
-   { "_id": 3, "country": "Argentina" }
+   { "_id": 1, "title": "Where the Wild Things Are" }
+   { "_id": 2, "title": "The Very Hungry Caterpillar" }
+   { "_id": 1, "title": "Blueberries for Sal" }
+   { "_id": 3, "title": "Goodnight Moon" }
 
 If you attempt to insert these documents with default ``InsertManyOptions``, a
 ``BulkWriteException`` occurs at the third document because of the repeated
@@ -221,44 +227,50 @@ inserted into your collection.
    You can get an acknowledgement of successful document insertion even
    if a BulkWriteException occurs:
 
-.. io-code-block::
-   :copyable: true
+   .. io-code-block::
+      :copyable: true
+   
+      .. input::
+         :language: go
+   
+         type Book struct {
+             ID    int `bson:"_id"`
+             Title string
+         }
 
-   .. input::
-      :language: go
+         ...
 
-      docs := []interface{}{
-         bson.D{{"_id", 1}, {"country", "Tanzania"}},
-         bson.D{{"_id", 2}, {"country", "Lithuania"}},
-         bson.D{{"_id", 1}, {"country", "Vietnam"}},
-         bson.D{{"_id", 3}, {"country", "Argentina"}},
-      }
-
-      result, err := coll.InsertMany(context.TODO(), docs)
-      list_ids := result.InsertedIDs
-      if err != nil {
-         fmt.Printf("A bulk write error occurred, but %v documents were still inserted.\n", len(list_ids))
-      }
-
-      for _, id := range list_ids {
-         fmt.Printf("Inserted document with _id: %v\n", id)
-      }
-
-   .. output::
-      :language: none
-      :visible: false
-
-      A bulk write error occurred, but 2 documents were still inserted.
-      Inserted document with _id: 1
-      Inserted document with _id: 2
-
-If you look inside your collection, you should be able to see the following documents:
-
-.. code-block:: json
-   :copyable: false
-
-   { "_id": 1, "country": "Tanzania" }
-   { "_id": 2, "country": "Lithuania" }
+         docs := []interface{}{
+             Book{ID: 1, Title: "Where the Wild Things Are"},
+             Book{ID: 2, Title: "The Very Hungry Caterpillar"},
+             Book{ID: 1, Title: "Blueberries for Sal"},
+             Book{ID: 3, Title: "Goodnight Moon"},
+         }
+   
+         result, err := coll.InsertMany(context.TODO(), docs)
+         if err != nil {
+             fmt.Printf("A bulk write error occurred, but %v documents were still inserted.\n", len(result.InsertedIDs))
+         }
+   
+         for _, id := range result.InsertedIDs {
+             fmt.Printf("Inserted document with _id: %v\n", id)
+         }
+   
+      .. output::
+         :language: none
+         :visible: false
+   
+         A bulk write error occurred, but 2 documents were still inserted.
+         Inserted document with _id: 1
+         Inserted document with _id: 2
+   
+   If you look inside your collection, you should be able to see the following documents:
+   
+   .. code-block:: json
+      :copyable: false
+   
+      { "_id": 1, "title": "Where the Wild Things Are" }
+      { "_id": 2, "title": "The Very Hungry Caterpillar" }
 
 
 Additional Information
@@ -274,8 +286,7 @@ To learn more about performing the operations mentioned, see the
 following guides:
 
 - :ref:`golang-query-document`
-
-.. - :doc:`Bulk Operations </fundamentals/crud/write-operations/bulk>`
+- :ref:`golang-bulk`
 
 API Documentation
 ~~~~~~~~~~~~~~~~~

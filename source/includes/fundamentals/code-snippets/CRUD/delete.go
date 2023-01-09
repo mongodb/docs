@@ -11,6 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-book-struct
+type Book struct {
+	Title  string
+	Author string
+	Length int32
+}
+
+// end-book-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -28,28 +37,28 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
+	client.Database("db").Collection("books").Drop(context.TODO())
 
 	// begin insertDocs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("books")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 7}},
-		bson.D{{"type", "Oolong"}, {"rating", 10}},
-		bson.D{{"type", "Assam"}, {"rating", 7}},
+		Book{Title: "Atonement", Author: "Ian McEwan", Length: 351},
+		Book{Title: "My Brilliant Friend", Author: "Elena Ferrante", Length: 331},
+		Book{Title: "Lucy", Author: "Jamaica Kincaid", Length: 103},
+		Book{Title: "Outline", Author: "Rachel Cusk", Length: 258},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insertDocs
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	// end insertDocs
 
-	fmt.Println("Delete Many:")
+	fmt.Println("\nDelete Many:\n")
 	{
 		// begin deleteMany
-		filter := bson.D{{"rating", bson.D{{"$gt", 8}}}}
+		filter := bson.D{{"length", bson.D{{"$gt", 300}}}}
 		opts := options.Delete().SetHint(bson.D{{"_id", 1}})
 
 		result, err := coll.DeleteMany(context.TODO(), filter, opts)

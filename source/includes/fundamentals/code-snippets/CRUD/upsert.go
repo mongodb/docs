@@ -11,6 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-plant-struct
+type Plant struct {
+	Species string
+	PlantID int32 `bson:"plant_id"`
+	Height  float64
+}
+
+// end-plant-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -28,27 +37,28 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
+	client.Database("db").Collection("plants").Drop(context.TODO())
 
-	// begin insert docs
-	coll := client.Database("tea").Collection("ratings")
+	// begin insertDocs
+	coll := client.Database("db").Collection("plants")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Assam"}, {"rating", 5}},
+		Plant{Species: "Polyscias fruticosa", PlantID: 1, Height: 27.6},
+		Plant{Species: "Polyscias fruticosa", PlantID: 2, Height: 34.9},
+		Plant{Species: "Ledebouria socialis", PlantID: 1, Height: 11.4},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insertDocs
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	//end insert docs
 
-	fmt.Println("Upsert:")
+	fmt.Println("\nUpsert:\n")
 	{
 		// begin upsert
-		filter := bson.D{{"type", "Oolong"}}
-		update := bson.D{{"$set", bson.D{{"rating", 8}}}}
+		filter := bson.D{{"species", "Ledebouria socialis"}, {"plant_id", 3}}
+		update := bson.D{{"$set", bson.D{{"species", "Ledebouria socialis"}, {"plant_id", 3}, {"height", 8.3}}}}
 		opts := options.Update().SetUpsert(true)
 
 		result, err := coll.UpdateOne(context.TODO(), filter, update, opts)
@@ -59,5 +69,22 @@ func main() {
 		fmt.Printf("Number of documents updated: %v\n", result.ModifiedCount)
 		fmt.Printf("Number of documents upserted: %v\n", result.UpsertedCount)
 		// end upsert
+	}
+
+	fmt.Println("\nAll Documents in Collection:\n")
+	{
+		cursor, err := coll.Find(context.TODO(), bson.D{})
+		if err != nil {
+			panic(err)
+		}
+
+		var results []Plant
+		if err = cursor.All(context.TODO(), &results); err != nil {
+			panic(err)
+		}
+		for _, result := range results {
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
+		}
 	}
 }

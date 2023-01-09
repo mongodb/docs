@@ -15,7 +15,8 @@ Update Arrays in a Document
 Overview
 --------
 
-In this guide, you can learn how to update array elements in a document.
+In this guide, you can learn how to update array elements in one or more
+documents.
 
 To update elements in an array, perform the following actions:
 
@@ -26,15 +27,31 @@ To update elements in an array, perform the following actions:
 Sample Data
 ~~~~~~~~~~~
 
+The examples in this guide use the following ``Drink`` struct as a model for documents
+in the ``drinks`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/updateArray.go
+   :start-after: start-drink-struct
+   :end-before: end-drink-struct
+   :language: go
+   :dedent:
+
+The ``truncate`` :ref:`struct tag<golang-struct-tags>` allows the driver
+to truncate types such as ``float64`` to ``int32`` when unmarshalling.
+
 To run the examples in this guide, load the sample data into the
-``quantity.tea`` collection with the following
-snippet:
+``db.drinks`` collection with the following snippet:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/updateArray.go
    :language: go
    :dedent:
-   :start-after: begin insert docs
-   :end-before: end insert docs
+   :start-after: begin insertDocs
+   :end-before: end insertDocs
+
+Each document contains a description of a drink that
+includes the drink's description, available sizes in ounces, and available
+preparation styles, corresponding to the ``description``, ``sizes``, and
+``styles`` fields in each document.
 
 .. include:: /includes/fundamentals/automatic-db-coll-creation.rst
 
@@ -42,8 +59,6 @@ The following examples use the ``FindOneAndUpdate()`` method to
 retrieve and update a document and to return the state of the document
 after the update occurs. If you want to update multiple documents with
 an array field, use the ``UpdateMany()`` method.
-
-.. include:: /includes/fundamentals/truncated-id.rst
 
 Specify Array Elements
 ----------------------
@@ -71,8 +86,9 @@ Example
 
 This example performs the following actions:
 
-- Matches array elements in ``qty`` where the value is greater than ``10``.
-- Decrements the first array value matched by ``5``.
+- Matches array elements in ``sizes`` where the value is less than or
+  equal to ``16``.
+- Decrements the first array value matched by ``2``.
 
 .. io-code-block::
    :copyable: true
@@ -80,28 +96,31 @@ This example performs the following actions:
    .. input::
       :language: go
 
-      filter := bson.D{{"qty", bson.D{{"$gt", 10}}}}
-      update := bson.D{{"$inc", bson.D{{"qty.$", -5}}}}
-      opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
-      var updatedDoc bson.D
+      filter := bson.D{{"sizes", bson.D{{"$lte", 16}}}}
+      update := bson.D{{"$inc", bson.D{{"sizes.$", -2}}}}
+      opts := options.FindOneAndUpdate().
+          SetReturnDocument(options.After)
+      
+      var updatedDoc Drink
       err := coll.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedDoc)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      fmt.Println(updatedDoc)
+      
+      res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+      fmt.Println(string(res))
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID(“…”)} {type Masala} {qty [10 12 18]}]
+      {"description":"Matcha Latte","sizes":[10,16,20],"styles":["iced","hot","extra hot"]}
 
 .. note::
 
-   The query filter matches the values ``15`` and ``12``. Since ``15``
-   is the first element matched, it is updated. If you want to update
+   The query filter matches the values ``12`` and ``16``. Since the
+   operation matches ``12`` first, it is decremented. If you want to update
    both matched values, see :ref:`golang-multiple-elements`.
 
 .. _golang-multiple-elements:
@@ -123,9 +142,10 @@ Example
 
 This example performs the following actions:
 
-- Creates an array filter with an identifier called ``smaller`` to match elements less than ``18``.
+- Creates an array filter with an identifier called ``hotOptions`` to match
+  array elements that contain "hot".
 - Applies the array filter using the ``SetArrayFilters()`` method.
-- Increments every matched element by ``7``.
+- Removes these array elements.
 
 .. io-code-block::
    :copyable: true
@@ -133,23 +153,26 @@ This example performs the following actions:
    .. input::
       :language: go
 
-      identifier := []interface{}{bson.D{{"smaller", bson.D{{"$lt", 18}}}}}
-      update := bson.D{{"$inc", bson.D{{"qty.$[smaller]", 7}}}}
-      opts := options.FindOneAndUpdate().SetArrayFilters(options.ArrayFilters{Filters: identifier}).SetReturnDocument(options.After)
-
-      var updatedDoc bson.D
+      identifier := []interface{}{bson.D{{"hotOptions", bson.D{{"$regex", "hot"}}}}}
+      update := bson.D{{"$unset", bson.D{{"styles.$[hotOptions]", ""}}}}
+      opts := options.FindOneAndUpdate().
+          SetArrayFilters(options.ArrayFilters{Filters: identifier}).
+          SetReturnDocument(options.After)
+      
+      var updatedDoc Drink
       err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      fmt.Println(updatedDoc)
+      
+      res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+      fmt.Println(string(res))
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {qty [22 19 18]}]
+      {"description":"Matcha Latte","sizes":[12,16,20],"styles":["iced","",""]}
 
 .. _golang-all-elements:
 
@@ -167,7 +190,8 @@ To update all the array elements, use the all positional ``$[]`` operator.
 Example
 ```````
 
-This example multiplies every array element in ``qty`` by ``2``:
+This example multiplies every array element in ``sizes`` by ``29.57``
+to convert from ounces to milliliters:
 
 .. io-code-block::
    :copyable: true
@@ -175,22 +199,24 @@ This example multiplies every array element in ``qty`` by ``2``:
    .. input::
       :language: go
 
-      update := bson.D{{"$mul", bson.D{{"qty.$[]", 2}}}}
-      opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-
-      var updatedDoc bson.D
+      update := bson.D{{"$mul", bson.D{{"sizes.$[]", 29.57}}}}
+      opts := options.FindOneAndUpdate().
+          SetReturnDocument(options.After)
+      
+      var updatedDoc Drink
       err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
       if err != nil {
-         panic(err)
+          panic(err)
       }
-
-      fmt.Println(updatedDoc)
+      
+      res, _ := bson.MarshalExtJSON(updatedDoc, false, false)
+      fmt.Println(string(res))
 
    .. output::
       :language: none
       :visible: false
 
-      [{_id ObjectID("...")} {type Masala} {qty [30 24 36]}]
+      {"description":"Matcha Latte","sizes":[354,473,591],"styles":["iced","hot","extra hot"]}
 
 Additional Information
 ----------------------

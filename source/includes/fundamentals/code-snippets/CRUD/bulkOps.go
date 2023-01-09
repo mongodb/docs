@@ -11,6 +11,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// start-book-struct
+type Book struct {
+	Title  string
+	Author string
+	Length int32
+}
+
+// end-book-struct
+
 func main() {
 	var uri string
 	if uri = os.Getenv("MONGODB_URI"); uri == "" {
@@ -27,28 +36,26 @@ func main() {
 		}
 	}()
 
-	client.Database("tea").Collection("ratings").Drop(context.TODO())
-
-	// begin insert docs
-	coll := client.Database("tea").Collection("ratings")
+	// begin insertDocs
+	coll := client.Database("db").Collection("books")
 	docs := []interface{}{
-		bson.D{{"type", "Masala"}, {"rating", 10}},
-		bson.D{{"type", "Earl Grey"}, {"rating", 5}},
+		Book{Title: "My Brilliant Friend", Author: "Elena Ferrante", Length: 331},
+		Book{Title: "Lucy", Author: "Jamaica Kincaid", Length: 103},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
+	//end insertDocs
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-	// end insert docs
 
-	fmt.Println("InsertOneModel:")
+	fmt.Println("\nInsertOneModel:\n")
 	{
 		// begin bulk insert model
 		models := []mongo.WriteModel{
-			mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Oolong"}, {"rating", 9}}),
-			mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Assam"}, {"rating", 6}}),
+			mongo.NewInsertOneModel().SetDocument(Book{Title: "Beloved", Author: "Toni Morrison", Length: 324}),
+			mongo.NewInsertOneModel().SetDocument(Book{Title: "Outline", Author: "Rachel Cusk", Length: 258}),
 		}
 		// end bulk insert model
 
@@ -60,7 +67,7 @@ func main() {
 		fmt.Printf("Number of documents inserted: %d\n", results.InsertedCount)
 	}
 
-	fmt.Println("Documents After Insert:")
+	fmt.Println("\nDocuments After Insert:\n")
 	{
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
@@ -68,24 +75,25 @@ func main() {
 		}
 		defer cursor.Close(context.TODO())
 
-		var results []bson.D
+		var results []Book
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 	}
 
-	fmt.Println("ReplaceOneModel:")
+	fmt.Println("\nReplaceOneModel:\n")
 	{
 		// begin bulk replace model
 		models := []mongo.WriteModel{
-			mongo.NewReplaceOneModel().SetFilter(bson.D{{"type", "Earl Grey"}}).
-				SetReplacement(bson.D{{"type", "Matcha"}, {"rating", 8}}),
+			mongo.NewReplaceOneModel().SetFilter(bson.D{{"title", "Lucy"}}).
+				SetReplacement(Book{Title: "On Beauty", Author: "Zadie Smith", Length: 473}),
 		}
 		// end bulk replace model
-		
+
 		results, err := coll.BulkWrite(context.TODO(), models)
 		if err != nil {
 			panic(err)
@@ -94,7 +102,7 @@ func main() {
 		fmt.Printf("Number of documents replaced: %d\n", results.ModifiedCount)
 	}
 
-	fmt.Println("Documents After Replace:")
+	fmt.Println("\nDocuments After Replace:\n")
 	{
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
@@ -102,24 +110,25 @@ func main() {
 		}
 		defer cursor.Close(context.TODO())
 
-		var results []bson.D
+		var results []Book
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 	}
-	
-	fmt.Println("UpdateOneModel:")
+
+	fmt.Println("\nUpdateOneModel:\n")
 	{
 		// begin bulk update model
 		models := []mongo.WriteModel{
-			mongo.NewUpdateOneModel().SetFilter(bson.D{{"type", "Masala"}}).
-				SetUpdate(bson.D{{"$inc", bson.D{{"rating", -2}}}}),
+			mongo.NewUpdateOneModel().SetFilter(bson.D{{"author", "Elena Ferrante"}}).
+				SetUpdate(bson.D{{"$inc", bson.D{{"length", -15}}}}),
 		}
 		// end bulk update model
-		
+
 		results, err := coll.BulkWrite(context.TODO(), models)
 		if err != nil {
 			panic(err)
@@ -128,7 +137,7 @@ func main() {
 		fmt.Printf("Number of documents updated: %d\n", results.ModifiedCount)
 	}
 
-	fmt.Println("Documents After Update:")
+	fmt.Println("\nDocuments After Update:\n")
 	{
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
@@ -136,23 +145,24 @@ func main() {
 		}
 		defer cursor.Close(context.TODO())
 
-		var results []bson.D
+		var results []Book
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 	}
 
-	fmt.Println("DeleteManyModel:")
+	fmt.Println("\nDeleteManyModel:\n")
 	{
 		// begin bulk delete model
 		models := []mongo.WriteModel{
-			mongo.NewDeleteManyModel().SetFilter(bson.D{{"rating", bson.D{{"$gt", 7}}}}),
+			mongo.NewDeleteManyModel().SetFilter(bson.D{{"length", bson.D{{"$gt", 300}}}}),
 		}
 		// end bulk delete model
-		
+
 		results, err := coll.BulkWrite(context.TODO(), models)
 		if err != nil {
 			panic(err)
@@ -161,7 +171,7 @@ func main() {
 		fmt.Printf("Number of documents deleted: %d\n", results.DeletedCount)
 	}
 
-	fmt.Println("Documents After Delete:")
+	fmt.Println("\nDocuments After Delete:\n")
 	{
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
@@ -169,44 +179,44 @@ func main() {
 		}
 		defer cursor.Close(context.TODO())
 
-		var results []bson.D
+		var results []Book
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 	}
 
 	{
-		client.Database("tea").Collection("ratings").Drop(context.TODO())
+		client.Database("db").Collection("books").Drop(context.TODO())
 
-		// begin insert docs
-		coll := client.Database("tea").Collection("ratings")
+		coll := client.Database("db").Collection("books")
 		docs := []interface{}{
-			bson.D{{"type", "Masala"}, {"rating", 10}},
-			bson.D{{"type", "Earl Grey"}, {"rating", 5}},
+			Book{Title: "My Brilliant Friend", Author: "Elena Ferrante", Length: 331},
+			Book{Title: "Lucy", Author: "Jamaica Kincaid", Length: 103},
 		}
 
 		result, err := coll.InsertMany(context.TODO(), docs)
+
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
-		// end insert docs
+		fmt.Printf("\n[Multiple Operations Example]\nNumber of documents inserted: %d\n", len(result.InsertedIDs))
 	}
 
-	fmt.Println("BulkOperation Example:")
+	fmt.Println("\nBulkOperation Example:\n")
 	{
 		// begin unordered
 		models := []mongo.WriteModel{
-			mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Oolong"}, {"rating", 9}}),
-			mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Assam"}, {"rating", 6}}),
-			mongo.NewReplaceOneModel().SetFilter(bson.D{{"type", "Earl Grey"}}).
-				SetReplacement(bson.D{{"type", "Matcha"}, {"rating", 4}}),
-			mongo.NewUpdateManyModel().SetFilter(bson.D{{"rating", bson.D{{"$lt", 7}}}}).
-				SetUpdate(bson.D{{"$inc", bson.D{{"rating", 3}}}}),
-			mongo.NewDeleteManyModel().SetFilter(bson.D{{"rating", 9}}),
+			mongo.NewInsertOneModel().SetDocument(Book{Title: "Middlemarch", Author: "George Eliot", Length: 904}),
+			mongo.NewInsertOneModel().SetDocument(Book{Title: "Pale Fire", Author: "Vladimir Nabokov", Length: 246}),
+			mongo.NewReplaceOneModel().SetFilter(bson.D{{"title", "My Brilliant Friend"}}).
+				SetReplacement(Book{Title: "Atonement", Author: "Ian McEwan", Length: 351}),
+			mongo.NewUpdateManyModel().SetFilter(bson.D{{"length", bson.D{{"$lt", 200}}}}).
+				SetUpdate(bson.D{{"$inc", bson.D{{"length", 10}}}}),
+			mongo.NewDeleteManyModel().SetFilter(bson.D{{"author", bson.D{{"$regex", "Jam"}}}}),
 		}
 		opts := options.BulkWrite().SetOrdered(false)
 
@@ -214,14 +224,14 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		
+
 		fmt.Printf("Number of documents inserted: %d\n", results.InsertedCount)
 		fmt.Printf("Number of documents replaced or updated: %d\n", results.ModifiedCount)
 		fmt.Printf("Number of documents deleted: %d\n", results.DeletedCount)
 		// end unordered
 	}
 
-	fmt.Println("Documents After Bulk Operation:")
+	fmt.Println("\nDocuments After Bulk Operation:\n")
 	{
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
@@ -229,12 +239,13 @@ func main() {
 		}
 		defer cursor.Close(context.TODO())
 
-		var results []bson.D
+		var results []Book
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
-			fmt.Println(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
+			fmt.Println(string(res))
 		}
 	}
 }
