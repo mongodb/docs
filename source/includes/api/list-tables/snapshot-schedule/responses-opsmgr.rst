@@ -77,6 +77,17 @@
        default is ``+0000``, which is equivalent to |utc|. ``Z`` is
        also a supported value and equivalent to |utc|.
 
+       |onprem| converts any offset other than ``+0000`` to 
+       ``+0000`` before storing it, and adjusts the 
+       ``referenceHourOfDay`` value accordingly.
+
+       .. example::
+
+          You pass in a request with a ``referenceHourOfDay`` of ``5``
+          and a ``referenceTimeZoneOffset`` of ``"+0200". |onprem|
+          stores a ``referenceHourOfDay`` of ``3`` and a 
+          ``referenceTimeZoneOffset`` of ``"+0000"``.
+
    * - ``snapshotIntervalHours``
      - number
      - Number of hours between snapshots. |mms| may return values of
