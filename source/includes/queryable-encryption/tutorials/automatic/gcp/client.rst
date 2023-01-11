@@ -241,8 +241,8 @@
 
    .. step:: Create the MongoClient
 
-      Instantiate a MongoDB client object with the following
-      automatic encryption settings:
+      Instantiate a MongoDB client object with the following automatic
+      encryption settings that use the variables declared in the previous steps:
 
       .. tabs-drivers::
 

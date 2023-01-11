@@ -121,6 +121,9 @@
 
       .. _csfle-gcp-create-dek:
 
+      Generate your {+dek-long+} using the variables declared in :ref:`step one
+      <csfle-gcp-create-index>` of this tutorial.
+
       .. tabs-drivers::
 
          .. tab::

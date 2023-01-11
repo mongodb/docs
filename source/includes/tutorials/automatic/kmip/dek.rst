@@ -107,6 +107,9 @@
 
       .. _csfle-kmip-create-dek:
 
+      Generate your {+dek-long+} using the variables declared in :ref:`step one
+      <csfle-kmip-create-index>` of this tutorial.
+
       .. tabs-drivers::
 
          .. tab::
