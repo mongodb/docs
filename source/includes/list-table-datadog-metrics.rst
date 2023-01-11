@@ -21,6 +21,23 @@
      - Total database storage size, data size, and index size on the
        {+cluster+} in bytes.
 
+   * - | ``DISK_LATENCY_READS``
+       | (mongodb.atlas.system.disk.latency.reads)
+       | ``DISK_LATENCY_WRITES``
+       | (mongodb.atlas.system.disk.latency.writes)
+     - Disk
+     - Latency rate in milliseconds for read requests and
+       write requests.
+
+
+   * - | ``DISK_MAX_LATENCY_READS``
+       | (mongodb.atlas.system.disk.max.latency.reads)
+       | ``DISK_MAX_LATENCY_WRITES``
+       | (mongodb.atlas.system.disk.max.latency.writes)
+     - Disk
+     - Maximum latency gauge in milliseconds for read requests and write
+       requests.
+
    * - | ``DISK_PARTITION_UTILIZATION``
        | (mongodb.atlas.system.disk.iops.percentutilization)
      - Disk
@@ -361,3 +378,14 @@
      - Process
      - Measure number of read and write operations in the 
        :manual:`storage engine </core/wiredtiger>`.
+
+   * - | ``GLOBAL_LOCK_CURRENT_QUEUE_READERS``
+       | (mongodb.atlas.global.lock.current.queue.readers)
+       | ``GLOBAL_LOCK_CURRENT_QUEUE_WRITERS``
+       | (mongodb.atlas.global.lock.current.queue.writers)
+       | ``GLOBAL_LOCK_CURRENT_QUEUE_TOTAL``
+       | (mongodb.atlas.global.lock.current.queue.total)
+     - Global
+     - Gauge that indicates the number of operations currently queued
+       due to :manual:`locks </faq/concurrency>` that |service|
+       holds on reads, writes, or combined reads and writes.
