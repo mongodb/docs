@@ -59,8 +59,14 @@ Actions
    * - Capability
      - Coming Soon
 
-   * - Migrate into {+Clusters+} from |service| {+Serverless-instances+}
+   * - Convert |service| {+Serverless-instances+} into {+Clusters+}
      - :icon:`check-square`
+
+   * - Convert |service| Dedicated {+Clusters+} into |service| 
+       {+Serverless-instances+}
+
+       You can :ref:`convert a shared {+cluster+} to a {+serverless-instance+} <convert-to-serverless>`.
+     - 
   
    * - :doc:`Live Migrate </import/live-import>` into |service| {+Serverless-instances+}
      - 
