@@ -14,13 +14,11 @@ To save your pipeline:
       builder. Click on ``Save pipeline as...``
 
       .. figure:: /images/compass/query-save-pipeline-as.png
-         :figwidth: 316px
          :alt: Save pipeline as
 
    .. step:: Enter a name for your pipeline
 
       .. figure:: /images/compass/query-save-pipeline-as-name.png
-         :figwidth: 316px
          :alt: Name your pipeline
 
    .. step:: Click :guilabel:`Save`
