@@ -5,6 +5,7 @@ If the queried namespace is going through chunk defragmentation, the
    :copyable: false
 
    {
+      "chunkSize": Long("128"),
       "balancerCompliant": false,
       "firstComplianceViolation": "defragmentingChunks",
       "details": {
