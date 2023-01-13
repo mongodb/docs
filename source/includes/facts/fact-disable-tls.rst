@@ -4,7 +4,7 @@ TLS-enabled Application Database whose TLS certificate is stored in an
 :k8sdocs:`Opaque </concepts/configuration/secret/#opaque-secrets>` 
 secret.
 
-We recommend that you upgrade to |k8s-op-short| version 1.15.1 
+We recommend that you upgrade to |k8s-op-short| version 1.16.0 
 or later.
 
 We strongly advise against upgrading to |k8s-op-short| version 1.14.0 
