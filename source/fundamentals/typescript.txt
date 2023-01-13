@@ -84,7 +84,6 @@ You can find a code snippet that shows how to specify a type for the ``FindCurso
 class in the
 :ref:`Find Multiple Documents Usage Example <node-driver-find-usage-example-code-snippet>`.
 
-
 Type Safety and Dot Notation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -121,6 +120,46 @@ The type error raised by the preceding code snippet is as follows:
    No overload matches this call.
    ...
    Type '"Sylvilagus"' is not assignable to type 'Condition<"Canis" | "Felis">'.
+
+Referencing Keys that Incorporate Variables
+```````````````````````````````````````````
+
+If you need to query a collection or perform another operation with a
+key that incorporates variables, you must use an ``as const``
+assertion when specifying the key. This mechanism allows your
+code to compile successfully as long as the input types are correct.
+
+The following code snippet defines the ``ClassificationPet`` interface
+and the ``Mealtime`` interface. ``ClassificationPet`` includes a
+``mealtimes`` field that contains an array of ``Mealtime`` interfaces,
+each of which includes a ``time`` field:
+
+.. code-block:: typescript
+
+   interface ClassificationPet {
+     name: string;
+     mealtimes: Mealtime[];
+   }
+   
+   interface Mealtime{
+     time: string;
+     amount: number;
+   }
+
+The following code snippet performs a find-and-update operation on a
+collection of ``ClassificationPet`` documents. The operation
+updates the nested ``time`` field of the ``Mealtime`` instance at index
+``1``. The index position is specified by the variable ``mealCounter``:
+
+.. code-block:: typescript
+   :emphasize-lines: 5
+
+   const mealCounter = 1;
+   
+   await collection.findOneAndUpdate(
+     { name: "Lassie" },
+     { $set: { [`mealtimes.${mealCounter}.time` as const]: '4:00 PM' } },
+   );
 
 To learn more about dot notation, see
 :manual:`Dot Notation </core/document/#dot-notation>`
