@@ -1,0 +1,258 @@
+.. _c2c-filtered-sync:
+
+=============
+Filtered Sync
+=============
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. versionadded:: 1.1
+
+{+c2c-product-name+} provides continuous data synchronization or a 
+one-time data migration between two MongoDB clusters. You can use
+filtered sync to control the data that the :ref:`mongosync
+<c2c-mongosync>` utility transfers between the source and destination
+clusters.
+
+.. _c2c-configure-filter:
+
+Configure a Filter
+------------------
+
+.. important::
+
+   Once you start ``mongosync`` with a filter in place, the filter
+   cannot be modified. If you do need to create a new filter,
+   see: :ref:`c2c-change-filter`.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify Databases and Collections.
+
+      Identify the databases and collections that you want to sync to
+      the destination cluster. When you add a set of databases to the
+      filter, you also exclude any other databases in the cluster.
+      
+      When you specify a collection in your filter, you also exclude any
+      other collections that are in the same database.
+
+   .. step:: Create a Filter.
+
+      The ``includeNamespaces`` parameter specifies an optional filter
+      that you can pass to the :ref:`/start <c2c-api-start>` API.
+      
+      If you don't specify a filter, ``mongosync`` does a full cluster
+      sync.
+
+      The filter syntax is: 
+
+      .. include:: /includes/api/facts/includeNamespaces-syntax.rst
+
+      Create an entry in the ``includeNamespaces`` array for each
+      database that you identified in step 1. Use the ``"database"``
+      field to specify the database name.
+      
+      If you want to filter on collections within a database, add those
+      collections to the list in the ``"collections"`` field for that
+      database entry.
+
+   .. step:: Use the Filter.
+
+      To use the filter, attach the filter json when you make the
+      :ref:`/start <c2c-api-start>` API call to begin syncing.
+
+      .. literalinclude:: /includes/api/requests/start-filtered.sh
+         :language: shell
+
+For an example configuration, see: :ref:`c2c-example-start-with-filter`.
+
+.. _c2c-change-filter:
+
+Replace an Existing Filter
+--------------------------
+
+You cannot update an existing filter. You must stop the ongoing sync
+process, prepare the destination cluster, and restart ``mongosync`` with
+a new filter. 
+
+When ``mongosync`` ran your original filter, it created databases with
+your data ("user databases") and the
+``mongosync_reserved_for_internal_use`` system database on the
+destination cluster. You must remove those databases before restarting
+``mongosync`` with your new filter.
+
+Follow these steps to prepare the destination cluster for a new filter.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Remove ``mongosync_reserved_for_internal_use``.
+
+      a. Stop the ``mongosync`` process. 
+      
+      #. Connect to the destination cluster with :binary:`mongosh`. If
+         the destination is a sharded cluster, connect to the
+         :binary:`mongos` instance. If the destination is a replica set,
+         connect to the primary :binary:`mongod` instance.
+
+      #. Drop the ``mongosync_reserved_for_internal_use`` system
+         database.
+
+         .. code-block:: javascript
+          
+            use mongosync_reserved_for_internal_use
+            db.dropDatabase()
+
+   .. step:: Remove user databases.
+
+      a. List the databases in the cluster
+
+         .. code-block:: javascript
+          
+            show databases
+
+      #. Remove user databases. The ``admin``, ``local``, and ``config``
+         databases are system databases. You should not edit these
+         system databases without instructions from MongoDB support. 
+         
+         If the ``show databases`` command lists any user databases on
+         the destination cluster, you must remove them.
+
+         Repeat this step for each user database list:
+
+         .. code-block:: javascript
+          
+            use <user database name>
+            db.dropDatabase()
+
+         Note: After the first :method:`db.dropDatabase()` operation
+         completes, you may need to run it a second time to remove the
+         database.
+
+   .. step:: Configure a new filter.
+
+      a. Decide which databases and collections you want to filter on.
+         Add the databases and collections to the ``includeNamespaces``
+         array. For configuration details, see
+         :ref:`c2c-configure-filter`.
+
+      #. Run ``mongosync`` to :ref:`reconnect <c2c-conn-top-level>` to
+         the source and destination clusters.
+
+      #. Use the ``/start`` API end point to start syncing. Be sure to 
+         attach your new filter when you call ``/start``.
+
+.. _c2c-filter-renaming-collections:
+
+Adding and Renaming Collections
+-------------------------------
+
+You can, with some restrictions, add or :method:`rename a collection
+<db.collection.renameCollection>` during a filtered sync.
+
+.. warning::
+
+   If your renaming operation violates the renaming restrictions,
+   ``mongosync`` stops syncing and reports an error.
+
+   To clean up and restart after an error, follow the steps to
+   :ref:`replace an existing filter <c2c-change-filter>`.
+
+Adding and Renaming Within a Single Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add new collections or rename an existing collection if the
+entire database is part of the filter. 
+
+You can also rename a collection if the old name and the new name are
+both specified in the filter. 
+
+See the :ref:`renaming examples <c2c-example-rename-while-syncing>`.
+
+Renaming Across Different Databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can only rename a collection across databases if the entire target
+database is part of a filter. If the filter specifies individual
+collections in the target database, renaming across databases does not
+work.
+
+See the :ref:`renaming examples <c2c-example-rename-while-syncing>`.
+
+
+.. _c2c-filter-with-out:
+
+Filtering with $out
+-------------------
+
+The :ref:`$out <agg-out>` aggregation stage creates a new collection
+when it runs. You can use the ``$out`` stage with filtering if you are
+filtering on the whole database and not just the collection specified in
+the ``$out`` statement.
+
+For example, consider this aggregation pipeline:
+
+.. code-block:: javascript
+
+      use library
+      db.books.aggregate( [
+         { $group : { _id : "$author", titles: { $push: "$title" } } },
+         { $out : "authors" }
+      ] )
+
+The ``$out`` stage creates the ``authors`` collection in the ``library``
+database. If you want to sync the ``authors`` collection, you must
+specify the entire ``library`` database in your filter. The filter will
+not work if you only specify the ``authors`` collection.
+
+This filter works:
+
+.. code-block:: json
+
+   "includeNamespaces": [
+     {
+       "database": "library"
+     }
+   ]
+
+This filter does not work with ``$out``:
+
+.. code-block:: json
+
+   "includeNamespaces": [
+     {
+       "database": "library",
+       "collections": [ "authors", "books" ]  // DOES NOT WORK WITH $OUT
+     }
+   ]
+
+Limitations
+-----------
+
+.. include:: /includes/limitations-filtering.rst
+
+Examples
+--------
+
+.. _c2c-example-start-with-filter: 
+
+Start ``mongosync`` with a Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-filter-collection.rst
+
+.. _c2c-example-rename-while-syncing:
+
+Adding and Renaming Collections While Syncing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-filter-collection-with-renaming.rst
+
