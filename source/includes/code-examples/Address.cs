@@ -1,6 +1,8 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
+namespace CSharpExamples.UsageExamples;
+
 public class Address
 {
     public string Building { get; set; }

@@ -1,3 +1,5 @@
+namespace CSharpExamples.UsageExamples;
+
 public class GradeEntry
 {
     public DateTime Date { get; set; }
