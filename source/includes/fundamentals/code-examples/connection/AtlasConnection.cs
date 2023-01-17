@@ -5,4 +5,3 @@ const string connectionUri = "mongodb+srv://user1:password1@cluster0.sample.mong
 
 // Create a new client and connect to the server
 var client = new MongoClient(connectionUri);
-Console.ReadKey();

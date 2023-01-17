@@ -1,7 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static System.Console;
 
 namespace CSharpExamples.UsageExamples.ReplaceOne;
 
@@ -10,33 +9,35 @@ public class ReplaceOneAsync
     private static IMongoCollection<Restaurant> _restaurantsCollection;
     private const string MongoConnectionString = "<Your MongoDB URI>";
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         Setup();
 
         // Create filter 
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Cuisine, "Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Cuisine, "Pizza");
 
         // Find first pizza restaurant
         var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        WriteLine($"First pizza restaurant before replacement: {oldPizzaRestaurant.Name}");
+        Console.WriteLine($"First pizza restaurant before replacement: {oldPizzaRestaurant.Name}");
 
-        // Replace one document synchronously
-        var asyncResult = ReplaceOneRestaurant();
-        WriteLine($"Restaurants modified by replacement: {asyncResult.Result.ModifiedCount}");
+        // Replace one document asynchronously
+        var asyncResult = await ReplaceOneRestaurant();
+        Console.WriteLine($"Restaurants modified by replacement: {asyncResult.ModifiedCount}");
 
         var firstPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        WriteLine($"First pizza restaurant after replacement: {firstPizzaRestaurant.Name}");
+        Console.WriteLine($"First pizza restaurant after replacement: {firstPizzaRestaurant.Name}");
 
-        Write("Resetting sample data...");
-        _restaurantsCollection.ReplaceOneAsync(filter, oldPizzaRestaurant);
-        WriteLine("done.");
+        Console.WriteLine("Resetting sample data...");
+        await _restaurantsCollection.ReplaceOneAsync(filter, oldPizzaRestaurant);
+        Console.WriteLine("done.");
     }
 
     private static async Task<ReplaceOneResult> ReplaceOneRestaurant()
     {
         // start-replace-one-async
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Cuisine, "Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Cuisine, "Pizza");
 
         // Find ID of first pizza restaurant
         var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
@@ -50,7 +51,7 @@ public class ReplaceOneAsync
             Address = new BsonDocument
             {
                 {"street", "Pizza St"},
-                {"zipcode", "10003"},
+                {"zipcode", "10003"}
             },
             Borough = "Manhattan",
         };

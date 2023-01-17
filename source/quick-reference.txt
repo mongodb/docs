@@ -13,6 +13,40 @@ their related reference and API documentation. The examples in this guide use th
 See the :ref:`<csharp-quickstart>` to learn how to create a free MongoDB cluster
 and load this sample data.
 
+The examples on this page use the following ``Restaurant``, ``Address``, and ``GradeEntry`` 
+classes as models:
+
+.. literalinclude:: includes/quick-start/Restaurant.cs
+   :language: csharp
+   :copyable:
+   :dedent:
+
+.. literalinclude:: includes/quick-start/Address.cs
+   :language: csharp
+   :copyable:
+   :dedent:
+
+.. literalinclude:: includes/quick-start/GradeEntry.cs
+   :language: csharp
+   :copyable:
+   :dedent:
+
+After you've loaded the sample data into your MongoDB instance, you can use the 
+following code to access the ``restaurants`` collection:
+
+.. code-block:: csharp
+   :copyable: true
+
+   using MongoDB.Driver;
+
+   var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
+   ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
+
+   const string connectionUri = "<your MongoDB connection URI>";
+   var client = new MongoClient(connectionUri);
+   var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
+   _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
+
 .. tip:: Using LINQ
 
   You can perform many of the operations on this page using LINQ. For more 
@@ -43,6 +77,8 @@ and load this sample data.
 
              var restaurant = _restaurantsCollection.Find(filter).FirstOrDefault();
 
+             Console.WriteLine(restaurant);
+
           .. output::
              :language: json
 
@@ -63,7 +99,9 @@ and load this sample data.
              var filter = Builders<Restaurant>.Filter
                .Eq(restaurant => restaurant.Name, "Bagels N Buns");
 
-             return await _restaurantsCollection.Find(filter).FirstOrDefaultAsync();
+             var restaurant = await _restaurantsCollection.Find(filter).FirstOrDefaultAsync();
+
+             Console.WriteLine(restaurant);
 
           .. output::
              :language: json
@@ -87,6 +125,8 @@ and load this sample data.
                .Eq(r => restaurant.Cuisine, "Pizza");
 
              var restaurants = _restaurantsCollection.Find(filter).ToList();
+
+             Console.WriteLine(restaurants);
 
           .. output::
              :language: json
@@ -112,7 +152,9 @@ and load this sample data.
              var filter = Builders<Restaurant>.Filter
                .Eq(r => restaurant.Cuisine, "Pizza");
 
-             return await _restaurantsCollection.Find(filter).ToListAsync();
+             var restaurants = await _restaurantsCollection.Find(filter).ToListAsync();
+
+             Console.WriteLine(restaurants); 
 
           .. output::
              :language: json
@@ -132,7 +174,7 @@ and load this sample data.
      - .. code-block:: csharp
           :copyable: true
 
-          _restaurantsCollection.InsertOne(new BsonDocument("name", "Mongo's Pizza"));
+          var insertResult = _restaurantsCollection.InsertOne(new Restaurant { Name = "Mongo's Pizza" });
 
    * - | **Insert a Document (Async)**
        |
@@ -143,7 +185,7 @@ and load this sample data.
      - .. code-block:: csharp
           :copyable: true
 
-          await _restaurantsCollection.InsertOneAsync(new BsonDocument("name", "Mongo's Pizza"));
+          var insertResult = await _restaurantsCollection.InsertOneAsync(new Restaurant { Name = "Mongo's Pizza" });
 
    * - | **Insert Multiple Documents**
        |
@@ -154,10 +196,10 @@ and load this sample data.
      - .. code-block:: csharp
           :copyable: true
 
-          _restaurantsCollection.InsertMany(new List<BsonDocument>
+          _restaurantsCollection.InsertMany(new List<Restaurant>
           {
-              new BsonDocument("name", "Mongo's Pizza"),
-              new BsonDocument("name", "Mongo's Pizza 2")
+              new Restaurant { Name = "Mongo's Pizza" },
+              new Restaurant { Name = "Mongo Grill" }
           });
 
    * - | **Insert Multiple Documents (Async)**
@@ -169,10 +211,10 @@ and load this sample data.
      - .. code-block:: csharp
           :copyable: true
 
-          await _restaurantsCollection.InsertManyAsync(new List<BsonDocument>
+          await _restaurantsCollection.InsertManyAsync(new List<Restaurant>
           {
-              new BsonDocument("name", "Mongo's Pizza"),
-              new BsonDocument("name", "Mongo's Pizza 2")
+              new Restaurant { Name = "Mongo's Pizza" },
+              new Restaurant { Name = "Mongo Grill" }
           });
 
    * - | **Update a Document**
@@ -207,7 +249,7 @@ and load this sample data.
           var update = Builders<Restaurant>.Update
             .Set(restaurant => restaurant.Name, "2 Bagels 2 Buns");
 
-          return await _restaurantsCollection.UpdateOneAsync(filter, update);
+          var updateResult = await _restaurantsCollection.UpdateOneAsync(filter, update);
 
    * - | **Update Multiple Documents**
        |
@@ -241,7 +283,7 @@ and load this sample data.
           var update = Builders<Restaurant>.Update
             .Set(restaurant => restaurant.Cuisine, "Pasta and breadsticks");
 
-          return await = _restaurantsCollection.UpdateManyAsync(filter, update);
+          var updateResult = await _restaurantsCollection.UpdateManyAsync(filter, update);
 
    * - | **Update an Array in a Document**
        |
@@ -255,11 +297,11 @@ and load this sample data.
             .Eq(restaurant => restaurant.Name, "Bagels N Buns");
 
           var update = Builders<Restaurant>.Update
-            .Push(restaurant => restaurant.Grades, new BsonDocument()
+            .Push(restaurant => restaurant.Grades, new GradeEntry
             {
-              { "date" , DateTime.Now.ToUniversalTime()},
-              { "grade" , "A"}, 
-              { "score", 10}
+              Date = DateTime.Now.ToUniversalTime(),
+              Grade = "A", 
+              Score = 10
             });
 
           var result = _restaurantsCollection.UpdateOne(filter, update);
@@ -285,15 +327,17 @@ and load this sample data.
               Id = oldId,
               Name = "Mongo's Pizza",
               Cuisine = "Pizza",
-              Address = new BsonDocument
+              Address = new Address
               {
-                  {"street", "Pizza St"},
-                  {"zipcode", "10003"},
+                  Building = "123",
+                  Coordinates = [123, 456],
+                  Street = "Pizza St",
+                  ZipCode = "10003"
               },
               Borough = "Manhattan",
           };
 
-          return _restaurantsCollection.ReplaceOne(filter, newPizzaRestaurant);
+          var replaceResult = _restaurantsCollection.ReplaceOne(filter, newPizzaRestaurant);
 
    * - | **Replace a Document (Async)**
        |
@@ -316,15 +360,17 @@ and load this sample data.
               Id = oldId,
               Name = "Mongo's Pizza",
               Cuisine = "Pizza",
-              Address = new BsonDocument
+              Address = new Address
               {
-                  {"street", "Pizza St"},
-                  {"zipcode", "10003"},
+                  Building = "123",
+                  Coordinates = [12.3, 45.6],
+                  Street = "Pizza St",
+                  ZipCode = "10003"
               },
               Borough = "Manhattan",
           };
 
-          return await _restaurantsCollection.ReplaceOneAsync(filter, newPizzaRestaurant);
+          var replaceResult = await _restaurantsCollection.ReplaceOneAsync(filter, newPizzaRestaurant);
 
    * - | **Delete a Document**
        |
@@ -338,7 +384,7 @@ and load this sample data.
           var filter = Builders<Restaurant>.Filter
             .Eq(restaurant => restaurant.Name, "Ready Penny Inn");
 
-          return _restaurantsCollection.DeleteOne(filter);
+          var deleteResult = _restaurantsCollection.DeleteOne(filter);
           
    * - | **Delete a Document (Async)**
        |
@@ -352,7 +398,7 @@ and load this sample data.
           var filter = Builders<Restaurant>.Filter
             .Eq(restaurant => restaurant.Name, "Ready Penny Inn");
 
-          return await _restaurantsCollection.DeleteOneAsync(filter);
+          var deleteResult = await _restaurantsCollection.DeleteOneAsync(filter);
           
    * - | **Delete Multiple Documents**
        |
@@ -366,7 +412,7 @@ and load this sample data.
           var filter = Builders<Restaurant>.Filter
             .Regex(restaurant => restaurant.Name, "Green");
 
-          return _restaurantsCollection.DeleteMany(filter);
+          var deleteResult = _restaurantsCollection.DeleteMany(filter);
 
    * - | **Delete Multiple Documents (Async)**
        |
@@ -380,7 +426,7 @@ and load this sample data.
           var filter = Builders<Restaurant>.Filter
             .Regex(restaurant => restaurant.Name, "Green");
 
-          return await _restaurantsCollection.DeleteManyAsync(filter);
+          var deleteResult = await _restaurantsCollection.DeleteManyAsync(filter);
 
    * - | **Access Data from a Cursor Iteratively**
        |
@@ -396,18 +442,20 @@ and load this sample data.
                .Eq(restaurant => restaurant.Cuisine, "Afghan)";
 
              var cursor = _restaurantsCollection.Find(filter).ToCursor(); 
-             cursor.MoveNext();
-             foreach (Restaurant r in cursor.Current)
+             while (cursor.MoveNext())
              {
-                 Console.WriteLine(r.ToJson());
-             }   
+                 foreach (var r in cursor.Current)
+                 {
+                     Console.WriteLine(r.Name);
+                 }
+             }
 
           .. output::
              :language: json
 
              [
-               { name: "Afghan Kebab House", ... },
-               { name: "Khyber Pass", ... },
+               Afghan Kebab House
+               Khyber Pass
                ...
              ]
 
@@ -424,7 +472,9 @@ and load this sample data.
              var filter = Builders<Restaurant>.Filter
                .Eq(restaurant => restaurant.Cuisine, "Pizza");
 
-             return _restaurantsCollection.Find(filter).CountDocuments();
+             var count = _restaurantsCollection.Find(filter).CountDocuments();
+
+             Console.WriteLine(count);
 
           .. output::
              :language: none
@@ -442,9 +492,11 @@ and load this sample data.
              :language: csharp
             
              var filter = Builders<Restaurant>.Filter.Empty;
-             return _restaurantsCollection
-               .Distinct(new StringFieldDefinition<Restaurant, String>("cuisine"), filter);
- 
+             var restaurants = _restaurantsCollection
+               .Distinct(r => r.Cuisine, filter);
+             
+             Console.WriteLine(restaurants); 
+
           .. output::
              :language: json
 
@@ -462,7 +514,9 @@ and load this sample data.
 
              var filter = Builders<Restaurant>.Filter
                .Eq(restaurant => restaurant.Cuisine, "Asian");
-             return _restaurantsCollection.Find(filter).Limit(3).ToList();
+             var restaurants = _restaurantsCollection.Find(filter).Limit(3).ToList();
+
+             Console.WriteLine(restaurants);
 
           .. output::
              :language: json
@@ -486,7 +540,9 @@ and load this sample data.
              var filter = Builders<Restaurant>.Filter
                .Eq(restaurant => restaurant.Cuisine, "Asian");
 
-             return _restaurantsCollection.Find(filter).Skip(2).ToList();
+             var restaurants = _restaurantsCollection.Find(filter).Skip(2).ToList();
+
+             Console.WriteLine(restaurants);
 
           .. output::
              :language: json
@@ -511,8 +567,10 @@ and load this sample data.
              var filter = Builders<Restaurant>.Filter
                .Eq(restaurant => restaurant.Cuisine, "Brazilian");
 
-             return _restaurantsCollection.Find(filter)
+             var restaurants =  _restaurantsCollection.Find(filter)
                .SortBy(r => r.Name).ToList();
+
+             Console.WriteLine(restaurants);
 
           .. output::
              :language: json
@@ -542,8 +600,10 @@ and load this sample data.
                .Include(restaurant => restaurant.Name)
                .Include(restaurant => restaurant.Borough)
                .Exclude(restaurant => restaurant.Id);
-               
-             return _restaurantsCollection.Find(filter).Project(projection).ToList(); 
+
+             var restaurants = _restaurantsCollection.Find(filter).Project(projection).ToList(); 
+
+             Console.WriteLine(restaurants);
 
           .. output::
              :language: json

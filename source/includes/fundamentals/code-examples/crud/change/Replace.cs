@@ -1,7 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static System.Console;
 
 namespace CSharpExamples.Fundamentals.ReplaceOne;
 
@@ -19,18 +18,18 @@ public class ReplaceOne
 
         // Find restaurant named "Pizza Town"
         var oldRestaurant = _restaurantsCollection.Find(filter).First();
-        WriteLine($"Restaurant with ID {oldRestaurant.Id} before replacement: {oldRestaurant.Name}");
+        Console.WriteLine($"Restaurant with ID {oldRestaurant.Id} before replacement: {oldRestaurant.Name}");
 
         // Replace one document synchronously
         var syncResult = ReplaceOneRestaurant();
-        WriteLine($"Restaurants modified by replacement: {syncResult.ModifiedCount}");
+        Console.WriteLine($"Restaurants modified by replacement: {syncResult.ModifiedCount}");
 
         var firstPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        WriteLine($"Restaurant with id {oldRestaurant.Id} after replacement: {firstPizzaRestaurant.Name}");
+        Console.WriteLine($"Restaurant with id {oldRestaurant.Id} after replacement: {firstPizzaRestaurant.Name}");
 
-        Write("Resetting sample data...");
+        Console.WriteLine("Resetting sample data...");
         _restaurantsCollection.ReplaceOneAsync(filter, oldRestaurant);
-        WriteLine("done.");
+        Console.WriteLine("Done");
     }
 
     private static ReplaceOneResult ReplaceOneRestaurant()
@@ -51,17 +50,17 @@ public class ReplaceOne
         };
         // end-parameters
 
-        ReplaceOptions opts = new ReplaceOptions()
+        var options = new ReplaceOptions()
         {
             Comment = new BsonString("Restaurant replaced for {+driver-short+} Fundamentals"),
             IsUpsert = true
         };
 
-        WriteLine("Replacing document...");
-        var result = _restaurantsCollection.ReplaceOne(filter, newRestaurant, opts);
+        Console.WriteLine("Replacing document...");
+        var result = _restaurantsCollection.ReplaceOne(filter, newRestaurant, options);
 
-        WriteLine($"Replaced documents: {result.ModifiedCount}");
-        WriteLine($"Result acknowledged? {result.IsAcknowledged}");
+        Console.WriteLine($"Replaced documents: {result.ModifiedCount}");
+        Console.WriteLine($"Result acknowledged? {result.IsAcknowledged}");
 
         return _restaurantsCollection.ReplaceOne(filter, newRestaurant);
     }

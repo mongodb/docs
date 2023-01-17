@@ -2,5 +2,5 @@ var results = _guitarsCollection.Find(g => g.EstablishedYear >= 1985 && r.Make !
 
 foreach (var doc in results)
 {
-    WriteLine(doc.ToBsonDocument());
+    Console.WriteLine(doc.ToBsonDocument());
 }

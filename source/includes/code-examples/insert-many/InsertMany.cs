@@ -1,10 +1,8 @@
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static System.Console;
 
-namespace CsharpExamples.UsageExamples.InsertMany;
+namespace CSharpExamples.UsageExamples.InsertMany;
 
 public class InsertMany
 {
@@ -16,22 +14,23 @@ public class InsertMany
         Setup();
 
         // Attempt to find document before insert
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Name, "Mongo's Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Name, "Mongo's Pizza");
 
         var foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
+        Console.WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
 
         // Extra space for console readability
-        WriteLine();
+        Console.WriteLine();
 
-        WriteLine("Inserting documents...");
+        Console.WriteLine("Inserting documents...");
         InsertManyRestaurants();
 
         // Find and print newly inserted document
         foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
+        Console.WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
 
         Cleanup();
     }
@@ -43,7 +42,7 @@ public class InsertMany
 
         // start-insert-many
         // Helper method to generate 5 new restaurants
-        List<Restaurant> restaurants = GenerateDocuments();
+        var restaurants = GenerateDocuments();
 
         _restaurantsCollection.InsertMany(restaurants);
         // end-insert-many
@@ -64,7 +63,7 @@ public class InsertMany
     private static List<Restaurant> GenerateDocuments()
     {
         // Generate 5 new restaurant documents
-        List<Restaurant> restaurantsList = new List<Restaurant>();
+        var restaurantsList = new List<Restaurant>();
         for (int i = 1; i <= 5; i++)
         {
             Restaurant newRestaurant = new()
@@ -75,7 +74,7 @@ public class InsertMany
                 Address = new BsonDocument
                 {
                     {"street", "Pizza St"},
-                    {"zipcode", "10003"},
+                    {"zipcode", "10003"}
                 },
                 Borough = "Manhattan",
             };
@@ -88,7 +87,8 @@ public class InsertMany
 
     private static void Cleanup()
     {
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Name, "Mongo's Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Name, "Mongo's Pizza");
 
         _restaurantsCollection.DeleteMany(filter);
     }

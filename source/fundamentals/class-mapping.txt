@@ -31,7 +31,7 @@ the name of the field in the document to the name of the property in the class.
    The type of the property in your class should match the type of the field in
    the document. The {+driver-short+} instantiates a serializer based on the
    type of the property in your class. If the types don't match when the driver
-   attempts to serialize the data, the serializer will throw an exception.
+   attempts to deserialize the data, the serializer throws an exception.
 
 Manually Creating A Class Map
 -----------------------------
@@ -55,11 +55,11 @@ class:
 
 .. code-block:: csharp
    
-   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
    {
-       classmap.MapMember(p => p.Name);
-       classmap.MapMember(p => p.Age);
-       classmap.MapMember(p => p.Hobbies);
+       classMap.MapMember(p => p.Name);
+       classMap.MapMember(p => p.Age);
+       classMap.MapMember(p => p.Hobbies);
    });
 
 .. important::
@@ -73,14 +73,15 @@ register a class map and call the ``AutoMap()`` method before manually
 specifying your properties.
 
 In the following code example, the ``AutoMap()`` method maps all properties
-of the ``Person`` class except ``Hobbies``, which is mapped manually:
+of the ``Person`` class, then manually adjusts the mapping for the ``Hobbies``
+field:
 
 .. code-block:: csharp
    
-   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
    {
-       classmap.AutoMap();
-       classmap.MapMember(p => p.Hobbies);
+       classMap.AutoMap();
+       classMap.MapMember(p => p.Hobbies).SetElementName("favorite_hobbies");
    });
 
 Customize Class Serialization
@@ -120,10 +121,10 @@ You can also ignore any extra elements when registering a class map:
 
 .. code-block:: csharp
    
-   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
    {
-        classmap.AutoMap();
-        classmap.SetIgnoreExtraElements(true);
+        classMap.AutoMap();
+        classMap.SetIgnoreExtraElements(true);
    });
 
 Using Class Discriminators
@@ -152,10 +153,10 @@ You can also specify a discriminator when registering a class map as follows:
 
 .. code-block:: csharp
 
-   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
    {
-       classmap.AutoMap();
-       classmap.SetDiscriminator("personClass");
+       classMap.AutoMap();
+       classMap.SetDiscriminator("personClass");
    });
 
 In BSON, discriminators have the field name ``_t``. 
@@ -165,7 +166,7 @@ The following example shows how a document from the ``Person`` class with the
 
 .. code-block:: json
 
-   { "_id": "...", "_t": "personClass", "name": "...", "age": "...", "hobbies": [...]}
+   { "_id": "...", "_t": "personClass", "Name": "...", "Age": "...", "Hobbies": [...]}
 
 .. TODO: Link to page on polymorphism/discriminators
 
@@ -175,7 +176,7 @@ Mapping with Constructors
 By default, the {+driver-short+} can automatically map a class only if the class has
 a constructor with no arguments. If you want the driver to use a constructor that accepts
 one or more arguments, you can add the ``BsonConstructor`` attribute to the constructor.
-In this case, the driver parses the expression tree to determine how to map the   
+In this case, the driver the driver examines the types to determine how to map the
 constructor arguments to class properties or fields.
 
 When the driver creates a class map for the following ``Person`` class, it will use the 
@@ -223,10 +224,10 @@ You can also specify the constructor to use when registering your class map:
        }
    }
 
-   BsonClassMap.RegisterClassMap<Person>(classmap =>
+   BsonClassMap.RegisterClassMap<Person>(classMap =>
    {
-       classmap.AutoMap();
-       classmap.MapCreator(p => new Person(p.Name, p.Age));
+       classMap.AutoMap();
+       classMap.MapCreator(p => new Person(p.Name, p.Age));
    });
 
 Customize Property Serialization
@@ -261,10 +262,10 @@ You can also support extra elements when initializing a class map as follows:
 
 .. code-block:: csharp
    
-   BsonClassMap.RegisterClassMap<Person>(classmap => 
+   BsonClassMap.RegisterClassMap<Person>(classMap => 
    {
-       classmap.AutoMap();
-       classmap.MapExtraElementsMember(p => p.ExtraElements);
+       classMap.AutoMap();
+       classMap.MapExtraElementsMember(p => p.ExtraElements);
    });
 
 .. note::
@@ -277,14 +278,15 @@ Dynamically Serialize Properties
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use a method to determine whether or not to serialize a property. For
-the driver to automatically use the method when serializing, the method must be
-named ``ShouldSerialize<property name>``. When the driver sees a method with
-this naming convention, it will use the method to determine whether or not to
-serialize properties of the provided property name.
+the driver to automatically use the method when serializing, you must prefix the
+method name with ``ShouldSerialize`` followed by the name of the property that
+the method applies to. When the driver sees a method with this naming
+convention, it uses that method to determine whether or not to serialize
+properties that have the provided property name.
 
 The following example creates a method that only serializes the ``Age`` property
-if its value is greater than ``0``. The driver ignores any properties whose
-values don't meet this requirement:
+if its value is not equal to ``0``. The driver does not serialize any properties
+whose values don't meet this requirement:
 
 .. code-block:: csharp
 
@@ -296,7 +298,7 @@ values don't meet this requirement:
 
        public bool ShouldSerializeAge()
        {
-          return Age > 0;
+          return Age != 0;
        }
    }
 
@@ -304,11 +306,11 @@ You can also specify the method while registering a class map:
 
 .. code-block:: csharp
 
-   BsonClassMap.RegisterClassMap<Employee>(classmap => 
+   BsonClassMap.RegisterClassMap<Employee>(classMap => 
    {
-       classmap.AutoMap();
-       classmap.MapMember(p => c.Age).SetShouldSerializeMethod(
-           obj => ((Person) obj).Age > 0
+       classMap.AutoMap();
+       classMap.MapMember(p => c.Age).SetShouldSerializeMethod(
+           obj => ((Person) obj).Age != 0
        );
    });
 

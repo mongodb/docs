@@ -1,7 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static System.Console;
 
 namespace Fundamentals
 {
@@ -12,11 +11,12 @@ namespace Fundamentals
 
         private const string OldValue = "Manhattan";
         private const string NewValue = "Manhattan (north)";
+
         public static void Main(string[] args)
         {
             Setup();
 
-            WriteLine($"Found: {FindCountOfRestaurantsWithBorough(OldValue)}");
+            Console.WriteLine($"Found: {FindCountOfRestaurantsWithBorough(OldValue)}");
 
             // start-builders
             var filter = Builders<Restaurant>.Filter
@@ -26,16 +26,16 @@ namespace Fundamentals
                 .Set(restaurant => restaurant.Borough, "Manhattan (north)");
             // end-builders
 
-            UpdateOptions opts = new UpdateOptions()
+            var options = new UpdateOptions()
             {
                 Comment = new BsonString("Borough updated for C# Driver Fundamentals")
             };
 
-            WriteLine("Updating documents...");
-            var result = _restaurantsCollection.UpdateMany(filter, update, opts);
+            Console.WriteLine("Updating documents...");
+            var result = _restaurantsCollection.UpdateMany(filter, update, options);
 
-            WriteLine($"Updated documents: {result.ModifiedCount}");
-            WriteLine($"Result acknowledged? {result.IsAcknowledged}");
+            Console.WriteLine($"Updated documents: {result.ModifiedCount}");
+            Console.WriteLine($"Result acknowledged? {result.IsAcknowledged}");
 
             ResetSampleData();
         }

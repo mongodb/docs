@@ -7,5 +7,5 @@ public class Restaurant
 
     public string Cuisine { get; set; }
 
-    public object Address { get; set; }
+    public Address Address { get; set; }
 }

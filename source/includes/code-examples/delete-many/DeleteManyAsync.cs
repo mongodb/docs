@@ -1,47 +1,47 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static System.Console;
 
-namespace CSharpExamples.UsageExamples;
+namespace CSharpExamples.UsageExamples.DeleteMany;
 
 public class DeleteManyAsync
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
-    private static string _mongoConnectionString = "<Your MongoDB URI>";
+    private const string MongoConnectionString = "<Your MongoDB URI>";
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         Setup();
 
-        var docs = _restaurantsCollection.Find(Builders<Restaurant>.Filter
-            .Regex(r => r.Name, "Green")).ToList();
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Borough, "Brooklyn");
+
+        var docs = _restaurantsCollection.Find(filter).ToList();
 
         // Deleting documents using builders
-        WriteLine("Deleting documents...");
-        var result = DeleteMultipleRestaurantsBuilderAsync();
+        Console.WriteLine("Deleting documents...");
+        var result = await DeleteMultipleRestaurantsBuilderAsync();
 
-        WriteLine($"Deleted documents: {result.Result.DeletedCount}");
+        Console.WriteLine($"Deleted documents: {result.DeletedCount}");
 
         Restore(docs);
+
+        return result;
     }
 
     private static async Task<DeleteResult> DeleteMultipleRestaurantsBuilderAsync()
     {
         // start-delete-many-async
         var filter = Builders<Restaurant>.Filter
-            .Regex(r => r.Name, "Green");
+            .Eq(r => r.Borough, "Brooklyn");
 
-        var result = await _restaurantsCollection.DeleteManyAsync(filter);
-        return result;
+        return await _restaurantsCollection.DeleteManyAsync(filter);
         // end-delete-many-async
     }
 
     private static void Restore(IEnumerable<Restaurant> docs)
     {
         _restaurantsCollection.InsertMany(docs);
-        WriteLine("Resetting sample data...done.");
+        Console.WriteLine("Resetting sample data...done.");
     }
 
     private static void Setup()
@@ -51,7 +51,7 @@ public class DeleteManyAsync
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // Establish the connection to MongoDB and get the restaurants database
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
         _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
     }

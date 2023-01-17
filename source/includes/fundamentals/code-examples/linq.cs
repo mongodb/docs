@@ -11,13 +11,41 @@ public class Restaurant
 
     public string Cuisine { get; set; }
 
-    public object Address { get; set; }
+    public Address Address { get; set; }
 
     public string Borough { get; set; }
 
-    public List<object> Grades { get; set; }
+    public List<GradeEntry> Grades { get; set; }
+
 }
 // end-restaurant-model
+
+// start-address-model
+public class Address
+{
+    public string Building { get; set; }
+
+    [BsonElement("coord")]
+    public float[] Coordinates { get; set; }
+
+    public string Street { get; set; }
+
+    [BsonElement("zipcode")]
+    public string ZipCode { get; set; }
+}
+// end-address-model
+
+// start-grade-model
+public class GradeEntry
+{
+    public DateTime Date { get; set; }
+
+    public string Grade { get; set; }
+
+    public float Score { get; set; }
+}
+// end-grade-model
+
 
 // start-review-model
 

@@ -272,6 +272,66 @@ single field path``, in this case using ``Category``:
          // Using string-based field names
          var keys = builder.Wildcard("Category");
 
+Build an Aggregation Pipeline
+-----------------------------
+
+The ``PipelineDefinitionBuilder`` class provides a type-safe interface for
+defining an **aggregation pipeline**. An aggregation pipeline is a series of
+stages that are used to transform a document. Suppose you want to create a
+pipeline that performs the following operations:
+
+- Matches all documents with "spring" in the ``Season`` field
+- Sorts the results by the ``Category`` field
+- Groups the documents by category and shows the average price and total
+  available for all documents in that category
+
+Use ``PipelineDefinitionBuilder`` classes to build the pipeline:
+
+.. code-block:: csharp
+
+   var sortBuilder = Builders<Flower>.Sort.Ascending(f => f.Category);
+   var matchFilter = Builders<Flower>.Filter.AnyEq(f => f.Season, "spring");
+
+   var pipeline = new EmptyPipelineDefinition<Flower>()
+       .Match(matchFilter)
+       .Sort(sortBuilder)
+       .Group(f => f.Category,
+              g => new
+                 {
+                    name = g.Key, 
+                    avgPrice = g.Average(f => f.Price), 
+                    totalAvailable = g.Sum(f => f.Stock)
+                  }
+             );   
+
+The preceding example creates the following pipeline:
+
+.. code-block:: json
+   
+   [{ "$match" : { "season" : "spring" } }, { "$sort" : { "category" : 1 } }, { "$group" : { "_id" : "$category", "avgPrice" : { "$avg" : "$price" }, "totalAvailable" : { "$sum" : "$stock" } } }]
+
+You can add stages to your pipeline that don't have corresponding type-safe
+methods in the ``PipelineDefinitionBuilder`` interface by providing your query
+as a ``BsonDocument`` to the `AppendStage() method
+<{+api-root+}/M_MongoDB_Driver_PipelineDefinitionBuilder_AppendStage__3.htm>`__.
+
+.. code-block:: csharp
+
+   var pipeline = new EmptyPipelineDefinition<BsonDocument>().AppendStage<BsonDocument, BsonDocument, BsonDocument>("{ $set: { field1: '$field2' } }");
+
+.. note:: 
+
+   When using a ``BsonDocument`` to define your pipeline stage, the driver does
+   not take into account any ``BsonClassMap``, serialization attributes or
+   serialization conventions. The field names used in the ``BsonDocument`` must
+   match those stored on the server.
+
+   For more information on providing a query as a ``BsonDocument``, see our
+   :ref:`FAQ page <csharp-faq-unsupported-expressions>`.
+
+To learn more about the Aggregation Pipeline, see the
+:manual:`Aggregation Pipeline </core/aggregation-pipeline/>` server manual page.
+
 Additional Information
 ----------------------
 
@@ -289,3 +349,4 @@ guide, see the following API Documentation:
 - `SortDefinitionBuilder <{+api-root+}/T_MongoDB_Driver_SortDefinitionBuilder_1.htm>`__
 - `UpdateDefinitionBuilder <{+api-root+}/T_MongoDB_Driver_UpdateDefinitionBuilder_1.htm>`__
 - `IndexKeysDefinitionBuilder <{+api-root+}/T_MongoDB_Driver_IndexKeysDefinitionBuilder_1.htm>`__
+- `IndexKeysDefinitionBuilder <{+api-root+}/T_MongoDB_Driver_PipelineDefinitionBuilder.htm>`__

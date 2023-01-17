@@ -26,7 +26,8 @@ in the ``sample_restaurants`` database provided in the :atlas:`Atlas sample data
 To learn how to create a free MongoDB Atlas cluster and load the sample datasets,
 see the :ref:`<csharp-quickstart>`.
 
-The following ``Restaurant`` class models the documents in this collection:
+The following ``Restaurant``, ``Address`` and ``GradeEntry`` classes model the
+documents in this collection:
 
 .. literalinclude:: /includes/fundamentals/code-examples/linq.cs
    :language: csharp
@@ -34,38 +35,50 @@ The following ``Restaurant`` class models the documents in this collection:
    :start-after: start-restaurant-model
    :end-before: end-restaurant-model
 
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-address-model
+   :end-before: end-address-model
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-grade-model
+   :end-before: end-grade-model
+
+.. include:: /includes/convention-pack-note.rst
+
 .. _csharp-linq-queryable:
 
 Make A Collection Queryable
 ---------------------------
 
-To use LINQ to query your collection, you must first make the collection
-queryable. To make your collection queryable, use the ``AsQueryable`` method
+To use LINQ to query your collection, you must first create an
+an `IQueryable
+<https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable?view=net-7.0>`__
+object that links to the collection. To create the object, use the ``AsQueryable()`` method
 as follows:
 
 .. code-block:: csharp
    :emphasize-lines: 2
 
-    _restaurantsCollection = db.GetCollection<Restaurant>("restaurants");
-    var queryableCollection = _restaurantsCollection.AsQueryable();
+    var restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
+    var queryableCollection = restaurantsCollection.AsQueryable();
 
-Once the collection is queryable, you can compose a query using 
+The ``AsQueryable()`` method returns an `IMongoQueryable
+<{+api-root+}/T_MongoDB_Driver_Linq_IMongoQueryable_1.htm>`__ instance that
+has the ``IQueryable`` extension methods, along with a set of
+MongoDB specific methods.
+
+Once you have the queryable object, you can compose a query using 
 **method syntax**. Some pipeline stages also support **query comprehension syntax**,
 which resembles SQL query syntax.
 
-Select the :guilabel:`Query Syntax` or :guilabel:`Method Syntax` tab to see 
+Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see 
 how to compose a query using LINQ:
 
 .. tabs::
-
-   .. tab:: Query Syntax
-      :tabid: query-syntax
-
-      .. code-block:: csharp
-
-         var query = from r in queryableCollection
-             where r.Name == "The Movable Feast"
-             select new { r.Name, r.Address };
 
    .. tab:: Method Syntax
       :tabid: method-syntax
@@ -76,9 +89,16 @@ how to compose a query using LINQ:
              .Where(r => r.Name == "The Movable Feast")
              .Select(r => new { r.Name, r.Address });
 
-The documents found in the query are returned as an object that implements the
-`IQueryable <https://learn.microsoft.com/en-us/dotnet/api/system.linq.iqueryable-1?redirectedfrom=MSDN&view=net-6.0>`__
-interface. You can print the results of the preceding example as follows: 
+   .. tab:: Query Syntax
+      :tabid: query-syntax
+
+      .. code-block:: csharp
+
+         var query = from r in queryableCollection
+             where r.Name == "The Movable Feast"
+             select new { r.Name, r.Address };
+
+You can print the results of the preceding example as follows: 
 
 .. io-code-block::
 
@@ -93,6 +113,20 @@ interface. You can print the results of the preceding example as follows:
    .. output::
       
       { "name" : "The Movable Feast", "address" : { "building" : "284", "coord" : [-73.982923900000003, 40.6580753], "street" : "Prospect Park West", "zipcode" : "11215" } }
+
+.. tip:: Accessing Query Results
+
+   You can also access the results of your query by using the ``ToList()`` or
+   ``ToCursor()`` methods:
+
+   .. code-block:: csharp
+
+      var results = query.ToList();
+
+   .. code-block:: csharp
+
+      var results = query.ToCursor();
+
 
 Supported Aggregation Stages
 ----------------------------
@@ -111,19 +145,10 @@ $project
 The ``$project`` aggregation stage returns a document containing only the specified
 fields.
 
-Select the :guilabel:`Query Syntax` or :guilabel:`Method Syntax` tab to see how 
+Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
 to generate a ``$project`` stage using LINQ:
 
 .. tabs::
-
-   .. tab:: Query Syntax
-      :tabid: query-syntax
-
-      .. code-block:: csharp
-         :emphasize-lines: 2
-
-         var query = from r in queryableCollection
-             select new { r.Name, r.Address };
 
    .. tab:: Method Syntax
       :tabid: method-syntax
@@ -134,7 +159,16 @@ to generate a ``$project`` stage using LINQ:
          var query = queryableCollection
              .Select(r => new { r.Name, r.Address });
 
-The preceding example returns the following document:
+   .. tab:: Query Syntax
+      :tabid: query-syntax
+
+      .. code-block:: csharp
+         :emphasize-lines: 2
+
+         var query = from r in queryableCollection
+             select new { r.Name, r.Address };
+
+The result of the preceding example contains the following document:
 
 .. code-block:: json
 
@@ -151,10 +185,19 @@ $match
 The ``$match`` aggregation stage returns the documents that match a specified
 criteria. 
 
-Select the :guilabel:`Query Syntax` or :guilabel:`Method Syntax` tab to see how 
+Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
 to generate a ``$match`` stage using LINQ:
 
 .. tabs::
+
+   .. tab:: Method Syntax
+      :tabid: method-syntax
+
+      .. code-block:: csharp
+         :emphasize-lines: 2
+
+         var query = queryableCollection
+             .Where(r => r.Name == "The Movable Feast");
 
    .. tab:: Query Syntax
       :tabid: query-syntax
@@ -166,16 +209,7 @@ to generate a ``$match`` stage using LINQ:
              where r.Name == "The Movable Feast"
              select r;
 
-   .. tab:: Method Syntax
-      :tabid: method-syntax
-
-      .. code-block:: csharp
-         :emphasize-lines: 2
-
-         var query = queryableCollection
-             .Where(r => r.Name == "The Movable Feast");
-
-The preceding example returns the following document:
+The result of the preceding example contains the following document:
 
 .. code-block:: json
 
@@ -197,7 +231,7 @@ query. The following example shows how to generate a ``$limit`` stage using LINQ
        .Select(r => new {r.Name, r.Cuisine})
        .Take(5);
 
-The preceding example returns the following documents:
+The result of the preceding example contains the following documents:
 
 .. code-block:: json
 
@@ -223,7 +257,7 @@ a ``$skip`` stage using LINQ:
        .Skip(2);
 
 The preceding example skips the first two restaurants that match the criteria, and
-returns the rest as follows:
+returns the rest. The result contains the following documents:
 
 .. code-block:: json
 
@@ -240,10 +274,20 @@ $unwind
 The ``$unwind`` aggregation stage deconstructs a specified array field and returns
 a document for each element in that array.
 
-Select the :guilabel:`Query Syntax` or :guilabel:`Method Syntax` tab to see how 
+Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
 to generate an ``$unwind`` stage using LINQ:
 
 .. tabs::
+
+   .. tab:: Method Syntax
+      :tabid: method-syntax
+
+      .. code-block:: csharp
+         :emphasize-lines: 3
+
+         var query = queryableCollection
+             .Where(r => r.Name == "The Movable Feast")
+             .SelectMany(r => r.Grades);
 
    .. tab:: Query Syntax
       :tabid: query-syntax
@@ -256,19 +300,10 @@ to generate an ``$unwind`` stage using LINQ:
              from grade in r.Grades
              select grade;
 
-   .. tab:: Method Syntax
-      :tabid: method-syntax
-
-      .. code-block:: csharp
-         :emphasize-lines: 3
-
-         var query = queryableCollection
-             .Where(r => r.Name == "The Movable Feast")
-             .SelectMany(r => r.Grades);
-
 The query in the preceding example finds the document where the ``Name`` field 
 has the value "The Movable Feast." Then, for each element in this document's 
-``Grades`` array, the query returns a new document. The results are as follows:
+``Grades`` array, the query returns a new document. The result contains the
+following documents:
 
 .. code-block:: json
 
@@ -283,20 +318,10 @@ $group
 The ``$group`` aggregation stage separates documents into groups according to
 the criteria you specify.
 
-Select the :guilabel:`Query Syntax` or :guilabel:`Method Syntax` tab to see how 
+Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
 to generate an ``$group`` stage using LINQ:
 
 .. tabs::
-
-   .. tab:: Query Syntax
-      :tabid: query-syntax
-
-      .. code-block:: csharp
-         :emphasize-lines: 2
-
-         var query = from r in queryableCollection
-             group r by r.Cuisine into g
-             select new {Cuisine = g.Key, Count = g.Count()};
 
    .. tab:: Method Syntax
       :tabid: method-syntax
@@ -308,9 +333,19 @@ to generate an ``$group`` stage using LINQ:
              .GroupBy(r => r.Cuisine)
              .Select(g => new { Cuisine = g.Key, Count = g.Count() });
 
+   .. tab:: Query Syntax
+      :tabid: query-syntax
+
+      .. code-block:: csharp
+         :emphasize-lines: 2
+
+         var query = from r in queryableCollection
+             group r by r.Cuisine into g
+             select new {Cuisine = g.Key, Count = g.Count()};
+
 The preceding example groups each document by the value in its ``Cuisine`` field,
-then counts how many documents have each ``Cuisine`` value. The results are 
-similar to the following:
+then counts how many documents have each ``Cuisine`` value. The result contains 
+the following documents:
 
 .. code-block:: json
 
@@ -334,20 +369,10 @@ $sort
 The ``$sort`` aggregation stage returns the results of your query in the order
 that you specify.
 
-Select the :guilabel:`Query Syntax` or :guilabel:`Method Syntax` tab to see how 
+Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
 to generate an ``$sort`` stage using LINQ:
 
 .. tabs::
-
-   .. tab:: Query Syntax
-      :tabid: query-syntax
-
-      .. code-block:: csharp
-         :emphasize-lines: 2
-
-         var query = from r in queryableCollection
-             orderby r.Name, r.RestaurantId descending
-             select r;
 
    .. tab:: Method Syntax
       :tabid: method-syntax
@@ -359,9 +384,19 @@ to generate an ``$sort`` stage using LINQ:
              .OrderBy(r => r.Name)
              .ThenByDescending(r => r.RestaurantId);
 
+   .. tab:: Query Syntax
+      :tabid: query-syntax
+
+      .. code-block:: csharp
+         :emphasize-lines: 2
+
+         var query = from r in queryableCollection
+             orderby r.Name, r.RestaurantId descending
+             select r;
+
 The preceding example returns the query results sorted alphabetically by the
 ``Name`` field, with a secondary descending sort on the ``RestaurantId`` field.
-The following is a subset of the returned results:
+The following is a subset of the documents contained in the returned results:
 
 .. code-block:: json
 
@@ -402,19 +437,10 @@ The following ``Review`` class models the documents in the ``reviews`` collectio
    :start-after: start-review-model
    :end-before: end-review-model
 
-Select the :guilabel:`Query Syntax` or :guilabel:`Method Syntax` tab to see how 
+Select the :guilabel:`Method Syntax` or :guilabel:`Query Syntax` tab to see how 
 to generate a ``$lookup`` stage using LINQ:
 
 .. tabs::
-
-   .. tab:: Query Syntax
-      :tabid: query-syntax
-
-      .. code-block:: csharp
-
-         var query = from restaurant in queryableCollection
-             join rv in reviewCollection on restaurant.Name equals rv.RestaurantName into reviews
-             select new { restaurant, reviews };
 
    .. tab:: Method Syntax
       :tabid: method-syntax
@@ -426,8 +452,17 @@ to generate a ``$lookup`` stage using LINQ:
                  restaurant => restaurant.Name,
                  review => review.RestaurantName,
                  (restaurant, reviews) =>
-                     new {restaurant, reviews}
+                     new { Restaurant = restaurant, Reviews = reviews }
              );
+
+   .. tab:: Query Syntax
+      :tabid: query-syntax
+
+      .. code-block:: csharp
+
+         var query = from restaurant in queryableCollection
+             join rv in reviewCollection on restaurant.Name equals rv.RestaurantName into reviews
+             select new { restaurant, reviews };
 
 The preceding example returns all documents from the ``restaurants`` collection. Each
 restaurant document has an added field called ``reviews``, which contains all 
@@ -468,7 +503,8 @@ aggregation stages:
 Supported Methods
 -----------------
 
-The {+driver-long+} implementation of LINQ supports the following methods:
+The following are some of the methods supported by the  {+driver-long+}
+implementation of LINQ:
 
 .. list-table::
    :header-rows: 1

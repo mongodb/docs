@@ -1,7 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static System.Console;
 
 namespace CSharpExamples.UsageExamples.ReplaceOne;
 
@@ -15,28 +14,30 @@ public class ReplaceOne
         Setup();
 
         // Create filter 
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Cuisine, "Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Cuisine, "Pizza");
 
         // Find first pizza restaurant
         var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        WriteLine($"First pizza restaurant before replacement: {oldPizzaRestaurant.Name}");
+        Console.WriteLine($"First pizza restaurant before replacement: {oldPizzaRestaurant.Name}");
 
         // Replace one document synchronously
         var syncResult = ReplaceOneRestaurant();
-        WriteLine($"Restaurants modified by replacement: {syncResult.ModifiedCount}");
+        Console.WriteLine($"Restaurants modified by replacement: {syncResult.ModifiedCount}");
 
         var firstPizzaRestaurant = _restaurantsCollection.Find(filter).First();
-        WriteLine($"First pizza restaurant after replacement: {firstPizzaRestaurant.Name}");
+        Console.WriteLine($"First pizza restaurant after replacement: {firstPizzaRestaurant.Name}");
 
-        Write("Resetting sample data...");
+        Console.WriteLine("Resetting sample data...");
         _restaurantsCollection.ReplaceOneAsync(filter, oldPizzaRestaurant);
-        WriteLine("done.");
+        Console.WriteLine("done.");
     }
 
     private static ReplaceOneResult ReplaceOneRestaurant()
     {
         // start-replace-one
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Cuisine, "Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Cuisine, "Pizza");
 
         // Find ID of first pizza restaurant
         var oldPizzaRestaurant = _restaurantsCollection.Find(filter).First();
@@ -50,7 +51,7 @@ public class ReplaceOne
             Address = new BsonDocument
             {
                 {"street", "Pizza St"},
-                {"zipcode", "10003"},
+                {"zipcode", "10003"}
             },
             Borough = "Manhattan",
         };

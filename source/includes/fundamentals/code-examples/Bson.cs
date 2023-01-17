@@ -1,6 +1,6 @@
 using MongoDB.Driver;
 
-namespace Fundamentals;
+namespace DataFormats.Bson;
 
 public class Bson
 {
@@ -26,26 +26,4 @@ public class Bson
         newRestaurant.Set("name", "Mongo's Pizza Palace");
         //end-change
     }
-
-    public static void BsonElements()
-    {
-        //start-bson-elements
-        var newRestaurant = new BsonDocument
-        {
-            new BsonElement("address", new BsonDocument
-            {
-                new BsonElement("street", "Pizza St"),
-                new BsonElement("zipcode", "10003")
-            }),
-            new BsonElement("coord", new BsonArray
-            {
-                {-73.982419, 41.579505 }
-            }),
-            new BsonElement("cuisine", "Pizza"),
-            new BsonElement("name", "Mongo's Pizza")
-        };
-        //end-bson-elements
-    }
 }
-
-

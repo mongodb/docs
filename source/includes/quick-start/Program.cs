@@ -1,7 +1,7 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 
-string? connectionString = System.Environment.GetEnvironmentVariable("MONGODB_URI");
+var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
 if (connectionString == null)
 {
     Console.WriteLine("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable");

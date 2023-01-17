@@ -1,49 +1,48 @@
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static System.Console;
 
-namespace CsharpExamples.UsageExamples.InsertMany;
+namespace CSharpExamples.UsageExamples.InsertMany;
 
 public class InsertManyAsync
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
     private const string MongoConnectionString = "<Your MongoDB URI>";
 
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         Setup();
 
         // Attempt to find document before insert
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Name, "Mongo's Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Name, "Mongo's Pizza");
 
         var foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
+        Console.WriteLine($"Number of restaurants found before insert: {foundRestaurants.Count}");
 
         // Extra space for console readability
-        WriteLine();
+        Console.WriteLine();
 
-        WriteLine("Inserting documents...");
-        InsertManyRestaurantsAsync();
+        Console.WriteLine("Inserting documents...");
+        await InsertManyRestaurantsAsync();
 
         // Find and print newly inserted document
         foundRestaurants = _restaurantsCollection.Find(filter).ToList();
 
-        WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
+        Console.WriteLine($"Number of restaurants inserted: {foundRestaurants.Count}");
 
         Cleanup();
     }
 
-    private static async void InsertManyRestaurantsAsync()
+    private static async Task InsertManyRestaurantsAsync()
     {
         // Delete sample document if already exists
         Cleanup();
 
         // start-insert-many
         // Helper method to generate 5 new restaurants
-        List<Restaurant> restaurants = GenerateDocuments();
+        var restaurants = GenerateDocuments();
 
         await _restaurantsCollection.InsertManyAsync(restaurants);
         // end-insert-many
@@ -64,7 +63,7 @@ public class InsertManyAsync
     private static List<Restaurant> GenerateDocuments()
     {
         // Generate 5 new restaurant documents
-        List<Restaurant> restaurantsList = new List<Restaurant>();
+        var restaurantsList = new List<Restaurant>();
         for (int i = 1; i <= 5; i++)
         {
             Restaurant newRestaurant = new()
@@ -75,7 +74,7 @@ public class InsertManyAsync
                 Address = new BsonDocument
                 {
                     {"street", "Pizza St"},
-                    {"zipcode", "10003"},
+                    {"zipcode", "10003"}
                 },
                 Borough = "Manhattan",
             };
@@ -88,7 +87,8 @@ public class InsertManyAsync
 
     private static void Cleanup()
     {
-        var filter = Builders<Restaurant>.Filter.Eq(r => r.Name, "Mongo's Pizza");
+        var filter = Builders<Restaurant>.Filter
+            .Eq(r => r.Name, "Mongo's Pizza");
 
         _restaurantsCollection.DeleteMany(filter);
     }

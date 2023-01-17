@@ -8,11 +8,11 @@ public class Builders
 {
     private static IMongoCollection<Flower> _flowerCollection;
     private static string _mongoConnectionString = "<Your MongoDB URI>";
-    
+
     public static void Main(string[] args)
     {
         Setup();
-        
+
         // Sample builders definitions
         var filter = Builders<Flower>.Filter.AnyEq(flower => flower.Season, "spring");
         var projection = Builders<Flower>.Projection.Include("Name").Include("Price").Exclude("Id");
@@ -26,6 +26,7 @@ public class Builders
         var update = Builders<Flower>.Update.Mul("Price", 0.9);
         var result2 = _flowerCollection.UpdateOne(filter, update);
     }
+
     private static void Setup()
     {
         // Establish the connection to MongoDB and get the restaurants database
