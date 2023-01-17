@@ -36,4 +36,4 @@ public class Poco
         var myDatabase = mongoClient.GetDatabase("sample_db");
         _myColl = myDatabase.GetCollection<Clothing>("sample_coll");
     }
-}
+} 
