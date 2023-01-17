@@ -58,6 +58,7 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |ent-build| replace:: MongoDB Enterprise',
+    '.. |fts| replace:: Atlas Search',
 ])
 
 source_constants = {
