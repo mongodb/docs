@@ -54,6 +54,15 @@ Connection Settings
    response, it resets and retries the connection to the |application|.
    This value defaults to ``90`` seconds.
 
+.. bsetting:: backupSocketTimeoutMs
+
+   *Type*: integer
+
+   Specifies the length of time, in milliseconds, that a socket between
+   {+bagent+} and |mms| can remain idle before |mms| breaks the
+   connection. If omitted, defaults to ``180000`` milliseconds (``3``
+   minutes). 
+
 .. bsetting:: https
 
    *Type*: boolean
