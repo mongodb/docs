@@ -7,4 +7,3 @@
    |k8s-op-short| doesn't support concatenated |pem| files stored as
    :k8sdocs:`Opaque secrets </concepts/configuration/secret/#opaque-secrets>`.
 
-   .. include:: /includes/fact-broken-appdb.rst
