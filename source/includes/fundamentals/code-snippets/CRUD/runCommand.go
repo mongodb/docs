@@ -31,11 +31,11 @@ func main() {
 
 	// start-runcommand
 	db := client.Database("plants")
-	filter := bson.D{{"price", bson.D{{"$lte", 9.99}}}}
-	command := bson.D{{"count", "flowers"}, {"query", filter}}
+	countCommand := bson.D{{"count", "flowers"}}
+	explainCommand := bson.D{{"explain", countCommand}, {"verbosity", "queryPlanner"}}
 
 	var result bson.M
-	err = db.RunCommand(context.TODO(), command).Decode(&result)
+	err = db.RunCommand(context.TODO(), explainCommand).Decode(&result)
 	// end-runcommand
 
 	if err != nil {

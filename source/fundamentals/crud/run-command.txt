@@ -9,22 +9,25 @@ Run a Command
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Overview
 --------
 
-In this guide, you can learn how to run a **database command** with the
+In this guide, you can learn how to run a database command with the
 {+driver-short+}. You can use database commands to perform a variety of
 administrative and diagnostic tasks, such as fetching server statistics,
 initializing a replica set, or running an aggregation pipeline.
 
-Compose a Command
+Execute a Command
 -----------------
 
-The {+driver-short+} provides the following methods to run database
-commands: 
+To run a database command, you must specify the command and any relevant
+parameters in a command document, then pass the command document to a
+wrapper method. The command document must be an order-preserving type
+such as ``bson.D``. The {+driver-short+} provides the following methods
+to run database commands:
 
 - ``RunCommand()``, which returns the command response as a
   ``SingleResult`` type. You can use this method with any database command.
@@ -32,29 +35,31 @@ commands:
   ``Cursor`` type. You can use this method if your database command
   returns multiple result documents.
 
-Each method requires a Context and a command document. The
-command document must be an order-preserving type such as ``bson.D``.
-The following code shows how you can use the ``RunCommandCursor()``
-method to run the ``listCollections`` command on a database:
+The following code shows how you can use the ``RunCommand()``
+method to run the ``hello`` command, which returns information about
+the current member's role in the replica set, on a database:
 
 .. code-block:: go
 
-   command := bson.D{{"listCollections", 1}}   
-   cursor, err := db.RunCommandCursor(context.TODO(), command)
+   command := bson.D{{"hello", 1}}
 
-For a full list of database commands, see the :ref:`Additional
-Information <addl-info-runcommand>`.
+   var result bson.M
+   err = db.RunCommand(context.TODO(), command).Decode(&result)
+
+For a full list of database commands and corresponding parameters, see
+the :ref:`Additional Information section <addl-info-runcommand>`.
 
 .. note:: Read Preference
 
    ``RunCommand()`` and ``RunCommandCursor()`` do not obey the read
-   preference set for the database. You can set a read preference for a
-   database command by passing a ``RunCmdOptions`` type to either method:
+   preference you may have set on your ``Database`` object elsewhere in
+   your code. You can set a read preference for command execution by
+   passing a ``RunCmdOptions`` object to either method:
    
    .. code-block:: go
 
       opts := options.RunCmd().SetReadPreference(readpref.Primary())
-      err := db.RunCommand(context.TODO(), command, opts).Decode(&result)
+      cursor, err := db.RunCommandCursor(context.TODO(), command, opts)
    
    For more information on
    read preference options, see the :ref:`golang-write-read-pref`
@@ -63,8 +68,11 @@ Information <addl-info-runcommand>`.
 Response
 --------
 
-Each method returns a document or a cursor containing documents with the
-following fields:
+Each method returns a ``SingleResult`` object or a cursor that contains
+the response from the database after the command has been executed. Each
+database command performs a different function, so the response content
+can vary across commands. However, every response contains documents
+with the following fields:
 
 .. list-table::
    :header-rows: 1
@@ -83,9 +91,13 @@ following fields:
        or failed (``0``).
 
    * - ``operationTime``
-     - Indicates the :website:`logical time
-       </blog/post/transactions-background-part-4-the-global-logical-clock>`
-       of the operation. MongoDB uses the logical time to order operations.
+     - Indicates the logical time of the operation. MongoDB uses the
+       logical time to order operations.
+       
+       .. seealso::
+  
+          To learn more about logical time, see our :website:`blog post about
+          the Global Logical Clock </blog/post/transactions-background-part-4-the-global-logical-clock>`.
 
    * - ``$clusterTime``
      - Provides a document that returns the signed cluster time. Cluster time is a
@@ -101,9 +113,9 @@ Example
 -------
 
 The following code shows how you can use the ``RunCommand()`` method to
-run the ``count`` command on the ``flowers`` collection of the
-``plants`` database. This example searches for documents with a
-``price`` property less than or equal to 9.99.
+run the ``explain`` command for a ``count`` operation on the ``flowers`` collection of the
+``plants`` database. The ``explain`` command runs in the
+``"queryPlanner"`` verbosity mode:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/CRUD/runCommand.go
    :language: go
@@ -114,32 +126,48 @@ run the ``count`` command on the ``flowers`` collection of the
 Output
 ~~~~~~
 
-In the output, you should see the number of documents in
-the collection that match the query as the value of the ``n`` field, as
-well as the command execution information:
+In the output, you should see fields explaining the
+execution of the ``count`` operation, such as the winning plan, which is
+the plan selected by the query optimizer, and any rejected
+plans. The output also contains information about the execution of the
+``explain`` command:
 
 .. code-block:: json
-   :emphasize-lines: 15
+   :emphasize-lines: 9-13,19-29
 
    {
        "$clusterTime": {
            "clusterTime": {
-               "T": 1666967516,
-               "I": 32
+               "T": 1673969525,
+               "I": 24
            },
-           "signature": {
-               "hash": {
-                   "Subtype": 0,
-                   "Data": "..."
-               },
-               "keyId": 7120249010111119362
-           }
+           "signature": {...}
        },
-       "n": 47,
+       "command": {
+           "$db": "plants",
+           "count": "flowers"
+       },
+       "explainVersion": "1",
        "ok": 1,
        "operationTime": {
-           "T": 1666967516,
-           "I": 32
+           "T": 1673969525,
+           "I": 24
+       },
+       "queryPlanner": {
+           "indexFilterSet": false,
+           "maxIndexedAndSolutionsReached": false,
+           "maxIndexedOrSolutionsReached": false,
+           "maxScansToExplodeReached": false,
+           "namespace": "plants.flowers",
+           "rejectedPlans": [],
+           "winningPlan": {
+               "stage": "RECORD_STORE_FAST_COUNT"
+           }
+       },
+       "serverInfo": {...},
+       "serverParameters": {
+           "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+           ...
        }
    }
 
@@ -152,8 +180,8 @@ For more information about the concepts in this guide, see the following documen
 
 - :manual:`db.runCommand() </reference/method/db.runCommand/>`
 - :manual:`Database Commands </reference/command/>`
-- :manual:`listCollections Command </reference/command/listCollections/>`
-- :manual:`count Command </reference/command/count/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`explain Command </reference/command/explain/>`
 
 To learn how to retrieve data from a cursor, see the
 :ref:`golang-cursor` fundamentals page.
@@ -164,4 +192,3 @@ API Documentation
 - `RunCommand() <{+api+}/mongo#Database.RunCommand>`__
 - `RunCommandCursor() <{+api+}/mongo#Database.RunCommandCursor>`__
 - `RunCmdOptions <{+api+}/mongo/options#RunCmdOptions>`__
-- `Cursor <{+api+}/mongo#Cursor>`__
