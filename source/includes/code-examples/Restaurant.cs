@@ -1,9 +1,3 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-
-namespace CSharpExamples.UsageExamples;
-
-// start-model
 public class Restaurant
 {
     public ObjectId Id { get; set; }
@@ -21,4 +15,3 @@ public class Restaurant
 
     public List<GradeEntry> Grades { get; set; }
 }
-// end-model
