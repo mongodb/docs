@@ -31,7 +31,7 @@ The stages in the live migration workflow are:
 
   - In the :guilabel:`Live Migration: Connect to Atlas` section of your
     |com| organization's :guilabel:`Settings` page, select
-    :guilabel:`Connect to Atlas` and paste the the link-token
+    :guilabel:`Connect to Atlas` and paste the link-token
     that you created in |service|. To learn more, see
     :opsmgr:`Connect to Atlas for Live Migration
     </tutorial/connect-to-atlas-live-migration>` in Ops Manager, or

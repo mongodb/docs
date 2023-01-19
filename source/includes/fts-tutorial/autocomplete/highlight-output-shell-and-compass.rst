@@ -177,7 +177,7 @@
            }]
          }
 
-      Atlas Search returns these results because the the characters
+      Atlas Search returns these results because the characters
       ``ger`` appear at different positions in the titles. Atlas Search
       matches a highlight ``hit`` more coarsely to your query terms when
       a highlighted path is referenced only in the autocomplete
