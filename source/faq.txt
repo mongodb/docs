@@ -6,12 +6,128 @@ FAQ
 
 .. default-domain:: mongodb
 
-Frequently Asked Questions
-
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 1
    :class: singlecol
 
-Lorem ipsum.
+This page contains frequently asked questions and their corresponding answers.
+
+.. tip::
+
+   If you can't find an answer to your problem on this page,
+   see the :ref:`golang-issues-and-help` page for next steps and more
+   resources.
+   
+How Can I Fix the "WriteNull can only write while positioned on a Element or Value but is positioned on a TopLevel" Error?
+--------------------------------------------------------------------------------------------------------------------------
+
+The ``bson.Marshal()`` method requires a parameter that can be decoded
+into a BSON document, such as the ``bson.D`` type. This error occurs
+when you pass something *other* than a BSON document to
+``bson.Marshal()``.
+
+The ``WriteNull`` error occurs when you pass a ``null`` to
+``bson.Marshal()``. Situations in which a similar error can occur
+include the following:
+
+- You pass a string to ``bson.Marshal()``, causing a ``WriteString`` error.
+- You pass a boolean to ``bson.Marshal()``, causing a ``WriteBoolean`` error.
+- You pass an integer to ``bson.Marshal()``, causing a ``WriteInt32`` error.
+
+You may encounter this error when you perform a CRUD operation that
+internally uses the ``bson.Marshal()`` method or when you call
+``bson.Marshal()`` directly to encode data.
+
+The following code produces a ``WriteNull`` error because the driver
+cannot encode the ``null`` valued ``sortOrder`` variable to BSON during
+the ``FindOneAndUpdate()`` operation:
+
+.. code-block:: go
+
+   var sortOrder bson.D
+   opts := options.FindOneAndUpdate().SetSort(sortOrder)
+   
+   updateDocument := bson.D{{"$inc", bson.D{{"counter", 1}}}}
+   result := coll.FindOneAndUpdate(context.TODO(), bson.D{}, updateDocument, opts)
+   if err := result.Err(); err != nil {
+       panic(err)
+   }
+
+The following code shows how to correctly initialize the ``sortOrder``
+variable as a ``bson.D`` type so that the driver can convert it to BSON:
+
+.. code-block:: go
+
+   sortOrder := bson.D{}
+
+How Do I Convert a BSON Document to JSON?
+-----------------------------------------
+
+The driver provides a variety of marshaller methods that can be used to
+convert a BSON document to JSON, such as the ``MarshalExtJSON()``
+method. To view a readable form of the JSON encoding, you must use
+an unmarshaller method or string type-casting to parse the JSON byte
+format.
+
+The following code converts a BSON document to JSON using the
+``MarshalExtJSON()`` method, then parses and prints the JSON byte array
+using string type-casting:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: go
+      :emphasize-lines: 3
+
+      bsonDocument := bson.D{{"hello", "world"}}
+      
+      jsonBytes, err := bson.MarshalExtJSON(bsonDocument, true, false)
+      if err != nil {
+          panic(err)
+      }
+      
+      fmt.Println(string(jsonBytes))
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {"hello":"world"}
+
+To learn more about conversions between BSON and Go types, see the
+:ref:`golang-bson` guide.
+
+Why Did the Driver Throw an "Authentication failed" Error?
+----------------------------------------------------------
+
+If you attempt to connect to a MongoDB deployment using incorrect
+username and password credentials or specifying the wrong authentication
+mechanism, you receive an "Authentication failed" error message. For
+example, the following error message is returned when you pass invalid
+credentials when authenticating with ``SCRAM-SHA-256``:
+
+.. code-block:: none
+   :copyable: false
+
+   connection() error occurred during connection handshake: auth error:
+   sasl conversation error: unable to authenticate using mechanism
+   "SCRAM-SHA-256": (AuthenticationFailed) Authentication failed.
+
+This error message does not contain the detailed authentication failure
+reason for security reasons. Common causes for authentication failure include the
+following:
+
+- Incorrect password
+- Incorrect username
+- Incorrect authentication mechanism specified in your connection string
+  or ``Credential`` struct
+
+To avoid this error, ensure that your credentials and authentication
+mechanism are correct. You can store your authentication credentials in
+environment variables or you can pass them to the ``SetAuth()`` method.
+
+To learn more about authentication, see the
+:ref:`golang-authentication-mechanisms` guide.
