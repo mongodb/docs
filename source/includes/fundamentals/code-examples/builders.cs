@@ -1,5 +1,4 @@
 using MongoDB.Driver;
-using static System.Console;
 using MongoDB.Bson;
 
 namespace TestRun.Fundamentals;
@@ -18,10 +17,10 @@ public class Builders
         var projection = Builders<Flower>.Projection.Include("Name").Include("Price").Exclude("Id");
         var sort = Builders<Flower>.Sort.Ascending("Price").Descending("Category");
 
-        WriteLine("Finding documents...");
+        Console.WriteLine("Finding documents...");
         var result = _flowerCollection.Find(filter).Sort(sort).Project(projection).toList();
 
-        WriteLine(result.ToJson());
+        Console.WriteLine(result.ToJson());
 
         var update = Builders<Flower>.Update.Mul("Price", 0.9);
         var result2 = _flowerCollection.UpdateOne(filter, update);
