@@ -25,8 +25,8 @@ application database in containers in your |k8s| environment.
 Each |onprem| resource uses an |k8s-obj| specification in |yaml| to
 define the characteristics and settings of the deployment.
 
-Example
--------
+Examples
+---------
 
 The following example shows a resource specification for an |onprem|
 deployment:
@@ -34,6 +34,7 @@ deployment:
 .. literalinclude:: /reference/k8s/example-ops-manager.yaml
    :language: yaml
    :linenos:
+
 
 Required |onprem| Resource Settings
 -----------------------------------
@@ -239,6 +240,17 @@ Optional |onprem| Resource Settings
   Encrypts communications using |tls| certificates between |onprem| and
   the application database.
 
+.. opsmgrkube:: spec.backup.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for the :ref:`backup-daemon` processes.
+   Use assignment labels to identify that specific backup daemon
+   processes are associated with particular projects. If you set assignment
+   labels using the |k8s-op-short|, the values that you set in the |k8s|
+   configuration file for assignment labels override the values defined
+   in the |mms| UI. Assignment labels that you don't set using the
+   |k8s-op-short| continue to use the values set in the |mms| UI.
 
 .. opsmgrkube:: spec.backup.enabled
 
@@ -370,11 +382,23 @@ Optional |onprem| Resource Settings
 
    *Type*: collection
 
-   *Required if you enable Backup.*
+   *Required if you enable backup.*
 
    Array of :ref:`oplog stores <backup-database-specifications>` used
-   for Backup. Each item in the array references a MongoDB database
+   for backup. Each item in the array references a MongoDB database
    resource deployed in the |k8s| cluster by the |k8s-op-short|.
+
+.. opsmgrkube:: spec.backup.opLogStores.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for the :ref:`oplog store <backup-database-specifications>`.
+   Use assignment labels to identify that specific oplog stores are associated
+   with particular projects. If you set assignment labels using the |k8s-op-short|,
+   the values that you set in the |k8s| configuration file for assignment
+   labels override the values defined in the |mms| UI. Assignment labels
+   that you don't set using the |k8s-op-short| continue to use the values
+   set in the |mms| UI.
 
 .. opsmgrkube:: spec.backup.opLogStores.name
 
@@ -430,23 +454,37 @@ Optional |onprem| Resource Settings
    for Backup. Each item in the array references a MongoDB database
    resource deployed in the |k8s| cluster by the |k8s-op-short|.
 
+.. opsmgrkube:: spec.backup.blockStores.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for the :ref:`blockstore <backup-database-specifications>`.
+   Use assignment labels to identify that specific blockstores are
+   associated with particular projects. If you set assignment labels using
+   the |k8s-op-short|, the values that you set in the |k8s| configuration
+   file for assignment labels override the values defined in the |mms| UI.
+   Assignment labels that you don't set using the |k8s-op-short| continue
+   to use the values set in the |mms| UI.
+
 .. opsmgrkube:: spec.backup.blockStores.name
 
    *Type*: string
 
-   *Required if you enable Backup using a blockstore.*
+   *Required if you enable backup using a blockstore.*
 
    Name of the blockstore.
 
    .. important::
 
-      Once specified, don't edit the name of the blockstore.
+      Once specified, don't edit the name of the :ref:`blockstore <backup-database-specifications>`.
+
+
 
 .. opsmgrkube:: spec.backup.blockStores.mongodbResourceRef.name
 
    *Type*: string
 
-   *Required if you enable Backup using a blockstore.*
+   *Required if you enable backup using a blockstore.*
 
    Name of the MongoDB database resource that you create for the
    blockstore. You must deploy this database resource in the same
@@ -1073,9 +1111,9 @@ application database:
 
    *Default*: ``"password"``
 
-   Human-readable string that indentifies the key in the |k8s-secret| 
-   that stores the password for basic HTTP authentication. If you don't 
-   specify this setting, the default applies.
+   Human-readable string that identifies the key in the |k8s-secret| that
+   stores the password for basic HTTP authentication. If you don't specify
+   this setting, the default applies.
 
 .. setting:: spec.applicationDatabase.prometheus.passwordSecretRef.name
 
@@ -1116,9 +1154,9 @@ application database:
 
    *Default*: ``"password"``
 
-   Human-readable string that indentifies the key in the |k8s-secret| 
-   that stores the password for |tls| authentication. If you don't 
-   specify this setting, the default applies.
+   Human-readable string that identifies the key in the |k8s-secret| that
+   stores the password for |tls| authentication. If you don't specify this
+   setting, the default applies.
 
 .. setting:: spec.applicationDatabase.prometheus.tlseSecretKeyRef.name
 
@@ -1160,10 +1198,21 @@ You can use |tls| for both |s3| and your application database, or for
 |s3| only. 
 
 - To use |tls| for both, get certificates for both purposes from the 
-  same `ca-pem` referenced in the ConfigMap. 
+  same `ca-pem` referenced in the ConfigMap.
 - To use |tls| for |s3| only, don't define 
   :setting:`spec.security.applicationDatabase.certsSecretPrefix` in 
   your ConfigMap.
+
+.. opsmgrkube:: spec.backup.s3OpLogStores.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for |s3| oplog stores. Use assignment labels
+   to identify that specific |s3| oplog stores are associated with particular
+   projects. If you set assignment labels using the |k8s-op-short|, the values
+   that you set in the |k8s| configuration file for assignment labels override
+   the values defined in the |mms| UI. Assignment labels that you don't set
+   using the |k8s-op-short| continue to use the values set in the |mms| UI.
 
 .. opsmgrkube:: spec.backup.s3OpLogStores.customCertificate
 
@@ -1315,6 +1364,19 @@ You can use |tls| for both |s3| and your application database, or for
    
    Don't use this field with |aws| |s3| buckets. For more information, see 
    :opsmgr:`S3 Blockstore Configuration </reference/api/admin/backup/snapshot/s3Configs/create-one-s3-blockstore-configuration/>`.
+
+.. opsmgrkube:: spec.backup.s3Stores.assignmentLabels
+
+   *Type*: array of strings
+
+   A list of assignment labels for the |s3| or |s3|-compatible buckets
+   where :opsmgr:`stores </tutorial/manage-s3-blockstore-storage>` the
+   database backup snapshots. Use assignment labels to identify that
+   specific |s3| stores are associated with particular projects.
+   If you set assignment labels using the |k8s-op-short|, the values that
+   you set in the |k8s| configuration file for assignment labels override
+   the values defined in the |mms| UI. Assignment labels that you don't set
+   using the |k8s-op-short| continue to use the values set in the |mms| UI.
 
 .. opsmgrkube:: spec.backup.s3Stores.customCertificate
 
