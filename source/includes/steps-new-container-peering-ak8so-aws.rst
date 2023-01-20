@@ -51,6 +51,8 @@ a. Specify the :setting:`spec.networkPeers` parameter in
       kind: AtlasProject
       metadata:
         name: my-project
+        labels:
+          app.kubernetes.io/version: 1.6.0
       spec:
         name: Test Atlas Operator Project
         networkPeers:

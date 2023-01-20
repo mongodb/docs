@@ -3,6 +3,8 @@ cat <<EOF | kubectl apply -f -
       kind: AtlasDeployment
       metadata:
         name: my-cluster
+        labels:
+          app.kubernetes.io/version: 1.6.0
       spec:
         name: Test Atlas Operator Cluster
         DeploymentSpec:
