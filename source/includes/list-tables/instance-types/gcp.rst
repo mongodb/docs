@@ -113,6 +113,8 @@ Americas
 ~~~~~~~~
 
 - ``CENTRAL_US``
+- ``EASTERN_US``
+- ``US_EAST_4``
 - ``WESTERN_US``
 - ``US_WEST_3``
 - ``US_WEST_4``
