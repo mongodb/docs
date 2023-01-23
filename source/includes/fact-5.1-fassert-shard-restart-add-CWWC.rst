@@ -1,5 +1,5 @@
 Starting in MongoDB 5.1, when starting, restarting or adding a
-:doc:`shard server</sharding>` with :method:`sh.addShard()` the
+:ref:`shard server <sharding-shards>` with :method:`sh.addShard()` the
 :ref:`Cluster Wide Write Concern (CWWC) <set_global_default_write_concern>` 
 must be set.
 
