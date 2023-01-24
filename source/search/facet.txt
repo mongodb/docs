@@ -1,0 +1,164 @@
+:template: guide
+
+.. _guide-search-compound:
+
+=================================================================
+Build and Use an {+fts+} Index with Compound Operators
+=================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+.. short-description::
+
+   Perform a relevance-based search on multiple specific fields, using
+   distinct search terms for each.
+
+In this guide, you will learn how to implement compound searches
+for distinct terms in multiple specific fields simultaneously using the
+aggregation pipeline.
+
+.. time:: 15
+
+What You'll Need
+----------------
+
+- A MongoDB account. See :ref:`guides-create-atlas-account`.
+- An Atlas cluster. See :ref:`guides-create-a-cluster`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Log in to MongoDB Atlas.
+
+      Log in to MongoDB Atlas according to the steps described in 
+      :ref:`Sign Up for a MongoDB Account <guides-create-atlas-account>`.
+
+   .. step:: Navigate to the search index editor.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Select a project.
+
+         .. step:: Populate your cluster with sample data.
+
+            On your target cluster pane, click the three-dot button to 
+            open the dropdown menu. Click :guilabel:`Load Sample Dataset`
+            and wait for the load operation to complete.
+
+         .. step:: Navigate to the ``sales`` collection of the 
+            ``sample_supplies`` database.
+
+            Click :guilabel:`Browse Collections` to pull up a list of
+            databases in the sample dataset. In the right-hand pane,
+            click the ``sample_supplies``, then click the ``sales``
+            collection.
+
+         .. step:: Click :guilabel:`Search Indexes` in the upper right
+            of the collection preview pane.
+
+   .. step:: Create a search index in the :guilabel:`Visual Editor`.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Click :guilabel:`Create Search Index`.
+
+         .. step:: Click the :guilabel:`Visual Editor` configuration 
+            method, then click :guilabel:`Next`.
+
+         .. step:: Review the :guilabel:`Index Name and Data Source` to
+            ensure that ``sample_supplies.sales`` is selected, then click
+            :guilabel:`Next`.
+
+         .. step:: Click :guilabel:`Refine Your Index`. In the 
+            :guilabel:`Index Configuration` pane, toggle off
+            :guilabel:`Dynamic Mapping`.
+
+         .. step:: In the :guilabel:`Field Mappings` pane, click
+            :guilabel:`Add Field`. In the modal window, select 
+            ``purchaseMethod`` from the :guilabel:`Field Name` dropdown 
+            menu.
+
+         .. step:: Click :guilabel:`Add Data Type`, and select 
+            ``String`` from the dropdown menu. Click 
+            :guilabel:`Add` at the bottom of the modal window. Leave 
+            the :guilabel:`Index Configurations` values unchanged, and
+            click :guilabel:`Add` at the bottom of the modal window.  
+
+         .. step:: In the :guilabel:`Field Mappings` pane, click
+            :guilabel:`Add Field`. In the modal window, select 
+            ``storeLocation`` from the :guilabel:`Field Name` dropdown 
+            menu.
+
+         .. step:: Click :guilabel:`Add Data Type`, and select 
+            ``StringFacet`` from the dropdown menu. Click 
+            :guilabel:`Add` at the bottom of the modal window.
+
+         .. step: Click :guilabel:`Save Changes`, then click 
+            :guilabel:`Create Search Index`. Wait for the 
+            :guilabel:`Status` column to read :guilabel:`Active`.
+
+      You now have a search index that enables faceted search.
+
+    .. step:: Create a ``$searchMeta`` aggregation stage.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Click the :guilabel:`Aggregation` tab.
+
+         .. step:: In the Aggregation pane, click on the dropdown menu
+            labeled :guilabel:`Select...` and select the 
+            :guilabel:`$searchMeta` stage.
+
+         .. step:: Replace the placeholder code with the following
+            ``compound`` operator:
+
+            .. code-block:: json
+
+               {
+                 "facet": {
+                   "operator": {
+                     "text": {
+                       "query": ["In store"],
+                       "path": "purchaseMethod"
+                     }
+                   },
+                   "facets": {
+                     "locationFacet": {
+                       "type": "string",
+                       "path": "storeLocation",
+                     }
+                   }
+                 }
+               }
+
+         .. step:: Review the results of the compound search in the
+            right-hand pane. The ``count`` field returns the number of
+            records with a ``purchaseMethod`` value of ``In store``.
+            The ``facet`` field returns an array of ``buckets`` that
+            show how many of the matching records belong to each
+            ``storeLocation``.
+
+Summary
+-------
+
+If you successfully completed the procedure in this guide, you have
+created an Atlas Search index with faceting, and created an aggregation
+pipeline that leverages faceting to organize matching records into
+categories for improved visibility.
+
+.. guide-next::
