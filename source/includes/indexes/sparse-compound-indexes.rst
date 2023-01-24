@@ -4,7 +4,7 @@ documents.
 
 A compound index that only contains ascending or descending sparse index
 keys, only indexes documents if the document contains at least one of
-the keys
+the keys.
 
 A compound index that contains ascending or descending sparse index keys
 and:
