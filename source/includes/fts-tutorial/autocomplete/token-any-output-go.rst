@@ -7,10 +7,10 @@
          :copyable: false
          :linenos:
 
-         [{title Men Without Women}]
          [{title Men with Guns}]
          [{title Men with Brooms}]
-         [{title Without Men}]
+         [{title Men Without Women}]
+         [{title Brief Interviews with Hideous Men}]
 
    .. tab:: rightEdgeGram
       :tabid: rightEdgeGram

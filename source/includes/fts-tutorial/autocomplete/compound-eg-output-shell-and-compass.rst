@@ -8,21 +8,21 @@
          :linenos:
 
          [
-           { title: 'Hard Ball', score: 31.030223846435547 },
-           { title: 'The Ball', score: 31.030223846435547 },
-           { title: "Monster's Ball", score: 31.030223846435547 },
-           { title: 'Autumn Ball', score: 31.030223846435547 },
-           { title: '8-Ball', score: 31.030223846435547 },
-           { title: 'Operation Mad Ball', score: 28.407438278198242 },
-           { title: 'The Ball at the Anjo House', score: 26.992464065551758 },
-           { title: 'Dragon Ball Z: Battle of Gods', score: 26.992464065551758 },
-           { title: 'Take Me Out to the Ball Game', score: 24.794208526611328 },
-           { title: 'Ballad of Narayama', score: 17.682058334350586 },
-           { title: 'Ballad of a Soldier', score: 17.508026123046875 },
-           { title: 'The Ballad of Narayama', score: 17.508026123046875 },
-           { title: 'Great Balls of Fire!', score: 17.508026123046875 },
-           { title: 'Ballistic: Ecks vs. Sever', score: 17.508026123046875 },
-           { title: 'The Ballad of Nessie', score: 17.508026123046875 }
+           { title: 'Hard Ball', score: 28.687082290649414 },
+           { title: 'The Ball', score: 28.687082290649414 },
+           { title: "Monster's Ball", score: 28.687082290649414 },
+           { title: 'Autumn Ball', score: 28.687082290649414 },
+           { title: '8-Ball', score: 28.687082290649414 },
+           { title: 'Operation Mad Ball', score: 26.25232696533203 },
+           { title: 'The Ball at the Anjo House', score: 25.178993225097656 },
+           { title: 'Dragon Ball Z: Battle of Gods', score: 25.178993225097656 },
+           { title: 'Take Me Out to the Ball Game', score: 23.053739547729492 },
+           { title: 'Fubar: Balls to the Wall', score: 19.069948196411133 },
+           { title: 'Great Balls of Fire!', score: 18.041975021362305 },
+           { title: 'Ballad of Narayama', score: 16.682058334350586 },
+           { title: 'Ballad of a Soldier', score: 16.508026123046875 },
+           { title: 'The Ballad of Narayama', score: 16.508026123046875 },
+           { title: 'Ballistic: Ecks vs. Sever', score: 16.508026123046875 }
          ]
 
    .. tab:: rightEdgeGram

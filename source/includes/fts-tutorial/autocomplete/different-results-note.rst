@@ -2,4 +2,5 @@
 
    |fts| returns different results depending on the tokenization 
    strategy configured in the :ref:`autocompletion field of the index 
-   definition <bson-data-types-autocomplete>`.
+   definition <bson-data-types-autocomplete>`. To learn more, see
+   :ref:`autocomplete-limitations`.

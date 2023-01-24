@@ -8,15 +8,15 @@
          :linenos:
 
          [{title The Perils of Pauline}]
-         [{title Peter Pan}]
-         [{title Show People}]
          [{title The Blood of a Poet}]
-         [{title The 3 Penny Opera}]
          [{title The Private Life of Henry VIII.}]
          [{title The Private Life of Don Juan}]
          [{title The Prisoner of Shark Island}]
-         [{title The Pearls of the Crown}]
          [{title The Prince and the Pauper}]
+         [{title The Prisoner of Zenda}]
+         [{title Dance Program}]
+         [{title The Pied Piper}]
+         [{title Prelude to War}]
 
       These results show the words that are predicted for the query
       string with one character modification and with the first
