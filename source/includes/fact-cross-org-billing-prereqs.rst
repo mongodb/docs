@@ -15,6 +15,9 @@
   must have the same minimums, uplifts, and SLA for their 
   subscription plan.
 
+- A paying organization and any linked organizations 
+  can't have an active self-serve support plan.
+
 - A paying organization and any linked organizations
   can't have overlapping monthly commitment deals.
 
