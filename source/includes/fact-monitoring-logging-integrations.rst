@@ -1,7 +1,7 @@
 You can configure push-based 
 :doc:`monitoring integrations 
 </tutorial/third-party-service-integrations/>` 
-for |service| with DataDog and New Relic. 
+for |service| with DataDog. 
 You can also :oas-atlas-tag:`pull monitoring data 
 </Monitoring-and-Logs>` with the {+atlas-admin-api+}.
 
