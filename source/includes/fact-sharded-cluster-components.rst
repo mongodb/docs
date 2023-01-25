@@ -1,6 +1,6 @@
 A MongoDB :term:`sharded cluster` consists of the following components:
 
-- :doc:`shard </core/sharded-cluster-shards>`: Each shard contains a
+- :ref:`shard <shards-concepts>`: Each shard contains a
   subset of the sharded data. Each shard can be deployed as a :term:`replica
   set`.
 
