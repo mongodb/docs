@@ -9,20 +9,17 @@
    * - :guilabel:`Index Analyzer` 
      - .. include:: /includes/extracts/fts-field-analyzer.rst
 
-       Corresponds to the  ``analyzer`` JSON :ref:`setting
-       <ref-index-definitions>`. 
+       Corresponds to the  ``analyzer`` |json| setting.
      - Optional
        
    * - :guilabel:`Query Analyzer` 
      - .. include:: /includes/extracts/fts-field-search-analyzer.rst
 
-       Corresponds to the  ``searchAnalyzer`` JSON :ref:`setting
-       <ref-index-definitions>`. 
+       Corresponds to the  ``searchAnalyzer`` |json| setting.
      - Optional
         
    * - :guilabel:`Dynamic Mapping` 
      - .. include:: /includes/extracts/fts-field-ui-mappings-dynamic.rst
 
-       Corresponds to the  ``mappings.dynamic`` JSON :ref:`setting
-       <ref-index-definitions>`. 
+       Corresponds to the  ``mappings.dynamic`` |json| setting.
      - Required
