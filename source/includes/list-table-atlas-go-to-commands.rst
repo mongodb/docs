@@ -25,6 +25,14 @@
      - Go to the :ref:`alerts <configure-alerts>` for the current
        project or organization depending on your location.
 
+   * - ``apps``
+     - Go to the top-level :appservices:`{+atlas-app-services+}` page 
+       for the current project.
+
+   * - ``apps {projectName}``
+     - Go to the top-level :appservices:`{+atlas-app-services+}` page 
+       for the specified project.
+
    * - ``backup``
      - Go to the :ref:`Backup <backup-cloud-provider>` tab for the current cluster.
   
@@ -193,13 +201,6 @@
        project within the current organization. Using ``project``
        before the ``{projectName}`` allows you to autocomplete the project name
        using :guilabel:`Tab`.
-
-   * - ``realm``
-     - Go to the top-level :realm:`{+Realm+}` page for the current project.
-
-   * - ``realm {projectName}``
-     - Go to the top-level :realm:`{+Realm+}` page for the specified
-       project.
 
    * - ``rtp``
      - Go to the :ref:`Real Time <real-time-metrics-status-tab>` tab
