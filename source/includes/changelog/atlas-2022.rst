@@ -3,22 +3,27 @@
 14 December 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds the ability to configure some Atlas project limits using the :oas-atlas-op:`Projects Administration API resource </updateProjectInvitationById>`.
+- Adds the ability to configure some |service| project limits using the :oas-atlas-op:`Projects Administration API resource </updateProjectInvitationById>`.
 - Adds the ability to push live migrations of replica sets using :ref:`private endpoints <migrate-from-com-vpc-support>`.
-- Introduces :ref:`atlas-go-to`. 
+- Introduces :ref:`atlas-go-to`.
 
 16 November 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Adds the ability to :ref:`simulate a regional outage <test-outage>` for Atlas.
+- Adds the ability to :ref:`simulate a regional outage <test-outage>` for |service|.
 
 26 October 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Introduces :ref:`Termination Protection <scale-cluster-termination-protection>` 
   for database deployments.
-- Adds :ref:`a project setting <atlas-modify-project-settings>` that lets you 
-  configure some M40+ clusters with greater maximum storage than the standard limit.
+- Adds a :ref:`project setting <atlas-modify-project-settings>` that lets you
+  configure some M40+ {+clusters+} with greater maximum storage than the standard limit.
+- Adds the :guilabel:`Set Oplog Size` UI configuration setting. This setting
+  allows you to set the :ref:`minimum retention window for Oplog entries <set-oplog-min-window>`.
+  You can see the :guilabel:`Set Oplog Size` configuration setting in the UI only
+  if you previously configured it for your {+cluster+}. For all new {+clusters+},
+  set the :guilabel:`Minimum Oplog Window` instead.
 
 05 October 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,24 +37,29 @@
 - Adds the ability to automatically :ref:`copy backup snapshots to other 
   regions <snapshot-distribution>`.
 - Improves the :ref:`memory utilization calculation <howitworks-scale-cluster-tier>` 
-  used to auto-scale clusters.
+  used to auto-scale {+clusters+}.
 
 14 September 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+- Introduces the :guilabel:`Local NVMe SSD` storage option in the |service|
+  UI for some {+dedicated-clusters+} that run on |azure|. Locally
+  attached  ephemeral :ref:`NVMe SSDs <nvme-storage>` offer the highest
+  level of speed and performance. To learn more, see :ref:`nvme-storage`.
 - Adds the ``enableSharding`` privilege to custom database roles.
 - Adds the ability to set the 
   `maximum lifetime <https://www.mongodb.com/docs/atlas/cluster-additional-settings/#set-transaction-lifetime>`__
-  of multi-document transactions per cluster.
+  of multi-document transactions per {+cluster+}.
 
 .. _atlas_2022_0824:
 
 24 August 2022 Release
 ~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports Azure Private Link connections for Atlas serverless 
-  instances.
-- Enhancements to the Atlas billing experience for tax invoices.
+- Supports {+az-pl+} for {+serverless-instances+}. To learn more,
+  see :ref:`serverless-private-endpoint`.
+- Enhancements to the |service| billing experience for
+  :ref:`tax invoices <atlas-international-tax>`.
 
 .. _atlas_2022_0803:
 
@@ -60,7 +70,7 @@
   `analytics node tiers <https://www.mongodb.com/docs/atlas/cluster-config/multi-cloud-distribution/#select-a-cluster-tier-for-your-analytics-nodes>`__.
 - Adds support for VPC peering for Prometheus monitoring integration.
 - Adds support for VPC peering for `Live Migrate (Push) <https://www.mongodb.com/docs/atlas/import/migrate-from-com-rs/#support-for-vpc-peering-and-vpc-private-endpoints>`__.
-- Disallows Atlas clusters on MongoDB 5.0+ from configuring a default 
+- Disallows |service| {+clusters+} on MongoDB 5.0+ from configuring a default 
   read concern of ``available``.
 
 .. _atlas_20220719:
@@ -176,10 +186,10 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Adds support for :oas-atlas-op:`upgrading shared tiers 
-  </upgradeOneTenantCluster>` through the |service| Admin 
+  </upgradeOneTenantCluster>` through the |service| Administration
   API.
 - Adds support for :oas-atlas-op:`managing project settings 
-  </updateProjectSettings>` through the |service| Admin 
+  </updateProjectSettings>` through the |service| Administration
   API.
 
 .. _atlas_20220309:
