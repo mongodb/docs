@@ -11,10 +11,14 @@ O
      Don't hyphenate these terms.
 
    on
-     .. seealso:: :term:`about`, :term:`on`
+     .. seealso:: 
+       
+        :term:`about`, :term:`on`
 
    once
-     .. seealso:: :term:`after`, :term:`once`
+     .. seealso:: 
+       
+        :term:`after`, :term:`once`
 
    online
      Don't hyphenate.
@@ -67,7 +71,9 @@ O
           -
 
    open
-     .. seealso:: :term:`close`, :term:`open`
+     .. seealso:: 
+       
+        :term:`close`, :term:`open`
 
    open source
      **open-source**
@@ -114,7 +120,9 @@ O
      Don't use *over* to indicate quantities; use *more than*
      instead. Also, don't use *over* to refer to version numbers.
 
-     .. seealso:: :term:`earlier`, :term:`later`
+     .. seealso:: 
+       
+        :term:`earlier`, :term:`later`
 
      .. list-table::
         :widths: 50 50

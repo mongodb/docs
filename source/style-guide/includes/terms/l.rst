@@ -4,7 +4,9 @@ L
 .. glossary::
 
    later
-     .. seealso:: *earlier, later*.
+     .. seealso:: 
+       
+        *earlier, later*.
 
    launch
      :icon-fa4:`times-circle` Use *start* instead of *launch* to
@@ -59,7 +61,9 @@ L
    lets
      :icon-fa4:`exclamation-triangle`
 
-     .. seealso:: :term:`allow`
+     .. seealso:: 
+       
+        :term:`allow`
 
    leverage
      :icon-fa4:`exclamation-triangle` In technical content, use *use*
@@ -152,7 +156,9 @@ L
      Don't use *lower-case*. Don't use *upper/lowercase* to mean
      mixed case.
 
-     .. seealso:: :term:`mixed case`
+     .. seealso:: 
+       
+        :term:`mixed case`
 
    lower
      **higher**
@@ -179,5 +185,7 @@ L
      left* and *lower right* instead of *bottom left* or *bottom
      right*.
 
-     .. seealso:: :term:`left` and :term:`right`
+     .. seealso:: 
+       
+        :term:`left` and :term:`right`
 

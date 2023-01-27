@@ -9,7 +9,9 @@ E
      *above*) when referring to product releases and version numbers.
      Don't use *earlier* or *later* to refer to information in text.
 
-     .. seealso:: :term:`following`, :term:`preceding`
+     .. seealso:: 
+       
+        :term:`following`, :term:`preceding`
 
      .. list-table::
         :widths: 50 50
@@ -171,7 +173,9 @@ E
      You can use *message* by itself as a general term to refer to an
      error, informational, or warning message.
 
-     .. seealso:: :ref:`error-message-guidelines`
+     .. seealso:: 
+       
+        :ref:`error-message-guidelines`
 
      .. list-table::
         :widths: 50 50
@@ -194,7 +198,9 @@ E
      example). Precede a limited list of examples with *such as*, or
      list all specific items.
 
-     .. seealso:: :ref:`avoid-obscure-words`
+     .. seealso:: 
+       
+        :ref:`avoid-obscure-words`
 
    Ethernet
      Capitalize.

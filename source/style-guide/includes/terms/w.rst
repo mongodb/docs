@@ -10,7 +10,9 @@ W
    we
      :icon-fa4:`exclamation-triangle` Use first person judiciously.
 
-     .. seealso:: :ref:`write-to-the-user`
+     .. seealso:: 
+       
+        :ref:`write-to-the-user`
 
    web
      **web page**
@@ -25,7 +27,9 @@ W
      documents. Use *home page* to refer to the first (main) page
      that you see when you enter a site.
 
-     .. seealso:: :term:`internet`
+     .. seealso:: 
+       
+        :term:`internet`
 
    when
      **whenever**
@@ -68,10 +72,15 @@ W
 
    whether
      **whether or not**
-     .. seealso:: :term:`if`
+
+     .. seealso:: 
+       
+        :term:`if`
 
    which
-     .. seealso:: :term:`that`
+     .. seealso:: 
+       
+        :term:`that`
 
    while
      Use *while* to refer to something occurring during a period of
@@ -132,13 +141,17 @@ W
      displayed. A window can contain documents and messages and can be
      minimized.
 
-     .. seealso:: :term:`dialog box`
+     .. seealso:: 
+       
+        :term:`dialog box`
 
    wish
      :icon-fa5:`trash-alt` Use *want* or another appropriate word instead.
 
    with
-     .. seealso:: :term:`using`
+     .. seealso:: 
+       
+        :term:`using`
 
    wizard
      **wizard page**

@@ -20,7 +20,9 @@ Q
         * - When you finish updating parameters, type ``q`` to quit.
           -
 
-     .. seealso:: :term:`exit`
+     .. seealso:: 
+       
+        :term:`exit`
 
    quotation mark
      Use *quotation mark*, not *quote*, when referring to single

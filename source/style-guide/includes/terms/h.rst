@@ -32,7 +32,9 @@ H
      Use *home page* to refer to the first (main) page that you see
      when you enter a website.
 
-     .. seealso:: :term:`web`
+     .. seealso:: 
+       
+        :term:`web`
 
    host
      Use *host* instead of :term:`computer` :term:`machine` or
@@ -51,4 +53,6 @@ H
      How-To.
 
    hyperlink
-     .. seealso:: :term:`link`
+     .. seealso:: 
+       
+        :term:`link`

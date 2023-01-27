@@ -6,7 +6,9 @@ N
    NA
      :icon-fa4:`exclamation-triangle`
 
-     .. seealso:: :term:`not applicable`
+     .. seealso:: 
+       
+        :term:`not applicable`
 
    name server
      Use as two words.

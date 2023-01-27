@@ -33,7 +33,9 @@ G
      options, or buttons on an interface, use *unavailable* (not
      *dimmed* or *gray* or :term:`grayed out <grayed>`).
 
-     .. seealso:: :term:`dimmed`
+     .. seealso:: 
+       
+        :term:`dimmed`
 
      .. list-table::
         :widths: 50 50
