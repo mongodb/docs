@@ -5,9 +5,9 @@ Take the Free Online Course Taught by MongoDB
 
    * - .. cssclass:: bordered-figure
        .. figure:: /figures/M220P_hero.jpg
-          :alt: Banner for the M220P MongoDB University Course
+          :alt: Banner for the MongoDB University Python Course
 
-     - `M220P: MongoDB for Python Developers <https://university.mongodb.com/courses/M220P/about>`__
+     - `Using MongoDB with Python <https://learn.mongodb.com/learning-paths/using-mongodb-with-python>`__
 
        Learn the essentials of Python application development with MongoDB.
 
