@@ -31,7 +31,7 @@ for this header are:
        point-in-time event, such as "Primary Elected."
 
 If you specify a key in the :guilabel:`Webhook Secret` field,
-|service| adds the ``X-MMS-Signature`` request header. This
+|mms-full| adds the ``X-MMS-Signature`` request header. This
 header contains the base64-encoded |hmac|-SHA-1 signature of the
-request body. |service| creates the signature using the provided
+request body. |mms-full| creates the signature using the provided
 secret.
