@@ -3,8 +3,8 @@ combination of index types determines how the compound index matches
 documents. 
 
 A compound index that only contains ascending or descending sparse
-indexes, only indexes documents if the document contains a valuer for at
-least one of the keys.
+indexes, only indexes documents when the document contains a value for
+at least one of the keys.
 
 A compound index that contains ascending or descending sparse indexes
 and:
