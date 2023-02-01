@@ -1,3 +1,22 @@
+.. _12.11.0.7961:
+
+MongoDB Agent 12.11.0.7961
+===========================
+
+*Released* 2023-01-25
+
+- Uses Go 1.19.
+- Sets the correct topology time on a MongoDB 6.0+ target sharded cluster
+  during a push live migration to |service|.
+- Supports changing runtime-settable MongoDB Server parameters without
+  requiring a restart.
+- Fixes the processing of the :dbcommand:`collStats` and
+  :manual:`db.currentOp() </reference/method/db.currentOp>` commands
+  so that they use corresponding aggregation stages. To learn more,
+  see :ref:`Database Commands Used by {+magent+} <db-commands-used-by-agent>`
+  and :ref:`Real Time Metrics <real-time-metrics-status-tab>`.
+- Improves logging.
+
 .. _12.9.0.7902-1:
 
 MongoDB Agent 12.9.0.7902-1
