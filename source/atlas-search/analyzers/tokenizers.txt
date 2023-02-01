@@ -483,35 +483,90 @@ following attributes:
 .. example:: 
 
    The following index definition example uses a custom analyzer named
-   ``emailUrlExtractor``. It uses the ``uaxUrlEmail`` tokenizer to 
-   create tokens up to ``200`` characters long each for all text, 
-   including email addresses and :abbr:`URLs (Uniform Resource 
-   Locator)`, in the input. It converts all text to lowercase using the 
-   :ref:`lowercase <lowercase-tf-ref>` token filter.
+   ``emailAddressAnalyzer`` and the :ref:`autocomplete
+   <autocomplete-ref>` type with an ``edgeGram`` :ref:`tokenization
+   strategy <bson-data-types-autocomplete>` to index the
+   ``page_updated_by.email`` field in the ``minutes`` collection. It
+   also uses the ``uaxUrlEmail`` tokenizer to tokenize :abbr:`URLs
+   (Uniform Resource Locator)` and email addresses.
 
    .. code-block:: json
 
       {
-        "analyzer": "emailUrlExtractor",
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "page_updated_by": {
+              "fields": {
+                "email": {
+                  "analyzer": "emailAddressAnalyzer",
+                  "tokenization": "edgeGram",
+                  "type": "autocomplete"
+                }
+              },
+              "type": "document"
+            }
+          }
         },
         "analyzers": [
           {
-            "name": "emailUrlExtractor",
-            "charFilters": [],
+            "name": "emailAddressAnalyzer",
             "tokenizer": {
-              "type": "uaxUrlEmail",
-              "maxTokenLength": 200
-            },
-            "tokenFilters": [
-              {
-                "type": "lowercase"
-              }
-            ]
+              "type": "uaxUrlEmail"
+            }
           }
         ]
       }
+
+   The following query searches for emails that begin with ``lewinsky@``
+   in the ``page_updated_by.email`` field of the ``minutes`` collection.
+   
+   .. code-block:: json
+
+      db.minutes.aggregate([ 
+        { 
+          $search: { 
+            "autocomplete": { 
+              "query": "lewinsky@",
+              "path": "page_updated_by.email" 
+            }
+          } 
+        },
+        {
+          $project: {
+            "_id": 1,
+            "page_updated_by.email": 1
+          }
+        }
+      ])
+
+   |fts| returns the following result:
+
+   .. code-block:: json
+      :copyable: false
+
+      { 
+        _id: 3, 
+        page_updated_by: { email: 'lewinsky@example.com' } 
+      }
+
+   |fts| returned this document because the ``uaxUrlEmail`` tokenizer
+   tokenizes an email as a single token, ``lewinsky@example.com``. If
+   you used the ``standard`` tokenizer, |fts| would not return any
+   results. The following table shows how the ``standard`` tokenizer and
+   ``uaxUrlEmail`` tokenizer tokenizes ``lewinsky@example.com``:
+
+   .. list-table::
+      :widths: 20 80
+      :header-rows: 1
+
+      * - Tokenizer
+        - Token Outputs
+
+      * - ``standard``
+        - ``lewinsky``, ``example.com``
+
+      * - ``uaxUrlEmail``
+        - ``lewinsky@example.com``
 
 .. _whitespace-tokenizer-ref:
 
