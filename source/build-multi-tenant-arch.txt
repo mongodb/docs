@@ -1,0 +1,189 @@
+.. _build-multi-tenant-arch:
+
+=================================
+Build a Multi-Tenant Architecture
+=================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can implement multi-tenacy with |service| so that a single instance 
+of an application serves multiple tenants. Your initial design 
+decisions for a multi-tenant architecture can have unintended effects
+over time as requirements evolve or scaling expectations change.
+
+The best approach might depend on the following factors:
+ 
+- Projected scaling requirements (number of tenants and their data use)
+- Security and isolation requirements
+- Uniformity or variability of data requirements across tenants
+
+Consider these factors as you decide on the best approach to use for 
+your multi-tenant architecture.
+
+When you design a multi-tenant architecture, consider the following 
+approaches:
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+   :stub-columns: 1
+
+   * -
+     - :ref:`tenant-per-db`
+     - :ref:`all-tenants-single` 
+
+   * - Description
+     - If you have a small and stable number (up to a few 
+       hundred) tenants with varied data requirements and strict access 
+       control requirements, consider one database per tenant.
+     - If you expect an indefinitely growing number of tenants, and the 
+       structure of data and query requirements is relatively 
+       consistent across tenants, consider having the tenants' 
+       data coexist in shared collections within a single database. You 
+       can use a ``tenantId`` field in each document to logically 
+       segment data between tenants.
+   
+   * - Benefits
+     - - Database user can limit tenant data access.
+
+       - You can set up indexing to account for unique access patterns 
+         for variable data structures across tenants.
+
+       - You can migrate or scale an entire tenant's isolated data to 
+         new resources.
+     - - Highly scalable
+ 
+       - Simplifies ongoing maintenance
+   
+   * - Considerations
+     - You might:
+      
+       - Add more complexity for the application tier.
+        
+       - Have redundant collections and indexes across 
+         tenants.
+
+       - Encounter problems at scale in a single {+cluster+}. 
+ 
+     - - A single database user could access this large pool of 
+         multi-tenant data.
+  
+       - The segmentation of data is purely logical and must be 
+         enforced in the application tier.
+ 
+Avoid :ref:`all-tenants-own-collection`.
+
+.. important:: Security Considerations
+
+   In all of the following approaches, you build a multi-tenant 
+   architecture in a single {+cluster+}. You share the replication 
+   :term:`oplog` and user data across all tenants, which might result 
+   in potential security concerns. To secure data partitioning, you 
+   must deploy a single small replica set for each tenant with unique 
+   authentication.
+
+.. seealso::
+
+   - :ref:`schema-design-patterns`
+   - :ref:`atlas-limits`
+
+.. _tenant-per-db:
+
+Each Tenant in its Own Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have a small and stable number (up to a few 
+hundred) tenants with varied data requirements and strict access 
+control requirements, consider creating one database per tenant.
+
+This approach has the following benefits:
+
+- For added security, the database user can limit tenant data 
+  access. |service| limits :ref:`100 database users per project 
+  <org-project-limits>`.
+
+- To account for unique access patterns for variable data 
+  structures across tenants, you can set up indexing.
+
+- To move a single tenant onto its own dedicated resources, 
+  you can migrate or scale an entire tenant's isolated data to new 
+  resources (for example, another {+cluster+}).
+   
+Consider that you might:
+      
+- Add more complexity for the application tier.
+        
+- Have redundant collections and indexes across 
+  tenants.
+
+- Encounter problems at scale in a single {+cluster+}. 
+  The underlying data files required for each new collection and 
+  index consume computational resources. 
+
+Each tenant has its own *logical* database on the same {+cluster+}. 
+This approach allows for easy customization and strong security. 
+It permits backups and maintenance actions for one tenant without 
+impacting the others.
+
+However, this approach can increase the setup effort and needed 
+computational resources. Interactions between tenants require 
+connections to multiple databases. Some MongoDB commands work only 
+between collections in the same database.
+
+Each collection and index is stored on disk as a separate file, which 
+can lead to a very large number of open files and high memory usage. To 
+mitigate this, use less than 1000 data files (collections and 
+individual indexes) per node. To learn more, see 
+:ref:`cluster-collection-limits`.
+
+.. _all-tenants-single:
+
+All Tenants in a Single Database with Shared Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you expect an indefinitely growing number of tenants, the structure 
+of data and query requirements is relatively consistent across 
+tenants, and you have less strict access control requirements, consider 
+using a single database with shared collections for all tenants.
+
+This approach has the following benefits:
+
+- Highly scalable (for example, you can shard the {+cluster+})
+ 
+- Simplifies ongoing maintenance (for example, indexing for new 
+  query patterns) 
+   
+Consider the following potential issues:
+ 
+- A single database user could access this large pool of multi-tenant 
+  data.
+
+- The segmentation of data is purely logical and must be enforced in 
+  the application tier.
+
+All tenants can have documents in all collections. The multi-tenancy 
+logic exists in the application layer. Every document must have a 
+``tenantId`` field, and every database query must filter by that field. 
+You must manage security at the application level.
+
+You might encounter scaling issues in the long-term. Any maintenance 
+that you perform affects all tenants at the same time. While this 
+approach works well for many small tenants of the same size, it doesn't 
+work well if the tenant sizes vary. Also, you might find 
+customizing the settings for each tenant difficult.
+
+.. _all-tenants-own-collection:
+
+All Tenants with their Own Collections in a Single Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid putting all tenants with their own collections into a single 
+database. While this approach prevents customization issues, it 
+complicates the application coding, and exacerbates scaling issues in 
+the long-term.
