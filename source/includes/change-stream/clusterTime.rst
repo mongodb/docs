@@ -3,7 +3,7 @@
 The timestamp from the oplog entry associated with the event.
 
 Change stream event notifications associated with a
-:doc:`multi-document transaction </core/transactions>`
+:ref:`multi-document transaction <transactions>`
 all have the same ``clusterTime`` value: the time when the transaction
 was committed.
 

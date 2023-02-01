@@ -1,9 +1,18 @@
 Create a unique index on the ``keyAltNames`` field in your
-``encryption.__keyVault`` collection.
+``encryption.__keyVault`` namespace.
 
 .. include:: /includes/queryable-encryption/tab-note.rst
 
 .. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/azure/reader/make_data_key.js
+         :start-after: start-create-index
+         :end-before: end-create-index
+         :language: javascript
+         :dedent:
 
    .. tab::
       :tabid: nodejs
@@ -11,7 +20,6 @@ Create a unique index on the ``keyAltNames`` field in your
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/azure/reader/make_data_key.js
          :start-after: start-create-index
          :end-before: end-create-index
-         :caption: make_data_key.js
          :language: javascript
          :dedent:
 
@@ -22,7 +30,6 @@ Create a unique index on the ``keyAltNames`` field in your
          :start-after: start-create-index
          :end-before: end-create-index
          :language: python
-         :caption: make_data_key.py
          :dedent:
 
    .. tab::
@@ -33,16 +40,16 @@ Create a unique index on the ``keyAltNames`` field in your
          :end-before: end-create-index
          :language: java
          :dedent:
-         :caption: MakeDataKey.java
 
    .. tab::
       :tabid: go
+
+      .. include:: /includes/queryable-encryption/tutorials/go-build-constraint.rst
 
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/azure/reader/make-data-key.go
          :start-after: start-create-index
          :end-before: end-create-index
          :language: go
-         :caption: make-data-key.go
          :dedent:
 
    .. tab::
@@ -53,4 +60,3 @@ Create a unique index on the ``keyAltNames`` field in your
          :end-before: end-create-index
          :language: csharp
          :dedent:
-         :caption: MakeDataKey.cs

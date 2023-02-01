@@ -182,4 +182,4 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-swift-driver/master/Examples/Docs/Sources/SyncExamples/main.swift -o ${DRIVERS_PATH}/swiftSync.swift
 
 changelogs:
-	python changelogs/generatechangelogs.py
+	python3 changelogs/generatechangelogs.py

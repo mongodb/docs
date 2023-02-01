@@ -104,7 +104,7 @@
 
                Because |compass| does not support
                :update:`$currentDate` or any other
-               :doc:`Field Update Operators </reference/operator/update-field>`,
+               :ref:`Field Update Operators <field-update-operators>`,
                you must manually enter the date value in Compass.
 
      - id: python

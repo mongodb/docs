@@ -95,10 +95,21 @@ of the desired sub-pipeline output.
 Index Use
 ~~~~~~~~~
 
-The ``$facet`` stage, and its sub-pipelines, cannot make use of indexes,
-even if its sub-pipelines use :pipeline:`$match` or if ``$facet`` is
-the first stage in the pipeline. The ``$facet`` stage will always
-perform a ``COLLSCAN`` during execution.
+Pipeline order determines how the ``$facet`` stage uses indexes.
+
+- If the ``$facet`` stage is the first stage in a pipeline, the stage
+  will perform a ``COLLSCAN``. The ``$facet`` stage does not make use of
+  indexes if it is the first stage in the pipeline. 
+
+- If the ``$facet`` stage comes later in the pipeline and earlier stages
+  have used indexes, ``$facet`` will not trigger a ``COLLSCAN`` during
+  execution.
+
+For example, :pipeline:`$match` or :pipeline:`$sort` stages that come
+before a ``$facet`` stage can make use of indexes and the ``$facet``
+will not trigger a ``COLLSCAN``.
+
+For optimization suggestions, see: :ref:`agg-pipeline-optimization`.
 
 Example
 -------

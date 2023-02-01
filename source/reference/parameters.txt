@@ -1,3 +1,5 @@
+.. _server-parameters:
+
 =========================
 MongoDB Server Parameters
 =========================
@@ -149,6 +151,35 @@ Authentication Parameters
 
       If you have any concerns regarding your MongoDB version, OS version or 
       libldap version, please contact MongoDB Support.
+
+.. parameter:: ldapRetryCount
+
+   .. versionadded:: 6.1
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: 0
+
+   For MongoDB deployments using :ref:`security-ldap-external`.
+ 
+   Number of operation retries by the server LDAP manager after a
+   network error.
+
+   For example, the following sets :parameter:`ldapRetryCount` to ``3``
+   seconds:
+ 
+   .. code-block:: bash
+ 
+      mongod --ldapRetryCount=3
+ 
+   Or, if using the :dbcommand:`setParameter` command within
+   :binary:`~bin.mongosh`:
+ 
+   .. code-block:: javascript
+ 
+      db.adminCommand( { setParameter: 1, ldapRetryCount: 3 } )
 
 .. parameter:: ldapUserCacheInvalidationInterval
 
@@ -393,7 +424,7 @@ Authentication Parameters
 
 .. parameter:: maxValidateMemoryUsageMB
 
-   .. versionadded:: 5.0
+   *New in version 5.0 and 4.4.7*
 
    *Default*: 200
 
@@ -755,7 +786,7 @@ Authentication Parameters
       Available for Linux.
 
    The maximum number of seconds the
-   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance should wait to
+   :binary:`mongod` / :binary:`mongos` instance should wait to
    receive the OCSP status response for its certificates.
 
    Specify an integer greater than or equal to (``>=``) 1. If unset,
@@ -787,8 +818,8 @@ Authentication Parameters
    *Default*: 5
 
    The maximum number of seconds that the
-   :binary:`~bin.mongod`/:binary:`~bin.mongos` should wait for the OCSP
-   response when verifying client certificates.
+   :binary:`mongod` / :binary:`mongos` should wait for the OCSP
+   response when verifying server certificates.
 
    Specify an integer greater than or equal to (``>=``) 1.
 
@@ -881,7 +912,7 @@ Authentication Parameters
 
    |both|
 
-   Starting in MongoDB 4.4, :binary:`~bin.mongod`/:binary:`~bin.mongos`
+   Starting in MongoDB 4.4, :binary:`mongod` / :binary:`mongos`
    logs a warning on connection if the presented x.509 certificate
    expires within ``30`` days of the ``mongod/mongos`` system clock.
    Use the :parameter:`tlsX509ExpirationWarningThresholdDays` parameter
@@ -1310,7 +1341,7 @@ General Parameters
 
    *Default*: ``true``
 
-   To support :doc:`TTL Indexes </core/index-ttl>`, :binary:`~bin.mongod`
+   To support :ref:`TTL Indexes <index-feature-ttl>`, :binary:`~bin.mongod`
    instances have a background thread that is responsible for deleting
    documents from collections with TTL indexes.
 
@@ -1334,8 +1365,7 @@ General Parameters
       Do not run production :binary:`~bin.mongod` instances with
       ``ttlMonitorEnabled`` disabled, except under guidance from MongoDB
       support. Preventing TTL document removal can negatively impact
-      MongoDB internal system operations that depend on
-      :doc:`TTL Indexes </core/index-ttl>`.
+      MongoDB internal system operations that depend on TTL Indexes.
 
 .. parameter:: tcpFastOpenServer
 
@@ -1579,8 +1609,8 @@ General Parameters
    filesystems:
 
    * The :option:`--dbpath <mongod --dbpath>` directory
-   * The ``journal`` directory inside the :option:`--dbpath <mongod --dbpath>` directory if
-     :option:`journaling <mongod --journal>` is enabled
+   * The ``journal`` directory inside the :option:`--dbpath <mongod --dbpath>` 
+     directory
    * The directory of :option:`--logpath <mongod --logpath>` file
    * The directory of :option:`--auditPath <mongod --auditPath>` file
 
@@ -1920,6 +1950,27 @@ Logging Parameters
    :doc:`/core/security-transport-encryption` to assist compliance with
    regulatory requirements.
 
+   To enable log redaction at startup, you can either:
+
+   - Start :binary:`mongod` with the
+     :option:`--redactClientLogData <mongod --redactClientLogData>` option: 
+
+     .. code-block:: javascript
+      
+        mongod --redactClientLogData
+      
+   - Set the :setting:`security.redactClientLogData` option in the 
+     :ref:`configuration file <configuration-options>`:
+
+     .. code-block:: yaml
+      
+        security: 
+           redactClientLogData: true
+           ...
+
+   You can't use the :option:`--setParameter <mongod --setParameter>` 
+   option to set :parameter:`redactClientLogData` at startup.
+   
    To enable log redaction on a running ``mongod`` or
    ``mongos``, use the following command:
 
@@ -1930,6 +1981,30 @@ Logging Parameters
    .. seealso::
 
       :setting:`security.redactClientLogData`
+
+.. parameter:: redactEncryptedFields
+
+   .. versionadded:: 6.1.0
+
+   |both|
+
+   *Type*: boolean
+
+   *Default*: ``true``
+
+   Configures :program:`mongod` and :program:`mongos` to redact field values
+   of encrypted :bsontype:`Binary` data from all 
+   :ref:`log messages <log-messages-ref>`.
+
+   - If the :parameter:`redactClientLogData` parameter or the
+     :setting:`security.redactClientLogData` setting is set to ``false`` and
+     ``redactEncryptedFields`` is set to ``true`` (the default), encrypted 
+     fields are redacted from all log messages.
+
+   - If the :parameter:`redactClientLogData` parameter or
+     :setting:`security.redactClientLogData` setting is set to ``true``,
+     all fields are redacted, regardless of the ``redactEncryptedFields``
+     setting.
 
 .. parameter:: traceExceptions
 
@@ -2992,7 +3067,7 @@ Sharding Parameters
    |mongod-only|
 
    If set on a shard's primary, specifies if range deletion is paused on
-   the shard. If set to ``true``, cleanup of :term:`chunk`ranges
+   the shard. If set to ``true``, cleanup of :term:`ranges <range>`
    containing :term:`orphaned documents <orphaned document>` is paused.
    The shard can continue to donate chunks to other shards, but the
    donated documents will not be removed from this shard until you set
@@ -3202,10 +3277,10 @@ Sharding Parameters
 
    |mongod-only|
 
-   For :dbcommand:`moveChunk` operations, specifies the maximum
-   percentage of untrasferred data allowed by the migration protocol
-   (expressed in percentage of the total chunk size) to
-   transition from the ``catchup`` phase to the ``commit`` phase.
+   For :dbcommand:`moveChunk` and :dbcommand:`moveRange` operations, 
+   specifies the maximum percentage of untrasferred data allowed by the 
+   migration protocol (expressed in percentage of the total chunk size) 
+   to transition from the ``catchup`` phase to the ``commit`` phase.
    
    Setting a higher catchup percentage can decrease the amount of time
    it takes for the migration to complete at the cost of increased
@@ -4119,18 +4194,11 @@ Sharding Parameters
    Default: 20
 
    The amount of time in milliseconds to wait before the next batch of
-   deletion during the cleanup stage of :ref:`chunk migration
-   <chunk-migration-procedure>` (or the :dbcommand:`cleanupOrphaned`
+   deletion during the cleanup stage of :ref:`range migration
+   <range-migration-procedure>` (or the :dbcommand:`cleanupOrphaned`
    command).
 
-   In MongoDB 3.4, consider whether :ref:`_secondaryThrottle
-   <chunk-migration-replication>` is set before modifying the
-   :parameter:`rangeDeleterBatchDelayMS`. In MongoDB 3.4, the
-   :ref:`_secondaryThrottle replication delay
-   <chunk-migration-replication>` occurs after each document deletion
-   instead of after the batch deletion.
-
-   In MongoDB 3.6+, the :ref:`_secondaryThrottle replication delay
+   The :ref:`_secondaryThrottle replication delay
    <chunk-migration-replication>` occurs after each batch deletion.
 
    The following sets the :parameter:`rangeDeleterBatchDelayMS` to 200
@@ -4159,7 +4227,7 @@ Sharding Parameters
    in earlier MongoDB versions)
 
    The maximum number of documents in each batch to delete during the
-   cleanup stage of :ref:`chunk migration <chunk-migration-procedure>`
+   cleanup stage of :ref:`range migration <range-migration-procedure>`
    (or the :dbcommand:`cleanupOrphaned` command).
 
    A value of ``0`` indicates that the system chooses the default value.
@@ -4468,7 +4536,7 @@ Storage Parameters
           larger value increases the chance that the cache pressure
           will be reduced before the next retry.
           
-          To configure number of retires, use 
+          To configure number of retries, use 
           :parameter:`temporarilyUnavailableMaxRetries`.
 
    To set a new value, use :method:`db.adminCommand()`:
@@ -4642,12 +4710,12 @@ Auditing Parameters
 
    |both|
 
-   Enables the :doc:`auditing </core/auditing>` of authorization
+   Enables the :ref:`auditing <auditing>` of authorization
    successes for the :ref:`authCheck <audit-action-details-results>`
    action.
 
    When :parameter:`auditAuthorizationSuccess` is ``false``, the
-   :doc:`audit system </core/auditing>` only logs the authorization
+   :ref:`audit system <auditing>` only logs the authorization
    failures for ``authCheck``.
 
    To enable the audit of authorization successes, issue the following
@@ -4702,7 +4770,7 @@ Auditing Parameters
    log encryption <security-encryption-at-rest-audit-log>`. A header is
    placed at the top of each audit log file and contains metadata for
    decrypting the audit log. The headers are also stored in the
-   :doc:`audit log </core/auditing>`.
+   :ref:`audit log <auditing>`.
 
    You can only set :parameter:`auditEncryptionHeaderMetadataFile`
    during startup in the :setting:`configuration file <setParameter>` or
@@ -4745,42 +4813,97 @@ Transaction Parameters
 
 .. parameter:: coordinateCommitReturnImmediatelyAfterPersistingDecision
 
-   .. versionadded:: 5.0
+   .. versionadded:: 5.0 
+    
+   *Updated in version 6.1*
 
    *Type*: boolean
 
-   *Default*: true
+   *Default*: false
 
    |mongod-only|
 
-   If ``true``, the :doc:`shard </core/sharded-cluster-shards>`
-   transaction coordinator returns a :ref:`multi-document transaction
-   <transactions-atomicity>` commit decision to the client as soon as
-   the commit is made :term:`durable` with the requested transaction
-   :doc:`write concern </reference/write-concern>`. If the client
-   requested a write concern that is less than
+   Behavior When ``false``
+   ```````````````````````
+
+   The :ref:`shard <shards-concepts>` transaction coordinator waits for
+   all members to acknowledge the decision to either commit or cancel a
+   :ref:`multi-document transaction <transactions-atomicity>` before
+   returning the result to the client.
+
+   Behavior When ``true``
+   ``````````````````````
+
+   The shard transaction coordinator returns a :ref:`multi-document
+   transaction <transactions-atomicity>` commit decision to the client
+   as soon as the decision is made :term:`durable` with the requested
+   transaction :ref:`write concern <write-concern>`.
+
+   If the client requested a write concern that is less than
    :writeconcern:`"majority"`, the commit may roll back after the
    decision is returned to the client.
 
-   If ``false``, the :doc:`shard </core/sharded-cluster-shards>`
-   transaction coordinator waits for all members to acknowledge a
-   :ref:`multi-document transaction <transactions-atomicity>` commit
-   before returning the commit decision to the client.
+   Transactions may not have "read your writes" consistency. That is, a
+   read operation may not reflect the results of a write operation that
+   preceded it. This can happen in the following cases:
+
+   - A transaction has to write to multiple shards.
+   - The read and the earlier write take place in different sessions.
+
+   :ref:`Causal consistency <causal-consistency>` only guarantees the
+   causal relationship of reads and writes that occurr within the same
+   session.
+
+   Example
+   ```````
 
    The following example sets
-   :parameter:`coordinateCommitReturnImmediatelyAfterPersistingDecision`
-   to ``false``:
+   ``coordinateCommitReturnImmediatelyAfterPersistingDecision`` to
+   ``true``:
 
    .. code-block:: javascript
 
-      mongod --setParameter coordinateCommitReturnImmediatelyAfterPersistingDecision=false
+      mongod --setParameter coordinateCommitReturnImmediatelyAfterPersistingDecision=true
 
    During runtime, you can also set the parameter with the
    :dbcommand:`setParameter` command:
 
    .. code-block:: bash
 
-      db.adminCommand( { setParameter: 1, coordinateCommitReturnImmediatelyAfterPersistingDecision: false } )
+      db.adminCommand( { setParameter: 1, coordinateCommitReturnImmediatelyAfterPersistingDecision: true } )
+
+.. parameter:: internalSessionsReapThreshold
+
+   .. versionadded:: 6.0
+
+   |both|
+
+   *Default*: 1000
+
+   Session limit for internal session metadata deletion. The metadata:
+
+   - Contains session transaction information for user operations.
+   - Is stored in the :data:`config.transactions` collection.
+
+   When the number of internal sessions is greater than
+   :parameter:`internalSessionsReapThreshold`, the metadata is deleted.
+   
+   If you set :parameter:`internalSessionsReapThreshold` to ``0``, the
+   internal session metadata is only deleted when the user session ends.
+
+   The following example sets :parameter:`internalSessionsReapThreshold`
+   to ``500`` sessions:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, internalSessionsReapThreshold: 500 } )
+
+   You can also set :parameter:`internalSessionsReapThreshold` at
+   startup. For example:
+
+   .. code-block:: bash
+
+      mongod --setParameter internalSessionsReapThreshold=500
 
 .. parameter:: transactionLifetimeLimitSeconds
 
@@ -4840,7 +4963,7 @@ Transaction Parameters
    :parameter:`maxTransactionLockRequestTimeoutMillis`, the transaction
    aborts.
 
-   By default, :doc:`multi-document transactions </core/transactions>`
+   By default, :ref:`multi-document transactions <transactions>`
    wait ``5`` milliseconds. That is, if the transaction cannot acquire
    the locks within ``5`` milliseconds, the transaction aborts. If an
    operation provides a greater timeout in a lock request,
@@ -4883,8 +5006,7 @@ Transaction Parameters
    *Default*: true
 
    A flag that enables or disables the creation of a collection or an
-   index inside :doc:`transactions </core/transactions>`. Set the
-   parameter to:
+   index inside transactions. Set the parameter to:
 
    - ``true`` to enable. (*Default*)
 

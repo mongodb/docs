@@ -17,11 +17,16 @@ Definition
 
    The :dbcommand:`delete` command removes documents from a collection.
    A single :dbcommand:`delete` command can contain multiple delete
-   specifications. The command cannot operate on :doc:`capped
-   collections </core/capped-collections>`. The remove methods provided
-   by the MongoDB drivers use this command internally.
+   specifications. The delete methods provided by the MongoDB drivers
+   use this command internally.
 
    .. versionchanged:: 5.0
+
+   .. |method| replace:: :method:`~db.collection.deleteOne`,
+      :method:`~db.collection.deleteMany`, and
+      :method:`~db.collection.findOneAndDelete`
+      helper methods
+   .. include:: /includes/fact-dbcommand-tip
 
    :returns:
  
@@ -116,7 +121,7 @@ The command takes the following fields:
      - document
      - .. _delete-command-wc:
      
-       Optional. A document expressing the :doc:`write concern </reference/write-concern>`
+       Optional. A document expressing the :ref:`write concern <write-concern>`
        of the :dbcommand:`delete` command. Omit to use the default write
        concern.
        
@@ -164,8 +169,8 @@ Each element of the ``deletes`` array contains the following fields:
      - Document or string
      - .. _deletes-array-hint:
      
-       Optional. A document or string that specifies the :doc:`index
-       </indexes>` to use to support the :ref:`query predicate
+       Optional. A document or string that specifies the :ref:`index
+       <indexes>` to use to support the :ref:`query predicate
        <deletes-array-q>`.
        
        The option can take an index specification document or the
@@ -494,18 +499,22 @@ The following is an example document returned for a successful
    { ok: 1, n: 1 }
 
 The following is an example document returned for a :dbcommand:`delete`
-command that encountered an error:
+command that encountered an error because it specified a non-existent
+index in the ``hint`` field:
 
 .. code-block:: javascript
 
    {
-      "ok" : 1,
-      "n" : 0,
-      "writeErrors" : [
-         {
-            "index" : 0,
-            "code" : 10101,
-            "errmsg" : "can't remove from a capped collection: test.cappedLog"
-         }
-      ]
+     n: 0,
+     writeErrors: [
+       {
+         index: 0,
+         code: 2,
+         errmsg: 'error processing query: ns=test.products: hat $eq "bowler"\n' +
+           'Sort: {}\n' +
+           'Proj: {}\n' +
+           ' planner returned error :: caused by :: hint provided does not correspond to an existing index'
+       }
+     ],
+     ok: 1
    }

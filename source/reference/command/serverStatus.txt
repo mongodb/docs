@@ -135,6 +135,30 @@ the inclusion:
 
    db.runCommand( { serverStatus: 1, latchAnalysis: 1 } )
 
+Change ``tcmalloc`` Verbosity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, ``tcmalloc`` information is included in the output. This
+section provides memory allocation statistics for your database. To
+change the verbosity of the ``tcmalloc`` section, specify an integer 
+between ``0`` and ``2`` (inclusive):
+
+.. code-block:: javascript
+
+   db.runCommand( { serverStatus: 1, tcmalloc: <int> } )
+
+The command has the following behavior:
+
+- By default, ``tcmalloc`` is set to ``1``.
+- Passing a larger integer value increases the verbosity.
+- Passing ``0`` or ``false`` omits the ``tcmalloc`` section from the
+  output. 
+- Passing any other input results in the default setting.
+
+For more information about how MongoDB allocates memory, see `TCMalloc`_.
+
+.. _`TCMalloc`: http://goog-perftools.sourceforge.net/doc/tcmalloc.html
+
 .. _server-status-output:
 
 Output
@@ -205,9 +229,9 @@ asserts
 
 .. serverstatus:: asserts.rollovers
 
-   The number of times that the rollover counters have rolled over
+   The number of times that the assert counters have rolled over
    since the last time the MongoDB process started. The counters will
-   rollover to zero after 2\ :superscript:`30` assertions. Use this
+   roll over to zero after 2\ :superscript:`30` assertions. Use this
    value to provide context to the other values in the
    :serverstatus:`asserts` data structure.
 
@@ -690,7 +714,6 @@ extra_info
 
    "extra_info" : {
       "note" : "fields vary by platform.",
-      "heap_usage_bytes" : <num>,
       "page_faults" : <num>
    },
 
@@ -702,11 +725,6 @@ extra_info
 .. serverstatus:: extra_info.note
 
    A string with the text ``"fields vary by platform."``
-
-.. serverstatus:: extra_info.heap_usage_bytes
-
-   The total size in bytes of heap space used by the database process.
-   Available on Unix/Linux systems only.
 
 .. serverstatus:: extra_info.page_faults
 
@@ -886,7 +904,7 @@ freeMonitoring
 
    - "disabled"
 
-   - "pending" if the enable free monitoring encountered a registeration error.
+   - "pending" if the enable free monitoring encountered a registration error.
 
 .. serverstatus:: freeMonitoring.retryIntervalSecs
 
@@ -1052,6 +1070,69 @@ hedgingMetrics
 
       For :binary:`~bin.mongos` instances only.
 
+.. _server-status-indexBulkBuilder:
+
+indexBulkBuilder
+~~~~~~~~~~~~~~~~
+.. code-block:: json
+
+   "indexBulkBuilder": {
+      "count": <long>, 
+      "resumed": <long>, 
+      "filesOpenedForExternalSort": <long>, 
+      "filesClosedForExternalSort": <long>, 
+      "spilledRanges": <long>, 
+      "bytesSpilled": <long>
+   }
+
+.. serverstatus:: indexBulkBuilder
+
+   Provides metrics for index bulk builder operations.  Use these metrics to
+   diagnose index build issues with :dbcommand:`createIndexes`, collection 
+   cloning during initial sync, index builds that resume after startup, and
+   statistics on disk usage by the external sorter.
+
+.. serverstatus:: indexBuildBuilder.bytesSpilled
+
+   .. versionadded:: 6.0.4
+
+   The number of bytes written to disk by the external sorter.
+
+.. serverstatus:: indexBuilder.bytesSpilledUncompressed
+
+   .. versionadded:: 6.0.4
+
+   The number of bytes to be written to disk by the external sorter 
+   before compression. 
+
+.. serverstatus:: indexBulkBuilder.count
+
+   The number of instances of the bulk builder created.
+
+.. serverstatus:: indexBulkBuilder.filesClosedForExternalSort
+
+   The number of times the external sorter closed a file handle to spill data
+   to disk.  Combine this value with 
+   :serverstatus:`~indexBulkBuilder.filesOpenedForExternalSort` to determine
+   the number of open file handles in use by the external sorter.
+
+.. serverstatus:: indexBulkBuilder.filesOpenedForExternalSort
+
+   The number of times the external sorter opened a file handle to spill data
+   to disk.  Combine this value with 
+   :serverstatus:`~indexBulkBuilder.filesClosedForExternalSort` to determine
+   the number of open file handles in use by the external sorter.
+
+.. serverstatus:: indexBulkBuilder.resumed
+
+   The number of times the bulk builder was created for a resumable index build.
+
+.. serverstatus:: indexBulkBuilder.spilledRanges
+
+   .. versionadded:: 6.0.4
+
+   The number of times the external sorter spilled to disk. 
+
 .. _server-status-instance-information:
 
 Instance Information
@@ -1089,7 +1170,7 @@ Instance Information
 
 .. serverstatus:: pid
 
-   The process id number.
+   The process ID number.
 
 .. serverstatus:: uptime
 
@@ -1439,55 +1520,55 @@ metrics
          <appName3>: <string>
       },
       aggStageCounters : {
-            <aggregation stage> : Long("<num>")
+         <aggregation stage> : Long("<num>")
       },
       commands: {
-            <command>: {
-               failed: Long("<num>"),
-               total: Long("<num>")
-            }
+         <command>: {
+            failed: Long("<num>"),
+            total: Long("<num>")
+         }
       },
       cursor : {
-            moreThanOneBatch : Long("<num>"),
-            timedOut : Long("<num>"),
-            totalOpened : Long("<num>"),
-            lifespan : {
-               greaterThanOrEqual10Minutes : Long("<num>"),
-               lessThan10Minutes : Long("<num>"),
-               lessThan15Seconds : Long("<num>"),
-               lessThan1Minute : Long("<num>"),
-               lessThan1Second : Long("<num>"),
-               lessThan30Seconds : Long("<num>"),
-               lessThan5Seconds : Long("<num>")
-            },
-            open : {
-               noTimeout : Long("<num>"),
-               pinned : Long("<num>"),
-               multiTarget : Long("<num>"),
-               singleTarget : Long("<num>"),
-               total : Long("<num>")
-            }
+         moreThanOneBatch : Long("<num>"),
+         timedOut : Long("<num>"),
+         totalOpened : Long("<num>"),
+         lifespan : {
+            greaterThanOrEqual10Minutes : Long("<num>"),
+            lessThan10Minutes : Long("<num>"),
+            lessThan15Seconds : Long("<num>"),
+            lessThan1Minute : Long("<num>"),
+            lessThan1Second : Long("<num>"),
+            lessThan30Seconds : Long("<num>"),
+            lessThan5Seconds : Long("<num>")
+         },
+         open : {
+            noTimeout : Long("<num>"),
+            pinned : Long("<num>"),
+            multiTarget : Long("<num>"),
+            singleTarget : Long("<num>"),
+            total : Long("<num>")
+         }
       },
       document : {
-            deleted : Long("<num>"),
-            inserted : Long("<num>"),
-            returned : Long("<num>"),
-            updated : Long("<num>")
+         deleted : Long("<num>"),
+         inserted : Long("<num>"),
+         returned : Long("<num>"),
+         updated : Long("<num>")
       },
       dotsAndDollarsFields : {
             inserts : Long("<num>"),
             updates : Long("<num>")
       },
       getLastError : {
-            wtime : {
-               num : <num>,
-               totalMillis : <num>
-            },
-            wtimeouts : Long("<num>"),
-            default : {
-                unsatisfiable : Long("<num>"),
-                wtimeouts : Long("<num>")
-            }
+         wtime : {
+            num : <num>,
+            totalMillis : <num>
+         },
+         wtimeouts : Long("<num>"),
+         default : {
+            unsatisfiable : Long("<num>"),
+            wtimeouts : Long("<num>")
+         }
       },
       mongos : {
          cursor : {
@@ -1500,27 +1581,27 @@ metrics
          writeConflicts : Long("<num>")
       },
       operatorCounters : {
-            expressions : {
-               <command> : Long(<num>)
-            },
-            match : {
-               <command> : Long(<num>)
-            }
+         expressions : {
+            <command> : Long(<num>)
+         },
+         match : {
+            <command> : Long(<num>)
+         }
       },
       query: {
-        allowDiskUseFalse: Long("<num>"),
-        planCacheTotalSizeEstimateBytes: Long("<num>"),
-        updateOneOpStyleBroadcastWithExactIDCount: Long("<num>"),
-        lookup: {
-          pipelineTotalCount: Long("<num>"),
-          slotBasedExecutionCounters: {
-            hashLookup: Long("<num>"),
-            hashLookupSpillToDisk: Long("<num>"),
-            indexedLoopJoin: Long("<num>"),
-            nestedLoopJoin: Long("<num>")
-          }
-        },
-        multiPlanner: {
+         allowDiskUseFalse: Long("<num>"),
+         planCacheTotalSizeEstimateBytes: Long("<num>"),
+         updateOneOpStyleBroadcastWithExactIDCount: Long("<num>"),
+         lookup: {
+            pipelineTotalCount: Long("<num>"),
+            slotBasedExecutionCounters: {
+               hashLookup: Long("<num>"),
+               hashLookupSpillToDisk: Long("<num>"),
+               indexedLoopJoin: Long("<num>"),
+               nestedLoopJoin: Long("<num>")
+            }
+         },
+         multiPlanner: {
             classicCount: Long("<num>"),
             classicMicros: Long("<num>"),
             classicWorks: Long("<num>"),
@@ -1528,59 +1609,59 @@ metrics
             sbeMicros: Long("<num>"),
             sbeNumReads: Long("<num>"),
             histograms: {
-              classicMicros: [
-                { lowerBound: Long("0"), count: Long("<num>") },
-                { < Additional histogram groups not shown. > },
-                { lowerBound: Long("1073741824"), count: Long("<num>")> }>
-              ],
-              classicNumPlans: [
-                { lowerBound: Long("0"), count: Long("<num>") },
-                { < Additional histogram groups not shown. > },
-               { lowerBound: Long("32"), count: Long("<num>") }
-              ],
-              classicWorks: [
-                { lowerBound: Long("0"), count: Long("<num>") },
-                { < Additional histogram groups not shown. > },
-                { lowerBound: Long("32768"), count: Long("<num>") }
-              ],
-              sbeMicros: [
-                { lowerBound: Long("0"), count: Long("<num>") },
-                { < Additional histogram groups not shown. > },
-                { lowerBound: Long("1073741824"), count: Long("<num>") }
-              ],
-              sbeNumPlans: [
-                { lowerBound: Long("0"), count: Long("<num>") },
-                { < Additional histogram groups not shown. > },
-                { lowerBound: Long("32"), count: Long("<num>") }
-              ],
-              sbeNumReads: [
-                { lowerBound: Long("0"), count: Long("<num>") },
-                { < Additional histogram groups not shown. > },
-                { lowerBound: Long("32768"), count: Long("<num>") }
+               classicMicros: [
+                  { lowerBound: Long("0"), count: Long("<num>") },
+                  { < Additional histogram groups not shown. > },
+                  { lowerBound: Long("1073741824"), count: Long("<num>")> }>
+               ],
+               classicNumPlans: [
+                  { lowerBound: Long("0"), count: Long("<num>") },
+                  { < Additional histogram groups not shown. > },
+                  { lowerBound: Long("32"), count: Long("<num>") }
+               ],
+               classicWorks: [
+                  { lowerBound: Long("0"), count: Long("<num>") },
+                  { < Additional histogram groups not shown. > },
+                  { lowerBound: Long("32768"), count: Long("<num>") }
+               ],
+               sbeMicros: [
+                  { lowerBound: Long("0"), count: Long("<num>") },
+                  { < Additional histogram groups not shown. > },
+                  { lowerBound: Long("1073741824"), count: Long("<num>") }
+               ],
+               sbeNumPlans: [
+                  { lowerBound: Long("0"), count: Long("<num>") },
+                  { < Additional histogram groups not shown. > },
+                  { lowerBound: Long("32"), count: Long("<num>") }
+               ],
+               sbeNumReads: [
+                  { lowerBound: Long("0"), count: Long("<num>") },
+                  { < Additional histogram groups not shown. > },
+                  { lowerBound: Long("32768"), count: Long("<num>") }
                ]
-             }
-           },
-           queryFramework: {
-             aggregate: {
+            }
+         },
+         queryFramework: {
+            aggregate: {
                classicHybrid: Long("<num>"),
                classicOnly: Long("<num>"),
                cqf: Long("<num>"),
                sbeHybrid: Long("<num>"),
                sbeOnly: Long("<num>")
-             },
-             find: { classic: Long("<num>"), cqf: Long("<num>"), sbe: Long("<num>") }
-           }
-         },
+            },
+            find: { classic: Long("<num>"), cqf: Long("<num>"), sbe: Long("<num>") }
+         }
+      },
       queryExecutor: {
-            scanned : Long("<num>"),
-            scannedObjects : Long("<num>"),
-            collectionScans : {
-                nonTailable : NumbeLong(<num>),
-                total : Long("<num>")
-            }
+         scanned : Long("<num>"),
+         scannedObjects : Long("<num>"),
+         collectionScans : {
+            nonTailable : NumbeLong(<num>),
+            total : Long("<num>")
+         }
       },
       record : {
-            moves : Long("<num>")
+         moves : Long("<num>")
       },
       repl : {
          executor : {
@@ -1628,12 +1709,11 @@ metrics
             ops : Long("<num>"),
             readersCreated : Long("<num>"),
             replSetUpdatePosition : {
-                num : Long("<num>")
+               num : Long("<num>")
             }
          },
          reconfig : {
-            numAutoReconfigsForRemovalOfNewlyAddedFields :
-               Long("<num>")
+            numAutoReconfigsForRemovalOfNewlyAddedFields : Long("<num>")
          },
          stepDown : {
             userOperationsKilled : Long("<num>"),
@@ -1647,19 +1727,19 @@ metrics
          }
       },
       storage : {
-            freelist : {
-               search : {
-                  bucketExhausted : <num>,
-                  requests : <num>,
-                  scanned : <num>
-               }
+         freelist : {
+            search : {
+               bucketExhausted : <num>,
+               requests : <num>,
+               scanned : <num>
             }
+         }
       },
       ttl : {
-            deletedDocuments : Long("<num>"),
-            passes : Long("<num>")
+         deletedDocuments : Long("<num>"),
+         passes : Long("<num>")
       }
-   },
+   }
 
 .. serverstatus:: metrics
 
@@ -1669,9 +1749,9 @@ metrics
 .. serverstatus:: metrics.aggStageCounters
 
    A document that reports on the use of
-   :doc:`aggregation pipeline stages
-   </reference/operator/aggregation-pipeline/>`. The fields
-   in :serverstatus:`metrics.aggStageCounters` are the names of
+   :ref:`aggregation pipeline stages 
+   <aggregation-pipeline-operator-reference>`. The fields in 
+   :serverstatus:`metrics.aggStageCounters` are the names of 
    aggregation pipeline stages. For each pipeline stage,
    :dbcommand:`serverStatus` reports the number of times that stage
    has been executed.
@@ -2051,6 +2131,20 @@ metrics
    A histogram measuring the number of plans in the candidate set during
    an invocation of the |sbe-short| multiplanner.
 
+.. serverstatus:: query.queryFramework.aggregate
+
+   A document that reports on the number of aggregation operations run on each 
+   :term:`query framework`. The subfields in ``query.queryFramework.aggregate``
+   indicate the number of times each framework was used to perform an 
+   aggregation operation.
+
+.. serverstatus:: query.queryFramework.find
+
+   A document that reports on the number of find operations run on each 
+   :term:`query framework`. The subfields in ``query.queryFramework.find`` 
+   indicate the number of times each framework was used to perform a find 
+   operation.
+
 .. serverstatus:: metrics.queryExecutor
 
    A document that reports data from the query execution system.
@@ -2079,7 +2173,7 @@ metrics
 .. serverstatus:: metrics.queryExecutor.collectionScans.nonTailable
 
    The number of queries that performed a collection scan that did not
-   use a :doc:`tailable cursor </core/tailable-cursors>`.
+   use a :ref:`tailable cursor <tailable-cursors-landing-page>`.
 
    .. versionadded:: 4.4
 
@@ -2347,7 +2441,7 @@ metrics
 .. serverstatus:: metrics.repl.syncSource
 
    Information on a replica set node's
-   :doc:`sync source selection </core/replica-set-sync/>` process.
+   :ref:`sync source selection <replica-set-sync>` process.
 
    .. versionadded:: 4.4
 
@@ -2399,17 +2493,17 @@ metrics
 .. serverstatus:: metrics.ttl
 
    A document that reports on the operation of the resource use of the
-   :doc:`ttl index </tutorial/expire-data/>` process.
+   :ref:`ttl index <ttl-collections>` process.
 
 .. serverstatus:: metrics.ttl.deletedDocuments
 
    The total number of documents deleted from collections with a
-   :doc:`ttl index </tutorial/expire-data/>`.
+   :ref:`ttl index <ttl-collections>`.
 
 .. serverstatus:: metrics.ttl.passes
 
    The number of times the background process removes documents from
-   collections with a :doc:`ttl index </tutorial/expire-data/>`.
+   collections with a :ref:`ttl index <ttl-collections>`.
 
 .. _server-status-metrics-cursor:
 
@@ -2625,7 +2719,7 @@ network
             "clientsRunning" : <num>,
             "clientsWaitingForData" : <num>
          }
-      }
+      },
    }
 
 .. serverstatus:: network
@@ -2865,7 +2959,7 @@ opReadConcernCounters
       "local" : NumberLong(<num>),
       "majority" : NumberLong(<num>),
       "snapshot" : NumberLong(<num>),
-      "none" :  NumberLong(<num>)
+      "none" : NumberLong(<num>)
    }
 
 .. serverstatus:: opReadConcernCounters
@@ -2940,18 +3034,59 @@ opWriteConcernCounters
             "<tag1>" :  NumberLong(<num>),
             ...
          },
-         "none" : NumberLong(<num>)
+         "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWWC" : {
+               "wmajority" : NumberLong(<num>),
+               "wnum" : {
+                  "<num>" :  NumberLong(<num>),
+                  ...
+               },
+               "wtag" : {
+                  "<tag1>" :  NumberLong(<num>),
+                  ...
+               }
+            },
+            "implicitDefault" : {
+               "wmajority" : NumberLong(<num>)
+               "wnum" : {
+                  "<num>" :  NumberLong(<num>),
+                  ...
+               }
+            }
+         }
       },
       "update" : {
          "wmajority" : NumberLong(<num>),
          "wnum" : {
             "<num>" :  NumberLong(<num>),
+            ...
          },
          "wtag" : {
             "<tag1>" :  NumberLong(<num>),
             ...
          },
-         "none" : NumberLong(<num>)
+         "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWWC" : {
+               "wmajority" : NumberLong(<num>),
+               "wnum" : {
+                  "<num>" :  NumberLong(<num>),
+                  ...
+               }
+               "wtag" : {
+                  "<tag1>" :  NumberLong(<num>),
+                  ...
+               }
+            },
+            "implicitDefault" : {
+               "wmajority" : NumberLong(<num>)
+               "wnum" : {
+                  "<num>" :  NumberLong(<num>),
+                  ...
+               }
+            }
+         }
       },
       "delete" : {
          "wmajority" :  NumberLong(<num>)
@@ -2963,7 +3098,27 @@ opWriteConcernCounters
             "<tag1>" :  NumberLong(<num>),
             ...
          },
-         "none" : NumberLong(<num>)
+         "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWWC" : {
+               "wmajority" : NumberLong(<num>),
+               "wnum" : {
+                  "<num>" :  NumberLong(<num>),
+                  ...
+               },
+               "wtag" : {
+                  "<tag1>" :  NumberLong(<num>),
+                  ...
+               }
+            },
+            "implicitDefault" : {
+               "wmajority" : NumberLong(<num>)
+               "wnum" : {
+                  "<num>" :  NumberLong(<num>),
+                  ...
+               }
+            }
+         }
       }
    }
 
@@ -3007,7 +3162,18 @@ opWriteConcernCounters
             "<tag1>" :  NumberLong(<num>),
             ...
          },
-         "none" : NumberLong(<num>)
+         "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWWC" : {
+               "wmajority" : NumberLong(<num>),
+               "wnum" : {},
+               "wtag" : {}
+            },
+            "implicitDefault" : {
+               "wmajority" : NumberLong(<num>)
+               "wnum" : {}
+            }
+         }
       },
 
    .. list-table::
@@ -3040,6 +3206,9 @@ opWriteConcernCounters
           These operations use the default ``w`` value of 
           :ref:`"majority" <wc-default-behavior>`.
 
+      * - ``"noneInfo"``
+        - .. include:: /includes/serverStatus/details-noneInfo.rst
+
    The sum of the :serverstatus:`opWriteConcernCounters.insert` equals
    :serverstatus:`opcounters.insert`.
 
@@ -3067,7 +3236,18 @@ opWriteConcernCounters
             "<tag1>" :  NumberLong(<num>),
             ...
          },
-         "none" : NumberLong(<num>)
+         "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWWC" : {
+               "wmajority" : NumberLong(<num>),
+               "wnum" : {},
+               "wtag" : {}
+            },
+            "implicitDefault" : {
+               "wmajority" : NumberLong(<num>)
+               "wnum" : {}
+            }
+         }
       },
 
    .. list-table::
@@ -3099,6 +3279,9 @@ opWriteConcernCounters
         - Number of update operations that did not specify ``w`` value.
           These operations use the default ``w`` value of ``1``.
 
+      * - ``"noneInfo"``
+        - .. include:: /includes/serverStatus/details-noneInfo.rst
+
    The sum of the :serverstatus:`opWriteConcernCounters.update` equals
    :serverstatus:`opcounters.update`.
 
@@ -3126,7 +3309,18 @@ opWriteConcernCounters
             "<tag1>" :  NumberLong(<num>),
             ...
          },
-         "none" : NumberLong(<num>)
+         "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWWC" : {
+               "wmajority" : NumberLong(<num>),
+               "wnum" : {},
+               "wtag" : {}
+            },
+            "implicitDefault" : {
+               "wmajority" : NumberLong(<num>)
+               "wnum" : {}
+            }
+         }
       }
 
    .. list-table::
@@ -3157,6 +3351,9 @@ opWriteConcernCounters
 
         - Number of delete operations that did not specify ``w`` value.
           These operations use the default ``w`` value of ``1``.
+
+      * - ``"noneInfo"``
+        - .. include:: /includes/serverStatus/details-noneInfo.rst
 
    The sum of the :serverstatus:`opWriteConcernCounters.delete` equals
    :serverstatus:`opcounters.delete`.
@@ -3248,32 +3445,18 @@ opcounters
 
 .. serverstatus:: opcounters.deprecated
 
-   This section only appears in the :method:`db.serverStatus()` output
-   when one of the following, deprecated opcodes has been used:
-   
+   ``opQuery`` counts the number of requests for opcodes that are
+   deprecated in MongoDB 5.0 but are temporarily supported. This section
+   only appears in the ``db.serverStatus()`` output when a deprecated
+   opcode has been used. 
+
+   The counter is reset when ``mongod`` starts.
+
    .. code-block:: javascript
 
       "deprecated": {
          "opQuery": NumberLong(<num>),
-         "opGetMore": NumberLong(<num>),
-         "opKillCursors": NumberLong(<num>),
-         "opDelete": NumberLong(<num>),
-         "opUpdate": NumberLong(<num>),
-         "opInsert": NumberLong(<num>),
-         "total": NumberLong(<num>),
       }
-
-   These opcodes were deprecated in MongoDB 5.0 and support for these
-   opcodes is removed in MongoDB 5.1. Starting in MongoDB 5.1,
-   :binary:`~bin.mongod` refuses requests that use a deprecated
-   opcode and increments the corresponding counter.
-
-   ``OP_QUERY`` is an exception to the general rule.
-   :binary:`~bin.mongod` continues to support ``hello`` and
-   ``isMaster`` requests that use ``OP_QUERY``. :binary:`~bin.mongod`
-   refuses any other ``OP_QUERY`` requests.
-
-   The counters are reset when :binary:`~bin.mongod` starts.
 
 .. _server-status-opcountersrepl:
 .. _server-status-opcounters-repl:
@@ -3485,6 +3668,17 @@ readConcernCounters
    "readConcernCounters" : {
       "nonTransactionOps" : {
          "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWRC" : {
+               "local" : NumberLong(<num>),
+               "available" : NumberLong(<num>),
+               "majority" : NumberLong(<num>)
+            },
+            "implicitDefault" : {
+               "local" : NumberLong(<num>),
+               "available" : NumberLong(<num>)
+            }
+         },
          "local" : NumberLong(<num>),
          "available" : NumberLong(<num>),
          "majority" : NumberLong(<num>),
@@ -3496,6 +3690,17 @@ readConcernCounters
       },
       "transactionOps" : {
          "none" : NumberLong(<num>),
+         "noneInfo" : {
+            "CWRC" : {
+               "local" : NumberLong(<num>),
+               "available" : NumberLong(<num>),
+               "majority" : NumberLong(<num>)
+            },
+            "implicitDefault" : {
+               "local" : NumberLong(<num>),
+               "available" : NumberLong(<num>)
+            }
+         },
          "local" : NumberLong(<num>),
          "majority" : NumberLong(<num>),
          "snapshot" : {
@@ -3521,8 +3726,20 @@ readConcernCounters
 .. serverstatus:: readConcernCounters.nonTransactionOps.none
 
    Number of non-transaction query operations that did not specify a
-   read concern level and instead used the default :ref:`read concern
-   level <read-concern-levels>`.
+   read concern level and instead used either:
+   
+   - the default :ref:`read  concern level <read-concern-levels>`, or
+   - the global default read concern configuration if it was set by the
+     :dbcommand:`setDefaultRWConcern` command.
+
+.. serverstatus:: readConcernCounters.nonTransactionOps.noneInfo
+
+   The number of non-transaction query operations that use the global
+   default read concern and an implicit-default read concern.
+   
+   The sum of the values in
+   ``readConcernCounters.nonTransactionOps.noneInfo`` should equal the
+   value of ``readConcernCounters.nonTransactionOps.none``.
 
 .. serverstatus:: readConcernCounters.nonTransactionOps.local
 
@@ -3572,7 +3789,14 @@ readConcernCounters
 
    Number of transaction query operations that did not specify a
    read concern level and instead used the default :ref:`read concern
-   level <read-concern-levels>`.
+   level <read-concern-levels>` or the global default read or write
+   concern configuration added with the :dbcommand:`setDefaultRWConcern`
+   command.
+
+.. serverstatus:: readConcernCounters.transactionOps.noneInfo
+
+   Information about the global default read concern and
+   implicit-default read concern used by transaction query operations.
 
 .. serverstatus:: readConcernCounters.transactionOps.local
 
@@ -3851,7 +4075,7 @@ security
      to authenticate against the :binary:`~bin.mongod` or
      :binary:`~bin.mongos` instance. (New in MongoDB 4.4)
 
-   - The :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+   - The :binary:`mongod` / :binary:`mongos` instance's TLS/SSL
      certificate. (Only appears for :binary:`~bin.mongod` or
      :binary:`~bin.mongos` instance with support for TLS)
 
@@ -3887,7 +4111,7 @@ security
    .. serverstatus:: security.authentication.mechanisms.MONGODB-X509
 
       A document that reports on the number of times
-      :doc:`x.509 </core/security-x.509/>` has been used to
+      :ref:`x.509 <security-auth-x509>` has been used to
       authenticate against the
       :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
 
@@ -3900,7 +4124,7 @@ security
    .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.speculativeAuthenticate.received
 
       Number of speculative authentication attempts received using
-      :doc:`x.509 </core/security-x.509/>`. Includes both successful and
+      :ref:`x.509 <security-auth-x509>`. Includes both successful and
       failed speculative authentication attempts. [#speculative-auth]_
 
       .. versionadded:: 4.4
@@ -3908,23 +4132,23 @@ security
    .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.speculativeAuthenticate.successful
 
       Number of successful speculative authentication attempts received
-      using :doc:`x.509 </core/security-x.509/>`. [#speculative-auth]_
+      using x.509. [#speculative-auth]_
 
       .. versionadded:: 4.4
 
    .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.authenticate.received
 
       Number of successful and failed authentication attempts
-      received using :doc:`x.509 </core/security-x.509/>`. This value
-      includes speculative authentication attempts received using x.509.
+      received using x.509.  This value includes speculative 
+      authentication attempts received using x.509.
 
       .. versionadded:: 4.4
 
    .. serverstatus:: security.authentication.mechanisms.MONGODB-X509.authenticate.successful
 
       Number of successful authentication attempts received using
-      :doc:`x.509 </core/security-x.509/>`. This value includes
-      successful speculative authentication attempts which used x.509.
+      x.508. This value includes successful speculative authentication 
+      attempts which used x.509.
 
       .. versionadded:: 4.4
 
@@ -3936,14 +4160,14 @@ security
    .. serverstatus:: security.SSLServerSubjectName
 
       The subject name associated with the
-      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+      :binary:`mongod` / :binary:`mongos` instance's TLS/SSL
       certificate.
 
    .. serverstatus:: security.SSLServerHasCertificateAuthority
 
       A boolean that is:
 
-      - ``true`` when the :binary:`~bin.mongod`/:binary:`~bin.mongos`
+      - ``true`` when the :binary:`mongod` / :binary:`mongos`
         instance's TLS/SSL certificate is associated with a certificate
         authority.
 
@@ -3952,7 +4176,7 @@ security
    .. serverstatus:: security.SSLServerCertificateExpirationDate
 
       The expiration date and time of the
-      :binary:`~bin.mongod`/:binary:`~bin.mongos` instance's TLS/SSL
+      :binary:`mongod` / :binary:`mongos` instance's TLS/SSL
       certificate.
 
 .. _server-status-sharding:
@@ -4000,10 +4224,10 @@ When run on :binary:`~bin.mongos`, the command returns sharding information.
 
 .. serverstatus:: sharding.maxChunkSizeInBytes
 
-   The maximum :ref:`size limit <sharding-chunk-size>` for a chunk. If
-   the chunk size has been updated recently on the config server, the
-   :serverstatus:`~sharding.maxChunkSizeInBytes` may not reflect the
-   most recent value.
+   The maximum :ref:`size limit <sharding-chunk-size>` for a range to
+   migrate. If this value has been updated recently on the config 
+   server, the :serverstatus:`~sharding.maxChunkSizeInBytes` may not 
+   reflect the most recent value.
 
 .. _server-status-sharding-statistics:
 
@@ -4049,27 +4273,66 @@ shardingStatistics
                },
                "rangeDeleterTasks" : <num>,
                "resharding" : {
-                  "countReshardingOperations" : NumberLong(<num>),
-                  "countReshardingSuccessful" : NumberLong(<num>),
-                  "countReshardingFailures" : NumberLong(<num>),
-                  "countReshardingCanceled" : NumberLong(<num>),
-                  "totalOperationTimeElapsedMillis" : NumberLong(<num>),
-                  "remainingOperationTimeEstimatedMillis" : NumberLong(<num>),
-                  "approxDocumentsToCopy" : NumberLong(<num>),
-                  "documentsCopied" : NumberLong(<num>),
-                  "approxBytesToCopy" : NumberLong(<num>),
-                  "bytesCopied" : NumberLong(<num>),
-                  "totalCopyTimeElapsedMillis" : NumberLong(<num>),
-                  "oplogEntriesFetched" : NumberLong(<num>),
-                  "oplogEntriesApplied" : NumberLong(<num>),
-                  "totalApplyTimeElapsedMillis" : NumberLong(<num>),
-                  "countWritesDuringCriticalSection" : NumberLong(<num>),
-                  "totalCriticalSectionTimeElapsedMillis" : NumberLong(<num>),
-                  "donorState" : <num>,
-                  "recipientState" : <num>,
-                  "coordinatorState" : <num>,
-                  "opStatus" : <num>,
-                  "lastOpEndingChunkImbalance": NumberLong(<num>)
+                  "countStarted" : NumberLong(1),
+                   "countSucceeded" : NumberLong(1),
+                   "countFailed" : NumberLong(0),
+                   "countCanceled" : NumberLong(0),
+                   "lastOpEndingChunkImbalance" : NumberLong(0),
+                   "active" : {
+                           "documentsCopied" : NumberLong(0),
+                           "bytesCopied" : NumberLong(0),
+                           "countWritesToStashCollections" : NumberLong(0),
+                           "countWritesDuringCriticalSection" : NumberLong(0),
+                           "countReadsDuringCriticalSection" : NumberLong(0),
+                           "oplogEntriesFetched" : NumberLong(0),
+                           "oplogEntriesApplied" : NumberLong(0),
+                           "insertsApplied" : NumberLong(0),
+                           "updatesApplied" : NumberLong(0),
+                           "deletesApplied" : NumberLong(0)
+                   },
+                   "oldestActive" : {
+                           "coordinatorAllShardsHighestRemainingOperationTimeEstimatedMillis" : NumberLong(0),
+                           "coordinatorAllShardsLowestRemainingOperationTimeEstimatedMillis" : NumberLong(0),
+                           "recipientRemainingOperationTimeEstimatedMillis" : NumberLong(0)
+                   },
+                   "latencies" : {
+                           "collectionCloningTotalRemoteBatchRetrievalTimeMillis" : NumberLong(0),
+                           "collectionCloningTotalRemoteBatchesRetrieved" : NumberLong(0),
+                           "collectionCloningTotalLocalInsertTimeMillis" : NumberLong(0),
+                           "collectionCloningTotalLocalInserts" : NumberLong(0),
+                           "oplogFetchingTotalRemoteBatchRetrievalTimeMillis" : NumberLong(0),
+                           "oplogFetchingTotalRemoteBatchesRetrieved" : NumberLong(0),
+                           "oplogFetchingTotalLocalInsertTimeMillis" : NumberLong(0),
+                           "oplogFetchingTotalLocalInserts" : NumberLong(0),
+                           "oplogApplyingTotalLocalBatchRetrievalTimeMillis" : NumberLong(0),
+                           "oplogApplyingTotalLocalBatchesRetrieved" : NumberLong(0),
+                           "oplogApplyingTotalLocalBatchApplyTimeMillis" : NumberLong(0),
+                           "oplogApplyingTotalLocalBatchesApplied" : NumberLong(0)
+                   },
+                   "currentInSteps" : {
+                           "countInstancesInCoordinatorState1Initializing" : NumberLong(0),
+                           "countInstancesInCoordinatorState2PreparingToDonate" : NumberLong(0),
+                           "countInstancesInCoordinatorState3Cloning" : NumberLong(0),
+                           "countInstancesInCoordinatorState4Applying" : NumberLong(0),
+                           "countInstancesInCoordinatorState5BlockingWrites" : NumberLong(0),
+                           "countInstancesInCoordinatorState6Aborting" : NumberLong(0),
+                           "countInstancesInCoordinatorState7Committing" : NumberLong(-1),
+                           "countInstancesInRecipientState1AwaitingFetchTimestamp" : NumberLong(0),
+                           "countInstancesInRecipientState2CreatingCollection" : NumberLong(0),
+                           "countInstancesInRecipientState3Cloning" : NumberLong(0),
+                           "countInstancesInRecipientState4Applying" : NumberLong(0),
+                           "countInstancesInRecipientState5Error" : NumberLong(0),
+                           "countInstancesInRecipientState6StrictConsistency" : NumberLong(0),
+                           "countInstancesInRecipientState7Done" : NumberLong(0),
+                           "countInstancesInDonorState1PreparingToDonate" : NumberLong(0),
+                           "countInstancesInDonorState2DonatingInitialData" : NumberLong(0),
+                           "countInstancesInDonorState3DonatingOplogEntries" : NumberLong(0),
+                           "countInstancesInDonorState4PreparingToBlockWrites" : NumberLong(0),
+                           "countInstancesInDonorState5Error" : NumberLong(0),
+                           "countInstancesInDonorState6BlockingWrites" : NumberLong(0),
+                           "countInstancesInDonorState7Done" : NumberLong(0)
+                   }
+                }
                }
             },
 
@@ -4167,29 +4430,30 @@ shardingStatistics
 .. serverstatus:: shardingStatistics.countDonorMoveChunkStarted
 
    The total number of times that the :dbcommand:`moveChunk` command
-   has started on the shard, of which this node is a member, as part of
-   a :ref:`chunk migration process <chunk-migration-procedure>`. This
-   increasing number does not consider whether the chunk migrations
-   succeed or not.
+   or :dbcommand:`moveRange` have started on the shard, of which this 
+   node is a member, as part of a :ref:`range migration process 
+   <range-migration-procedure>`. This increasing number does not 
+   consider whether the chunk migrations succeed or not.
 
    *Only present when run on a shard.*
 
 .. serverstatus:: shardingStatistics.totalDonorChunkCloneTimeMillis
 
    The cumulative time, in milliseconds, taken by the :ref:`clone phase
-   of the chunk migrations <chunk-migration-procedure>` from this
+   of the range migrations <range-migration-procedure>` from this
    shard, of which this node is a member. Specifically, for each
    migration from this shard, the tracked time starts with the
-   :dbcommand:`moveChunk` command and ends before the destination shard
-   enters a catch-up phase to apply changes that occurred during the
-   :ref:`chunk migrations <chunk-migration-procedure>`.
+   :dbcommand:`moveRange` and :dbcommand:`moveChunk` commands and ends 
+   before the destination shard enters a ``catchup`` phase to apply 
+   changes that occurred during the :ref:`range migrations 
+   <range-migration-procedure>`.
 
    *Only present when run on a shard.*
 
 .. serverstatus:: shardingStatistics.totalCriticalSectionCommitTimeMillis
 
    The cumulative time, in milliseconds, taken by the :ref:`update
-   metadata phase of the chunk migrations <chunk-migration-procedure>`
+   metadata phase of the range migrations <range-migration-procedure>`
    from this shard, of which this node is a member. During the update
    metadata phase, all operations on the collection are blocked.
 
@@ -4198,8 +4462,8 @@ shardingStatistics
 .. serverstatus:: shardingStatistics.totalCriticalSectionTimeMillis
 
    The cumulative time, in milliseconds, taken by the :ref:`catch-up
-   phase and the update metadata phase of the chunk migrations
-   <chunk-migration-procedure>` from this shard, of which this node is
+   phase and the update metadata phase of the range migrations
+   <range-migration-procedure>` from this shard, of which this node is
    a member.
 
    To calculate the duration of the catch-up phase, subtract
@@ -4322,8 +4586,8 @@ shardingStatistics
 .. serverstatus:: shardingStatistics.rangeDeleterTasks
 
    The current total of the queued chunk range deletion tasks that are
-   ready to run or are running as part of the :ref:`chunk migration
-   process <chunk-migration-procedure>`.
+   ready to run or are running as part of the :ref:`range migration
+   process <range-migration-procedure>`.
 
    Inspect the documents in the :data:`config.rangeDeletions` collection
    for information about the chunk ranges pending deletion from a shard
@@ -4417,13 +4681,13 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.countReshardingOperations
+.. serverstatus:: shardingStatistics.resharding.countStarted
 
    The sum of
-   :serverstatus:`~shardingStatistics.resharding.countReshardingSuccessful`,
-   :serverstatus:`~shardingStatistics.resharding.countReshardingFailures`,
+   :serverstatus:`~shardingStatistics.resharding.countSucceeded`,
+   :serverstatus:`~shardingStatistics.resharding.countFailed`,
    and
-   :serverstatus:`~shardingStatistics.resharding.countReshardingCanceled`.
+   :serverstatus:`~shardingStatistics.resharding.countCanceled`.
    The sum is further incremented by ``1`` if a :ref:`resharding
    operation <sharding-resharding>` has started but has not yet
    completed. Sum is set to 0 when :binary:`~bin.mongod` is started or
@@ -4433,7 +4697,7 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.countReshardingSuccessful
+.. serverstatus:: shardingStatistics.resharding.countSucceeded
 
    Number of successful :ref:`resharding operations
    <sharding-resharding>`. Number is set to 0 when :binary:`~bin.mongod`
@@ -4443,7 +4707,7 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.countReshardingFailures
+.. serverstatus:: shardingStatistics.resharding.countFailed
 
    Number of failed :ref:`resharding operations <sharding-resharding>`.
    Number is set to 0 when :binary:`~bin.mongod` is started or
@@ -4453,7 +4717,7 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.countReshardingCanceled
+.. serverstatus:: shardingStatistics.resharding.countCanceled
 
    Number of canceled :ref:`resharding operations
    <sharding-resharding>`. Number is set to 0 when :binary:`~bin.mongod`
@@ -4463,43 +4727,7 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.totalOperationTimeElapsedMillis
-
-   Total elapsed time, in milliseconds, for the current :ref:`resharding
-   operation <sharding-resharding>`. Time is set to 0 when a new
-   resharding operation starts.
-
-   *Only present when run on a shard or config server. Returns 0 on a
-   config server.*
-
-   .. versionadded:: 5.0
-
-.. serverstatus:: shardingStatistics.resharding.remainingOperationTimeEstimatedMillis
-
-   Estimated remaining time, in milliseconds, for the current resharding
-   operation. Time is set to 0 when a new :ref:`resharding operation
-   <sharding-resharding>` starts.
-
-   *Only present when run on a shard or config server. Returns 0 on a
-   config server.*
-
-   .. versionadded:: 5.0
-
-.. serverstatus:: shardingStatistics.resharding.approxDocumentsToCopy
-
-   Approximate number of documents to copy from donor shards to
-   recipient shards for the current :ref:`resharding operation
-   <sharding-resharding>`. Number is an estimate that is set when the
-   resharding operation starts and the number is not updated as the
-   operation progresses. Number is set to 0 when a new resharding
-   operation starts.
-
-   *Only present when run on a shard or config server. Returns 0 on a
-   config server.*
-
-   .. versionadded:: 5.0
-
-.. serverstatus:: shardingStatistics.resharding.documentsCopied
+.. serverstatus:: shardingStatistics.active.resharding.documentsCopied
 
    Number of documents copied from donor shards to recipient shards for
    the current :ref:`resharding operation <sharding-resharding>`. Number
@@ -4510,21 +4738,9 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.approxBytesToCopy
+   *Updated in version 6.1*
 
-   Approximate number of bytes to copy from donor shards to recipient
-   shards for the current :ref:`resharding operation
-   <sharding-resharding>`. Number is an estimate that is set when the
-   resharding operation starts and the number is not updated as the
-   operation progresses. Number is set to 0 when a new resharding
-   operation starts.
-
-   *Only present when run on a shard or config server. Returns 0 on a
-   config server.*
-
-   .. versionadded:: 5.0
-
-.. serverstatus:: shardingStatistics.resharding.bytesCopied
+.. serverstatus:: shardingStatistics.resharding.active.bytesCopied
 
    Number of bytes copied from donor shards to recipient shards for the
    current :ref:`resharding operation <sharding-resharding>`. Number is
@@ -4535,19 +4751,39 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.totalCopyTimeElapsedMillis
+   *Updated in version 6.1*
 
-   Total elapsed time, in milliseconds, for ongoing data copy tasks from
-   donor shards to recipient shards for the current :ref:`resharding
-   operation <sharding-resharding>`. Time is set to 0 when a new
-   resharding operation starts.
+.. serverstatus:: shardingStatistics.resharding.active.countWritesToStashCollections
+
+   During resharding, the number of writes to the recipient stash
+   collections.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.active.countWritesDuringCriticalSection
+
+   Number of writes perfomed in the critical section for the current
+   :ref:`resharding operation <sharding-resharding>`. The critical
+   section prevents new incoming writes to the collection currently
+   being resharded. Number is set to 0 when a new resharding operation
+   starts.
 
    *Only present when run on a shard or config server. Returns 0 on a
    config server.*
 
    .. versionadded:: 5.0
 
-.. serverstatus:: shardingStatistics.resharding.oplogEntriesFetched
+   *Updated in version 6.1*
+
+.. serverstatus:: shardingStatistics.resharding.active.countReadsDuringCriticalSection
+
+   During resharding, the number of reads attempted during the donor's
+   critical section.
+
+   .. versionadded:: 6.1
+
+
+.. serverstatus:: shardingStatistics.resharding.active.oplogEntriesFetched
 
    Number of entries fetched from the :term:`oplog` for the current
    :ref:`resharding operation <sharding-resharding>`. Number is set to 0
@@ -4556,7 +4792,9 @@ shardingStatistics
    *Only present when run on a shard or config server. Returns 0 on a
    config server.*
 
-.. serverstatus:: shardingStatistics.resharding.oplogEntriesApplied
+   *Updated in version 6.1*
+
+.. serverstatus:: shardingStatistics.resharding.active.oplogEntriesApplied
 
    Number of entries applied to the :term:`oplog` for the current
    :ref:`resharding operation <sharding-resharding>`. Number is set to 0
@@ -4567,6 +4805,154 @@ shardingStatistics
 
    .. versionadded:: 5.0
 
+   *Updated in version 6.1* 
+
+.. serverstatus:: shardingStatistics.resharding.active.insertsApplied
+
+   The total number of insert operations applied during resharding.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.active.updatesApplied
+
+   The total number of update operations applied during resharding.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.active.deletesApplied
+
+   The total number of delete operations applied during resharding.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.oldestActive.coordinatorAllShardsHighestRemainingOperationTimeEstimatedMillis
+
+   Calculated across all shards, the highest estimate of the number of
+   seconds remaining. If the time estimate cannot be computed, the 
+   value is set to -1.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.oldestActive.coordinatorAllShardsLowestRemainingOperationTimeEstimatedMillis
+
+   Calculated across all shards, the lowest estimate of the number of
+   seconds remaining. If the time estimate cannot be computed, the 
+   value is set to -1.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.oldestActive.recipientRemainingOperationTimeEstimatedMillis
+
+   Estimated remaining time, in milliseconds, for the current resharding
+   operation. Prior to :ref:`resharding <sharding-resharding>`, or when
+   the time cannot be calculated, the value is set to -1.
+
+   If a shard is involved in multiple resharding operations, this field
+   contains the remaining time estimate for the oldest resharding
+   operation where this shard is a recipient.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.oldestActive.totalOperationTimeElapsedMillis
+
+   Total elapsed time, in milliseconds, for the current :ref:`resharding
+   operation <sharding-resharding>`. Time is set to 0 when a new
+   resharding operation starts.
+
+   *Only present when run on a shard or config server. Returns 0 on a
+   config server.*
+
+   .. versionadded:: 5.0
+
+.. serverstatus:: shardingStatistics.resharding.latencies
+
+   Timing metrics for resharding operations.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.latencies.collectionCloningTotalRemoteBatchRetrievalTimeMillis
+
+   Total time recipients spent retrieving batches of documents from
+   donors, in milliseconds.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.latencies.collectionCloningTotalRemoteBatchesRetrieved
+
+   Total number of batches of documents recipients retrieved from
+   donors.
+
+   .. versionadded:: 6.1
+
+.. serverstatus:: shardingStatistics.resharding.latencies.collectionCloningTotalLocalInsertTimeMillis
+
+   Total time recipients spent inserting batches of documents from
+   donors, in milliseconds.
+
+   .. versionadded:: 6.1
+ 
+.. serverstatus:: shardingStatistics.resharding.latencies.collectionCloningTotalLocalInserts
+
+   Total number of batches of documents from donors that recipients
+   inserted.
+
+   .. versionadded:: 6.1
+   
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogFetchingTotalRemoteBatchRetrievalTimeMillis
+
+   Total time recipients spent retrieving batches of oplog entries from
+   donors, in milliseconds.
+
+   .. versionadded:: 6.1
+ 
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogFetchingTotalRemoteBatchesRetrieved
+
+   Total number of batches of oplog entries recipients retrieved from
+   donors.
+
+   .. versionadded:: 6.1
+    
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogFetchingTotalLocalInsertTimeMillis
+
+   Total time recipients spent inserting batches of oplog entries from
+   donors, in milliseconds.
+
+   .. versionadded:: 6.1
+    
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogFetchingTotalLocalInserts
+
+   Total number of batches of oplog entries from donors that recipients
+   inserted.
+
+   .. versionadded:: 6.1
+    
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchRetrievalTimeMillis
+
+   Total time recipients spent retrieving batches of oplog entries that
+   were inserted during fetching, in milliseconds.
+
+   .. versionadded:: 6.1
+    
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchesRetrieved
+
+   Total number of batches of oplog entries that were inserted during
+   fetching that recipients retrieved.
+
+   .. versionadded:: 6.1
+    
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchApplyTimeMillis
+
+   Total time recipients spent applying batches of oplog entries, in
+   milliseconds.
+
+   .. versionadded:: 6.1
+    
+.. serverstatus:: shardingStatistics.resharding.latencies.oplogApplyingTotalLocalBatchesApplied
+
+   Total number of batches of oplog entries that recipients applied.
+
+   .. versionadded:: 6.1
+
 .. serverstatus:: shardingStatistics.resharding.totalApplyTimeElapsedMillis
 
    Total elapsed time, in milliseconds, for the apply step of the
@@ -4574,19 +4960,6 @@ shardingStatistics
    apply step, recipient shards modify their data based on new incoming
    writes from donor shards. Time is set to 0 when a new resharding
    operation starts.
-
-   *Only present when run on a shard or config server. Returns 0 on a
-   config server.*
-
-   .. versionadded:: 5.0
-
-.. serverstatus:: shardingStatistics.resharding.countWritesDuringCriticalSection
-
-   Number of writes perfomed in the critical section for the current
-   :ref:`resharding operation <sharding-resharding>`. The critical
-   section prevents new incoming writes to the collection currently
-   being resharded. Number is set to 0 when a new resharding operation
-   starts.
 
    *Only present when run on a shard or config server. Returns 0 on a
    config server.*
@@ -4754,8 +5127,8 @@ shardingStatistics
 
    State of the resharding coordinator for the current :ref:`resharding
    operation <sharding-resharding>`. The resharding coordinator is a
-   thread that runs on the :doc:`config server
-   </core/sharded-cluster-config-servers>` primary. Number is set to 0
+   thread that runs on the :ref:`config server
+   <sharding-config-server>` primary. Number is set to 0
    when a new resharding operation starts.
 
    .. list-table::
@@ -4892,8 +5265,8 @@ shardedIndexConsistency
    sharded collections.
 
    The returned metrics are meaningful only when run on the primary of
-   the :doc:`config server replica set
-   </core/sharded-cluster-config-servers>` for a version 4.4+ (and
+   the :ref:`config server replica set
+   <sharding-config-server>` for a version 4.4+ (and
    4.2.6+) sharded cluster.
 
    .. seealso::
@@ -4916,8 +5289,8 @@ shardedIndexConsistency
    :ref:`manage-indexes-find-inconsistent-indexes`.
 
    The returned metrics are meaningful only when run on the primary of
-   the :doc:`config server replica set
-   </core/sharded-cluster-config-servers>` for a version 4.4+ (and
+   the :ref:`config server replica set
+   <sharding-config-server>` for a version 4.4+ (and
    4.2.6+) sharded cluster.
 
    .. seealso::
@@ -5054,10 +5427,10 @@ transactions
 
    When run on a :binary:`~bin.mongod`, a document with data about the
    :doc:`retryable writes </core/retryable-writes>` and
-   :doc:`transactions </core/transactions>`.
+   :ref:`transactions <transactions>`.
 
    When run on a :binary:`~bin.mongos`, a document with data about the
-   :doc:`transactions </core/transactions>` run on the instance.
+   transactions run on the instance.
 
 .. serverstatus:: transactions.retriedCommandsCount
 

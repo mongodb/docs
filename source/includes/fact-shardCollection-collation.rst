@@ -1,9 +1,7 @@
 Collation
 ~~~~~~~~~
 
-.. versionchanged:: 3.4
-
-If the collection has a default :doc:`collation</reference/collation>`,
+If the collection has a default :ref:`collation <collation>`,
 the |command| command must include a ``collation`` parameter with the
 value ``{ locale: "simple" }``. For non-empty collections with a
 default collation, you must have at least one index with the simple

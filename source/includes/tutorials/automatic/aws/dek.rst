@@ -17,7 +17,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
-               :caption: MakeDataKey.java
                :dedent:
 
          .. tab::
@@ -27,7 +26,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
-               :caption: make_data_key.js
                :dedent:
 
          .. tab::
@@ -37,7 +35,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -47,7 +44,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
-               :caption: MakeDataKey.cs
                :dedent:
 
          .. tab::
@@ -57,7 +53,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
-               :caption: make-data-key.go
                :dedent:
 
       .. tip:: Learn More
@@ -84,7 +79,6 @@
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: java
-               :caption: MakeDataKey.java
                :dedent:
 
          .. tab::
@@ -94,7 +88,6 @@
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: javascript
-               :caption: make_data_key.js
                :dedent:
 
          .. tab::
@@ -104,7 +97,6 @@
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: python
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -114,7 +106,6 @@
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: csharp
-               :caption: MakeDataKey.cs
                :dedent:
 
          .. tab::
@@ -124,12 +115,14 @@
                :start-after: start-datakeyopts
                :end-before: end-datakeyopts
                :language: go
-               :caption: make-data-key.go
                :dedent:
 
    .. step:: Generate your {+dek-long+}
 
       .. _csfle-aws-create-dek:
+
+      Generate your {+dek-long+} using the variables declared in :ref:`step one
+      <csfle-aws-create-index>` of this tutorial.
 
       .. tabs-drivers::
 
@@ -140,7 +133,6 @@
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: java
-               :caption: MakeDataKey.java
                :dedent:
 
          .. tab::
@@ -150,7 +142,6 @@
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: javascript
-               :caption: make_data_key.js
                :dedent:
 
          .. tab::
@@ -160,7 +151,6 @@
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: python
-               :caption: make_data_key.py
                :dedent:
 
          .. tab::
@@ -170,7 +160,6 @@
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: csharp
-               :caption: MakeDataKey.cs
                :dedent:
 
          .. tab::
@@ -180,7 +169,6 @@
                :start-after: start-create-dek
                :end-before: end-create-dek
                :language: go
-               :caption: make-data-key.go
                :dedent:
 
 .. tip:: Learn More

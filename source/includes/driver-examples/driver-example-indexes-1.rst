@@ -3,8 +3,7 @@
    tabs:
      - id: shell
        content: |
-         To create an index in the
-         :doc:`Mongo Shell </tutorial/getting-started/>`, use
+         To create an index in :binary:`~bin.mongosh`, use
          :method:`db.collection.createIndex()`.
 
 

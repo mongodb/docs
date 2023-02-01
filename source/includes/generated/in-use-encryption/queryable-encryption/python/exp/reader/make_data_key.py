@@ -8,10 +8,12 @@ from bson.binary import STANDARD, UUID
 
 import os
 
+# start-local-cmk
 path = "master-key.txt"
 file_bytes = os.urandom(96)
 with open(path, "wb") as f:
     f.write(file_bytes)
+# end-local-cmk
 
 # start-kmsproviders
 provider = "local"
@@ -91,7 +93,6 @@ auto_encryption = AutoEncryptionOpts(
     kms_providers,
     key_vault_namespace,
     encrypted_fields_map=encrypted_fields_map,
-    schema_map=None,
     crypt_shared_lib_path="<path to FLE Shared Library>",
 )
 

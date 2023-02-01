@@ -2,6 +2,7 @@ const mongodb = require("mongodb");
 const { ClientEncryption } = require("mongodb-client-encryption");
 const { MongoClient, Binary } = mongodb;
 
+// start-local-cmk
 const fs = require("fs");
 const crypto = require("crypto");
 try {
@@ -9,6 +10,7 @@ try {
 } catch (err) {
   console.error(err);
 }
+// end-local-cmk
 
 // start-kmsproviders
 const provider = "local";

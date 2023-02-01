@@ -1,4 +1,4 @@
-- Regardless of a write's :doc:`write concern </reference/write-concern>`, other
+- Regardless of a write's :ref:`write concern <write-concern>`, other
   clients using :readconcern:`"local"` or :readconcern:`"available"`
   read concern can see the result of a write operation before the write
   operation is acknowledged to the issuing client.

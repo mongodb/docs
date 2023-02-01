@@ -57,11 +57,13 @@ public class MakeDataKey {
 
     public static void main(String[] args) throws Exception {
 
+        // start-local-cmk
         byte[] localMasterKeyWrite = new byte[96];
         new SecureRandom().nextBytes(localMasterKeyWrite);
         try (FileOutputStream stream = new FileOutputStream("master-key.txt")) {
             stream.write(localMasterKeyWrite);
         }
+        // end-local-cmk
 
         // start-kmsproviders
         String kmsProvider = "local";
