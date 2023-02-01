@@ -14,8 +14,7 @@ less than or equal to the value of the limit. For example, with the
 .. note::
 
    The driver only divides the group into smaller groups when using
-   the high-level API. If using
-   :doc:`db.runCommand() </reference/method/db.runCommand/>` directly
+   the high-level API. If using :method:`db.runCommand()` directly
    (for example, when writing a driver), MongoDB throws an error when
    attempting to execute a write batch which exceeds the limit.
 

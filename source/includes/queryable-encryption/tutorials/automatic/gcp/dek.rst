@@ -13,6 +13,15 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/gcp/reader/make_data_key.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: javascript
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
@@ -20,7 +29,6 @@
                :end-before: end-kmsproviders
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -30,7 +38,6 @@
                :end-before: end-kmsproviders
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: java-sync
@@ -40,7 +47,6 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -50,7 +56,6 @@
                :end-before: end-kmsproviders
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: csharp
@@ -60,7 +65,6 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
       .. tip:: Learn More
 
@@ -80,6 +84,15 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/gcp/reader/make_data_key.js
+               :start-after: start-datakeyopts
+               :end-before: end-datakeyopts
+               :language: javascript
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
@@ -87,7 +100,6 @@
                :end-before: end-datakeyopts
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -97,7 +109,6 @@
                :end-before: end-datakeyopts
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: java-sync
@@ -107,7 +118,6 @@
                :end-before: end-datakeyopts
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -117,7 +127,6 @@
                :end-before: end-datakeyopts
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: csharp
@@ -127,7 +136,6 @@
                :end-before: end-datakeyopts
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
    .. step:: Generate your {+dek-long+}s
 
@@ -138,14 +146,21 @@
 
       .. note:: {+key-vault-long-title+} Namespace Permissions
 
-         The {+key-vault-long+} in this guide is the ``__keyVault``
-         collection in the ``encryption`` database.
-         Ensure that the database user your application uses to connect
-         to MongoDB has `ReadWrite
-         <https://www.mongodb.com/docs/manual/reference/built-in-roles/#readWrite>`_
-         permissions on the ``encryption.__keyVault`` namespace.
+         The {+key-vault-long+} is in the ``encryption.__keyVault``
+         namespace. Ensure that the database user your application uses to connect
+         to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+         permissions on this namespace.
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/gcp/reader/make_data_key.js
+               :start-after: start-create-dek
+               :end-before: end-create-dek
+               :language: javascript
+               :dedent:
 
          .. tab::
             :tabid: nodejs
@@ -155,7 +170,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -165,7 +179,6 @@
                :end-before: end-create-dek
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: java-sync
@@ -175,7 +188,6 @@
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -185,7 +197,6 @@
                :end-before: end-create-dek
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: csharp
@@ -195,7 +206,6 @@
                :end-before: end-create-dek
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
    .. step:: Create Your Encrypted Collection
 
@@ -205,6 +215,15 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/gcp/reader/make_data_key.js
+               :start-after: start-create-enc-collection
+               :end-before: end-create-enc-collection
+               :language: javascript
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
@@ -212,7 +231,6 @@
                :end-before: end-create-enc-collection
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -222,7 +240,6 @@
                :end-before: end-create-enc-collection
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: java-sync
@@ -232,7 +249,6 @@
                :end-before: end-create-enc-collection
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: go
@@ -242,7 +258,6 @@
                :end-before: end-create-enc-collection
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
          .. tab::
             :tabid: csharp
@@ -252,12 +267,12 @@
                :end-before: end-create-enc-collection
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
 The output from the code in this section should resemble the following:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/dek-output.out
    :language: text
+   :copyable: false
 
 .. tip:: Learn More
 

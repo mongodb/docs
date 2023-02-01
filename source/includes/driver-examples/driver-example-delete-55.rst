@@ -31,7 +31,7 @@
             ]
 
          For instructions on inserting documents in MongoDB Compass, see
-         :doc:`Insert Documents </tutorial/insert-documents/>`.
+         :ref:`Insert Documents <write-op-insert>`.
 
          .. note::
 

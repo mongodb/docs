@@ -49,8 +49,8 @@ invalid documents:
      -  MongoDB allows the operation to proceed, but records the
         violation in the MongoDB log.
 
-Steps: Reject Invalid Documents
--------------------------------
+Option 1: Reject Invalid Documents
+----------------------------------
 
 The following procedure shows how to create a schema validation that
 rejects invalid documents.
@@ -75,12 +75,8 @@ rejects invalid documents.
                   },
                   email: {
                      bsonType : "string",
-                     pattern : "@mongodb\.com$",
-                     description: "must be a string and match the regular expression pattern"
-                  },
-                  status: {
-                     enum: [ "Unknown", "Incomplete" ],
-                     description: "can only be one of the enum values"
+                     pattern : "@mongodb\\.com$",
+                     description: "must be a string and end with '@mongodb.com'"
                   }
                }
             } },
@@ -93,13 +89,20 @@ rejects invalid documents.
 
    .. step:: Attempt to insert an invalid document.
       
-      The following insert operation violates the validation rule because
-      ``status`` is not one of the allowed values (``Unknown`` or
-      ``Incomplete``):
+      Attempt to insert the following document:
 
       .. code-block:: javascript
 
-         db.contacts.insertOne( { name: "Amanda", status: "Updated" } )
+         db.contacts.insertOne(
+            { name: "Amanda", email: "amanda@xyz.com" }
+         )
+
+      The document violates the validation rule because:
+      
+      - The ``email`` field does not match the regular expression
+        pattern. The ``email`` field must end in ``@mongodb.com``.
+
+      - It is missing the required ``phone`` field.
 
       The operation fails with the following error:
 
@@ -108,7 +111,7 @@ rejects invalid documents.
 
          MongoServerError: Document failed validation
          Additional information: {
-           failingDocumentId: ObjectId("62b384321340c60e11b98a84"),
+           failingDocumentId: ObjectId("6377cca4aac957f2b77ea955"),
            details: {
              operatorName: '$jsonSchema',
              schemaRulesNotSatisfied: [
@@ -116,14 +119,14 @@ rejects invalid documents.
                  operatorName: 'properties',
                  propertiesNotSatisfied: [
                    {
-                     propertyName: 'status',
-                     description: 'can only be one of the enum values',
+                     propertyName: 'email',
+                     description: "must be a string and end with '@mongodb.com'",
                      details: [
                        {
-                         operatorName: 'enum',
-                         specifiedAs: { enum: [ 'Unknown', 'Incomplete' ] },
-                         reason: 'value was not found in enum',
-                         consideredValue: 'Updated'
+                         operatorName: 'pattern',
+                         specifiedAs: { pattern: '@mongodb\\.com$' },
+                         reason: 'regular expression did not match',
+                         consideredValue: 'amanda@xyz.com'
                        }
                      ]
                    }
@@ -138,8 +141,8 @@ rejects invalid documents.
            }
          }
 
-Steps: Allow Invalid Documents and Record Them in the Log
----------------------------------------------------------
+Option 2: Allow Invalid Documents, but Record Them in the Log 
+-------------------------------------------------------------
 
 The following procedure shows how to create a schema validation that
 allows invalid documents, but records invalid documents in the MongoDB
@@ -165,12 +168,8 @@ log.
                   },
                   email: {
                      bsonType : "string",
-                     pattern : "@mongodb\.com$",
-                     description: "must be a string and match the regular expression pattern"
-                  },
-                  status: {
-                     enum: [ "Unknown", "Incomplete" ],
-                     description: "can only be one of the enum values"
+                     pattern : "@mongodb\\.com$",
+                     description: "must be a string and end with '@mongodb.com'"
                   }
                }
             } },
@@ -183,13 +182,20 @@ log.
 
    .. step:: Attempt to insert an invalid document.
 
-      The following insert operation violates the validation rule because
-      ``status`` is not one of the allowed values (``Unknown`` or
-      ``Incomplete``):
+      Attempt to insert the following document:
 
       .. code-block:: javascript
 
-         db.contacts2.insertOne( { name: "Amanda", status: "Updated" } )
+         db.contacts2.insertOne(
+            { name: "Amanda", email: "amanda@xyz.com" }
+         )
+
+      The document violates the validation rule because:
+      
+      - The ``email`` field does not match the regular expression
+        pattern. The ``email`` field must end in ``@mongodb.com``.
+
+      - It is missing the required ``phone`` field.
 
    .. step:: Check the logs for the invalid document.
 
@@ -198,7 +204,9 @@ log.
 
       .. code-block:: javascript
 
-         db.adminCommand( { getLog:'global'} ).log.forEach(x => { print(x) })
+         db.adminCommand(
+            { getLog:'global'} ).log.forEach(x => { print(x) }
+         )
 
       The MongoDB log includes an entry similar to the following object:
 
@@ -206,64 +214,50 @@ log.
          :copyable: false
 
          {
-            "t":{
-               "$date":"2022-06-30T18:05:22.088-04:00"
+            "t": {
+               "$date": "2022-11-18T13:30:43.607-05:00"
             },
-            "s":"W",
-            "c":"STORAGE",
-            "id":20294,
-            "ctx":"conn61",
-            "msg":"Document would fail validation",
-            "attr":{
-               "namespace":"test.contacts2",
-               "document":{
-                  "_id":{
-                     "$oid":"62be1e2273c105dde923129f"
+            "s": "W",
+            "c": "STORAGE",
+            "id": 20294,
+            "ctx": "conn2",
+            "msg": "Document would fail validation",
+            "attr": {
+               "namespace": "test.contacts2",
+               "document": {
+                  "_id": {
+                     "$oid": "6377cf53d59841355cac1cd0"
                   },
-                  "name":"Amanda",
-                  "status":"Updated"
+                  "name": "Amanda",
+                  "email": "amanda@xyz.com"
                },
-               "errInfo":{
-                  "failingDocumentId":{
-                     "$oid":"62be1e2273c105dde923129f"
+               "errInfo": {
+                  "failingDocumentId": {
+                     "$oid": "6377cf53d59841355cac1cd0"
                   },
-                  "details":{
-                     "operatorName":"$jsonSchema",
-                     "schemaRulesNotSatisfied":[
-                        {
-                           "operatorName":"properties",
-                           "propertiesNotSatisfied":[
-                              {
-                                 "propertyName":"status",
-                                 "description":"can only be one of the enum values",
-                                 "details":[
-                                    {
-                                       "operatorName":"enum",
-                                       "specifiedAs":{
-                                          "enum":[
-                                             "Unknown",
-                                             "Incomplete"
-                                          ]
-                                       },
-                                       "reason":"value was not found in enum",
-                                       "consideredValue":"Updated"
-                                    }
-                                 ]
-                              }
-                           ]
+                  "details": {
+                     "operatorName": "$jsonSchema",
+                     "schemaRulesNotSatisfied": [{
+                        "operatorName": "properties",
+                        "propertiesNotSatisfied": [{
+                           "propertyName": "email",
+                           "description": "must be a string and end with '@mongodb.com'",
+                           "details": [{
+                              "operatorName": "pattern",
+                              "specifiedAs": {
+                                 "pattern": "@mongodb\\.com$"
+                              },
+                              "reason": "regular expression did not match",
+                              "consideredValue": "amanda@xyz.com"
+                           }]
+                        }]
+                     }, {
+                        "operatorName": "required",
+                        "specifiedAs": {
+                           "required": ["phone"]
                         },
-                        {
-                           "operatorName":"required",
-                           "specifiedAs":{
-                              "required":[
-                                 "phone"
-                              ]
-                           },
-                           "missingProperties":[
-                              "phone"
-                           ]
-                        }
-                     ]
+                        "missingProperties": ["phone"]
+                     }]
                   }
                }
             }

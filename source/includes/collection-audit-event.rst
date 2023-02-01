@@ -4,5 +4,5 @@ view:
 - ``viewOn`` field with the database and collection for the view.
 
 - ``pipeline`` field with the
-  :doc:`aggregation pipeline </core/aggregation-pipeline>` definition
+  :ref:`aggregation pipeline <aggregation-pipeline>` definition
   for the view.

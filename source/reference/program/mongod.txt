@@ -48,6 +48,10 @@ Options
 
 .. |tlsClusterCAFile| replace:: :option:`--tlsClusterCAFile <mongod --tlsClusterCAFile>`
 
+.. versionchanged:: 6.1
+
+  - .. include:: /includes/journal-always-enabled-change.rst
+
 .. versionchanged:: 5.2
 
    - MongoDB removes the ``--cpu`` command-line option.
@@ -349,49 +353,7 @@ Core Options
    - Set :option:`--bind_ip_all` to ``true``.
 
 
-.. option:: --listenBacklog <number>
-
-   *Default*: Target system ``SOMAXCONN`` constant
-   
-   The maximum number of connections that can exist in the listen
-   queue.
-   
-   .. warning ::
-   
-      Consult your local system's documentation to understand the
-      limitations and configuration requirements before using this
-      parameter.
-   
-   .. important::
-   
-      To prevent undefined behavior, specify a value for this
-      parameter between ``1`` and the local system ``SOMAXCONN``
-      constant.
-   
-   The default value for the ``listenBacklog`` parameter is set at
-   compile time to the target system ``SOMAXCONN`` constant.
-   ``SOMAXCONN`` is the maximum valid value that is documented for
-   the *backlog* parameter to the *listen* system call.
-   
-   Some systems may interpret ``SOMAXCONN`` symbolically, and others
-   numerically. The actual *listen backlog* applied in practice may
-   differ from any numeric interpretation of the ``SOMAXCONN`` constant
-   or argument to ``--listenBacklog``, and may also be constrained by
-   system settings like ``net.core.somaxconn`` on Linux.
-   
-   Passing a value for the ``listenBacklog`` parameter that exceeds the
-   ``SOMAXCONN`` constant for the local system is, by the letter of the
-   standards, undefined behavior. Higher values may be silently integer
-   truncated, may be ignored, may cause unexpected resource
-   consumption, or have other adverse consequences.
-   
-   On systems with workloads that exhibit connection spikes, for which
-   it is empirically known that the local system can honor higher
-   values for the *backlog* parameter than the ``SOMAXCONN`` constant,
-   setting the ``listenBacklog`` parameter to a higher value may reduce
-   operation latency as observed by the client by reducing the number
-   of connections which are forced into a backoff state.
-
+.. include:: /includes/parameter-listenbacklog.rst
 
 
 .. option:: --maxConns <number>
@@ -534,15 +496,15 @@ Core Options
       directory, or a systemd unit file registered with ``systemctl``. Only
       use the :option:`--pidfilepath` option if you are not using one of these init
       systems. For more information, please see the respective
-      :doc:`Installation Guide </installation>` for your operating system.
+      :ref:`Installation Guide <tutorial-installation>` for your operating system.
    
    .. note:: macOS
 
    
       On macOS, PID file management is generally handled by ``brew``. Only use
       the :option:`--pidfilepath` option if you are not using ``brew`` on your macOS system. 
-      For more information, please see the respective
-      :doc:`Installation Guide </installation>` for your operating system.
+      For more information, please see the respective Installation 
+      Guide for your operating system.
 
 
 .. option:: --keyFile <file>
@@ -643,7 +605,7 @@ Core Options
    exist, the localhost interface will continue to have access to the 
    database until you create the first user.
    
-   See :doc:`Security </security>`
+   See :ref:`Security <security>`
    for more information.
    
 
@@ -710,7 +672,7 @@ Core Options
    The :option:`--shutdown` option cleanly and safely terminates the :program:`mongod`
    process. When invoking :program:`mongod` with this option you must set the
    :option:`--dbpath` option either directly or by way of the
-   :doc:`configuration file </reference/configuration-options>` and the
+   :ref:`configuration file <configuration-options>` and the
    :option:`--config` option.
    
    The :option:`--shutdown` option is available only on Linux systems.
@@ -1133,6 +1095,18 @@ LDAP Authentication or Authorization Options
    :dbcommand:`setParameter`.
 
 
+.. option:: --ldapRetryCount <int>
+
+   .. versionadded:: 6.1
+
+   *Default*: 0
+
+   *Available in MongoDB Enterprise only.*
+   
+   Number of operation retries by the server LDAP manager after a
+   network error.
+   
+
 .. option:: --ldapUserToDNMapping <string>
 
    *Available in MongoDB Enterprise only.*
@@ -1414,7 +1388,7 @@ Storage Options
    The directory where the :program:`mongod` instance stores its data.
 
    If using the default
-   :doc:`configuration file </reference/configuration-options>`
+   :ref:`Configuration File <configuration-options>`
    included with a package manager installation of MongoDB, the
    corresponding :setting:`storage.dbPath` setting uses a different
    default.
@@ -1481,12 +1455,10 @@ Storage Options
       memory mapped files to disk.
    
    The :program:`mongod` process writes data very quickly to the journal and
-   lazily to the data files. :option:`--syncdelay` has no effect on the
-   :setting:`journal <storage.journal.enabled>` files or :doc:`journaling </core/journaling>`,
-   but if :option:`--syncdelay` is set to ``0`` the journal will eventually consume
-   all available disk space. If you set :option:`--syncdelay` to ``0`` for testing
-   purposes, you should also set :option:`--nojournal <mongod --nojournal>`
-   to ``true``.
+   lazily to the data files. :option:`--syncdelay` has no effect on 
+   :ref:`journaling <journaling-internals>`, but if :option:`--syncdelay` is set to 
+   ``0`` the journal will eventually consume
+   all available disk space.
 
    .. include:: /includes/not-available-for-inmemory-storage-engine.rst
    
@@ -1536,34 +1508,6 @@ Storage Options
       .. include:: /includes/note-repair.rst
    
    .. include:: /includes/warning-repair.rst
-   
-
-
-.. option:: --journal
-
-   Enables the durability :term:`journal` to ensure data files remain valid
-   and recoverable. This option applies only when you specify the
-   :option:`--dbpath` option. :program:`mongod` enables journaling by default.
-
-   
-   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-   
-   .. include:: /includes/extracts/no-journaling-writeConcernMajorityJournalDefault-false.rst
-   
-   .. include:: /includes/extracts/4.2-changes-inmem-startup-warning.rst
-   
-
-
-.. option:: --nojournal
-
-   Disables :doc:`journaling </core/journaling>`. :program:`mongod`
-   enables journaling by default.
-
-   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-   
-   .. include:: /includes/wiredtiger-node-nojournal.rst
-   
-
 
 .. option:: --journalCommitInterval <value>
 
@@ -1742,11 +1686,6 @@ Replication Options
 
    Configures replication. Specify a replica set name as an argument to
    this set. All hosts in the replica set must have the same set name.
-   
-   Starting in MongoDB 4.0,
-
-   - For the WiredTiger storage engine, :option:`--replSet` cannot be used in
-     conjunction with :option:`--nojournal <mongod --nojournal>`.
    
    .. include:: /includes/fact-unique-replica-set-names.rst
 
@@ -2371,9 +2310,8 @@ TLS Options
 
    .. versionadded:: 4.2
    
-   For clients that do not present certificates, :program:`mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
-   
+   .. include:: /includes/TLS-SSL-certificates.rst
+
    For clients that present a certificate, however, :program:`mongod` performs
    certificate validation using the root certificate chain specified by
    ``--tlsCAFile`` and reject clients with invalid certificates.
@@ -2852,8 +2790,7 @@ SSL Options (Deprecated)
       Use :option:`--tlsAllowConnectionsWithoutCertificates
       <mongod --tlsAllowConnectionsWithoutCertificates>` instead.
    
-   For clients that do not present certificates, :program:`mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
+   .. include:: /includes/TLS-SSL-certificates.rst
    
    For clients that present a certificate, however, :program:`mongod` performs
    certificate validation using the root certificate chain specified by
@@ -2983,7 +2920,7 @@ Audit Options
 .. option:: --auditDestination
 
    
-   Enables :doc:`auditing </core/auditing>` and specifies where
+   Enables :ref:`auditing <auditing>` and specifies where
    :program:`mongod` sends all audit events.
 
    :option:`--auditDestination` can have one of the following values:
@@ -3061,9 +2998,10 @@ Audit Options
 
 .. option:: --auditPath
 
-   Specifies the output file for :doc:`auditing </core/auditing>` if
-   :option:`--auditDestination` has value of ``file``. The :option:`--auditPath`
-   option can take either a full path name or a relative path name.
+   Specifies the output file for auditing if 
+   :option:`--auditDestination` has value of ``file``. The 
+   :option:`--auditPath` option can take either a full path name or a 
+   relative path name.
    
    .. include:: /includes/note-audit-in-enterprise-only.rst
 
@@ -3351,9 +3289,12 @@ Encryption Key Management Options
 
 .. option:: --kmipClientCertificateFile <string>
    
-   String containing the path to the client certificate used for
-   authenticating MongoDB to the KMIP server. Requires that a
-   :option:`--kmipServerName` be provided.
+   Path to the ``.pem`` file used to authenticate MongoDB to the KMIP
+   server. The specified ``.pem`` file must contain both the TLS/SSL
+   certificate and key. 
+   
+   To use this option, you must also specify the
+   :option:`--kmipServerName` option.
    
    .. note::
       

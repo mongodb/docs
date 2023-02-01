@@ -16,7 +16,6 @@
                :end-before: end-key-vault
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: nodejs
@@ -26,7 +25,6 @@
                :end-before: end-key-vault
                :language: javascript
                :dedent:
-               :caption: insert_encrypted_document.js
 
          .. tab::
             :tabid: python
@@ -36,7 +34,6 @@
                :end-before: end-key-vault
                :language: python
                :dedent:
-               :caption: insert_encrypted_document.py
 
          .. tab::
             :tabid: csharp
@@ -46,7 +43,6 @@
                :end-before: end-key-vault
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
          .. tab::
             :tabid: go
@@ -56,7 +52,6 @@
                :end-before: end-key-vault
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go
 
    .. step:: Specify your Azure Credentials
 
@@ -73,7 +68,6 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: nodejs
@@ -83,7 +77,6 @@
                :end-before: end-kmsproviders
                :language: javascript
                :dedent:
-               :caption: insert_encrypted_document.js
 
          .. tab::
             :tabid: python
@@ -93,7 +86,6 @@
                :end-before: end-kmsproviders
                :language: python
                :dedent:
-               :caption: insert_encrypted_document.py
 
          .. tab::
             :tabid: csharp
@@ -103,7 +95,6 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
          .. tab::
             :tabid: go
@@ -113,7 +104,6 @@
                :end-before: end-kmsproviders
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go
 
    .. step:: Create an Encryption Schema For Your Collection
 
@@ -134,7 +124,6 @@
                :end-before: end-schema
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: nodejs
@@ -144,7 +133,6 @@
                :end-before: end-schema
                :language: javascript
                :dedent:
-               :caption: insert_encrypted_document.js
 
          .. tab::
             :tabid: python
@@ -154,7 +142,6 @@
                :end-before: end-schema
                :language: python
                :dedent:
-               :caption: insert_encrypted_document.py
 
          .. tab::
             :tabid: csharp
@@ -164,7 +151,6 @@
                :end-before: end-schema
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
          .. tab::
             :tabid: go
@@ -174,7 +160,6 @@
                :end-before: end-schema
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go
 
    .. step:: Specify the Location of the Encryption Binary
 
@@ -191,7 +176,6 @@
                :end-before: end-extra-options
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
             .. note:: Encryption Binary Daemon
 
@@ -212,7 +196,6 @@
                :end-before: end-extra-options
                :language: javascript
                :dedent:
-               :caption: insert_encrypted_document.js
 
             .. note:: Encryption Binary Daemon
 
@@ -233,7 +216,6 @@
                :end-before: end-extra-options
                :language: python
                :dedent:
-               :caption: insert_encrypted_document.py
 
             .. note:: Encryption Binary Daemon
 
@@ -259,7 +241,6 @@
                :end-before: end-extra-options
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
          .. tab::
             :tabid: go
@@ -277,7 +258,6 @@
                :end-before: end-extra-options
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go
 
             .. note:: Encryption Binary Daemon
 
@@ -293,8 +273,8 @@
 
    .. step:: Create the MongoClient
 
-      Instantiate a MongoDB client object with the following
-      automatic encryption settings:
+      Instantiate a MongoDB client object with the following automatic
+      encryption settings that use the variables declared in the previous steps:
 
       .. tabs-drivers::
 
@@ -306,7 +286,6 @@
                :end-before: end-client
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: nodejs
@@ -316,7 +295,6 @@
                :end-before: end-client
                :language: javascript
                :dedent:
-               :caption: insert_encrypted_document.js
 
          .. tab::
             :tabid: python
@@ -326,7 +304,6 @@
                :end-before: end-client
                :language: python
                :dedent:
-               :caption: insert_encrypted_document.py
 
          .. tab::
             :tabid: csharp
@@ -336,7 +313,6 @@
                :end-before: end-client
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
          .. tab::
             :tabid: go
@@ -346,4 +322,3 @@
                :end-before: end-client
                :language: go
                :dedent:
-               :caption: insert-encrypted-document.go

@@ -52,9 +52,6 @@ settings that you may adapt to your local configuration:
       destination: file
       path: "/var/log/mongodb/mongod.log"
       logAppend: true
-   storage:
-      journal:
-         enabled: true
    processManagement:
       fork: true
    net:
@@ -146,9 +143,9 @@ the :binary:`~bin.mongod` or :binary:`~bin.mongos`. For example:
    mongos --config /etc/mongos.conf  --configExpand "rest,exec"
 
 If the configuration file includes an expansion directive and you start
-the :binary:`~bin.mongod`/:binary:`~bin.mongos` without specifying
+the :binary:`mongod` / :binary:`mongos` without specifying
 that directive in the :option:`--configExpand <mongod --configExpand>`
-option, the :binary:`~bin.mongod`/:binary:`~bin.mongos` fails to start.
+option, the :binary:`mongod` / :binary:`mongos` fails to start.
 
 For complete documentation, see :ref:`externally-sourced-values`.
 
@@ -923,7 +920,7 @@ Core Options
       directory, or a systemd unit file registered with ``systemctl``. Only
       use the :setting:`processManagement.pidFilePath` option if you are not using one of these init
       systems. For more information, please see the respective
-      :doc:`Installation Guide </installation>` for your operating system.
+      :ref:`Installation Guide <tutorial-installation>` for your operating system.
    
    .. note:: macOS
 
@@ -931,7 +928,7 @@ Core Options
       On macOS, PID file management is generally handled by ``brew``. Only use
       the :setting:`processManagement.pidFilePath` option if you are not using ``brew`` on your macOS system. 
       For more information, please see the respective
-      :doc:`Installation Guide </installation>` for your operating system.
+      Installation Guide for your operating system.
 
 .. setting:: processManagement.timeZoneInfo
 
@@ -1716,8 +1713,7 @@ Core Options
 
    .. versionadded:: 4.2
    
-   For clients that do not present certificates, :binary:`~bin.mongos` or :binary:`~bin.mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
+   .. include:: /includes/TLS-SSL-certificates.rst
    
    For clients that present a certificate, however, :binary:`~bin.mongos` or :binary:`~bin.mongod` performs
    certificate validation using the root certificate chain specified by
@@ -2267,9 +2263,8 @@ Core Options
       Use :setting:`net.tls.allowConnectionsWithoutCertificates`
       instead.
    
-   For clients that do not present certificates, :binary:`~bin.mongos` or :binary:`~bin.mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
-   
+   .. include:: /includes/TLS-SSL-certificates.rst
+
    For clients that present a certificate, however, :binary:`~bin.mongos` or :binary:`~bin.mongod` performs
    certificate validation using the root certificate chain specified by
    :setting:`~net.ssl.CAFile` and reject clients with invalid certificates.
@@ -2912,10 +2907,12 @@ Key Management Configuration Options
 
    *Type*: string
 
+   Path to the ``.pem`` file used to authenticate MongoDB to the KMIP
+   server. The specified ``.pem`` file must contain both the TLS/SSL
+   certificate and key. 
    
-   String containing the path to the client certificate used for
-   authenticating MongoDB to the KMIP server. Requires that a
-   :setting:`security.kmip.serverName` be provided.
+   To use this setting, you must also specify the
+   :setting:`security.kmip.serverName` setting.
    
    .. note::
       
@@ -3129,6 +3126,7 @@ Key Management Configuration Options
             useOSDefaults: <boolean>
          transportSecurity: <string>
          timeoutMS: <int>
+         retryCount: <int>
          userToDNMapping: <string>
          authz:
             queryTemplate: <string>
@@ -3358,6 +3356,21 @@ Key Management Configuration Options
    This setting can be configured on a running :binary:`~bin.mongod` or :binary:`~bin.mongos` using
    :dbcommand:`setParameter`.
 
+.. setting:: security.ldap.retryCount
+
+   .. versionadded:: 6.1
+
+   *Type*: int
+
+   *Default*: 0
+
+   *Available in MongoDB Enterprise only.*
+   
+   Number of operation retries by the server LDAP manager after a
+   network error.
+
+   This setting can be configured on a running :binary:`~bin.mongod` or
+   :binary:`~bin.mongos` using :dbcommand:`setParameter`.
 
 .. setting:: security.ldap.userToDNMapping
 
@@ -3684,6 +3697,10 @@ LDAP Parameters
 ``storage`` Options
 ~~~~~~~~~~~~~~~~~~~
 
+.. versionchanged:: 6.1 
+
+   - .. include:: /includes/journal-always-enabled-change.rst
+
 .. versionchanged:: 4.4
 
    - MongoDB removes the ``storage.indexBuildRetry`` option and the
@@ -3698,7 +3715,6 @@ LDAP Parameters
    storage:
       dbPath: <string>
       journal:
-         enabled: <boolean>
          commitIntervalMs: <num>
       directoryPerDB: <boolean>
       syncPeriodSecs: <int>
@@ -3765,23 +3781,6 @@ LDAP Parameters
             - ``/usr/local/var/mongodb``
    
       .. include:: /includes/extracts/linux-config-expectations-storage-dbpath.rst
-
-.. setting:: storage.journal.enabled
-
-   *Type*: boolean
-
-   *Default*: ``true`` on 64-bit systems, ``false`` on 32-bit systems
-
-   Enable or disable the durability :term:`journal` to ensure data files remain valid
-   and recoverable. This option applies only when you specify the
-   :setting:`storage.dbPath` setting. :binary:`~bin.mongod` enables journaling by default.
-
-   The :setting:`storage.journal.enabled` setting is available only for :binary:`~bin.mongod`.
-   
-   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-   
-   .. include:: /includes/wiredtiger-node-nojournal.rst
-
 
 .. setting:: storage.journal.commitIntervalMs
 
@@ -3875,12 +3874,9 @@ LDAP Parameters
       memory mapped files to disk.
    
    The :binary:`~bin.mongod` process writes data very quickly to the journal and
-   lazily to the data files. :setting:`storage.syncPeriodSecs` has no effect on the
-   :setting:`journal <storage.journal.enabled>` files or :doc:`journaling </core/journaling>`,
-   but if :setting:`storage.syncPeriodSecs` is set to ``0`` the journal will eventually consume
-   all available disk space. If you set :setting:`storage.syncPeriodSecs` to ``0`` for testing
-   purposes, you should also set :option:`--nojournal <mongod --nojournal>`
-   to ``true``.
+   lazily to the data files. :setting:`storage.syncPeriodSecs` has no effect on 
+   :ref:`<journaling-internals>`, but if :setting:`storage.syncPeriodSecs` is 
+   set to ``0`` the journal will eventually consume all available disk space. 
 
    The :setting:`storage.syncPeriodSecs` setting is available only for :binary:`~bin.mongod`.
    
@@ -4393,12 +4389,6 @@ LDAP Parameters
    
    - The setting :setting:`replication.replSetName` cannot be used in conjunction with
      ``storage.indexBuildRetry``.
-   
-   - For the WiredTiger storage engine,
-     :setting:`storage.journal.enabled: false
-     <storage.journal.enabled>` cannot be used in conjunction with
-     :setting:`replication.replSetName`.
-
 
 .. setting:: replication.enableMajorityReadConcern
 
@@ -4521,7 +4511,7 @@ LDAP Parameters
 
    *Type*: string
    
-   When set, :setting:`auditLog.destination` enables :doc:`auditing </core/auditing>` and
+   When set, :setting:`auditLog.destination` enables :ref:`auditing <auditing>` and
    specifies where :binary:`~bin.mongos` or :binary:`~bin.mongod` sends all audit events.
 
    :setting:`auditLog.destination` can have one of the following values:
@@ -4624,7 +4614,7 @@ LDAP Parameters
 
    *Type*: string
    
-   The output file for :doc:`auditing </core/auditing>` if
+   The output file for :ref:`auditing <auditing>` if
    :setting:`~auditLog.destination` has value of ``file``. The :setting:`auditLog.path`
    option can take either a full path name or a relative path name.
 
@@ -4743,7 +4733,7 @@ LDAP Parameters
    until the :binary:`~bin.mongos` recalculates the average.
    
    See the :ref:`replica-set-read-preference-behavior-member-selection`
-   section of the :doc:`read preference </core/read-preference>`
+   section of the :ref:`read preference <read-preference>`
    documentation for more information.
 
 
