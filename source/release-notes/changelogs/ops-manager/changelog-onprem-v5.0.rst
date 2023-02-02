@@ -1,3 +1,14 @@
+.. _opsmgr-server-5.0.18:
+
+|onprem| Server 5.0.18
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-02-02*
+
+- Updates JDK to ``jdk-11.0.18+10``.
+- Updates the {+mdbagent+} to :ref:`11.0.23.7129
+  <mongodb-11.0.23.7129>`.
+
 .. _opsmgr-server-5.0.17:
 
 |onprem| Server 5.0.17
