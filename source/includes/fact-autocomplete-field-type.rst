@@ -14,16 +14,3 @@ You can also use the ``autocomplete`` type to index:
 
 - String fields inside an array of documents indexed as the
   :ref:`bson-data-types-embedded-documents` type.
-
-The following limitations apply:
-
-.. important::
-
-   |fts| doesn't support indexing more than approximately two billion 
-   index objects, where each indexed document counts as a single 
-   object against this hard limit. Using the ``autocomplete`` type 
-   could result in indexing objects in excess of this limit, which will 
-   cause an index to transition to a failed state. If you have large 
-   arrays that might generate two billion objects, we recommend 
-   sharding {+clusters+} that contain indexes with ``autocomplete`` 
-   field type.
