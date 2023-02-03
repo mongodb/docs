@@ -1,4 +1,4 @@
-1. Click :guilabel:`Databases` in the top-left corner of the
+1. Click :guilabel:`Database` in the top-left corner of the
    {+atlas-ui+}.
    
 #. From the :guilabel:`{+Database-Deployments+}` view, click the 

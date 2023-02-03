@@ -1,5 +1,5 @@
 To view the metrics for a specific MongoDB process using the 
-{+atlas-ui+}, click :guilabel:`Databases` in the top-left corner of 
+{+atlas-ui+}, click :guilabel:`Database` in the top-left corner of 
 |service|, then click that process from the 
 :guilabel:`{+Database-Deployments+}` view. You can monitor
 different aspects of your cluster in one place focused on a

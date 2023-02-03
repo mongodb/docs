@@ -1,6 +1,6 @@
 To take an on-demand snapshot:
 
-1. Click :guilabel:`Databases` in the top-left corner of |service|.
+1. Click :guilabel:`Database` in the top-left corner of |service|.
    
 #. From the :guilabel:`{+Database-Deployments+}` view, click the 
    :icon:`ellipsis-h` button below the cluster name then click
