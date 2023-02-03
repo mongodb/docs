@@ -76,6 +76,8 @@ rst_epilog = '\n'.join([
 
 source_constants = {
     'version-dev': '4.3',   # Current development branch
+    'latest-lts-version': '4.2',
+    'last-supported-version': '4.0',
     'package-name-org': 'mongodb-org',
     'package-name-enterprise': 'mongodb-enterprise',
     'version': version,
