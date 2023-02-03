@@ -316,41 +316,7 @@ Issue operations against the ``cluster`` object to interact with the
 Connect to a Cluster with Client-Side Encryption Enabled
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuring client-side field level encryption for a :ref:`locally
-managed key <field-level-encryption-local-kms>` requires specifying a
-base64-encoded 96-byte string with no line breaks. The following
-operation generates a key that meets the stated requirements and loads
-it into :binary:`~bin.mongosh`:
-
-.. code-block:: bash
-   :emphasize-lines: 1
-
-   TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
-
-   mongosh --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
-
-The following operation creates a new connection object from within a
-:binary:`~bin.mongosh` session. The
-:ref:`{+auto-encrypt-options+}` option specifies
-the required options for enabling client-side field level encryption
-using a locally managed key:
-
-.. code-block:: javascript
-   :emphasize-lines: 4-6, 10-13
-
-   var autoEncryptionOpts = {
-     "keyVaultNamespace" : "encryption.dataKeys",
-     "kmsProviders" : {
-       "local" : {
-         "key" : BinData(0, TEST_LOCAL_KEY)
-       }
-     }
-   }
-
-   cluster = Mongo(
-     "mongodb://mymongo.example.net:27017/?replicaSet=myMongoCluster",
-     autoEncryptionOpts
-   )
+.. include:: /includes/csfle-connection-boilerplate-example.rst
 
 Issue operations against the ``cluster`` object to interact with the
 ``mymongo.example.net:27017`` cluster and perform explicit encryption:
@@ -377,18 +343,18 @@ a complete list of client-side field level encryption methods.
 Connect to a Cluster with Automatic Client-Side Encryption Enabled
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuring client-side field level encryption for a :ref:`locally
-managed key <field-level-encryption-local-kms>` requires specifying a
-base64-encoded 96-byte string with no line breaks. The following
-operation generates a key that meets the stated requirements and loads
-it into :binary:`~bin.mongosh`:
+To configure client-side field level encryption for a locally managed
+key:
+
+- generate a base64-encoded 96-byte string with no line breaks
+- use :binary:`mongosh` to load the key
 
 .. code-block:: bash
    :emphasize-lines: 1
 
-   TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
+   export TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
 
-   mongosh --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
+   mongosh --nodb
 
 The following operation creates a new connection object from within a
 :binary:`~bin.mongosh` session. The
@@ -400,10 +366,10 @@ the required options for enabling :ref:`automatic client-side encryption
    :emphasize-lines: 4-6, 8-21, 24-27
 
    var autoEncryptionOpts = {
-     "keyVaultNamespace" : "encryption.dataKeys",
+     "keyVaultNamespace" : "encryption.__dataKeys",
      "kmsProviders" : {
        "local" : {
-         "key" : BinData(0,"BASE64-ENCODED-96-BYTE-LOCAL-KEY")
+         "key" : BinData(0, process.env["TEST_LOCAL_KEY"])
        }
      },
      schemaMap : {
