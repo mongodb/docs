@@ -7,7 +7,7 @@ equals
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas search, equals operator, equals, search equals operator, Atlas search equals operator, query Boolean values, query arrays, query object id, Boolean queries, array queries, object id queries, search operators, search operators for arrays, search array operators
+   :keywords: atlas search, equals operator, equals, search equals operator, Atlas search equals operator, query Boolean values, query arrays, query object id, query Int32, query Int64, query Double, query DateTime, Boolean queries, array queries, object id queries, numeric queries, search operators, search operators for arrays, search array operators
    :description: Learn how to find fields whose values match a specific value so that Atlas Search can add those documents to the result set.
 
 
@@ -22,12 +22,25 @@ Definition
 
 .. expression:: equals
 
-   The ``equals`` operator supports querying :ref:`boolean 
-   <boolean-ref>` and :ref:`objectId <objectId-ref>` values. You can 
-   use the ``equals`` operator to query booleans and objectIds in 
-   arrays. If at least one element in the array matches the "value" 
-   field in the ``equals`` operator, |fts| adds the document to the 
-   result set.
+   The ``equals`` operator checks whether a field matches a value
+   you specify. ``equals`` supports querying the following data types:
+   
+   - :ref:`boolean <boolean-ref>`
+   - :ref:`objectId <objectId-ref>`
+   - :ref:`number <bson-data-types-number>`, including ``int32``,
+     ``int64``, and ``double``
+   - :ref:`date <bson-data-types-date>`
+     
+   You can use the ``equals`` operator to query booleans, objectIds,
+   numbers, and dates in arrays. If at least one element in the array
+   matches the "value" field in the ``equals`` operator, |fts| adds the
+   document to the result set.
+
+   .. note::
+
+      The ``equals`` operator supports numbers up to 15 decimal digits.
+      Additional decimal digits in documents or queries can cause
+      precision issues or query inaccuracy.
 
 .. _equals-syntax:
 
@@ -44,7 +57,7 @@ Syntax
          "index": <index name>, // optional, defaults to "default"
          "equals": {
             "path": "<field-to-search>",
-            "value": <boolean-value>|<objectId>,
+            "value": <boolean-value>|<objectId>|<number>|<date>,
             "score": <score-options>
          }
       }
@@ -70,7 +83,8 @@ Options
      - yes
 
    * - ``value``
-     - :ref:`boolean <boolean-ref>` or :ref:`objectId <objectId-ref>`
+     - :ref:`boolean <boolean-ref>` :ref:`objectId <objectId-ref>`, 
+       :ref:`number <bson-data-types-number>`, or :ref:`date <bson-data-types-date>`
      - Value to query for.
      - yes
 
@@ -118,7 +132,9 @@ the following three documents:
       ObjectId("5ed6990aa1199b471010d70d"),
       ObjectId("59b99dbdcfa9a34dcd7885c8")
      ],
-     "region" : "East"
+     "region" : "East",
+     "account_created" : 2021-12-12T10:18:27.000+00:00,
+     "employee_number" : 257
    }
    {
      "_id" : ObjectId("5ed6990aa1199b471010d70d"),
@@ -132,7 +148,9 @@ the following three documents:
       ObjectId("5a9427648b0beebeb69537a5"),
       ObjectId("59b99dbdcfa9a34dcd7881d1")
      ],
-     "region" : "Southwest"
+     "region" : "Southwest",
+     "account_created" : 2022-05-04T05:01:08.000+00:00,
+     "employee_number" : 258
    }
    {
      "_id" : ObjectId("5ed6994fa1199b471010d70e"),
@@ -146,7 +164,9 @@ the following three documents:
       ObjectId("5a9427648b0beebeb69589a1"),
       ObjectId("59b99dbdcfa9a34dcd7897d3")
      ],
-     "region" : "Northwest"
+     "region" : "Northwest",
+     "account_created" : 2022-01-19T08:22:15.000+00:00
+     "employee_number" : 259
    }
 
 The ``users`` collection is indexed with the following 
@@ -170,7 +190,13 @@ The ``users`` collection is indexed with the following
          },
          "region": {
            "type": "string"
-         }
+         },
+         "account_created" : {
+           "type": "date"
+         },
+         "employee_number" : {
+           "type": "number"
+         }      
        }
      }
    }
@@ -251,6 +277,46 @@ field contains the boolean value ``true``.
 
 The above query returns the document for "Jim Hall", because that 
 document contains ``"new_user": true`` in the ``account`` object.
+
+The following example uses the ``equals`` operator to search the 
+``users`` collection for documents in which the ``account_created`` 
+field contains the value that matches ``2022-05-04T05:01:08.000+00:00``.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "equals": {
+           "path": "account_created",
+           "value": 2022-05-04T05:01:08.000+00:00
+         }
+       }
+     }
+   ])
+
+The above query returns the document for "Ellen Smith", because that 
+document contains ``"account_created": 2022-05-04T05:01:08.000+00:00``.
+
+The following example uses the ``equals`` operator to search the 
+``users`` collection for documents in which the ``employee_number`` 
+field contains the value that matches ``259``.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "equals": {
+           "path": "employee_number",
+           "value": 259
+         }
+       }
+     }
+   ])
+
+The above query returns the document for "Fred Osgood", because that 
+document contains ``"employee_number": 259``.
 
 Compound Examples
 ~~~~~~~~~~~~~~~~~
