@@ -34,7 +34,7 @@ additional collection-level
 - :manual:`dropIndex
   </reference/privilege-actions/#dropIndex>`
 
-- :manual:`insert <reference/privilege-actions/#insert>`
+- :manual:`insert </reference/privilege-actions/#insert>`
 
 - :manual:`remove </reference/privilege-actions/#remove>`
 
