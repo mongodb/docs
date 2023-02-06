@@ -1,6 +1,6 @@
 The Performance Advisor recognizes a query as slow if it takes longer
 to execute than the value of
-:manual:`slowOpThresholdMs </reference/configuration-options/#operationprofiling-options>`.
+:manual:`slowms </reference/command/profile/#command-fields>`.
 By default, this value is ``100`` milliseconds. You can change the
 threshold with either the
 :manual:`profile </reference/command/profile>`
@@ -16,7 +16,7 @@ command or the :manual:`db.setProfilingLevel() </reference/method/db.setProfilin
 
       db.runCommand({
         profile: 0,
-        slowOpThresholdMs: 200
+        slowms: 200
       })
 
 If you are running MongoDB 3.6 or later, you can customize the
@@ -32,7 +32,7 @@ by specifying the ``sampleRate`` parameter.
 
       db.runCommand({
         profile: 0,
-        slowOpThresholdMs: 100,
+        slowms: 100,
         sampleRate: 0.1
       })
 
