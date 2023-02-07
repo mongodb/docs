@@ -6,9 +6,9 @@
       Add the service account credentials to your {+qe+} enabled client
       code.
 
-      .. include:: /includes/queryable-encryption/tab-note.rst
+      .. include:: /includes/queryable-encryption/tutorials/automatic/gcp/attached-service-account.rst
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/gcp/gcp-credentials-note.rst
+      .. include:: /includes/queryable-encryption/tab-note.rst
 
       .. tabs-drivers::
 
@@ -66,10 +66,7 @@
                :language: csharp
                :dedent:
 
-      .. tip:: Learn More
-
-         To learn more about the KMS provider object for GCP, see
-         :ref:`qe-reference-kms-providers-gcp`.
+      .. include:: /includes/queryable-encryption/tutorials/automatic/gcp/gcp-credentials-note.rst
 
    .. step:: Add Your Key Information
 

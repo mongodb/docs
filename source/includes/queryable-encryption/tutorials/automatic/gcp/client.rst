@@ -66,6 +66,8 @@
 
       Specify the cloud provider and your service account credentials:
 
+      .. include:: /includes/queryable-encryption/tutorials/automatic/gcp/attached-service-account.rst
+
       .. tabs-drivers::
 
          .. tab::
