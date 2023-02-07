@@ -7,6 +7,14 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230207:
+
+07 February 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves error messages when a client attempts to insert, 
+  update, or delete a document in a {+fdi+}.
+
 .. _adf-v20230124:
 
 24 January 2023 Release
