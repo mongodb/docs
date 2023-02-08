@@ -62,6 +62,8 @@
          .. tab::
             :tabid: java-sync
 
+            .. include:: /includes/tutorials/automatic/gcp/attached-service-account.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/gcp/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders

@@ -6,12 +6,12 @@
       Add the service account credentials to your CSFLE-enabled client
       code.
 
-      .. include:: /includes/tutorials/automatic/gcp/gcp-credentials-note.rst
-
       .. tabs-drivers::
 
          .. tab::
             :tabid: java-sync
+
+            .. include:: /includes/tutorials/automatic/gcp/attached-service-account.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/gcp/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
                :start-after: start-kmsproviders
@@ -55,10 +55,7 @@
                :language: go
                :dedent:
 
-      .. tip:: Learn More
-
-         To learn more about the KMS provider object for GCP, see
-         :ref:`csfle-reference-kms-providers-gcp`.
+      .. include:: /includes/tutorials/automatic/gcp/gcp-credentials-note.rst
 
    .. step:: Add Your Key Information
 

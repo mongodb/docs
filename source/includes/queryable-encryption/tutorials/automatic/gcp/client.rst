@@ -98,7 +98,7 @@
          .. tab::
             :tabid: java-sync
 
-            .. include:: /includes/queryable-encryption/tutorials/automatic/gcp/attached-service-account.rst
+            .. include:: /includes/tutorials/automatic/gcp/attached-service-account.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
                :start-after: start-kmsproviders
