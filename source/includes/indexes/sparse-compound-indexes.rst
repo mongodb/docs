@@ -18,13 +18,13 @@ different types of sparse indexes:
 
   * - | Ascending indexes
       | Descending indexes
-      | :ref:`Geospatial index <index-feature-geospatial>`
+      | :ref:`Geospatial indexes <index-feature-geospatial>`
     - Only indexes documents when a document contains a value for one of
       the ``geospatial`` fields.
 
   * - | Ascending indexes
       | Descending indexes
-      | :ref:`Text index <index-feature-text>`
+      | :ref:`Text indexes <index-feature-text>`
     - Only indexes documents when a document matches one of the ``text``
       fields.
 
