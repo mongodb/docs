@@ -66,8 +66,6 @@
 
       Specify the cloud provider and your service account credentials:
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/gcp/attached-service-account.rst
-
       .. tabs-drivers::
 
          .. tab::
@@ -99,6 +97,8 @@
 
          .. tab::
             :tabid: java-sync
+
+            .. include:: /includes/queryable-encryption/tutorials/automatic/gcp/attached-service-account.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java
                :start-after: start-kmsproviders
