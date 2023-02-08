@@ -10,38 +10,43 @@ Read and Write with the {+data-api+}
    :class: singlecol
 
 .. toctree::
-   
+
    {+data-api+} Resources </api/data-api-resources>
    {+data-api+} Examples </api/data-api-examples>
+   {+data-api+} Data Formats </api/data-api-data-formats>
 
-The |service-fullname| {+data-api+} lets you read and write data in
-|service| with standard HTTPS requests. To use the {+data-api+}, all you
-need is an HTTPS client and a valid API key.
+Overview
+--------
 
-Clients send requests to specific endpoints, which each represent a
-MongoDB operation. The API includes endpoints that create, read, update,
-delete, and aggregate documents in your cluster. Requests specify a
-collection and include operation-specific parameters like a query filter
-or update description. Additionally, all incoming requests must include
-a {+data-api+} key to authenticate the calling user.
+The |service-fullname| {+data-api+} is a managed service that lets you
+securely work with data stored in |service| using standard HTTPS requests.
+The {+data-api+} is not a direct connection to your database. Instead, the
+API is a fully-managed middleware service that sits between your cluster
+and the clients that send requests.
 
-For each request, the {+data-api+} authenticates the user and checks the
-cluster's read/write permissions. If the user's request is authorized,
-then the API validates the request, runs the corresponding database
-operation, and returns the result in an HTTPS response.
+You can use the {+data-api+} to connect to |service-fullname| from any platform
+that supports HTTPS, including:
 
-For example, this :mdn:`POST <Web/HTTP/Methods/POST>` request stores a
-document in |service| by calling the ``insertOne`` endpoint:
+- Web browsers
+- Web servers
+- CI/CD pipelines
+- Serverless & Edge compute environments
+- Mobile applications
+- Internet-Of-Things devices
+
+You don't need to install any database drivers or opinionated libraries
+to work with the {+data-api+}. Instead, you send standard HTTPS requests
+like the following:
 
 .. io-code-block::
-   
+
    .. input::
       :language: bash
-      
+
       curl --request POST \
         'https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/insertOne' \
+        --header 'apiKey: TpqAKQgvhZE4r6AOzpVydJ9a3tB1BLMrgDzLlBLbihKNDzSJWTAHMVbsMoIOpnM6' \
         --header 'Content-Type: application/json' \
-        --header 'api-key: TpqAKQgvhZE4r6AOzpVydJ9a3tB1BLMrgDzLlBLbihKNDzSJWTAHMVbsMoIOpnM6' \
         --data-raw '{
             "dataSource": "Cluster0",
             "database": "learn-data-api",
@@ -50,51 +55,99 @@ document in |service| by calling the ``insertOne`` endpoint:
               "text": "Hello from the {+data-api+}!",
             }
         }'
-   
+
    .. output::
       :language: json
       :visible: true
-      
+
       {"insertedId":"5f1a785e1536b6e6992fd588"}
 
-When to Use the {+data-api+}
-----------------------------
-
-You can use the {+data-api+} to integrate |service| into any apps and
-services that support HTTPS requests. For example, you might:
-
-- call the API from a serverless edge function
-- access test data and log events in a CI/CD workflow
-- integrate Atlas into a federated API gateway
-- connect from an environment not currently supported via a MongoDB
-  Driver or {+Realm+} SDK
-
-An operation called through an API endpoint will likely take longer than
-the corresponding MongoDB operation called through a connected MongoDB
-Driver. For high-load use-cases and latency sensitive applications, we
-recommend connecting directly to your database with a MongoDB driver. To
-learn more, visit the :driver:`MongoDB Drivers </>` documentation.
-
 How the {+data-api+} Works
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~
 
-The {+data-api+} is not a direct connection to your database. Instead,
-it routes requests through a fully-managed middleware layer, called
-|service| App Services, that sits between your cluster and client apps.
-This layer handles user authentication and enforces data access rules to
-ensure that your data is secure.
+{+data-api+} requests may resemble traditional database operations, like
+``find`` or ``insertOne``, but the {+data-api+} is not a direct connection
+to your database. Instead, the {+data-api+} adds additional authentication,
+authorization, and correctness checks to ensure that your data is only
+accessed or modified in the ways you allow. This allows you to safely
+access data in |service| from potentially vulnerable clients like web apps.
+
+For each incoming request, the {+data-api+}:
+
+1. **Authenticates the calling user.** This might involve validating an
+   access token, logging in with header credentials, or directly
+   assigning a specific runtime user based on your configuration.
+
+2. **Authorizes the request.** This ensures that the user sent a
+   well-formed request and has permission to perform the requested
+   operation based on your endpoint authorization scheme.
+
+3. **Runs the requested operation.** This might involve reading or
+   writing data in |service| with a generated endpoint or invoke a custom
+   function that you wrote.
+
+   For requests that read or write data in |service|, the {+data-api+} also
+   enforces the access control rules and document schemas defined in
+   your App. This means that users can only access data they're allowed
+   to read and write. Requests fail if they include an invalid write
+   operation.
+
+4. **Returns an HTTPS response to the caller.** The response includes
+   the result of a generated endpoint operation or any data that you
+   return from a custom endpoint. In the request, you can choose to receive the
+   response in either :ref:`JSON or EJSON format
+   <atlas-data-api-data-formats>`.
+
+When to Use the {+data-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For server applications, and especially for high-load and latency
+sensitive use-cases, we recommend connecting directly to |service| with a
+MongoDB driver. Operations called through a {+data-api+} endpoint take
+longer to complete than the corresponding MongoDB operations called
+through a driver. Additionally, the drivers provide more flexibility and
+control over how your operations are executed. To learn more, visit the
+:driver:`MongoDB Drivers </>` documentation.
+
+We recommend using the {+data-api+} when:
+
+- You want to run MongoDB operations from a web application or other
+  client that you can't trust.
+
+- You can't or don't want to manage a MongoDB driver in your server-side
+  environment. For example, the language you are using for your server
+  does not have a driver.
+
+- Your server-side code runs in an edge compute environment that does
+  not support database drivers or connection pooling.
+
+- You want to develop a new feature and prefer a flexible solution for
+  working on the client side first before later creating and refining
+  the API layer.
+
+- You want to integrate |service| data access into a federated API gateway.
+
+- You want to connect to |service| from an client not currently
+  supported by a Realm SDK.
+
+{+atlas-app-services+}
+~~~~~~~~~~~~~~~~~~
+
+The {+data-api+} is powered by {+atlas-app-services+}.
 
 You can :ref:`quickly set up and access <data-api-get-started>` the
-{+data-api+} through |service|, which creates and manages an App
-Services app for you. |service| supports API key authentication with
-several basic permissions models.
+{+data-api+} through |service|, which creates an {+app-services+} App
+for you that's linked to the |service| UI. The default configuration and
+|service| UI support API key authentication with several basic
+permissions models.
 
-You can also define more complex API access permissions and custom
-endpoints by accessing the managed |service| {+data-api+} app directly
-or enabling the API in your own app.
+You can define more complex API access permissions and customize your
+API with your own endpoints by modifying the underlying App that was
+created for you or enabling the API in your own App.
 
-To learn more about App Services and how the {+data-api+} works, see
-:appservices:`{+data-api+} (App Services) </data-api>`.
+To learn more about App Services, how the {+data-api+} works, and how
+you can customize it, see :ref:`{+data-api+} <data-api>`
+in the App Services documentation.
 
 .. _data-api-get-started:
 
@@ -117,7 +170,7 @@ the API on from the dropdown menu and then click :guilabel:`Enable the
 {+data-api+}`.
 
 .. note::
-   
+
    You can enable or disable the {+data-api+} for a cluster at any time
    from the :guilabel:`{+data-api+}` screen.
 
@@ -134,7 +187,7 @@ A {+data-api+} key grants full read and write access every collection in
 a cluster and can access any enabled cluster in the project.
 
 .. important::
-   
+
    {+data-api+} keys are not the same as the :ref:`programmatic API keys
    <atlas-prog-api-key>` used to access the |service| and {+app-services+}
    Administration APIs.
@@ -147,7 +200,7 @@ Once you close the modal, |service| will never expose the value again.
 
 Copy the new API key and store it somewhere safe where you can reference
 it later. {+data-api+} keys are sensitive, so make sure not to hardcode
-them directly into user-facing apps or commit them to version control. 
+them directly into user-facing apps or commit them to version control.
 
 .. tip::
 
@@ -171,7 +224,7 @@ works and then start exploring:
 .. tip::
 
    Make sure to replace placeholder values before you run each request:
-   
+
    - ``<{+data-api+} App ID>``: Your {+data-api+} App ID, which you can
      find in the :guilabel:`URL Endpoint` section of the UI.
 
@@ -183,11 +236,11 @@ works and then start exploring:
 A. Insert a test document:
 
    .. code-block:: bash
-      
+
       curl --request POST \
         'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/insertOne' \
         --header 'Content-Type: application/json' \
-        --header 'api-key: <{+data-api+} Key>' \
+        --header 'apiKey: <{+data-api+} Key>' \
         --data-raw '{
             "dataSource": "<cluster name>",
             "database": "learn-data-api",
@@ -201,11 +254,11 @@ A. Insert a test document:
 B. Then, find the test document that you just inserted:
 
    .. code-block:: bash
-      
+
       curl --request POST \
         'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/findOne' \
         --header 'Content-Type: application/json' \
-        --header 'api-key: <{+data-api+} Key>' \
+        --header 'apiKey: <{+data-api+} Key>' \
         --data-raw '{
             "dataSource": "<cluster name>",
             "database": "learn-data-api",
@@ -216,11 +269,11 @@ B. Then, find the test document that you just inserted:
 C. Finally, delete the test document:
 
    .. code-block:: bash
-      
+
       curl --request POST \
         'https://data.mongodb-api.com/app/<{+data-api+} App ID>/endpoint/data/v1/action/deleteOne' \
         --header 'Content-Type: application/json' \
-        --header 'api-key: <{+data-api+} Key>' \
+        --header 'apiKey: <{+data-api+} Key>' \
         --data-raw '{
             "dataSource": "<cluster name>",
             "database": "learn-data-api",
@@ -265,12 +318,14 @@ following for each cluster:
 
 - **Read and Write**: Requests can read all data and can insert, modify,
   or delete data in any collection.
-- **Read Only**: Requests can read all data in any collection but cannot write any data.
+
+- **Read Only**: Requests can read all data in any collection but cannot
+  write any data.
+
 - **No Access**: Requests can't read or write any data in any collection.
 
-For more complex permissions, you can define custom :appservices:`data
-access rules </data-api/generated-endpoints/#access-permissions>` in
-the managed |service| {+data-api+} app.
+For more complex permissions, you can define custom :ref:`data access
+rules <data-api-permissions>` in the managed |service| {+data-api+} app.
 
 .. _data-api-authentication:
 
@@ -283,9 +338,8 @@ create up to 100 {+data-api+} keys.
 
 To allow users to authenticate requests with another method, like a
 username and password or a JSON web token, you can enable additional
-:appservices:`authentication providers
-</data-api/generated-endpoints/#authentication-and-api-keys>` in the
-managed |service| {+data-api+} app.
+authentication providers in the :ref:`{+app-services+} App
+<data-api-authentication>`.
 
 .. _data-api-deployment-regions:
 
@@ -313,7 +367,7 @@ Response Type
 ~~~~~~~~~~~~~
 
 Endpoints can return data in one of two :ref:`data formats
-<data-api-data-formats>`, either JSON or EJSON.
+<atlas-data-api-data-formats>`, either JSON or EJSON.
 
 By default, endpoints return JSON, which is a standard data format that
 is widely supported modern langauges and platforms. However, JSON cannot
@@ -326,7 +380,7 @@ preserves type information in responses but requires that your
 application understands how to parse and use EJSON.
 
 .. tip::
-   
+
    The official MongoDB drivers include methods for working with EJSON.
    You can also download a standalone parser like :npm:`bson
    <package/bson>` on npm.
@@ -342,7 +396,8 @@ Specify the Request Data Format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 {+data-api+} requests must include a ``Content-Type`` header to specify
-the :ref:`data format <data-api-data-formats>` used in the request body.
+the :ref:`data format <atlas-data-api-data-formats>` used in the request
+body.
 
 - Use ``Content-Type: application/json`` to represent standard JSON
   types in a {+data-api+} request body.
@@ -351,23 +406,23 @@ the :ref:`data format <data-api-data-formats>` used in the request body.
   types *and* additional EJSON types in a {+data-api+} request body.
 
 .. tabs::
-   
+
    .. tab:: EJSON
       :tabid: ejson
-      
+
       .. io-code-block::
-         
+
          .. input::
             :language: bash
             :emphasize-lines: 4
-            
+
             curl -X GET \
-              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/insertOne \
-              -H 'api-key: <API Key>' \
+              https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/insertOne \
+              -H 'apiKey: <API Key>' \
               -H 'Content-Type: application/ejson' \
               -H 'Accept: application/ejson' \
               --data-raw '{
-                  "dataSource": "mongodb-atlas",
+                  "dataSource": "Cluster0",
                   "database": "learn-data-api",
                   "collection": "hello",
                   "document": {
@@ -376,27 +431,27 @@ the :ref:`data format <data-api-data-formats>` used in the request body.
                     "date": { "$date": { "$numberLong": "1654589430998" } }
                   }
               }'
-         
+
          .. output::
             :language: json
-            
+
             { "insertedId": { "$oid": "629971c0d71aad65bd59c595" } }
-   
+
    .. tab:: JSON
       :tabid: json
-      
+
       .. io-code-block::
-         
+
          .. input::
             :language: bash
             :emphasize-lines: 4
-            
+
             curl -X POST \
-              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/updateOne \
-              -H 'api-key: <API Key>' \
+              https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/updateOne \
+              -H 'apiKey: <API Key>' \
               -H 'Content-Type: application/json' \
               --data-raw '{
-                 "dataSource": "mongodb-atlas",
+                 "dataSource": "Cluster0",
                  "database": "learn-data-api",
                  "collection": "hello",
                  "filter": { "greeting": "Hello, world!" },
@@ -404,12 +459,14 @@ the :ref:`data format <data-api-data-formats>` used in the request body.
                      "$set": { "greeting": "Hello, universe!" }
                  }
               }'
-         
+
          .. output::
             :language: json
             :visible: false
-            
+
             { "matchedCount": 1, "modifiedCount": 1 }
+
+.. _data-api-choose-response-format:
 
 Choose a Response Data Format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -417,65 +474,65 @@ Choose a Response Data Format
 A request can include an ``Accept`` header to request a specific data
 format for the response body, either JSON or EJSON. If a request does
 not include a valid ``Accept`` header, the response uses the data format
-specified in your :ref:`Data API configuration
+specified in your :ref:`{+data-api+} configuration
 <data-api-response-type>`.
 
 .. tabs::
-   
+
    .. tab:: EJSON
       :tabid: ejson
-      
+
       .. io-code-block::
-         
+
          .. input::
             :language: bash
             :emphasize-lines: 5
-            
+
             curl -X GET \
-              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
-              -H 'api-key: <API Key>' \
+              https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/findOne \
+              -H 'apiKey: <API Key>' \
               -H 'Content-Type: application/json' \
               -H 'Accept: application/ejson' \
               --data-raw '{
-                 "dataSource": "mongodb-atlas",
+                 "dataSource": "Cluster0",
                  "database": "learn-data-api",
                  "collection": "hello",
                  "projection": { "greeting": 1, "date": 1 }
               }'
-         
+
          .. output::
             :language: json
-            
+
             {
               "_id": { "$oid": "629971c0d71aad65bd59c545"},
               "greeting": "Hello, Leafie!",
               "date": { "$date": { "$numberLong": "1654589430998" } }
             }
-   
+
    .. tab:: JSON
       :tabid: json
-      
+
       .. io-code-block::
-         
+
          .. input::
             :language: bash
             :emphasize-lines: 5
-            
+
             curl -X POST \
-              https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
-              -H 'api-key: <API Key>' \
+              https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/findOne \
+              -H 'apiKey: <API Key>' \
               -H 'Content-Type: application/json' \
               -H 'Accept: application/json' \
               --data-raw '{
-                 "dataSource": "mongodb-atlas",
+                 "dataSource": "Cluster0",
                  "database": "learn-data-api",
                  "collection": "hello",
                  "projection": { "greeting": 1, "date": 1 }
               }'
-         
+
          .. output::
             :language: json
-            
+
             {
               "_id": "629971c0d71aad65bd59c545",
               "greeting": "Hello, Leafie!",
@@ -484,335 +541,137 @@ specified in your :ref:`Data API configuration
 
 .. _data-api-authenticate:
 
-Authenticate the Request
-~~~~~~~~~~~~~~~~~~~~~~~~
+Authenticate Requests
+~~~~~~~~~~~~~~~~~~~~~
 
 To keep your data secure and correct, generated {+data-api+} endpoints
-always run in the context of a specific, registered user and
-automatically enforce your app's :ref:`rules <rules>` and :ref:`schemas
-<schemas>`. Incoming requests must include one or more headers that
-contain valid user credentials for one of the following enabled
-authentication providers:
+always run in the context of a specific registered user.
+
+Incoming requests must include request headers that authenticate a
+unique user for the request. There are two ways to authenticate: Bearer
+authentication and Credential authentication.
+
+.. _atlas-data-api-bearer-authentication:
+
+Bearer Authentication
++++++++++++++++++++++
+
+Bearer authentication is the most secure authentication method for
+{+data-api+} requests and is required for requests that originate from a
+web browser. This method allows you to reuse an existing user session
+without storing their login credentials.
+
+Under this scheme, requests include a user access token in the
+``Authorization`` header. The access token is issued by {+app-services+}
+when a user authenticates and is valid for a limited period of time. To
+learn more about how to get an access token and use it to authenticate
+requests, see :ref:`Authenticate Data API Requests
+<data-api-authenticate-requests>`.
+
+.. code-block:: shell
+   :emphasize-lines: 2
+
+   curl -X POST 'https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/find' \
+      --header 'Authorization: Bearer <AccessToken>' \
+      --header 'Content-Type: application/json' \
+      --data-raw '{
+        "dataSource": "mongodb-atlas",
+        "database": "sample_mflix",
+        "collection": "movies",
+        "filter": {
+          "title": "The Matrix"
+        }
+      }'
+
+.. _atlas-data-api-credential-authentication:
+
+Credential Authentication
++++++++++++++++++++++++++
+
+Credential authentication is useful while you're developing and in some
+server-side environments. However, for most production use cases you should
+prefer to use Bearer authentication.
+
+Under this scheme, requests include plaintext user authentication
+information from one of the following enabled authentication providers:
 
 - :ref:`Email/Password <email-password-authentication>`
 - :ref:`API Key <api-key-authentication>`
 - :ref:`Custom JWT <custom-jwt-authentication>`
 
 .. tabs-realm-auth-providers::
-   
+
    .. tab::
       :tabid: local-userpass
 
       .. code-block:: bash
          :emphasize-lines: 3-4
-         
+
          curl -X POST \
-           https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
+           https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/findOne \
            -H 'email: <Email Address>' \
            -H 'password: <Password>' \
            -H 'Content-Type: application/json' \
            --data-raw '{
-             "dataSource": "mongodb-atlas",
+             "dataSource": "Cluster0",
              "database": "learn-data-api",
              "collection": "hello",
            }'
-   
+
    .. tab::
       :tabid: api-key
 
       .. code-block:: bash
          :emphasize-lines: 3
-         
+
          curl -X POST \
-           https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
-           -H 'api-key: <API Key>' \
+           https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/findOne \
+           -H 'apiKey: <API Key>' \
            -H 'Content-Type: application/json' \
            --data-raw '{
-             "dataSource": "mongodb-atlas",
+             "dataSource": "Cluster0",
              "database": "learn-data-api",
              "collection": "hello",
            }'
-   
+
    .. tab::
       :tabid: custom-token
 
       .. code-block:: bash
          :emphasize-lines: 3
-         
+
          curl -X POST \
-           https://data.mongodb-api.com/app/data-abcde/endpoint/data/v1/action/findOne \
+           https://data.mongodb-api.com/app/<AppID>/endpoint/data/v1/action/findOne \
            -H 'jwtTokenString: <Custom JSON Web Token>' \
            -H 'Content-Type: application/json' \
            --data-raw '{
-             "dataSource": "mongodb-atlas",
+             "dataSource": "Cluster0",
              "database": "learn-data-api",
              "collection": "hello",
            }'
 
-.. _data-api-data-formats:
+.. _data-api-cors:
 
-Data Formats
-------------
+Authenticate Web Browser Requests
++++++++++++++++++++++++++++++++++
 
-MongoDB stores data in a format called BSON, which is similar to a JSON
-object in structure but supports additional data types and uses a binary
-encoding. BSON is efficient for computers but is not human readable so
-you can't work with it directly.
+You can use the {+data-api+} from a web browser, but you must
+authenticate requests using Bearer authentication with an access token
+instead of directly including a user's API key or other credentials.
+Modern web browsers enforce :mdn:`Cross-Origin Resource Sharing
+<Web/HTTP/CORS> (CORS)`, which blocks all {+data-api+}
+requests that do not include a valid access token.
 
-Instead, the {+data-api+} uses two formats to represent data in requests
-and responses:
-
-- The **JSON** format uses standard types that any tool can parse and
-  understand. However, JSON cannot represent all BSON types so JSON
-  responses may lose type information for some fields. For example, BSON
-  has distinct types for 32-bit integers and 64-bit floats but a JSON
-  response represents both as a ``number``.
-
-- The **EJSON** format, short for :manual:`MongoDB Extended JSON
-  </reference/mongodb-extended-json/>`, is a superset of standard JSON
-  that uses structured fields to represent BSON data that don't have
-  corresponding JSON types. This fully represents your data but requires
-  your client to understand how to work with EJSON.
-
-.. example::
-   
-   The following document shows BSON types represented in JSON and EJSON:
-   
-   .. tabs::
-       
-       .. tab:: EJSON
-          :tabid: ejson
-          
-          .. code-block:: json
-             
-             {
-                "Name": "Mango",
-                "Year": { "$numberLong": "2022" },
-                "Weight": { "$numberDecimal": "9823.1297" },
-                "Date": { "$date": { "$numberLong": "1641954803067" } }
-             }
-       
-       .. tab:: JSON
-          :tabid: json
-          
-          .. code-block:: json
-             
-             {
-                "Name": "Mango",
-                "Year": 2022,
-                "Weight": "9823.1297",
-                "Date": "2022-01-12T02:33:23.067Z"
-             }
-
-The following table compares the JSON and EJSON representations of each
-supported type:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 15 42 42
-   
-   * - Type
-     - EJSON
-     - JSON
-   
-   * - ``Array``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          [ <elements> ]
-     
-     - .. code-block:: json
-          :copyable: false
-
-          [ <elements> ]
-
-   * - ``Binary``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "$binary": {
-                "base64": "e67803a39588be8a95731a21e27d7391",
-                "subType": "05"
-             }
-          }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "Subtype": 5,
-             "Data": "e67803a39588be8a95731a21e27d7391"
-          }
-
-   * - ``Date``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "$date": {
-                "$numberLong": "1641954803067"
-             }
-          }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          "2022-01-12T02:33:23.067Z"
-
-   * - ``Decimal128``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          { "$numberDecimal": "9823.1297" }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          "9823.1297"
-
-   * - ``Document``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          { <content> }
-     
-     - .. code-block::
-          :copyable: false
-
-          { <content> }
-
-   * - ``Double``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "$numberDouble": "10.5"
-          }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          10.5
-   
-   * - ``Int32``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {"$numberInt":"10"}
-     
-     - .. code-block:: json
-          :copyable: false
-
-          10
-   
-   * - ``Int64``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {"$numberLong":"50"}
-     
-     - .. code-block:: json
-          :copyable: false
-
-          50
-   
-   * - ``MaxKey``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          { "$maxKey": 1 }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {}
-       
-       *No JSON equivalent*
-
-   * - ``MinKey``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          { "$minKey": 1 }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {}
-       
-       *No JSON equivalent*
-
-   * - ``ObjectId``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "$oid":"5d505646cf6d4fe581014ab2"
-          }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          "5d505646cf6d4fe581014ab2"
-
-   * - ``Regular Expression``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "$regularExpression": {
-                "pattern":"^H",
-                "options":"i"
-             }
-          }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "Pattern": "^H",
-             "Options": "i"
-          }
-
-   * - ``Timestamp``
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "$timestamp": {
-                "t":1565545664,
-                "i":1
-              }
-          }
-     
-     - .. code-block:: json
-          :copyable: false
-
-          {
-             "T": 1565545664,
-             "I": 1
-          }
+To learn how to get an access token and include it in a request, see
+:ref:`Authenticate Data API Requests <data-api-authenticate-requests>`.
 
 Request Logs
 ------------
 
 The {+data-api+} logs all requests and stores the logs for 30 days.
 
-You can view them on the :guilabel:`{+data-api+}` screen in the :guilabel:`Logs` tab.
+You can view them on the :guilabel:`{+data-api+}` screen in the
+:guilabel:`Logs` tab.
 
 Request Limitations
 -------------------
@@ -826,8 +685,8 @@ The {+data-api+} enforces the following limitations on all requests:
 Request Traffic
 ---------------
 
-The {+data-api+} limits request traffic to 5,000 concurrent requests. Any 
-requests made beyond this limit return an HTTP response status code of 
+The {+data-api+} limits request traffic to 10,000 concurrent requests. Any
+requests made beyond this limit return an HTTP response status code of
 `429 - Too Many Requests <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429>`_.
 You can request a higher limit by `filing a support ticket
 <https://support.mongodb.com/welcome>`__.
