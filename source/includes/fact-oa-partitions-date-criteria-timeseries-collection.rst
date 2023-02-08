@@ -1,5 +1,10 @@
 Enter up to two most commonly queried fields from the collection in the :guilabel:`Second most commonly queried field` and :guilabel:`Third most commonly queried field` fields respectively. To specify nested fields, use the :manual:`dot notation </core/document/#dot-notation>`. Do not include quotes (``""``) around nested fields that you specify using :manual:`dot notation </core/document/#dot-notation>`.
 
+.. warning::
+
+   You can't specify field names that contain periods (``.``) for
+   partitioning.
+
 The specified fields are used to partition your archived data. Partitions are similar to folders. The date field is in the first position of the partition by default for the :guilabel:`Date Match` criteria. You can move another field to the first position of the partition if you frequently query by that field. 
 
 The order of fields listed in the path is important in the same way as it is in :manual:`Compound Indexes </core/index-compound/>`. Data in the specified path is partitioned first by the value of the first field, and then by the value of the next field, and so on. |service| supports queries on the specified fields using the partitions. 
