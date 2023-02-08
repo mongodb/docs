@@ -218,7 +218,6 @@ html_theme_options = {
     'version': version,
     'eol': False,
     'eol_msg': False,
-    'backup_monitoring_eol_past': True,
 }
 
 onprem_latex_documents = []
