@@ -8,7 +8,7 @@ different types of sparse indexes:
 .. list-table::
   :header-rows: 1
 
-  * - Sparse Index Type
+  * - Compound Index Components
     - Compound Index Behavior
 
   * - | Ascending indexes
@@ -19,12 +19,14 @@ different types of sparse indexes:
   * - | Ascending indexes
       | Descending indexes
       | :ref:`Geospatial indexes <index-feature-geospatial>`
-    - Only indexes documents when a document contains a value for one of
-      the ``geospatial`` fields.
+    - Only indexes a document when it contains a value for one of
+      the ``geospatial`` fields. Does not index documents in the
+      ascending or descending indexes.
 
   * - | Ascending indexes
       | Descending indexes
       | :ref:`Text indexes <index-feature-text>`
-    - Only indexes documents when a document matches one of the ``text``
-      fields.
+    - Only indexes a document when it matches one of the ``text``
+      fields. Does not index documents in the ascending or descending
+      indexes.
 
