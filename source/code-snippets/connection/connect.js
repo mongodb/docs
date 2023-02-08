@@ -1,8 +1,7 @@
 const { MongoClient } = require("mongodb");
 
 // Connection URI
-const uri =
-  "mongodb+srv://sample-hostname:27017/?maxPoolSize=20&w=majority";
+const uri = "<connection string uri>";
 
 // Create a new MongoClient
 const client = new MongoClient(uri);
