@@ -2,9 +2,9 @@
 
    If you are using an `attached service account
    <https://cloud.google.com/iam/docs/impersonating-service-accounts#binding-to-resources>`__,
-   you can automatically generate your GCP KMS credentials. 
+   you can allow it to automatically authenticate it to your GCP KMS. 
 
-   To automatically provide your credentials, assign an empty map instead of one
+   To automatically authenticate, assign an empty map instead of one
    that contains your GCP credentials, as shown in the following code:
 
    .. code-block:: java

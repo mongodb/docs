@@ -3,15 +3,14 @@
 
    .. step:: Add your GCP KMS Credentials
 
-      Add the service account credentials to your {+qe+} enabled client
-      code.
-
       .. include:: /includes/queryable-encryption/tab-note.rst
 
       .. tabs-drivers::
 
          .. tab::
             :tabid: shell
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/gcp/reader/make_data_key.js
                :start-after: start-kmsproviders
@@ -22,6 +21,8 @@
          .. tab::
             :tabid: nodejs
 
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/gcp/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
@@ -30,6 +31,8 @@
 
          .. tab::
             :tabid: python
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/gcp/reader/make_data_key.py
                :start-after: start-kmsproviders
@@ -42,6 +45,8 @@
 
             .. include:: /includes/tutorials/automatic/gcp/attached-service-account.rst
 
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/gcp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
@@ -51,6 +56,8 @@
          .. tab::
             :tabid: go
 
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/gcp/reader/make-data-key.go
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
@@ -59,6 +66,8 @@
 
          .. tab::
             :tabid: csharp
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/gcp/reader/QueryableEncryption/MakeDataKey.cs
                :start-after: start-kmsproviders

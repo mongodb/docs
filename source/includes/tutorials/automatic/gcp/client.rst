@@ -55,14 +55,14 @@
 
    .. step:: Specify your Cloud Account Credentials
 
-      Specify the cloud provider and your service account credentials:
-
       .. tabs-drivers::
 
          .. tab::
             :tabid: java-sync
 
             .. include:: /includes/tutorials/automatic/gcp/attached-service-account.rst
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/gcp/reader/src/main/java/com/mongodb/csfle/InsertEncryptedDocument.java
                :start-after: start-kmsproviders
@@ -73,6 +73,8 @@
          .. tab::
             :tabid: nodejs
 
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/gcp/reader/insert_encrypted_document.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
@@ -81,6 +83,8 @@
 
          .. tab::
             :tabid: python
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/gcp/reader/insert_encrypted_document.py
                :start-after: start-kmsproviders
@@ -91,6 +95,8 @@
          .. tab::
             :tabid: csharp
 
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/gcp/reader/CSFLE/InsertEncryptedDocument.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
@@ -99,6 +105,8 @@
 
          .. tab::
             :tabid: go
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/gcp/reader/insert-encrypted-document.go
                :start-after: start-kmsproviders

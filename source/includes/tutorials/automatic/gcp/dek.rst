@@ -3,15 +3,14 @@
 
    .. step:: Add your GCP KMS Credentials
 
-      Add the service account credentials to your CSFLE-enabled client
-      code.
-
       .. tabs-drivers::
 
          .. tab::
             :tabid: java-sync
 
             .. include:: /includes/tutorials/automatic/gcp/attached-service-account.rst
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/gcp/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
                :start-after: start-kmsproviders
@@ -22,6 +21,8 @@
          .. tab::
             :tabid: nodejs
 
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/gcp/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
@@ -30,6 +31,8 @@
 
          .. tab::
             :tabid: python
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/gcp/reader/make_data_key.py
                :start-after: start-kmsproviders
@@ -40,6 +43,8 @@
          .. tab::
             :tabid: csharp
 
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
+
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/gcp/reader/CSFLE/MakeDataKey.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
@@ -48,6 +53,8 @@
 
          .. tab::
             :tabid: go
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/gcp/reader/make-data-key.go
                :start-after: start-kmsproviders
