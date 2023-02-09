@@ -53,45 +53,23 @@
 
    * - ``data.orgId``
      - string
-     - 24 character hex string that uniquely
+     - *Required*. 24 character hex string that uniquely
        identifies your
        |com| :opsmgr:`Organization </tutorial/manage-organizations>`.
 
        .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
 
-       Depending on your |k8s-op-short| :ref:`credentials
-       <create-k8s-credentials>`, this field is:
+       Specify an :ref:`existing Organization
+       <create-organization>`:
 
-       - *Required* for :opsmgr:`Global Programmatic API Keys </reference/api/global-api-keys/>`.
-       - *Optional* for :ref:`Organization Programmatic API Keys <create-org-app-api-key>`.
+       .. include:: /includes/steps/find-org-id.rst
 
-       .. tabs::
+       .. note:: 
+
+          You must have the :authrole:`Organization Project Creator`
+          role to create a new project within an existing
+          |com| organization.
           
-          .. tab:: Global API Keys
-             :tabid: global
-
-             You must specify an :ref:`existing Organization
-             <create-organization>`.
-
-             .. include:: /includes/steps/find-org-id.rst
-
-          .. tab:: Organization API Keys
-             :tabid: org
-       
-             If specified, the |k8s-op-short| links to the organization.
-             
-             To find the ``orgID`` of your organization:
-
-             .. include:: /includes/steps/find-org-id.rst
-
-             If omitted, |onprem| creates an organization called
-             ``projectName`` that contains a project also called
-             ``projectName``.
-
-             You must have the :authrole:`Organization Project Creator`
-             role to create a new project within an existing
-             |com| organization.
-              
      - ``5b890e0feacf0b76ff3e7183``
 
    * - ``data.baseUrl``

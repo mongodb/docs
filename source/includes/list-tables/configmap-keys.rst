@@ -52,7 +52,7 @@
 
    * - ``data.orgId``
      - string
-     - 24 character hex string that uniquely identifies your
+     - *Required*. 24 character hex string that uniquely identifies your
        MongoDB :opsmgr:`Organization </tutorial/manage-organizations>`.
        You can find the ``orgId`` in your |onprem| |url|:
 
@@ -66,13 +66,8 @@
 
        .. important::
 
-          This field is *optional*. If you omit the ``orgId``,
-          |onprem| creates an Organization called ``projectName``
-          that contains a Project also called ``projectName``.
-
           You must have the :authrole:`Organization Project Creator`
-          role to create a new project
-          *within an existing organization*.
+          role to create a new project *within an existing organization*.
 
           .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
 
