@@ -11,8 +11,6 @@
      - string
      - Name of the new {+fdi+} store. The {+fdi+} store 
        name must be unique.
-
-       .. include:: /includes/data-federation/fact-atlas-data-source.rst
        
      - yes
 
