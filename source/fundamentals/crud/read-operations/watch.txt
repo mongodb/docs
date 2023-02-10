@@ -4,8 +4,6 @@
 Watch for Changes
 =================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -33,11 +31,7 @@ snippet:
    :start-after: begin insertDocs
    :end-before: end insertDocs
 
-.. tip:: Non-existent Databases and Collections
-
-   If the necessary database and collection don't exist when
-   you perform a write operation, the server implicitly creates
-   them.
+.. include:: /includes/fundamentals/automatic-db-coll-creation.rst
 
 Each document contains a description of a university course that
 includes the course title and maximum enrollment, corresponding to
@@ -52,7 +46,8 @@ Open a Change Stream
 --------------------
 
 To open a change stream, use the ``Watch()`` method. The ``Watch()`` method requires a context
-parameter and a pipeline parameter. To return all changes, pass in an empty Pipeline object.
+parameter and a pipeline parameter. To return all changes, pass in an
+empty ``Pipeline`` object.
 
 Example
 ~~~~~~~
@@ -81,7 +76,7 @@ your changes as they occur. Inserting a document with a ``title`` value
 of "Advanced Screenwriting" and an ``enrollment`` value of ``20``
 results in the following change-stream event:
 
-.. code-block:: go
+.. code-block:: none
    :copyable: false
 
    map[_id:map[_data:...] clusterTime: {...} documentKey:map[_id:ObjectID("...")]
@@ -118,53 +113,86 @@ new delete operations:
 
    pipeline := bson.D{{"$match", bson.D{{"operationType", "delete"}}}}
    changeStream, err := db.Watch(context.TODO(), mongo.Pipeline{pipeline})
-   if err != nil {
-      panic(err)
-   }
-   defer changeStream.Close(context.TODO())
-
-   for changeStream.Next(context.TODO()) {
-      fmt.Println(changeStream.Current)
-   }
-
-Deleting the document with the ``title`` value of "Advanced Screenwriting"
-in a separate program or shell results in the following change-stream event:
-
-.. code-block:: go
-   :copyable: false
-
-   {"_id": {"_data": "..."},"operationType": "delete","clusterTime":
-   {"$timestamp":{"t":"...","i":"..."}},"ns": {"db": "db","coll": "courses"},
-   "documentKey": {"_id": {"$oid":"..."}}}
 
 .. note::
 
    The ``Watch()`` method was called on the ``db`` database, so the code outputs
    new delete operations in any collection within this database.
 
-Modify the Behavior of Watch()
-------------------------------
+Modify the Behavior of ``Watch()``
+----------------------------------
 
-Use an opts parameter to modify the behavior of the ``Watch()`` method.
+Use the ``options`` parameter to modify the behavior of the ``Watch()`` method.
 
-You can specify the following options in the opts parameter:
+You can specify the following options for the ``Watch()`` method:
 
 - ``ResumeAfter``
 - ``StartAfter``
 - ``FullDocument``
+- ``FullDocumentBeforeChange``
 - ``BatchSize``
 - ``MaxAwaitTime``
 - ``Collation``
 - ``StartAtOperationTime``
+- ``Comment``
+- ``ShowExpandedEvents``
+- ``StartAtOperationTime``
+- ``Custom``
+- ``CustomPipeline``
 
-For more information on these fields, visit the
-:manual:`MongoDB manual </reference/method/Mongo.watch/#mongodb-method-Mongo.watch>`.
+For more information on these options, visit the
+:manual:`MongoDB Server manual </reference/method/db.collection.watch/>`.
+
+Pre- and Post-Images
+~~~~~~~~~~~~~~~~~~~~
+
+When you perform any CRUD operation on a collection, by default, the
+corresponding change event document contains only the delta of the fields modified
+by the operation. You can see the full document before and after a
+change, in addition to the delta, by specifying settings in the ``options``
+parameter of the ``Watch()`` method.
+
+If you want to see a document's post-image, the full version of the
+document after a change, set the ``FullDocument`` field of the
+``options`` parameter to one of the following values:
+
+- ``UpdateLookup``: The change event document includes a copy of the
+  entire changed document.
+- ``WhenAvailable``: The change event document includes a post-image of
+  the modified document for change events if the
+  post-image is available.
+- ``Required``: The output is the same as for ``WhenAvailable``, but the
+  driver raises a server-side error if the post-image is not available.
+
+If you want to see a document's pre-image, the full version of the
+document before a change, set the ``FullDocumentBeforeChange`` field of the
+``options`` parameter to one of the following values:
+
+- ``WhenAvailable``: The change event document includes a pre-image of
+  the modified document for change events if the
+  pre-image is available.
+- ``Required``: The output is the same as for ``WhenAvailable``, but the
+  driver raises a server-side error if the pre-image is not available.
+
+.. important::
+
+   To access document pre- and post-images, you must enable
+   ``changeStreamPreAndPostImages`` for the collection. See the
+   :manual:`MongoDB Server manual
+   </reference/command/collMod/#change-streams-with-document-pre--and-post-images>` for instructions and more
+   information.
+
+.. note::
+
+   There is no pre-image for an inserted document and no post-image for
+   a deleted document.
 
 Example
 ~~~~~~~
 
 The following example calls the ``Watch()`` method on the ``db.courses`` collection. It
-specifies the ``FullDocument`` options parameter to output a copy of the entire modified document:
+specifies a value for the ``FullDocument`` field of the ``options`` parameter to
+output a copy of the entire modified document, instead of only the changed fields:
 
 .. code-block:: go
 
@@ -185,7 +213,7 @@ Updating the ``enrollment`` value of the document with the
 ``title`` of "World Fiction" from ``35`` to ``30`` results in the
 following change-stream event:
 
-.. code-block:: go
+.. code-block:: none
    :copyable: false
 
    {"_id": {"_data": "..."},"operationType": "update","clusterTime": {"$timestamp":
@@ -196,7 +224,7 @@ following change-stream event:
    "removedFields": [],"truncatedArrays": []}}
 
 Without specifying the ``FullDocument`` option, the same update operation no longer
-outputs the ``"fullDocument"`` value.
+outputs the ``"fullDocument"`` value in the change event document.
 
 Additional Information
 ----------------------
