@@ -9,16 +9,28 @@ To modify existing users for an |service| project:
    You can modify the privileges and authentication details assigned to
    the user. You cannot modify the authentication method.
 
-   - For SCRAM authenticated users, you can edit a user's password.
+   The following table describes what you can do for each user:
 
-   - For X.509 certificate authenticated users, you can download a new
-     certificate.
+   .. list-table::
+      :widths: 50 50
+      :header-rows: 1
 
-   - For AWS IAM users, you can only modify database access privileges.
+      * - User Type
+        - Action
 
-   For temporary users, you can also modify the time
-   period the user exists or make the user a permanent user,
-   provided the user's expiration date has not already passed.
+      * - SCRAM authenticated users
+        - Edit a user's password.
+
+      * - X.509 certificate authenticated users
+        - Download a new certificate.
+
+      * - AWS IAM users
+        - Modify database access privileges.
+
+      * - Temporary users
+        - Modify the time period the user exists or make the user a
+          permanent user, provided the user's expiration date has
+          not already passed.
 
    .. note::
 
