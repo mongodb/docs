@@ -22,13 +22,9 @@ on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
 
-MongoDB only supports the 64-bit versions of these platforms.
-
-MongoDB {+version+} Enterprise Edition on
-:abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky / Alma 
-Linux also supports the 
-:ref:`ARM64 <prod-notes-supported-platforms-ARM64>` architecture on
-select platforms.
+MongoDB {+version+} Enterprise Edition also supports the :ref:`ARM64
+<prod-notes-supported-platforms-ARM64>` architecture on :abbr:`RHEL (Red
+Hat Enterprise Linux)` / CentOS / Oracle / Rocky / AlmaLinux 8.
 
 See :ref:`prod-notes-supported-platforms` for more information.
 
