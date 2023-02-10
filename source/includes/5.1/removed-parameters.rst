@@ -1,5 +1,7 @@
 MongoDB 5.1 removes the following server parameters:
 
+.. _`MongoDB Enterprise`: http://www.mongodb.com/products/mongodb-enterprise-advanced?tck=docs_server
+
 .. list-table::
     :header-rows: 1
     :widths: 25 75
