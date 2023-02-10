@@ -1,3 +1,13 @@
+.. _opsmgr-server-5.0.19:
+
+|onprem| Server 5.0.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates ``woodstox:woodstox-core`` to 6.2.6 to address 
+  `CWE-611 <https://cwe.mitre.org/data/definitions/611.html>`_.
+- Updates the {+mdbagent+} to :ref:`11.0.24.7131
+  <mongodb-11.0.24.7131>`.
+
 .. _opsmgr-server-5.0.18:
 
 |onprem| Server 5.0.18
