@@ -15,7 +15,8 @@ MongoDB {+version+} Enterprise Edition supports the following
 Oracle Linux [#oracle-linux]_, Rocky Linux, and AlmaLinux [#rocky-almalinux]_ 
 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
-- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky / Alma 9
+- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky /
+  AlmaLinux 9 (Starting in MongoDB 6.0.4)
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky / Alma 8
 
