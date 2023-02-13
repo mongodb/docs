@@ -1,3 +1,3 @@
-collection.createIndex(
+myColl.createIndex(
   { 'title' : 1 },
   { 'collation' : { 'locale' : 'en_US' } });

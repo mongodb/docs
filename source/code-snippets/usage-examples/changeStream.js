@@ -9,10 +9,10 @@ let changeStream;
 async function run() {
   try {
     const database = client.db("insertDB");
-    const collection = database.collection("haikus");
+    const haikus = database.collection("haikus");
 
     // Open a Change Stream on the "haikus" collection
-    changeStream = collection.watch();
+    changeStream = haikus.watch();
 
     // Print change events
     for await (const change of changeStream) {

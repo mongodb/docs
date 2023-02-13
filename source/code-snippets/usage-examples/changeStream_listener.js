@@ -14,10 +14,10 @@ let changeStream;
 async function run() {
   try {
     const database = client.db("insertDB");
-    const collection = database.collection("haikus");
+    const haikus = database.collection("haikus");
 
     // open a Change Stream on the "haikus" collection
-    changeStream = collection.watch();
+    changeStream = haikus.watch();
 
     // set up a listener when change events are emitted
     changeStream.on("change", next => {
@@ -27,7 +27,7 @@ async function run() {
 
     await simulateAsyncPause();
 
-    await collection.insertOne({
+    await myColl.insertOne({
       title: "Record of a Shriveled Datum",
       content: "No bytes, no problem. Just insert a document, in MongoDB",
     });

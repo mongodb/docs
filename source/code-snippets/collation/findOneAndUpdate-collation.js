@@ -1,12 +1,12 @@
 // start findOneAndUpdate without collation
-collection.findOneAndUpdate(
+myColl.findOneAndUpdate(
   { first_name : { $lt: "Gunter" } },
   { $set: { verified: true } }
 );
 // end findOneAndUpdate without collation
 
 // start findOneAndUpdate with collation
-collection.findOneAndUpdate(
+myColl.findOneAndUpdate(
   { first_name: { $lt: "Gunter" } },
   { $set: { verified: true } },
   { collation: { locale: "de@collation=phonebook" } },

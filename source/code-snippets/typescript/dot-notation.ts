@@ -3,16 +3,16 @@ interface TestType {
   field: { nested: number };
 }
 const database = client.db("<your db>");
-const collection = database.collection<TestType>("<your collection>");
-await collection.updateOne({}, { $set: { "field.nested": "A string" } });
+const myColl = database.collection<TestType>("<your collection>");
+await myColl.updateOne({}, { $set: { "field.nested": "A string" } });
 // end-no-error
 // start-error
 interface TestType {
   field: { nested: number };
 }
 const database = client.db("<your db>");
-const collection = database.collection<TestType>("<your collection>");
-await collection.updateOne({}, { $set: { field: { nested: "A string" } } });
+const myColl = database.collection<TestType>("<your collection>");
+await myColl.updateOne({}, { $set: { field: { nested: "A string" } } });
 // end-error
 // start-no-key
 interface User {
@@ -20,6 +20,6 @@ interface User {
 }
 
 const database = client.db("<your database>");
-const collection = db.collection<User>("<your collection>");
-collection.find({ age: "Accepts any type!" });
+const myColl = db.collection<User>("<your collection>");
+myColl.find({ age: "Accepts any type!" });
 // end-no-key

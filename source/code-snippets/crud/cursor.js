@@ -6,17 +6,17 @@ const uri =
   "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 const client = new MongoClient(uri);
 
-async function forEachIteration(collection) {
+async function forEachIteration(myColl) {
   // start foreach cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
   await cursor.forEach(doc => console.log(doc));
   // end foreach cursor example
   console.log(await cursor.count());
 }
 
-async function asyncIteration(collection) {
+async function asyncIteration(myColl) {
   // start async cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
   console.log("async");
   for await (const doc of cursor) {
     console.log(doc);
@@ -24,9 +24,9 @@ async function asyncIteration(collection) {
   // end async cursor example
 }
 
-async function manualIteration(collection) {
+async function manualIteration(myColl) {
   // start manual cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
 
   while (await cursor.hasNext()) {
     console.log(await cursor.next());
@@ -34,32 +34,32 @@ async function manualIteration(collection) {
   // end manual cursor example
 }
 
-async function streamAPI(collection) {
+async function streamAPI(myColl) {
   // start stream cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
   cursor.stream().on("data", doc => console.log(doc));
   // end stream cursor example
 }
 
-async function eventAPI(collection) {
+async function eventAPI(myColl) {
   // start event cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
   // the "data" event is fired once per document
   cursor.on("data", data => console.log(data));
   // end event cursor example
 }
 
-async function fetchAll(collection) {
+async function fetchAll(myColl) {
   // start fetchAll cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
   const allValues = await cursor.toArray();
   // end fetchAll cursor example
   console.log(allValues.length);
 }
 
-async function rewind(collection) {
+async function rewind(myColl) {
   // start rewind cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
   const firstResult = await cursor.toArray();
   console.log("First count: " + firstResult.length);
   await cursor.rewind();
@@ -68,9 +68,9 @@ async function rewind(collection) {
   // end rewind cursor example
 }
 
-async function count(collection) {
+async function count(myColl) {
   // start count cursor example
-  const cursor = collection.find({});
+  const cursor = myColl.find({});
   const count = await cursor.count();
   // end count cursor example
   console.log(count);

@@ -1,9 +1,9 @@
 // start findOneAndDelete example without collation
-await collection.findOneAndDelete({ a: { $gt: "100" } });
+await myColl.findOneAndDelete({ a: { $gt: "100" } });
 // end findOneAndDelete example without collation
 
 // start findOneAndDelete example with collation
-collection.findOneAndDelete(
+myColl.findOneAndDelete(
   { a: { $gt: "100" } },
   { collation: { locale: "en", numericOrdering: true } },
 );

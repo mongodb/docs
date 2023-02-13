@@ -1,4 +1,4 @@
-collection.aggregate(
+myColl.aggregate(
   [
     { $group: { "_id": "$first_name", "nameCount": { "$sum": 1 } } },
     { $sort: { "_id": 1 } },
