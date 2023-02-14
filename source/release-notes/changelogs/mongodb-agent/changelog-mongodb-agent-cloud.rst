@@ -40,8 +40,8 @@ MongoDB Agent 12.7.0.7844-1
 
 - Adds support for new methods of retrieving sharded data distribution
   on MongoDB 6.0.
-- Adds support for the rotation of the log file used for system
-  start-up errors.
+- :ref:`Adds support for the rotation of the log file used for system
+  start-up errors <update-agent-fatal-log-rotation>`. 
 - Fixes an issue that caused log errors in ``systemd`` services on
   ``mkdir`` if the directory already existed.
 
