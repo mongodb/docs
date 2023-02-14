@@ -22,7 +22,7 @@ async function run() {
     // begin-query
     const query = { title: "Batman" }
     const sort = { title: 1 };
-    const projection = { title: 1 };
+    const projection = { _id: 0, title: 1 };
 
     const cursor = movies
       .find(query)

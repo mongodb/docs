@@ -21,7 +21,7 @@ async function run() {
 
     // begin-query
     const query = { $text: { $search: "java coffee shop" } };
-    const projection = { fullplot: 1 };
+    const projection = { _id: 0, fullplot: 1 };
     const cursor = movies
       .find(query)
       .project(projection);

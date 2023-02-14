@@ -13,22 +13,21 @@ async function run() {
     const database = client.db("sample_mflix");
     const movies = database.collection("movies");
 
-    // Create a multikey index on the "cast" array field
-    // in the "movies" collection.
+    // Create a multikey index on the "cast" field
     const result = await movies.createIndex({ cast: 1 });
-    console.log(`Index created: ${result}`);
     // end-idx
 
+    console.log(`Index created: ${result}`);
+
     // begin-query
-    const query = { cast: "Burt Reynolds" };
-    const sort = { cast: 1, genre: 1 };
-    const projection = { cast: 1 };
+    const query = { cast: "Viola Davis" };
+    const projection = { _id: 0, cast: 1 , title: 1 };
 
     const cursor = movies
       .find(query)
-      .sort(sort)
       .project(projection);
     // end-query
+
   } finally {
     await client.close();
   }

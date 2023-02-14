@@ -22,7 +22,7 @@ async function run() {
     // begin-query
     const query = { type: "movie", genre: "Drama" };
     const sort = { type: 1, genre: 1 };
-    const projection = { type: 1, genre: 1 };
+    const projection = { _id: 0, type: 1, genre: 1 };
 
     const cursor = movies
       .find(query)
