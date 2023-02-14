@@ -6,8 +6,6 @@
       Add the service account credentials to your CSFLE-enabled client
       code.
 
-      .. include:: /includes/tutorials/automatic/aws/iam-credentials-note.rst
-
       .. tabs-drivers::
 
          .. tab::
@@ -18,6 +16,8 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
+
+            .. include:: /includes/tutorials/automatic/aws/obtain-automatic-credentials.rst
 
          .. tab::
             :tabid: nodejs
@@ -54,11 +54,6 @@
                :end-before: end-kmsproviders
                :language: go
                :dedent:
-
-      .. tip:: Learn More
-
-         To learn more about the KMS provider object for AWS, see
-         :ref:`csfle-reference-kms-providers-aws`.
 
    .. step:: Add Your Key Information
 
