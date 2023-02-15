@@ -100,7 +100,8 @@ instances. Using this array, you can:
      - string
      - Optional
      - Delivery |url| for the restore. |mms| sets this when creating a
-       restore.
+       restore. To cancel an in-progress restore operation, set this
+       option to ``CANCEL``.
 
        .. seealso::
 
