@@ -68,4 +68,13 @@ To enable or disable the regionalized private endpoint setting:
       Disable Regionalized Private Endpoints
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/steps/disable-regionalized-private-endpoints.rst     
+      .. include:: /includes/steps/disable-regionalized-private-endpoints.rst    
+
+(Optional) Improve Connection Performance for Sharded {+Clusters+} Behind a Private Endpoint 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-optimized-connection-strings-intro.rst
+
+To learn more about optimized connection strings for sharded 
+{+clusters+} behind a private endpoint, see
+:ref:`optimized-connection-strings`. 

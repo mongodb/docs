@@ -1,14 +1,4 @@
-.. note::
-
-   |service| doesn't support optimized connection strings for 
-   {+clusters+} that run on |gcp| or |azure|.
-
-|service| can generate an optimized |srv| connection string for sharded 
-{+clusters+} using the load balancers from your private endpoint
-service. When you use an optimized connection string, |service| limits
-the number of connections per ``mongos`` between your application and
-your sharded {+cluster+}. The limited connections per ``mongos``
-improve performance during spikes in connection counts.
+.. include:: /includes/fact-optimized-connection-strings-intro.rst
 
 To use an optimized connection string, you must meet all of the following criteria:
 
