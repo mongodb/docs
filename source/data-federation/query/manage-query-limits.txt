@@ -1,0 +1,469 @@
+.. _adf-manage-query-limits:
+
+===========================================================
+Manage {+adf+} Query Limits
+===========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview 
+--------
+
+You can limit the amount of data that {+adf+} processes for your
+{+fdi+}\s to control costs. To limit the amount of :ref:`processed data
+<atlas-data-federation-billing>`, you can configure query limits per
+{+fdi+} and for all {+fdi+}\s in your project. The query limits that you
+configure only apply to data processing costs and don't apply to other
+{+adf+} costs such as :ref:`data retrieval and transfer
+<atlas-data-federation-billing>`. 
+
+You can configure one limit *per query*, *per day*, *per week*, and *per
+month* per project and per {+fdi+}. {+adf+} considers each limit of each
+type independent of other configured limits. If you configure the same
+type of limit for the project and for a {+fdi+} in the project, {+adf+}
+enforces the more restrictive limit of the two. 
+
+By default, {+adf+} sets a 100 TB limit on the amount of processed data
+per month for all new {+fdi+}\s.  
+
+.. _adf-query-limit-amount-behavior:
+
+What Happens When {+adf+} Reaches the Data Limit?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When the amount of processed data reaches the configured limit amount,
+{+adf+} stops processing data for the query that has reached the
+limit if the limit type is *per query*. For limits of other types, 
+{+adf+} doesn't execute any new queries until the limit resets based on
+the configured limit type. That is, {+adf+} doesn't execute any new
+queries until: 
+
+- The next calendar day beginning at ``00:00`` :abbr:`UTC (Coordinated
+  Universal Time)` for limit type of *per day*.
+- The next calendar week beginning on Monday at ``00:00`` :abbr:`UTC
+  (Coordinated Universal Time)` for limit type of *per week*.
+- The next calendar month beginning on the first day (1st) of the month
+  at ``00:00`` :abbr:`UTC (Coordinated Universal Time)` for limit type
+  of *per month*. 
+
+If you configure the same type of limit for both the project and
+{+fdi+}\s in the project, but with different limit amounts for the
+project and the {+fdi+}\s in the project, the following apply:  
+
+- If {+adf+} reaches the project limit amount before reaching the limit
+  amount for any {+fdi+} in the project, {+adf+} allows all running
+  queries against all {+fdi+}\s in the project to complete.
+- If {+adf+} doesn't reach the limit amount for the project, but reaches
+  the limit amount set for any {+fdi+} in the project, {+adf+} allows all
+  running queries against that {+fdi+} to complete, but doesn't execute
+  any new queries against that {+fdi+}. {+adf+} continues to execute
+  queries against other {+fdi+}\s in the project until it reaches the
+  limit amount set for the project. When {+adf+} reaches the project
+  limit amount, {+adf+} allows all running queries against all {+fdi+}\s
+  in the project to complete, but doesn't execute any new queries
+  against any {+fdi+}\s in the project. 
+
+{+adf+} displays a warning in the {+atlas-ui+} when {+adf+} reaches the
+data processing limit. Additionally, you can configure {+adf+} to
+terminate queries that exceed the limit :abbr:`ASAP (as soon as
+possible)` when {+adf+} reaches the limit instead of allowing running
+queries to complete. 
+
+.. _adf-query-limit-termination-behavior:
+
+What Happens When You Enable Query Termination?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you configure {+adf+} to terminate queries that exceed the limit,
+{+adf+} attempts to terminate the queries when {+adf+} reaches the 
+applicable limit. While {+adf+} attempts to terminate the query, {+adf+}
+might exceed the limit marginally. {+adf+} doesn't return any results
+and returns only an error. However, you will see data processing charges
+for the amount of data that {+adf+} processed before it reached the
+limit. 
+
+If you configure the same type of limit for both the project and
+{+fdi+}\s in the project, but with different limit amounts and query
+termination settings, {+adf+} will terminate the query only when the
+amount of data that {+adf+} processes reaches the limit amount that you 
+associated with query termination.
+
+.. example:: 
+
+   Suppose a 100 GB *per week* project limit with termination enabled
+   and a 60 GB *per week* {+fdi+} limit with termination disabled.
+   
+   - When one or more queries against the {+fdi+} reach the 60 GB limit,
+     {+adf+} terminates all running queries against the {+fdi+} and
+     doesn't execute any new queries. {+adf+} continues to execute all
+     running and new queries against other {+fdi+}\s in the project
+     until {+adf+} reaches the project limit of 100 GB.
+   - When one or more queries reach the 100 GB limit for the project,
+     {+adf+} doesn't execute any new queries and terminates all queries
+     against all {+fdi+}\s in the project.
+
+Procedures 
+----------
+
+.. _adf-add-query-limits:
+
+Add Query Limits 
+~~~~~~~~~~~~~~~~
+
+You can configure limits on the amount of data processed for your
+queries from the {+atlas-ui+} and |api|. 
+
+.. tabs:: 
+
+   .. tab:: UI
+      :tabid: atlasui
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Navigate to your {+fdi+}\s page.
+
+            a. Log in to |service-fullname|.
+            #. Select the {+df+} option on the left-hand navigation. 
+
+         .. step:: Click :guilabel:`Manage Query Limits` to configure limits per {+fdi+} or for all {+fdi+}\s in the project.
+
+            You can configure limits for the project and per {+fdi+}.
+            Project level query limits apply to all {+fdi+}\s in the
+            project, which prevents new queries against any {+fdi+} when
+            the amount of processed data reaches the limit. Query limits
+            on a {+fdi+} apply to only that {+fdi+}, and {+adf+} won't
+            execute any new queries against that {+fdi+} when the amount
+            of processed data reaches the limit. You can also,
+            optionally, enable termination of queries when {+adf+}
+            reaches the configured limit. 
+
+         .. step:: Click :guilabel:`Add Query Limit` to configure the limit.
+
+            You can configure the following fields in the :guilabel:`Add
+            Query Limit` window:
+
+            .. list-table:: 
+               :header-rows: 1
+
+               * - Field Name 
+                 - Description 
+
+               * - :guilabel:`Limit For`
+                 - Specify whether the limit is for a project or {+fdi+}. Click
+                   the dropdown and select the project or {+fdi+} to apply the
+                   limit to. After you add the limit, you can't modify this
+                   setting.  
+
+               * - :guilabel:`Limit Type`
+                 - Specify the limit duration. Click the dropdown to choose
+                   one of the following:
+
+                   - :guilabel:`Per query` - Indicates that the limit is per
+                     individual query.  
+                   - :guilabel:`Per day` - Indicates that the limit is per
+                     calendar day beginning at ``00:00`` :abbr:`UTC
+                     (Coordinated Universal Time)`.
+                   - :guilabel:`Per week` - Indicates that the limit is per
+                     calendar week beginning on Monday at ``00:00``
+                     :abbr:`UTC (Coordinated Universal Time)`.
+                   - :guilabel:`Per month` - Indicates that the limit is per
+                     calendar month beginning on the first day (1st) of the
+                     month at ``00:00`` :abbr:`UTC (Coordinated
+                     Universal Time)`. 
+
+                   After you add the limit, you can't modify this setting.
+
+               * - :guilabel:`Limit Amount`
+                 - Specify the amount of data in ``MB``, ``GB``, or ``TB`` to
+                   limit to.
+
+               * - :guilabel:`Terminate Queries`
+                 - Toggle to enable query termination. You can't enable query
+                   termination for **Per query** limit type because, by
+                   default, {+adf+} terminates the query when it reaches
+                   the limit for this limit type.
+
+         .. step:: Click :guilabel:`Add Query Limit` for the changes to take effect. 
+
+            For limits of type :guilabel:`Per query`, the changes take effect
+            immediately and {+adf+} enforces the limit for all new
+            queries only. For limits of other types, the following apply:
+
+            - :guilabel:`Per day` - The changes take effect at the start of
+              Monday in the current week in |utc| time.
+            - :guilabel:`Per week` - The changes take effect at the start of 
+              Monday in the current week in |utc| time.
+            - :guilabel:`Per month` - The changes take effect on the first
+              day, the beginning of the the monthly billing period, for the
+              project in |utc| time.
+
+   .. tab:: API
+      :tabid: openapi
+
+      To configure query limits from the |api|, send a ``POST`` request 
+      to the ``limits`` endpoint. 
+      
+      To configure a limit that applies to all {+fdi+}\s in the project,
+      you must specify the unique ID of the project and the name of the
+      limit to set. To learn more about the syntax and options for
+      setting limits for all {+fdi+}\s in the project, see
+      :oas-atlas-op:`API </setProjectLimit>`. 
+
+      To configure a limit for one {+fdi+} in a project,
+      specify the unique ID of the project and the name of the {+fdi+}
+      in the project. To learn more about the syntax and options for
+      setting limits for one {+fdi+} in a project, see :oas-atlas-op:`API 
+      </createOneDataFederationQueryLimit>`.
+
+.. _adf-view-query-limits:
+
+View Query Limits 
+~~~~~~~~~~~~~~~~~
+
+You can view the project and {+fdi+} limits on queries from the
+{+atlas-ui+} and |api|. You can also view the amount of data that {+adf+}
+processed per instance per day.
+
+.. tabs:: 
+
+   .. tab:: UI
+      :tabid: atlasui
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Navigate to your {+fdi+}\s page.
+
+            a. Log in to |service-fullname|.
+            #. Select the {+df+} option on the left-hand navigation. 
+
+         .. step:: Click :guilabel:`Manage Query Limits` to view the limits per {+fdi+} and for all {+fdi+}\s in the project.
+
+            The :guilabel:`Data Federation Query Limits` page displays
+            the following: 
+
+            .. list-table:: 
+               :header-rows: 1
+
+               * - Column Name 
+                 - Column Description 
+               
+               * - :guilabel:`Limit for`
+                 - Specifies the name of the project if the limit is for
+                   the project or the name of the {+fdi+} if the limit
+                   is for a {+fdi+}. 
+
+               * - :guilabel:`Data Processed / Limit`
+                 - Indicates the total amount of data processed by the
+                   queries. You can hover your mouse over the processed
+                   data to view the following:
+                   
+                   - For a {+fdi+}, the limit start date and time 
+                   - For a project: 
+                   
+                     - If there aren't any {+fdi+} limits of the same
+                       type in the project, only the limit start date
+                       and time 
+                     - If there are any {+fdi+} limits of any limit
+                       type: 
+
+                       - Limit start date and time
+                       - Amount of processed data for the limit type
+
+               * - :guilabel:`Limit Type`
+                 - Indicates the type of limit. Value can be: 
+                    
+                   - :guilabel:`Per query` 
+                   - :guilabel:`Per day`
+                   - :guilabel:`Per week`
+                   - :guilabel:`Per month`
+
+               * - :guilabel:`Terminate Queries`
+                 - Indicates whether the flag to terminate running
+                   queries when {+adf+} reaches the limit is enabled.
+
+               * - :guilabel:`Actions`
+                 - Displays the actions you can take on the limit. You
+                   can do the following:
+
+                   - :ref:`Edit a query limit <adf-edit-query-limits>`
+                   - :ref:`Delete a query limit <adf-delete-query-limits>`
+
+   .. tab:: API
+      :tabid: openapi
+
+      To retrieve the query limits from the |api|, send a ``GET`` request 
+      to the ``limits`` endpoint. 
+      
+      To retrieve one limit that applies to all {+fdi+}\s in the project,
+      you must specify the unique ID of the project and the name of the
+      limit to retrieve. To learn more about the syntax and options for
+      retrieving one project limit, see :oas-atlas-op:`API 
+      </getProjectLimit>`. To retrieve all limits for a project,
+      specify the unique ID of the project. To learn more about the
+      syntax and options for retrieving all {+fdi+} limits, see
+      :oas-atlas-op:`API </listProjectLimits>`. 
+
+      To retrieve one limit for one {+fdi+} in a project, specify the
+      unique ID of the project, the name of {+fdi+}, and the name of the
+      limit to retrieve. To learn more about the syntax and options for
+      retrieving one limit for one {+fdi+} in a project, see
+      :oas-atlas-op:`API </returnFederatedDatabaseQueryLimit>`. To
+      retrieve all limits for a {+fdi+} in a project, specify the unique
+      ID of the project and the name of the {+fdi+}. To learn more about
+      the syntax and options for retrieving all {+fdi+} limits, see
+      :oas-atlas-op:`API </returnFederatedDatabaseQueryLimits>`. 
+
+.. _adf-edit-query-limits:
+
+Edit Query Limits 
+~~~~~~~~~~~~~~~~~
+
+You can edit the project and per {+fdi+} limits from the {+atlas-ui+} and
+|api|.  
+
+.. tabs:: 
+
+   .. tab:: UI
+      :tabid: atlasui
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Navigate to your {+fdi+}\s page.
+
+            a. Log in to |service-fullname|.
+            #. Select the {+df+} option on the left-hand navigation. 
+
+         .. step:: Click :guilabel:`Manage Query Limits` to view the limits per {+fdi+} and for all {+fdi+}\s in the project.
+
+            The :guilabel:`Data Federation Query Limits` page displays
+            the actions you can take on the corresponding limit in the
+            :guilabel:`Actions` column.
+
+         .. step:: Click :icon-fa5:`pencil-alt` to open the :guilabel:`Edit Query Limit` window.
+
+         .. step:: Make changes as needed to the following.
+
+            You can modify any of the following settings:
+            
+            .. list-table:: 
+               :header-rows: 1
+
+               * - Field Name 
+                 - Description 
+
+               * - :guilabel:`Limit Amount`
+                 - Specify the amount of data in ``MB``, ``GB``, or ``TB`` to
+                   limit to. The following apply if the new limit amount
+                   is more restrictive than any other limit of the same
+                   type at another level:
+                   
+                   - If {+adf+} hasn't yet reached the new limit amount,
+                     {+adf+} starts executing new queries and restarts
+                     any terminated queries. To learn more, see
+                     :ref:`adf-query-limit-amount-behavior`. 
+                   - If {+adf+} has already reached the new limit
+                     amount, {+adf+} doesn't execute any new queries,
+                     but allows all running queries to complete if query
+                     termination is disabled. If you enabled query
+                     termination, {+adf+} terminates all running
+                     queries. To learn more, see
+                     :ref:`adf-query-limit-termination-behavior`. 
+
+               * - :guilabel:`Terminate Queries`
+                 - Toggle to enable query termination. You can't enable
+                   query termination for **Per query** limit type
+                   because for this limit type, {+adf+} will attempt to
+                   terminate each query as soon as it reaches the limit
+                   by default. If you enable query termination for any
+                   other type, {+adf+} terminates the running queries
+                   that have reached the limit. If you disable
+                   termination, {+adf+} won't restart any terminated
+                   queries and won't terminate any new or running query
+                   when {+adf+} reaches the limit amount. Instead, your
+                   running queries will be able to finish and scan
+                   additional data.
+                   
+                   To learn more, see
+                   :ref:`adf-query-limit-termination-behavior`. 
+
+         .. step:: Click :guilabel:`Save Changes` for the changes to take effect.
+
+   .. tab:: API
+      :tabid: openapi
+
+      To modify the query limits from the |api|, send a ``PATCH`` request 
+      to the ``limits`` endpoint. 
+      
+      To update one limit that applies to all {+fdi+}\s in the project,
+      you must specify the unique ID of the project and the name of the
+      limit to update. To learn more about the syntax and options for
+      updating one project limit, see :oas-atlas-op:`API 
+      </setProjectLimit>`.  
+
+      To update one limit for one {+fdi+} in a project, specify the
+      unique ID of the project, the name of the {+fdi+}, and the name of
+      the limit to update. To learn more about the syntax and options
+      for updating one limit for one {+fdi+} in a project, see
+      :oas-atlas-op:`API </createOneDataFederationQueryLimit>`.  
+
+.. _adf-delete-query-limits:
+
+Delete Query Limits 
+~~~~~~~~~~~~~~~~~~~
+
+You can delete a project or per {+fdi+} limit from the {+atlas-ui+} and
+|api|.  
+
+.. tabs:: 
+
+   .. tab:: UI
+      :tabid: atlasui
+
+      .. procedure:: 
+         :style: normal 
+
+         .. step:: Navigate to your {+fdi+}\s page.
+
+            a. Log in to |service-fullname|.
+            #. Select the {+df+} option on the left-hand navigation. 
+
+         .. step:: Click :guilabel:`Manage Query Limits` to view the limits per {+fdi+} and for all {+fdi+}\s in the project.
+
+            The :guilabel:`Data Federation Query Limits` page displays
+            the actions you can take on the corresponding limit in the
+            :guilabel:`Actions` column.
+
+         .. step:: Click :icon:`trash-alt` to open the :guilabel:`Delete Query Limit` confirmation window.
+
+         .. step:: Click :guilabel:`Delete` to confirm and delete the query limit.
+
+            When you delete a query limit, the changes take effect
+            immediately. {+adf+} doesn't enforce limits on any running
+            or new queries.
+
+   .. tab:: API
+      :tabid: openapi
+
+      To delete the query limits from the |api|, send a ``DELETE`` request 
+      to the ``limits`` endpoint. 
+      
+      To delete one limit that applies to all {+fdi+}\s in the project,
+      you must specify the unique ID of the project and the name of the
+      limit to delete. To learn more about the syntax and options for
+      deleting one project limit, see :oas-atlas-op:`API 
+      </deleteProjectLimit>`.  
+
+      To delete one limit for one {+fdi+} in a project, specify the
+      unique ID of the project and the name of the limit to delete. To
+      learn more about the syntax and options for deleting one limit
+      for one {+fdi+} in a project, see :oas-atlas-op:`API 
+      </deleteOneDataFederationInstanceQueryLimit>`. 
