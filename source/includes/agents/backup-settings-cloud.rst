@@ -34,7 +34,7 @@ Connection Settings
 
    *Type*: string
 
-   Specifies the hostname and port of the |application|.
+   Specifies the hostname and port of the |application| used by the Backup agent.
 
    .. note::
 
