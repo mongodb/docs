@@ -1,7 +1,14 @@
-|geo-operation| sorts documents by distance. If you also include a
-:method:`~cursor.sort()` for the query, :method:`~cursor.sort()`
-re-orders the matching documents, effectively overriding the sort
-operation already performed by |geo-operation|. When using
-:method:`~cursor.sort()` with geospatial queries, consider using
-:query:`$geoWithin` operator, which does not sort documents, instead of
-|geo-operation|.
+The |geo-operation| operator sorts documents by distance.
+
+- If you use the :method:`~cursor.sort` method in your query,
+  MongoDB performs a second sort operation, re-ordering the matching
+  documents.  When querying large collections, this can negatively 
+  affect query performance.
+
+- If the order of the documents is not important to you, consider
+  using the :query:`$geoWithin` operator instead, as it returns 
+  unsorted results.
+
+- |geo-operation| is a Match Execution operator and is not
+  permitted in aggregation pipelines.
+
