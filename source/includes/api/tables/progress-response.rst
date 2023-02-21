@@ -67,4 +67,14 @@
      - string
      - Destination cluster. Returned in the form
        ``<cluster name>: <host>:<port>``.
-     
+
+   * - ``error``
+     - string
+     - If an error occurred, indicates the name of the error. This field
+       is omitted when the call to the endpoint is successful.
+
+   * - ``errorDescription``
+     - string
+     - If an error occurred, gives a detailed description of the error.
+       This field is omitted when the call to the endpoint is successful
+
