@@ -9,12 +9,16 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-// Connection URI
-const uri = "mongodb://user:pass@sample.host:27017/?maxPoolSize=20&w=majority"
+// Paste your connection string URI here
+const uri = "<connection string>"
 
 func main() {
+
+	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
+	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
+
 	// Create a new client and connect to the server
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	client, err := mongo.Connect(context.TODO(), opts)
 
 	if err != nil {
 		panic(err)
