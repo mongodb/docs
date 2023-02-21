@@ -1,0 +1,201 @@
+.. _filter-embedded-dashboards:
+
+==========================
+Filter Embedded Dashboards
+==========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can customize your embedded dashboards by appending various
+query parameters to their iframe URLs or using the ``filter`` option 
+with the |charts-short| Embedding SDK. 
+
+.. _specify-filter-fields-dashboards:
+
+Specify Filterable Fields
+-------------------------
+
+A dashboard :ref:`Author <dashboard-roles>` specifies the fields that can be
+included in filters set by the embedding application code or added by
+dashboard viewers. A dashboard author can limit access to data by allowing only 
+certain fields to be filtered. By default, no fields are allowed, 
+meaning the dashboard cannot be filtered until you explicitly allow at 
+least one field.
+
+To define filterable fields:
+
+1. For the desired :ref:`dashboard <dashboards>`, click the
+   :icon-fa5:`ellipsis-h` button and select :guilabel:`Embed` from the
+   dropdown.
+
+#. In the :guilabel:`Allowed filter fields` section, click the
+   :icon-fa5:`pen` button.
+
+   .. note::
+
+      This option only appears if you already have **Unauthenticated** 
+      or **Authenticated** embedding access enabled.
+
+   You can specify on which fields dashboard viewers can filter data by:
+
+   - Using the dropdown to select the fields
+   - Manually typing values to add fields not listed in the dropdown
+   - Selecting :guilabel:`Allow all fields in the data source used in
+     this dashboard`
+
+#. When you have selected all desired fields, click :guilabel:`Save`
+   below the dropdown.
+
+Dashboard :ref:`viewers <dashboard-roles>` and applications which render
+the dashboard can now use filters based on the specified fields to
+display subsets of the original dashboard data. If a viewer attempts to
+use a filter for a field not included in the :ref:`Allowed filter fields
+<specify-filter-fields-dashboards>` list, |charts| returns an
+:ref:`error <embedded-errors>`.
+
+Filters for Embedded Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you add a field to the :guilabel:`Allowed filter fields` list 
+whose value is an embedded document, you must also specify each 
+individual sub-field you want to allow.
+
+.. example::
+
+  Consider the following document:
+
+  .. code-block:: json
+
+      {
+        "name": "Alice",
+        "favorites" : 
+        {
+          "color": "green",
+          "animal": "turtle",
+          "season": "autumn"
+        } 
+      }
+
+  If you only add the ``favorites`` field to the list of allowed fields,
+  it does *not* grant viewers permission to filter upon any of the
+  sub-fields of ``favorites``. Instead, you may add one or more of the
+  sub-fields to the list individually by specifying ``favorites.color``,
+  ``favorites.animal``, or ``favorites.season``.
+
+.. _embed-options-filter-dashboards:
+
+Filter Data on Dashboards Embedded in an iframe
+-----------------------------------------------
+
+Use the ``filter`` query parameter to only display data that matches a 
+specified :abbr:`MQL (MongoDB Query Language)` filter in your
+dashboard embedded in an iframe. 
+
+You can only use the ``filter`` query parameter on the 
+:guilabel:`Unauthenticated` dashboard. With unauthenticated dashboards,
+the dashboard :ref:`Author <dashboard-roles>` specifies the fields that
+can be included in filters set by the embedding application code or
+added by  dashboard viewers. To learn how to specify filterable fields,
+see :ref:`Specify Filterable Fields <specify-filter-fields-dashboards>`.
+
+Filter Syntax
+~~~~~~~~~~~~~
+
+You can specify an MQL document as your ``filter`` query
+parameter provided that the fields used in your filter are in
+the :ref:`list of allowed filterable fields <specify-filter-fields-dashboards>`.
+
+.. include:: /includes/fact-embedded-filter-examples-unauth.rst
+
+.. note::
+
+   You must URL-encode special characters of the filter
+   parameter.
+
+Example
+```````
+
+The following iframe ``src`` URL renders a dashboard which only displays
+documents with an ``imdb.rating`` greater than or equal to ``8``:
+
+.. code-block:: none
+   :emphasize-lines: 3
+
+   https://charts.mongodb.com/charts-atlasproject1-piocy/embed/dashboards?
+   id=93584ddb-1115-4a12-afd9-5129e47bbb0d&
+   filter={"imdb.rating":%20{$gte:%208}}
+   
+
+The URL uses an encoded ``filter`` parameter of
+``{"imdb.rating":%20{$gte:%208}}``. Decoded,
+this filter is:
+
+.. code-block:: json
+
+   {"imdb.rating": {$gte: 8}}
+
+.. _filter-embedded-sdk-dashboards:
+
+Filter Data on Dashboards Embedded with the SDK
+-----------------------------------------------
+
+You can add a :ref:`filter <embed-options-filter-dashboards>` to an
+embedded dashboard with the ``filter`` option. Filtering allows the
+dashboard author to only display data in the embedded dashboard which
+matches a specified :abbr:`MQL (MongoDB Query Language)` filter.
+
+In the :guilabel:`Embed` modal, you must specify any fields included in
+the filter. The :guilabel:`Embed` modal contains a dropdown menu of
+fields on which to allow filtering.
+
+The following uses the ``filter`` option to represent only documents in
+which the ``total`` field is greater than ``100``:
+
+.. code-block:: javascript
+
+   createDashboard({
+     baseUrl: '<your-base-url>',
+     dashboardId: '<your-dashboard-id>',
+     width: 500,
+     height: 500,
+     filter: { "total": { "$gt": 100 } }
+   })
+
+.. _inject-filter-per-user-dashboard:
+
+Inject User-Specific Filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you embed a dashboard that requires :guilabel:`Authenticated`
+access,  you can use the :guilabel:`Injected function` setting to inject
+a MongoDB filter document specific to each user who views the dashboard.
+The function has access to your Embedding Authentication Provider's
+token via ``context.token``, and can filter the dashboard data based on
+the token.
+
+This filter ensures that viewers of an embedded dashboard only see their
+own data, which is useful when embedding dashboard with potentially
+sensitive information.
+
+.. note:: 
+
+   If you use an {+atlas-app-services+} authentication provider, ``context.token`` 
+   contains the {+app-services+} 
+   :atlas:`user object </app-services/authentication/user-objects/>` to 
+   filter. For example, if you enable 
+   :atlas:`Custom User Data </app-services/users/enable-custom-user-data/>` 
+   for {+app-services+} users, the user object is available in 
+   ``context.token.custom_data``.
+
+To inject a filter specific to each user, in the 
+:guilabel:`Authenticated` tab of the :guilabel:`Embed` dialog, set the
+:guilabel:`Injected function`setting to :guilabel:`On`. Specify a
+function and click :guilabel:`Save`.
+
+.. include:: /includes/example-user-filter-function.rst
