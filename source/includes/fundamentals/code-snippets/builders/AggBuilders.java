@@ -82,11 +82,11 @@ public class AggBuilders {
     }
 
     private void aggregationExample() {
-        // begin sampleAggregation
+        // begin aggregationSample
         Bson matchStage = match(eq("some_field", "some_criteria"));
         Bson sortByCountStage = sortByCount("some_field");
         collection.aggregate(asList(matchStage, sortByCountStage)).forEach(doc -> System.out.println(doc));
-        // end sampleAggregation
+        // end aggregationSample
     }
 
     private void setWindowFieldsStage() {
