@@ -14,6 +14,7 @@ const uri = "<connection string>"
 
 func main() {
 
+	// Use the SetServerAPIOptions() method to set the Stable API version to 1
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
@@ -29,10 +30,10 @@ func main() {
 		}
 	}()
 
-	// Ping the primary
+	// Send a ping to confirm a successful connection
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected and pinged.")
+	fmt.Println("Pinged the primary node of the cluster. You successfully connected to MongoDB!")
 }
