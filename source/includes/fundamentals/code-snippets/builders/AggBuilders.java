@@ -302,4 +302,13 @@ public class AggBuilders {
         match(eq("title", "The Shawshank Redemption"));
         // end match
     }
+
+    private void documents() {
+        // begin documents
+        documents(asList(
+                new Document("title", "The Shawshank Redemption"),
+                new Document("title", "Back to the Future"),
+                new Document("title", "Jurassic Park")));
+        // end documents
+    }
 }
