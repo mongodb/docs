@@ -31,6 +31,13 @@ MongoDB Agent 12.11.0.7961
   and :ref:`Real Time Metrics <real-time-metrics-status-tab>`.
 - Improves logging.
 
+.. _12.10.2.7935-1:
+
+MongoDB Agent 12.10.2.7935-1
+============================
+
+*Released* 2023-01-05
+
 .. _12.9.0.7902-1:
 
 MongoDB Agent 12.9.0.7902-1

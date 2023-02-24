@@ -18,3 +18,14 @@
 - Updates {+mdbagent+} to :ref:`12.11.2.7970-1 <12.11.2.7970-1>`. 
 - Improves Live Migration Service validation error message when waiting for monitoring data.
 - Reduces the impact when collecting and ingesting Automation Agent logs.
+
+.. _cloudmanager_20230105:
+
+05 January 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.10.2.7935-1 <12.10.2.7935-1>`. 
+- Redacts third-party integration credentials when you view or edit an alert through the UI or query it through the |api|. These credentials are also now encrypted on disk.
+- Fixes the snapshot size for snapshots with ``filterList``.
+- Fixes the missing :guilabel:`Base URL` field during {+mdbagent+} installations on Windows.
+- Adds an alert option for when a snapshot is falling behind the scheduled time.
