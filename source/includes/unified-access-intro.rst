@@ -7,5 +7,6 @@ When |service| accesses |aws| services,
 <https://docs.aws.amazon.com/IAM/latest/UserGuide/using-service-linked-roles.html>`__.
 
 You can set up an assumed IAM role for your |service| account to use 
-with the {+atlas-admin-api+} or {+atlas-ui+}. |service| supports
-unified access only for |aws|.
+with the {+atlas-admin-api+} or {+atlas-ui+} if you have the
+:authrole:`Project Owner` role. |service| supports unified access only
+for |aws|.
