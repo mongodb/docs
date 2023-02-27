@@ -15,7 +15,7 @@ Oracle Linux [#oracle-linux]_, Rocky Linux, and AlmaLinux
 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky /
-  AlmaLinux 9 (Starting in MongoDB 6.0.4)
+  AlmaLinux 9 (Starting in MongoDB 6.0.3)
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky / AlmaLinux 8
 
