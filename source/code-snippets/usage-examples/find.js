@@ -23,7 +23,7 @@ async function run() {
     const cursor = movies.find(query, options);
 
     // print a message if no documents were found
-    if ((await cursor.count()) === 0) {
+    if ((await movies.countDocuments(query)) === 0) {
       console.log("No documents found!");
     }
 

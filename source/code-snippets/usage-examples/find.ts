@@ -24,15 +24,16 @@ async function run() {
     const database = client.db("sample_mflix");
     const movies = database.collection<Movie>("movies");
 
+    const query = { runtime: { $lt: 15 } };
     const cursor = movies.find<Movie>(
-      { runtime: { $lt: 15 } },
+      query,
       {
         sort: { title: 1 },
         projection: { _id: 0, title: 1, imdb: 1 },
       }
     );
 
-    if ((await cursor.count()) === 0) {
+    if ((await movies.countDocuments(query)) === 0) {
       console.warn("No documents found!");
     }
 
