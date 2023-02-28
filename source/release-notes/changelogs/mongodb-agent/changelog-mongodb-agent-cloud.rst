@@ -45,6 +45,8 @@ MongoDB Agent 12.9.0.7902-1
 
 *Released* 2022-12-14
 
+- Removes old {+mongosh+} versions automatically.
+
 .. _12.8.0.7876-1:
 
 MongoDB Agent 12.8.0.7876-1

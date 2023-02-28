@@ -4,7 +4,8 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Updates {+mdbagent+} to :ref:`12.9.0.7902-1 <12.9.0.7902-1>`. 
-- Adds support for :atlas:`private endpoints </security-private-endpoint>` with :ref:`live migration of replica sets <migrate-to-atlas-cm>`. 
+- Adds support for :atlas:`private endpoints </security-private-endpoint>` with :ref:`live migration of replica sets <migrate-to-atlas-cm>`.
+- Removes old {+mongosh+} versions automatically.
 
 .. _cloudmanager_20221116:
 
