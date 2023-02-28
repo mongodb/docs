@@ -7,6 +7,27 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230221:
+
+21 February 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Fixes an issue with ``$match`` queries that resulted in documents not being returned
+  when querying on nested documents within an array where any nested document was missing
+  the target field.
+- Improves performance and stability when writing to Parquet using :ref:`adf-out-stage` to |s3|.
+- Adds the ability to use any BSON type with the ``$comment`` operator and query in
+  :ref:`$queryHistory <adf-query-history-stage>`.
+- {+adf+} now returns MongoDB 6.2.0 in the :ref:`buildInfo output <mql-support-diagnostic-cmd>`.
+
+.. _adf-v20230215:
+
+15 February 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to :ref:`limit the amount of data <adf-manage-query-limits>` that {+adf+} processes for your {+fdi+}\s to control costs. 
+
+
 .. _adf-v20230207:
 
 07 February 2023 Release
