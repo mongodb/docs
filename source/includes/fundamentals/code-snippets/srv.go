@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-// Paste your connection string URI here
-const uri = "<connection string>"
+// Replace the placeholders with your credentials
+const uri = "mongodb+srv://<username>:<password>@cluster0.sample.mongodb.net/?retryWrites=true&w=majority"
 
 func main() {
 
@@ -31,9 +31,9 @@ func main() {
 	}()
 
 	// Send a ping to confirm a successful connection
-	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+	var result bson.M
+	if err := client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Pinged the primary node of the cluster. You successfully connected to MongoDB!")
+	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 }
