@@ -60,6 +60,8 @@ source_constants = {
     'version': version,
     'k8s-op-short': 'Kubernetes Operator',
     'k8s-api-version': 'v1.25',
+    'k8s-crds': "`CustomResourceDefinitions <https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/>`__",
+    'k8s-crd': "`CustomResourceDefinition <https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/>`__",
     'aagent': 'MongoDB Agent or legacy Automation Agent',
     'aagents': 'MongoDB Agents or legacy Automation Agents',
     'mdbagent': 'MongoDB Agent',
