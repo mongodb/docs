@@ -1,9 +1,22 @@
+.. _12.13.0.8043:
+
+MongoDB Agent 12.13.0.8043
+==========================
+
+*Released* 2023-03-01
+
+- Improves logging.
+
 .. _12.12.0.8018-1:
 
 MongoDB Agent 12.12.0.8018-1
 ============================
 
 *Released* 2023-02-15
+
+- Fixes an issue with managing the default read/write concerns when converting a replica set to a sharded cluster.
+- Fixes the calculation of the number of available mongos during a rolling restart change when some mongos are explicitly disabled.
+- Fixes the race condition when resetting an expired DNS cache.
 
 .. _12.11.2.7970-1:
 
@@ -37,6 +50,16 @@ MongoDB Agent 12.10.2.7935-1
 ============================
 
 *Released* 2023-01-05
+
+.. _12.10.0.7929:
+
+MongoDB Agent 12.10.0.7929
+============================
+  
+*Released* 2023-01-05
+
+- Improves memory management when collecting information on chunks in sharded collections.
+- Improves logging.
 
 .. _12.9.0.7902-1:
 
