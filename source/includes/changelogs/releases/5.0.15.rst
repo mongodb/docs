@@ -12,6 +12,8 @@ Sharding
   document's shard key value
 - :issue:`SERVER-71092` shard_id_test.cpp relies on a pure behavior of
   std::string::compare function
+- :issue:`SERVER-71219` Migration can miss writes from prepared
+  transactions
 - :issue:`SERVER-71305` Legacy shard collection path waits on wrong
   opTime to be majority committed (5.0 and older)
 - :issue:`SERVER-71689` Refresh the CatalogCache before dropping the
@@ -20,6 +22,9 @@ Sharding
   optimized path of create collection
 - :issue:`SERVER-72430` MigrationDestinationManager::report() may access
   null _migrationCloningProgress
+- :issue:`SERVER-73916` Improve ReshardingTest fixture error reporting
+  when reshardCollection has already failed before any failpoints are
+  waited on
 
 Query
 ~~~~~
@@ -33,6 +38,11 @@ Operations
 - :issue:`SERVER-67704` Add count of cpu sockets to FTDC metadata
 - :issue:`SERVER-67705` Add count of NUMA zones to FTDC metadata
 
+Build and Packaging
+~~~~~~~~~~~~~~~~~~~
+
+:issue:`SERVER-38232` Mongod on Ubuntu 16/18 does not create a pid file
+
 Internals
 ~~~~~~~~~
 
@@ -40,6 +50,7 @@ Internals
   'after_test'
 - :issue:`SERVER-54900` Blocking networking calls can delay sync-source
   resolution indefinitely
+- :issue:`SERVER-60839` Introduce a TemporarilyUnavailable error type
 - :issue:`SERVER-63104` Make it easy to run jsCore locally again in a
   world with tests tagged by feature flag
 - :issue:`SERVER-64764` $expr rewrite is not prepared to handle "$$ROOT"
@@ -47,6 +58,12 @@ Internals
   TestRemainingInitialSyncEstimatedMillisMetric unit test can be 0 ms
 - :issue:`SERVER-65259` Cursor leak in aggregation that requires merging
   on shard
+- :issue:`SERVER-65881` Support sort-limit optimization with bounded
+  sort stage
+- :issue:`SERVER-66050` findSelfInConfig should attempt fast path for
+  every HostAndPort before trying slow path
+- :issue:`SERVER-66106` sharded_moveChunk_partitioned.js failed
+  moveChunk check may be incorrect (only pre-6.0)
 - :issue:`SERVER-66466` Remove TransportLayerASIOTest dependence on
   ThreadContext
 - :issue:`SERVER-66570` Timeseries pushes down metaField-projections
@@ -57,8 +74,14 @@ Internals
   due to unclean SIGINT
 - :issue:`SERVER-67406` Sorting a cursor on sharded coll returns
   documents that are missing $-prefixed fields
+- :issue:`SERVER-67446` Ensure consistent wildcardProjection and
+  columnstoreProjection specs in catalog
+- :issue:`SERVER-68122` Investigate replicating the collection
+  WiredTiger config string during initial sync
 - :issue:`SERVER-68388` Limit concurrency setting and update server
   parameter name
+- :issue:`SERVER-68434` Equality to null can incorrectly use a cached
+  partial ixscan which does not cover the predicate
 - :issue:`SERVER-68576` We need to know how many sharded collections
   exist in a cluster
 - :issue:`SERVER-68647` Create feature flag
@@ -70,12 +93,15 @@ Internals
   a slow op stat
 - :issue:`SERVER-68901` Incorrect $elemMatch query analysis in
   mongocryptd if document contains 2 different fields with the same name
-- :issue:`SERVER-69944` Resmoke's globstar.py does not properly parse
+- :issue:`SERVER-69944` Resmoke's globstar.py does not properly parse 
   ``*`` before ``**``
 - :issue:`SERVER-70139` listCollection returns duplicate view names
 - :issue:`SERVER-70323` Convert invariant to tassert in
   collection_sharding_runtime
 - :issue:`SERVER-70369` Create serverParameter for migrationConcurrency
+- :issue:`SERVER-70394` Fix self-swap in
+  MultiPlanStage::removeRejectedPlans
+- :issue:`SERVER-70427` Remove chef+kitchen package test infrastructure
 - :issue:`SERVER-70553` Add module support to the mongo test runner
 - :issue:`SERVER-70566` Make assertion in backup_restore.js print error
   code
@@ -88,11 +114,10 @@ Internals
   removes bucket from catalog
 - :issue:`SERVER-71055` OplogOrder test can read stale all_durable
   timestamp after rolling back oplog entries
-- :issue:`SERVER-71178` Create project branch and flag for PM-2786
 - :issue:`SERVER-71191` Deadlock between index build setup, prepared
   transaction, and stepdown
-- :issue:`SERVER-71291` Variant "``*`` Enterprise RHEL 8.0" should not have
-  a .publish file
+- :issue:`SERVER-71291` Variant "``*`` Enterprise RHEL 8.0" should not
+  have a .publish file
 - :issue:`SERVER-71373` Extend assert.soon timeout inside
   predictive_connpool.js
 - :issue:`SERVER-71399` Jumbo chunk flag isn't automatically cleared
@@ -121,6 +146,10 @@ Internals
   skipping a two-phase index build
 - :issue:`SERVER-71939` Update BucketCatalogTest::Task class with
   failpoint
+- :issue:`SERVER-71950` Fail and log the operation when out-of-order
+  keys are detected in WiredTiger
+- :issue:`SERVER-71969` Update system_perf.yml for compile-variant and
+  compile_variant.
 - :issue:`SERVER-72005` Enable TSBS on 2022-11 sys-perf variants
 - :issue:`SERVER-72046` Concurrent chunk migration testing
 - :issue:`SERVER-72091` Enable auth-delay sys-perf variant
@@ -131,12 +160,14 @@ Internals
   github repo
 - :issue:`SERVER-72222` MapReduce with single reduce optimization fails
   when merging results in sharded cluster
+- :issue:`SERVER-72276` Remove all outdated entries from
+  backports_required_for_multiversion_tests.yml
 - :issue:`SERVER-72288` microbenchmark tests fail after "Enable M1 Mac
   support for DSI"
-- :issue:`SERVER-72416` The find and findAndModify projection code does
-  not honor the collection level collation
 - :issue:`SERVER-72449` backup_restore.js should check for code 2 when
   killing child resmoke client
+- :issue:`SERVER-72512` Indexes reported as valid when unable to return
+  inconsistencies due to memory limit
 - :issue:`SERVER-72535` Sharded clusters allow creating the 'admin',
   'local', and 'config' databases with alternative casings
 - :issue:`SERVER-72576` Notarize archive-dist binaries on macOS
@@ -146,14 +177,39 @@ Internals
   migration_chunk_cloner_source changes
 - :issue:`SERVER-72620` $indexStats doesn't include the "shard" field
   when run on unsharded collections
+- :issue:`SERVER-72677` Full validation doesn't always report
+  information about indexes
+- :issue:`SERVER-72825` Remove all outdated entries from
+  backports_required_for_multiversion_tests.yml
+- :issue:`SERVER-72868` Complete TODO listed in SERVER-30949
 - :issue:`SERVER-72877` Mongos retargeting logic in stepdown hooks
   should skip views
 - :issue:`SERVER-72910` [v5.0] Backport wtRCToStatus changes from
   SERVER-60839
+- :issue:`SERVER-73176` Only print error message if there were in fact
+  errors in getHostFQDNs
+- :issue:`SERVER-73183`
+  WiredTigerKVEngine::getSanitizedStorageOptionsForSecondaryReplication
+  should skip inMemory
+- :issue:`SERVER-73216` Upgrade BlackDuck to Detect v8
+- :issue:`SERVER-73228` Remove active directory server from
+  jstests/external_auth/ldap_mongos_health_checking.js
+- :issue:`SERVER-73232` Change the default log-verbosity for
+  _killOperations
 - :issue:`SERVER-73264` Fix wrong invariant in
   MigrationChunkClonerSource::commitClone
 - :issue:`SERVER-73389` Checkpoint vector clock in drop database
   coordinator
+- :issue:`SERVER-73481` Validate does not detect out-of-order keys with
+  {full: false}
+- :issue:`SERVER-73636` Coverity analysis defect 135025: Inefficient
+  vector resizing with reserve.
+- :issue:`SERVER-73706` Save WTRecordStoreUassertOutOfOrder fail point
+  state to prevent concurrency bugs in testing
+- :issue:`SERVER-73719` Comment out Legacy Build Variants in Sys-perf
+- :issue:`SERVER-73745` Zero initialize IndexKeyBucket struct
+- :issue:`WT-8290` Adding a new API to the session to return the
+  rollback reason
 - :issue:`WT-8379` Do not disable eviction during shutdown
 - :issue:`WT-8651` Allow checkpoint scrub during shutdown
 - :issue:`WT-8652` Do not skip the final metadata checkpoint when
@@ -181,4 +237,7 @@ Internals
   data-validation-stress-test-checkpoint-fp-hs-insert-s7 in 5.0
 - :issue:`WT-10291` Ensure failure configs task executes test format
   once per configuration.
+- :issue:`WT-10461` Fix key out of order in skip list on weakly ordered
+  architecture
+- :issue:`WT-10584` Add missing read barriers in __cursor_skip_prev
 
