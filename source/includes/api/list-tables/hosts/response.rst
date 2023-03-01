@@ -144,12 +144,12 @@
      - Name of the shard to which this process belongs. Only present
        if the process is part of a sharded cluster.
 
-   * - slaveDelaySec
+   * - secondaryDelaySecs
      - number
      - Number of seconds this :term:`replica set` member's data 
        trails the :term:`primary`. If this value is set to ``0``, 
        the member is not configured as a delayed member. 
-       For additional details on slave delays, see 
+       For additional details on secondary delays, see 
        :manual:`Delayed Replica Set Members </core/replica-set-delayed-member>`
 
    * - sslEnabled
@@ -180,8 +180,6 @@
        - ``REPLICA_SECONDARY``
        - ``REPLICA_ARBITER``
        - ``RECOVERING``
-       - ``MASTER``
-       - ``SLAVE``
        - ``SHARD_MONGOS``
        - ``SHARD_CONFIG``
        - ``SHARD_STANDALONE``
