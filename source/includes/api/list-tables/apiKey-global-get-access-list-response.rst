@@ -8,28 +8,28 @@
 
    * - ``cidrBlock``
      - string
-     - Range of whitelisted IP addresses in |ipv4| or |ipv6| |cidr|
+     - Range of IP addresses in an access list in |ipv4| or |ipv6| |cidr|
        notation.
 
    * - ``created``
      - string
      - |Epoch-time| when you added this |cidr| block to the Global
-       Whitelist.
+       Access List.
 
    * - ``description``
      - string
-     - Explanation of the purpose of this Global Whitelist Entry.
+     - Explanation of the purpose of this Global Access List Entry.
 
    * - ``id``
      - string
-     - Unique identifier for this Global Whitelist Entry.
+     - Unique identifier for this Global Access List Entry.
 
    * - ``type``
      - string
-     - Scope of the Global Whitelist Entry.
+     - Scope of the Global Access List Entry.
 
    * - ``updated``
      - string
      - |Epoch-time| when you last changed the |cidr| block of this
-       Global Whitelist Entry.
+       Global Access List Entry.
 

@@ -627,12 +627,12 @@ Organization
        %d days
      - Organization
 
-   * - .. alert:: ORG_PUBLIC_API_WHITELIST_NOT_REQUIRED
-     - IP Whitelist for Public API Not Required
+   * - .. alert:: ORG_PUBLIC_API_ACCESS_LIST_NOT_REQUIRED
+     - IP Access List for Public API Not Required
      - Organization, Global
 
-   * - .. alert:: ORG_PUBLIC_API_WHITELIST_REQUIRED
-     - Require IP Whitelist for Public API Enabled
+   * - .. alert:: ORG_PUBLIC_API_ACCESS_LIST_REQUIRED
+     - Require IP Access List for Public API Enabled
      - Organization, Global
 
    * - .. alert:: ORG_RENAMED

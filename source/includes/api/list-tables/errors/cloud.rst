@@ -15,9 +15,9 @@
      - Acknowledgement comment too long. It must not exceed
        ``<number>`` characters.
 
-   * - .. apierror:: ADDRESS_ALREADY_IN_WHITELIST
+   * - .. apierror:: ADDRESS_ALREADY_IN_ACCESS_LIST
      - `409`_
-     - The address ``<address>`` is already on the whitelist.
+     - The address ``<address>`` is already on the access list.
 
    * - .. apierror:: ALERT_CONFIG_NOT_FOUND
      - `404`_
@@ -42,15 +42,15 @@
      - `400`_
      - No API Key with ID {API-KEY-ID} exists.
 
-   * - .. apierror:: API_KEY_WHITELIST_ACCESS_DENIED
+   * - .. apierror:: API_KEY_ACCESS_LIST_ACCESS_DENIED
      - `400`_
-     - :ref:`API Key <mms-prog-api-key>` whitelists are only
+     - :ref:`API Key <mms-prog-api-key>` access lists are only
        accessible by the API Key itself or by a user administrator.
 
-   * - .. apierror:: API_KEY_WHITELIST_NOT_FOUND
+   * - .. apierror:: API_KEY_ACCESS_LIST_NOT_FOUND
      - `404`_
      - The specified IP address does not exist in the
-       corresponding :ref:`API Key <mms-prog-api-key>` whitelist.
+       corresponding :ref:`API Key <mms-prog-api-key>` access list.
 
    * - .. apierror:: ATTRIBUTE_NEGATIVE_OR_ZERO
      - `400`_
@@ -86,7 +86,7 @@
      - `400`_
      - No user with username ``<username>`` exists.
 
-   * - .. apierror:: BAD_WHITELIST_ADD_REQUEST
+   * - .. apierror:: BAD_ACCESS_LIST_ADD_REQUEST
      - `400`_
      - Should not specify both the IP address and the CIDR block.
 
@@ -94,11 +94,11 @@
      - `400`_
      - The specified username ``<username>`` is not allowed.
 
-   * - .. apierror:: CANNOT_ADD_IP_ADDRESS_TO_API_KEY_WHITELIST
+   * - .. apierror:: CANNOT_ADD_IP_ADDRESS_TO_API_KEY_ACCESS_LIST
      - `400`_
-     - The specified address cannot be added to whitelists.
+     - The specified address cannot be added to access list.
        |mms| does not allow certain IP addresses to be
-       whitelisted, such as ``0.0.0.0/32``.
+       added to the access list, such as ``0.0.0.0/32``.
 
    * - .. apierror:: CANNOT_ADD_GLOBAL_ROLE
      - `403`_
@@ -174,10 +174,10 @@
      - Cannot modify backup configuration for individual shard; use
        cluster ID ``<ID>`` for entire cluster.
 
-   * - .. apierror:: CANNOT_REMOVE_CALLER_FROM_WHITELIST
+   * - .. apierror:: CANNOT_REMOVE_CALLER_FROM_ACCESS_LIST
      - `400`_
-     - Cannot remove caller's IP address ``<address>`` from
-       whitelist.
+     - Cannot remove caller's IP address ``<address>`` from the
+       access list.
 
    * - .. apierror:: CANNOT_SET_BACKUP_AUTH_FOR_MANAGED_CLUSTER
      - `409`_
@@ -290,7 +290,7 @@
 
    * - .. apierror:: DUPLICATE_ADDRESSES_IN_INPUT
      - `400`_
-     - Two or more of the IP addresses being added to the whitelist
+     - Two or more of the IP addresses being added to the access list
        are the same.
 
    * - .. apierror:: EMAIL_OR_SMS_REQUIRED_FOR_GROUP_NOTIFICATION
@@ -642,7 +642,7 @@
      - `400`_
      - No zone ``<zone>`` exists for region ``<region>``.
 
-   * - .. apierror:: IP_ADDRESS_NOT_ON_WHITELIST
+   * - .. apierror:: IP_ADDRESS_NOT_ON_ACCESS_LIST
      - `403`_
      - IP address ``<address>`` is not allowed to access this
        resource.
@@ -1100,12 +1100,12 @@
      - Webhook URL must be set in the group before adding webhook
        notifications.
 
-   * - .. apierror:: WHITELIST_ACCESS_DENIED
+   * - .. apierror:: ACCESS_LIST_ACCESS_DENIED
      - `401`_
-     - Cannot access whitelist for user ``<username>``, which is not
+     - Cannot retrieve access list for user ``<username>``, which is not
        currently logged in.
 
-   * - .. apierror:: WHITELIST_NOT_FOUND
+   * - .. apierror:: ACCESS_LIST_NOT_FOUND
      - `404`_
-     - IP address ``<address>`` not on whitelist for user
+     - IP address ``<address>`` not on access list for user
        ``<username>``.
