@@ -11,7 +11,7 @@ actions:
   migrating of all monitoring data to a new schema in the background. 
   This migration requires significant free disk space.
 
-- Add necessary IP addresses or |cidr| blocks for to the whitelists 
+- Add necessary IP addresses or |cidr| blocks for to the access lists
   for any API clients connecting to the Automation configuration 
   endpoints.
 

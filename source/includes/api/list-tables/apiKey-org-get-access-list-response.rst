@@ -8,7 +8,7 @@
 
    * - ``cidrBlock``
      - string
-     - CIDR-notated range of whitelisted IP addresses.
+     - CIDR-notated range of IP addresses in the access list.
 
    * - ``count``
      - number
@@ -17,18 +17,18 @@
 
    * - ``created``
      - date
-     - Date this IP address was added to the whitelist.
+     - Date this IP address was added to the access list.
 
    * - ``ipAddress``
      - string
-     - Whitelisted IP address.
+     - IP address in the access list.
 
    * - ``lastUsed``
      - date
      - Date of the most recent request that originated from this IP
        address. This field only appears if at least one request has
        originated from this IP address, and is only updated when a
-       whitelisted resource is accessed.
+       resource is retrieved from the access list.
 
    * - ``lastUsedAddress``
      - string

@@ -5,7 +5,7 @@
 
 - Updates terminology for API Access List management. Introduces API
   Access List for Programmatic API Keys and deprecates :ref:`API Whitelist
-  <whitelist-for-api-operations>`.
+  <access-list-for-api-operations>`.
 
 .. _cloudmanager_20201103:
 

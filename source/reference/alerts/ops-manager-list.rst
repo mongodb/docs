@@ -469,12 +469,12 @@ Organization
        organization
      - Organization, Global
 
-   * - :alert-type:`ORG_PUBLIC_API_WHITELIST_NOT_REQUIRED`
-     - IP Whitelist for Public API Not Required
+   * - :alert-type:`ORG_PUBLIC_API_ACCESS_LIST_NOT_REQUIRED`
+     - IP Access List for Public API Not Required
      - Organization, Global
 
-   * - :alert-type:`ORG_PUBLIC_API_WHITELIST_REQUIRED`
-     - Require IP Whitelist for Public API Enabled
+   * - :alert-type:`ORG_PUBLIC_API_ACCESS_LIST_REQUIRED`
+     - Require IP Access List for Public API Enabled
      - Organization, Global
 
    * - :alert-type:`ORG_RENAMED`

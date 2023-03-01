@@ -184,7 +184,7 @@
        If this field is present in the response, |mms| does not return
        ``publicKey`` field.
 
-   * - whitelistEntry
+   * - accessListEntry
      - string
-     - Whitelist entry of the API Key targeted by the event.
+     - Access list entry of the API Key targeted by the event.
 
