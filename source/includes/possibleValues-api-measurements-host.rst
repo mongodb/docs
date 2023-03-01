@@ -102,10 +102,9 @@ Host Measurements
        :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
    * - - ``OPLOG_REPLICATION_LAG_TIME``
-       - ``OPLOG_SLAVE_LAG_MASTER_TIME``
+       - ``OPLOG_RATE_GB_PER_HOUR``
        - ``OPLOG_MASTER_TIME``
        - ``OPLOG_MASTER_LAG_TIME_DIFF``
-       - ``OPLOG_RATE_GB_PER_HOUR``
 
      - Durations and throughput of the MongoDB process'
        :manual:`oplog </core/replica-set-oplog>`.
