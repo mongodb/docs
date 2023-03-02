@@ -4,7 +4,8 @@
 .. step:: Click :guilabel:`Search Indexes` in the upper right
    of the collection preview pane.
 
-.. step:: Click :guilabel:`Create Search Index`.
+.. step:: Click 
+   :guilabel:`Create Search Index`.
 
 .. step:: Click the :guilabel:`Visual Editor` configuration 
    method, then click :guilabel:`Next`.
