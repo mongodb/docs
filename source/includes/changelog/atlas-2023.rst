@@ -7,7 +7,8 @@
   and reconfiguring a {+cluster+} from an unhealthy to a healthy state in the event of such an outage.
 - Supports connecting to your database behind private endpoints with an optimized SRV connection string for sharded clusters.
 - Adds a streamlined experience for users deploying their first |service| database using templates for best practices.
-
+- Adds EU region support for the PagerDuty integration.
+  
 .. _atlas_2023_01_25:
 
 25 January 2023 Release
