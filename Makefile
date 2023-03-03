@@ -132,8 +132,8 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-ruby-driver/master/spec/integration/transactions_examples_spec.rb -o ${DRIVERS_PATH}/transactions_examples_spec.rb
 
 # scala
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-scala/src/it/scala/org/mongodb/scala/documentation/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-scala/src/it/scala/org/mongodb/scala/documentation/DocumentationTransactionsExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationTransactionsExampleSpec.scala
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-scala/src/integration/scala/org/mongodb/scala/documentation/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-java-driver/master/driver-scala/src/integration/scala/org/mongodb/scala/documentation/DocumentationTransactionsExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationTransactionsExampleSpec.scala
 
 # csharp
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/DocumentationExamples.cs -o ${DRIVERS_PATH}/DocumentationExamples.cs
