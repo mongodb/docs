@@ -46,7 +46,16 @@ When you reference a specific product release version:
 
      .. versionchanged:: 4.4
 
-        Starting in MongoDB 4.4, this command returns the following output:
+        This command returns the following output:
+
+  If you need to call out multiple versions, set the most recent version
+  first, then reference the others in a phrase afterwards.
+
+  .. code-block:: rst
+
+     .. versionadded:: 6.0 *(Also available in MongoDB 5.0.)*
+
+  The italics marker matches the directive output.
 
   Snooty supports three version directives: ``versionadded``, 
   ``versionchanged``, and ``deprecated``.
@@ -67,22 +76,51 @@ When you reference a specific product release version:
 Identify EOL Releases
 ---------------------
 
-`versc <https://github.com/kennethdyer/versc>`__ is a tool for finding references
-to EOL releases of products.  It operates similar to grep, performing a 
-series of regular expression matches on each line of each file, searching for
-{+rst+} version directives and ``PRODUCT X.Y`` pairings. It then
-extracts the version references from lines it finds and evaluates whether these
-are legitimate version references versus references to unknown (read: EOL) releases.
+You can find references to releases of MonogDB using grep:
 
-For example:
+.. code-block:: shell
 
-.. code-block:: console
+   $ grep -RI \
+         -e ".. versionadded:: [0-9]" \
+         -e ".. versionchanged:: [0-9]" \
+         -e ".. deprecated:: [0-9]" \
+         -e "MongoDB [0-9]" \
+         source | \
+         grep -v "6\.2" | \
+         grep -v "6\.1" | \
+         grep -v "6\.0" | \
+         grep -v "5\.3" | \
+         grep -v "5\.1" | \
+         grep -v "5\.0" | \
+         grep -v "4\.4" | \
+         grep -v "4\.2" | \
+         grep -v "source/release-notes"
 
-   $ versc source/core/ | grep 2d.txt
-   2.2   -   source/core/2d.txt:22   <geospatial-legacy>` from MongoDB 2.2 or earlier, *and*
-   2.2   -   source/core/2d.txt:17   <geospatial-legacy>` used in MongoDB 2.2 and earlier.
+Alternatively, this content could be added to a script to work from an
+arbitrary directory:
 
-This output is not exhaustive (versc doesn't parse the reStructuedText, so it 
-isn't reading include files), but does provide a starting point in identifying
-references to EOL releases.
+.. code-block:: sh
 
+   grep -RIne ".. versionadded:: [0-9]" -e ".. versionchanged:: [0-9]" \
+         -e ".. deprecated:: [0-9]" -e "MongoDB [0-9]" $1 | \
+         grep -v "6\.2" | \
+         grep -v "6\.1" | \
+         grep -v "6\.0" | \
+         grep -v "5\.3" | \
+         grep -v "5\.1" | \
+         grep -v "5\.0" | \
+         grep -v "4\.4" | \
+         grep -v "4\.2" | \
+         grep -v "source/release-notes"
+
+Then, set provide the directory as an argument to the script:
+
+.. code-block:: shell
+
+   $ ./version.sh source
+   source/sharding.txt:128:- In MongoDB 4.0 and earlier, a document's shard key field value is
+   source/sharding.txt:351:   Starting in MongoDB 4.0.3, setting up zones and zone ranges *before*
+   source/sharding.txt:379:Starting in MongoDB 3.6, :doc:`change streams </changeStreams>` are
+
+Whenever a release goes EOL, remove the relevant ``grep -v`` line to ensure that
+its version references begin to appear in the results.
