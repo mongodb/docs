@@ -1,0 +1,608 @@
+.. _csharp-atlas-search:
+
+============
+Atlas Search
+============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide you can learn how to use the ``Search`` builder to build a ``$search``
+aggregation pipeline stage with the {+driver-long+}.
+
+To learn more about the ``$search`` pipeline stage, see :manual:`$search
+</reference/operator/aggregation/search/>`.
+
+.. note:: Only Available on Atlas for MongoDB v4.2 and Later
+
+   The ``$search`` aggregation-pipeline operator is available only for collections hosted
+   on :atlas:`MongoDB Atlas </>` clusters running MongoDB v4.2 or later that are
+   covered by an :atlas:`Atlas search index </reference/atlas-search/index-definitions/>`.
+   To earn more about the required setup and the functionality of this operator,
+   see the :ref:`Atlas Search <fts-top-ref>` documentation.
+
+The examples in this guide use the following documents in a collection called
+``guitars``:
+
+.. code-block:: json
+ 
+   { "_id": 1, "make": "Fender", "description": "Classic guitars known for their versatility.", "establishedYear": 1946, "in-stock": true, "rating": 9 }
+   { "_id": 2, "make": "Gibson", "description": "Classic guitars known for their rich, full tones.", "establishedYear": 1902, "in-stock": true, "rating": 8 }
+   { "_id": 3, "make": "PRS", "description": "High-end guitars known for their quality.", "establishedYear": 1985, "in-stock": true, "rating": 9 }
+   { "_id": 4, "make": "Kiesel", "description": "Quality guitars made only for custom orders.", "establishedYear": 2015, "in-stock": false }
+   { "_id": 5, "make": "Ibanez", "description": "Well-crafted guitars used by many professional guitarists.", "establishedYear": 1957, "in-stock": true, "rating": 7 }
+   { "_id": 6, "make": "Strandberg", "description": "Modern guitars known for their headless models.", "establishedYear": 1982, "in-stock": false }
+
+The following ``Guitar`` class models the documents in this collection.
+
+.. code-block:: csharp
+
+   public class Guitar
+   {
+       public int Id { get; set; }
+       public string Make { get; set; }
+       public List<string> Models { get; set; }
+       public int EstablishedYear { get; set; }
+       [BsonElement("in-stock")]
+       public bool InStock { get; set; }
+       public int? Rating { get; set; }
+   }
+
+.. note::
+
+   The documents in the ``guitars`` collection use the camel-case naming
+   convention. The examples in this guide use a ``ConventionPack``
+   to deserialize the fields in the collection into Pascal case and map them to
+   the properties in the ``Guitar`` class.
+
+   To learn more about custom serialization, see :ref:`csharp-custom-serialization`.
+
+Create an Atlas Search Index
+----------------------------
+
+Before you can perform a search on an Atlas collection, you must first create an **Atlas
+Search index** on the collection. An Atlas Search index is a data structure that
+categorizes data in a searchable format. 
+
+To learn how to create an Atlas Search Index see the
+:atlas:`Create an Atlas Search Index </atlas-search/create-index>` Atlas guide.
+
+Atlas Search Operators
+----------------------
+
+The ``Search`` class contains methods you can use to perform ``$search``
+operations. For a full list of available ``$search`` operators, see the :atlas:`Operators and Collectors
+</atlas-search/operators-and-collectors>` Atlas guide.
+
+.. note:: 
+
+   The ``Search`` class does not currently support the ``$embeddedDocument`` operator.
+
+Autocomplete
+~~~~~~~~~~~~
+
+Use the ``Autocomplete`` method to search for a word or phrase that contains a
+sequence of characters from an incomplete input string.
+
+The following example performs an autocomplete search on the ``guitars``
+collection using the string "Gib" in the ``make`` field.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-autocomplete-search
+   :end-before: // end-autocomplete-search
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+    { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+
+To learn more about the ``autocomplete`` operator, see the :atlas:`
+autocomplete </atlas-search/autocomplete>` Atlas guide.
+
+Compound
+~~~~~~~~
+
+Use the ``Compound`` method to combine two or more operators into a single
+search.
+
+The following example searches the ``guitars`` collection for any documents
+that match all of the following criteria:
+
+- The ``rating`` field exists on the document
+- The ``in-stock`` field is not ``false``
+- The ``establishedYear`` field has a value greater than 1940
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-compound-search
+   :end-before: // end-compound-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+
+To learn more about the ``compound`` operator, see the :atlas:`
+compound </atlas-search/compound>` Atlas guide.
+
+Equals
+~~~~~~
+
+Use the ``Equals`` method to check whether a field matches a specified ``bool``
+or ``ObjectId`` value.
+
+The following example searches the ``guitars`` collection for any documents in
+which the value of the ``in-stock`` field is ``true``.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-equals-search
+   :end-before: // end-equals-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+
+
+To learn more about the ``equals`` operator, see the :atlas:`
+equals </atlas-search/equals>` Atlas guide.
+
+Exists
+~~~~~~
+
+Use the ``Exists`` method to search for documents in which a specified indexed
+field name exists. If the specified field exists but is not indexed, the
+document is not included with the result set.
+
+The following example searches the ``guitars`` collection for any documents in
+which the ``rating`` field exists.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-exists-search
+   :end-before: // end-exists-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+
+
+To learn more about the ``exists`` operator, see the :atlas:`
+exists </atlas-search/exists>` Atlas guide.
+
+GeoShape
+~~~~~~~~
+
+Use the ``GeoShape`` method to search for documents in relation to a given
+geometry. When specifying the coordinates to search, longitude must be specified
+first, followed by latitude. Longitude values can be between ``-180`` and
+``180``, inclusive. Latitude values can be between ``-90`` and ``90``,
+inclusive.
+
+.. include:: /includes/atlas-search-support-note.rst
+
+Consider some documents in the ``guitars`` collection have added an
+``in-stock-location`` field. The changed documents in the collection now look as
+follows:
+
+.. code-block:: json
+ 
+   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
+   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
+
+The following example searches for all documents in which the
+coordinates in the ``in-stock-location`` field intersect with a specified
+polygon:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-geoshape-search
+   :end-before: // end-geoshape-search
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "in-stock-location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
+
+To learn more about the ``geoShape`` operator, see the :atlas:`
+geoShape </atlas-search/geoShape>` Atlas guide.
+
+GeoWithin
+~~~~~~~~~
+
+Use the ``GeoWithin`` method to search for documents in which the coordinates of
+their specified :manual:`GeoJSON </reference/geojson/>` field are within a given
+geometry. You can search for points that are within a:
+
+- Circle
+- Bounding box
+- Polygon
+
+When specifying the coordinates to search, longitude must be specified
+first, followed by latitude. Longitude values can be between ``-180`` and
+``180``, inclusive. Latitude values can be between ``-90`` and ``90``,
+inclusive.
+
+.. include:: /includes/atlas-search-support-note.rst
+
+Consider some documents in the ``guitars`` collection have added an
+``in-stock-location`` field. The changed documents in the collection now look as
+follows:
+
+.. code-block:: json
+ 
+   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
+   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in-stock": true, "in-stock-location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
+
+The following example searches for all documents in which the
+coordinates in the ``in-stock-location`` field falls within a specified
+polygon: 
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-geowithin-search
+   :end-before: // end-geowithin-search
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "in-stock-location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
+
+To learn more about the ``geoWithin`` operator, see the :atlas:`
+geoWithin </atlas-search/geoWithin>` Atlas guide.
+
+MoreLikeThis
+~~~~~~~~~~~~
+
+Use the ``MoreLikeThis`` method to search for documents that are similar to an
+input document.
+
+The following example searches the ``guitars`` collection for documents that are
+similar to an object in which the value of the ``Description`` field is "high
+quality."
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-morelikethis-search
+   :end-before: // end-morelikethis-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
+
+
+To learn more about the ``moreLikeThis`` operator, see the :atlas:`
+moreLikeThis </atlas-search/morelikethis>` Atlas guide.
+
+Near
+~~~~
+
+Use the ``Near`` method to search for documents in which a specified field is
+near a given value. You can perform the search on:
+
+- A number field
+- A date field
+- A geographic point
+
+The following example searches the ``guitars`` collection for documents in which
+the value of the ``rating`` field is near ``9``. The documents are returned in
+order based on how close the value is to the number ``9``.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-near-search
+   :end-before: // end-near-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+
+
+To learn more about the ``near`` operator, see the :atlas:`
+near </atlas-search/near>` Atlas guide.
+
+Phrase
+~~~~~~
+
+Use the ``Phrase`` method to search for documents in which a specified field
+contains an input string.
+
+The following example searches the ``guitars`` collection for documents in which
+the ``description`` field contains the phrase "classic guitars."
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-phrase-search
+   :end-before: // end-phrase-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+
+You can also search the collection for documents that match multiple separate
+phrases as follows:
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-multiphrase-search
+   :end-before: // end-multiphrase-search
+   :language: csharp
+   :dedent:
+
+This search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+
+To learn more about the ``phrase`` operator, see the :atlas:`
+phrase </atlas-search/phrase>` Atlas guide.
+
+QueryString
+~~~~~~~~~~~
+
+Use the ``QueryString`` method to search for documents using a string with
+the following operators and delimiters:
+
+- ``AND``
+- ``OR`` 
+- ``NOT``
+- ``()``
+
+The following example searches the ``guitars`` collection for documents in which
+the value of the ``description`` field matches each of the following criteria:
+
+- Contains the string "classic" *or* the string "quality"
+- Does not contain the string "custom"
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-querystring-search
+   :end-before: // end-querystring-search
+   :language: csharp
+   :dedent:
+
+The search returns the following documents:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+
+To learn more about the ``queryString`` operator, see the :atlas:`
+queryString </atlas-search/queryString>` Atlas guide.
+
+Range
+~~~~~
+
+Use the ``Range`` method to search for documents in which the value of a
+specified field falls within a given numeric or date range.
+
+The following example searches the ``guitars`` collection for all documents with
+an ``establishedYear`` value greater than 1980 and less than 2020.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-range-search
+   :end-before: // end-range-search
+   :language: csharp
+   :dedent:
+
+The search returns the following results:
+
+.. code-block:: json
+
+   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in-stock" : true, "rating" : 9 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
+   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in-stock" : false, "rating" : null }
+
+To learn more about the ``range`` operator, see the :atlas:`
+range </atlas-search/range>` Atlas guide.
+
+Regex
+~~~~~
+
+Use the ``Regex`` method to search for documents using a regular expression.
+
+The following example searches the ``guitars`` collection for documents in which
+the value of the ``make`` field contains exactly six letters.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-regex-search
+   :end-before: // end-regex-search
+   :language: csharp
+   :dedent:
+
+The search returns the following results:
+
+.. code-block:: json
+
+   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in-stock" : true, "rating" : 9 }
+   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in-stock" : true, "rating" : 8 }
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
+   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+
+.. note::
+
+   By default the ``regex`` operator cannot run on an analyzed field. You can
+   allow it to run on an analyzed field by setting ``allowAnalyzedField`` option
+   to true, as follows:
+
+   .. code-block:: csharp
+
+      var result = guitarsCollection.Aggregate()
+       .Search(Builders<Guitar>.Search.Regex(g => g.Make, regex, true))
+       .ToList();
+
+   Setting the ``allowAnalyzedField`` option to true may lead to unexpected
+   search results. To learn more, see :atlas:`regex Behavior
+   </atlas-search/regex/#behavior>`.
+
+To learn more about the ``regex`` operator, see the :atlas:`
+regex </atlas-search/regex>` Atlas guide.
+
+Span
+~~~~
+
+Use the ``Span`` method to search for text search matches within regions of a
+field. You can use this method to find strings which are near each other to
+specified degrees of precision.
+
+.. note::
+
+   The ``span`` operator is more computationally intensive than other operators
+   because queries must keep track of positional information.
+
+The following example searches the ``guitars`` collection for documents in which
+the value of the ``description`` field contains the strings "guitars" and
+"quality" within one word of each other.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-span-search
+   :end-before: // end-span-search
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in-stock" : false, "rating" : null }
+
+Although the document with ``_id: 3`` contains the strings "guitars" and
+"quality", they are separated by more than one word, so the search omits this
+document from the results.
+
+To learn more about the ``span`` operator, see the :atlas:`
+span </atlas-search/span>` Atlas guide.
+
+Text
+~~~~
+
+Use the ``Text`` method to search a document for a given string or array of
+strings. If there are multiple terms in a given string, Atlas Search also looks
+for a match for each term in the string separately.
+
+The following example searches the ``guitars`` collection for documents in which
+the value of the ``description`` field contains the string "used by
+professionals".
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-text-search
+   :end-before: // end-text-search
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in-stock" : true, "rating" : 7 }
+
+.. tip::
+
+   If your search string contains multiple terms, the method also looks for a match
+   for each term in the string separately.
+
+To learn more about the ``text`` operator, see the :atlas:`
+text </atlas-search/text>` Atlas guide.
+
+Wildcard
+~~~~~~~~
+
+Use the ``Wildcard`` method to search for documents using special characters in
+your search string that can match any character. You can use the following
+characters in your search:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Character
+     - Description
+   
+   * - ``?``
+     - Matches any single character
+
+   * - ``*``
+     - Matches 0 or more characters
+
+   * - ``\``
+     - Escape character
+
+The following example searches for documents in which the value of the ``make``
+field contains the string "Strand" followed by any other characters.
+
+.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
+   :start-after: // start-wildcard-search
+   :end-before: // end-wildcard-search
+   :language: csharp
+   :dedent:
+
+The search returns the following document:
+
+.. code-block:: json
+
+   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in-stock" : false, "rating" : null }
+
+.. note::
+
+   By default the ``wildcard`` operator cannot run on an analyzed field. You can
+   allow it to run on an analyzed field by setting ``allowAnalyzedField`` option
+   to true, as follows:
+
+   .. code-block:: csharp
+
+      var result =  guitarsCollection.Aggregate()
+       .Search(Builders<Guitar>.Search.Wildcard(g => g.Make, "Strand*", true))
+       .ToList();
+
+   Setting the ``allowAnalyzedField`` option to true may lead to unexpected
+   search results. To learn more, see :atlas:`wildcard Behavior
+   </atlas-search/wildcard/#behavior>`.
+
+To learn more about the ``wildcard`` operator, see the :atlas:`
+wildcard </atlas-search/wildcard>` Atlas guide.
