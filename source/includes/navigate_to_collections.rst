@@ -6,7 +6,8 @@
       :figwidth: 600px
       :alt: sample-data-cluster
 
-.. step:: Click the :guilabel:`Collections` tab.
+.. step:: Click 
+   the :guilabel:`Collections` tab.
 
    .. figure:: /images/sample-data-tab.png
       :figwidth: 600px
