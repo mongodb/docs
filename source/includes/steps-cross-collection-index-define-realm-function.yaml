@@ -1,4 +1,4 @@
-title: Create a New App
+title: Create a new app.
 ref: cci-create-a-new-app
 content: |
   To define a new server-side function from the UI, you must first create an {+app-services+} App:
@@ -17,13 +17,14 @@ content: |
 
   #. In the :guilabel:`Name` field, enter ``Sales-App`` as the name of the function.
 
-  #. Under the :guilabel:`Link your database` field, select the :guilabel:`Use an existing MongoDB Atlas Data Source` option.
+  #. Under the :guilabel:`Link your Database` field, select the :guilabel:`Use an existing MongoDB Atlas Data Source` option.
 
   #. From the dropdown, select the |service| cluster you created in the :ref:`fts-tutorials-prereqs`.
 
   #. Click :guilabel:`Create App Service`.
+
 ---
-title: Create a New Function
+title: Create a new function.
 ref: cci-create-a-new-function
 content: |
   To define a new server-side function from the UI:
@@ -37,7 +38,7 @@ content: |
   #. Under :guilabel:`Authentication`, select :guilabel:`System`. 
 
 ---
-title: Input the ``updateMonthlySales`` Function Code
+title: Input the ``updateMonthlySales`` function code.
 ref: write-the-function-code
 content: |
 
@@ -61,24 +62,30 @@ content: |
             }
           },
           { $set: { sales_price: { $toDouble: "$sales_price"}}},
-          { $merge: { into: "monthlysales", whenMatched: "replace" } } 
+          { $merge: { into: "monthlyPhoneTransactions", whenMatched: "replace" } } 
         ]
         
-        var monthlysales = context.services.get("mongodb-atlas").db("sample_supplies").collection("sales");
+        var monthlyPhoneTransactions = context.services.get("mongodb-atlas").db("sample_supplies").collection("sales");
         
-        return monthlysales.aggregate(pipeline);
+        return monthlyPhoneTransactions.aggregate(pipeline);
         };
 
   #. Click the :guilabel:`Run` button in the 
      lower right-hand corner of the :guilabel:`Function Editor`
-     to create the ``monthlysales`` materialized view.
+     to create the ``monthlyPhoneTransactions`` materialized view.
+
+     The :guilabel:`Result` tab at the bottom of the 
+     :guilabel:`Function Editor` should indicate success without any 
+     errors.
+
+  #. Click :guilabel:`Save Draft`.
 
 ---
-title: Test the Function
+title: Test the function.
 ref: test-the-function-code
 content: |
 
-  1. Open {+mongosh+} in a terminal window and
+  a. Open {+mongosh+} in a terminal window and
      connect to your cluster. For detailed instructions on connecting,
      see :doc:`/mongo-shell-connection`.
   
@@ -97,14 +104,26 @@ content: |
 
   #. Confirm that the materialized view has been created in your ``sample_supplies`` database:
      
-     .. code-block:: sh
+     .. io-code-block::
+        :copyable: true
+
+        .. input::
+           :language: sh
         
-        show collections
+           show collections
+
+        .. output::
+           :language: sh
+           :visible: false
+
+           monthlyPhoneTransactions
+           sales
 
      The command lists your collections, 
-     including the newly created ``monthlysales`` materialized view.
+     including the newly created ``monthlyPhoneTransactions`` 
+     materialized view.
     
-  #. Query the ``monthlysales`` materialized view:
+  #. Query the ``monthlyPhoneTransactions`` materialized view:
 
      .. io-code-block::
         :copyable: true
@@ -112,7 +131,7 @@ content: |
         .. input::
            :language: sh
 
-           db.monthlysales.find().sort( { _id: -1} )
+           db.monthlyPhoneTransactions.find().sort( { _id: -1} )
 
         .. output::
            :visible: false
@@ -221,320 +240,8 @@ content: |
               }
            ]
 
-  #. Update the ``sales`` collection with new phone sales data
-     from January of 2018. 
+     The ``monthlyPhoneTransactions`` materialized view shows the 
+     newly added data. The top result reflects that the most recent 
+     transaction took place in December 2017.
 
-     .. code-block:: json
-        
-        db.sales.insertMany( [
-          {
-            saleDate: ISODate("2018-01-23T21:06:49.506Z"),
-            items: [
-              {
-                name: 'printer paper',
-                tags: [ 'office', 'stationary' ],
-                price: Decimal128("40.01"),
-                quantity: 2
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("35.29"),
-                quantity: 2
-              },
-              {
-                name: 'pens',
-                tags: [ 'writing', 'office', 'school', 'stationary' ],
-                price: Decimal128("56.12"),
-                quantity: 5
-              },
-              {
-                name: 'backpack',
-                tags: [ 'school', 'travel', 'kids' ],
-                price: Decimal128("77.71"),
-                quantity: 2
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("18.47"),
-                quantity: 2
-              },
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("19.95"),
-                quantity: 8
-              },
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("8.08"),
-                quantity: 3
-              },
-              {
-                name: 'binder',
-                tags: [ 'school', 'general', 'organization' ],
-                price: Decimal128("14.16"),
-                quantity: 3
-              }
-            ],
-            storeLocation: 'Denver',
-            customer: {
-              gender: 'M',
-              age: 42,
-              email: 'cauho@witwuta.sv',
-              satisfaction: 4
-            },
-            couponUsed: true,
-            purchaseMethod: 'Phone'
-          },
-          {
-            saleDate: ISODate("2018-01-25T10:01:02.918Z"),
-            items: [
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("8.05"),
-                quantity: 10
-              },
-              {
-                name: 'binder',
-                tags: [ 'school', 'general', 'organization' ],
-                price: Decimal128("28.31"),
-                quantity: 9
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("20.95"),
-                quantity: 3
-              },
-              {
-                name: 'laptop',
-                tags: [ 'electronics', 'school', 'office' ],
-                price: Decimal128("866.5"),
-                quantity: 4
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("33.09"),
-                quantity: 4
-              },
-              {
-                name: 'printer paper',
-                tags: [ 'office', 'stationary' ],
-                price: Decimal128("37.55"),
-                quantity: 1
-              },
-              {
-                name: 'backpack',
-                tags: [ 'school', 'travel', 'kids' ],
-                price: Decimal128("83.28"),
-                quantity: 2
-              },
-              {
-                name: 'pens',
-                tags: [ 'writing', 'office', 'school', 'stationary' ],
-                price: Decimal128("42.9"),
-                quantity: 4
-              },
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("16.68"),
-                quantity: 2
-              }
-            ],
-            storeLocation: 'Seattle',
-            customer: { gender: 'M', age: 50, email: 'keecade@hem.uy', satisfaction: 5 },
-            couponUsed: false,
-            purchaseMethod: 'Phone'
-          },
-        ] )
-
-  #. Query the ``sales`` collection again to confirm the new sales entries.
-     The top 2 query results reflect that the sales data now ends in January of 2018:
-
-     .. io-code-block::
-        :copyable: true
-
-        .. input::
-           :language: sh
-
-            db.sales.find().sort( {saleDate: -1} )
-
-        .. output::
-           :language: sh
-           :visible: false
-
-
-           {
-            _id: ObjectId("62434c07d574cd0ce200ba75"),
-            saleDate: ISODate("2018-01-25T10:01:02.918Z"),
-            items: [
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("8.05"),
-                quantity: 10
-              },
-              {
-                name: 'binder',
-                tags: [ 'school', 'general', 'organization' ],
-                price: Decimal128("28.31"),
-                quantity: 9
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("20.95"),
-                quantity: 3
-              },
-              {
-                name: 'laptop',
-                tags: [ 'electronics', 'school', 'office' ],
-                price: Decimal128("866.5"),
-                quantity: 4
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("33.09"),
-                quantity: 4
-              },
-              {
-                name: 'printer paper',
-                tags: [ 'office', 'stationary' ],
-                price: Decimal128("37.55"),
-                quantity: 1
-              },
-              {
-                name: 'backpack',
-                tags: [ 'school', 'travel', 'kids' ],
-                price: Decimal128("83.28"),
-                quantity: 2
-              },
-              {
-                name: 'pens',
-                tags: [ 'writing', 'office', 'school', 'stationary' ],
-                price: Decimal128("42.9"),
-                quantity: 4
-              },
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("16.68"),
-                quantity: 2
-              }
-            ],
-            storeLocation: 'Seattle',
-            customer: { gender: 'M', age: 50, email: 'keecade@hem.uy', satisfaction: 5 },
-            couponUsed: false,
-            purchaseMethod: 'Phone'
-           },
-           {
-            _id: ObjectId("62434c07d574cd0ce200ba74"),
-            saleDate: ISODate("2018-01-23T21:06:49.506Z"),
-            items: [
-              {
-                name: 'printer paper',
-                tags: [ 'office', 'stationary' ],
-                price: Decimal128("40.01"),
-                quantity: 2
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("35.29"),
-                quantity: 2
-              },
-              {
-                name: 'pens',
-                tags: [ 'writing', 'office', 'school', 'stationary' ],
-                price: Decimal128("56.12"),
-                quantity: 5
-              },
-              {
-                name: 'backpack',
-                tags: [ 'school', 'travel', 'kids' ],
-                price: Decimal128("77.71"),
-                quantity: 2
-              },
-              {
-                name: 'notepad',
-                tags: [ 'office', 'writing', 'school' ],
-                price: Decimal128("18.47"),
-                quantity: 2
-              },
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("19.95"),
-                quantity: 8
-              },
-              {
-                name: 'envelopes',
-                tags: [ 'stationary', 'office', 'general' ],
-                price: Decimal128("8.08"),
-                quantity: 3
-              },
-              {
-                name: 'binder',
-                tags: [ 'school', 'general', 'organization' ],
-                price: Decimal128("14.16"),
-                quantity: 3
-              }
-            ],
-            storeLocation: 'Denver',
-            customer: {
-              gender: 'M',
-              age: 42,
-              email: 'cauho@witwuta.sv',
-              satisfaction: 4
-            },
-            couponUsed: true,
-            purchaseMethod: 'Phone'
-           },
-
----
-title: Update the Materialized View 
-ref: update-materialized-view
-content: | 
-
-  1. Return to your function draft in the {+app-services+} UI,
-     and click the :guilabel:`Run` button in the 
-     lower right-hand corner of the :guilabel:`Function Editor`.
-     The ``updateMonthlySales`` function refreshes the ``monthlysales`` materialized view using 
-     the January 2018 sales data. 
-
-  #. Click :guilabel:`Save Draft` from
-     either the :guilabel:`Function Editor` or :guilabel:`Settings` tab.
-
----
-title: Confirm the Updated
-ref: confirm-the-update
-content: |
-
-  Return to the {+mongosh+} and query the 
-  ``monthlysales`` materialized view to confirm the update. The top result returned by the query 
-  reflects the updated ``sales`` data for January 2018:
-
-  .. io-code-block::
-     :copyable: true
-
-     .. input::
-        :language: sh
-
-        db.monthlysales.find().sort( { _id: -1} )
-
-     .. output::
-        :language: json
-        :visible: false
- 
-        {
-          _id: '2018-01',
-          sales_quantity: 66,
-          sales_price: Decimal128("1407.10")
-        }
+...

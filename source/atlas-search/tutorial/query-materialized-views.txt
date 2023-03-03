@@ -1,0 +1,227 @@
+.. _query-materialized-views:
+
+=================================================
+How to Run |fts| Queries Using Materialized Views
+=================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas search, on demand materialized views, $match, $unwind, $group, $set, $merge, aggregation pipeline stages, atlas app services, create a function, create a scheduled trigger, create a materialized view index, query on materialized view, queries on multiple collections, queries across collections
+   :description:  In this tutorial, learn how to use a combination of on-demand materialized views and Atlas App Services scheduled triggers to create an Atlas Search index and query.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial describes how to create an index and run queries against 
+the  ``sample_supplies.sales`` collection from the :ref:`sample dataset 
+<sample-data>` and a new ``sample_supplies.purchaseOrders`` collection 
+using a combination of the following features:
+
+- :manual:`on-demand materialized views </core/materialized-views/>`
+- :realm:`{+atlas-app-services+} scheduled triggers 
+  </triggers/scheduled-triggers/>`
+
+An on-demand materialized view is a collection that you create and 
+update using a ``$merge`` aggregation pipeline stage. You can create an
+|fts| index on the materialized view and then run queries on the
+materialized view using the ``$search`` aggregation pipeline stage.
+
+This tutorial takes you through the following steps:
+
+1. Create a collection named ``purchaseOrders`` in the 
+   ``sample_supplies`` database.
+
+#. Create an {+app-services+} function named ``updateMonthlySales`` in
+   the {+app-services+} UI to initialize the 
+   ``monthlyPhoneTransactions`` 
+   materialized view using data from the sample 
+   ``sample_supplies.sales`` collection on your |service| 
+   {+cluster+}.
+
+#. Create an {+app-services+} function named 
+   ``updateMonthlyPurchaseOrders`` in the {+app-services+} UI to 
+   update the ``monthlyPhoneTransactions`` materialized view using data 
+   from the ``sample_supplies.purchaseOrders`` collection that you 
+   created on your |service| {+cluster+}.
+
+#. Schedule the following functions to update the 
+   ``monthlyPhoneTransactions`` materialized view on a periodic 
+   basis using {+app-services+} scheduled triggers:
+
+   a. ``updateMonthlySales``
+
+   #. ``updateMonthlyPurchaseOrders``
+   
+#. Create an |fts| index on the ``monthlyPhoneTransactions`` 
+   materialized view.
+
+#. Run a query on the ``monthlyPhoneTransactions`` materialized view.
+
+Before you begin, ensure that your |service| {+cluster+} meets the 
+requirements described in the :ref:`fts-tutorials-prereqs`.
+
+Create the ``purchaseOrders`` Collection
+----------------------------------------
+
+.. include:: /includes/steps/cross-collection-add-collection.rst
+
+Create the ``updateMonthlySales`` Function
+------------------------------------------
+
+Create the :ref:`updateMonthlySales <odmv-function-explained>` 
+function in the {+app-services+} UI.
+
+.. _odmv-function-explained:
+
+How the ``updateMonthlySales`` Function Works
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``updateMonthlySales`` function defines a 
+``monthlyPhoneTransactions`` materialized view that contains cumulative 
+monthly sales information. The function updates monthly sales 
+information for sales conducted over the phone.
+
+The following example defines the function:
+
+.. code-block:: javascript
+
+   exports = function(){
+      
+      var pipeline = [
+        { $match: {purchaseMethod: "Phone"} },
+        { $unwind: {path: "$items"}},
+        { $group: {
+         _id: { $dateToString:
+         { format: "%Y-%m", date: "$saleDate" } },
+         sales_quantity: { $sum: "$items.quantity"},
+         sales_price: { $sum: "$items.price"}
+        }},
+        { $set: { sales_price: { $toDouble: "$sales_price"}}},
+        { $merge: { into: "monthlyPhoneTransactions", whenMatched: "replace" } } 
+      ]
+      
+      var monthlyPhoneTransactions = context.services.get("mongodb-atlas").db("sample_supplies").collection("sales");
+      
+      return monthlyPhoneTransactions.aggregate(pipeline);
+   };
+
+The function uses the following  aggregation pipeline stages to update
+``monthlyPhoneTransactions``:
+
+- The :pipeline:`$match` stage filters the data to process only those
+  sales that were completed over the ``Phone``.
+
+- The :pipeline:`$group` stage groups the sales information by the
+  year-month. This stage outputs documents that have the form:
+ 
+  .. code-block:: javascript
+     :copyable: false
+
+     { "_id" : "<YYYY-mm>", "sales_quantity" : <num>, "sales_amount" : <NumberDecimal> }
+
+- The :pipeline:`$set` stage changes the data type of the ``sales_price``
+  field to ``double``. |fts| ``$search`` operators don't support the
+  ``Decimal128`` data type. Changing the ``sales_price`` field's data
+  type allows you to query this field using |fts| indexes.
+
+- The :pipeline:`$merge` stage writes the output to the
+  ``monthlyPhoneTransactions`` collection.
+
+  :ref:`Based <merge-on>` on the ``_id`` field, (the default for
+  unsharded output collections), the stage checks if the document in the
+  aggregation results :ref:`matches <merge-whenMatched>` an existing
+  document in the collection:
+
+  - When |fts| finds a :ref:`match <merge-whenMatched>` (that is, a
+    document with the same year-month already exists in the collection),
+    |fts| :ref:`replaces <merge-whenMatched-replace>` the existing
+    document with the document from the aggregation results as specified
+    in the stage.
+
+  - When |fts| doesn't find a :ref:`match <merge-whenNotMatched>`, |fts|
+    inserts the document from the aggregation results into the collection
+    as specified in the stage. This is the default behavior when there
+    is no match for the field.
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/cross-collection-index-define-realm-function.rst
+
+
+Create the ``updateMonthlyPurchaseOrders`` Function
+---------------------------------------------------
+
+Create the :ref:`updateMonthlyPurchaseOrders
+<odmv-function-explained-po>` function in the {+app-services+} UI.
+
+.. _odmv-function-explained-po:
+
+How the ``updateMonthlyPurchaseOrders`` Function Works
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``updateMonthlyPurchaseOrders`` function adds cumulative monthly 
+purchase order information to the ``monthlyPhoneTransactions`` 
+materialized view. The function updates the monthly purchase order 
+information for purchase orders conducted over the phone.
+
+The following example defines the function:
+
+.. code-block:: javascript
+
+   exports = function(){
+      
+      var pipeline = [
+        { $match: {purchaseMethod: "Phone"} },
+        { $unwind: {path: "$items"}},
+        { $group: {
+         _id: { $dateToString:
+         { format: "%Y-%m", date: "$saleDate" } },
+         sales_quantity: { $sum: "$items.quantity"},
+         sales_price: { $sum: "$items.price"}
+        }},
+        { $set: { sales_price: { $toDouble: "$sales_price"}}},
+        { $merge: { into: "monthlyPhoneTransactions", whenMatched: "replace" } } 
+      ]
+      
+      var monthlyPhoneTransactions = context.services.get("mongodb-atlas").db("sample_supplies").collection("purchaseOrders");
+      
+      return monthlyPhoneTransactions.aggregate(pipeline);
+   };
+
+The ``updateMonthlyPurchaseOrders`` function uses the same aggregation 
+pipeline stages to update ``monthlyPhoneTransactions`` as the 
+:ref:`updateMonthlySales <odmv-function-explained>` function.
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/cross-collection-define-po-function.rst
+
+Create Scheduled Triggers
+-------------------------
+
+Schedule the {+app-services+} functions created in the previous step
+to run once a day to keep the materialized view up-to-date.
+
+.. include:: /includes/steps/cross-collection-index-create-realm-scheduled-trigger.rst
+
+Create an Atlas Search Index on the Materialized View
+-----------------------------------------------------
+
+Create an |fts| index on the ``monthlyPhoneTransactions`` collection.
+
+.. include:: /includes/steps/cross-collection-index-create-index.rst
+
+Run a Query on the Materialized View
+------------------------------------
+
+Run a query against the newly updated and indexed 
+``monthlyPhoneTransactions`` collection.
+
+.. include:: /includes/steps/cross-collection-index-run-query.rst
+   

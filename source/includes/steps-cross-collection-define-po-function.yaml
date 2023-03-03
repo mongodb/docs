@@ -1,0 +1,95 @@
+---
+title: Create a New Function for the ``purchaseOrders`` collection.
+ref: cci-create-a-new-function-po
+content: |
+
+  To define a new server-side function from the UI:
+
+  a. Return to your {+app-services+} App.
+  
+  #. Click :guilabel:`Functions` in the left navigation menu.
+
+  #. Click :guilabel:`Create New Function`.
+
+  #. Enter ``updateMonthlyPurchaseOrders`` as the name of the function.
+
+  #. Under :guilabel:`Authentication`, select :guilabel:`System`. 
+
+---
+title: Input the ``updateMonthlyPurchaseOrders`` Function Code
+ref: write-the-function-code-po
+content: |
+
+  a. Click the :guilabel:`Function Editor` tab.
+
+  #. Add the javascript code to the ``exports`` function. 
+     At minimum, the code must assign a function 
+     to the global variable ``exports``:
+       
+     .. code-block:: javascript
+ 
+        exports = function(){
+           
+        var pipeline = [
+          { $match: {purchaseMethod: "Phone"} },
+          { $unwind: {path: "$items"}},
+          { $group: {
+            _id: { $dateToString:{ format: "%Y-%m", date: "$saleDate" } },
+            sales_quantity: { $sum: "$items.quantity"},
+            sales_price: { $sum: "$items.price"}
+            }
+          },
+          { $set: { sales_price: { $toDouble: "$sales_price"}}},
+          { $merge: { into: "monthlyPhoneTransactions", whenMatched: "replace" } } 
+        ]
+        
+        var monthlyPhoneTransactions = context.services.get("mongodb-atlas").db("sample_supplies").collection("purchaseOrders");
+        
+        return monthlyPhoneTransactions.aggregate(pipeline);
+        };
+
+  #. Click the :guilabel:`Run` button in the 
+     lower right-hand corner of the :guilabel:`Function Editor`
+     to update the ``monthlyPhoneTransactions`` materialized view.
+
+     The :guilabel:`Result` tab at the bottom of the 
+     :guilabel:`Function Editor` should indicate success without any 
+     errors.
+
+     The ``updateMonthlyPurchaseOrders`` function refreshes the 
+     ``monthlyPhoneTransactions`` materialized view with the January 
+     2018 purchase order data.
+
+  #. Click :guilabel:`Save Draft`.
+
+---
+title: Confirm the update.
+ref: confirm-the-update
+content: |
+
+  a. Return to the {+mongosh+} and query the 
+     ``monthlyPhoneTransactions`` collection to confirm the update:
+
+     .. io-code-block::
+        :copyable: true
+
+        .. input::
+           :language: sh
+
+           db.monthlyPhoneTransactions.find().sort( { _id: -1} )
+
+        .. output::
+           :language: json
+           :visible: false
+ 
+           {
+             _id: '2018-01',
+             sales_quantity: 66,
+             sales_price: Decimal128("1407.10")
+           }
+
+     The ``monthlyPhoneTransactions`` materialized view shows the 
+     newly added data. The top result reflects that the most recent 
+     transaction took place in January 2018.
+
+...
