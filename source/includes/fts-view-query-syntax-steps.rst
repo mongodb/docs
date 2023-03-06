@@ -1,33 +1,37 @@
 .. procedure::
    :style: normal
 
-   .. step:: Click :guilabel:`View Query Syntax` to view your query syntax 
+   .. step:: Click :guilabel:`Edit $search Query` to view your query syntax 
       in |json| format.
 
-      You can copy your query syntax in |json| format or export your query 
-      syntax to a programming language. See 
-      :ref:`fts-copy-export-query-syntax-ui` for more information.
+   .. step:: Edit or copy your query syntax.
 
-   .. step:: Copy or export your query syntax.
-
-      You can copy the query syntax in |json| format or export your query 
-      syntax to a programming language. 
+      You can edit or copy the query syntax in |json| format.
 
       .. procedure::
          :style: connected
       
-         .. step:: Copy Query Syntax 
+         .. step:: Edit Query Syntax 
+         
+            You can update the :pipeline:`$search` query in the Search
+            Editor and test it by clicking the :guilabel:`Search`
+            button.
 
+            .. important::
+            
+               When you finish editing your query, be sure to copy it. Once
+               you click :guilabel:`Close Search Editor`, the {+atlas-ui+}
+               discards your changes.
+      
+         .. step:: Copy Query Syntax 
+            
             Click :icon-fa4:`files-o` to copy the query syntax in |json| 
             format to your clipboard. You can run the copied query in your 
-            {+mongosh+} after :doc:`connecting </connect-to-database-deployment/>` to 
+            {+mongosh+} or |compass| after :doc:`connecting </connect-to-database-deployment/>` to 
             your |service| cluster.
-      
-         .. step:: Export Query Syntax 
-         
-            To export to your preferred language, click
-            :guilabel:`Export to Language` and select the programming
-            language and click :icon-fa4:`share-square-o`.
 
-   .. step:: Click :guilabel:`Close` to exit the :guilabel:`View Query 
-      Syntax` modal.
+   .. step:: Click :guilabel:`Close Search Editor` to exit the :guilabel:`Edit $search Query` modal.
+
+             .. note::
+                
+                The {+atlas-ui+} discards your changes when you exit the Search Tester Editor.

@@ -12,7 +12,7 @@
       .. procedure::
          :style: connected
       
-         .. step:: Enter the term to search in the :guilabel:`Search query` field.
+         .. step:: Enter the term to search in the search box.
          
          .. step:: Click :guilabel:`Search` to search the collection.
 
