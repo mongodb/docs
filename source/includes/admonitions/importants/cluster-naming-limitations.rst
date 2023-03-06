@@ -11,3 +11,6 @@
 
    - The first 23 characters in a cluster name must be unique
      within a project.
+
+   Don't include :ref:`sensitive information <sensitive-info>` in your 
+   {+cluster+} name.
