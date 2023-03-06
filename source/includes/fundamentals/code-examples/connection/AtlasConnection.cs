@@ -4,7 +4,7 @@ using MongoDB.Bson;
 // Replace the placeholders with your credentials
 const string connectionUri = "mongodb+srv://<username>:<password>@cluster0.sample.mongodb.net/?retryWrites=true&w=majority";
 
-var settings = MongoClientSettings.FromConnectionString(connectionString);
+var settings = MongoClientSettings.FromConnectionString(connectionUri);
 
 // Set the ServerApi field of the settings object to Stable API version 1
 settings.ServerApi = new ServerApi(ServerApiVersion.V1);
