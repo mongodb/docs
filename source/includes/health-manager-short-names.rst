@@ -1,3 +1,3 @@
 .. |HM| replace:: Health Manager
 .. |HMS| replace:: Health Managers
-.. |HMREF| replace:: :ref:`<health-managers-overview>`
+.. |HMREF| replace:: :ref:`Health Managers Overview <health-managers-overview>`
