@@ -1,3 +1,17 @@
+.. _opsmgr-server-6.0.10:
+
+|onprem| Server 6.0.10
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-03-02*
+
+- Updates the {+mdbagent+} to :ref:`12.0.18.7668
+  <mongodb-12.0.18.7668>`.
+- The {+mdbagent+} now compresses its own rotated logs.
+- Fixes an issue where sharded collections could be missing from the chunks dropdown for the backing cluster in the UI.
+- Fixes an issue where clicking the refresh button in the :guilabel:`Backup Job Timeline` UI resulted in a failure.
+- Includes the lastest version of MongoDB Shell 1.6.2.
+
 .. _opsmgr-server-6.0.9:
 
 |onprem| Server 6.0.9
