@@ -1,3 +1,12 @@
+.. _mongodb-12.0.18.7668:
+
+MongoDB Agent 12.0.18.7668
+--------------------------
+
+:ref:`Released with Ops Manager 6.0.10 on 2023-03-02 <opsmgr-server-6.0.10>`
+
+- The agent now compresses its own rotated logs.
+
 .. _mongodb-12.0.17.7665:
 
 MongoDB Agent 12.0.17.7665
