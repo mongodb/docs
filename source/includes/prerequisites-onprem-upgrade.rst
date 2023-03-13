@@ -38,5 +38,6 @@ required software includes:
 
 - All versions of MongoDB :dl:`Community </community>` or
   :dl:`Enterprise </enterprise>` that you want to install
-- Version :dl:`100.3.1 <database-tools>` or later of the
-  MongoDB Tools.
+- :db-tools:`MongoDB Tools </>`. The version of MongoDB Tools must
+  match the version that the :ref:`Ops Manager release notes
+  <mms-changelog>` list as compatible with your |onprem| version. 
