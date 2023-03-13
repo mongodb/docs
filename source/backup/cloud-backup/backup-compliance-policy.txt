@@ -1,0 +1,281 @@
+.. _backup-compliance-policy:
+
+====================================
+Configure a {+bcp+}
+====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you have strict data protection requirements, you can enable a 
+{+bcp+} to protect your backup data.
+
+.. include:: /includes/fact-you-cannot-disable-bcp.rst
+   
+.. _bcp-prohibited-actions:
+
+Prohibited Actions
+------------------
+
+If you enable a {+bcp+}, no user, regardless of role, can do the 
+following actions:
+
+- Disable the {+bcp+} without MongoDB support. To disable a {+bcp+}, 
+  the security or legal representative specified for the {+bcp+} must 
+  :ref:`request support <request-support>` and complete an extensive 
+  verification process.
+
+- Modify the :ref:`backup policy 
+  <cps-backup-policies>` for an individual {+cluster+} below the 
+  minimum requirements set in the {+bcp+}.
+
+- :ref:`Delete a backup snapshot <delete-snapshot>`.
+
+- Decrease the :ref:`retention time <cps-backup-policies>` for a 
+  snapshot after it's taken.
+
+- Disable :ref:`{+Cloud-Backup+} <create-cluster-backups>`.
+
+- Disable :ref:`{+PIT-Restore+} <create-cluster-backups>` if the 
+  {+bcp+} has the 
+  :guilabel:`Require Point in Time Restore to all clusters` option set 
+  to :guilabel:`On` without MongoDB Support. To disable 
+  {+PIT-Restore+}, the security or legal representative specified for 
+  the {+bcp+} must :ref:`request support <request-support>` and 
+  complete an extensive verification process.
+
+- Reduce the :ref:`{+PIT-Restore+} Restore Window <create-pit-policy>` 
+  without MongoDB Support. To reduce the {+PIT-Restore+} 
+  :guilabel:`Restore Window`, the security or legal representative 
+  specified for the {+bcp+} must :ref:`request support 
+  <request-support>` and complete an extensive verification process.
+
+- Delete :ref:`policy items <creating-backup-policy>` specified in the 
+  {+bcp+} without MongoDB Support. To delete policy items specified in 
+  the {+bcp+}, the security or legal representative specified for the 
+  {+bcp+} must :ref:`request support <request-support>` and complete an 
+  extensive verification process.
+
+- :ref:`Delete the project <delete-project>` if any snashots exist. 
+  If you can't remove all projects, you can't :ref:`delete the 
+  organization <delete-organization>`.
+
+.. _bcp-considerations:
+
+Considerations
+--------------
+
+After you enable a {+bcp+}, the following behaviors apply:
+
+- A {+bcp+} limits your ability to reduce backup storage costs. You 
+  can't adjust the retention or delete a backup to reduce the 
+  backup storage costs. To learn more, 
+  see :ref:`atlas-billing`.
+
+- All new and existing {+clusters+} have {+Cloud-Backup+} automatically 
+  enabled and use the project-level {+bcp+}. |service| augments any 
+  preexisting :ref:`{+cluster+}-level backup policies 
+  <cps-backup-policies>` to meet the minimum requirements of the 
+  {+bcp+}. All new {+clusters+} use the {+bcp+} unless the mininum 
+  requirements of the :ref:`{+cluster+}-level backup policy 
+  <cps-backup-policies>` expand beyond the mininum requirements of the 
+  {+bcp+}.
+  
+- You can modify the :ref:`{+cluster+}-level backup policies 
+  <cps-backup-policies>` at any time. If you reduce the frequency of a 
+  {+cluster+}-level backup policy, the change applies only to future 
+  backups. Any existing :term:`oplog` remains for the original window. 
+  The minimum requirements of the {+bcp+} apply.
+
+- If the {+bcp+} has the 
+  :guilabel:`Keep all snapshots when removing additional snapshot regions`
+  option set to :guilabel:`On` and you enable, modify, or 
+  delete :ref:`multi-region snapshots <snapshot-distribution>`, any 
+  snapshots already taken remain.
+
+- If you :ref:`terminate a {+cluster+} <terminate-cluster>`, |service| 
+  maintains all existing snapshots after the termination according to 
+  your backup policy. |service| retains the :term:`oplog` for 
+  :ref:`restoring a point in time with {+pit-restore+} 
+  <recover-pit-continuous-cloud-backup>` in a static state until 
+  |service| can no longer use them for {+pit-restore+}.
+
+- Whenever a user enables, modifies, or disables a {+bcp+}, |service| 
+  reflects the event in the :ref:`Project Activity Feed 
+  <view-activity-feed>`.
+
+Prerequisites
+-------------
+
+- You must have the :authrole:`Project Owner` role for 
+  the project or the :authrole:`Organization Owner` role for its parent 
+  organization.
+
+- Only MongoDB Support can do the following actions:
+ 
+  - Disable the {+bcp+}.
+   
+  - Disable :ref:`{+PIT-Restore+} <create-cluster-backups>` if the 
+    {+bcp+} has the 
+    :guilabel:`Require Point in Time Restore to all clusters` option 
+    set to :guilabel:`On`.
+
+  - Reduce the :ref:`{+PIT-Restore+} Restore Window 
+    <create-pit-policy>`.
+
+  - Delete :ref:`policy items <creating-backup-policy>` specified in 
+    the {+bcp+}.
+    
+- Only the specified security or legal representative can 
+  :ref:`request support <request-support>`.
+
+- You can apply a {+bcp+} to ``M10+`` {+dedicated-clusters+} only.
+
+  .. note::
+
+     You can't convert a {+dedicated-cluster+} to a ``M0`` 
+     {+free-clusters+}, an ``M2`` or ``M5`` {+shared-cluster+}, or a 
+     {+serverless-instance+}.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable the {+bcp+}.
+
+      .. include:: /includes/fact-you-cannot-disable-bcp.rst
+
+      a. If it is not already displayed, select the organization that
+         contains your desired project from the |ui-org-menu| in the
+         navigation bar.
+
+      #. If it is not already displayed, select your desired project
+         from the :guilabel:`Projects` menu in the navigation bar.
+
+      #. Next to the :guilabel:`Projects` menu, expand the
+         :guilabel:`Options` menu, then click 
+         :guilabel:`Project Settings`.
+
+      #. Toggle :guilabel:`Data Protection Policy` to :guilabel:`On`.
+
+         The :guilabel:`Edit Data Protection Policy` dialog opens. 
+
+         .. note::
+
+            This {+bcp+} applies as the minimum backup policy to all 
+            {+clusters+} in the project. The {+bcp+} protects all 
+            existing snapshots. The {+bcp+} prevents any user, 
+            regardless of role, from modifying or deleting existing 
+            snapshots prior to their expiration. Changes made to this 
+            {+bcp+} apply only to future snapshots. If you enable a 
+            {+bcp+}, the {+bcp+} limits your ability to reduce backup 
+            storage costs. You can't adjust the retention or delete a 
+            backup to reduce the backup storage costs.
+
+   .. step:: :ref:`Configure your backup policy <creating-backup-policy>`.
+
+      Each row in the :guilabel:`Backup Policy Frequency and Retention` 
+      table represents a backup policy item.
+
+      .. important::
+
+         After you save the {+bcp+}, you can't delete 
+         :ref:`policy items <creating-backup-policy>` 
+         specified in the {+bcp+} without MongoDB Support. To delete 
+         policy items specified in the {+bcp+}, the security or legal 
+         representative specified for the {+bcp+} must 
+         :ref:`request support <request-support>` and complete an 
+         extensive verification process. Ensure that you have the 
+         correct policy items before you save the {+bcp+}.
+
+      a. Do one of the following steps:
+      
+         - Select the frequency unit from :guilabel:`Frequency Unit` 
+           for a policy item.
+
+         - Click :guilabel:`Add Frequency Unit` to add a new policy 
+           item to your backup policy.
+
+      #. Select the frequency for the frequency unit from the
+         :guilabel:`Every` column.
+
+      #. Specify the retention time for the policy item in
+         the :guilabel:`Retention Time` column and the units for the 
+         retention time in the column to the right.
+
+   .. step:: (Optional) :ref:`Configure the restore window <create-pit-policy>`.
+
+      a. Toggle 
+         :guilabel:`Require Point in Time Restore to all clusters` to 
+         :guilabel:`On`.
+      
+      #. Specify a :guilabel:`Restore Window`.
+
+         .. important::
+
+            You can't configure a restore window that is longer than 
+            the :ref:`Hourly Snapshot Retention Time 
+            <creating-backup-policy>`. After you save this {+bcp+}, you 
+            can't change this setting without MongoDB support. To 
+            change this setting, the security or legal representative 
+            specified for the {+bcp+} must :ref:`request support 
+            <request-support>` and complete an extensive verification 
+            process.
+
+   .. step:: (Optional) :ref:`Require Encryption at Rest using Customer Key Management for all clusters <encrypted-cloud-provider-snapshot>`
+
+      Toggle :guilabel:`Require Encryption at Rest using Customer Key Management for all clusters` to :guilabel:`On`.
+
+      .. note::
+
+         To enable this option, you must 
+         :ref:`Enable Encryption at Rest <security-kms-encryption>` for 
+         all current {+clusters+}.
+
+   .. step:: (Optional) :ref:`Keep all snapshots when removing additional snapshot regions <snapshot-distribution>`.
+
+      You can prevent {+cluster+} users from deleting backups copied to 
+      other regions even if you change the 
+      :guilabel:`Copy to other regions` option to :guilabel:`Off`. To 
+      learn more, see :ref:`snapshot-distribution`.
+
+      - Toggle 
+        :guilabel:`Keep all snapshots when removing additional snapshot regions` to :guilabel:`On`.
+     
+   .. step:: Confirm and save the {+bcp+}.
+
+      a. Click :guilabel:`Next`.
+
+         .. include:: /includes/fact-you-cannot-disable-bcp.rst
+
+      #. Specify the :guilabel:`Email address of a security or legal representative`.
+
+      #. If you are *sure* that you want to save the {+bcp+}, specify 
+         the project name to continue.
+
+      #. Click the checkbox to confirm that you understand that when 
+         you enable a {+bcp+}, no user, regardless of role, can modify 
+         or delete backup snapshots. If you enable a {+bcp+}, the 
+         {+bcp+} limits your ability to reduce backup storage costs and 
+         you can *not* adjust the retention or delete a backup to 
+         reduce backup storage costs. Only MongoDB Support can disable 
+         a {+bcp+}. Only the specified security or legal representative 
+         can :ref:`request support <request-support>` to disable a 
+         {+bcp+}.
+
+      #. Click :guilabel:`Confirm and Save`.
+
+View Projects that have a {+bcp+} Enabled
+----------------------------------------------------------
+
+A {+bcp+} icon appears next to each project name that has a 
+{+bcp+} enabled.
+
+.. include:: /includes/steps/view-projects-ui.rst
