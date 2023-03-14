@@ -225,6 +225,10 @@ Filter by event
           - Cluster snapshot has been deleted
           - Cluster storage engine has been updated
           - Clustershot expiry has been updated.
+          - Disabling {+bcp+} has been completed.
+          - Disabling {+bcp+} has been requested.
+          - Enabling {+bcp+} has been completed.
+          - Enabling {+bcp+} has been requested.
           - Excluded namespaces were modified for cluster
           - Excluded namespaces were modified for replica set
           - Export snapshot failed
@@ -242,6 +246,8 @@ Filter by event
           - Snapshot schedule updated for replica set
           - Snapshot's retention has been edited
           - Tenant snapshot failed
+          - Updating {+bcp+} has been completed.
+          - Updating {+bcp+} has been requested.
           - Your snapshot download request failed because of a temporary error in provisioning resources. Please try again.
 
       * - Billing
