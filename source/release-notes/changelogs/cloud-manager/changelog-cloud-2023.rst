@@ -1,3 +1,11 @@
+.. _cloudmanager_20230301:
+
+01 March 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.13.0.8043 <12.13.0.8043>`.
+- Supports using multiple workers for a single file during backups.
+
 .. _cloudmanager_20230215:
 
 15 February 2023 Release
