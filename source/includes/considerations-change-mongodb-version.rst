@@ -24,6 +24,9 @@
 
    You cannot downgrade a MongoDB deployment:
 
-   - From version 3.6 to any version before 3.4.0
-   - From version 3.4 to any version before 3.2.8
+   - From version 5.0 to any version before 4.4.0
+   - From version 4.4 to any version before 4.2.6
+   - From version 4.2 to any version 4.0.12 (for Windows) or 4.0.7 
+     (for Linux)
+   - From version 4.0 to any version before 3.6.23
 
