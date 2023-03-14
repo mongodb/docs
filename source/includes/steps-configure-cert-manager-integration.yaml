@@ -1,6 +1,7 @@
-title: "Configure a cert-manager |certauth| issuer"
+stepnum: 1
+title: "Create a |certauth| secret."
 level: 4
-ref: configure-cert-manager-issuer
+ref: create-cert-auth-secret
 content: |
 
   .. note::
@@ -9,20 +10,37 @@ content: |
      |certauth| along with the corresponding ``tls.key`` private key 
      and ``tls.crt`` signed certificate.
 
-  1. Create a secret to store your |certauth| data:
+  Create a secret to store your |certauth| data:
 
-     .. code-block:: yaml
+  .. code-block:: yaml
 
-        apiVersion: v1
-        kind: Secret
-        metadata:
-          name: ca-key-pair
-          namespace: <namespace>
-        data:
-          tls.crt: <your-CA-certificate>
-          tls.key: <your-CA-private-key>
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: ca-key-pair
+       namespace: <namespace>
+     data:
+       tls.crt: <your-CA-certificate>
+       tls.key: <your-CA-private-key>
 
-  #. Create a |certauth| issuer that references this secret:
+---
+
+stepnum: 2
+ref: validate-tls-cert-for-cert-manager
+level: 4
+source:
+ file: steps-deploy-k8s-opsmgr-https.yaml
+ ref: validate-tls-cert
+
+---
+
+stepnum: 3
+title: "Configure a cert-manager |certauth| issuer"
+level: 4
+ref: configure-cert-manager-issuer
+content: |
+
+  a. Create a |certauth| issuer that references your |certauth| secret:
 
      .. code-block:: yaml
 
@@ -45,6 +63,7 @@ content: |
 
 ---
 
+stepnum: 4
 title: "Create a |certauth| ConfigMap"
 level: 4
 ref: create-ca-config-map
@@ -56,11 +75,12 @@ content: |
 
   .. code-block:: sh
 
-     kubectl create cm issuer-ca --from-literal=ca-pem=<CA-certificate> \
+     kubectl create cm ca-issuer --from-literal=ca-pem=<CA-certificate> \
      --from-literal=mms-ca.crt=<CA-certificate>
 
 ---
 
+stepnum: 5
 title: "Create certificates for your MongoDB resources"
 level: 4
 ref: create-cert-manager-certificate
@@ -70,8 +90,10 @@ content: |
   must create certificates for both the resource itself and the MongoDB
   agent. 
   
-  1. Create the MongoDB resource certificate. The following example 
+  a. Create the MongoDB resource certificate. The following example 
      assumes a replica set named `my-replica-set` with three members:
+
+     .. include:: /includes/fact-issuerRef.rst
 
      .. code-block:: yaml
 
@@ -92,16 +114,18 @@ content: |
           issuerRef:
             name: ca-issuer
           renewBefore: 120h0m0s
-          secretName: mdb-my-replica-set-cert
+          secretName: mdb-my-replica-set-agent-certs
           usages:
           - server auth
           - client auth
 
-  For sharded clusters, you must create one certificate for each
-  statefulset. To learn more about sharded cluster configuration, see 
-  :ref:`deploy-sharded-cluster`.
+     For sharded clusters, you must create one certificate for each
+     |k8s-statefulset|. To learn more about sharded cluster 
+     configuration, see :ref:`deploy-sharded-cluster`.
 
   #. Create the MongoDB agent certificate:
+
+     .. include:: /includes/fact-issuerRef.rst
 
      .. code-block:: yaml
 
@@ -137,6 +161,11 @@ content: |
 
   #. Create the MongoDB resource:
 
+     .. note::
+
+        If you leave the :opsmgrkube:`spec.security.tls.ca` 
+        parameter unspecified, it defaults to ``{replica-set}-ca``.
+
      .. code-block:: yaml
 
         apiVersion: mongodb.com/v1
@@ -161,12 +190,13 @@ content: |
               enabled: true
               modes:
               - X509
-          tls:
-            ca: issuer-ca
-            enabled: true
+            tls:
+              ca: ca-issuer
+              enabled: true
 
 ---
 
+stepnum: 6
 title: "Create certificates for |onprem| and AppDB with TLS"
 level: 4
 ref: create-om-appdb-tls-certs
@@ -175,7 +205,9 @@ content: |
   To secure an |onprem| resource, you must first create certificates
   for |onprem| and AppDB, then create the |onprem| resource.
 
-  1. Create the Ops Manager certificate:
+  a. Create the Ops Manager certificate:
+
+     .. include:: /includes/fact-issuerRef.rst
 
      .. code-block:: yaml
 
@@ -191,12 +223,14 @@ content: |
           issuerRef:
             name: ca-issuer
           renewBefore: 120h0m0s
-          secretName: mdb-op-with-https-cert
+          secretName: mdb-om-with-https-cert
           usages:
           - server auth
           - client auth
 
   #. Create the AppDB certificate:
+
+     .. include:: /includes/fact-issuerRef.rst
 
      .. code-block:: yaml
 
@@ -238,10 +272,10 @@ content: |
             security:
               certsSecretPrefix: appdb
               tls:
-                ca: issuer-ca
-            version: 4.4.0-ent
+                ca: ca-issuer
+            version: 6.0.0
           replicas: 1
           security:
             certsSecretPrefix: mdb
             tls:
-              ca: issuer-ca
+              ca: ca-issuer
