@@ -247,7 +247,28 @@ when:
   different node as the one that creates snapshots. If |service| deems
   the selected node as unhealthy, it tries to snapshot the next node
   that it favors.
- 
+
+The backup cost for {+Cloud-Backup+}s is calculated per GB per month.
+Rates vary between cloud providers and between regions within a given
+cloud provider.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25 50
+
+   * - Cloud Provider
+     - Cost per GB
+
+   * - |aws|
+     - $0.14 to $0.19
+
+   * - |azure|
+     - $0.34 to $0.65
+
+   * - |gcp|
+     - $0.08 to $0.12
+
 |service| can bill backup as high as the total storage capacity of the
 volume. This depends upon how the cloud provider stores the volume
 snapshots.
@@ -259,81 +280,26 @@ snapshots.
    volume capacity even though your backups only occupy 500 GB. Due to
    this reporting, |service| bills you for 4 TB in backup storage.
 
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
 
-.. tabs-cloud-providers::
+   * - Cluster Type
+     - Backup Billing Basis
 
-   .. tab::
-      :tabid: azure
+   * - Single-Region
+     - Region where |service| takes and stores the snapshot.
 
-      .. list-table::
-         :widths: 30 70
-         :header-rows: 1
+       |service| selects the lowest priority node of the {+cluster+}
+       *at the time the snapshot is taken*. |service| stores snapshots
+       in the same cloud region as the {+cluster+}.
 
-         * - Cluster Type
-           - Backup Billing Basis
+   * - Multi-Region
+     - Region with the highest priority.
 
-         * - Single-Region
-           - Region where |service| takes and stores the snapshot.
-
-             |service| selects the lowest priority node of the cluster
-             *at the time the snapshot is taken*. It stores snapshots
-             in the same cloud region as the cluster.
-
-         * - Multi-Region
-           - Region with the highest priority.
-
-             |service| selects the lowest priority cluster node in the
-             highest priority region to take Backup snapshots and store
-             them.
-
-
-   .. tab::
-      :tabid: aws
-
-      .. list-table::
-         :widths: 30 70
-         :header-rows: 1
-
-         * - Cluster Type
-           - Backup Billing Basis
-
-         * - Single-Region
-           - Region where |service| takes and stores the snapshot.
-
-             |service| selects the lowest priority node of the cluster
-             *at the time the snapshot is taken*. It stores snapshots
-             in the same cloud region as the cluster.
-
-         * - Multi-Region
-           - Region with the highest priority.
-
-             |service| selects the lowest priority cluster node in the
-             highest priority region to take Backup snapshots and
-             store them.
-
-   .. tab::
-      :tabid: gcp
-
-      .. list-table::
-         :widths: 30 70
-         :header-rows: 1
-
-         * - Cluster Type
-           - Backup Billing Basis
-
-         * - Single-Region
-           - Region where |service| takes and stores the snapshot.
-
-             |service| selects the lowest priority node of the cluster
-             *at the time the snapshot is taken*. It stores snapshots
-             in the same cloud region as the cluster.
-
-         * - Multi-Region
-           - Region with the highest priority.
-
-             |service| selects the lowest priority cluster node in the
-             highest priority region to take Backup snapshots and store
-             them.
+       |service| selects the lowest priority {+cluster+} node in the
+       highest priority region to take Backup snapshots and store
+       them.
 
 If the existing snapshot storage volume becomes invalid, |service|
 creates a new snapshot storage volume in the same region as the
@@ -344,6 +310,7 @@ the few days required to re-establish incremental snapshots.
 
 To learn more about how |service| manages snapshot storage, see
 :ref:`backup-cloud-provider`.
+
 
 When restoring a cluster using a manual download via |https|, |service|
 also charges for:
@@ -388,50 +355,53 @@ changed between snapshots.
 
 To compute the cost for {+PIT-Restore+}s, |service| obtains the raw
 metric data from the cloud providers and calculates the *total* size of
-all snapshots based on the region where it stores the snapshot and the
-amount of storage used per month:
+all snapshots. It then applies a cost per GB determined by:
 
-.. tabs-cloud-providers::
-   :hidden:
+- The cloud provider
+- The region in which the snapshots are stored
+- The usage tier
 
-   .. tab::
-      :tabid: azure
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25 15 15 15 15 15
 
-      .. include:: /includes/list-tables/backup-pricing/azure.rst
+   * - Cloud Provider
+     - 0-5 GB Storage Used
+     - 5-100 GB Storage Used
+     - 100-250 GB Storage Used
+     - 250-500 GB Storage Used
+     - >500 GB Storage Used
 
-      .. example::
+   * - |aws|
+     - 
+     - $1.00 to $1.55
+     - $0.75 to $1.20
+     - $0.50 to $0.80
+     - $0.25 to $0.40
 
-         A cluster in the ``westus`` region has a combined total
-         snapshot and oplog size of 115 GB. The first 5 GB are free.
-         The remaining 110 GB are billed at:
+   * - |azure|
+     - 
+     - $1.00 to $3.95
+     - $0.75 to $2.95
+     - $0.50 to $2.00
+     - $0.25 to $1.00
 
-         (95 × $2.35) + (15 × $1.75) = $249.50 per month
+   * - |gcp|
+     - 
+     - $0.60 to $0.95
+     - $0.45 to $0.70
+     - $0.30 to $0.50
+     - $0.15 to $0.25
 
-   .. tab::
-      :tabid: aws
+.. example::
 
-      .. include:: /includes/list-tables/backup-pricing/aws.rst
+   A cluster on |aws| in the ``US_EAST_1`` region has a combined total 
+   snapshot and oplog size of 115 GB. The first 5 GB are free. The 
+   remaining 110 GB are billed at $1.00 from 5 to 100 GB, and at $0.75
+   from 100 GB to 115 GB:
 
-      .. example::
-
-         A cluster in the ``US_EAST_1`` region has a combined total
-         snapshot and oplog size of 115 GB. The first 5 GB are free.
-         The remaining 110 GB are billed at:
-
-         (95 × $1.00) + (15 × $0.75) = $106.25 per month
-
-   .. tab::
-      :tabid: gcp
-
-      .. include:: /includes/list-tables/backup-pricing/gcp.rst
-
-      .. example::
-
-         A cluster in the ``us-west1`` region has a combined total
-         snapshot and oplog size of 115 GB. The first 5 GB are free.
-         The remaining 110 GB are billed at:
-
-         (95 × $0.60) + (15 × $0.45) = $63.75 per month
+   (95 × $1.00) + (15 × $0.75) = $106.25 per month
 
 Snapshot Distribution Costs
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
