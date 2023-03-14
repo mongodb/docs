@@ -25,6 +25,8 @@ MongoDB Agent 12.11.2.7970-1
 
 *Released* 2023-02-07
 
+- Fixes ``collStats`` and ``db.currentOp()`` errors that caused missing data from the :guilabel:`Slowest Operations` chart in the Real-Time Performance Panel. 
+
 .. _12.11.0.7961:
 
 MongoDB Agent 12.11.0.7961
