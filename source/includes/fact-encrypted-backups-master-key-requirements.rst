@@ -2,7 +2,7 @@
 
    |service| requires access to the encryption key associated to the
    snapshot's :guilabel:`Encryption Key ID` to successfully 
-   :ref:`restore that snapshot <restore-encrypted-snapshot>`.
+   :ref:`restore that snapshot <restore-from-ear>`.
 
    Before deleting an Encryption Key ID used with |service| Encryption 
    at Rest using your Key Management, check **every** backup-enabled 

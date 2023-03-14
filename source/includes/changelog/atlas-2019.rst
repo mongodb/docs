@@ -74,7 +74,7 @@
   in the |gcp| Brazil (São Paulo) region.
 - Supports ``M0`` {+free-clusters+} in the |aws| Syndey region.
 - Enables faster
-  :ref:`restores from {+Cloud-Backup+} backups <restore-cloud-provider-snapshot-atlas>`.
+  :ref:`restores from {+Cloud-Backup+} backups <restore-from-snapshot>`.
 
 .. _atlas-v20191001:
 

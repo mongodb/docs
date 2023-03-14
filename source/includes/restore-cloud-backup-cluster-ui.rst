@@ -18,4 +18,4 @@
      <restore-cloud-provider-snapshot-download>`.
 
    - :ref:`Restore your snapshot to an Atlas {+cluster+} 
-     <m2-m5-restore-project>`.
+     <restore-from-snapshot>`.

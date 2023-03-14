@@ -1,0 +1,125 @@
+.. _restore-from-ear:
+
+================================================
+Restore from a Snapshot Using Encryption at Rest
+================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: restore, backup, encryption, encryption at rest, encrypted
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+|service| lets you restore data from a snapshot of a {+cluster+} using
+{+encrypt-at-rest+}
+
+Restore Restrictions
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-restore-reqs.rst
+
+- This feature is only available for ``M10+`` dedicated {+clusters+}.
+
+- |service| can only restore to a {+cluster+} that uses the same 
+  encryption provider as the source {+cluster+}. Snapshots taken from 
+  {+clusters+} without {+encrypt-at-rest+} cannot be restored to a 
+  {+cluster+} with it, or to a |mms| project.
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/fact-restore-cluster-downtime-warning.rst
+
+.. important::
+
+   If the target project doesn't have a {+cluster+} with Encryption at
+   Rest enabled, you can either
+   :ref:`deploy <create-cluster-enable-encryption>` a {+cluster+} with
+   Encryption at Rest, or
+   :ref:`enable Encryption at Rest <scale-cluster-enable-encryption>`
+   in an existing {+cluster+}.
+
+   Clusters that use :ref:`AWS KMS <security-aws-kms>` encrypt their
+   |pit| restore :term:`oplog` data with the customer's |cmk|. The
+   current |cmk| must be valid for the encrypted oplog data to perform
+   a restore from a snapshot.
+
+#. Click :guilabel:`Database` in the top-left corner of |service|.
+
+#. From the :guilabel:`{+Database-Deployments+}` view, click on the 
+   cluster name.
+
+#. Click the :guilabel:`Backup` tab.
+
+   If the cluster has no :guilabel:`Backup` tab, then |service| backups
+   are disabled for that cluster and no snapshots are available.
+   You can enable backups when
+   :ref:`modifying the cluster <scale-cluster-backups>`.
+
+#. Click :guilabel:`Restore` in the :guilabel:`Actions` column
+   for the snapshot you want to restore.
+
+#. From the :guilabel:`Restore` dialog, select the target |service|
+   :guilabel:`Project` to which you want to restore. You can restore to
+   any |service| project for which the authenticated |service| user has
+   the :authrole:`Project Owner` role.
+
+#. Select the :guilabel:`Cluster` to restore to. You can only restore
+   to an |service| replica set running Encryption at Rest. The target
+   cluster must run the same or greater version of MongoDB as the
+   :guilabel:`MongoDB Version` of the snapshot.
+
+   After the restoration procedure, |service| triggers a key rotation
+   for MongoDB encryption key. |service| then encrypts the new MongoDB
+   encryption keys based on the configured Encryption at Rest provider
+   for the target cluster.
+
+#. Restart your application and ensure it uses the new target
+   cluster.
+
+Troubleshooting Encryption at Rest
+``````````````````````````````````
+
+If |service| has an issue with the encryption of either the snapshot
+or the target cluster, it displays one of the following errors:
+
+.. list-table::
+   :widths: 40 60
+   :stub-columns: 1
+   :header-rows: 1
+
+   * - Error
+
+     - Result
+
+   * - Cannot restore a non-encrypted snapshot to a cluster with
+       Encryption at Rest enabled.
+
+     - The snapshot cannot be restored to |service|.
+
+   * - Target cluster does not have encryption enabled.
+
+     - You can either :ref:`deploy <create-cluster-enable-encryption>`
+       a new target cluster with Encryption at Rest, or
+       :ref:`enable Encryption at Rest <scale-cluster-enable-encryption>`
+       on your desired target cluster.
+
+   * - Encryption provider of target cluster does not match selected
+       snapshot's encryption provider.
+
+     - The encryption provider for the snapshot and target cluster
+       do not match. You can either:
+
+       1. Create a new snapshot with the same encryption provider.
+       #. Change the encryption provider for the target cluster.
+
+   * - Encryption credentials on snapshot are not present.
+
+     - |service| cannot restore a snapshot whose encryption key was
+       deleted.
