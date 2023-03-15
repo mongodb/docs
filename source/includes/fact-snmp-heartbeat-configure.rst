@@ -1,5 +1,7 @@
 |onprem| uses :rfc:`community-based SNMPv2 (SNMPv2c) <1901>`.
 
+.. include:: /includes/fact-snmp-alerts-deprecated.rst
+
 You can configure the |application| with two different types of |snmp|
 Traps:
 

@@ -252,6 +252,8 @@
        send SNMP traps only to the standard SNMP port (162). Only 
        accepted for ``SNMP`` notifications. 
 
+       .. include:: /includes/fact-snmp-alerts-deprecated.rst
+
        .. note::
 
           |mms| uses SNMP v2c.
@@ -267,6 +269,9 @@
        - ``GROUP``
        - ``USER``
        - ``SNMP``
+        
+         .. include:: /includes/fact-snmp-alerts-deprecated.rst 
+       
        - ``EMAIL``
        - ``SMS`` (Available only if |mms| is configured for :ref:`Twilio integration <twilio-sms-alert-settings>`.)
        - ``HIPCHAT``

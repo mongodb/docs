@@ -25,6 +25,8 @@ for each host in the deployment: |mms|, {+mdbagent+} and MongoDB.
 Entries for |ldap|, Kerberos, |snmp| and email hosts as well as load
 balancers would be recommended.
 
+.. include:: /includes/fact-snmp-alerts-deprecated.rst
+
 Edit Host Files
 ```````````````
 

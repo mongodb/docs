@@ -147,6 +147,8 @@ Ports Needed to Integrate |mms| with SNMP
 To send and receive SNMP messages to and from your MongoDB deployments
 must open the following ports between |mms| and your SNMP Manager.
 
+.. include:: /includes/fact-snmp-alerts-deprecated.rst
+
 .. list-table::
    :header-rows: 1
    :widths: 15,10,10,15,35,15
