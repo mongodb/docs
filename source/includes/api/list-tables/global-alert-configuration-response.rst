@@ -226,7 +226,9 @@
      - string
      - Hostname and port to send SNMP traps to. At this time |mms| can 
        send SNMP traps only to the standard SNMP port (162). Only 
-       present for ``SNMP`` notifications. 
+       present for ``SNMP`` notifications.
+
+       .. include:: /includes/fact-snmp-alerts-deprecated.rst
 
        .. note::
 
@@ -241,6 +243,9 @@
        - ``GROUP``
        - ``USER``
        - ``SNMP``
+
+         .. include:: /includes/fact-snmp-alerts-deprecated.rst
+
        - ``EMAIL``
        - ``SMS`` (Available only if |mms| is configured for :ref:`Twilio integration <twilio-sms-alert-settings>`.)
        - ``HIPCHAT``

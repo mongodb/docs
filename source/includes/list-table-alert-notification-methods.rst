@@ -43,6 +43,8 @@
           standard port ``162``. The |snmp-mib| file for |snmp| is
           `available for download <http://downloads.mongodb.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`_.
 
+          .. include:: /includes/fact-snmp-alerts-deprecated.rst
+
       * - Email
         - :icon:`check`
         - :icon:`check`
