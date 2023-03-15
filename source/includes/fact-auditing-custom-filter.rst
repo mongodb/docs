@@ -27,7 +27,8 @@ auditing filters, see :manual:`Configure Audit Filter
    one election per replica set. 
 
    To learn more about testing application resilience to replica set
-   elections, see :doc:`/tutorial/test-failover-or-outage/test-failover`. To learn more about 
-   how |service| provides high availability, see
+   elections, see
+   :doc:`/tutorial/test-resilience/test-primary-failover`. To learn more
+   about how |service| provides high availability, see
    :ref:`Atlas High Availability <high-availability>`. 
    

@@ -103,10 +103,10 @@ Actions
    * - Use Predefined :doc:`Replica Set Tags </reference/replica-set-tags>`
      - 
 
-   * - :doc:`Test Failover </tutorial/test-failover-or-outage/test-failover>`
+   * - :doc:`Test Primary Failover </tutorial/test-resilience/test-primary-failover>`
      - 
 
-   * - :doc:`Test Outage </tutorial/test-failover-or-outage/test-outage>`
+   * - :doc:`Simulate Regional Outage </tutorial/test-resilience/simulate-regional-outage>` 
      - 
 
    * - :doc:`Encryption at Rest Using Key Management </security-kms-encryption/>`
