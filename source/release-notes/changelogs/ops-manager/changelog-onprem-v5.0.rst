@@ -1,3 +1,19 @@
+.. _opsmgr-server-5.0.20:
+
+|onprem| Sever 5.0.20
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-03-15*
+
+- Updates the {+mdbagent+} to :ref:`11.0.25.7136 
+  <mongodb-11.0.25.7136>`.
+- Updates `Apache Commons FileUpload 
+  <https://commons.apache.org/proper/commons-fileupload/>`_ to 1.5 to 
+  address `CVE-2023-24998 
+  <https://nvd.nist.gov/vuln/detail/CVE-2023-24998>`_.
+- Adds an option to support using multiple workers for a single file 
+  during backups.
+
 .. _opsmgr-server-5.0.19:
 
 |onprem| Server 5.0.19
