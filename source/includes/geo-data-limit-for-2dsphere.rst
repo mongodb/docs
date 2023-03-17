@@ -1,4 +1,4 @@
-Fields with :doc:`2dsphere </core/2dsphere>` indexes must hold geometry
+Fields with :ref:`2dsphere <2dsphere-index>` indexes must hold geometry
 data in the form of :term:`coordinate pairs <legacy coordinate pairs>`
 or :term:`GeoJSON` data. If you attempt to insert a document with
 non-geometry data in a ``2dsphere`` indexed field, or build a

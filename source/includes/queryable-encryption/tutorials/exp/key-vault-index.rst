@@ -1,5 +1,5 @@
 Create a unique index on the ``keyAltNames`` field in your
-``encryption.__keyVault`` collection.
+``encryption.__keyVault`` namespace.
 
 .. include:: /includes/queryable-encryption/tab-note.rst
 
@@ -34,6 +34,8 @@ Create a unique index on the ``keyAltNames`` field in your
 
    .. tab::
       :tabid: go
+
+      .. include:: /includes/queryable-encryption/tutorials/go-build-constraint.rst
 
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
          :start-after: start-create-index

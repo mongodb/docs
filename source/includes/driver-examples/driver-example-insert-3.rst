@@ -35,7 +35,7 @@
             ]
 
          For instructions on inserting documents using |compass|, see
-         :doc:`Insert Documents </tutorial/insert-documents/>`.
+         :ref:`Insert Documents <write-op-insert>`.
 
      - id: python
        content: |

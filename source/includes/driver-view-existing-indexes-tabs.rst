@@ -44,9 +44,9 @@
          List Specific Type of Indexes
          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-         To list all indexes of a certain type (such as :doc:`hashed
-         </core/index-hashed>` or :doc:`text </core/index-text>`) for all
-         collections in all database, run the following command in
+         To list all indexes of a certain type (such as :ref:`hashed
+         <index-type-hashed>` or :ref:`text <index-feature-text>`) for 
+         all collections in all database, run the following command in
          :binary:`~bin.mongosh`:
 
          .. code-block:: javascript

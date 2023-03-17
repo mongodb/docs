@@ -1,6 +1,6 @@
 
-.. warning:: MongoDB {+version+} Not Yet Available
+.. warning:: MongoDB {+version-dev+} Not Yet Available
 
-   MongoDB {+version+} release candidates are not yet available.
-   This version of the manual is for an upcoming release and is
-   currently a work in progress.
+   MongoDB {+version-dev+} release candidates are not yet
+   available. This version of the manual is for an upcoming release and
+   is currently a work in progress.

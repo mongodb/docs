@@ -9,13 +9,21 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-key-vault
+               :end-before: end-key-vault
+               :language: javascript
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -25,7 +33,6 @@
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -35,7 +42,6 @@
                :start-after: start-key-vault
                :end-before: end-key-vault
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
 
          .. tab::
@@ -46,7 +52,6 @@
                :end-before: end-key-vault
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: csharp
@@ -56,16 +61,22 @@
                :end-before: end-key-vault
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
    .. step:: Specify your AWS Credentials
 
       Specify the ``aws`` KMS provider and your {+aws-iam-abbr+} user
       credentials:
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/iam-credentials-note.rst
-
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-kmsproviders
+               :end-before: end-kmsproviders
+               :language: javascript
+               :dedent:
 
          .. tab::
             :tabid: nodejs
@@ -74,7 +85,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -84,7 +94,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -95,7 +104,8 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
+
+            .. include:: /includes/tutorials/automatic/aws/obtain-automatic-credentials.rst
 
          .. tab::
             :tabid: go
@@ -104,7 +114,6 @@
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
 
          .. tab::
@@ -115,20 +124,27 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
    .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-schema
+               :end-before: end-schema
+               :language: javascript
+               :dedent:
+
+         .. tab::
             :tabid: nodejs
 
             .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
                :start-after: start-schema
                :end-before: end-schema
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -138,7 +154,6 @@
                :start-after: start-schema
                :end-before: end-schema
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -149,7 +164,6 @@
                :end-before: end-schema
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: go
@@ -158,7 +172,6 @@
                :start-after: start-schema
                :end-before: end-schema
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
 
          .. tab::
@@ -169,11 +182,18 @@
                :end-before: end-schema
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
    .. step:: Specify the Location of the {+shared-library+}
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. code-block:: none
+
+               // mongosh does not require you to specify the
+               // location of the {+shared-library+} 
 
          .. tab::
             :tabid: nodejs
@@ -182,7 +202,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -192,7 +211,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -203,7 +221,6 @@
                :end-before: end-extra-options
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: go
@@ -212,7 +229,6 @@
                :start-after: start-extra-options
                :end-before: end-extra-options
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
    
          .. tab::
@@ -223,16 +239,24 @@
                :end-before: end-extra-options
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs
 
       .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
 
    .. step:: Create the MongoClient
 
-      Instantiate a MongoDB client object with the following
-      automatic encryption settings:
+      Instantiate a MongoDB client object with the following automatic
+      encryption settings that use the variables declared in the previous steps:
 
       .. tabs-drivers::
+
+         .. tab::
+            :tabid: shell
+
+            .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+               :start-after: start-client
+               :end-before: end-client
+               :language: javascript
+               :dedent:
 
          .. tab::
             :tabid: nodejs
@@ -241,7 +265,6 @@
                :start-after: start-client
                :end-before: end-client
                :language: javascript
-               :caption: insert_encrypted_document.js
                :dedent:
 
          .. tab::
@@ -251,7 +274,6 @@
                :start-after: start-client
                :end-before: end-client
                :language: python
-               :caption: insert_encrypted_document.py
                :dedent:
 
          .. tab::
@@ -262,7 +284,6 @@
                :end-before: end-client
                :language: java
                :dedent:
-               :caption: InsertEncryptedDocument.java
 
          .. tab::
             :tabid: go
@@ -271,7 +292,6 @@
                :start-after: start-client
                :end-before: end-client
                :language: go
-               :caption: insert-encrypted-document.go
                :dedent:
          
          .. tab::
@@ -282,4 +302,3 @@
                :end-before: end-client
                :language: csharp
                :dedent:
-               :caption: InsertEncryptedDocument.cs

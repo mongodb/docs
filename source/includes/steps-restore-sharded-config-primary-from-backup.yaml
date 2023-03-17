@@ -55,12 +55,21 @@ content: |
 
               To start the :binary:`mongod <bin.mongod>` using a 
               configuration file, specify the 
-              :option:`--config <mongod --config>` option in the command
-              line specifying the full path to the configuration file:
+              :option:`--config <mongod --config>` option in the 
+              command line specifying the full path to the 
+              configuration file.
 
               .. code-block:: bash
 
                  mongod --config /path/to/mongodb/mongod.conf
+
+              If you are restoring from a 
+              :mms-docs:`namespace-filtered </core/backup-preparations/#namespaces-filter>` 
+              snapshot, specify the ``--restore`` option.
+
+              .. code-block:: bash
+            
+                 mongod --config /path/to/mongod/mongod.conf --restore
 
               If you have :binary:`mongod <bin.mongod>` configured to 
               run as a system service, start it using the recommended 
@@ -104,12 +113,21 @@ content: |
 
            #. To start the :binary:`mongod <bin.mongod>` using a 
               configuration file, specify the 
-              :option:`--config <mongod --config>` option in the command
-              line specifying the full path to the configuration file:
+              :option:`--config <mongod --config>` option in the 
+              command line specifying the full path to the 
+              configuration file.
 
               .. code-block:: bash
 
                  mongod --config /path/to/mongodb/mongod.conf
+
+              If restoring from a 
+              :mms-docs:`namespace-filtered </core/backup-preparations/#namespaces-filter>` 
+              snapshot, also specify the  ``--restore`` option.
+
+              .. code-block:: bash
+            
+                 mongod --config /path/to/mongod/mongod.conf --restore
 
               .. note:: Cloud Manager or Ops Manager Only
 
@@ -143,8 +161,49 @@ content: |
      use local
      db.dropDatabase()
 ---
-title: "For any planned or completed shard hostname or replica set name changes, update the metadata in ``config.shards`` ."
+title: "Insert the filtered file list into the local database."
 stepnum: 3
+ref: insert-filtered
+content: |
+
+  This step is only required if you are restoring from a 
+  namespace-filtered snapshot.
+
+  For each shard, locate the filtered file list with the following name
+  format: ``<shardRsID>-filteredFileList.txt``. This file contains a
+  list of JSON objects with the following format:
+
+  .. code-block:: javascript
+
+     {
+        "filename":"file1", 
+        "ns":"sampleDb1.sampleCollection1", 
+        "uuid": "3b241101-e2bb-4255-8caf-4136c566a962"
+     }
+
+  Add each JSON object from each shard file to a new 
+  ``db.systems.collections_to_restore`` collection in your ``local`` 
+  database. You can ignore entries with empty ``ns`` or ``uuid`` 
+  fields. When inserting entries, the ``uuid`` field must be inserted 
+  as type :method:`UUID`.
+---
+title: "Run the filtered file restore command."
+stepnum: 4
+ref: run-filtered
+content: |
+
+  This step is only required if you are restoring from a 
+  namespace-filtered snapshot.
+
+  After inserting all entries, run the following commands:
+
+  .. code-block:: bash
+
+     use admin
+     db.runCommand({"_configsvrRunRestore":1})
+---
+title: "For any planned or completed shard hostname or replica set name changes, update the metadata in ``config.shards``."
+stepnum: 4
 ref: metadata-update
 content: |
 
@@ -220,7 +279,7 @@ content: |
 
 ---
 title: "Restart the :binary:`mongod <bin.mongod>` as a new single-node replica set."
-stepnum: 4
+stepnum: 5
 ref: restart-as-repl
 content: |
   
@@ -259,7 +318,7 @@ replacement:
     
 ---
 title: "Initiate the new replica set."
-stepnum: 5
+stepnum: 6
 ref: initiate
 pre: |
   Initiate the replica set using :method:`rs.initiate()` with the 
@@ -273,7 +332,7 @@ post: |
   that the member has become the :term:`primary <Primary>`. 
 ---
 title: "Add additional replica set members."
-stepnum: 6
+stepnum: 7
 ref: add-members
 content: |
 

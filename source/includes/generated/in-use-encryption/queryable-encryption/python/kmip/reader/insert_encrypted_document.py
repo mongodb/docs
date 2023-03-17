@@ -78,7 +78,6 @@ auto_encryption = AutoEncryptionOpts(
     key_vault_namespace,
     encrypted_fields_map=encrypted_fields_map,
     kms_tls_options=tls_options,
-    schema_map=None,
     crypt_shared_lib_path="<path to FLE Shared Library>",
 )
 # end-extra-options

@@ -22,6 +22,15 @@ a client certificate that your {+kmip-kms+} accepts:
          method.
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/make_data_key.js
+         :start-after: start-create-tls
+         :end-before: end-create-tls
+         :language: javascript
+         :dedent:
+
+   .. tab::
       :tabid: nodejs
 
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
@@ -29,7 +38,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: javascript
          :dedent:
-         :caption: make_data_key.js
 
    .. tab::
       :tabid: python
@@ -39,7 +47,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: python
          :dedent:
-         :caption: make_data_key.py
 
    .. tab::
       :tabid: csharp
@@ -49,12 +56,12 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: csharp
          :dedent:
-         :caption: MakeDataKey.cs
 
       .. important::
       
          Your client certificate must be in pcks12 format. You can convert
-         your certificate using openssl with the following command:
+         your certificate using `OpenSSL <https://www.openssl.org/source/>`__
+         with the following command:
 
          .. code-block:: shell
          
@@ -69,10 +76,8 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: go
          :dedent:
-         :caption: make-data-key.go
 
       .. important::
       
          You must use certificates with `ECDSA keys <https://en.wikipedia.org/wiki/Elliptic_Curve_Digital_Signature_Algorithm>`__ 
-         when using the Go driver.
-         
+         when using the Go driver with `PyKMIP <https://github.com/OpenKMIP/PyKMIP>`__.

@@ -1,6 +1,4 @@
-.. important::
-
-   .. include::  /includes/extracts/geospatial-long-lat-values.rst
+.. include::  /includes/extracts/geospatial-long-lat-values.rst
 
 Consider a collection ``places`` that has a ``2dsphere`` index.
 
