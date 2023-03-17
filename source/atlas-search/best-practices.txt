@@ -1,0 +1,165 @@
+.. _what-is-fts:
+
+====================
+|fts| Best Practices 
+====================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Learn how MongoDB $text and $regex, and Atlas Search $search address your applications' requirements.
+
+.. :keywords: atlas search, atlas search best practices, MongoDB $text, MongoDB $regex, atlas search $search, atlas search best practices
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Use the following recommended best practices to determine whether to
+refactor your applications that use MongoDB :query:`$text` and
+:query:`$regex` or migrate your applications to |fts|
+:pipeline:`$search`. The following table shows how MongoDB
+:query:`$regex`, :query:`$text`, and |fts| :pipeline:`$search` 
+address your application's requirements.
+
+.. list-table:: 
+   :widths: 40 10 60 
+   :header-rows: 1
+
+   * - If your application requires... 
+     - Use...
+     - Because...
+
+   * - Datastore to respect write concerns
+     - :query:`$regex`
+     - For transactions with heavy reads after writes, we recommend
+       :query:`$regex`. For :pipeline:`$search`, reads after writes
+       should be rare.  
+
+   * - Cluster optimized for write performance
+     - :pipeline:`$search`
+     - |fts| indexes don't degrade {+cluster+} write performance.
+
+   * - Searching through large data sets
+     - :pipeline:`$search`
+     - |fts| uses an inverted index, which enables fast document retrieval
+       at very large scales.
+
+   * - Language awareness 
+     - :pipeline:`$search`
+     - |fts| supports many :ref:`language analyzers
+       <ref-language-analyzers>` that can tokenize (create searchable
+       terms) languages, remove stopwords, and interpret diacritics for
+       improved search relevance. To learn more, see
+       :ref:`multilingual-tutorial`. 
+
+   * - Case-insensitive text search
+     - :pipeline:`$search`
+     - :pipeline:`$search` offers more capabilities than
+       :query:`$regex`. 
+
+   * - Highlighting result text
+     - :pipeline:`$search`
+     - |fts| :ref:`highlighting <highlight-ref>` allows you to
+       contextualize the documents in the results, which is essential
+       for natural language queries.
+
+   * - Geospatial-aware search queries
+     - :query:`$regex` or :pipeline:`$search`
+     - MongoDB :query:`$regex` and |fts| :pipeline:`$search` treat
+       geospatial parameters differently. In MongoDB, lines between
+       coordinates are spherical, which is well-suited for coordinates
+       for long distance such as air flight. |fts| uses Lucene, which
+       draws a straight line between coordinates and is well-suited
+       for short distance. To learn more, see
+       :ref:`run-geo-search-tutorial`. 
+
+   * - On-premises or local deployment
+     - :query:`$regex` or :query:`$text`
+     - |fts| is unavailable for on-premise or local deployment. |fts|
+       is only available for data on the |service| {+cluster+}.
+
+   * - Autocompletion of search queries
+     - :pipeline:`$search`
+     - For :ref:`autocomplete-ref` of characters (nGrams), |fts|
+       includes ``edgeGrams`` for left-to-right autocomplete, ``nGrams``
+       for autocomplete of languages that don't have whitespace, and
+       ``rightEdgeGram`` for autocomplete of languages that you write
+       and read right-to-left. 
+       
+       For :ref:`autocomplete-ref` of words (wordGrams), |fts| includes
+       :ref:`shingle-tf-ref` token filter, which supports word-based
+       autocomplete by concatenating adjacent words to create a single
+       token. 
+
+       To learn more, see :ref:`autocomplete-tutorial`.
+
+   * - Fuzzy matching on text input 
+     - :pipeline:`$search`
+     - |fts| :ref:`text-ref` and :ref:`autocomplete-ref` operators
+       support ``fuzzy`` matching to filter on input text and address
+       misspelled words (typos).
+
+   * - Filtering based on multiple strings
+     - :pipeline:`$search`
+     - |fts| :ref:`compound-ref` supports filtering based on more than
+       10 strings. 
+
+   * - Relevance score sorted search 
+     - :pipeline:`$search`
+     - |fts| uses the `BM25 algorithm
+       <https://en.wikipedia.org/wiki/Okapi_BM25>`__ for determining
+       the search relevance score of documents. It supports advanced
+       configuration through :ref:`scoring-boost` expressions like
+       multiply and gaussian decay, as well as analyzers, search
+       operators, and synonyms. To learn more, see
+       :ref:`compound-query-custom-score-tutorial`.
+
+   * - Partial indexes 
+     - :query:`$regex`
+     - |fts| doesn't support partial indexing. 
+
+   * - Patial match
+     - :pipeline:`$search`
+     - |fts| :ref:`wildcard-ref` and :ref:`autocomplete-ref` operators
+       support partial match queries. To learn more, see
+       :ref:`partial-match-tutorial`. 
+
+   * - Single compound index on arrays
+     - :pipeline:`$search`
+     - |fts| term indexes are intersected in a single |fts| index and 
+       eliminate the need for compound indexes for filtering on arrays.
+
+   * - Synonyms search
+     - :pipeline:`$search`
+     - |fts| supports :ref:`synonyms <synonyms-ref>` defined in a
+       separate collection, which you can reference in your search index
+       for use. To learn more, see :ref:`synonyms-tutorial`.
+
+   * - Faceting for counts
+     - :pipeline:`$search`
+     - |fts| provides fast :ref:`counts <count-ref>` of documents based
+       on text criteria, and also supports :ref:`faceted
+       <fts-facet-ref>` search for numbers and dates. To learn more, see
+       :ref:`facet-tutorial`. 
+
+   * - Custom analyzers 
+     - :pipeline:`$search`
+     - |fts| supports :ref:`custom analyzers <custom-analyzers>` to suit
+       your specific indexing requirements. For example, you can index
+       and search email addresses and |http| or |https| |url|\s using
+       custom analyzers. To learn more, see
+       :ref:`diacritic-insensitive-tutorial`. 
+
+   * - Searching phrases or multiple words
+     - :pipeline:`$search`
+     - |fts| :ref:`phrase-ref` operator supports searching for a
+       sequence of terms. 
+
+.. toctree::
+   :titlesonly:
+
+   /performance-advisor/recommend-search-text
+   /schema-suggestions/case-insensitive-regex
