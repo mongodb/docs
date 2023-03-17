@@ -1,13 +1,15 @@
 .. include:: /includes/fact-kms-prereqs.rst
 
-- Your symmetric |gcp| Service Account Key.
-- The Key Version Resource ID associated with your Service Account Key.
+- Your |gcp| Service Account Key.
+- Your symmetric Encryption Key in |gcp| KMS. 
+- The Key Version Resource ID associated with your |gcp| KMS 
+  Encryption Key.
 - A |gcp| service account with credentials specified in your Service
   Account Key with sufficient permissions to:
 
-  - Get the Service Account Key version
-  - Encrypt data with the Service Account Key version
-  - Decrypt data with the Service Account Key
+  - Get the |gcp| KMS Encryption Key version.
+  - Encrypt data with the |gcp| KMS Encryption Key version.
+  - Decrypt data with the |gcp| KMS Encryption Key.
 
   .. note::
 
