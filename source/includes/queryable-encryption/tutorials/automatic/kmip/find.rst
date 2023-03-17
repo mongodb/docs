@@ -1,4 +1,4 @@
-Retrieve the encrypted document you inserted in the
+Retrieve the {+in-use-doc+} you inserted in the
 :ref:`Insert a Document with Encrypted Fields <qe-kmip-insert>`
 step of this guide.
 
@@ -16,7 +16,15 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: java
          :dedent:
-         :caption: InsertEncryptedDocument.java
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/kmip/reader/insert_encrypted_document.js
+         :start-after: start-find
+         :end-before: end-find
+         :language: javascript
+         :dedent:
 
    .. tab::
       :tabid: nodejs
@@ -26,7 +34,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: javascript
          :dedent:
-         :caption: insert_encrypted_document.js
 
    .. tab::
       :tabid: python
@@ -36,7 +43,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: python
          :dedent:
-         :caption: insert_encrypted_document.py
 
    .. tab::
       :tabid: csharp
@@ -46,7 +52,6 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: csharp
          :dedent:
-         :caption: InsertEncryptedDocument.cs
 
    .. tab::
       :tabid: go
@@ -56,9 +61,9 @@ a client that is not configured for automatic {+qe-abbr+}.
          :end-before: end-find
          :language: go
          :dedent:
-         :caption: insert-encrypted-document.go
 
 The output of the preceding code snippet should look like this:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/find-output.out
    :language: text
+   :copyable: false

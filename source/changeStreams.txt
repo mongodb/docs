@@ -32,8 +32,8 @@ transform the notifications at will.
 Availability
 ------------
 
-Change streams are available for :doc:`replica sets <replication>` and
-:doc:`sharded clusters </sharding>`:
+Change streams are available for :ref:`replica sets <replication>` and
+:ref:`sharded clusters <sharding-background>`:
 
 - **Storage Engine.** 
 
@@ -745,8 +745,8 @@ Change streams are resumable by specifying a resume token to either
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can resume a change stream after a specific event by passing a resume token
-to ``resumeAfter`` when opening the cursor. For the resume token, use the
-``_id`` value of the :ref:`change stream event document <change-stream-output>`.
+to ``resumeAfter`` when opening the cursor. 
+
 See :ref:`change-stream-resume-token` for more information on the resume token.
 
 .. important::
@@ -943,9 +943,9 @@ You can start a new change stream after a specific event by passing a resume
 token to ``startAfter`` when opening the cursor. Unlike
 :ref:`resumeAfter <change-stream-resume-after>`, ``startAfter`` can
 resume notifications after an :ref:`invalidate event <change-event-invalidate>`
-by creating a new change stream. For the resume token, use the ``_id`` value of
-the :ref:`change stream event document <change-stream-output>`. See
-:ref:`change-stream-resume-token` for more information on the resume token.
+by creating a new change stream. 
+
+See :ref:`change-stream-resume-token` for more information on the resume token.
 
 .. important::
 
@@ -958,26 +958,138 @@ the :ref:`change stream event document <change-stream-output>`. See
 Resume Tokens
 ~~~~~~~~~~~~~
 
-The ``_id`` value of a :ref:`change stream event document
-<change-stream-output>` acts as the resume token:
+The resume token is available from multiple sources:
 
-.. code-block:: none
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 80
 
-   {
-      "_data" : <BinData|hex string>
-   }
+   * - Source
+     - Description
 
-.. tip::
+   * - :ref:`Change Events <change-event-resume-token>`
+     - Each change event notification includes a resume token
+       on the ``_id`` field.
+
+   * - :ref:`Aggregation <aggregate-resume-token>`
+     - The :pipeline:`$changeStream` aggregation stage includes 
+       a resume token on the ``cursor.postBatchResumeToken`` field.
+
+       This field only appears when using the :dbcommand:`aggregate`
+       command.
+
+   * - :ref:`Get More <getMore-resume-token>`
+     - The :dbcommand:`getMore` command includes a resume token on the
+       ``cursor.postBatchResumeToken`` field.
+
+.. versionchanged:: 4.2
 
    .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
-
-.. include:: /includes/extracts/changestream-resume-token-versions-4.2-greater.rst
-
-.. include:: /includes/extracts/changestream-resume-token-hex-change.rst
 
 .. tip::
 
    .. include:: /includes/note-decode-resume-tokens.rst
+
+.. _change-event-resume-token:
+
+Resume Tokens from Change Events
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Change event notifications include a resume token on the ``_id`` field:
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 2-4
+
+
+   {
+      "_id": {
+         "_data": "82635019A0000000012B042C0100296E5A1004AB1154ACACD849A48C61756D70D3B21F463C6F7065726174696F6E54797065003C696E736572740046646F63756D656E744B65790046645F69640064635019A078BE67426D7CF4D2000004"
+       },
+       "operationType": "insert",
+       "clusterTime": Timestamp({ "t": 1666193824, "i": 1 }),
+       "collectionUUID": new UUID("ab1154ac-acd8-49a4-8c61-756d70d3b21f"),
+       "wallTime": ISODate("2022-10-19T15:37:04.604Z"),
+       "fullDocument": {
+          "_id": ObjectId("635019a078be67426d7cf4d2"'),
+          "name": "Giovanni Verga"
+       },
+       "ns": { 
+          "db": "test", 
+          "coll": "names" 
+       },
+       "documentKey": { 
+          "_id": ObjectId("635019a078be67426d7cf4d2") 
+       }
+   }
+
+
+.. _aggregate-resume-token:
+
+Resume Tokens from ``aggregate``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When using the :dbcommand:`aggregate` command, the :pipeline:`$changeStream`
+aggregation stage includes a resume token on the  
+``cursor.postBatchResumeToken`` field:
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 4-6
+
+   {
+      "cursor": {
+         "firstBatch": [],
+         "postBatchResumeToken": { 
+            "_data": "8263515EAC000000022B0429296E1404" 
+         },
+         "id": Long("4309380460777152828"),
+         "ns": "test.names"
+      },
+      "ok": 1,
+      "$clusterTime": {
+         "clusterTime": Timestamp({ "t": 1666277036, "i": 1 }),
+         "signature": {
+            "hash": Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+            "keyId": Long("0")
+         }
+      },
+      "operationTime": Timestamp({ "t": 1666277036, "i": 1 })
+   }
+
+.. _getMore-resume-token:
+
+Resume Tokens from ``getMore``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The :dbcommand:`getMore` command also includes a resume token on the 
+``cursor.postBatchResumeToken`` field:
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 4-6
+
+   {
+      "cursor": {
+         "nextBatch": [],
+         "postBatchResumeToken": { 
+            "_data": "8263515979000000022B0429296E1404"
+         },
+         "id": Long("7049907285270685005"),
+         "ns": "test.names"
+      }, 
+      "ok": 1,
+      "$clusterTime": {
+         "clusterTime": Timestamp( { "t": 1666275705, "i": 1 } ),
+         "signature": {
+            "hash": Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+            "keyId": Long("0")
+         }
+      },
+      "operationTime": Timestamp({ "t": 1666275705, "i": 1 })
+   }
+
 
 Use Cases
 ---------
@@ -1004,9 +1116,9 @@ For deployments enforcing :ref:`authentication` and :ref:`authorization
 
      { resource: { db: <dbname>, collection: <collection> }, actions: [ "find", "changeStream" ] }
 
-- To open a change stream on a single databases, applications must have
+- To open a change stream on a single database, applications must have
   privileges that grant :authaction:`changeStream` and
-  :authaction:`find` actions on all non-``system`` collections in a
+  :authaction:`find` actions on all non-``system`` collections in the
   database.
 
   .. code-block:: javascript

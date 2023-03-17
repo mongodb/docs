@@ -12,6 +12,7 @@ namespace QueryableEncryption
     {
         public static void MakeKey()
         {
+            // start-local-cmk
             using (var randomNumberGenerator = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
                 var bytes = new byte[96];
@@ -19,6 +20,7 @@ namespace QueryableEncryption
                 var localMasterKeyBase64Write = Convert.ToBase64String(bytes);
                 File.WriteAllText("master-key.txt", localMasterKeyBase64Write);
             }
+            // end-local-cmk
 
             // start-kmsproviders
             var kmsProviders = new Dictionary<string, IReadOnlyDictionary<string, object>>();

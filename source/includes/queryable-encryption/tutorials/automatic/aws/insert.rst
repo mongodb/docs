@@ -1,11 +1,20 @@
 .. _qe-aws-insert:
 
 Use your {+qe+} enabled
-``MongoClient`` instance to insert an encrypted document into the
+``MongoClient`` instance to insert a {+in-use-doc+} into the
 ``medicalRecords.patients`` namespace using the following code
 snippet:
 
 .. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+         :start-after: start-insert
+         :end-before: end-insert
+         :language: javascript
+         :dedent:
 
    .. tab::
       :tabid: nodejs
@@ -14,7 +23,6 @@ snippet:
          :start-after: start-insert
          :end-before: end-insert
          :language: javascript
-         :caption: insert_encrypted_document.js
          :dedent:
 
    .. tab::
@@ -24,7 +32,6 @@ snippet:
          :start-after: start-insert
          :end-before: end-insert
          :language: python
-         :caption: insert_encrypted_document.py
          :dedent:
 
    .. tab::
@@ -35,7 +42,6 @@ snippet:
          :end-before: end-insert
          :language: java
          :dedent:
-         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: go
@@ -44,7 +50,6 @@ snippet:
          :start-after: start-insert
          :end-before: end-insert
          :language: go
-         :caption: insert-encrypted-document.go
          :dedent:
 
    .. tab::
@@ -55,7 +60,6 @@ snippet:
          :end-before: end-insert
          :language: csharp
          :dedent:
-         :caption: InsertEncryptedDocument.cs
 
 When you insert a document, your {+qe+} enabled client
 encrypts the fields of your document such that it resembles the following:

@@ -5,15 +5,53 @@ You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
 Create a 96-byte {+cmk-long+} and save it to the
 file ``master-key.txt``:
 
-.. code-block:: shell
+.. tabs-drivers::
 
-   openssl rand 96 > master-key.txt
+   .. tab::
+      :tabid: nodejs
 
-.. note:: Use a Programming Language to Create a {+cmk-long+}
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/exp/reader/make_data_key.js
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: javascript
+         :dedent:
 
-   If you would rather use your preferred programming language to generate
-   your {+cmk-abbr+}, you can view code snippets demonstrating how to generate a
-   {+cmk-long+} in each of the supported languages of this
-   guide on `GitHub <{+csfle-code-snippets-gen-keys+}>`__.
+   .. tab::
+      :tabid: python
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/exp/reader/make_data_key.py
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: python
+         :dedent:
+
+   .. tab::
+      :tabid: java-sync
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/java/exp/reader/src/main/java/com/mongodb/qe/MakeDataKey.java
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: java
+         :dedent:
+
+   .. tab::
+      :tabid: go
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/exp/reader/make-data-key.go
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: go
+         :dedent:
+
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/exp/reader/QueryableEncryption/MakeDataKey.cs
+         :start-after: start-local-cmk
+         :end-before: end-local-cmk
+         :language: csharp
+         :dedent:
 
 .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
+
+.. include:: /includes/in-use-encryption/cmk-bash.rst

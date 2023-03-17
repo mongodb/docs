@@ -95,6 +95,11 @@ Description
      - .. include:: /includes/change-stream/updateDescription
 
    * - | ``updateDescription.``
+       | ``disambiguatedPaths``
+     - document
+     - .. include:: /includes/change-stream/ud-disambiguatedPaths
+
+   * - | ``updateDescription.``
        | ``removedFields``
      - array
      - .. include:: /includes/change-stream/ud-removedFields
@@ -137,6 +142,83 @@ Document Pre- and Post-Images
 .. include:: /includes/change-stream-pre-and-post-images-change-events.rst
 
 .. include:: /includes/change-stream-pre-and-post-images-additional-information.rst
+
+Path Disambiguation
+^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 6.1
+
+The ``updateDescription`` field notes changes made to specific fields in 
+documents by an operation.  These field descriptors use dots (``.``) as
+path separators and numbers as array indexes, which leads to some
+ambiguity when it contains field names that use dots or numbers.
+
+When an ``update`` event reports changes involving ambiguous fields,
+the ``disambiguatedPaths`` document provides the path key with an array 
+listing each path component.
+
+.. note::
+   
+   The ``disambiguatedPaths`` field is only available on change streams
+   started with the :ref:`showExpandedEvents 
+   <change-streams-expanded-events>` option 
+
+For example, consider a document that lists people and the towns in which they 
+live:
+
+.. code-block:: json
+
+   {
+      "name": "Anthony Trollope",
+      "home.town": "Oxford",
+      "residences": [
+         {"0": "Oxford"},
+         {"1": "Sunbury"}
+      ]
+   }
+
+* When an update modifies the ``home.town`` field from ``Oxford`` to
+  ``London``, it produces an update description that looks like this:
+
+  .. code-block:: json
+  
+     "updateDescription": {
+        "updatedFields": {
+           "home.town": "London"
+        },
+        "disambiguatedPaths": {
+           "home.town": [ "home.town" ]
+        }
+     }
+  
+  Because the field ``home.town`` contains a period, the ``disambiguatedPaths`` 
+  field shows an array with one value, to indicate that ``town`` is not a
+  sub-field of ``home``.
+
+* When an update modifies a value in the ``residences`` array to make the same 
+  change, it produces an update description that looks like this:
+  
+  .. code-block:: json
+  
+     "updateDescription": {
+        "updatedFields": {
+           "residences.0.0": "London"
+        },
+        "disambiguatedPaths": { "residences.0.0": [ "residences", 0, "0" ] }
+     }
+
+  The disambiguated paths include an integer ``0`` to indicate the array index
+  and the string ``"0"`` to indicate the field name within the nested document.
+  
+There are two cases where ``disambiguatedPath`` does **not** include a 
+numeric field:
+
+* When the first field in the path is a numeric string (i.e. ``0.name``).
+  This is not ambiguous since the first field cannot be an array index.
+
+
+* When the numeric string field has leading zeroes (i.e., ``0001``).  
+  This is not ambiguous since an integer cannot have leading zeroes.
 
 
 Example
@@ -197,7 +279,8 @@ opened with the ``fullDocument : updateLookup`` option:
          "truncatedArrays": [ {
             "field" : "vacation_time",
             "newSize" : 36
-         } ]
+         } ],
+         "disambiguatedPaths": { }
       },
       "fullDocument": {
          "_id": ObjectId("58a4eb4a30c75625e00d2820"),

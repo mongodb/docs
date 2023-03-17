@@ -29,7 +29,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: javascript
          :dedent:
-         :caption: make_data_key.js
 
    .. tab::
       :tabid: python
@@ -39,7 +38,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: python
          :dedent:
-         :caption: make_data_key.py
 
    .. tab::
       :tabid: csharp
@@ -49,12 +47,12 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: csharp
          :dedent:
-         :caption: MakeDataKey.cs
 
       .. important::
       
          Your client certificate must be in pcks12 format. You can convert
-         your certificate using openssl with the following command:
+         your certificate using your certificate using `OpenSSL <https://www.openssl.org/source/>`__
+         with the following command:
 
          .. code-block:: shell
          
@@ -69,7 +67,6 @@ a client certificate that your {+kmip-kms+} accepts:
          :end-before: end-create-tls
          :language: go
          :dedent:
-         :caption: make-data-key.go
 
       .. important::
       

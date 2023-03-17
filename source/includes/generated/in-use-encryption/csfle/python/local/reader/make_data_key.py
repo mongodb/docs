@@ -6,12 +6,14 @@ import os
 from bson.codec_options import CodecOptions
 from bson.binary import STANDARD, UUID
 
+# start-local-cmk
 import os
 
 path = "master-key.txt"
 file_bytes = os.urandom(96)
 with open(path, "wb") as f:
     f.write(file_bytes)
+# end-local-cmk
 
 # start-kmsproviders
 path = "./master-key.txt"

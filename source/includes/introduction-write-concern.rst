@@ -1,4 +1,4 @@
-:doc:`Write concern </reference/write-concern>` describes the level of
+:ref:`Write Concern <write-concern>` describes the level of
 acknowledgement requested from MongoDB for write operations. The level
 of the write concerns affects how quickly the write operation returns.
 When write operations have a *weak* write concern, they return quickly.

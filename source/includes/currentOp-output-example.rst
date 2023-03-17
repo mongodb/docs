@@ -41,6 +41,7 @@
                          "op" : <string>,
                          "ns" : <string>,
                          "command" : <document>,
+                         "queryFramework" : <string>,
                          "planSummary": <string>,
                          "cursor" : {                              // only for getMore operations
                             "cursorId" : <NumberLong()>,
@@ -178,6 +179,7 @@
                         "ns" : <string>,
                         "command" : <document>,
                         "originatingCommand" : <document>,
+                        "queryFramework" : <string>,
                         "planSummary": <string>,
                         "prepareReadConflicts" : <NumberLong()>,
                         "writeConflicts" : <NumberLong()>,
@@ -344,6 +346,7 @@
                          "command" : <document>,
                          "configTime" : <Timestamp>,           // Starting in 5.0
                          "topologyTime" : <Timestamp>,           // Starting in 5.0
+                         "queryFramework" : <string>,            // Starting in 6.2       
                          "planSummary": <string>,
                          "prepareReadConflicts" : <NumberLong()>,
                          "writeConflicts" : <NumberLong()>,

@@ -1,7 +1,8 @@
+.. _migrate-ranges-sharded-cluster:
 .. _migrate-chunks-sharded-cluster:
 
 ===================================
-Migrate Chunks in a Sharded Cluster
+Migrate Ranges in a Sharded Cluster
 ===================================
 
 .. default-domain:: mongodb
@@ -13,28 +14,28 @@ Migrate Chunks in a Sharded Cluster
    :class: singlecol
 
 In most circumstances, you should let the automatic :term:`balancer`
-migrate :term:`chunks <chunk>` between :term:`shards <shard>`. However,
-you may want to migrate chunks manually in a few cases:
+migrate :term:`ranges <range>` between :term:`shards <shard>`. However,
+you may want to migrate ranges manually in a few cases:
 
-- When :term:`pre-splitting` an empty collection, migrate chunks
+- When :term:`pre-splitting` an empty collection, migrate ranges
   manually to distribute them evenly across the shards. Use
   pre-splitting in limited situations to support bulk data ingestion.
 
-- If the balancer in an active cluster cannot distribute chunks within
+- If the balancer in an active cluster cannot distribute ranges within
   the :ref:`balancing window <sharding-schedule-balancing-window>`, then
-  you will have to migrate chunks manually.
+  you will have to migrate ranges manually.
 
-To manually migrate chunks, use the :dbcommand:`moveChunk` command.
-For more information on how the automatic balancer moves chunks
-between shards, see :ref:`sharding-balancing-internals` and
-:ref:`sharding-chunk-migration`.
+To manually migrate ranges, use the :dbcommand:`moveChunk` or 
+:dbcommand:`moveRange` command. For more information on how the 
+automatic balancer moves ranges between shards, see 
+:ref:`sharding-balancing-internals` and :ref:`sharding-range-migration`.
 
-.. example:: Migrate a single chunk
+.. example:: Migrate a single range
 
    The following example assumes that the field ``username`` is the
    :term:`shard key` for a collection named ``users`` in the ``myapp``
-   database, and that the value ``smith`` exists within the :term:`chunk`
-   to migrate. Migrate the chunk using the following command in
+   database, and that the value ``smith`` exists within the :term:`range`
+   to migrate. Migrate the range using the following command in
    :binary:`~bin.mongosh`.
 
    .. code-block:: javascript
@@ -43,7 +44,7 @@ between shards, see :ref:`sharding-balancing-internals` and
                          find : {username : "smith"},
                          to : "mongodb-shard3.example.net" } )
 
-   This command moves the chunk that includes the shard key value "smith" to the
+   This command moves the range that includes the shard key value "smith" to the
    :term:`shard` named ``mongodb-shard3.example.net``. The command will
    block until the migration is complete.
 
@@ -52,10 +53,10 @@ between shards, see :ref:`sharding-balancing-internals` and
       To return a list of shards, use the :dbcommand:`listShards`
       command.
 
-.. example:: Evenly migrate chunks
+.. example:: Evenly migrate ranges
 
-   To evenly migrate chunks for the ``myapp.users`` collection,
-   put each prefix chunk on the next shard from the other and run
+   To evenly migrate ranges for the ``myapp.users`` collection,
+   put each prefix range on the next shard from the other and run
    the following commands in the mongo shell:
 
    .. code-block:: javascript
@@ -68,29 +69,19 @@ between shards, see :ref:`sharding-balancing-internals` and
         }
       }
 
-See :doc:`/tutorial/create-chunks-in-sharded-cluster` for an introduction
-to pre-splitting.
+See :ref:`create-ranges-in-a-sharded-cluster` for an introduction to
+pre-splitting.
 
-The :dbcommand:`moveChunk` command has the: ``_secondaryThrottle``
-parameter and the ``writeConcern`` parameter that determines when the
-balancer proceeds with the next document in the migrating chunk. See
-:dbcommand:`moveChunk` command for details.
+- Use the :dbcommand:`moveRange` command with the ``_secondaryThrottle``
+  and ``writeConcern`` fields to determine when the balancer 
+  proceeds with the next document in the migrating range. 
 
-.. warning::
+- Use the :dbcommand:`moveRange` command with the ``secondaryThrottle``
+  and ``writeConcern`` fields to determine when the balancer 
+  proceeds with the next document in the migrating range. 
 
-   The :dbcommand:`moveChunk` command may produce the following error
-   message:
+See :dbcommand:`moveRange` and :dbcommand:`moveRange` for details.
 
-   .. code-block:: none
-
-      The collection's metadata lock is already taken.
-
-   This occurs when clients have too many open :term:`cursors
-   <cursor>` that access the migrating chunk. You may either
-   wait until the cursors complete their operations or close the
-   cursors manually.
-
-   .. todo:: insert link to killing a cursor.
 
 Change Streams and Orphan Documents
 -----------------------------------

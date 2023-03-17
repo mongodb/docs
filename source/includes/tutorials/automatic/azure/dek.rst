@@ -8,12 +8,6 @@
       Add the service account credentials to your CSFLE-enabled client
       code.
 
-      .. tip::
-
-         You recorded your {+azure-kv+} credentials in the
-         in the :ref:`Register Your Applitcation with Azure <csfle-tutorial-automatic-azure-register>`
-         step of this guide.
-
       .. tabs-drivers::
 
          .. tab::
@@ -24,7 +18,8 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
+
+            .. include:: /includes/tutorials/automatic/azure/azure-vm-managed-identity.rst
 
          .. tab::
             :tabid: nodejs
@@ -34,7 +29,6 @@
                :end-before: end-kmsproviders
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -44,7 +38,6 @@
                :end-before: end-kmsproviders
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: csharp
@@ -54,7 +47,6 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
          .. tab::
             :tabid: go
@@ -64,12 +56,6 @@
                :end-before: end-kmsproviders
                :language: go
                :dedent:
-               :caption: make-data-key.go
-
-      .. tip:: Learn More
-
-         To learn more about the KMS provider object for {+azure-kv+}, see
-         :ref:`csfle-reference-kms-providers-azure`.
 
    .. step:: Add Your Key Information
 
@@ -91,7 +77,6 @@
                :end-before: end-datakeyopts
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: nodejs
@@ -101,7 +86,6 @@
                :end-before: end-datakeyopts
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -111,7 +95,6 @@
                :end-before: end-datakeyopts
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: csharp
@@ -121,7 +104,6 @@
                :end-before: end-datakeyopts
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
          .. tab::
             :tabid: go
@@ -131,11 +113,13 @@
                :end-before: end-datakeyopts
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
    .. step:: Generate your {+dek-long+}
 
       .. _csfle-azure-create-dek:
+
+      Generate your {+dek-long+} using the variables declared in :ref:`step one
+      <csfle-azure-create-index>` of this tutorial.
 
       .. tabs-drivers::
 
@@ -147,7 +131,6 @@
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: nodejs
@@ -157,7 +140,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -167,7 +149,6 @@
                :end-before: end-create-dek
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: csharp
@@ -177,7 +158,6 @@
                :end-before: end-create-dek
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
          .. tab::
             :tabid: go
@@ -187,7 +167,6 @@
                :end-before: end-create-dek
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
 .. tip:: Learn More
 

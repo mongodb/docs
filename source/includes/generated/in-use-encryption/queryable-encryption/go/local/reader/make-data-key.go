@@ -15,6 +15,7 @@ import (
 	"io/ioutil"
 )
 
+// start-local-cmk
 func localMasterKey() []byte {
 	key := make([]byte, 96)
 	if _, err := rand.Read(key); err != nil {
@@ -25,6 +26,8 @@ func localMasterKey() []byte {
 	}
 	return key
 }
+
+// end-local-cmk
 
 func MakeKey() error {
 

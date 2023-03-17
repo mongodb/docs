@@ -7,11 +7,13 @@ rolesInfo
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
 ----------
+
+.. |getRoleMethod| replace:: ``rolesInfo``
 
 .. dbcommand:: rolesInfo
 
@@ -32,8 +34,9 @@ The command has the following syntax:
    db.runCommand(
       {  
         rolesInfo: { role: <name>, db: <db> },
-        showPrivileges: <Boolean>,
+        showAuthenticationRestrictions: <Boolean>,
         showBuiltinRoles: <Boolean>,
+        showPrivileges: <Boolean>,
         comment: <any>
       }
    )
@@ -55,20 +58,26 @@ The command takes the following fields:
      - string, document, array,  or integer
      - The role(s) to return information about. For the syntax for specifying
        roles, see :ref:`rolesinfo-behavior`.
+   
+   * - ``showAuthenticationRestrictions``
+     - boolean
+     - .. include:: /includes/fact-show-auth-restrictions-description.rst
+
+   * - ``showBuiltinRoles``
+     - boolean
+     - Optional. When the ``rolesInfo`` field is set to ``1``, set
+       ``showBuiltinRoles`` to ``true`` to include :ref:`built-in roles
+       <built-in-roles>` in the output. By default, this field is set to
+       ``false``, and the output for ``rolesInfo: 1`` displays only
+       :ref:`user-defined roles <user-defined-roles>`.
        
    * - ``showPrivileges``
      - boolean
-     - Optional. Set the field to ``true`` to show role privileges, including both privileges
-       inherited from other roles and privileges defined directly. By default, the
-       command returns only the roles from which this role inherits privileges and
-       does not return specific privileges.
-       
-   * - ``showBuiltinRoles``
-     - boolean
-     - Optional. When the ``rolesInfo`` field is set to ``1``, set ``showBuiltinRoles`` to
-       ``true`` to include :ref:`built-in roles <built-in-roles>` in the output.
-       By default this field is set to ``false``, and the output for ``rolesInfo:
-       1`` displays only :ref:`user-defined roles <user-defined-roles>`.
+     - Optional. Set the field to ``true`` to show role privileges,
+       including both privileges inherited from other roles and
+       privileges defined directly. By default, the command returns only
+       the roles from which this role inherits privileges and does not
+       return specific privileges.
        
    * - ``comment``
      - any
@@ -193,6 +202,21 @@ Output
 Examples
 --------
 
+The examples in this section show how to use the ``rolesInfo`` command
+to:
+
+- :ref:`rolesInfo-example-single-role`
+
+- :ref:`rolesInfo-example-multiple-roles`
+
+- :ref:`rolesInfo-example-user-defined-roles`
+
+- :ref:`rolesInfo-example-user-defined-and-built-in-roles`
+
+- :ref:`rolesInfo-example-auth-restrictions`
+
+.. _rolesInfo-example-single-role:
+
 View Information for a Single Role
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -230,8 +254,10 @@ for the role ``associate`` defined on the ``products`` database:
        }
    )
 
-View Information for Several Roles
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _rolesInfo-example-multiple-roles:
+
+View Information for Multiple Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following command returns information for two roles on two different
 databases:
@@ -261,6 +287,8 @@ The following returns *both* the role inheritance and the privileges:
        }
    )
 
+.. _rolesInfo-example-user-defined-roles:
+
 View All User-Defined Roles for a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -277,6 +305,49 @@ privileges:
        }
    )
 
+Example output (shortened for readability):
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     roles: [
+       {
+         _id: 'products.associate',
+         role: 'associate',
+         db: 'products',
+         privileges: [
+           {
+             resource: { db: 'products', collection: '' },
+             actions: [ 'bypassDocumentValidation' ]
+           }
+         ],
+         roles: [ { role: 'readWrite', db: 'products' } ],
+         isBuiltin: false,
+         inheritedRoles: [ { role: 'readWrite', db: 'products' } ],
+         inheritedPrivileges: [
+           {
+             resource: { db: 'products', collection: '' },
+             actions: [ 'bypassDocumentValidation' ]
+           },
+           {
+             resource: { db: 'products', collection: '' },
+             actions: [
+               'changeStream',
+               'collStats',
+               'compactStructuredEncryptionData',
+               ...
+             ]
+           },
+           ...
+         ]
+       }
+     ],
+     ok: 1
+   }
+
+.. _rolesInfo-example-user-defined-and-built-in-roles:
+
 View All User-Defined and Built-In Roles for a Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -291,3 +362,78 @@ runs, including both built-in and user-defined roles:
          showBuiltinRoles: true
        }
    )
+
+Example output (shortened for readability):
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     roles: [
+       {
+         role: 'enableSharding',
+         db: 'products',
+         isBuiltin: true,
+         roles: [],
+         inheritedRoles: []
+       },
+       {
+         role: 'userAdmin',
+         db: 'products',
+         isBuiltin: true,
+         roles: [],
+         inheritedRoles: []
+       },
+       {
+         role: 'read',
+         db: 'products',
+         isBuiltin: true,
+         roles: [],
+         inheritedRoles: []
+       },
+       ...
+     ],
+     ok: 1
+   }
+
+.. _rolesInfo-example-auth-restrictions:
+
+View Authentication Restrictions for Roles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation returns all user-defined roles on the
+``products`` database and includes authentication restrictions:
+
+.. code-block:: javascript
+
+   db.runCommand(
+       {
+         rolesInfo: 1,
+         showAuthenticationRestrictions: true
+       }
+   )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     roles: [
+       {
+         _id: 'products.associate',
+         role: 'associate',
+         db: 'products',
+         roles: [ { role: 'readWrite', db: 'products' } ],
+         authenticationRestrictions: [
+           [ { clientSource: [ '198.51.100.0' ] } ]
+         ],
+         isBuiltin: false,
+         inheritedRoles: [ { role: 'readWrite', db: 'products' } ],
+         inheritedAuthenticationRestrictions: [
+           [ { clientSource: [ '198.51.100.0' ] } ]
+         ]
+       }
+     ],
+     ok: 1
+   }

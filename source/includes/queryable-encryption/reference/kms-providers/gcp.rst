@@ -55,7 +55,8 @@ object for GCP KMS:
 
        | If you have a ``user-key.json`` credential file, you can extract
          the string by executing the following command in a bash or
-         similar shell:
+         similar shell. The following command requires that you install
+         `OpenSSL <https://www.openssl.org/source/>`__:
 
        .. code-block:: shell
 

@@ -7,7 +7,7 @@ $fill (aggregation)
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. |linear-interpolation| replace:: :wikipedia:`linear interpolation <Linear_interpolation>`
@@ -252,8 +252,8 @@ For a complete example using the ``linear`` fill method, see
 For a complete example using the ``locf`` fill method, see
 :ref:`fill-example-locf`.
 
-Comparison of :pipeline:`$fill` and Aggregation Operators
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Comparison of ``$fill`` and Aggregation Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To fill ``null`` and missing field values within a document you can use:
 
@@ -747,4 +747,134 @@ Example output:
        restaurant: "Sally's Deli",
        score: 68
      }
+   ]
+
+Indicate if a Field was Populated Using ``$fill``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you populate missing values, the output does not indicate if a
+value was populated with the ``$fill`` operator or if the value existed
+in the document originally. To distinguish between filled and
+preexisting values, you can use a :pipeline:`$set` stage before
+``$fill`` and set a new field based on whether the value exists.
+
+For example, create a ``restaurantReviews`` collection that contains
+review scores for a restaurant over time:
+
+.. code-block:: javascript
+
+   db.restaurantReviews.insertMany( [ 
+      {
+         date: ISODate("2021-03-08"),
+         score: 90
+      },
+      {
+         date: ISODate("2021-03-09"),
+         score: 92
+      },
+      {
+         date: ISODate("2021-03-10")
+      },
+      { 
+         date: ISODate("2021-03-11")
+      },
+      {
+         date: ISODate("2021-03-12"),
+         score: 85
+      },
+      {
+         date: ISODate("2021-03-13")
+      }
+   ] )
+
+The ``score`` field is missing for some of the documents in the
+collection. You can populate missing ``score`` values with the ``$fill``
+operator.
+
+Create a pipeline to perform the following actions:
+
+- Add a new field to each document (using :pipeline:`$set`) indicating
+  if the document's ``score`` field exists prior to the ``$fill``
+  operator populating values. This new field is called ``valueExisted``.
+  
+- Populate missing ``score`` values with the last observed ``score`` in
+  the sequence. The fill method ``locf`` stands for "last observation
+  carried forward".
+
+The pipeline looks like this:
+
+.. code-block:: javascript
+
+   db.restaurantReviews.aggregate( [
+      {
+         $set: {
+            "valueExisted": {
+               "$ifNull": [
+                  { "$toBool": { "$toString": "$score" } },
+                  false
+               ]
+            }
+         }
+      },
+      {
+         $fill: {
+            sortBy: { date: 1 },
+            output:
+               {
+                  "score": { method: "locf" }
+               }
+         }
+      }
+   ] )
+
+.. note:: Handling Values of Zero
+
+   In the :expression:`$ifNull` expression, the ``score`` values are
+   converted to strings, then to booleans. The :expression:`$toBool`
+   expression always converts strings to ``true``. If the ``score``
+   values are not converted to strings, ``score`` values of ``0`` will
+   have ``valueExisted`` set to ``false``.
+
+Output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f15"),
+         date: ISODate("2021-03-08T00:00:00.000Z"),
+         score: 90,
+         valueExisted: true
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f16"),
+         date: ISODate("2021-03-09T00:00:00.000Z"),
+         score: 92,
+         valueExisted: true
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f17"),
+         date: ISODate("2021-03-10T00:00:00.000Z"),
+         valueExisted: false,
+         score: 92
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f18"),
+         date: ISODate("2021-03-11T00:00:00.000Z"),
+         valueExisted: false,
+         score: 92
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f19"),
+         date: ISODate("2021-03-12T00:00:00.000Z"),
+         score: 85,
+         valueExisted: true
+      },
+      {
+         _id: ObjectId("63595116b1fac2ee2e957f1a"),
+         date: ISODate("2021-03-13T00:00:00.000Z"),
+         valueExisted: false,
+         score: 85
+      }
    ]

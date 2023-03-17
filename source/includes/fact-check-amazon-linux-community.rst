@@ -7,5 +7,5 @@ following command on the command-line:
 
 The result should be **Amazon Linux** or **Amazon Linux AMI**. If using
 a different Linux distribution, please see the
-:doc:`install instructions for your platform
-</administration/install-on-linux>`.
+:ref:`install instructions for your platform 
+<install-mdb-community-edition-linux>`.

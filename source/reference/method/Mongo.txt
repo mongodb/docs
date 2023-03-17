@@ -7,7 +7,7 @@ Mongo()
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Description
@@ -15,7 +15,7 @@ Description
 
 .. versionchanged:: 4.2
 
-.. method:: Mongo(host, {+auto-encrypt-options+})
+.. method:: Mongo(host, {+auto-encrypt-options+}, api)
 
    JavaScript constructor to instantiate a database connection from
    :binary:`~bin.mongosh` or from a JavaScript file.
@@ -36,7 +36,7 @@ Description
 
         - string
 
-        - Optional. The host, either in the form of ``<host>`` or
+        - *Optional*. The host, either in the form of ``<host>`` or
           ``<host><:port>``.
 
           If omitted, :method:`Mongo` instantiates a connection to the
@@ -44,13 +44,11 @@ Description
 
       * - ``{+auto-encrypt-options+}``
 
-        - Document
+        - document
 
-        - *Optional*
-
-          .. versionadded:: 4.2
-
-          Configuration parameters for enabling
+        - .. versionadded:: 4.2
+          
+          *Optional*. Configuration parameters for enabling
           :ref:`manual-csfle-feature`.
 
           ``{+auto-encrypt-options+}`` overrides the
@@ -59,13 +57,21 @@ Description
           inherits the client-side field level encryption configuration
           of the current database connection.
 
-          For documentation of usage and syntax, see
-          :ref:`{+auto-encrypt-options+}`.
+          See :ref:`{+auto-encrypt-options+}` for usage and syntax 
+          details.
+
+      * - ``api``
+
+        - document
+
+        - *Optional*. Configuration options for enabling the       
+          :ref:`Stable API <stable-api>`.
+
+          See :ref:`mongo-api-options` for usage and syntax details.
 
 .. seealso::
 
    :method:`Mongo.getDB()` and :method:`db.getMongo()`
-
 
 .. _{+auto-encrypt-options+}:
 
@@ -262,8 +268,31 @@ following parameters:
        indexed fields without the ``crypt_shared`` library. For details,
        see :ref:`qe-reference-mongo-client`.
 
-Example
+
+.. _mongo-api-options:
+
+``api``
 -------
+
+The ``api`` parameter specifies configuration options for the 
+:ref:`Stable API <stable-api>`. You can enable or disable optional
+behavior using the following options:
+
+.. include:: /includes/stable-api-options.rst
+  
+.. |param| replace:: Option
+.. |apiVersion| replace:: ``version``
+.. |strict| replace:: ``strict``
+.. |deprecation| replace:: ``deprecationErrors``
+
+The ``api`` parameter has the following syntax:
+
+.. code-block:: javascript
+
+   { api: { version: <string>, strict: <boolean>, deprecationErrors: <boolean> } }
+
+Examples
+--------
 
 Connect to a MongoDB Cluster
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -285,44 +314,10 @@ Issue operations against the ``cluster`` object to interact with the
 
 .. _mongo-connection-client-side-encryption-enabled:
 
-Connect to a MongoDB Cluster with Client-Side Encryption Enabled
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connect to a Cluster with Client-Side Encryption Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuring client-side field level encryption for a :ref:`locally
-managed key <field-level-encryption-local-kms>` requires specifying a
-base64-encoded 96-byte string with no line breaks. The following
-operation generates a key that meets the stated requirements and loads
-it into :binary:`~bin.mongosh`:
-
-.. code-block:: bash
-   :emphasize-lines: 1
-
-   TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
-
-   mongosh --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
-
-The following operation creates a new connection object from within a
-:binary:`~bin.mongosh` session. The
-:ref:`{+auto-encrypt-options+}` option specifies
-the required options for enabling client-side field level encryption
-using a locally managed key:
-
-.. code-block:: javascript
-   :emphasize-lines: 4-6, 10-13
-
-   var autoEncryptionOpts = {
-     "keyVaultNamespace" : "encryption.dataKeys",
-     "kmsProviders" : {
-       "local" : {
-         "key" : BinData(0, TEST_LOCAL_KEY)
-       }
-     }
-   }
-
-   cluster = Mongo(
-     "mongodb://mymongo.example.net:27017/?replicaSet=myMongoCluster",
-     autoEncryptionOpts
-   )
+.. include:: /includes/csfle-connection-boilerplate-example.rst
 
 Issue operations against the ``cluster`` object to interact with the
 ``mymongo.example.net:27017`` cluster and perform explicit encryption:
@@ -346,21 +341,21 @@ a complete list of client-side field level encryption methods.
 
 .. _mongo-connection-automatic-client-side-encryption-enabled:
 
-Connect to a MongoDB Cluster with Automatic Client-Side Encryption Enabled
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Connect to a Cluster with Automatic Client-Side Encryption Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuring client-side field level encryption for a :ref:`locally
-managed key <field-level-encryption-local-kms>` requires specifying a
-base64-encoded 96-byte string with no line breaks. The following
-operation generates a key that meets the stated requirements and loads
-it into :binary:`~bin.mongosh`:
+To configure client-side field level encryption for a locally managed
+key:
+
+- generate a base64-encoded 96-byte string with no line breaks
+- use :binary:`mongosh` to load the key
 
 .. code-block:: bash
    :emphasize-lines: 1
 
-   TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
+   export TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
 
-   mongosh --nodb --shell --eval "var TEST_LOCAL_KEY='$TEST_LOCAL_KEY'"
+   mongosh --nodb
 
 The following operation creates a new connection object from within a
 :binary:`~bin.mongosh` session. The
@@ -372,10 +367,10 @@ the required options for enabling :ref:`automatic client-side encryption
    :emphasize-lines: 4-6, 8-21, 24-27
 
    var autoEncryptionOpts = {
-     "keyVaultNamespace" : "encryption.dataKeys",
+     "keyVaultNamespace" : "encryption.__dataKeys",
      "kmsProviders" : {
        "local" : {
-         "key" : BinData(0,"BASE64-ENCODED-96-BYTE-LOCAL-KEY")
+         "key" : BinData(0, process.env["TEST_LOCAL_KEY"])
        }
      },
      schemaMap : {
@@ -432,3 +427,23 @@ the specified data encryption key can decrypt the field.
 
 See :doc:`/reference/method/js-client-side-field-level-encryption` for
 a complete list of client-side field level encryption methods.
+
+Connect to a Cluster with the Stable API Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation creates a new connection object from within a
+:binary:`~bin.mongosh` session. The :ref:`mongo-api-options` option 
+enables Stable API V1 and specifies that you cannot 
+run deprecated command or commands outside of the Stable API.
+
+.. code-block:: javascript
+
+   cluster = Mongo(
+     "mongodb://mymongo.example.net:27017/?replicaSet=myMongoCluster", 
+      null, 
+      { api: { version: "1", strict: true, deprecationErrors: true } }
+   )
+
+To interact with the ``mymongo.example.net:27017`` cluster, issue
+operations against the ``cluster`` object. For a full list of Stable API
+commands, see :ref:`<api-v1-command-list>`.

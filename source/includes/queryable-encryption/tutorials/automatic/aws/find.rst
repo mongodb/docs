@@ -1,4 +1,4 @@
-Retrieve the encrypted document you inserted in the
+Retrieve the {+in-use-doc+} you inserted in the
 :ref:`Insert a Document with Encrypted Fields <qe-aws-insert>`
 step of this guide.
 
@@ -9,12 +9,20 @@ a client that is not configured for automatic {+qe+}.
 .. tabs-drivers::
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/mongosh/aws/reader/insert_encrypted_document.js
+         :start-after: start-find
+         :end-before: end-find
+         :language: javascript
+         :dedent:
+
+   .. tab::
       :tabid: nodejs
 
       .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/aws/reader/insert_encrypted_document.js
          :start-after: start-find
          :end-before: end-find
-         :caption: insert_encrypted_document.js
          :language: javascript
          :dedent:
 
@@ -25,7 +33,6 @@ a client that is not configured for automatic {+qe+}.
          :start-after: start-find
          :end-before: end-find
          :language: python
-         :caption: insert_encrypted_document.py
          :dedent:
 
    .. tab::
@@ -36,7 +43,6 @@ a client that is not configured for automatic {+qe+}.
          :end-before: end-find
          :language: java
          :dedent:
-         :caption: InsertEncryptedDocument.java
 
    .. tab::
       :tabid: go
@@ -45,7 +51,6 @@ a client that is not configured for automatic {+qe+}.
          :start-after: start-find
          :end-before: end-find
          :language: go
-         :caption: insert-encrypted-document.go
          :dedent:
 
    .. tab::
@@ -56,9 +61,9 @@ a client that is not configured for automatic {+qe+}.
          :end-before: end-find
          :language: csharp
          :dedent:
-         :caption: InsertEncryptedDocument.cs
 
 The output of the preceding code snippet should look like this:
 
 .. literalinclude:: /includes/queryable-encryption/quick-start/find-output.out
    :language: text
+   :copyable: false

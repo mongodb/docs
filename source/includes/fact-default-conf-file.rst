@@ -1,4 +1,4 @@
-- If you :doc:`installed MongoDB </installation>` with a package manager
+- If you :ref:`installed MongoDB <tutorial-installation>` with a package manager
   such as ``yum`` or ``apt`` on Linux or ``brew`` on macOS, or with the
   MSI installer on Windows, a default :doc:`configuration file
   </reference/configuration-options>` has been provided as part of your
@@ -27,7 +27,7 @@
        - MSI Installer
        - ``<install directory>\bin\mongod.cfg``
 
-- If you :doc:`installed MongoDB </installation>` via a downloaded
+- If you :ref:`installed MongoDB <tutorial-installation>` via a downloaded
   ``TGZ`` or ``ZIP`` file, you will need to create your own configuration
   file. The :ref:`basic example configuration <base-config>` is a good
   place to start.
