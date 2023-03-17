@@ -13,6 +13,13 @@
       .. include:: /includes/fts-tutorial/autocomplete/token-seq.rst
 
    .. tab:: 
+      :tabid: csharp
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/token-seq.cs
+         :language: csharp
+         :dedent:
+
+   .. tab:: 
       :tabid: go
 
       .. literalinclude:: /includes/fts-tutorial/autocomplete/token-seq.go
@@ -53,6 +60,11 @@
       :tabid: compass
 
       .. include:: /includes/fts-tutorial/autocomplete/token-seq-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts-tutorial/autocomplete/token-seq-output-cs.rst
 
    .. tab:: 
       :tabid: go

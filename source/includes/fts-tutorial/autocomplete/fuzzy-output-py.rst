@@ -33,12 +33,12 @@
          {'title': 'The Four Horsemen of the Apocalypse'}
          {'title': 'The Hunchback of Notre Dame'}
          {'title': 'Show People'}
-         {'title': 'Tarzan the Ape Man'}
          {'title': 'Berkeley Square'}
-         {'title': 'Folies Berg\xe8re de Paris'}
-         {'title': 'P\xe8p\xe8 le Moko'}
+         {'title': 'Folies Bergère de Paris'}
          {'title': 'Here Comes Mr. Jordan'}
          {'title': 'Cat People'}
+         {'title': 'People on the Alps'}
+         {'title': "The Gang's All Here"}
 
       These results show the words that are predicted for the query
       string with one character modification and with the first
@@ -57,11 +57,11 @@
          {'title': 'The Saphead'}
          {'title': 'The Four Horsemen of the Apocalypse'}
          {'title': 'He Who Gets Slapped'}
-         {'title': 'Peter Pan'}
          {'title': 'The Phantom of the Opera'}
          {'title': 'Show People'}
          {'title': 'The Blood of a Poet'}
          {'title': 'The 3 Penny Opera'}
+         {'title': 'Shanghai Express'}
 
       These results show the words that are predicted for the query
       string with one character modification at different positions in

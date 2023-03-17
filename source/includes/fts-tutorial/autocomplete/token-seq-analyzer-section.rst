@@ -54,6 +54,13 @@ The following query searches for movie titles that start with the term
       .. include:: /includes/fts-tutorial/autocomplete/starts-with.rst
 
    .. tab:: 
+      :tabid: csharp
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with.cs
+         :language: csharp
+         :dedent:
+
+   .. tab:: 
       :tabid: go
 
       .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with.go
@@ -92,6 +99,11 @@ The following query searches for movie titles that start with the term
       :tabid: compass
 
       .. include:: /includes/fts-tutorial/autocomplete/starts-with-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts-tutorial/autocomplete/starts-with-output-cs.rst
 
    .. tab:: 
       :tabid: go

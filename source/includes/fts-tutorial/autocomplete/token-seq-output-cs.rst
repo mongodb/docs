@@ -30,7 +30,7 @@
          :copyable: false
          :linenos:
 
-         {"title": "Men Without Women"}
-         {"title": "Men with Guns"}
-         {"title": "Men with Brooms"}
-         {"title": "Women Without Men"}
+         { "title" : "Men Without Women" }
+         { "title" : "Men with Guns" }
+         { "title" : "Men with Brooms" }
+         { "title" : "Women Without Men" }

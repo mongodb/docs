@@ -12,6 +12,13 @@
 
       .. include:: /includes/fts-tutorial/autocomplete/token-any.rst
 
+   .. tab::
+      :tabid: csharp
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/token-any.cs
+         :language: csharp
+         :dedent:
+
    .. tab:: 
       :tabid: go
 
@@ -53,6 +60,11 @@
       :tabid: compass
 
       .. include:: /includes/fts-tutorial/autocomplete/token-any-output-shell-and-compass.rst
+
+   .. tab:: 
+      :tabid: csharp
+
+      .. include:: /includes/fts-tutorial/autocomplete/token-any-output-cs.rst
 
    .. tab:: 
       :tabid: go

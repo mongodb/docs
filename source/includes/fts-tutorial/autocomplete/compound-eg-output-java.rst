@@ -68,4 +68,3 @@
          {"title": "Fubar: Balls to the Wall", "score": 16.18808364868164}
          {"title": "The Ball at the Anjo House", "score": 16.168169021606445}
          {"title": "The Ballad of the Sad Cafe", "score": 16.168169021606445}
-      

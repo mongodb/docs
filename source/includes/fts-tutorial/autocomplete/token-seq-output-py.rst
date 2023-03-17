@@ -20,6 +20,8 @@
 
          {'title': 'Men with Guns'}
          {'title': 'Men with Brooms'}
+         {'title': 'Getting Even with Dad'}
+         {'title': 'Chicken with Plums'}
 
    .. tab:: nGram
       :tabid: nGram

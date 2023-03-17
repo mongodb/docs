@@ -21,8 +21,8 @@
 
          [{title Men with Guns}]
          [{title Men with Brooms}]
-         [{title Brief Interviews with Hideous Men}]
-         [{title Conversations with Other Women}]
+         [{title Getting Even with Dad}]
+         [{title Chicken with Plums}]
 
    .. tab:: nGram
       :tabid: nGram
@@ -32,6 +32,6 @@
          :linenos:
 
          [{title Men Without Women}]
-         [{title Women Without Men}]
          [{title Men with Guns}]
          [{title Men with Brooms}]
+         [{title Women Without Men}]
