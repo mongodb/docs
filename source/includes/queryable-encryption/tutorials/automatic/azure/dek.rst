@@ -10,12 +10,6 @@
 
       .. include:: /includes/queryable-encryption/tab-note.rst
 
-      .. tip::
-
-         You recorded your {+azure-kv+} credentials in the
-         in the :ref:`Register Your Applitcation with Azure <qe-tutorial-automatic-azure-register>`
-         step of this guide.
-
       .. tabs-drivers::
 
          .. tab::
@@ -54,6 +48,8 @@
                :language: java
                :dedent:
 
+            .. include:: /includes/tutorials/automatic/azure/azure-vm-managed-identity.rst
+
          .. tab::
             :tabid: go
 
@@ -71,11 +67,6 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-
-      .. tip:: Learn More
-
-         To learn more about the KMS provider object for {+azure-kv+}, see
-         :ref:`qe-reference-kms-providers-azure`.
 
    .. step:: Add Your Key Information
 

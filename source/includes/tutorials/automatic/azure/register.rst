@@ -12,14 +12,41 @@
       follow Microsoft's official
       `Register an application with the Microsoft identity platform <https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app>`__
       Quick Start.
-      
-      .. important:: Record your Credentials
-      
-         Ensure you record the following credentials:
+   
+      .. tabs-drivers::
 
-         - **tenant id**
-         - **client id**
-         - **client secret**
+         .. tab::
+            :tabid: nodejs
 
-         You will need them to construct your ``kmsProviders`` object
-         later in this tutorial.
+            .. include:: /includes/tutorials/automatic/azure/record-credentials.rst
+
+         .. tab::
+            :tabid: python
+
+            .. include:: /includes/tutorials/automatic/azure/record-credentials.rst
+
+         .. tab::
+            :tabid: java-sync
+
+            .. important:: Record your Credentials
+      
+               Ensure you record the following credentials:
+
+               - **tenant id**
+               - **client id**
+               - **client secret**
+      
+               Unless you are running your client within an Azure Virtual
+               Machine, you will need these credentials to construct your
+               ``kmsProviders`` object later in this tutorial.
+
+         .. tab::
+            :tabid: go
+
+            .. include:: /includes/tutorials/automatic/azure/record-credentials.rst
+
+         .. tab::
+            :tabid: csharp
+
+            .. include:: /includes/tutorials/automatic/azure/record-credentials.rst
+

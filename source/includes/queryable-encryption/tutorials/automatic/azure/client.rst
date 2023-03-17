@@ -105,6 +105,8 @@
                :language: java
                :dedent:
 
+            .. include:: /includes/tutorials/automatic/azure/azure-vm-managed-identity.rst
+
          .. tab::
             :tabid: go
 
