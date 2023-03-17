@@ -8,8 +8,6 @@
 
       .. include:: /includes/queryable-encryption/tab-note.rst
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/iam-credentials-note.rst
-
       .. tabs-drivers::
 
          .. tab::
@@ -48,6 +46,8 @@
                :language: java
                :dedent:
 
+            .. include:: /includes/tutorials/automatic/aws/obtain-automatic-credentials.rst
+
          .. tab::
             :tabid: go
 
@@ -65,11 +65,6 @@
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-
-      .. tip:: Learn More
-
-         To learn more about the KMS provider object for AWS, see
-         :ref:`qe-reference-kms-providers-aws`.
 
    .. step:: Add Your Key Information
 

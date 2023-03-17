@@ -67,8 +67,6 @@
       Specify the ``aws`` KMS provider and your {+aws-iam-abbr+} user
       credentials:
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/iam-credentials-note.rst
-
       .. tabs-drivers::
 
          .. tab::
@@ -106,6 +104,8 @@
                :end-before: end-kmsproviders
                :language: java
                :dedent:
+
+            .. include:: /includes/tutorials/automatic/aws/obtain-automatic-credentials.rst
 
          .. tab::
             :tabid: go
