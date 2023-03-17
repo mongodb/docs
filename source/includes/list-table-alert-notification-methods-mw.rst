@@ -121,8 +121,14 @@
        </tutorial/third-party-service-integrations>` page.         
 
        .. include:: /includes/fact-webhook-redacted.rst
-       
 
+       1. In the :guilabel:`Webhook URL` field, specify the target 
+          |url| for webhook-based alerts.
+
+       #. (Optional) If you set up your Webhook integration with a 
+          secret, in the :guilabel:`Webhook Secret` field, specify the 
+          authentication secret for webhook-based alerts.
+       
    * - Datadog
 
      - Sends the alert to a `Datadog <https://www.datadoghq.com/alerts/>`_

@@ -205,7 +205,7 @@
        request to an endpoint for programmatic processing. The 
        request body contains a |json| document that uses the same
        format as the {+atlas-admin-api+}
-       :ref:`Alerts resource <reference-api-alerts>`. 
+       :ref:`Alerts resource <reference-api-alerts>`.
         
        This option is available only if you have configured Webhook 
        settings on the :ref:`Integrations 
@@ -213,4 +213,10 @@
 
        .. include:: /includes/fact-webhook-redacted.rst
 
+       1. In the :guilabel:`Webhook URL` field, specify the target 
+          |url| for webhook-based alerts.
+
+       #. (Optional) If you set up your Webhook integration with a 
+          secret, in the :guilabel:`Webhook Secret` field, specify the 
+          authentication secret for webhook-based alerts.
   
