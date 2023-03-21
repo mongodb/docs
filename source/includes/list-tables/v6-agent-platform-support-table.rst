@@ -19,7 +19,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Centos 8 
+      - RHEL/Centos/Rocky/Alma 8 
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -154,11 +154,4 @@
       -
       -
       -
-    * -
-      - Windows
-      - :icon:`check-circle`
-      - :icon:`check-circle`
-      - :icon:`check-circle`
-      - :icon:`check-circle`
-      - :icon:`check-circle`
-      - :icon:`check-circle`
+
