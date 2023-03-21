@@ -1,0 +1,243 @@
+.. _bson-data-types-number-facet:
+
+==============================================
+How to Index Numeric Values for Faceted Search   
+==============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Atlas Search numberFacet field type to include numeric values of int32, int64, and double data types in the search index for faceted search.
+
+.. :keywords: number, numberFacet, numberFacet field type, atlas search field type, facet search, field type for indexing numeric values for faceted search, metadata results, index int32, index int64, index double
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |data-type| replace:: ``number`` 
+.. |fts-ui-field-type| replace:: :guilabel:`NumberFacet`
+.. |fts-field-type| replace:: ``numberFacet``
+.. |properties-link| replace:: :ref:`Field Properties <fts-field-types-number-facet-options>` 
+.. |sample-collection| replace:: :ref:`sample_mflix.movies <sample-mflix>`
+
+You can use the |fts| ``numberFacet`` type to index numeric values using 
+the specified ``representation`` for faceting. You can index numbers of 
+|bson| types ``int32``, ``int64``, and ``double``. 
+
+.. include:: /includes/extracts/fts-ib-static-mappings-for-facet.rst 
+
+Review ``numberFacet`` Limitations 
+----------------------------------
+
+The following limitations apply:
+
+- You can't index ``decimal128`` for faceting. 
+- You can't index numeric values in arrays or in a document contained in an array 
+  for faceting.
+- You can't facet over numeric fields indexed as part of an 
+  ``embeddedDocuments`` field.
+
+.. _fts-field-types-number-facet-vib-jsonib:
+
+Define the Index for the |fts-field-type| Type  
+----------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-intro.rst
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      .. include:: /includes/extracts/fts-vib-index-definition-advanced.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      .. include:: /includes/extracts/fts-jsonib-index-definition.rst   
+
+      .. code-block:: json 
+         :emphasize-lines: 6-9
+
+         {
+           "mappings": {
+             "dynamic": true|false,
+             "fields": {
+               "<field-name>": {
+                 "type": "numberFacet",
+                 "representation": "int64|double",
+                 "indexIntegers": true|false,
+                 "indexDoubles": true|false 
+               }
+             }
+           }
+         }
+
+.. _fts-field-types-number-facet-options:
+
+Configure |fts-field-type| Field Properties  
+-------------------------------------------
+
+The |fts| ``numberFacet`` type takes the following parameters: 
+
+.. list-table::
+   :widths: 20 10 10 50 10
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Description
+     - Default
+
+   * - ``type``
+     - string 
+     - Required
+     - The type of field. Value must be ``numberFacet``.
+     - 
+
+   * - ``representation``
+     - string 
+     - Optional
+     - The data type of the field to index. Values can be one of the 
+       following |bson| types:
+
+       - ``int64`` - for indexing large integers without loss of 
+         precision and for rounding double values to integers. You 
+         can't use this type to index large double values.
+       - ``double`` - for indexing large double values without rounding.
+
+       To learn more, see :ref:`example <number-facet-egs>` below.
+
+     - ``double``
+
+   * - ``indexIntegers``
+     - boolean 
+     - Optional
+     - Indicates whether to index or omit indexing ``int32`` and 
+       ``int64`` type values. Value can be ``true`` or ``false``.
+       Either this or ``indexDoubles`` must be ``true``.
+
+     - ``true``
+
+   * - ``indexDoubles``
+     - boolean 
+     - Optional
+     - Indicates whether to index or omit indexing ``double`` type 
+       values. Value can be ``true`` or ``false``. Either this or 
+       ``indexIntegers`` must be ``true``.
+
+     - ``true``
+
+.. _number-facet-egs:
+
+Try an Example for the |fts-field-type| Type 
+--------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-egs-intro.rst 
+
+.. tabs::  
+
+   .. tab:: Basic Example
+      :tabid: basic
+
+      The following example index definition indexes the  ``year`` field
+      as the |fts| ``numberFacet`` type to supports queries against 
+      that field using |fts| :ref:`fts-facet-ref`.  
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`year` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`NumberFacet`.
+            #. Accept the default values for the :guilabel:`NumberFacet
+               Properties`. 
+            #. Click :guilabel:`Add`. 
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "year": {
+                       "type": "numberFacet"
+                     }
+                   }
+                 }
+               }
+
+   .. tab:: Multiple Types Example
+      :tabid: multitype 
+
+      The following example index definition indexes the  ``year``
+      field as the ``numberFacet`` and ``number`` types to return the 
+      following types of results for your queries: 
+      
+      - Metadata results for queries using |fts| :ref:`fts-facet-ref`.
+      - Search results for queries using |fts| operators like
+        :ref:`near-ref`, :ref:`equals-ref`, and :ref:`range-ref`. 
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`year` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`NumberFacet`.
+            #. Accept the default values for the :guilabel:`NumberFacet
+               Properties`. 
+            #. Click :guilabel:`Add`. 
+            #. Repeat step **1** and select :guilabel:`Number` from the 
+               :guilabel:`Data Type` dropdown.
+            #. Accept the default values for the :guilabel:`Number 
+               Properties`. 
+            #. Click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "year": [
+                       {
+                         "type": "numberFacet"
+                       },
+                       {
+                         "type": "number"
+                       }
+                     ]
+                   }
+                 }
+               }
+
+.. seealso:: Additional Index Definition Examples
+
+   See the following pages for additional index definition examples:
+   
+   - :ref:`facet Collector <fts-facet-egs>`
+   - :ref:`facet Tutorial <facet-tutorial>`

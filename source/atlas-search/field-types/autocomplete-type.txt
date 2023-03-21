@@ -1,0 +1,452 @@
+.. _bson-data-types-autocomplete:
+
+======================================
+How to Index Fields for Autocompletion 
+======================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Atlas Search autocomplete field type to index text values in string fields for autocompletion and search-as-you-type applications.
+
+.. :keywords: autocomplete, autocomplete field type, atlas search field type, autocomplete search, index string for autocompletion
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |data-type| replace:: string 
+.. |fts-ui-field-type| replace:: :guilabel:`Autocomplete`
+.. |fts-field-type| replace:: ``autocomplete``
+.. |properties-link| replace:: :ref:`Field Properties <fts-field-types-autocomplete-options>` 
+.. |sample-collection| replace:: :ref:`sample_mflix.movies <sample-mflix>`
+
+.. include:: /includes/fact-autocomplete-field-type.rst 
+
+You can also use the |fts-field-type| type to index:
+
+- Fields whose value is an array of strings. To learn more, see 
+  :ref:`fts-array-ref`.
+
+- String fields inside an array of documents indexed as the
+  :ref:`embeddedDocuments <bson-data-types-embedded-documents>` type.
+
+.. tip:: 
+  
+   If you have a large number of documents and a wide range of data 
+   against which you want to run |fts| queries using the 
+   :ref:`autocomplete-ref` operator, building this index can take 
+   some time. Alternatively, you can create a separate index with only 
+   the ``autocomplete`` type to reduce the impact on other indexes and 
+   queries while the index builds. 
+
+   To learn more, see |fts| :ref:`Index Performance Considerations
+   <index-size-and-config>`. 
+
+.. include:: /includes/extracts/fts-ib-static-mappings.rst 
+
+.. _fts-field-types-autocomplete-vib-jsonib:
+
+Define the Index for the |fts-field-type| Type 
+----------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-intro.rst 
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      .. include:: /includes/extracts/fts-vib-index-definition-advanced.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      .. include:: /includes/extracts/fts-jsonib-index-definition.rst 
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos: 
+         :emphasize-lines: 6-11
+
+         {
+           "mappings": {
+             "dynamic": true|false,
+             "fields": {
+               "<field-name>": {
+                 "type": "autocomplete",
+                 "analyzer": "<lucene-analyzer>",
+                 "tokenization": "edgeGram|rightEdgeGram|nGram",
+                 "minGrams": <2>,
+                 "maxGrams": <15>,
+                 "foldDiacritics": true|false
+               }
+             }
+           }
+         }
+
+.. _fts-field-types-autocomplete-options:
+
+Configure |fts-field-type| Field Properties    
+-------------------------------------------
+
+The |fts| |fts-field-type| type takes the following parameters: 
+
+.. list-table::
+   :widths: 18 10 8 53 11
+   :header-rows: 1
+
+   * - Option
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - ``type``
+     - string 
+     - required
+     - Human-readable label that identifies this field type. Value must
+       be |data-type|. 
+     - 
+
+   * - ``analyzer``
+     - string
+     - optional
+     - Name of the :ref:`analyzer <analyzers-ref>` to use with this 
+       autocomplete mapping. You can use any |fts| analyzer except the 
+       ``lucene.kuromoji`` :ref:`language analyzer 
+       <ref-language-analyzers>` and the following :ref:`custom 
+       analyzer <custom-analyzers>` tokenizers and token filters: 
+
+       - :ref:`nGram <ngram-tokenizer-ref>` Tokenizer
+       - :ref:`edgeGram <edgegram-tokenizer-ref>` Tokenizer
+       - :ref:`daitchMokotoffSoundex <daitchmokotoffsoundex-tf-ref>` 
+         Token Filter
+       - :ref:`nGram <ngram-tf-ref>` Token Filter 
+       - :ref:`edgeGram <edgegram-tf-ref>` Token Filter 
+       - :ref:`shingle <shingle-tf-ref>` Token Filter
+
+       This option isn't available in the Visual Editor.
+
+     - ``lucene.standard``
+      
+   * - ``maxGrams``
+     - int
+     - optional
+     - Maximum number of characters per indexed sequence. The 
+       value limits the character length of indexed tokens. When you 
+       search for terms longer than the ``maxGrams`` value, |fts| 
+       truncates the tokens to the ``maxGrams`` length.
+     - ``15``
+
+   * - ``minGrams``
+     - int
+     - optional
+     - Minimum number of characters per indexed sequence. We 
+       recommend ``4`` for the minimum value. A value that is less 
+       than ``4`` could impact performance because the size of the 
+       index can become very large. We recommend the default value of 
+       ``2`` for ``edgeGram`` only.
+     - ``2``
+
+   * - ``tokenization``
+     - enum
+     - optional
+     - Tokenization strategy to use when indexing the field for 
+       autocompletion. Value can be one of the following: 
+
+       - ``edgeGram`` - create indexable tokens, referred to as 
+         ``grams``, from variable-length character sequences starting 
+         at the left side of the words as delimited by the analyzer 
+         used with this autocomplete mapping.
+
+       - ``rightEdgeGram`` -  create indexable tokens, referred to 
+         as ``grams``, from variable-length character sequences 
+         starting at the right side of the words as delimited by the 
+         analyzer used with this autocomplete mapping.
+
+       - ``nGram`` - create indexable tokens, referred to as 
+         ``grams``, by sliding a variable-length character window over 
+         a word. |fts| creates more tokens for ``nGram`` than 
+         ``edgeGram`` or ``rightEdgeGram``. Therefore, ``nGram`` takes 
+         more space and time to index the field. ``nGram`` is better 
+         suited for querying languages with long, compound words or 
+         languages that don't use spaces.
+
+       ``edgeGram``, ``rightEdgeGram``, and ``nGram`` are applied at 
+       the letter-level. For example, consider the following sentence: 
+         
+       .. code-block:: none
+          :copyable: false 
+
+          The quick brown fox jumps over the lazy dog. 
+
+       When tokenized with a ``minGrams`` value of ``2`` and a ``maxGrams`` 
+       value of ``5``, |fts| indexes the following sequence of 
+       characters based on the ``tokenization`` value you choose: 
+
+       .. tabs:: 
+
+          .. tab:: edgeGram
+             :tabid: edgegram
+
+             .. code-block:: none
+                :copyable: false 
+
+                Th
+                The
+                The{SPACE}
+                The q 
+                qu
+                qui
+                quic
+                quick
+                ...
+
+          .. tab:: rightEdgeGram 
+             :tabid: rightedgegram
+
+             .. code-block:: none
+                :copyable: false 
+
+                og
+                dog
+                {SPACE}dog
+                y dog
+                zy
+                azy
+                lazy
+                {SPACE}lazy
+                he
+                the
+                {SPACE}the
+                r the
+                er
+                ver
+                over
+                {SPACE}over
+                ...
+
+          .. tab:: nGram
+             :tabid: ngram
+
+             .. code-block:: none 
+                :copyable: false 
+
+                Th
+                The 
+                The{SPACE}  
+                The q
+                he 
+                he{SPACE}   
+                he q
+                he qu
+                e{SPACE} 
+                e q
+                qu
+                e qui
+                {SPACE}q
+                {SPACE}qu
+                {SPACE}qui
+                {SPACE}quic
+                qu
+                qui
+                quic
+                quick
+                ...
+
+       .. note:: 
+
+          Indexing a field for autocomplete with an ``edgeGram``, 
+          ``rightEdgeGram``, or ``nGram`` tokenization strategy is more 
+          computationally expensive than indexing a string field. The 
+          index takes more space than an index with regular string 
+          fields.
+
+     - ``edgeGram``
+
+   * - ``foldDiacritics``
+     - boolean
+     - optional
+     - Flag that indicates whether to include or remove
+       diacritics from the indexed text. Value can be 
+       one of the following: 
+
+       - ``true`` - ignore diacritic marks in the index and query 
+         text. Returns results with and without diacritic marks. For 
+         example, a search for ``cafè`` returns results with the 
+         characters ``cafè`` and ``cafe``.
+       - ``false`` - include diacritic marks in the index and query 
+         text. Returns only results that match the strings with or 
+         without diacritics in the query. For example, a search for 
+         ``cafè`` returns results only with the characters ``cafè``. A 
+         search for ``cafe`` returns results only with the characters 
+         ``cafe``.
+
+     - ``true``
+
+.. _fts-field-types-autocomplete-egs:
+
+Try an Example for the |fts-field-type| Type  
+--------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-egs-intro.rst 
+
+.. tabs::  
+
+   .. tab:: Basic Example
+      :tabid: basic
+
+      The following index definition example indexes only the ``title``
+      field as the ``autocomplete`` type to support search-as-you-type
+      queries against that field using the :ref:`autocomplete-ref`
+      operator. The index definition also specifies the following: 
+
+      - Use the :ref:`standard <ref-standard-analyzer>` analyzer to divide
+        text values into terms based on word boundaries.
+      - Use the ``edgeGram`` tokenization strategy to index characters
+        starting at the left side of the words .
+      - Index a minimum of ``3`` characters per indexed sequence.
+      - Index a maximum of ``5`` characters per indexed sequence.
+      - Include diacritic marks in the index and query text.
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`title` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`Autocomplete`.   
+            #. Make the following changes to the :guilabel:`Autocomplete
+               Properties`:
+
+               .. list-table::
+                  :stub-columns: 1
+
+                  * - Max Grams 
+                    - Set value to ``5``.
+
+                  * - Min Grams 
+                    - Set value to ``3``.
+
+                  * - Tokenization
+                    - Select ``edgeGram`` from dropdown.
+                
+                  * - Fold Diacritics 
+                    - Select ``false`` from dropdown.
+
+            #. Click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json 
+               :copyable: true
+               :linenos:
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "title": {
+                       "type": "autocomplete",
+                       "analyzer": "lucene.standard",
+                       "tokenization": "edgeGram",
+                       "minGrams": 3,
+                       "maxGrams": 5,
+                       "foldDiacritics": false
+                     }
+                   }
+                 }
+               }
+
+   .. tab:: Multiple Types Example
+      :tabid: multitype 
+
+      You can index a field as other types also by specifying the other 
+      types in the array. For example, the following index definition 
+      indexes the ``title`` field as the following types: 
+      
+      - ``autocomplete`` type to support autocompletion for queries using
+        the :ref:`autocomplete-ref` operator.
+      - ``string`` type to support text search using operators such
+        :ref:`text-ref`, :ref:`phrase-ref`, and so on.
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`title` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`Autocomplete`.   
+            #. Make the following changes to the :guilabel:`Autocomplete
+               Properties`:
+
+               .. list-table::
+                  :stub-columns: 1
+
+                  * - Max Grams 
+                    - Set value to ``15``.
+
+                  * - Min Grams 
+                    - Set value to ``2``.
+
+                  * - Tokenization
+                    - Select ``edgeGram`` from dropdown.
+                
+                  * - Fold Diacritics 
+                    - Select ``false`` from dropdown.
+
+            #. Click :guilabel:`Add`.
+            #. Repeat steps **b** through **d**. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`String`.
+            #. Accept the default :guilabel:`String Properties` settings
+               and click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json 
+               :copyable: true
+               :linenos:
+         
+               {
+                 "mappings": {
+                   "dynamic": true|false,
+                   "fields": {
+                     "title": [
+                       {
+                         "type": "autocomplete",
+                         "analyzer": "lucene.standard",
+                         "tokenization": "edgeGram",
+                         "minGrams": 2,
+                         "maxGrams": 15,
+                         "foldDiacritics": false
+                       },
+                       {
+                         "type": "string"
+                       }
+                     ]
+                   }
+                 }
+               }
+
+.. seealso:: Additional Index Definition Examples
+   
+   - :ref:`autocomplete Operator <autocomplete-ref-egs>` 
+   - :ref:`autocomplete Tutorial <autocomplete-tutorial>`

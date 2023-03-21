@@ -1,0 +1,334 @@
+.. _bson-data-types-embedded-documents:
+
+======================================================
+How to Index Fields in Arrays of Objects and Documents 
+======================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Atlas Search embeddedDocument field type to index fields in documents or objects that are in an array.
+
+.. :keywords: embedded document, documents in an array, embeddedDdocument field type, objects in an array, atlas search field type, embeddedDocument search, array objects search, field type for indexing documents and objects in arrays
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |data-type| replace:: document 
+.. |vib-field-name| replace:: :guilabel:`Add Embedded Field`
+.. |fts-ui-field-type| replace:: :guilabel:`EmbeddedDocument`
+.. |fts-field-type| replace:: ``embeddedDocument``
+.. |properties-link| replace:: :ref:`Field Properties <fts-embedded-documents-type-options>` 
+.. |sample-collection| replace:: :ref:`sample_supplies.sales <sample-supplies>`
+
+.. note:: 
+
+   .. include:: /includes/fact-embedded-document-preview.rst
+
+You can use the |fts| ``embeddedDocuments`` type to index fields in
+documents and objects that are elements of an array. |fts| indexes
+embedded documents independent of their parent document. Each indexed
+document contains only fields that are part of the embedded document
+array element. You can use only the :ref:`embedded-document-ref`
+operator to query fields indexed as ``embeddedDocuments`` type.
+
+.. include:: /includes/extracts/fts-ib-static-mappings.rst 
+
+.. _fts-embedded-documents-type-limitations:
+
+Review ``embeddedDocuments`` Type Limitations 
+---------------------------------------------
+
+The following limitations apply:
+
+- You can use ``embeddedDocuments`` only on fields with up to ``5`` 
+  levels of nesting. An ``embeddedDocuments`` field can't have more 
+  than ``4`` parent ``embeddedDocuments`` fields.
+- You can't use ``embeddedDocuments`` for :ref:`date 
+  <bson-data-types-date-facet>` or :ref:`numeric 
+  <bson-data-types-number-facet>` faceting. 
+- You can't :ref:`highlight <highlight-ref>` fields or children of
+  fields indexed as the ``embeddedDocuments`` type.
+- .. include:: /includes/fact-fts-embedded-documents-limitation.rst
+
+.. _fts-embedded-documents-type-vib-jsonib:
+
+Define the Index for the |fts-field-type| Type  
+----------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-intro.rst 
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      .. include:: /includes/extracts/fts-vib-index-definition-objects.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      .. include:: /includes/extracts/fts-jsonib-index-definition.rst 
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+         :emphasize-lines: 6-12
+
+         {
+           "mappings": {
+             "dynamic": true|false,
+             "fields": {
+               "<field-name>": {
+                 "type": "embeddedDocuments",
+                 "dynamic": true|false,
+                 "fields": {
+                   "<field-name>": {
+                     <field-mapping-definition>
+                   }
+                 }
+               }
+             }
+           }
+         }
+
+.. _fts-embedded-documents-type-options:
+
+Configure |fts-field-type| Field Properties  
+-------------------------------------------
+
+The |fts| ``embeddedDocuments`` type takes the following parameters: 
+
+.. list-table::
+   :widths: 15 10 15 50 10
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - ``type``
+     - string
+     - Required
+     - Human-readable label that identifies the field type.
+       Value must be ``embeddedDocuments``.
+     - 
+
+   * - ``dynamic``
+     - boolean
+     - Optional
+     - Flag that specifies whether to index every dynamically indexable 
+       field in the document. Value can be one of 
+       the following: 
+
+       - ``true`` - index all indexable fields.
+       - ``false`` - don't index all the indexable fields.
+
+     - ``false``
+
+   * - ``fields``
+     - document
+     - Conditional
+     - Fields to index. 
+     
+       If ``dynamic`` is ``true``, |fts| indexes all indexable fields.
+       
+       If ``dynamic`` is ``false``, you can specify the fields to index 
+       in the field definition for ``fields``.
+
+       .. note:: 
+
+          |fts| doesn't support indexing facet fields as part of an 
+          ``embeddedDocuments`` field.
+
+     - ``{}``
+
+.. _fts-embedded-document-egs:
+
+Try an Example for the |fts-field-type| Type  
+--------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-egs-intro.rst
+
+.. tabs:: 
+
+   .. tab:: Index All Fields
+      :tabid: include 
+
+      The following index definition indexes the array of objects in
+      the ``items`` field. It also configures |fts| to automatically 
+      index all dynamically indexable fields inside the objects in
+      the ``items`` array.  
+
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: vib 
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`items` from the :guilabel:`Field Name`
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`EmbeddedDocuments`.  
+            #. Toggle :guilabel:`Enable Dynamic Mapping` to enable
+               dynamic mapping, if needed.
+            #. Click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following 
+            index definition.
+
+            .. code-block:: json 
+               :copyable: true 
+               :linenos:
+
+               {
+                 "mappings": {
+                   "fields": {
+                     "items": {
+                       "type": "embeddedDocuments",
+                       "dynamic": true
+                     }
+                   }
+                 }
+               }
+
+      .. note:: 
+
+         To index all fields in an embedded document including fields that
+         |fts| doesn't dynamically index, define the fields in the index
+         definition. For string faceting, |fts| counts string facets once
+         for each document in the result set. 
+            
+         For example, the following index definition configures |fts| to
+         automatically index all dynamically indexable fields inside the
+         objects in the ``items`` array. It also configures the
+         ``purchaseMethod`` field inside the array of objects to be
+         indexed as :ref:`stringFacet <bson-data-types-string-facet>`,
+         which |fts| doesn't dynamically index, to support |fts|
+         :ref:`fts-facet-ref` queries against that field: 
+
+         .. tabs:: 
+            :hidden:
+
+            .. tab:: Visual Editor 
+               :tabid: vib 
+
+               Click :guilabel:`Add Field` in the :guilabel:`Field
+               Mappings` section and add the following fields by
+               clicking :guilabel:`Add` after configuring the
+               settings for each field in the :guilabel:`Add
+               Field Mapping` window. 
+                     
+               .. list-table:: 
+                  :header-rows: 1
+
+                  * - :guilabel:`Field Name`
+                    - :guilabel:`Data Type`
+                           
+                  * - ``items``
+                    - Click the dropdown and select ``EmbeddedDocuments``. 
+  
+                  * - ``purchaseMethod``
+                    - Click the dropdown and select ``StringFacet``. 
+
+            .. tab:: JSON Editor 
+               :tabid: jsonib 
+  
+               .. code-block:: json 
+                  :copyable: true 
+                  :linenos:
+   
+                  {
+                    "mappings": {
+                      "dynamic": true,
+                      "fields": {
+                        "items": {
+                          "dynamic": true,
+                          "type": "embeddedDocuments"
+                        },
+                        "purchaseMethod": {
+                          "type": "stringFacet"
+                        }
+                      }
+                    }
+                  }
+
+   .. tab:: Index Specified Fields Only
+      :tabid: exclude 
+
+      The following index definition configures |fts| to index only the
+      ``name`` and ``tags`` fields as the |fts| ``string`` type in the
+      ``items`` array of objects.  
+
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: vib 
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`items` from the :guilabel:`Field Name` dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`EmbeddedDocuments`.  
+            #. Disable :guilabel:`Enable Dynamic Mapping`.
+            #. Click :guilabel:`Add`.
+            #. Click :guilabel:`Add Embedded Field` for the
+               :guilabel:`items` field in the :guilabel:`Field Mappings`
+               table and add the following fields by clicking
+               :guilabel:`Add` after configuring the settings for each
+               field in the :guilabel:`Add Embedded Field Mapping` window. 
+
+               .. list-table:: 
+                  :header-rows: 1
+
+                  * - :guilabel:`Field Name`
+                    - :guilabel:`Data Type`
+
+                  * - :guilabel:`items.name`
+                    - Click the :guilabel:`Data Type` dropdown and select
+                      :guilabel:`String`. 
+
+                  * - :guilabel:`items.tags`
+                    - Click the :guilabel:`Data Type` dropdown and select
+                      :guilabel:`String`. 
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following
+            index definition. 
+
+            .. code-block:: json 
+               :copyable: true 
+               :linenos:
+
+               {
+                 "mappings": {
+                   "fields": {
+                     "items": {
+                       "type": "embeddedDocuments",
+                       "dynamic": false,
+                       "fields": {
+                         "name": {
+                           "type": "string"
+                         },
+                         "tags": {
+                           "type": "string"
+                         }
+                       }
+                     }
+                   }
+                 }
+               }
+
+.. seealso:: Additional Index Definition Examples
+
+   - :ref:`embeddedDocument Operator <embedded-document-query-examples>`
+   - :ref:`embeddedDocument Tutorial <embedded-documents-tutorial>`

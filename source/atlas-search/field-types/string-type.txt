@@ -1,0 +1,373 @@
+.. _bson-data-types-string:
+
+==========================
+How to Index String Fields 
+==========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the string field type to index string values in fields.
+
+.. :keywords: string, string field type, atlas search field type, string search, field type for indexing string values 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |data-type| replace:: text 
+.. |fts-ui-field-type| replace:: :guilabel:`String`
+.. |fts-field-type| replace:: ``string``
+.. |properties-link| replace:: :ref:`Field Properties <fts-field-types-string-options>` 
+.. |sample-collection| replace:: :ref:`sample_mflix.movies <sample-mflix>`
+
+You can use the |fts| ``string`` type to index :manual:`string 
+</reference/bson-types/#string>` fields. You can use the |fts| 
+:ref:`phrase-ref`, :ref:`querystring-ref`, :ref:`span-ref`, 
+:ref:`text-ref`, :ref:`wildcard-ref`, :ref:`regex-ref`, and
+:ref:`more-like-this-ref` operators to query fields indexed as the
+``string`` type. 
+
+.. include:: /includes/extracts/fts-ib-enable-dynamic-mappings.rst
+
+.. _fts-field-types-string-limitations:
+
+Review the Limitations for the ``string`` Type  
+----------------------------------------------
+
+You can't use the |fts| ``string`` type to index fields for
+:ref:`fts-facet-ref` or :ref:`autocomplete-ref` queries. Instead, you
+must use :ref:`static mappings <static-dynamic-mappings>` to index the
+string fields as the following types:
+
+- :ref:`stringFacet <bson-data-types-string-facet>` type to run a
+  :ref:`fts-facet-ref` query on string fields. Note that |fts| doesn't
+  :ref:`dynamically <static-dynamic-mappings>` index string fields for
+  faceting. 
+
+- :ref:`autocomplete <bson-data-types-autocomplete>` type to run
+  :ref:`autocomplete-ref` operator queries on string fields. Note that
+  |fts| doesn't :ref:`dynamically <static-dynamic-mappings>` 
+  index string fields for :ref:`autocompletion <autocomplete-ref>`.
+
+.. _fts-field-types-string-vib-jsonib:
+
+Define the Index for the |fts-field-type| Type 
+------------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-intro.rst
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.  
+      #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add 
+         Field` to open the :guilabel:`Add Field Mapping` window. 
+      #. Select the field to index from the :guilabel:`Field Name`
+         dropdown.  
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String`. 
+      #. (Optional) Expand and configure the :guilabel:`String
+         Properties` for the field. To learn more, see
+         :ref:`fts-field-types-string-options`. 
+      #. (Optional) Click :guilabel:`Add Multi Field` to configure the
+         following alternate analyzer settings for that field: 
+
+         a. Enter a name for the alternate analyzer in the
+            :guilabel:`Multi Field Name` field.
+         #. Configure the string field properties for the alternate
+            analyzer under :guilabel:`Multi Field Properties`. To learn
+            more, see :ref:`fts-field-types-string-options`. 
+         #. (Optional) Click :guilabel:`Add Another Mult Field` and
+            repeat steps **1** and **b** to configure more analyzers for
+            the field. 
+
+      #. Click :guilabel:`Add`. 
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      .. include:: /includes/extracts/fts-jsonib-index-definition.rst  
+
+      .. code-block:: json 
+         :emphasize-lines: 6-13
+
+         {
+           "mappings": {
+             "dynamic": true|false,
+             "fields": {
+               "<field-name>": {
+                 "type": "string",
+                 "analyzer": "<atlas-search-analyzer>",
+                 "searchAnalyzer": "<atlas-search-analyzer>",
+                 "indexOptions": "docs|freqs|positions|offsets",
+                 "store": true|false,
+                 "ignoreAbove": <integer>,
+                 "multi": {<string-field-definition>},
+                 "norms": "include|omit"
+               }
+             }
+           }
+         }
+
+.. _fts-field-types-string-options:
+
+Configure |fts-field-type| Field Properties  
+-------------------------------------------
+
+The |fts| ``string`` type takes the following parameters:
+
+.. list-table::
+   :widths: 20 10 10 40 20
+   :header-rows: 1
+
+   * - Option
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - ``type``
+     - string
+     - Required
+     - Human-readable label that identifies this field type.
+       Value must be ``string``.
+     - 
+
+   * - ``analyzer``
+     - string
+     - Optional
+     - Name of a built-in or overridden :ref:`analyzer 
+       <analyzers-ref>` to use for indexing the field. If omitted,
+       defaults to an analyzer in the following order: 
+       
+       a. The ``analyzer`` option for the :ref:`index
+          <ref-index-definitions>` if specified. 
+       b. The ``lucene.standard`` analyzer.
+
+     - 
+
+   * - ``searchAnalyzer``
+     - string
+     - Optional
+     - Analyzer to use when querying the field. If omitted, defaults to 
+       an analyzer in the following order: 
+       
+       a. The ``analyzer`` option for this field if specified.
+       b. The ``searchAnalyzer`` option for the :ref:`index
+          <ref-index-definitions>` if specified. 
+       c. The ``analyzer`` option for the :ref:`index
+          <ref-index-definitions>` if specified. 
+       d. The ``lucene.standard`` analyzer.
+
+     - 
+
+   * - ``indexOptions``
+     - string
+     - Optional 
+     - Amount of information to store for the indexed 
+       field. Value can be one of the following:
+
+       - ``docs`` - Only indexes documents. The frequency and position 
+         of the indexed term are ignored. Only a single occurence of 
+         the term is reflected in the :ref:`score <scoring-ref>`.
+       - ``freqs`` - Only indexes documents and term frequency. The 
+         position of the indexed term is ignored. 
+       - ``positions`` - Indexes documents, term frequency, and term 
+         positions. 
+       - ``offsets`` - (Default) Indexes documents, term frequency, 
+         term positions, and term offsets. This option is required for 
+         :ref:`highlight-ref`.
+
+     - ``offsets``
+
+   * - ``store``
+     - boolean
+     - Optional
+     - Flag that indicates whether to store the exact document text as 
+       well as the analyzed values in the index. Value can be ``true`` 
+       or ``false``. The value for this option must be ``true`` for 
+       :ref:`highlight-ref`.
+
+       .. note:: 
+
+          To reduce the index size and performance footprint, we 
+          recommend setting ``store`` to ``false``\. To learn more, see 
+          :ref:`index-perf`.
+
+     - ``true``
+
+   * - ``ignoreAbove``
+     - int
+     - Optional
+     - Maximum number of characters in the value of the field to 
+       index. |fts| doesn't index if the field value is greater than 
+       the specified number of characters.
+     - 
+
+   * - ``multi``
+     - String Field Definition
+     - Optional 
+     - String field to index with the name of the alternate 
+       analyzer specified in the ``multi`` object. To learn more about 
+       specifying the ``multi`` object, see :ref:`ref-multi-analyzers` 
+       and :ref:`example <fts-field-types-string-egs>` below.
+
+     - 
+
+   * - ``norms``
+     - string
+     - Optional
+     - String that specifies whether to include or omit the field length in 
+       the result when scoring. The length of the field is determined 
+       by the number of tokens produced by the analyzer for the field. 
+       Value can be one of the following: 
+ 
+       - ``include`` - to include the field length when scoring.
+       - ``omit`` - to omit the field length when scoring.
+      
+       If value is ``include``, |fts| uses the length of the field to 
+       determine the higher score when scoring. For example, if two 
+       documents match an |fts| query, the document with the shorter 
+       field length scores higher than the document with the longer 
+       field length.
+
+       If value is ``omit``, |fts| ignores the field length when 
+       scoring. 
+
+     - ``include``
+
+.. _fts-field-types-string-egs:
+
+Try an Example for the |fts-field-type| Type  
+--------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-egs-intro.rst 
+
+.. tabs::  
+
+   .. tab:: Basic Example 
+      :tabid: basic 
+
+      The following index definition indexes string values in the  
+      ``title`` field as |fts| ``string`` type:
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            a. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`title` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`String`.   
+            #. Review the default settings for the :guilabel:`String
+               Properties`. 
+            #. Click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json 
+               :emphasize-lines: 6
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "title": {
+                       "type": "string"
+                     }
+                   }
+                 }
+               }
+
+   .. tab:: Multi Example
+      :tabid: multi
+
+      The following index definition indexes string values in the  
+      ``fullplot`` field with the ``lucene.english`` and ``lucene.french`` 
+      analyzers in addition to the default ``lucene.standard`` analyzer:
+
+      .. tabs::
+
+         .. tab:: Visual Editor 
+            :tabid: vib
+
+            a. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`fullplot` from the :guilabel:`Field Name` 
+               dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`String`.   
+            #. Review the default settings for the :guilabel:`String
+               Properties`. 
+            #. Click :guilabel:`Add Multi Field`, enter ``english`` in
+               the :guilabel:`Multi Field Name` field, and configure the
+               following :guilabel:`Multi Field Properties`:
+
+               .. list-table::
+                  :stub-columns: 1
+
+                  * - Index Analyzer 
+                    - Select ``lucene.english`` under
+                      ``lucene.language``. 
+
+                  * - Search Analyzer 
+                    - Select ``lucene.english`` under
+                      ``lucene.language``.
+
+            #. Click :guilabel:`Add Another Multi Field`, enter
+               ``french`` in the :guilabel:`Multi Field Name` field, and
+               configure the following :guilabel:`Multi Field Properties`:
+
+               .. list-table::
+                  :stub-columns: 1
+
+                  * - Index Analyzer 
+                    - Select ``lucene.french`` under
+                      ``lucene.language``. 
+
+                  * - Search Analyzer 
+                    - Select ``lucene.french`` under
+                      ``lucene. language``.
+
+            #. Click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following index
+            definition. 
+
+            .. code-block:: json 
+               :emphasize-lines: 6-11
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "fullplot": {
+                       "type": "string",
+                       "multi": {
+                         "english": {
+                           "type": "string",
+                           "analyzer": "lucene.english"
+                         },
+                         "french": {
+                           "type": "string",
+                           "analyzer": "lucene.french"
+                         }
+                       }
+                     }
+                   }
+                 }
+               }
+

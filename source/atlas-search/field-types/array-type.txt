@@ -1,0 +1,163 @@
+.. _fts-array-ref:
+
+=====================================
+How to Index the Elements of an Array
+=====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the data type of the elements in an array to include elements inside the array in the search index.
+
+.. :keywords: array, arrays, array elements, atlas search index, index array elements
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |sample-collection| replace:: :ref:`sample_mflix.movies <sample-mflix>`
+
+For indexing arrays, |fts| requires only the data type of the array 
+elements. You don't have to specify that the data is contained in an 
+array (``[]``) in the index definition. 
+
+If you enable :ref:`dynamic mappings <static-dynamic-mappings>`, |fts| 
+automatically indexes elements of dynamically indexable data types
+inside the array. To learn more about the data types that |fts|
+dynamically indexes, see :ref:`bson-data-types`.
+
+You can use the **Visual Editor** or the  **JSON Editor** in the
+{+atlas-ui+} to define the index for elements in arrays.
+
+How Does |fts| Index Array Elements? 
+------------------------------------
+
+|fts| indexes the :ref:`supported data types <bson-data-chart>` inside
+an array by flattening the fields during indexing. 
+
+.. example:: 
+
+   Consider the following documents:
+
+   .. code-block:: javascript 
+      :copyable: false
+
+      doc1 = { a: {b: [[<value1>, <value2>], <value3>] }}
+      doc2 = { a: {b: [<value1>, <value2>, <value3>] } }
+      doc3 = { a: [{ b: <value1>}, {b: <value2>}, {b: <value3>}] }
+
+   |fts| flattens the preceding arrays similar to the following during
+   indexing: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      LuceneDoc<n> = {"a.b":[<value1>,<value2>,<value3>]}
+
+How Can I Index Objects in Arrays? 
+----------------------------------
+
+To query fields inside an array of documents or objects, you must use
+the :ref:`embeddedDocuments <bson-data-types-embedded-documents>` type
+to index the field that contains the array of objects.  
+
+Review the Limitations 
+----------------------
+
+|fts| doesn't index the following |fts| field types if the field type 
+is contained in an array or is in a document that is contained in an 
+array:
+
+- :ref:`dateFacet <bson-data-types-date-facet>` 
+- :ref:`numberFacet <bson-data-types-number-facet>` 
+
+Define the Index for the Array Elements 
+---------------------------------------
+
+To define the index for the array elements, choose your preferred
+configuration method in the {+atlas-ui+} and then select the database
+and collection. 
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.  
+      #. In the :guilabel:`Field Mappings` section, click :guilabel:`Add
+         Field Mapping` to open the :guilabel:`Add Field Mapping` window.  
+      #. Select the field of type array to index from the
+         :guilabel:`Field Name` dropdown.   
+      #. Click the :guilabel:`Data Type` dropdown and select the 
+         data type of the array element that you want to index. To learn
+         more about the configuring the properties for the selected type,
+         refer to the documentation for the selected type. 
+      #. Click :guilabel:`Add`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      The following is the |json| syntax for indexing elements inside an
+      array. Replace the default index definition with the following.  
+
+      .. code-block:: json 
+         :copyable: true 
+         :linenos: 
+         :emphasize-lines: 5-7
+
+         {
+           "mappings": {
+             "dynamic": true|false,
+             "fields": {
+               "<array-field-name>": {
+                 "type": "<array-element-data-type>"
+               }
+             }
+           }
+         }
+
+.. _fts-array-example:
+
+Try an Example for Indexing Array Elements  
+------------------------------------------
+
+.. include:: /includes/extracts/fts-index-definition-egs-intro.rst 
+
+The following index definition indexes the ``genres`` field, which
+contains an array of string values. 
+
+.. tabs::
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. In the :guilabel:`Add Field Mapping` window, select
+         :guilabel:`genres` from the :guilabel:`Field Name` 
+         dropdown. 
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String`.
+      #. Keep the default settings for the :guilabel:`String
+         Properties`. 
+      #. Click :guilabel:`Add`. 
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      Replace the default index definition with the following index
+      definition. 
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos: 
+
+         {
+           "mappings": {
+             "fields": {
+               "genres": {
+                 "type": "string"
+               }
+             }
+           }
+         }

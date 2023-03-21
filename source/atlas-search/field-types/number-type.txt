@@ -1,0 +1,300 @@
+.. _bson-data-types-number:
+
+===========================
+How to Index Numeric Values  
+===========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Atlas Search number field type to include numeric values of int32, int64, dateTime, and double data types in the search index.
+
+.. :keywords: number, number field type, atlas search field type, numeric value search, number search, field type for indexing numbers and numeric values, index int32 values, index int64 values, index double values, index dateTime values
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |data-type| replace:: numeric 
+.. |fts-ui-field-type| replace:: :guilabel:`Number`
+.. |fts-field-type| replace:: ``number``
+.. |properties-link| replace:: :ref:`Field Properties <fts-field-types-number-options>` 
+
+You can use the |fts| ``number`` type to index fields with numeric
+values of ``int32``, ``int64``, ``dateTime``, and ``double`` data types.
+You can use the :ref:`equals-ref`, :ref:`range-ref`, and :ref:`near-ref`
+operators to query indexed fields of type ``number``.
+
+.. note::
+   
+   To query numeric values in arrays, you can use only the :ref:`range-ref` 
+   operator. 
+
+|fts| doesn't automatically index numeric values for faceting.
+Instead, you must index the numeric values using :ref:`numberFacet
+<bson-data-types-number-facet>` to run a :ref:`fts-facet-ref` query
+on number fields.
+
+.. include:: /includes/extracts/fts-ib-enable-dynamic-mappings.rst 
+
+.. _fts-field-types-number-vib-jsonib:
+
+Define the Index for the |fts-field-type| Type  
+----------------------------------------------
+
+.. tabs:: 
+
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      .. include:: /includes/extracts/fts-vib-index-definition-advanced.rst 
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      .. include:: /includes/extracts/fts-jsonib-index-definition.rst   
+
+      .. code-block:: json 
+         :emphasize-lines: 6-9
+
+         {
+           "mappings": {
+             "dynamic": true|false,
+             "fields": {
+               "<field-name>": {
+                 "type": "number",
+                 "representation": "int64|double",
+                 "indexIntegers": true|false,
+                 "indexDoubles": true|false   
+               }
+             }
+           }
+         }
+
+.. _fts-field-types-number-options:
+
+Configure |fts-field-type| Field Properties 
+-------------------------------------------
+
+The |fts| ``number`` type has the following parameters: 
+
+.. list-table::
+   :widths: 15 15 10 10 40 10
+   :header-rows: 1
+
+   * - UI Field Name 
+     - JSON Option
+     - Type 
+     - Necessity
+     - Description
+     - Default
+
+   * - :guilabel:`Data Type`
+     - ``type``
+     - string 
+     - Required
+     - Human-readable label that identifies this field type.
+       Value must be ``number``.
+     - 
+
+   * - :guilabel:`Representation` 
+     - ``representation``
+     - string 
+     - Optional
+     - Data type of the field to index. Values are:
+
+       - ``int64`` - for indexing large integers without loss of 
+         precision and for rounding double values to integers. You 
+         can't use this type to index large double values.
+       - ``double`` - for indexing large double values without rounding.
+
+       To learn more, see :ref:`example <number-egs>` below.
+
+     - ``double``
+
+   * - :guilabel:`Index Integers` 
+     -  ``indexIntegers``
+     - boolean 
+     - Optional
+     - Flag that indicates whether to index or omit indexing ``int32`` 
+       and ``int64`` type values. Value can be ``true`` or ``false``. 
+       To learn more, see :ref:`example <number-egs>` below.
+
+     - ``true``
+
+   * - :guilabel:`Index Doubles` 
+     -  ``indexDoubles``
+     - boolean 
+     - Optional
+     - Flag that indicates whether to index or omit indexing ``double``
+       type values. Value can be ``true`` or ``false``. To learn more, 
+       see :ref:`example <number-egs>` below.
+
+     - ``true``
+
+.. _number-egs:
+
+Try an Example for the |fts-field-type| Type  
+--------------------------------------------
+
+The following index definition examples use multiple collections in the
+:ref:`sample data <sample-data>`. If you have the :ref:`sample data
+<sample-data>` already loaded on your {+cluster+}, you can use the
+Visual Editor and |json| Editor to configure these indexes.
+After you select your preferred configuration method, select the
+database and collection, and refine your index to add field mappings.  
+
+.. tabs:: 
+  
+   .. tab:: Representation Example
+      :tabid: representation
+
+      The following index definition for the 
+      ``sample_analytics.accounts`` collection in the :ref:`sample 
+      dataset <available-sample-datasets>` indexes the 
+      ``account_id`` field with 64-bit integer values. The 
+      following example also: 
+    
+      - Indexes all other integer values in the ``account_id`` field.
+      - Rounds any decimal values and indexes small double type 
+        values in the ``account_id`` field.
+
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: vib 
+
+            1. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`account_id` from the :guilabel:`Field
+               Name` dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`Number`.
+            #. Modify the :guilabel:`Number Properties` to set the
+               following: 
+               
+               - :guilabel:`Representation` to ``int64``.
+               - :guilabel:`Index Integers` to ``true``.
+               - :guilabel:`Index Doubles` to ``true``.
+            
+            #. Click :guilabel:`Add`. 
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following
+            index definition. 
+
+            .. code-block:: json
+               :copyable: true
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "account_id": {
+                       "type": "number",
+                       "representation": "int64"
+                     }
+                   }
+                 }
+               }
+
+   .. tab:: Index Integers Example
+      :tabid: indexints 
+
+      The following index definition for the
+      ``sample_analytics.accounts`` collection in the  
+      :ref:`sample dataset <available-sample-datasets>` indexes integer 
+      values and omits doubles values in the the ``account_id``.
+
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: vib 
+
+            a. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`account_id` from the :guilabel:`Field
+               Name` dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`Number`.
+            #. Modify the :guilabel:`Number Properties` to set the
+               following: 
+
+               - :guilabel:`Representation` to ``int64``.
+               - :guilabel:`Index Integers` to ``true``.
+               - :guilabel:`Index Doubles` to ``false``.
+            
+            #. Click :guilabel:`Add`.
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following
+            index definition. 
+
+            .. code-block:: json
+               :copyable: false
+   
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "account_id": {
+                       "type": "number",
+                       "representation": "int64",
+                       "indexDoubles": false
+                     }
+                   }
+                 }
+               } 
+
+   .. tab:: Index Doubles Example
+      :tabid: indexdoubles
+
+      The following index definition for the
+      ``sample_airbnb.listingsAndReviews`` collection in the  
+      :ref:`sample dataset <available-sample-datasets>` indexes
+      ``double`` type values and omits the 32-bit and 64-bit integer
+      values in the ``bathrooms`` field.   
+
+      .. tabs:: 
+
+         .. tab:: Visual Editor 
+            :tabid: vib 
+
+            a. In the :guilabel:`Add Field Mapping` window, select
+               :guilabel:`bathrooms` from the :guilabel:`Field
+               Name` dropdown. 
+            #. Click the :guilabel:`Data Type` dropdown and select
+               :guilabel:`Number`.
+            #. Modify the :guilabel:`Number Properties` to set the
+               following: 
+
+               - :guilabel:`Representation` to ``doubles``.
+               - :guilabel:`Index Integers` to ``false``.
+               - :guilabel:`Index Doubles` to ``true``.
+            
+            #. Click :guilabel:`Add`. 
+
+         .. tab:: JSON Editor 
+            :tabid: jsonib
+
+            Replace the default index definition with the following
+            index definition. 
+
+            .. code-block:: json
+               :copyable: false
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "bathrooms": {
+                       "type": "number",
+                       "indexIntegers": false
+                     }
+                   }
+                 }
+               }
