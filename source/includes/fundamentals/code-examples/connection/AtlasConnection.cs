@@ -1,8 +1,8 @@
 using MongoDB.Driver;
 using MongoDB.Bson;
 
-// Replace the placeholders with your credentials
-const string connectionUri = "mongodb+srv://<username>:<password>@cluster0.sample.mongodb.net/?retryWrites=true&w=majority";
+// Replace the placeholder with your Atlas connection string
+const string connectionUri = "<connection string>";
 
 var settings = MongoClientSettings.FromConnectionString(connectionUri);
 
