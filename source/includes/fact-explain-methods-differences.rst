@@ -6,7 +6,7 @@ following key differences:
   additional chaining of query modifiers. For list of query modifiers,
   see :ref:`db.collection.explain().find().help() <explain-method-help>`.
 
-- The :method:`db.collection.explain().find() <db.collection.explain()>` returns a cursor, which
+- The :method:`db.collection.find().explain() <db.collection.explain()>` returns a cursor, which
   requires a call to ``.next()``, or its alias ``.finish()``, to return
   the ``explain()`` results.
   If run interactively in :binary:`~bin.mongosh`,
