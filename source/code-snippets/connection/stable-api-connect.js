@@ -1,7 +1,7 @@
 const { MongoClient, ServerApiVersion } = require("mongodb");
 
-// Replace the placeholders with your credentials and hostname
-const uri = "mongodb+srv://<username>:<password>@<hostname>/?retryWrites=true&w=majority";
+// Replace the placeholder with your Atlas connection string
+const uri = "<connection string>";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri,  {
