@@ -12,8 +12,8 @@ import com.mongodb.client.MongoDatabase;
 
 public class MongoClientConnectionExample {
     public static void main(String[] args) {
-        // Replace the placeholders with your credentials and hostname
-        String uri = "mongodb+srv://<username>:<password>@<hostname>/?retryWrites=true&w=majority";
+        // Replace the placeholder with your Atlas connection string
+        String uri = "<connection string>";
 
         // Construct a ServerApi instance using the ServerApi.builder() method
         ServerApi serverApi = ServerApi.builder()
