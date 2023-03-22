@@ -10,7 +10,7 @@ a. Add the :setting:`spec.encryptionAtRest.googleCloudKms` object to
       * - Parameter
         - Description
 
-      * - ``spec.encryptionAtRest.awsKms.enabled``
+      * - ``spec.encryptionAtRest.googleCloudKms.enabled``
         - Flag that indicates whether this project uses {+gcp+} |kms| 
           to encrypt data at rest. To enable encryption at rest using 
           {+gcp+} |kms|, set this parameter to ``true``. To disable
@@ -18,12 +18,12 @@ a. Add the :setting:`spec.encryptionAtRest.googleCloudKms` object to
           ``false``. If you disable encryption at rest using {+gcp+}
           |kms|, |ak8so| removes the configuration details.
 
-      * - ``spec.encryptionAtRest.awsKms.``
+      * - ``spec.encryptionAtRest.googleCloudKms.``
           ``keyVersionResourceID``
         - Unique resource path that displays the key version resource
           ID for your {+gcp+} |kms|.
                     
-      * - ``spec.encryptionAtRest.awsKms.``
+      * - ``spec.encryptionAtRest.googleCloudKms.``
           ``serviceAccountKey``
         - String-formatted |json| object containing {+gcp+} |kms|
           credentials from your {+gcp+} account.
