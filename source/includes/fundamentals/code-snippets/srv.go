@@ -9,8 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Replace the placeholders with your credentials
-const uri = "mongodb+srv://<username>:<password>@cluster0.sample.mongodb.net/?retryWrites=true&w=majority"
+// Replace the placeholder with your Atlas connection string
+const uri = "<connection string>"
 
 func main() {
 
