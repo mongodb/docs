@@ -7,3 +7,4 @@
 - You can't live migrate from |onprem| in :opsmgr:`local mode 
   </tutorial/configure-local-mode/#local-mode>` to an |service| target 
   {+cluster+}.
+- .. include:: /includes/fact-live-migration-host-alerts.rst
