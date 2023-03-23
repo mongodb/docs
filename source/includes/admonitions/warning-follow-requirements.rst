@@ -11,12 +11,4 @@
 
      - The |onprem| Application Database,
      - Each |onprem| Backup Daemon :term:`head database`, and
-<<<<<<< HEAD
      - Each blockstore.
-=======
-     - Each blockstore.
-  
-  Additionally, connecting too many hosts to a single project may cause performance 
-  exceptions. Consult the :doc:`core/requirements/#onprem-hardware-requirements` and 
-  the :doc:`core/requirements/#onprem-application-database-hardware-requirements` for best performance. 
->>>>>>> 82e9d248f ((DOCSP-28651) added a warning about too many hosts per project)
