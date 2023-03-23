@@ -23,6 +23,8 @@
   `CWE-611 <https://cwe.mitre.org/data/definitions/611.html>`_.
 - Updates the {+mdbagent+} to :ref:`11.0.24.7131
   <mongodb-11.0.24.7131>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.6.1
+  </release-notes/database-tools-changelog/#100.6.1-changelog>`.
 
 .. _opsmgr-server-5.0.18:
 
