@@ -27,6 +27,8 @@
 - Fixes an issue where sharded collections could be missing from the chunks dropdown for the backing cluster in the UI.
 - Fixes an issue where clicking the refresh button in the :guilabel:`Backup Job Timeline` UI resulted in a failure.
 - Includes the lastest version of MongoDB Shell 1.6.2.
+- Compatible with :db-tools:`MongoDB Database Tools 100.6.1
+  </release-notes/database-tools-changelog/#100.6.1-changelog>`.
 
 .. _opsmgr-server-6.0.9:
 
