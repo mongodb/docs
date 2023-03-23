@@ -128,14 +128,14 @@ in the following sample code.
 ---------------
 
 .. note::
-   The MONGODB-AWS authentication mechanism is only available in MongoDB
+   The MONGODB-AWS authentication mechanism is available only in MongoDB
    versions 4.4 and later.
 
 The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
 Identity and Access Management (AWS IAM) credentials to authenticate your
 user. If you do not already have the `AWS signature library
-<https://www.npmjs.com/package/aws4>`__, install it using the following
-``npm`` command:
+<https://www.npmjs.com/package/aws4>`__, use the following
+``npm`` command to install it:
 
 .. code-block:: bash
 
@@ -147,9 +147,10 @@ enabled, specify the ``MONGODB-AWS`` authentication mechanism.
 The driver checks for your credentials in the following sources in order:
 
 1. Connection string
-2. Environment variables
-3. AWS ECS endpoint specified in ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI``
-4. AWS EC2 endpoint. For more information, see `IAM Roles for Tasks
+#. Environment variables
+#. Web identity token file
+#. AWS ECS endpoint specified in ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI``
+#. AWS EC2 endpoint. For more information, see `IAM Roles for Tasks
    <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`_.
 
 .. important::
@@ -160,27 +161,6 @@ The driver checks for your credentials in the following sources in order:
    credentials that you specified in environment variables.
 
 .. tabs::
-
-   .. tab:: Environment Variables
-      :tabid: environment variables
-
-      To authenticate to your MongoDB instance using AWS credentials stored in
-      environment variables, you must specify the following items:
-
-      - In your connection string, specify the ``MONGODB-AWS`` authentication
-        mechanism as the value of the ``authMechanism`` parameter.
-      - In your ``AWS_ACCESS_KEY_ID`` environment variable, specify the value
-        of your AWS access key ID.
-      - In your ``AWS_SECRET_ACCESS_KEY`` environment variable, specify the
-        value of your AWS secret access key.
-      - If your login requires an AWS session token, specify the value in
-        your ``AWS_SESSION_TOKEN`` environment variable.
-
-      The following code shows an example of specifying the ``MONGODB-AWS``
-      authentication mechanism with environment variables:
-
-      .. literalinclude:: /code-snippets/authentication/aws-env-variable.js
-         :language: javascript
 
    .. tab:: Connection String
       :tabid: connection string
@@ -199,6 +179,49 @@ The driver checks for your credentials in the following sources in order:
          ``encodeURIComponent`` method to ensure they are correctly parsed.
 
       .. literalinclude:: /code-snippets/authentication/aws.js
+         :language: javascript
+
+   .. tab:: Environment Variables
+      :tabid: environment variables
+
+      To authenticate to your MongoDB instance using AWS credentials stored in
+      environment variables, set the following variables by using
+      a shell:
+
+      .. code-block:: bash
+
+         export AWS_ACCESS_KEY_ID=<awsKeyId>
+         export AWS_SECRET_ACCESS_KEY=<awsSecretKey>
+         export AWS_SESSION_TOKEN=<awsSessionToken>
+
+      .. note::
+
+         Omit the line containing ``AWS_SESSION_TOKEN`` if you don't need an AWS
+         session token for that role.
+      
+      After you've set the preceding environment variables, specify the ``MONGODB-AWS``
+      authentication mechanism in your connection string as shown in the following example:
+
+      .. literalinclude:: /code-snippets/authentication/aws-env-variable.js
+         :language: javascript
+      
+   .. tab:: Web Identity Token File
+      :tabid: web-identity-token-file
+
+      You can use the OpenID Connect (OIDC) token obtained from a web identity provider to authenticate
+      to Amazon Elastic Kubernetes Service (EKS) or other services.
+      To use an OIDC token, create a file that contains your token, then 
+      set the absolute path to this file in an environment variable by using
+      a shell as shown in the following example:
+
+      .. code-block:: bash
+
+         export AWS_WEB_IDENTITY_TOKEN_FILE=<absolute path to file containing your OIDC token>
+
+      After you've set the preceding environment variable, specify the ``MONGODB-AWS``
+      authentication mechanism in your connection string as shown in the following example:
+
+      .. literalinclude:: /code-snippets/authentication/aws-env-variable.js
          :language: javascript
 
 ``X.509``
