@@ -106,6 +106,14 @@
       -
       -
       -
+    * - 
+      - Windows
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
     * - ARM
       - RHEL/Centos 8
       - :icon:`check-circle`
