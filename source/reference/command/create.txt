@@ -28,11 +28,6 @@ Syntax
 
 The :dbcommand:`create` command has the following syntax:
 
-.. note:: Starting in MongoDB 4.2
-
-   MongoDB removes the MMAPv1 storage engine and the MMAPv1 specific
-   option ``flags`` for :dbcommand:`create`.
-
 .. code-block:: javascript
 
    db.runCommand(
@@ -42,7 +37,9 @@ The :dbcommand:`create` command has the following syntax:
         timeseries: {
            timeField: <string>,
            metaField: <string>,
-           granularity: <string>
+           granularity: <string>,
+           bucketMaxSpanSeconds: <int>,
+           bucketRoundingSeconds: <int>
         },
         expireAfterSeconds: <number>,
         clusteredIndex: <document>,  // Added in MongoDB 5.3
@@ -107,20 +104,65 @@ The :dbcommand:`create` command has the following fields:
  
    * - ``timeseries.granularity``
      - string
-     - Optional. Possible values are ``"seconds"`` (default),
-       ``"minutes"``, and ``"hours"``. Set the granularity to the value
-       that is the closest match to the time span between consecutive
-       incoming measurements. Setting the ``granularity`` parameter
-       accurately improves performance by optimizing how data in the time
-       series collection is stored internally.
+ 
+     - Optional. Defaults to ``"seconds"`` if unset. If you set 
+       ``granularity`` you must not set ``bucketMaxSpanSeconds`` or ``bucketRoundingSeconds``. Possible values are ``"seconds"`` (default),``"minutes"``, and ``"hours"``. 
+     
+       Set the granularity to the value that is the 
+       closest match to the time span between consecutive incoming 
+       measurements. Setting the ``granularity`` parameter accurately 
+       improves performance by optimizing how data in the time series 
+       collection is stored internally.
+
+       For more information on how granularity settings differ, see 
+       :ref:`timeseries-granularity`.
+
+
 
    * - ``timeseries.bucketMaxSpanSeconds``
-     - integer
-     - .. include:: /includes/time-series/fact-bucket-max-span-description.rst
  
+     - string
+ 
+     - Optional. If unset, the collection uses ``"granularity":
+       "seconds"`` by default. If you set ``bucketMaxSpanSeconds`` you
+       must also set ``bucketRoundingSeconds``, and you must not set
+       ``granularity``. Possible values are any positive integer up to
+       ``31536000`` (inclusive).
+
+       Set the maximum range for timestamps within the same bucket.
+
+       If you use this setting and need to downgrade below MongoDB 6.3,
+       use :dbcommand:`collMod` and set bucket ``granularity`` to
+       ``seconds``, ``minutes``, or ``hours`` before downgrading.
+       
+       For more information on how granularity settings differ, see 
+       :ref:`timeseries-granularity`.
+
+
+
    * - ``timeseries.bucketRoundingSeconds``
-     - integer
-     - .. include:: /includes/time-series/fact-bucket-rounding-description.rst
+ 
+     - string
+ 
+     - Optional. If unset, the collection uses ``"granularity":
+       "seconds"`` by default. If you set ``bucketRoundingSeconds`` you
+       must also set ``bucketMaxSpanSeconds``, and you must not set
+       ``granularity``. Possible values are any positive integer that is less than or equal to ``bucketMaxSpanSeconds``.
+
+       Set the rounding behavior used to determine the minimum timestamp value for a new bucket. For example, setting
+       this to ``"3600"`` rounds down to the nearest hour. If the value
+       ``"2023-03-27T18:24:35Z"`` does not fit an existing bucket,
+       MongoDB creates a new bucket with a minimum value of
+       ``"2023-03-27T18:00:00Z"``.
+       
+       If you use this setting and need to downgrade below MongoDB 6.3,
+       use :dbcommand:`collMod` and set bucket ``granularity`` to
+       ``seconds``, ``minutes``, or ``hours`` before downgrading.
+
+       For more information on how granularity settings differ, see 
+       :ref:`timeseries-granularity`.
+ 
+
 
    * - ``expireAfterSeconds``
      - number
@@ -128,6 +170,8 @@ The :dbcommand:`create` command has the following fields:
        :term:`time series collection` or :term:`clustered collection`
        expire. MongoDB deletes expired documents automatically.
  
+ 
+
    * - :ref:`clusteredIndex <create.clusteredIndex>`
      - document
      - .. _create.clusteredIndex:
@@ -398,6 +442,24 @@ for the past 24 hours, issue this command:
              timeField: "timestamp",
              metaField: "data",
              granularity: "hours"
+          },
+          expireAfterSeconds: 86400
+       }
+   )
+
+Alternately, to create the same collection but limit each bucket to
+timestamp values within the same hour, issue this command:
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "data",
+             bucketMaxSpanSeconds: "3600",
+             bucketRoundingSeconds: "3600"
           },
           expireAfterSeconds: 86400
        }
