@@ -1,3 +1,13 @@
+.. _12.14.0.8069:
+
+MongoDB Agent 12.14.0.8069
+==========================
+
+*Released* 2023-03-21
+
+- Fixes a formatting issue that could prevent the |k8s-op-short| from
+  successfully passing a localhost override to the monitoring module.
+
 .. _12.13.0.8043:
 
 MongoDB Agent 12.13.0.8043

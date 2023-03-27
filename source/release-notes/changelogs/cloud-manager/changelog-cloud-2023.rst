@@ -1,3 +1,10 @@
+.. _cloudmanager_20230322:
+
+22 March 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+mdbagent+} to :ref:`12.14.0.8069 <12.14.0.8069>`.
+
 .. _cloudmanager_20230301:
 
 01 March 2023 Release
