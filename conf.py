@@ -59,7 +59,7 @@ pygments_style = 'sphinx'
 source_constants = {
     'version': version,
     'k8s-op-short': 'Kubernetes Operator',
-    'k8s-api-version': 'v1.25',
+    'k8s-api-version': 'v1.26',
     'k8s-crds': "`CustomResourceDefinitions <https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/>`__",
     'k8s-crd': "`CustomResourceDefinition <https://kubernetes.io/docs/tasks/access-kubernetes-api/extend-api-custom-resource-definitions/>`__",
     'aagent': 'MongoDB Agent or legacy Automation Agent',
@@ -194,7 +194,7 @@ rst_epilog = '\n'.join([
     '.. |Multi-clusters| replace:: Multi-Kubernetes-cluster deployments',
     '.. |mc-cli| replace:: multi-cluster CLI',
     '.. |Mc-cli| replace:: Multi-cluster CLI',
-    '.. |oc| replace:: :xml:`<mono><link target="https://docs.openshift.com/container-platform/3.11/cli_reference/index.html">oc</link></mono>`',
+    '.. |oc| replace:: :xml:`<mono><link target="https://docs.openshift.com/container-platform/4.12/cli_reference/index.html">oc</link></mono>`',
     '.. |onprem| replace:: Ops Manager',
     '.. |onprem-link| replace:: :opsmgr:`Ops Manager </>`',
     '.. |nfs| replace:: :abbr:`NFS (Network File System)`',
