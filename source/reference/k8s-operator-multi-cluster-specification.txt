@@ -1,0 +1,1263 @@
+.. _multi-cluster-specification:
+
+===============================================
+Multi-Kubernetes-Cluster Resource Specification
+===============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecols
+
+The |mongodb-multi| defines your |multi-cluster| and gives the :github:`MongoDB Enterprise Kubernetes Operator </mongodb/mongodb-enterprise-kubernetes>` the information it needs to create or update your clusters, |onprem-link| deployment, |k8s-statefulsets|, services, and other |k8s| resources.  
+
+Example
+-------
+
+The following example shows a resource specification for a |multi-cluster|:
+
+.. literalinclude:: /includes/code-examples/yaml-files/example-multi-cluster-replica-set.yaml
+   :language: yaml
+   :linenos:
+
+Required ``MongoDBMultiCluster`` Resource Settings
+--------------------------------------------------
+
+This section describes settings that you must use for your |mongodb-multi|.
+
+.. _multi-api-version:
+
+``apiVersion``
+  *Type*: string
+
+  Version of the MongoDB |k8s| resource schema.
+
+
+.. _multi-kind-spec:
+
+``kind``
+  *Type*: string
+
+  Kind of MongoDB |k8s| resource to create. Set this to ``MongoDBMultiCluster``.
+
+.. _multi-metadata-name:
+
+``metadata.name``
+  *Type*: string
+
+  Name of the MongoDB |k8s| resource you are creating.
+
+  Resource names must be 44 characters or less.
+
+.. _multi-spec-credentials:
+
+``spec.credentials``
+  *Type*: string
+
+  Name of the secret you :ref:`created <create-k8s-secret>` as |mms| |api|
+  authentication credentials for the |k8s-op-short| to communicate with |onprem|.
+
+  .. include:: /includes/admonitions/note-namespace-match-secret.rst
+
+  .. include:: /includes/admonitions/fact-k8s-operator-manages-secret.rst
+
+.. _multi-spec-type:
+
+``spec.type``
+  *Type*: string
+
+  Type of MongoDB |k8s| resource to create. The only accepted value for a |multi-cluster| is **ReplicaSet**.
+
+.. _multi-spec-version:
+
+``spec.version``
+  *Type*: string
+
+  Version of MongoDB installed for this |mongodb-multi|.
+
+  .. include:: /includes/admonitions/ubi-8-min-db-versions.rst
+
+  .. note::
+
+     If you update this value to a later version, consider setting
+     :ref:`spec.featureCompatibilityVersion <multi-spec-fcv>` to give yourself the
+     option to downgrade if necessary.
+
+
+.. _optional-multi-k8s-settings:
+
+Optional ``MongoDBMultiCluster`` Resource Settings
+--------------------------------------------------
+
+|mongodb-multis| can use the following settings:
+
+.. _multi-spec-additionalmongodconfig:
+
+``spec.additionalMongodConfig``
+  *Type*: collection
+
+  Additional :opsmgr:`configuration options
+  </reference/deployment-advanced-options/>` with
+  which you want to start MongoDB processes.
+
+  The |k8s-op-short| supports all configuration options that the MongoDB
+  version you deploy through the {+mdbagent+} supports, except that the 
+  |k8s-op-short| overrides values that you provide for any of the 
+  following options:
+
+  - ``net.tls.certificateKeyFile``
+  - ``net.tls.clusterFile``
+  - ``net.tls.PEMKeyFile``
+  - ``replication.replSetName``
+  - ``security.clusterAuthMode``
+  - ``sharding.clusterRole``
+  - ``storage.dbPath``
+  - ``systemLog.destination``
+  - ``systemLog.path``
+
+  To learn more about the configuration options that the |k8s-op-short|
+  owns, see :ref:`k8s-exclusive-settings`.
+
+  To learn which configuration options you can use, see
+  :opsmgr:`Advanced Options for MongoDB Deployments
+  </reference/deployment-advanced-options/>` in the |onprem| 
+  documentation.
+
+.. _multi-spec-agent:
+
+``spec.agent``
+  *Type*: collection
+
+  {+mdbagent+} configuration settings for the MongoDB database resource.
+
+.. _multi-spec-agent-startupoption:
+
+``spec.agent.startupOptions``
+  *Type*: collection
+
+  {+mdbagent+} settings with which you want to start the MongoDB database resource.
+
+  You must provide MongoDB Agent settings as key-value pairs. The values
+  must be strings.  
+  For a list of supported {+mdbagent+} settings, see:
+
+  - :cloudmgr:`MongoDB Agent Settings </reference/mongodb-agent-settings/>`
+    for |cloud-short| projects.
+  - :opsmgr:`MongoDB Agent Settings
+    </reference/mongodb-agent-settings/>` for the |onprem| version you
+    deployed with the |k8s-op-short|. 
+
+.. _multi-spec-backup:
+
+``spec.backup``
+  *Type*: collection
+
+  The collection container for :ref:`spec.backup.mode <multi-spec-backup-mode>`,
+  which enables continuous backups for MongoDB resources in |k8s-op-short|.
+
+.. _multi-spec-backup-assignmentLabels:
+
+``spec.backup.assignmentLabels``
+  *Type*: array
+
+  A list of assignment labels for the :ref:`backup-daemon` processes.
+  Use assignment labels to identify that specific backup daemon
+  processes are associated with particular projects. If you set assignment
+  labels using the |k8s-op-short|, the values that you set in the |k8s|
+  configuration file for assignment labels override the values defined
+  in the |mms| UI. Assignment labels that you don't set using the
+  |k8s-op-short| continue to use the values set in the |mms| UI.
+
+.. _multi-spec-backup-autoterminateondeletion:
+
+``spec.backup.autoTerminateOnDeletion``
+  *Type*: boolean
+
+  Flag that indicates whether the |k8s-op-short| stops and terminates the
+  backup when you delete a |mongodb-multi|. The default value is ``false``.
+  Setting this flag to ``true`` is useful when you want to delete the
+  |mongodb-multi| while the :ref:`spec.backup.mode <multi-spec-backup-mode>` setting
+  is set to ``enabled``.
+
+.. _multi-spec-backup-encryption:
+
+``spec.backup.encryption``
+  *Type*: object
+
+  Object that contains the backup encryption configuration settings.
+
+.. _multi-spec-backup-encryption-kmip:
+
+``spec.backup.encryption.kmip``
+  *Type*: object
+
+  Object that contains the |kmip| backup encryption configuration 
+  settings. To learn more, see :ref:`configure-kmip-backup-encryption`.
+
+.. _multi-spec-backup-encryption-kmip-client:
+
+``spec.backup.encryption.kmip.client``
+  *Type*: object
+
+  Object that contains the |kmip| backup encryption client configuration 
+  settings.
+
+.. _multi-spec-backup-mode:
+
+``spec.backup.mode``
+  *Type*: string
+  
+  Enables continuous backups for a |mongodb-multi|.
+  Possible values are ``enabled``, ``disabled``, and
+  ``terminated``.
+  
+  .. note::
+
+     The :ref:`spec.backup.mode <multi-spec-backup-mode>`
+     setting relies on :ref:`Backup <om-rsrc-backup>` that is
+     enabled in |onprem| and requires that the
+     :opsmgrkube:`spec.backup.enabled`
+     value in the |onprem| :ref:`resource specification
+     <k8s-om-specification>` is set to ``true``.
+  
+  After you enable continuous backups for your MongoDB resource with
+  :ref:`spec.backup.mode <multi-spec-backup-mode>`, you can :ref:`check the backup status
+  <get-resource-status>`.
+
+.. _multi-spec-backup-snapshotschedule:
+
+``spec.backup.snapshotSchedule``
+  *Type*: collection
+
+  Collection container for snapshot schedule settings for
+  continuous backups for MongoDB resources in |k8s-op-short|.
+
+.. _multi-spec-dailysnapshotretentiondays:
+
+``spec.backup.snapshotSchedule.dailySnapshotRetentionDays``
+  *Type*: number
+  
+  Number of days to keep daily snapshots. You can set a value 
+  between ``1`` and ``365``, inclusive. Setting the value to ``0``
+  disables this rule.
+
+.. _multi-spec-fullincrementaldayofweek:
+
+``spec.backup.snapshotSchedule.fullIncrementalDayOfWeek``
+  *Type*: string
+  
+  Day of the week when |onprem| takes a full snapshot. This setting 
+  ensures a recent complete backup. |onprem| sets the default value to
+  ``SUNDAY``.
+
+.. _multi-spec-monthlysnapshotretentionmonths:
+
+``spec.backup.snapshotSchedule.monthlySnapshotRetentionMonths``
+  *Type*: number
+  
+  Number of months to keep monthly snapshots. You can set a value 
+  between ``1`` and ``36``, inclusive. Setting the value to ``0``
+  disables this rule.
+ 
+.. _multi-spec-pointintimewindowhours:
+
+``spec.backup.snapshotSchedule.pointInTimeWindowHours``
+  *Type*: number
+  
+  Number of hours in the past for which you can create a point-in-time
+  snapshot.
+
+.. _multi-spec-referencehourofday:
+
+``spec.backup.snapshotSchedule.referenceHourOfDay``
+  *Type*: number
+  
+  |utc| hour of the day to schedule snapshots using a 24 hour clock.
+  You can set a value between ``0`` and ``23``, inclusive.
+
+.. _spec-referenceminuteofhour:
+
+``spec.backup.snapshotSchedule.referenceMinuteOfHour``
+  *Type*: number
+  
+  |utc| minute of the hour to schedule snapshots. You can
+  set a value between ``0`` and ``59``, inclusive.
+
+.. _multi-spec-snapshotintervalhours:
+
+``spec.backup.snapshotSchedule.snapshotIntervalHours``
+  *Type*: number
+  
+  Number of hours between snapshots. You can set a value of ``6``,
+  ``8``, ``12``, or ``24``.
+
+.. _multi-spec-snapshotretentiondays:
+
+``spec.backup.snapshotSchedule.snapshotRetentionDays``
+  *Type*: number
+  
+  Number of days to keep recent snapshots. You can set a value 
+  between ``2`` and ``5``, inclusive.   
+
+.. _multi-spec-weeklysnapshotretentionweeks:
+
+``spec.backup.snapshotSchedule.weeklySnapshotRetentionWeeks``
+  *Type*: number
+  
+  Number of weeks to keep weekly snapshots. You can set a value 
+  between ``1`` and ``52``, inclusive. Setting the value to ``0``
+  disables this rule.
+
+.. _multi-spec-cloudmanager-configmapref-name:
+
+``spec.cloudManager.configMapRef.name``
+  *Type*: string
+
+  Alias for :ref:`spec.opsManager.configMapRef.name <multi-spec-opsmanager-configmapref-name>`.
+
+.. _multi-spec-clusterdomain:
+
+``spec.clusterDomain``
+  *Type*: string
+
+  *Default*: cluster.local
+
+  Domain name of the |k8s| cluster where you deploy the |k8s-op-short|. When
+  |k8s| creates a |k8s-statefulset|, the |k8s| assigns each |k8s-pod| a
+  |fqdn|. To update |com|, the |k8s-op-short| calculates the |fqdn| for
+  each Pod using a provided cluster name. |k8s| doesn't provide
+  an |api| to query these hostnames.
+
+  .. warning::
+
+     You must set ``spec.clusterDomain`` if your |k8s| cluster has
+     a :k8sdocs:`default domain
+     </concepts/services-networking/dns-pod-service#what-things-get-dns-names>`
+     other than the default ``cluster.local``. If you neither use the
+     default nor set the ``spec.clusterDomain`` option, the
+     |k8s-op-short| might not function as expected. 
+
+.. _multi-spec-clusterspeclist:
+
+``spec.clusterSpecList``
+  *Type*: collection
+
+  List of specifications for each |k8s| cluster in a |mongodb-multi|.
+
+.. _multi-spec-agent-clusterspeclist-clustername:
+
+``spec.clusterSpecList.clusterName``
+  *Type*: string 
+
+  Name of the cluster where the |k8s-op| schedules the |k8s-statefulset|. When the |k8s-op-short| deploys this |mongodb-multi|, it creates :k8sdocs:`a service account </concepts/security/service-accounts/>`. This name is what the service account in the central cluster uses to communicate with the workload clusters. 
+
+.. _multi-spec-clusterspeclist-exposedexternally:
+
+``spec.clusterSpecList.exposedExternally``
+  *Type*: boolean
+
+  *Default*: false
+
+  .. important::
+     
+     ``spec.clusterSpecList.exposedExternally`` is deprecated and will be removed in a
+     future release. To expose your |multi-cluster|, provide global values using the
+     :ref:`spec.externalAccess <multi-spec-externalaccess>` settings and cluster-specific
+     overrides using the :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>` settings.
+
+  Determines whether a |multi-cluster| is exposed outside the |k8s| clusters. 
+  Setting ``spec.clusterSpecList.exposedExternally: true`` is equivalent to setting ``spec.externalAccess: {}``. See :ref:`spec.externalAccess <multi-spec-externalaccess>` for details.
+
+.. _multi-spec-clusterspeclist-externaldomain:
+
+``spec.clusterSpecList.externalAccess.externalDomain``
+  *Type*: string
+
+  Top-level domain used to externally expose your |multi-cluster|.
+
+  When you add a top-level domain, ``process.hostname`` in the :opsmgr:`automation configuration </reference/cluster-configuration/>`
+  creates a value that is a subdomain of this top-level domain in the format ``<replica-set-name>-<cluster-idx>-<pod-idx>.<externalDomain>``.
+  For example, ``multi-replica-set-0-1.cluster-0.example.com``. The {+mdbagent+} uses this
+  hostname to connect to |mongod|.
+
+  .. warning::
+
+     Specifying this field changes how |mongod| processes are registered in |onprem|.
+     You can only specify this field for new deployments. You can't change
+     the value of this field or any ``process.hostname`` fields in the automation
+     configuration for a running deployment.
+
+  .. important::
+   
+     Use this setting only when deploying a |multi-cluster| replica set *without
+     a service mesh*.
+
+.. _multi-spec-clusterspeclist-externalservice:
+
+``spec.clusterSpecList.externalAccess.externalService``
+  *Type*: collection
+
+  Configuration for externally exposing a specific cluster in your |multi-cluster|. These settings
+  override the global :ref:`spec.externalAccess.externalService <multi-spec-externalaccess-externalservice>` settings.
+
+.. _multi-spec-clusterspeclist-annotations:
+
+``spec.clusterSpecList.externalAccess.externalService.annotations``
+  *Type*: collection
+
+  Key-value pairs that let you add cloud provider-specific
+  configuration settings to a specific cluster in your |multi-cluster|. This setting overrides the global
+  setting, :ref:`spec.externalAccess.externalService.annotations <multi-spec-externalaccess-externalservice-annotations>`. 
+
+  To learn more about
+  :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`,
+  see the |k8s| documentation.
+
+  For more details, consult the documentation for your |k8s| cloud provider.
+
+.. _multi-spec-clusterspeclist-spec:
+
+``spec.clusterSpecList.externalAccess.externalService.spec``
+  *Type*: collection
+
+  Configuration for the :k8sdocs:`ServiceSpec </reference/kubernetes-api/service-resources/service-v1/#ServiceSpec>`.
+
+.. _multi-spec-clusterspeclist-memberconfig:
+
+``spec.clusterSpecList.memberConfig``
+  *Type*: collection
+
+  Specification for the MongoDB replica set members in your |multi-cluster|.
+
+.. _multi-spec-clusterspeclist-memberconfig-priority:
+
+``spec.clusterSpecList.memberConfig.priority``
+  *Type*: string
+
+  Number that indicates the relative eligibility of a MongoDB replica set member to become a `primary <https://www.mongodb.com/docs/manual/reference/glossary/#std-term-primary>`__.
+
+  Specify a higher value to make a member more eligible to become primary, and lower values to make the member less eligible. For example, a member with a ``spec.clusterSpecList.memberConfig.priority`` of ``"1.5"`` is more likely than ``"0.5"`` to become a primary. A priority of ``"0"`` is ineligible to become primary. For more details, see `Member Priority <https://www.mongodb.com/docs/manual/core/replica-set-elections/#voting-members>`__.
+
+.. _multi-spec-clusterspeclist-memberconfig-tags:
+
+``spec.clusterSpecList.memberConfig.tags``
+  *Type*: map
+
+  Map of `replica set tags <https://www.mongodb.com/docs/v6.0/tutorial/configure-replica-set-tag-sets/>`__ for directing
+  read and write operations to specific members of your MongoDB replica set.
+
+.. _multi-spec-clusterspeclist-memberconfig-votes:
+
+``spec.clusterSpecList.memberConfig.votes``
+  *Type*: number
+
+  Determines whether a MongoDB replica set member can vote in an :manual:`election </core/replica-set-elections/#voting-members>`. Set to ``1`` to allow the member to vote. Set to ``0`` to exclude the member from an election. 
+
+.. _spec-clusterspeclist-members:
+
+``spec.clusterSpecList.members``
+  *Type*: number
+
+  Number of members in the MongoDB replica set.
+
+.. _spec-clusterspeclist-service:
+
+``spec.clusterSpecList.service``
+  *Type*: string
+
+  *Default*: <resource_name>+"-service"
+
+  Name of the |k8s| service you want to create or use for a
+  |k8s-statefulset|. If a service with this name already exists, the
+  |k8s-op-full| does not delete or recreate it. This setting lets
+  you create your own custom services and lets the |k8s-op-short|
+  reuse them.
+
+.. _spec-clusterspeclist-statefulset-spec:
+
+``spec.clusterSpecList.statefulSet.spec``
+  *Type*: collection
+
+  Provides the configuration for the |k8s-statefulset| override for each of
+  the cluster's StatefulSets in a |multi-cluster|. To set the global configuration that
+  applies to all clusters in your |multi-cluster|, see :ref:`spec.statefulSet.spec <multi-spec-statefulset-spec>`.
+
+  This setting applies only to replica set resource types in |multi-clusters|.
+
+.. _multi-spec-connectivity-replicasethorizons:
+
+``spec.connectivity.replicaSetHorizons``
+  *Type*: collection
+
+  Allows you to provide different |dns| settings for client
+  applications and the {+mdbagent+}s. The |k8s-op-short| uses split
+  horizon |dns| for replica set members. This feature allows
+  communication both within the |k8s| cluster and from outside |k8s|.
+
+  You can add multiple external mappings per host.
+
+  .. note::
+
+     - Make sure that each value in this array is unique.
+
+     - Make sure that the number of entries in this array matches the
+       value given in :ref:`spec.clusterSpecList.members <spec-clusterspeclist-members>`.
+
+     - Provide a value for the
+       :ref:`spec.security.certsSecretPrefix <multi-spec-security-certssecretprefix>` setting to
+       enable |tls|. This method to use split horizons requires the
+       Server Name Indication extension of the |tls| protocol.
+
+     - :ref:`Configure the routing for external hostnames <connect-from-outside-k8s>`.
+
+  In this example, clients communicate with the replica set using the ``example-website``
+  horizon.
+
+  .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
+     :language: yaml
+     :start-after: START-horizon-addcert-replset-lower
+     :end-before: END-horizon-addcert-replset-lower
+     :linenos:
+     :lineno-start: 15
+
+.. _multi-spec-duplicateserviceobjects:
+
+``spec.duplicateServiceObjects``
+  *Type*: boolean
+
+  *Default*: true
+
+  Specifies whether the |k8s-op-short| duplicates a Pod's service mesh object in each cluster to allow |dns| resolution. Set to ``false`` if you configure a DNS proxy for your service mesh. For example, see `DNS  Proxying <https://istio.io/latest/docs/ops/configuration/traffic-management/dns-proxy/>`__ in the Istio  documentation. 
+
+.. _multi-spec-externalaccess:
+
+``spec.externalAccess``
+  *Type*: collection
+
+  Specification for externally exposing your |multi-cluster| to the outside world. These settings apply to services across all clusters. To override these global settings in a specific cluster, use :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>`.
+
+  When you add ``spec.externalAccess``, even with no values, the |k8s-op-short| creates an
+  external service for each Pod in a replica set. External services provide
+  an external entry point for each MongoDB database Pod in a cluster.
+
+  By default, every external service has:
+
+  - ``Name = <pod-name>-svc-external``. You can't change this name.
+  - ``Type = LoadBalancer``.
+  - A port for |mongod|. If you set :ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`, the external service adds another port (``port value + 1``) for backups.
+  - ``publishNotReadyAddress = true``. Do not set to ``false`` for any database Pod.
+  - Selectors that match the external service to a specific Pod.
+
+.. _multi-spec-externalaccess-externalservice:
+
+``spec.externalAccess.externalService``
+  *Type*: collection
+
+  Specification for overriding the default values in :ref:`spec.externalAccess <multi-spec-externalaccess>`.
+
+  For details, see :k8sdocs:`ServiceSpec </reference/kubernetes-api/service-resources/service-v1/#ServiceSpec>` in the |k8s| documentation.
+
+.. _multi-spec-externalaccess-externalservice-annotations:
+
+``spec.externalAccess.externalService.annotations``
+  *Type*: collection
+
+  Key-value pairs that let you add cloud provider-specific
+  configuration settings to all clusters in your |multi-cluster|. For cluster-specific overrides,
+  see :ref:`spec.clusterSpecList.externalAccess.externalService.annotations <multi-spec-clusterspeclist-annotations>`.
+
+  To learn more about
+  :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`,
+  see the |k8s| documentation.
+
+  For more details, consult the documentation for your |k8s| cloud provider.
+
+.. _multi-spec-fcv:
+
+``spec.featureCompatibilityVersion``
+  *Type*: number
+
+  Limits changes to data that occur with an upgrade to a
+  new major version. This allows you to downgrade to the previous major
+  version. To learn more about feature compatibility, see :dbcommand:`setFeatureCompatibilityVersion`
+  in the MongoDB Manual.
+
+.. _multi-spec-loglevel:
+
+``spec.logLevel``
+  *Type*: string
+
+  Configures the level of Automation Agent logging inside the
+  |k8s-pod|. Accepted values include:
+
+  - ``DEBUG``
+  - ``INFO``
+  - ``WARN``
+  - ``ERROR``
+  - ``FATAL``
+
+.. _multi-spec-opsmanager-configmapref-name:
+
+``spec.opsManager.configMapRef.name``
+   *Type*: string
+
+   Name of the |k8s-configmap| with the |com| connection
+   configuration. The :ref:`spec.cloudManager.configMapRef.name <multi-spec-cloudManager-configMapRef-name>`
+   setting is an alias for this setting and can be used in its place.
+
+   .. include:: /includes/admonitions/note-namespace-match-configmap.rst
+
+   .. include:: /includes/admonitions/fact-k8s-operator-manages-configmap.rst
+
+.. _multi-spec-persistent:
+
+``spec.persistent``
+  *Type*: boolean  
+  
+  *Default*: true
+
+  .. include:: /includes/admonitions/k8s-persistent-volumes.rst
+
+.. _multi-spec-security-authentication:
+
+``spec.security.authentication``
+  *Type*: collection
+
+  Authentication specifications for your |multi-cluster|.
+
+.. _multi-spec-security-agents:
+
+``spec.security.authentication.agents``
+  *Type*: collection
+
+  {+mdbagent+} authentication configuration for the |com| project.
+
+.. _multi-spec-security-automationldapgroupdn:
+
+``spec.security.authentication.agents.automationLdapGroupDN``
+  *Type*: string
+
+  The Distinguished Name (DN) of the LDAP group to which the
+  {+mdbagent+} user belongs.
+  
+  This setting is required if:
+
+  - :ref:`spec.security.authentication.ldap.authzQueryTemplate <multi-spec-security-authzquerytemplate>` is
+    present, and
+  - :ref:`spec.security.authentication.agents.mode <multi-spec-security-agents-mode>` is ``LDAP`` or
+    ``X509``.
+
+.. _multi-spec-security-automationpasswordsecretref:
+
+``spec.security.authentication.agents.automationPasswordSecretRef``
+  *Type*: collection
+
+  Details of the |k8s-secret| that contains the password for the
+  :ref:`spec.security.authentication.agents.automationUserName <multi-spec-security-automationusername>`
+  user.
+
+  This setting is required if 
+  :ref:`spec.security.authentication.agents.mode <multi-spec-security-agents-mode>` is ``LDAP``.
+
+.. _multi-spec-automationpasswordsecretref-key:
+
+``spec.security.authentication.agents.automationPasswordSecretRef.key``
+  *Type*: string
+
+  Key in the
+  :ref:`spec.security.authentication.agents.automationPasswordSecretRef.name <multi-spec-automationpasswordsecretref-name>`
+  |k8s-secret| that contains the password for the user in
+  :ref:`spec.security.authentication.agents.automationUserName <multi-spec-security-automationusername>`.
+
+  This setting is required if 
+  :ref:`spec.security.authentication.agents.mode <multi-spec-security-agents-mode>` is
+  ``LDAP``.
+
+.. _multi-spec-automationpasswordsecretref-name:
+
+``spec.security.authentication.agents.automationPasswordSecretRef.name``
+  *Type*: string
+
+  Name of the |k8s-secret| that contains the password for the
+  :ref:`spec.security.authentication.agents.automationUserName <multi-spec-security-automationusername>`
+  user. You must create this secret in the same namespace to which you
+  deploy the |k8s-op-short|:
+
+  .. code-block:: sh
+
+     kubectl create secret generic ldap-agent-user \
+     --from-literal="password=<password>" -n <metadata.namespace>
+
+  This secret must contain one key, the value of which matches the
+  password of the
+  :ref:`spec.security.authentication.agents.automationUserName <multi-spec-security-automationusername>` user
+  in your LDAP deployment.
+
+  This setting is required if 
+  :ref:`spec.security.authentication.agents.mode <multi-spec-security-agents-mode>` is ``LDAP``.
+
+.. _multi-spec-automationpasswordsecretref-optional:
+
+``spec.security.authentication.agents.automationPasswordSecretRef.optional``
+  *Type*: boolean
+
+  Specifies whether these options are required or optional:
+
+  - :ref:`spec.security.authentication.agents.automationPasswordSecretRef.key <multi-spec-automationpasswordsecretref-key>`
+  - :ref:`spec.security.authentication.agents.automationPasswordSecretRef.name <multi-spec-automationpasswordsecretref-name>`
+
+.. _multi-spec-security-automationusername:
+
+``spec.security.authentication.agents.automationUserName``
+  *Type*: string
+
+  Name of the user that the {+mdbagent+}s use to interact with your
+  |multi-cluster|. The username is mapped to an LDAP Distinguished
+  Name (DN) according to
+  :ref:`spec.security.authentication.ldap.userToDNMapping <multi-spec-ldap-usertodnmapping>`. The
+  resulting DN must already exist in your LDAP deployment.
+
+  This setting is required if 
+  :ref:`spec.security.authentication.agents.mode <multi-spec-security-agents-mode>` is ``LDAP``.
+
+.. _multi-spec-clientcertificatesecretref-name:
+
+``spec.security.authentication.agents.clientCertificateSecretRef.name``
+  *Type*: string
+
+  *Default*: agent-certs
+
+  Specifies the |k8s-secret| that contains the {+mdbagent+}'s
+  |tls| certificate.
+ 
+  This secret must contain the following keys, the 
+  values of which are |tls| certificates that can be validated by the 
+  server:
+  
+  - ``mms-automation-agent-pem``
+  - ``mms-backup-agent-pem``
+  - ``mms-monitoring-agent-pem``
+
+  You must create this secret in the same namespace to which you
+  deploy the |k8s-op-short|:
+
+  .. code-block:: sh
+
+     kubectl create secret generic agent-certs \
+     --from-file=mms-automation-agent-pem=<automation-cert.pem> \
+     --from-file=mms-backup-agent-pem=<backup-cert.pem> \
+     --from-file=mms-monitoring-agent-pem=<monitoring-cert.pem> \
+     --namespace=<metadata.namespace> 
+
+.. _multi-spec-security-authentication-enabled:
+
+``spec.security.authentication.enabled``
+  *Type*: boolean
+
+  *Default*: false
+
+  Specifies whether authentication is enabled on the |com|
+  project. If set to ``true``, you must set an authentication mechanism in :ref:`spec.security.authentication.modes <multi-spec-security-authentication-modes>`.
+
+  .. important::
+
+     The |k8s-op-short| manages authentication for this MongoDB
+     resource if you include this setting, even if it is set to
+     ``false``. You can't configure authentication for this
+     resource using the |com| user interface or APIs while this
+     setting exists in the resource specification.
+
+     Omit this setting if you want to manage authentication using the
+     |com| user interface or APIs.
+
+.. _multi-spec-security-agents-mode:
+
+``spec.security.authentication.agents.mode``
+  *Type*: string
+
+  The authentication mechanism that the {+mdbagent+}s for
+  your |multi-cluster| use. Valid values are ``SCRAM``, ``SCRAM-SHA-1``, ``MONGODB-CR``, ``X509``, and ``LDAP``.
+  The value you specify must also be present in
+  :ref:`spec.security.authentication.modes <multi-spec-security-authentication-modes>`.
+  We recommend ``SCRAM-SHA-256 (SCRAM)`` over ``SCRAM-SHA-1``. If you specify ``SCRAM-SHA-1``, you must also specify ``MONGODB-CR``.
+
+  This setting is required if you specified more than one value for
+  :ref:`spec.security.authentication.modes <multi-spec-security-authentication-modes>`.
+
+.. _multi-spec-security-authentication-ignoreunknownusers:
+
+``spec.security.authentication.ignoreUnknownUsers``
+  *Type*: boolean
+
+  *Default*: false
+   
+  Determines whether you can modify database users that were not
+  configured through the |k8s-op-short|, or the |com| user interface.
+  
+  To manage database users directly through the |mongod| or |mongos|, set to ``true``.
+
+.. _multi-spec-security-authentication-internalcluster:
+
+``spec.security.authentication.internalCluster``
+  *Type*: string
+
+  Specifies whether :ref:`X.509 internal cluster authentication
+  <x509-internal-authentication>` is enabled.
+
+  To enable X.509 internal cluster authentication, set to ``"X509"``.
+  Requires that the following settings be specified:
+  
+  - :ref:`spec.security.authentication.modes <multi-spec-security-authentication-modes>` ``: ["X509"]``
+  - :ref:`spec.security.certsSecretPrefix <multi-spec-security-certssecretprefix>`
+
+  The |k8s-op-short| accepts the following values:
+
+  - ``["X509"]``: X.509 internal cluster authentication is enabled.
+  - ``""`` or omitted: internal cluster authentication is not enabled.
+
+  .. important::
+
+     After you enable internal cluster authentication, you can't disable it.
+
+.. _multi-spec-security-authentication-ldap:
+
+``spec.security.authentication.ldap``
+  *Type*: collection
+
+  *Required for LDAP authentication.* 
+
+  Configures |ldap| authentication for the |com| project. To enable |ldap| authentication, set
+  :ref:`spec.security.authentication.modes <multi-spec-security-authentication-modes>` to ``["LDAP"]``.
+
+.. _multi-spec-security-authzquerytemplate:
+
+``spec.security.authentication.ldap.authzQueryTemplate``
+  *Type*: string
+
+  *Required for LDAP authorization.*
+
+  An `RFC4515 <https://tools.ietf.org/html/rfc4515>`_ and `RFC4516
+  <https://tools.ietf.org/html/rfc4516>`_ LDAP-formatted query URL
+  template executed by MongoDB to obtain the LDAP groups that the user
+  belongs to. The query is relative to the host or hosts
+  specified in :setting:`spec.security.authentication.ldap.servers`.
+  You can use the following tokens in the template:
+
+  - ``{USER}`` 
+        Substitutes the authenticated username, or the
+        :setting:`transformed <security.ldap.userToDNMapping>`
+        username, into the LDAP query.
+  - ``{PROVIDED_USER}``
+        Substitutes the supplied username, before either
+        authentication or LDAP transformation, into the LDAP query.
+        (*Available starting in MongoDB version 4.2*).
+
+  For more details, see :manual:`LDAP Query Templates </core/security-ldap-external/#ldap-query-template>` in the MongoDB Manual.
+
+.. _multi-spec-security-bindquerypasswordsecretref:
+
+``spec.security.authentication.ldap.bindQueryPasswordSecretRef``
+  *Type*: collection
+
+  *Required for LDAP authentication.* 
+  
+  Specifies the |k8s-secret| that contains the password with which
+  MongoDB binds when connecting to the |ldap| server.
+
+.. _multi-spec-security-bindquerypasswordsecretref-name:
+
+``spec.security.authentication.ldap.bindQueryPasswordSecretRef.name``
+  *Type*: string
+
+  *Required for LDAP authentication.* 
+  
+  Name of the |k8s-secret| that contains the password with which MongoDB
+  binds when connecting to the |ldap| server.
+  
+  The |k8s-secret| must contain only one ``password`` field which stores
+  the password.
+
+.. _multi-spec-security-bindqueryuser:
+
+``spec.security.authentication.ldap.bindQueryUser``
+  *Type*: string
+
+  *Required for LDAP authentication.* 
+  
+  |ldap| Distinguished Name to which MongoDB binds when connecting to
+  the |ldap| server.
+
+.. _multi-spec-security-ldap-caconfigmapref:
+
+``spec.security.authentication.ldap.caConfigMapRef``
+  *Type*: collection
+
+  *Required for LDAP authentication with TLS.* 
+  
+  |k8s-configmap| that contains a |certauth| which validates the |ldap| 
+  server's |tls| certificate.
+
+.. _multi-spec-security-caconfigmapref-key:
+
+``spec.security.authentication.ldap.caConfigMapRef.key``
+  *Type*: string
+
+  *Required for LDAP authentication with TLS.* 
+  
+  Field name that stores the |certauth| which validates the |ldap|
+  server's |tls| certificate.
+
+.. _multi-spec-security-caconfigmapref-name:
+
+``spec.security.authentication.ldap.caConfigMapRef.name``
+  *Type*: string
+
+  *Required for LDAP authentication with TLS.* 
+  
+  Name of the |k8s-configmap| that contains a |certauth| which validates
+  the |ldap| server's |tls| certificate.
+
+.. _multi-spec-security-caconfigmapref.optional:
+
+``spec.security.authentication.ldap.caConfigMapRef.optional``
+  *Type*: boolean
+
+  Specifies whether these options are required or optional:
+
+  - :ref:`spec.security.authentication.ldap.caConfigMapRef.key <multi-spec-security-caconfigmapref-key>`
+  - :ref:`spec.security.authentication.ldap.caConfigMapRef.name <multi-spec-security-caconfigmapref-name>`
+
+.. _multi-spec-security-ldap-servers:
+
+``spec.security.authentication.ldap.servers``  
+  *Type*: array of strings
+
+  *Required for LDAP authentication.* 
+  
+  List of hostnames and ports of the |ldap| servers. Specify
+  hostnames with their respective ports in the following format:
+  
+  .. code-block:: yaml
+
+     spec:
+        security:
+           authentication:
+           ldap:
+              servers: 
+                 - "<hostname1>:<port1>"
+                 - "<hostname2>:<port2>"
+
+.. _multi-spec-security-ldap-timeoutms:
+
+``spec.security.authentication.ldap.timeoutMS``
+  *Type*: integer
+
+  Specifies how many milliseconds an authentication request should 
+  wait before timing out.
+
+.. _multi-spec-security-ldap-transportsecurity:
+
+``spec.security.authentication.ldap.transportSecurity``
+  *Type*: string
+
+  *Required for LDAP authentication.* 
+  
+  Specifies whether the |ldap| server accepts |tls|.
+  
+  If the |ldap| server accepts |tls|, set the value to ``tls``. If 
+  the |ldap| server doesn't accept |tls|, leave this value blank or set 
+  the value to ``none``.
+
+  .. note::
+     
+     If you specify a string other than ``none`` or ``tls``, 
+     |k8s-op-short| still sets the setting to ``tls``.
+
+.. _multi-spec-security-ldap-usercacheinvalidationinterval:
+
+``spec.security.authentication.ldap.userCacheInvalidationInterval``
+  *Type*: integer
+   
+  Specifies how many seconds MongoDB waits to flush the |ldap| user 
+  cache. Defaults to 30 seconds.
+
+.. _multi-spec-ldap-usertodnmapping:
+
+``spec.security.authentication.ldap.userToDNMapping``
+  *Type*: string
+
+  Maps the username provided to :binary:`~bin.mongod` or
+  :binary:`~bin.mongos` for authentication to an LDAP Distinguished Name
+  (DN).
+
+  For more details, see :manual:`security.ldap.userToDNMapping </reference/configuration-options/#security.ldapuserToDNMapping>` in the MongoDB Manual.
+
+.. _multi-spec-security-authentication-modes:
+
+``spec.security.authentication.modes``
+  *Type*: array
+
+  Specifies the authentication mechanism that your |multi-cluster| uses. Valid values are ``SCRAM``, ``SCRAM-SHA-1``, ``MONGODB-CR``, ``X509``, and ``LDAP``. We recommend ``SCRAM-SHA-256 (SCRAM)`` over ``SCRAM-SHA-1``. If you specify ``SCRAM-SHA-1``, you must also specify ``MONGODB-CR``.
+
+  .. note::
+
+     To enable :ref:`X.509 internal cluster authentication
+     <x509-internal-authentication>` for the |com| project, set this
+     value to ``["X509"]`` and specify the following settings:
+
+     - :ref:`spec.security.authentication.internalCluster <multi-spec-security-authentication-internalcluster>` ``: "X509"``
+     - provide a value for the :ref:`spec.security.certsSecretPrefix  <multi-spec-security-certssecretprefix>` setting.
+
+  If you provide more than one value for
+  ``spec.security.authentication.modes``, you must also specify a
+  value for :ref:`spec.security.authentication.agents.mode <multi-spec-security-agents-mode>`.
+
+.. _multi-spec-security-requireclienttlsauthentication:
+
+``spec.security.authentication.requireClientTLSAuthentication``
+  *Type*: boolean
+
+  *Default*: false
+
+  Specifies whether the MongoDB host requires clients to connect using a
+  |tls| certificate. Defaults to ``true`` if you enable |tls|
+  authentication.
+  
+  To enable |tls| authentication, provide a value. 
+
+.. _multi-spec-security-certssecretprefix:
+
+``spec.security.certsSecretPrefix``
+  *Type*: string
+
+  Text to prefix to the |k8s| |k8s-secrets| that you
+  created that contain your replica set's |tls| 
+  keys and certificates.
+
+  .. include:: /includes/fact-req-secret-prefix.rst
+
+  .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
+
+  To learn more about naming the secrets that contain your |tls| 
+  certificates, see the topic in :ref:`multi-cluster-secure-tls` that applies to your 
+  deployment.
+
+.. _multi-spec-security-roles:
+
+``spec.security.roles``
+  *Type*: array
+
+  Array that defines :manual:`User-defined roles
+  </core/security-user-defined-roles/>` that give you
+  fine-grained access control over your |multi-cluster|.
+
+  To enable user-defined roles, the
+  :ref:`spec.security.authentication.enabled <multi-spec-security-authentication-enabled>` must be ``true``.
+
+  .. example::
+
+     In this example, a user-defined role named ``customRole`` allows
+     users assigned this role to:
+
+       - Insert documents into the ``cats`` collection in the ``pets`` database, and
+       - Find and insert documents into the ``dogs`` collection in the ``pets`` database.
+
+     .. literalinclude:: /includes/code-examples/yaml-files/example-custom-role.yaml
+        :language: yaml
+        :start-after: persistent: true
+        :linenos:
+
+.. _multi-spec-security-authenticationrestrictions:
+
+``spec.security.roles.authenticationRestrictions``
+  *Type*: array
+   
+  Array that defines the IP address from and to which users
+  assigned this :ref:`spec.security.roles.role <multi-spec-security-roles-role>` can
+  connect.
+
+.. _multi-spec-security-authenticationrestrictions-clientsource:
+
+``spec.security.roles.authenticationRestrictions.clientSource``
+  *Type*: array
+ 
+  Array of IP addresses or CIDR blocks from which users assigned this
+  :ref:`spec.security.roles.role <multi-spec-security-roles-role>` can connect. 
+
+  MongoDB servers reject connection requests from users with this role
+  if the requests come from a client that is not present in this array.
+
+.. _multi-spec-security-roles-serveraddress:
+
+``spec.security.roles.authenticationRestrictions.serverAddress``
+  *Type*: array
+
+  Array of IP addresses or CIDR blocks to which users assigned this
+  :ref:`spec.security.roles.role <multi-spec-security-roles-role>` can connect. 
+
+  MongoDB servers reject connection requests from users with this role
+  if the client requests to connect to a server that is not present in
+  this array.
+
+.. _multi-spec-security-roles-db:
+
+``spec.security.roles.db``
+  *Type*: string
+
+  The database in which to store the user-defined role.
+
+  .. example::
+
+     ``admin``
+
+.. _multi-spec-security-roles-privileges:
+
+``spec.security.roles.privileges``
+  *Type*: array
+
+  Array that describes the privileges that users granted this role
+  possess.
+
+.. _multi-spec-security-roles-privileges-actions:
+
+``spec.security.roles.privileges.actions``
+  *Type*: array
+
+  List of actions that users granted this role can perform. For a list
+  of accepted values, see :manual:`Privilege Actions
+  </reference/privilege-actions/#database-management-actions>` in the
+  MongoDB Manual for the MongoDB versions you deploy with the
+  |k8s-op-short|.
+
+.. _multi-spec-security-roles-privileges-resource:
+
+``spec.security.roles.privileges.resource``
+  *Type*: collection
+
+  Resources for which the privilege
+  :ref:`spec.security.roles.privileges.actions <multi-spec-security-roles-privileges-actions>`
+  apply.
+
+  This collection must include either:
+
+  - The :ref:`spec.security.roles.privileges.resource.db <multi-spec-security-roles-privileges-resource-db>` and :ref:`spec.security.roles.privileges.resource.collection <multi-spec-security-resource-collection>` settings, or
+  - The :ref:`spec.security.roles.privileges.resource.cluster <multi-spec-privileges-resource-cluster>` setting with a value of ``true``.
+
+.. _multi-spec-privileges-resource-cluster:
+
+``spec.security.roles.privileges.resource.cluster``
+  *Type*: boolean
+
+  *Default*: false
+
+  Flag that indicates that the privilege
+  :ref:`spec.security.roles.privileges.actions <multi-spec-security-roles-privileges-actions>`
+  apply to all databases and collections in the MongoDB deployment.
+
+  If set to true, do not provide values for
+  :ref:`spec.security.roles.privileges.resource.db <multi-spec-security-roles-privileges-resource-db>`
+  and 
+  :ref:`spec.security.roles.privileges.resource.collection <multi-spec-security-resource-collection>`.
+
+.. _multi-spec-security-resource-collection:
+
+``spec.security.roles.privileges.resource.collection``
+  *Type*: string
+
+  Collection in the
+  :ref:`spec.security.roles.privileges.resource.db <multi-spec-security-roles-privileges-resource-db>`
+  for which the privilege
+  :ref:`spec.security.roles.privileges.actions <multi-spec-security-roles-privileges-actions>`
+  apply.
+
+  If you provide a value for this setting, you must also provide a value
+  for
+  :ref:`spec.security.roles.privileges.resource.db <multi-spec-security-roles-privileges-resource-db>`.
+
+.. _multi-spec-security-roles-privileges-resource-db:
+
+``spec.security.roles.privileges.resource.db``
+  *Type*: string
+
+  Database for which the privilege
+  :ref:`spec.security.roles.privileges.actions <multi-spec-security-roles-privileges-actions>`
+  apply.
+
+  If you provide a value for this setting, you must also provide a value
+  for
+  :ref:`spec.security.roles.privileges.resource.collection <multi-spec-security-resource-collection>`.
+
+.. _multi-spec-security-roles-role:
+
+``spec.security.roles.role``
+  *Type*: string
+   
+  Name of the user-defined role.
+
+.. _multi-spec-security-additionalcertificatedomains:
+
+``spec.security.tls.additionalCertificateDomains``
+  *Type*: collection
+  
+  List of every domain that should be added to |tls| certificates to
+  each Pod in this deployment. When you set this parameter, every |csr|
+  that the |k8s-op-short| transforms into a |tls| certificate includes
+  a |san-dns| in the form ``<pod name>.<additional cert domain>``.
+
+  Replica set resources don't need this parameter. Use
+  :ref:`spec.connectivity.replicaSetHorizons <multi-spec-connectivity-replicasethorizons>` instead.
+
+  .. note::
+
+     If you add this parameter to a |tls|\-enabled resource, |k8s|
+     displays an error when the resource reaches the ``Pending`` state.
+     This error displays: ``Please manually remove the |csr| in order
+     to proceed.`` To remedy this issue:
+
+     1. Remove any existing |csr|\s so that |k8s| can generate new
+        |csr|\s. To learn how to delete a resource, see the
+        :k8sdocs:`deleting resources
+        </reference/kubectl/cheatsheet/#deleting-resources>` in the
+        |k8s| documentation.
+
+     2. Approve the |csr|\s after |k8s| generates them.
+
+.. _multi-spec-security-tls-ca:
+
+``spec.security.tls.ca``
+  *Type*: string
+
+  Provide the name of the |k8s-configmap| that stores the |certauth|.
+
+.. _multi-spec-security-tls-enabled:
+
+``spec.security.tls.enabled``
+  *Type*: boolean
+
+  .. important::
+
+     ``spec.security.tls.enabled`` is deprecated and will be
+     removed in a future release. To enable |tls|, provide a value for 
+     the :ref:`spec.security.certsSecretPrefix <multi-spec-security-certssecretprefix>` setting.
+
+  Encrypts communications using TLS certificates between:
+
+  - MongoDB hosts in a replica set or sharded cluster configuration
+  - Clients (|mongo| shell, drivers, |compass|, and others) and the MongoDB deployment
+
+.. _multi-spec-statefulset-spec:
+
+``spec.statefulSet.spec``
+  *Type*: collection
+
+  Global specification for the |k8s-statefulset| that the |k8s-op| creates
+  for your |multi-cluster|.
+
+  To review which fields you can add to
+  ``spec.statefulSet.spec``, see
+  :k8sdocs:`StatefulSetSpec v1 apps
+  </reference/generated/kubernetes-api/{+k8s-api-version+}/#statefulsetspec-v1-apps>`
+  in the |k8s| documentation.
