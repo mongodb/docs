@@ -20,7 +20,7 @@
        - ``brew`` Package Manager
        - ``/usr/local/etc/mongod.conf`` (on Intel processors), or
 
-         ``/opt/homebrew/etc/mongod.conf`` (on `Apple M1 processors
+         ``/opt/homebrew/etc/mongod.conf`` (on `Apple Silicon processors
          <https://support.apple.com/en-us/HT211814>`__)
 
      * - Windows

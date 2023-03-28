@@ -3,13 +3,13 @@
 
     .. step:: Download the tarball. 
 
-        .. include:: /includes/macos-install-download-tarball-m1.rst
+        .. include:: /includes/macos-install-download-tarball-apple-silicon.rst
 
     .. step:: Extract the files from the downloaded archive. 
 
         .. code-block:: sh
 
-            tar -zxvf mongodb-macos-arm64-{+version+}.tgz
+            tar -zxvf mongodb-macos-arm64-enterprise-{+version+}.tgz
 
         .. include:: /includes/automatically-unzipped-tar-files.rst
 
