@@ -1,4 +1,4 @@
-.. _multi-cluster-quick-start-prereqs:
+.. _multi-cluster-prereqs:
 
 =============
 Prerequisites
@@ -7,8 +7,8 @@ Prerequisites
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: multicluster
-   :keywords: multi-cluster
+   :keywords: multicluster, multi-Kubernetes-cluster MongoDB, mongoDBmultiCluster resource, kubectl mongodb plugin, central cluster, member clusters
+   :description: Review and complete the prerequisite tasks before you deploy multi-Kubernetes-cluster MongoDB resources.
 
 .. contents:: On this page
    :local:
@@ -17,17 +17,15 @@ Prerequisites
    :class: singlecol
 
 
-.. _multi-cluster-prereqs:
-
-
-This quick start tutorial requires that you complete the following tasks:
+Before you create a |multi-cluster| using either the quick start or a
+deployment procedure, complete the following tasks:
 
 Review Supported Hardware Architectures
 ---------------------------------------
 
 See :ref:`supported hardware architectures <k8s-supported-hardware-arch-compatibility>`.
 
-Set Environment Variables and GKE zones
+Set Environment Variables and GKE Zones
 ----------------------------------------
 
 Set the environment variables with cluster names and the
@@ -56,7 +54,7 @@ where you deploy the clusters, as in this example:
    export MDB_CLUSTER_2_FULL_NAME="gke_${MDB_GKE_PROJECT}_${MDB_CLUSTER_2_ZONE}_${MDB_CLUSTER_2}"
    export MDB_CLUSTER_3_FULL_NAME="gke_${MDB_GKE_PROJECT}_${MDB_CLUSTER_3_ZONE}_${MDB_CLUSTER_3}"
 
-Set up GKE clusters
+Set up GKE Clusters
 -------------------
 
 Set up |gke| clusters:
@@ -98,7 +96,7 @@ Set up |gke| clusters:
 
 .. _multi-cluster-user-auth-clusters-ref:
 
-Obtain User Authentication Credentials for Central and Member clusters
+Obtain User Authentication Credentials for Central and Member Clusters
 ----------------------------------------------------------------------
 
 Obtain user authentication credentials for the central and member |k8s|
@@ -121,24 +119,81 @@ Run the following commands:
    gcloud container clusters get-credentials $MDB_CLUSTER_3 \
      --zone=$MDB_CLUSTER_3_ZONE
 
-Install Tools
---------------
+.. _install_go:
+.. _install-istio:
+.. _install-helm:
+.. _install-tools-needed-for-multi-clusters:
+
+Install Istio, Go, and Helm
+----------------------------
 
 Install the following tools:
 
 1. Install |istio| in a `multi-primary mode on different networks
    <https://istio.io/latest/docs/setup/install/multicluster/multi-primary_multi-network/>`__,
-   using the :github:`install_istio_separate_network script
-   </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/install_istio_separate_network.sh>`.
+   using the Istio documentation.
 
-   To learn more, see the `Install Multicluster
-   <https://istio.io/latest/docs/setup/install/multicluster/>`__ Istio
-   documentation.
+   .. include:: /includes/facts/fact-istio.rst
 
 2. `Install Go <https://golang.org/dl/>`__ v1.17 or later.
 
 3. `Install Helm <https://helm.sh/docs/intro/install/>`__.
 
+.. _multi-cluster-rbac-manual:
+
+Configure |k8s| Roles and Role Bindings 
+--------------------------------------------
+
+To use a |multi-cluster|, you must configure a specific set of 
+|k8s| :k8sdocs:`Roles, ClusterRoles </reference/access-authn-authz/rbac/#role-and-clusterrole>`, 
+:k8sdocs:`RoleBindings, ClusterRoleBindings </reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding>`, 
+and :k8sdocs:`ServiceAccounts </tasks/configure-pod-container/configure-service-account/>`.
+
+You should use the
+:ref:`setup Subcommand <kubectl-mongodb-mc-setup>` provided by the 
+:ref:`MongoDB Plugin <kubectl-plugin-ref>` to automatically create 
+these resources and apply them to the appropriate clusters within 
+your |multi-cluster|.
+
+Alternatively, you can manually create |k8s| object ``.yaml`` files and
+add these objects to your |multi-cluster| with the ``kubcetl apply`` 
+command. This may be necessary for certain highly automated workflows. 
+MongoDB provides sample configuration files.
+
+For namespace-scoped resources:
+
+- :github-raw:`Roles, Role Bindings, and Service Accounts for your Central Cluster </mongodb/mongodb-enterprise-kubernetes/master/samples/multi-cluster-cli-gitops/resources/rbac/namespace_scoped_central_cluster.yaml>`
+- :github-raw:`Roles, Role Bindings, and Service Accounts for your Member Clusters </mongodb/mongodb-enterprise-kubernetes/master/samples/multi-cluster-cli-gitops/resources/rbac/namespace_scoped_member_cluster.yaml>`
+
+For cluster-scoped resources:
+
+- :github-raw:`ClusterRoles, ClusterRoleBindings, and ServiceAccounts for your Central Cluster </mongodb/mongodb-enterprise-kubernetes/master/samples/multi-cluster-cli-gitops/resources/rbac/cluster_scoped_central_cluster.yaml>`
+- :github-raw:`ClusterRoles, ClusterRoleBindings, and ServiceAccounts for your Member Cluster </mongodb/mongodb-enterprise-kubernetes/master/samples/multi-cluster-cli-gitops/resources/rbac/cluster_scoped_member_cluster.yaml>`
+
+Each file defines multiple resources. To support your deployment, you
+must replace the placeholder values in the following fields:
+
+- ``subjects.namespace`` in each ``RoleBinding`` or 
+  ``ClusterRoleBinding`` resource 
+- ``metadata.namespace`` in each ``ServiceAccount`` resource
+
+After modifying the definitions, apply them by running the following 
+command for each file:
+
+   .. code-block:: sh
+
+      kubectl apply -f <fileName>
+
+.. _install-kubectl-mongodb-plugin:
+
+Install the kubectl MongoDB Plugin
+-----------------------------------
+
+.. include:: /includes/facts/fact-multi-cluster-plugin-about.rst
+
+To install the |kubectl-mongodb|:
+
+.. include:: /includes/steps/install-kubectl-mongodb-plugin.rst
 
 .. _mc-namespace-scope-ref:
 
@@ -146,19 +201,18 @@ Set the Deployment's Scope
 --------------------------
 
 By default, the multi-cluster |k8s-op-short| is scoped to the |k8s-ns|
-in which it is installed. The |k8s-op-short| reconciles the
-``MongoDBMulti`` custom resource deployed in the same namespace as the
-|k8s-op-short|.
+in which you install it. The |k8s-op-short| reconciles the |mongodb-multi|
+deployed in the same namespace as the |k8s-op-short|.
 
-When you run the :ref:`multi-cluster CLI <multi-cluster-cli-reference-ref>`
-as part of the :ref:`multi-cluster quick start procedure
-<multi-cluster-quick-start-procedure>`, and don't modify the |mc-cli|
-settings, the |mc-cli|:
+When you run the :ref:`MongoDB kubectl plugin <kubectl-plugin-ref>`
+as part of the :ref:`multi-cluster quick start 
+<multi-cluster-quick-start-ref>`, and don't modify the |kubectl-mongodb|
+settings, the plugin:
 
-.. include:: /includes/facts/fact-multi-cluster-cli-actions-setup.rst
+.. include:: /includes/facts/fact-multi-cluster-plugin-actions-setup.rst
 
-Once the |multi-cluster| is created, the |k8s-op-short| starts watching
-|k8s-mdbrscs| in the ``mongodb`` |k8s-ns|.
+Once the |k8s-op-short| creates the |multi-cluster|, the |k8s-op-short|
+starts watching |k8s-mdbrscs| in the ``mongodb`` |k8s-ns|.
 
 To configure the |k8s-op-short| with the correct permissions to deploy
 in multiple or all namespaces, run the following command and specify the
@@ -166,13 +220,12 @@ namespaces that you would like the |k8s-op-short| to watch.
 
 .. code-block:: sh
 
-   cd tools/multicluster
-   go run main.go setup \
-    -central-cluster="e2e.operator.mongokubernetes.com" \
-    -member-clusters="e2e.cluster1.mongokubernetes.com,e2e.cluster2.mongokubernetes.com,e2e.cluster3.mongokubernetes.com" \
-    -member-cluster-namespace="mongodb2" \
-    -central-cluster-namespace="mongodb2" \
-    -cluster-scoped="true"
+   kubectl mongodb multicluster setup \
+     --central-cluster="${MDB_CENTRAL_CLUSTER_FULL_NAME}" \
+     --member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}" \
+     --member-cluster-namespace="mongodb2" \
+     --central-cluster-namespace="mongodb2" \
+     --cluster-scoped="true"
 
 When you install the |multi-cluster| to multiple or all |k8s-nss|, you
 can configure the |k8s-op-short| to:
@@ -194,16 +247,10 @@ in the |multi-cluster|.
    .. tab:: Using kubectl
       :tabid: mc-kubectl
 
-
-      1. Use the :github:`mongodb-enterprise.yaml
-         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
-         sample |yaml| file from the MongoDB Enterprise Kubernetes Operator GitHub
-         repository.
-      #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE`` in
-         :github:`mongodb-enterprise.yaml
-         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
-         to the comma-separated list of namespaces that you would like
-         the |k8s-op-short| to watch:
+      Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE``
+      in the :github:`mongodb-enterprise.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+      file from the |k8s-op| GitHub Repository to the comma-separated list
+      of namespaces that you would like the |k8s-op-short| to watch:
 
          .. code-block:: sh
 
@@ -228,7 +275,7 @@ in the |multi-cluster|.
            --version <mongodb-kubernetes-operator-version>\
            --set operator.name=mongodb-enterprise-operator-multi-cluster \
            --set operator.createOperatorServiceAccount=false \
-           --set "multiCluster.clusters=$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME"
+           --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
            --set operator.watchNamespace="$namespace1,$namespace2,$namespace3"
 
 .. _mc-cluster-all-namespaces-ref:
@@ -246,19 +293,14 @@ to watch |k8s-mdbrscs| in all namespaces in the |multi-cluster|.
       :tabid: mc-kubectl
 
 
-      1. Use the :github:`mongodb-enterprise.yaml
-         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
-         sample |yaml| file from the MongoDB Enterprise Kubernetes
-         Operator GitHub repository.
-      #. Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE``
-         in :github:`mongodb-enterprise.yaml
-         </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
-         to ``"*"``. You must include the double quotation marks (``"``)
-         around the asterisk (``*``) in the YAML file.
+      Set the ``spec.template.spec.containers.name.env.name:WATCH_NAMESPACE``
+      in :github:`mongodb-enterprise.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+      to ``"*"``. You must include the double quotation marks (``"``)
+      around the asterisk (``*``) in the YAML file.
 
-         .. code-block:: sh
+      .. code-block:: sh
 
-            WATCH_NAMESPACE: "*"
+         WATCH_NAMESPACE: "*"
 
    .. tab:: Using Helm
       :tabid: mc-with-helm
@@ -276,8 +318,16 @@ to watch |k8s-mdbrscs| in all namespaces in the |multi-cluster|.
            --version <mongodb-kubernetes-operator-version>\
            --set operator.name=mongodb-enterprise-operator-multi-cluster \
            --set operator.createOperatorServiceAccount=false \
-           --set "multiCluster.clusters=$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME"
+           --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
            --set operator.watchNamespace="*"
+
+.._mc-cluster-review-onprem-diffs
+
+Review the Requirements for Deploying |onprem|
+-----------------------------------------------
+
+As part of the Quick Start, you deploy an |onprem| resource on the central
+cluster. To learn more, see :ref:`multi-cluster-deploy-om-summary`.
 
 .. _mc-cluster-check-connectivity-ref:
 
@@ -288,8 +338,7 @@ Follow the steps in this procedure to verify that service FQDNs are
 reachable across |k8s| clusters.
 
 In this example, you deploy a sample application defined in
-:github:`sample-service.yaml
-</mongodb/mongodb-enterprise-kubernetes/blob/master/multi_cluster_verify/sample-service.yaml>`
+:github:`sample-service.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/multi_cluster_verify/sample-service.yaml>`
 across two |k8s| clusters.
 
 1. Create a namespace in each of the |k8s| clusters to deploy the ``sample-service.yaml``.
@@ -392,8 +441,8 @@ across two |k8s| clusters.
 Prepare for TLS-Encrypted Connections
 -------------------------------------
 
-If you plan to secure your |multi-cluster| using |tls|
-encryption, complete the following tasks:
+If you plan to secure your |multi-cluster| using |tls| encryption,
+complete the following tasks:
 
 .. include:: /includes/prereqs/custom-ca-prereqs-multi-cluster-rs-tls-only.rst
 

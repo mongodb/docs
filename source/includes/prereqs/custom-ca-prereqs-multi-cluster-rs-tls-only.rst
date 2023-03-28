@@ -1,7 +1,7 @@
 - To enable internal cluster authentication, create certificates for
   member clusters in the |multi-cluster|.
 - Generate one |tls| certificate covering the |san-dns|\s of all the member
-  clusters in the ``MongoDBMulti`` resource.
+  clusters in the |mongodb-multi|.
 - For each |k8s| service that the |k8s-op-short| generates corresponding
   to each Pod in each member cluster, add |san-dns|\s to the certificate.
   In your |tls| certificate, the |san-dns| for each |k8s| service must

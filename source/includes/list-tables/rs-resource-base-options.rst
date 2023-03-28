@@ -37,7 +37,7 @@
 
        To learn more about MongoDB versioning, see
        :ref:`release-version-numbers` in the MongoDB Manual.
-     - ``3.6.7``
+     - ``4.4.0-ent``
 
    * - | ``spec``
        | ``.opsManager``

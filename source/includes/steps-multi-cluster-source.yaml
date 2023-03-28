@@ -23,28 +23,26 @@ content: |
 ---
 stepnum: 0
 level: 4
-ref: run-multi-cluster-tool
-title: "Run the ``multi-cluster CLI``."
+ref: run-kubectl-mongodb
+title: "Run the |kubectl-mongodb|."
 content: |
 
   By default, the |k8s-op-short| is scoped to the ``mongodb`` namespace.
   The following command creates one central cluster, three member clusters,
-  and a |k8s-ns| labeled ``mongodb`` in each of the clusters.
+  and a |k8s-ns| labeled ``mongodb`` in each of the clusters. It also creates 
+  a default ConfigMap with a hard-coded name ``mongodb-enterprise-operator-member-list``
+  that contains all the member clusters. You can'tchange the ConfigMap's name.
 
-  a. Change to the directory to which you cloned the |k8s-op-short|
-     repository, and then to the directory that contains the
-     :ref:`Multi-cluster CLI <multi-cluster-cli-reference-ref>`.
-  #. Run the |mc-cli|:
+  #. Run the |kubectl-mongodb|:
 
      .. code-block:: sh
 
-        cd tools/multicluster
-        go run main.go \
-        setup \
-          -central-cluster="${MDB_CENTRAL_CLUSTER_FULL_NAME}" \
-          -member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}" \
-          -member-cluster-namespace="mongodb" \
-          -central-cluster-namespace="mongodb"
+        kubectl mongodb multicluster setup \
+          --central-cluster="${MDB_CENTRAL_CLUSTER_FULL_NAME}" \
+          --member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME},${MDB_CLUSTER_3_FULL_NAME}" \
+          --member-cluster-namespace="mongodb" \
+          --central-cluster-namespace="mongodb" \
+          --create-service-account-secrets
 
 ---
 stepnum: 0
@@ -94,8 +92,7 @@ content: |
 
   If you have not done so already, run the following commands to run
   all ``kubectl`` commands on the central cluster in the default
-  namespace. In the following steps, you install the |k8s-op-short|
-  into this namespace.
+  namespace.
 
   .. code-block:: sh
 
@@ -106,13 +103,12 @@ content: |
 ---
 stepnum: 0
 level: 4
-title: "Install the |k8s-op-full| in the central cluster."
+title: "Install the |k8s-op-full| in the central cluster in the default namespace."
 ref: install-kubectl-mc
 content: |
-     
+
      Use the :mdb-github:`MongoDB Helm Charts for Kubernetes </helm-charts>`
-     for |multi-clusters| to install |k8s-op-short| for managing your
-     |multi-cluster|:
+     to install |k8s-op-short| for managing your |multi-cluster|:
 
      .. code-block:: sh
 
@@ -128,92 +124,10 @@ content: |
               --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
               --set multiCluster.performFailover=false
 ---
+
 stepnum: 0
-title: "Deploy the MongoDB resource."
-ref: deploy-mdbresource-mc
-content: |
-
-   a. On the central cluster, create a secret so that the |k8s-op-short|
-      can create and update objects in your |mms| project.
-      To learn more, see :ref:`create-k8s-credentials`.
-
-   #. On the central cluster, create a ConfigMap to link the |k8s-op-short|
-      to your |mms| project. To learn more, see :ref:`create-k8s-project`.
-
-   #. On the central cluster, configure the required service accounts
-      for each member cluster:
-
-      .. code-block:: sh
-
-         helm template --show-only \
-           templates/database-roles.yaml \
-           mongodb/enterprise-operator \
-           --set namespace=mongodb | \
-         kubectl apply -f - \
-           --context=$MDB_CLUSTER_1_FULL_NAME \
-           --namespace mongodb
-
-      .. code-block:: sh
-
-         helm template --show-only \
-           templates/database-roles.yaml \
-           mongodb/enterprise-operator \
-           --set namespace=mongodb | \
-         kubectl apply -f - \
-           --context=$MDB_CLUSTER_2_FULL_NAME \
-           --namespace mongodb
-
-      .. code-block:: sh
-
-         helm template --show-only \
-           templates/database-roles.yaml \
-           mongodb/enterprise-operator \
-           --set namespace=mongodb | \
-         kubectl apply -f - \
-           --context=$MDB_CLUSTER_3_FULL_NAME \
-           --namespace mongodb
-
-   #. Set :setting:`spec.credentials` and :setting:`spec.opsManager.configMapRef.name`
-      and deploy the MongoDB resource.
-      In the following code sample, ``duplicateServiceObjects``
-      is set to ``true`` to enable
-      `DNS proxying <https://istio.io/latest/docs/ops/configuration/traffic-management/dns-proxy/>`__
-      in Istio.
-      
-      .. note::
-         To enable the cross-cluster DNS resolution by the Istio
-         service mesh, this tutorial creates service objects with a
-         single ClusterIP address per each |k8s| Pod.
-
-      .. code-block:: sh
-
-         kubectl apply -f - <<EOF
-         apiVersion: mongodb.com/v1
-         kind: MongoDBMulti
-         metadata:
-          name: multi-replica-set
-         spec:
-          version: 4.4.0-ent
-          type: ReplicaSet
-          persistent: false
-          duplicateServiceObjects: true
-          credentials: my-credentials
-          opsManager:
-            configMapRef:
-              name: my-project
-          clusterSpecList:
-            - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
-              members: 3
-            - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
-              members: 2
-            - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
-              members: 3
-         EOF
-
----
-stepnum: 0
-title: "Deploy the MongoDB resource with |tls|."
-ref: deploy-mdbresource-mc-tls
+title: "Create a secret to use with Ops Manager and create a ConfigMap."
+ref: create-configmap-and-secret
 content: |
 
    a. Create a secret so that the |k8s-op-short|
@@ -223,8 +137,23 @@ content: |
    #. Create a ConfigMap to link the |k8s-op-short|
       to your |mms| project. To learn more, see :ref:`create-k8s-project`.
 
-   #. Configure the required service accounts
-      for each member cluster:
+---
+stepnum: 0
+title: "Deploy |onprem| on the central cluster."
+ref: deploy-om-mc-central-cluster
+content: |
+
+   a :ref:`Review the differences for deploying Ops Manager on the central cluster <multi-cluster-deploy-om-summary>`.
+
+   # :ref:`Deploy an Ops Manager instance on the central cluster <deploy-om-container>`.
+
+---
+stepnum: 0
+title: "Configure service accounts and roles for each member cluster."
+ref: configure-mc-service-accounts
+content: |
+
+      Configure the required service accounts for each member cluster:
 
       .. code-block:: sh
 
@@ -256,10 +185,19 @@ content: |
            --context=$MDB_CLUSTER_3_FULL_NAME \
            --namespace mongodb
 
-   #. Set :setting:`spec.credentials`, 
+
+---
+stepnum: 0
+level: 4
+title: "Deploy the |mongodb-multi|."
+ref: deploy-mdbresource-mc-tls
+content: |
+
+
+   a. Set :setting:`spec.credentials`, 
       :setting:`spec.opsManagerconfigMapRef.name`, and 
       :ref:`security settings <security-settings>` 
-      and deploy the MongoDB resource.
+      and deploy the |mongodb-multi|.
       In the following code sample, ``duplicateServiceObjects``
       is set to ``true`` to enable
       `DNS proxying <https://istio.io/latest/docs/ops/configuration/traffic-management/dns-proxy/>`__
@@ -274,7 +212,7 @@ content: |
 
          kubectl apply -f - <<EOF
          apiVersion: mongodb.com/v1
-         kind: MongoDBMulti
+         kind: MongoDBMultiCluster
          metadata:
           name: multi-replica-set
          spec:
@@ -300,13 +238,13 @@ content: |
          EOF
 
    The |k8s-op-short| copies the ConfigMap with the |certauth| that you
-   created in step 2 to each member cluster, generates a
+   created in previous steps to each member cluster, generates a
    concatenated |pem| secret, and distributes it to the member clusters.
 
 ---
 stepnum: 0
 level: 4
-title: "Verify that the MDB resources are running."
+title: "Verify that the |mongodb-multis| are running."
 ref: verify-mdb-resources-mc
 content: |
 
@@ -332,7 +270,7 @@ content: |
          --namespace mongodb
 
   #.  In the central cluster, run the following commands to verify that
-      the ``MongoDBMulti`` custom resource is in the running state:
+      the |mongodb-multi| is in the running state:
 
       .. code-block:: sh
 
@@ -342,13 +280,13 @@ content: |
 
 ---
 stepnum: 0
-title: "Create the secret for the TLS certificate of your ``MongoDBMulti`` custom resource."
+title: "Create the secret for the TLS certificate of your |mongodb-multi|."
 level: 4
 ref: create-k8s-mc-tls-secret
 content: |
 
   Run the ``kubectl`` command to create a new secret that stores the
-  MongoDB multi-cluster resource's certificate:
+  |mongodb-multi| certificate:
 
   .. code-block:: sh
 
@@ -364,13 +302,9 @@ content: |
 
   .. include:: /includes/fact-example-secret-prefix-cluster-file.rst
 
-  .. include:: /includes/facts/fact-if-use-vault.rst
-
-  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
-
 ---
 stepnum: 0
-title: "Create the secret for your agent's X.509 certificate of your ``MongoDBMulti`` custom resource."
+title: "Create the secret for your agent's X.509 certificate of your |mongodb-multi|."
 level: 4
 ref: create-mc-agent-secret-x509
 content: |
@@ -394,7 +328,7 @@ content: |
 
   Run the ``kubectl`` command to create a new secret that stores the internal
   cluster member's X.509 certificate. The member clusters are defined in
-  your ``MongoDBMulti`` custom resource.
+  your |mongodb-multi|.
 
   .. code-block:: sh
 
@@ -407,10 +341,10 @@ content: |
 ---
 stepnum: 0
 ref: create-k8s-mc-tls-configmap
-title: "Create the ConfigMap to link your CA with your ``MongoDBMulti`` custom resource."
+title: "Create the ConfigMap to link your CA with your |mongodb-multi|."
 level: 4
 content: |
-   Run the ``kubectl`` command to link your |certauth| to your ``MongoDBMulti`` custom resource:
+   Run the ``kubectl`` command to link your |certauth| to your |mongodb-multi|:
 
    .. code-block:: sh
 
@@ -420,13 +354,13 @@ content: |
 
 ---
 stepnum: 0
-title: "Renew the |k8s-secret| for a ``MongoDBMulti`` resource."
+title: "Renew the |k8s-secret| for a |mongodb-multi|."
 ref: renew-mc-rs-tls-secret
 level: 4
 content: |
 
   Run this ``kubectl`` command to renew an existing |k8s-secret| that
-  stores the ``MongoDBMulti`` resource's certificates:
+  stores the certificates for the |mongodb-multi|:
 
   .. code-block:: sh
 
@@ -446,7 +380,7 @@ title: "Renew the secret for your agent's X.509 certificates."
 level: 4
 content: |
    Run the ``kubectl`` command to renew an existing secret that stores
-   the ``MongoDBMulti`` resource's agent certificates:
+   the |mongodb-multi| agent certificates:
 
 
    .. code-block:: sh
@@ -462,11 +396,11 @@ content: |
 ---
 stepnum: 0
 ref: renew-secret-internal-x509
-title: "Renew the secret for internal members's X.509 certificates of the MongoDBMulti resource."
+title: "Renew the secret for internal members's X.509 certificates of the |mongodb-multi|."
 level: 4
 content: |
    Run the ``kubectl`` command to renew an existing secret that stores
-   X.509 certificates for internal members of the ``MongoDBMulti`` resource:
+   X.509 certificates for internal members of the |mongodb-multi|:
 
    .. code-block:: sh
 
@@ -477,5 +411,105 @@ content: |
          --key=<resource-clusterfile-tls-key> \
          --dry-run=client \
          -o yaml | kubectl apply -f -
+
+---
+title: "Copy and paste the sample {{k8sResource}} resource."
+stepnum: 0
+level: 4
+ref: copy-k8s-mc-example-resource
+content: |
+
+   a. Copy the sample replica set |yaml| file and paste it into a new
+      text file.
+
+   b. Change the file's settings to match your desired replica set configuration.
+
+   {{k8sMultiClusterExample}}
+
+---
+title: "Change the settings to your preferred values."
+stepnum: 0
+level: 4
+ref: change-values
+content: |
+
+  .. include:: /includes/list-tables/rs-multi-cluster-base-options.rst
+
+---
+title: "Add any additional accepted settings for a |mongodb-multi| deployment."
+stepnum: 0
+level: 4
+ref: add-optional-values
+content: |
+
+  You can also add any optional settings to the
+  |k8s-obj| specification. See :ref:`multi-cluster-specification`.
+
+---
+title: "Track the status of your |multi-cluster|."
+stepnum: 0
+level: 4
+ref: track-k8s-mc-deployment-basic
+content: |
+
+  .. include:: /includes/check-resource-status-multi-cluster.rst
+
+---
+title: "Download your desired |k8s-op-short| package version."
+stepnum: 0
+level: 4
+ref: download-k8sop-version
+content: |
+
+  Download your desired |k8s-op-short| package version from the
+  :github:`Release Page of the MongoDB Enterprise Kubernetes Operator Repository </mongodb/mongodb-enterprise-kubernetes/>`.
+
+  The package's name uses this pattern:
+  ``kubectl-mongodb-multicluster_{{ .Version }}_{{ .Os }}_{{ .Arch }}.tar.gz``.
+  
+  Use one of the following packages:
+
+  - ``kubectl-mongodb-multicluster_{{ .Version }}_darwin_amd64.tar.gz``
+  - ``kubectl-mongodb-multicluster_{{ .Version }}_darwin_arm64.tar.gz``
+  - ``kubectl-mongodb-multicluster_{{ .Version }}_linux_amd64.tar.gz``
+  - ``kubectl-mongodb-multicluster_{{ .Version }}_linux_arm64.tar.gz``
+
+---
+title: "Unpack the |k8s-op-short| package."
+stepnum: 0
+level: 4
+ref: unpack-k8sop
+content: |
+
+  Unpack the package, as in the following example:
+
+  .. code-block:: sh
+  
+     tar -zxvf kubectl-mongodb_<version>_darwin_amd64.tar.gz
+
+---
+title: "Locate the |kubectl-mongodb| binary and copy it to its desired destination."
+stepnum: 0
+level: 4
+ref: mv-plugin-to-your-dir
+content: |
+
+  Find the ``kubectl-mongodb`` binary in the unpacked directory and move it
+  to its desired destination, inside the PATH for the |k8s-op-short| user,
+  as shown in the following example:
+
+  .. code-block:: sh
+
+     mv kubectl-mongodb /usr/local/bin/kubectl-mongodb
+
+  Now you can run the |kubectl-mongodb| using the following commands:
+
+  .. code-block:: sh
+
+     kubectl mongodb multicluster setup
+     kubectl mongodb multicluster recover
+
+  To learn more about the supported flags,
+  see the :ref:`MongoDB kubectl plugin Reference <kubectl-plugin-ref>`.
 
 ...

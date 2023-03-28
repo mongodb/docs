@@ -16,18 +16,40 @@ Architecture, Capabilities, and Limitations
    :depth: 2
    :class: singlecol
 
-.. _multi-cluster-beta-limitations:
+.. _multi-cluster-limitations:
 
-Features Not Available in the Beta Release
-------------------------------------------
+Multi-Kubernetes-Cluster Limitations
+------------------------------------
 
-.. important::
+The following limitations exist for |multi-clusters|:
 
-   This feature is a beta release and has the following limiations:
+- Deploy only replica sets. Sharded cluster deployments aren't supported.
+- Use |onprem| versions later than 5.0.7.
+- 
+  Deploy |onprem| on a single cluster, and if deploying in |k8s|, deploy |onprem|
+  on a central cluster. To learn more, see :ref:`om_with_multi-clusters`.
 
-   - Deploy |multi-clusters| only in development environments.
-   - Deploy only replica sets. Sharded cluster deployments aren't supported.
-   - Use |onprem| versions later than 5.0.7.
+  .. important::
+
+     The |k8s-op| doesn't support highly-available deployments of |onprem|
+     across multiple |k8s| clusters. If your deployment requires multi-site
+     resilience for |onprem|, :opsmgr:`deploy Ops Manager with High Availability </tutorial/configure-application-high-availability/>`
+     outside of |k8s| with both the Application Database replica set and
+     |onprem| spanning all sites on which you have your |multi-cluster|.
+     In this case, in a disaster recovery scenario, you can redeploy the
+     |multi-cluster| on another |k8s| cluster on a remaining site and
+     connect the deployment to the |onprem| instance running on that
+     healthy site outside of |k8s|.
+
+     If you host |onprem| in the same |k8s| cluster as the |k8s-op-short| and
+     the cluster fails, you can restore the |multi-cluster| to a new |k8s|
+     cluster. However, restoring |onprem| into another cluster in this case
+     is a lengthy manual process.
+
+- Use only |k8s| |k8s-secrets| for your secret storage tool. The |hashicorp-vault| 
+  secret storage tool isn't supported.
+- Don't add a :github:`ServiceMonitor</prometheus-operator/prometheus-operator/blob/main/Documentation/user-guides/getting-started.md#related-resources>`
+  to your |mongodb-multis|. The |k8s-op-short| doesn't support integration with Prometheus.
 
 .. _multi-cluster-capabilities:
 
@@ -35,89 +57,65 @@ Multi-Kubernetes-Cluster Deployment Capabilities
 ------------------------------------------------
 
 This section describes the |multi-cluster| capabilities that you can
-configure using the same procedures as for single clusters deployed with
-the |k8s-op-short|. Other |multi-cluster| capabilities have their own
-documentation in this guide.
+configure using the same procedures as the procedures for single clusters
+deployed with the |k8s-op-short|. Other |multi-cluster| capabilities have
+their own documentation in this guide.
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+- :ref:`multi-cluster-connection-string`
+- :ref:`multi-cluster-security-db-users`
+- :ref:`multi-cluster-deploy-om-summary`
+- :ref:`multi-cluster-queryable-backups-for-om`
 
-   * - Capability
-     - Description
+.. _multi-cluster-connection-string:
 
-   * - Use |dns-srv| records for MongoDB access in |multi-clusters|
-     - To connect to the |multi-cluster| database as a user, you can use
-       the ``connectionString.standardSrv``: :manual:`DNS seed list connection string </reference/connection-string/#dns-seed-list-connection-format>`.
-       This string is included in the secret that the |k8s-op-short| creates
-       for your |multi-cluster|. Use the same procedure for connecting to
-       the |multi-cluster| as for single clusters deployed with |k8s-op-short|.
-       See :ref:`Connect to a MongoDB Database Resource from Inside Kubernetes <connect-from-inside-k8s>`,
-       and select the tab :guilabel:`Using the Kubernetes Secret`.
+Connect with |dns-srv| Records
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   * - Secure database users in |multi-clusters|
-     - Manage database users using:
+To connect to the |multi-cluster| database as a user, you can use
+the ``connectionString.standardSrv``: :manual:`DNS seed list connection string </reference/connection-string/#dns-seed-list-connection-format>`.
+This string is included in the secret that the |k8s-op-short| creates for your |multi-cluster|.
+Use the same procedure for connecting to the |multi-cluster| as for single
+clusters deployed with |k8s-op-short|. See :ref:`Connect to a MongoDB Database Resource from Inside Kubernetes <connect-from-inside-k8s>`
+and select the tab :guilabel:`Using the Kubernetes Secret`.
 
-       - :ref:`LDAP authentication <k8s-manage-db-users-ldap>`
-       - :ref:`SCRAM authentication <k8s-manage-db-users-scram>`
-       - :ref:`TLS and X.509 for internal cluster authentication <k8s-manage-db-users-x509>`
-       
-       These procedures are the same as for single clusters
-       deployed with |k8s-op-short|, with the following exceptions:
+.. _multi-cluster-security-db-users:
 
-       - The procedures apply to replica sets only. |Multi-clusters|
-         :ref:`do not support creating sharded clusters <multi-cluster-beta-limitations>`.
-       - In the ``mongodbResourceRef``, specify the name of the multi-cluster
-         replica set: ``name: "<my-multi-cluster-replica-set>"``.
+Manage Security for Database Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   * - Configure queryable backups for |onprem| resources
-     - If you deploy |onprem| with the |k8s-op-short|, the central
-       cluster may also host |onprem|. In this case, you can
-       :ref:`configure queryable backups <configure-om-queryable-backups>`
-       for |onprem| resources.
+Use these methods to manage security for database users:
+
+- :ref:`LDAP authentication <k8s-manage-db-users-ldap>`
+- :ref:`SCRAM authentication <k8s-manage-db-users-scram>`
+- :ref:`TLS and X.509 for internal cluster authentication <k8s-manage-db-users-x509>`
+
+These procedures are the same as the procedures for single clusters deployed
+with the |k8s-op-short|, with the following exceptions:
+
+- The procedures apply to replica sets only. |Multi-clusters| :ref:`don't support creating sharded clusters <multi-cluster-limitations>`.
+- In the ``mongodbResourceRef``, specify the name of the |multi-cluster|
+  replica set: ``name: "<my-multi-cluster-replica-set>"``.
+
+.. _multi-cluster-deploy-om-summary:
+
+Deploy an |onprem| Resource on the Central Cluster and Connect to |onprem|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/facts/fact-om-in-multi-clusters-summary-of-diffs.rst
+
+.. _multi-cluster-queryable-backups-for-om:
+
+Set up Queryable Backups for |onprem| Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you deploy |onprem| with the |k8s-op-short|, the central cluster may
+also host |onprem|. In this case, you can :ref:`configure queryable backups <configure-om-queryable-backups>`
+for |onprem| resources.
 
 .. _multi-cluster-diagram:
 
 Deployment Architecture and Diagram
 -----------------------------------
-
-The |k8s-op-full| runs in a central |k8s| cluster of your |multi-cluster|.
-
-The central cluster holds the ``MongoDBMulti`` CustomResource spec for
-the MongoDB replica set.
-The member |k8s| clusters host the MongoDB replica sets.
-
-If you deploy |onprem| with the |k8s-op-short|, the central cluster may
-also host |onprem|.
-
-|istio| manages the discovery of MongoDB nodes deployed in different
-|k8s| member clusters.
-
-You can host your application on any of the member clusters inside the
-Istio service mesh, either on |k8s| clusters outside of the ones that you
-deploy with the |k8s-op-short|, or on the member clusters that you deploy
-as part of this tutorial.
-
-The |k8s-op-full| performs these actions:
-
-- Identifies the cluster on which to deploy the MongoDB replica set
-  using the corresponding ``MongoDBMulti`` CustomResource spec, and
-  deploys the MongoDB replica sets.
-
-- Watches for the ``MongoDBMulti`` CustomResource spec creation in the
-  central cluster.
-
-- Uses the mounted ``kubeconfig`` file to communicate with member clusters.
-
-- Watches for the ``CentralCluster`` and ``MemberCluster`` events to
-  confirm that the |multi-cluster| is in the desired state.
-
-- Reconciles resources. Creates the necessary resources, such as
-  Configmaps, Secrets, Service objects, and Statefulset objects in each
-  member cluster corresponding to the number of replica set members in the
-  MongoDB cluster.
-
-  .. include:: /includes/facts/fact-can-change-secret-storage-tool.rst
 
 The following diagram shows the high-level architecture of a |multi-cluster|
 across regions and availability zones:
@@ -127,3 +125,38 @@ across regions and availability zones:
          deployment across regions and availability zones using the
          MongoDB Enterprise Kubernetes Operator
    :figwidth: 600px
+
+.. include:: /includes/facts/fact-central-member-clusters.rst
+
+If you use a service mesh such as |istio|, the service mesh manages the
+discovery of MongoDB nodes deployed in different |k8s| member clusters
+and handles communication between replica set members. This means that
+your database doesn't rely on the central cluster to function.
+
+Note that if the central cluster fails, you can't use the |k8s-op-short|
+to change your deployment until you restore access to this cluster or
+until you redeploy the |k8s-op-short| to another available |k8s| cluster.
+
+You can host your application on any of the member clusters inside the
+Istio service mesh, such as:
+
+- On |k8s| clusters outside of the ones that you deploy with the |k8s-op-short|, or
+- On the member clusters that you deploy as part of this tutorial.
+
+The |k8s-op-full| performs these actions:
+
+- Watches for the |mongodb-multi| spec creation in the central cluster.
+
+- Uses the mounted ``kubeconfig`` file to communicate with member clusters.
+
+- Creates the necessary resources, such as ConfigMaps, Secrets, Service
+  and StatefulSet |k8s| objects in each member cluster corresponding to
+  the number of replica set members in the MongoDB cluster.
+
+- Identifies the cluster for deploying each MongoDB replica set using
+  the corresponding |mongodb-multi| spec, and deploys the MongoDB replica sets.
+
+- Watches for the ``CentralCluster`` and ``MemberCluster`` events.
+- Reconciles the resources it created to confirm that the |multi-cluster|
+  is in the desired state.
+

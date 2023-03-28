@@ -1,0 +1,73 @@
+
+# Provides statefulSet override per cluster
+
+apiVersion: mongodb.com/v1
+kind: MongoDBMultiCluster
+metadata:
+  name: multi-replica-set
+spec:
+  version: 4.4.0-ent
+  type: ReplicaSet
+  duplicateServiceObjects: false
+  credentials: my-credentials
+  opsManager:
+    configMapRef:
+      name: my-project
+  clusterSpecList:
+    - clusterName: cluster1.example.com
+      members: 2
+      statefulSet:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: sidecar1
+                image: busybox
+                command: [ "sleep" ]
+                args: [ "infinity" ]
+          # Use to override the default storage size of the "data" Persistent Volume
+          volumeClaimTemplates:
+          - metadata:
+              name: data
+            spec:
+              resources:
+                requests:
+                  storage: 1Gi
+    - clusterName: cluster2.example.com
+      members: 1
+      statefulSet:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: sidecar2
+                image: busybox
+                command: [ "sleep" ]
+                args: [ "infinity" ]
+            volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                resources:
+                  requests:
+                    storage: 1Gi
+    - clusterName: cluster3.example.com
+      members: 1
+      statefulSet:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: sidecar3
+                image: busybox
+                command: [ "sleep" ]
+                args: [ "infinity" ]
+            volumeClaimTemplates:
+            - metadata:
+                name: data
+              spec:
+                resources:
+                  requests:
+                    storage: 1Gi
+
+...
