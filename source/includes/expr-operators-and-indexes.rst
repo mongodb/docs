@@ -1,8 +1,7 @@
-Starting in MongoDB 5.0, the :expression:`$eq`, :expression:`$lt`,
-:expression:`$lte`, :expression:`$gt`, and :expression:`$gte` comparison
-operators placed in an :query:`$expr` operator can use an index on the
-``from`` collection referenced in a :pipeline:`$lookup` stage.
-Limitations:
+The :expression:`$eq`, :expression:`$lt`, :expression:`$lte`,
+:expression:`$gt`, and :expression:`$gte` comparison operators placed in
+an :query:`$expr` operator can use an index on the ``from`` collection
+referenced in a :pipeline:`$lookup` stage. Limitations:
 
 - :ref:`Multikey indexes <index-type-multikey>` are not used.
   
