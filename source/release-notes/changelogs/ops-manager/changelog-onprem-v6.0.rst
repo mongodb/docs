@@ -50,6 +50,7 @@
 
 - Updates the {+mdbagent+} to :ref:`12.0.16.7656
   <mongodb-12.0.16.7656>`.
+- Reintroduces :ref:`Namespace Filtering for backups <namespaces-filter>`.
 
 .. _opsmgr-server-6.0.7:
 
