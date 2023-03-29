@@ -23,7 +23,7 @@ Backup Features Supported at Present
       * - Backs up Sharded Clusters
         - :icon:`check-circle`
         - :icon:`check-circle`
-      * - Can Filter using Namespaces
+      * - Can Filter using Namespaces [#]_
         -
         - :icon:`check-circle`
       * - Can Specify Sync Source Database
@@ -139,6 +139,11 @@ Backup Features Supported at Present
         -
 
 .. cond:: onprem
+
+   .. [#] Namespace filtering is supported only for |mms| versions 
+          6.0.8 and later. Your MongoDB deployments must have 
+          ``featureCompatibilityVersion`` values of ``4.0`` and earlier, 
+          or ``6.0.1`` and later.
 
    .. [#] Performing a |pit| restore requires |onprem| 4.2.13 or later.
 
