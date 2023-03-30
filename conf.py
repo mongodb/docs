@@ -136,6 +136,7 @@ rst_epilog = '\n'.join([
     '.. |json| replace:: :abbr:`JSON (Javascript Object Notation)`',
     '.. |jedec| replace:: :abbr:`JEDEC (Joint Electron Device Engineering Council Solid State Technology Association)`',
     '.. |jvm| replace:: :abbr:`JVM (Java Virtual Machine)`',
+    '.. |k8s-affinity| replace:: `Affinity and Anti-Affinity <https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#more-practical-use-cases>`__',
     '.. |k8s-cr| replace:: `ClusterRole <https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole>`__',
     '.. |k8s-crb| replace:: `ClusterRoleBinding <https://kubernetes.io/docs/reference/access-authn-authz/rbac/#rolebinding-and-clusterrolebinding>`__',
     '.. |k8s-configmap-def| replace:: `ConfigMap <https://kubernetes.io/docs/concepts/configuration/configmap/>`__',
