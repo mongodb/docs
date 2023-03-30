@@ -12,7 +12,13 @@
   address `CVE-2023-24998 
   <https://nvd.nist.gov/vuln/detail/CVE-2023-24998>`_.
 - Adds an option to support using multiple workers for a single file 
-  during backups.
+  during backups. You can enable this beta feature by doing the
+  following: 
+
+  1. In the :guilabel:`Settings` :ref:`page <group-settings-page>` for
+     your :guilabel:`Project`, click the :guilabel:`Beta Features` tab.
+  2. Toggle :guilabel:`Backup Multiple Workers Per File` to enable the 
+     feature. 
 
 .. _opsmgr-server-5.0.19:
 
