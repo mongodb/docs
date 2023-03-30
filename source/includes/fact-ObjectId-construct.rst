@@ -6,9 +6,9 @@
 
 - A 3-byte incrementing counter, initialized to a random value.
 
-While the BSON format itself is little-endian, the timestamp and
-counter values are big-endian, the most significant bytes appear first
-in the byte sequence.
+For timestamp and counter values, the most significant bytes appear
+first in the byte sequence (big-endian). This is unlike other BSON
+values, where the least significant bytes appear first (little-endian).
 
 If an integer value is used to create an ObjectId, the integer replaces
 the timestamp.
