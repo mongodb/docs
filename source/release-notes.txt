@@ -12,6 +12,153 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.19.x:
+
+|k8s-op-full| 1.19 Series
+-------------------------
+
+.. _ent_op-1.19.1:
+
+|k8s-op-full| 1.19.1
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-03-30*
+
+This release fixes an issue that prevented upgrading the |k8s-op-short| to 1.19.0.
+Upgrade to this release.
+
+Improvements
+````````````
+
+- Introduces |multi-clusters|. To learn more, see :ref:`multi-cluster`.
+
+  Makes the following changes to the |multi-cluster| support compared with
+  the Beta version of the |multi-cluster| support in |k8s-op-short| 1.18.x:
+
+  - Renames the ``MongoDBMulti`` resource in Beta versions to the |mongodb-multi|.
+  - Renames the shortcut name of the |mongodb-multi| to ``mdbmc``. Use this
+    shortcut name in all commands on the |mongodb-multi|. For example, to
+    check the status of your |mongodb-multi|, run:
+
+    .. code-block:: sh
+
+       kubectl get mdbmc <resource-name> -o yaml -w
+
+  - Renames the "multi-cluster CLI" tool to the "|kubectl-mongodb|".
+    To learn more, see the :ref:`kubectl-plugin-ref`.
+  - Adds documentation for the :ref:`multi-cluster-specification`.
+  - Removes the unnecessary intermediate object ``clusterSpecs`` from the
+    ``clusterSpecList`` in the |mongodb-multi| specification. For a valid
+    example of a |mongodb-multi| configuration file, see the
+    :ref:`multi-cluster-specification`.
+
+- Adds support for |k8s| 1.26 and OpenShift 4.12. To learn more, see
+  :ref:`k8s-compatibility`.
+- Allows you to configure ``podSpec`` per shard in a MongoDB sharded cluster
+  by specifying an array of ``podSpecs`` under the ``spec.shardSpecificPodSpec``
+  setting for each shard.
+- Makes the ``data.orgId`` field required for the ConfigMap of the |k8s-mdbrscs|.
+  If you provide an empty ``orgID``,  as in: ``orgID = " "``, |onprem|
+  creates an organization with the project name.
+- Makes the :setting:`spec.members` setting required for replica set deployments.
+- Adds the :ref:`k8s-faq` for the |k8s-op-short| to the documentation.
+- Adds documentation for :ref:`configuring file system backup stores <configure-file-store>`
+  in the |k8s-op-short| MongoDB deployments.
+
+MongoDBMultiCluster Resource
+``````````````````````````````
+
+- Adds the :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>`,
+  :ref:`spec.clusterSpecList.externalAccess.externalService.annotations <multi-spec-clusterspeclist-annotations>`,
+  :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>`,
+  and :ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`
+  settings to configure external connectivity settings for |mongodb-multis|.
+
+- Adds the :ref:`spec.memberOptions.memberConfig.votes <multi-spec-clusterspeclist-memberconfig-votes>`
+  and :ref:`spec.memberOptions.memberConfig.priority <multi-spec-clusterspeclist-memberconfig-priority>`
+  settings for configuring replica set member votes and member priority for |mongodb-multis|.
+- Adds the :ref:`spec.memberOptions.memberConfig.tags <multi-spec-clusterspeclist-memberconfig-tags>`
+  setting for adding tags to replica set members in |mongodb-multis|.
+
+- Adds the :ref:`spec.security.authentication.ldap.timeoutMS <multi-spec-security-ldap-timeoutms>`
+  setting that specifies how many milliseconds an authentication request should
+  wait before timing out.
+
+MongoDB Resource
+`````````````````
+
+- Adds the :setting:`spec.memberOptions.memberConfig.votes` and :setting:`spec.memberOptions.memberConfig.priority`
+  settings for configuring replica set member votes and member priority.
+- Adds the :setting:`spec.memberOptions.memberConfig.tags` setting for adding tags
+  to replica set members.
+- Adds the :setting:`spec.podSpec.podAffinity` setting to determine whether
+  multiple |k8s-mdbrsc| |k8s-pods| must be co-located with other
+  |k8s-pods| in sharded MongoDB cluster deployments. To learn more about
+  the use cases, see |k8s-affinity| in the |k8s| documentation.
+- Adds the ``spec.externalAccess`` setting for configuring external
+  connectivity for MongoDB resources.
+- Deprecates the :setting:`spec.exposedExternally` setting. This setting
+  will be removed in the |k8s-op-short| 1.22.0 release. Use the
+  ``spec.externalAccess`` setting instead.
+
+Bug Fixes
+`````````
+
+- Fixes the handling of ``WATCH_NAMESPACE='*'`` environment variable for
+  |multi-clusters|. In the following cases, API clients for member clusters
+  are configured incorrectly resulting in deployment errors:
+
+  - The ``WATCH_NAMESPACE='*'`` environment variable is specified for
+    the |multi-cluster|.
+  - A specific namespace is set in ``kubeconfig`` for member clusters.
+  - The |kubectl-mongodb| isn't used for configuring |multi-clusters|.
+
+  This leads to the following errors:
+
+  .. code-block:: sh
+     :copyable: false
+
+     The secret object 'mdb-multi-rs-cert' does not contain all the valid
+     certificates needed: secrets "mdb-multi-rs-cert-pem" already exists
+
+  To avoid this issue, set the ``WATCH_NAMESPACE`` environment variable to
+  specific namespaces instead of ``'*'``, and verify that the ``kubeconfig``
+  settings for member clusters don't specify a namespace. To set the namespace
+  for |multi-clusters|, see :ref:`mc-namespace-scope-ref` and the :ref:`kubectl-plugin-ref`.
+
+- Fixes an issue when ``CertificatesSecretsPrefix`` is set but no related
+  ``spec.security.tls`` settings, such as ``tls.additionalCertificateDomains``
+  or ``tls.ca`` are  provided.
+
+- Fixes an issue that allows you to explicitly specify the value ``none``
+  for the :setting:`spec.security.authentication.ldap.transportSecurity`
+  when |tls| isn't used. Previously, the |k8s-op-short| treated this
+  setting as ``none`` when you omitted the value and didn't specify the
+  ``tls`` value, but the |k8s-op-short| didn't allow you to specify the
+  value ``none`` explicitly.
+
+.. _ent_op-1.19.0:
+
+|k8s-op-full| 1.19.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2022-03-28*
+
+Breaking Changes
+````````````````
+
+.. warning:: **Don't upgrade to 1.19.0. Instead, upgrade to 1.19.1**
+  
+   This release is tied to a broken release on the Openshift Marketplace.
+   Don't upgrade to this release (1.19.0), and instead upgrade to the
+   |k8s-op-short| 1.19.1 release.
+
+This release removes Ubuntu-based images. Ubuntu-based images were deprecated
+in favor of UBI-based images in the |k8s-op-short| in 1.17.0.
+:ref:`Migrate the Kubernetes Operator from Ubuntu-based Images to UBI-based images <migrate-k8s-images>`.
+All existing Ubuntu-based images will continue to be supported until their version's
+:ref:`End of Life (EOL) dates <k8s-support-lifecycle>`.
+
 .. _ent-op-1.18.x:
 
 |k8s-op-full| 1.18 Series
@@ -207,9 +354,9 @@ This release:
   If you're using |onprem| 4.4, :opsmgr:`upgrade </tutorial/upgrade-ops-manager/>`
   to a newer |onprem| version before you upgrade to |k8s-op-short| 1.17.
 
-- Deprecates Ubuntu base images. Starting with |k8s-op-short| 1.19.0,
-  Ubuntu base images will no longer be made available. All existing
-  Ubuntu base images will continue to be supported until their version's
+- Deprecates Ubuntu-based images. Starting with |k8s-op-short| 1.19.0,
+  Ubuntu-based images will no longer be made available. All existing
+  Ubuntu-based images will continue to be supported until their version's
   :ref:`End of Life (EOL) dates <k8s-support-lifecycle>`. We strongly
   recommend that you :ref:`migrate-k8s-images` as soon as possible.
 
