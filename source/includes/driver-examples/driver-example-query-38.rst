@@ -11,12 +11,6 @@
                { _id: 2 }
             ])
 
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript
