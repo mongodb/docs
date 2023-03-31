@@ -4,11 +4,13 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Search;
 
-public class AutocompleteFacetExample {
+public class AutocompleteFacetExample
+{
     private static IMongoCollection<MovieDocument> moviesCollection;
     private static string _mongoConnectionString = "<connection-string>";
 
-    public static void Main(string[] args) {
+    public static void Main(string[] args)
+    {
         // allow automapping of the camelCase database fields to our MovieDocument
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
@@ -31,7 +33,8 @@ public class AutocompleteFacetExample {
 }
 
 [BsonIgnoreExtraElements]
-public class MovieDocument {
+public class MovieDocument
+{
     [BsonIgnoreIfDefault]
     public ObjectId Id { get; set; }
     public string Title { get; set; }

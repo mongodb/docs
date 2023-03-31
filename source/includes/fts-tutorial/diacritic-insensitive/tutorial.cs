@@ -4,7 +4,7 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Search;
 
-public class WildcardMultipleCharacter
+public class DiacriticInsensitiveExample
 {
     private static IMongoCollection<MovieDocument> moviesCollection;
     private static string _mongoConnectionString = "<connection-string>";
@@ -22,11 +22,14 @@ public class WildcardMultipleCharacter
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Wom?n *"))
+            .Search(Builders<MovieDocument>.Search.Compound()
+                .Must(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "alle*", true))
+                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Drama")))
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
-                .Exclude(movie => movie.Id))
-            . Limit(5)
+                .Include(movie => movie.Genres)
+                .Exclude(movie => movie.Id)
+                .MetaSearchScore("score"))
             .ToList();
 
         // print results
@@ -42,5 +45,8 @@ public class MovieDocument
 {
     [BsonIgnoreIfDefault]
     public ObjectId Id { get; set; }
+    public string [] Genres { get; set; }
     public string Title { get; set; }
+    [BsonElement("score")]
+    public double Score { get; set; }
 }
