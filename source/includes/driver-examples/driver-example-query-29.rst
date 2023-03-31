@@ -14,10 +14,6 @@
                { item: "postcard", instock: [ { warehouse: "B", qty: 15 }, { warehouse: "C", qty: 35 } ] }
             ]);
 
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript
