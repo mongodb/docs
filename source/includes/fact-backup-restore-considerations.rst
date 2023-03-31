@@ -6,7 +6,7 @@ You can still use backups made before an upgrade.
 
 .. example::
 
-   To :doc:`restore a 3.6 cluster </backup/legacy-backup/restore>` to 4.0:
+   To :doc:`restore a 4.0 cluster </backup/legacy-backup/restore>` to 4.2:
 
-   1.  Restore the old 3.6 backup to another 3.6 cluster.
-   2.  Upgrade the restored cluster to 4.0.
+   1.  Restore the old 4.0 backup to another 4.2 cluster.
+   2.  Upgrade the restored cluster to 4.2.
