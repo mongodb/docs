@@ -14,10 +14,6 @@
                { item: "postcard", qty: 45, tags: ["blue"], dim_cm: [ 10, 15.25 ] }
             ]);
 
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript
