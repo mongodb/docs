@@ -11,12 +11,6 @@
                { _id: 2 }
             ])
 
-         .. only:: website
-
-            You can run the operation in the web shell below:
-
-            .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript

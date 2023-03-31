@@ -12,12 +12,6 @@
                { item: "mousepad", qty: 25, tags: ["gel", "blue"], size: { h: 19, w: 22.85, uom: "cm" } }
             ])
           
-         .. only:: website
-
-            You can run the operation in the web shell below:
-
-            .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
 
