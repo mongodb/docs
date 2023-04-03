@@ -18,6 +18,16 @@ upgrade path you must take to upgrade to |onprem| 4.4 or later.
 
    - There are no supported downgrade paths for |onprem|.
 
+.. note::
+
+   All upgrades for |onprem| versions 4.2.x and later use 
+   :ref:`the same procedure <upgrade-om-procedure>`. To upgrade to a
+   higher version, you must first use this procedure upgrade to the 
+   latest available patch of your initial version, then use the 
+   procedure again to upgrade to the next version. If the following
+   table has additional information related to the upgrade procedure 
+   for a given version, review it first.
+
 The following table lists upgrade paths for all versions:
 
 .. list-table::
@@ -29,18 +39,29 @@ The following table lists upgrade paths for all versions:
      - Upgrade Path
 
    * - 6.0.x
-     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
-       upgrade from |onprem| 6.0.x to the latest patch version of 6.0.
+     - Upgrade from |onprem| 6.0.x to the latest available patch 
+       version of 6.0 using 
+       :ref:`this procedure <upgrade-om-procedure>`.
+
+       .. seealso
+
+          :ref:`Ops Manager 6.0 releases <opsmgr-server-6.0>`
 
    * - 5.0.x
-     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
-       upgrade from |onprem| 5.0.x to the latest patch version of 5.0,
-       then to the latest patch version of 6.0.
+     - Upgrade from |onprem| 5.0.x to the latest available patch 
+       version of 5.0. Then upgrade to the latest available version of 
+       6.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
+       processes.
+
+       .. seealso:
+
+          :ref:`Ops Manager 5.0 releases <opsmgr-server-5.0>`
 
    * - 4.4.x
-     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
-       upgrade from |onprem| 4.4.x to the latest patch version of 4.4. 
-       Then, upgrade to the latest patch version of 5.0.
+     - Upgrade from |onprem| 4.4.x to the latest available patch 
+       version of 4.4. Then upgrade to the latest available version of 
+       5.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
+       processes.
 
        .. important::
 
@@ -53,16 +74,19 @@ The following table lists upgrade paths for all versions:
           :ref:`Ops Manager 4.4.13 release notes <opsmgr-server-4.4.13>`
 
    * - 4.2.x
-     - Use :ref:`the procedure on this page <upgrade-om-procedure>` to 
-       upgrade from |onprem| 4.2.x to 4.2.24 or later *first*, then to 
-       the latest patch version of 4.4.
+     - Upgrade from |onprem| 4.2.x to the latest available patch 
+       version of 4.2. Then upgrade to the latest available version of 
+       4.4. Use :ref:`this procedure <upgrade-om-procedure>` for both
+       processes.
 
        .. include:: /includes/facts/upgrade-to-om-4-2-24.rst
 
    * - 4.0.x
      - Use the
        :om-v4.2:`v4.2 upgrade tutorial </tutorial/nav/upgrade-application>`
-       to upgrade from |onprem| 4.0.x to version 4.2.24 or later.
+       to upgrade from |onprem| 4.0.x to version 4.2.24 or later. Then 
+       use :ref:`this procedure <upgrade-om-procedure>` to upgrade to 
+       the latest available version of 4.2.
 
        .. include:: /includes/facts/upgrade-to-om-4-2-24.rst
 
