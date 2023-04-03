@@ -15,7 +15,7 @@
 
    - `Perl 2.2.0 <https://metacpan.org/author/MONGODB>`__
 
-   - :api:`Python 3.9.0 <pymongo>`
+   - `Python <https://pymongo.readthedocs.io/en/stable/index.html>`__
 
    - :ruby:`Ruby 2.10.0 </>`
 

@@ -38,9 +38,9 @@
      - id: python
        content: |
          To create an index using the
-         :api:`Python driver <pymongo>`,
+         `PyMongo Python driver
+         <https://pymongo.readthedocs.io/en/stable/index.html>`__,
          use :py:meth:`pymongo.collection.Collection.create_index`.
-
 
          .. code-block:: python
 
