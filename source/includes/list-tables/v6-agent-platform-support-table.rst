@@ -19,7 +19,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Centos/Rocky/Alma 8 
+      - RHEL/Centos/Rocky/Alma 8 :icon-fa5:`star`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -51,7 +51,7 @@
       -
       -
     * - 
-      - Debian 8
+      - Debian 8 :icon-fa5:`circle`
       - 
       -
       -
@@ -59,7 +59,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 9
+      - Debian 9 :icon-fa5:`circle`
       -
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -67,7 +67,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 10
+      - Debian 10 :icon-fa5:`circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -75,7 +75,7 @@
       -
       -
     * -
-      - Debian 11 
+      - Debian 11 :icon-fa5:`circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
       -
@@ -163,3 +163,9 @@
       -
       -
 
+:icon-fa5:`star` Your Rocky and Alma Linux :abbr:`OS (Operating System)`
+must include the ``redhat-lsb-core`` package. 
+
+:icon-fa5:`circle` Your Debian installation must include the
+``lsb-release`` package. To learn more, see `lsb-release
+<https://packages.debian.org/sid/lsb-release>`__. 
