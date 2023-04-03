@@ -1,9 +1,9 @@
 .. note::
-   :copyable: false
 
    If the username or password includes the following characters:
 
    .. code-block:: none
+      :copyable: false
 
       $ : / ? # [ ] @
 
