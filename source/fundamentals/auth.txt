@@ -189,59 +189,105 @@ username and password to authenticate your user.
 
 .. important::
 
-   The MONGODB-AWS authentication mechanism is only available in MongoDB
+   The MONGODB-AWS authentication mechanism is available only in MongoDB
    versions 4.4 and later.
 
 The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
 Identity and Access Management (AWS IAM) credentials to authenticate your
 user.
 
-To specify the ``MONGODB-AWS`` authentication mechanism, perform the
-following:
+To connect to a MongoDB instance with ``MONGODB-AWS`` authentication enabled,
+specify the ``MONGODB-AWS`` authentication mechanism.
 
-- Assign the ``AuthMechanism`` option the value ``MONGODB-AWS``
-- Assign the ``Username`` option the value of your ``accessKeyID``
-- Assign the ``Password`` option the value of your ``secretAccessKey``
+The driver checks for your credentials in the following sources in the order
+they are listed:
 
-.. code-block:: go
-   :emphasize-lines: 3, 5-6
+1. Connection string
+#. Environment variables
+#. Web identity token file
+#. AWS ECS endpoint specified in the ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI``
+   environment variable
+#. AWS EC2 endpoint. For more information, see `IAM Roles for Tasks
+   <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`_.
 
-   var accessKeyID, secretAccessKey string
-   awsCredential := options.Credential{
-      AuthMechanism: "MONGODB-AWS",
-      AuthSource: "<authenticationDb>",
-      Username: "<accessKeyID>",
-      Password: "<secretAccessKey>",
-   }
-   awsIAMClient, err := mongo.Connect(
-      context.TODO(),
-      options.Client().SetAuth(awsCredential))
-   if err != nil {
-      panic(err)
-   }
-   _ = awsIAMClient
+.. important::
+   
+   The driver obtains the credentials only from the first source in which they are found.
+   For example, if you specify your AWS credentials in the connection string, the
+   driver ignores any credentials that you have specified in environment variables.
 
-If you need to specify an AWS session token, use the temporary
-credentials returned from an assume role request.
+.. tabs::
 
-To use temporary credentials, assign the ``AuthMechanismProperties``
-option the value of your ``sessionToken``:
+   .. tab:: Connection String
+      :tabid: connection string
 
-.. code-block:: go
-   :emphasize-lines: 7-9
+      .. tip::
 
-   var sessionToken string
-   assumeRoleCredential := options.Credential{
-      AuthMechanism: "MONGODB-AWS",
-      AuthSource: "<authenticationDb>",
-      Username: "<accessKeyID>",
-      Password: "<secretAccessKey>",
-      AuthMechanismProperties: map[string]string{
-         "AWS_SESSION_TOKEN": "<sessionToken>",
-      },
-   }
-   assumeRoleClient, err := mongo.Connect(context.TODO(),
-      options.Client().SetAuth(assumeRoleCredential))
+         The following examples set the appropriate credentials by using the ``SetAuth()`` 
+         method. You can also specify these credentials by using the ``ApplyURI()`` 
+         method. If you use the ``ApplyURI()`` method you must URL encode the username 
+         and password to ensure they are correctly parsed.
+   
+      To connect to your MongoDB instance using your AWS IAM credentials, perform the
+      following steps:
+
+      - Assign the ``AuthMechanism`` option the value ``MONGODB-AWS``
+      - Assign the ``Username`` option the value of your ``accessKeyID``
+      - Assign the ``Password`` option the value of your ``secretAccessKey``
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-connection-string.go
+         :language: go
+
+      If you need to specify an AWS session token, use the temporary
+      credentials returned from an `assume role request <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__.
+      
+      To use temporary credentials, assign the value of your ``sessionToken`` to 
+      the ``AuthMechanismProperties`` option:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-connection-string-session-token.go
+         :language: go
+
+   .. tab:: Environment Variables
+      :tabid: environment variables
+
+      To authenticate to your MongoDB instance using AWS credentials stored in
+      environment variables, use a shell to set the variables as follows:
+
+      .. code-block:: bash
+
+         export AWS_ACCESS_KEY_ID=<awsKeyId>
+         export AWS_SECRET_ACCESS_KEY=<awsSecretKey>
+         export AWS_SESSION_TOKEN=<awsSessionToken>
+
+      .. note::
+
+         If you don't need an AWS session token for the role you're
+         authenticating with, omit the line containing ``AWS_SESSION_TOKEN`` .
+
+      After you've set the preceding environment variables, specify the ``MONGODB-AWS``
+      authentication mechanism as shown in the following example:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-environment-variables.go
+         :language: go
+
+   .. tab:: Web Identity Token File
+      :tabid: web-identity-token-file
+
+      You can use the OpenID Connect (OIDC) token obtained from a web identity provider to authenticate
+      to Amazon Elastic Kubernetes Service (EKS) or other services.
+      To use an OIDC token, create a file that contains your token, then 
+      set the absolute path to this file in an environment variable by using
+      a shell as shown in the following example:
+
+      .. code-block:: bash
+
+         export AWS_WEB_IDENTITY_TOKEN_FILE=<absolute path to file containing your OIDC token>
+
+      After you've set the preceding environment variable, specify the ``MONGODB-AWS``
+      authentication mechanism as shown in the following example:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/authentication/aws-environment-variables.go
+         :language: go
 
 .. _golang-x509:
 
