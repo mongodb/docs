@@ -83,8 +83,8 @@ Review and Set Resource Limits
 ``ulimit``
 ~~~~~~~~~~
 
-You can use the ``ulimit`` command at the system prompt to check
-system limits, as in the following example:
+You can use the ``ulimit`` command at the system prompt to check resource
+limits applicable to the running shell, as in the following example:
 
 .. code-block:: bash
 
@@ -105,6 +105,12 @@ system limits, as in the following example:
    -e: max nice                   30
    -r: max rt priority            65
    -N 15:                         unlimited
+
+.. note::
+
+  If :binary:`~bin.mongod` or :binary:`~bin.mongos` processes are launched
+  using a systemwide process manager such as Upstart or systemd, they may
+  be subject to different resource limits.
 
 ``ulimit`` refers to the per-*user* limitations for various
 resources. Therefore, if your :binary:`~bin.mongod` instance executes as a
@@ -142,15 +148,57 @@ For many distributions of Linux you can change values by substituting
 the ``-n`` option for any possible value in the output of ``ulimit
 -a``.
 
-After changing the ``ulimit`` settings, you *must* restart the
-process to take advantage of the modified settings. On Linux, you can
-use the ``/proc`` file system to see the current limitations on a
-running process.
+When ``ulimit`` is used to change resource limits in a shell, the changes
+affect only the processes subsequently launched by that shell process.
+This means:
 
-Depending on your system's configuration, and default settings, any
-change to system limits made using ``ulimit`` may revert following
-a system restart. Check your distribution and operating
-system documentation for more information.
+- If you launch :binary:`~bin.mongod` or :binary:`~bin.mongos` manually from
+  a shell, you must start new :binary:`~bin.mongod` or :binary:`~bin.mongos`
+  processes after changing resource limits via ``ulimit``.
+
+- If :binary:`~bin.mongod` or :binary:`~bin.mongos` are launched using
+  startup scripts, the ``ulimit`` invocation must generally be placed in those
+  startup scripts prior to :binary:`~bin.mongod` or :binary:`~bin.mongos`
+  invocations.
+
+  .. note::
+
+    On Linux distributions using Upstart, systemd or a similar process
+    manager to start :binary:`~bin.mongod` or :binary:`~bin.mongos` processes,
+    the resource limits must be configured in the process manager
+    as described below.
+
+The per-process limits in effect for a particular process can be obtained
+via the ``proc`` file system by examining the file located at
+``/proc/<pid>/limits``, where ``<pid>`` is the process's :term:`PID` or
+process identifier. For example, if :binary:`~bin.mongod` is running as
+PID 1234, the limits in effect for this process can be viewed as follows:
+
+.. code-block:: sh
+
+  % cat /proc/1234/limits
+  Limit                     Soft Limit           Hard Limit           Units     
+  Max cpu time              unlimited            unlimited            seconds   
+  Max file size             unlimited            unlimited            bytes     
+  Max data size             unlimited            unlimited            bytes     
+  Max stack size            8388608              unlimited            bytes     
+  Max core file size        0                    unlimited            bytes     
+  Max resident set          unlimited            unlimited            bytes     
+  Max processes             62913                62913                processes 
+  Max open files            20000                20000                files     
+  Max locked memory         16777216             16777216             bytes     
+  Max address space         unlimited            unlimited            bytes     
+  Max file locks            unlimited            unlimited            locks     
+  Max pending signals       62913                62913                signals   
+  Max msgqueue size         819200               819200               bytes     
+  Max nice priority         0                    0                    
+  Max realtime priority     0                    0                    
+  Max realtime timeout      unlimited            unlimited            us        
+
+.. note::
+
+  The default resource limits vary between Linux distributions. Your output
+  may be different.
 
 You should typically start :binary:`~bin.mongod` using ``systemctl``,
 which uses the ``ulimit`` settings:
@@ -331,22 +379,23 @@ form:
 
 .. _proc-file-system:
 
-``/proc`` File System
+``proc`` File System
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
 
    This section applies only to Linux operating systems.
 
-The ``/proc`` file-system stores the per-process limits in the
-file system object located at ``/proc/<pid>/limits``, where ``<pid>``
-is the process's :term:`PID` or process identifier. You can use the
-following ``bash`` function to return the content of the ``limits``
-object for a process or processes with a given name:
+The per-process limits in effect for a particular process can be obtained
+via the ``proc`` file system by examining the file located at
+``/proc/<pid>/limits``, where ``<pid>`` is the process's :term:`PID` or
+process identifier. You can use the following ``bash`` function to return
+the content of the ``limits`` file for a process or processes with a
+given name:
 
 .. code-block:: bash
 
-   return-limits(){
+   get-limits(){
 
         for process in $@; do
              process_pids=`ps -C $process -o pid --no-headers | cut -d " " -f 2`
@@ -370,9 +419,9 @@ invocations:
 
 .. code-block:: bash
 
-   return-limits mongod
-   return-limits mongos
-   return-limits mongod mongos
+   get-limits mongod
+   get-limits mongos
+   get-limits mongod mongos
 
 .. [#memory-size] If you limit virtual or resident memory size on a
    system running MongoDB the operating system will refuse to honor
