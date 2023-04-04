@@ -22,10 +22,8 @@ To make the hosts' hostnames resolvable, run a host with a domain name
 service (|dns|). |dns| maps IP addresses to hostnames with a given
 domain (such as ``example.com``). This |dns| host should have an entry
 for each host in the deployment: |mms|, {+mdbagent+} and MongoDB.
-Entries for |ldap|, Kerberos, |snmp| and email hosts as well as load
+Entries for |ldap|, Kerberos, and email hosts as well as load
 balancers would be recommended.
-
-.. include:: /includes/fact-snmp-alerts-deprecated.rst
 
 Edit Host Files
 ```````````````

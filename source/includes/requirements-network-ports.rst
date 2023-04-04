@@ -141,42 +141,6 @@ following ports to those servers.
      - Windows System administration.
      - No
 
-Ports Needed to Integrate |mms| with SNMP
-`````````````````````````````````````````
-
-To send and receive SNMP messages to and from your MongoDB deployments
-must open the following ports between |mms| and your SNMP Manager.
-
-.. include:: /includes/fact-snmp-alerts-deprecated.rst
-
-.. list-table::
-   :header-rows: 1
-   :widths: 15,10,10,15,35,15
-
-   * - Service
-     - Default Port
-     - Transport
-     - Direction
-     - Purpose
-     - Uses SSL?
-     
-   * - SNMP
-     - 162
-     - UDP
-     - Outbound
-     - Send Traps to SNMP Manager.
-     - No
-
-   * - SNMP
-     - 11611
-     - UDP
-     - Inbound
-     - Receive requests from SNMP Manager.
-     - No
-
-See :ref:`snmp-heartbeat-configure` to set SNMP to use non-standard
-ports.
-
 Ports Needed to Authenticate with |mms|
 ```````````````````````````````````````
 

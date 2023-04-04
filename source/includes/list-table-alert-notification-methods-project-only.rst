@@ -20,13 +20,6 @@
       * - |mms| Team
         - .. include:: /includes/alert-notifications/team.rst
 
-      * - |snmp| Host
-        - Specify the hostname that will receive the v2c trap on
-          standard port ``162``. The |snmp-mib| file for |snmp| is
-          `available for download <http://downloads.mongodb.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`__.
-
-          .. include:: /includes/fact-snmp-alerts-deprecated.rst
-
       * - Email
         - Sends the alert to a specified email address.
 

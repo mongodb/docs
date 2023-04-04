@@ -245,20 +245,6 @@
        accepted for ``GROUP`` and ``USER`` notifications.
 
    * - | ``notifications``
-       | ``.snmpAddress``
-     - string
-     - Conditional
-     - Hostname and port to send SNMP traps to. At this time |mms| can 
-       send SNMP traps only to the standard SNMP port (162). Only 
-       accepted for ``SNMP`` notifications. 
-
-       .. include:: /includes/fact-snmp-alerts-deprecated.rst
-
-       .. note::
-
-          |mms| uses SNMP v2c.
-
-   * - | ``notifications``
        | ``.typeName``
      - string
      - Required
@@ -268,10 +254,6 @@
        - ``ADMIN``
        - ``GROUP``
        - ``USER``
-       - ``SNMP``
-        
-         .. include:: /includes/fact-snmp-alerts-deprecated.rst 
-       
        - ``EMAIL``
        - ``SMS`` (Available only if |mms| is configured for :ref:`Twilio integration <twilio-sms-alert-settings>`.)
        - ``HIPCHAT``

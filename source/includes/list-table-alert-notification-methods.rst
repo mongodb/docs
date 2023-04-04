@@ -35,16 +35,6 @@
         -
         - .. include:: /includes/alert-notifications/user.rst
 
-      * - |snmp| Host
-        - :icon:`check`
-        - :icon:`check`
-        - :icon:`check`
-        - Specify the hostname that will receive the v2c trap on
-          standard port ``162``. The |snmp-mib| file for |snmp| is
-          `available for download <http://downloads.mongodb.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`_.
-
-          .. include:: /includes/fact-snmp-alerts-deprecated.rst
-
       * - Email
         - :icon:`check`
         - :icon:`check`

@@ -343,10 +343,6 @@
      - No host with hostname and port ``<name:port>`` exists in
        group ``<group>``.
 
-   * - .. apierror:: INCORRECT_SNMP_PORT
-     - `400`_
-     - SNMP address must be on port 162.
-
    * - .. apierror:: INVALID_AGENT_TYPE_NAME
      - `400`_
      - An invalid agent type name ``<name>`` was specified.
