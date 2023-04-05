@@ -1,11 +1,23 @@
 .. note:: Release notes mention only releases with feature changes
 
-   MongoDB releases {+adf+} every two weeks, continuously improving
+   MongoDB releases {+adf+} every week, continuously improving
    {+adf+} performance and stability. These release notes capture only
    those releases that contain feature changes. If a particular {+adf+}
    release contains only performance and stability improvements, it is not
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
+
+.. _adf-v20230404:
+
+04 April 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Improves error messages when querying a document over 16MB.
+- Fixes a correctness issue for :manual:`$getFields
+  </reference/operator/aggregation/getField/>` where {+adf+} differed
+  from MongoDB when querying an empty sub-document.
+- Improves stability and performance for :ref:`$out <adf-out-stage>` to
+  |s3| when writing to Parquet. 
 
 .. _adf-v20230221:
 
