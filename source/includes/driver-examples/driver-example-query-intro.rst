@@ -4,35 +4,34 @@
      - id: shell
        content: |
          This page provides examples of |query_operations| using the
-         :method:`db.collection.find()` method in
-         :binary:`~bin.mongosh`. The examples on this page use the
-         ``inventory`` collection. To populate the ``inventory``
-         collection, run the following:
+         :method:`db.collection.find()` method in :binary:`mongosh`.
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: compass
        content: |
          This page provides examples of |query_operations| using
-         :ref:`MongoDB Compass <compass-index>`. The examples on this
-         page use the ``inventory`` collection. Populate the
-         ``inventory`` collection with the following documents:
+         :ref:`MongoDB Compass <compass-index>`. 
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: python
        content: |
          This page provides examples of |query_operations| using the
          :py:meth:`pymongo.collection.Collection.find` method in the
-         `PyMongo <https://pymongo.readthedocs.io/en/stable/index.html>`__
-         Python driver. The examples on this page use the ``inventory``
-         collection. To populate the ``inventory`` collection, run the
-         following:
+         :api:`PyMongo <pymongo>`
+         Python driver.
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: motor
        content: |
          This page provides examples of |query_operations| using the
          :py:meth:`motor.motor_asyncio.AsyncIOMotorCollection.find`
          method in the `Motor <https://motor.readthedocs.io/en/stable/>`_
-         driver. The examples on this page use the ``inventory``
-         collection. To populate the ``inventory`` collection, run the
-         following:
+         driver.
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: java-sync
        content: |
@@ -47,9 +46,7 @@
             documents. The examples on this page use these methods to
             create the filter documents.
 
-         The examples on this page use the ``inventory``
-         collection. To populate the ``inventory`` collection, run the
-         following:
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: java-async
        content: |
@@ -57,17 +54,15 @@
          `com.mongodb.reactivestreams.client.MongoCollection.find <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/javadoc/com/mongodb/reactivestreams/client/MongoCollection.html#find()>`_
          method in the MongoDB `Java Reactive Streams Driver <http://mongodb.github.io/mongo-java-driver-reactivestreams/1.6/>`_.
 
-         The examples on this page use the ``inventory``
-         collection. To populate the ``inventory`` collection, run the
-         following:
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: nodejs
        content: |
          This page provides examples of |query_operations| using the
          :node-api:`Collection.find() <Collection.html#find>` method in
          the :node-docs:`MongoDB Node.js Driver <>`.
-         The examples on this page use the ``inventory`` collection. To
-         populate the ``inventory`` collection, run the following:
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: php
        content: |
@@ -75,8 +70,8 @@
          :phpmethod:`MongoDB\\Collection::find() <phpmethod.MongoDB\\Collection::find>`
          method in the
          `MongoDB PHP Library <https://www.mongodb.com/docs/drivers/php-libraries/>`_.
-         The examples on this page use the ``inventory`` collection. To
-         populate the ``inventory`` collection, run the following:
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: perl
        content: |
@@ -84,8 +79,8 @@
          :perl-api:`MongoDB::Collection::find()<Collection#find>` method
          in the
          `MongoDB Perl Driver <https://metacpan.org/release/MongoDB>`_.
-         The examples on this page use the ``inventory`` collection. To
-         populate the ``inventory`` collection, run the following:
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: ruby
        content: |
@@ -93,8 +88,8 @@
          :ruby-api:`Mongo::Collection#find()<Collection.html#find-instance_method>`
          method in the
          :ruby:`MongoDB Ruby Driver </>`.
-         The examples on this page use the ``inventory`` collection. To
-         populate the ``inventory`` collection, run the following:
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: scala
        content: |
@@ -102,8 +97,8 @@
          :scala-api:`collection.find()<find[C](filter:org.mongodb.scala.bson.conversions.Bson)(implicite:org.mongodb.scala.bson.DefaultHelper.DefaultsTo[C,TResult],implicitct:scala.reflect.ClassTag[C]):org.mongodb.scala.FindObservable[C]>` method
          in the
          `MongoDB Scala Driver <http://mongodb.github.io/mongo-scala-driver/>`_.
-         The examples on this page use the ``inventory`` collection. To
-         populate the ``inventory`` collection, run the following:
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: csharp
        content: |
@@ -111,15 +106,15 @@
          :csharp-api:`MongoCollection.Find() <M_MongoDB_Driver_MongoCollection_1_Find>`
          method in the
          `MongoDB C# Driver <https://mongodb.github.io/mongo-csharp-driver/>`_.
-         The examples on this page use the ``inventory`` collection. To
-         populate the ``inventory`` collection, run the following:
+
+         .. include:: /includes/driver-examples/examples-intro.rst
 
      - id: go
        content: |
-       
-          This page provides examples of |query_operations| using the
-          :go-api:`Collection.Find <mongo#Collection.Find>`
-          function in the
-          `MongoDB Go Driver <https://github.com/mongodb/mongo-go-driver/>`_.
-          The examples on this page use the ``inventory`` collection. To
-          populate the ``inventory`` collection, run the following:
+         This page provides examples of |query_operations| using the
+         :go-api:`Collection.Find <mongo#Collection.Find>`
+         function in the
+         `MongoDB Go Driver <https://github.com/mongodb/mongo-go-driver/>`_.
+
+         .. include:: /includes/driver-examples/examples-intro.rst
+
