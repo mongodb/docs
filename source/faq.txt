@@ -113,33 +113,32 @@ is on the other side of the planet and has a latency of 10000
 milliseconds, setting the ``connectTimeoutMS`` to anything lower will
 prevent the driver from ever connecting to that member.
 
-Should I Use "socketTimeoutMS" as a Way of Preventing Long-Running Operations From Slowing Down the Server?
--------------------------------------------------------------------------------------------------------------
+What Happens to Running Operations If the Client Disconnects?
+-------------------------------------------------------------
 
-No, you should **not** use ``socketTimeoutMS`` to end operations that
-may run for too long and slow down the application. Attempting to do so
-may not achieve the intended result.
+Starting in {+mdb-server+} version 4.2, the server terminates
+running operations such as aggregations and find operations if the
+client disconnects. To see a full list of operations affected by this
+behavior, see the :manual:`Server version 4.2 release notes
+</release-notes/4.2/#client-disconnection>` in the Server manual.
 
-Closing the socket causes a reconnect of the driver's connection pool,
-introducing latency to any other queued up operations. Chronically slow
-operations will, therefore, cause a large number of reconnect requests,
-negatively impacting throughput and performance.
+Other operations, such as write operations, continue to run on the
+{+mdb-server+} even if the client disconnects. This behavior can cause data
+inconsistencies if your application retries the operation after the
+client disconnects.
 
-Also, closing the socket does not terminate the operation; it will
-continue to run on the MongoDB server, which could cause data
-inconsistencies if the application retries the operation on failure.
+How Can I Confirm That the Driver Closed Unusable Sockets?
+----------------------------------------------------------
 
-However, there are important use cases for ``socketTimeoutMS`` -
-consider the following cases:
+If you experience unexpected network behavior or if a MongoDB process
+fails with an error, you may not receive confirmation that the
+driver correctly closed the corresponding socket.
 
-- A MongoDB process erroring out
-- A misconfigured firewall causing a socket connection without sending a ``FIN`` packet
-
-In those cases, there is no way to detect that the connection has died.
-Setting the ``socketTimeoutMS`` is essential to ensure that the sockets
-are closed correctly. A good rule of thumb is to set ``socketTimeoutMS``
-to two to three times the length of the slowest operation that runs
-through the driver.
+To make sure that the driver correctly closes the socket in these cases,
+set the ``socketTimeoutMS`` option. When a MongoDB process times out, the driver
+will close the socket. We recommend that you select a value
+for ``socketTimeoutMS`` that is two to three times as long as the
+expected duration of the slowest operation that your application executes.
 
 How Can I Prevent Sockets From Timing out Before They Become Active?
 --------------------------------------------------------------------
@@ -156,17 +155,18 @@ avoid closing.
 
 One message every 3000 milliseconds is not enough to keep the sockets
 active, so several of the sockets will time out after 5000 milliseconds.
-Reduce the ``poolSize`` in the connection settings to fix the problem.
+To avoid excessive socket timeouts, reduce the number of connections
+that the driver can maintain in the connection pool by specifying the
+``maxPoolSize`` option.
 
-To specify the optional ``poolSize`` setting for your ``MongoClient``, declare
+To specify the optional ``maxPoolSize`` setting for your ``MongoClient``, declare
 it in the ``options`` object of the constructor as follows:
 
 .. code-block:: javascript
 
    const client = new MongoClient(uri, {
-     poolSize: <integer value>,
+     maxPoolSize: <integer value>,
    });
-
 
 What Does a Value of "0" mean for "connectTimeoutMS" and "socketTimeoutMS"?
 ---------------------------------------------------------------------------
@@ -245,7 +245,7 @@ How Can I Prevent a Slow Operation From Delaying Other Operations?
 ------------------------------------------------------------------
 
 A slow operation may delay your other operations that occur after it, if
-the ``poolSize`` has not been set in the
+the ``maxPoolSize`` has not been set in the
 :ref:`connection options <node-connection-options>`.
 MongoDB is synchronous and uses a single execution thread per socket,
 meaning that MongoDB will execute one single operation per socket at any
@@ -256,9 +256,9 @@ a separate connection pool for the slow operation, isolating it from
 other, faster operations.
 
 .. note::
-    If the number of operations is greater than the set ``poolSize`` and
-    a slow operation occurs, subsequent operations will be delayed.
-
+    If the number of operations is greater than the value of the
+    ``maxPoolSize`` option and a slow operation occurs, subsequent
+    operations will be delayed.
 
 To create a separate connection pool, instantiate another ``MongoClient``
 call the ``connect()`` method on it. See the following example for the
