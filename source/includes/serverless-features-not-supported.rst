@@ -1,8 +1,8 @@
 .. _atlas-serverless-limits-csp:
 
 {+Serverless-instances+} don't currently support the
-|service| features listed below. If you require these capabilities, please use a
-:doc:`{+dedicated-cluster+} </tutorial/create-new-cluster>`.
+|service| features listed below. If you require these capabilities, 
+please use a :ref:`{+dedicated-cluster+} <create-new-cluster>`.
 
 {+Serverless-instances+} don't support some features even though they 
 are a part of the :manual:`Stable API v1 
@@ -11,126 +11,104 @@ features that are a part of the :manual:`Stable API v1
 </reference/stable-api/#api-v1-commands>` inline.
 
 MongoDB plans to add support for more configurations and actions on
-{+serverless-instances+} over time. A checkmark below indicates that 
+{+serverless-instances+} over time. Footnotes indicate that 
 MongoDB plans to support the feature for {+serverless-instances+} in 
 the future.
 
-Configurations
---------------
+Unsupported Configurations
+--------------------------
 
-.. list-table::
-   :header-rows: 1
-   :widths: 70 30
+Currently, {+serverless-instances+} don't support the following 
+configurations:
 
-   * - Configuration
-     - Coming Soon
+- Multi-Region Deployments
+ 
+- Multi-Cloud Deployments
 
-   * - Multi-Region Deployments
-     - 
-     
-   * - Multi-Cloud Deployments
-     - 
+- :manual:`Sharded </sharding>` Deployments
 
-   * - :manual:`Sharded </sharding>` Deployments
-     - 
+- :doc:`Global Clusters </global-clusters>`
 
-   * - :doc:`Global Clusters </global-clusters>`
-     - 
+- :doc:`Private Endpoints on Google Cloud using {+gcp-psc+} 
+  </security-private-endpoint>` [#f1]_
 
-   * - :doc:`Private Endpoints on Google Cloud using {+gcp-psc+} </security-private-endpoint>`
-     - :icon:`check-square`
+- :doc:`Network Peering (VPC/VNet) </security-vpc-peering>`
+
+- Advanced Enterprise Security Features (including :doc:`LDAP 
+  </security-ldaps>` and :doc:`Database Auditing </database-auditing>`)
   
-   * - :doc:`Network Peering (VPC/VNet) </security-vpc-peering>`
-     - 
+  {+Serverless-instances+} do support X.509 certificates and IAM 
+  for authentication.
 
-   * - Advanced Enterprise Security Features (including :doc:`LDAP </security-ldaps>` 
-       and :doc:`Database Auditing </database-auditing>`)
-   
-       {+Serverless-instances+} do support X.509 certificates and IAM for authentication.
-     - 
+.. [#f1] Coming soon.
 
-Actions
--------
+Unsupported Actions
+-------------------
 
-.. list-table::
-   :header-rows: 1
-   :widths: 70 30
+Currently, {+serverless-instances+} don't support the following actions:
 
-   * - Capability
-     - Coming Soon
+- Convert |service| {+serverless-instances+} into {+clusters+}. [#f2]_
 
-   * - Convert |service| {+Serverless-instances+} into {+Clusters+}
-     - :icon:`check-square`
+- Convert |service| dedicated {+clusters+} into |service| 
+  {+serverless-instances+}
 
-   * - Convert |service| Dedicated {+Clusters+} into |service| 
-       {+Serverless-instances+}
+  You can :ref:`convert a shared {+cluster+} to a 
+  {+serverless-instance+} <convert-to-serverless>`.
 
-       You can :ref:`convert a shared {+cluster+} to a {+serverless-instance+} <convert-to-serverless>`.
-     - 
-  
-   * - :doc:`Live Migrate </import/live-import>` into |service| {+Serverless-instances+}
-     - 
+- :doc:`Live migrate </import/live-import>` into |service|  
+  {+serverless-instances+}.
 
-   * - Store More than 1 TB of Data
+- Store more than 1 TB of data.
     
-       This value includes the number of bytes of all uncompressed BSON 
-       documents stored in all collections, plus the bytes stored in 
-       their associated indexes.
-     - 
+  This value includes the number of bytes of all uncompressed BSON 
+  documents stored in all collections, plus the bytes stored in 
+  their associated indexes.
 
-   * - :doc:`Configure Alerts </alerts>` on Service Metrics Billing Metrics
+- :doc:`Configure alerts </alerts>` on service metrics billing 
+  metrics. [#f2]_
 
-       |service| supports :doc:`configuring alerts </configure-alerts>`
-       for your project or organization if your bill exceeds a certain threshold.
-     - :icon:`check-square`
+  |service| supports :doc:`configuring alerts </configure-alerts>`
+  for your project or organization if your bill exceeds a certain 
+  threshold.
 
-   * - Perform :doc:`Automated Restores </backup-restore-cluster>`
-       from Backup Snapshots
-     - 
+- Perform :doc:`automated restores </backup-restore-cluster>`
+  from backup snapshots.
 
-   * - Use :doc:`Atlas Search </atlas-search>`
-     - 
+- Use :doc:`Atlas Search </atlas-search>`.
 
-   * - Use :doc:`Online Archive </online-archive/manage-online-archive>`
-     - 
+- Use :doc:`Online Archive </online-archive/manage-online-archive>`.
 
-   * - Use :appservices:`Atlas Device Sync </sync/learn/overview/>`
-     - 
+- Use :appservices:`Atlas Device Sync </sync/learn/overview/>`.
 
-   * - Use :doc:`Atlas Triggers </triggers>`
-     - 
-   
-   * - Use Predefined :doc:`Replica Set Tags </reference/replica-set-tags>`
-     - 
+- Use :doc:`Atlas Triggers </triggers>`.
 
-   * - :doc:`Test Primary Failover </tutorial/test-resilience/test-primary-failover>`
-     - 
+- Use predefined :doc:`replica set tags </reference/replica-set-tags>`.
 
-   * - :doc:`Simulate Regional Outage </tutorial/test-resilience/simulate-regional-outage>` 
-     - 
+- :doc:`Test primary failover 
+  </tutorial/test-resilience/test-primary-failover>`.
 
-   * - :doc:`Encryption at Rest Using Key Management </security-kms-encryption/>`
-     - 
+- :doc:`Simulate a regional outage 
+  </tutorial/test-resilience/simulate-regional-outage>`.
 
-   * - Track Database Access
-     - 
+- :doc:`Encryption at Rest using key management 
+  </security-kms-encryption/>`.
 
-   * - Use :manual:`Server-Side JavaScript 
-       </core/server-side-javascript/>`, such as ``$where``, 
-       ``$function``, ``$accumulator`` and ``map-reduce``.
+- Track database access.
 
-       .. include:: /includes/fact-unsupported-stable-api.rst
+- Use :manual:`server-side JavaScript </core/server-side-javascript/>`, 
+  such as ``$where``, ``$function``, ``$accumulator`` and 
+  ``map-reduce``.
 
-     -
-  
-   * - Download :doc:`Database Logs </mongodb-logs/>`
-     - 
+  .. include:: /includes/fact-unsupported-stable-api.rst
 
-   * - Use Wire Compression Between Clients and |service| {+Serverless-instances+}
-     - 
+- Download :doc:`database logs </mongodb-logs/>`.
 
-   * - Use |bic-short|
-     - 
+- Use wire compression between clients and |service| 
+  {+serverless-instances+}.
+
+- Use |bic-short|.
+
+.. [#f2] Coming soon.
 
 Operational Limitations and Considerations
 ------------------------------------------
@@ -169,14 +147,15 @@ limitations and considerations:
 
        Aggregation pipelines for {+serverless-instances+} don't support
        the :pipeline:`$currentOp`, :pipeline:`$listLocalSessions`,
-       :pipeline:`$listSessions`, and :pipeline:`$planCacheStats` stages.
+       :pipeline:`$listSessions`, and :pipeline:`$planCacheStats` 
+       stages.
 
        Aggregation pipelines for {+serverless-instances+} can have a 
        maximum of 50 stages.
 
    * - Sort
-     - The :manual:`$sort </reference/operator/aggregation/sort/>` stage has
-       a limit of 32 megabytes of RAM.
+     - The :manual:`$sort </reference/operator/aggregation/sort/>` 
+       stage has a limit of 32 megabytes of RAM.
 
    * - Authentication
      
@@ -193,18 +172,21 @@ limitations and considerations:
 
    * - Real-Time Performance Panel
      - {+Serverless-instances+} don't provide access to the
-       :doc:`Real-Time Performance Panel </real-time-performance-panel>`.
+       :doc:`Real-Time Performance Panel 
+       </real-time-performance-panel>`.
    
    * - Throughput
-     - {+Serverless-instances+} don't routinely cap operation throughput. |service| may
-       throttle operations for your {+serverless-instance+} temporarily while the system scales.
+     - {+Serverless-instances+} don't routinely cap operation 
+       throughput. |service| may throttle operations for your 
+       {+serverless-instance+} temporarily while the system scales.
 
    * - Connections
-     - {+Serverless-instances+} can support up to 500 simultaneous connections.
+     - {+Serverless-instances+} can support up to 500 simultaneous 
+       connections.
 
    * - Database Commands
-     - Some database commands have limitations for {+serverless-instances+}. To
-       learn more, see
+     - Some database commands have limitations for \
+       {+serverless-instances+}. To learn more, see
        :ref:`Unsupported Commands in Serverless Instances 
        <atlas-serverless-command-limitations>`.
        
@@ -212,22 +194,27 @@ limitations and considerations:
        collection to a capped collection.
 
    * - Namespaces and Database Names
-     - |service| limits {+serverless-instance+} namespaces to 95 characters and
-       database names to 38 characters.
+     - |service| limits {+serverless-instance+} namespaces to 95 
+       characters and database names to 38 characters.
 
    * - Database and Collections
-     - {+Serverless-instances+} have a maximum of 50 databases and 500 collections total.
+     - {+Serverless-instances+} have a maximum of 50 databases and 500 
+       collections total.
 
    * - Custom Roles
      - Changes to :doc:`custom roles </security-add-mongodb-roles/>` may
        take up to 30 seconds to deploy in {+serverless-instances+}.
 
-   * - Access to Collections in ``local``, ``admin``, and ``config`` Databases
+   * - Access to Collections in ``local``, ``admin``, and ``config`` 
+       Databases
      - {+Serverless-instances+} don't allow:
      
-       - Read access to the oplog or any other collection in the ``local`` database.
-       - Write access to any collection in the ``local`` and ``config`` databases.
-       - Read or write access to any collection in the ``admin`` database. 
+       - Read access to the oplog or any other collection in the 
+         ``local`` database.
+       - Write access to any collection in the ``local`` and ``config`` 
+         databases.
+       - Read or write access to any collection in the ``admin`` 
+         database. 
 
        |service| issues an error similar to the following if you attempt
        to read or write to collections in these databases:
@@ -236,7 +223,8 @@ limitations and considerations:
           :copyable: false
        
           command <cmd name> is not allowed in this Atlas tier
-          (Unauthorized) not authorized on <db name> to execute command <cmd name>
+          (Unauthorized) not authorized on <db name> to execute command 
+          <cmd name>
 
    * - :manual:`Change Streams </changeStreams/>`
      - {+Serverless-instances+} don't support change streams.
@@ -256,8 +244,9 @@ limitations and considerations:
        nested levels.
 
    * - Transaction Size
-     - {+Serverless-instances+} support multi-document transactions that are up
-       to 700 MB in size. |service| aborts any {+serverless-instance+} transactions that
+     - {+Serverless-instances+} support multi-document transactions 
+       that are up to 700 MB in size. |service| aborts any 
+       {+serverless-instance+} transactions that
        exceed 700 MB.
 
    * - Write Concern
