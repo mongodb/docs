@@ -16,3 +16,12 @@
    provider to which you deploy the cluster if one does not already 
    exist.
    
+- If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, all 
+  new and existing {+clusters+} have {+Cloud-Backup+} automatically 
+  enabled and use the project-level {+bcp+}. |service| augments any 
+  preexisting {+cluster+}-level policies to meet the minimum 
+  requirements of the {+bcp+}. All new {+clusters+} use the {+bcp+} 
+  unless the mininum requirements of the 
+  :ref:`{+cluster+}-level backup policy <cps-backup-policies>` expand 
+  beyond the mininum requirements of the {+bcp+}.
+  

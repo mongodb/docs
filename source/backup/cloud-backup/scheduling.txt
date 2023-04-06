@@ -12,6 +12,14 @@ Backup Scheduling, Retention, and On-Demand Snapshots
    :depth: 2
    :class: singlecol
 
+You can view and modify backup policies. You can also manage your 
+backup snapshots.
+
+If you have strict data protection requirements, you 
+can enable a {+bcp+} to protect your backup data. If you have a {+bcp+} 
+enabled, |service| prohibits certain actions. To 
+learn more, see :ref:`backup-compliance-policy`.
+
 View Backup Policies
 --------------------
 
@@ -94,6 +102,19 @@ A backup policy has the following sections:
 To learn more about {+Cloud-Backup+} billing, see
 :ref:`billing-backup-cloud-provider-snapshots`.
 
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, you 
+   can't modify the :ref:`backup policy <cps-backup-policies>` for an 
+   individual {+cluster+} below the minimum requirements set in the 
+   {+bcp+}. You can modify the {+cluster+}-level backup policy at any 
+   time. |service| augments any preexisting {+cluster+}-level policies 
+   to meet the minimum requirements of the {+bcp+}. All new 
+   {+clusters+} use the {+bcp+}. If you reduce the frequency of a 
+   backup schedule, the change applies only to future backups. Any 
+   existing :term:`oplog` remains for the original window. The minimum 
+   requirements of the {+bcp+} apply.
+
 .. _changine-backup-policy-time:
 
 Change the Backup Policy Time
@@ -123,8 +144,8 @@ Change the Backup Policy Time
 
 .. _creating-backup-policy:
 
-Configure the Backup Policy
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configure Your Backup Policy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Each row in the :guilabel:`Backup Policy Frequency and Retention` table
 represents a backup policy item. Configure the policy items and,
@@ -142,12 +163,19 @@ To specify a backup policy item using the {+atlas-ui+}:
    policy item.
 
    Alternatively, click :guilabel:`Add Frequency Unit` to add a new
-   policy item to the backup policy.
+   policy item to your backup policy.
 
    .. note::
 
-      You cannot specify multiple :guilabel:`Hourly` and
+      You can't specify multiple :guilabel:`Hourly` and
       :guilabel:`Daily` backup policy items.
+
+      If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`,
+      only MongoDB support can delete :ref:`policy items 
+      <creating-backup-policy>` specified in the 
+      {+bcp+}. To delete policy items specified in the {+bcp+}, you 
+      must :ref:`request support <request-support>` and complete an 
+      extensive verification process.
 
 2. Select the frequency for the frequency unit from :guilabel:`Every`.
 
@@ -173,6 +201,10 @@ To specify a backup policy item using the {+atlas-ui+}:
       You can't configure a :ref:`restore window <create-pit-policy>` 
       that is longer than the Hourly Snapshot 
       :guilabel:`Retention Time`.
+
+      If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, 
+      you can't decrease the retention time for a snapshot after 
+      it's taken.
 
 4. (Optional) To apply the retention changes in the updated backup
    policy to snapshots that |service| took previously, check
@@ -201,16 +233,27 @@ To specify a backup policy item using the {+atlas-ui+}:
 
    If you disable {+Cloud-Backup+}s for a cluster or terminate a
    cluster that had snapshots enabled, |service| immediately
-   deletes the backup snapshots for that cluster. For clusters not
-   using :ref:`security-kms-encryption`
-   you can :ref:`download the latest snapshot
+   deletes the backup snapshots for that {+cluster+} unless the
+   :guilabel:`Keep existing snapshots after termination` option is 
+   enabled. To learn more, see :ref:`terminate-cluster`. For 
+   {+clusters+} not using :ref:`security-kms-encryption` you can 
+   :ref:`download the latest snapshot 
    <restore-cloud-provider-snapshot-download>` to preserve any data
-   stored in the cluster.
+   stored in the {+cluster+}.
 
 .. _create-pit-policy:
 
 Configure the Restore Window
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, only 
+   MongoDB support can reduce the :ref:`{+PIT-Restore+} Restore Window 
+   <create-pit-policy>`. To reduce the {+PIT-Restore+} 
+   :guilabel:`Restore Window`, the security or legal representative specified for the 
+   {+bcp+} must :ref:`request support <request-support>` and complete 
+   an extensive verification process.
 
 You can replay the :term:`oplog` to restore a cluster from any point in 
 time within a specified restore window.
@@ -245,7 +288,13 @@ multi-region {+clusters+} if the snapshots were copied to every
 {+cluster+} region. Additionally, if the original snapshot becomes
 unavailable due to a regional outage within your cloud provider,
 |service| uses a copy in the nearest region to enable restores
-regardless of the cloud region outage. 
+regardless of the cloud region outage.
+
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>` with
+   the :guilabel:`Keep all snapshots when removing additional snapshot regions` option set to :guilabel:`On` and you enable, modify, or 
+   delete multi-region snapshots, any snapshots already taken remain.
 
 You can use copied oplogs to perform {+pit-restore+} from secondary
 regions in the event the primary region of your {+cluster+} goes down.
@@ -380,6 +429,11 @@ snapshots for that {+cluster+} or zone.
 Delete a Backup Snapshot
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, you 
+   can't delete a backup snapshot.
+
 To delete all copies of a snapshot without deleting its distribution
 policy, delete the snapshot from its original region using one of the
 following methods:
@@ -440,7 +494,7 @@ snapshots. To view only policy-based snapshots:
    Alternatively, click :guilabel:`On-demand` to display only snapshots
    taken by clicking :guilabel:`Take Snapshot Now`.
 
-Snapshots taken according to the backup policy display the frequency of
+Snapshots taken according to your backup policy display the frequency of
 the policy item that generated the snapshot in the
 :guilabel:`Frequency` column: ``Monthly``, ``Weekly``, ``Daily``, or
 ``Hourly``.
@@ -468,6 +522,13 @@ scheduled snapshot with a status of ``queued`` or ``inProgress``, you
 may queue an on-demand snapshot. You must have the
 :authrole:`Organization Owner` or :authrole:`Project Owner` role to
 successfully call this endpoint.
+
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>` with 
+   a specified retention time for on-demand snapshots, you can't 
+   decrease the retention time for an on-demand snapshot after 
+   it's taken.
 
 .. tabs::
 
