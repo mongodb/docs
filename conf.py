@@ -84,6 +84,7 @@ rst_epilog = '\n'.join([
     '.. |copy| unicode:: U+000A9',
     '.. |year| replace:: {0}'.format(datetime.date.today().year),
     '.. |a-application| replace:: an Ops Manager Application',
+    '.. |acme| replace:: :abbr:`ACME (Automatic Certificate Management Environment)`',
     '.. |a-mms| replace:: an Ops Manager',
     '.. |A-mms| replace:: An Ops Manager',
     '.. |application-s| replace:: Ops Manager Applications',

@@ -363,8 +363,8 @@ Optional ``MongoDBMultiCluster`` Resource Settings
 
   .. important::
      
-     ``spec.clusterSpecList.exposedExternally`` is deprecated and will be removed in a
-     future release. To expose your |multi-cluster|, provide global values using the
+     ``spec.clusterSpecList.exposedExternally`` is deprecated starting in |k8s-op-short| version 1.19 
+     and will be removed in a future |k8s-op-short| release. To expose your |multi-cluster|, provide global values using the
      :ref:`spec.externalAccess <multi-spec-externalaccess>` settings and cluster-specific
      overrides using the :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>` settings.
 
@@ -376,12 +376,36 @@ Optional ``MongoDBMultiCluster`` Resource Settings
 ``spec.clusterSpecList.externalAccess.externalDomain``
   *Type*: string
 
-  Top-level domain used to externally expose your |multi-cluster|.
+  .. |hostname-format| replace:: ``<replica-set-name>-<cluster-idx>-<pod-idx>.<externalDomain>``
 
+  .. |hostname-example| replace:: ``multi-replica-set-0-1.cluster-0.example.com``
+
+<<<<<<< HEAD
+<<<<<<< HEAD
   When you add a top-level domain, ``processes[n].hostname`` in the :opsmgr:`automation configuration </reference/cluster-configuration/>`
   creates a value that is a subdomain of this top-level domain in the format ``<replica-set-name>-<cluster-idx>-<pod-idx>.<externalDomain>``.
   For example, ``multi-replica-set-0-1.cluster-0.example.com``. The {+mdbagent+} uses this
   hostname to connect to |mongod|.
+=======
+  When you add a top-level domain, the ``processes[n].hostname`` field in the 
+  :opsmgr:`automation configuration </reference/cluster-configuration>`
+  creates a value that contains the subdomain of the top-level domain in the 
+  following format:
+  
+  .. code-block:: none
+     :copyable: false
+
+     <replica-set-name>-<cluster-idx>-<pod-idx>.<externalDomain>
+  
+  For example:
+  
+  .. code-block:: none
+     :copyable: false
+
+     multi-replica-set-0-1.cluster-0.example.com
+
+  The {+mdbagent+} uses this hostname to connect to |mongod|.
+>>>>>>> 2d7ac81 (reconcile changes against multi-cluster spec)
 
   .. warning::
 
@@ -389,9 +413,12 @@ Optional ``MongoDBMultiCluster`` Resource Settings
      You can only specify this field for new deployments. You can't change
      the value of this field or any ``processes[n].hostname`` fields in the automation
      configuration for a running deployment.
+=======
+  .. include:: /includes/facts/fact-external-domain-spec.rst
+>>>>>>> 68d53a6 (copy and tech review feedback 1)
 
   .. important::
-   
+
      Use this setting only when deploying a |multi-cluster| replica set *without
      a service mesh*.
 
@@ -403,6 +430,8 @@ Optional ``MongoDBMultiCluster`` Resource Settings
   Configuration for externally exposing a specific cluster in your |multi-cluster|. These settings
   override the global :ref:`spec.externalAccess.externalService <multi-spec-externalaccess-externalservice>` settings.
 
+  .. include:: /includes/facts/fact-external-service-spec.rst
+
 .. _multi-spec-clusterspeclist-annotations:
 
 ``spec.clusterSpecList.externalAccess.externalService.annotations``
@@ -412,11 +441,10 @@ Optional ``MongoDBMultiCluster`` Resource Settings
   configuration settings to a specific cluster in your |multi-cluster|. This setting overrides the global
   setting, :ref:`spec.externalAccess.externalService.annotations <multi-spec-externalaccess-externalservice-annotations>`. 
 
-  To learn more about
-  :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`,
-  see the |k8s| documentation.
-
-  For more details, consult the documentation for your |k8s| cloud provider.
+  To learn more, see 
+  :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`
+  in the |k8s| documentation and the documentation for the cloud provider you use 
+  for |k8s| deployments.
 
 .. _multi-spec-clusterspeclist-spec:
 
@@ -537,28 +565,24 @@ Optional ``MongoDBMultiCluster`` Resource Settings
 ``spec.externalAccess``
   *Type*: collection
 
-  Specification for externally exposing your |multi-cluster| to the outside world. These settings apply to services across all clusters. To override these global settings in a specific cluster, use :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>`.
+  Specification for externally exposing your |multi-cluster| to the 
+  outside world. These settings apply to services across all clusters. 
+  To override these global settings in a specific cluster, use 
+  :ref:`spec.clusterSpecList.externalAccess.externalService 
+  <multi-spec-clusterspeclist-externalservice>`.
+  
+  .. |external-domain| replace:: ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`
 
-  When you add ``spec.externalAccess``, even with no values, the |k8s-op-short| creates an
-  external service for each Pod in a replica set. External services provide
-  an external entry point for each MongoDB database Pod in a cluster.
-
-  By default, every external service has:
-
-  - ``Name = <pod-name>-svc-external``. You can't change this name.
-  - ``Type = LoadBalancer``.
-  - A port for |mongod|. If you set :ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`, the external service adds another port (``port value + 1``) for backups.
-  - ``publishNotReadyAddress = true``. Do not set to ``false`` for any database Pod.
-  - Selectors that match the external service to a specific Pod.
+  .. include:: /includes/facts/fact-external-access-spec.rst
 
 .. _multi-spec-externalaccess-externalservice:
 
 ``spec.externalAccess.externalService``
   *Type*: collection
 
-  Specification for overriding the default values in :ref:`spec.externalAccess <multi-spec-externalaccess>`.
+  Specification for overriding the default values in :setting:`spec.externalAccess`.
 
-  For details, see :k8sdocs:`ServiceSpec </reference/kubernetes-api/service-resources/service-v1/#ServiceSpec>` in the |k8s| documentation.
+  .. include:: /includes/facts/fact-external-service-spec.rst
 
 .. _multi-spec-externalaccess-externalservice-annotations:
 
@@ -569,11 +593,10 @@ Optional ``MongoDBMultiCluster`` Resource Settings
   configuration settings to all clusters in your |multi-cluster|. For cluster-specific overrides,
   see :ref:`spec.clusterSpecList.externalAccess.externalService.annotations <multi-spec-clusterspeclist-annotations>`.
 
-  To learn more about
-  :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`,
-  see the |k8s| documentation.
-
-  For more details, consult the documentation for your |k8s| cloud provider.
+  To learn more, see 
+  :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>`
+  in the |k8s| documentation and the documentation for the cloud provider you use 
+  for |k8s| deployments.
 
 .. _multi-spec-fcv:
 
@@ -1239,8 +1262,8 @@ Optional ``MongoDBMultiCluster`` Resource Settings
 
   .. important::
 
-     ``spec.security.tls.enabled`` is deprecated and will be
-     removed in a future release. To enable |tls|, provide a value for 
+     ``spec.security.tls.enabled`` is deprecated starting in |k8s-op-short| version 1.19 
+     and will be removed in a future |k8s-op-short| release. To enable |tls|, provide a value for 
      the :ref:`spec.security.certsSecretPrefix <multi-spec-security-certssecretprefix>` setting.
 
   Encrypts communications using TLS certificates between:
