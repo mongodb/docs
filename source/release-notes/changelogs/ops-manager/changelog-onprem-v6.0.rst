@@ -1,3 +1,16 @@
+.. _opsmgr-server-6.0.12:
+
+|onprem| Sever 6.0.12
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-04-07*
+
+- Updates the {+mdbagent+} to :ref:`12.0.20.7686 
+  <mongodb-12.0.20.7686>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.1
+  </release-notes/database-tools-changelog/#100.7.1-changelog>`.
+
+
 .. _opsmgr-server-6.0.11:
 
 |onprem| Sever 6.0.11
