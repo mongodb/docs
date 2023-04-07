@@ -9,7 +9,7 @@ content: |
 title: ":ref:`Secure the Multi-Kubernetes Cluster with TLS <multi-cluster-secure-tls>`."
 level: 4
 stepnum: 2
-ref: enable-tls--replicaset
+ref: enable-tls-replicaset
 content: |
 
   Provide values for:
@@ -18,79 +18,143 @@ content: |
   - The custom |certauth| certificate in :setting:`spec.security.tls.ca`.
 
 ---
-title: "Add Subject Alternate Names to your |tls| certificates."
+title: "Create an external service for each of the Pods in different clusters."
 level: 4
 stepnum: 3
-ref: remove-tls-existing-replicasets
+ref: external-services-replicaset
+content: |
+
+  To connect to your |multi-cluster| from an external resource, configure the 
+  :ref:`spec.externalAccess <multi-spec-externalaccess>` setting:
+
+  .. code-block:: yaml
+
+     externalAccess: {}
+ 
+  This setting instructs the |k8s-op-short| to create an external :k8sdocs:`LoadBalancer 
+  </concepts/services-networking/service/#loadbalancer>` service for each Pod in your 
+  |multi-cluster|. The external service provides an entry point for external connections.
+  Adding this setting with no values creates an external service with the following default
+  values:
+
+  .. include:: /includes/list-tables/external-service-default.rst
+
+  Optionally, if you need to add values to the service or override the default values,
+  specify:
+
+  - Annotations specific to your cloud provider, in :ref:`spec.externalAccess.externalService.annotations 
+    <multi-spec-externalaccess-externalservice-annotations>`.
+  
+  - Overrides for the service specification, in :ref:`spec.externalAccess.externalService.spec
+    <multi-spec-externalaccess-externalservice-spec>`.
+  
+  For example, the following settings override the default values for the external service 
+  to configure your |multi-cluster| to create a :k8sdocs:`NodePort service 
+  </concepts/services-networking/service/#type-nodeport>` that exposes the |multi-cluster|:
+  
+  .. code-block:: yaml
+
+     externalAccess:
+       externalService: 
+         annotations:
+           # cloud-specific annotations for the service
+         spec:
+           type: NodePort # default is LoadBalancer
+           port: 27017
+           # you can specify other spec overrides if necessary
+
+  .. tip:: 
+
+     To learn more, see 
+     :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>` 
+     and :k8sdocs:`ServiceSpec </reference/kubernetes-api/service-resources/service-v1/#ServiceSpec>` 
+     in the |k8s| documentation.
+
+---
+title: "Configure an external service for cluster members."
+level: 4
+stepnum: 3
+optional: true
+ref: external-services-override-replicaset
+content: | 
+  
+  If you need to configure settings for a specific cluster member, 
+  such as when you're hosting members on different cloud providers, 
+  you can override the global :ref:`spec.externalAccess <multi-spec-externalaccess>` 
+  settings for a specific member by using the :ref:`spec.clusterSpecList.externalAccess.externalService
+  <multi-spec-clusterspeclist-externalservice>` setting. 
+  
+  To add values to the service or override the default values for a 
+  cluster member, specify:
+  
+  - Annotations specific to the cloud provider for the cluster member, in 
+    :ref:`spec.clusterSpecList.externalAccess.externalService.annotations 
+    <multi-spec-clusterspeclist-annotations>`.
+
+  - Overrides specific to the cluster member, in :ref:`spec.clusterSpecList.externalAccess.externalService.spec 
+    <multi-spec-clusterspeclist-spec>`.
+
+  For example, the following file configures your |multi-cluster| to 
+  create load balancer services that expose the |multi-cluster| for 
+  cluster members deployed in |gke| and |aws| :aws:`EKS </eks/latest/userguide/what-is-eks>`.
+
+  .. note:: 
+
+     The following example doesn't configure overrides, so the external services 
+     use the default values from the :ref:`spec.externalAccess <multi-spec-externalaccess>` 
+     setting.
+
+  .. code-block:: yaml
+
+     clusterSpecList:
+       - clusterName: gke-cluster-0.mongokubernetes.com
+         members: 2
+         externalAccess: 
+           externalService: 
+             annotations:
+               "cloud.google.com/l4-rbs": "enabled"  
+       - clusterName: eks-cluster-1.mongokubernetes.com
+         members: 2
+         externalAccess: 
+           externalService: 
+             annotations:
+               "service.beta.kubernetes.io/aws-load-balancer-type": "external",
+               "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type": "instance",
+               "service.beta.kubernetes.io/aws-load-balancer-scheme": "internet-facing"
+
+---
+title: "Add Subject Alternate Names to your |tls| certificate."
+level: 4
+stepnum: 3
+ref: add-san-to-cert
 content: |
 
   Add each external |dns| name to the certificate |san-dns|.
 
 ---
-title: "Create a ``NodePort`` service for each of the Pods in different clusters."
-level: 4
-stepnum: 4
-ref: k8s-ext-rs-create-nodeports
-content: |
-
-  When you create a ``NodePort`` service with ``kubectl``, it assigns a
-  random port in the range from 30000 to 32767, inclusive.
-
-  1. Create a NodePort service.
-
-     - To create a NodePort service that uses a randomly assigned port, run
-       the following command on each Pod in each cluster:
-
-       .. code-block:: sh
-
-          kubectl expose pod/<my-replica-set>-0 --type="NodePort" --port 27017
-
-     - To create a NodePort service that uses a deterministic port, on each
-       Pod in each cluster, create a ``Nodeport`` service definition YAML
-       file similar to the following example. Specify the port you want
-       to use in the :setting:`spec.ports.NodePort` setting. This example
-       configures a NodePort service on port 30007.
-
-       .. code-block:: yaml
-
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: <my-replica-set>-0
-            labels:
-              controller: mongodb-enterprise-operator
-          spec:
-            type: NodePort
-            selector:
-              controller: mongodb-enterprise-operator
-            ports:
-              port: 27017
-              targetPort: 27017
-              nodePort: 30007
-
-
-       Apply the YAML with ``kubectl apply -f <nodeport-conf>.yaml``.
-
----
-title: "Verify the NodePort services."
+title: "Verify the external services."
 level: 4
 stepnum: 5
-ref: k8s-ext-rs-discover-nodeports
+ref: k8s-verify-external-services
 content: |
 
-  In each cluster, run this command to verify the NodePort services that
-  you created:
+  In each cluster, run the following command to verify that the external services
+  have been created.
 
   .. code-block:: sh
 
-     $ kubectl get svc <node_port_service_name>
+     $ kubectl get services
 
-  The command returns results similar to the following example:
+  The command returns a list of services similar to the following output.
+  For each database Pod in the cluster, the |k8s-op-short| creates an external service 
+  named ``<pod-name>-svc-external``. This service is configured according to the values 
+  and overrides you provide in the external service specification.
 
   .. code-block:: sh
+     :copyable: false
 
-     NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
-     <node_port_service_name>   NodePort    10.102.27.116   <none>        27017:30007/TCP   8m30s
+     NAME                                  TYPE         CLUSTER-IP   EXTERNAL-IP       PORT(S)           AGE
+     my-replica-set-0-0-svc-external   LoadBalancer   10.102.27.116    1.2.3.4      27017:27017/TCP     8m30s
 
 ---
 title: "Update your replica set resource |yaml| file."
@@ -100,7 +164,7 @@ ref: update-replset-resource-mc-split-horizon
 content: |
 
   Set the hostnames and ports in :setting:`spec.connectivity.replicaSetHorizons`
-  to the NodePort values that you created in the previous step.
+  to the LoadBalancer values that you created in the previous step.
 
   Confirm that you specified the correct external hostnames. External
   hostnames should match the |dns| names of |k8s| worker nodes.
