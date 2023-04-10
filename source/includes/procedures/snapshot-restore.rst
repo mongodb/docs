@@ -17,7 +17,9 @@
    .. step:: In the modal window, select the target 
       {+database-deployment+} from the dropdown menu.
 
-   .. step:: Follow the prompt and click :guilabel:`Restore`.
+   .. step:: Follow the prompt and click 
+      :guilabel:`Restore`.
 
    .. step:: Restart your application and ensure it uses the new target
       {+database-deployment+}.
+      
