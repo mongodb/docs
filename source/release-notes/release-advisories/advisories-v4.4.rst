@@ -19,7 +19,7 @@ If you run |onprem| 4.4.0 in
 :doc:`local mode </tutorial/configure-local-mode>`, you must
 :dl:`download and install a compatible version of the MongoDB Tools TGZ package <database-tools>` to the ``versions`` directory.
 
-.. include:: /includes/list-tables/compatibility-matrix/db-tools-OMv6.0.rst
+.. include:: /includes/list-tables/compatibility-matrix/db-tools-OMv4.4.rst
 
 To access older versions of the MongoDB Tools, click
 :dlarch:`Archived releases <database-tools>` on the Download page.
