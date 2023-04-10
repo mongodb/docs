@@ -89,3 +89,6 @@
   more, see :ref:`Authentication Credentials on Source and Destination Clusters
   <auth-creds-on-source-and-destination>`.
   
+- To successfully import an existing replica set to |mms|, 
+  the instance must be healthy.
+  
