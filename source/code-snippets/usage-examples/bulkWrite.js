@@ -1,4 +1,4 @@
-import { MongoClient } from "mongodb";
+const { MongoClient } = require("mongodb");
 
 // Replace the uri string with your MongoDB deployment's connection string.
 const uri = "<connection string uri>";
