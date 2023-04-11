@@ -54,7 +54,7 @@
 
    .. step:: Add Your Key Information
 
-      The following code propmts your {+kmip-kms+} to automatically generate a {+cmk-long+}:
+      The following code prompts your {+kmip-kms+} to automatically generate a {+cmk-long+}:
 
       .. tabs-drivers::
 
