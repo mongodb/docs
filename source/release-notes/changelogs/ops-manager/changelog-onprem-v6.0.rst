@@ -1,6 +1,6 @@
 .. _opsmgr-server-6.0.12:
 
-|onprem| Sever 6.0.12
+|onprem| Server 6.0.12
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2023-04-07*
@@ -14,7 +14,7 @@
 
 .. _opsmgr-server-6.0.11:
 
-|onprem| Sever 6.0.11
+|onprem| Server 6.0.11
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2023-03-15*
