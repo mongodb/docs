@@ -1,5 +1,6 @@
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import org.bson.Document
 
 class ExampleMongodbClient {
     val client: MongoClient;
@@ -14,14 +15,13 @@ class ExampleMongodbClient {
         return this.database.getCollection<Any>(collectionName).countDocuments()
     }
 
-    suspend fun insertOne(collectionName: String, document: Any){
-        this.database.getCollection<Any>(collectionName).insertOne(document)
+    suspend fun insertOne(collectionName: String, document: Document){
+        this.database.getCollection<Document>(collectionName).insertOne(document)
     }
 
     fun close(){
         this.client.close()
     }
 
-
-
 }
+
