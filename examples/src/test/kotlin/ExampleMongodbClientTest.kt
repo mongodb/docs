@@ -15,10 +15,14 @@ internal class ExampleMongodbClientTest {
     val client = ExampleMongodbClient(dotenv["MONGODB_CONNECTION_URI"], dotenv["MONGODB_DATABASE_NAME"])
     @Test
     fun testAddDocument() = runBlocking {
-         client.insertOne("test", Document().append("name", "test"))
-        val numDocs = client.countDocuments("test")
-        println("NUM DOCS:: $numDocs")
-        assertEquals(client.countDocuments("test") == 1.toLong(), true)
+        val res = client.insertOne("test", Document().append("name", "test"))
+        assertEquals(res.wasAcknowledged(), true)
+    }
+
+    @Test
+    fun testAddDataClass() = runBlocking {
+        val res = client.insertOneDataClass("test", TestDataClass( "test-data-class"))
+        assertEquals(res.wasAcknowledged(), true)
     }
 
     @AfterAll

@@ -1,3 +1,4 @@
+import com.mongodb.client.result.InsertOneResult
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import org.bson.Document
@@ -15,8 +16,12 @@ class ExampleMongodbClient {
         return this.database.getCollection<Any>(collectionName).countDocuments()
     }
 
-    suspend fun insertOne(collectionName: String, document: Document){
-        this.database.getCollection<Document>(collectionName).insertOne(document)
+    suspend fun insertOne(collectionName: String, document: Document): InsertOneResult {
+        return this.database.getCollection<Document>(collectionName).insertOne(document)
+    }
+
+    suspend fun insertOneDataClass(collectionName: String, dataClassInstance: TestDataClass): InsertOneResult {
+        return this.database.getCollection<TestDataClass>(collectionName).insertOne(dataClassInstance)
     }
 
     fun close(){
@@ -24,4 +29,6 @@ class ExampleMongodbClient {
     }
 
 }
+
+data class TestDataClass(val name: String)
 
