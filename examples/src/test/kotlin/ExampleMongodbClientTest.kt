@@ -1,14 +1,31 @@
-import com.mongodb.client.model.Filters
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
 import kotlin.test.*
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.runBlocking
-import org.bson.BsonDocument
+import org.bson.BsonObjectId
 import org.bson.Document
+import org.bson.BsonType
+import org.bson.codecs.pojo.annotations.BsonId
+import org.bson.codecs.pojo.annotations.BsonProperty
+import org.bson.codecs.pojo.annotations.BsonIgnore
+import org.bson.codecs.pojo.annotations.BsonExtraElements
 import org.junit.jupiter.api.TestInstance
 
 val dotenv = dotenv()
+
+data class TestClassWithAnnotations(
+    @BsonId
+    val id: BsonObjectId = BsonObjectId(),
+    // add annotation to rename to camelCase
+    @BsonProperty("snake_case_field")
+    val camelCaseField: String,
+    @BsonIgnore
+    val notInMongo: String,
+    @BsonExtraElements
+    val extraElements: Document = Document()
+)
+
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ExampleMongodbClientTest {
@@ -25,10 +42,27 @@ internal class ExampleMongodbClientTest {
         assertEquals(res.wasAcknowledged(), true)
     }
 
+    // TODO: Test insert operation using data class serialization
+    @Test
+    fun testAddAnnotatedDataClass() = runBlocking {
+        val res = client.database.getCollection<TestClassWithAnnotations>("test-with-annotations")
+            .insertOne(TestClassWithAnnotations(
+                camelCaseField = "camelCaseField",
+                notInMongo = "notInMongo"
+            ))
+        assertEquals(res.wasAcknowledged(), true)
+    }
+
+    // TODO
+
     @AfterAll
     private fun afterAll() = runBlocking {
         client.database.getCollection<Document>("test").deleteMany(Document())
         client.close()
     }
+
 }
+
+// convert string to hex string
+
 
