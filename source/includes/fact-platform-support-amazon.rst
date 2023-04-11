@@ -1,3 +1,7 @@
+.. important:: Amazon Linux 2023 Availability
+
+   MongoDB is **not** currently available on Amazon Linux 2023.
+
 MongoDB {+version+} Community Edition supports the following
 :red:`64-bit` Amazon Linux release on 
 :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
