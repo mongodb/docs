@@ -13,5 +13,5 @@ Fundamentals section:
 - :doc:`Log Events in the Driver </fundamentals/logging>`
 - :doc:`Monitor Driver Events </fundamentals/monitoring>`
 - :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`
-- :doc:`Encrypt Fields in a Document </fundamentals/csfle>`
+- :doc:`Encrypt Fields in a Document </fundamentals/encrypt-fields>`
 - :doc:`Use a Time Series Collection </fundamentals/time-series>`
