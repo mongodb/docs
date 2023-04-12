@@ -137,6 +137,20 @@
      - Integer between ``0`` and ``10`` that represents a replica set
        member's :manual:`replica state </reference/replica-states/>`.
 
+   * - | ``SYSTEM_MEMORY_USED``
+       | (mongodb.atlas.system.memory.used)
+       | ``SYSTEM_MEMORY_AVAILABLE``
+       | (mongodb.atlas.system.memory.available)
+     - System
+     - Gauge that indicates physical memory used, in bytes.
+
+   * - | ``MAX_SYSTEM_MEMORY_USED``
+       | (mongodb.atlas.system.memory.max.used)
+       | ``MAX_SYSTEM_MEMORY_AVAILABLE``
+       | (mongodb.atlas.system.memory.max.available)
+     - System
+     - Gauge that indicates the maximum physical memory used, in bytes.
+
    * - | ``SYSTEM_NORMALIZED_CPU_USER`` 
        | (mongodb.atlas.system.cpu.norm.user)
        | ``SYSTEM_NORMALIZED_CPU_KERNEL``
