@@ -1,0 +1,231 @@
+---
+stepnum: 1
+level: 4
+ref: airgapped-env-tutorial-step1
+title: Mirror the Operator catalog and disable the default catalog. 
+content: |
+  Red Hat Operator catalogs contain metadata that :abbr:`OLM 
+  (Operator Lifecycle Manager)` queries to install Operators 
+  and their dependencies on a cluster. You must create a copy of 
+  the Operator catalog and then disable the default catalog as a 
+  cluster administrator. 
+
+  The ``relatedImages`` in the operator bundle lists the following 
+  images:
+
+  - Images directly used by the operator, which are the current 
+    version of ``mongodb-enterprise-init-database-ubi``, 
+    ``mongodb-enterprise-init-ops-manager-ubi``, 
+    ``mongodb-enterprise-init-appdb-ubi``, 
+    ``mongodb-enterprise-init-database-ubi``.
+  - All currently supported images of |onprem|, AppDB and 
+    ``mongodb-agent-ubi`` that can be configured in an |onprem| 
+    deployment.
+
+  For ``init`` images, use only the version that is present in the
+  latest |k8s-op-short| version.
+        
+  The size of all related images referenced by the operator bundle 
+  is over 26 GB.
+
+  Your mirroring command won't pick unsupported versions of the 
+  AppDB images. If you want to use any other unsupported version, 
+  you must manually provide these images to the mirror registry. For
+  other versions for a given operator version, see `image for Deployment
+  <https://github.com/mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`__.
+
+  For the full list of images defined in the ``RELATED_IMAGE_*``
+  environment variables, see the :abbr:`CSV (cluster service versions)`
+  `file <https://github.com/redhat-openshift-ecosystem/certified-operators/blob/main/operators/mongodb-enterprise/1.18.0/manifests/mongodb-enterprise.clusterserviceversion.yaml>`__.
+
+  a. To mirror, see :oshft-doc:`Mirroring images for a disconnected 
+     installation </installing/disconnected_install/installing-mirroring-installation-images.html#olm-mirroring-catalog_installing-mirroring-installation-images>`.
+
+     When you run the ``oc adm catalog mirror`` command to mirror the 
+     catalog, it generates the ``imageContentSourcePolicy.yaml`` file, 
+     which you must `apply <https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.5/html/preparing_to_deploy_in_a_disconnected_environment/creating-operator-imagecontentsourcepolicy_rhocs>`__ 
+     to remap original source to mirrored images. For example:
+
+     .. code-block:: shell 
+
+        oc apply -f ./<output dir>/imageContentSourcePolicy.yaml
+
+     To learn more, see :oshft-doc:`Mirroring Operator catalogs for use 
+     with disconnected clusters
+     </installing/disconnected_install/installing-mirroring-installation-images.html#olm-mirror-catalog_installing-mirroring-installation-images>`.
+     For a list of supported MongoDB versions for each |onprem| version,
+     see :opsmgr:`Compatible MongoDB Version
+     </tutorial/prepare-backing-mongodb-instances/#use-a-compatible-mongodb-version>`. 
+
+  #. To disable the default catalog, add 
+     ``disableAllDefaultSources: true`` to the ``OperatorHub`` object. 
+      
+  To learn more, see :oshft-doc:`Using Operator Lifecycle Manager on 
+  restricted networks </operators/admin/olm-restricted-networks.html>`. 
+  
+---
+stepnum: 2
+level: 4
+ref: airgapped-env-tutorial-step2
+title: Install the |k8s-op-short|. 
+content: |
+  To learn more, see: 
+
+  - :ref:`plan-k8s-operator-install`
+  - :ref:`install-k8s`
+
+---
+stepnum: 3
+level: 4
+ref: airgapped-env-tutorial-step3
+title: "Deploy |onprem| in Local Mode."
+content: | 
+
+  To deploy |onprem| in Local Mode, you must do the following:
+
+  a. Copy the following example |onprem| |k8s| |k8s-obj| and save it as
+     a ``.yaml`` file. 
+
+     - Use the |onprem| configuration setting 
+       ``automation.versions.source: local`` in 
+       :opsmgrkube:`spec.configuration` to enable Local Mode.
+
+     - Define a |k8s-pv| for the |onprem| StatefulSet to store the 
+       MongoDB installation archive. {+mdbagent+}\s running in MongoDB
+       database resource containers that you create with the |k8s-op-short|
+       download the installation archives from |onprem| instead of from the
+       Internet.
+
+     .. code-block:: yaml
+        :linenos:
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDBOpsManager
+        metadata:
+         name: ops-manager-localmode
+        spec:
+         replicas: 2
+         version: "6.0.0"
+         adminCredentials: ops-manager-admin-secret
+         configuration:
+           # this enables local mode in Ops Manager
+           automation.versions.source: local
+         statefulSet:
+           spec:
+             # the Persistent Volume Claim will be created for each Ops Manager Pod
+             volumeClaimTemplates:
+              - metadata:
+                  name: mongodb-versions
+                spec:
+                  accessModes: [ "ReadWriteOnce" ]
+                  resources:
+                    requests:
+                      storage: "20Gi"
+           template:
+             spec:
+               containers:
+                 - name: mongodb-ops-manager
+                   volumeMounts:
+                   - name: mongodb-versions
+                     # this is the directory in each Pod where all MongoDB
+                     # archives must be put
+                     mountPath: /mongodb-ops-manager/mongodb-releases
+         backup:
+          enabled: false
+         applicationDatabase:
+          members: 3
+          persistent: true
+
+     To learn more about the settings, see :ref:`deploy-om-container`.
+
+  #. Configure ``oc`` to default to your namespace.
+
+     .. code-block:: sh
+  
+        oc config set-context $(oc config current-context) --namespace=<metadata.namespace>
+
+  #. Copy the following |onprem| resource settings, paste into 
+     your existing |onprem| resource, and save your |onprem| config 
+     file.
+
+     .. code-block:: yaml
+        :linenos:
+
+        configuration:
+          # this enables local mode in Ops Manager
+          automation.versions.source: local
+        statefulSet:
+          spec:
+            # the Persistent Volume Claim will be created for each Ops Manager Pod
+            volumeClaimTemplates:
+              - metadata:
+                name: mongodb-versions
+                spec:
+                  accessModes: [ "ReadWriteOnce" ]
+                  resources:
+                    requests:
+                      storage: "20Gi"
+          template:
+            spec:
+              containers:
+                - name: mongodb-ops-manager
+                  volumeMounts:
+                  - name: mongodb-versions
+                    # this is the directory in each Pod where all MongoDB
+                    # archives must be put
+                    mountPath: /mongodb-ops-manager/mongodb-releases
+
+  #. Copy the MongoDB installation archive to the |onprem| Persistent 
+     Volume.
+
+     To learn how to copy MongoDB installation archive, see step 10 in
+     the :ref:`Configure an Ops Manager Resource to use Local Mode
+     <deploy-om-container-local-mode>` procedure. 
+
+  #. Create credentials and store them as a secret.
+     
+     Run the following command:
+     
+     .. note::
+     
+        Provide your public and private key values for the following 
+        parameters. To learn more, see :ref:`create-k8s-credentials`.
+     
+     .. code-block:: sh
+
+        oc \
+          create secret generic ops-manager-admin-key \
+          --from-literal="publicKey=<publicKey>" \
+          --from-literal="privateKey=<privateKey>"
+
+  #. Create a ConfigMap similar to the following:
+     
+     .. code-block:: sh
+
+        cat <<EOF | oc apply -f -
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: my-project
+          namespace: mongodb
+        data:
+          projectName: myProjectName # this is an optional parameter
+          orgId: 5b890e0feacf0b76ff3e7183 # this is an optional parameter
+          baseUrl: https://ops.example.com:8443
+        EOF
+
+     To learn more about the settings in the ConfigMap, see step 7 in 
+     the :ref:`openshift-quick-start-ref`.
+
+  To learn more about deploying |onprem| in Local Mode, see 
+  :ref:`deploy-om-container-local-mode`.
+
+---
+stepnum: 4
+level: 4
+ref: airgapped-env-tutorial-step4
+title: Deploy a MongoDB Database Resource.
+content: |
+  You can :ref:`deploy-replica-set` or a :ref:`deploy-sharded-cluster`. 
+  To learn more, see :ref:`k8s-deploy-mdb-resources`.
+...

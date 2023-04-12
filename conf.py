@@ -261,6 +261,7 @@ extlinks = {
     'npmjs' : ('https://www.npmjs.com/package%s',''),
     'osi' : ('https://opensource.org%s', ''),
     'osil' : ('https://opensource.org/licenses/%s', ''),
+    'oshft-doc' : ('https://docs.openshift.com/container-platform/latest%s', ''),
     'cc' : ('http://creativecommons.org/licenses%s', ''),
     'tldrl' : ('https://www.tldrlegal.com/l/%s', ''),
     'aws': ('http://docs.aws.amazon.com%s', ''),
