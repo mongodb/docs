@@ -81,3 +81,20 @@
      - If an error occurred, gives a detailed description of the error.
        This field is omitted when the call to the endpoint is successful
 
+   * - ``mongosyncID``
+     - string
+     - The identifier string for the ``mongosync`` instance.
+
+   * - ``coordinatorID``
+     - string
+     - The identifier string for the coordinator instance.  
+
+       - When ``mongosync`` is coordinated by another instance, this field shows
+         the identifier string for the coordinator instance.
+
+       - When ``mongosync`` is a coordinator or runs alone, this field returns
+         the same value as its ``mongosyncID`` field.
+
+       - When ``mongosync`` starts up, this field returns ``null`` until
+         ``mongosync`` identifies the coordinator.
+
