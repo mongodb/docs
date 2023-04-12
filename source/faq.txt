@@ -265,3 +265,45 @@ following code demonstrates:
        .And(Builders<Entity>.Filter
            .Eq(e => e.A, 1), BsonDocument
            .Parse("{ b : 2 }"));
+
+.. _csharp-faq-object-serializer:
+
+What Object Types Can Be Serialized?
+------------------------------------
+
+The ``ObjectSerializer`` allows serialization and deserialization only of types
+that are considered safe. When you construct an ``ObjectSerializer``,
+you can pass in a delegate of type ``Func<Type, bool>``. This delegate
+accepts an object type and returns a boolean value indicating whether the
+type is safe for serialization.
+
+In most cases, you should pass in the ``ObjectSerializer.DefaultAllowedTypes()``
+delegate. This method returns true for a number of well-known
+framework types that we have deemed safe. To serialize custom types,
+create a boolean expression that evaluates to ``true`` for the
+types you want to include. Then, add this expression to the end of the 
+delegate you pass to the ``ObjectSerializer`` constructor.
+
+In the following example,
+the ``ObjectSerializer`` will serialize and deserialize any type that is allowed by 
+``ObjectSerializer.DefaultAllowedTypes()`` or whose full name begins with 
+``"MyNamespace"``:
+
+.. code-block:: csharp
+
+   var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type)
+       || type.FullName.StartsWith("MyNamespace"));
+   BsonSerializer.RegisterSerializer(objectSerializer);
+
+To allow anonymous types to be serialized, add the boolean expression
+``type.FullName.StartsWith("<>f__AnonymousType"))`` to your delegate,
+as shown in the following example:
+
+.. code-block:: csharp
+
+   var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type)
+       || type.FullName.StartsWith("<>f__AnonymousType"));
+   BsonSerializer.RegisterSerializer(objectSerializer);
+
+You should create and register your ``ObjectSerializer`` at the start of your program,
+before doing anything else.
