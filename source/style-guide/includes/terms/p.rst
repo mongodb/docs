@@ -10,7 +10,7 @@ P
 
      .. seealso:: 
        
-        :term:`web` and :term:`wizard page`
+        :term:`web` and :term:`wizard`
 
    pane
      Use *pane* to refer to a portion of a window, screen, or console
