@@ -25,7 +25,7 @@ cluster, authentication mechanism, user credentials when applicable, and
 other connection options.
 
 If you are connecting to an instance or cluster that is not hosted by Atlas,
-see :ref:`Other Ways to Connect to MongoDB <java-other-ways-to-connect>` for
+see :ref:`Other Ways to Connect to MongoDB <kotlin-other-ways-to-connect>` for
 instructions on how to format your connection string.
 
 To retrieve your connection string for the cluster and user you created in
