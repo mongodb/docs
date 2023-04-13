@@ -26,7 +26,7 @@ public class AutocompleteTokenOrderAnyExample
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id))
-            . Limit(4)
+            .Limit(4)
             .ToList();
 
         // print results

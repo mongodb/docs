@@ -26,7 +26,7 @@ public class WildcardMultipleCharacter
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id))
-            . Limit(5)
+            .Limit(5)
             .ToList();
 
         // print results

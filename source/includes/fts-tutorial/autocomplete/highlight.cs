@@ -28,7 +28,7 @@ public class AutocompleteHighlightExample
                 .Exclude(movie => movie.Id)
                 .MetaSearchScore("score")
                 .MetaSearchHighlights("highlights"))
-            . Limit(5)
+            .Limit(5)
             .ToList();
 
         // print results

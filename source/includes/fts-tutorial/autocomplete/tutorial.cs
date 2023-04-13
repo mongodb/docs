@@ -26,7 +26,7 @@ public class AutocompleteBasicExample
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id))
-            . Limit(20)
+            .Limit(20)
             .ToList();
 
         // print results

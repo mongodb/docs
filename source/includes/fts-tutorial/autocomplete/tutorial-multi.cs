@@ -30,7 +30,7 @@ public class AutocompleteAdvancedExample
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id))
-            . Limit(5)
+            .Limit(5)
             .ToList();
 
         // print results

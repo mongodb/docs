@@ -4,7 +4,7 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Search;
 
-public class AutocompleteCompoundExample
+public class SortSpeedPrecision
 {
     private static IMongoCollection<MovieDocument> moviesCollection;
     private static string _mongoConnectionString = "<connection-string>";
@@ -20,22 +20,11 @@ public class AutocompleteCompoundExample
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
         moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
 
-        // define fuzzy options
-        SearchFuzzyOptions fuzzyOptions = new SearchFuzzyOptions()
-            {
-                MaxEdits = 1
-            };
-
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Compound()
-                .Should(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "ball", score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(3)))
-                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Title, "ball", fuzzy: fuzzyOptions)))
-            .Project<MovieDocument>(Builders<MovieDocument>.Projection
-                .Include(movie => movie.Title)
-                .Exclude(movie => movie.Id)
-                .MetaSearchScore("score"))
-            .Limit(15)
+            .Search(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "Happy"), returnStoredSource: true)
+            .Limit(5)
+            .Sort(Builders<MovieDocument>.Sort.Descending(movie => movie.Title))
             .ToList();
 
         // print results
@@ -52,6 +41,4 @@ public class MovieDocument
     [BsonIgnoreIfDefault]
     public ObjectId Id { get; set; }
     public string Title { get; set; }
-    [BsonElement("score")]
-    public double Score { get; set; }
 }

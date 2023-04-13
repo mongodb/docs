@@ -34,7 +34,7 @@ public class AutocompleteFuzzyExample
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id))
-            . Limit(10)
+            .Limit(10)
             .ToList();
 
         // print results
