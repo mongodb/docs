@@ -107,6 +107,14 @@
       -
       -
     * - 
+      - Ubuntu 22.x :sup:`3`
+      - :icon:`check-circle`
+      - 
+      - 
+      -
+      -
+      -
+    * - 
       - Windows
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -163,3 +171,11 @@
       -
       -
 
+:sup:`1` Your Rocky and Alma Linux :abbr:`OS (Operating System)`
+must include the ``redhat-lsb-core`` package. 
+
+:sup:`2` Your Debian installation must include the
+``lsb-release`` package. To learn more, see `lsb-release
+<https://packages.debian.org/sid/lsb-release>`__. 
+
+:sup:`3` |bic-full| isn't supported on Ubuntu 22.04.
