@@ -1,1 +1,1 @@
-``https://cloud.mongodb.com/api/atlas/v1.0``
+``https://cloud.mongodb.com/api/atlas/<version>``
