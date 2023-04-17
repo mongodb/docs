@@ -19,7 +19,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Centos/Rocky/Alma 8 
+      - RHEL/Centos/Rocky/Alma 8 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -51,7 +51,7 @@
       -
       -
     * - 
-      - Debian 8
+      - Debian 8 :sup:`2`
       - 
       -
       -
@@ -59,7 +59,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 9
+      - Debian 9 :sup:`2`
       -
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -67,7 +67,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 10
+      - Debian 10 :sup:`2`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -75,7 +75,7 @@
       -
       -
     * -
-      - Debian 11 
+      - Debian 11 :sup:`2`
       - :icon:`check-circle`
       - :icon:`check-circle`
       -
@@ -178,4 +178,4 @@ must include the ``redhat-lsb-core`` package.
 ``lsb-release`` package. To learn more, see `lsb-release
 <https://packages.debian.org/sid/lsb-release>`__. 
 
-:sup:`3` |bic-full| isn't supported on Ubuntu 22.04.
+:sup:`3` |bic-full| isn't supported on Ubuntu 22.04. 
