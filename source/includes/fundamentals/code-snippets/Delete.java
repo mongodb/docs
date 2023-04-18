@@ -60,7 +60,7 @@ public class Delete {
 
     private void findOneAndDeleteExample(){
         // begin findOneAndDeleteExample
-        Bson filter = Filters.eq("qty", 8);
+        Bson filter = Filters.eq("color", purple);
         System.out.println(collection.findOneAndDelete(filter).toJson());
         // end findOneAndDeleteExample
     }
