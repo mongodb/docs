@@ -114,8 +114,8 @@
 
          .. step:: Click :guilabel:`Finish`.
 
-   .. step:: *(Optional)* Confirm that sample can be accessed from your {+fdi+}.
+   .. step:: *(Optional)* Confirm that you can access your {+fdi+} data.
 
       In the :guilabel:`Database Navigator`, expand your MongoDB 
-      connection to verify that the sample data that the {+fdi+} store 
-      is mapped to is accessible.
+      connection to verify that the {+fdi+} store 
+      mapped to your data is accessible.
