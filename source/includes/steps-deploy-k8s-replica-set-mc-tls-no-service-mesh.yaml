@@ -1,0 +1,149 @@
+---
+
+stepnum: 1
+ref: create-k8s-mc-rs-tls-secret
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: create-k8s-mc-tls-secret
+
+---
+stepnum: 2
+ref: create-k8s-mc-rs-tls-configmap
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: create-k8s-mc-tls-configmap
+
+---
+stepnum: 3
+ref: configure-kubectl-mc-namespace
+inherit:
+  file: steps-multi-cluster-source.yaml
+  ref: configure-kubectl-mc
+
+---
+stepnum: 4
+ref: copy-k8s-multi-cluster-example-rs
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: copy-k8s-mc-example-resource
+replacement:
+  k8sExampleFileName: example-multi-cluster-replica-set-no-service-mesh.yaml
+  k8sMultiClusterExample: |
+
+   .. literalinclude:: /includes/code-examples/yaml-files/example-multi-cluster-replica-set-no-service-mesh.yaml
+      :language: yaml
+      :linenos:
+
+---
+title: "Define external connectivity settings."
+stepnum: 5
+ref: define-external-connectivity
+level: 4
+content: |
+
+  Specify global values that affect all clusters in a |multi-cluster| using
+  the :ref:`spec.externalAccess <multi-spec-externalaccess>` settings and
+  cluster-specific overrides using the
+  :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>` settings.
+
+  When you provide these settings in the |mongodb-multi| specification,
+  the |k8s-op-short| creates external services for each Pod in all
+  |k8s| clusters. You then use these services to establish external
+  connectivity to all ``mongod`` processes in your deployment.
+
+---
+
+title: "Define an external domain for each |k8s| member cluster."
+stepnum: 6
+ref: define-external-domain
+level: 4
+content: |
+
+  Define an external domain for each member cluster using the
+  :ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`
+  setting.
+
+  As a result, the |k8s-op-short| registers all ``mongod`` processes in the
+  |k8s| member cluster under a hostname according to the following convention:
+
+  .. code-block:: sh
+
+     <pod-name>.<externalDomain>
+
+  For example, a ``mongod`` process may have the following hostname:
+  ``my-replica-set-0-0.cluster-1.example.com``.
+
+---
+
+stepnum: 7
+ref: change-k8s-mc-example-rs
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: change-values
+
+---
+stepnum: 8
+ref: add-other-spec-rs
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: add-optional-values
+
+---
+stepnum: 9
+ref: save-object-spec-rs
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: save-object-spec
+replacement:
+  k8sResource: :term:`replica set`
+
+---
+stepnum: 10
+ref: start-k8s-deployment-rs
+source:
+  file: steps-source-deploy-k8s-resource.yaml
+  ref: start-k8s-deployment
+replacement:
+  k8sResource: :term:`replica set`
+  k8sResourceType: replica-set
+
+---
+
+title: "Verify external connectivity for each member cluster."
+stepnum: 11
+ref: check-external-connectivity
+level: 4
+content: |
+
+  1. Check the status of external services in all member clusters:
+
+     .. code-block:: sh
+
+        kubectl get services
+
+     |k8s| should return one external service created for each Pod of the replica set in all member clusters.
+
+  #. Verify that each external service is exposed externally and is reachable.
+     Run the command similar to the following example:
+
+     .. code-block:: sh
+
+        mongosh mongodb://my-replica-set-0-0.cluster-0.example.com:27017 \
+        -tls -tlsCAFile "issuer-ca.pem"
+
+     Connecting to ``my-replica-set-0-0.cluster-0.example.com:27017`` should
+     direct client traffic to an external service named ``my-replica-set-0-0-svc-external``,
+     which, in turn, directs traffic to the ``mongod`` process.
+
+  #. Configure your |dns| zone for the specified external domain to point to
+     the corresponding external services. This configuration depends on
+     your environment or the cloud provider you are using.
+
+---
+stepnum: 12
+ref: track-k8s-deployment-rs
+source:
+  file: steps-multi-cluster-source.yaml
+  ref: track-k8s-mc-deployment-basic
+
+...

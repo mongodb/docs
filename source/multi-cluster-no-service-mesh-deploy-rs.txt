@@ -1,0 +1,75 @@
+.. _multi-cluster-no-service-mesh-deploy-rs:
+
+========================================================================
+Deploy Replica Sets in a Multi-Kubernetes Cluster without a Service Mesh
+========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Use this procedure to deploy a replica set in a |multi-cluster| without
+using a service mesh for establishing external connectivity between member
+|k8s| clusters.
+
+As an alternative to using this procedure, you can use the
+:ref:`multi-cluster-quick-start-ref`, which uses a service mesh.
+
+Before You Begin
+----------------
+
+- Learn about :ref:`multi-Kubernetes-cluster deployments <multi-cluster-overview-ref>`.
+- Review the list of :ref:`multi-Kubernetes-cluster services and tools <multi-cluster-services-tools-ref>`.
+
+- Complete the :ref:`prerequisites <multi-cluster-prereqs>`, but don't set up a service mesh.
+  Instead, :ref:`decide whether you need a service mesh <mc_plan_external_connectivity>`.
+  If you choose to deploy without a service mesh,
+  :ref:`use external domains and configure DNS to enable external connectivity <dns-and-external-domain>`.
+- As part of completing the prerequisites, generate valid certificates for
+  |tls| encryption. To learn more, see :ref:`multi-cluster-tls-prereqs`.
+- Deploy the |onprem| resource on the central cluster, enable external
+  connectivity to the |onprem| instance, and connect to |onprem|.
+  To learn more, see :ref:`multi-cluster-deploy-om-summary`.
+- Install the |k8s-op-short| in a |multi-cluster|. See :ref:`multi-cluster-quick-start-ref`.
+
+Overview
+---------
+
+In a |multi-cluster| without a service mesh, use the following
+|mongodb-multi| settings:
+
+- Use the :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>`
+  setting so that the |k8s-op-short| creates an external service, and as part of
+  its default configuration, configures a load balancer with default settings.
+  Configure the load balancer to serve as the TCP proxy with a |tls| passthrough
+  (no TLS termination in the load balancer).
+
+- Customize external services that the |k8s-op-short| creates for each Pod
+  in the |k8s| cluster. Use the global "all-clusters" configuration in the
+  :ref:`spec.externalAccess <multi-spec-externalaccess>` settings and
+  |k8s| cluster-specific overrides in the :ref:`spec.clusterSpecList.externalAccess.externalService
+  <multi-spec-clusterspeclist-externalservice>` settings.
+
+- Specify cloud provider-specific annotations for the load balancer in
+  the :ref:`spec.clusterSpecList.externalAccess.externalService.annotations <multi-spec-clusterspeclist-annotations>`
+  for each |k8s| cluster.
+
+- Specify an external domain in :ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`.
+  This allows the |k8s-op-short| to register ``mongod`` processes by using
+  the domain suffix. This enables external connections to the ``mongod`` processes
+  in a |multi-cluster|.
+
+.. _multi-cluster-for-rs-no-service-mesh:
+
+Deploy a ``MongoDBMultiCluster`` Resource  without a Service Mesh
+-----------------------------------------------------------------
+
+The following procedure establishes |tls|-encrypted connections between
+MongoDB hosts in a replica set, and between client applications and
+MongoDB deployments.
+
+.. include:: /includes/steps/deploy-k8s-replica-set-mc-tls-no-service-mesh.rst

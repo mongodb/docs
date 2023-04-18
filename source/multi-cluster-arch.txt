@@ -114,49 +114,73 @@ for |onprem| resources.
 
 .. _multi-cluster-diagram:
 
-Deployment Architecture and Diagram
------------------------------------
+Deployment Architecture and Diagrams
+-------------------------------------
 
-The following diagram shows the high-level architecture of a |multi-cluster|
-across regions and availability zones:
+You can create |multi-clusters| with or without relying on a service mesh.
+To learn more, see :ref:`mc_plan_external_connectivity`
 
-.. figure:: /images/multi-cluster-arch.svg
-   :alt: Diagram showing the high-level architecture of a multi-cluster-Kubernetes
-         deployment across regions and availability zones using the
-         MongoDB Enterprise Kubernetes Operator
-   :figwidth: 600px
-
-.. include:: /includes/facts/fact-central-member-clusters.rst
-
-If you use a service mesh such as |istio|, the service mesh manages the
-discovery of MongoDB nodes deployed in different |k8s| member clusters
-and handles communication between replica set members. This means that
-your database doesn't rely on the central cluster to function.
-
-Note that if the central cluster fails, you can't use the |k8s-op-short|
-to change your deployment until you restore access to this cluster or
-until you redeploy the |k8s-op-short| to another available |k8s| cluster.
-
-You can host your application on any of the member clusters inside the
-Istio service mesh, such as:
-
-- On |k8s| clusters outside of the ones that you deploy with the |k8s-op-short|, or
-- On the member clusters that you deploy as part of this tutorial.
-
-The |k8s-op-full| performs these actions:
+In both the following diagrams, the |k8s-op-full| performs these actions:
 
 - Watches for the |mongodb-multi| spec creation in the central cluster.
-
 - Uses the mounted ``kubeconfig`` file to communicate with member clusters.
-
-- Creates the necessary resources, such as ConfigMaps, Secrets, Service
+- Creates the necessary resources, such as ConfigMaps, Secrets, Services
   and StatefulSet |k8s| objects in each member cluster corresponding to
   the number of replica set members in the MongoDB cluster.
-
 - Identifies the cluster for deploying each MongoDB replica set using
   the corresponding |mongodb-multi| spec, and deploys the MongoDB replica sets.
-
 - Watches for the ``CentralCluster`` and ``MemberCluster`` events.
 - Reconciles the resources it created to confirm that the |multi-cluster|
   is in the desired state.
 
+.. include:: /includes/facts/fact-central-member-clusters.rst
+
+Note that if the central cluster fails, you can't use the |k8s-op-short|
+to change your deployment until you restore access to this cluster or
+until you redeploy the |k8s-op-short| to another available |k8s| cluster.
+To learn more, see :ref:`disaster-recovery-ref`.
+
+.. _multi-cluster-diagram-with-service-mesh:
+
+Diagram: Multi-Kubernetes Cluster Deployment with a Service Mesh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows the high-level architecture of a |multi-cluster|
+across regions and availability zones. This deployment uses a service mesh,
+such as Istio. The service mesh:
+
+- Manages the discovery of MongoDB nodes deployed in different |k8s| member clusters.
+- Handles communication between replica set members.
+
+You can host your application on any of the member clusters inside the
+service mesh, such as:
+
+- On |k8s| clusters outside of the ones that you deploy with the |k8s-op-short|, or
+- On the member clusters in a |multi-cluster|.
+
+.. figure:: /images/multi-cluster-arch-with-service-mesh.svg
+   :alt: Diagram showing the high-level architecture of a multi-cluster-Kubernetes
+         deployment across regions and availability zones using the
+         MongoDB Enterprise Kubernetes Operator, with a service mesh
+   :figwidth: 600px
+
+.. _multi-cluster-diagram-no-service-mesh:
+
+Diagram: Multi-Kubernetes Cluster Deployment without a Service Mesh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows the high-level architecture of a |multi-cluster|
+across regions and availability zones. This deployment doesn't rely on a
+service mesh for connectivity between the |k8s| clusters hosting Pods
+with MongoDB instances.
+
+To handle external communication between MongoDB replica set members hosted
+on Pods in distinct |k8s| clusters, :ref:`use external domains and DNS zones <dns-and-external-domain>`.
+
+.. figure:: /images/multi-cluster-arch-no-service-mesh.svg
+   :alt: Diagram showing the high-level architecture of a multi-cluster-Kubernetes
+         deployment across regions and availability zones using the
+         MongoDB Enterprise Kubernetes Operator, and without a service mesh
+   :figwidth: 600px
+
+You can host your application on any of the member clusters.
