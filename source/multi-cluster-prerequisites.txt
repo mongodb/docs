@@ -120,14 +120,103 @@ Run the following commands:
      --zone=$MDB_CLUSTER_3_ZONE
 
 .. _install_go:
-.. _install-istio:
 .. _install-helm:
 .. _install-tools-needed-for-multi-clusters:
 
-Install Istio, Go, and Helm
-----------------------------
+Install Go and Helm
+---------------------
 
 Install the following tools:
+
+1. `Install Go <https://golang.org/dl/>`__ v1.17 or later.
+
+2. `Install Helm <https://helm.sh/docs/intro/install/>`__.
+
+.. _mc_plan_external_connectivity:
+
+Plan for External Connectivity: Should You Use a Service Mesh?
+---------------------------------------------------------------
+
+A service mesh enables inter-cluster communication between the replica set
+members deployed in different |k8s| clusters. Using a service mesh greatly
+simplifies creating |multi-clusters| and is the recommended way of deploying
+MongoDB across multiple |k8s| clusters. However, if your IT organization doesn't
+use a service mesh, you can deploy a replica set in a |multi-cluster| without it.
+
+Depending on your environment, do the following:
+
+- If you can use a service mesh, :ref:`install Istio <install-istio>`.
+- If you can't use a service mesh:
+
+  1. Review the section :ref:`external_connectivity_how`
+  2. :ref:`Enable external connectivity through external domains and DNS zones <dns-and-external-domain>`.
+  3. :ref:`Deploy a multi-Kubernetes cluster without a service mesh <multi-cluster-no-service-mesh-deploy-rs>`.
+
+.. _external_connectivity_how:
+
+How Does the |k8s-op-short| Establish Connectivity?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Regardless of the deployment type, a MongoDB deployment in |k8s| must
+establish the following connections:
+
+- From the |onprem| Automation Agent in the Pod to its ``mongod`` process,
+  to enable MongoDB deployment's lifecycle management and monitoring.
+- From the |onprem| Automation Agent in the Pod to the |onprem| instance,
+  to enable automation.
+- Between all ``mongod`` processes, to allow replication.
+
+When the |k8s-op-short| deploys the MongoDB resources, it treats these
+connectivity requirements in the following ways, depending on the type of deployment:
+
+- In a single |k8s| cluster deployment, the |k8s-op-short| configures hostnames
+  in the replica set as |fqdn|\s of a |k8s-headless-service|. This is a single
+  service that resolves the |dns| of a direct IP address of each Pod hosting
+  a MongoDB instance by the Pod's |fqdn|, as follows:
+  ``<pod-name>.<replica-set-name>-svc.<namespace>.svc.cluster.local``.
+
+- In a |multi-cluster| that uses a service mesh, the |k8s-op-short| creates
+  a separate StatefulSet for each MongoDB replica set member in the |k8s|
+  cluster. A service mesh allows communication between ``mongod`` processes
+  across distinct |k8s| clusters.
+
+  Using a service mesh allows the |multi-cluster| to:
+
+  - Achieve global |dns| hostname resolution across |k8s| clusters and
+    establish connectivity between them. For each MongoDB deployment Pod
+    in each |k8s| cluster, the |k8s-op-short| creates a ClusterIP service
+    through the ``spec.duplicateServiceObjects: true`` configuration in
+    the |mongodb-multi|. Each process has a hostname defined to this
+    service's |fqdn|: ``<pod-name>-svc.<namespace>.svc.cluster.local``.
+    These hostnames resolve from DNS to a service's ClusterIP in each member cluster.
+
+  - Establish communication between Pods in different |k8s| clusters.
+    As a result, replica set members hosted on different clusters form a
+    single replica set across these clusters.
+
+- In a |multi-cluster| without a service mesh, the |k8s-op-short| uses the
+  following |mongodb-multi| settings to expose all its ``mongod`` processes
+  externally. This enables DNS resolution of hostnames between distinct
+  |k8s| clusters, and establishes connectivity between Pods routed through
+  the networks that connect these clusters.
+
+  - :ref:`spec.clusterSpecList.externalAccess.externalService <multi-spec-clusterspeclist-externalservice>`
+  - :ref:`spec.externalAccess <multi-spec-externalaccess>`
+  - :ref:`spec.clusterSpecList.externalAccess.externalService.annotations <multi-spec-clusterspeclist-annotations>`
+  - :ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`
+
+.. _install-istio:
+
+Install Istio
+~~~~~~~~~~~~~
+
+Istio is a service mesh that simplifies |dns| resolution and helps establish
+inter-cluster communication between the member |k8s| clusters in a |multi-cluster|.
+If you choose to use a service mesh, you need to install it. If you can't
+utilize a service mesh, skip this section and :ref:`use external domains
+and configure DNS to enable external connectivity <dns-and-external-domain>`.
+
+To install Istio:
 
 1. Install |istio| in a `multi-primary mode on different networks
    <https://istio.io/latest/docs/setup/install/multicluster/multi-primary_multi-network/>`__,
@@ -135,13 +224,73 @@ Install the following tools:
 
    .. include:: /includes/facts/fact-istio.rst
 
-2. `Install Go <https://golang.org/dl/>`__ v1.17 or later.
+.. _dns-and-external-domain:
 
-3. `Install Helm <https://helm.sh/docs/intro/install/>`__.
+Enable External Connectivity through External Domains and DNS Zones
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you don't use a service mesh, do the following to enable external
+connectivity to and between ``mongod`` processes and the
+|onprem| Automation Agent:
+
+- Register ``mongod`` processes on externally-available hostnames using
+  one of the following approaches:
+
+  - When you create a |k8s| cluster for your |multi-cluster|, use the
+    :ref:`spec.clusterDomain <multi-spec-clusterdomain>` setting to specify
+    an externally-available custom domain instead of the default domain.
+    With the default cluster domain, ``mongod`` processes use ``*.cluster.local``
+    hostnames. However, if you specify an externally-available custom domain
+    for each |k8s| cluster in a |multi-cluster|, ``mongod`` processes use
+    hostnames in the following pattern:
+  
+    .. code-block:: sh
+
+       <pod-name>.<replica-set-name>-svc.<namespace>.svc.<externally-available-cluster-domain>
+
+    .. note::
+
+       You can set a custom cluster domain **only**  when creating a |k8s| cluster
+       for a |multi-cluster|.
+
+  - When you create a |multi-cluster|, use
+    the :ref:`spec.clusterSpecList.externalAccess.externalDomain <multi-spec-clusterspeclist-externaldomain>`
+    setting to specify an external domain and instruct the |k8s-op-short| to
+    configure hostnames for ``mongod`` processes in the following pattern:
+  
+    .. code-block:: sh
+  
+       <pod-name>.<externalDomain>
+
+    .. note::
+
+       You can specify external domains **only** for new deployments. You
+       can't change external domains after you configure a |multi-cluster|.
+
+    After you configure an external domain in this way, the |onprem|
+    Automation Agents and ``mongod`` processes use this domain to connect
+    to each other.
+
+- Customize external services that the |k8s-op-short| creates for each Pod
+  in the |k8s| cluster. Use the global configuration in the :ref:`spec.externalAccess <multi-spec-externalaccess>`
+  settings and |k8s| cluster-specific overrides in the :ref:`spec.clusterSpecList.externalAccess.externalService
+  <multi-spec-clusterspeclist-externalservice>` settings.
+
+- Configure Pod hostnames in a |dns| zone to ensure that each |k8s| Pod
+  hosting a ``mongod`` process allows establishing an external connection
+  to the other ``mongod`` processes in a |multi-cluster|. A Pod is considered
+  "exposed externally" when you can connect to a ``mongod`` process by
+  using the ``<pod-name>.<externalDomain>`` hostname on ports 27017
+  (this is the default database port) and 27018 (this is the database port + 1).
+  You may also need to configure firewall rules to allow TCP traffic on
+  ports 27017 and 27018.
+
+After you complete these prerequisites, you can
+:ref:`deploy a multi-Kubernetes cluster without a service mesh <multi-cluster-no-service-mesh-deploy-rs>`.
 
 .. _multi-cluster-rbac-manual:
 
-Configure |k8s| Roles and Role Bindings 
+Configure |k8s| Roles and Role Bindings
 --------------------------------------------
 
 To use a |multi-cluster|, you must configure a specific set of 
@@ -321,7 +470,7 @@ to watch |k8s-mdbrscs| in all namespaces in the |multi-cluster|.
            --set "multiCluster.clusters={$MDB_CLUSTER_1_FULL_NAME,$MDB_CLUSTER_2_FULL_NAME,$MDB_CLUSTER_3_FULL_NAME}" \
            --set operator.watchNamespace="*"
 
-.._mc-cluster-review-onprem-diffs
+.. _mc-cluster-review-onprem-diffs:
 
 Review the Requirements for Deploying |onprem|
 -----------------------------------------------
@@ -334,7 +483,7 @@ cluster. To learn more, see :ref:`multi-cluster-deploy-om-summary`.
 Check Connectivity Across Clusters
 ----------------------------------
 
-Follow the steps in this procedure to verify that service FQDNs are
+Follow the steps in this procedure to verify that service |fqdn|\s are
 reachable across |k8s| clusters.
 
 In this example, you deploy a sample application defined in

@@ -1,7 +1,7 @@
 An external domain used to externally expose your replica set deployment.
 
 By default, each replica set member uses the |k8s| Pod's |fqdn| 
-(``*.svc.cluster.local``) as the default hostname. However, if you add a
+(``*.svc.cluster.local``) as the default hostname. However, if you add an
 external domain to this setting, the replica set uses a hostname that is a 
 subdomain of the specified domain instead. This hostname uses the following 
 format:
