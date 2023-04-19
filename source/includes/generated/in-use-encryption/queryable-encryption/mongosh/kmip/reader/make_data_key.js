@@ -54,7 +54,6 @@ async function run() {
     tlsOptions: tlsOptions,
   };
 
-  // start-create-dek
   const encClient = Mongo(uri, autoEncryptionOpts);
   const keyVault = encClient.getKeyVault();
 
