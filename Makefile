@@ -38,6 +38,7 @@ DOTCOM_PRODUCTION_URL="https://mongodb.com"
 DOTCOM_PRODUCTION_BUCKET=docs-mongodb-org-dotcomprd
 DOTCOM_PREFIX=docs/kubernetes-operator
 DOTCOM_STGPREFIX=docs/kubernetes-operator
+SEARCH_INDEX_BUCKET=docs-search-indexes-test
 
 # Parse our published-branches configuration file to get the name of
 # the current "stable" branch. This is weird and dumb, yes.
@@ -123,7 +124,7 @@ deploy: build/public
 deploy-search-index:
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-current.json --aliases ${PROJECT}-${GIT_BRANCH} -u ${PRODUCTION_URL}/${PROJECT}/stable -b docs-mongodb-org-prd -g -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-current.json --aliases ${PROJECT}-${GIT_BRANCH} -u ${DOTCOM_PRODUCTION_URL}/${PROJECT}/stable -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -g -s; \
 	else \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b docs-mongodb-org-prd -s; \
+		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${DOTCOM_PRODUCTION_URL}/${PROJECT}/${GIT_BRANCH} -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -s; \
 	fi
