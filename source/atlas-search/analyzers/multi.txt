@@ -33,87 +33,165 @@ for the ``title`` field, with the name ``keywordAnalyzer``. The
 single term, so it returns results only if the search term and the 
 specified field match exactly. 
 
-You can create the example index using the {+atlas-ui+} Visual Editor or
-the |json| Editor. After you select your preferred configuration method,
-select the database and collection.
+If you loaded the collection on your {+cluster+}, you can create the
+example index using the Visual Editor or the |json| Editor in the
+{+atlas-ui+}. After you select your preferred configuration method,
+select the database and collection. 
 
 .. tabs:: 
 
    .. tab:: Visual Editor 
       :tabid: vib
 
-      a. Click :guilabel:`Refine Your Index` to configure your index.
+      1. Click :guilabel:`Refine Your Index` to configure your index.
       #. In the :guilabel:`Field Mappings` section, click
          :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
          window. 
       #. Select ``title`` from the :guilabel:`Field Name` dropdown.
       #. Click the :guilabel:`Data Type` dropdown and select
          :guilabel:`String` if it isn't already selected. 
-      #. Change :guilabel:`Index Analyzer` to ``lucene.standard`` if it
-         isn't already selected.
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
       #. Click :guilabel:`Add Multi Field` to configure another analyzer
          on the ``title`` field.
       #. Enter ``keywordAnalyzer`` in the :guilabel:`Multi Field Name`
-         and select ``lucene.keyword`` from the :guilabel:`Index
-         Analyzer` dropdown.
+         field. 
+      #. Make the following changes to the :guilabel:`Multi Field
+         Properties` : 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.keyword`` from the dropdown if it isn't
+                already selected. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.keyword`` from the dropdown if it isn't
+                already selected.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
       #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
 
    .. tab:: JSON Editor 
       :tabid: jsonib
 
-      .. code-block:: json
+      1. Replace the default index definition with the following index definition.
 
-         {
-           "mappings": {
-             "dynamic": false,
-             "fields": {
-               "title": {
-                 "type": "string",
-                 "analyzer": "lucene.standard",
-                 "multi": {
-                   "keywordAnalyzer": {
-                     "type": "string",
-                     "analyzer": "lucene.keyword"
-                   }
-                 }
-               }
-             }
-           }
-         }
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 8-13
+            :linenos:
+
+            {
+              "mappings": {
+                "dynamic": false,
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.standard",
+                    "multi": {
+                      "keywordAnalyzer": {
+                        "type": "string",
+                        "analyzer": "lucene.keyword"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
 
 The following query uses the alternate analyzer, named 
 ``keywordAnalyzer``, to search for exact matches on the string ``The 
 Count of Monte Cristo``. 
 
-.. code-block:: javascript
+.. io-code-block:: 
+   :copyable: true
 
-   db.movies.aggregate([
-     {
-       $search: {
-         "text": {
-           "query": "The Count of Monte Cristo",
-           "path": { "value": "title", "multi": "keywordAnalyzer" }
-         }
-       }
-     }, 
-     { 
-       $project: { 
-         "title": 1,
-         "year": 1,
-         "_id": 0 
-       } 
-     }
-   ])
+   .. input:: 
+      :language: javascript
+      :linenos:
 
-The above query returns the following results:
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "The Count of Monte Cristo",
+              "path": { "value": "title", "multi": "keywordAnalyzer" }
+            }
+          }
+        }, 
+        { 
+          "$project": { 
+            "title": 1,
+            "year": 1,
+            "_id": 0 
+          } 
+        }
+      ])
 
-.. code-block:: json
-   :copyable: false
+   .. output:: 
+      :language: json
 
-   { "title" : "The Count of Monte Cristo", "year" : 1934 }
-   { "title" : "The Count of Monte Cristo", "year" : 1954 }
-   { "title" : "The Count of Monte Cristo", "year" : 1998 }
+      { "title" : "The Count of Monte Cristo", "year" : 1934 }
+      { "title" : "The Count of Monte Cristo", "year" : 1954 }
+      { "title" : "The Count of Monte Cristo", "year" : 1998 }
 
 By contrast, the same query using the ``standard`` analyzer would find 
-all the movies with the word ``Count`` or ``Monte`` or ``Cristo`` in 
-the title.
+all the movies with the word ``the`` or ``Count`` or ``of`` or ``Monte``
+or ``Cristo`` in the title.
+
+|fts| creates the following tokens (searchable terms) for the documents
+in the results using the analyzers: 
+
+.. list-table:: Tokens
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Title 
+     - Standard Analyzer Tokens 
+     - Keyword Analyzer Tokens
+
+   * - ``The Count of Monte Cristo`` 
+     - ``the``, ``count``, ``of``, ``monte``, ``cristo``
+     - ``The Count of Monte Cristo``

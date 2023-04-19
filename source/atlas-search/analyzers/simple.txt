@@ -10,58 +10,169 @@ Simple Analyzer
    :keywords: analyzers, atlas search analyzer, simple analyzer, divide text, divide by non-letter character, divide by whitespace, divide by punctuation, divide by digits, convert to lower case, create an index
    :description: Use the Atlas Search simple analyzer to divide text by non-letter characters and convert terms to lowercase.
 
-The ``simple`` analyzer divides text into searchable terms wherever
-it finds a non-letter character, such as whitespace, punctuation, or 
-one or more digits. It converts all terms to lower case.
+The ``simple`` analyzer divides text into searchable terms (tokens)
+wherever it finds a non-letter character, such as whitespace,
+punctuation, or one or more digits. It converts all text to lower case. 
 
 Example
 -------
 
-The following example index definition specifies an index on the
-``summary`` field using the ``simple`` analyzer:
+The following example index definition specifies an index on
+the ``title`` field in the :ref:`sample_mflix.movies <sample-mflix>`
+collection using the ``simple`` analyzer. If you loaded the collection
+on your {+cluster+}, you can create the example index using the
+{+atlas-ui+} Visual Editor or the |json| Editor. After you select your
+preferred configuration method, select the database and collection.
 
-.. code-block:: json
+.. tabs:: 
 
-   {
-     "mappings": {
-       "fields": {
-         "summary": {
-           "type": "string",
-           "analyzer": "lucene.simple"
-         }
-       }
-     }
-   }
+   .. tab:: Visual Editor 
+      :tabid: vib
 
-Consider a collection named ``cases`` with the following documents:
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window. 
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
 
-.. code-block:: json
+         .. list-table:: 
+            :stub-columns: 1
 
-   { "_id": 1, "summary": "No action required at this time." }
-   { "_id": 2, "summary": "Case set aside for future action." }
-   { "_id": 3, "summary": "Frank's case is ready for planning." }
+            * - Index Analyzer 
+              - Select ``lucene.simple`` from the dropdown. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.simple`` from the dropdown.
 
-The following query uses the index on the ``summary`` field:
+            * - Index Options 
+              - Use the default ``offsets``.
 
-.. code-block:: json
+            * - Store 
+              - Use the default ``true``.
 
-   db.cases.aggregate([
-     { 
-        $search: {
-          "text": {
-            "query": "frank",
-            "path": "summary"
-           }
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      1. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 6
+   
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.simple"
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query searches for the term ``lion`` in the ``title``
+field and limits the output to five results. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos:
+
+      db.movies.aggregate([
+        { 
+          "$search": {
+            "text": {
+               "query": "lion",
+               "path": "title"
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
         }
-     }
-   ])
+      ])
 
-The above query returns the following result:
+   .. output:: 
+      :language: json 
 
-.. code-block:: json
-   :copyable: false
+      [
+        { title: 'White Lion' },
+        { title: 'The Lion King' },
+        { title: 'The Lion King 1 1/2' },
+        { title: 'The Lion King 1 1/2' },
+        { title: 'Lion's Den' },
+      ]
 
-   { "_id" : 3, "summary" : "Frank's case is ready for planning." }
+|fts| returns these documents by doing the following for the text in the
+``title`` field using the ``lucene.simple`` analyzer:
 
-The ``simple`` analyzer indexes ``Frank's case`` as ``[frank s case]``,
-so it matches on the search term ``frank``.
+-  Convert text to lowercase.
+-  Create separate tokens by dividing text wherever there is a
+   non-letter character. 
+
+The following table shows the tokens that |fts| creates using the
+:ref:`ref-simple-analyzer` and, by contrast, the
+:ref:`ref-standard-analyzer` and :ref:`ref-whitespace-analyzer` for the
+documents in the results:  
+
+.. list-table:: Tokens
+   :header-rows: 1
+
+   * - Title 
+     - Simple Analyzer Tokens 
+     - Standard Analyzer Tokens
+     - Whitespace Analyzer Tokens
+
+   * - ``White Lion`` 
+     - ``white``, ``lion``
+     - ``white``, ``lion``
+     - ``White``, ``Lion``
+
+   * - ``The Lion King`` 
+     - ``the``, ``lion``, ``king``
+     - ``the``, ``lion``, ``king``
+     - ``The``, ``Lion``, ``King``
+
+   * - ``The Lion King 1 1/2`` 
+     - ``the``, ``lion``, ``king``
+     - ``the``, ``lion``, ``king``, ``1``, ``1``, ``2``
+     - ``The``, ``Lion``, ``King``, ``1``, ``1/2``
+
+   * - ``Lion's Den`` 
+     - ``lion``, ``s``, ``den``
+     - ``lion's``, ``den``
+     - ``Lion's``, ``Den``
+
+|fts| returns document ``Lion's Den`` in the results because the
+``simple`` analyzer creates a separate token for ``lion``, which matches
+the query term ``lion``. By contrast, if you index the field using the
+:ref:`ref-standard-analyzer` or :ref:`ref-whitespace-analyzer`, |fts|
+would return some of the documents in the results for the query, but not
+``Lion's Den`` because these analyzers would create the tokens
+``lion's`` and ``Lion's`` respectively, but don't create a token for
+``lion``.

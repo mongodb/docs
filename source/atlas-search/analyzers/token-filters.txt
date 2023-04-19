@@ -7,7 +7,7 @@ Token Filters
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas search, token filter, stemming, reduce related words, redaction, remove sensitive information, create tokens, tokenize, asciiFolding, convert characters, daitchMokotoffSoundex, words that sound the same, edgeGram, take tokens from edge for n gram, icuFolding, character folding, icuNormalizer, normalize token, length, remove long tokens, remove short tokens, lowercase, nGram, configure token size, regex, regular expression, reverse, reverse string, shingle, token n grams, snowballStemming, stem tokens, stopword, remove words, trim, remove whitespace, custom analyzer, create an Atlas Search index
+   :keywords: atlas search, token filter, stemming, reduce related words, redaction, remove sensitive information, create tokens, tokenize, asciiFolding, convert characters, daitchMokotoffSoundex, words that sound the same, edgeGram, take tokens from edge for n gram, icuFolding, character folding, icuNormalizer, normalize token, length, remove long tokens, remove short tokens, lowercase, nGram, configure token size, regex, regular expression, reverse, reverse string, shingle, token n grams, snowballStemming, stem tokens, stopword, remove words, trim, remove whitespace, custom analyzer, remove possessive trailing s from words, transform token filter graph to flat form, kStemming, remove common morphological suffixes, remove common inflectional suffixes, porterStemming, stem spanish plural words, stem polish words, create an Atlas Search index
    :description: Use token filters in an Atlas Search custom analyzer to modify tokens, such as by stemming, lowercasing, or redacting sensitive information.
 
 .. contents:: On this page
@@ -16,9 +16,15 @@ Token Filters
    :depth: 2
    :class: singlecol
 
+A token filter performs operations such as the following: 
+
+- Stemming, which reduces related words, such as "talking", "talked",
+  and "talks" to their root word "talk".
+- Redaction, the removal of sensitive information from public 
+  documents.
 
 Token Filters always require a type field, and some take additional 
-options as well.
+options as well. It has the following syntax:
 
 .. code-block:: json
 
@@ -29,7 +35,11 @@ options as well.
      }
    ]
 
-|fts| supports the following token filters.
+The index definition and query examples on this page use the sample
+collection named ``minutes``. If you add the :ref:`minutes
+<custom-analyzers-eg-coll>` collection to a database in your |service| 
+cluster, you can create the following sample indexes and run the sample
+queries against this collection. 
 
 .. _asciiFolding-tf-ref: 
 
@@ -39,8 +49,9 @@ asciiFolding
 The ``asciiFolding`` token filter converts alphabetic, numeric, and 
 symbolic unicode characters that are not in the `Basic Latin Unicode 
 block <https://en.wikipedia.org/wiki/Basic_Latin_(Unicode_block)>`__ 
-to their ASCII equivalents, if available. It has the following 
-attributes:
+to their :abbr:`ASCII (American Standard Code for Information
+Interchange)` equivalents, if available. It has the following
+attributes: 
 
 .. list-table::
    :widths: 20 10 40 10 10
@@ -79,19 +90,34 @@ attributes:
 
 .. example:: 
 
-   The following index definition example uses a custom analyzer 
-   named ``asciiConverter``. It uses the :ref:`standard tokenizer
-   <standard-tokenizer-ref>` with the ``asciiFolding`` token filter to 
-   index the fields in the :ref:`example <custom-analyzers-eg-coll>` 
-   collection and convert the field values to their ASCII equivalent. 
+   The following index definition indexes the
+   ``page_updated_by.first_name`` field in the :ref:`minutes
+   <custom-analyzers-eg-coll>` collection using a custom analyzer named
+   ``asciiConverter``. The custom analyzer specifies the following:
+   
+   a. Apply the :ref:`standard tokenizer <standard-tokenizer-ref>` to
+      create tokens based on word break rules. 
+   #. Apply the ``asciiFolding`` token filter to convert the field
+      values to their :abbr:`ASCII (American Standard Code for
+      Information Interchange)` equivalent.  
 
    .. code-block:: json 
 
       {
-        "analyzer": "asciiConverter",
-        "searchAnalyzer": "asciiConverter",
         "mappings": {
-          "dynamic": true
+          "dynamic": false,
+          "fields": {
+            "page_updated_by": {
+              "type": "document",
+              "dynamic": false,
+              "fields": {
+                "first_name": {
+                  "type": "string",
+                  "analyzer": "asciiConverter"
+                }
+              }
+            }
+          }
         },
         "analyzers": [
           {
@@ -108,41 +134,58 @@ attributes:
         ]
       }
 
-   The following query searches the ``first_name`` field for names 
+   The following query searches the ``first_name`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection for names 
    using their ASCII equivalent.
 
-   .. code-block:: json 
+   .. io-code-block:: 
+      :copyable: true
 
-      db.minutes.aggregate([
-        {
-          $search: {
-            "index": "default",
-            "text": {
-              "query": "Sian",
-              "path": "page_updated_by.first_name"
+      .. input:: 
+         :language: json  
+
+          db.minutes.aggregate([
+            {
+              "$search": {
+                "index": "default",
+                "text": {
+                  "query": "Sian",
+                  "path": "page_updated_by.first_name"
+                }
+              }
+            },
+            {
+              "$project": {
+                "_id": 1,
+                "page_updated_by.last_name": 1,
+                "page_updated_by.first_name": 1
+              }
             }
-          }
-        },
-        {
-          $project: {
-            "_id": 1,
-            "page_updated_by.last_name": 1,
-            "page_updated_by.first_name": 1
-          }
-        }
-      ])
+          ])
 
-   |fts| returns the following results: 
+      .. output:: 
+         :language: json 
 
-   .. code-block:: json
-      :copyable: false 
+         [
+           {
+              _id: 1,
+              page_updated_by: { last_name: 'AUERBACH', first_name: 'Siân'}
+           }
+         ]
 
-      [
-        {
-           _id: 1,
-           page_updated_by: { last_name: 'AUERBACH', first_name: 'Siân'}
-        }
-      ]
+   |fts| returns document with ``_id: 1`` in the results because |fts|
+   created the following tokens (searchable terms) for the
+   ``page_updated_by.first_name`` field in the document, which it then
+   used to match to the query term ``Sian``: 
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Field Name 
+        - Output Tokens 
+
+      * - ``page_updated_by.first_name``
+        - ``Sian``
 
 .. _daitchmokotoffsoundex-tf-ref: 
 
@@ -160,7 +203,7 @@ each input, where each encoded token is a 6 digit number.
    Don't use the ``daitchMokotoffSoundex`` token filter in: 
           
    - :ref:`Synonym <synonyms-ref>` or :ref:`autocomplete 
-     <bson-data-types-autocomplete>` mapping definitions.
+     <bson-data-types-autocomplete>` type mapping definitions.
    - Operators where ``fuzzy`` is enabled. |fts| supports the ``fuzzy`` 
      option for the following operators: 
 
@@ -206,19 +249,33 @@ It has the following attributes:
 
 .. example::
 
-   The following index definition example uses a custom analyzer 
-   named ``dmsAnalyzer``. It uses the :ref:`standard tokenizer
-   <standard-tokenizer-ref>` with the ``daitchMokotoffSoundex`` 
-   token filter to index and query for words that sound the same 
-   as their encoded forms.
+   The following index definition indexes the
+   ``page_updated_by.last_name`` field in the :ref:`minutes
+   <custom-analyzers-eg-coll>` collection using a custom analyzer 
+   named ``dmsAnalyzer``. The custom analyzer specifies the following: 
+   
+   a. Apply the :ref:`standard tokenizer <standard-tokenizer-ref>` to
+      create tokens based on word break rules. 
+   #. Apply the ``daitchMokotoffSoundex`` token filter to encode the
+      tokens for words that sound the same.
 
    .. code-block:: json 
 
      {
-       "analyzer": "dmsAnalyzer",
-       "searchAnalyzer": "dmsAnalyzer",
        "mappings": {
-         "dynamic": true
+         "dynamic": false,
+         "fields": {
+           "page_updated_by": {
+             "type": "document",
+             "dynamic": false,
+             "fields": {
+               "last_name": {
+                 "type": "string",
+                 "analyzer": "dmsAnalyzer"
+               }
+             }
+           }
+         }
        },
        "analyzers": [
          {
@@ -238,39 +295,58 @@ It has the following attributes:
 
    The following query searches for terms that sound similar to 
    ``AUERBACH`` in the ``page_updated_by.last_name`` field of 
-   the ``minutes`` collection.
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection.
 
-   .. code-block:: json 
+   .. io-code-block:: 
+      :copyable: true
 
-      db.minutes.aggregate([
-        {
-          $search: {
-            "index": "default",
-            "text": {
-              "query": "AUERBACH",
-              "path": "page_updated_by.last_name"
-            }
-          }
-        },
-        {
-          $project: {
-            "_id": 1,
-            "page_updated_by.last_name": 1
-          }
-        }
-      ])
+      .. input:: 
+         :language: json  
 
-   The query returns the following results: 
+         db.minutes.aggregate([
+           {
+             $search: {
+               "index": "default",
+               "text": {
+                 "query": "AUERBACH",
+                 "path": "page_updated_by.last_name"
+               }
+             }
+           },
+           {
+             $project: {
+               "_id": 1,
+               "page_updated_by.last_name": 1
+             }
+           }
+         ])
 
-   .. code-block:: json 
-     :copyable: false 
+      .. output:: 
+         :language: json 
 
-     { "_id" : 1, "page_updated_by" : { "last_name" : "AUERBACH" } }
-     { "_id" : 2, "page_updated_by" : { "last_name" : "OHRBACH" } }
+         [
+           { "_id" : 1, "page_updated_by" : { "last_name" : "AUERBACH" } }
+           { "_id" : 2, "page_updated_by" : { "last_name" : "OHRBACH" }
+           }
+         ]
 
-   |fts| returns documents with ``_id: 1`` and ``_id: 2`` 
-   because the terms in both documents are phonetically similar, 
-   and are coded using the same six digit ``097500``.
+   |fts| returns documents with ``_id: 1`` and ``_id: 2`` because the
+   terms in both documents are phonetically similar, and are coded using
+   the same six digit numbers (``097400`` and ``097500``). The following
+   table shows the tokens (searchable terms and six digit encodings)
+   that |fts| creates for the documents in the results:  
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens    
+
+      * - ``"_id": 1`` 
+        - ``AUERBACH``, ``097400``, ``097500``
+
+      * - ``"_id": 2`` 
+        - ``OHRBACH``, ``097400``, ``097500`` 
 
 .. _edgegram-tf-ref:
 
@@ -281,7 +357,7 @@ The ``edgeGram`` token filter tokenizes input from the left side, or
 "edge", of a text input into n-grams of configured sizes. You can't use 
 the :ref:`edgeGram <edgegram-tf-ref>` token filter in :ref:`synonym 
 <synonyms-ref>` or :ref:`autocomplete <bson-data-types-autocomplete>` 
-mapping definitions. It has the following attributes:
+field type mapping definitions. It has the following attributes:
 
 .. list-table::
    :widths: 20 10 40 10 10
@@ -333,27 +409,36 @@ mapping definitions. It has the following attributes:
 
 .. example::
 
-   The following index definition example uses a custom analyzer named
-   ``englishAutocomplete``. It performs the following operations:
+   The following index definition indexes the ``title`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using a custom 
+   analyzer named ``titleAutocomplete``. The custom analyzer specifies
+   the following:  
 
-   - Tokenizes with the :ref:`standard tokenizer 
-     <standard-tokenizer-ref>`.
-   - Token filtering with the following filters:
-
-     - ``icuFolding``
-     - ``shingle``
-     - ``edgeGram``
+   a. Apply the :ref:`standard tokenizer <standard-tokenizer-ref>` to
+      create tokens based on word break rules.
+   #. Apply the following filters on the tokens: 
+    
+      - ``icuFolding`` token filter to apply character foldings to the
+        tokens.  
+      - ``edgeGram`` token filter to create 4 to 7 character long tokens
+        from the left side.  
 
    .. code-block:: json
 
       {
-        "analyzer": "englishAutocomplete",
+        "analyzer": "titleAutocomplete",
         "mappings": {
-          "dynamic": true
+          "dynamic": false,
+          "fields": {
+            "title": {
+              "type": "string",
+              "analyzer": "titleAutocomplete"
+            }
+          }
         },
         "analyzers": [
           {
-            "name": "englishAutocomplete",
+            "name": "titleAutocomplete",
             "charFilters": [],
             "tokenizer": {
               "type": "standard"
@@ -363,24 +448,70 @@ mapping definitions. It has the following attributes:
                 "type": "icuFolding"
               },
               {
-                "type": "shingle",
-                "minShingleSize": 2,
-                "maxShingleSize": 3
-              },
-              {
                 "type": "edgeGram",
-                "minGram": 1,
-                "maxGram": 10
+                "minGram": 4,
+                "maxGram": 7
               }
             ]
           }
         ]
       }
 
-   .. seealso:: 
-   
-      The :ref:`shingle-tf-ref` token filter for a sample index 
-      definition and query. 
+   The following query searches the ``title`` field of the :ref:`minutes
+   <custom-analyzers-eg-coll>` collection for terms that begin with
+   ``mee``, followed by any number of other characters. 
+
+   .. io-code-block:: 
+      :copyable: true
+
+      .. input:: 
+         :language: json  
+
+         db.minutes.aggregate([
+           {
+             $search: {
+               "wildcard": {
+                 "query": "mee*",
+                 "path": "title",
+                 "allowAnalyzedField": true
+               }
+             }
+           },
+           {
+             $project: {
+               "_id": 1,
+               "title": 1
+             }
+           }
+         ])
+
+      .. output:: 
+         :language: json 
+
+         [
+           { _id: 1, title: 'The team's weekly meeting' },
+           { _id: 3, title: 'The regular board meeting' }
+         ]
+
+   |fts| returns documents with ``_id: 1`` and ``_id: 3`` because the
+   documents contain the term ``meeting``, which matches the query
+   criteria. Specifically, |fts| creates the following 4 to 7 character
+   tokens (searchable terms) for the documents in the results, which it
+   then matches to the query term ``mee*``:  
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens    
+
+      * - ``"_id": 1`` 
+        - ``team``, ``team'``, ``team's``, ``week``, ``weekl``,
+          ``weekly``, ``meet``, ``meeti``, ``meetin``, ``meeting``
+
+      * - ``"_id": 3`` 
+        - ``regu``, ``regul``, ``regula``, ``regular``, ``boar``,
+          ``board``, ``meet``, ``meeti``, ``meetin``, ``meeting``
 
 .. _englishPossessive-tf-ref:
 
@@ -391,38 +522,43 @@ The ``englishPossessive`` token filter removes possessives
 (trailing ``'s``) from words. It has the following attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``englishPossessive``.
      - yes
-     - 
 
 .. example::
 
-   The following index definition example uses a custom analyzer named 
-   ``englishPossessiveStemmer`` on the :ref:`minutes 
-   <custom-analyzers-eg-coll>` collection. After it applies the 
-   :ref:`standard <standard-tokenizer-ref>` tokenizer to create tokens 
-   based on word break rules, it applies the :ref:`englishPossessive 
-   <englishPossessive-tf-ref>` token filter to remove possessives 
-   (trailing ``'s``) from the tokens.
+   The following index definition indexes the ``title`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using a custom
+   analyzer named ``englishPossessiveStemmer``. The custom analyzer
+   specifies the following: 
+   
+   a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
+      create tokens (search terms) based on word break rules.
+   #. Apply the :ref:`englishPossessive <englishPossessive-tf-ref>`
+      token filter to remove possessives (trailing ``'s``) from the
+      tokens. 
 
    .. code-block:: json
 
       {  
-        "analyzer": "englishPossessiveStemmer", 
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "title": {
+              "type": "string",
+              "analyzer": "englishPossessiveStemmer"
+            }
+          }
         },
         "analyzers": [
           {
@@ -474,7 +610,7 @@ The ``englishPossessive`` token filter removes possessives
          [
            {
              _id: 1,
-             title: "The team's weekly meeting"
+             title: 'The team's weekly meeting'
            },
            { 
              _id: 2,
@@ -485,7 +621,21 @@ The ``englishPossessive`` token filter removes possessives
    |fts| returns results that contain the term ``team`` in the 
    ``title`` field. |fts| returns the document with ``_id: 1`` because 
    |fts| transforms ``team's`` in the ``title`` field to the token 
-   ``team`` during analysis.
+   ``team`` during analysis. Specifically, |fts| creates the following
+   tokens (searchable terms) for the documents in the results, which it
+   then matches to the query term:
+
+   .. list-table::
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens    
+
+      * - ``"_id": 1`` 
+        - ``The``, ``team``, ``weekly``, ``meeting``
+
+      * - ``"_id": 2`` 
+        - ``The``, ``check``, ``in``, ``with``, ``sales``, ``team``
 
 .. _flattenGraph-tf-ref:
 
@@ -500,41 +650,42 @@ this filter after the :ref:`wordDelimiterGraph
 attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``flattenGraph``.
      - yes
-     - 
 
 .. example::
 
-   The following index definition uses a custom analyzer called 
-   ``wordDelimiterGraphFlatten``. After it applies the :ref:`whitespace 
-   <whitespace-tokenizer-ref>` tokenizer to create tokens based on 
-   occurrences of whitespace between words, it applies the 
-   :ref:`wordDelimiterGraph <wordDelimiterGraph-tf-ref>` token 
-   filter to split tokens based on sub-words, generate tokens for the 
-   original words, and also protect the word ``SIGN_IN`` from 
-   delimination. It applies the :ref:`flattenGraph 
-   <flattenGraph-tf-ref>` token filter after the  
-   :ref:`wordDelimiterGraph <wordDelimiterGraph-tf-ref>` token 
-   filter.
+   The following index definition indexes the ``message`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using a custom
+   analyzer called ``wordDelimiterGraphFlatten``. The custom analyzer
+   specifies the following: 
+   
+   a. Apply the :ref:`whitespace <whitespace-tokenizer-ref>` tokenizer
+      to create tokens based on occurrences of whitespace between words.
+   #. Apply the following filters to the tokens: 
+      
+      - :ref:`wordDelimiterGraph <wordDelimiterGraph-tf-ref>` token
+        filter to split tokens based on sub-words, generate tokens for
+        the original words, and also protect the word ``SIGN_IN`` from   
+        delimination. 
+      - :ref:`flattenGraph <flattenGraph-tf-ref>` token filter to
+        flatten the tokens to a flat form.
 
    .. code-block:: json
 
       {  
         "mappings": {
-          "dynamic": true,
           "fields": {
             "message": {
               "type": "string",
@@ -611,11 +762,21 @@ attributes:
 
    |fts| returns the document with ``_id: 3`` in the results for the 
    query term ``sign`` even though the document contains the 
-   hyphenated term ``sign-in`` in the ``title``. The 
+   hyphenated term ``sign-in`` in the ``title`` field. The 
    :ref:`wordDelimiterGraph <wordDelimiterGraph-tf-ref>` token 
    filter creates a token filter graph and the :ref:`flattenGraph 
    <flattenGraph-tf-ref>` token filter transforms the token filter 
-   graph into a flat form suitable for indexing.
+   graph into a flat form suitable for indexing. Specifically, |fts|
+   creates the following tokens (searchable terms) for the document in
+   the results, which it then matches to the query term ``sign``: 
+
+   .. list-table:: 
+
+      * - Document ID 
+        - Output Tokens 
+
+      * - ``_id: 3``
+        - ``try``, ``to``, ``sign-in``, ``sign``, ``in``
 
 .. _icufolding-tf-ref:
 
@@ -623,42 +784,55 @@ icuFolding
 ----------
 
 The ``icuFolding`` token filter applies character folding from `Unicode 
-Technical Report #30 <http://www.unicode.org/reports/tr30/tr30-4.html>`__. 
-It has the following attribute:
+Technical Report #30
+<http://www.unicode.org/reports/tr30/tr30-4.html>`__ such as accent
+removal, case folding, canonical duplicates folding, and many others
+detailed in the report. It has the following attribute:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``icuFolding``.
      - yes
-     -
 
 .. example::
 
-   The following index definition example uses a custom analyzer named
-   ``diacriticFolder``. It uses the :ref:`keyword tokenizer
-   <keyword-tokenizer-ref>` with the ``icuFolding`` token filter to 
-   apply foldings from `UTR#30 Character Foldings
-   <https://unicode.org/reports/tr30/>`__. Foldings include accent
-   removal, case folding, canonical duplicates folding, and many others
-   detailed in the report.
+   The following index definition indexes the ``text.sv_FI`` field in
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+   custom analyzer named ``diacriticFolder``. The custom analyzer
+   specifies the following:  
+   
+   a. Apply the :ref:`keyword tokenizer <keyword-tokenizer-ref>` to
+      tokenize all the terms in the string field as a single term. 
+   #. Use the ``icuFolding`` token filter to apply foldings such as
+      accent removal, case folding, canonical duplicates folding, and so  
+      on. 
 
    .. code-block:: json
 
       {
         "analyzer": "diacriticFolder",
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "text": {
+              "type": "document",
+              "fields": {
+                "sv_FI": {
+                  "analyzer": "diacriticFolder",
+                  "type": "string"
+                }
+              }
+            }
+          }
         },
         "analyzers": [
           {
@@ -675,6 +849,71 @@ It has the following attribute:
           }
         ]
       }
+
+   The following query uses the the :ref:`wildcard-ref` operator to
+   search the ``text.sv_FI`` field in the :ref:`minutes
+   <custom-analyzers-eg-coll>` collection for all terms that contain the
+   term ``avdelning``, preceded and followed by any number of other
+   characters.   
+
+   .. io-code-block::
+      :copyable: true
+   
+      .. input::
+         :language: json
+
+         db.minutes.aggregate([
+           {
+             $search: {
+               "index": "default",
+               "wildcard": {
+                  "query": "*avdelning*",
+                  "path": "text.sv_FI",
+                  "allowAnalyzedField": true
+               }
+             } 
+           },
+           {
+             $project: {
+               "_id": 1,
+               "text.sv_FI": 1
+             }
+           }
+         ])
+
+      .. output::
+         :language: json
+
+         [
+           {
+             _id: 1,
+             text: { sv_FI: 'Den här sidan behandlar avdelningsmöten' }
+           },
+           {
+             _id: 2,
+             text: { sv_FI: 'Först talade chefen för försäljningsavdelningen' }
+           }
+         ]
+
+   |fts| returns the document with ``_id: 1`` and ``_id: 2`` in the
+   results because the documents contain the query term ``avdelning``
+   followed by other characters in the document with ``_id: 1`` and
+   preceded and followed by other characters in the document with ``_id:
+   2``. Specifically, |fts| creates the following tokens for the
+   documents in the results, which it then matches to the query term
+   ``*avdelning*``.  
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens 
+
+      * - ``_id: 1``
+        - ``den har sidan behandlar avdelningsmoten``
+
+      * - ``_id: 2``
+        - ``forst talade chefen for forsaljningsavdelningen``
 
 .. _icunormalizer-tf-ref:
 
@@ -722,21 +961,31 @@ has the following attributes:
 
 .. example::
 
-   The following index definition example uses a custom analyzer named
-   ``normalizer``. It uses the :ref:`whitespace tokenizer
-   <whitespace-tokenizer-ref>`, then normalizes
-   tokens by Canonical Decomposition, followed by Canonical Composition.
+   The following index definition indexes the ``message`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using a custom
+   analyzer named ``textNormalizer``. The custom analyzer specifies
+   the following:  
+   
+   a. Use the :ref:`whitespace tokenizer <whitespace-tokenizer-ref>` to
+      create tokens based on occurrences of whitespace between words.
+   #. Use the ``icuNormalizer`` token filter to normalize tokens by
+      Compatibility Decomposition, followed by Canonical Composition.
 
    .. code-block:: json
 
       {
-        "analyzer": "normalizer",
+        "analyzer": "textNormalizer",
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "message": {
+              "type": "string",
+              "analyzer": "textNormalizer"
+            }
+          }
         },
         "analyzers": [
           {
-            "name": "normalizer",
+            "name": "textNormalizer",
             "charFilters": [],
             "tokenizer": {
               "type": "whitespace"
@@ -744,12 +993,80 @@ has the following attributes:
             "tokenFilters": [
               {
                 "type": "icuNormalizer",
-                "normalizationForm": "nfc"
+                "normalizationForm": "nfkc"
               }
             ]
           }
         ]
       }
+
+   The following query searches the ``message`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection for the term 
+   ``1``.
+
+   .. io-code-block::
+      :copyable: true
+   
+      .. input::
+         :language: json
+
+         db.minutes.aggregate([
+           {
+             $search: {
+               "index": "default",
+               "text": {
+                  "query": "1",
+                  "path": "message"
+               }
+             } 
+           },
+           {
+             $project: {
+               "_id": 1,
+               "message": 1
+             }
+           }
+         ])
+
+      .. output::
+         :language: json
+
+         [ { _id: 2, message: 'do not forget to SIGN-IN. See ① for details.' } ] 
+
+   |fts| returns the document with ``_id: 2`` in the results for the 
+   query term ``1`` even though the document contains the circled number
+   ``①`` in the ``message`` field because the ``icuNormalizer`` token 
+   filter creates the token ``1`` for this character using the ``nfkc``
+   normalization form. The following table shows the tokens (searchable
+   terms) that |fts| creates for the document in the results using the
+   ``nfkc`` normalization form and by comparison, the tokens it creates
+   for the other normalization forms.
+
+   .. list-table:: 
+
+      * - Normalization Forms 
+        - Output Tokens 
+        - Matches ``1``
+
+      * - ``nfd``
+        - ``do``, ``not``, ``forget``, ``to``, ``SIGN-IN.``, ``See``,
+          ``①``, ``for``, ``details.`` 
+        - X
+
+      * - ``nfc``
+        - ``do``, ``not``, ``forget``, ``to``, ``SIGN-IN.``, ``See``,
+          ``①``, ``for``, ``details.`` 
+        - X
+
+      * - ``nfkd``
+        - ``do``, ``not``, ``forget``, ``to``, ``SIGN-IN.``, ``See``,
+          ``1``, ``for``, ``details.`` 
+        - √
+
+      * - ``nfkc``
+        - ``do``, ``not``, ``forget``, ``to``, ``SIGN-IN.``, ``See``,
+          ``1``, ``for``, ``details.`` 
+        - √
 
 .. _kStemming-tf-ref:
 
@@ -762,29 +1079,36 @@ lowercase text and doesn't modify uppercase text. It has the following
 attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``kStemming``.
      - yes
-     - 
 
 .. example::
 
-   The following index definition example uses a custom analyzer named 
-   ``kStemmer``. After it applies the :ref:`standard 
-   <standard-tokenizer-ref>` tokenizer and the :ref:`lowercase 
-   <lowercase-tf-ref>` token filter, it applies the :ref:`kStemming 
-   <kStemming-tf-ref>` token filter.
+   The following index definition indexes the ``text.en_US`` field in
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+   custom analyzer named ``kStemmer``. The custom analyzer specifies the
+   following: 
+   
+   a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
+      create tokens based on word break rules.
+   #. Apply the following filters on the tokens: 
+      
+      - :ref:`lowercase <lowercase-tf-ref>` token filter to convert the
+        tokens to lowercase.  
+      - :ref:`kStemming <kStemming-tf-ref>` token filter to stem words
+        using a combination of algorithmic stemming and a built-in 
+        dictionary for the english language.
 
    .. code-block:: json
    
@@ -811,9 +1135,9 @@ attributes:
         ]
       }
 
-   The following query searches the ``text.en_US`` field in the 
+   The following query searches the ``text.en_US`` field in the
    :ref:`minutes <custom-analyzers-eg-coll>` collection for the term 
-   ``Meeting``.
+   ``Meeting``. 
 
    .. io-code-block::
       :copyable: true
@@ -851,11 +1175,19 @@ attributes:
            }
          ]
 
-   |fts| returns the document with ``_id: 1`` because the 
-   :ref:`lowercase <lowercase-tf-ref>` token filter normalizes token 
-   text to lowercase. The :ref:`kStemming <kStemming-tf-ref>` token 
-   filter lets |fts| match the plural ``meetings`` in the 
-   ``text.en_US`` field of the document to the singular query term.
+   |fts| returns the document with ``_id: 1``, which contains the plural
+   term ``meetings`` in lowercase. |fts| matches the query term to the
+   document because the :ref:`lowercase <lowercase-tf-ref>` token filter
+   normalizes token text to lowercase and the :ref:`kStemming
+   <kStemming-tf-ref>` token  filter lets |fts| match the plural
+   ``meetings`` in the ``text.en_US`` field of the document to the
+   singular query term. |fts| also analyzes the query term using the
+   index analyzer (or if specified, using the ``searchAnalyzer``).
+   Specifically, |fts| creates the following tokens (searchable terms)
+   for the document in the results, which it then uses to match to the
+   query term: 
+
+   ``head``, ``this``, ``page``, ``deal``, ``with``, ``department``, ``meeting``, ``head``
 
 .. _length-tf-ref:
 
@@ -900,17 +1232,36 @@ long. It has the following attributes:
 
 .. example::
 
-   The following index definition example uses a custom analyzer named
-   ``longOnly``. It uses the ``length`` token filter to index only 
-   tokens that are at least 20 UTF-16 code units long after tokenizing 
-   with the :ref:`standard tokenizer <standard-tokenizer-ref>`.
+   The following index definition indexes the ``text.sv_FI`` field in
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+   custom analyzer named ``longOnly``. The custom analyzer specifies the
+   following:  
+   
+   a. Use the :ref:`standard tokenizer <standard-tokenizer-ref>` to
+      create tokens based on word break rules. 
+   #. Apply the following filters on the tokens:  
+      
+      - :ref:`icufolding-tf-ref` token filter to apply character
+        foldings. 
+      - ``length`` token filter to index only tokens that are at
+        least 20 UTF-16 code units long after tokenizing. 
 
    .. code-block:: json
 
       {
-        "analyzer": "longOnly",
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "text": {
+              "type": "document",
+              "dynamic": true,
+              "fields": {
+                "sv_FI": {
+                  "type": "string",
+                  "analyzer": "longOnly"
+                }
+              }
+            }
+          }
         },
         "analyzers": [
           {
@@ -921,6 +1272,9 @@ long. It has the following attributes:
             },
             "tokenFilters": [
               {
+                "type": "icuFolding"
+              },
+              {
                 "type": "length",
                 "min": 20
               }
@@ -928,6 +1282,64 @@ long. It has the following attributes:
           }
         ]
       }
+
+   The following query searches the ``text.sv_FI`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection for the term  
+   ``forsaljningsavdelningen``.
+
+   .. io-code-block::
+      :copyable: true
+   
+      .. input::
+         :language: json
+
+         db.minutes.aggregate([
+           {
+             $search: {
+               "index": "default",
+               "text": {
+                 "query": "forsaljningsavdelningen",
+                 "path": "text.sv_FI"
+               }
+             } 
+           },
+           {
+             $project: {
+               "_id": 1,
+               "text.sv_FI": 1
+             }
+           }
+         ])
+
+      .. output::
+         :language: json
+
+         [
+           {
+             _id: 2,
+             text: {
+               sv_FI: 'Först talade chefen för försäljningsavdelningen'
+             }
+           }
+         ]
+
+   |fts| returns the document with ``_id: 2``, which contains the term
+   ``försäljningsavdelningen``. |fts| matches the document to the query
+   term because the term has more than 20 characters. Additionally,
+   although the query term ``forsaljningsavdelningen`` doesn't include
+   the diacritic characters, |fts| matches the query term to the
+   document by folding the diacritics in the original term in the
+   document. Specifically, |fts| creates the following tokens
+   (searchable terms) for the document with ``_id: 2``.    
+   
+   .. code-block:: shell 
+      :copyable: false 
+
+      forsaljningsavdelningen
+
+   |fts| won't return any results for a search for any other term in the
+   ``text.sv_FI`` field in the collection because all other terms in the
+   field have less than 20 characters. 
 
 .. _lowercase-tf-ref:
 
@@ -938,44 +1350,58 @@ The ``lowercase`` token filter normalizes token text to lowercase. It
 has the following attribute:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``lowercase``.
      - yes
-     -
 
 .. example::
          
-   The following index definition example uses a custom analyzer named 
-   ``lowercaser``. It uses the :ref:`standard tokenizer 
-   <standard-tokenizer-ref>` with the ``lowercase`` token filter to 
-   lowercase all tokens.
+   The following index definition indexes the ``message`` field in the 
+   :ref:`minutes  <custom-analyzers-eg-coll>` collection using a custom 
+   analyzer named ``lowerCaser``. The custom analyzer specifies the 
+   following: 
+   
+   a. Apply :ref:`standard-tokenizer-ref` tokenizer to create tokens 
+      based on word break rules.  
+   #. Apply the following filters on the tokens: 
+      
+      - :ref:`icunormalizer-tf-ref` to normalize the tokens using a 
+        standard Unicode Normalization Mode. 
+      - ``lowercase`` token filter to convert token text to lowercase.
 
    .. code-block:: json
 
       {
-        "analyzer": "lowercaser",
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "message": {
+              "type": "string",
+              "analyzer": "lowerCaser"
+            }
+          }
         },
         "analyzers": [
           {
-            "name": "lowercaser",
+            "name": "lowerCaser",
             "charFilters": [],
             "tokenizer": {
               "type": "standard"
             },
             "tokenFilters": [
+              {
+                "type": "icuNormalizer",
+                "normalizationForm": "nfkd"
+              },
               {
                 "type": "lowercase"
               }
@@ -984,10 +1410,66 @@ has the following attribute:
         ]
       }
 
-   .. seealso:: 
+   The following query searches the ``message`` field for the term
+   ``sign-in``. 
+
+   .. io-code-block::
+      :copyable: true
    
-      The :ref:`regex-tf-ref` token filter for a sample index 
-      definition and query. 
+      .. input::
+         :language: json
+
+         db.minutes.aggregate([
+           {
+             "$search": {
+               "index": "default",
+               "text": {
+                 "query": "sign-in",
+                 "path": "message"
+               }
+             } 
+           },
+           {
+             "$project": {
+               "_id": 1,
+               "message": 1
+             }
+           }
+         ])
+
+      .. output::
+         :language: json
+
+         [
+           { _id: 1, message: 'try to siGn-In' },
+           { _id: 3, message: 'try to sign-in' },
+           { _id: 2, message: 'do not forget to SIGN-IN. See ① for details.' }
+         ]
+
+   |fts| returns the documents with ``_id: 1``, ``_id: 3``, and ``_id: 
+   2`` in the results for the query term ``sign-in`` because the
+   ``icuNormalizer`` tokenizer first creates separate tokens by
+   splitting the text, including the hyphenated word, but retains the
+   original letter case in the document and then the ``lowercase`` token 
+   filter converts the tokens to lowercase. |fts| also analyzes the
+   query term using the index analyzer (or if specified, using the 
+   ``searchAnalyzer``) to split the query term and match it to the
+   document. 
+
+   .. list-table:: 
+
+      * - Normalization Forms 
+        - Output Tokens 
+
+      * - ``_id: 1``
+        - ``try``, ``to``, ``sign``, ``in``
+
+      * - ``_id: 3``
+        - ``try``, ``to``, ``sign``, ``in``
+
+      * - ``_id: 2``
+        - ``do``, ``not``, ``forget``, ``to``, ``sign``, ``in``,
+          ``see``, ``for``, ``details``
 
 .. _ngram-tf-ref:
 
@@ -1049,58 +1531,119 @@ following attributes:
 
 .. example::
 
-   The following index definition example uses a custom analyzer named
-   ``persianAutocomplete``. It functions as an autocomplete analyzer for
-   Persian and other languages that use the zero-width non-joiner
-   character. It performs the following operations:
+   The following index definition indexes the ``title`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using the custom  
+   analyzer named ``titleAutocomplete``. The custom analyzer function 
+   specifies the following:
    
-   - Normalizes zero-width non-joiner characters with the :ref:`persian
-     character filter <persian-ref>`. 
-   - Tokenizes by whitespace with the :ref:`whitespace tokenizer
-     <whitespace-tokenizer-ref>`.
-   - Applies a series of token filters: 
+   a. Apply the :ref:`standard  <standard-tokenizer-ref>` tokenizer to
+      create tokens based on the work break rules. 
+   #. Apply a series of token filters on the tokens: 
    
-     - ``icuNormalizer``
-     - ``shingle``
-     - ``nGram``
+      - ``englishPossessive`` to remove possessives (trailing ``'s``)
+        from words. 
+      - ``nGram`` to tokenize words into 4 to 7 characters in length. 
 
    .. code-block:: json
 
       {
-        "analyzer": "persianAutocomplete",
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "title": {
+              "type": "string",
+              "analyzer": "titleAutocomplete"
+            }
+          }
         },
         "analyzers": [
           {
-            "name": "persianAutocomplete",
-            "charFilters": [
-              {
-                "type": "persian"
-              }
-            ],
+            "name": "titleAutocomplete",
+            "charFilters": [],
             "tokenizer": {
-              "type": "whitespace"
+              "type": "standard"
             },
             "tokenFilters": [
               {
-                "type": "icuNormalizer",
-                "normalizationForm": "nfc"
-              },
-              {
-                "type": "shingle",
-                "minShingleSize": 2,
-                "maxShingleSize": 3
+                "type": "englishPossessive"
               },
               {
                 "type": "nGram",
-                "minGram": 1,
-                "maxGram": 10
+                "minGram": 4,
+                "maxGram": 7
               }
             ]
           }
         ]
       }
+
+   The following query uses the :ref:`wildcard-ref` operator to search 
+   the ``title`` field in the :ref:`minutes <custom-analyzers-eg-coll>`
+   collection for the term ``meet`` followed by any number of other
+   characters after the term.  
+
+   .. io-code-block::
+      :copyable: true
+   
+      .. input::
+         :language: json
+
+         db.minutes.aggregate([
+           {
+             "$search": {
+               "index": "default",
+               "wildcard": {
+                 "query": "meet*",
+                 "path": "title",
+                 "allowAnalyzedField": true
+               }
+             } 
+           },
+           {
+             "$project": {
+               "_id": 1,
+               "title": 1
+             }
+           }
+         ])
+
+      .. output::
+         :language: json
+
+         [
+           { _id: 1, title: 'The team's weekly meeting' },
+           { _id: 3, title: 'The regular board meeting' }
+         ]
+
+   |fts| returns the documents with ``_id: 1`` and ``_id: 3`` because
+   the documents contain the term ``meeting``, which |fts| matches to
+   the query criteria ``meet*`` by creating the following tokens (searchable terms).
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Normalization Forms 
+        - Output Tokens 
+
+      * - ``_id: 2``
+        - ``team``, ``week``, ``weekl``, ``weekly``, ``eekl``,
+          ``eekly``, ``ekly``, ``meet``, ``meeti``, ``meetin``,
+          ``meeting``, ``eeti``, ``eeti``, ``eeting``, ``etin``,
+          ``eting``, ``ting``
+
+      * - ``_id: 3``
+        - ``regu``, ``regul``, ``regula``, ``regular``, ``egul``,
+          ``egula``, ``egular``, ``gula``, ``gular``, ``ular``,
+          ``boar``, ``board``, ``oard``, ``meet``, ``meeti``, ``meetin``,
+          ``meeting``, ``eeti``, ``eeti``, ``eeting``, ``etin``,
+          ``eting``, ``ting``
+
+   .. note:: 
+
+      |fts| doesn't create tokens for terms less than 4 characters (such
+      as ``the``) and greater than 7 characters because the
+      ``termNotInBounds`` parameter is set to ``omit`` by default. If
+      you set the value for ``termNotInBounds`` parameter to
+      ``include``, |fts| would create tokens for the term ``the`` also.
 
 .. _porterStemming-tf-ref:
 
@@ -1131,18 +1674,31 @@ expected for uppercase text. It has the following attributes:
 
 .. example::
 
-   The following index definition example uses a custom analyzer named 
-   ``porterStemmer``. After it applies the :ref:`standard 
-   <standard-tokenizer-ref>` tokenizer and the :ref:`lowercase 
-   <lowercase-tf-ref>` token filter, it applies the 
-   :ref:`porterStemming <porterStemming-tf-ref>` token filter.
+   The following index definition indexes the ``title`` field in the 
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using a custom
+   analyzer named ``porterStemmer``. The custom analyzer specifies the
+   following: 
+   
+   a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
+      create tokens based on word break rules. 
+   #. Apply the following token filters on the tokens: 
+     
+      - :ref:`lowercase <lowercase-tf-ref>` token filter to convert the
+        words to lowercase.  
+      - :ref:`porterStemming <porterStemming-tf-ref>` token filter to
+        remove the common morphological and inflectional suffixes from
+        the words. 
 
    .. code-block:: json
 
       {  
-        "analyzer": "porterStemmer", 
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "title": {
+              "type": "string",
+              "analyzer": "porterStemmer"
+            }
+          }
         },
         "analyzers": [
          {
@@ -1163,8 +1719,8 @@ expected for uppercase text. It has the following attributes:
      }
 
    The following query searches the ``title`` field in the 
-   :ref:`minutes <custom-analyzers-eg-coll>` collection for the term 
-   ``Meet``.
+   :ref:`minutes <custom-analyzers-eg-coll>` collection for the term
+   ``Meet``. 
 
    .. io-code-block::
       :copyable: true
@@ -1196,7 +1752,7 @@ expected for uppercase text. It has the following attributes:
          [
            {
              _id: 1,
-             title: "The team's weekly meeting"
+             title: 'The team's weekly meeting'
            },
            {
              _id: 3,
@@ -1204,11 +1760,26 @@ expected for uppercase text. It has the following attributes:
            }
          ]
 
-   |fts| returns the documents with ``_id: 1`` and ``_id: 2`` because 
+   |fts| returns the documents with ``_id: 1`` and ``_id: 3`` because 
    the :ref:`lowercase <lowercase-tf-ref>` token filter normalizes 
-   token text to lowercase. The :ref:`porterStemming 
-   <porterStemming-tf-ref>` token filter lets |fts| match ``meeting`` 
-   in the ``title`` field of the documents to the ``meet`` token.
+   token text to lowercase and then the ``porterStemming`` token filter
+   stems the morphological suffix from the ``meeting`` token to create
+   the ``meet`` token, which |fts| matches to the query term ``Meet``.
+   Specifically, |fts| creates the following tokens (searchable terms)
+   for the documents in the results, which it then matches to the query
+   term ``Meet``:  
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Normalization Forms 
+        - Output Tokens 
+
+      * - ``_id: 1``
+        - ``the``, ``team'``, ``weekli``, ``meet``
+
+      * - ``_id: 3``
+        - ``the``, ``regular``, ``board``, ``meet``
 
 .. _regex-tf-ref:
 
@@ -1220,34 +1791,30 @@ replacing matches with a specified string. It has the following
 attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter.
        Value must be ``regex``.
      - yes
-     -
 
    * - ``pattern``
      - string
      - Regular expression pattern to apply to each token.
      - yes
-     - 
 
    * - ``replacement``
      - string
      - Replacement string to substitute wherever a matching pattern
        occurs.
      - yes
-     - 
 
    * - ``matches``
      - string
@@ -1259,19 +1826,24 @@ attributes:
        If ``matches`` is set to ``all``, replace all matching patterns.
        Otherwise, replace only the first matching pattern.
 
-     - yes
-     -
+     - yes 
 
 .. example::
 
-   The following index definition uses a custom analyzer named 
-   ``emailRedact`` for indexing the ``page_updated_by.email`` 
-   field in the ``minutes`` collection. It uses the 
-   :ref:`standard tokenizer <standard-tokenizer-ref>`. It first 
-   applies the lowercase token filter to turn uppercase 
-   characters in the field to lowercase and then finds strings 
-   that look like email addresses and replaces them with the word 
-   ``redacted``.
+   The following index definition indexes the ``page_updated_by.email`` 
+   field in the :ref:`minutes <custom-analyzers-eg-coll>` collection
+   using a custom analyzer named ``emailRedact``. The custom analyzer
+   specifies the following: 
+
+   a. Apply the :ref:`keyword tokenizer <keyword-tokenizer-ref>` to
+      index all words in the field value as a single term. 
+   #. Apply the following token filters on the tokens:
+     
+      - :ref:`lowercase-tf-ref` token filter to turn uppercase 
+        characters in the tokens to lowercase.
+      - ``regex`` token filter to find strings that look like email
+        addresses in the tokens and replace them with the word
+        ``redacted``. 
 
    .. code-block:: json
  
@@ -1296,7 +1868,7 @@ attributes:
            "charFilters": [],
            "name": "emailRedact",
            "tokenizer": {
-             "type": "standard"
+             "type": "keyword"
            },
            "tokenFilters": [
              {
@@ -1313,28 +1885,39 @@ attributes:
        ]
      }
 
-   The following query searches for the term ``example`` in the 
-   ``page_updated_by.email`` field of the ``minutes`` collection. 
+   The following query searches the ``page_updated_by.email`` field
+   in the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
+   :ref:`wildcard-ref` operator for the term ``example.com`` preceded by
+   any number of other characters.   
 
-   .. code-block:: 
+   .. code-block:: json
+      :copyable: true 
+      :linenos:
 
-     db.minutes.aggregate([
-       {
-         $search: {
-           "index": "default",
-           "text": {
-             "query": "example",
-             "path": "page_updated_by.email"
-           }
-         }
-       }
-     ])
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "index": "default",
+            "wildcard": {
+              "query": "*example.com",
+              "path": "page_updated_by.email",
+              "allowAnalyzedField": true
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "page_updated_by.email": 1
+          }
+        } 
+      ])
 
-   |fts| doesn't return any results for the query because the 
-   ``page_updated_by.email`` field doesn't contain any instances 
-   of the word ``example`` that aren't in an email address. 
-   |fts| replaces strings that match the regular expression 
-   provided in the custom analyzer with the word ``redacted``.
+   |fts| doesn't return any results for the query although the 
+   ``page_updated_by.email`` field contains the word ``example.com`` in
+   the email addresses. |fts| tokenizes strings that match the regular
+   expression provided in the custom analyzer with the word ``redacted``
+   and so, |fts| doesn't match the query term to any document.  
 
 .. _reverse-tf-ref:
 
@@ -1363,14 +1946,14 @@ following attribute:
 
 .. example:: 
 
-   The following index definition example for the :ref:`minutes 
-   <custom-analyzers-eg-coll>` collection uses a custom analyzer named 
-   ``keywordReverse``. It performs the following operations:
+   The following index definition indexes the ``page_updated_by.email``
+   fields in the :ref:`minutes <custom-analyzers-eg-coll>` collection
+   using a custom analyzer named ``keywordReverse``. The custom analyzer
+   specifies the following:
 
-   - Uses :ref:`dynamic mapping <static-dynamic-mappings>` 
-   - Tokenizes with the :ref:`keyword tokenizer 
-     <keyword-tokenizer-ref>`
-   - Applies the ``reverse`` token filter to tokens
+   - Apply the :ref:`keyword tokenizer <keyword-tokenizer-ref>` to
+     tokenize entire strings as single terms.
+   - Apply the ``reverse`` token filter to reverse the string tokens.
 
    .. code-block:: json
       :emphasize-lines: 14-16
@@ -1397,10 +1980,10 @@ following attribute:
       }
 
    The following query searches the ``page_updated_by.email`` field in 
-   the ``minutes`` collection using the :ref:`wildcard-ref` operator to 
-   match any characters preceding the characters ``@example.com`` in 
-   reverse order. The ``reverse`` token filter can speed up leading 
-   wildcard queries.
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
+   :ref:`wildcard-ref` operator to match any characters preceding the
+   characters ``@example.com`` in reverse order. The ``reverse`` token
+   filter can speed up leading wildcard queries.
 
    .. code-block:: json 
 
@@ -1444,6 +2027,28 @@ following attribute:
         { _id: 4, page_updated_by: { email: 'levinski@example.com' } }
       ]
 
+   Specifically, |fts| creates the following tokens (searchable terms)
+   for the documents in the results, which it then matches to the query
+   term ``moc.elpmaxe@*``: 
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Normalization Forms 
+        - Output Tokens 
+
+      * - ``_id: 1``
+        - ``moc.elpmaxe@hcabreua``
+
+      * - ``_id: 2``
+        - ``moc.elpmaxe@kcabrho``
+
+      * - ``_id: 3``
+        - ``moc.elpmaxe@yksniwel``
+
+      * - ``_id: 4``
+        - ``moc.elpmaxe@iksnivel``
+
 .. _shingle-tf-ref:
 
 shingle
@@ -1456,43 +2061,40 @@ series of tokens. You can't use the ``shingle`` token filter in
 following attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``shingle``.
      - yes
-     -
 
    * - ``minShingleSize``
      - integer
      - Minimum number of tokens per shingle. Must be less than or equal
        to ``maxShingleSize``.
      - yes
-     -
 
    * - ``maxShingleSize``
      - integer
      - Maximum number of tokens per shingle. Must be greater than or 
        equal to ``minShingleSize``.
      - yes
-     -
 
 .. example::
 
-   The following index definition example uses two custom 
-   analyzers, ``emailAutocompleteIndex`` and 
-   ``emailAutocompleteSearch``, to implement autocomplete-like 
-   functionality. |fts| uses the ``emailAutocompleteIndex`` 
-   analyzer during index creation to:
+   The following index definition example on the
+   ``page_updated_by.email`` field in the :ref:`minutes
+   <custom-analyzers-eg-coll>` collection uses two custom analyzers,
+   ``emailAutocompleteIndex`` and ``emailAutocompleteSearch``, to
+   implement autocomplete-like functionality. |fts| uses the
+   ``emailAutocompleteIndex`` analyzer during index creation to:
     
    - Replace ``@`` characters in a field with ``AT``
    - Create tokens with the :ref:`whitespace 
@@ -1508,107 +2110,125 @@ following attributes:
      <whitespace-tokenizer-ref>` tokenizer
     
    .. code-block:: json
+      :copyable: true 
+      :linenos:
       :emphasize-lines: 34-38
 
       {
-       "analyzer": "lucene.keyword",
-       "mappings": {
-         "dynamic": true,
-         "fields": {
-           "page_updated_by": {
-             "type": "document",
-             "fields": {
-               "email": {
-                 "type": "string",
-                 "analyzer": "emailAutocompleteIndex",
-                 "searchAnalyzer": "emailAutocompleteSearch",
-               }
-             }
-           }
-         }
-       },
-       "analyzers": [
-         {
-           "name": "emailAutocompleteIndex",
-           "charFilters": [
-             {
-               "mappings": {
-                 "@": "AT"
-               },
-               "type": "mapping"
-             }
-           ],
-           "tokenizer": {
-             "maxTokenLength": 15,
-             "type": "whitespace"
-           },
-           "tokenFilters": [
-             {
-               "maxShingleSize": 3,
-               "minShingleSize": 2,
-               "type": "shingle"
-             },
-             {
-               "maxGram": 15,
-               "minGram": 2,
-               "type": "edgeGram"
-             }
-           ]
-         },
-         {
-           "name": "emailAutocompleteSearch",
-           "charFilters": [
-             {
-               "mappings": {
-                 "@": "AT"
-               },
-               "type": "mapping"
-             }
-           ],
-           "tokenizer": {
-             "maxTokenLength": 15,
-             "type": "whitespace"
-           }
-         }
-       ]
-     }
-
-   The following query searches for an email address in the 
-   ``page_updated_by.email`` field of the ``minutes`` collection:
-
-   .. code-block:: json 
-
-      db.minutes.aggregate([
-        {
-          $search: {
-            "index": "default",
-            "text": {
-              "query": "auerbach@ex",
-               "path": "page_updated_by.email"
+        "analyzer": "lucene.keyword",
+        "mappings": {
+          "dynamic": true,
+          "fields": {
+            "page_updated_by": {
+              "type": "document",
+              "fields": {
+                "email": {
+                  "type": "string",
+                  "analyzer": "emailAutocompleteIndex",
+                  "searchAnalyzer": "emailAutocompleteSearch"
+                }
+              }
             }
           }
-        }
-      ])
-
-   The query returns the following results:
-
-   .. code-block:: json 
-      :copyable: false 
-
-      {  
-        "_id" : 1, 
-        "page_updated_by" : { 
-          "last_name" : "AUERBACH", 
-          "first_name" : "Siân", 
-          "email" : "auerbach@example.com", 
-          "phone" : "123-456-7890" 
-        }, 
-        "title": "The team's weekly meeting",
-        "message": "try to siGn-In",
-        "text": {
-          "en_US": "<head> This page deals with department meetings. </head>"
-        }
+        },
+        "analyzers": [
+          {
+            "name": "emailAutocompleteIndex",
+            "charFilters": [
+              {
+                "mappings": {
+                  "@": "AT"
+                },
+                "type": "mapping"
+              }
+            ],
+            "tokenizer": {
+              "maxTokenLength": 15,
+              "type": "whitespace"
+            },
+            "tokenFilters": [
+              {
+                "maxShingleSize": 3,
+                "minShingleSize": 2,
+                "type": "shingle"
+              },
+              {
+                "maxGram": 15,
+                "minGram": 2,
+                "type": "edgeGram"
+              }
+            ]
+          },
+          {
+            "name": "emailAutocompleteSearch",
+            "charFilters": [
+              {
+                "mappings": {
+                  "@": "AT"
+                },
+                "type": "mapping"
+              }
+            ],
+            "tokenizer": {
+              "maxTokenLength": 15,
+              "type": "whitespace"
+            }
+          }
+        ]
       }
+
+   The following query searches for an email address in the 
+   ``page_updated_by.email`` field of the :ref:`minutes
+   <custom-analyzers-eg-coll>` collection: 
+
+   .. io-code-block:: 
+      :copyable: true
+    
+      .. input:: 
+         :language: json 
+
+
+         db.minutes.aggregate([
+           {
+             "$search": {
+               "index": "default",
+               "text": {
+                 "query": "auerbach@ex",
+                  "path": "page_updated_by.email"
+               }
+             }
+           },
+           {
+             "$project": {
+               "_id": 1,
+               "page_updated_by.email": 1
+             }
+           }
+         ])
+
+      .. output:: 
+         :language: json 
+
+         [ { _id: 1, page_updated_by: { email: 'auerbach@example.com' } } ]
+
+   |fts| creates search tokens using the ``emailAutocompleteSearch``
+   analyzer, which it then matches to the index tokens that it created
+   using the ``emailAutocompleteIndex`` analyzer. The following table
+   shows the search and index tokens (up to 15 characters) that |fts|
+   creates:  
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Search Tokens 
+        - Index Tokens 
+
+      * - ``auerbachATexamp``
+        - ``au``, ``aue``, ``auer``, ``auerb``, ``auerba``,
+          ``auerbac``, ``auerbach``, ``auerbachA``, ``auerbachAT``,
+          ``auerbachATe``, ``auerbachATex``, ``auerbachATexa``,
+          ``auerbachATexam``, ``auerbachATexamp``
+
 
 .. _snowballstemming-tf-ref:
 
@@ -1620,21 +2240,19 @@ The ``snowballStemming`` token filters Stems tokens using a
 following attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``snowballStemming``.
      - yes
-     -
 
    * - ``stemmerName``
      - string
@@ -1670,21 +2288,38 @@ following attributes:
        - ``swedish``
        - ``turkish``
      - yes
-     -
 
 .. example::
 
-   The following example index definition uses a custom analyzer named
-   ``frenchStemmer``. It uses the ``lowercase`` token filter and the
-   :ref:`standard tokenizer <standard-tokenizer-ref>`, followed
-   by the ``french`` variant of the ``snowballStemming`` token filter.
+   The following index definition indexes the ``text.fr_CA`` field in
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using
+   a custom analyzer named ``frenchStemmer``. The custom analyzer
+   specifies the following:
+   
+   a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
+      create tokens based on word break rules.
+   #. Apply the following token filters on the tokens:
+    
+      - :ref:`lowercase-tf-ref` token filter to convert the tokens to
+        lowercase. 
+      - ``french`` variant of the ``snowballStemming`` token filter to
+        stem words.
 
    .. code-block:: json
 
       {
-        "analyzer": "frenchStemmer", 
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "text": {
+              "type": "document",
+              "fields": {
+                "fr_CA": {
+                  "type": "string",
+                  "analyzer": "frenchStemmer"
+                }
+              }
+            }
+          }
         },
         "analyzers": [
           {
@@ -1706,6 +2341,57 @@ following attributes:
         ]
       }
 
+   The following query searches the ``text.fr_CA`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection for the term
+   ``réunion``. 
+
+   .. io-code-block::
+      :copyable: true
+   
+      .. input:: 
+         :language:  json
+
+         db.minutes.aggregate([
+           {
+             "$search": {
+               "text": {
+                 "query": "réunion",
+                 "path": "text.fr_CA"
+               }
+             }
+           },
+           {
+             "$project": {
+               "_id": 1,
+               "text.fr_CA": 1
+             }
+           }
+         ])
+   
+      .. output:: 
+         :language:  json
+         
+         [
+           {
+             _id: 1,
+             text: { fr_CA: 'Cette page traite des réunions de département' }
+           }
+         ]
+
+   |fts| returns document with ``_id: 1``  in the results. |fts| matches
+   the query term to the document because it creates the following
+   tokens for the document, which it then used to match to the query
+   term ``réunion``: 
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens 
+
+      * - ``_id: 1``
+        - ``cet``, ``pag``, ``trait``, ``de``, ``réunion``, ``de``, ``départ``
+
 .. _spanishPluralStemming-tf-ref:
 
 spanishPluralStemming
@@ -1715,30 +2401,35 @@ The ``spanishPluralStemming`` token filter stems spanish plural words.
 It expects lowercase text. It has the following attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``spanishPluralStemming``.
      - yes
-     - 
 
 .. example::
 
-   The following index definition specifies that |fts| dynamically 
-   index all fields in the ``minutes`` collection with the ``standard`` 
-   analyzer. The index definition example specifies a custom analyzer 
-   named ``spanishPluralStemmer`` for the ``text.es_MX`` field. The custom 
-   analyzer specifies that |fts| convert spanish terms to lowercase
-   and tokenize plural spanish words into their singular form.
+   The following index definition indexes the ``text.es_MX`` field in
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+   custom analyzer named ``spanishPluralStemmer``. The custom analyzer
+   specifies the following: 
+   
+   a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
+      create tokens based on word break rules. 
+   #. Apply the following token filters on the tokens:
+
+      - :ref:`lowercase-tf-ref` token filter to convert spanish terms to
+        lowercase.
+      - ``spanishPluralStemming`` token filter to stem plural spanish
+        words in the tokens into their singular form. 
 
    .. code-block:: json
 
@@ -1817,43 +2508,59 @@ It expects lowercase text. It has the following attributes:
    ``text.es_MX`` field in the document contains the plural term 
    ``puntos``. |fts| matches this document for the query term ``punto`` 
    because |fts| analyzes ``puntos`` as ``punto`` by stemming the 
-   plural (``s``) from the term.
+   plural (``s``) from the term. Specifically, |fts| creates the
+   following tokens (searchable terms) for the document in the results,
+   which it then uses to match to the query term:
+
+   .. list-table:: 
+
+      * - Document ID 
+        - Output Tokens 
+
+      * - ``_id: 4``
+        - ``la``, ``pagina``, ``ha``, ``sido``, ``actualizada``,
+          ``con``, ``los``, ``punto``, ``de``, ``la``, ``agenda``
 
 .. _stempel-tf-ref:
 
 stempel
 -------
 
-The ``stempel`` token filter uses Lucene's 
-`default Polish stemmer table 
-<https://lucene.apache.org/core/9_2_0/analysis/stempel/org/apache/lucene/analysis/pl/PolishAnalyzer.html#DEFAULT_STEMMER_FILE>`__ to stem 
-words in the Polish language. It expects lowercase text. It has the 
-following attributes:
+The ``stempel`` token filter uses Lucene's `default Polish stemmer table  
+<https://lucene.apache.org/core/9_2_0/analysis/stempel/org/apache/lucene/analysis/pl/PolishAnalyzer.html#DEFAULT_STEMMER_FILE>`__ 
+to stem words in the Polish language. It expects lowercase text. It has
+the following attributes:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``stempel``.
      - yes
-     - 
 
 .. example::
 
-   The following index definition example uses a custom analyzer named 
-   ``stempelStemmer``. After it applies the :ref:`standard 
-   <standard-tokenizer-ref>` tokenizer and the :ref:`lowercase 
-   <lowercase-tf-ref>` token filter, it applies the :ref:`stempel 
-   <stempel-tf-ref>` token filter to the ``text.pl_PL`` field. 
+   The following index definition indexes the ``text.pl_PL`` field in
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+   custom analyzer named ``stempelStemmer``. The custom analyzer
+   specifies the following:
+   
+   a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
+      create tokens based on word break rules.
+   #. Apply the following filters on the tokens:
+     
+      - :ref:`lowercase <lowercase-tf-ref>` token filter to convert the
+        words to lowercase.
+      - :ref:`stempel <stempel-tf-ref>` token filter to stem the Polish
+        words.  
 
    .. code-block:: json
 
@@ -1932,7 +2639,20 @@ following attributes:
    ``text.pl_PL`` field in the document contains the plural term 
    ``punkty``. |fts| matches this document for the query term ``punkt`` 
    because |fts| analyzes ``punkty`` as ``punkt`` by stemming the 
-   plural (``y``) from the term.
+   plural (``y``) from the term. Specifically, |fts| creates the
+   following tokens (searchable terms) for the document in the results,
+   which it then matches to the query term: 
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens 
+
+      * - ``_id: 4``
+        - ``strona``, ``zostać``, ``zaktualizować``, ``o``, ``punkt``,
+          ``porządek``, ``obrada`` 
+
 
 .. _stopword-tf-ref:
 
@@ -1986,19 +2706,33 @@ stop words. It has the following attributes:
 
 .. example:: 
 
-   The following index definition example uses a custom analyzer named
-   It uses the ``stopword`` token filter after the 
-   :ref:`whitespace tokenizer <whitespace-tokenizer-ref>` to remove 
-   the tokens that match the defined stop words ``is``, ``the``, and 
-   ``at``. The token filter is case-insensitive and will remove all 
-   tokens that match the specified stop words.
+   The following index definition indexes the ``title`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using a custom
+   analyzer named ``stopwordRemover``. The custom analyzer specifies the
+   following: 
+
+   a. Apply the :ref:`whitespace tokenizer <whitespace-tokenizer-ref>`
+      to create tokens based on occurrences of whitespace between words.
+   #. Apply the ``stopword`` token filter to remove the tokens that
+      match the defined stop words ``is``, ``the``, and ``at``. The
+      token filter is case-insensitive and will remove all tokens that
+      match the specified stopwords. 
 
    .. code-block:: json
 
       {  
-        "analyzer": "tokenTrimmer", 
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "text": {
+              "type" : "document",
+              "fields": {
+                "en_US": {
+                  "type": "string",
+                  "analyzer": "stopwordRemover"
+                }
+              }
+            }
+          }
         },
         "analyzers": [
           {
@@ -2017,6 +2751,64 @@ stop words. It has the following attributes:
         ]
       }
 
+   The following query searches for the phrase ``head of the sales``
+   in the ``text.en_US`` field in the :ref:`minutes
+   <custom-analyzers-eg-coll>` collection.  
+
+   .. io-code-block::
+      :copyable: true
+   
+      .. input:: 
+         :language: json
+         :linenos: 
+
+         db.minutes.aggregate([
+           {
+             "$search": {
+               "phrase": {
+                 "query": "head of the sales",
+                 "path": "text.en_US"
+               }
+             }
+           },
+           {
+             "$project": {
+               "_id": 1,
+               "text.en_US": 1
+             }
+           }
+         ])
+   
+      .. output::
+         :language: json
+         :linenos: 
+
+         [
+           {
+             _id: 2,
+             text: { en_US: 'The head of the sales department spoke first.' }
+           }
+         ]
+   
+   |fts| returns the document with ``_id: 2`` because the ``en_US`` field
+   contains the query term. |fts| doesn't create tokens for the stopword
+   ``the`` in the document during analysis, but is still able to match
+   it to the query term because for ``string`` fields, it also analyzes
+   the query term using the index analyzer (or if specified, using the
+   ``searchAnalyzer``) and removes the stopword from the query term,
+   which allows |fts| to match the query term to the document.
+   Specifically, |fts| creates the following tokens for the document in
+   the results: 
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens 
+
+      * - ``_id: 2``
+        - ``head``, ``of``, ``sales``, ``department``, ``spoke``, ``first.``
+
 .. _trim-tf-ref:
 
 trim
@@ -2026,41 +2818,57 @@ The ``trim`` token filter trims leading and trailing whitespace from
 tokens. It has the following attribute:
 
 .. list-table::
-   :widths: 20 10 40 10 10
+   :widths: 20 10 60 10
    :header-rows: 1
 
    * - Name
      - Type
      - Description
      - Required?
-     - Default
 
    * - ``type``
      - string
      - Human-readable label that identifies this token filter type.
        Value must be ``trim``.
      - yes
-     -
 
 .. example::
 
-   The following index definition example uses a custom analyzer named
-   ``tokenTrimmer``. It uses the ``trim`` token filter after the 
-   :ref:`keyword tokenizer <keyword-tokenizer-ref>` to remove leading 
-   and trailing whitespace in the tokens created by the :ref:`keyword 
-   tokenizer <keyword-tokenizer-ref>`.
+   The following index definition indexes the ``text.en_US`` in the 
+   the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+   custom analyzer named ``tokenTrimmer``. The custom analyzer specifies
+   the following: 
+   
+   - Apply the :ref:`htmlStrip-ref` character filter to remove all HTML
+     tags from the text except the ``a`` tag. 
+   - Apply the :ref:`keyword tokenizer <keyword-tokenizer-ref>` to
+     create a single token for the entire string. 
+   - Apply the ``trim`` token filter to remove leading and trailing
+     whitespace in the tokens. 
 
    .. code-block:: json
 
       {
-        "analyzer": "tokenTrimmer", 
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "text": {
+              "type": "document",
+              "fields": {
+                "en_US": {
+                  "type": "string",
+                  "analyzer": "tokenTrimmer" 
+                }
+              }
+            }
+          }
         },
         "analyzers": [
           {
             "name": "tokenTrimmer",
-            "charFilters": [],
+            "charFilters": [{
+              "type": "htmlStrip",
+              "ignoredTags": ["a"]
+            }],
             "tokenizer": {
               "type": "keyword"
             },
@@ -2072,6 +2880,62 @@ tokens. It has the following attribute:
           }
         ]
       }
+
+   The following query searches for the phrase ``*department meetings*``
+   preceded and followed by any number of other characters in the
+   ``text.en_US`` field in the :ref:`minutes <custom-analyzers-eg-coll>`
+   collection. 
+
+   .. io-code-block::
+      :copyable: true
+   
+      .. input:: 
+         :language: json
+         :linenos: 
+
+         db.minutes.aggregate([
+           {
+             "$search": {
+               "wildcard": {
+                 "query": "*department meetings*",
+                 "path": "text.en_US",
+                 "allowAnalyzedField": true
+               }
+             }
+           },
+           {
+             "$project": {
+               "_id": 1,
+               "text.en_US": 1
+             }
+           }
+         ])
+   
+      .. output::
+         :language: json
+         :linenos: 
+
+         [
+           {
+             _id: 1,
+             text: { en_US: '<head> This page deals with department meetings. </head>' }
+           }
+         ]
+
+   |fts| returns the document with ``_id: 1`` because the ``en_US`` field
+   contains the query term ``department meetings``. |fts| creates the
+   following token for the document in the results, which shows that
+   |fts| removed the HTML tags, created a single token for the entire
+   string, and removed leading and trailing whitespaces in the token: 
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - Document ID 
+        - Output Tokens 
+
+      * - ``_id: 1``
+        - ``This page deals with department meetings.``
 
 .. _wordDelimiterGraph-tf-ref:
 
@@ -2108,7 +2972,7 @@ attributes:
      - no
      - {}
 
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.generateWordParts``
      - boolean
      - Flag that indicates whether to split tokens based on sub-words. 
@@ -2117,7 +2981,7 @@ attributes:
      - no
      - true
    
-   * - | ``delimterOptions``
+   * - | ``delimiterOptions``
        | ``.generateNumberParts``
      - boolean
      - Flag that indicates whether to split tokens based on 
@@ -2126,42 +2990,42 @@ attributes:
      - no
      - true
   
-   * - | ``delimterOptions``
+   * - | ``delimiterOptions``
        | ``.concatenateWords``
      - boolean
      - Flag that indicates whether to concatenate runs of sub-words. 
        For examples,  if ``true``, this option concatenates 
-       ``wi-fi`` into ``wifi``. [1]_
+       ``wi-fi`` into ``wifi``. :icon-fa5:`star`
      - no
      - false
   
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.concatenateNumbers``
      - boolean
      - Flag that indicates whether to concatenate runs of sub-numbers. 
        For examples,  if ``true``, this option concatenates 
-       ``100-2`` into ``1002``. [1]_
+       ``100-2`` into ``1002``. :icon-fa5:`star`
      - no
      - false
   
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.concatenateAll``
      - boolean
      - Flag that indicates whether to concatenate all runs. 
        For examples,  if ``true``, this option concatenates 
-       ``wi-fi-100-2`` into ``wifi1002``. [1]_
+       ``wi-fi-100-2`` into ``wifi1002``. :icon-fa5:`star`
      - no
      - false
   
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.preserveOriginal``
      - boolean
      - Flag that indicates whether to generate tokens of the original 
-       words. [1]_
+       words. :icon-fa5:`star`
      - no
      - true
   
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.splitOnCaseChange``
      - boolean
      - Flag that indicates whether to split tokens based on letter-case 
@@ -2170,7 +3034,7 @@ attributes:
      - no
      - true
   
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.splitOnNumerics``
      - boolean
      - Flag that indicates whether to split tokens based on 
@@ -2179,16 +3043,16 @@ attributes:
      - no
      - true
   
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.stemEnglishPossessive``
      - boolean
      - Flag that indicates whether to remove trailing possessives from 
        each sub-word. For examples,  if ``true``, this option changes 
-       ``who's`` into ``who```.
+       ``who's`` into ``who``.
      - no
      - true
 
-   * - | ``delimterOptions`` 
+   * - | ``delimiterOptions`` 
        | ``.ignoreKeywords``
      - boolean
      - Flag that indicates whether to skip tokens with the ``keyword`` 
@@ -2218,28 +3082,38 @@ attributes:
      - no
      - ``true``
 
-.. [1] If ``true``, apply the :ref:`flattenGraph <flattenGraph-tf-ref>` token filter after this option to make the token stream suitable for indexing.
+:icon-fa5:`star` If ``true``, apply the :ref:`flattenGraph
+<flattenGraph-tf-ref>` token filter after this option to make  the
+token stream suitable for indexing.
 
 .. example::
 
-   The following index definition example:
+   The following index definition indexes the ``title`` field in the
+   :ref:`minutes <custom-analyzers-eg-coll>` collection using a custom
+   analyzer named ``wordDelimiterGraphAnalyzer``. The custom analyzer
+   specifies the following:
    
-   - Uses a custom analyzer named ``wordDelimiterGraphAnalyzer``.
-   - Doesn't try and split ``is``, ``the``, and ``at``. The exclusion 
-     is case sensitive. For example ``Is`` and ``tHe`` are not excluded.
-   - Splits tokens on case changes and removes tokens that contain only 
-     alphabetical letters from the English alphabet.
-   
-   After it applies the :ref:`whitespace 
-   <whitespace-tokenizer-ref>` tokenizer, it applies the 
-   :ref:`wordDelimiterGraph <wordDelimiterGraph-tf-ref>` token filter. 
+   a. Apply the :ref:`whitespace <whitespace-tokenizer-ref>` tokenizer to
+      create tokens based on occurrences of whitespace between words.
+   #. Apply the :ref:`wordDelimiterGraph <wordDelimiterGraph-tf-ref>`
+      token filter for the following: 
+      
+      - Don't try and split ``is``, ``the``, and ``at``. The exclusion 
+        is case sensitive. For example ``Is`` and ``tHe`` are not
+        excluded. 
+      - Split tokens on case changes and remove tokens that contain only 
+        alphabetical letters from the English alphabet. 
 
    .. code-block:: json
 
       {  
-        "analyzer": "wordDelimiterGraphAnalyzer", 
         "mappings": {
-          "dynamic": true
+          "fields": {
+            "title": {
+              "type": "string",
+              "analyzer": "wordDelimiterGraphAnalyzer"
+            }
+          }
         },
         "analyzers": [
           {
@@ -2299,12 +3173,28 @@ attributes:
          [
            {
              _id: 4,
-             title: 'The daily huddle on StandUpApp2'
+             title: 'The daily huddle on tHe StandUpApp2'
            }
          ]
 
-   |fts| returns the document with ``_id: 4`` because the ``title`` 
-   field in the document contains ``App2``. |fts| splits tokens on case 
-   changes and removes tokens that contain only alphabetical letters. A 
-   search for letters from the english alphabet won't return any 
-   results.
+   |fts| returns the document with ``_id: 4`` because the ``title``  
+   field in the document contains ``App2``. |fts| splits tokens on
+   case changes and removes tokens created by a split that contain only alphabetical
+   letters. It also analyzes the query term using the index analyzer (or
+   if specified, using the ``searchAnalyzer``) to split the word on case
+   change and remove the letters preceding ``2``. Specifically, |fts|
+   creates the following tokens for the document with ``_id : 4`` for
+   the ``protectedWords`` and ``delimiterOptions`` options:
+
+   .. list-table:: 
+      :header-rows: 1
+
+      * - ``wordDelimiterGraph`` Options 
+        - Output Tokens 
+
+      * - ``protectedWords``
+        -  ``The``, ``daily``, ``huddle``, ``on``, ``t``, ``He``,
+           ``Stand``, ``Up``, ``App``, ``2``
+
+      * - ``delimiterOptions``
+        - ``The``, ``daily``, ``huddle``, ``on``, ``2``

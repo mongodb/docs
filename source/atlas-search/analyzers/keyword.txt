@@ -6,13 +6,13 @@ Keyword Analyzer
 
 .. default-domain:: mongodb
 
-The ``keyword`` analyzer accepts a string or array of strings as a
-parameter and indexes them as single terms. Only exact matches on the
-field are returned.
-
 .. meta::
    :keywords: keyword analyzer, term search, keyword search, full-text search, text analyzer, atlas search index, single term index, exact match search, index strings, single string search
-   :description: Use a keyword analyzer to index your database based on keyword terms.
+   :description: Use the Atlas Search keyword analyzer to index multiple terms in a string field as a single searchable term.
+
+The ``keyword`` analyzer accepts a string or array of strings as a
+parameter and indexes them as a single term (token). Only exact matches
+on the field are returned. It leaves all text in its original letter case.
 
 .. important::
    
@@ -23,66 +23,158 @@ Example
 -------
 
 The following example index definition specifies an index on
-the ``summary`` field using the ``keyword`` analyzer:
+the ``title`` field in the :ref:`sample_mflix.movies <sample-mflix>`
+collection using the ``keyword`` analyzer. If you loaded the collection
+on your {+cluster+}, you can create the example index using the
+{+atlas-ui+} Visual Editor or the |json| Editor. After you select your
+preferred configuration method, select the database and collection.  
 
-.. code-block:: json
+.. tabs:: 
 
-   {
-     "mappings": {
-       "fields": {
-         "summary": {
-           "type": "string",
-           "analyzer": "lucene.keyword"
+   .. tab:: Visual Editor 
+      :tabid: vib
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window. 
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.keyword`` from the dropdown. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.keyword`` from the dropdown.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      1. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 6
+      
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.keyword"
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query searches for the phrase ``Class Action`` in the
+``title`` field. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        { 
+          "$search": {
+            "text": {
+               "query": "Class Action",
+               "path": "title"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+
+      [
+        { 
+          title: 'Class Action' 
+        }
+      ]
+
+|fts| returned the document because it matched the query term ``Class
+Action`` to the single token ``Class Action`` that it creates for the
+text in the field using the ``lucene.keyword`` analyzer. By contrast,
+|fts| doesn't return any results for the following query: 
+
+.. code-block:: json 
+   :copyable: true 
+
+   db.cases.aggregate([
+     {
+       "$search": {
+         "text": {
+           "query": "action",
+           "path": "title"
          }
        }
      }
-   }
-
-Consider a collection named ``cases`` with the following documents:
-
-.. code-block:: json
-
-   { "_id": 1, "summary": "No action required at this time." }
-   { "_id": 2, "summary": "Case set aside for future action." }
-   { "_id": 3, "summary": "Frank's case is ready for planning." }
-
-The following query uses the index on the ``summary`` field:
-
-.. code-block:: json
-
-   db.cases.aggregate([
-     { 
-        $search: {
-          "text": {
-            "query": "No action required at this time.",
-            "path": "summary"
-           }
-        }
-     }
    ])
 
-The above query returns the following result:
+Many documents in the collection contain the string ``action``, but the 
+``keyword`` analyzer only matches documents in which the search term
+matches the entire contents of the field exactly. For the preceding
+query, the ``keyword`` analyzer wouldn't return any results. However, if
+you indexed the field using the :ref:`ref-standard-analyzer` or
+:ref:`ref-simple-analyzer`, |fts| would return multiple documents in the
+results, including the document with the title field value ``Class 
+Action``, because it would create tokens similar to the following, which
+it would then match to the query term:
 
-.. code-block:: json
-   :copyable: false
+.. list-table:: Tokens
+   :header-rows: 1
 
-   { "_id" : 1, "summary" : "No action required at this time." }
+   * - Analyzer 
+     - Output Tokens
+     - Matches ``action`` 
+     - Matches ``Class Action``
 
-The following query returns no results: 
+   * - Keyword Analyzer Tokens 
+     - ``Class Action``
+     - X
+     - √
+     
+   * - Standard Analyzer Tokens 
+     - ``class``, ``action``
+     - √
+     - √
 
-.. code-block:: json
-
-   db.cases.aggregate([
-     { 
-        $search: {
-          "text": {
-            "query": "action",
-            "path": "summary"
-           }
-        }
-     }
-   ])
-
-Two documents in the collection contain the string ``action``, but the
-``keyword`` analyzer matches only documents in which the search term
-matches the entire contents of the field exactly.
+   * - Simple Analyzer Tokens
+     - ``class``, ``action``
+     - √
+     - √

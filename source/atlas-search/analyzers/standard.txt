@@ -10,7 +10,6 @@ Standard Analyzer
    :keywords: analyzers, atlas search analyzer, standard analyzer, default analyzer, divide text, convert to lower case, remove punctuation, grammar based tokenization, create an index
    :description: Use the Atlas Search standard analyzer to divide text into terms based on word boundaries, convert terms to lowercase, and remove punctuation.
 
-
 The ``standard`` analyzer is the default for all |fts| indexes and
 queries. It divides text into terms based on word boundaries, which
 makes it language-neutral for most use cases. It converts all terms
@@ -22,48 +21,160 @@ Example
 -------
 
 The following example index definition specifies an index on
-the ``summary`` field using the ``standard`` analyzer:
+the ``title`` field in the :ref:`sample_mflix.movies <sample-mflix>`
+collection using the ``standard`` analyzer. If you loaded the collection
+on your {+cluster+}, you can create the example index using the
+{+atlas-ui+} Visual Editor or the |json| Editor. After you select your
+preferred configuration method, select the database and collection. 
 
-.. code-block:: json
+.. tabs:: 
 
-   {
-     "mappings": {
-       "fields": {
-         "summary": {
-           "type": "string",
-           "analyzer": "lucene.standard"
-         }
-       }
-     }
-   }
+   .. tab:: Visual Editor 
+      :tabid: vib
 
-Consider a collection named ``cases`` with the following documents:
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field Mapping` to open the :guilabel:`Add Field
+         Mapping` window. 
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
 
-.. code-block:: json
+         .. list-table:: 
+            :stub-columns: 1
 
-   { "_id": 1, "summary": "No action required at this time." }
-   { "_id": 2, "summary": "Case set aside for future action." }
-   { "_id": 3, "summary": "Ready for planning." }
+            * - Index Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.standard`` from the dropdown if it isn't
+                already selected.
 
-The following query uses the index on the ``summary`` field:
+            * - Index Options 
+              - Use the default ``offsets``.
 
-.. code-block:: json
+            * - Store 
+              - Use the default ``true``.
 
-   db.cases.aggregate([
-     { 
-        $search: {
-          "text": {
-            "query": "action",
-            "path": "summary"
-           }
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      1. Replace the default index definition with the following index
+         definition. 
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 6
+
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.standard"
+                  }
+                }
+              }
+            }
+      
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query searches the ``title`` field for the term ``action``
+and limits the output to two results.  
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        { 
+          "$search": {
+            "text": {
+               "query": "action",
+               "path": "title"
+            }
+          }
+        },
+        {
+          "$limit": 2
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
         }
-     }
-   ])
+      ])
 
-The above query returns the following results:
+   .. output:: 
+      :language: json 
 
-.. code-block:: json
-   :copyable: false
+      [
+        {
+          title: 'Action Jackson'
+        },
+        { 
+          title: 'Class Action' 
+        }
+      ]
 
-   { "_id" : 1, "summary" : "No action required at this time." }
-   { "_id" : 2, "summary" : "Case set aside for future action." }
+|fts| returned these documents because it matched the query term
+``action`` to the token ``action`` for the documents, which |fts|
+created by doing the following for the text in the ``title`` field
+using the ``lucene.standard`` analyzer: 
+
+- Convert the text to lowercase. 
+- Split the text based on word boundaries and create separate tokens.
+
+The following table shows the tokens (searchable terms) that |fts|
+creates using the :ref:`ref-standard-analyzer` and, by contrast, the
+tokens that |fts| creates for the :ref:`ref-keyword-analyzer` and
+:ref:`ref-whitespace-analyzer` for the documents in the results: 
+
+.. list-table:: Tokens
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Title 
+     - Standard Analyzer Tokens 
+     - Keyword Analyzer Tokens
+     - Whitespace Analyzer Tokens
+
+   * - ``Action Jackson`` 
+     - ``action``, ``jackson``
+     - ``Action Jackson``
+     - ``Action``, ``Jackson``
+
+   * - ``Class Action`` 
+     - ``class``, ``action``
+     - ``Class Action``
+     - ``Class``, ``Action``
+
+If you index the field using the: 
+
+- :ref:`ref-keyword-analyzer`, |fts| wouldn't match the documents in the
+  results for the query term ``action`` because the ``keyword`` analyzer
+  matches only documents in which the search term matches the entire
+  contents of the field (``Action Jackson`` and ``Class Action``)
+  exactly.    
+- :ref:`ref-whitespace-analyzer`, |fts| wouldn't match the documents in
+  the results for the query term ``action`` because the ``whitespace``
+  analyzer tokenizes the ``title`` field value in its original case
+  (``Action``) and the query term has the lowercase ``action``, which
+  doesn't match the ``whitespace`` analyzer token. 

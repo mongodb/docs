@@ -10,80 +10,148 @@ Whitespace Analyzer
    :keywords: analyzers, atlas search analyzer, whitespace analyzer, divide text by whitespace, separate text by whitespace, case sensitive, lucene whitespace analyzer, create an index
    :description: Use the Atlas Search whitespace analyzer to divide text into searchable terms at each whitespace character.
 
-The ``whitespace`` analyzer divides text into searchable terms wherever
-it finds a whitespace character. It leaves all terms in their original
-case.
+The ``whitespace`` analyzer divides text into searchable terms (tokens)
+wherever it finds a whitespace character. It leaves all text in its 
+original letter case.
 
 Example
 -------
 
 The following example index definition specifies an index on
-the ``summary`` field using the ``whitespace`` analyzer:
+the ``title`` field in the :ref:`sample_mflix.movies <sample-mflix>`
+collection using the  ``whitespace`` analyzer. If you loaded the
+collection on your {+cluster+}, you can create the example index using
+the {+atlas-ui+} Visual Editor or the |json| Editor. After you select
+your preferred configuration method, select the database and collection. 
 
-.. code-block:: json
+.. tabs:: 
 
-   {
-     "mappings": {
-       "fields": {
-         "summary": {
-           "type": "string",
-           "analyzer": "lucene.whitespace"
-         }
-       }
-     }
-   }
+   .. tab:: Visual Editor 
+      :tabid: vib
 
-Consider a collection named ``cases`` with the following documents:
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window. 
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected. 
+      #. Expand :guilabel:`String Properties` and make the following 
+         changes: 
 
-.. code-block:: json
+         .. list-table:: 
+            :stub-columns: 1
 
-   { "_id": 1, "summary": "No action required at this time." }
-   { "_id": 2, "summary": "Case set aside for future action." }
-   { "_id": 3, "summary": "Frank's case is ready for planning." }
+            * - Index Analyzer 
+              - Select ``lucene.whitespace`` from the dropdown. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.whitespace`` from the dropdown.
 
-The following query uses the index on the ``summary`` field:
+            * - Index Options 
+              - Use the default ``offsets``.
 
-.. code-block:: json
+            * - Store 
+              - Use the default ``true``.
 
-   db.cases.aggregate([
-     { 
-        $search: {
-          "text": {
-            "query":  "Frank's",
-            "path": "summary"
-           }
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+      
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+
+   .. tab:: JSON Editor 
+      :tabid: jsonib
+
+      1. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 6
+
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.whitespace",
+                    "searchAnalyzer": "lucene.whitespace"
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
+
+The following query searches for the term ``Lion's`` in the ``title``
+field. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        { 
+          "$search": {
+            "text": {
+               "query": "Lion's",
+               "path": "title"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
         }
-     }
-   ])
+      ])
 
-The above query returns the following result:
+   .. output:: 
+      :language: json 
 
-.. code-block:: json
-   :copyable: false
+      [
+        { title: 'Lion's Den' },
+        { title: 'The Lion's Mouth Opens' }
+      ]
 
-   { "_id" : 3, "summary" : "Frank's case is ready for planning." }
+|fts| returns these documents by doing the following for the text in the
+``title`` field using the ``lucene.whitespace`` analyzer:
 
-The index is case-sensitive.
+-  Retain the original letter case for the text.
+-  Divide the text into tokens wherever it finds a whitespace character. 
 
-.. code-block:: json
+The following table shows the tokens (searchable terms) that |fts|
+creates using the :ref:`ref-whitespace-analyzer` and, by contrast, the 
+:ref:`ref-simple-analyzer` and :ref:`ref-keyword-analyzer` for the
+documents in the results:  
 
-   db.cases.aggregate([
-     { 
-        $search: {
-          "text": {
-            "query": "Case",
-            "path": "summary"
-           }
-        }
-     }
-   ])
+.. list-table:: Tokens
+   :header-rows: 1
+   :stub-columns: 1
 
-The above query returns the following result:
+   * - Title 
+     - Whitespace Analyzer Tokens 
+     - Simple Analyzer Tokens
+     - Keyword Analyzer Tokens
 
-.. code-block:: json
-   :copyable: false
+   * - ``Lion's Den`` 
+     - ``Lion's``, ``Den``
+     - ``lion``, ``s``, ``den``
+     - ``Lion's Den``
 
-   { "_id" : 2, "summary" : "Case set aside for future action." }
+   * - ``The Lion's Mouth Opens`` 
+     - ``The``, ``Lion's``, ``Mouth``, ``Opens``
+     - ``the``, ``lion``, ``s``, ``mouth``, ``opens``
+     - ``The Lion's Mouth Opens``
 
-The document with ``_id: 3`` is not included, because it has the
-lower-case string ``case`` and the search term is ``Case``.
+The index that uses ``whitespace`` analyzer is case-sensitive.
+Therefore, |fts| is able to match the query term ``Lion's`` to the token
+``Lion's`` created by the ``whitespace`` analyzer. 
