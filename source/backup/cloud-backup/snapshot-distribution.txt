@@ -1,0 +1,170 @@
+.. _snapshot-distribution:
+
+======================================================================
+Configure {+service+} to Automatically Copy Snapshots to Other Regions
+======================================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can configure |service| to automatically create copies of your
+snapshots and oplogs and store them in other regions. With snapshots
+distributed across multiple regions, you can still restore your 
+{+cluster+} if the primary region goes down, enhancing your disaster 
+recovery capabilities to bring them in line with internal or regulatory
+requirements. Additionally, |service| can perform optimized direct 
+attach restores rather than slower streaming restores for {+clusters+} 
+based in the same project and regions where you store copies. This 
+reduces system recovery time.
+
+If you need to restore your {+cluster+}, |service| decides whether to
+use the original snapshot or a copied snapshot for optimal restore
+speeds. |service| might use copied snapshots to optimize restore if you 
+are restoring a {+cluster+} in the same region as a snapshot copy, 
+including multi-region {+clusters+} if the snapshots were copied to 
+every {+cluster+} region. Additionally, if the original snapshot 
+becomes unavailable due to a regional outage within your cloud 
+provider, |service| uses a copy in the nearest region to enable 
+restores regardless of the cloud region outage.
+
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>` with
+   the :guilabel:`Keep all snapshots when removing additional snapshot regions` 
+   option set to :guilabel:`On` and you enable, modify, or delete 
+   multi-region snapshots, any snapshots already taken remain.
+
+You can use copied oplogs to perform {+pit-restore+} from secondary
+regions in the event the primary region of your {+cluster+} goes down.
+
+.. include:: /includes/atlas-backup-note.rst
+
+To configure automatic snapshot distribution in other regions:
+
+1. Navigate to the :guilabel:`Backup Policy` tab. In the 
+   :guilabel:`Additional Backup Copies` section, click the arrow button 
+   to expand the pane.
+
+#. Toggle :guilabel:`Copy to other regions` on. You will see a table of 
+   distribution policies pre-populated with the cluster's current 
+   regions.
+   
+   .. note::
+
+      For a global {+cluster+}, you can enable or disable this setting
+      independently for each zone.
+
+#. In the :guilabel:`Copy to other regions` table, click 
+   :guilabel:`Choose a region` in the :guilabel:`Region` column of the 
+   row under your current region and select the region to distribute 
+   snapshots to.
+
+   .. note::
+
+      You can select regions only for the same cloud provider as the 
+      primary region. For example, if your {+cluster+} is in the |aws| 
+      ``us-east-1`` region, you can distribute snapshots only to other 
+      |aws| regions supported by |service|. For global {+clusters+}, 
+      each zone may have nodes in multiple cloud providers. When you 
+      select regions in which to store copied snapshots, you can select 
+      only regions in the same cloud provider as the zone's primary
+      region.
+
+#. In the :guilabel:`Snapshots` column, click the arrow to view the 
+   available snapshot policies for the cluster. |service| displays
+   options based on the backup policies for the cluster.
+
+   For example, if you set the {+cluster+} with a :guilabel:`Daily`
+   backup policy of taking daily 5:00 PM snapshots, checking
+   :guilabel:`Daily` in the :guilabel:`Snapshots` column enables 
+   snapshot distribution of daily 5:00 PM snapshots. You can't set the 
+   snapshot distribution policy to a different frequency or timing than 
+   its underlying backup policy.
+   
+   .. note::
+      
+      .. include:: /includes/fact-overlapping-backup-policy-items.rst
+
+   You can enable or disable any combination of the available policies
+   on a region-by-region basis.
+
+   .. example::
+
+      The following table describes the snapshot distribution policy
+      for a {+cluster+} with enabled storage nodes in the |aws| regions
+      ``us-east-2``, ``us-west-1``, and ``us-west-2``:
+
+      .. list-table::
+         :widths: 16 14 14 14 14 14 14
+         :header-rows: 1
+
+         * - Region
+           - Hourly
+           - Daily
+           - Weekly
+           - Monthly
+           - On Demand
+           - Point-in-Time
+
+         * - ``us-east-1`` (Original)
+           - Every 6 hours
+           - Every 2 days
+           - Every Sunday
+           - Last day of the month
+           - Yes
+           - Yes
+
+         * - ``us-east-2`` (Copy)
+           - Disabled
+           - Disabled
+           - Enabled
+           - Enabled
+           - Disabled
+           - No
+
+         * - ``us-west-1`` (Copy)
+           - Enabled
+           - Enabled
+           - Enabled
+           - Enabled
+           - Enabled
+           - Yes
+
+         * - ``us-west-2`` (Copy)
+           - Enabled
+           - Enabled
+           - Disabled
+           - Disabled
+           - Enabled
+           - Yes
+
+#. If you enabled {+PIT-Restore+} for the cluster, you can
+   enable oplog distribution for each additional region. If you 
+   disabled {+PIT-Restore+} for the cluster, you can't enable oplog
+   distribution for additional regions.
+
+To delete a policy for snapshot distribution to other regions:
+
+1. In the :guilabel:`Action` column, click :icon:`trash-alt`.
+   
+2. In the dialog box, select either
+   :guilabel:`Keep all snapshots in this region` or
+   :guilabel:`Delete all snapshots in this region`, and click
+   :guilabel:`Confirm`. If you choose to keep snapshots in
+   a disabled region, the snapshots persist until their
+   scheduled expiration date.
+
+Alternatively, to disable all snapshot distribution policies
+within a single-region {+cluster+} or within a global {+cluster+} zone,
+click the :guilabel:`Copy to other regions` toggle. As with deleting
+an individual policy, you can choose to keep or delete all copied
+snapshots for that {+cluster+} or zone.
+
+.. note::
+   
+   In the event of a cloud provider service outage in a region 
+   configured for automatic snapshot distribution, |service| will 
+   attempt restore using snapshots stored in copy regions.

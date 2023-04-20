@@ -4,12 +4,10 @@ time.
 
 .. example::
 
-   If the policy specifies a daily snapshot with a retention of two
-   days and a weekly snapshot every Saturday with a retention of three
-   weeks, Atlas must choose which frequency unit to associate with the
-   snapshot taken on Saturday, hourly or weekly.
-
-Since the retention time for the weekly policy item is longer than that
-specified for the hourly policy item, Atlas displays a frequency of
-:guilabel:`Weekly` in the :guilabel:`Frequency` column on the
-:guilabel:`Snapshots` page for the snapshot taken on Saturday.
+   The policy specifies a daily snapshot with two-day retention and a 
+   weekly snapshot every Saturday with three-week retention. Since the 
+   retention time for the weekly policy item is longer than that 
+   specified for the hourly policy item, Atlas displays a frequency of 
+   :guilabel:`Weekly` in the :guilabel:`Frequency` column on the
+   :guilabel:`Snapshots` page for the snapshot taken on Saturday and
+   retains it for three weeks.

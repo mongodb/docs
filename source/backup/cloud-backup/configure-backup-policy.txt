@@ -1,0 +1,252 @@
+.. _configure-backup-policy:
+
+======================
+Manage Backup Policies
+======================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can view and customize |service| policies for regularly scheduled,
+automated backups.
+
+To take backup snapshots outside your schedule, see 
+:ref:`Take On Demand Snapshots <on-demand-snapshots>`
+
+View Backup Policies
+--------------------
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-backups-schedule-describe.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      Use the Backup Policy Editor to configure a backup policy for 
+      {+Cloud-Backup+}s.
+
+      1. Click :guilabel:`Database` in the top-left corner of 
+         |service|.
+   
+      #. From the :guilabel:`{+Database-Deployments+}` view, click the cluster name.
+
+      #. Click the :guilabel:`Backup` tab.
+
+      #. Click :guilabel:`Backup Policy`.
+
+A backup policy has the following sections:
+
+- A time of day, in |utc|, at which to create snapshots.
+
+- A frequency interval and duration of retention.
+
+- If |pit| Restores are enabled, a |pit| window that allows you
+  to restore to any point in time in the last X days where X is the window.
+
+.. example::
+
+   The default backup policy specifies a snapshot time of ``18:00``
+   |utc| and the following four policy items:
+
+   .. list-table::
+      :widths: 15 15 20 30 20
+      :header-rows: 1
+
+      * - Policy Type
+        - Tier
+        - {+PIT-Restore+}
+        - Snapshot Taken
+        - Snapshot Retained
+
+      * - Hourly
+        - |nvme|
+        - Enabled
+        - Every 12 hours
+        - 2 days
+
+      * - Hourly
+        - non-|nvme|
+        - Enabled
+        - Every 6 hours
+        - 2 days
+
+      * - Daily
+        - All
+        - Either
+        - Every day
+        - 7 days
+
+      * - Weekly
+        - All
+        - Either
+        - Every Saturday
+        - 4 weeks
+
+      * - Monthly
+        - All
+        - Either
+        - Last day of the month
+        - 12 months
+
+To learn more about {+Cloud-Backup+} billing, see
+:ref:`billing-backup-cloud-provider-snapshots`.
+
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, you 
+   can't modify the :ref:`backup policy <cps-backup-policies>` for an 
+   individual {+cluster+} below the minimum requirements set in the 
+   {+bcp+}. You can modify the {+cluster+}-level backup policy at any 
+   time. |service| augments any preexisting {+cluster+}-level policies 
+   to meet the minimum requirements of the {+bcp+}. All new 
+   {+clusters+} use the {+bcp+}. If you reduce the frequency of a 
+   backup schedule, the change applies only to future backups. Any 
+   existing :term:`oplog` remains for the original window. The minimum 
+   requirements of the {+bcp+} apply.
+
+.. _changine-backup-policy-time:
+
+Change the Backup Policy Time
+-----------------------------
+
+.. tabs::
+
+   .. tab:: {+atlas-cli+}
+      :tabid: atlascli
+
+      .. include:: /includes/extracts/atlas-backups-schedule-delete-and-update.rst
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      To modify the backup policy time:
+
+      1. In the :guilabel:`Backup Policy Editor`, select the hour 
+         which |service| takes a snapshot each day from :guilabel:`hr`
+         beneath :guilabel:`Snapshot Time (UTC)`.
+
+      2. Select the number of minutes after :guilabel:`hr` at which 
+         |service| takes a snapshot from :guilabel:`min` beneath
+         :guilabel:`Snapshot Time (UTC)`.
+
+      3. Click :guilabel:`Save Changes`.
+
+.. _creating-backup-policy:
+
+Configure Your Backup Policy
+----------------------------
+
+Each row in the :guilabel:`Backup Policy Frequency and Retention` table
+represents a backup policy item. Configure the policy items and,
+optionally, add new policy items to configure a new backup policy. See 
+the :ref:`retention considerations <snapshot-retention>` before 
+finalizing your backup policy.
+
+.. tip::
+
+   |service| displays the estimated number of snapshots
+   associated with your changes below the
+   :guilabel:`Backup Policy Frequency and Retention` table.
+
+To specify a backup policy item using the {+atlas-ui+}:
+
+1. Select the frequency unit from :guilabel:`Frequency Unit` for a
+   policy item.
+
+   Alternatively, click :guilabel:`Add Frequency Unit` to add a new
+   policy item to your backup policy. You can't specify multiple 
+   :guilabel:`Hourly` or :guilabel:`Daily` backup policy items.
+
+   .. note::
+
+      If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`,
+      only MongoDB support can delete :ref:`policy items 
+      <creating-backup-policy>` specified in the 
+      {+bcp+}. To delete policy items specified in the {+bcp+}, you 
+      must :ref:`request support <request-support>` and complete an 
+      extensive verification process.
+
+2. Select the frequency for the frequency unit from :guilabel:`Every`.
+
+3. Specify the retention time for the policy item in
+   :guilabel:`Retention Time` and the units for the retention time from
+   the list to the right. To learn more, see :ref:`snapshot-retention`.
+
+4. (Optional) To apply the retention changes in the updated backup
+   policy to snapshots that |service| took previously, check
+   :guilabel:`Apply policy retention changes to existing snapshots`.
+
+   .. note::
+
+      This option affects only snapshots created by the updated policy
+      items and whose retention has not been updated individually with
+      the
+      :oas-atlas-op:`Update Cloud Backup Schedule for One Cluster 
+      </updateBackupSchedule>` API call.
+
+5. Click :guilabel:`Save Changes`.
+
+.. _create-pit-policy:
+
+Configure the Restore Window
+----------------------------
+
+.. note::
+
+   If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, only 
+   MongoDB support can reduce the :ref:`{+PIT-Restore+} Restore Window 
+   <create-pit-policy>`. To reduce the {+PIT-Restore+} 
+   :guilabel:`Restore Window`, the security or legal representative specified for the 
+   {+bcp+} must :ref:`request support <request-support>` and complete 
+   an extensive verification process.
+
+You can replay the :term:`oplog` to restore a cluster from any point in 
+time within a specified restore window.
+
+To specify the restore window duration, select how long you want
+|service| to retain the oplog for point-in-time restores from
+the :guilabel:`Restore Window` list.
+
+You can't configure a restore window that is longer than the 
+:ref:`Hourly Snapshot Retention Time <creating-backup-policy>`.
+
+.. important::
+
+   If you disable {+Cloud-Backup+}s for a cluster or terminate a
+   cluster that had snapshots enabled, |service| immediately
+   deletes the backup snapshots for that {+cluster+} unless the
+   :guilabel:`Keep existing snapshots after termination` option is 
+   enabled. To learn more, see :ref:`terminate-cluster`. For 
+   {+clusters+} not using :ref:`security-kms-encryption` you can 
+   :ref:`download the latest snapshot 
+   <restore-cloud-provider-snapshot-download>` to preserve any data
+   stored in the {+cluster+}.
+
+.. _snapshot-retention:
+
+Snapshot Retention Considerations
+---------------------------------
+
+In addition to the :guilabel:`Retention Time` you define for each 
+{+Cloud-Backup+} frequency unit, be aware of the following:
+
+- If you delete an existing backup frequency unit, the snapshots for
+  which you specified that frequency remain intact until they expire or
+  you delete them.
+- |service| requires that the value specified for
+  :guilabel:`Retention Time` for items that are less frequent is
+  equal to or larger than the value specified for items that are
+  more frequent. For example, if the hourly policy item specifies
+  a retention of two days or greater, the retention for the weekly
+  snapshot must be two weeks or greater.
+- If you have a :ref:`{+bcp+} enabled <backup-compliance-policy>`, 
+  you can't decrease the retention time for a snapshot after 
+  it's taken.
+- .. include:: /includes/fact-overlapping-backup-policy-items.rst
