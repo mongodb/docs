@@ -23,7 +23,7 @@ public class GeoQuery {
                 new Document("path", "property_type")
                         .append("query", "Condominium"))));
                 
-                String uri = "mongodb+srv://kanchana:passW0rd@sbx.vlfczaf.mongodb-dev.net/myFirstDatabase?retryWrites=true&w=majority";
+                String uri = "<connection-string>";
 
                 try (MongoClient mongoClient = MongoClients.create(uri)) {
                         MongoDatabase database = mongoClient.getDatabase("sample_airbnb");
