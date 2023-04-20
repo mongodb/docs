@@ -124,7 +124,7 @@ deploy: build/public
 deploy-search-index:
 	@echo "Building search index"
 	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-current.json --aliases ${PROJECT}-${GIT_BRANCH} -u ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/stable -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -g -s; \
+		mut-index upload build/public/${GIT_BRANCH} --aliases ${PROJECT}-current.json -o ${PROJECT}-${GIT_BRANCH} -u ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/stable -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -g -s; \
 	else \
 		mut-index upload build/public/${GIT_BRANCH} -o ${PROJECT}-${GIT_BRANCH}.json -u ${DOTCOM_PRODUCTION_URL}/${DOTCOM_PREFIX}/${GIT_BRANCH} -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -s; \
 	fi
