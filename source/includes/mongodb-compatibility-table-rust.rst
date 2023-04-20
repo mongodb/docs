@@ -12,7 +12,14 @@
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
-   * - 2.4 [#2.2-limitation]_
+   * - 2.5 [#2.5-limitation]_
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+   * - 2.4 [#2.4-limitation]_
      - ⊛
      - ✓
      - ✓
@@ -49,6 +56,12 @@
      - ✓
 
 The Rust driver is not compatible with MongoDB server versions older than 3.6.
+
+.. [#2.5-limitation] The Rust driver does not support
+   :manual:`OCSP </core/security-transport-encryption/>`.
+
+.. [#2.4-limitation] The Rust driver does not support Decimal128
+   or :manual:`OCSP </core/security-transport-encryption/>`.
 
 .. [#2.2-limitation] The Rust driver does not support Decimal128,
    :ref:`Client-Side Field Level Encryption <manual-csfle-feature>`,
