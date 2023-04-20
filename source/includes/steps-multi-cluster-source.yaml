@@ -513,4 +513,324 @@ content: |
   To learn more about the supported flags,
   see the :ref:`MongoDB kubectl plugin Reference <kubectl-plugin-ref>`.
 
+---
+title: "Set up your Google Cloud account."
+stepnum: 0
+level: 4
+ref: set-up-gcloud
+content: |
+
+  If you have not done so already, create a Google Cloud project, enable billing on the project, enable the Artifact Registry and GKE APIs, and launch Cloud Shell by following the relevant procedures in the `Google Kubernetes Engine Quickstart <https://cloud.google.com/kubernetes-engine/docs/quickstart>`__ in the Google Cloud documentation.
+
+---
+title: "Create a central cluster and member clusters."
+stepnum: 0
+level: 4
+ref: create-mc-clusters
+content: |
+
+  Create :ref:`one central cluster and one or more member clusters <central-and-member-clusters>`, specifying the GKE zones, the number of nodes, 
+  and the instance types, as in these examples:
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CENTRAL_CLUSTER \
+       --zone=$MDB_CENTRAL_CLUSTER_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CLUSTER_1 \
+       --zone=$MDB_CLUSTER_1_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CLUSTER_2 \
+       --zone=$MDB_CLUSTER_2_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+  .. code-block:: sh
+
+     gcloud container clusters create $MDB_CLUSTER_3 \
+       --zone=$MDB_CLUSTER_3_ZONE \
+       --num-nodes=5 \
+       --machine-type "e2-standard-2"
+
+---
+title: "`Install Go <https://golang.org/dl/>`__, v1.17 or later."
+stepnum: 0
+level: 4
+ref: install-go-prereq
+
+---
+title: "`Install Helm <https://helm.sh/docs/intro/install/>`__."
+stepnum: 0
+level: 4
+ref: install-helm-prereq
+
+---
+title: "Create a namespace in each cluster."
+stepnum: 0
+level: 4
+ref: create-namespace-service
+content: |
+
+  Create a namespace in each of the |k8s| clusters to deploy the ``sample-service.yaml``.
+
+  .. code-block:: sh
+
+     kubectl create --context="${CTX_CLUSTER_1}" namespace sample
+     kubectl create --context="${CTX_CLUSTER_2}" namespace sample
+
+  .. note::
+
+     In certain service mesh solutions, you might need to annotate
+     or label the namespace.
+
+---
+title: "Deploy the ``sample-service.yaml`` in both |k8s| clusters."
+stepnum: 0
+level: 4
+ref: deploy-service-yaml
+content: |
+
+  .. code-block:: sh
+      
+     kubectl apply --context="${CTX_CLUSTER_1}" \
+        -f sample-service.yaml \
+        -l service=helloworld1 \
+        -n sample
+
+     kubectl apply --context="${CTX_CLUSTER_2}" \
+        -f sample-service.yaml \
+        -l service=helloworld2 \
+        -n sample
+
+---
+title: "Deploy the sample application on ``CLUSTER_1``."
+stepnum: 0
+level: 4
+ref: deploy-sample-app
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply --context="${CTX_CLUSTER_1}" \
+        -f sample-service.yaml \
+        -l version=v1 \
+        -n sample
+
+---
+title: "Ensure ``CLUSTER_1`` is running."
+stepnum: 0
+level: 4
+ref: ensure-cluster1-running
+content: |
+
+  Check that the ``CLUSTER_1`` hosting Pod is in the ``Running`` state.
+
+  .. code-block:: sh
+
+     kubectl get pod --context="${CTX_CLUSTER_1}" \
+        -n sample \
+        -l app=helloworld
+
+---
+title: "Deploy the sample application on ``CLUSTER_2``."
+stepnum: 0
+level: 4
+ref: deploy-app-cluster2
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply --context="${CTX_CLUSTER_2}" \
+        -f sample-service.yaml \
+        -l version=v2 \
+        -n sample
+
+---
+title: "Ensure ``CLUSTER_2`` is running."
+stepnum: 0
+level: 4
+ref: ensure-cluster2-running
+content: |
+
+  Check that the ``CLUSTER_2`` hosting Pod is in the ``Running`` state.
+
+  .. code-block:: sh
+
+     kubectl get pod --context="${CTX_CLUSTER_2}" \
+        -n sample \
+        -l app=helloworld
+
+---
+title: "Verify ``CLUSTER_1`` can connect to ``CLUSTER_2``."
+stepnum: 0
+level: 4
+ref: cluster1-to-cluster2
+content: |
+
+  Deploy the Pod in ``CLUSTER_1`` and check that you can reach the sample application in ``CLUSTER_2``.
+
+  .. code-block:: sh
+         
+     kubectl run  --context="${CTX_CLUSTER_1}" \
+        -n sample \
+        curl --image=radial/busyboxplus:curl \
+        -i --tty \
+        curl -sS helloworld2.sample:5000/hello
+
+  You should see output similar to this example:
+
+  .. code-block:: sh
+     :copyable: false
+
+     Hello version: v2, instance: helloworld-v2-758dd55874-6x4t8
+
+---
+title: "Verify ``CLUSTER_2`` can connect to ``CLUSTER_1``."
+stepnum: 0
+level: 4
+ref: cluster2-to-cluster1
+content: |
+
+  Deploy the Pod in ``CLUSTER_2`` and check that you can reach the sample application in ``CLUSTER_1``.
+
+  .. code-block:: sh
+
+     kubectl run --context="${CTX_CLUSTER_2}" \
+        -n sample \
+        curl --image=radial/busyboxplus:curl \
+        -i --tty \
+        curl -sS helloworld1.sample:5000/hello
+
+  You should see output similar to this example:
+
+  .. code-block:: sh
+     :copyable: false
+
+     Hello version: v1, instance: helloworld-v1-758dd55874-6x4t8
+
+---
+title: "Recover the |multi-cluster| using the :ref:`MongoDB kubectl plugin <kubectl-plugin-ref>`."
+stepnum: 0
+level: 4
+ref: recover-mc-kube
+content: |
+
+  .. code-block:: sh
+
+     kubectl mongodb multicluster recover \
+       --central-cluster="MDB_CENTRAL_CLUSTER_FULL_NAME" \
+       --member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME}" \
+       --member-cluster-namespace="mongodb" \
+       --central-cluster-namespace="mongodb" \
+       --operator-name=mongodb-enterprise-operator-multi-cluster \
+       --source-cluster="${MDB_CLUSTER_1_FULL_NAME}"
+
+  This command:
+   
+  - Reconfigures the |k8s-op-short| to manage workloads on the two healthy
+    |k8s| clusters. (This list could also include new |k8s| clusters).
+   
+  - Marks ``CLUSTER_1`` as the source of configuration for the member node
+    configuration for new |k8s| clusters. Replicates Role and Service Account
+    configuration to match the configuration in ``CLUSTER_1``.
+
+---
+title: "Rebalance the data nodes on the healthy |k8s| clusters."
+stepnum: 0
+level: 4
+ref: rebalance-nodes
+content: |
+
+  Reconfigure the |mongodb-multi| to rebalance the data nodes on the healthy
+  |k8s| clusters by editing the resources affected by the change:
+
+  .. code-block:: yaml
+
+     kubectl apply -n mongodb -f - <<EOF
+     apiVersion: mongodb.com/v1
+     kind: MongoDBMultiCluster
+     metadata:
+       name: multi-replica-set
+     spec:
+       version: 5.0.5-ent
+       type: ReplicaSet
+       persistent: false
+       duplicateServiceObjects: true
+       credentials: my-credentials
+       opsManager:
+         configMapRef:
+           name: my-project
+      security:
+        tls:
+          ca: custom-ca
+      clusterSpecList:
+        - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+          members: 4
+        - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+          members: 3
+      EOF
+
+---
+title: "Edit the |k8s| resource specification file."
+stepnum: 0
+level: 4
+ref: edit-k8s-specs
+
+---
+title: "Modify or add settings as needed."
+stepnum: 0
+level: 4
+ref: modify-specs
+
+---
+title: "Save your specification file."
+stepnum: 0
+level: 4
+ref: save-specs
+
+---
+title: "Apply the file."
+stepnum: 0
+level: 4
+ref: apply-changes
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply -f <standalone-conf>.yaml
+
+---
+title: "Edit the |k8s| |mongodb-multi| specification file."
+stepnum: 0
+level: 4
+ref: edit-mc-specs
+
+---
+title: "Modify or add settings as needed."
+stepnum: 0
+level: 4
+ref: modify-mc-specs
+content: |
+
+  To learn about the settings you can change, see the :ref:`multi-cluster-specification`.
+
+---
+title: "Apply the file."
+stepnum: 0
+level: 4
+ref: apply-k8s-changes
+content: |
+
+  .. code-block:: sh
+
+     kubectl apply -f <mongodb-multi-conf>.yaml
+
 ...

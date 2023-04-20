@@ -41,7 +41,7 @@ of the |mongodb-multis| in a disaster recovery scenario, using one of the follow
   Alternatively, you can set the |multi-cluster| environment variable
   ``PERFORM_FAILOVER`` to ``true``, as in the following abbreviated example:
 
-  .. code-block:: sh
+  .. code-block:: yaml
      :copyable: false
 
      spec:
@@ -69,7 +69,7 @@ of the |mongodb-multis| in a disaster recovery scenario, using one of the follow
   or set the |multi-cluster| environment variable ``PERFORM_FAILOVER``
   to ``false``, as in the following abbreviated example:
 
-  .. code-block:: sh
+  .. code-block:: yaml
      :copyable: false
 
      spec:
@@ -116,7 +116,7 @@ to:
 - Configure new healthy |k8s| clusters.
 - Add these |k8s| clusters as new member clusters to the ``mongodb-enterprise-operator-member-list``
   ConfigMap for your |multi-cluster|.
-- Re-balance nodes hosting |mongodb-multis| on the nodes in the healthy |k8s| clusters.
+- Rebalance nodes hosting |mongodb-multis| on the nodes in the healthy |k8s| clusters.
 
 The following tutorial for manual disaster recovery assumes that you:
 
@@ -167,58 +167,10 @@ In the case that ``CLUSTER_3`` in our example becomes unavailable, the
 The resources with data nodes deployed on this cluster fail reconciliation
 until you run the manual recovery steps as in the following procedure.
 
-To re-balance the MongoDB data nodes so that all the workloads run on
+To rebalance the MongoDB data nodes so that all the workloads run on
 ``CLUSTER_1`` and ``CLUSTER_2``:
 
-1. Recover the |multi-cluster| using the :ref:`MongoDB kubectl plugin <kubectl-plugin-ref>` as follows:
-
-   .. code-block:: sh
-
-      kubectl mongodb multicluster recover \
-       --central-cluster="MDB_CENTRAL_CLUSTER_FULL_NAME" \
-       --member-clusters="${MDB_CLUSTER_1_FULL_NAME},${MDB_CLUSTER_2_FULL_NAME}" \
-       --member-cluster-namespace="mongodb" \
-       --central-cluster-namespace="mongodb" \
-       --operator-name=mongodb-enterprise-operator-multi-cluster \
-       --source-cluster="${MDB_CLUSTER_1_FULL_NAME}"
-
-   This command:
-   
-   - Reconfigures the |k8s-op-short| to manage workloads on the two healthy
-     |k8s| clusters. (This list could also include new |k8s| clusters).
-   
-   - Marks ``CLUSTER_1`` as the source of configuration for the member node
-     configuration for new |k8s| clusters. Replicates Role and Service Account
-     configuration to match the configuration in ``CLUSTER_1``.
-
-2. Re-configure the |mongodb-multi| to re-balance the data nodes on the healthy
-   |k8s| clusters by editing the resources affected by the change:
-
-   .. code-block:: sh
-
-      kubectl apply -n mongodb -f - <<EOF
-      apiVersion: mongodb.com/v1
-      kind: MongoDBMultiCluster
-      metadata:
-       name: multi-replica-set
-      spec:
-       version: 5.0.5-ent
-       type: ReplicaSet
-       persistent: false
-       duplicateServiceObjects: true
-       credentials: my-credentials
-       opsManager:
-         configMapRef:
-          name: my-project
-       security:
-         tls:
-          ca: custom-ca
-       clusterSpecList:
-         - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
-           members: 4
-         - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
-           members: 3
-       EOF
+.. include:: /includes/steps/rebalance-mc-nodes.rst
 
 .. _disaster-recovery-manual-gitops:
 
@@ -229,7 +181,7 @@ For an example of use of the :ref:`MongoDB kubectl plugin <kubectl-plugin-ref>`
 in a GitOps workflow with :argo-cd:`Argo CD </cd>`, see
 :github:`multi-cluster plugin example for GitOps </mongodb/mongodb-enterprise-kubernetes/tree/master/samples/multi-cluster-cli-gitops>`.
 
-GitOps recovery requires manual re-configuration of
+GitOps recovery requires manual reconfiguration of
 :k8sdocs:`Role Based Access Control </reference/access-authn-authz/rbac>`
 using ``.yaml`` resource files. To learn more, see
 :ref:`multi-cluster-rbac-manual`.
