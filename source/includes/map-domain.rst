@@ -14,4 +14,4 @@ Login URL for that IdP.
 Use the :guilabel:`Federation Management Console` to map your domain
 to the |idp|:
 
-.. include:: /includes/steps/manage-domain-mapping.rst
+.. include:: /includes/procedures/manage-domain-mapping.rst

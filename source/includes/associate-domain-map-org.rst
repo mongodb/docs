@@ -5,7 +5,7 @@ After successfully verifying your domain, use the
 :guilabel:`Federation Management Console` to associate the domain with
 |idp-provider|:
 
-.. include:: /includes/steps/associate-idp-domain.rst
+.. include:: /includes/procedures/associate-idp-domain.rst
 
 Test Your Domain Mapping
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -15,5 +15,5 @@ Test Your Domain Mapping
 Use the :guilabel:`Federation Management Console` to test the 
 integration between your domain and |idp-provider|:
 
-.. include:: /includes/steps/test-domain-mapping.rst
+.. include:: /includes/procedures/test-domain-mapping.rst
 
