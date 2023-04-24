@@ -7,8 +7,8 @@
 
 - Updates the {+mdbagent+} to :ref:`12.0.20.7686 
   <mongodb-12.0.20.7686>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.1
-  </release-notes/database-tools-changelog/#100.7.1-changelog>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+  </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 - Adds support for managing MongoDB deployments on the Ubuntu 22.04 (x86) operating system.
   BI Connector is not currently supported on the Ubuntu 22.04 (x86) operating system.
 
