@@ -14,48 +14,33 @@ content: |
   :setting:`spec.security.tls.ca`.
 
 ---
+ref: create-external-services-single-cluster
+stepnum: 2
+inherit:
+  file: steps-create-external-services.yaml
+  ref: create-external-services
+replacement:
+  k8sResource: replica set
+  annotations: :setting:`spec.externalAccess.externalService.annotations`
+  overrides: :setting:`spec.externalAccess.externalService.spec`
+---
 title: "Add Subject Alternate Names to your |tls| certificates."
 level: 4
-stepnum: 2
+stepnum: 3
 ref: add-san-to-cert
 content: |
 
   Add each external |dns| name to the certificate |san-dns|.
 
 ---
-title: "Create a NodePort for each |k8s-pod|."
-level: 4
-stepnum: 3
-ref: k8s-ext-rs-create-nodeports
-content: |
-
-  Invoke the following commands to create the NodePorts:
-
-  .. code-block:: sh
-
-     kubectl expose pod/<my-replica-set>-0 --type="NodePort" --port 27017
-     kubectl expose pod/<my-replica-set>-1 --type="NodePort" --port 27017
-     kubectl expose pod/<my-replica-set>-2 --type="NodePort" --port 27017
-
----
-title: "Discover the dynamically assigned NodePorts."
-level: 4
 stepnum: 4
-ref: k8s-ext-rs-discover-nodeports
-content: |
-
-  Discover the dynamically assigned NodePorts:
-
-  .. code-block:: sh
-     :copyable: false
-
-     $ kubectl get svc | grep <my-replica-set>
-     <my-replica-set>-0     NodePort   172.30.39.228   <none>  27017:30907/TCP  16m
-     <my-replica-set>-1     NodePort   172.30.185.136  <none>  27017:32350/TCP  16m
-     <my-replica-set>-2     NodePort   172.30.84.192   <none>  27017:31185/TCP  17m
-     <my-replica-set>-svc   ClusterIP  None            <none>  27017/TCP        38m
-
-  NodePorts range from 30000 to 32767, inclusive.
+ref: verify-external-services-single-cluster
+inherit:
+  file: steps-create-external-services.yaml
+  ref: verify-external-services
+replacement:
+  deployment: your replica set
+  example: my-replica-set-0-svc-external   
 ---
 title: "Open your replica set resource |yaml| file."
 level: 4
@@ -107,7 +92,7 @@ content: |
   .. include:: /includes/list-tables/resource-keys-split-horizons.rst
 
 ---
-title: "Confirm the external hostnames and NodePort values in your replica set resource."
+title: "Confirm the external hostnames and external service values in your replica set resource."
 level: 4
 stepnum: 9
 ref: k8s-ext-rs-confirm-hostnames
@@ -121,14 +106,14 @@ content: |
   routing if the pod runs on another node.
 
   Set the ports in :setting:`spec.connectivity.replicaSetHorizons` to
-  the NodePort values that you discovered.
+  the external service values.
 
   .. example::
 
      .. literalinclude:: /includes/code-examples/yaml-files/example-replica-set.yaml
         :language: yaml
-        :start-after: START-horizon-addcert-replset-lower-nodeports
-        :end-before: END-horizon-addcert-replset-lower-nodeports
+        :start-after: START-horizon-addcert-replset-lower-external-service
+        :end-before: END-horizon-addcert-replset-lower-external-service
         :linenos:
         :lineno-start: 15
         :emphasize-lines: 6-8
