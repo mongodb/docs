@@ -7,6 +7,16 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230418:
+
+18 April 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Modifies the behavior of ``$queryHistory`` to indicate a query is
+  complete when all batches have been uploaded as cursor files, all
+  batches have been returned to the user, or there is an error.
+- Adds the ability to use BSON data for the comment field in commands.
+
 .. _adf-v20230404:
 
 04 April 2023 Release
