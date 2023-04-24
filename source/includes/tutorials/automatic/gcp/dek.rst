@@ -3,67 +3,66 @@
 
    .. step:: Add your GCP KMS Credentials
 
-      Add the service account credentials to your CSFLE-enabled client
-      code.
-
-      .. include:: /includes/tutorials/automatic/gcp/gcp-credentials-note.rst
-
       .. tabs-drivers::
 
          .. tab::
             :tabid: java-sync
+
+            .. include:: /includes/tutorials/automatic/gcp/attached-service-account.rst
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/java/gcp/reader/src/main/java/com/mongodb/csfle/MakeDataKey.java
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: nodejs
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/node/gcp/reader/make_data_key.js
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/gcp/reader/make_data_key.py
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: csharp
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/gcp/reader/CSFLE/MakeDataKey.cs
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
          .. tab::
             :tabid: go
+
+            .. include:: /includes/tutorials/automatic/gcp/specify-provider-credentials.rst
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/gcp/reader/make-data-key.go
                :start-after: start-kmsproviders
                :end-before: end-kmsproviders
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
-      .. tip:: Learn More
-
-         To learn more about the KMS provider object for GCP, see
-         :ref:`csfle-reference-kms-providers-gcp`.
+      .. include:: /includes/tutorials/automatic/gcp/gcp-credentials-note.rst
 
    .. step:: Add Your Key Information
 
@@ -85,7 +84,6 @@
                :end-before: end-datakeyopts
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: nodejs
@@ -95,7 +93,6 @@
                :end-before: end-datakeyopts
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -105,7 +102,6 @@
                :end-before: end-datakeyopts
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: csharp
@@ -115,7 +111,6 @@
                :end-before: end-datakeyopts
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
          .. tab::
             :tabid: go
@@ -125,11 +120,13 @@
                :end-before: end-datakeyopts
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
    .. step:: Generate your {+dek-long+}
 
       .. _csfle-gcp-create-dek:
+
+      Generate your {+dek-long+} using the variables declared in :ref:`step one
+      <csfle-gcp-create-index>` of this tutorial.
 
       .. tabs-drivers::
 
@@ -141,7 +138,6 @@
                :end-before: end-create-dek
                :language: java
                :dedent:
-               :caption: MakeDataKey.java
 
          .. tab::
             :tabid: nodejs
@@ -151,7 +147,6 @@
                :end-before: end-create-dek
                :language: javascript
                :dedent:
-               :caption: make_data_key.js
 
          .. tab::
             :tabid: python
@@ -161,7 +156,6 @@
                :end-before: end-create-dek
                :language: python
                :dedent:
-               :caption: make_data_key.py
 
          .. tab::
             :tabid: csharp
@@ -171,7 +165,6 @@
                :end-before: end-create-dek
                :language: csharp
                :dedent:
-               :caption: MakeDataKey.cs
 
          .. tab::
             :tabid: go
@@ -181,7 +174,6 @@
                :end-before: end-create-dek
                :language: go
                :dedent:
-               :caption: make-data-key.go
 
 .. tip:: Learn More
 

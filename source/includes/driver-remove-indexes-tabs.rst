@@ -31,7 +31,7 @@
          Where the value of ``nIndexesWas`` reflects the number of indexes
          *before* removing this index.
 
-         For :doc:`text </core/index-text>` indexes, pass the index name to the
+         For :ref:`text <index-feature-text>` indexes, pass the index name to the
          :method:`db.collection.dropIndex()` method. See :ref:`drop-text-index`
          for details.
 

@@ -43,10 +43,13 @@ Callback API
 The callback API incorporates logic:
 
 - To retry the transaction as a whole if the transaction encounters a
-  :ref:`transient-transaction-error`.
+  :ref:`transient-transaction-error` error.
 
 - To retry the commit operation if the commit encounters an
-  :ref:`unknown-transaction-commit-result`.
+  :ref:`unknown-transaction-commit-result` error.
+
+Starting in MongoDB 6.2, the server does not retry the transaction if
+it receives a :ref:`transactionTooLargeForCache-error` error.
 
 Example
 ~~~~~~~
@@ -362,12 +365,6 @@ clusters)*, clients :red:`must` use MongoDB drivers updated for MongoDB
 
 .. include:: /includes/list-4.2-drivers.rst
 
-*For transactions on MongoDB 4.0 replica sets*, clients require MongoDB
-drivers updated for MongoDB 4.0 or later.
-
-.. include:: /includes/list-4.0-drivers.rst
-
-
 .. _transactions-retry:
 
 Transaction Error Handling
@@ -379,8 +376,8 @@ transaction commits and incorporate retry logic for transactions.
 
 .. _transient-transaction-error:
 
-``"TransientTransactionError"``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``TransientTransactionError``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The *individual* write operations inside the transaction are not
 retryable, regardless of the value of :urioption:`retryWrites`. If an
@@ -399,8 +396,8 @@ the transaction as a whole can be retried.
 
 .. _unknown-transaction-commit-result:
 
-``"UnknownTransactionCommitResult"``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``UnknownTransactionCommitResult``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The commit operations are :doc:`retryable write operations
 </core/retryable-writes>`. If the commit operation encounters an error,
@@ -418,6 +415,27 @@ If the commit operation encounters an error labeled
   ``"UnknownTransactionCommitResult"``, applications should explicitly
   incorporate retry logic for the error.
 
+.. _transactionTooLargeForCache-error:
+
+``TransactionTooLargeForCache``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 6.2 
+
+Starting in MongoDB 6.2, the server does not retry the transaction if
+it receives a ``TransactionTooLargeForCache`` error. This error means
+the cache is too small and a retry is likely to fail.
+
+The default value for the
+:parameter:`transactionTooLargeForCacheThreshold` threshold is ``0.75``.
+The server returns ``TransactionTooLargeForCache`` instead of retrying
+the transaction when the transaction uses more than 75% of the cache.
+
+In earlier versions of MongoDB, the server returns
+``TemporarilyUnavailable`` or ``WriteConflict`` instead of
+``TransactionTooLargeForCache``.
+
+Use the :dbcommand:`setParameter` command to modify the error threshold. 
 
 Driver Version Errors
 ~~~~~~~~~~~~~~~~~~~~~

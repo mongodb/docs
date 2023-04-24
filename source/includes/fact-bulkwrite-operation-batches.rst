@@ -1,7 +1,8 @@
 The number of operations in each group cannot exceed the value of
 the :limit:`maxWriteBatchSize <Write Command Batch Limit Size>` of
-the database. As of MongoDB 3.6, this value is ``100,000``.
-This value is shown in the :data:`hello.maxWriteBatchSize` field.
+the database. The default value of ``maxWriteBatchSize`` is 
+``100,000``. This value is shown in the 
+:data:`hello.maxWriteBatchSize` field.
 
 This limit prevents issues with oversized error messages. If a group
 exceeds this :limit:`limit <Write Command Batch Limit Size>`,
@@ -14,15 +15,14 @@ less than or equal to the value of the limit. For example, with the
 .. note::
 
    The driver only divides the group into smaller groups when using
-   the high-level API. If using
-   :doc:`db.runCommand() </reference/method/db.runCommand/>` directly
+   the high-level API. If using :method:`db.runCommand()` directly
    (for example, when writing a driver), MongoDB throws an error when
    attempting to execute a write batch which exceeds the limit.
 
-Starting in MongoDB 3.6, once the error report for a single batch grows
-too large, MongoDB truncates all remaining error messages to the empty
-string. Currently, begins once there are at least 2 error messages with
-total size greater than ``1MB``.
+If the error report for a single batch grows too large, MongoDB 
+truncates all remaining error messages to the empty string. If there 
+are at least two error messages with total size greater than ``1MB``, 
+they are trucated.
 
 The sizes and grouping mechanics are internal performance details and
 are subject to change in future versions.

@@ -19,19 +19,19 @@ Output Fields
 :method:`db.getReplicationInfo()`:
    
 configured oplog size
-   Displays the :data:`db.getReplicationInfo.logSizeMB` value.
+   Displays the :data:`db.getReplicationInfo().logSizeMB` value.
 
 log length start to end
-   Displays the :data:`db.getReplicationInfo.timeDiff` and
-   :data:`db.getReplicationInfo.timeDiffHours` values.
+   Displays the :data:`db.getReplicationInfo().timeDiff` and
+   :data:`db.getReplicationInfo().timeDiffHours` values.
 
 oplog first event time
-   Displays the :data:`db.getReplicationInfo.tFirst`.
+   Displays the :data:`db.getReplicationInfo().tFirst`.
 
 oplog last event time
-   Displays the :data:`db.getReplicationInfo.tLast`.
+   Displays the :data:`db.getReplicationInfo().tLast`.
 
 now
-   Displays the :data:`db.getReplicationInfo.now`.
+   Displays the :data:`db.getReplicationInfo().now`.
 
 See :method:`db.getReplicationInfo()` for description of the data.

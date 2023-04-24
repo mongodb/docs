@@ -3,8 +3,7 @@
    tabs:
      - id: shell
        content: |
-         To create an index in the
-         :doc:`Mongo Shell </tutorial/getting-started/>`, use
+         To create an index in :binary:`~bin.mongosh`, use
          :method:`db.collection.createIndex()`.
 
 
@@ -39,9 +38,9 @@
      - id: python
        content: |
          To create an index using the
-         :api:`Python driver <pymongo>`,
+         `PyMongo Python driver
+         <https://pymongo.readthedocs.io/en/stable/index.html>`__,
          use :py:meth:`pymongo.collection.Collection.create_index`.
-
 
          .. code-block:: python
 

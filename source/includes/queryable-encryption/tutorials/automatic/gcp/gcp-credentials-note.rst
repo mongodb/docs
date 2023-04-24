@@ -7,7 +7,8 @@
    If you downloaded your credentials in JSON format, you can
    use the following command to extract the value of your private
    key, substituting ``<credentials-filename>`` with the name of
-   your credentials file:
+   your credentials file. The following command requires that you
+   install `OpenSSL <https://www.openssl.org/source/>`__:
 
    .. code-block::
       :copyable: true

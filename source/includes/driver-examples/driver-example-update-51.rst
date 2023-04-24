@@ -19,10 +19,6 @@
                { item: "sketch pad", qty: 95, size: { h: 22.85, w: 30.5, uom: "cm" }, status: "A" }
             ] );
 
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript
@@ -41,7 +37,7 @@
             ]
 
          For instructions on inserting documents using |compass|, see
-         :doc:`Insert Documents </tutorial/insert-documents/>`.
+         :ref:`Insert Documents <write-op-insert>`.
 
      - id: python
        content: |

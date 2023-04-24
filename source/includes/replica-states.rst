@@ -38,14 +38,8 @@
 
    * - 5
      - :replstate:`STARTUP2`
-     - The member has joined the set and is running an initial sync.
-       Eligible to vote.
-
-       .. note::
-
-          Starting in MongoDB 5.0, if the member was newly added to the
-          replica set, it is not eligible to vote and cannot be elected
-          during the initial sync process.
+     - The member has joined the set and is running an initial sync. Not 
+       eligible to vote.
 
    * - 6
      - :replstate:`UNKNOWN`
