@@ -15,6 +15,9 @@
     * - ``commands``
       - Latency statistics for database commands.
 
+    * - ``transactions``
+      - Latency statistics for database transactions.
+
 Each of these fields contains an embedded document bearing the
 following fields:
 
@@ -75,10 +78,17 @@ following fields:
              { micros: NumberLong(49152), count: NumberLong(100) }
            ]
 
-        This indicates that there were:
+        This indicates that there were [#inclusive_symbols]_:
 
-        - 10 operations taking 1 microsecond or less,
-        - 1 operation in the range (1, 2] microseconds,
-        - 1 operation in the range (3072, 4096] microseconds,
-        - 1000 operations in the range (12288, 16384], and
-        - 100 operations in the range (32768, 49152].
+        - 10 operations taking 1 microsecond or less
+        - 1 operation in the range (1, 2] microseconds
+        - 1 operation in the range (3072, 4096] microseconds
+        - 1000 operations in the range (12288, 16384] microseconds
+        - 100 operations in the range (32768, 49152] microseconds
+
+.. [#inclusive_symbols] 
+
+    - The ``(`` symbol notation on this page means the value is exclusive.
+    - The ``]`` symbol notation on this page means the value is inclusive.
+
+

@@ -1,5 +1,5 @@
 Consider a collection ``places`` that contains documents with a
-``location`` field and has a :doc:`2dsphere </core/2dsphere>` index.
+``location`` field and has a :ref:`2dsphere <2dsphere-index>` index.
  
 Then, the following example returns whose ``location`` is at least
 ``1000`` meters from and at most ``5000`` meters from the specified

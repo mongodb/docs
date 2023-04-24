@@ -7,7 +7,7 @@ $map (aggregation)
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -56,19 +56,19 @@ Definition
 Examples
 --------
 
-Add to each element of an array using ``$map``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add to Each Element of an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In :binary:`~bin.mongosh`, create a sample collection named
 ``grades`` with the following documents:
 
 .. code-block:: javascript
 
-   db.grades.insertMany([
-     { _id: 1, quizzes: [ 5, 6, 7 ] },
-     { _id: 2, quizzes: [ ] },
-     { _id: 3, quizzes: [ 3, 8, 9 ] }
-   ])
+   db.grades.insertMany( [
+     { quizzes: [ 5, 6, 7 ] },
+     { quizzes: [ ] },
+     { quizzes: [ 3, 8, 9 ] }
+   ] )
 
 The following aggregation operation uses :expression:`$map` with the
 :expression:`$add` expression to increment each element in the
@@ -76,45 +76,62 @@ The following aggregation operation uses :expression:`$map` with the
 
 .. code-block:: javascript
 
-   db.grades.aggregate(
-      [
-         { $project:
-            { adjustedGrades:
-               {
-                 $map:
-                    {
-                      input: "$quizzes",
-                      as: "grade",
-                      in: { $add: [ "$$grade", 2 ] }
-                    }
-               }
+   db.grades.aggregate( [
+      {
+         $project: {
+            adjustedGrades: {
+              $map: {
+                input: "$quizzes",
+                as: "grade",
+                in: { $add: [ "$$grade", 2 ] }
+              }
             }
          }
-      ]
-   )
+      }
+    ] )
 
 This operation returns the following results:
 
 .. code-block:: javascript
    :copyable: false
 
-   { "_id" : 1, "adjustedGrades" : [ 7, 8, 9 ] }
-   { "_id" : 2, "adjustedGrades" : [ ] }
-   { "_id" : 3, "adjustedGrades" : [ 5, 10, 11 ] }
+   [
+     {
+       _id: ObjectId("6390b8f7237da390c6869a62"),
+       adjustedGrades: [ 7, 8, 9 ]
+     },
+     { 
+       _id: ObjectId("6390b8f7237da390c6869a63"),
+       adjustedGrades: []
+     },
+     {
+       _id: ObjectId("6390b8f7237da390c6869a64"),
+       adjustedGrades: [ 5, 10, 11 ]
+     }
+   ]
 
-Truncate each array element with ``$map``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Truncate Each Array Element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In :binary:`~bin.mongosh`, create a sample collection named
 ``deliveries`` with the following documents:
 
 .. code-block:: javascript
 
-   db.deliveries.insertMany([
-     { "_id" : 1, "city" : "Bakersfield", "distances" : [ 34.57, 81.96, 44.24 ] },
-     { "_id" : 2, "city" : "Barstow", "distances" : [ 73.28, 9.67, 124.36 ] },
-     { "_id" : 3, "city" : "San Bernadino", "distances" : [ 16.04, 3.25, 6.82 ] }
-   ])
+   db.deliveries.insertMany( [
+     {
+       "city" : "Bakersfield",
+       "distances" : [ 34.57, 81.96, 44.24 ]
+     },
+     {
+       "city" : "Barstow", 
+       "distances" : [ 73.28, 9.67, 124.36 ]
+     },
+     {
+       "city" : "San Bernadino",
+       "distances" : [ 16.04, 3.25, 6.82 ]
+     }
+   ] )
 
 The following aggregation operation uses :expression:`$map` to
 :expression:`truncate <$trunc>` each element in the ``distances`` array
@@ -122,45 +139,66 @@ to its integer.
 
 .. code-block:: javascript
 
-   db.deliveries.aggregate(
-      [
-         { $project:
-            {  city: "$city",
-               integerValues:
-                  { $map:
-                     {
-                        input: "$distances",
-                        as: "decimalValue",
-                        in: { $trunc: "$$decimalValue" }
-                     }
+   db.deliveries.aggregate( [
+      {
+         $project: {
+            city: "$city",
+            integerValues: {
+               $map: {
+                  input: "$distances",
+                  as: "decimalValue",
+                  in: { $trunc: "$$decimalValue" }
                }
             }
          }
-      ]
-   )
+      }
+    ] )
 
 This operation returns the following results:
 
 .. code-block:: javascript
    :copyable: false
 
-   { "_id" : 1, "city" : "Bakersfield", "integerValues" : [ 34, 81, 44 ] }
-   { "_id" : 2, "city" : "Barstow", "integerValues" : [ 73, 9, 124 ] }
-   { "_id" : 3, "city" : "San Bernadino", "integerValues" : [ 16, 3, 6 ] }
+   [
+     {
+       _id: ObjectId("6390b9b1237da390c6869a65"),
+       city: 'Bakersfield',
+       integerValues: [ 34, 81, 44 ]
+     },
+     {
+       _id: ObjectId("6390b9b1237da390c6869a66"),
+       city: 'Barstow',
+       integerValues: [ 73, 9, 124 ]
+     },
+     {
+       _id: ObjectId("6390b9b1237da390c6869a67"),
+       city: 'San Bernadino',
+       integerValues: [ 16, 3, 6 ]
+     }
+   ]
 
-Convert Celsius Temperatures to Fahrenheit Using ``$map``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Convert Celsius Temperatures to Fahrenheit
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In :binary:`~bin.mongosh`, create a sample collection named
 ``temperatures`` with the following documents:
 
 .. code-block:: javascript
 
-   db.temperatures.insertMany([
-     { "_id" : 1, "date" : ISODate("2019-06-23"), "tempsC" : [ 4, 12, 17 ] },
-     { "_id" : 2, "date" : ISODate("2019-07-07"), "tempsC" : [ 14, 24, 11 ] },
-     { "_id" : 3, "date" : ISODate("2019-10-30"), "tempsC" : [ 18, 6, 8 ] }
-   ])
+   db.temperatures.insertMany( [
+     { 
+       "date" : ISODate("2019-06-23"),
+       "tempsC" : [ 4, 12, 17 ]
+     },
+     {
+       "date" : ISODate("2019-07-07"),
+       "tempsC" : [ 14, 24, 11 ]
+     },
+     {
+       "date" : ISODate("2019-10-30"),
+       "tempsC" : [ 18, 6, 8 ]
+     }
+   ] )
 
 The following aggregation operation uses the :pipeline:`$addFields`
 stage to add a new field to the documents called ``tempsF`` which
@@ -172,17 +210,18 @@ values by ``9/5`` and then :expression:`$add` ``32``.
 .. code-block:: javascript
 
    db.temperatures.aggregate( [
-     { $addFields:
-        {
-           "tempsF":
-              { $map:
-                 {
-                    input: "$tempsC",
-                    as: "tempInCelsius",
-                    in: { $add: [ { $multiply: [ "$$tempInCelsius", 9/5 ] }, 32 ] }
+     { 
+        $addFields: {
+           "tempsF": {
+              $map: {
+                 input: "$tempsC",
+                 as: "tempInCelsius",
+                 in: {
+                    $add: [ { $multiply: [ "$$tempInCelsius", 9/5 ] }, 32 ]
                  }
               }
-         }
+            }
+        }
       }
   ] )
 
@@ -191,12 +230,32 @@ This operation returns the following results:
 .. code-block:: javascript
    :copyable: false
 
-   { "_id" : 1, "date" : ISODate("2019-06-23T00:00:00Z"), "tempsC : [ 4, 12, 17 ], "tempsF" : [ 39.2, 53.6, 62.6 ] }
-   { "_id" : 2, "date" : ISODate("2019-07-07T00:00:00Z"), "tempsC" : [ 14, 24, 11 ], "tempsF" : [ 57.2, 75.2, 51.8 ] }
-   { "_id" : 3, "date" : ISODate("2019-10-30T00:00:00Z"), "tempsC" : [ 18, 6, 8 ], "tempsF" : [ 64.4, 42.8, 46.4 ] }
+   [
+     {
+       _id: ObjectId("6390ba11237da390c6869a68"),
+       date: ISODate("2019-06-23T00:00:00.000Z"),
+       tempsC: [ 4, 12, 17 ],
+       tempsF: [ 39.2, 53.6, 62.6 ]
+     },
+     {
+       _id: ObjectId("6390ba11237da390c6869a69"),
+       date: ISODate("2019-07-07T00:00:00.000Z"),
+       tempsC: [ 14, 24, 11 ],
+       tempsF: [ 57.2, 75.2, 51.8 ]
+     },
+     {
+       _id: ObjectId("6390ba11237da390c6869a6a"),
+       date: ISODate("2019-10-30T00:00:00.000Z"),
+       tempsC: [ 18, 6, 8 ],
+       tempsF: [ 64.4, 42.8, 46.4 ]
+     }
+   ]
 
-.. seealso::
+Learn More
+----------
 
-   - :expression:`$let`
-   - :expression:`$add`
-   - :expression:`$multiply`
+To learn more about expressions used in the previous examples, see:
+
+- :expression:`$add`
+- :expression:`$let`
+- :expression:`$multiply`

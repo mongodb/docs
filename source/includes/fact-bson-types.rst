@@ -99,7 +99,7 @@
    * - Decimal128
      - 19
      - "decimal"
-     - New in version 3.4.
+     - 
    
    * - Min key
      - -1

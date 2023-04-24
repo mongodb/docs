@@ -19,9 +19,35 @@
       `Managing service account keys <https://cloud.google.com/iam/docs/creating-managing-service-account-keys>`__
       guide in Google's official documentation.
 
-      .. important::
+      .. tabs-drivers::
 
-         When creating your service account key, you receive a one-time
-         download of the private key information. Make sure to download this
-         file in either the PKCS12 or JSON format for use later in this
-         tutorial.
+         .. tab::
+            :tabid: java-sync
+
+            .. important::
+
+               When creating your service account key, you receive a one-time
+               download of the private key information. Unless you are using an
+               attached service account, make sure to download this
+               file in either the PKCS12 or JSON format for use later in this
+               tutorial.
+
+         .. tab::
+            :tabid: nodejs
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+            
+         .. tab::
+            :tabid: python
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+
+         .. tab::
+            :tabid: csharp
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+
+         .. tab::
+            :tabid: go
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst

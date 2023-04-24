@@ -59,8 +59,6 @@ json_schema = {
 }
 
 patient_schema = {"medicalRecords.patients": json_schema}
-
-patient_schema = {"medicalRecords.patients": json_schema}
 # end-schema
 
 
@@ -74,6 +72,7 @@ fle_opts = AutoEncryptionOpts(
 )
 secureClient = MongoClient(connection_string, auto_encryption_opts=fle_opts)
 # end-client
+
 
 # start-insert
 def insert_patient(

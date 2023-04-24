@@ -1,5 +1,5 @@
 ================================
-$first (aggregation accumulator)
+$first (aggregation)
 ================================
 
 .. default-domain:: mongodb
@@ -17,48 +17,64 @@ Definition
    
 .. versionchanged:: 5.0
 
-Returns the value that results from applying an :ref:`expression
-<aggregation-expressions>` to the first document in a group of
-documents. Only meaningful when documents are in a defined order.
+Returns the result of an :ref:`expression <aggregation-expressions>` for
+the first document in a group of documents. Only meaningful when
+documents are in a defined order.
 
 .. include:: /includes/extracts/fact-aggregation-accumulator-first.rst
-
-.. note:: Disambiguation
-
-   This page describes the :group:`$first` aggregation accumulator. For
-   the :expression:`$first` array operator, see :expression:`$first
-   (array operator) <$first>`.
 
 Syntax
 ------
 
-:group:`$first` syntax:
+``$first`` syntax:
 
 .. code-block:: javascript
 
    { $first: <expression> }
 
-For more information on expressions, see :ref:`aggregation-expressions`.
+Behaviors
+---------
 
-Behavior
---------
+Defining Document Order
+~~~~~~~~~~~~~~~~~~~~~~~
 
-.. |method| replace:: :group:`$first`
+- To define the document order for ``$first`` in a
+  ``$setWindowFields``, set the :ref:`sortBy 
+  <setWindowFields-sortBy>` field.
 
-.. include:: /includes/note-group-and-window-behavior.rst
+- To define the document order for ``$first`` in other pipeline stages, 
+  add a preceding :pipeline:`$sort` stage.
+
+Array Operator
+~~~~~~~~~~~~~~
+
+If the expression resolves to an array:
+
+- For a group of documents, ``$first`` returns the entire array 
+  from the first document. It does not traverse array elements. This is
+  the case with stages like :pipeline:`$group` and :pipeline:`$setWindowFields`.
+
+- For an individual document, ``$first`` returns the first element of
+  the array. This is the case with stages like :pipeline:`$addFields`.
 
 Missing Values
 ~~~~~~~~~~~~~~
 
-The documents in a group may be missing fields or may have fields with
+Documents in a group may be missing fields or may have fields with
 missing values.
 
 - If there are no documents from the prior pipeline stage, the 
   :pipeline:`$group` stage returns nothing.
-- If the field that the :group:`$first` accumulator is processing is
-  missing, :group:`$first` returns ``null``.
-  
-See the :ref:`missing data <first-missing-values-example>` example.
+
+- If the field that the ``$first`` accumulator is processing is
+  missing, ``$first`` returns ``null``.
+
+- When used with :pipeline:`$setWindowFields`, ``$first`` returns 
+  ``null`` for empty windows. For example, when you have a ``{ documents:[ -1, -1] }`` ``documents`` window on the first document 
+  of a partition.
+
+For more information, see the :ref:`Missing Data
+<first-missing-values-example>` example later in this topic.
 
 Examples
 --------
@@ -83,7 +99,7 @@ Create the ``sales`` collection:
    ] )
 
 Grouping the documents by the ``item`` field, the following operation
-uses the :group:`$first` accumulator to compute the first sales date for
+uses the ``$first`` accumulator to return the first sales date for
 each item:
 
 .. code-block:: javascript
@@ -148,8 +164,8 @@ field:
       }
    ] )
 
-The :pipeline:`$sort` stage orders the documents and passes them to the
-:pipeline:`$group` stage.
+The ``$sort`` stage orders the documents and passes them to the
+``$group`` stage.
 
 .. code-block:: javascript
 
@@ -160,11 +176,11 @@ The :pipeline:`$sort` stage orders the documents and passes them to the
      { _id: 'tape', inStock: 4 }
    ]
 
-:group:`$first` selects the first document from each output group:
+``$first`` selects the first document from each output group:
 
 - The ``_id: null`` group is included.
 - When the accumulator field, ``$quantity`` in this example, is 
-  missing, :group:`$first` returns ``null``.
+  missing, ``$first`` returns ``null``.
 
 .. _first-accumulator-window-example:
 
@@ -175,7 +191,7 @@ Use in ``$setWindowFields`` Stage
 
 .. include:: /includes/setWindowFields-example-collection.rst
 
-This example uses :group:`$first` in the :pipeline:`$setWindowFields`
+This example uses ``$first`` in the :pipeline:`$setWindowFields`
 stage to output the first cake sales order ``type`` for each ``state``:
 
 .. code-block:: javascript
@@ -202,14 +218,12 @@ In the example:
 .. include:: /includes/setWindowFields-partition-sort-date.rst
 
 - ``output`` sets the ``firstOrderTypeForState`` field to the first
-  order ``type`` from the :ref:`documents <setWindowFields-documents>`
-  window.
+  order ``type`` from the ``documents`` window.
   
-  The :ref:`window <setWindowFields-window>` contains documents between
-  an ``unbounded`` lower limit and the ``current`` document in the
-  output. This means :group:`$first` returns the first order ``type``
-  for the documents between the beginning of the partition and the
-  current document.
+  The ``window`` contains documents between an ``unbounded`` lower limit
+  and the ``current`` document in the output. This means ``$first``
+  returns the first order ``type`` for the documents between the
+  beginning of the partition and the current document.
 
 In this output, the first order ``type`` value for ``CA`` and ``WA`` is
 shown in the ``firstOrderTypeForState`` field:

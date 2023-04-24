@@ -48,6 +48,10 @@ Options
 
 .. |tlsClusterCAFile| replace:: :option:`--tlsClusterCAFile <mongod --tlsClusterCAFile>`
 
+.. versionchanged:: 6.1
+
+  - .. include:: /includes/journal-always-enabled-change.rst
+
 .. versionchanged:: 5.2
 
    - MongoDB removes the ``--cpu`` command-line option.
@@ -187,12 +191,6 @@ Core Options
 
    *Default*: localhost
 
-   
-   .. note::
-   
-      Starting in MongoDB 3.6, :program:`mongod` bind to localhost
-      by default. See :ref:`3.6-bind-to-localhost`.
-   
    The hostnames and/or IP addresses and/or full Unix domain socket
    paths on which :program:`mongod` should listen for client connections. You
    may attach :program:`mongod` to any interface. To bind to multiple
@@ -349,49 +347,7 @@ Core Options
    - Set :option:`--bind_ip_all` to ``true``.
 
 
-.. option:: --listenBacklog <number>
-
-   *Default*: Target system ``SOMAXCONN`` constant
-   
-   The maximum number of connections that can exist in the listen
-   queue.
-   
-   .. warning ::
-   
-      Consult your local system's documentation to understand the
-      limitations and configuration requirements before using this
-      parameter.
-   
-   .. important::
-   
-      To prevent undefined behavior, specify a value for this
-      parameter between ``1`` and the local system ``SOMAXCONN``
-      constant.
-   
-   The default value for the ``listenBacklog`` parameter is set at
-   compile time to the target system ``SOMAXCONN`` constant.
-   ``SOMAXCONN`` is the maximum valid value that is documented for
-   the *backlog* parameter to the *listen* system call.
-   
-   Some systems may interpret ``SOMAXCONN`` symbolically, and others
-   numerically. The actual *listen backlog* applied in practice may
-   differ from any numeric interpretation of the ``SOMAXCONN`` constant
-   or argument to ``--listenBacklog``, and may also be constrained by
-   system settings like ``net.core.somaxconn`` on Linux.
-   
-   Passing a value for the ``listenBacklog`` parameter that exceeds the
-   ``SOMAXCONN`` constant for the local system is, by the letter of the
-   standards, undefined behavior. Higher values may be silently integer
-   truncated, may be ignored, may cause unexpected resource
-   consumption, or have other adverse consequences.
-   
-   On systems with workloads that exhibit connection spikes, for which
-   it is empirically known that the local system can honor higher
-   values for the *backlog* parameter than the ``SOMAXCONN`` constant,
-   setting the ``listenBacklog`` parameter to a higher value may reduce
-   operation latency as observed by the client by reducing the number
-   of connections which are forced into a backoff state.
-
+.. include:: /includes/parameter-listenbacklog.rst
 
 
 .. option:: --maxConns <number>
@@ -534,15 +490,15 @@ Core Options
       directory, or a systemd unit file registered with ``systemctl``. Only
       use the :option:`--pidfilepath` option if you are not using one of these init
       systems. For more information, please see the respective
-      :doc:`Installation Guide </installation>` for your operating system.
+      :ref:`Installation Guide <tutorial-installation>` for your operating system.
    
    .. note:: macOS
 
    
       On macOS, PID file management is generally handled by ``brew``. Only use
       the :option:`--pidfilepath` option if you are not using ``brew`` on your macOS system. 
-      For more information, please see the respective
-      :doc:`Installation Guide </installation>` for your operating system.
+      For more information, please see the respective Installation 
+      Guide for your operating system.
 
 
 .. option:: --keyFile <file>
@@ -643,7 +599,7 @@ Core Options
    exist, the localhost interface will continue to have access to the 
    database until you create the first user.
    
-   See :doc:`Security </security>`
+   See :ref:`Security <security>`
    for more information.
    
 
@@ -710,7 +666,7 @@ Core Options
    The :option:`--shutdown` option cleanly and safely terminates the :program:`mongod`
    process. When invoking :program:`mongod` with this option you must set the
    :option:`--dbpath` option either directly or by way of the
-   :doc:`configuration file </reference/configuration-options>` and the
+   :ref:`configuration file <configuration-options>` and the
    :option:`--config` option.
    
    The :option:`--shutdown` option is available only on Linux systems.
@@ -768,17 +724,15 @@ Core Options
    
    - :term:`snappy`
    
-   - :term:`zlib` (Available starting in MongoDB 3.6)
+   - :term:`zlib`
    
-   - :term:`zstd` (Available  starting in MongoDB 4.2)
+   - :term:`zstd`
    
-   **In versions 3.6 and 4.0**, :binary:`~bin.mongod` and
-   :binary:`~bin.mongos` enable network compression by default with
-   ``snappy`` as the compressor.
-   
-   **Starting in version 4.2**, :binary:`~bin.mongod` and
-   :binary:`~bin.mongos` instances default to both ``snappy,zstd,zlib``
-   compressors, in that order.
+   .. versionadded:: 4.2 
+
+      Both :binary:`~bin.mongod` and
+      :binary:`~bin.mongos` instances default to ``snappy,zstd,zlib``
+      compressors, in that order.
    
    To disable network compression, set the value to ``disabled``.
    
@@ -829,14 +783,8 @@ Core Options
 Free Monitoring
 ~~~~~~~~~~~~~~~
 
-.. versionadded:: 4.0
-
 .. option:: --enableFreeMonitoring <runtime|on|off>
 
-   
-   .. versionadded:: 4.0
-   
-      Available for MongoDB Community Edition.
    
    Enables or disables :doc:`free MongoDB Cloud monitoring
    </administration/free-monitoring>`. :option:`--enableFreeMonitoring` accepts the following
@@ -888,10 +836,6 @@ Free Monitoring
 
 .. option:: --freeMonitoringTag <string>
 
-   
-   .. versionadded:: 4.0
-   
-      Available for MongoDB Community Edition.
    
    Optional tag to describe environment context. The tag can be sent as
    part of the :doc:`free MongoDB Cloud monitoring
@@ -1132,6 +1076,18 @@ LDAP Authentication or Authorization Options
    This setting can be configured on a running :program:`mongod` using
    :dbcommand:`setParameter`.
 
+
+.. option:: --ldapRetryCount <int>
+
+   .. versionadded:: 6.1
+
+   *Default*: 0
+
+   *Available in MongoDB Enterprise only.*
+   
+   Number of operation retries by the server LDAP manager after a
+   network error.
+   
 
 .. option:: --ldapUserToDNMapping <string>
 
@@ -1414,7 +1370,7 @@ Storage Options
    The directory where the :program:`mongod` instance stores its data.
 
    If using the default
-   :doc:`configuration file </reference/configuration-options>`
+   :ref:`Configuration File <configuration-options>`
    included with a package manager installation of MongoDB, the
    corresponding :setting:`storage.dbPath` setting uses a different
    default.
@@ -1481,12 +1437,10 @@ Storage Options
       memory mapped files to disk.
    
    The :program:`mongod` process writes data very quickly to the journal and
-   lazily to the data files. :option:`--syncdelay` has no effect on the
-   :setting:`journal <storage.journal.enabled>` files or :doc:`journaling </core/journaling>`,
-   but if :option:`--syncdelay` is set to ``0`` the journal will eventually consume
-   all available disk space. If you set :option:`--syncdelay` to ``0`` for testing
-   purposes, you should also set :option:`--nojournal <mongod --nojournal>`
-   to ``true``.
+   lazily to the data files. :option:`--syncdelay` has no effect on 
+   :ref:`journaling <journaling-internals>`, but if :option:`--syncdelay` is set to 
+   ``0`` the journal will eventually consume
+   all available disk space.
 
    .. include:: /includes/not-available-for-inmemory-storage-engine.rst
    
@@ -1536,34 +1490,6 @@ Storage Options
       .. include:: /includes/note-repair.rst
    
    .. include:: /includes/warning-repair.rst
-   
-
-
-.. option:: --journal
-
-   Enables the durability :term:`journal` to ensure data files remain valid
-   and recoverable. This option applies only when you specify the
-   :option:`--dbpath` option. :program:`mongod` enables journaling by default.
-
-   
-   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-   
-   .. include:: /includes/extracts/no-journaling-writeConcernMajorityJournalDefault-false.rst
-   
-   .. include:: /includes/extracts/4.2-changes-inmem-startup-warning.rst
-   
-
-
-.. option:: --nojournal
-
-   Disables :doc:`journaling </core/journaling>`. :program:`mongod`
-   enables journaling by default.
-
-   .. include:: /includes/not-available-for-inmemory-storage-engine.rst
-   
-   .. include:: /includes/wiredtiger-node-nojournal.rst
-   
-
 
 .. option:: --journalCommitInterval <value>
 
@@ -1629,7 +1555,7 @@ WiredTiger Options
 
    Specifies the maximum size (in GB) for the "lookaside (or cache
    overflow) table" file :file:`WiredTigerLAS.wt` for MongoDB
-   4.2.1-4.2.x and 4.0.12-4.0.x. The file no longer exists starting in
+   4.2.1-4.2.x. The file no longer exists starting in
    version 4.4.
 
    The setting can accept the following values:
@@ -1656,7 +1582,7 @@ WiredTiger Options
    To change the maximum size during runtime, use the
    :parameter:`wiredTigerMaxCacheOverflowSizeGB` parameter.
    
-   *Available starting in MongoDB 4.2.1 (and 4.0.12)*
+   .. versionadded:: 4.2.1
    
 
 
@@ -1742,11 +1668,6 @@ Replication Options
 
    Configures replication. Specify a replica set name as an argument to
    this set. All hosts in the replica set must have the same set name.
-   
-   Starting in MongoDB 4.0,
-
-   - For the WiredTiger storage engine, :option:`--replSet` cannot be used in
-     conjunction with :option:`--nojournal <mongod --nojournal>`.
    
    .. include:: /includes/fact-unique-replica-set-names.rst
 
@@ -1885,22 +1806,6 @@ Sharded Cluster Options
    :parameter:`skipShardingConfigurationChecks` parameter and restart
    with :option:`--configsvr`.
 
-
-.. option:: --configsvrMode <string>
-
-   **Available in MongoDB 3.2 version only**
-   
-   If set to ``sccc``, indicates that the config servers are deployed
-   as three mirrored :binary:`~bin.mongod` instances, even if one or more
-   config servers is also a member of a replica set. ``configsvrMode``
-   only accepts the value ``sccc``.
-   
-   If unset, config servers running as replica sets expect to use the
-   "config server replica set" protocol for writing to config servers,
-   rather than the "mirrored mongod" write protocol.
-   
-
-
 .. option:: --shardsvr
 
    *Required if starting a shard server.*
@@ -1936,12 +1841,10 @@ Sharded Cluster Options
 
 .. option:: --noMoveParanoia
 
-   .. versionchanged:: 3.2
-
-      Starting in 3.2, MongoDB uses ``--noMoveParanoia`` as the default.
-
    During chunk migration, a shard does not save documents migrated from
    the shard.
+
+   This is the default behavior. 
 
 
 .. _tls-mongod-options:
@@ -1999,7 +1902,7 @@ TLS Options
       Specifies the :file:`.pem` file that contains both the TLS
       certificate and key.
 
-   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   On macOS or Windows, you can use the
    :option:`--tlsCertificateSelector` option to specify a 
    certificate from the operating system's secure certificate store
    instead of a PEM key file. :option:`--tlsCertificateKeyFile` and
@@ -2015,7 +1918,7 @@ TLS Options
 
      .. important::
 
-        For Windows **only**, MongoDB 4.0 and later do not support
+        For Windows **only**, MongoDB does not support
         encrypted PEM files. The :binary:`~bin.mongod` fails to start if
         it encounters an encrypted PEM file. To securely store and
         access a certificate for use with TLS on Windows,
@@ -2028,14 +1931,12 @@ TLS Options
 
    .. versionadded:: 4.2
    
-   Specifies the password to de-crypt the certificate-key file (i.e.
+   Specifies the password to decrypt the certificate-key file (i.e.
    :option:`--tlsCertificateKeyFile`). Use the
    :option:`--tlsCertificateKeyFilePassword` option only if the
    certificate-key file is encrypted. In all cases, the
    :program:`mongod` will redact the password from all logging and
    reporting output.
-   
-   Starting in MongoDB 4.0:
    
    - On Linux/BSD, if the private key in the PEM file is encrypted and
      you do not specify the :option:`--tlsCertificateKeyFilePassword` option, MongoDB will prompt for a
@@ -2109,7 +2010,7 @@ TLS Options
       certificate-key file for :ref:`membership authentication
       <x509-internal-authentication>` for the cluster or replica set.
    
-   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   On macOS or Windows, you can use the
    :option:`--tlsClusterCertificateSelector` option to specify a
    certificate from the operating system's secure certificate store
    instead of a PEM key file. :option:`--tlsClusterFile` and
@@ -2131,7 +2032,7 @@ TLS Options
 
    .. important::
 
-      For Windows **only**, MongoDB 4.0 and later do not support
+      For Windows **only**, MongoDB does not support
       encrypted PEM files. The :binary:`~bin.mongod` fails to start if
       it encounters an encrypted PEM file. To securely store and
       access a certificate for use with membership authentication on
@@ -2143,8 +2044,7 @@ TLS Options
    .. versionadded:: 4.2
    
       Available on Windows and macOS as an alternative to
-      :option:`--tlsCertificateKeyFile`. In version 4.0, see
-      :option:`--sslCertificateSelector`.
+      :option:`--tlsCertificateKeyFile`.
 
    Specifies a certificate property in order to select a matching
    certificate from the operating system's certificate store to use for
@@ -2224,13 +2124,11 @@ TLS Options
 
    .. versionadded:: 4.2
    
-      Specifies the password to de-crypt the x.509 certificate-key file
-      specified with :option:`--tlsClusterFile`. Use the
-      :option:`--tlsClusterPassword` option only if the certificate-key
-      file is encrypted. In all cases, the :program:`mongod` will redact
-      the password from all logging and reporting output.
-   
-   Starting in MongoDB 4.0:
+   Specifies the password to decrypt the x.509 certificate-key file
+   specified with :option:`--tlsClusterFile`. Use the
+   :option:`--tlsClusterPassword` option only if the certificate-key
+   file is encrypted. In all cases, the :program:`mongod` will redact
+   the password from all logging and reporting output.
    
    - On Linux/BSD, if the private key in the x.509 file is encrypted and
      you do not specify the :option:`--tlsClusterPassword` option,
@@ -2308,20 +2206,17 @@ TLS Options
 
    .. versionadded:: 4.2
    
-      For MongoDB 4.0 and earlier, see :option:`--sslCRLFile`.
-   
    Specifies the :file:`.pem` file that contains the Certificate Revocation
    List. Specify the file name of the :file:`.pem` file using relative or
    absolute paths.
    
    .. note::
 
-      - Starting in MongoDB 4.0, you cannot specify a CRL file on
+      - You cannot specify a CRL file on
         macOS. Instead, you can use the system SSL certificate store,
         which uses OCSP (Online Certificate Status Protocol) to
         validate the revocation status of certificates. See
-        :option:`--sslCertificateSelector` in MongoDB 4.0 and
-        :option:`--tlsCertificateSelector` in MongoDB 4.2+ to use the
+        :option:`--tlsCertificateSelector` to use the
         system SSL certificate store.
 
       - Starting in version 4.4, to check for certificate revocation,
@@ -2371,9 +2266,8 @@ TLS Options
 
    .. versionadded:: 4.2
    
-   For clients that do not present certificates, :program:`mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
-   
+   .. include:: /includes/TLS-SSL-certificates.rst
+
    For clients that present a certificate, however, :program:`mongod` performs
    certificate validation using the root certificate chain specified by
    ``--tlsCAFile`` and reject clients with invalid certificates.
@@ -2408,7 +2302,7 @@ TLS Options
    - The specified disabled protocols overrides any default disabled
      protocols.
    
-   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
+   MongoDB disables the use of TLS 1.0 if TLS
    1.1+ is available on the system. To enable the disabled TLS 1.0,
    specify ``none`` to :option:`--tlsDisabledProtocols`. See :ref:`4.0-disable-tls`.
    
@@ -2515,7 +2409,7 @@ SSL Options (Deprecated)
    Specifies the :file:`.pem` file that contains both the TLS/SSL
    certificate and key.
 
-   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   On macOS or Windows, you can use the
    :option:`--sslCertificateSelector` option to specify a 
    certificate from the operating system's secure certificate store
    instead of a PEM key file. :option:`--sslPEMKeyFile` and
@@ -2531,7 +2425,7 @@ SSL Options (Deprecated)
 
      .. important::
 
-        For Windows **only**, MongoDB 4.0 and later do not support
+        For Windows **only**, MongoDB does not support
         encrypted PEM files. The :binary:`~bin.mongod` fails to start if
         it encounters an encrypted PEM file. To securely store and
         access a certificate for use with TLS/SSL on Windows,
@@ -2547,12 +2441,10 @@ SSL Options (Deprecated)
       Use :option:`--tlsCertificateKeyFilePassword
       <mongod --tlsCertificateKeyFilePassword>` instead.
    
-   Specifies the password to de-crypt the certificate-key file (i.e.
+   Specifies the password to decrypt the certificate-key file (i.e.
    :option:`--sslPEMKeyFile`). Use the :option:`--sslPEMKeyPassword` option only if the
    certificate-key file is encrypted. In all cases, the :program:`mongod` will
    redact the password from all logging and reporting output.
-   
-   Starting in MongoDB 4.0:
    
    - On Linux/BSD, if the private key in the PEM file is encrypted and
      you do not specify the :option:`--sslPEMKeyPassword` option, MongoDB will prompt for a
@@ -2581,7 +2473,7 @@ SSL Options (Deprecated)
    certificate-key file for :ref:`membership authentication
    <x509-internal-authentication>` for the cluster or replica set.
 
-   Starting with MongoDB 4.0 on macOS or Windows, you can use the
+   On macOS or Windows, you can use the
    :option:`--sslClusterCertificateSelector` option to specify a
    certificate from the operating system's secure certificate store
    instead of a PEM key file. :option:`--sslClusterFile` and
@@ -2600,7 +2492,7 @@ SSL Options (Deprecated)
 
    .. important::
 
-      For Windows **only**, MongoDB 4.0 and later do not support
+      For Windows **only**, MongoDB does not support
       encrypted PEM files. The :binary:`~bin.mongod` fails to start if
       it encounters an encrypted PEM file. To securely store and
       access a certificate for use with membership authentication on
@@ -2613,17 +2505,16 @@ SSL Options (Deprecated)
       Use :option:`--tlsCertificateSelector
       <mongod --tlsCertificateSelector>` instead.
 
-   .. versionadded:: 4.0
 
-      Available on Windows and macOS as an alternative to
-      :option:`--tlsCertificateKeyFile`. 
+   Available on Windows and macOS as an alternative to
+   :option:`--tlsCertificateKeyFile`. 
 
-      Specifies a certificate property to select a matching certificate
-      from the operating system's secure certificate store to use for
-      TLS/SSL.
+   Specifies a certificate property to select a matching certificate
+   from the operating system's secure certificate store to use for
+   TLS/SSL.
       
-      :option:`--sslPEMKeyFile` and :option:`--sslCertificateSelector`
-      options are mutually exclusive. You can only specify one.
+   :option:`--sslPEMKeyFile` and :option:`--sslCertificateSelector`
+   options are mutually exclusive. You can only specify one.
    
    :option:`--sslCertificateSelector` accepts an argument of the format
    ``<property>=<value>`` where the property can be one of the
@@ -2655,19 +2546,18 @@ SSL Options (Deprecated)
       Use :option:`--tlsClusterCertificateSelector
       <mongod --tlsClusterCertificateSelector>` instead.
    
-   .. versionadded:: 4.0
    
-      Available on Windows and macOS as an alternative to
-      :option:`--sslClusterFile`.
-      
-      Specifies a certificate property to select a matching certificate
-      from the operating system's secure certificate store to use for
-      :ref:`internal x.509 membership authentication
-      <internal-auth-x509>`.
+   Available on Windows and macOS as an alternative to
+   :option:`--sslClusterFile`.
+     
+   Specifies a certificate property to select a matching certificate
+   from the operating system's secure certificate store to use for
+   :ref:`internal x.509 membership authentication
+   <internal-auth-x509>`.
 
-      :option:`--sslClusterFile` and
-      :option:`--sslClusterCertificateSelector` options are mutually
-      exclusive. You can only specify one.
+   :option:`--sslClusterFile` and
+   :option:`--sslClusterCertificateSelector` options are mutually
+   exclusive. You can only specify one.
    
    :option:`--sslClusterCertificateSelector` accepts an argument of the
    format ``<property>=<value>`` where the property can be one of the
@@ -2697,12 +2587,10 @@ SSL Options (Deprecated)
       Use :option:`--tlsClusterPassword
       <mongod --tlsClusterPassword>` instead.
    
-   Specifies the password to de-crypt the x.509 certificate-key file
+   Specifies the password to decrypt the x.509 certificate-key file
    specified with ``--sslClusterFile``. Use the :option:`--sslClusterPassword` option only
    if the certificate-key file is encrypted. In all cases, the :program:`mongod`
    will redact the password from all logging and reporting output.
-   
-   Starting in MongoDB 4.0:
    
    - On Linux/BSD, if the private key in the x.509 file is encrypted and
      you do not specify the :option:`--sslClusterPassword` option, MongoDB will prompt for a
@@ -2789,11 +2677,10 @@ SSL Options (Deprecated)
    
    .. note::
 
-      - Starting in MongoDB 4.0, you cannot specify a CRL file on
+      - You cannot specify a CRL file on
         macOS. Instead, you can use the system SSL certificate store,
         which uses OCSP (Online Certificate Status Protocol) to
         validate the revocation status of certificates. See
-        :option:`--sslCertificateSelector` in MongoDB 4.0 and
         :option:`--tlsCertificateSelector` in MongoDB 4.2+ to use the
         system SSL certificate store.
 
@@ -2852,8 +2739,7 @@ SSL Options (Deprecated)
       Use :option:`--tlsAllowConnectionsWithoutCertificates
       <mongod --tlsAllowConnectionsWithoutCertificates>` instead.
    
-   For clients that do not present certificates, :program:`mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
+   .. include:: /includes/TLS-SSL-certificates.rst
    
    For clients that present a certificate, however, :program:`mongod` performs
    certificate validation using the root certificate chain specified by
@@ -2877,7 +2763,7 @@ SSL Options (Deprecated)
    specify multiple protocols, use a comma separated list of protocols.
     
    :option:`--sslDisabledProtocols` recognizes the following protocols: ``TLS1_0``, ``TLS1_1``,
-   ``TLS1_2``, and starting in version 4.0.4 (and 3.6.9 and 3.4.24), ``TLS1_3``.
+   ``TLS1_2``, and ``TLS1_3``.
    
    - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0`` and
      ``TLS1_2`` enabled. You must disable at least one of the other
@@ -2892,7 +2778,7 @@ SSL Options (Deprecated)
    - The specified disabled protocols overrides any default disabled
      protocols.
    
-   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
+   MongoDB disables the use of TLS 1.0 if TLS
    1.1+ is available on the system. To enable the disabled TLS 1.0,
    specify ``none`` to :option:`--sslDisabledProtocols`. See :ref:`4.0-disable-tls`.
    
@@ -2983,7 +2869,7 @@ Audit Options
 .. option:: --auditDestination
 
    
-   Enables :doc:`auditing </core/auditing>` and specifies where
+   Enables :ref:`auditing <auditing>` and specifies where
    :program:`mongod` sends all audit events.
 
    :option:`--auditDestination` can have one of the following values:
@@ -3061,9 +2947,10 @@ Audit Options
 
 .. option:: --auditPath
 
-   Specifies the output file for :doc:`auditing </core/auditing>` if
-   :option:`--auditDestination` has value of ``file``. The :option:`--auditPath`
-   option can take either a full path name or a relative path name.
+   Specifies the output file for auditing if 
+   :option:`--auditDestination` has value of ``file``. The 
+   :option:`--auditPath` option can take either a full path name or a 
+   relative path name.
    
    .. include:: /includes/note-audit-in-enterprise-only.rst
 
@@ -3091,13 +2978,14 @@ Audit Options
    
    .. include:: /includes/note-audit-in-enterprise-only.rst
 
+.. _cli-mongod-snmp:
 
 SNMP Options
 ~~~~~~~~~~~~
 
-.. note::
+.. warning:: Enterprise Feature Removed
 
-   .. include:: /includes/fact-macos-snmp.rst
+   .. include:: /includes/SNMP-removed.rst
 
 .. option:: --snmp-disabled
 
@@ -3105,8 +2993,6 @@ SNMP Options
    Disables SNMP access to :binary:`~bin.mongod`. The option is incompatible
    with :option:`--snmp-subagent <mongod --snmp-subagent>` and :option:`--snmp-master <mongod --snmp-master>`.
 
-   .. versionadded:: 4.0.6
-   
 
 
 .. option:: --snmp-subagent
@@ -3134,17 +3020,15 @@ inMemory Options
 
 .. option:: --inMemorySizeGB <float>
 
-   *Default*: 50% of physical RAM less 1 GB
-
-   .. versionchanged:: 3.4
+   *Default*: 50% of physical RAM minus 1 GB.
    
-      Values can range from 256MB to 10TB and can be a float.
-   
-   Maximum amount of memory to allocate for :doc:`in-memory storage
-   engine </core/inmemory>` data, including indexes, oplog if the
-   :binary:`~bin.mongod` is part of replica set, replica set or sharded
+   Maximum amount of memory to allocate for the :doc:`in-memory storage
+   engine </core/inmemory>` data, including indexes, the oplog (if the
+   :binary:`~bin.mongod` is part of a replica set), sharded
    cluster metadata, etc.
    
+   Values can range from 256MB to 10TB and can be a float.
+
    .. include:: /includes/fact-inmemory-storage-engine-default-ram.rst
    
    .. include:: /includes/fact-enterprise-only-admonition.rst
@@ -3189,9 +3073,7 @@ Encryption Key Management Options
    
         - 256-bit Advanced Encryption Standard in Galois/Counter Mode
    
-          .. versionchanged:: 4.0
-   
-             .. include:: /includes/fact-aes.rst
+          .. include:: /includes/fact-aes.rst
    
    .. include:: /includes/fact-enterprise-only-admonition.rst
    
@@ -3251,7 +3133,7 @@ Encryption Key Management Options
    Hostname or IP address of the KMIP server to connect to. Requires
    :option:`--enableEncryption`.
 
-   Starting in MongoDB 4.2.1 (and 4.0.14), you can specify multiple KMIP
+   Starting in MongoDB 4.2.1, you can specify multiple KMIP
    servers as a comma-separated list, e.g.
    ``server1.example.com,server2.example.com``. On startup, the
    :binary:`~bin.mongod` will attempt to establish a connection to each
@@ -3329,7 +3211,7 @@ Encryption Key Management Options
 .. option:: --kmipClientCertificateSelector <string>
 
    
-   .. versionadded:: 4.0 (and 4.2.15, 4.4.7, and 5.0)
+   .. versionadded:: 4.2.15, 4.4.7, and 5.0
    
       Available on Windows and macOS as an alternative to
       :option:`--kmipClientCertificateFile`. 
@@ -3351,13 +3233,16 @@ Encryption Key Management Options
 
 .. option:: --kmipClientCertificateFile <string>
    
-   String containing the path to the client certificate used for
-   authenticating MongoDB to the KMIP server. Requires that a
-   :option:`--kmipServerName` be provided.
+   Path to the ``.pem`` file used to authenticate MongoDB to the KMIP
+   server. The specified ``.pem`` file must contain both the TLS/SSL
+   certificate and key. 
+   
+   To use this option, you must also specify the
+   :option:`--kmipServerName` option.
    
    .. note::
       
-      Starting in 4.0, on macOS or Windows, you can use a certificate
+      On macOS or Windows, you can use a certificate
       from the operating system's secure store instead of a PEM key
       file. See :option:`--kmipClientCertificateSelector`.
    
@@ -3383,7 +3268,7 @@ Encryption Key Management Options
    
    .. note::
       
-      Starting in 4.0, on macOS or Windows, you can use a certificate
+      On macOS or Windows, you can use a certificate
       from the operating system's secure store instead of a PEM key
       file. See :option:`--kmipClientCertificateSelector`. When using the secure 
       store, you do not need to, but can, also specify the :option:`--kmipServerCAFile`.

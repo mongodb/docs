@@ -1,5 +1,5 @@
 If you specify a :writeconcern:`"majority"` write concern for a
-:doc:`multi-document transaction </core/transactions>` and the
+:ref:`multi-document transaction <transactions>` and the
 transaction fails to replicate to the :ref:`calculated majority
 <calculating-majority-count>` of :term:`replica set` members, then the
 transaction may not immediately roll back on replica set members.

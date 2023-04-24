@@ -14,10 +14,6 @@
                { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
             ] );
 
-         .. include:: /includes/fact-mws-intro.rst
-
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript
@@ -31,7 +27,7 @@
             ]
 
          For instructions on inserting documents in MongoDB Compass, see
-         :doc:`Insert Documents </tutorial/insert-documents/>`.
+         :ref:`Insert Documents <write-op-insert>`.
 
          .. note::
 

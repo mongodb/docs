@@ -26,8 +26,9 @@ Downgrade Path
    cluster members are running. If you do not, the upgrade or downgrade
    will not complete until all members are started.
 
-After upgrading to |newversion|, if you need to downgrade, we recommend
-|downgrading| to the latest patch release of |downgradeversion|.
+.. include:: /includes/downgrade/latest-patch-release.rst
+
+.. include:: /includes/downgrade/single-version-support.rst
 
 .. |downgrading| replace:: downgrading
 
@@ -138,7 +139,7 @@ a. Ensure that no initial sync is in progress. Running the
 For more information on the returned ``featureCompatibilityVersion``
 value, see :ref:`view-fcv`.
 
-.. |binary| replace:: any :binary:`~bin.mongod`/:binary:`~bin.mongos` instance
+.. |binary| replace:: any :binary:`mongod` / :binary:`mongos` instance
 
 Downgrade Procedure
 -------------------
@@ -241,9 +242,6 @@ Downgrade Procedure
 
                      mongod --dbpath </path-to-data-folder>
 
-                   To learn more about starting a ``mongod`` process, see
-                   :ref:`start-mongod-processes`.
-
                .. step:: Wait for the member to enter the ``SECONDARY`` state.
           
                   Before downgrading the next secondary, wait for the
@@ -251,7 +249,7 @@ Downgrade Procedure
                   the member's state, use the :method:`rs.status()`
                   method in :binary:`~bin.mongosh`.
 
-               .. step:: Repeat to downgrade for each secondary member.
+               .. step:: Repeat the previous steps to downgrade each secondary member.
 
          .. step:: Downgrade the shard arbiter, if any.
 
@@ -296,9 +294,6 @@ Downgrade Procedure
 
                      mongod --dbpath </path-to-mongodb-datafiles>
 
-                  To learn more about starting a ``mongod`` process, see
-                  :ref:`start-mongod-processes`.
-
                .. step:: Wait for the member to enter the ``ARBITER`` state.
                 
                   Before downgrading the primary, wait for the member
@@ -313,8 +308,9 @@ Downgrade Procedure
 
                .. step:: Step down the primary.
 
-                  In :binary:`~bin.mongosh`, use :method:`rs.stepDown()` to step
-                  down the primary and force the normal failover procedure.
+                  In :binary:`~bin.mongosh`, use :method:`rs.stepDown()`
+                  to step down the primary and start an election for a
+                  new primary:
 
                   .. code-block:: javascript
 
@@ -333,7 +329,7 @@ Downgrade Procedure
 
                .. step:: Shut down the former primary member.
                      
-                  To shutdown the former primary, connect to the
+                  To shut down the former primary, connect to the
                   deployment using :binary:`mongosh` and run the
                   following command:
 
@@ -349,7 +345,97 @@ Downgrade Procedure
 
                      mongod --dbpath </path-to-mongodb-datafiles>
 
-                  To learn more about starting a ``mongod`` process, see
-                  :ref:`start-mongod-processes`.
-
          .. step:: Repeat for the remaining shards.
+
+   .. step:: Downgrade the config servers.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Downgrade the shard's secondary members of the
+            config servers replica set (CSRS) one at a time:
+
+            .. procedure::
+               :style: normal
+
+               .. step:: Shut down the secondary.
+                
+                  Connect to the secondary and run the following command:
+
+                  .. code-block:: javascript
+
+                     db.adminCommand( { shutdown: 1 } )
+
+               .. step:: Restart the member.
+
+                  To start a ``mongod`` process, run the following command:
+
+                  .. code-block:: javascript
+
+                     mongod --dbpath </path-to-data-folder>
+
+               .. step:: Wait for the member to enter the ``SECONDARY`` state.
+          
+                  Before downgrading the next secondary, wait for the
+                  member to recover to the ``SECONDARY`` state. To check
+                  the member's state, use the :method:`rs.status()`
+                  method in :binary:`~bin.mongosh`.
+                 
+               .. step:: Repeat the previous steps to downgrade each secondary member.
+
+         .. step:: Downgrade the config server primary.
+
+            .. procedure::
+               :style: normal
+
+               .. step:: Step down the primary.
+
+                  In :binary:`~bin.mongosh`, run :method:`rs.stepDown()`
+                  to step down the primary and start an election for a
+                  new primary:
+
+                  .. code-block:: javascript
+
+                     rs.stepDown()
+
+               .. step:: Verify that the primary has stepped down.
+
+                  Run the following command:
+
+                  .. code-block::
+
+                     rs.status()
+
+                  Verify that the primary has stepped down and another
+                  member has assumed the ``PRIMARY`` state.
+
+               .. step:: Shut down the former primary member.
+                     
+                  To shut down the former primary, connect to the
+                  deployment using :binary:`mongosh` and run the
+                  following command:
+
+                  .. code-block:: javascript
+
+                     db.adminCommand( { shutdown: 1 } )
+
+               .. step:: Restart the :binary:`~bin.mongod` with the |oldversion| binary.
+
+                  To start a ``mongod`` process, run the following command:
+
+                  .. code-block:: javascript
+
+                     mongod --dbpath </path-to-mongodb-datafiles>
+
+   .. step:: Re-enable the balancer.
+
+      After you downgrade all of the sharded cluster components, connect
+      to a :binary:`~bin.mongos` and run the following command to
+      re-enable the balancer:
+
+      .. code-block:: javascript
+
+         sh.startBalancer()
+
+      The :method:`sh.startBalancer()` method also enables auto-splitting
+      for the sharded cluster.

@@ -1,3 +1,5 @@
+.. _server-parameters:
+
 =========================
 MongoDB Server Parameters
 =========================
@@ -57,10 +59,6 @@ Authentication Parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. parameter:: authenticationMechanisms
-
-   .. versionchanged:: 4.0
-
-      Remove support for the deprecated ``MONGODB-CR`` authentication mechanism.
 
    |both|
 
@@ -128,7 +126,7 @@ Authentication Parameters
 
 .. parameter:: ldapForceMultiThreadMode
 
-   .. versionadded:: 4.4, 4.2, 4.0 
+   .. versionadded:: 4.2
 
    *Default*: false
 
@@ -149,6 +147,35 @@ Authentication Parameters
 
       If you have any concerns regarding your MongoDB version, OS version or 
       libldap version, please contact MongoDB Support.
+
+.. parameter:: ldapRetryCount
+
+   .. versionadded:: 6.1
+
+   |both|
+
+   *Type*: integer
+
+   *Default*: 0
+
+   For MongoDB deployments using :ref:`security-ldap-external`.
+ 
+   Number of operation retries by the server LDAP manager after a
+   network error.
+
+   For example, the following sets :parameter:`ldapRetryCount` to ``3``
+   seconds:
+ 
+   .. code-block:: bash
+ 
+      mongod --ldapRetryCount=3
+ 
+   Or, if using the :dbcommand:`setParameter` command within
+   :binary:`~bin.mongosh`:
+ 
+   .. code-block:: javascript
+ 
+      db.adminCommand( { setParameter: 1, ldapRetryCount: 3 } )
 
 .. parameter:: ldapUserCacheInvalidationInterval
 
@@ -254,12 +281,10 @@ Authentication Parameters
 
 .. parameter:: ldapUseConnectionPool
 
-   .. versionadded:: 4.0.9
-
    Specifies whether MongoDB should use connection pooling when
    connecting to the LDAP server for authentication/authorization.
 
-   **Starting in version 4.2**, MongoDB uses the following default values:
+   MongoDB uses the following default values:
 
    - true on Windows.
 
@@ -269,16 +294,13 @@ Authentication Parameters
    - false on Linux where MongoDB Enterprise binaries are linked against
      ``libldap``.
 
-   **In earlier versions (versions 4.0.9+)**, the default value is
-   ``false``.
-
    You can only set :parameter:`ldapUseConnectionPool` during
    start-up, and cannot change this setting with the
    :dbcommand:`setParameter` database command.
 
 .. parameter:: ldapConnectionPoolUseLatencyForHostPriority
 
-   *New in version 4.2.1 and 4.0.13*
+   .. versionadded:: 4.2.1 
 
    *Default*: true
 
@@ -294,7 +316,7 @@ Authentication Parameters
 
 .. parameter:: ldapConnectionPoolMinimumConnectionsPerHost
 
-   *New in version 4.2.1 and 4.0.13*
+   .. versionadded:: 4.2.1
 
    *Default*: 1
 
@@ -307,7 +329,7 @@ Authentication Parameters
 
 .. parameter::   ldapConnectionPoolMaximumConnectionsPerHost
 
-   *New in version 4.2.1 and 4.0.13*
+   .. versionadded:: 4.2.1 
 
    *Changed starting in MongoDB versions 4.4.15, 5.0.9, and 6.0.0*
    Changed default value to ``2147483647``. In previous versions, the
@@ -324,7 +346,7 @@ Authentication Parameters
 
 .. parameter:: ldapConnectionPoolMaximumConnectionsInProgressPerHost
 
-   *New in version 4.2.1 and 4.0.13*
+   .. versionadded:: 4.2.1
 
    *Changed starting in MongoDB versions 4.4.15, 5.0.9, and 6.0.0*
    Changed default value to ``2``. In previous versions, the
@@ -341,7 +363,7 @@ Authentication Parameters
 
 .. parameter:: ldapConnectionPoolHostRefreshIntervalMillis
 
-   *New in version 4.2.1 and 4.0.13*
+   .. versionadded:: 4.2.1
 
    *Default*: 60000
 
@@ -355,7 +377,7 @@ Authentication Parameters
 
 .. parameter:: ldapConnectionPoolIdleHostTimeoutSecs
 
-   *New in version 4.2.1 and 4.0.13*
+   .. versionadded:: 4.2.1 
 
    *Default*: 300
 
@@ -393,7 +415,7 @@ Authentication Parameters
 
 .. parameter:: maxValidateMemoryUsageMB
 
-   .. versionadded:: 5.0
+   .. versionadded:: 5.0 (*Also available starting in 4.4.7.*)
 
    *Default*: 200
 
@@ -463,12 +485,9 @@ Authentication Parameters
 
    *Available on Linux only*
 
-   .. versionchanged:: 4.0
-
-      With the use of native TLS/SSL libraries, the parameter
-      :parameter:`opensslCipherConfig` is supported for Linux/BSD and
-      no longer supported in Windows and macOS. See :ref:`MongoDB 4.0
-      TLS/SSL <4.0-tls>`.
+   With the use of native TLS/SSL libraries, the parameter
+   :parameter:`opensslCipherConfig` is supported for Linux/BSD and
+   no longer supported in Windows and macOS. See :ref:`TLS/SSL <4.0-tls>`.
 
    Specify the cipher string for OpenSSL when using TLS/SSL encryption.
    For a list of cipher strings, see
@@ -494,12 +513,6 @@ Authentication Parameters
    .. code-block:: bash
 
       mongod --setParameter opensslCipherConfig='HIGH:!EXPORT:!aNULL@STRENGTH' --tlsMode requireTLS --tlsCertificateKeyFile Certs/server.pem
-
-   For versions 4.0 and earlier:
-
-   .. code-block:: bash
-
-      mongod --setParameter opensslCipherConfig='HIGH:!EXPORT:!aNULL@STRENGTH' --sslMode requireSSL --sslPEMKeyFile Certs/server.pem
 
 .. parameter:: opensslCipherSuiteConfig
 
@@ -668,8 +681,6 @@ Authentication Parameters
 
 .. parameter:: scramSHA256IterationCount
 
-   .. versionadded:: 4.0
-
    *Default*: ``15000``
 
    |both|
@@ -755,7 +766,7 @@ Authentication Parameters
       Available for Linux.
 
    The maximum number of seconds the
-   :binary:`~bin.mongod`/:binary:`~bin.mongos` instance should wait to
+   :binary:`mongod` / :binary:`mongos` instance should wait to
    receive the OCSP status response for its certificates.
 
    Specify an integer greater than or equal to (``>=``) 1. If unset,
@@ -787,8 +798,8 @@ Authentication Parameters
    *Default*: 5
 
    The maximum number of seconds that the
-   :binary:`~bin.mongod`/:binary:`~bin.mongos` should wait for the OCSP
-   response when verifying client certificates.
+   :binary:`mongod` / :binary:`mongos` should wait for the OCSP
+   response when verifying server certificates.
 
    Specify an integer greater than or equal to (``>=``) 1.
 
@@ -881,7 +892,7 @@ Authentication Parameters
 
    |both|
 
-   Starting in MongoDB 4.4, :binary:`~bin.mongod`/:binary:`~bin.mongos`
+   Starting in MongoDB 4.4, :binary:`mongod` / :binary:`mongos`
    logs a warning on connection if the presented x.509 certificate
    expires within ``30`` days of the ``mongod/mongos`` system clock.
    Use the :parameter:`tlsX509ExpirationWarningThresholdDays` parameter
@@ -977,8 +988,6 @@ Authentication Parameters
    *Default*: true
 
    |both|
-
-   *Available starting in MongoDB 4.0.11 (and 3.6.14 and 3.4.22)*
 
    A boolean flag that allows or disallows the retrieval of
    authorization roles from client x.509 certificates.
@@ -1233,20 +1242,6 @@ General Parameters
         :ref:`featureCompatibilityVersion <view-fcv>` (fCV) set to
         ``"4.2"`` or greater.
 
-   For MongoDB 2.6 through MongoDB versions with
-   :ref:`featureCompatibilityVersion
-   <view-fcv>` (fCV) set to ``"4.0"`` or earlier,
-   :limit:`Index Key Length Limit <Index Key Limit>` applies. If you
-   attempt to insert or update a document whose index field exceeds
-   the :limit:`Index Key Length Limit <Index Key Limit>`, the operation
-   will fail and return an error to the client.
-
-   To avoid this issue, consider using :doc:`hashed indexes
-   </core/index-hashed>` or indexing a computed value. If you have an
-   existing data set and want to disable this behavior so you can
-   upgrade and then gradually resolve these indexing issues, you can
-   use :parameter:`failIndexKeyTooLong` to disable this behavior.
-
    Setting :parameter:`failIndexKeyTooLong` to ``false`` is
    a temporary workaround, not a permanent solution to the
    problem of oversized index keys. With
@@ -1280,21 +1275,28 @@ General Parameters
 
    *Default*: 3
 
-   MongoDB limits the number of concurrent user index builds to control
-   WiredTiger cache pressure. The primary node can run up to
-   ``maxNumActiveUserIndexBuilds`` concurrent user index builds. This is
-   a global limit that applies across collections.
+   Sets the maximum number of concurrent index builds allowed on the
+   :term:`primary`. This is a global limit that applies across all
+   collections.
+   
+   Increasing the value of ``maxNumActiveUserIndexBuilds`` allows
+   additional concurrent index builds at the cost of increased pressure
+   on the WiredTiger cache.
    
    System indexes are not limited to ``maxNumActiveUserIndexBuilds``,
-   however a running system index build will count against the limit for
-   user index builds.
+   however a system index build counts against the limit for user index
+   builds.
 
-   After reaching ``maxNumActiveUserIndexBuilds``, MongodDB blocks
+   After the server reaches ``maxNumActiveUserIndexBuilds``, it blocks
    additional user index builds until the number of concurrent index
    builds drops below the ``maxNumActiveUserIndexBuilds`` limit. If an
-   index build is blocked, the server logs a message, "Too many index
-   builds running simultaneously, waiting until the number of active
-   index builds is below the threshold".
+   index build is blocked, the server logs this message:
+   
+   .. code-block:: sh
+      :copyable: false
+      
+      Too many index builds running simultaneously, waiting until the
+      number of active index builds is below the threshold.
 
    The following command sets a limit of 4 concurrent index builds:
 
@@ -1302,7 +1304,10 @@ General Parameters
 
       db.adminCommand( { setParameter: 1, maxNumActiveUserIndexBuilds: 4 } )
 
-   See also: :parameter:`maxIndexBuildMemoryUsageMegabytes`
+   See also:
+   
+   - :parameter:`maxIndexBuildMemoryUsageMegabytes`
+   - :ref:`index-creation-background`
 
 .. parameter:: notablescan
 
@@ -1340,7 +1345,7 @@ General Parameters
 
    *Default*: ``true``
 
-   To support :doc:`TTL Indexes </core/index-ttl>`, :binary:`~bin.mongod`
+   To support :ref:`TTL Indexes <index-feature-ttl>`, :binary:`~bin.mongod`
    instances have a background thread that is responsible for deleting
    documents from collections with TTL indexes.
 
@@ -1364,8 +1369,7 @@ General Parameters
       Do not run production :binary:`~bin.mongod` instances with
       ``ttlMonitorEnabled`` disabled, except under guidance from MongoDB
       support. Preventing TTL document removal can negatively impact
-      MongoDB internal system operations that depend on
-      :doc:`TTL Indexes </core/index-ttl>`.
+      MongoDB internal system operations that depend on TTL Indexes.
 
 .. parameter:: tcpFastOpenServer
 
@@ -1498,10 +1502,6 @@ General Parameters
 
 .. parameter:: disableJavaScriptJIT
 
-   .. versionchanged:: 4.0
-
-      .. include:: /includes/fact-jit-disabled.rst
-
    |mongod-only|
 
    The MongoDB JavaScript engine uses SpiderMonkey, which implements
@@ -1564,8 +1564,6 @@ General Parameters
 
 .. parameter:: reportOpWriteConcernCountersInServerStatus
 
-   .. versionadded:: 4.0.6
-
    *Default*: false
 
    A boolean flag that determines whether the
@@ -1594,23 +1592,13 @@ General Parameters
 
    *Default*: -1 (disabled)
 
-   .. note::
-
-      - Starting in MongoDB 4.2, the :ref:`Storage Node Watchdog
-        <storage-node-watchdog>` is available in both the Community and
-        MongoDB Enterprise editions.
-
-      - In earlier versions (3.2.16+, 3.4.7+, 3.6.0+, 4.0.0+), the
-        :ref:`Storage Node Watchdog <storage-node-watchdog>` is only
-        available in MongoDB Enterprise edition.
-
    Determines how frequent the :ref:`Storage Node Watchdog
    <storage-node-watchdog>` checks the status of the monitored
    filesystems:
 
    * The :option:`--dbpath <mongod --dbpath>` directory
-   * The ``journal`` directory inside the :option:`--dbpath <mongod --dbpath>` directory if
-     :option:`journaling <mongod --journal>` is enabled
+   * The ``journal`` directory inside the :option:`--dbpath <mongod --dbpath>` 
+     directory
    * The directory of :option:`--logpath <mongod --logpath>` file
    * The directory of :option:`--auditPath <mongod --auditPath>` file
 
@@ -1677,7 +1665,7 @@ General Parameters
 
 .. parameter:: tcmallocReleaseRate
 
-   .. versionadded:: 4.2.3 *Also available in 3.6.17+ and 4.0.14+*
+   .. versionadded:: 4.2.3 
 
    Default: 1.0
 
@@ -1950,6 +1938,27 @@ Logging Parameters
    :doc:`/core/security-transport-encryption` to assist compliance with
    regulatory requirements.
 
+   To enable log redaction at startup, you can either:
+
+   - Start :binary:`mongod` with the
+     :option:`--redactClientLogData <mongod --redactClientLogData>` option: 
+
+     .. code-block:: javascript
+      
+        mongod --redactClientLogData
+      
+   - Set the :setting:`security.redactClientLogData` option in the 
+     :ref:`configuration file <configuration-options>`:
+
+     .. code-block:: yaml
+      
+        security: 
+           redactClientLogData: true
+           ...
+
+   You can't use the :option:`--setParameter <mongod --setParameter>` 
+   option to set :parameter:`redactClientLogData` at startup.
+   
    To enable log redaction on a running ``mongod`` or
    ``mongos``, use the following command:
 
@@ -1960,6 +1969,30 @@ Logging Parameters
    .. seealso::
 
       :setting:`security.redactClientLogData`
+
+.. parameter:: redactEncryptedFields
+
+   .. versionadded:: 6.1.0
+
+   |both|
+
+   *Type*: boolean
+
+   *Default*: ``true``
+
+   Configures :program:`mongod` and :program:`mongos` to redact field values
+   of encrypted :bsontype:`Binary` data from all 
+   :ref:`log messages <log-messages-ref>`.
+
+   - If the :parameter:`redactClientLogData` parameter or the
+     :setting:`security.redactClientLogData` setting is set to ``false`` and
+     ``redactEncryptedFields`` is set to ``true`` (the default), encrypted 
+     fields are redacted from all log messages.
+
+   - If the :parameter:`redactClientLogData` parameter or
+     :setting:`security.redactClientLogData` setting is set to ``true``,
+     all fields are redacted, regardless of the ``redactEncryptedFields``
+     setting.
 
 .. parameter:: traceExceptions
 
@@ -1981,8 +2014,6 @@ Logging Parameters
       :setting:`systemLog.traceAllExceptions`
 
 .. parameter:: suppressNoTLSPeerCertificateWarning
-
-   .. versionadded:: 4.0.1
 
    |both|
 
@@ -2065,6 +2096,14 @@ The following parameters support diagnostic data capture (FTDC):
 
    |mongos-only|
 
+   .. warning:: 
+
+      If :ref:`Full Time Diagnostic Data Capture (FTDC) <ftdc-stub>` is 
+      disabled with :parameter:`diagnosticDataCollectionEnabled` or if 
+      :setting:`systemLog.destination` is set to ``syslog``, you must restart 
+      :binary:`~bin.mongos` after setting 
+      ``diagnosticDataCollectionDirectoryPath``.
+
    Specify the directory for the diagnostic directory for
    :binary:`~bin.mongos`. If the directory does not exist,
    :binary:`~bin.mongos` creates the directory.
@@ -2078,15 +2117,11 @@ The following parameters support diagnostic data capture (FTDC):
    /var/log/mongodb/mongos.log.201708015``, then the diagnostic data
    directory is ``/var/log/mongodb/mongos.diagnostic.data/``.
 
-   .. important::
-
-      If the :binary:`~bin.mongos` cannot create the specified
-      directory, the diagnostic data capture is disabled for that
-      instance. This is often caused by:
-
-      - a file with the same name already exists in the path, or
-
-      - the process does not have permissions to create the directory.
+   If the :binary:`~bin.mongos` cannot create the specified directory, the 
+   diagnostic data capture is disabled for that instance. :binary:`~bin.mongos`
+   may not be able to create the specified directory if a file with the same 
+   name already exists in the path or if the process does not have permissions 
+   to create the directory.
 
 .. parameter:: diagnosticDataCollectionDirectorySizeMB
 
@@ -2229,11 +2264,6 @@ If you attempt to update ``disableSplitHorizonIPCheck`` at runtime,
 
 .. parameter:: logicalSessionRefreshMillis
 
-   .. note:: Availability
-
-
-      New in version 4.0.4 (and version 3.6.9).
-
    |both|
 
    *Type*: integer
@@ -2317,8 +2347,6 @@ If you attempt to update ``disableSplitHorizonIPCheck`` at runtime,
       mongod --setParameter maxAcceptableLogicalClockDriftSecs=900
 
 .. parameter:: maxSessions
-
-   .. versionadded:: 4.0.1
 
    |both|
 
@@ -2704,22 +2732,15 @@ If you attempt to update ``disableSplitHorizonIPCheck`` at runtime,
    Maximum age of data that can be rolled back. Negative values for
    this parameter are not valid.
 
-   Starting in MongoDB 4.2+ and 4.0.13+, if the time between the end
+   If the time between the end
    of the to-be-rolledback instance's oplog and the first operation
    after the common point (the last point where the source node and the
    to-be-rolledback node had the same data) exceeds this value, the
    rollback will fail.
 
-   In MongoDB 4.0.0-4.0.12, if the time between the end of the to-be-rolledback
-   instance's oplog and the common point (the last point where the
-   source node and the to-be-rolledback node had the same data) exceeds
-   this value, the rollback will fail.
-
    To effectively have an unlimited rollback period, set the value to
    ``2147483647`` which is the maximum value allowed and equivalent to
    roughly 68 years.
-
-   .. versionadded:: 4.0
 
 .. parameter:: waitForSecondaryBeforeNoopWriteMS
 
@@ -2758,8 +2779,6 @@ If you attempt to update ``disableSplitHorizonIPCheck`` at runtime,
 
    *Default*: true
 
-   .. versionadded:: 4.0
-
    Flag that determines whether MongoDB creates :ref:`rollback files
    <rollback-data-files>` that contains documents affected during a
    rollback.
@@ -2784,8 +2803,6 @@ If you attempt to update ``disableSplitHorizonIPCheck`` at runtime,
    For more information, see :ref:`rollback-data-files`.
 
 .. parameter:: enableElectionHandoff
-
-   .. versionadded:: 4.0.2
 
    *Type*: boolean
 
@@ -2839,13 +2856,11 @@ If you attempt to update ``disableSplitHorizonIPCheck`` at runtime,
 
       db.adminCommand( { setParameter: 1, replBatchLimitBytes: 64 * 1024 * 1024 } )
 
-   .. versionadded:: 4.0.10
-
 .. parameter:: mirrorReads
 
    |mongod-only|
 
-   *New in version 4.4*
+   .. versionadded:: 4.4
 
    *Type*: Document
 
@@ -3013,7 +3028,7 @@ Sharding Parameters
 
 .. parameter:: chunkMigrationConcurrency
 
-   *Available starting in MongoDB 6.3 (and 6.0.5 and 5.0.15).*
+   *Available starting in MongoDB 6.3 (and 5.0.15).*
 
    *Type*: integer
 
@@ -3065,7 +3080,7 @@ Sharding Parameters
    |mongod-only|
 
    If set on a shard's primary, specifies if range deletion is paused on
-   the shard. If set to ``true``, cleanup of :term:`chunk`ranges
+   the shard. If set to ``true``, cleanup of :term:`ranges <range>`
    containing :term:`orphaned documents <orphaned document>` is paused.
    The shard can continue to donate chunks to other shards, but the
    donated documents will not be removed from this shard until you set
@@ -3099,7 +3114,7 @@ Sharding Parameters
 
 .. parameter:: enableShardedIndexConsistencyCheck
 
-   *New in version 4.4 (and 4.2.6).*
+   .. versionadded:: 4.4 (*Also available starting in 4.2.6.*)
 
    *Type*: boolean
 
@@ -3170,7 +3185,7 @@ Sharding Parameters
 
 .. parameter:: shardedIndexConsistencyCheckIntervalMS
 
-   *New in version 4.4 (and 4.2.6).*
+   .. versionadded:: 4.4 (*Also available starting in 4.2.6.*)
 
    *Type*: integer
 
@@ -3267,7 +3282,7 @@ Sharding Parameters
 
 .. parameter:: maxCatchUpPercentageBeforeBlockingWrites
 
-   .. versionadded:: 5.0 (*Also available starting in 4.4.7, 4.2.15, 4.0.26*)
+   .. versionadded:: 5.0 (*Also available starting in 4.4.7, 4.2.15*)
 
    *Type*: integer
 
@@ -3275,10 +3290,10 @@ Sharding Parameters
 
    |mongod-only|
 
-   For :dbcommand:`moveChunk` operations, specifies the maximum
-   percentage of untrasferred data allowed by the migration protocol
-   (expressed in percentage of the total chunk size) to
-   transition from the ``catchup`` phase to the ``commit`` phase.
+   For :dbcommand:`moveChunk` and :dbcommand:`moveRange` operations, 
+   specifies the maximum percentage of untrasferred data allowed by the 
+   migration protocol (expressed in percentage of the total chunk size) 
+   to transition from the ``catchup`` phase to the ``commit`` phase.
    
    Setting a higher catchup percentage can decrease the amount of time
    it takes for the migration to complete at the cost of increased
@@ -3464,55 +3479,6 @@ Sharding Parameters
    .. code-block:: javascript
 
       db.adminCommand( { setParameter: 1, mongosShutdownTimeoutMillisForSignaledShutdown: 250 } )
-
-.. parameter:: replMonitorMaxFailedChecks
-
-   *Available in MongoDB 3.2 only*
-
-   Type: integer
-
-   Default: 30
-
-   The number of times the :binary:`~bin.mongod` or
-   :binary:`~bin.mongos` instance tries to reach the replica sets in the
-   sharded cluster (for example, shard replica sets, config server
-   replica set) to monitor the replica set status and topology.
-
-   When the number of consecutive unsuccessful attempts exceeds this
-   parameter value, the :binary:`~bin.mongod` or :binary:`~bin.mongos` instance
-   denotes the monitored replica set as unavailable. If the monitored
-   replica set is the config server replica set:
-
-   - For MongoDB 3.2.0-3.2.9, the monitoring :binary:`~bin.mongod` or
-     :binary:`~bin.mongos` instance will become unusable and needs to be
-     restarted. See the :v3.2:`v3.2 troubleshooting guide
-     </tutorial/troubleshoot-sharded-clusters/#a-config-server-replica-set-member-become-unavailable>`
-     for more details.
-
-   - For MongoDB 3.2.10 and later 3.2-series, see also
-     :parameter:`timeOutMonitoringReplicaSets`.
-
-.. parameter:: timeOutMonitoringReplicaSets
-
-   *Available in MongoDB 3.2.10 and later 3.2-series only*
-
-   Type: integer
-
-   Default: false
-
-   The flag that determines whether the :binary:`~bin.mongod` or
-   :binary:`~bin.mongos` instance should stop its attempt to reach the
-   monitored replica set after unsuccessfully trying
-   :parameter:`replMonitorMaxFailedChecks` number of times.
-
-   If the monitored replica set is the config server replica set and
-   :parameter:`timeOutMonitoringReplicaSets` is set to ``true``, you
-   must restart :binary:`~bin.mongod` or :binary:`~bin.mongos` if the
-   :binary:`~bin.mongod` or :binary:`~bin.mongos` instance cannot reach any of
-   the config servers for the specified number of times. See the
-   :v3.2:`v3.2 troubleshooting guide
-   </tutorial/troubleshoot-sharded-clusters/#a-config-server-replica-set-member-become-unavailable>`
-   for more details.
 
 .. parameter:: ShardingTaskExecutorPoolHostTimeoutMS
 
@@ -3925,8 +3891,6 @@ Sharding Parameters
 
 .. parameter:: taskExecutorPoolSize
 
-   .. versionchanged:: 4.0
-
    Type: integer
 
    Default: 1
@@ -3947,18 +3911,12 @@ Sharding Parameters
    - If the number of cores is greater than 64, the number of Task
      Executor connection pools is 64.
 
-   Starting in MongoDB 4.0, the default value of
-   :parameter:`taskExecutorPoolSize` is ``1``:
+   .. include:: /includes/fact-taskExecutorPoolSize-on-Linux.rst  
 
-   - In MongoDB 4.0 deployment, you can set
-     :parameter:`taskExecutorPoolSize` to ``0`` and, on Linux, set
-     :v4.0:`AsyncRequestsSenderUseBaton
-     </reference/parameters/#param.AsyncRequestsSenderUseBaton>` to
-     ``false`` for the previous behavior.
-
-   - In MongoDB 4.2+ deployment, MongoDB removes the
-     ``AsyncRequestsSenderUseBaton`` parameter and always enables the
-     performance enhancement controlled by the parameter.
+   The default value of :parameter:`taskExecutorPoolSize` is ``1``:
+   In MongoDB 4.2+ deployments, MongoDB removes the
+   ``AsyncRequestsSenderUseBaton`` parameter and always enables the
+   performance enhancement controlled by the parameter.
 
    You can only set this parameter during start-up and cannot change
    this setting using the :dbcommand:`setParameter` database command.
@@ -4072,10 +4030,6 @@ Sharding Parameters
 
 .. parameter:: migrateCloneInsertionBatchDelayMS
 
-   .. versionadded:: 4.0.5
-
-      The parameter is also available starting in 3.4.18 and 3.6.10
-
    |mongod-only|
 
    Type: Non-negative integer
@@ -4103,10 +4057,6 @@ Sharding Parameters
       db.adminCommand( { setParameter: 1, migrateCloneInsertionBatchDelayMS: 200 } )
 
 .. parameter:: migrateCloneInsertionBatchSize
-
-   .. versionadded:: 4.0.5
-
-      The parameter is also available starting in 3.4.18 and 3.6.10
 
    |mongod-only|
 
@@ -4179,10 +4129,6 @@ Sharding Parameters
 
 .. parameter:: rangeDeleterBatchDelayMS
 
-   .. versionadded:: 4.0.1
-
-      The parameter is also available starting in 3.4.17 and 3.6.7.
-
    |mongod-only|
 
    Type: Non-negative integer
@@ -4190,18 +4136,11 @@ Sharding Parameters
    Default: 20
 
    The amount of time in milliseconds to wait before the next batch of
-   deletion during the cleanup stage of :ref:`chunk migration
-   <chunk-migration-procedure>` (or the :dbcommand:`cleanupOrphaned`
+   deletion during the cleanup stage of :ref:`range migration
+   <range-migration-procedure>` (or the :dbcommand:`cleanupOrphaned`
    command).
 
-   In MongoDB 3.4, consider whether :ref:`_secondaryThrottle
-   <chunk-migration-replication>` is set before modifying the
-   :parameter:`rangeDeleterBatchDelayMS`. In MongoDB 3.4, the
-   :ref:`_secondaryThrottle replication delay
-   <chunk-migration-replication>` occurs after each document deletion
-   instead of after the batch deletion.
-
-   In MongoDB 3.6+, the :ref:`_secondaryThrottle replication delay
+   The :ref:`_secondaryThrottle replication delay
    <chunk-migration-replication>` occurs after each batch deletion.
 
    The following sets the :parameter:`rangeDeleterBatchDelayMS` to 200
@@ -4220,8 +4159,6 @@ Sharding Parameters
 
 .. parameter:: rangeDeleterBatchSize
 
-   .. versionadded:: 4.0.5
-
    |mongod-only|
 
    Type: Non-negative integer
@@ -4230,7 +4167,7 @@ Sharding Parameters
    in earlier MongoDB versions)
 
    The maximum number of documents in each batch to delete during the
-   cleanup stage of :ref:`chunk migration <chunk-migration-procedure>`
+   cleanup stage of :ref:`range migration <range-migration-procedure>`
    (or the :dbcommand:`cleanupOrphaned` command).
 
    A value of ``0`` indicates that the system chooses the default value.
@@ -4274,12 +4211,6 @@ Sharding Parameters
       Once maintenance has completed, remove the
       :parameter:`skipShardingConfigurationChecks` parameter when
       restarting the :binary:`~bin.mongod`.
-
-   The parameter is also available for MongoDB versions:
-
-   - MongoDB 3.2.19+
-
-   - MongoDB 3.4.11+
 
 .. parameter:: findChunksOnConfigTimeoutMS
 
@@ -4538,7 +4469,7 @@ Storage Parameters
           larger value increases the chance that the cache pressure
           will be reduced before the next retry.
           
-          To configure number of retires, use 
+          To configure number of retries, use 
           :parameter:`temporarilyUnavailableMaxRetries`.
 
    To set a new value, use :method:`db.adminCommand()`:
@@ -4547,7 +4478,7 @@ Storage Parameters
 
       db.adminCommand( { setParameter: 1, temporarilyUnavailableBackoffBaseMs: 3 } )
 
-   *Available starting in MongoDB 6.1.0*
+   .. versionadded:: 6.1.0
 
 .. parameter:: temporarilyUnavailableMaxRetries
 
@@ -4581,7 +4512,7 @@ Storage Parameters
 
       db.adminCommand( { setParameter: 1, temporarilyUnavailableMaxRetries: 5 } )
 
-   *Available starting in MongoDB 6.1.0*
+   .. versionadded:: 6.1.0
 
 WiredTiger Parameters
 ~~~~~~~~~~~~~~~~~~~~~
@@ -4600,7 +4531,7 @@ WiredTiger Parameters
 
    Specify the maximum size (in GB) for the "lookaside (or cache
    overflow) table" file :file:`WiredTigerLAS.wt` for MongoDB
-   4.2.1-4.2.x and 4.0.12-4.0.x. The file no longer exists starting in
+   4.2.1-4.2.x. The file no longer exists starting in
    version 4.4.
 
    The parameter can accept the following values:
@@ -4635,7 +4566,7 @@ WiredTiger Parameters
    :setting:`storage.wiredTiger.engineConfig.maxCacheOverflowFileSizeGB`
    instead.
 
-   *Available starting in MongoDB 4.2.1 (and 4.0.12)*
+   .. versionadded:: 4.2.1
 
 .. parameter:: wiredTigerConcurrentReadTransactions
 
@@ -4712,12 +4643,12 @@ Auditing Parameters
 
    |both|
 
-   Enables the :doc:`auditing </core/auditing>` of authorization
+   Enables the :ref:`auditing <auditing>` of authorization
    successes for the :ref:`authCheck <audit-action-details-results>`
    action.
 
    When :parameter:`auditAuthorizationSuccess` is ``false``, the
-   :doc:`audit system </core/auditing>` only logs the authorization
+   :ref:`audit system <auditing>` only logs the authorization
    failures for ``authCheck``.
 
    To enable the audit of authorization successes, issue the following
@@ -4772,7 +4703,7 @@ Auditing Parameters
    log encryption <security-encryption-at-rest-audit-log>`. A header is
    placed at the top of each audit log file and contains metadata for
    decrypting the audit log. The headers are also stored in the
-   :doc:`audit log </core/auditing>`.
+   :ref:`audit log <auditing>`.
 
    You can only set :parameter:`auditEncryptionHeaderMetadataFile`
    during startup in the :setting:`configuration file <setParameter>` or
@@ -4815,46 +4746,99 @@ Transaction Parameters
 
 .. parameter:: coordinateCommitReturnImmediatelyAfterPersistingDecision
 
-   .. versionadded:: 5.0
+   .. versionadded:: 5.0 
+    
+   *Updated in version 6.1*
 
    *Type*: boolean
 
-   *Default*: true
+   *Default*: false
 
    |mongod-only|
 
-   If ``true``, the :doc:`shard </core/sharded-cluster-shards>`
-   transaction coordinator returns a :ref:`multi-document transaction
-   <transactions-atomicity>` commit decision to the client as soon as
-   the commit is made :term:`durable` with the requested transaction
-   :doc:`write concern </reference/write-concern>`. If the client
-   requested a write concern that is less than
+   Behavior When ``false``
+   ```````````````````````
+
+   The :ref:`shard <shards-concepts>` transaction coordinator waits for
+   all members to acknowledge the decision to either commit or cancel a
+   :ref:`multi-document transaction <transactions-atomicity>` before
+   returning the result to the client.
+
+   Behavior When ``true``
+   ``````````````````````
+
+   The shard transaction coordinator returns a :ref:`multi-document
+   transaction <transactions-atomicity>` commit decision to the client
+   as soon as the decision is made :term:`durable` with the requested
+   transaction :ref:`write concern <write-concern>`.
+
+   If the client requested a write concern that is less than
    :writeconcern:`"majority"`, the commit may roll back after the
    decision is returned to the client.
 
-   If ``false``, the :doc:`shard </core/sharded-cluster-shards>`
-   transaction coordinator waits for all members to acknowledge a
-   :ref:`multi-document transaction <transactions-atomicity>` commit
-   before returning the commit decision to the client.
+   Transactions may not have "read your writes" consistency. That is, a
+   read operation may not reflect the results of a write operation that
+   preceded it. This can happen in the following cases:
+
+   - A transaction has to write to multiple shards.
+   - The read and the earlier write take place in different sessions.
+
+   :ref:`Causal consistency <causal-consistency>` only guarantees the
+   causal relationship of reads and writes that occurr within the same
+   session.
+
+   Example
+   ```````
 
    The following example sets
-   :parameter:`coordinateCommitReturnImmediatelyAfterPersistingDecision`
-   to ``false``:
+   ``coordinateCommitReturnImmediatelyAfterPersistingDecision`` to
+   ``true``:
 
    .. code-block:: javascript
 
-      mongod --setParameter coordinateCommitReturnImmediatelyAfterPersistingDecision=false
+      mongod --setParameter coordinateCommitReturnImmediatelyAfterPersistingDecision=true
 
    During runtime, you can also set the parameter with the
    :dbcommand:`setParameter` command:
 
    .. code-block:: bash
 
-      db.adminCommand( { setParameter: 1, coordinateCommitReturnImmediatelyAfterPersistingDecision: false } )
+      db.adminCommand( { setParameter: 1, coordinateCommitReturnImmediatelyAfterPersistingDecision: true } )
+
+.. parameter:: internalSessionsReapThreshold
+
+   .. versionadded:: 6.0
+
+   |both|
+
+   *Default*: 1000
+
+   Session limit for internal session metadata deletion. The metadata:
+
+   - Contains session transaction information for user operations.
+   - Is stored in the :data:`config.transactions` collection.
+
+   When the number of internal sessions is greater than
+   :parameter:`internalSessionsReapThreshold`, the metadata is deleted.
+   
+   If you set :parameter:`internalSessionsReapThreshold` to ``0``, the
+   internal session metadata is only deleted when the user session ends.
+
+   The following example sets :parameter:`internalSessionsReapThreshold`
+   to ``500`` sessions:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, internalSessionsReapThreshold: 500 } )
+
+   You can also set :parameter:`internalSessionsReapThreshold` at
+   startup. For example:
+
+   .. code-block:: bash
+
+      mongod --setParameter internalSessionsReapThreshold=500
 
 .. parameter:: transactionLifetimeLimitSeconds
-
-   .. versionadded:: 4.0
 
    |mongod-only|
 
@@ -4891,10 +4875,40 @@ Transaction Parameters
    modified for all shard replica set members.
    
    .. include:: /includes/transactionLifetimeLimitSeconds-parameter.rst
-   
-.. parameter:: maxTransactionLockRequestTimeoutMillis
 
-   .. versionadded:: 4.0
+.. parameter:: transactionTooLargeForCacheThreshold
+
+   .. versionadded:: 6.2
+
+   |mongod-only|
+
+   *Type*: decimal
+
+   *Default*: 0.75
+
+   The threshold value for retrying transactions that fail due to cache
+   pressure. The value is a percentage of the dirty cache size. The
+   default value, ``0.75``, means 75% of the dirty cache.
+   
+   The dirty cache is limited to 20% of the total cache size. When
+   ``transactionTooLargeForCacheThreshold`` is set to ``0.75``, the
+   server only retries transactions that use less than 15%
+   (``0.75 * 20%``) of the total storage engine cache.
+   
+   The limit only applies to retries. Large transactions can use more
+   than ``transactionTooLargeForCacheThreshold`` percent of the dirty
+   cache. However, if a large transaction is rolled back due to cache
+   pressure, the server issues a
+   :ref:`transactionTooLargeForCache-error` error and does not retry the
+   transaction. 
+  
+   To disable this behavior, set
+   ``transactionTooLargeForCacheThreshold`` to ``1.0``.
+
+   For more information on WiredTiger storage, see:
+   :ref:`wiredTiger-storage-options`.
+
+.. parameter:: maxTransactionLockRequestTimeoutMillis
 
    |mongod-only|
 
@@ -4910,7 +4924,7 @@ Transaction Parameters
    :parameter:`maxTransactionLockRequestTimeoutMillis`, the transaction
    aborts.
 
-   By default, :doc:`multi-document transactions </core/transactions>`
+   By default, :ref:`multi-document transactions <transactions>`
    wait ``5`` milliseconds. That is, if the transaction cannot acquire
    the locks within ``5`` milliseconds, the transaction aborts. If an
    operation provides a greater timeout in a lock request,
@@ -4953,8 +4967,7 @@ Transaction Parameters
    *Default*: true
 
    A flag that enables or disables the creation of a collection or an
-   index inside :doc:`transactions </core/transactions>`. Set the
-   parameter to:
+   index inside transactions. Set the parameter to:
 
    - ``true`` to enable. (*Default*)
 

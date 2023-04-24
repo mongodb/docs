@@ -12,10 +12,6 @@
                { item: "mousepad", qty: 25, tags: ["gel", "blue"], size: { h: 19, w: 22.85, uom: "cm" } }
             ])
           
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
 
@@ -35,7 +31,7 @@
             ]
 
          For instructions on inserting documents using |compass|, see
-         :doc:`Insert Documents </tutorial/insert-documents/>`.
+         :ref:`Insert Documents <write-op-insert>`.
 
      - id: python
        content: |

@@ -1,4 +1,4 @@
-To run text search queries on on-premises deployments, you must have a
+To run text search queries on self-managed deployments, you must have a
 :ref:`text index <index-feature-text>` on your collection. MongoDB
 provides text indexes to support text search queries on string content.
 Text indexes can include any field whose value is a string or an array

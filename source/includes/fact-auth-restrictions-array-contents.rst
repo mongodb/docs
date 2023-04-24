@@ -38,4 +38,4 @@ following fields. The server throws an error if the
    unable to authenticate the user.
 
 For more information on authentication in MongoDB, see
-:doc:`Authentication </core/authentication/>`.
+:ref:`authentication`.
