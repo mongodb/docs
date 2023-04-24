@@ -18,58 +18,15 @@ content: |
   - The custom |certauth| certificate in :setting:`spec.security.tls.ca`.
 
 ---
-title: "Create an external service for each of the Pods in different clusters."
-level: 4
+ref: create-external-services-multi-cluster
 stepnum: 3
-ref: external-services-replicaset
-content: |
-
-  To connect to your |multi-cluster| from an external resource, configure the 
-  :ref:`spec.externalAccess <multi-spec-externalaccess>` setting:
-
-  .. code-block:: yaml
-
-     externalAccess: {}
- 
-  This setting instructs the |k8s-op-short| to create an external :k8sdocs:`LoadBalancer 
-  </concepts/services-networking/service/#loadbalancer>` service for each Pod in your 
-  |multi-cluster|. The external service provides an entry point for external connections.
-  Adding this setting with no values creates an external service with the following default
-  values:
-
-  .. include:: /includes/list-tables/external-service-default.rst
-
-  Optionally, if you need to add values to the service or override the default values,
-  specify:
-
-  - Annotations specific to your cloud provider, in :ref:`spec.externalAccess.externalService.annotations 
-    <multi-spec-externalaccess-externalservice-annotations>`.
-  
-  - Overrides for the service specification, in :ref:`spec.externalAccess.externalService.spec
-    <multi-spec-externalaccess-externalservice-spec>`.
-  
-  For example, the following settings override the default values for the external service 
-  to configure your |multi-cluster| to create a :k8sdocs:`NodePort service 
-  </concepts/services-networking/service/#type-nodeport>` that exposes the |multi-cluster|:
-  
-  .. code-block:: yaml
-
-     externalAccess:
-       externalService: 
-         annotations:
-           # cloud-specific annotations for the service
-         spec:
-           type: NodePort # default is LoadBalancer
-           port: 27017
-           # you can specify other spec overrides if necessary
-
-  .. tip:: 
-
-     To learn more, see 
-     :k8sdocs:`Annotations </concepts/overview/working-with-objects/annotations/>` 
-     and :k8sdocs:`ServiceSpec </reference/kubernetes-api/service-resources/service-v1/#ServiceSpec>` 
-     in the |k8s| documentation.
-
+inherit:
+  file: steps-create-external-services.yaml
+  ref: create-external-services
+replacement:
+  k8sResource: multi-Kubernetes-cluster deployment
+  annotations: :ref:`spec.externalAccess.externalService.annotations <multi-spec-externalaccess-externalservice-annotations>`
+  overrides: :ref:`spec.externalAccess.externalService.spec <multi-spec-externalaccess-externalservice-spec>`
 ---
 title: "Configure an external service for cluster members."
 level: 4
@@ -132,30 +89,14 @@ content: |
   Add each external |dns| name to the certificate |san-dns|.
 
 ---
-title: "Verify the external services."
-level: 4
 stepnum: 5
-ref: k8s-verify-external-services
-content: |
-
-  In each cluster, run the following command to verify that the external services
-  have been created.
-
-  .. code-block:: sh
-
-     $ kubectl get services
-
-  The command returns a list of services similar to the following output.
-  For each database Pod in the cluster, the |k8s-op-short| creates an external service 
-  named ``<pod-name>-svc-external``. This service is configured according to the values 
-  and overrides you provide in the external service specification.
-
-  .. code-block:: sh
-     :copyable: false
-
-     NAME                                  TYPE         CLUSTER-IP   EXTERNAL-IP       PORT(S)           AGE
-     my-replica-set-0-0-svc-external   LoadBalancer   10.102.27.116    1.2.3.4      27017:27017/TCP     8m30s
-
+ref: verify-external-services-multi-cluster
+inherit:
+  file: steps-create-external-services.yaml
+  ref: verify-external-services
+replacement:
+  deployment: each cluster
+  example: my-replica-set-0-0-svc-external
 ---
 title: "Update your replica set resource |yaml| file."
 level: 4
@@ -164,7 +105,7 @@ ref: update-replset-resource-mc-split-horizon
 content: |
 
   Set the hostnames and ports in :setting:`spec.connectivity.replicaSetHorizons`
-  to the LoadBalancer values that you created in the previous step.
+  to the external service values that you created in the previous step.
 
   Confirm that you specified the correct external hostnames. External
   hostnames should match the |dns| names of |k8s| worker nodes.
