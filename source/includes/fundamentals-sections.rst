@@ -1,4 +1,4 @@
-Learn how to perform the following tasks using the Java driver in the
+Learn how to perform the following tasks using the Kotlin driver in the
 Fundamentals section:
 
 - :doc:`Connect to MongoDB </fundamentals/connection>`
@@ -11,8 +11,10 @@ Fundamentals section:
 - :doc:`Log Events in the Driver </fundamentals/logging>`
 - :doc:`Monitor Driver Events </fundamentals/monitoring>`
 
-.. TODO: when these pages are added back, add them to the list above
+.. TODO : add back in after MVP
+
 .. - :doc:`Authenticate with MongoDB </fundamentals/auth>`
+.. - :doc:`Transform your Data </fundamentals/aggregation>`
 .. - :doc:`Sort Using Collations </fundamentals/collations>`
 .. - :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`
 .. - :doc:`Encrypt Fields in a Document </fundamentals/csfle>`
