@@ -1,5 +1,0 @@
-val serverApi = ServerApi.builder()
-    .version(ServerApiVersion.V1)
-    .strict(true)
-    .deprecationErrors(true)
-    .build()
