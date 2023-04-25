@@ -14,7 +14,7 @@
 
        MongoDB 4.4 clusters default to :manual:`available </reference/read-concern-available>`.
 
-       .. MongoDB 5.0 clusters default to :manual:`/reference/read-concern-local`.
+       .. MongoDB version 5.0 and later clusters default to :manual:`/reference/read-concern-local`.
 
    * - defaultWriteConcern
      - string
@@ -23,7 +23,7 @@
 
        MongoDB 4.4 clusters default to :manual:`1 </reference/write-concern>`.
 
-       .. MongoDB 5.0 clusters default to :manual:`majority </reference/write-concern>`.
+       .. MongoDB version 5.0 and later default to :manual:`majority </reference/write-concern>`.
 
    * - failIndexKeyTooLong
      - boolean

@@ -317,9 +317,9 @@
 
        If you omit **mongoDBMajorVersion** and also set
        **versionReleaseSystem** to **LTS**, or omit **versionReleaseSystem**,
-       |service| deploys a cluster that runs MongoDB 5.0.
+       |service| deploys a cluster that runs MongoDB 6.0.
 
-       You must deploy MongoDB **5.0** if
+       You must deploy MongoDB **6.0** if
        **"providerSettings.instanceSizeName" : "M0"**, **"M2"**, or **"M5"**.
 
        If you specify this field, |service| always deploys the cluster

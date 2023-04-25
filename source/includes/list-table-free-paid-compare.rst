@@ -16,9 +16,9 @@
      - | 10 - 4000 GB
 
    * - MongoDB Version Support
-     - 5.0
-     - 5.0
-     - 4.2, 4.4, 5.0, Latest Release
+     - 6.0
+     - 6.0
+     - 4.2, 4.4, 5.0, 6.0, Latest Release
 
    * - Metrics and Alerts
 

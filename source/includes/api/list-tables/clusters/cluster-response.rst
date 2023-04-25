@@ -385,7 +385,7 @@
 
        .. important::
     
-          If your cluster runs a release candidate of MongoDB 6.0, 
+          If your cluster runs a release candidate, 
           |service| will upgrade the cluster to the stable release 
           version when it is generally available.
 
