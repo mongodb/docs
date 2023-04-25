@@ -12,7 +12,7 @@ Capped collections on the destination cluster have temporary changes
 during sync:
 
 - There is no maximum number of documents.
-- The maximum document size is 1PB.
+- The maximum collection size is 1PB.
 
 ``mongosync`` restores the original values for maximum number of
 documents and maximum document size during commit.
