@@ -1,0 +1,1940 @@
+.. _fts-score-details:
+
+========================
+Return the Score Details
+========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas search, documents score, get score details, score details examples
+   :description: Modify, normalize, or return a breakdown of the score assigned to a returned document with the boost, constant, embedded, or function options.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+You can use the ``scoreDetails`` boolean option in your
+:pipeline:`$search` stage for a detailed breakdown of the score for 
+each document in the query results. To view the metadata, you must use
+the :manual:`$meta </reference/operator/aggregation/meta/>` expression
+in the :pipeline:`$project` stage.
+
+.. _fts-score-details-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+   :emphasize-lines: 6,11
+
+   {
+     "$search": {
+       "<operator>": {
+         <operator-specification>
+       },
+       "scoreDetails": true | false
+     }
+   },
+   {
+     "$project": {
+       "scoreDetails": {"$meta": "searchScoreDetails"}
+     }
+   }
+
+.. _fts-score-details-options:
+
+Options 
+-------
+
+*In the $search stage*, the ``scoreDetails`` boolean option
+takes one of the following values:  
+
+- ``true`` - to include details of the score for the documents in the
+  results. If set to ``true``, |fts| returns a detailed breakdown of
+  the score for each document in the result. To learn more, see
+  :ref:`fts-score-details-output`. 
+- ``false`` - to exclude details of the score breakdown for the results.
+  (Default) 
+
+If omitted, the ``scoreDetails`` option defaults to ``false``.
+
+*In the $project stage*, the ``scoreDetails`` field takes
+the :manual:`$meta </reference/operator/aggregation/meta/>` expression,
+which requires the following value: 
+
+.. list-table:: 
+   :widths: 30 70
+
+   * - ``searchScoreDetails``
+     - Returns a detailed breakdown of the score for each document in
+       the results.
+
+.. _fts-score-details-output:
+
+Output 
+------
+
+The ``scoreDetails`` option returns the following fields in the
+``details`` array inside the ``scoreDetails`` object for each document
+in the result:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 75
+
+   * - Field  
+     - Type 
+     - Description 
+     
+   * - ``value``
+     - float
+     - Contribution towards the score by a subset of the scoring
+       formula. The scoring formula varies based on the operator used in
+       the query. For example, |fts| uses the following scoring formula
+       for a :ref:`compound-ref` query with :ref:`text-ref` and 
+       :ref:`near-ref` operators:  ``BM25Similarity +
+       distance decay function``. 
+
+       .. note:: 
+
+          The top-level ``value`` shows the entire score of the result
+          document, and is equal to the value of ``$searchScore``.
+
+   * - ``description``
+     - string
+     - Subset of the scoring formula including details about how the
+       document was scored and factors considered in calculating
+       the score.  
+
+       .. note:: 
+
+          The top-level ``description`` shows the entire scoring formula 
+          used to score the document. 
+
+       To learn more, see :ref:`fts-score-details-factors`.
+
+   * - ``details``
+     - array of objects 
+     - Breakdown of the score for each match in the document based on
+       the subset of the scoring formula. The value is an array of
+       score details objects, recursive in structure.
+
+.. _fts-score-details-factors:
+
+Factors That Contribute to the Score 
+------------------------------------
+
+For ``BM25Similarity``, the score is computed as ``boost * idf * tf``.
+|fts| takes into account the following ``BM25Similarity`` factors for
+calculating the score: 
+
+.. include:: /includes/list-table-fts-bm25similarity.rst
+
+For distance decay function, the score is computed as ``pivot / (pivot +
+abs(fieldValue - origin))``. |fts| takes into account the following
+factors for calculating the score: 
+
+.. include:: /includes/list-table-fts-distance-decay-function.rst 
+
+.. _fts-score-details-egs:
+
+Examples 
+--------
+
+The following examples show how to retrieve the details of the scores
+in the results for the following:
+
+- Queries run using :ref:`text-ref`, :ref:`near-ref`,
+  :ref:`compound-ref`, and :ref:`embedded-document-ref` operators. 
+- Queries with scores modified using :ref:`scoring-function` option
+  expressions. 
+
+.. tip:: 
+
+   To view details of the score recursively in the arrays of objects,
+   configure the settings in {+mongosh+} by running the following:
+
+   .. code-block:: shell 
+      :copyable: true 
+
+      config.set('inspectDepth', Infinity)
+
+Operator Examples 
+~~~~~~~~~~~~~~~~~
+
+The following examples demonstrate how to retrieve a breakdown of the
+score using the :pipeline:`$search` ``scoreDetails`` option for the
+documents in the results for the :ref:`text-ref`, :ref:`near-ref`,
+:ref:`compound-ref`, and :ref:`embedded-document-ref` operator queries. 
+
+.. tabs:: 
+
+   .. tab:: text
+      :tabid: text
+
+      The following example uses the :ref:`text-ref` operator to query
+      the ``title`` field in the ``sample_mflix.movies`` collection for
+      the term ``autumn``. The query  specifies the ``scoreDetails``
+      option in the :pipeline:`$search` stage to retrieve a detailed
+      breakdown of the score for each document in the results. The query
+      uses the :pipeline:`$limit` stage to limit the results to three
+      documents and the :pipeline:`$project` stage to do the following: 
+
+      - Exclude the ``_id`` field.
+      - Include only the ``title`` field.
+      - Add the ``score`` field to the results to return the score of the
+        document and the ``scoreDetails`` field to the results to return a
+        detailed breakdown of the score for the document. 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "autumn"
+                  },
+                  "scoreDetails": true
+                }
+              },
+              {
+                "$limit": 3
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "score": { "$meta": "searchScore" },
+                  "scoreDetails": { "$meta": "searchScoreDetails" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json 
+            :linenos:
+
+            [
+              {
+                title: 'Autumn Leaves',
+                score: 3.834893226623535,
+                scoreDetails: {
+                  value: 3.834893226623535,
+                  description: '$type:string/title:autumn [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 3.834893226623535,
+                      description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                      details: [
+                        {
+                          value: 7.39188289642334,
+                          description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                          details: [
+                            {
+                              value: 14,
+                              description: 'n, number of documents containing term',
+                              details: []
+                            },
+                            {
+                              value: 23529,
+                              description: 'N, total number of documents with field',
+                              details: []
+                            }
+                          ]
+                        },
+                        {
+                          value: 0.5187978744506836,
+                          description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                          details: [
+                            {
+                              value: 1,
+                              description: 'freq, occurrences of term within document',
+                              details: []
+                            },
+                            {
+                              value: 1.2000000476837158,
+                              description: 'k1, term saturation parameter',
+                              details: []
+                            },
+                            {
+                              value: 0.75,
+                              description: 'b, length normalization parameter',
+                              details: []
+                            },
+                            {
+                              value: 2,
+                              description: 'dl, length of field',
+                              details: []
+                            },
+                            {
+                              value: 2.868375301361084,
+                              description: 'avgdl, average length of field',
+                              details: []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Late Autumn',
+                score: 3.834893226623535,
+                scoreDetails: {
+                  value: 3.834893226623535,
+                  description: '$type:string/title:autumn [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 3.834893226623535,
+                      description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                      details: [
+                        {
+                          value: 7.39188289642334,
+                          description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                          details: [
+                            {
+                              value: 14,
+                              description: 'n, number of documents containing term',
+                              details: []
+                            },
+                            {
+                              value: 23529,
+                              description: 'N, total number of documents with field',
+                              details: []
+                            }
+                          ]
+                        },
+                        {
+                          value: 0.5187978744506836,
+                          description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                          details: [
+                            {
+                              value: 1,
+                              description: 'freq, occurrences of term within document',
+                              details: []
+                            },
+                            {
+                              value: 1.2000000476837158,
+                              description: 'k1, term saturation parameter',
+                              details: []
+                            },
+                            {
+                              value: 0.75,
+                              description: 'b, length normalization parameter',
+                              details: []
+                            },
+                            {
+                              value: 2,
+                              description: 'dl, length of field',
+                              details: []
+                            },
+                            {
+                              value: 2.868375301361084,
+                              description: 'avgdl, average length of field',
+                              details: []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Cheyenne Autumn',
+                score: 3.834893226623535,
+                scoreDetails: {
+                  value: 3.834893226623535,
+                  description: '$type:string/title:autumn [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 3.834893226623535,
+                      description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                      details: [
+                        {
+                          value: 7.39188289642334,
+                          description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                          details: [
+                            {
+                              value: 14,
+                              description: 'n, number of documents containing term',
+                              details: []
+                            },
+                            {
+                              value: 23529,
+                              description: 'N, total number of documents with field',
+                              details: []
+                            }
+                          ]
+                        },
+                        {
+                          value: 0.5187978744506836,
+                          description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                          details: [
+                            {
+                              value: 1,
+                              description: 'freq, occurrences of term within document',
+                              details: []
+                            },
+                            {
+                              value: 1.2000000476837158,
+                              description: 'k1, term saturation parameter',
+                              details: []
+                            },
+                            {
+                              value: 0.75,
+                              description: 'b, length normalization parameter',
+                              details: []
+                            },
+                            {
+                              value: 2,
+                              description: 'dl, length of field',
+                              details: []
+                            },
+                            {
+                              value: 2.868375301361084,
+                              description: 'avgdl, average length of field',
+                              details: []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+
+      |fts| takes into account the following ``BM25Similarity`` factors
+      for calculating the score: 
+
+      .. include:: /includes/list-table-fts-bm25similarity.rst
+
+   .. tab:: near
+      :tabid: near
+
+      The following example uses the :ref:`near-ref` operator to query
+      the ``released`` field in the ``sample_mflix.movies`` collection
+      for movies released near January 01, 2010. The query specifies the
+      ``scoreDetails`` option in the :pipeline:`$search` stage to
+      retrieve a detailed breakdown of the score for each document in
+      the results. The query uses the :pipeline:`$limit` stage to limit
+      the results to three documents and the :pipeline:`$project` stage
+      to do the following: 
+
+      - Exclude the ``_id`` field.
+      - Include only the ``title`` and ``released`` fields.
+      - Add the ``score`` field to the results to return the score of the
+        document and the ``scoreDetails`` field to the results to return a
+        detailed breakdown of the score for the document. 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "near": {
+                    "path": "released",
+                    "origin": ISODate("2010-01-01T00:00:00.000+00:00"),
+                    "pivot": 7776000000
+                  },
+                  "scoreDetails": true
+                }
+              },
+              {
+                 "$limit": 3
+              },
+              {
+                 "$project": {
+                    "_id": 0,
+                    "title": 1,
+                    "released": 1,
+                    "score": { "$meta": "searchScore" },
+                    "scoreDetails": { "$meta": "searchScoreDetails" }
+                 }
+              }
+            ])
+
+         .. output:: 
+            :language: json 
+            :linenos:
+
+            [
+              {
+                title: 'Tony',
+                released: ISODate("2010-01-01T00:00:00.000Z"),
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'Distance score, computed as weight * pivotDistance / (pivotDistance + abs(value - origin)) from:',
+                  details: [
+                    { value: 1, description: 'weight', details: [] },
+                    {
+                      value: 7776000000,
+                      description: 'pivotDistance',
+                      details: []
+                    },
+                    { value: 1262303969280, description: 'origin', details: [] },
+                    {
+                      value: 1262303969280,
+                      description: 'current value',
+                      details: []
+                    }
+                  ]
+                }
+              },
+             {
+                title: 'And Everything Is Going Fine',
+                released: ISODate("2010-01-01T00:00:00.000Z"),
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'Distance score, computed as weight * pivotDistance / (pivotDistance + abs(value - origin)) from:',
+                  details: [
+                    { value: 1, description: 'weight', details: [] },
+                    {
+                      value: 7776000000,
+                      description: 'pivotDistance',
+                      details: []
+                    },
+                    { value: 1262303969280, description: 'origin', details: [] },
+                    {
+                      value: 1262303969280,
+                      description: 'current value',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'A Film with Me in It',
+                released: ISODate("2010-01-01T00:00:00.000Z")
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'Distance score, computed as weight * pivotDistance / (pivotDistance + abs(value - origin)) from:',
+                  details: [
+                    { value: 1, description: 'weight', details: [] },
+                    {
+                      value: 7776000000,
+                      description: 'pivotDistance',
+                      details: []
+                    },
+                    { value: 1262303969280, description: 'origin', details: [] },
+                    {
+                      value: 1262303969280,
+                      description: 'current value',
+                      details: []
+                    }
+                  ]
+                }
+              }
+            ]
+
+      For distance score, |fts| takes into account the following factors
+      for calculating the score: 
+
+      .. include:: /includes/list-table-fts-distance-decay-function.rst 
+
+   .. tab:: compound
+      :tabid: compound
+
+      The following example uses the :ref:`compound-ref` operator to
+      query the ``sample_mflix.movies`` collection for movies using the
+      following clauses: 
+      
+      - ``filter`` clause to find movies that contain the term
+        ``friend`` in the title.
+      - ``must`` clause to find movies released between the years
+        ``2000`` and ``2015``. 
+      - ``mustNot`` clause to find movies that are not in the
+        ``Short``, ``Western``, and ``Biography`` genres. 
+        
+      The query specifies the ``scoreDetails`` option in the
+      :pipeline:`$search` stage to retrieve a detailed breakdown of the
+      score for each document in the results. The query uses the
+      :pipeline:`$limit` stage to limit the results to three documents
+      and the :pipeline:`$project` stage to do the following: 
+
+      - Exclude the ``_id`` field.
+      - Include only the ``title``, ``released``, and ``genres`` fields.
+      - Add the ``score`` field to the results to return the score of the
+        document and the ``scoreDetails`` field to the results to return a
+        detailed breakdown of the score for the document. 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "filter": [{
+                      "text": {
+                        "query": "friend",
+                        "path": "title"
+                      }
+                    }],
+                    "must": [{
+                      "range": {
+                        "path": "year",
+                        "gte": 2000,
+                        "lte": 2015
+                      }
+                    }],
+                    "mustNot": [{
+                      "text": {
+                        "query": ["Short, Western", "Biography"],
+                        "path": "genres"
+                      }
+                    }]
+                  },
+                  "scoreDetails": true
+                }
+              },
+              {
+                "$limit": 3
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "released": 1,
+                  "genres": 1,
+                  "score": { "$meta": "searchScore" },
+                  "scoreDetails": { "$meta": "searchScoreDetails" }
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json 
+            :linenos:
+
+            [
+              {
+                genres: [ 'Comedy', 'Drama', 'Mystery' ],
+                title: 'With a Friend Like Harry...',
+                released: ISODate("2001-06-15T00:00:00.000Z"),
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'sum of:',
+                  details: [
+                    {
+                      value: 0,
+                      description: 'match on required clause, product of:',
+                      details: [
+                        { value: 0, description: '# clause', details: [] },
+                        {
+                          value: 1,
+                          description: '$type:string/title:friend',
+                          details: []
+                        }
+                      ]
+                    },
+                    {
+                      value: 1,
+                      description: 'sum of:',
+                      details: [
+                        {
+                          value: 1,
+                          description: 'sum of:',
+                          details: [
+                            {
+                              value: 1,
+                              description: '$type:double/year:[4656510908468559872 TO 4656576879166226432]',
+                              details: []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                genres: [ 'Drama' ],
+                title: 'My Friend Henry',
+                released: ISODate("2004-08-20T00:00:00.000Z"),
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'sum of:',
+                  details: [
+                    {
+                      value: 0,
+                      description: 'match on required clause, product of:',
+                      details: [
+                        { value: 0, description: '# clause', details: [] },
+                        {
+                          value: 1,
+                          description: '$type:string/title:friend',
+                          details: []
+                        }
+                      ]
+                    },
+                    {
+                      value: 1,
+                      description: 'sum of:',
+                      details: [
+                        {
+                          value: 1,
+                          description: 'sum of:',
+                          details: [
+                            {
+                              value: 1,
+                              description: '$type:double/year:[4656510908468559872 TO 4656576879166226432]',
+                              details: []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                genres: [ 'Comedy', 'Drama' ],
+                title: 'A Friend of Mine',
+                released: ISODate("2006-10-26T00:00:00.000Z"),
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'sum of:',
+                  details: [
+                    {
+                      value: 0,
+                      description: 'match on required clause, product of:',
+                      details: [
+                        { value: 0, description: '# clause', details: [] },
+                        {
+                          value: 1,
+                          description: '$type:string/title:friend',
+                          details: []
+                        }
+                      ]
+                    },
+                    {
+                      value: 1,
+                      description: 'sum of:',
+                      details: [
+                        {
+                          value: 1,
+                          description: 'sum of:',
+                          details: [
+                            {
+                              value: 1,
+                              description: '$type:double/year:[4656510908468559872 TO 4656576879166226432]',
+                              details: []
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+
+      .. note:: 
+
+         The ``# clause`` in the results on lines 15, 56, and 97
+         represent the :ref:`compound-ref` query ``filter`` clause,
+         which doesn't contribute to the score of the document.
+
+   .. tab:: embeddedDocument
+      :tabid: embedded
+
+      The following example uses the :ref:`embedded-document-ref`
+      operator to query the ``products.name`` field in the
+      ``sample_training.companies`` collection for products that contain
+      the term ``Basic`` preceded by any number of other characters. The
+      query specifies inside the ``embeddedDocument`` operator that the
+      returned score must be a sum of all the matching embedded
+      documents. The query also specifies the ``scoreDetails`` option in
+      the :pipeline:`$search` stage to retrieve a detailed breakdown of
+      the score for each document in the results. The query uses the
+      :pipeline:`$limit` stage to limit the results to three documents
+      and the :pipeline:`$project` stage to do the following:
+
+      - Exclude the ``_id`` field.
+      - Include only the ``products.name`` field.
+      - Add the ``score`` field to the results to return the score of the
+        document and the ``scoreDetails`` field to the results to return a
+        detailed breakdown of the score for the document. 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+
+            db.companies.aggregate({
+              "$search": {
+                "embeddedDocument": {
+                  "path": "products",
+                  "operator": {
+                    "wildcard": {
+                      "path": "products.name",
+                      "query": "*Basic",
+                      "allowAnalyzedField": true
+                    }
+                 },
+                  "score": {
+                    "embedded": {
+                      "aggregate": "sum"
+                    }
+                  }
+                },
+                "scoreDetails": true
+              }
+            },
+            {
+              "$limit": 3
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "name": 1,
+                "products.name": 1,
+                "score": { "$meta": "searchScore" },
+                "scoreDetails": { "$meta": "searchScoreDetails" }
+              }
+            })
+
+         .. output:: 
+            :language: json 
+            :linenos: 
+
+            [
+              {
+                name: 'Plaxo',
+                products: [
+                  { name: 'Plaxo Basic' },
+                  { name: 'Plaxo Pulse' },
+                  { name: 'Plaxo Personal Assistant' }
+                ],
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'Score based on 1 child docs in range from 27 to 29, best match:',
+                  details: [
+                    {
+                      value: 1,
+                      description: '$embedded:8/products/$type:string/products.name:*Basic',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                name: 'The Game Creators',
+                products: [
+                  { name: 'Dark Basic Professional' },
+                  { name: 'FPS Creator' },
+                  { name: 'FPS Creator X10' }
+                ],
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'Score based on 1 child docs in range from 7474 to 7476, best match:',
+                  details: [
+                    {
+                      value: 1,
+                      description: '$embedded:8/products/$type:string/products.name:*basic',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                name: 'Load Impact',
+                products: [
+                  { name: 'Load Impact LIGHT' },
+                  { name: 'Load Impact BASIC' },
+                  { name: 'Load Impact PROFESSIONAL' },
+                  { name: 'Load Impact ADVANCED' }
+                ],
+                score: 1,
+                scoreDetails: {
+                  value: 1,
+                  description: 'Score based on 1 child docs in range from 11545 to 11548, best match:',
+                  details: [
+                    {
+                      value: 1,
+                      description: '$embedded:8/products/$type:string/products.name:*basic',
+                      details: []
+                    }
+                  ]
+                }
+              }
+            ]
+
+      .. note:: 
+
+         For scores based on child documents in range, the numbers in
+         the range represent the IDs of parent and child documents
+         indexed by Lucene under the hood. The ``description`` in the
+         child documents (on lines 16, 36, and 57) show an internal
+         representation of a path.
+
+Custom Score Examples 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following examples demonstrate how to retrieve a breakdown of the
+score using the :pipeline:`$search` ``scoreDetails`` option for the
+documents in the results for the :ref:`function expression example
+<function-score-egs>` queries against the ``sample_mflix.movies`` 
+collection. 
+
+.. tabs:: 
+
+   .. tab:: Arithmetic
+      :tabid: arithmetic
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+            :emphasize-lines: 22,33
+
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "multiply":[
+                        {
+                          "path": { 
+                            "value": "imdb.rating",   
+                            "undefined": 2 
+                          }
+                        },
+                        {
+                          "score": "relevance"
+                        }
+                      ]
+                    }
+                  } 
+                },
+                "scoreDetails": true   
+              }
+            },
+            {
+              $limit: 5
+            },
+            {
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" },
+                "scoreDetails": {"$meta": "searchScoreDetails"}
+              }
+            }])
+
+         .. output:: 
+            :language: json 
+            :emphasize-lines: 5-15, 20-30, 35-45, 50-60, 65-75
+
+            [
+              {
+                title: 'Men...',
+                score: 23.431293487548828,
+                scoreDetails: {
+                  value: 23.431293487548828,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by (imdb.rating * scores)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 23.431293487548828,
+                      description: '(imdb.rating * scores)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: '12 Angry Men',
+                score: 22.080968856811523,
+                scoreDetails: {
+                  value: 22.080968856811523,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by (imdb.rating * scores)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 22.080968856811523,
+                      description: '(imdb.rating * scores)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'X-Men',
+                score: 21.34803581237793,
+                scoreDetails: {
+                  value: 21.34803581237793,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by (imdb.rating * scores)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 21.34803581237793,
+                      description: '(imdb.rating * scores)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'X-Men',
+                score: 21.34803581237793,
+                scoreDetails: {
+                  value: 21.34803581237793,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by (imdb.rating * scores)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 21.34803581237793,
+                      description: '(imdb.rating * scores)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Matchstick Men',
+                score: 21.05954933166504,
+                scoreDetails: {
+                  value: 21.05954933166504,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by (imdb.rating * scores)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 21.05954933166504,
+                      description: '(imdb.rating * scores)',
+                      details: []
+                    }
+                  ]
+                }
+              }
+            ]
+
+   .. tab:: Constant
+      :tabid: constant 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+            :emphasize-lines: 13,24
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "men",
+                    "score": {
+                      "function":{
+                        "constant": 3 
+                      }
+                    } 
+                  },
+                  "scoreDetails": true    
+                }
+              },
+              {
+                $limit: 5
+              },
+              {
+                $project: {
+                  "_id": 0,
+                  "title": 1,
+                  "score": { "$meta": "searchScore" },
+                  "scoreDetails": {"$meta": "searchScoreDetails"}
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json 
+            :emphasize-lines: 5-9, 14-18, 23-27, 32-36, 41-45
+
+            [
+              {
+                title: 'Men Without Women',
+                score: 3,
+                scoreDetails: {
+                  value: 3,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by constant(3.0)) [BM25Similarity], result of:',
+                  details: [ { value: 3, description: 'constant(3.0)', details: [] } ]
+                }
+              },
+              {
+                title: 'One Hundred Men and a Girl',
+                score: 3,
+                scoreDetails: {
+                  value: 3,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by constant(3.0)) [BM25Similarity], result of:',
+                  details: [ { value: 3, description: 'constant(3.0)', details: [] } ]
+                }
+              },
+              {
+                title: 'Of Mice and Men',
+                score: 3,
+                scoreDetails: {
+                  value: 3,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by constant(3.0)) [BM25Similarity], result of:',
+                  details: [ { value: 3, description: 'constant(3.0)', details: [] } ]
+                }
+              },
+              {
+                title: "All the King's Men",
+                score: 3,
+                scoreDetails: {
+                  value: 3,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by constant(3.0)) [BM25Similarity], result of:',
+                  details: [ { value: 3, description: 'constant(3.0)', details: [] } ]
+                }
+              },
+              {
+                title: 'The Men',
+                score: 3,
+                scoreDetails: {
+                  value: 3,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by constant(3.0)) [BM25Similarity], result of:',
+                  details: [ { value: 3, description: 'constant(3.0)', details: [] } ]
+                }
+              }
+            ]
+
+   .. tab:: Gaussian
+      :tabid: gauss 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+            :emphasize-lines: 22,33
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "shop",
+                    "score": {
+                      "function":{
+                        "gauss": {
+                          "path": {
+                            "value": "imdb.rating",
+                            "undefined": 4.6
+                          },
+                          "origin": 9.5,
+                          "scale": 5,
+                          "offset": 0,
+                          "decay": 0.5
+                        }
+                      }
+                    }
+                  },
+                  "scoreDetails": true 
+                }
+              },
+              {
+                "$limit": 10
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "score": { "$meta": "searchScore" },
+                  "scoreDetails": {"$meta": "searchScoreDetails"}
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json 
+            :emphasize-lines: 5-15, 20-30, 35-45, 50-60, 65-75, 80-90, 95-105, 110-120
+
+            [
+              {
+                title: 'The Shop Around the Corner',
+                score: 0.9471074342727661,
+                scoreDetails: {
+                  value: 0.9471074342727661,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9471074342727661,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Exit Through the Gift Shop',
+                score: 0.9471074342727661,
+                scoreDetails: {
+                  value: 0.9471074342727661,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9471074342727661,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'The Shop on Main Street',
+                score: 0.9395227432250977,
+                scoreDetails: {
+                  value: 0.9395227432250977,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9395227432250977,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Chop Shop',
+                score: 0.8849083781242371,
+                scoreDetails: {
+                  value: 0.8849083781242371,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.8849083781242371,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Little Shop of Horrors',
+                score: 0.8290896415710449,
+                scoreDetails: {
+                  value: 0.8290896415710449,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.8290896415710449,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'The Suicide Shop',
+                score: 0.7257778644561768,
+                scoreDetails: {
+                  value: 0.7257778644561768,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.7257778644561768,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'A Woman, a Gun and a Noodle Shop',
+                score: 0.6559237241744995,
+                scoreDetails: {
+                  value: 0.6559237241744995,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.6559237241744995,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Beauty Shop',
+                score: 0.6274620294570923,
+                scoreDetails: {
+                  value: 0.6274620294570923,
+                  description: 'FunctionScoreQuery($type:string/title:shop, scored by exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.6274620294570923,
+                      description: 'exp((max(0, |imdb.rating - 9.5| - 0.0)^2) / 2 * (5.0^2 / 2 * ln(0.5)))',
+                      details: []
+                    }
+                  ]
+                }
+              }
+            ]
+
+   .. tab:: Path
+      :tabid: path 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+            :emphasize-lines: 15,26
+
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "path": { 
+                        "value": "imdb.rating", 
+                        "undefined": 4.6 
+                      }
+                    }
+                  } 
+                },
+                "scoreDetails": true    
+              }
+            },
+            {
+              $limit: 5
+            },
+            {  
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" },
+                "scoreDetails": {"$meta": "searchScoreDetails"}
+              }
+            }])
+
+         .. output:: 
+            :language: json 
+            :emphasize-lines: 5-15, 20-30, 35-45, 50-60, 65-75
+
+            [
+              {
+                title: '12 Angry Men',
+                score: 8.899999618530273,
+                scoreDetails: {
+                  value: 8.899999618530273,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by imdb.rating) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 8.899999618530273,
+                      description: 'imdb.rating',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'The Men Who Built America',
+                score: 8.600000381469727,
+                scoreDetails: {
+                  value: 8.600000381469727,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by imdb.rating) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 8.600000381469727,
+                      description: 'imdb.rating',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'No Country for Old Men',
+                score: 8.100000381469727,
+                scoreDetails: {
+                  value: 8.100000381469727,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by imdb.rating) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 8.100000381469727,
+                      description: 'imdb.rating',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'X-Men: Days of Future Past',
+                score: 8.100000381469727,
+                scoreDetails: {
+                  value: 8.100000381469727,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by imdb.rating) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 8.100000381469727,
+                      description: 'imdb.rating',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'The Best of Men',
+                score: 8.100000381469727,
+                scoreDetails: {
+                  value: 8.100000381469727,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by imdb.rating) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 8.100000381469727,
+                      description: 'imdb.rating',
+                      details: []
+                    }
+                  ]
+                }
+              }
+            ]
+
+   .. tab:: Score
+      :tabid: score 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+            :emphasize-lines: 12,23
+           
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function":{
+                      "score": "relevance" 
+                    }
+                  } 
+                },
+                "scoreDetails": true    
+              }
+            },
+            {
+              $limit: 5
+            },
+            {
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" },
+                "scoreDetails": {"$meta": "searchScoreDetails"}
+              }
+            }])
+
+         .. output:: 
+            :language: json 
+
+            [
+              {
+                title: 'Men...',
+                score: 3.4457783699035645,
+                scoreDetails: {
+                  value: 3.4457783699035645,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by scores) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 3.4457783699035645,
+                      description: 'weight($type:string/title:men in 4705) [BM25Similarity], result of:',
+                      details: [
+                        {
+                          value: 3.4457783699035645,
+                          description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                          details: [
+                            {
+                              value: 5.5606818199157715,
+                              description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                              details: [
+                                {
+                                  value: 90,
+                                  description: 'n, number of documents containing term',
+                                  details: []
+                                },
+                                {
+                                  value: 23529,
+                                  description: 'N, total number of documents with field',
+                                  details: []
+                                }
+                              ]
+                            },
+                            {
+                              value: 0.6196683645248413,
+                              description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                              details: [
+                                {
+                                  value: 1,
+                                  description: 'freq, occurrences of term within document',
+                                  details: []
+                                },
+                                {
+                                  value: 1.2000000476837158,
+                                  description: 'k1, term saturation parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 0.75,
+                                  description: 'b, length normalization parameter',
+                                 details: []
+                                },
+                                {
+                                  value: 1,
+                                  description: 'dl, length of field',
+                                  details: []
+                                },
+                                {
+                                  value: 2.868375301361084,
+                                  description: 'avgdl, average length of field',
+                                  details: []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'The Men',
+                score: 2.8848698139190674,
+                scoreDetails: {
+                  value: 2.8848698139190674,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by scores) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 2.8848698139190674,
+                      description: 'weight($type:string/title:men in 870) [BM25Similarity], result of:',
+                      details: [
+                        {
+                          value: 2.8848698139190674,
+                          description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                          details: [
+                            {
+                              value: 5.5606818199157715,
+                              description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                              details: [
+                                {
+                                  value: 90,
+                                  description: 'n, number of documents containing term',
+                                  details: []
+                                },
+                                {
+                                  value: 23529,
+                                  description: 'N, total number of documents with field',
+                                  details: []
+                                }
+                              ]
+                            },
+                            {
+                              value: 0.5187978744506836,
+                              description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                              details: [
+                                {
+                                  value: 1,
+                                  description: 'freq, occurrences of term within document',
+                                  details: []
+                                },
+                                {
+                                  value: 1.2000000476837158,
+                                  description: 'k1, term saturation parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 0.75,
+                                  description: 'b, length normalization parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 2,
+                                  description: 'dl, length of field',
+                                  details: []
+                                },
+                                {
+                                  value: 2.868375301361084,
+                                  description: 'avgdl, average length of field',
+                                  details: []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Simple Men',
+                score: 2.8848698139190674,
+                scoreDetails: {
+                  value: 2.8848698139190674,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by scores) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 2.8848698139190674,
+                      description: 'weight($type:string/title:men in 6371) [BM25Similarity], result of:',
+                      details: [
+                        {
+                          value: 2.8848698139190674,
+                          description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                          details: [
+                            {
+                              value: 5.5606818199157715,
+                              description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                              details: [
+                                {
+                                  value: 90,
+                                  description: 'n, number of documents containing term',
+                                  details: []
+                                },
+                                {
+                                  value: 23529,
+                                  description: 'N, total number of documents with field',
+                                  details: []
+                                }
+                              ]
+                            },
+                            {
+                              value: 0.5187978744506836,
+                              description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                              details: [
+                                {
+                                  value: 1,
+                                  description: 'freq, occurrences of term within document',
+                                  details: []
+                                },
+                                {
+                                  value: 1.2000000476837158,
+                                  description: 'k1, term saturation parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 0.75,
+                                  description: 'b, length normalization parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 2,
+                                  description: 'dl, length of field',
+                                  details: []
+                                },
+                                {
+                                  value: 2.868375301361084,
+                                  description: 'avgdl, average length of field',
+                                  details: []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'X-Men',
+                score: 2.8848698139190674,
+                scoreDetails: {
+                  value: 2.8848698139190674,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by scores) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 2.8848698139190674,
+                      description: 'weight($type:string/title:men in 8368) [BM25Similarity], result of:',
+                      details: [
+                        {
+                          value: 2.8848698139190674,
+                          description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                          details: [
+                            {
+                              value: 5.5606818199157715,
+                              description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                              details: [
+                                {
+                                  value: 90,
+                                  description: 'n, number of documents containing term',
+                                  details: []
+                                },
+                                {
+                                  value: 23529,
+                                  description: 'N, total number of documents with field',
+                                  details: []
+                                }
+                              ]
+                            },
+                            {
+                              value: 0.5187978744506836,
+                              description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                              details: [
+                                {
+                                  value: 1,
+                                  description: 'freq, occurrences of term within document',
+                                  details: []
+                                },
+                                {
+                                  value: 1.2000000476837158,
+                                  description: 'k1, term saturation parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 0.75,
+                                  description: 'b, length normalization parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 2,
+                                  description: 'dl, length of field',
+                                  details: []
+                                },
+                                {
+                                  value: 2.868375301361084,
+                                  description: 'avgdl, average length of field',
+                                  details: []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'Mystery Men',
+                score: 2.8848698139190674,
+                scoreDetails: {
+                  value: 2.8848698139190674,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by scores) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 2.8848698139190674,
+                      description: 'weight($type:string/title:men in 8601) [BM25Similarity], result of:',
+                      details: [
+                        {
+                          value: 2.8848698139190674,
+                          description: 'score(freq=1.0), computed as boost * idf * tf from:',
+                          details: [
+                            {
+                              value: 5.5606818199157715,
+                              description: 'idf, computed as log(1 + (N - n + 0.5) / (n + 0.5)) from:',
+                              details: [
+                                {
+                                  value: 90,
+                                  description: 'n, number of documents containing term',
+                                  details: []
+                                },
+                                {
+                                  value: 23529,
+                                  description: 'N, total number of documents with field',
+                                  details: []
+                                }
+                              ]
+                            },
+                            {
+                              value: 0.5187978744506836,
+                              description: 'tf, computed as freq / (freq + k1 * (1 - b + b * dl / avgdl)) from:',
+                              details: [
+                                {
+                                  value: 1,
+                                  description: 'freq, occurrences of term within document',
+                                  details: []
+                                },
+                                {
+                                  value: 1.2000000476837158,
+                                  description: 'k1, term saturation parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 0.75,
+                                  description: 'b, length normalization parameter',
+                                  details: []
+                                },
+                                {
+                                  value: 2,
+                                  description: 'dl, length of field',
+                                  details: []
+                                },
+                                {
+                                  value: 2.868375301361084,
+                                  description: 'avgdl, average length of field',
+                                  details: []
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+
+   .. tab:: Unary
+      :tabid: unary 
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: 
+            :language: json
+            :linenos:
+            :emphasize-lines: 17,28
+
+            db.movies.aggregate([{
+              "$search": {
+                "text": {
+                  "path": "title",
+                  "query": "men",
+                  "score": {
+                    "function": {
+                      "log": { 
+                        "path": { 
+                          "value": "imdb.rating", 
+                          "undefined": 10 
+                        }
+                      }
+                    }
+                  } 
+                },
+                "scoreDetails": true 
+              }
+            },
+            {
+              $limit: 5
+            },
+            {
+              $project: {
+                "_id": 0,
+                "title": 1,
+                "score": { "$meta": "searchScore" },
+                "scoreDetails": {"$meta": "searchScoreDetails"}
+              }
+            }])
+
+         .. output:: 
+            :language: json 
+            :emphasize-lines: 5-15, 20-30, 35-45, 50-60, 65-75
+
+            [
+              {
+                title: '12 Angry Men',
+                score: 0.9493899941444397,
+                scoreDetails: {
+                  value: 0.9493899941444397,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by log(imdb.rating)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9493899941444397,
+                      description: 'log(imdb.rating)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'The Men Who Built America',
+                score: 0.9344984292984009,
+                scoreDetails: {
+                  value: 0.9344984292984009,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by log(imdb.rating)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9344984292984009,
+                      description: 'log(imdb.rating)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'No Country for Old Men',
+                score: 0.9084849953651428,
+                scoreDetails: {
+                  value: 0.9084849953651428,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by log(imdb.rating)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9084849953651428,
+                      description: 'log(imdb.rating)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'X-Men: Days of Future Past',
+                score: 0.9084849953651428,
+                scoreDetails: {
+                  value: 0.9084849953651428,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by log(imdb.rating)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9084849953651428,
+                      description: 'log(imdb.rating)',
+                      details: []
+                    }
+                  ]
+                }
+              },
+              {
+                title: 'The Best of Men',
+                score: 0.9084849953651428,
+                scoreDetails: {
+                  value: 0.9084849953651428,
+                  description: 'FunctionScoreQuery($type:string/title:men, scored by log(imdb.rating)) [BM25Similarity], result of:',
+                  details: [
+                    {
+                      value: 0.9084849953651428,
+                      description: 'log(imdb.rating)',
+                      details: []
+                    }
+                  ]
+                }
+              }
+            ]
