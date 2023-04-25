@@ -1,4 +1,4 @@
-We offer the :github:`install_istio_separate_network example script
+In addition, we offer the :github:`install_istio_separate_network example script
 </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/install_istio_separate_network.sh>`.
 This script is based on Istio documentation and provides an example installation
 that uses the `multi-primary mode on different networks <https://istio.io/latest/docs/setup/install/multicluster/multi-primary_multi-network/>`__.
