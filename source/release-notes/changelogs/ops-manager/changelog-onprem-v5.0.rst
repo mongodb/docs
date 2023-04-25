@@ -1,7 +1,7 @@
 .. _opsmgr-server-5.0.20:
 
-|onprem| Sever 5.0.20
-~~~~~~~~~~~~~~~~~~~~~
+|onprem| Server 5.0.20
+~~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2023-03-15*
 
