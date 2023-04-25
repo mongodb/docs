@@ -1,4 +1,4 @@
-.. _|idref|-colectionUUID:
+.. _|idref|-collectionUUID:
 
 :abbr:`UUID (Universally Unique Identifier)` identifying the collection 
 where the change occurred.
