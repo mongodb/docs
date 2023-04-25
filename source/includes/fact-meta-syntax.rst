@@ -43,11 +43,13 @@ The |meta-object| expression can specify the following values as the
 
 
 :atlas:`MongoDB Atlas Search </full-text-search>` provides
-additional ``$meta`` keywords, such as:
+the following additional ``$meta`` keywords:
 
-- :atlas:`"searchScore" </reference/full-text-search/scoring>` and
+- :atlas:`"searchScore" </reference/full-text-search/scoring>`
 
 - :atlas:`"searchHighlights"
-  </reference/full-text-search/highlighting>`.
+  </reference/full-text-search/highlighting>`
+
+- :atlas:`"searchScoreDetails" </atlas-search/score/get-details/>` 
 
 Refer to the Atlas Search documentation for details.
