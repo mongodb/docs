@@ -134,4 +134,20 @@ public class MCSettings {
             System.out.print("---------------------------------------");
         }
     }
+
+    private static void createLoggerSettings() {
+        try {
+            ////begin LoggerSettings
+            MongoClient mongoClient = MongoClients.create(
+                MongoClientSettings.builder().applyConnectionString(new ConnectionString("<your connection string>"))
+                .applyToLoggerSettings(builder ->
+                     builder.maxDocumentLength(5_000))
+                .build());
+            //end LoggerSettings
+            mongoClient.listDatabaseNames().forEach(n -> System.out.println(n));
+            mongoClient.close();
+        } finally {
+            System.out.print("---------------------------------------");
+        }
+    }
 }
