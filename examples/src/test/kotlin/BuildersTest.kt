@@ -9,7 +9,6 @@ import kotlinx.coroutines.runBlocking
 import org.bson.BsonObjectId
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
-import org.bson.conversions.Bson
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
@@ -63,20 +62,24 @@ internal class BuildersTest {
     @Test
     fun noBuildersTest() = runBlocking {
         // :snippet-start: no-builders
+        data class Results(val email: String)
+
         val filter = Document().append("gender", "female").append("age", Document().append("\$gt", 29))
         val projection = Document().append("_id", 0).append("email", 1)
-        val results = collection.find<Document>(filter).projection(projection)
+        val results = collection.find<Results>(filter).projection(projection)
         // :snippet-end:
-        assertEquals("foo@example.com", results.first()["email"])
+        assertEquals("foo@example.com", results.first().email)
     }
 
     @Test
     fun buildersTest() = runBlocking {
         // :snippet-start: builders
-        val filter: Bson = and(eq("gender", "female"), gt("age", 29))
-        val projection: Bson = fields(excludeId(), include("email"))
-        val results = collection.find<Document>(filter).projection(projection)
+        data class Results(val email: String)
+
+        val filter = and(eq("gender", "female"), gt("age", 29))
+        val projection = fields(excludeId(), include("email"))
+        val results = collection.find<Results>(filter).projection(projection)
         // :snippet-end:
-        assertEquals("foo@example.com", results.first()["email"])
+        assertEquals("foo@example.com", results.first().email)
     }
 }

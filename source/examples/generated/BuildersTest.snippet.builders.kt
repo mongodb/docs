@@ -1,3 +1,5 @@
-val filter: Bson = and(eq("gender", "female"), gt("age", 29))
-val projection: Bson = fields(excludeId(), include("email"))
-val results = collection.find<Document>(filter).projection(projection)
+data class Results(val email: String)
+
+val filter = and(eq("gender", "female"), gt("age", 29))
+val projection = fields(excludeId(), include("email"))
+val results = collection.find<Results>(filter).projection(projection)
