@@ -3,6 +3,7 @@ Fundamentals section:
 
 - :doc:`Connect to MongoDB </fundamentals/connection>`
 - :doc:`Authenticate with MongoDB </fundamentals/auth>`
+- :doc:`Use the Stable API </fundamentals/stable-api>`
 - :doc:`Convert between MongoDB Data Formats and Kotlin Objects </fundamentals/data-formats>`
 - :doc:`Read from and Write to MongoDB </fundamentals/crud>`
 - :doc:`Simplify your Code with Builders </fundamentals/builders>`
@@ -14,7 +15,6 @@ Fundamentals section:
 .. TODO : add back in after MVP
 
 .. - :doc:`Connect to MongoDB </fundamentals/connection>`
-.. - :doc:`Use the Stable API </fundamentals/stable-api>`
 .. - :doc:`Authenticate with MongoDB </fundamentals/auth>`
 .. - :doc:`Convert between MongoDB Data Formats and Kotlin Objects </fundamentals/data-formats>`
 .. - :doc:`Read from and Write to MongoDB </fundamentals/crud>`
