@@ -89,30 +89,6 @@
 
        .. include:: /includes/fact-api-key-redacted.rst
 
-   * - Flowdock
-
-     - :icon:`check`
-
-     - :icon:`check`
-
-     - Sends the alert to a Flowdock account. Enter the following:
-
-       :guilabel:`Org Name`:
-          The Flowdock organization name in lower-case letters. This
-          is the name that appears after ``www.flowdock.com/app/`` in
-          the |url| string.
-
-       :guilabel:`Flow Name`:
-          The flow name in lower-case letters. The flow name appears
-          after the organization name in the |url| string:
-
-          ``www.flowdock.com/app/<organization-name>/<flow-name>``
-
-       :guilabel:`User API Token`:
-          Your Flowdock personal |api| token found on the 
-          `<https://www.flowdock.com/account/tokens>`_ page of your
-          Flowdock account.
-
    * - PagerDuty
 
      - 

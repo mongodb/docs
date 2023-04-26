@@ -13,12 +13,6 @@
        - :setting:`spec.integrations.apiKeyRef.namespace`
        - :setting:`spec.integrations.region`
 
-   * - Flowdock
-     - - :setting:`spec.integrations.apiTokenRef.name`
-       - :setting:`spec.integrations.apiTokenRef.namespace`
-       - :setting:`spec.integrations.flowName`
-       - :setting:`spec.integrations.orgName`
-
    * - Microsoft Teams
      - - :setting:`spec.integrations.microsoftTeamsWebhookURL`
 

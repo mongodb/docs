@@ -12,9 +12,6 @@
    .. tab:: Slack
       :tabid: slack
 
-   .. tab:: Flowdock
-      :tabid: flowdock
-
    .. tab:: Datadog
       :tabid: datadog
 

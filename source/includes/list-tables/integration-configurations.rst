@@ -25,38 +25,6 @@
 
          .. include:: /includes/fact-datadog-supported-regions.rst
 
-   * - :guilabel:`Flowdock Settings`
-
-     - Sets default values for alert notifications sent to Flowdock.
-       |service| enters the values by default when you add a Flowdock
-       notification to an
-       :doc:`alert configuration </monitoring-alerts>`. If you add
-       Flowdock notifications, and if credentials to send notifications
-       become invalid, |service| sends an email to the project owner
-       and eventually removes the credentials.
-
-       Set the following:
-
-       .. list-table::
-          :widths: 30 70
-
-          * - :guilabel:`Org Name`
-            - The Flowdock organization name in lower-case letters.
-              This name appears after ``www.flowdock.com/app/`` in the
-              |url| string.
-
-          * - :guilabel:`Flow Name`
-            - The flow name in lower-case letters. The flow name
-              appears after the organization name in the |url| string:
-
-              ``www.flowdock.com/app/``
-              ``<organization-name>/<flow-name>``
-
-          * - :guilabel:`API Token`
-            - Your Flowdock "personal API token" found on the
-              `Tokens page <https://www.flowdock.com/account/tokens>`__
-              of your Flowdock account.
-
    * - :guilabel:`Microsoft Teams Settings`
 
      - Configures |service| to send alerts about your project to 

@@ -74,29 +74,6 @@
        ``GROUP``, ``ORG``, or ``USER``.
 
    * - | notifications.[n]
-       | .flowdockApiToken
-     - string
-     - Conditional
-     - Flowdock personal |api| token.
-
-       .. include:: /includes/api/facts/invalid-integration-api-token.rst
-
-       Set this value if you set ``notifications.[n].typeName`` to
-       ``FLOWDOCK``.
-
-   * - | notifications.[n]
-       | .flowName
-     - string
-     - Conditional
-     - Flowdock flow name in lower-case letters. The flow name appears
-       after the organization name in the |url| string:
-
-       ``www.flowdock.com/app/<organization-name>/<flow-name>``.
-
-       Set this value if you set ``notifications.[n].typeName`` to
-       ``FLOWDOCK``.
-
-   * - | notifications.[n]
        | .intervalMin
      - integer
      - Required
@@ -157,17 +134,6 @@
 
        Set this value if you set ``notifications.[n].typeName`` to
        ``OPS_GENIE``.
-
-   * - | notifications.[n]
-       | .orgName
-     - string
-     - Conditional
-     - Flowdock organization name in lower-case letters. This is
-       the name that appears after ``www.flowdock.com/app/`` in
-       the |url| string.
-
-       Set this value if you set ``notifications.[n].typeName`` to
-       ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .roles
@@ -246,7 +212,6 @@
           - ``SMS``
           - ``PAGER_DUTY``
           - ``SLACK``
-          - ``FLOWDOCK``
           - ``DATADOG``
           - ``OPS_GENIE``
           - ``VICTOR_OPS``

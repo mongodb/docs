@@ -146,18 +146,6 @@
        ``ORG``, ``GROUP``, or ``USER``.
 
    * - | notifications.[n]
-       | .flowdockApiToken
-     - string
-     - Flowdock personal |api| token. |service| returns this value if
-       you set ``notifications.[n].typeName`` to ``FLOWDOCK``.
-
-   * - | notifications.[n]
-       | .flowName
-     - string
-     - Name of the Flowdock flow. |service| returns this value if
-       you set ``notifications.[n].typeName`` to ``FLOWDOCK``.
-
-   * - | notifications.[n]
        | .intervalMin
      - number
      - Number of minutes to wait between successive notifications
@@ -198,12 +186,6 @@
      - Region that indicates which |api| |url| to use. |service| returns
        this value if you set ``notifications.[n].typeName`` to
        ``OPS_GENIE``.
-
-   * - | notifications.[n]
-       | .orgName
-     - string
-     - Name of the Flowdock organization. |service| returns this value
-       if you set ``notifications.[n].typeName`` to ``FLOWDOCK``.
 
    * - | notifications.[n]
        | .roles
