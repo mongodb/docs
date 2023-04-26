@@ -59,40 +59,7 @@ Set up GKE Clusters
 
 Set up |gke| clusters:
 
-1. Set up your Google Cloud account and the ``gcloud`` tool, using the
-   `Google Kubernetes Engine Quickstart <https://cloud.google.com/kubernetes-engine/docs/quickstart>`__.
-
-2. Create :ref:`one central cluster and one or more member clusters
-   <central-and-member-clusters>`, specifying the GKE zones, the number
-   of nodes, and the instance types, as in these examples:
-
-   .. code-block:: sh
-
-      gcloud container clusters create $MDB_CENTRAL_CLUSTER \
-        --zone=$MDB_CENTRAL_CLUSTER_ZONE \
-        --num-nodes=5 \
-        --machine-type "e2-standard-2"
-
-   .. code-block:: sh
-
-      gcloud container clusters create $MDB_CLUSTER_1 \
-        --zone=$MDB_CLUSTER_1_ZONE \
-        --num-nodes=5 \
-        --machine-type "e2-standard-2"
-
-   .. code-block:: sh
-
-      gcloud container clusters create $MDB_CLUSTER_2 \
-        --zone=$MDB_CLUSTER_2_ZONE \
-        --num-nodes=5 \
-        --machine-type "e2-standard-2"
-
-   .. code-block:: sh
-
-      gcloud container clusters create $MDB_CLUSTER_3 \
-        --zone=$MDB_CLUSTER_3_ZONE \
-        --num-nodes=5 \
-        --machine-type "e2-standard-2"
+.. include:: /includes/steps/multi-cluster-set-gke.rst
 
 .. _multi-cluster-user-auth-clusters-ref:
 
@@ -128,9 +95,9 @@ Install Go and Helm
 
 Install the following tools:
 
-1. `Install Go <https://golang.org/dl/>`__ v1.17 or later.
+- `Install Go <https://golang.org/dl/>`__, v1.17 or later.
 
-2. `Install Helm <https://helm.sh/docs/intro/install/>`__.
+- `Install Helm <https://helm.sh/docs/intro/install/>`__.
 
 .. _mc_plan_external_connectivity:
 
@@ -207,22 +174,18 @@ connectivity requirements in the following ways, depending on the type of deploy
 
 .. _install-istio:
 
-Install Istio
-~~~~~~~~~~~~~
+Optional: Install Istio
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Istio is a service mesh that simplifies |dns| resolution and helps establish
+You only need to install |istio| if you :ref:`plan to use a service mesh <mc_plan_external_connectivity>` and Istio is your preferred service mesh provider. Istio is a service mesh that simplifies |dns| resolution and helps establish
 inter-cluster communication between the member |k8s| clusters in a |multi-cluster|.
 If you choose to use a service mesh, you need to install it. If you can't
 utilize a service mesh, skip this section and :ref:`use external domains
 and configure DNS to enable external connectivity <dns-and-external-domain>`.
 
-To install Istio:
+Install |istio| in a `multi-primary mode on different networks <https://istio.io/latest/docs/setup/install/multicluster/multi-primary_multi-network/>`__, using the Istio documentation.
 
-1. Install |istio| in a `multi-primary mode on different networks
-   <https://istio.io/latest/docs/setup/install/multicluster/multi-primary_multi-network/>`__,
-   using the Istio documentation.
-
-   .. include:: /includes/facts/fact-istio.rst
+.. include:: /includes/facts/fact-istio.rst
 
 .. _dns-and-external-domain:
 
@@ -329,9 +292,9 @@ must replace the placeholder values in the following fields:
 After modifying the definitions, apply them by running the following 
 command for each file:
 
-   .. code-block:: sh
+  .. code-block:: sh
 
-      kubectl apply -f <fileName>
+     kubectl apply -f <fileName>
 
 .. _install-kubectl-mongodb-plugin:
 
@@ -490,100 +453,7 @@ In this example, you deploy a sample application defined in
 :github:`sample-service.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/multi_cluster_verify/sample-service.yaml>`
 across two |k8s| clusters.
 
-1. Create a namespace in each of the |k8s| clusters to deploy the ``sample-service.yaml``.
-
-   .. code-block:: sh
-
-      kubectl create --context="${CTX_CLUSTER_1}" namespace sample
-      kubectl create --context="${CTX_CLUSTER_2}" namespace sample
-
-   .. note::
-
-      In certain service mesh solutions, you might need to annotate
-      or label the namespace.
-
-#. Deploy the ``sample-service.yaml`` in both |k8s| clusters.
-
-   .. code-block:: sh
-      
-      kubectl apply --context="${CTX_CLUSTER_1}" \
-         -f sample-service.yaml \
-         -l service=helloworld1 \
-         -n sample
-
-      kubectl apply --context="${CTX_CLUSTER_2}" \
-         -f sample-service.yaml \
-         -l service=helloworld2 \
-         -n sample
-
-#. Deploy the sample application on ``CLUSTER_1``.
-
-   .. code-block:: sh
-
-      kubectl apply --context="${CTX_CLUSTER_1}" \
-        -f sample-service.yaml \
-        -l version=v1 \
-        -n sample
-
-#. Check that the ``CLUSTER_1`` hosting Pod is in the ``Running`` state.
-
-   .. code-block:: sh
-
-      kubectl get pod --context="${CTX_CLUSTER_1}" \
-        -n sample \
-        -l app=helloworld
-
-#. Deploy the sample application on ``CLUSTER_2``.
-
-   .. code-block:: sh
-
-      kubectl apply --context="${CTX_CLUSTER_2}" \
-        -f sample-service.yaml \
-        -l version=v2 \
-        -n sample
-
-#. Check that the ``CLUSTER_2`` hosting Pod is in the ``Running`` state.
-
-   .. code-block:: sh
-
-      kubectl get pod --context="${CTX_CLUSTER_2}" \
-        -n sample \
-        -l app=helloworld
-
-#. Deploy the Pod in ``CLUSTER_1`` and check that you can reach the sample application in ``CLUSTER_2``.
-
-   .. code-block:: sh
-         
-      kubectl run  --context="${CTX_CLUSTER_1}" \
-        -n sample \
-        curl --image=radial/busyboxplus:curl \
-        -i --tty \
-        curl -sS helloworld2.sample:5000/hello
-
-   You should see output similar to this example:
-
-   .. code-block:: sh
-      :copyable: false
-
-      Hello version: v2, instance: helloworld-v2-758dd55874-6x4t8
-
-#. Deploy the Pod in ``CLUSTER_2`` and check that you can reach the sample application in ``CLUSTER_1``.
-
-   .. code-block:: sh
-
-      kubectl run --context="${CTX_CLUSTER_2}" \
-        -n sample \
-        curl --image=radial/busyboxplus:curl \
-        -i --tty \
-        curl -sS helloworld1.sample:5000/hello
-
-
-   You should see output similar to this example:
-
-   .. code-block:: sh
-      :copyable: false
-
-      Hello version: v1, instance: helloworld-v1-758dd55874-6x4t8
+.. include:: /includes/steps/verify-mc-cluster-connectivity.rst
 
 .. _multi-cluster-tls-prereqs:
 
