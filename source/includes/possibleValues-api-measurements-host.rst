@@ -114,10 +114,24 @@ Host Measurements
        For example, the value 2.75 means 2 seconds and 750 milliseconds.
 
    * - - ``DB_STORAGE_TOTAL``
-       - ``DB_DATA_SIZE_TOTAL``
 
-     - On-disk storage space as collected from the MongoDB ``dbStats``
-       command.
+     - Sum total of the compressed on-disk storage space allocated for 
+       document storage across all databases.
+   
+   * - - ``DB_INDEX_SIZE_TOTAL``
+     
+     - Sum total of the logical size in bytes (including prefix compression) of 
+       the index data across all databases.
+
+   * - - ``DB_DATA_SIZE_TOTAL``
+
+     - Sum total of the uncompressed document data in bytes (including 
+       the padding factor) across all databases including system databases.
+  
+   * - - ``DB_DATA_SIZE_TOTAL_WO_SYSTEM``
+
+     - Sum total of the uncompressed document data in bytes (including 
+       the padding factor) across non-system databases.
 
    * - - ``OPCOUNTER_CMD``
        - ``OPCOUNTER_QUERY``
