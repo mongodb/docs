@@ -1,0 +1,287 @@
+.. _java-connection-troubleshooting:
+
+================================
+Connection Troubleshooting Guide
+================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page offers potential solutions to issues you might see when
+connecting to a MongoDB instance or replica set while using the
+{+driver-long+}.
+
+.. note::
+
+   This page lists only connection issues. If you are having any other issues
+   with MongoDB, consider the following resources:
+
+   - The :ref:`Frequently Asked Questions (FAQ) <java-faq>` for the Java driver
+   - The :ref:`Issues & Help <java-issues-and-help>` topic for information about
+     reporting bugs, contributing to the driver, and additional resources
+   - The `MongoDB Community Forums <https://community.mongodb.com>`__ for
+     questions, discussions, or general technical support
+
+Connection Error
+~~~~~~~~~~~~~~~~
+
+The following error message is a general message indicating that the driver
+cannot connect to a server on the specified hostname or port:
+
+.. code-block:: none
+   :copyable: false
+
+   Error: couldn't connect to server 127.0.0.1:27017
+
+If you receive this error, try the following methods to resolve the issue.
+
+.. _java-connection-string-port:
+
+Check Connection String
+-----------------------
+
+Verify that the hostname and port number in the connection string are both
+accurate. In the sample error message, the hostname is ``127.0.0.1`` and the
+port is ``27017``. The default port value for a MongoDB instance is
+``27017``, but you can configure MongoDB to communicate on another port.
+
+.. _java-connection-firewall:
+
+Configure Firewall
+------------------
+
+Assuming that your MongoDB deployment uses the default port, verify that your
+firewall has port ``27017`` open. If your deployment is using a different port,
+verify that port is open in your firewall.
+
+.. important::
+
+   Do not open ports in your firewall unless you are sure that is the port used
+   by your MongoDB instance.
+
+Authentication Error
+~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-short+} can fail to connect to a MongoDB instance if
+the authorization is not configured correctly. This often results in an error
+message similar to the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Command failed with error 18 (AuthenticationFailed): 'Authentication failed.' on server localhost:27017.
+
+If you receive this error, try the following methods to resolve the issue.
+
+.. _java-connection-string-auth:
+
+Check Connection String
+-----------------------
+
+An invalid connection string is the most common cause of authentication
+issues when attempting to connect to MongoDB.
+
+.. note::
+
+   For more information about using connection strings with the Java driver,
+   see :ref:`Connection URI <connection-uri>` in the Connection Guide.
+
+If your connection string contains a username and password, ensure that they
+are in the correct format.
+
+.. note::
+
+   If the username or password includes any of the following characters, they
+   must be `percent encoded <https://tools.ietf.org/html/rfc3986#section-2.1>`__:
+
+   .. code-block:: none
+
+      : / ? # [ ] @
+
+
+If your MongoDB deployment is on MongoDB Atlas, you can check your connection
+string by using the :ref:`Connect to MongoDB Atlas <connect-atlas-java-driver>`
+code example. Make sure to replace the connection string in the example.
+
+When connecting to a replica set, you should include all of the hosts
+in the replica set in your connection string. Separate each of the hosts
+in the connection string with a comma. This enables the driver to establish a
+connection if one of the hosts is unreachable.
+
+.. _java-connection-admin:
+
+Verify User Is in Authentication Database
+-----------------------------------------
+
+To successfully authenticate a connection by using a username and password,
+the username must be defined in the authentication database. The default
+authentication database is the ``admin`` database. To use a different database
+for authentication, specify the ``authSource`` in the connection string. The
+following example instructs the driver to use ``users`` as the authentication
+database:
+
+.. code-block:: java
+   :copyable: false
+
+   MongoClient mongoClient = MongoClients.create("mongodb://<username>:<password>@<hostname>:<port>/?authSource=users");
+
+Error Sending Message
+~~~~~~~~~~~~~~~~~~~~~
+
+When you end a request through the driver and it is unable to send the command,
+it often displays the following general error message:
+
+.. code-block:: none
+   :copyable: false
+
+   com.mongodb.MongoSocketWriteException: Exception sending message
+
+If you receive this error, try the following methods to resolve the issue.
+
+Check Connection String
+-----------------------
+
+Verify that the connection string in
+your app is accurate. This is described under :ref:`Connection Error <java-connection-string-port>`
+and :ref:`Authentication Error <java-connection-string-auth>`.
+
+Verify User Is in Authentication Database
+-----------------------------------------
+
+The user needs to be recognized in your
+authentication database. This is described under :ref:`Authentication
+Error <java-connection-admin>`.
+
+Configure Firewall
+------------------
+
+The firewall needs to have an open port for communicating with the MongoDB
+instance. This is described under :ref:`Connection Error <java-connection-firewall>`.
+
+.. _java-connection-number-connections:
+
+Check the Number of Connections
+-------------------------------
+
+Each ``MongoClient`` instance supports a maximum number of concurrent open
+connections in its connection pool. The configuration parameter ``maxPoolSize``
+defines this value and is set to ``100`` by default. If there are already a
+number of open connections equal to ``maxPoolSize``, the server waits until
+a connection becomes available. If this wait time exceeds the ``maxIdleTimeMS``
+value, the driver responds with an error.
+
+.. _java-connection-certificate:
+
+Install Certificate
+-------------------
+
+If you are using Java version 8 or earlier, you might need to manually add a
+certificate to your trust store. You can either upgrade to a later version of
+the JDK or see our `Security FAQ
+<https://www.mongodb.com/docs/atlas/reference/faq/security/#java-users>`__ for
+information about how to add the certificate.
+
+Timeout Error
+~~~~~~~~~~~~~
+
+Sometimes when you send messages through the driver to the server, the messages
+take a while to respond. When this happens, you might receive an error message
+similar to one of the following error messages:
+
+.. code-block:: none
+   :copyable: false
+
+   Timed out after 30000 ms while waiting for a server that matches ReadPreferenceServerSelector{readPreference=primary}.
+
+.. code-block:: none
+   :copyable: false
+
+   No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description
+
+If you receive one of these errors, try the following methods to resolve the
+issue.
+
+Set ``maxConnectionTimeoutMS``
+------------------------------
+
+The ``maxConnectionTimeoutMS`` option indicates the amount of time the Java
+driver waits for a connection
+before timing out. The default value is ``10000``. You can increase this value
+or set it to ``0`` if you want the driver to never timeout.
+
+Set ``maxConnectionLifeTime`` and ``maxConnectionIdleTime``
+-----------------------------------------------------------
+
+Consider setting ``maxConnectionLifeTime`` and
+``maxConnectionIdleTime``. These parameters configure how long a connection
+can be maintained with a MongoDB instance. For more information about these
+parameters, see :ref:`Connection Pool Settings <mcs-connectionpool-settings>`.
+
+Check the Number of Connections
+-------------------------------
+
+You might have too many open connections. The solution to this is described
+under :ref:`Error Sending Message <java-connection-number-connections>`.
+
+Install Certificate
+-------------------
+
+If you are using an older version of Java, you might need to manually install
+some certificates as described under
+:ref:`Error Sending Message <java-connection-certificate>`.
+
+Miscellaneous Errors
+~~~~~~~~~~~~~~~~~~~~
+
+This section shows connection errors that do not fall into a broader category.
+Each section lists the error message and then the specific steps you should
+take to resolve it.
+
+Monitor Thread Exception
+------------------------
+
+.. code-block:: none
+   :copyable: false
+
+   INFO: Exception in monitor thread while connecting to server ssc-cluster-01-shard-00-02.9cbnp.mongodb.net:27017
+
+To resolve this error, you need to manually install certificates as described
+under :ref:`Error Sending Message <java-connection-certificate>`.
+
+Certificate Request Exception
+-----------------------------
+
+.. code-block:: none
+   :copyable: false
+
+   javax.net.ssl.SSLHandshakeException: extension (5) should not be presented in certificate_request
+
+This is a `known error <https://bugs.openjdk.java.net/browse/JDK-8236039>`__
+that can occur when using the TLS 1.3 protocol with specific versions of the
+JDK. If you encounter this error when connecting to your MongoDB instance or
+cluster, update your JDK to one of the following patch versions or newer:
+
+- JDK 11.0.7
+- JDK 13.0.3
+- JDK 14.0.2
+
+Additional Tips
+~~~~~~~~~~~~~~~
+
+While not related to a specific error message, this section includes
+additional information that can be useful when attempting to troubleshoot
+connection issues.
+
+Get Log Information for TLS/SSL
+-------------------------------
+
+When using TLS/SSL, you can use the ``-Djavax.net.debug=all`` system property
+to view additional log statements. This can help when attempting to debug any
+connection issues. See `the Oracle guide to debugging TLS/SSL connections
+<https://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/ReadDebug.html>`__
+for more information.
