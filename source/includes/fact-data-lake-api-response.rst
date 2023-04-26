@@ -111,7 +111,7 @@
    * - ``storage``
      - object
      - Configuration details for each {+fdi+} and its
-       mapping to MongoDB database(s) and collection(s).
+       mapping to MongoDB databases and collections.
 
    * - ``storage.databases``
      - object

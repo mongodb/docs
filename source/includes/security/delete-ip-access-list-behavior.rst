@@ -1,5 +1,5 @@
 When you remove an entry from the IP access list, existing connections
-from the removed address(es) may remain open for a variable amount of
+from the removed addresses may remain open for a variable amount of
 time. How much time passes before |service| closes the connection
 depends on several factors, including:
 

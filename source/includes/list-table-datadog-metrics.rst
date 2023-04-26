@@ -2,7 +2,7 @@
    :header-rows: 1
    :widths: 45 12 43
 
-   * - Metric Name(s)
+   * - Metric Names
      - Metric Type
      - Description
 

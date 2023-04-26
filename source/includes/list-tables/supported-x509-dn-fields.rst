@@ -74,7 +74,7 @@
      - DirectoryString
      - SIZE(1..64)
    * - ``initials``
-     - Initials of some or all of an individual's names, except the surname(s).
+     - Initials of some or all of an individual's names, except the surnames.
      - DirectoryString
      - SIZE(1..64)
    * - ``l``
