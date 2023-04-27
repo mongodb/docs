@@ -8,10 +8,17 @@ To save your pipeline:
 .. procedure::
    :style: normal
 
-   .. step:: Click the :guilabel:`Save` dropdown button.
+   .. step:: Click the save dropdown button
 
-      Click on ``Save pipeline as...``.
+      Click the :guilabel:`Save` dropdown button at the top of the pipeline
+      builder. Click on ``Save pipeline as...``
 
-   .. step:: Enter a name for your pipeline.
+      .. figure:: /images/compass/query-save-pipeline-as.png
+         :alt: Save pipeline as
 
-   .. step:: Click :guilabel:`Save`. 
+   .. step:: Enter a name for your pipeline
+
+      .. figure:: /images/compass/query-save-pipeline-as-name.png
+         :alt: Name your pipeline
+
+   .. step:: Click :guilabel:`Save`
