@@ -30,7 +30,7 @@ instructions on how to format your connection string.
 
 To retrieve your connection string for the cluster and user you created in
 the previous step, log into your Atlas account and navigate to the
-:guilabel:`Database` section and click the :guilabel:`Connect` button for the cluster that you
+:guilabel:`Database` section and click :guilabel:`Connect` for the cluster that you
 want to connect to as shown below.
 
 .. figure:: /includes/figures/atlas_connection_select_cluster.png
