@@ -87,7 +87,7 @@
          This page provides examples of |query_operations| using the
          :ruby-api:`Mongo::Collection#find()<Collection.html#find-instance_method>`
          method in the
-         :ruby:`MongoDB Ruby Driver </>`.
+         'MongoDB Ruby Driver <https://docs.mongodb.com/ruby-driver/master/>`_.
 
          .. include:: /includes/driver-examples/examples-intro.rst
 
