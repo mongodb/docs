@@ -1,0 +1,213 @@
+.. _atlas-cli-create-cluster-from-config-file:
+
+======================================================
+Create an |service| Cluster Using a Configuration File
+======================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This tutorial demonstrates how to use {+atlas-cli+} commands to create
+a new |service| cluster from a configuration file. Specifically, it
+demonstrates how to:
+
+1. Get the configuration settings of an :ref:`existing Atlas cluster
+   <atlas-clusters-create>` and save the settings to a
+   configuration file using the :ref:`atlas-clusters-describe` command. 
+#. Create an |service| {+cluster+} from the configuration file using the
+   :ref:`atlas-clusters-create` command.
+
+.. _atlas-cli-create-cluster-from-config-file-reqs:
+
+Prerequisites 
+-------------
+
+Before you begin, you must have the following: 
+
+- :ref:`An Atlas cluster <atlas-clusters-create>` 
+- :ref:`Atlas CLI <install-atlas-cli>` 
+- :ref:`A profile <atlas-cli-profiles>` that contains the IDs of the
+  |service| organization and project from where you wish to retrieve
+  existing cluster settings and where you wish to create the new
+  {+cluster+}.  
+
+.. _atlas-cli-create-cluster-from-config-file-procedure:
+
+Create an |service| Cluster From a Configuration File 
+-----------------------------------------------------
+
+You can use the procedures in this section to easily create a new
+{+cluster+} by exporting settings from an existing {+cluster+} instead
+of manually creating a configuration file yourself. 
+
+Export Existing Cluster Configuration Settings to a File 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Connect to your |service| account for programmatic access if you haven't connected yet. 
+
+      To learn more, see :ref:`connect-atlas-cli`.
+
+   .. step:: Run the following command to export the details of an existing cluster to a |json| configuration file named ``myCluster``.
+
+      .. code-block:: shell 
+         :copyable: true 
+
+         atlas clusters describe <cluster-name> --output json > myCluster.json
+
+      Replace <cluster-name> in the preceding command with the name of
+      the existing {+cluster+} that you wish to clone.
+
+(Optional) Edit the Configuration File for the new Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Open the |json| file in a text editor to view the configuration settings.
+
+      .. example::
+
+         The following example uses the ``vi`` editor to view the
+         replica set settings for an ``M10`` cluster named
+         ``mySandbox`` in the ``myCluster.json`` file. 
+
+         .. io-code-block:: 
+            :copyable: false 
+
+            .. input:: 
+               :language: shell
+
+               vi myCluster.json 
+
+            .. output:: 
+               :language: json 
+               :linenos:
+
+               {
+                 "backupEnabled": true,
+                 "biConnector": {
+                   "enabled": false,
+                   "readPreference": "secondary"
+                 },
+                 "clusterType": "REPLICASET",
+                 "connectionStrings": {
+                   "standard": "<connection-string>"
+                 },
+                 "diskSizeGB": 10,
+                 "encryptionAtRestProvider": "NONE",
+                 "groupId": "<group-id>",
+                 "id": "<64403dd1f2a6b45e71527d5a>",
+                 "mongoDBMajorVersion": "6.0",
+                 "mongoDBVersion": "6.0.5",
+                 "name": "mySandbox",
+                 "paused": false,
+                 "pitEnabled": true,
+                 "stateName": "IDLE",
+                 "replicationSpecs": [
+                   {
+                     "numShards": 1,
+                     "id": "64403dbb0a052449df3d04ae",
+                     "zoneName": "Zone 1",
+                     "regionConfigs": [
+                       {
+                         "analyticsAutoScaling": {
+                           "diskGB": {
+                             "enabled": true
+                           },
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true,
+                             "minInstanceSize": "M10",
+                             "maxInstanceSize": "M40"
+                           }
+                         },
+                         "analyticsSpecs": {
+                           "diskIOPS": 3000,
+                           "ebsVolumeType": "STANDARD",
+                           "instanceSize": "M10",
+                           "nodeCount": 0
+                         },
+                         "electableSpecs": {
+                           "diskIOPS": 3000,
+                           "ebsVolumeType": "STANDARD",
+                           "instanceSize": "M10",
+                           "nodeCount": 3
+                         },
+                         "readOnlySpecs": {
+                           "diskIOPS": 3000,
+                           "ebsVolumeType": "STANDARD",
+                           "instanceSize": "M10",
+                           "nodeCount": 0
+                         },
+                         "autoScaling": {
+                           "diskGB": {
+                             "enabled": true
+                           },
+                           "compute": {
+                             "enabled": true,
+                             "scaleDownEnabled": true,
+                             "minInstanceSize": "M10",
+                             "maxInstanceSize": "M40"
+                           }
+                         },
+                         "priority": 7,
+                         "providerName": "AWS",
+                         "regionName": "US_EAST_1"
+                       }
+                     ]
+                   }
+                 ],
+                 "createDate": "2023-04-19T19:15:29Z",
+                 "rootCertType": "ISRGROOTX1",
+                 "versionReleaseSystem": "LTS",
+                 "terminationProtectionEnabled": false
+               }
+
+   .. step:: (Optional) Make changes to the settings in the configuration file as needed.
+
+      To learn more about the optional and required settings, see
+      :ref:`atlas-cli-cluster-config-file`. 
+
+   .. step:: Save and close the configuration file.
+
+Create a New Cluster Using the Configuration File 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to your |service| account for programmatic access if you aren't already connected to your |service| account. 
+
+      To learn more, see :ref:`connect-atlas-cli`.
+
+   .. step:: Run the following command to create an |service| cluster using the configuration file. 
+
+      .. code-block::
+         :copyable: true
+
+         atlas clusters create <new-cluster-name> -f myCluster.json
+
+      Replace ``<new-cluster-name>`` in the preceding command with the
+      name of the new {+cluster+} you wish to create. 
+
+   .. step:: Run the following command to check the status of the {+cluster+}.
+
+      .. code-block:: shell 
+         :copyable: true 
+
+         atlas clusters watch <new-cluster-name>
+
+      Replace <new-cluster-name> in the preceding command with the name 
+      of the new {+cluster+}. 
+      
+      This command checks the {+cluster+}\'s status periodically until
+      it reaches an ``IDLE`` state. Once  the {+cluster+} reaches the
+      expected state, the command prints "Cluster available."
