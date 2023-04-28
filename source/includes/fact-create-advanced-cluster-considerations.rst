@@ -22,6 +22,6 @@
   preexisting {+cluster+}-level policies to meet the minimum 
   requirements of the {+bcp+}. All new {+clusters+} use the {+bcp+} 
   unless the mininum requirements of the 
-  :ref:`{+cluster+}-level backup policy <cps-backup-policies>` expand 
-  beyond the mininum requirements of the {+bcp+}.
+  :ref:`{+cluster+}-level backup policy <configure-backup-policy>` 
+  expand beyond the mininum requirements of the {+bcp+}.
   
