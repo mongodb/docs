@@ -1,4 +1,3 @@
 val collectionOptions = CreateCollectionOptions()
 collectionOptions.changeStreamPreAndPostImagesOptions(ChangeStreamPreAndPostImagesOptions(true))
-
 database.createCollection("myChangeStreamCollection", collectionOptions)

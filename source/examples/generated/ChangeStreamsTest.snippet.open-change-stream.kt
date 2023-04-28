@@ -3,7 +3,7 @@
 // so you can cancel it later.
 val job = launch {
     val changeStream = collection.watch()
-    changeStream.collect { it ->
+    changeStream.collect {
         println("Received a change event: $it")
     }
 }

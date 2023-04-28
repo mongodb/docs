@@ -1,6 +1,9 @@
 val job = launch {
-    val changeStream = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
-    changeStream.collect { changeEvents.add(it) }
+    val changeStream = collection.watch()
+        .fullDocument(FullDocument.UPDATE_LOOKUP)
+    changeStream.collect {
+        println(it)
+    }
 }
 
 // Perform MongoDB operations that trigger change events...

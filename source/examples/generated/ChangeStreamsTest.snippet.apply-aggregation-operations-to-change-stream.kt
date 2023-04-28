@@ -7,7 +7,7 @@ val pipeline = listOf(
 // so you can cancel it later.
 val job = launch {
     val changeStream = collection.watch(pipeline)
-    changeStream.collect { it ->
+    changeStream.collect {
         println("Received a change event: $it")
     }
 }

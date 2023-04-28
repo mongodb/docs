@@ -79,6 +79,7 @@ internal class ChangeStreamsTest {
 
         // Perform MongoDB operations that trigger change events...
         // :remove-start:
+        delay(1)
         val testData = Document("city", "Sao Paulo")
         collection.insertOne(testData)
 
@@ -116,6 +117,7 @@ internal class ChangeStreamsTest {
 
         // Perform MongoDB operations that trigger change events...
         // :remove-start:
+        delay(1)
         val testData = Document("city", "Rio de Janeiro")
         collection.insertOne(testData)
         collection.deleteOne(testData)
@@ -134,56 +136,46 @@ internal class ChangeStreamsTest {
 
     }
 
-    // TODO: figure out why failing..the cluster is running MongoDB 6.0...so should work as far as I understand.
     @Test
     fun createCollectionWithPreAndPostImagesTest() = runBlocking {
         val collectionName = "myChangeStreamCollection"
-
-        // TODO: change events do not fire if i create the database as such. If i comment out lines 144-146,
-        //  then the change events fire. I'm not sure why this is the case.
         // :snippet-start: create-collection-with-pre-and-post-images
         val collectionOptions = CreateCollectionOptions()
         collectionOptions.changeStreamPreAndPostImagesOptions(ChangeStreamPreAndPostImagesOptions(true))
         database.createCollection("myChangeStreamCollection", collectionOptions)
         // :snippet-end:
-        println("created collection?")
         val collection = database.getCollection<Document>(collectionName)
         val changeEvents = mutableListOf<ChangeStreamDocument<Document>>()
         val job = launch {
             val changeStream = collection.watch()
+                .fullDocumentBeforeChange(FullDocumentBeforeChange.WHEN_AVAILABLE)
+                .fullDocument(FullDocument.REQUIRED)
             changeStream.collect {
                 println("change event: $it")
                 changeEvents.add(it)
             }
         }
+        delay(1) // must have to make sure the change stream is ready to receive events
 
         val testData = Document("city", "Rio de Janeiro")
         collection.insertOne(testData)
         collection.updateOne(Filters.eq("city", "Rio de Janeiro"),
             Document("\$set", Document("city", "Sao Paulo")))
-        println("did daata manipulation?")
         delay(1000)
-        println("delay finished?")
 
         job.cancel()
         collection.drop()
 
-        println("job cancelled?")
-
         assertEquals(2, changeEvents.size)
-        println("2 events?")
         assertEquals(OperationType.UPDATE, changeEvents[1].operationType)
-        println("change event: ${changeEvents[1]}")
         assertEquals("Sao Paulo", changeEvents[1].fullDocument?.getString("city"))
         assertEquals("Rio de Janeiro", changeEvents[1].fullDocumentBeforeChange?.getString("city"))
 
-        println("the end?")
     }
 
-    // TODO: similar errors as above
     @Test
     fun preImageConfigurationTest() = runBlocking {
-        val collectionName = "myChangeStreamCollection"
+        val collectionName = "myChangeStreamCollection2"
         val createdCollection = database.getCollection<Document>(collectionName)
         createdCollection.countDocuments()
         createdCollection.drop()
@@ -191,21 +183,21 @@ internal class ChangeStreamsTest {
         collectionOptions.changeStreamPreAndPostImagesOptions(ChangeStreamPreAndPostImagesOptions(true))
 
         database.createCollection(collectionName, collectionOptions)
-        collection = database.getCollection<Document>(collectionName)
-        // :snippet-start: pre-image-configuration
+        val collection = database.getCollection<Document>(collectionName)
         val changeEvents = mutableListOf<ChangeStreamDocument<Document>>()
+        // :snippet-start: pre-image-configuration
         val job = launch {
             val changeStream = collection.watch()
-                .fullDocumentBeforeChange(FullDocumentBeforeChange.WHEN_AVAILABLE)
+                .fullDocumentBeforeChange(FullDocumentBeforeChange.REQUIRED)
+                .fullDocument(FullDocument.REQUIRED)
             changeStream.collect {
-                println("collected!")
                 println(it)
-                changeEvents.add(it)
+                changeEvents.add(it) // :remove:
             }
         }
-
         // Perform MongoDB operations that trigger change events...
         // :remove-start:
+        delay(1) // must have to make sure the change stream is ready to receive events
         val testData = Document("city", "Rio de Janeiro")
         collection.insertOne(testData)
         collection.updateOne(Filters.eq("city", "Rio de Janeiro"),
@@ -216,10 +208,12 @@ internal class ChangeStreamsTest {
         // Cancel the change stream when you're done listening for events.
         job.cancel()
         // :snippet-end:
+        collection.drop()
+
         assertEquals(2, changeEvents.size)
         assertEquals(OperationType.UPDATE, changeEvents[1].operationType)
-        assertEquals("Rio de Janeiro", changeEvents[1].fullDocumentBeforeChange.getString("city"))
-        assertEquals("Sao Paulo", changeEvents[1].fullDocument.getString("city"))
+        assertEquals("Rio de Janeiro", changeEvents[1].fullDocumentBeforeChange?.getString("city"))
+        assertEquals("Sao Paulo", changeEvents[1].fullDocument?.getString("city"))
     }
 
     @Test
@@ -227,12 +221,17 @@ internal class ChangeStreamsTest {
         val changeEvents = mutableListOf<ChangeStreamDocument<Document>>()
         // :snippet-start: post-image-configuration
         val job = launch {
-            val changeStream = collection.watch().fullDocument(FullDocument.UPDATE_LOOKUP)
-            changeStream.collect { changeEvents.add(it) }
+            val changeStream = collection.watch()
+                .fullDocument(FullDocument.UPDATE_LOOKUP)
+            changeStream.collect {
+                println(it)
+                changeEvents.add(it) // :remove:
+            }
         }
 
         // Perform MongoDB operations that trigger change events...
         // :remove-start:
+        delay(1) // must have to make sure the change stream is ready to receive events
         val testData = Document("city", "Rio de Janeiro")
         collection.insertOne(testData)
         collection.updateOne(Filters.eq("city", "Rio de Janeiro"),
