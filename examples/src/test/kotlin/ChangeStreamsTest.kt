@@ -30,7 +30,6 @@ internal class ChangeStreamsTest {
         private val dotenv = dotenv()
         private val client = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
         val database = client.getDatabase("censusData")
-        val collection = database.getCollection<Document>("cities")
 
         @AfterAll
         @JvmStatic
@@ -56,7 +55,9 @@ internal class ChangeStreamsTest {
     @AfterEach
     fun afterEach() {
         runBlocking {
-            collection.drop()
+            if(collection.countDocuments() > 0) {
+                collection.drop()
+            }
         }
     }
 
@@ -70,7 +71,7 @@ internal class ChangeStreamsTest {
         // so you can cancel it later.
         val job = launch {
             val changeStream = collection.watch()
-            changeStream.collect { it ->
+            changeStream.collect {
                 println("Received a change event: $it")
                 changeEvents.add(it) // :remove:
             }
@@ -138,19 +139,14 @@ internal class ChangeStreamsTest {
     fun createCollectionWithPreAndPostImagesTest() = runBlocking {
         val collectionName = "myChangeStreamCollection"
 
-        // drop collection if it already exists
-        val createdCollection = database.getCollection<Document>(collectionName)
-        createdCollection.countDocuments()
-        createdCollection.drop()
-        
+        // TODO: change events do not fire if i create the database as such. If i comment out lines 144-146,
+        //  then the change events fire. I'm not sure why this is the case.
         // :snippet-start: create-collection-with-pre-and-post-images
         val collectionOptions = CreateCollectionOptions()
         collectionOptions.changeStreamPreAndPostImagesOptions(ChangeStreamPreAndPostImagesOptions(true))
-
         database.createCollection("myChangeStreamCollection", collectionOptions)
-        delay(1000)
-        println("created collection?")
         // :snippet-end:
+        println("created collection?")
         val collection = database.getCollection<Document>(collectionName)
         val changeEvents = mutableListOf<ChangeStreamDocument<Document>>()
         val job = launch {
@@ -170,18 +166,21 @@ internal class ChangeStreamsTest {
         println("delay finished?")
 
         job.cancel()
+        collection.drop()
+
         println("job cancelled?")
 
         assertEquals(2, changeEvents.size)
         println("2 events?")
         assertEquals(OperationType.UPDATE, changeEvents[1].operationType)
+        println("change event: ${changeEvents[1]}")
+        assertEquals("Sao Paulo", changeEvents[1].fullDocument?.getString("city"))
+        assertEquals("Rio de Janeiro", changeEvents[1].fullDocumentBeforeChange?.getString("city"))
 
-        assertEquals("Rio de Janeiro", changeEvents[1].fullDocumentBeforeChange.getString("city"))
-        assertEquals("Sao Paulo", changeEvents[1].fullDocument.getString("city"))
         println("the end?")
     }
 
-    // TODO: same error as above
+    // TODO: similar errors as above
     @Test
     fun preImageConfigurationTest() = runBlocking {
         val collectionName = "myChangeStreamCollection"
