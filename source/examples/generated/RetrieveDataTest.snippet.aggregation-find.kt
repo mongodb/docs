@@ -9,5 +9,5 @@ val pipeline = listOf(
     ),
     Aggregates.sort(Sorts.descending("qty"))
 )
-collection.aggregate<AggregationResult>(pipeline)
-    .toList().forEach { println(it) }
+val resultsFlow = collection.aggregate<AggregationResult>(pipeline)
+resultsFlow.collect { println(it) }

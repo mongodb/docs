@@ -1,3 +1,4 @@
+
 import com.mongodb.client.model.Accumulators
 import com.mongodb.client.model.Aggregates
 import com.mongodb.client.model.Filters
@@ -33,7 +34,7 @@ internal class RetrieveDataTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 val paintOrders = listOf(
                     PaintOrder(1, 10, "purple"),
@@ -47,7 +48,7 @@ internal class RetrieveDataTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()
@@ -59,13 +60,14 @@ internal class RetrieveDataTest {
     fun basicFindTest() = runBlocking {
         // :snippet-start: basic-find
         val filter = Filters.and(Filters.gt("qty", 3), Filters.lt("qty", 9))
-        collection.find(filter).toList().forEach { println(it) }
+        val resultsFlow = collection.find(filter)
+        resultsFlow.collect { println(it) }
         // :snippet-end:
         val expected = listOf(
             PaintOrder(2, 8, "green"),
             PaintOrder(3, 4, "purple"),
         )
-        assertEquals(expected, collection.find(filter).toList())
+        assertEquals(expected, resultsFlow.toList())
     }
 
     @Test
@@ -82,13 +84,13 @@ internal class RetrieveDataTest {
             ),
             Aggregates.sort(Sorts.descending("qty"))
         )
-        collection.aggregate<AggregationResult>(pipeline)
-            .toList().forEach { println(it) }
+        val resultsFlow = collection.aggregate<AggregationResult>(pipeline)
+        resultsFlow.collect { println(it) }
         // :snippet-end:
         val expected = listOf(
             AggregationResult("green", 19),
             AggregationResult("purple", 14)
         )
-        assertEquals(expected,  collection.aggregate<AggregationResult>(pipeline).toList())
+        assertEquals(expected,  resultsFlow.toList())
     }
 }
