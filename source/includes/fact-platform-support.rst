@@ -89,12 +89,6 @@
     - |checkmark|
     -
 
-  * - Ubuntu 14.04
-    - |checkmark|
-    -
-    -
-    -
-
   * - Windows 8 and later
     - |checkmark|
     -
