@@ -1,7 +1,8 @@
-import com.mongodb.kotlin.client.coroutine.MongoClient
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import com.mongodb.client.model.Filters.eq
+import com.mongodb.kotlin.client.coroutine.MongoClient
+import io.github.cdimascio.dotenv.dotenv
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 
 // Create data class to represent a MongoDB document
 data class Movie(val title: String, val year: Int, val cast: List<String>)
@@ -17,7 +18,7 @@ fun main() {
     val collection = database.getCollection<Movie>("movies")
 
     runBlocking {
-        val doc = collection.find(eq("title", "Back to the Future")).first()
+        val doc = collection.find(eq("title", "Back to the Future")).firstOrNull()
         if (doc != null) {
             println(doc)
         } else {

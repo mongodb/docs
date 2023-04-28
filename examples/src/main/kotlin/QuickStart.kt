@@ -1,11 +1,11 @@
 package org.mongodb.docs.kotlin
 // :snippet-start: quick-start
+import com.mongodb.client.model.Filters.eq
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv // :remove:
-import kotlinx.coroutines.flow.first
+import io.github.cdimascio.dotenv.dotenv
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import org.bson.Document
-import com.mongodb.client.model.Filters.eq
 
 fun main() {
     // :remove-start:
@@ -21,7 +21,7 @@ fun main() {
     val collection = database.getCollection<Document>("movies")
 
     runBlocking {
-        val doc = collection.find(eq("title", "Back to the Future")).first()
+        val doc = collection.find(eq("title", "Back to the Future")).firstOrNull()
         if (doc != null) {
             println(doc.toJson())
         } else {
