@@ -136,6 +136,7 @@ internal class ChangeStreamsTest {
 
     }
 
+    // NOTE: will not work with an shared M0 cluster. Must have a local cluster with a replica set or >=M10 on Atlas.
     @Test
     fun createCollectionWithPreAndPostImagesTest() = runBlocking {
         val collectionName = "myChangeStreamCollection"
@@ -173,6 +174,7 @@ internal class ChangeStreamsTest {
 
     }
 
+    // NOTE: will not work with an shared M0 cluster. Must have a local cluster with a replica set or >=M10 on Atlas.
     @Test
     fun preImageConfigurationTest() = runBlocking {
         val collectionName = "myChangeStreamCollection2"
