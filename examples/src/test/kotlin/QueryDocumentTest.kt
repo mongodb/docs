@@ -1,3 +1,4 @@
+
 import com.mongodb.client.model.Filters
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.github.cdimascio.dotenv.dotenv
@@ -9,22 +10,19 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import java.util.*
-import kotlin.collections.List
 import kotlin.test.*
-
-// :snippet-start: query-data-model
-data class PaintOrder(
-    @BsonId val id: Int,
-    val qty: Int,
-    val color: String,
-    val vendor: List<String>,
-    val rating: Int? = null
-)
-// :snippet-end:
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class QueryDocumentTest {
-
+    // :snippet-start: query-data-model
+    data class PaintOrder(
+        @BsonId val id: Int,
+        val qty: Int,
+        val color: String,
+        val vendor: List<String>,
+        val rating: Int? = null
+    )
+    // :snippet-end:
     companion object {
         val dotenv = dotenv()
         val client = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
