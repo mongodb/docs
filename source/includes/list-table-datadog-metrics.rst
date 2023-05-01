@@ -76,6 +76,23 @@
      - Process
      - Number of documents read or written per second.
 
+   * - | ``NETWORK_BYTES_IN``
+       | (mongodb.atlas.network.bytes.in)
+     - Process
+     - Average rate of physical bytes (after any wire compression) sent 
+       to the database server per second. 
+
+   * - | ``NETWORK_BYTES_OUT``
+       | (mongodb.atlas.network.bytes.out)
+     - Process
+     - Average rate of physical bytes (after any wire compression) sent 
+       from the database server per second.
+
+   * - | ``NETWORK_NUM_REQUESTS``
+       | (mongodb.atlas.network.num.requests)
+     - Process
+     - Average rate of requests sent to the database server per second. 
+
    * - | ``OPCOUNTER_CMD`` 
        | (mongodb.atlas.opcounters.command)
        | ``OPCOUNTER_QUERY``
@@ -367,6 +384,30 @@
      - Maximum values over the time period specified by the metric 
        granularity for the throughput of |iops| for the 
        disk partition used by MongoDB.
+
+   * - | ``SYSTEM_NETWORK_BYTES_IN``
+       | (mongodb.atlas.system.network.bytes.in)
+     - System
+     - Average rate of physical bytes received per second.
+
+   * - | ``SYSTEM_NETWORK_BYTES_OUT``
+       | (mongodb.atlas.system.network.bytes.out)
+     - System
+     - Average rate of physical bytes transmitted per second. 
+
+   * - | ``MAX_SYSTEM_NETWORK_IN``
+       | (mongodb.atlas.system.network.max.bytes.in)
+     - System
+     - Maximum values over the time period specified by the metric 
+       granularity for the average rate of physical bytes received per 
+       second.
+
+   * - | ``MAX_SYSTEM_NETWORK_OUT``
+       | (mongodb.atlas.system.network.max.bytes.out)
+     - System
+     - Maximum values over the time period specified by the metric 
+       granularity for the average rate of physical bytes transmitted 
+       per second.
 
    * - | ``CACHE_BYTES_READ_INTO``
        | (mongodb.atlas.wiredtiger.cache.bytes_read_into_cache)
