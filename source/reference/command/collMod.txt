@@ -33,12 +33,6 @@ Syntax
 
 The command has the following syntax:
 
-.. note:: Starting in MongoDB 4.2
-
-   - .. include:: /includes/collMod-note.rst
-
-   - .. include:: /includes/extracts/views-restriction-output-to-disk.rst
-
 .. code-block:: javascript
 
    db.runCommand( 
@@ -171,9 +165,8 @@ Validate Documents
 
 .. collflag:: validator
 
-   ``validator`` allows users to specify :doc:`validation rules
-   or expressions </core/schema-validation>` for a collection.
-   For more information, see :doc:`/core/schema-validation`.
+   ``validator`` allows users to specify :ref:`validation rules
+   or expressions <schema-validation-overview>` for a collection.
 
    The ``validator`` option takes a document that specifies the
    validation rules or expressions. You can specify the expressions
@@ -226,9 +219,9 @@ Modify Views
 
 .. collflag:: viewOn
 
-   The underlying source collection or view for the :doc:`view
-   </core/views>`. The view definition is determined by applying the
-   specified :collflag:`pipeline` to this source.
+   The underlying source collection or :ref:`view
+   <views-landing-page>`. The view definition is determined by applying
+   the specified :collflag:`pipeline` to this source.
 
    Required if modifying a view on a MongoDB deployment that is running
    with access control.
@@ -288,10 +281,10 @@ Modify Time Series Collections
 
    :ref:`manual-timeseries-automatic-removal`
 
-.. collflag:: timeseries-granularity
-
+.. collflag:: granularity
+   
    To modify the :ref:`granularity <timeseries-granularity>` of a time 
-   series collection, change the ``timeseries.granularity`` value:
+   series collection, you can increase ``timeseries.granularity`` from a shorter unit of time to a longer one:
 
    .. code-block:: javascript
 
@@ -300,23 +293,41 @@ Modify Time Series Collections
          timeseries: { granularity: "seconds" || "minutes" || "hours" }
       })
 
-   You cannot decrease granularity. For example, if granularity is set
-   to ``minutes``, you can increase it to ``hours``, but you cannot
-   decrease it to ``seconds``.
+   To update the custom bucketing parameters ``bucketRoundingSeconds``
+   and ``bucketMaxSpanSeconds`` instead of ``granularity``, include both
+   custom parameters in the ``collMod`` command and set them to the 
+   same value:
+   
+   .. code-block:: javascript
 
-   The following table shows the maximum time interval included in one bucket of data when using a given ``granularity`` value:
-
-   .. include:: /includes/table-timeseries-granularity-intervals.rst
+      db.runCommand({
+         collMod: "weather24h",
+         timeseries: { 
+           bucketRoundingSeconds: "86400",
+           bucketMaxSpanSeconds: "86400" 
+         }
+      })
+   
+   You cannot decrease the granularity interval or the custom bucketing
+   values.
 
    .. important::
+     
+       You cannot downgrade below MongoDB 6.3 if any time series 
+       collections explicitly specify the custom bucketing parameters 
+       ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds``. If 
+       possible, convert to the corresponding ``granularity``. If you 
+       cannot, you must drop the collection before downgrading.
+   
+   To convert a collection from custom bucketing to a ``granularity``,
+   value, both ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds``
+   must be less than or equal to the ``granularity`` equivalent:
 
-      As with all :ref:`system collections
-      <metadata-system-collections>`, do not run any operations on the
-      underlying ``system.buckets`` collection. 
+   .. include:: /includes/table-timeseries-granularity-maxspan-rounding-limits.rst
 
    .. seealso::
 
-      :ref:`timeseries-granularity`
+     :ref:`timeseries-granularity`
 
 .. _resize-capped-collection:
 
@@ -403,8 +414,8 @@ To disable change stream pre- and post-images for a collection, set
 Write Concern
 ~~~~~~~~~~~~~
 
-Optional. A document expressing the :doc:`write concern
-</reference/write-concern>` of the ``collMod`` command.
+Optional. A document expressing the :ref:`write concern
+<write-concern>` of the ``collMod`` command.
 
 Omit to use the default write concern.
 
@@ -482,10 +493,10 @@ Hide an Index from the Query Planner
 
    To hide an index, you must have :ref:`featureCompatibilityVersion
    <view-fcv>` set to ``4.4`` or greater. However, once hidden, the
-   index remains hidden even with :ref:`featureCompatibilityVersion
-   <view-fcv>` set to ``4.2`` on MongoDB 4.4 binaries.
+   index remains hidden even with ``featureCompatibilityVersion``
+   set to ``4.2`` on MongoDB 4.4 binaries.
 
-The following example :doc:`hides </core/index-hidden>` an existing
+The following example :ref:`hides <index-type-hidden>` an existing
 index on the ``orders`` collection. Specifically, the operation hides
 the index with the specification ``{ shippedDate: 1 }`` from the query
 planner.
@@ -519,7 +530,7 @@ To hide a text index, you must specify the index by ``name`` and not by
 
 .. seealso::
 
-   - :doc:`/core/index-hidden`
+   - :ref:`index-type-hidden`
    - :method:`db.collection.hideIndex()`
    - :method:`db.collection.unhideIndex()`
 
