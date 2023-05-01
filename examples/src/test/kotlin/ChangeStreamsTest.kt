@@ -33,14 +33,14 @@ internal class ChangeStreamsTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 client.close()
             }
         }
     }
 
-    lateinit var collection: MongoCollection<Document>
+    private lateinit var collection: MongoCollection<Document>
 
     @BeforeEach
     fun beforeEach() {
@@ -136,7 +136,7 @@ internal class ChangeStreamsTest {
 
     }
 
-    // NOTE: will not work with an shared M0 cluster. Must have a local cluster with a replica set or >=M10 on Atlas.
+    // NOTE: will not work with a shared M0 cluster. Must have a local cluster with a replica set or >=M10 on Atlas.
     @Test
     fun createCollectionWithPreAndPostImagesTest() = runBlocking {
         val collectionName = "myChangeStreamCollection"
@@ -174,7 +174,7 @@ internal class ChangeStreamsTest {
 
     }
 
-    // NOTE: will not work with an shared M0 cluster. Must have a local cluster with a replica set or >=M10 on Atlas.
+    // NOTE: will not work with a shared M0 cluster. Must have a local cluster with a replica set or >=M10 on Atlas.
     @Test
     fun preImageConfigurationTest() = runBlocking {
         val collectionName = "myChangeStreamCollection2"
@@ -191,7 +191,6 @@ internal class ChangeStreamsTest {
         val job = launch {
             val changeStream = collection.watch()
                 .fullDocumentBeforeChange(FullDocumentBeforeChange.REQUIRED)
-                .fullDocument(FullDocument.REQUIRED)
             changeStream.collect {
                 println(it)
                 changeEvents.add(it) // :remove:
@@ -215,7 +214,7 @@ internal class ChangeStreamsTest {
         assertEquals(2, changeEvents.size)
         assertEquals(OperationType.UPDATE, changeEvents[1].operationType)
         assertEquals("Rio de Janeiro", changeEvents[1].fullDocumentBeforeChange?.getString("city"))
-        assertEquals("Sao Paulo", changeEvents[1].fullDocument?.getString("city"))
+        assertEquals(null, changeEvents[1].fullDocument)
     }
 
     @Test
@@ -248,8 +247,9 @@ internal class ChangeStreamsTest {
 
         assertEquals(2, changeEvents.size)
         assertEquals(OperationType.UPDATE, changeEvents[1].operationType)
-        assertEquals("Sao Paulo", changeEvents[1].fullDocument.getString("city"))
+        assertEquals("Sao Paulo", changeEvents[1].fullDocument?.getString("city"))
         assertEquals("Sao Paulo",
-            changeEvents[1].updateDescription.updatedFields.getString("city").value)
+            changeEvents[1].updateDescription?.updatedFields?.getString("city")?.value)
+        assertEquals(null, changeEvents[1].fullDocumentBeforeChange)
     }
 }

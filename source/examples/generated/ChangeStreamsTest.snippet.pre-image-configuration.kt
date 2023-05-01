@@ -1,7 +1,6 @@
 val job = launch {
     val changeStream = collection.watch()
         .fullDocumentBeforeChange(FullDocumentBeforeChange.REQUIRED)
-        .fullDocument(FullDocument.REQUIRED)
     changeStream.collect {
         println(it)
     }
