@@ -23,7 +23,9 @@ async function word(movies) {
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  } 
 }
 
 async function phrase(movies) {
@@ -44,7 +46,9 @@ async function phrase(movies) {
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  } 
 }
 
 async function negation(movies) {
@@ -65,7 +69,9 @@ async function negation(movies) {
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  } 
 }
 
 async function relevance(movies) {
@@ -92,7 +98,9 @@ async function relevance(movies) {
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  } 
 }
 
 async function run() {

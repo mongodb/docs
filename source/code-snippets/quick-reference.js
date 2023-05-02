@@ -16,7 +16,9 @@ async function query(coll) {
 async function queryMany(coll) {
   console.log("find");
   const cursor = coll.find({ year: 2005 });
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  }
 }
 
 async function insertOne(coll) {
@@ -108,7 +110,9 @@ async function watchStart(coll) {
 
 async function accessCursorIterative(coll) {
   const cursor = coll.find().limit(10);
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  }
 }
 
 async function accessCursorArray(coll) {
@@ -134,17 +138,23 @@ async function skipExample(coll) {
 
 async function sortExample(coll) {
   const cursor = coll.find().limit(50).sort({ year: 1});
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  }
 }
 
 async function projectExample(coll) {
   const cursor = coll.find().project({ _id: 0, year: 1, imdb: 1 });
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  }
 }
 
 async function searchText(coll) {
   const result = coll.find({$text: { $search: 'zissou' }}).limit(30).project({title: 1});
-  await result.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  }
 }
 
 async function distinct(coll) {

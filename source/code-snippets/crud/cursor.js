@@ -6,14 +6,6 @@ const uri =
   "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 const client = new MongoClient(uri);
 
-async function forEachIteration(myColl) {
-  // start foreach cursor example
-  const cursor = myColl.find({});
-  await cursor.forEach(doc => console.log(doc));
-  // end foreach cursor example
-  console.log(await myColl.countDocuments());
-}
-
 async function asyncIteration(myColl) {
   // start async cursor example
   const cursor = myColl.find({});
@@ -81,7 +73,6 @@ async function run() {
     const database = client.db("test");
     const orders = database.collection("orders");
 
-    await forEachIteration(orders);
     await asyncIteration(orders);
     await manualIteration(orders);
     await streamAPI(orders);

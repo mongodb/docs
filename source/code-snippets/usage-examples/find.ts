@@ -37,7 +37,9 @@ async function run() {
       console.warn("No documents found!");
     }
 
-    await cursor.forEach(console.dir);
+    for await (const doc of cursor) {
+      console.dir(doc);
+    } 
   } finally {
     await client.close();
   }

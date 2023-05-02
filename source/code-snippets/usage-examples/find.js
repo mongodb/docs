@@ -27,8 +27,10 @@ async function run() {
       console.log("No documents found!");
     }
 
-    // replace console.dir with your callback to access individual elements
-    await cursor.forEach(console.dir);
+    for await (const doc of cursor) {
+      console.dir(doc);
+    }
+
   } finally {
     await client.close();
   }

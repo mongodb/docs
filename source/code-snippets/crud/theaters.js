@@ -24,7 +24,9 @@ async function proximity(theaters) {
   if ((await theaters.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  } 
 }
 
 async function range(theaters) {
@@ -55,7 +57,9 @@ async function range(theaters) {
   if ((await theaters.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
-  await cursor.forEach(console.dir);
+  for await (const doc of cursor) {
+    console.dir(doc);
+  } 
 }
 
 async function run() {
