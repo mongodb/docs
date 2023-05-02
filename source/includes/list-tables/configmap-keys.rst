@@ -71,6 +71,8 @@
 
           .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
 
+       If you provide an empty string as your ``orgId``, |k8s-op-short| 
+       creates an organization with the same name as your project.
 
      - | ``5cc9b333dd3e384a625a6615``
 
