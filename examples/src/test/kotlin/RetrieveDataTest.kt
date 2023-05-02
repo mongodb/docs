@@ -15,16 +15,15 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-// :snippet-start: retrieve-data-model
-data class PaintOrder(
-    @BsonId val id: Int,
-    val qty: Int,
-    val color: String
-)
-// :snippet-end:
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class RetrieveDataTest {
+    // :snippet-start: retrieve-data-model
+    data class PaintOrder(
+        @BsonId val id: Int,
+        val qty: Int,
+        val color: String
+    )
+    // :snippet-end:
 
     companion object {
         private val dotenv = dotenv()

@@ -11,17 +11,18 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-// :snippet-start: data-model
-data class PaintOrder(
-    @BsonId val id: Int,
-    val color: String,
-    val qty: Int
-)
-// :snippet-end:
+
 
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ChangeTest {
+    // :snippet-start: data-model
+    data class PaintOrder(
+        @BsonId val id: Int,
+        val color: String,
+        val qty: Int
+    )
+    // :snippet-end:
 
     companion object {
         val dotenv = dotenv()
