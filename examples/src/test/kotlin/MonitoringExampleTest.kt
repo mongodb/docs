@@ -1,9 +1,9 @@
-package com.mycompany.app
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.event.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
+import com.mongodb.management.JMXConnectionPoolListener
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -145,10 +145,36 @@ class MonitoringTest {
         collection.find().firstOrNull()
         // :snippet-end:
         assert(cpListener.success)
-        // TODO: see if this still holds true now that in unit tested example
-        /* We do not close this connection in order to prevent the driver from requesting two connections, giving
-        the example unintuitive output. Uncomment the following line of code and see how it effects this example*/
         mongoClient.close()
+    }
+    @Test
+    fun testJMXMonitoringConfiguration() = runBlocking {
+        val uri = URI
+        // :snippet-start: jmx
+        val connectionPoolListener = JMXConnectionPoolListener()
+        val settings = MongoClientSettings.builder()
+            .applyConnectionString(uri)
+            .applyToConnectionPoolSettings {
+                it.addConnectionPoolListener(connectionPoolListener)
+            }
+            .build()
+        val mongoClient: MongoClient = MongoClient.create(settings)
 
+        try {
+            println("Navigate to JConsole to see your connection pools...")
+            // :uncomment-start:
+            // Thread.sleep(Long.MAX_VALUE)
+            // :uncomment-end:
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        // :snippet-end:
+
+        // Verify that the JMXConnectionPoolListener is present in the MongoClientSettings
+        val connectionPoolListeners = settings.connectionPoolSettings.connectionPoolListeners
+        assert(connectionPoolListeners.contains(connectionPoolListener))
+
+        // Close the MongoClient to release resources
+        mongoClient.close()
     }
 }
