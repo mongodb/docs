@@ -14,6 +14,10 @@
      - :icon-fa5:`check`
      -
 
+   * - Serverless instances
+     - :icon-fa5:`check`
+     -
+
    * - AWS GovCloud regions
      -
      - :icon-fa5:`check`
