@@ -1,74 +1,40 @@
-- To enable internal cluster authentication, create |tls| certificates for
-  member clusters in the |multi-cluster|. 
 
-  .. tabs::
+.. note::
 
-     .. tab:: With Service Mesh
-        :tabid: with-sm
+   You must possess the |certauth| certificate and the key that you used to
+   sign your |tls| certificates.
 
-        Use one of the following options:
+.. tabs::
 
-        - Generate a wildcard |tls| certificate that covers hostnames
-          of the services that the |k8s-op-short| creates for each Pod
-          in the deployment.
+   .. tab:: With Service Mesh
+      :tabid: with-sm
 
-          If you generate wildcard certificates, you can continue using
-          the same certificates when you scale up or rebalance nodes in
-          the |k8s| member clusters, for example for :ref:`disaster recovery <disaster-recovery-ref>`.
+      .. include:: /includes/steps/add-tls-service-mesh.rst
 
-          For example, add the hostname similar to the following format
-          to the |san-dns|:
+   .. tab:: With Service Mesh (via script)
+      :tabid: via-script
 
-          .. code-block:: sh
+      To speed up creating |tls| certificates for member |k8s| clusters,
+      we offer the :github:`setup_tls script </mongodb/mongodb-enterprise-kubernetes/blob/master/tools/multicluster/setup_tls.sh>`. We don't guarantee the script's maintenance. If you choose to use the script,
+      test it and adjust it to your needs. The script does the following:
 
-             *.<namespace>.svc.cluster.local
+      - Creates the ``cert-manager`` namespace in the connected cluster and installs `cert-manager <https://cert-manager.io/docs/>`__ using |helm| in the ``cert-manager`` namespace.
 
-        - For each |k8s| service that the |k8s-op-short| generates corresponding
-          to each Pod in each member cluster, add |san-dns|\s to the certificate.
-          In your |tls| certificate, the |san-dns| for each |k8s| service must
-          use the following format:
+      - Installs a local |certauth| using `mkcert <https://github.com/FiloSottile/mkcert>`__.
 
-          .. include:: /includes/prereqs/san-format-multi-cluster.rst
+      - Downloads |tls| certificates from ``downloads.mongodb.com`` and concatenates them with the |certauth| file name and ``ca-chain``.
 
-     .. tab:: Without Service Mesh
-        :tabid: without-sm
+      - Creates a ConfigMap that includes the ``ca-chain`` files.
 
-        Use one of the following options:
+      - Creates an ``Issuer`` resource, which cert-manager uses to generate certificates.
 
-        - Generate a wildcard |tls| certificate that contains all
-          :ref:`externalDomains <multi-spec-clusterspeclist-externaldomain>`
-          that you created in the |san-dns|. For example, add the hostnames
-          similar to the following format to the |san-dns|:
+      - Creates a ``Certificate`` resource, which cert-manager uses to create a key object for the certificates.
 
-          .. code-block:: sh
-         
-             *.cluster-0.example.com, *.cluster-1.example.com
+      To use the script:
 
-          If you generate wildcard certificates, you can continue using
-          them when you scale up or rebalance nodes in the |k8s| member
-          clusters, for example for :ref:`disaster recovery <disaster-recovery-ref>`.
+      .. include:: /includes/steps/add-tls-script.rst
 
-        - Generate a |tls| certificate for each MongoDB replica set member
-          hostname in the |san-dns|. For example, add the hostnames similar
-          to the following to the |san-dns|:
+   .. tab:: Without Service Mesh
+      :tabid: without-sm
 
-          .. code-block:: sh
-    
-             my-replica-set-0-0.cluster-0.example.com,
-             my-replica-set-0-1.cluster-0.example.com, 
-             my-replica-set-1-0.cluster-1.example.com,
-             my-replica-set-1-1.cluster-1.example.com
-
-          If you generate an individual |tls| certificate that contains
-          all the specific hostnames, you must create a new certificate
-          each time you scale up or rebalance nodes in the |k8s| member
-          clusters, for example for :ref:`disaster recovery <disaster-recovery-ref>`.
-
-- Generate one TLS certificate for your project's MongoDB Agents.
-
-  .. include:: /includes/prereqs/mdbagent-reqs-multi-cluster.rst
-
-- You must possess the |certauth| certificate and the key that you used to
-  sign your |tls| certificates.
-
-.. include:: /includes/prereqs/pem-format.rst
+      .. include:: /includes/steps/add-tls-without-service-mesh.rst
