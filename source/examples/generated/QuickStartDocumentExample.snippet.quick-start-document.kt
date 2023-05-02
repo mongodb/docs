@@ -1,5 +1,3 @@
-package org.mongodb.docs.kotlin
-// :snippet-start: quick-start
 import com.mongodb.client.model.Filters.eq
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.github.cdimascio.dotenv.dotenv
@@ -8,10 +6,6 @@ import kotlinx.coroutines.runBlocking
 import org.bson.Document
 
 fun main() {
-    // :remove-start:
-    val dotenv = dotenv()
-    val CONNECTION_STRING_URI_PLACEHOLDER = dotenv["MONGODB_CONNECTION_URI"]
-    // :remove-end:
 
     // Replace the placeholder with your MongoDB deployment's connection string
     val uri = CONNECTION_STRING_URI_PLACEHOLDER
@@ -32,4 +26,3 @@ fun main() {
     mongoClient.close()
 }
 
-// :snippet-end:
