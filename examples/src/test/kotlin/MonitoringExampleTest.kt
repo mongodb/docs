@@ -57,7 +57,7 @@ class MonitoringTest {
         val database = mongoClient.getDatabase(DATABASE)
         val collection = database.getCollection<Document>(COLLECTION)
 
-        // Run some commands to test the timer
+        // Run some commands to test the counter
         collection.find().firstOrNull()
         collection.find().firstOrNull()
 
