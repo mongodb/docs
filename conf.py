@@ -122,6 +122,7 @@ rst_epilog = '\n'.join([
     '.. |global-write| replace:: Global Writes',
     '.. |hardlink| replace:: https://www.mongodb.com/docs/kubernetes-operator/',
     '.. |hashicorp-vault| replace:: `HashiCorp Vault <https://www.vaultproject.io/>`__',
+    '.. |helm| replace:: `Helm <https://helm.sh/>`__',
     '.. |https| replace:: :abbr:`HTTPS (Hypertext Transfer Protocol Secure)`',
     '.. |http| replace:: :abbr:`HTTP (Hypertext Transfer Protocol)`',
     '.. |iana| replace:: :abbr:`IANA (Internet Assigned Numbers Authority)`',
