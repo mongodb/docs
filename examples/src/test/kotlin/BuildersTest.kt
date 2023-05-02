@@ -16,18 +16,18 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-
-data class User(
-    @BsonId
-    val id: BsonObjectId = BsonObjectId(),
-    val gender: String,
-    val age: Int,
-    val email: String,
-)
-
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class BuildersTest {
+
+    // :snippet-start: user-data-class
+    data class User(
+        @BsonId
+        val id: BsonObjectId = BsonObjectId(),
+        val gender: String,
+        val age: Int,
+        val email: String,
+    )
+    // :snippet-end:
 
     companion object {
         val dotenv = dotenv()
@@ -76,7 +76,7 @@ internal class BuildersTest {
         // :snippet-start: builders
         data class Results(val email: String)
 
-        val filter = and(eq("gender", "female"), gt("age", 29))
+        val filter = and(eq(User::gender.name, "female"), gt(User::age.name, 29))
         val projection = fields(excludeId(), include("email"))
         val results = collection.find<Results>(filter).projection(projection)
         // :snippet-end:
