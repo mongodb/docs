@@ -49,6 +49,7 @@ internal class TlsTest {
     fun disableHostnameVerificationTest() = runBlocking {
         // :snippet-start: disable-hostname-verification
         val settings = MongoClientSettings.builder()
+            .applyConnectionString(ConnectionString(CONNECTION_URI_PLACEHOLDER))
             .applyToSslSettings { builder ->
                 builder.enabled(true)
                 builder.invalidHostNameAllowed(true)

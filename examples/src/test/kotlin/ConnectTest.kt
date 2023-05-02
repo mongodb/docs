@@ -1,3 +1,4 @@
+
 import com.mongodb.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.github.cdimascio.dotenv.dotenv
@@ -6,7 +7,6 @@ import org.bson.BsonInt64
 import org.bson.Document
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
@@ -16,13 +16,13 @@ import kotlin.test.*
 internal class ConnectionTest {
 
     companion object {
-        val dotenv = dotenv()
+        private val dotenv = dotenv()
         val CONNECTION_URI_PLACEHOLDER = dotenv["MONGODB_CONNECTION_URI"]
         var higherScopedClient: MongoClient? = null
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 higherScopedClient?.close()
             }
@@ -59,11 +59,10 @@ internal class ConnectionTest {
         }
         // :snippet-end:
         higherScopedClient = mongoClient
-        assertEquals("{\"ok\": 1}", higherScopedCommandResult.toJson()) // :remove:
+        assertEquals(1.0, higherScopedCommandResult["ok"])
     }
 
     @Test
-    @Disabled("Disabled because hosts do not exist")
     fun connectToMultipleHostsWithString() = runBlocking {
         // :snippet-start: connect-to-multiple-hosts-with-string
         val connectionString = ConnectionString("mongodb://host1:27017,host2:27017,host3:27017/")
@@ -72,7 +71,6 @@ internal class ConnectionTest {
     }
 
     @Test
-    @Disabled("Disabled because hosts do not exist because hosts do not exist")
     fun connectToMultipleHostsWithMongoClientSettings() = runBlocking {
         // :snippet-start: connect-to-multiple-hosts-with-mongo-client-settings
         val seed1 = ServerAddress("host1", 27017)
