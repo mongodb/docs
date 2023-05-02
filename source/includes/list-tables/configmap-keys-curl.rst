@@ -69,6 +69,9 @@
           You must have the :authrole:`Organization Project Creator`
           role to create a new project within an existing
           |com| organization.
+
+       If you provide an empty string as your ``orgId``, |k8s-op-short| 
+       creates an organization with the same name as your project.
           
      - ``5b890e0feacf0b76ff3e7183``
 
