@@ -1,8 +1,8 @@
 .. _query-syntax-ref:
 
-====================================
-Choose an Aggregation Pipeline Stage
-====================================
+================================
+Return |fts| Results or Metadata
+================================
 
 .. default-domain:: mongodb
 
@@ -16,16 +16,25 @@ Choose an Aggregation Pipeline Stage
    :depth: 2
    :class: singlecol
 
-.. important:: 
-
-   Looking for ``$searchBeta``? Use ``$search`` instead, the official 
-   aggregation stage for running search queries. 
-
 |fts| queries take the form of an :manual:`aggregation pipeline stage 
-</aggregation>`. This page describes the following pipeline stages: 
+</aggregation>`. Based on the pipeline stage that you choose, your 
+query returns either the search results of a full-text search or metadata 
+about your search results:
 
-- :pipeline:`$search`
-- :pipeline:`$searchMeta`
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+   
+   * - Aggregation Pipeline Stage
+     - Purpose
+
+   * - :pipeline:`$search`
+     - Return the search results of a full-text search.
+
+   * - :pipeline:`$searchMeta`
+     - Return metadata about your search results.
+
+.. _search-agg-pipeline:
 
 ``$search``
 -----------
@@ -153,99 +162,103 @@ but it can't be used after the :pipeline:`$lookup` or
 :pipeline:`$unionWith` stage in any pipeline. The ``$$SEARCH_META`` 
 aggregation variable can't be used in any subsequent stage after a 
 :pipeline:`$searchMeta` stage.
-   
-.. example:: 
+
+.. example::
 
    Suppose the following index on the ``sample_mflix.movies`` 
    collection.
 
-   .. code-block:: json 
+   .. code-block:: json
+     :copyable: true
 
-      {
-        "mappings": {
-          "dynamic": false,
-          "fields": {
-            "released": {
-              "type": "date"
-            }
-          }
-        }
-      }
+     {
+       "mappings": {
+         "dynamic": false,
+         "fields": {
+           "released": {
+             "type": "date"
+           }
+         }
+       }
+     }
 
    The following query searches for movies released near September 
    01, 2011 using the :pipeline:`$search` stage. The query includes 
    a:
-   
+    
    - :pipeline:`$project` stage to exclude all fields in the documents 
      except ``title`` and ``released``. 
    - :pipeline:`$facet` stage that outputs a: 
-   
+ 
      - ``docs`` field with an array of the top ``5`` search results
      - ``meta`` field with the value of ``$$SEARCH_META`` variable
 
-   .. code-block:: json
+   .. io-code-block::
+     :copyable: true
 
-      db.movies.aggregate([
-        {
-          "$search": {
-            "near": {
-              "path": "released",
-              "origin": ISODate("2011-09-01T00:00:00.000+00:00"),
-              "pivot": 7776000000
-            }
-          }
-        },
-        {
-          $project: {
-            "_id": 0,
-            "title": 1,
-            "released": 1
-          }
-        },
-        { "$limit": 5 },
-        { 
-          "$facet": {
-            "docs": [],
-            "meta": [
-              {"$replaceWith": "$$SEARCH_META"}, 
-              {"$limit": 1}
-            ] 
-          }
-        } 
-      ])
+     .. input::
+         :language: json
 
-   The query returns the following results:
+         db.movies.aggregate([
+           {
+             "$search": {
+               "near": {
+                 "path": "released",
+                 "origin": ISODate("2011-09-01T00:00:00.000+00:00"),
+                 "pivot": 7776000000
+               }
+             }
+           },
+           {
+             $project: {
+               "_id": 0,
+               "title": 1,
+               "released": 1
+             }
+           },
+           { "$limit": 5 },
+           { 
+             "$facet": {
+               "docs": [],
+               "meta": [
+                 {"$replaceWith": "$$SEARCH_META"}, 
+                 {"$limit": 1}
+               ] 
+             }
+           } 
+         ])
 
-   .. code-block:: json 
-      :copyable: false 
+     .. output::
+         :language: json
+         :visible: true
 
-      { 
-        "docs" : [ 
-          { 
-            "title" : "Submarino", 
-            "released" : ISODate("2011-09-01T00:00:00Z") 
-          }, 
-          { 
-            "title" : "Devil's Playground", 
-            "released" : ISODate("2011-09-01T00:00:00Z") 
-          }, 
-          { 
-            "title" : "Bag It", 
-            "released" : ISODate("2011-09-01T00:00:00Z") 
-          }, 
-          { 
-            "title" : "Dos", 
-            "released" : ISODate("2011-09-01T00:00:00Z") 
-          }, 
-          { 
-            "title" : "We Were Here", 
-            "released" : ISODate("2011-09-01T00:00:00Z") 
-          }
-        ], 
-        "meta" : [ 
-          { "count" : { "lowerBound" : NumberLong(17373) } } 
-        ] 
-      }
+         { 
+           "docs" : [ 
+             { 
+               "title" : "Submarino", 
+               "released" : ISODate("2011-09-01T00:00:00Z") 
+             }, 
+             { 
+               "title" : "Devil's Playground", 
+               "released" : ISODate("2011-09-01T00:00:00Z") 
+             }, 
+             { 
+               "title" : "Bag It", 
+               "released" : ISODate("2011-09-01T00:00:00Z") 
+             }, 
+             { 
+               "title" : "Dos", 
+               "released" : ISODate("2011-09-01T00:00:00Z") 
+             }, 
+             { 
+               "title" : "We Were Here", 
+               "released" : ISODate("2011-09-01T00:00:00Z") 
+             }
+           ], 
+           "meta" : [ 
+             { "count" : { "lowerBound" : NumberLong(17373) } } 
+           ] 
+         }
 
    To learn more about the ``$$SEARCH_META`` variable and its usage, 
    see: 
@@ -253,22 +266,15 @@ aggregation variable can't be used in any subsequent stage after a
    - :ref:`facet <fts-facet-aggregation-variable>`
    - :ref:`count <fts-count-aggregation-variable>`
 
+.. _searchMeta-agg-pipeline:
+
 ``$searchMeta``
 ---------------
 
-.. important:: 
+.. note:: 
 
-   The |fts| :pipeline:`$searchMeta` stage is available only on 
-   clusters running one of the following MongoDB versions: 
-
-   - MongoDB 4.4.11+
-   - MongoDB 5.0.4+
-   - MongoDB 6.0+
-
-   .. note:: 
-
-      To run :pipeline:`$searchMeta` queries over sharded collections, 
-      your cluster must run MongoDB v6.0 or later.
+   To run :pipeline:`$searchMeta` queries over sharded collections, 
+   your cluster must run MongoDB v6.0 or later.
 
 Definition
 ~~~~~~~~~~
@@ -376,6 +382,56 @@ results. |fts| supports the following result types:
      - The result to a facet query is a mapping of the defined facet 
        names to an array of buckets for that facet. To learn more, 
        see :ref:`fts-facet-results`.
+
+Example
+~~~~~~~
+
+Suppose the following index on the ``sample_mflix.movies`` 
+collection.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "year": {
+           "type": "number"
+         }
+       }
+     }
+   }
+
+The following query searches for the number of movies released in 1998
+using the :pipeline:`$searchMeta` stage.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.movies.aggregate([
+        {
+          "$searchMeta": {
+            "range": {
+              "path": "year",
+              "gte": 1998,
+              "lt": 1999
+            },
+            "count": {
+              "type": "total"
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+      
+      [ { count: { total: Long("552") } } ]
 
 Troubleshooting
 ---------------
