@@ -12,7 +12,6 @@ Fundamentals section:
 - :doc:`Monitor Driver Events </fundamentals/monitoring>`
 
 .. TODO : add back in after MVP
-
 .. - :doc:`Authenticate with MongoDB </fundamentals/auth>`
 .. - :doc:`Transform your Data </fundamentals/aggregation>`
 .. - :doc:`Sort Using Collations </fundamentals/collations>`
