@@ -19,7 +19,6 @@ dependencies {
     implementation("org.slf4j:slf4j-api:1.7.32")
     implementation("ch.qos.logback:logback-classic:1.2.6")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
-    implementation("ch.qos.logback:logback-classic:1.2.11")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
 
 }
