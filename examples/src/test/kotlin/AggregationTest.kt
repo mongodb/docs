@@ -42,7 +42,6 @@ class AggregationTest {
         @JvmStatic
         fun beforeAll() {
             runBlocking {
-                // :snippet-start: insert-data
                 val restaurants = listOf(
                     Restaurant("Sun Bakery Trattoria", Restaurant.Contact("386-555-0189", "SunBakeryTrattoria@example.org", listOf(-74.0056649, 40.7452371)), 4, listOf("Pizza", "Pasta", "Italian", "Coffee", "Sandwiches")),
                     Restaurant("Blue Bagels Grill", Restaurant.Contact("786-555-0102", "BlueBagelsGrill@example.com", listOf(-73.92506, 40.8275556)), 3, listOf("Bagels", "Cookies", "Sandwiches")),
@@ -56,7 +55,6 @@ class AggregationTest {
                     Restaurant("XYZ Steak Buffet", Restaurant.Contact("229-555-0197", "XYZSteakBuffet@example.org", listOf(-73.9799932, 40.7660886)), 3, listOf("Steak", "Salad", "Chinese"))
                 )
                 collection.insertMany(restaurants)
-                // :snippet-end:
             }
 
         }
