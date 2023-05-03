@@ -15,35 +15,74 @@ Quick Start
 Introduction
 ------------
 
-.. include:: /includes/quick-start/overview.rst
+This guide shows you how to create an application that uses the **Kotlin driver**
+to connect to a **MongoDB Atlas cluster**. If you prefer to connect to MongoDB
+using a different driver or programming language, see our
+:driver:`list of official MongoDB drivers <>`.
+
+The Kotlin driver lets you connect to and communicate with MongoDB clusters
+from a Kotlin application.
+
+MongoDB Atlas is a fully-managed cloud database service that hosts your data
+on MongoDB clusters. In this guide, we show you how to get started with your
+own free (no credit card required) cluster.
+
+Consult the following steps to connect your Kotlin application with a MongoDB Atlas
+cluster.
 
 Set up Your Project
 -------------------
 
-Install the Java Development Kit (JDK)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Install Kotlin
+~~~~~~~~~~~~~~
 
-.. include:: /includes/quick-start/install-jdk.rst
+Make sure that your system has Kotlin installed running on JDK 1.8 or later.
+For more information on getting started with Kotlin/JVM development,
+refer to `Get started with Kotlin/JVM <{+kotlin-docs+}/jvm-get-started.html>`__
+in the Kotlin language documentation.
 
 Create the Project
 ~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/quick-start/create-project.rst
+This guide shows you how to add the MongoDB Kotlin driver dependencies using
+Gradle or Maven. We recommend that you use an integrated development
+environment (IDE) such as Intellij IDEA or Eclipse IDE to make it more convenient
+to configure Gradle or Maven to build and run your project.
+
+If you are not using an IDE, see
+`Creating New Gradle Builds <https://guides.gradle.org/creating-new-gradle-builds/>`_
+or  `Building Maven <https://maven.apache.org/guides/development/guide-building-maven.html>`_
+for more information on how to set up your project.
 
 .. _add-mongodb-dependency:
 
 Add MongoDB as a Dependency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+If you are using `Gradle <https://gradle.org/>`__, add the following to your
+``build.gradle.kts`` dependencies list:
+
+.. code-block:: kotlin
+   :caption: build.gradle.kts
+
+   dependencies {
+       implementation("org.mongodb:mongodb-driver-kotlin-coroutine:{+full-version+}")
+       implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:+")
+   }
+
 If you are using `Maven <https://maven.apache.org/>`__, add the following to
 your ``pom.xml`` dependencies list:
 
-.. include:: /includes/quick-start/maven-versioned.rst
+.. code-block:: xml
+   :caption: pom.xml
 
-If you are using `Gradle <https://gradle.org/>`__, add the following to your
-``build.gradle`` dependencies list:
-
-.. include:: /includes/quick-start/gradle-versioned.rst
+   <dependencies>
+       <dependency>
+           <groupId>org.mongodb</groupId>
+           <artifactId>mongodb-driver-kotlin-coroutine</artifactId>
+           <version>{+full-version+}</version>
+       </dependency>
+   </dependencies>
 
 Once you configure your dependencies, ensure they are available to your
 project which may require running your dependency manager and refreshing
@@ -52,71 +91,152 @@ the project in your IDE.
 Create a MongoDB Cluster
 ------------------------
 
-.. include:: /includes/quick-start/atlas-setup.rst
+After setting up your Kotlin project dependencies, create a MongoDB cluster
+where you can store and manage your data. Complete the
+:atlas:`Get Started with Atlas </getting-started?jmp=docs_driver_kotlin>` guide
+to set up a new Atlas account, create and launch a free tier MongoDB cluster,
+load datasets, and interact with the data.
 
+After completing the steps in the Atlas guide, you should have a new MongoDB
+cluster deployed in Atlas, a new database user, and sample datasets loaded
+into your cluster.
+
+Connect to your Cluster
+-----------------------
+
+In this step, we create and run an application that uses the MongoDB Kotlin
+driver to connect to your MongoDB cluster and run a query on the sample data.
+
+We pass instructions to the driver on how to connect to your
+MongoDB cluster in a string called the *connection string*. This string
+includes information on the hostname or IP address and port of your
+cluster, authentication mechanism, user credentials when applicable, and
+other connection options.
+
+If you are connecting to an instance or cluster that is not hosted by Atlas,
+see :ref:`Other Ways to Connect to MongoDB <kotlin-other-ways-to-connect>` for
+instructions on how to format your connection string.
+
+To retrieve your connection string for the cluster and user you created in
+the previous step, log into your Atlas account and navigate to the
+:guilabel:`Database` section and click the :guilabel:`Connect` button for the cluster that you
+want to connect to as shown below.
+
+.. figure:: /includes/figures/atlas_connection_select_cluster.png
+   :alt: Atlas Connection GUI cluster selection screen
+
+.. TODO:(DOCSP-29148) will have to update the image and description of UI for kotlin
+
+Proceed to the :guilabel:`Connect Your Application` step and select the Java driver.
+Select "4.9 or Later" for the version.
+Click the :guilabel:`Copy` icon to copy the *connection string* to your clipboard as
+shown below.
+
+.. figure:: /includes/figures/atlas_connection_copy_string_java.png
+   :alt: Atlas Connection GUI connection string screen
+
+Save your Atlas connection string in a safe location that you can access
+for the next step.
 
 Query Your MongoDB Cluster from Your Application
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Next, create a file to contain your application called ``QuickStart.java``
+Next, create a file ``QuickStartDataClassExample.kt``. Use the following sample
+code to run a query on your sample dataset in MongoDB Atlas, replacing the
+value of the ``uri`` variable with your MongoDB Atlas connection string.
+The example uses a Kotlin data class to model MongoDB data.
+
+Ensure you replace the "<password>" section of the connection string with
+the password you created for your user that has **atlasAdmin** permissions.
+
+.. literalinclude:: /examples/generated/QuickStartDataClassExample.snippet.quick-start-data-class.kt
+   :language: kotlin
+   :caption: QuickStartDataClassExample.kt
+
+When you run the ``main`` function, it should output the details
+of the movie from the sample dataset which should look something like this:
+
+.. code-block:: none
+   :copyable: false
+
+   Movie(
+      title=Back to the Future,
+      year=1985,
+      cast=[Michael J. Fox, Christopher Lloyd, Lea Thompson, Crispin Glover]
+   )
+
+.. TODO:(DOCSP-29224): add back in when document data format data classes are documented
+.. To learn more about using data classes to store and retrieve data, refer to
+.. :ref:`Document Data Format: Data Classes <fundamentals-data-classes>`.
+
+If you receive no output or an error, check whether you included the proper
+connection string in your Kotlin class, and whether you loaded the sample dataset
+into your MongoDB Atlas cluster.
+
+.. important:: Known connection issue when using TLS v1.3
+
+   If you encounter an error connecting to your MongoDB instance or cluster
+   that resembles the following while running your application, you may need
+   to update your JDK to the latest patch release:
+
+   .. code-block:: none
+      :copyable: false
+
+      javax.net.ssl.SSLHandshakeException: extension (5) should not be presented in certificate_request
+
+   This exception is a known issue when using the TLS 1.3 protocol with
+   specific versions of JDK, but was fixed for the following releases:
+
+   - JDK 11.0.7
+   - JDK 13.0.3
+   - JDK 14.0.2
+
+   To resolve this error, update your JDK to one of the preceding patch
+   versions or a newer one.
+
+After completing this step, you should have a working application that uses
+the Kotlin driver to connect to your MongoDB cluster, run a query on the
+sample data, and print out the result.
+
+Working with the Document Class (Alternative)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the previous section, you ran a query on a sample collection to retrieve
+data with a data class. In this section, you can learn to
+use a `Document <{+api+}/apidocs/bson/org/bson/Document.html>`__ class
+to store and retrieve data from MongoDB.
+
+Next, create a new file to contain your application called ``QuickStartDocumentExample.kt``
 in the base package directory of your project. Use the following sample
 code to run a query on your sample dataset in MongoDB Atlas, replacing the
 value of the ``uri`` variable with your MongoDB Atlas connection string.
 
-.. literalinclude:: /includes/quick-start/code-snippets/QuickStart.java
-   :start-after: begin QuickStart
-   :end-before: end QuickStart
-   :language: java
-   :dedent:
+.. literalinclude:: /examples/generated/QuickStartDocumentExample.snippet.quick-start-document.kt
+   :caption: QuickStartDocumentExample.kt
+   :language: kotlin
 
-.. include:: /includes/quick-start/query-output.rst
+When you run the ``main`` function, it should output the details
+of the movie from the sample dataset which will look something like this:
 
-.. include:: /includes/quick-start/jdk-tls-issue.rst
+.. code-block:: json
+   :copyable: false
 
-After completing this step, you should have a working application that uses
-the Java driver to connect to your MongoDB cluster, run a query on the
-sample data, and print out the result.
+   {
+     _id: ...,
+     plot: 'A young man is accidentally sent 30 years into the past...',
+     genres: [ 'Adventure', 'Comedy', 'Sci-Fi' ],
+     ...
+     title: 'Back to the Future',
+     ...
+   }
 
-Working with POJOs (Optional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you receive no output or an error, check whether you included the proper
+connection string in your Kotlin class, and whether you loaded the sample dataset
+into your MongoDB Atlas cluster.
 
-In the previous section, you ran a query on a sample collection to retrieve
-data in the map-like class ``Document``. In this section, you can learn to
-use your own Plain Old Java Object (POJO) to store and retrieve data from
-MongoDB.
-
-Create a file called ``Movie.java`` in the base package directory of your
-project and add the following code for a class that includes the following
-fields, setters, and getters:
-
-.. literalinclude:: /includes/quick-start/code-snippets/Movie.java
-   :start-after: begin moviePojo
-   :end-before: end moviePojo
-   :language: java
-   :dedent:
-
-Create a new file ``QuickStartPojoExample.java`` in the same package
-directory as your ``Movie`` file in your project. Use the following sample
-code to run a query on your sample dataset in MongoDB Atlas, replacing the
-value of the ``uri`` variable with your MongoDB Atlas connection string.
-Ensure you replace the "<password>" section of the connection string with
-the password you created for your user that has **atlasAdmin** permissions:
-
-.. literalinclude:: /includes/quick-start/code-snippets/QuickStartPojoExample.java
-   :start-after: begin PojoQuickstart
-   :end-before: end PojoQuickstart
-   :language: java
-   :dedent:
-
-.. include:: /includes/quick-start/pojo-query-output.rst
-
-See the following links for more information on using POJOs to store and
-retrieve data:
-
-- :doc:`Guide on using POJOs to store and retrieve data</fundamentals/data-formats/document-data-format-pojo>`
-- :doc:`Guide on custom serialization of POJOs </fundamentals/data-formats/pojo-customization>`
-
-Next steps
+Next Steps
 ----------
 
-.. include:: /includes/quick-start/next-steps.rst
+Learn how to read and modify data using the Kotlin driver in the :ref:`Fundamentals
+CRUD guide <kotlin-crud-operations>`.
+
