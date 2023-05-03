@@ -70,10 +70,11 @@ class MonitoringTest {
     fun monitorClusterEventTest() = runBlocking {
         // :snippet-start: cluster-listener-impl
         class IsWriteable : ClusterListener {
+            // TODO: make publically gettable but not settable
             private var isWritable = false
 
             // :remove-start:
-            val isWritableServer: Boolean
+            val isWritableCluster: Boolean
                 get() = isWritable
             // :remove-end:
 
@@ -82,12 +83,12 @@ class MonitoringTest {
                 if (!isWritable) {
                     if (event.newDescription.hasWritableServer()) {
                         isWritable = true
-                        println("Able to write to server")
+                        println("Able to write to cluster")
                     }
                 } else {
                     if (!event.newDescription.hasWritableServer()) {
                         isWritable = false
-                        println("Unable to write to server")
+                        println("Unable to write to cluster")
                     }
                 }
             }
@@ -108,7 +109,7 @@ class MonitoringTest {
         // Run a command to trigger a ClusterDescriptionChangedEvent event
         collection.find().firstOrNull()
         // :snippet-end: monitor-cluster-example
-        assertEquals(true, clusterListener.isWritableServer)
+        assertEquals(true, clusterListener.isWritableCluster)
         mongoClient.close()
     }
 

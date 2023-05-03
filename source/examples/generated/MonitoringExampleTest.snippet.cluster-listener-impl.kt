@@ -1,4 +1,5 @@
 class IsWriteable : ClusterListener {
+    // TODO: make publically gettable but not settable
     private var isWritable = false
 
 
@@ -7,12 +8,12 @@ class IsWriteable : ClusterListener {
         if (!isWritable) {
             if (event.newDescription.hasWritableServer()) {
                 isWritable = true
-                println("Able to write to server")
+                println("Able to write to cluster")
             }
         } else {
             if (!event.newDescription.hasWritableServer()) {
                 isWritable = false
-                println("Unable to write to server")
+                println("Unable to write to cluster")
             }
         }
     }
