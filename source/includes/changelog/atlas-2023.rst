@@ -1,3 +1,33 @@
+.. _atlas_2023_04_12:
+
+12 April 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the default MongoDB version for all new |service| 
+  {+clusters+} to MongoDB 6.0.
+  
+  - Automatically upgrades all free tier 
+    (``M0``) and shared tier (``M2`` and ``M5``) {+clusters+} to 
+    MongoDB 6.0.
+
+- Supports enabling a :ref:`{+bcp+} <backup-compliance-policy>` to 
+  protect your backup data.
+
+- Improves the :ref:`IP Access List <atlas-ui-ip-access-list>` for the 
+  {+atlas-ui+} so that you can use the same IP access list to restrict 
+  API access to |service|, and access to the {+atlas-ui+}.
+
+- Supports user-defined metrics labels from |service| to :ref:`Datadog 
+  <datadog-integration>`.
+
+.. _atlas-2023_03__22:
+
+22 March 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports the ability to use the |service| Live Migration Service for 
+  MongoDB 6.0 replica set migrations.
+
 .. _atlas_2023_02_15:
 
 15 February 2023 Release
