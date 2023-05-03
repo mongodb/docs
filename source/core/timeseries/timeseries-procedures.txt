@@ -15,47 +15,116 @@ Create and Query a Time Series Collection
 This page shows how to create and query a time series collection with
 code examples.
 
+.. important:: Feature Compatibility Version Requirement
+
+   You can only create time series collections on a system with
+   :ref:`featureCompatibilityVersion <view-fcv>` set to 5.0 or greater.
+
 .. _manual-timeseries-collection-create:
 
 Create a Time Series Collection
 -------------------------------
 
-Before you can insert data into a time series collection, you must
-explicitly create the collection using either the
-:method:`db.createCollection()` method or the :dbcommand:`create`
-command:
+#. Explicitly create the collection using either the
+   :method:`db.createCollection()` method or the :dbcommand:`create`
+   command. For example:
 
-.. code-block:: javascript
+   .. code-block:: javascript
 
-   db.createCollection(
-       "weather",
-       {
-          timeseries: {
-             timeField: "timestamp",
-             metaField: "metadata",
-             granularity: "hours"
+      db.createCollection(
+          "weather",
+          {
+             timeseries: {
+                timeField: "timestamp",
+                metaField: "metadata"
+             }
           }
-       }
-   )
+      )
 
-.. note:: Feature Compatibility Version
+#. Set the ``timeField`` to specify which field contains time data:
 
-   You can only create time series collections on a system with
-   :ref:`featureCompatibilityVersion <view-fcv>` set to 5.0 or greater.
+   .. code-block:: javascript
+      ...
+             timeseries: {
+                timeField: "timestamp",
+             }
+      ...
+
+#. Set the ``metaField`` to identify which field contains metadata:
+
+   .. code-block:: javascript
+      ...
+             timeseries: {
+                timeField: "timestamp",
+                metaField: "metadata"
+             }
+      ...
+
+#. Define the time interval for each bucket of data using one of the 
+   two approaches below. For more detailed information, see
+   :ref:`timeseries-granularity`.
+   
+   .. important:: Changing Time Series Granularity
+
+      After creation, you can modify granularity or bucket definitions
+      using the :method:`collMod()` method. However, you can only
+      increase the timespan covered by each bucket. You cannot decrease
+      it.
+      
+   a. Define a ``granularity`` field:
+   
+   .. code-block:: javascript
+      ...
+             timeseries: {
+                timeField: "timestamp",
+                metaField: "metadata",
+                granularity: "seconds"
+             }
+      ...
+
+   **OR**
+
+   b. Define ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds``
+      fields. Both values must be the same:
+
+   .. code-block:: javascript
+      ...
+             timeseries: {
+                timeField: "timestamp",
+                metaField: "metadata",
+                bucketMaxSpanSeconds: "300",
+                bucketRoundingSeconds: "300"
+             }
+      ...
+
+#. Optionally, set ``expireAfterSeconds`` to expire documents when the
+   value of the ``timeField`` is at least that old:
+
+   .. code-block:: javascript
+      ...
+             timeseries: {
+                timeField: "timestamp",
+                metaField: "metadata",
+                granularity: "seconds",
+                expireAfterSeconds: "86400"
+             }
+      ...
 
 .. _time-series-fields:
 
-``timeseries`` Object Fields
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``timeseries`` Field Reference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When creating a time series collection, set the following fields:
+A time series collection includes the following fields:
 
 .. list-table::
   :header-rows: 1
   :widths: 40 20 60
 
   * - Field
+
     - Type
+
     - Description
 
   * - ``timeseries.timeField``
@@ -67,26 +136,47 @@ When creating a time series collection, set the following fields:
     - .. include:: /includes/time-series/fact-meta-field-description.rst
 
   * - ``timeseries.granularity``
-    - string
-    - .. include:: /includes/time-series/fact-granularity-description.rst
+    - integer
+    - Optional. Do not use if setting ``bucketRoundingSeconds`` and 
+      ``bucketMaxSpanSeconds``. Possible values are ``seconds`` (default), ``minutes``, and ``hours``.
+     
+      Set ``granularity`` to the value that most closely matches 
+      the time between consecutive incoming timestamps. This
+      improves performance by optimizing how MongoDB internally
+      stores data in the collection.
+
+      For more information on granularity and bucket intervals, see 
+      :ref:`timeseries-granularity`.
 
   * - ``timeseries.bucketMaxSpanSeconds``
-    - number
-    - .. include:: /includes/time-series/fact-bucket-max-span-description.rst
+    - integer
+    - Optional. Use with ``bucketRoundingSeconds`` as an alternative
+      to ``granularity``. Sets the maximum time between timestamps
+      in the same bucket. Possible values are 1-31536000.
+
+      .. versionadded:: 6.3
+
 
   * - ``timeseries.bucketRoundingSeconds``
-    - number
-    - .. include:: /includes/time-series/fact-bucket-rounding-description.rst
-      
+    - integer
+    - Optional. Use with ``bucketMaxSpanSeconds`` as an alternative
+      to ``granularity``. Must be equal to ``bucketMaxSpanSeconds``.
+
+      When a document requires a new bucket, MongoDB rounds down the
+      document's timestamp value by this interval to set the minimum
+      time for the bucket.
+       
+      .. versionadded:: 6.3
+
   * - ``expireAfterSeconds``
-    - number
+    - integer
     - Optional. Enable the automatic deletion of documents in a
       :term:`time series collection` by specifying the number of seconds
       after which documents expire. MongoDB deletes expired documents
       automatically. See :ref:`manual-timeseries-automatic-removal` for
       more information.
 
-Other options allowed with the ``timeseries`` option are:
+Other allowed options that are not specific to time series collections are:
 
 - ``storageEngine``
 - ``indexOptionDefaults``

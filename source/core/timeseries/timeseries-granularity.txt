@@ -17,9 +17,15 @@ Set Granularity for Time Series Data
    :keywords: Time series, granularity, IOT
 
 When you create a :ref:`time series collection 
-<manual-timeseries-collection>`, MongoDB automatically creates a ``system.buckets`` 
-:ref:`system collection <metadata-system-collections>` based on the ``granularity`` value you specify, and groups 
-documents into those buckets.
+<manual-timeseries-collection>`, MongoDB automatically creates a
+``system.buckets`` :ref:`system collection
+<metadata-system-collections>` and groups incoming time series data 
+into buckets. By setting granularity, you control how 
+frequently data is bucketed based on the ingestion rate of your data.
+
+Starting in MongoDB 6.3, you can use the custom bucketing parameters
+``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds`` to specify bucket
+boundaries and more accurately control how time series data is bucketed.
 
 .. note::
 
@@ -28,75 +34,10 @@ documents into those buckets.
    created. See :ref:`MongoDB 5.0 known issues
    <5.0-known-issue-granularity>`.
 
-When you create a :ref:`time series collection
-<manual-timeseries-collection>`, you can specify the
-``granularity`` parameter. The ``granularity`` determines how data 
-in the time series collection is stored internally. For details about 
-how MongoDB stores time series data, see :ref:`flexible-bucketing`.
- 
-By default, ``granularity`` is set to ``"seconds"``. To optimize  
-data storage, set the ``granularity`` to a value that is closest 
-to the ingestion rate for your data source as specified by
-the ``metaField`` field. The ingestion rate is the time span between 
-consecutive incoming measurements that have the same unique value for 
-the ``metaField``.
+Retrieve the Current bucketing parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider the following example:
-
-.. code-block:: javascript
-
-   db.createCollection(
-       "weather24h",
-       {
-          timeseries: {
-             timeField: "timestamp",
-             metaField: "metadata",
-             granularity: "minutes"
-          },
-          expireAfterSeconds: 86400
-       }
-   )
-
-If your ``metaField`` data identifies weather sensors and
-you ingest data from each individual sensor once every 5 minutes, you
-should choose ``"minutes"``. Even if you have thousands of sensors and
-the data coming in from different sensors is only seconds apart, the
-``granularity`` should still be based on the ingestion rate for one
-sensor that is uniquely identified by its metadata. 
-
-In the following table, you can see the max time span of data that is
-stored together for each ``granularity`` value:
-
-.. list-table::
-  :header-rows: 1
-  :widths: 40 60
-
-  * - ``granularity``
-
-    - Covered Time Span
-
-  * - ``"seconds"`` (default)
-
-    - one hour
-
-  * - ``"minutes"``
-
-    - 24 hours
-
-  * - ``"hours"``
-
-    - 30 days
-
-
-.. seealso::
-
-   :ref:`Timing of Automatic Removal
-   <timeseries-collection-delete-operations-timing>`
-
-Retrieve the ``granularity`` of a Time Series Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To retrieve the current value of ``granularity``, use the
+To retrieve current collection values, use the
 :dbcommand:`listCollections` command:
 
 .. code-block:: javascript
@@ -104,7 +45,8 @@ To retrieve the current value of ``granularity``, use the
    db.runCommand( { listCollections: 1 } )
 
 The result document contains a document for the time series collection
-which contains the ``options.timeseries.granularity`` field.
+which contains ``options.timeseries.granularity``,
+``options.timeseries.bucketMaxSpanSeconds``, and ``options.timeseries.bucketRoundingSeconds`` fields, if present.
 
 .. code-block:: javascript
   :copyable: false
@@ -123,7 +65,8 @@ which contains the ``options.timeseries.granularity`` field.
                     timeField: <string>,
                     metaField: <string>,
                     granularity: <string>,
-                    bucketMaxSpanSeconds: <number>
+                    bucketMaxSpanSeconds: <number>,
+                    bucketRoundingSeconds: <number>
                  }
               },
               ...
@@ -133,11 +76,9 @@ which contains the ``options.timeseries.granularity`` field.
       }
    }
 
-Change the ``granularity`` of a Time Series Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using the "granularity" Field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Using a Single ``granularity`` Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following table shows the maximum time interval included in one 
 bucket of data when using a given ``granularity`` value:
@@ -152,47 +93,48 @@ minutes, set ``granularity`` to ``"minutes"``.
 
 .. code-block:: javascript
 
-   db.runCommand({
-      collMod: "weather24h",
-      timeseries: { granularity: "hours" }
-   })
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "metadata",
+             granularity: "minutes"
+          },
+          expireAfterSeconds: 86400
+       }
+   )
 
-Once set, you cannot decrease granularity. For example, if granularity
-is set to ``minutes``, you can increase it to ``hours``, but you cannot
-decrease it to ``seconds``.
+Setting the ``granularity`` to ``hours`` groups up to a month's 
+worth of data ingest events into a single bucket, resulting in longer 
+traversal times and slower queries. Setting it to ``seconds`` 
+leads to multiple buckets per polling interval, many of which 
+might contain only a single document.
 
-.. note::
+.. seealso::
 
-   You cannot modify the ``granularity`` of a sharded time series
-   collection.
+   :ref:`Timing of Automatic Removal
+   <timeseries-collection-delete-operations-timing>`
 
 .. _flexible-bucketing:
 
-Flexible Bucketing
-~~~~~~~~~~~~~~~~~~
+Using Custom Bucketing Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDB groups incoming time series data into buckets. By setting the 
-``granularity`` parameter, you control how frequently data is bucketed 
-based on the ingestion rate of your data.
+Instead of ``granularity``, you can set bucket boundaries manually using
+the two custom bucketing parameters. Set both parameters to the
+same value, and do not set ``granularity``:
 
-Starting in MongoDB 6.3, you can specify the bucket boundaries to 
-more accurately control how time series data is bucketed. Use the 
-following parameters:
+  - ``bucketMaxSpanSeconds``, sets the maximum time between timestamps
+    in the same bucket. Possible values are 1-31536000.
+  - ``bucketRoundingSeconds``, the time interval that determines the 
+    starting timestamp for a new bucket. When a document requires a new
+    bucket, MongoDB rounds down the document's timestamp value by this
+    interval to set the minimum time for the bucket.
 
-- ``bucketMaxSpanSeconds``, the maximum time span between measurements
-  in a bucket.
-- ``bucketRoundingSeconds``, the time interval that determines the 
-  starting timestamp for a new bucket.
-
-.. note::
-
-   If you want to specify the bucket boundaries:
-
-   - You must set both ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds``.
-   - Both parameters must have the same value.
-   - You can't additionally set the ``granularity`` parameter.
-
-Consider the following time series collection:
+For the weather station example with 5 minute sensor intervals, you
+could fine tune bucketing by setting the custom bucketing parameters to
+300 seconds, instead of using a ``granularity`` of ``"minutes"``:
 
 .. code-block:: javascript
       
@@ -202,20 +144,47 @@ Consider the following time series collection:
          timeseries: {
             timeField: "timestamp",
             metaField: "metadata",
-            bucketMaxSpanSeconds: 60,
-            bucketRoundingSeconds: 60
+            bucketMaxSpanSeconds: 300,
+            bucketRoundingSeconds: 300
          }
       }   
    )
 
-Each bucket has a maximum time span of 60 seconds. When MongoDB opens a 
-new bucket, the starting timestamp is rounded down to the nearest 60-second 
-interval.
+If a document with a time of ``2023-03-27T18:24:35Z`` does not fit an
+existing bucket, MongoDB creates a new bucket with a minimum time of
+``2023-03-27T18:20:00Z`` and a maximum time of ``2023-03-27T18:24:59Z``.
 
-For example, if you insert a new measurement into the collection with a
-timestamp of ``11:59:59``, the measurement is added to the bucket 
-with boundaries between ``11:59:00`` and ``12:00:00`` (non-inclusive).
-If the bucket doesn't exist, the starting timestamp of the new bucket 
-is determined by rounding ``11:59:59`` down to ``11:59:00``.
+Change Time Series Granularity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For more information on time series parameters, see :ref:`time-series-fields`.
+You can increase ``timeseries.granularity`` from a shorter unit of time
+to a longer one using a :dbcommand:`collMod` command.
+
+.. note::
+
+   To modify the granularity of a **sharded** time series collection,
+   you must be running MongoDB 6.0 or later.
+
+.. code-block:: javascript
+
+   db.runCommand({
+      collMod: "weather24h",
+      timeseries: { granularity: "seconds" || "minutes" || "hours" }
+   })
+
+If you are using the custom bucketing parameters
+``bucketRoundingSeconds`` and ``bucketMaxSpanSeconds`` instead of
+``granularity``, include both custom parameters in the ``collMod``
+command and set them to the same value:
+
+.. code-block:: javascript
+
+   db.runCommand({
+      collMod: "weather24h",
+      timeseries: { 
+         bucketRoundingSeconds: "86400",
+         bucketMaxSpanSeconds: "86400" 
+      }
+   })
+
+You cannot decrease the granularity interval or the custom bucketing values.
