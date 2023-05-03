@@ -50,10 +50,9 @@ Aggregation operations have some :manual:`limitations </core/aggregation-pipelin
 - Returned documents must not violate the :manual:`BSON document size limit </reference/limits/#mongodb-limit-BSON-Document-Size>`
   of 16 megabytes.
 
-TODO: kotlinize
-
-- Pipeline stages have a memory limit of 100 megabytes by default. If required, you may exceed this limit by using
-  the `allowDiskUse <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/AggregateIterable.html#allowDiskUse(java.lang.Boolean)>`__
+- Pipeline stages have a memory limit of 100 megabytes by default. If required,
+  you may exceed this limit by using the
+  `allowDiskUse <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-aggregate-flow/allow-disk-use.html>`__
   method.
 
   .. important:: ``$graphLookup`` exception
@@ -76,11 +75,13 @@ Example Data
 
 The examples on this page are modeled by the following ``Restaurant`` data class:
 
-TODO: add Restaurant data class
+.. literalinclude:: /examples/generated/AggregationTest.snippet.aggregation-data-classes.kt
+   :language: kotlin
 
 The examples use the following data:
 
-TODO: add sample data
+.. literalinclude:: /examples/generated/AggregationTest.snippet.insert-data.kt
+   :language: kotlin
 
 Basic Aggregation
 -----------------
@@ -88,10 +89,8 @@ Basic Aggregation
 To perform an aggregation, pass a list of aggregation stages to the
 ``MongoCollection.aggregate()`` method.
 
-TODO: kotlinize
-
-The Java driver provides the
-`Aggregates <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html>`__
+The Kotlin driver provides the
+`Aggregates <{+api-kotlin+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html>`__
 helper class that contains builders for aggregation stages.
 
 In the following example, the aggregation pipeline:
@@ -108,33 +107,27 @@ In the following example, the aggregation pipeline:
 
 ..    You can build the expressions used in this example using the :ref:`aggregation builders <aggregates-builders>`.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/AggTour.java
-   :language: java
-   :dedent:
-   :start-after: begin aggregation one
-   :end-before: end aggregation one
+.. io-code-block::
 
-The preceding aggregation should produce the following results:
+   .. input:: /examples/generated/AggregationTest.snippet.basic-aggregation.kt
+      :language: kotlin
 
-.. code-block:: none
-   :copyable: false
+   .. output::
 
-   {"_id": 4, "count": 2}
-   {"_id": 5, "count": 1}
+      Results(id=4, count=2)
+      Results(id=5, count=1)
 
 For more information about the methods and classes mentioned in this section,
 see the following API Documentation:
 
-TODO: kotlinize
-
-- `MongoCollection.aggregate() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#aggregate(java.util.List)>`__
+- `MongoCollection.aggregate() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/aggregate.html>`__
 - `Aggregates.match <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Aggregates.html#match(org.bson.conversions.Bson)>`__
 
 Explain Aggregation
 -------------------
 
 To view information about how MongoDB executes your operation, use the
-``explain()`` method of the ``AggregateIterable`` class. The ``explain()``
+``explain()`` method of the ``AggregateFlow`` class. The ``explain()``
 method returns **execution plans** and performance statistics. An execution
 plan is a potential way MongoDB can complete an operation.
 The ``explain()`` method provides both the winning plan (the plan MongoDB
@@ -145,37 +138,33 @@ executed) and rejected plans.
 In the following example, we print the JSON representation of the
 winning plans for aggregation stages that produce execution plans:
 
-TODO: kotlinize
+.. io-code-block::
 
-.. literalinclude:: /includes/fundamentals/code-snippets/AggTour.java
-   :language: java
-   :dedent:
-   :start-after: begin aggregation three
-   :end-before: end aggregation three
+   .. input:: /examples/generated/AggregationTest.snippet.explain-aggregation.kt
+      :language: kotlin
 
-The preceding code snippet should produce the following output:
+   .. output::
+      :language: javascript
 
-.. code-block:: none
-   :copyable: false
-
-   { "stage": "PROJECTION_SIMPLE",
-     "transformBy": {"stars": 1, "_id": 0},
-     "inputStage": {
-      "stage": "COLLSCAN",
-      "filter": {
-         "categories": {"$eq":"bakery"}},
-     "direction": "forward"}}
+      {
+         "explainVersion": "2",
+         "queryPlanner": {
+            // ...
+         },
+         "command": {
+            // ...
+         },
+         // ...
+      }
 
 For more information about the topics mentioned in this section, see the
 following resources:
 
-TODO: kotlinize
-
 - :manual:`Explain Output </reference/explain-results/>` Server Manual Entry
 - :manual:`Query Plans </core/query-plans/>` Server Manual Entry
 - `ExplainVerbosity <{+api+}/apidocs/mongodb-driver-core/com/mongodb/ExplainVerbosity>`__ API Documentation
-- `explain() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/FindIterable.html#explain()>`__ API Documentation
-- `AggregateIterable <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/AggregateIterable.html>`__ API Documentation
+- `explain() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-aggregate-flow/explain.html>`__ API Documentation
+- `AggregateFlow <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-aggregate-flow/index.html>`__ API Documentation
 
 Aggregation Expressions
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -192,48 +181,32 @@ compatible document format.
    The ``$`` in front of "categories" tells MongoDB that this is a :manual:`field path </meta/aggregation-quick-reference/#expressions>`,
    using the "categories" field from the input document.
 
-   TODO: kotlinize
-
-   .. code-block:: kotlin
-      :copyable: false
-
-      Document("$arrayElemAt", Arrays.asList("$categories", 0))
-
-   TODO: kotlinize
-
-   .. code-block:: kotlin
-      :copyable: false
-
-      Document.parse("{ $arrayElemAt: ['$categories', 0] }")
+   .. literalinclude:: /examples/generated/AggregationTest.snippet.build-documents-tip.kt
+      :language: kotlin
 
 In the following example, the aggregation pipeline uses a
 ``$project`` stage and various ``Projections`` to return the ``name``
 field and the calculated field ``firstCategory`` whose value is the
 first element in the ``categories`` field.
 
-TODO: kotlinize
+.. io-code-block::
 
-.. literalinclude:: /includes/fundamentals/code-snippets/AggTour.java
-   :language: java
-   :dedent:
-   :start-after: begin aggregation two
-   :end-before: end aggregation two
+   .. input:: /examples/generated/AggregationTest.snippet.aggregation-expressions.kt
+      :language: kotlin
 
-The preceding aggregation should produce the following results:
+   .. output::
+      :language: console
 
-.. code-block:: none
-   :copyable: false
-
-   {"name": "456 Cookies Shop", "firstCategory": "Bakery"}
-   {"name": "Sun Bakery Trattoria", "firstCategory": "Pizza"}
-   {"name": "456 Steak Restaurant", "firstCategory": "Steak"}
-   {"name": "Blue Bagels Grill", "firstCategory": "Bagels"}
-   {"name": "XYZ Steak Buffet", "firstCategory": "Steak"}
-   {"name": "Hot Bakery Cafe", "firstCategory": "Bakery"}
-   {"name": "Green Feast Pizzeria", "firstCategory": "Pizza"}
-   {"name": "ZZZ Pasta Buffet", "firstCategory": "Pasta"}
-   {"name": "XYZ Coffee Bar", "firstCategory": "Coffee"}
-   {"name": "XYZ Bagels Restaurant", "firstCategory": "Bagels"}
+      Results(name=Sun Bakery Trattoria, firstCategory=Pizza)
+      Results(name=Blue Bagels Grill, firstCategory=Bagels)
+      Results(name=XYZ Bagels Restaurant, firstCategory=Bagels)
+      Results(name=Hot Bakery Cafe, firstCategory=Bakery)
+      Results(name=Green Feast Pizzeria, firstCategory=Pizza)
+      Results(name=ZZZ Pasta Buffet, firstCategory=Pasta)
+      Results(name=XYZ Coffee Bar, firstCategory=Coffee)
+      Results(name=456 Steak Restaurant, firstCategory=Steak)
+      Results(name=456 Cookies Shop, firstCategory=Bakery)
+      Results(name=XYZ Steak Buffet, firstCategory=Steak)
 
 For more information about the methods and classes mentioned in this section,
 see the following API Documentation:
