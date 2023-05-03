@@ -3,7 +3,6 @@
 import com.mongodb.MongoBulkWriteException
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.github.cdimascio.dotenv.dotenv
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
@@ -13,16 +12,16 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-// :snippet-start: data-model
-data class PaintOrder(
-    @BsonId val id: ObjectId? = null,
-    val qty: Int,
-    val color: String
-)
-// :snippet-end:
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class InsertTest {
+
+    // :snippet-start: data-model
+    data class PaintOrder(
+        @BsonId val id: ObjectId? = null,
+        val qty: Int,
+        val color: String
+    )
+    // :snippet-end:
 
     companion object {
         val dotenv = dotenv()
