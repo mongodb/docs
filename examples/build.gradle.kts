@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.8.0"
+    id("com.google.osdetector") version "1.7.3"
     application
 }
 
@@ -20,7 +21,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.6")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.1")
-
+    implementation("io.netty:netty-all:4.1.91.Final")
+    implementation("io.netty:netty-tcnative-boringssl-static:2.0.53.Final:${osdetector.classifier}")
 }
 
 tasks.test {
