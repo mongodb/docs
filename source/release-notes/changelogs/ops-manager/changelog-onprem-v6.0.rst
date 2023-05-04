@@ -1,3 +1,18 @@
+.. _opsmgr-server-6.0.13:
+
+|onprem| Server 6.0.13
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-05-04*
+
+- Updates the {+mdbagent+} to :ref:`12.0.21.7698 
+  <mongodb-12.0.21.7698>`.
+- Updates JDK to ``jdk-11.0.19+7``.
+- Updates ``com.fasterxml.woodstox:woodstox-core`` to 6.4.0 to address 
+  `CVE-2022-40152 <https://nvd.nist.gov/vuln/detail/CVE-2022-40152>`_.
+- Defaults the :guilabel:`Backup Multiple Workers Per File` option to 
+  :guilabel:`On`.
+
 .. _opsmgr-server-6.0.12:
 
 |onprem| Server 6.0.12
