@@ -59,13 +59,13 @@ a client certificate that your {+kmip-kms+} accepts:
 
       .. important::
       
-         Your client certificate must be in pcks12 format. You can convert
+         Your client certificate must be in pkcs12 format. You can convert
          your certificate using `OpenSSL <https://www.openssl.org/source/>`__
          with the following command:
 
          .. code-block:: shell
          
-            openssl pcks12 -export -out "<new pcks12 certificate>" -in "<certificate to convert>" \
+            openssl pkcs12 -export -out "<new pkcs12 certificate>" -in "<certificate to convert>" \
             -name "<new certificate name>" -password "<new certificate password>"
 
    .. tab::
