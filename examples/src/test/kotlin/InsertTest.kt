@@ -14,6 +14,13 @@ import kotlin.test.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class InsertTest {
+    // :snippet-start: data-model
+    data class PaintOrder(
+        @BsonId val id: ObjectId? = null,
+        val qty: Int,
+        val color: String
+    )
+    // :snippet-end:
 
     // :snippet-start: data-model
     data class PaintOrder(

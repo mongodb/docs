@@ -23,6 +23,7 @@ internal class QueryDocumentTest {
         val rating: Int? = null
     )
     // :snippet-end:
+
     companion object {
         val dotenv = dotenv()
         val client = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
