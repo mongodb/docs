@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
+import org.bson.json.JsonWriterSettings
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -129,7 +130,8 @@ class AggregationTest {
                 Aggregates.group("\$${Restaurant::stars.name}", Accumulators.sum("count", 1))
             )
         ).explain(ExplainVerbosity.EXECUTION_STATS)
-        println(explanation.toJson())
+        // Prettyprint the output
+        println(explanation.toJson(JsonWriterSettings.builder().indent(true).build()))
         // :snippet-end:
         val ok = explanation["ok"]
         assertEquals(1.0, ok)
