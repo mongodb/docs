@@ -16,7 +16,7 @@ Overview
 --------
 
 In this guide, you can learn how to use the **sort** operation to order your
-results from read operations with the MongoDB Java driver.
+results from read operations with the MongoDB Kotlin driver.
 
 The sort operation orders the documents returned from your query by your specified 
 **sort criteria**. Sort criteria are the rules you pass to MongoDB that describe
@@ -47,6 +47,11 @@ documents:
    {"_id": 2, "letter": "a", "food": "donuts and coffee"}
    {"_id": 6, "letter": "c", "food": "maple donut"}
 
+This data is modeled with the following Kotlin data class:
+
+.. literalinclude:: /examples/generated/SortTest.snippet.sort-data-model.kt
+   :language: kotlin
+
 Methods For Sorting
 -------------------
 
@@ -60,37 +65,28 @@ arguments. For more information, see our API Documentation for the
 
 You can use the ``sort()`` method of a ``FindIterable`` instance as follows:
 
-.. code-block:: java
-
-   import static com.mongodb.client.model.Sorts.ascending;
-
-   // <MongoCollection setup code here>
-   
-   collection.find().sort(ascending("_id"));
+.. literalinclude:: /examples/generated/SortTest.snippet.basic-sort.kt
+   :language: kotlin
  
-You can use the ``Aggregates.sort()`` method within an aggregation pipeline
-as follows:
-   
-.. code-block:: java
-
-   import com.mongodb.client.model.Aggregates;
-   import static com.mongodb.client.model.Sorts.ascending;
-
-   // <MongoCollection setup code here>
-   
-   collection.aggregate(Arrays.asList(Aggregates.sort(ascending("_id"))));
-
-The preceding code snippets sort the documents in the
+You can use the ``Aggregates.sort()`` method within an aggregation pipeline to 
+sort the documents in the
 :ref:`sample collection <sorts-crud-sort-sample>` from smallest to
-largest value of the ``_id`` field: 
+largest value of the ``_id`` field as follows:
+ 
+.. io-code-block::
 
-.. code-block:: json
-   :copyable: false
+   .. input:: /examples/generated/SortTest.snippet.aggregation-sort.kt
+      :language: kotlin
 
-   {"_id": 1, "letter": "c", "food": "coffee with milk"}
-   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
-   {"_id": 3, "letter": "a", "food": "maple syrup"}
-   ...
+   .. output:: 
+      :language:  console
+
+      FoodOrder(id=1, letter=c, food=coffee with milk)
+      FoodOrder(id=2, letter=a, food=donuts and coffee)
+      FoodOrder(id=3, letter=a, food=maple syrup)
+      FoodOrder(id=4, letter=b, food=coffee with sugar)
+      FoodOrder(id=5, letter=a, food=milk and cookies)
+      FoodOrder(id=6, letter=c, food=maple donut)
 
 In the preceding code snippets, we specify our sort criteria using the ``Sorts``
 builder class. While it is possible to specify sort criteria using any class
@@ -139,13 +135,9 @@ the name of the field you need to sort in ascending order.
 You can pass the ``sort()`` method the output of the ``Sorts.ascending()``
 method to specify an ascending sort on a field as follows:
 
-.. code-block:: java
+.. code-block:: kotlin
 
-   import static com.mongodb.client.model.Sorts.ascending;
-
-   // <MongoCollection setup code here>
-
-   collection.find().sort(ascending("<field name>"));
+   collection.find().sort(Sorts.ascending("<field name>"))
 
 The preceding ``sort()`` method returns a ``FindIterable`` object that can iterate
 over the documents in your collection, sorted from smallest to largest on the
@@ -155,27 +147,18 @@ In the following code example, we use the ``ascending()`` method to sort the
 :ref:`sample collection <sorts-crud-sort-sample>`  
 by the ``_id`` field:
 
-.. code-block:: java
+.. io-code-block::
 
-   import static com.mongodb.client.model.Sorts.ascending;
+   .. input:: /examples/generated/SortTest.snippet.ascending-sort.kt
+      :language: kotlin
 
-   // <MongoCollection setup code here>
-   
-   List<Document> results = new ArrayList<>();
-   collection.find().sort(ascending("_id")).into(results);
-   for (Document result : results) {
-         System.out.println(result.toJson());
-   }
+   .. output:: 
+      :language:  console
 
-The output of the preceding code example should look something like this: 
-
-.. code-block:: json
-   :copyable: false
-
-   {"_id": 1, "letter": "c", "food": "coffee with milk"}
-   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
-   {"_id": 3, "letter": "a", "food": "maple syrup"}
-   ...
+      FoodOrder(id=6, letter=c, food=maple donut)
+      FoodOrder(id=5, letter=a, food=milk and cookies)
+      FoodOrder(id=4, letter=b, food=coffee with sugar)
+      ...
 
 Descending
 ~~~~~~~~~~
@@ -184,28 +167,22 @@ To specify a descending sort, use the ``Sorts.descending()`` static factory
 method. Pass the ``Sorts.descending()`` method the name of the field you need to sort in descending order.
 
 The following code snippet shows how to specify a descending sort on the
-``_id`` field: 
-
-.. code-block:: java
-   
-   import static com.mongodb.client.model.Sorts.descending;
-
-   // <MongoCollection setup code here>
-   
-   collection.find().sort(descending("_id"));
-
-
-The preceding code snippet returns the documents in the
+``_id`` field and return the documents in the
 :ref:`sample collection <sorts-crud-sort-sample>`  
 in descending order: 
 
-.. code-block:: json
-   :copyable: false
+.. io-code-block::
 
-   {"_id": 6, "letter": "c", "food": "maple donut"}
-   {"_id": 5, "letter": "a", "food": "milk and cookies"}
-   {"_id": 4, "letter": "b", "food": "coffee with sugar"}
-   ...
+   .. input:: /examples/generated/SortTest.snippet.descending-sort.kt
+      :language:  kotlin
+
+   .. output::
+      :language:  console
+
+      FoodOrder(id=6, letter=c, food=maple donut)
+      FoodOrder(id=5, letter=a, food=milk and cookies)
+      FoodOrder(id=4, letter=b, food=coffee with sugar)
+      ...
 
 .. _sorts-crud-handling-ties:
 
@@ -217,54 +194,46 @@ you are using to order your results. MongoDB does not guarantee sort order in
 the event of ties. For example, suppose we encounter a tie when applying a sort
 to the :ref:`sample collection <sorts-crud-sort-sample>` using the following
 code:
+ 
+.. io-code-block::
 
-.. code-block:: java
+   .. input:: /examples/generated/SortTest.snippet.handle-ties-1.kt
+      :language: kotlin
 
-   import static com.mongodb.client.model.Sorts.ascending;
+   .. output:: 
+      :language:  console
 
-   // <MongoCollection setup code here>
-   
-   collection.find().sort(ascending("letter"));
+      FoodOrder(id=3, letter=a, food=maple syrup)
+      FoodOrder(id=5, letter=a, food=milk and cookies)
+      FoodOrder(id=2, letter=a, food=donuts and coffee)
 
 Since multiple documents that matched our query contain the value "a" for the
-field on which we perform the sort, the following documents could be returned
-in any order:
-
-.. code-block:: json
-   :copyable: false
-
-   {"_id": 3, "letter": "a", "food": "maple syrup"}
-   {"_id": 5, "letter": "a", "food": "milk and cookies"}
-   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
+field on which we perform the sort, the documents could be returned
+in any order.
 
 If you need to guarantee a specific sort order for documents that have fields
 with identical values, you can specify additional fields to sort on in the event
 of a tie.
 
 We can specify an ascending sort on the ``letter`` field followed by the
-``_id`` field as follows:
-
-.. code-block:: java
-
-   import static com.mongodb.client.model.Sorts.ascending;
-
-   // <MongoCollection setup code here>
-   
-   collection.find().sort(ascending("letter", "_id"));
-
-The preceding code snippet returns the documents in the
+``_id`` field return the documents in the
 :ref:`sample collection <sorts-crud-sort-sample>`  
-in the following order: 
+in the following order:
 
-.. code-block:: json
-   :copyable: false
+.. io-code-block::
 
-   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
-   {"_id": 3, "letter": "a", "food": "maple syrup"}
-   {"_id": 5, "letter": "a", "food": "milk and cookies"}
-   {"_id": 4, "letter": "b", "food": "coffee with sugar"}
-   {"_id": 1, "letter": "c", "food": "coffee with milk"}
-   {"_id": 6, "letter": "c", "food": "maple donut"}
+   .. input:: /examples/generated/SortTest.snippet.handle-ties-2.kt
+      :language:  kotlin
+
+   .. output:: 
+      :language:  console
+
+      FoodOrder(id=2, letter=a, food=donuts and coffee)
+      FoodOrder(id=3, letter=a, food=maple syrup)
+      FoodOrder(id=5, letter=a, food=milk and cookies)
+      FoodOrder(id=4, letter=b, food=coffee with sugar)
+      FoodOrder(id=1, letter=c, food=coffee with milk)
+      FoodOrder(id=6, letter=c, food=maple donut)
 
 Combining Sort Criteria
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -276,32 +245,24 @@ tie, the sort uses the next sort criteria in the list to determine the order.
 
 In the following code snippet, we use the ``orderBy()`` method to order our data
 by performing a descending sort on the ``letter`` field, and in the event of a
-tie, by performing an ascending sort on the ``_id`` field.
+tie, by performing an ascending sort on the ``_id`` field, then returns the 
+documents in the :ref:`sample collection <sorts-crud-sort-sample>`
+in the following order:
 
-.. code-block:: java
+.. io-code-block::
 
-   import static com.mongodb.client.model.Sorts.orderBy;
-   import static com.mongodb.client.model.Sorts.ascending;
-   import static com.mongodb.client.model.Sorts.descending;
+   .. input:: /examples/generated/SortTest.snippet.combine-sort.kt
+      :language:  kotlin
 
-   // <MongoCollection setup code here>
-
-   Bson orderBySort = orderBy(descending("letter"), ascending("_id"));
-   collection.find().sort(orderBySort);
-
-The preceding code snippet returns the documents in the
-:ref:`sample collection <sorts-crud-sort-sample>`
-in the following order: 
-
-.. code-block:: json
-   :copyable: false
-
-   {"_id": 1, "letter": "c", "food": "coffee with milk"}
-   {"_id": 6, "letter": "c", "food": "maple donut"}
-   {"_id": 4, "letter": "b", "food": "coffee with sugar"}
-   {"_id": 2, "letter": "a", "food": "donuts and coffee"}
-   {"_id": 3, "letter": "a", "food": "maple syrup"}
-   {"_id": 5, "letter": "a", "food": "milk and cookies"}
+   .. output:: 
+      :language:  console
+      
+      FoodOrder(id=1, letter=c, food=coffee with milk)
+      FoodOrder(id=6, letter=c, food=maple donut)
+      FoodOrder(id=4, letter=b, food=coffee with sugar)
+      FoodOrder(id=2, letter=a, food=donuts and coffee)
+      FoodOrder(id=3, letter=a, food=maple syrup)
+      FoodOrder(id=5, letter=a, food=milk and cookies)
 
 .. _sorts-crud-text-search:
 
@@ -330,6 +291,7 @@ search on the :ref:`sample collection <sorts-crud-sort-sample>`.
 The code example uses the :doc:`Filters </fundamentals/builders/filters>`,
 :doc:`Indexes </fundamentals/builders/indexes>`, and
 :doc:`Projections </fundamentals/builders/projections>` builders.
+
 The code example performs the following actions:
 
 #. Creates a text index for your
@@ -341,36 +303,29 @@ The code example performs the following actions:
    ``score`` field.
 #. Sorts your results by text score (best match first).
 
-.. code-block:: java
+The data is modeled with the following Kotlin data class:
 
-   import com.mongodb.client.model.Sorts;
-   import com.mongodb.client.model.Projections;
-   import com.mongodb.client.model.Filters;
-   import com.mongodb.client.model.Indexes;
+.. literalinclude:: /examples/generated/SortTest.snippet.food-order-score.kt
+   :language: kotlin
 
-   // <MongoCollection setup code here>
-   
-   collection.createIndex(Indexes.text("food"));
-   Bson metaTextScoreSort = Sorts.metaTextScore("score");
-   Bson metaTextScoreProj = Projections.metaTextScore("score");
-   String searchTerm = "maple donut";
-   Bson searchQuery = Filters.text(searchTerm);
-   collection.find(searchQuery)
-            .projection(metaTextScoreProj)
-            .sort(metaTextScoreSort)
-            .into(results);
-   for (Document result : results) {
-         System.out.println(result.toJson());
-   }
+.. code-block:: kotlin
 
-The output of the preceding code example should look something like this: 
+   import com.mongodb.client.model.Sorts
+   import com.mongodb.client.model.Projections
+   import com.mongodb.client.model.Filters
+   import com.mongodb.client.model.Indexes
 
-.. code-block:: json
-   :copyable: false
+.. io-code-block::
 
-   {"_id": 6, "letter": "c", "food": "maple donut", "score": 1.5}
-   {"_id": 2, "letter": "a", "food": "donuts and coffee", "score": 0.75}
-   {"_id": 3, "letter": "a", "food": "maple syrup", "score": 0.75}
+   .. input:: /examples/generated/SortTest.snippet.text-search.kt
+      :language: kotlin
+
+   .. output:: 
+      :language:  console
+
+      FoodOrderScore(id=6, letter=c, food=maple donut, score=1.5)
+      FoodOrderScore(id=3, letter=a, food=maple syrup, score=0.75)
+      FoodOrderScore(id=2, letter=a, food=donuts and coffee, score=0.75)
 
 .. note:: Text Search Behavior in MongoDB 4.4 or Later
 
@@ -387,7 +342,7 @@ following API Documentation:
 - `Filters <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html>`__
 - `Indexes <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Indexes.html>`__
 - `Projections <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Projections.html>`__
-- `MongoCollection <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html>`__
+- `MongoCollection <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/index.html>`__
 
 For more information, see the
 `Sorts class <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Sorts.html>`__ API Documentation.

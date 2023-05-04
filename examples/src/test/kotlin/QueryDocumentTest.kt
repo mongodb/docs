@@ -12,8 +12,6 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class QueryDocumentTest {
     // :snippet-start: query-data-model
