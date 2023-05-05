@@ -1,12 +1,12 @@
 - For source clusters a user must have the :authrole:`readAnyDatabase`,
-  the :authrole:`clusterMonitor`, and the :authrole:`backup` roles.
+  :authrole:`clusterMonitor`, and :authrole:`backup` roles.
   
-  To verify that the database user that will run the live migration
-  process has these roles, run the :manual:`db.getUser() </reference/method/db.getUser/>`
+  To verify that the database user who will run the live migration process
+  has these roles, run the :manual:`db.getUser() </reference/method/db.getUser/>`
   command on the ``admin`` database.
 
   .. code-block:: javascript
-     :emphasize-lines: 9, 13, 17
+     :emphasize-lines: 10, 14, 15
 
      use admin
      db.getUser("admin")

@@ -1,0 +1,165 @@
+title: "Start the migration process."
+ref: live-import-begin-migration
+level: 4
+content: |
+
+
+  a. Start the migration process one of the following ways:
+
+     - In the left-side panel of your organization's page, click
+       :guilabel:`Live Migration` and choose
+       :guilabel:`Select Cluster for General Live Migration`, or
+
+     - Navigate to the destination |service| {+cluster+} and click the ellipsis
+       :guilabel:`...` button. On the {+cluster+} list, the ellipsis
+       :guilabel:`...` button appears beneath the {+cluster+} name. When
+       you view {+cluster+} details, the ellipsis :guilabel:`...` appears
+       on the right-hand side of the screen, next to the :guilabel:`Connect`
+       and :guilabel:`Configuration` buttons.
+
+  #. Click :guilabel:`Migrate Data to this Cluster`.
+
+     |service| displays a walk-through screen with instructions on
+     how to proceed with the live migration. The process syncs the data
+     from your source {+cluster+} to the new destination {+cluster+}. After
+     you complete the walk-through, you can point your application to the
+     new {+cluster+}.
+
+     You will need the following details for your source {+cluster+} to
+     facilitate the migration:
+
+     - For replica sets, the hostname and port of the source {+cluster+}
+       :manual:`primary </core/replica-set-primary/>`. For example,
+       ``mongoPrimary.example.net:27017``.
+
+     - For sharded {+clusters+}, the hostname and port of each
+       :binary:`bin.mongos` on each shard. For example,
+       ``mongos.example.net:27017``.
+
+     - The database authentication username and password used to connect
+       to the source {+cluster+}. For replica sets, the database user must
+       have the :authrole:`readAnyDatabase` and :authrole:`backup` roles.
+       For sharded {+clusters+}, the database user must
+       have the :authrole:`readAnyDatabase`, :authrole:`backup`, and
+       :authrole:`clusterMonitor` roles.
+
+     - If the source {+cluster+} uses ``TLS/SSL`` and isn't using a public
+       Certificate Authority (CA), you will need the source {+cluster+}
+       :abbr:`CA (Certificate Authority)` file.
+
+  #. Prepare the information as stated in the walk-through screen,
+     then click :guilabel:`I'm Ready To Migrate`.
+     
+     |service| displays a walk-through screen that collects information
+     required to connect to the source {+cluster+}.
+
+     - |service| displays the IP address of the MongoDB live migration server
+       responsible for your live migration at the top of the walk-through
+       screen. Configure your source {+cluster+} firewall to grant access
+       to the displayed IP address.
+
+     - For replica sets, enter the hostname and port of the primary member
+       of the source {+cluster+} into the provided text box.
+       For sharded {+clusters+}, enter the hostname and port of each
+       :binary:`bin.mongos`.
+
+     - If the source {+cluster+} enforces authentication, enter a username and
+       password into the provided text boxes.
+
+       See :ref:`live-import-c2c-security` for guidance on the
+       user permissions required by |service| live migration.
+
+     - If the source {+cluster+} uses ``TLS/SSL`` and isn't using a public
+       Certificate Authority (CA), toggle the switch
+       :guilabel:`Is encryption in transit enabled?` and copy the contents
+       of the source {+cluster+} CA file into the provided text box.
+
+     - If you wish to drop all collections on the destination {+cluster+} before
+       starting the migration process, toggle the switch
+       :guilabel:`Delete existing data on your destination cluster?`
+
+  #. Click :guilabel:`Validate` to confirm that |service| can connect to the
+     source {+cluster+}.
+
+     If validation fails, check that:
+
+     - You have :ref:`added <live-import-c2c-ip-access-list>` |service|
+       to the IP access list on your source {+cluster+}.
+
+     - The provided user credentials, if any, exist on the source {+cluster+}
+       and have the required permissions.
+
+     - The :guilabel:`Is encryption in transit enabled?` toggle is enabled
+       only if the source {+cluster+} requires it.
+
+     - The CA file provided, if any, is valid and correct.
+
+  #. Click :guilabel:`Start Migration` to start the migration process.
+
+     Once the migration process begins, |service| UI displays the
+     :guilabel:`Migrating Data` walk-through screen for the destination
+     |service| {+cluster+}. The walk-through screen updates as the
+     destination {+cluster+} proceeds through the migration process.
+     The migration process includes:
+
+     - Applying new writes to the source {+cluster+} data to the destination
+       {+cluster+} data.
+     - Copying data from the source {+cluster+} to the destination {+cluster+}.
+     - Finalizing the migration on the destination {+cluster+}.
+
+     A lag time value displays during the final phase of the migration process
+     that represents the current lag between the source and destination {+clusters+}.
+
+     You receive an email notification when your expiration window is nearly up.
+
+     When the lag timer and the :guilabel:`Prepare to Cutover` button turn
+     green, proceed to the next step.
+
+---
+title: "Perform the cutover."
+ref: live-import-prepare-cutover
+level: 4
+content: |
+
+   When |service| detects that the source and destination {+clusters+} are
+   nearly in sync, it starts an extendable 120 hour (5 day) timer to begin
+   the cutover stage of the live migration procedure. If the 120 hour
+   period passes, |service| stops synchronizing with the source {+cluster+}.
+   You can extend the time remaining by 24 hours by clicking
+   :guilabel:`Extend time` below the :guilabel:`<time> left to cut over`
+   timer.
+
+   a. Once you are prepared to cut your applications over to the destination
+      |service| {+cluster+}, click :guilabel:`Prepare to Cutover`.
+      
+   b. |service| displays a walk-through screen with instructions on how to
+      proceed with the cutover. These steps are also outlined below:
+   
+      1. Stop your application. This ensures that no more  writes occur on
+         the source {+cluster+}.
+      
+      2. Wait for the optime gap to reach zero. When the counter reaches
+         zero, the source and destination {+clusters+} are in sync.
+
+      3. Check the box that states: :guilabel:`I confirm that I am ready to
+         cut over the application to the destination cluser. By proceeding,
+         Atlas  will finalize the migration. This process will take a
+         few seconds. Once it is complete you can point your application
+         at the destination {+cluster+} and begin writing to it.`
+
+      Once the migration is complete, |service| redirects you to the
+      :guilabel:`Connect` page. You can use the same connection string
+      you used before to connect the destination {+cluster+} to your application.
+
+   #. Once you have completed the cutover stage of the procedure and
+      confirmed that your application is working with the |service| {+cluster+},
+      click :guilabel:`Cutover` to complete the migration procedure.
+      This allows |service| to:
+
+      - Remove the MongoDB live migration server subnets from the IP access
+        list on the destination {+cluster+}.
+      - Remove the database user that live migration used to import data
+        to the destination {+cluster+}.
+      - Mark the migration process as complete.
+
+...

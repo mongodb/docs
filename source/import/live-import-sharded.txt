@@ -12,23 +12,24 @@ Live Migrate (Pull) a Sharded {+Cluster+} into Atlas
    :depth: 1
    :class: singlecol
 
-|service| can pull a source sharded {+cluster+} into an |service| sharded
-{+cluster+} using the live migration process. |service| keeps the target
-{+cluster+} in sync with the remote source until you cut your applications
-over to the |service| target {+cluster+}. Once you reach the cutover step in
-the following procedure, stop writes to the source {+cluster+} by stopping
-your application instances, pointing them to the |service| {+cluster+}, and
-restarting them.
+|service| can pull a source sharded {+cluster+} to an |service| {+cluster+}
+using the live migration process. |service| syncs from the source to the
+destination {+cluster+} until you cut your applications over to the
+destination |service| {+cluster+}.
+
+Once you reach the cutover step in the following procedure, stop writes
+to the source {+cluster+} by stopping your application instances,
+pointing them to the |service| {+cluster+}, and restarting them.
 
 Restrictions
 ------------
 
 - You can't migrate your sharded {+cluster+} to MongoDB v6.0 or later.
 - You can't use a :doc:`Global Cluster </global-clusters>` as the
-  target for live migration.
+  destination for live migration.
 - Live migration doesn't support :ref:`VPC peering <vpc-peering>` or
   :ref:`private endpoints <private-endpoint>` for either the source or
-  target {+cluster+}.
+  destination {+cluster+}.
 - .. include:: /includes/fact-live-migration-host-alerts.rst
 
 To live migrate a replica set, see
@@ -61,13 +62,17 @@ Migration Path
 
 .. note::
 
-   You can't migrate your sharded {+cluster+} to MongoDB v6.0 or later.
-   
+   You can't migrate your sharded {+cluster+} to MongoDB v6.0 or later using
+   this procedure.
+
    For sharded {+clusters+}, the major MongoDB versions on the source and
-   target {+clusters+} must be exactly the same. The major MongoDB version
+   destination {+clusters+} must be exactly the same. The major MongoDB version
    in the full **4.4.x** version is **4.4**.
 
 .. _live-import-sharded-ip-access-list:
+
+Network Access
+~~~~~~~~~~~~~~~
 
 .. include:: /includes/import/network-access.rst
 
@@ -77,7 +82,7 @@ Pre-Migration Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| performs a number of validation checks on the source
-and target {+clusters+} before starting the live migration procedure.
+and destination {+clusters+} before starting the live migration procedure.
 
 - The source {+cluster+} must be a sharded {+cluster+}.
 
@@ -101,7 +106,7 @@ and target {+clusters+} before starting the live migration procedure.
   :ref:`sharding-balancing` on the source {+cluster+}.
 
 - The source {+cluster+} has the same feature compatibility version
-  *and* major MongoDB version as the target {+cluster+}. The major
+  *and* major MongoDB version as the destination {+cluster+}. The major
   MongoDB version in the full **4.4.x** version is **4.4**.
 
   To check the feature compatibility version of a host in the
@@ -116,7 +121,7 @@ and target {+clusters+} before starting the live migration procedure.
   database command to set the ``featureCompatibilityVersion`` flag
   as needed.
 
-- The target |service| sharded {+cluster+} must have the same number of
+- The destination |service| sharded {+cluster+} must have the same number of
   :term:`shards <shard>` as the source sharded {+cluster+}.
 
   .. _live-import-sharded-security:
@@ -139,11 +144,12 @@ Considerations
 Database Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| doesn't migrate any user or role data to the target
-{+cluster+}.
+|service| doesn't migrate any user or role data to the destination {+cluster+}.
 
-If the source {+cluster+} enforced authentication, you must re-create the
-credentials that your applications use on the target |service| {+cluster+}.
+.. include:: /includes/fact-create-atlas-user.rst
+
+If the source {+cluster+} enforces authentication, you must recreate the
+credentials that your applications use on the destination |service| {+cluster+}.
 |service| uses :ref:`SCRAM <authentication-scram>` for user authentication.
 To learn how to create database users in |service|, see :doc:`/security-add-mongodb-users`.
 
@@ -169,31 +175,31 @@ source {+cluster+}.
    :manual:`manually restart </tutorial/manage-sharded-cluster-balancer/>`
    the source {+cluster+} balancer.
 
-Target {+Cluster+} Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Destination {+Cluster+} Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you configure the target |service| {+cluster+}, consider the
+When you configure the destination |service| {+cluster+}, consider the
 following:
 
 .. include:: /includes/fact-live-migration-destination-cluster.rst
 
-- You cannot target a :doc:`Global Cluster </global-clusters>` as the
-  target for live migration.
+- You can't target  a :doc:`Global Cluster </global-clusters>` as the
+  destination for live migration.
 
   .. important::
 
      Once you start the live migration process, you can't modify the
-     target |service| {+cluster+}. To scale up the target {+cluster+},
+     destination |service| {+cluster+}. To scale up the destination {+cluster+},
      :ref:`cancel <live-import-sharded-cancel>` the live migration process,
      scale up the {+cluster+}, and restart the live migration process.
 
-Target {+Cluster+} Network Access
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Destination {+Cluster+} Network Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-target-cluster-nw-access.rst
 
-Avoid Workloads on the Target {+Cluster+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Avoid Workloads on the Destination {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-mongomirror-no-workloads-target-cluster.rst
 
@@ -227,22 +233,22 @@ Canceling Live Migration
 You can cancel the process at any time by clicking :guilabel:`Cancel`.
 |service| displays the
 :guilabel:`Sharded Cluster Live Import in Progress`
-message for the target {+cluster+} until the {+cluster+} is ready for
+message for the destination {+cluster+} until the {+cluster+} is ready for
 normal access.
 
 If you cancel the live migration process before it completes, |service|
 doesn't remove any data migrated up to that point. If you restart the
 live migration process using the same |service| {+cluster+} as the
-target {+cluster+}, |service| wipes all data from the {+cluster+}.
+destination {+cluster+}, |service| wipes all data from the {+cluster+}.
 
-Testing the Target {+Cluster+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Testing the Destination {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Consider migrating data to your target {+cluster+}, then stopping the
-migration process and testing your target {+cluster+} while leaving the
+Consider migrating data to your destination {+cluster+}, then stopping the
+migration process and testing your destination {+cluster+} while leaving the
 source {+cluster+} running and serving data to your applications.
 
-To test your target {+cluster+} with production data, follow the
+To test your destination {+cluster+} with production data, follow the
 :ref:`migration procedure <live-migrate-sharded-procedure>` all the way
 to the testing step. When you're ready to perform the complete migration
 process, skip the testing step and proceed to the cutover step.
@@ -259,9 +265,9 @@ Migrate Your Sharded {+Cluster+}
 
    Use the staging environment to test application behavior and
    performance using the latest :driver:`driver version </driver-compatibility-reference>` 
-   that supports the MongoDB version of the target |service| {+cluster+}.
+   that supports the MongoDB version of the destination |service| {+cluster+}.
    Then, repeat the live migration procedure in full to transition your
-   applications from your source {+cluster+} to the |service| target
+   applications from your source {+cluster+} to the |service| destination
    {+cluster+}.
 
 .. important::
@@ -279,6 +285,9 @@ Procedure
 ~~~~~~~~~
 
 .. include:: /includes/steps/atlas-live-import-sharded.rst
+
+Migration Support
+-----------------
 
 .. _live-migration-sharded-support:
 

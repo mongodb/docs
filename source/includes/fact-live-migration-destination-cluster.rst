@@ -1,5 +1,5 @@
 - The live migration process streams data through a MongoDB-managed
-  application server. Each server runs on infrastructure hosted in the
+  live migration server. Each server runs on infrastructure hosted in the
   nearest region to the source cluster. The following regions are
   available:
 

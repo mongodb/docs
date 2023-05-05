@@ -1,0 +1,243 @@
+.. _c2c-pull-live-migration:
+
+=========================================================
+Live Migrate a MongoDB 6.0.4 or Later Cluster into Atlas
+=========================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/serverless-dont-use.rst
+
+If both the source and destination {+clusters+} are running MongoDB 6.0.4
+or later, |service| can pull a source {+cluster+} to an |service| {+cluster+}
+using the procedure described in this section. 
+
+This process is using |mongosync| as the underlying data migration tool,
+enabling faster live migrations with less downtime.
+
+|service| syncs data from the source to the destination {+cluster+} until
+you cut your applications over to the destination |service| {+cluster+}.
+Once you reach the cutover step in the following procedure, stop writes to
+the source {+cluster+}. Stop your application instances, point them to the
+|service| {+cluster+}, and restart them.
+
+.. _c2c-limitations:
+
+Restrictions
+------------
+
+This live migration has the following limitations:
+
+- You can't run this live migration procedure for source or destination
+  {+clusters+} for versions earlier than MongoDB 6.0.4. To learn more,
+  see :manual:`Server Release Notes </release-notes/6.0/>`.
+- The source {+cluster+}\'s |fcv| is at least 6.0.
+- This live migration procedure doesn't support MongoDB rapid releases,
+  such as 6.1 or 6.2. Only major MongoDB releases, such as 6.0.x (starting
+  from 6.0.4 and later) or 7.0 are supported. To learn more,
+  see :manual:`MongoDB versioning </reference/versioning>`.
+
+- You can't use {+Serverless-instances+} as destination {+clusters+}.
+- You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared {+cluster+} as the
+  source or destination for live migration. To migrate data from an
+  ``M0`` (Free Tier) or ``M2/M5`` shared {+cluster+} to a paid {+cluster+},
+  :doc:`change the cluster tier and type </scale-cluster>`.
+- Live migration doesn't support :ref:`VPC peering <vpc-peering>` or
+  :ref:`private endpoints <private-endpoint>` for either the source or
+  destination {+cluster+}.
+- :manual:`Time-series collections </core/timeseries-collections/>` are not supported.
+- Clustered collections with :manual:`expireAfterSeconds </reference/method/db.createCollection/#std-label-db.createCollection.expireAfterSeconds>`
+  set aren't supported.
+- :manual:`Capped collections </core/capped-collections/#std-label-manual-capped-collection>`,
+  as well as :manual:`convertToCapped </reference/command/convertToCapped/#mongodb-dbcommand-dbcmd.convertToCapped>`
+  and :manual:`cloneCollectionAsCapped </reference/command/cloneCollectionAsCapped/#mongodb-dbcommand-dbcmd.cloneCollectionAsCapped>`
+  commands aren't supported.
+- If in your source {+cluster+} you used :manual:`applyOps </reference/command/applyOps/>`
+  operations, they aren't supported on the destination {+cluster+}.
+- Documents that have dollar ($) prefixed field names aren't supported.
+  See :manual:`Field Names with Periods and Dollar Signs </core/dot-dollar-considerations/#std-label-crud-concepts-dot-dollar-considerations>`.
+- :manual:`Queryable Encryption </core/queryable-encryption/>` is not supported.
+- You can't sync a collection that has a unique index and a non-unique index
+  defined on the same fields.
+- Within a collection, the ``_id`` field must be unique across all of the
+  shards in the {+cluster+}. To learn more, see :manual:`Sharded Clusters and Unique Indexes
+  </core/index-unique/#std-label-sharded-clusters-unique-indexes>`.
+- You can't use the :manual:`movePrimary </reference/command/movePrimary/#mongodb-dbcommand-dbcmd.movePrimary>`
+  command to reassign the primary shard while running this live migration process.
+- You can't add or remove shards while running this live migration process.
+- This live migration process only migrates indexes that exist on all shards.
+- You can't :manual:`refine </core/sharding-refine-a-shard-key/#std-label-shard-key-refine>`
+  a shard key while running this live migration process.
+- You can't modify the shard key using :manual:`reshardCollection </reference/command/reshardCollection/#mongodb-dbcommand-dbcmd.reshardCollection>`
+  during this live migration process.
+- The maximum number of :manual:`shard key indexes </core/sharding-shard-key/#std-label-sharding-shard-key-indexes>`
+  is one lower than normal, 63 instead of 64.
+- You can't use this live migration process to sync one source {+cluster+} to
+  many destination {+clusters+}.
+- Network compression isn't supported.
+- This live migration process replicates data, it doesn't replicate zone configuration.
+- :manual:`System collections </reference/system-collections/#std-label-metadata-system-collections>`
+  aren't replicated with this live migration process.
+- If you issue a :manual:`dropDatabase </reference/command/dropDatabase/#mongodb-dbcommand-dbcmd.dropDatabase>`
+  command on the source {+cluster+}, this change isn't directly applied on
+  the destination {+cluster+}. Instead, this live migration process drops
+  user collections and views in the database on the destination {+cluster+},
+  but it doesn't drop system collections on that database.
+  For example, on the destination {+cluster+}, the drop operation doesn't
+  affect a user-created :manual:`system.js </reference/system-collections/#mongodb-data--database-.system.js>`
+  collection. If you enable profiling, the :manual:`system.profile </reference/system-collections/#mongodb-data--database-.system.profile>`
+  collection remains. If you create views on the source {+cluster+} and then
+  drop the database, replicating the drop with this live migration process
+  removes the views, but leaves an empty
+  :manual:`system.views </reference/system-collections/#mongodb-data--database-.system.views>`
+  collection. In these cases, the live migration of the ``dropDatabase``
+  results removes all user-created collections from the database, but leaves
+  its system collections on the destination {+cluster+}.
+
+Prerequisites
+-------------
+
+- If the {+cluster+} runs with authentication:
+
+  - For replica sets, grant the :authrole:`backup` and :authrole:`readAnyDatabase`
+    roles on the admin database to the user that will run the migration process.
+  - For sharded {+clusters+}, grant the :authrole:`backup`, :authrole:`readAnyDatabase`,
+    and :authrole:`clusterMonitor` roles on the admin database to the user
+    that will run the migration process.
+  - Ensure that this user is authenticated using
+    :manual:`both SCRAM-SHA-1 and SCRAM-SHA-256 </core/security-scram/>`.
+    To learn more, see :ref:`live-import-c2c-security`.
+
+.. include:: /includes/note-source-cluster-readiness.rst
+
+.. _live-import-c2c-upgrade-path:
+
+Migration Path
+~~~~~~~~~~~~~~
+
+|service| live migration described in this section supports the following
+migration paths:
+
+.. include:: /includes/list-tables/c2c-pull-live-migration-upgrade-path.rst
+
+.. _live-import-c2c-ip-access-list:
+
+Network Access
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/import/network-access.rst
+
+.. _live-import-c2c-migration-validation:
+
+Pre-Migration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before starting the following live migration procedure, |service| runs
+validation checks on the source and destination {+clusters+} and verifies that:
+
+- The source and destination {+cluster+}\'s MongoDB version is at least |fcv|
+  6.0 and is matching as described in :ref:`c2c-limitations`.
+- The source {+cluster+}\'s database user has the correct permissions as
+  described in :ref:`live-import-c2c-security`.
+- The source and destination {+clusters+} are either both replica sets, or they
+  are both sharded {+clusters+} with the same number of shards.
+
+  If the source {+cluster+} is a standalone, before using this migration process,
+  :manual:`convert the standalone to a replica set </tutorial/convert-standalone-to-replica-set>`.
+
+If migrating a sharded {+cluster+} to another sharded {+cluster+}, the
+  source sharded {+cluster+} must use CSRS (Config Server Replica Sets).
+  See :ref:`replset-config-servers`.
+
+.. _live-import-c2c-security:
+
+Source {+Cluster+} Security
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/c2c-pull-source-cluster-security.rst
+
+Considerations
+--------------
+
+.. include:: /includes/fact-network-encryption-pull-migration.rst
+
+Database Users and Roles
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| doesn't migrate any user or role data to the destination {+cluster+}.
+
+.. include:: /includes/fact-create-atlas-user.rst
+
+If the source {+cluster+} enforces authentication, you must recreate the
+credentials that your applications use on the destination |service| {+cluster+}.
+|service| uses :ref:`SCRAM <authentication-scram>` for user authentication.
+To learn more, see :doc:`/security-add-mongodb-users`.
+
+Destination {+Cluster+} Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you configure the destination {+cluster+}, consider the following:
+
+.. include:: /includes/fact-live-migration-perf-target-cluster.rst
+
+- The source and destination {+clusters+} are either both replica sets, or
+  they are both sharded {+clusters+} with the same number of shards.
+
+- You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared-tier
+  {+cluster+} as the destination {+cluster+} for live migration.
+
+- Don't change the ``featureCompatibilityVersion`` flag while
+  |service| live migration is running.
+
+
+Avoid Workloads on the Destination {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mongomirror-no-workloads-target-cluster.rst
+
+Avoid Cloud Backups
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-avoid-backups.rst
+
+Avoid Elections
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-avoid-elections.rst
+
+
+Migrate Your {+Cluster+}
+------------------------
+
+.. note:: Staging and Production Migrations
+
+   Consider running this procedure twice. Run a partial migration
+   that stops at the :guilabel:`Perform the Cutover` step *first*. This
+   creates an up-to-date |service|-backed staging {+cluster+} to test
+   application behavior and performance using the latest
+   :driver:`driver version </driver-compatibility-reference>` that
+   supports the MongoDB version of the |service| {+cluster+}.
+
+   After you test your application, run the full migration
+   procedure using a separate |service| {+cluster+} to create your
+   |service|-backed production environment.
+
+.. include:: /includes/pre-migration-checklist.rst
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/c2c-pull-live-migration.rst
+
+Migration Support
+-----------------
+
+.. _live-migration-c2c-support:
+
+.. include:: /includes/live-migration-support.rst

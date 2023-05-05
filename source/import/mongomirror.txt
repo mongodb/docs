@@ -24,18 +24,15 @@ Prerequisites
 Source MongoDB Deployment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- The source MongoDB deployment must be a replica set. If the
-  source is a standalone MongoDB deployment, before running
-  |mongomirror|, :manual:`convert the standalone to a replica set
-  </tutorial/convert-standalone-to-replica-set/>`.
+- The source MongoDB deployment must be a replica set. If the source is a
+  standalone MongoDB deployment, before running |mongomirror|,
+  :manual:`convert the standalone to a replica set </tutorial/convert-standalone-to-replica-set/>`.
 
 - The source replica set must run MongoDB version 2.6 or higher.
 
-- The source MongoDB replica set cannot be an
-  ``M0`` {+free-cluster+} or ``M2/M5`` shared cluster.
+- The source MongoDB replica set cannot be an ``M0`` {+free-cluster+} or ``M2/M5`` shared cluster.
 
-- Don't change the ``featureCompatibilityVersion`` flag
-  at any time during the procedure.
+- Don't change the ``featureCompatibilityVersion`` flag at any time during the procedure.
 
 - .. include:: /includes/fact-migrate-drop-geoHaystack.rst
 
@@ -45,11 +42,10 @@ Source MongoDB Deployment
 
 - You can't use the 
   :dbcommand:`renameCollection <dbcmd.renameCollection>` command or the
-  :pipeline:`$out <pipe.$out>` aggregation stage as part of initial 
-  sync, which runs as a part of the |mongomirror| process.
+  :pipeline:`$out <pipe.$out>` aggregation stage as part of initial sync,
+  which runs as a part of the |mongomirror| process.
 
-- You must not restart the primary during the initial sync 
-  stage of the migration.
+- You must not restart the primary during the initial sync stage of the migration.
 
 - .. include:: /includes/fact-failIndexKeyTooLong-import.rst
 
@@ -58,11 +54,10 @@ Source MongoDB Deployment
 Required Access on Source Replica Set
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|mongomirror| must have network access to the source
-replica set. If the source replica set requires authentication,
-you must include user credentials when running |mongomirror|.
-
-You must specify a database user with, at a minimum, the following privileges:
+|mongomirror| must have network access to the source replica set. If the
+source replica set requires authentication, you must include user credentials
+when running |mongomirror|. You must specify a database user with, at a
+minimum, the following privileges:
 
 - Read all databases and collections. The :authrole:`readAnyDatabase`
   role on the ``admin`` database covers this requirement.
@@ -71,18 +66,17 @@ You must specify a database user with, at a minimum, the following privileges:
 
 - Run the :dbcommand:`getParameter` command.
 
-If no such user exists, create the user in your source MongoDB
-replica set. Different MongoDB server versions have different
-built-in roles. Select a built-in role based on your MongoDB
-server version and run the appropriate commands in the
-{+mongosh+}:
+If no such user exists, create the user in your source MongoDB replica set.
+Different MongoDB server versions have different built-in roles. Select a
+built-in role based on your MongoDB Server version and run the appropriate
+commands in the {+mongosh+}:
 
 .. include:: /includes/mongomirror-required-roles.rst
 
-Target |service| Deployment
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Destination |service| Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The target |service| deployment:
+The destination |service| deployment:
 
 - Can't be an ``M0`` {+free-cluster+}, ``M2``, or ``M5`` {+shared-cluster+}.
 
@@ -90,15 +84,15 @@ The target |service| deployment:
 
 - Must be a replica set.
 
-- Must have the version that is the same as or later than the source cluster
+- Must have the version that is the same as or later than the source {+cluster+}
   MongoDB version. See :ref:`mongomirror-import-upgrade-path`.
   
-- Must not contain any namespaces that overlap with the source cluster.
-  If |mongomirror| detects overlapping namespaces on the target cluster
-  it fails before starting the process. If your target cluster contains
-  overlapping namespaces, delete all data from the target cluster with
+- Must not contain any namespaces that overlap with the source {+cluster+}.
+  If |mongomirror| detects overlapping namespaces on the destination {+cluster+}
+  it fails before starting the process. If your destination {+cluster+} contains
+  overlapping namespaces, delete all data from the destination {+cluster+} with
   :option:`--drop`, or list the namespaces to import from the source
-  cluster with :option:`--includeNamespace`.
+  {+cluster+} with :option:`--includeNamespace`.
 
 - Must include in its IP access list either:
 
@@ -115,10 +109,10 @@ The target |service| deployment:
 
 .. _destination-authorization:
 
-Required Access on Target Cluster
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Required Access on the Destination Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|mongomirror| must have network access to the target cluster.
+|mongomirror| must have network access to the destination {+cluster+}.
 
 You must specify a database user with the :atlasrole:`Atlas admin`
 role to run |mongomirror|. To learn more, see :ref:`add-mongodb-users`.
@@ -132,9 +126,10 @@ Upgrade Path
 
 .. important::
 
-   You can't use |mongomirror| to migrate from a source replica set 6.0.+
-   to a target replica set 6.0.+. To migrate replica sets 6.0.+, use
-   `Cluster-to-Cluster Sync <https://www.mongodb.com/docs/cluster-to-cluster-sync/current/>`__.
+   You can't use |mongomirror| to migrate from a source replica set 6.0.x
+   or later to a destination replica set 6.0.x or later. To migrate replica sets
+   6.0.x or later, upgrade MongoDB to at least 6.0.4 and use
+   :ref:`this live migration procedure <c2c-pull-live-migration>`.
 
 .. list-table::
    :header-rows: 1
@@ -175,7 +170,7 @@ Upgrade Path
 .. note::
 
    To downgrade from 5.0 to 4.4, or 4.4 to 4.2, the source |fcv-link|
-   must match the target.
+   must match the destination.
 
 Download ``mongomirror``
 ------------------------
@@ -183,8 +178,8 @@ Download ``mongomirror``
 .. note::
 
    On macOS 64-bit, a security alert appears when you first try to open
-   the ``mongomirror`` file after you have downloaded it. To proceed,
-   see `Open an app by overriding security settings
+   the ``mongomirror`` file after you have downloaded it. To proceed, see
+   `Open an app by overriding security settings
    <https://support.apple.com/guide/mac-help/open-an-app-by-overriding-security-settings-mh40617/12.0/mac/12.0>`__.
 
 .. include:: /includes/list-table-mongomirror-downloads.rst
@@ -197,27 +192,27 @@ When you start |mongomirror|, it:
 #. Connects to |service| over |tls-ssl|.
 
 #. Performs an initial sync, copying collections from the existing MongoDB
-   replica set to the target cluster in |service|.
+   replica set to the destination {+cluster+} in |service|.
 
 #. After the initial sync, continuously tails the replica set's oplog
-   for incoming changes and replays them on the target cluster in |service|.
-   |mongomirror| does not copy the ``config`` database. As of version
+   for incoming changes and replays them on the destination {+cluster+} in |service|.
+   |mongomirror| doesn't copy the ``config`` database. As of version
    0.9.0, |mongomirror| uses wire compression if you enable it on either
-   the source or the target cluster and use :option:`--compressors`
+   the source or the destination {+cluster+} and use :option:`--compressors`
    to specify which compression libraries to allow.
 
    .. note::
 
       Starting in version 0.5.0, |mongomirror| builds all indexes on the
-      target cluster in the foreground, regardless of how the indexes were
-      built on the source cluster. Foreground index builds block all other
+      destination {+cluster+} in the foreground, regardless of how the indexes were
+      built on the source {+cluster+}. Foreground index builds block all other
       operations on the database. To learn more, see :manual:`Index Build Operations on a Populated Collection
       </core/index-creation>`.
 
 Once started, |mongomirror| runs continuously until you shut it down:
 
 - If you shut down |mongomirror| during the initial sync stage,
-  before you restart |mongomirror|, check that the target cluster
+  before you restart |mongomirror|, check that the destination {+cluster+}
   is empty, or run |mongomirror| with :option:`--drop`.
 
 - If you shut down |mongomirror| during the :term:`oplog` tailing
@@ -239,9 +234,8 @@ To complete the migration process, :ref:`switch to Atlas <mongomirror-migrate-to
 Switch to |service|
 -------------------
 
-After |mongomirror| completes the initial sync and tails
-the replica set's oplog, you can switch over to the target
-|service| cluster.
+After |mongomirror| completes the initial sync and tails the replica set's
+oplog, you can switch over to the destination |service| {+cluster+}.
 
 .. include:: /includes/steps/migrate-using-mongomirror-switch.rst
 
@@ -259,8 +253,8 @@ collection it copies. For example:
    2021-08-09T16:35:50.227-0000  [#############........]  zoo.animals  29000/49778  (58.3%)
 
 When tailing the oplog, |mongomirror| logs the lag time, in seconds,
-between the most recent oplog entry on the source cluster and the last
-processed oplog entry on the target cluster. For example:
+between the most recent oplog entry on the source {+cluster+} and the last
+processed oplog entry on the destination {+cluster+}. For example:
 
 .. code-block:: sh
    :copyable: false
@@ -269,7 +263,7 @@ processed oplog entry on the target cluster. For example:
 
 A lag time of 6 seconds means that the last oplog entry
 |mongomirror| processed occurred 6 seconds before the most
-recent one available on the source cluster.
+recent one available on the source {+cluster+}.
 
 .. note::
 
@@ -280,14 +274,14 @@ recent one available on the source cluster.
 A lag time of 0 seconds indicates that |mongomirror| is processing
 entries that arrived less than one second before the latest oplog entry.
 
-If the source cluster has indexes, |mongomirror| builds the same indexes
-on the target cluster. The progress log shows the start and end times of
+If the source {+cluster+} has indexes, |mongomirror| builds the same indexes
+on the destination {+cluster+}. The progress log shows the start and end times of
 the index building process. To view the progress of the index builds,
 you can either:
 
 - Use the :manual:`currentOp </reference/method/db.currentOp/#db.currentOp>`
-  command on the primary node of the target cluster. The ``command`` field
-  shows information about the running operation. Index building entries
+  command on the primary node of the destination {+cluster+}. The ``command``
+  field shows information about the running operation. Index building entries
   look similar to the following:
 
   .. code-block:: json
@@ -304,7 +298,7 @@ you can either:
 			}
 		]...
 
-- Download the :ref:`mongodb logs <mongodb-logs>` for your target cluster
+- Download the :ref:`mongodb logs <mongodb-logs>` for your destination {+cluster+}
   and search for recent entries for index-related lines. Log messages related
   to index building look similar to the following:
 

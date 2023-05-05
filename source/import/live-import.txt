@@ -14,26 +14,28 @@ Live Migrate (Pull) a Replica Set into Atlas
 
 .. include:: /includes/serverless-dont-use.rst
 
+.. include:: /includes/fact-c2c.rst
+
 |service| can pull a source replica set to an |service| {+cluster+} using
-the live migration process. |service| keeps the target {+cluster+} in sync
-with the remote source {+cluster+} until you cut your applications over
-to the target |service| {+cluster+}.
+the live migration process. |service| syncs from the source to the destination
+{+cluster+} until you cut your applications over to the destination |service|
+{+cluster+}.
 
 Once you reach the cutover step in the following procedure, stop
-writes to the source {+cluster+}: stop your application instances,
+writes to the source {+cluster+}. Stop your application instances,
 point them to the |service| {+cluster+}, and restart them.
 
 Restrictions
 ------------
 
 - You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared {+cluster+} as the
-  source or target for live migration. To migrate data from an
+  source or destination for live migration. To migrate data from an
   ``M0`` (Free Tier) or ``M2/M5`` shared {+cluster+} to a paid {+cluster+},
   :doc:`change the cluster tier and type </scale-cluster>`.
 
   - Live migration (pull) doesn't support :ref:`VPC peering <vpc-peering>` or
     :ref:`private endpoints <private-endpoint>` for either the source or
-    target {+cluster+}.
+    destination {+cluster+}.
 
   To live migrate a sharded {+cluster+}, see
   :doc:`Live Migrate (Pull) a Sharded Cluster into Atlas </import/live-import-sharded>`.
@@ -71,7 +73,10 @@ Migration Path
    You can't migrate your {+cluster+} to MongoDB v6.0 or later.
    
    If you are migrating from a MongoDB 4.0 {+cluster+}, update and test
-   your applications in context of the target |service| {+cluster+}.
+   your applications in context of the destination |service| {+cluster+}.
+
+Network Access
+~~~~~~~~~~~~~~~
 
 .. _live-import-ip-access-list:
 
@@ -83,7 +88,7 @@ Pre-Migration Validation
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 Before starting the pull live migration procedure, |service| runs validation
-checks on the source and target {+clusters+}.
+checks on the source and destination {+clusters+}.
 
 - The source {+cluster+} is a replica set.
 
@@ -91,7 +96,7 @@ checks on the source and target {+clusters+}.
   :manual:`convert the standalone to a replica set first </tutorial/convert-standalone-to-replica-set>`
   before using the :doc:`pull-type live migration </import/live-import>`.
 
-- The target |service| {+cluster+} is a replica set.
+- The destination |service| {+cluster+} is a replica set.
 
 .. note::
    Unlike for :ref:`sharded clusters <live-import-sharded-migration-validation>`,
@@ -112,7 +117,7 @@ Source {+Cluster+} Security
 
 If the source {+cluster+} uses a different authentication mechanism to
 connect, you can use :doc:`mongomirror </import/mongomirror>` to 
-migrate data from the source {+cluster+} to the target |service| {+cluster+}.
+migrate data from the source {+cluster+} to the destination |service| {+cluster+}.
 
 Index Key Limits
 ~~~~~~~~~~~~~~~~
@@ -127,10 +132,12 @@ Considerations
 Database Users and Roles
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| doesn't migrate any user or role data to the target {+cluster+}.
+|service| doesn't migrate any user or role data to the destination {+cluster+}.
 
-If the source {+cluster+} enforced authentication, you must re-create the
-credentials that your applications use on the target |service| {+cluster+}.
+.. include:: /includes/fact-create-atlas-user.rst
+
+If the source {+cluster+} enforces authentication, you must recreate the
+credentials that your applications use on the destination |service| {+cluster+}.
 |service| uses :ref:`SCRAM <authentication-scram>` for user authentication.
 To learn more, see :doc:`/security-add-mongodb-users`.
 
@@ -139,16 +146,16 @@ To learn more, see :doc:`/security-add-mongodb-users`.
 Target {+Cluster+} Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When you configure the target {+cluster+}, consider the following:
+When you configure the destination {+cluster+}, consider the following:
 
 .. include:: /includes/fact-live-migration-destination-cluster.rst
 
 .. include:: /includes/fact-live-migration-perf-target-cluster.rst
 
-- The target |service| {+cluster+} must be a replica set.
+- The destination |service| {+cluster+} must be a replica set.
 
 - You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared-tier
-  {+cluster+} as the target {+cluster+} for live migration.
+  {+cluster+} as the destination {+cluster+} for live migration.
 
 - You can't migrate your {+cluster+} to MongoDB v6.0 or later.
 
@@ -209,6 +216,9 @@ Procedure
 ~~~~~~~~~
 
 .. include:: /includes/steps/atlas-live-import.rst
+
+Migration Support
+-----------------
 
 .. _live-migration-support:
 
