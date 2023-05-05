@@ -12,6 +12,10 @@
   `CVE-2022-40152 <https://nvd.nist.gov/vuln/detail/CVE-2022-40152>`_.
 - Defaults the :guilabel:`Backup Multiple Workers Per File` option to 
   :guilabel:`On`.
+- Adds the ability to regularly rotate the 
+  ``automation-agent-fatal.log`` file. 
+  :ref:`Reinstall the MongoDB Agent <update-agent-fatal-log-rotation>` 
+  to enable automatic fatal log file rotation.
 
 .. _opsmgr-server-6.0.12:
 
