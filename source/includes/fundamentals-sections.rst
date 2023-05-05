@@ -16,4 +16,4 @@ Fundamentals section:
 - :doc:`Encrypt Fields from the Client </fundamentals/encrypt-fields>`
 - :doc:`Create and Query Time Series Collection </fundamentals/time-series>`
 - :doc:`Specify Type Parameters with TypeScript </fundamentals/typescript>`
-- :doc:`Specify UTF-8 Validation Settings </fundamentals/utf8-validation>`
+- :doc:`Specify BSON Serialization Settings </fundamentals/bson>`
