@@ -1,0 +1,337 @@
+===================
+createSearchIndexes
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: createSearchIndexes
+
+   Creates one or more :atlas:`{+fts+} indexes
+   </atlas-search/atlas-search-overview/#fts-indexes>` on a specified
+   database and collection.
+
+   .. important::
+
+      This command can only be run on a deployment hosted on
+      :atlas:`MongoDB Atlas </>`.
+
+Syntax
+------
+
+The ``createSearchIndexes`` command takes the following form:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      {
+         createSearchIndexes: "<collection name>",
+         indexes: [
+            {
+               name: "<index name>",
+               definition: {
+                  /* search index definition fields */
+               } 
+           },
+           ...
+         ]
+      }
+   )
+
+Command Fields
+--------------
+
+The ``createSearchIndexes`` command takes the following fields:
+
+.. list-table::
+  :header-rows: 1
+  :widths: 20 20 20 80
+
+  * - Field
+    - Type
+    - Necessity
+    - Description
+
+  * - ``createSearchIndexes``
+    - string
+    - Required
+    - Name of the collection on which to create the search index.
+
+  * - ``indexes``
+    - array
+    - Required
+    - Array of documents describing the indexes to create.
+
+  * - ``indexes.name``
+    - string
+    - Optional
+    - Name of the search index to create.
+    
+      You cannot create multiple indexes with the same name on a single
+      collection.
+      
+      If you do not specify a ``name``, the index is named ``default``.
+
+  * - ``indexes.definition``
+    - document
+    - Required
+    - Document describing the index to create. For details on
+      ``definition`` syntax, see :ref:`search-index-definition`.
+
+.. _search-index-definition:
+
+Search Index Definition Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The search index definition takes the following fields:
+
+.. code-block:: javascript
+
+   {
+      analyzer: "<analyzer-for-index>", 
+      searchAnalyzer: "<analyzer-for-query>", 
+      mappings: { 
+         dynamic: <boolean>,
+         fields: { <field-definition> } 
+      },
+      analyzers: [ <custom-analyzer> ],
+      storedSource: <boolean> | {
+         <stored-source-definition>
+      },
+      synonyms: [ {
+         name: "<synonym-mapping-name>",
+         source: {
+            collection: "<source-collection-name>"
+         },
+         analyzer: "<synonym-mapping-analyzer>"
+      } ]
+   }
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 20 80
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``analyzer``
+     - string 
+     - Optional 
+     - Specifies the :ref:`analyzer <analyzers-ref>` to apply to 
+       string fields when indexing.
+       
+       If you omit this field, the index uses the :ref:`standard analyzer
+       <ref-standard-analyzer>`.
+
+   * - ``searchAnalyzer``
+     - string 
+     - Optional
+     - Specifies the :ref:`analyzer <analyzers-ref>` to apply to query
+       text before the text is searched.
+       
+       If you omit this field, the index uses the same analyzer specified
+       in the ``analyzer`` field.
+       
+       If you omit both the ``searchAnalyzer`` and the ``analyzer``
+       fields, the index uses the :ref:`standard analyzer
+       <ref-standard-analyzer>`.
+
+   * - ``mappings``
+     - object
+     - Optional
+     - Specifies how to index fields on different paths for this index.
+
+   * - ``mappings.dynamic``
+     - boolean
+     - Optional
+     - Enables or disables dynamic field mapping for this index.
+     
+       If set to ``true``, the index contains all fields containing
+       :ref:`supported data types <bson-data-chart>`.
+
+       If set to ``false``, you must specify individual fields to index 
+       using ``mappings.fields``.
+
+       If omitted, defaults to ``false``.
+
+   * - ``mappings.fields``
+     - document
+     - Conditional
+     - Required only if dynamic mapping is disabled. 
+     
+       Specifies the fields to index. To learn more, see
+       :ref:`fts-field-mappings`. 
+
+   * - ``analyzers``
+     - array
+     - Optional 
+     - Specifies the :ref:`custom-analyzers` to use in this index.
+
+   * - ``storedSource`` 
+     - boolean or :ref:`Stored Source Definition  
+       <fts-stored-source-definition>` 
+     - Optional 
+     - Specifies document fields to store for queries performed using
+       the :ref:`returnedStoredSource <fts-return-stored-source-option>`
+       option.
+       
+       You can store fields of all :ref:`bson-data-chart` on {+fts+}.
+       The ``storedSource`` value can be one of these:
+
+       - ``true``, to store all fields  
+       - ``false``, to not store any fields 
+       - An :ref:`object <fts-stored-source-document>` that specifies the
+         fields to ``include`` or ``exclude`` from storage
+
+       If omitted, defaults to ``false``.
+
+       To learn more, see :ref:`fts-stored-source-definition`.
+
+   * - ``synonyms`` 
+     - array of :ref:`Synonym Mapping Definitions <synonyms-ref>`
+     - Optional 
+     - Specifies synonym mappings to use in your index. Configuring
+       synonyms allows you to you index and search for words that have
+       the same or a similar meaning.
+       
+       To learn more, see :ref:`synonyms-ref`.
+
+Access Control
+--------------
+
+If your deployment enforces access control, the user running the
+``createSearchIndex`` command must have the ``createSearchIndex``
+privilege action on the database. That is, a user must have a :ref:`role
+<roles>` that grants the following :ref:`privilege <privileges>`:
+
+.. code-block:: javascript
+
+   { resource: { database : true }, actions: [ "createSearchIndex" ] }
+
+The built-in :authrole:`readWrite` role provides the
+``createSearchIndex`` privilege. The following example command grants
+``accountUser01`` the ``readWrite`` role on the ``products`` database:
+
+.. code-block:: javascript
+
+   db.grantRolesToUser(
+      "accountUser01",
+      [ { role: "readWrite", db: "products" } ]
+   )
+
+Examples
+--------
+
+Create a Search Index on All Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command creates a search index named ``searchIndex01`` on
+the ``contacts`` collection:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "contacts",
+      indexes: [
+         {
+            name: "searchIndex01",
+            definition: { mappings: { dynamic: true } }
+         }
+      ]
+   } )
+
+The index definition specifies ``mappings: { dynamic: true }``, which
+means that the index contains all fields in the collection that have
+:ref:`supported data types <bson-data-chart>`.
+
+Create a Search Index with a Language Analyzer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A language analyzer changes which words the index uses as stop-words,
+which are words that are not significant enough to be indexed.
+
+The following command creates a search index named ``frenchIndex01`` on
+the ``cars`` collection, and specifies the ``lucene.french`` analyzer on
+the ``fr`` field:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "cars",
+      indexes: [
+         {
+            name: "frenchIndex01",
+            definition: {
+               mappings: {
+                 fields: {
+                   subject: {
+                     fields: {
+                       fr: {
+                         analyzer: "lucene.french",
+                         type: "string"
+                       }
+                     },
+                     type: "document"
+                   }
+                 }
+               }
+             }
+         }
+      ]
+   } )
+
+To learn more about language analyzers, see
+:ref:`ref-language-analyzers`.
+
+Create Multiple Search Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command creates two search indexes on the ``products``
+collection, ``searchIndex02`` and ``searchIndex03``:
+
+.. code-block:: javascript
+
+   db.runCommand( {
+      createSearchIndexes: "products",
+      indexes: [
+         {
+            name: "searchIndex02",
+            definition: {
+               mappings: {
+                  fields: {
+                     title: {
+                        type: "string",
+                        analyzer: "lucene.simple"
+                     }
+                  }
+               }
+            }
+         },
+         {
+            name: "searchIndex03",
+            definition:
+               {
+                  mappings: { dynamic: true }
+               }
+         }
+      ]
+   } )
+
+``searchIndex02`` uses a :ref:`simple analyzer <ref-simple-analyzer>` on
+the ``title`` field. The simple analyzer divides text into searchable
+terms based on non-letter characters, such as whitespace, punctuation,
+or digits.
+
+``searchIndex03`` uses a dynamic field mapping, meaning the index
+contains all fields in the collection that have :ref:`supported data
+types <bson-data-chart>`.
