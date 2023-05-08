@@ -6,6 +6,7 @@ client = pymongo.MongoClient('<connection-string>')
 # define pipeline
 pipeline = [
   {'$search': {
+      'index': 'diacritic-insensitive-tutorial',
       'compound': {
         'must': [{'wildcard': {'path': 'title', 'query': 'alle*', 'allowAnalyzedField': True}}],
         'should': [{'text': {'query': 'Drama', 'path': 'genres'}}]}}},

@@ -24,7 +24,8 @@ public class IsNullQuery
         var results = usersCollection.Aggregate()
             .Search(Builders<UserDocument>.Search.Compound()
                 .Must(Builders<UserDocument>.Search.Exists(user => user.Password))
-                .MustNot(Builders<UserDocument>.Search.Wildcard(user => user.Password, "*", true)))
+                .MustNot(Builders<UserDocument>.Search.Wildcard(user => user.Password, "*", true)),
+                indexName: "null-check-tutorial")
                 .ToList();
 
         // print results

@@ -34,8 +34,8 @@ public class SortForPrecision {
     Document agg =
         new Document(
             "$search",
-            new Document(
-                "compound",
+            new Document("index", "sort-tutorial")
+            .append("compound",
                 new Document("should", shouldClause))
                 .append("returnStoredSource", true));
     

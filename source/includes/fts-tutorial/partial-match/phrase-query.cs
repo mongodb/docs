@@ -20,7 +20,8 @@ public class PartialPhrase {
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Phrase(movie => movie.Plot, "new purpose", 5), new SearchHighlightOptions<MovieDocument>(movie => movie.Plot))
+            .Search(Builders<MovieDocument>.Search.Phrase(movie => movie.Plot, "new purpose", 5), new SearchHighlightOptions<MovieDocument>(movie => movie.Plot),
+                indexName: "partial-match-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)

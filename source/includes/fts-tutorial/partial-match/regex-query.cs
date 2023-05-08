@@ -20,7 +20,8 @@ public class PartialRegex {
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Regex(movie => movie.Plot, "(.*)new(.*) pur(.*)"))
+            .Search(Builders<MovieDocument>.Search.Regex(movie => movie.Plot, "(.*)new(.*) pur(.*)"),
+                indexName: "partial-match-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)

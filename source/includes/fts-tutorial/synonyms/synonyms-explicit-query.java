@@ -15,16 +15,23 @@ import org.bson.Document;
 public class SynonymsExplicitQuery {
   public static void main( String[] args ) {
     // define query
-    Document agg = new Document("query", "boat").append("path","title").append("synonyms", "transportSynonyms");
+    Document agg = new Document("$search",
+        new Document("index", "synonyms-tutorial")
+        .append("text", 
+            new Document("query", "boat")
+            .append("path","title")
+            .append("synonyms", "transportSynonyms")));
+
     // specify connection
     String uri = "<connection-string>";
+
     // establish connection and set namespace
     try (MongoClient mongoClient = MongoClients.create(uri)) {
       MongoDatabase database = mongoClient.getDatabase("sample_mflix");
       MongoCollection<Document> collection = database.getCollection("movies");
-			// run query and print results
-      collection.aggregate(Arrays.asList(
-        eq("$search", eq("text", agg)), 
+			
+      // run query and print results
+      collection.aggregate(Arrays.asList(agg, 
         limit(10), 
         project(fields(excludeId(), include("title"), computed("score", new Document("$meta", "searchScore")))))
       ).forEach(doc -> System.out.println(doc.toJson()));	

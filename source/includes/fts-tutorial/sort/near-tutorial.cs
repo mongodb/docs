@@ -22,7 +22,8 @@ public class SortNumberForSpeed
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Near(movie => movie.Year, 2015, 5))
+            .Search(Builders<MovieDocument>.Search.Near(movie => movie.Year, 2015, 5),
+            indexName: "sort-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Released)
                 .Include(movie => movie.Title)

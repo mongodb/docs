@@ -5,6 +5,7 @@ client = pymongo.MongoClient('<connection-string>')
 result = client['sample_mflix']['movies'].aggregate([
   {
     '$search': {
+      'index': 'partial-match-tutorial',
       'autocomplete': {
         'path': 'plot',
         'query': 'new purchase',

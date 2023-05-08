@@ -15,7 +15,9 @@ async function run() {
         const coll = database.collection("movies");
 
         // define pipeline
-        const agg = [{$searchMeta: {facet: {
+        const agg = [{$searchMeta: {
+          index: "facet-tutorial",
+          facet: {
                 operator: {
                   near: {path: "released", origin: new Date("1921-11-01T00:00:00.000Z"), pivot: 7776000000}
                 },

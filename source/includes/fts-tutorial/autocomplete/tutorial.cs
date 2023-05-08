@@ -22,7 +22,7 @@ public class AutocompleteBasicExample
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "ger"))
+            .Search(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "ger"), indexName: "autocomplete-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id))

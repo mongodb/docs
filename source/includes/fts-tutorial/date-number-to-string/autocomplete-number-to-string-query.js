@@ -4,6 +4,7 @@ const assert = require("assert");
 const agg = [
   {
     '$search': {
+      'index': 'date-number-fields-tutorial',
       'compound': {
         'should': [
           {

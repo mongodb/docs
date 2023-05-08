@@ -24,7 +24,8 @@ public class DiacriticInsensitiveExample
         var results = moviesCollection.Aggregate()
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Must(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "alle*", true))
-                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Drama")))
+                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Drama")),
+             indexName: "diacritic-insensitive-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Include(movie => movie.Genres)

@@ -18,6 +18,7 @@ async function run() {
         const agg = [
             {
                 '$search': {
+                    'index': 'null-check-tutorial',
                     'compound': {
                         'should': [{
                             'wildcard': {

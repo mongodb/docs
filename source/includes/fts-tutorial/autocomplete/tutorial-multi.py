@@ -7,6 +7,7 @@ client = pymongo.MongoClient('<connection-string>')
 pipeline = [
     {
         '$search': {
+            'index': 'autocomplete-tutorial',
             'compound': {
                 'should': [
                     {

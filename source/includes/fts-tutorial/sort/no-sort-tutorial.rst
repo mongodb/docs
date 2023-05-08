@@ -9,6 +9,7 @@
      - .. code-block:: javascript
 
           {
+            index: "sort-tutorial",
             compound: {
               should: [{
                 wildcard: {

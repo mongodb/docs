@@ -6,6 +6,7 @@ client = pymongo.MongoClient('<connection-string>')
 # define pipeline
 pipeline = [{
     '$search': {
+        'index': 'null-check-tutorial',
         'compound': {
             'must': {
                 'exists': {

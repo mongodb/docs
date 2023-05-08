@@ -9,6 +9,7 @@
      - .. code-block:: javascript
 
           {
+            "index": "multilingual-tutorial",
             "compound": { 
               "must": [{ 
                 "text": { 

@@ -28,10 +28,11 @@ public class TwoLanguagesQuery {
         // define query
         Document agg = 
             new Document( "$search",
-                new Document( "compound",
+                new Document( "index", "multilingual-tutorial")
+                .append("compound",
                     new Document().append("must", mustClauses)
                     .append("mustNot", mustNotClauses)
-                    .append("should", shouldClauses)));
+                    .append("should", shouldClauses))));
         
         // specify connection
         String uri = "<connection-string>";

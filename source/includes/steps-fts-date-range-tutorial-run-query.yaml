@@ -31,86 +31,90 @@ content: |
     fields
   - Add a field named ``score`` 
 
-  .. code-block:: json 
+  .. io-code-block::
+     :copyable: true 
 
-     db.movies.aggregate([
-       {
-         "$search": {
-            "compound": {
-              "must": [{
-                "range": {
-                  "path": "released",
-                  "gt": ISODate("2015-01-01T00:00:00.000Z"),
-                  "lt": ISODate("2015-12-31T00:00:00.000Z")
+     .. input:: 
+        :language: json 
+
+        db.movies.aggregate([
+          {
+            "$search": {
+                "index": "date-range-tutorial",
+                "compound": {
+                  "must": [{
+                    "range": {
+                      "path": "released",
+                      "gt": ISODate("2015-01-01T00:00:00.000Z"),
+                      "lt": ISODate("2015-12-31T00:00:00.000Z")
+                    }
+                  }],
+                  "should": [{
+                    "near": {
+                      "path": "released",
+                      "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
+                      "pivot": 2629800000
+                    }
+                  }]
                 }
-              }],
-              "should": [{
-                "near": {
-                  "path": "released",
-                  "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
-                  "pivot": 2629800000
-                }
-              }]
+              }
+            },
+            {
+              "$limit": 6
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "released": 1,
+                "genres": 1,
+                "score": { "$meta": "searchScore" }
+              }
             }
+          ])
+        
+     .. output::
+        :language: json
+        :visible: true
+        
+        [
+          {
+            "genres": [ "Action", "Adventure", "Sci-Fi" ],
+            "title": "Terminator Genisys",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama", "Music" ],
+            "title": "Magic Mike XXL",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Documentary", "Biography", "Drama" ],
+            "title": "Mala Mala",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama" ],
+            "title": "Home Care",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Documentary", "News" ],
+            "title": "Bitcoin: The End of Money as We Know It",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Drama", "Mystery", "Sci-Fi" ],
+            "title": "Pig",
+            "released": ISODate("2015-07-02T00:00:00.000Z"),
+            "score": 1.9681909084320068
           }
-        },
-        {
-          "$limit": 6
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "released": 1,
-            "genres": 1,
-            "score": { "$meta": "searchScore" }
-          }
-        }
-      ])
-
-  |fts| returns the following results: 
-
-  .. code-block:: json 
-     :copyable: false 
-
-     [
-       {
-         "genres": [ "Action", "Adventure", "Sci-Fi" ],
-         "title": "Terminator Genisys",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Comedy", "Drama", "Music" ],
-         "title": "Magic Mike XXL",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Documentary", "Biography", "Drama" ],
-         "title": "Mala Mala",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Comedy", "Drama" ],
-         "title": "Home Care",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Documentary", "News" ],
-         "title": "Bitcoin: The End of Money as We Know It",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Drama", "Mystery", "Sci-Fi" ],
-         "title": "Pig",
-         "released": ISODate("2015-07-02T00:00:00.000Z"),
-         "score": 1.9681909084320068
-       }
-     ]
+        ]
 
   For the query, the top results are in the month of July because the 
   ``should`` clause specified a preference for movies near July. 
@@ -122,92 +126,95 @@ content: |
   ``mustNot`` clause to specify that movies in the ``documentary`` 
   genre must not be included in the results.
 
-  .. code-block:: json 
+  .. io-code-block::
+     :copyable: true 
 
-     db.movies.aggregate([
-       {
-         "$search": {
-            "compound": {
-              "must": [{
-                "range": {
-                  "path": "released",
-                  "gt": ISODate("2015-01-01T00:00:00.000Z"),
-                  "lt": ISODate("2015-12-31T00:00:00.000Z")
+     .. input:: 
+        :language: json 
+
+        db.movies.aggregate([
+          {
+            "$search": {
+                "compound": {
+                  "must": [{
+                    "range": {
+                      "path": "released",
+                      "gt": ISODate("2015-01-01T00:00:00.000Z"),
+                      "lt": ISODate("2015-12-31T00:00:00.000Z")
+                    }
+                  }],
+                  "should": [{
+                    "near": {
+                      "path": "released",
+                      "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
+                      "pivot": 2629800000
+                    }
+                  }],
+                  "mustNot": [{
+                    "text": {
+                      "query": "documentary",
+                      "path": "genres"
+                    }
+                  }]
                 }
-              }],
-              "should": [{
-                "near": {
-                  "path": "released",
-                  "origin": ISODate("2015-07-01T00:00:00.000+00:00"),
-                  "pivot": 2629800000
-                }
-              }],
-              "mustNot": [{
-                "text": {
-                  "query": "documentary",
-                  "path": "genres"
-                }
-              }]
+              }
+            },
+            {
+              "$limit": 10
+            },
+            {
+              "$project": {
+                "_id": 0,
+                "title": 1,
+                "released": 1,
+                "genres": 1,
+                "score": { "$meta": "searchScore" }
+              }
             }
+          ])
+        
+     .. output::
+        :language: json
+        :visible: true
+        
+        [
+          {
+            "genres": [ "Action", "Adventure", "Sci-Fi" ],
+            "title": "Terminator Genisys",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama", "Music" ],
+            "title": "Magic Mike XXL",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Comedy", "Drama" ],
+            "title": "Home Care",
+            "released": ISODate("2015-07-01T00:00:00.000Z"),
+            "score": 2
+          },
+          {
+            "genres": [ "Drama", "Mystery", "Sci-Fi" ],
+            "title": "Pig",
+            "released": ISODate("2015-07-02T00:00:00.000Z"),
+            "score": 1.9681909084320068
+          },
+          {
+            "genres": [ "Drama", "History", "Romance" ],
+            "title": "Gold Coast",
+            "released": ISODate("2015-07-02T00:00:00.000Z"),
+            "score": 1.9681909084320068
+          },
+          {
+            "genres": [ "Animation", "Family" ],
+            "title": "Zarafa",
+            "released": ISODate("2015-07-03T00:00:00.000Z"),
+            "score": 1.9383430480957031
           }
-        },
-        {
-          "$limit": 10
-        },
-        {
-          "$project": {
-            "_id": 0,
-            "title": 1,
-            "released": 1,
-            "genres": 1,
-            "score": { "$meta": "searchScore" }
-          }
-        }
-      ])
-
-  |fts| returns the following results: 
-
-  .. code-block:: json 
-     :copyable: false 
-
-     [
-       {
-         "genres": [ "Action", "Adventure", "Sci-Fi" ],
-         "title": "Terminator Genisys",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Comedy", "Drama", "Music" ],
-         "title": "Magic Mike XXL",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Comedy", "Drama" ],
-         "title": "Home Care",
-         "released": ISODate("2015-07-01T00:00:00.000Z"),
-         "score": 2
-       },
-       {
-         "genres": [ "Drama", "Mystery", "Sci-Fi" ],
-         "title": "Pig",
-         "released": ISODate("2015-07-02T00:00:00.000Z"),
-         "score": 1.9681909084320068
-       },
-       {
-         "genres": [ "Drama", "History", "Romance" ],
-         "title": "Gold Coast",
-         "released": ISODate("2015-07-02T00:00:00.000Z"),
-         "score": 1.9681909084320068
-       },
-       {
-         "genres": [ "Animation", "Family" ],
-         "title": "Zarafa",
-         "released": ISODate("2015-07-03T00:00:00.000Z"),
-         "score": 1.9383430480957031
-       }
-     ]
+        ]
 
   For the query, the top results are in the month of July because the 
   ``should`` clause specified a preference for movies near July. 

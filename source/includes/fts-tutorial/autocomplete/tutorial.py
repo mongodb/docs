@@ -5,7 +5,7 @@ client = pymongo.MongoClient('<connection-string>')
 
 # define pipeline
 pipeline = [
-    {"$search": {"autocomplete": {"query": "ger", "path": "title"}}},
+    {"$search": {"index": "autocomplete-tutorial", "autocomplete": {"query": "ger", "path": "title"}}},
     {"$limit": 20},
     {"$project": {"_id": 0, "title": 1}},
 ]

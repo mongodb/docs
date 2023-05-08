@@ -29,7 +29,8 @@ public class TwoLanguagesExample
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Must(Builders<MovieDocument>.Search.Text(Builders<MovieDocument>.SearchPath.Analyzer(movie => movie.Fullplot, "fullplot_english"), "Bella"))
                 .MustNot(Builders<MovieDocument>.Search.Range(movie => movie.Released, SearchRangeBuilder.Gt(startDate).Lt(endDate)))
-                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Comedy")))
+                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Comedy")),
+                indexName: "multilingual-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Fullplot)
                 .Include(movie => movie.Genres)

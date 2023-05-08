@@ -5,7 +5,7 @@ client = pymongo.MongoClient('<connection-string>')
 result = client['sample_mflix']['movies'].aggregate([
     {
         '$search': {
-            'index': 'default',
+            'index': 'compound-query-custom-score-tutorial',
             'compound': {
                 'must': [
                     {

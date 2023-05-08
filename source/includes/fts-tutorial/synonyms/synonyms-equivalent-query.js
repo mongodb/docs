@@ -4,6 +4,7 @@ const assert = require("assert");
 const agg = [
   {
     $search: {
+      index: "synonyms-tutorial",
       text: {
         path: "title",
         query: "automobile",

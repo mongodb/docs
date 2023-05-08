@@ -22,7 +22,8 @@ public class DiacriticInsensitive {
                 .append("path", "genres")));
         // define pipeline
         Document agg = new Document( "$search",
-            new Document("compound",
+            new Document("index", "diacritic-insensitive-tutorial")
+            .append("compound",
                 new Document("must", mustClauses)
                 .append("should", shouldClauses)));
 

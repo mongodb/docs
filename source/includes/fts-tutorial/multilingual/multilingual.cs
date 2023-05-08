@@ -29,7 +29,8 @@ public class OneLanguageExample
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Must(Builders<MovieDocument>.Search.Text(movie => movie.Fullplot, "coppia"))
                 .MustNot(Builders<MovieDocument>.Search.Range(movie => movie.Released, SearchRangeBuilder.Gt(startDate).Lt(endDate)))
-                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Drama")))
+                .Should(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "Drama")),
+                indexName: "multilingual-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Fullplot)
                 .Include(movie => movie.Genres)

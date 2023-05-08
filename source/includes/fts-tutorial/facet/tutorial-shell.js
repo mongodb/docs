@@ -1,6 +1,7 @@
 db.movies.aggregate([
   {
     "$searchMeta": {
+      "index": "facet-tutorial",
       "facet": {
         "operator": {
           "near": {

@@ -28,7 +28,8 @@ public class PartialAutocomplete {
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Plot, "new purchase", SearchAutocompleteTokenOrder.Any, fuzzy: fuzzyOptions), new SearchHighlightOptions<MovieDocument>(movie => movie.Plot))
+            .Search(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Plot, "new purchase", SearchAutocompleteTokenOrder.Any, fuzzy: fuzzyOptions), new SearchHighlightOptions<MovieDocument>(movie => movie.Plot),
+                indexName: "partial-match-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)

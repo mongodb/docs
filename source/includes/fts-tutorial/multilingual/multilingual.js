@@ -17,6 +17,7 @@ async function run() {
         // define pipeline
         const agg = [
             { $search: { 
+                index: "multilingual-tutorial",
                 compound: { 
                     must: [{ text: { path: "fullplot", query:  "coppia"} }], 
                     mustNot: [{ range: { path: "released", gt: new Date("2000-01-01T00:00:00.000Z"), lt: new Date("2009-01-01T00:00:00.000Z") } }], 

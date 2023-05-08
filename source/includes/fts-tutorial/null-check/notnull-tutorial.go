@@ -19,19 +19,20 @@ func main() {
 	// set namespace
 	collection := client.Database("sample_mflix").Collection("users")
 	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.D{{
-		"compound", bson.D{{
-			"should", bson.A{ bson.D{{
-				"wildcard",bson.D{
+	searchStage := bson.D{{"$search", bson.D{
+		{"index", "null-check-tutorial"},
+		{"compound", bson.D{{
+			"should", bson.A{bson.D{{
+				"wildcard", bson.D{
 					{"path", "password"},
 					{"query", "*"},
-					{"allowAnalyzedField", true},},},}, bson.D{{
-		"compound",bson.D{{
-			"mustNot", bson.D{{
-				"exists", bson.D{
-					{"path", "password"}}}}},
+					{"allowAnalyzedField", true}}}}, bson.D{{
+				"compound", bson.D{{
+					"mustNot", bson.D{{
+						"exists", bson.D{
+							{"path", "password"}}}}},
 					{"score", bson.D{{"constant", bson.D{{"value", 2}}}}},
-											},},},},},},},},},}
+				}}}}}}}}}}
 	projectStage := bson.D{{"$project", bson.D{{"name", 1}, {"password", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
 	limitStage := bson.D{{"$limit", 5}}
 	// run pipeline

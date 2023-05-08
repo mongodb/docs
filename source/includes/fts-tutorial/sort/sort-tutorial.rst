@@ -9,6 +9,7 @@
      - .. code-block:: javascript
 
           {
+            index: "sort-tutorial",
             autocomplete: {
               path: 'title',
               query: "Happy"

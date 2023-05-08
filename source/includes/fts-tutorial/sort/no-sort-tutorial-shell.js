@@ -1,6 +1,7 @@
 db.movies.aggregate([{ 
   $search: { 
-    compound: {
+    "index": "sort-tutorial",
+    "compound": {
       "should": [{
         "wildcard": {
           "query": ["Prance*"],

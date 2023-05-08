@@ -1,6 +1,7 @@
 db.users.aggregate([
     {
         $search: {
+            "index": "null-check-tutorial",
             "compound": {
                 "should": [{
                         "wildcard": {

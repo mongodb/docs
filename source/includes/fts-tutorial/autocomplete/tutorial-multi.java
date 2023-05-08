@@ -23,7 +23,8 @@ public class AutocompleteQuery {
             
             // define pipeline
             Document agg = new Document("$search", 
-                new Document("compound", 
+                new Document("index", "autocomplete-tutorial")
+                .append("compound", 
                 new Document("should", Arrays.asList(new Document("autocomplete", 
                                 new Document("query", "pri")
                                         .append("path", "title")), 

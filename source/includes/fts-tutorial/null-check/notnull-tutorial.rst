@@ -9,6 +9,7 @@
      - .. code-block:: javascript
 
           {
+              "index": "null-check-tutorial",
               "compound": {
                 "should": [{
                     "wildcard": {

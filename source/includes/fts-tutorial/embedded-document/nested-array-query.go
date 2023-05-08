@@ -22,46 +22,47 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
-	"embeddedDocument": bson.M{
-      "path": "teachers",
-      "operator": bson.M{
-		"compound": bson.M{
-	      "must": bson.A{
-            bson.M{
-              "embeddedDocument": bson.M{
-                "path": "teachers.classes",
-                "operator": bson.M{
-                  "compound": bson.M{
-                    "must": bson.A{
-                      bson.M{
-                        "text": bson.D{
-            			  {"path", "teachers.classes.grade"},
-            			  {"query", "12th"},
-            			},
-                      },
-                      bson.M{
-                        "text": bson.D{
-            			  {"path", "teachers.classes.subject"},
-            			  {"query", "science"},
-            			},
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-		   "should": bson.A{
-			 bson.M{
-			  "text": bson.D{
-				{"path", "teachers.last"},
-				{"query", "Smith"},
-			  },
+		"index": "embedded-documents-tutorial",
+		"embeddedDocument": bson.M{
+			"path": "teachers",
+			"operator": bson.M{
+				"compound": bson.M{
+					"must": bson.A{
+						bson.M{
+							"embeddedDocument": bson.M{
+								"path": "teachers.classes",
+								"operator": bson.M{
+									"compound": bson.M{
+										"must": bson.A{
+											bson.M{
+												"text": bson.D{
+													{"path", "teachers.classes.grade"},
+													{"query", "12th"},
+												},
+											},
+											bson.M{
+												"text": bson.D{
+													{"path", "teachers.classes.subject"},
+													{"query", "science"},
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+					},
+					"should": bson.A{
+						bson.M{
+							"text": bson.D{
+								{"path", "teachers.last"},
+								{"query", "Smith"},
+							},
+						},
+					},
+				},
 			},
-		  },
 		},
-      },
-    },
 	}}}
 
 	projectStage := bson.D{{"$project", bson.D{{"teachers", 1}, {"score", bson.D{{"$meta", "searchScore"}}}}}}

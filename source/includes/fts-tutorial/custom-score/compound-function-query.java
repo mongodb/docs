@@ -31,7 +31,8 @@ public class CompoundFunctionQuery {
     // define query
     Document agg =
         new Document("$search",
-            new Document("compound",
+            new Document("index", "compound-query-custom-score-tutorial")
+            .append("compound",
                 new Document("must", mustClauses).append("should", shouldClauses))
             .append("highlight", highlightOption));
     // specify connection

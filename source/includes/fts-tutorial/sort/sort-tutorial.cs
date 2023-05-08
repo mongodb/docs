@@ -22,7 +22,7 @@ public class SortSpeedPrecision
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
-            .Search(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "Happy"), returnStoredSource: true)
+            .Search(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "Happy"), returnStoredSource: true,  indexName: "sort-tutorial")
             .Limit(5)
             .Sort(Builders<MovieDocument>.Sort.Descending(movie => movie.Title))
             .ToList();

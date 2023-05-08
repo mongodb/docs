@@ -25,7 +25,8 @@ public class AutocompleteAdvancedExample
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Should(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Title, "pri"))
                 .Should(Builders<MovieDocument>.Search.Autocomplete(movie => movie.Plot, "pri"))
-                .MinimumShouldMatch(1))
+                .MinimumShouldMatch(1),
+                indexName: "autocomplete-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Plot)
                 .Include(movie => movie.Title)

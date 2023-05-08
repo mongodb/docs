@@ -4,6 +4,7 @@ const assert = require("assert");
 const agg = [
   {
     '$search': {
+      'index': 'partial-match-tutorial',
       'phrase': {
         'path': 'plot',
         'query': 'new purpose',

@@ -9,6 +9,7 @@
      - .. code-block:: javascript
 
           {
+            index: 'facet-tutorial',
             facet: {
               operator: {
                 near: {

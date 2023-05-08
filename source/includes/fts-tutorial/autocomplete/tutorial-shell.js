@@ -1,6 +1,7 @@
 db.movies.aggregate([
   {
     $search: {
+      "index": "autocomplete-tutorial",
       "autocomplete": {
         "path": "title",
         "query": "ger"

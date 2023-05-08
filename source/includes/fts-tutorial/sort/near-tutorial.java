@@ -16,11 +16,11 @@ public class SortForSpeed {
     Document agg =
         new Document(
             "$search",
-            new Document(
-                    "near",
-                    new Document("path", "year")
-                    .append("origin", 2015)
-                    .append("pivot", 5)));
+            new Document("index", "sort-tutorial")
+            .append("near",
+                new Document("path", "year")
+                .append("origin", 2015)
+                .append("pivot", 5)));
     
     // specify connection
     String uri = "<connection-string>";

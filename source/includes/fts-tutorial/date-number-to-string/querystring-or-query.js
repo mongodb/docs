@@ -4,6 +4,7 @@ const assert = require("assert");
 const agg = [
   {
     '$search': {
+      'index': 'date-number-fields-tutorial',
       'queryString': {
         'defaultPath': 'propertyType',
         'query': 'propertyType: House OR accommodatesNumber: 2 OR lastScrapedDate: 2019 OR maximumNumberOfNights: 30'

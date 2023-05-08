@@ -19,7 +19,7 @@ func main() {
 	// set namespace
 	collection := client.Database("sample_mflix").Collection("users")
 	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.D{{"compound", bson.D{{"must", bson.D{{"exists", bson.D{{"path", "password"}}}}},{"mustNot", bson.D{{"wildcard", bson.D{{"path", "password"}, {"query", "*"}, {"allowAnalyzedField", true}}}}}}}}}}	
+	searchStage := bson.D{{"$search", bson.D{{"index", "null-check-tutorial"}, {"compound", bson.D{{"must", bson.D{{"exists", bson.D{{"path", "password"}}}}}, {"mustNot", bson.D{{"wildcard", bson.D{{"path", "password"}, {"query", "*"}, {"allowAnalyzedField", true}}}}}}}}}}
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage})
 	if err != nil {

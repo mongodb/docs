@@ -9,7 +9,7 @@
      - .. code-block:: javascript
 
           {
-            "index": "default",
+            "index": "diacritic-insensitive-tutorial",
             "compound": {
               "must": [{
                 "wildcard": {

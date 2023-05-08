@@ -7,6 +7,7 @@ client = pymongo.MongoClient('<connection-string>')
 # define pipeline
 pipeline = [
   {'$search': {
+      'index': 'sort-tutorial',
       'compound': {
         'should': [{'wildcard': {'query': 'Prance*', 'path': 'title', 'score': {'constant': {'value': 99}}, 'allowAnalyzedField': True}},
                    {'wildcard': {'query': 'Prince*', 'path': 'title', 'score': {'constant': {'value': 95}}, 'allowAnalyzedField': True}}]

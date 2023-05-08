@@ -17,6 +17,7 @@ async function run() {
         const agg = [
             {
               '$search': {
+                'index': 'geo-json-tutorial',
                 'compound': {
                   'must': [
                     {

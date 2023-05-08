@@ -22,16 +22,17 @@ public class IsNullQuery {
             MongoCollection<Document> collection = database.getCollection("users");
             
             // define pipeline
-            Document agg = new Document("$search", 
-                new Document("compound", 
-                new Document("must", 
-                new Document("exists", 
-                new Document("path", "password")))
-                            .append("mustNot", 
-                new Document("wildcard", 
-                new Document("path", "password")
-                                     .append("query", "*")
-                                     .append("allowAnalyzedField", true)))));
+            Document agg = new Document("$search",
+                new Document ("index", "null-check-tutorial")
+                .append("compound", 
+                    new Document("must", 
+                    new Document("exists", 
+                    new Document("path", "password")))
+                                .append("mustNot", 
+                    new Document("wildcard", 
+                    new Document("path", "password")
+                                        .append("query", "*")
+                                        .append("allowAnalyzedField", true)))));
             // run pipeline and print results
             collection.aggregate(Arrays.asList(agg)).forEach(doc -> System.out.println(doc.toJson()));
         }

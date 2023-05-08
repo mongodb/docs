@@ -9,7 +9,8 @@
      - .. code-block:: javascript
 
           {
-            "compound": {
+            "index": "null-check-tutorial",
+			"compound": {
 			  "must": {
 			    "exists": {
 				  "path": "password"

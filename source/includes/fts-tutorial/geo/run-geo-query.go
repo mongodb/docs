@@ -30,6 +30,7 @@ func main() {
 
 	// define pipeline
 	searchStage := bson.D{{"$search", bson.M{
+		"index": "geo-json-tutorial",
 		"compound": bson.M{
 			"must": bson.M{
 				"geoWithin": bson.M{

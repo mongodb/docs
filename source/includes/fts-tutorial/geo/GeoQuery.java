@@ -14,26 +14,28 @@ import org.bson.Document;
 
 public class GeoQuery {
         public static void main( String[] args ) {
-                Document agg = new Document("must", Arrays.asList(new Document("geoWithin", 
-                new Document("geometry", 
-                new Document("type", "Polygon")
+                Document agg = new Document( "$search",
+                new Document( "index", "geo-json-tutorial")
+                .append("compound",
+                    new Document("must", Arrays.asList(new Document("geoWithin", 
+                    new Document("geometry", 
+                        new Document("type", "Polygon")
                             .append("coordinates", Arrays.asList(Arrays.asList(Arrays.asList(-161.323242d, 22.512557d), Arrays.asList(-152.446289d, 22.065278d), Arrays.asList(-156.09375d, 17.811456d), Arrays.asList(-161.323242d, 22.512557d)))))
-                        .append("path", "address.location"))))
-            .append("should", Arrays.asList(new Document("text", 
-                new Document("path", "property_type")
-                        .append("query", "Condominium"))));
-                
+                            .append("path", "address.location"))))
+                .append("should", Arrays.asList(new Document("text", 
+                    new Document("path", "property_type")
+                        .append("query", "Condominium"))))));
+        
                 String uri = "<connection-string>";
 
                 try (MongoClient mongoClient = MongoClients.create(uri)) {
                         MongoDatabase database = mongoClient.getDatabase("sample_airbnb");
                         MongoCollection<Document> collection = database.getCollection("listingsAndReviews");
                                         
-                        collection.aggregate(Arrays.asList(
-                                        eq("$search", eq("compound", agg)), 
-                                        limit(10), 
-                                        project(fields(excludeId(), include("name", "address", "property_type"), computed("score", new Document("$meta", "searchScore")))))
-                        ).forEach(doc -> System.out.println(doc.toJson()));     
+                        collection.aggregate(Arrays.asList(agg, 
+                            limit(10), 
+                            project(fields(excludeId(), include("name", "address", "property_type"), computed("score", new Document("$meta", "searchScore"))))))
+                            .forEach(doc -> System.out.println(doc.toJson() + "\n"));    
                 }
         }
 }

@@ -29,6 +29,7 @@ func main() {
 	collection := client.Database("sample_mflix").Collection("movies")
 	// define pipeline
 	searchStage := bson.D{{"$search", bson.M{
+		"index":    "partial-match-tutorial",
 		"wildcard": bson.D{{"path", "plot"}, {"query", "*new* pur*"}},
 	}}}
 	limitStage := bson.D{{"$limit", 5}}

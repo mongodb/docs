@@ -1,6 +1,7 @@
 db.movies.aggregate([ 
   { 
-    $search: { 
+    $search: {
+      "index": "multilingual-tutorial",
       "compound": {
         "must": [{ 
           "text": { 

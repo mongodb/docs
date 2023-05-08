@@ -4,6 +4,7 @@ const assert = require("assert");
 const agg = [
   {
     '$search': {
+      'index': 'embedded-documents-tutorial',
       'embeddedDocument': {
         'path': 'teachers',
         'operator': {

@@ -25,7 +25,8 @@ public class CompoundBoostSingleExample
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Must(Builders<MovieDocument>.Search.Range(movie => movie.Year, SearchRangeBuilder.Gte(2013).Lte(2015)))
                 .Should(Builders<MovieDocument>.Search.Text(movie => movie.Title, "snow", score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(2))), 
-                    new SearchHighlightOptions<MovieDocument>(movie => movie.Title))
+                new SearchHighlightOptions<MovieDocument>(movie => movie.Title),
+                indexName: "compound-query-custom-score-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Include(movie => movie.Year)

@@ -22,6 +22,7 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
+		"index": "sort-tutorial",
 		"near": bson.M{
 			"path":   "year",
 			"origin": 2015,

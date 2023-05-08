@@ -22,7 +22,9 @@ public class AutocompleteQuery {
             MongoCollection<Document> collection = database.getCollection("movies");
             
             // define pipeline
-            Document agg = new Document("$search", new Document("autocomplete", new Document("query", "ger").append("path", "title")));
+            Document agg = new Document("$search", 
+                new Document("index", "autocomplete-tutorial")
+                .append("autocomplete", new Document("query", "ger").append("path", "title")));
             // run pipeline and print results
             collection.aggregate(Arrays.asList(agg,
                 limit(20),

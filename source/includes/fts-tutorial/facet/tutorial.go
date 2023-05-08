@@ -23,22 +23,23 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$searchMeta", bson.M{
+		"index": "facet-tutorial",
 		"facet": bson.M{
 			"operator": bson.M{
 				"near": bson.M{
-					"path": "released", 
-					"origin": time.Date(1921, time.November, 1, 0, 0, 0, 0, time.UTC), 
-					"pivot": 7776000000,},
+					"path":   "released",
+					"origin": time.Date(1921, time.November, 1, 0, 0, 0, 0, time.UTC),
+					"pivot":  7776000000},
 			},
 			"facets": bson.M{
 				"genresFacet": bson.M{
-					"path": "genres", 
-					"type": "string",},
+					"path": "genres",
+					"type": "string"},
 				"yearFacet": bson.M{
-					"path": "year", 
-					"type": "number", 
-					"boundaries": bson.A{1910, 1920, 1930, 1940},},
-			},},}}}
+					"path":       "year",
+					"type":       "number",
+					"boundaries": bson.A{1910, 1920, 1930, 1940}},
+			}}}}}
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage})
 	if err != nil {

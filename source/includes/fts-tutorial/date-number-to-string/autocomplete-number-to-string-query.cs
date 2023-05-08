@@ -24,7 +24,8 @@ public class DateNumberToStringQuery
         var results = matViewCollection.Aggregate()
             .Search(Builders<matViewDocument>.Search.Compound()
                 .Should(Builders<matViewDocument>.Search.Autocomplete(airbnb => airbnb.maximumNumberOfNights, "3"))
-                .Should(Builders<matViewDocument>.Search.Autocomplete(airbnb => airbnb.accommodatesNumber, "2")))
+                .Should(Builders<matViewDocument>.Search.Autocomplete(airbnb => airbnb.accommodatesNumber, "2")),
+                indexName: "date-number-fields-tutorial")
             .Limit(5)
             .Project<matViewDocument>(Builders<matViewDocument>.Projection
                 .Exclude(airbnb => airbnb.Id))

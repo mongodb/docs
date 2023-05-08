@@ -6,6 +6,7 @@ client = pymongo.MongoClient('<connection-string>')
 
 # define pipeline
 pipeline = [{"$searchMeta": { 
+    "index": "facet-tutorial",
     "facet": {
         "operator": {
           "near": {"path": "released", "origin": datetime.datetime(1921, 11, 1, 0, 0, 0, 0), "pivot": 7776000000}

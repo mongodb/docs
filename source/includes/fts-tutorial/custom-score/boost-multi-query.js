@@ -4,7 +4,7 @@ const assert = require("assert");
 const agg = [
   {
     '$search': {
-      'index': 'default',
+      'index': 'compound-query-custom-score-tutorial',
       'compound': {
         'must': [
           {

@@ -13,14 +13,20 @@ import org.bson.Document;
 public class DateNumberToStringQuery {
 	public static void main( String[] args ) {
 		// define query
-		Document agg = new Document("should", Arrays.asList(new Document("autocomplete", 
-                new Document("path", "lastScrapedDate")
-                .append("query", "2")), 
-        new Document("autocomplete", 
-        new Document("path", "maximumNumberOfNights")
-                .append("query", "1"))));
+		Document agg = new Document("$search",
+			new Document ("index", "date-number-fields-tutorial")
+			.append("compound",
+				new Document("should", Arrays.asList(
+					new Document("autocomplete", 
+						new Document("path", "lastScrapedDate")
+						.append("query", "2")), 
+					new Document("autocomplete", 
+						new Document("path", "maximumNumberOfNights")
+						.append("query", "1"))))));
+
 		// specify connection
 		String uri = "<connection-string>";
+		
     	// establish connection and set namespace
 		try (MongoClient mongoClient = MongoClients.create(uri)) {
 			MongoDatabase database = mongoClient.getDatabase("sample_airbnb");

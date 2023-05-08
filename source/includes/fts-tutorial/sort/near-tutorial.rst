@@ -9,6 +9,7 @@
      - .. code-block:: javascript
 
           {
+            index: "sort-tutorial",
             near: {
               path: 'year',
               origin: 2015,

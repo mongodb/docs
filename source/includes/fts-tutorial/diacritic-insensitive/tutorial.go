@@ -22,18 +22,19 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
+		"index": "diacritic-insensitive-tutorial",
 		"compound": bson.M{
 			"must": bson.M{
 				"wildcard": bson.M{
-					"path": "title", 
-					"query": "alle*",
+					"path":               "title",
+					"query":              "alle*",
 					"allowAnalyzedField": true,
 				},
 			},
 			"should": bson.D{
 				{"text", bson.M{
-					"path": "genres", 
-					"query": "Drama", }}},
+					"path":  "genres",
+					"query": "Drama"}}},
 		},
 	}}}
 	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"genres", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}}}}

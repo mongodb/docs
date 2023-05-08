@@ -28,7 +28,8 @@ public class FacetExample
             .SearchMeta(Builders<MovieDocument>.Search.Facet(
                     Builders<MovieDocument>.Search.Near(movie => movie.Released, originDate, 7776000000),
                     Builders<MovieDocument>.SearchFacet.String("genresFacet", movie => movie.Genres, 10),
-                    Builders<MovieDocument>.SearchFacet.Number("yearFacet", movie => movie.Year, 1910, 1920, 1930, 1940)))
+                    Builders<MovieDocument>.SearchFacet.Number("yearFacet", movie => movie.Year, 1910, 1920, 1930, 1940)),
+                    indexName: "facet-tutorial")
             .Single();
 
         // print results

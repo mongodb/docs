@@ -25,7 +25,8 @@ public class CompoundBoostMultipleExample
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Must(Builders<MovieDocument>.Search.Text(movie => movie.Genres, "comedy", score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(9)))
                 .Must(Builders<MovieDocument>.Search.Text(movie => movie.Title, "snow", score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(5)))
-                .Should(Builders<MovieDocument>.Search.Range(movie => movie.Year, SearchRangeBuilder.Gte(2013).Lte(2015), score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(3))))
+                .Should(Builders<MovieDocument>.Search.Range(movie => movie.Year, SearchRangeBuilder.Gte(2013).Lte(2015), score: new SearchScoreDefinitionBuilder<MovieDocument>().Boost(3))),
+                indexName: "compound-query-custom-score-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Genres)
                 .Include(movie => movie.Title)

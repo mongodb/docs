@@ -7,6 +7,7 @@ client = pymongo.MongoClient('<connection-string>')
 # define pipeline
 pipeline = [
   {'$search': {
+      'index': 'sort-tutorial',
       'near': {
         'path': 'year', 
         'origin': 2015,

@@ -1,6 +1,7 @@
 db.movies.aggregate([
   {
     "$search" : {
+      "index": "diacritic-insensitive-tutorial",
       "compound" : {
         "must": [{
             "wildcard" : {

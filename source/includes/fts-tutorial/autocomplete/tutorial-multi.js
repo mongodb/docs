@@ -18,6 +18,7 @@ async function run() {
         const agg = [
             {
                 '$search': {
+                    'index': 'autocomplete-tutorial',
                     'compound': {
                         'should': [
                             {

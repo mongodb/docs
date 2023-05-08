@@ -23,6 +23,7 @@ func main() {
 	// define pipeline stages
 	searchStage := bson.D{
 		{"$search", bson.D{
+			{"index", "autocomplete-tutorial"},
 			{"compound", bson.D{
 				{"should", bson.A{
 					bson.D{

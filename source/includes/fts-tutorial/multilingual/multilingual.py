@@ -7,6 +7,7 @@ client = pymongo.MongoClient('<connection-string>')
 # define pipeline
 pipeline = [
     {"$search": {
+        "index": "multilingual-tutorial",
         "compound": {
             "must": [{"text": {"path": "fullplot", "query": "coppia"}}],
             "mustNot": [{"range": {"path": "released", "gt": datetime.datetime(2000,1,1,0,0,0), "lt": datetime.datetime(2009,1,1,0,0,0)}}],

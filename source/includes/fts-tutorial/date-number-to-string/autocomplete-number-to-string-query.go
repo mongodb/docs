@@ -1,4 +1,5 @@
 package main
+
 import (
 	"context"
 	"fmt"
@@ -8,13 +9,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
 // define structure of movies collection
 type MovieCollection struct {
-	title   string      `bson:"Title,omitempty"`
+	title string `bson:"Title,omitempty"`
 }
+
 func main() {
 	var err error
-  // connect to the Atlas cluster
+	// connect to the Atlas cluster
 	ctx := context.Background()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
@@ -23,33 +26,34 @@ func main() {
 	defer client.Disconnect(ctx)
 	// set namespace
 	collection := client.Database("sample_airbnb").Collection("airbnb_mat_view")
-  // define pipeline
+	// define pipeline
 	searchStage := bson.D{{"$search", bson.M{
+		"index": "date-number-fields-tutorial",
 		"compound": bson.M{
-			 "should": bson.A{
-				 bson.M{
+			"should": bson.A{
+				bson.M{
 					"autocomplete": bson.M{
-						"path": "maximumNumberOfNights","query": "3",
+						"path": "maximumNumberOfNights", "query": "3",
 					},
-		     },
-				 bson.M{
-					 "autocomplete": bson.M{
- 						 "path": "accommodatesNumber","query": "2",
- 					 },
-				 },
-			 },
+				},
+				bson.M{
+					"autocomplete": bson.M{
+						"path": "accommodatesNumber", "query": "2",
+					},
+				},
+			},
 		},
-  }}}
+	}}}
 	limitStage := bson.D{{"$limit", 5}}
 	projectStage := bson.D{{"$project", bson.D{{"_id", 0}}}}
 	// specify the amount of time the operation can run on the server
-  opts := options.Aggregate().SetMaxTime(5 * time.Second)
+	opts := options.Aggregate().SetMaxTime(5 * time.Second)
 	// run pipeline
 	cursor, err := collection.Aggregate(ctx, mongo.Pipeline{searchStage, limitStage, projectStage}, opts)
 	if err != nil {
-	  panic(err)
-  }
-  // print results
+		panic(err)
+	}
+	// print results
 	var results []bson.D
 	if err = cursor.All(context.TODO(), &results); err != nil {
 		panic(err)

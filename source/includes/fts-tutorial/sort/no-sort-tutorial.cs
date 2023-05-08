@@ -24,7 +24,8 @@ public class SortForPrecision
         var results = moviesCollection.Aggregate()
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Should(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Prance*", true, score: new SearchScoreDefinitionBuilder<MovieDocument>().Constant(99)))
-                .Should(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Prince*", score: new SearchScoreDefinitionBuilder<MovieDocument>().Constant(95))))
+                .Should(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Prince*", score: new SearchScoreDefinitionBuilder<MovieDocument>().Constant(95))),
+                indexName: "sort-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id)

@@ -14,14 +14,17 @@ import org.bson.Document;
 
 public class SynonymsEquivalentQuery {
 	public static void main( String[] args ) {
-		Document agg = new Document("should", Arrays.asList(new Document("text", 
-                new Document("path", "title")
-                .append("query", "automobile")
-                .append("synonyms", "transportSynonyms")), 
-        new Document("text", 
-        new Document("path", "title")
-                .append("query", "attire")
-                .append("synonyms", "attireSynonyms"))));
+		Document agg = new Document("$search",
+			new Document("index", "synonyms-tutorial")
+			.append("autocomplete", 
+				new Document("should", Arrays.asList(new Document("text", 
+                	new Document("path", "title")
+                	.append("query", "automobile")
+                	.append("synonyms", "transportSynonyms")), 
+			new Document("text", 
+				new Document("path", "title")
+				.append("query", "attire")
+                .append("synonyms", "attireSynonyms"))))));
 		
 		String uri = "<connection-string>";
 
@@ -29,8 +32,7 @@ public class SynonymsEquivalentQuery {
 			MongoDatabase database = mongoClient.getDatabase("sample_mflix");
 			MongoCollection<Document> collection = database.getCollection("movies");
 					
-			collection.aggregate(Arrays.asList(
-					eq("$search", eq("compound", agg)), 
+			collection.aggregate(Arrays.asList(agg, 
 					limit(10), 
 					project(fields(excludeId(), include("title"), computed("score", new Document("$meta", "searchScore")))))
 			).forEach(doc -> System.out.println(doc.toJson()));	

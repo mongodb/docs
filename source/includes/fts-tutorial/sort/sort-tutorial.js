@@ -17,6 +17,7 @@ async function run() {
     // define pipeline
     const agg = [
       {$search: {
+        index: "sort-tutorial",
         autocomplete: {
           path: "title",
           query: "Happy"

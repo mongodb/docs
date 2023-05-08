@@ -14,7 +14,8 @@ import org.bson.Document;
 
 public class CompoundBoostQuery {
 	public static void main( String[] args ) {
-		Document agg = new Document("must", Arrays.asList(new Document("text", 
+		Document agg = new Document("index", "compound-query-custom-score-tutorial")
+              .append("must", Arrays.asList(new Document("text", 
                 new Document("path", "genres")
                 .append("query", "comedy")
                 .append("score", 

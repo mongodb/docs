@@ -5,6 +5,7 @@ client = pymongo.MongoClient('<connection-string>')
 result = client['sample_airbnb']['airbnb_mat_view'].aggregate([
     {
         '$search': {
+            'index': 'date-number-fields-tutorial',
             'queryString': {
                 'defaultPath': 'propertyType',
                 'query': 'propertyType: House OR accommodatesNumber: 2 OR lastScrapedDate: 2019 OR maximumNumberOfNights: 30'

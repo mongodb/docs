@@ -26,10 +26,10 @@ public class NotNullQuery
         // define and run pipeline
         var results = usersCollection.Aggregate()
             .Search(Builders<UserDocument>.Search.Compound()
-                .Should(Builders<UserDocument>
-                    .Search.Wildcard(user => user.Password, "*", true))
+                .Should(Builders<UserDocument>.Search.Wildcard(user => user.Password, "*", true))
                 .Should(Builders<UserDocument>.Search.Compound(scoreBuilder.Constant(2))
-                    .MustNot(Builders<UserDocument>.Search.Exists(user => user.Password))))
+                .MustNot(Builders<UserDocument>.Search.Exists(user => user.Password))),
+                indexName: "null-check-tutorial")
                 .Limit(5)
                 .Project<UserDocument>(Builders<UserDocument>.Projection
                     .Include(user => user.Name)

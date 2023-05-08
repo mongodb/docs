@@ -17,6 +17,7 @@ async function run() {
         // define pipeline
         const agg = [{
             '$search': {
+              'index': 'null-check-tutorial',
               'compound': {
                 'must': {
                   'exists': {

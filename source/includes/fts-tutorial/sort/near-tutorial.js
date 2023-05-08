@@ -17,6 +17,7 @@ async function run() {
     // define pipeline
     const agg = [
       {$search: {
+        index: "sort-tutorial",
         near: {
           path: "year",
           origin: 2015,

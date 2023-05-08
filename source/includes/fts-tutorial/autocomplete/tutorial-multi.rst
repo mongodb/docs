@@ -14,6 +14,7 @@ from the dropdown and adding the query for that stage. Click
      - .. code-block:: javascript
 
           {
+            "index": "autocomplete-tutorial",
             "compound": {
               "should": [{
                 "autocomplete": {

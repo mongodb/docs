@@ -25,7 +25,8 @@ public class DateNumberToStringQuery
             .Search(Builders<matViewDocument>.Search.QueryString(
                 airbnb => airbnb.propertyType, 
                 "(Apartment OR Condominium) AND accommodatesNumber: 4 AND lastScrapedDate: 2019"
-                ))
+                ),
+                indexName: "date-number-fields-tutorial")
             .Limit(5)
             .Project<matViewDocument>(Builders<matViewDocument>.Projection
                 .Exclude(airbnb => airbnb.Id))

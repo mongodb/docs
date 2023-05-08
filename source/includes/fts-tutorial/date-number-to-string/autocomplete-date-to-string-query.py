@@ -5,6 +5,7 @@ client = pymongo.MongoClient('<connection-string>')
 result = client['sample_airbnb']['airbnb_mat_view'].aggregate([
     {
         '$search': {
+            'index': 'date-number-fields-tutorial',
             'compound': {
                 'should': [
                     {

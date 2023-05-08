@@ -1,6 +1,7 @@
 db.movies.aggregate([
   {
     "$search": {
+      "index": "autocomplete-tutorial",
       "compound": {
         "should": [{
           "autocomplete": {

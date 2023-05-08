@@ -17,7 +17,8 @@ async function run() {
     // define pipeline
     const agg = [{
         '$search': {
-            'compound': {
+          'index': 'diacritic-insensitive-tutorial',
+          'compound': {
                 'must': [{
                     'wildcard': {
                         'query': "alle*",

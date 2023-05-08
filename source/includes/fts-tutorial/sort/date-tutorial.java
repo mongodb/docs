@@ -32,14 +32,15 @@ public class SortDateForSpeed {
             .append("origin", Date.from(Instant.parse("2014-04-18T00:00:00.000+00:00")))));
     // define query
     Document agg =
-      new Document(
-        "$search",
-          new Document(
-            "compound",
-              new Document().append("filter", filterClause).append("must", mustClause)));
+        new Document(
+            "$search",
+                new Document("index", "sort-tutorial")
+                .append("compound",
+                    new Document("filter", filterClause).append("must", mustClause)));
 
     // specify connection
     String uri = "<connection-string>";
+
     // establish connection and set namespace
     try (MongoClient mongoClient = MongoClients.create(uri)) {
       MongoDatabase database = mongoClient.getDatabase("sample_mflix");

@@ -17,6 +17,7 @@ async function run() {
     // define pipeline
     const agg = [
       {$search: {
+        index: "sort-tutorial",
         compound: {
           should: [{wildcard: {query: "Prance*", path: "title", score: {constant: {value: 99}}, allowAnalyzedField: true}},
                      {wildcard: {query: "Prince*", path: "title", score: {constant: {value: 95}}, allowAnalyzedField: true}}]

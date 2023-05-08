@@ -21,11 +21,13 @@ public class NotNullQuery {
 
             // define pipeline
             Document agg = new Document("$search",
-                    new Document("compound",
-                            new Document("should", Arrays.asList(new Document("wildcard",
-                                            new Document("path", "password")
-                                                    .append("query", "*")
-                                                    .append("allowAnalyzedField", true)),
+                new Document ("index", "null-check-tutorial")
+                .append("compound",
+                    new Document("should", Arrays.asList(
+                        new Document("wildcard",
+                                new Document("path", "password")
+                                .append("query", "*")
+                                .append("allowAnalyzedField", true)),
                                     new Document("compound",
                                             new Document("mustNot",
                                                     new Document("exists",

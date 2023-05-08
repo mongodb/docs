@@ -22,28 +22,29 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
-	  "embeddedDocument": bson.M{
-		"path": "teachers", "operator": bson.M{
-		  "compound": bson.M{
-			"must": bson.A{
-              bson.M{
-				"text": bson.D{
-				  {"path", "teachers.first"},
-				  {"query", "John"},
+		"index": "embedded-documents-tutorial",
+		"embeddedDocument": bson.M{
+			"path": "teachers", "operator": bson.M{
+				"compound": bson.M{
+					"must": bson.A{
+						bson.M{
+							"text": bson.D{
+								{"path", "teachers.first"},
+								{"query", "John"},
+							},
+						},
+					},
+					"should": bson.A{
+						bson.M{
+							"text": bson.D{
+								{"path", "teachers.last"},
+								{"query", "Smith"},
+							},
+						},
+					},
 				},
-              },
-            },
-			"should": bson.A{
-			  bson.M{
-				"text": bson.D{
-				  {"path", "teachers.last"},
-				  {"query", "Smith"},
-				},
-			  },
-		    },
-          },
+			},
 		},
-	  },
 	}}}
 
 	projectStage := bson.D{{"$project", bson.D{{"teachers", 1}, {"score", bson.D{{"$meta", "searchScore"}}}}}}

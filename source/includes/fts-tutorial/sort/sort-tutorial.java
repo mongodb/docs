@@ -14,10 +14,10 @@ public class SortSpeedPrecision {
     Document agg =
         new Document(
             "$search",
-            new Document(
-                    "autocomplete",
-                    new Document("path", "title")
-                    .append("query", "Happy"))
+            new Document("index", "sort-tutorial")
+            .append("autocomplete",
+                new Document("path", "title")
+                .append("query", "Happy"))
             .append("returnStoredSource", true));
     
     // specify connection

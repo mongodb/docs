@@ -21,7 +21,7 @@ func main() {
 	collection := client.Database("sample_mflix").Collection("movies")
 
 	// define pipeline stages
-	searchStage := bson.D{{"$search", bson.D{{"autocomplete", bson.D{{"query", "ger"}, {"path", "title"}}}}}}
+	searchStage := bson.D{{"$search", bson.D{{"index", "autocomplete-tutorial"}, {"autocomplete", bson.D{{"query", "ger"}, {"path", "title"}}}}}}
 	limitStage := bson.D{{"$limit", 20}}
 	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"_id", 0}}}}
 	// run pipeline

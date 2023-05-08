@@ -40,8 +40,8 @@ public class NestedEmbeddedDocumentsSearch {
     Document agg =
         new Document(
             "$search",
-            new Document(
-            		"embeddedDocument", 
+            new Document("index", "embedded-documents-tutorial")
+                .append("embeddedDocument", 
             	    new Document("path", "teachers")
             	        .append("operator", 
             	    new Document("compound",

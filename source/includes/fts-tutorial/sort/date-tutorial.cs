@@ -28,7 +28,8 @@ public class SortDateForSpeed
         var results = moviesCollection.Aggregate()
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Filter(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Summer*"))
-                .Must(Builders<MovieDocument>.Search.Near(movie => movie.Released, originDate, 13149000000, new SearchScoreDefinitionBuilder<MovieDocument>().Boost(100))))
+                .Must(Builders<MovieDocument>.Search.Near(movie => movie.Released, originDate, 13149000000, new SearchScoreDefinitionBuilder<MovieDocument>().Boost(100))),
+                indexName: "sort-tutorial")
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Released)
                 .Include(movie => movie.Title)
