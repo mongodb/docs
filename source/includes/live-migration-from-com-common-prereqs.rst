@@ -1,4 +1,4 @@
-- Upgrade the source {+cluster+} to MongoDB 4.2 or later.
+- Upgrade the source {+cluster+} to MongoDB 4.4 or later.
 - :doc:`Create an Atlas Account </tutorial/create-atlas-account>`.
 - :ref:`Create an Atlas organization <create-organization>` and
   then :ref:`create a project <create-project>` in this organization.
@@ -8,6 +8,7 @@
   from all client servers where your applications run.
 - If migrating from |onprem|, upgrade |onprem| to version 5.0.
 - .. include:: /includes/fact-migrate-drop-geoHaystack.rst
+- .. include:: /includes/fact-migrate-enable-collect-dbstats.rst
 - On your source {+cluster+}  in |com|, prepare the following items:
 
   - :opsmgr:`Provision a migration host
