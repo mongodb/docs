@@ -52,8 +52,6 @@ stored in the key manager.
 
 MongoDB Enterprise supports secure transfer of keys with Key Management
 Interoperability Protocol (KMIP) compliant key management appliances.
-Any appliance vendor that provides support for KMIP is expected
-to be compatible.
 
 .. include:: /includes/partners-security.rst
 
@@ -68,6 +66,8 @@ Prerequisites
 
 - Your key manager must support the KMIP communication protocol.
 
+  .. include:: /includes/reference/fact-kmip-version.rst
+
 - To authenticate MongoDB to a KMIP server, you must have a valid
   certificate issued by the key management appliance.
 
@@ -80,8 +80,8 @@ Prerequisites
 Encrypt Using a New Key
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To create a new key, connect :binary:`~bin.mongod` to the key manager by starting
-:binary:`~bin.mongod` with the following options:
+To create a new key when you connect to the key manager, use the
+following options to start ``mongod``:
 
 - :option:`--enableEncryption <mongod --enableEncryption>`
 - :option:`--kmipServerName <mongod --kmipServerName>`
@@ -89,25 +89,23 @@ To create a new key, connect :binary:`~bin.mongod` to the key manager by startin
 - :option:`--kmipServerCAFile <mongod --kmipServerCAFile>`
 - :option:`--kmipClientCertificateFile <mongod --kmipClientCertificateFile>`
 
+.. include:: /includes/reference/fact-add-v1-flag.rst
+
 .. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
 
-The following  operation creates a new master key in your key manager which
-:binary:`~bin.mongod` uses to encrypt the keys :binary:`~bin.mongod` generates
-for each database.
+The following operation creates a new master key in your key manager.
+``mongod`` uses the master key to encrypt the keys that ``mongod``
+generates for each database.
 
 .. code-block:: bash
 
-   mongod --enableEncryption --kmipServerName <KMIP Server HostName> \
-     --kmipPort <KMIP server port> --kmipServerCAFile ca.pem \
-     --kmipClientCertificateFile client.pem
+   mongod --enableEncryption \
+          --kmipServerName <KMIP Server HostName> \
+          --kmipPort <KMIP server port> \
+          --kmipServerCAFile ca.pem \
+          --kmipClientCertificateFile client.pem
 
-When connecting to the KMIP server, the :binary:`~bin.mongod` verifies
-that the specified :option:`--kmipServerName <mongod --kmipServerName>`
-matches the Subject Alternative Name ``SAN`` (or, if ``SAN`` is not
-present, the Common Name ``CN``) in the certificate presented by the
-KMIP server. [#san]_ If ``SAN`` is present, :binary:`~bin.mongod` does
-not match against the ``CN``. If the hostname does not match the
-``SAN`` (or ``CN``), the :binary:`~bin.mongod` will fail to connect.
+.. include:: /includes/reference/fact-connection-check.rst
 
 To verify that the key creation and usage was successful, check the log
 file. If successful, the process will log the following messages:
@@ -126,9 +124,9 @@ file. If successful, the process will log the following messages:
 Encrypt Using an Existing Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use an existing master key your KMIP server created and
-manages. To use an existing key, connect :binary:`~bin.mongod` to the
-key manager by starting :binary:`~bin.mongod` with the following options:
+You can use an existing master key that your KMIP server already
+manages. To use an existing key, use these options when you start 
+``mongod`` to connect ``mongod`` to the key manager:
 
 - :option:`--enableEncryption <mongod --enableEncryption>`
 - :option:`--kmipServerName <mongod --kmipServerName>`
@@ -137,30 +135,24 @@ key manager by starting :binary:`~bin.mongod` with the following options:
 - :option:`--kmipClientCertificateFile <mongod --kmipClientCertificateFile>`
 - :option:`--kmipKeyIdentifier <mongod --kmipKeyIdentifier>`
 
-.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
+.. include:: /includes/reference/fact-add-v1-flag.rst
 
+.. include:: /includes/extracts/default-bind-ip-security-additional-command-line.rst
 
 .. code-block:: bash
 
-   mongod --enableEncryption --kmipServerName <KMIP Server HostName> \
-     --kmipPort <KMIP server port> --kmipServerCAFile ca.pem \
-     --kmipClientCertificateFile client.pem --kmipKeyIdentifier <UID>
+   mongod --enableEncryption \
+          --kmipServerName <KMIP Server HostName> \
+          --kmipPort <KMIP server port> \
+          --kmipServerCAFile ca.pem \
+          --kmipClientCertificateFile client.pem \
+          --kmipKeyIdentifier <UID>
 
-When connecting to the KMIP server, the :binary:`~bin.mongod` verifies
-that the specified :option:`--kmipServerName <mongod --kmipServerName>`
-matches the Subject Alternative Name ``SAN`` (or, if ``SAN`` is not
-present, the Common Name ``CN``) in the certificate presented by the
-KMIP server. [#san]_ If ``SAN`` is present, :binary:`~bin.mongod` does not
-match against the ``CN``. If the hostname does not match the ``SAN``
-(or ``CN``), the :binary:`~bin.mongod` will fail to connect.
+.. include:: /includes/reference/fact-connection-check.rst
 
 .. seealso::
 
    :ref:`encryption-key-management-options`
-
-.. [#san]
-
-   .. include:: /includes/extracts/4.2-changes-SAN-matching.rst
 
 .. _encrypt-local-key-mgmt:
 
