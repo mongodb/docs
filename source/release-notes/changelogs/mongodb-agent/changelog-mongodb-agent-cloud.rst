@@ -89,6 +89,10 @@ MongoDB Agent 12.8.0.7876-1
 
 *Released* 2022-11-16
 
+- {+mdbagent+} now compresses rotated log files.
+- Adds support for rotating the ``automation-agent-fatal.log`` file.
+- Improves logging.
+
 .. _12.7.0.7844-1:
 
 MongoDB Agent 12.7.0.7844-1
