@@ -22,47 +22,15 @@ operators to modify an array embedded within a document:
 - :ref:`All Positional Operator <all-match-operator>`: ``$[]``
 - :ref:`Filtered Positional Operator <filtered-positional-operator>`: ``$[<identifier>]``
 
-See the MongoDB server guide on
-:manual:`Update Operators </reference/operator/update-array/#update-operators>`
-for a complete list.
-
-Sample Documents
-~~~~~~~~~~~~~~~~
-
-The examples in this guide use the following sample documents from the
-``test.pizza`` collection. The collection contains documents that
-describe the customers and their pizza orders as array elements in field
-called ``items``.
-
-.. code-block:: javascript
-
-   [{
-      name: "Steve Lobsters",
-      address: "731 Yexington Avenue",
-      items: [
-        { type: "beverage", name: "Water", size: "17oz", },
-        { type: "pizza", size: "large", toppings: ["pepperoni"], },
-        { type: "pizza", size: "medium", toppings: ["mushrooms", "sausage", "green peppers"], comment: "Extra green peppers please!", },
-        { type: "pizza", size: "large", toppings: ["pineapple, ham"], comment: "red pepper flakes on top", },
-        { type: "calzone", fillings: ["canadian bacon", "sausage", "onion"], },
-        { type: "beverage", name: "Diet Pepsi", size: "16oz", },
-      ],
-    },
-    {
-      name: "Popeye",
-      address: "1 Sweethaven",
-      items: [
-        { type: "pizza", size: "large", toppings: ["garlic, spinach"], },
-        { type: "calzone", toppings: ["ham"], },
-      ],
-    }]
+For a list of array update operators, see :manual:`Update Operators
+</reference/operator/update-array/>` in the Server
+Manual documentation.
 
 Specifying Array Elements
 -------------------------
 
-You can specify which array elements to update using a positional
-operator. Positional operators can specify the first, all, or certain
-array elements to update.
+Positional operators specify which array elements to update. You can use these operators to apply updates to the first element, all elements, or
+certain elements of an array that match a criteria.
 
 To specify elements in an array with positional operators, use **dot
 notation**. Dot notation is a property access syntax for navigating BSON
@@ -78,9 +46,8 @@ To update the first array element of each document that matches your
 query, use the positional operator ``$``.
 
 The positional operator ``$`` references the array matched by the query.
-You cannot use this operator to reference a nested array. For cases in
-which you want to access a nested array, use the
-:ref:`filtered positional operator <filtered-positional-operator>`.
+You cannot use this operator to reference a nested array. If you want to
+access a nested array, use the :ref:`filtered positional operator <filtered-positional-operator>`.
 
 .. important::
 
@@ -90,42 +57,60 @@ which you want to access a nested array, use the
 Example
 ```````
 
-The following code snippet shows how to update the size of the first
-pizza order item to "extra large" for the customer named Steve Lobsters.
+This example uses the following sample document to show how to update
+the first matching array element:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: ...,
+     entries: [
+       { x: false, y: 1 },
+       { x: "hello", y: 100 },
+       { x: "goodbye", y: 1000 }
+     ]
+   }
+
+The following code shows how to increment a value in the first array
+element that matches a query.
+
+The query matches elements in the ``entries`` array where the value of
+``x`` is a ``string`` type. The update increases the ``y`` value by
+``33`` in the first matching element.
 
 .. literalinclude:: /code-snippets/crud/arrayFilters.js
    :language: javascript
    :start-after: start firstArrayElement example
    :end-before: end firstArrayElement example
+   :dedent:
 
-The query matches all documents that contain an element embedded in the
-``items`` array that contain a value of ``pizza`` in the ``type`` field.
-The ``updateDocument`` specifies the update operation to set the
-first array element match in ``items`` to "extra large".
-
-After you run the update method, your customer document for Steve
-Lobsters resembles the following:
+After you run the update operation, the document resembles the
+following:
 
 .. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 5
 
    {
-     name: "Steve Lobsters",
-     address: "731 Yexington Avenue",
-     items: [
-       { type: "pizza", size: "extra large", ... },
-       ...
+     _id: ...,
+     entries: [
+       { x: false, y: 1 },
+       { x: "hello", y: 133 },
+       { x: "goodbye", y: 1000 }
      ]
    }
 
-Note that we included both ``name`` and ``items.type`` fields in the query
-in order to match the array in which we apply the ``$`` operator. If we
-omit the ``items.type`` field from the query and specify the ``$`` operator
-in our update, we encounter the following error:
+The example includes the ``entries.x`` field in the
+query to match the array that the ``$`` operator applies an update to. If you
+omit the ``entries.x`` field from the query while using the
+``$`` operator in an update, the driver is unable to identify the
+matching array and raises the following error:
 
 .. code-block:: none
    :copyable: false
 
-   The positional operator did not find the match needed from the query.
+   MongoServerError: The positional operator did not find the match needed from the query.
 
 .. _all-match-operator:
 
@@ -138,26 +123,59 @@ matches your query, use the all positional operator ``$[]``.
 Example
 ```````
 
-The following code snippet adds "fresh mozzarella" to the toppings of
-all of Popeye's order items.
+This example uses the following sample documents, which describe phone
+call logs, to show how to update all matching array elements:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     _id: ...,
+     date: "5/15/2023",
+     calls: [
+       { time: "10:08 am", caller: "Mom", duration: 67 },
+       { time: "4:11 pm", caller: "Dad", duration: 121 },
+       { time: "6:36 pm", caller: "Grandpa", duration: 13 }
+     ]
+   },
+   {
+     _id: ...,
+     date: "5/16/2023",
+     calls: [
+       { time: "11:47 am", caller: "Mom", duration: 4 },
+     ]
+   }
+
+The following code shows how to remove the ``duration`` field from
+all ``calls`` array entries in the document whose ``date`` is
+``"5/15/2023"``:
 
 .. literalinclude:: /code-snippets/crud/arrayFilters.js
    :language: javascript
    :start-after: start allArrayElement example
    :end-before: end allArrayElement example
+   :dedent:
 
-After you run the update method, your customer document for Popeye
-resembles the following:
+After you run the update operation, the documents resemble the following:
 
-.. code-block:: json
+.. code-block:: javascript
    :copyable: false
-
+   :emphasize-lines: 5-7
+   
    {
-     name:"Popeye",
-     address: "1 Sweethaven",
-     items: [
-       { type: "pizza", ... , toppings: ["garlic", "spinach", "fresh mozzarella"], },
-       { type: "calzone", ... , toppings: ["ham", "fresh mozzarella"], },
+     _id: ...,
+     date: "5/15/2023",
+     calls: [
+       { time: "10:08 am", caller: "Mom" },
+       { time: "4:11 pm", caller: "Dad" },
+       { time: "6:36 pm", caller: "Grandpa" }
+     ]
+   },
+   {
+     _id: ...,
+     date: "5/16/2023",
+     calls: [
+       { time: "11:47 am", caller: "Mom", duration: 4 },
      ]
    }
 
@@ -173,92 +191,124 @@ that matches your query, use the filtered positional operator
 The filtered positional operator ``$[<identifier>]`` specifies the
 matching array elements in the update document. To identify which array
 elements to match, pair this operator with ``<identifier>`` in an
-``options.arrayFilters`` object.
+``arrayFilters`` object.
 
-The ``<identifier>`` term is a placeholder value you assign that represents
-an element of the array field name that prefixes it. This value must
-start with a lowercase letter and contain only alphanumeric characters.
+The ``<identifier>`` placeholder represents an element of the array
+field. You must select a value for ``<identifier>`` that starts with a
+lowercase letter and contains only alphanumeric characters.
+
+Usage
+`````
+
+You can use a filtered positional operator in an update operation.
+An update operation takes a query, an update document, and
+optionally, an options object as its parameters.
+
+The following steps describe how to use a filtered positional operator
+in an update operation:
+
+1. Format your update document as follows:
+   
+   .. code-block:: javascript
+   
+      { $<operator>: { "<array>.$[<identifier>].<arrayField>": <updateParameter> } }
+
+   This update document contains the following placeholders:
+   
+   - ``$<operator>``: The array update operator
+   - ``<array>``: The array in the document to update
+   - ``<identifier>``: The identifier for the filtered positional operator
+   - ``<arrayField>``: The field in the ``<array>`` array element to update
+   - ``<updateParameter>``: The value that describes the update
+
+#. Add the matching criteria in the ``arrayFilters`` object. This object
+   is an array of queries that specify which array elements to include
+   in the update. Set this object in an ``options`` parameter:
+
+   .. code-block:: javascript
+      
+      arrayFilters: [
+        { "<identifier>.<arrayField1>": <updateParameter1> },
+        { "<identifier>.<arrayField2>": <updateParameter2> },
+        ...
+      ]
+
+#. Pass the query, the update document, and options to an
+   update method. The following sample code shows how to call the
+   ``updateOne()`` method with these parameters:
+
+   .. code-block:: javascript
+   
+      await myColl.updateOne(query, updateDocument, options);
 
 Example
 ```````
 
-To add a "garlic" topping to certain order items, format your update
-document as follows:
-
-.. code-block:: javascript
-
-   { $push: { items.$[orderItem].toppings: "garlic" } }
-
-This update document specifies the following:
-
-- ``$push``: the update operator
-- ``items``: the array in the document to update
-- ``orderItem``: the identifier for the filtered positional operator
-- ``toppings``: the field on the ``items`` array element to update
-- ``garlic``: the value to push onto the ``toppings`` array
-
-Next, add the matching criteria in your ``arrayFilters`` object in your update
-operation's ``options`` parameter. This object is an array of queries
-that specify which array elements to include in the update. To add the
-"garlic" topping to order items of type "pizza" and "large size", pass the
-following ``arrayFilters``:
-
-.. code-block:: javascript
-
-   arrayFilters: [
-     { orderItem.type: "pizza" },
-     { orderItem.size: "large" }
-   ]
-
-The following snippet shows the complete update method:
-
-.. literalinclude:: /code-snippets/crud/arrayFilters.js
-   :language: javascript
-   :start-after: start arrayFiltersOne example
-   :end-before: end arrayFiltersOne example
-
-After you run the method, your customer document for Steve
-Lobsters resembles the following:
+This example uses the following sample documents, which describe
+shopping lists for specific recipes, to show how to update certain matching array elements:
 
 .. code-block:: javascript
    :copyable: false
 
    {
-     name: "Steve Lobsters",
-     address: "731 Yexington Avenue",
+     _id: ...,
+     date: "11/12/2023",
      items: [
-       { type: "pizza", size: "large", toppings: ["pepperoni", "garlic"] },
-       { type: "pizza", size: "large", toppings: ["pineapple", "ham", "garlic"], ...},
-       ...
+       { item: "Scallions", quantity: 3, recipe: "Fried rice" },
+       { item: "Mangos", quantity: 4, recipe: "Salsa" },
+       { item: "Pork shoulder", quantity: 1, recipe: "Fried rice" },
+       { item: "Sesame oil", quantity: 1, recipe: "Fried rice" }
+     ]
+   },
+   {
+     _id: ...,
+     date: "11/20/2023",
+     items: [
+       { item: "Coffee beans", quantity: 1, recipe: "Coffee" }
      ]
    }
 
-Example
-```````
+Suppose you want to increase the quantity of items you purchase for a
+recipe on your ``"11/12/2023"`` grocery trip. You want to double the quantity if
+the item meets all the following criteria:
 
-Suppose Steve Lobsters wants to adjust their order to add "salami" as a
-topping to all pizzas that have pepperoni. To perform the update, use
-the filtered positional operator as follows:
+- The item is for the ``"Fried rice"`` recipe.
+- The item name does not include the word ``"oil"``.
+
+To double the ``quantity`` value in the matching array
+entries, use the filtered positional operator as shown in the following
+code:
 
 .. literalinclude:: /code-snippets/crud/arrayFilters.js
    :language: javascript
-   :start-after: start arrayFiltersTwo example
-   :end-before: end arrayFiltersTwo example
+   :start-after: start arrayFiltersIdentifier example
+   :end-before: end arrayFiltersIdentifier example
+   :emphasize-lines: 3, 6-11
+   :dedent:
 
-After you run the update method, your customer document for Steve
-Lobsters resembles the following:
+The update multiplied the ``quantity`` value by ``2`` for
+items that matched the criteria. The item ``"Sesame oil"`` did not match
+the criteria in the ``arrayFilters`` object and therefore was excluded
+from the update. The following documents reflect these changes:
 
 .. code-block:: javascript
    :copyable: false
+   :emphasize-lines: 5, 7
 
    {
-     name: "Steve Lobsters",
-     address: "731 Yexington Avenue",
+     _id: ...,
+     date: "11/12/2023",
      items: [
-       { type: "pizza", size: "large", toppings: ["pepperoni", "salami"], },
-       { type: "pizza", size: "medium", toppings: ["mushrooms", "sausage", "green peppers"], comment: "Extra green peppers please!", },
-       { type: "pizza", size: "large", toppings: ["pineapple, ham"], comment: "red pepper flakes on top", },
-       { type: "calzone", fillings: ["canadian bacon", "sausage", "onion"], },
-       { type: "beverage", name: "Diet Pepsi", size: "16oz", },
-     ],
+       { item: "Scallions", quantity: 6, recipe: "Fried rice" },
+       { item: "Mangos", quantity: 4, recipe: "Salsa" },
+       { item: "Pork shoulder", quantity: 2, recipe: "Fried rice" },
+       { item: "Sesame oil", quantity: 1, recipe: "Fried rice" }
+     ]
+   },
+   {
+     _id: ...,
+     date: "11/20/2023",
+     items: [
+       { item: "Coffee beans", quantity: 1, recipe: "Coffee" }
+     ]
    }

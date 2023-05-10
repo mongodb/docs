@@ -1,207 +1,88 @@
 const { MongoClient } = require("mongodb");
-const stream = require("stream");
 
 // Replace the following string with your MongoDB deployment's connection string.
 const uri =
   "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 const client = new MongoClient(uri);
 
-
-async function loadData() {
+async function printData() {
   try {
-    const database = client.db("test");
-    const pizza = database.collection("pizza");
+    const myDB = client.db("test");
+    const myColl = myDB.collection("testColl");
 
-    await pizza.drop();
-
-    await pizza.insertMany([
-      {
-        name: "Steve Lobsters",
-        address: "731 Yexington Avenue",
-        items: [
-          {
-            type: "pizza",
-            size: "large",
-            toppings: ["pepperoni"],
-          },
-          {
-            type: "pizza",
-            size: "medium",
-            toppings: ["mushrooms", "sausage", "green peppers"],
-            comment: "Extra green peppers please!",
-          },
-          {
-            type: "pizza",
-            size: "large",
-            toppings: ["pineapple, ham"],
-            comment: "red pepper flakes on top",
-          },
-          {
-            type: "calzone",
-            fillings: ["canadian bacon", "sausage", "onion"],
-          },
-          {
-            type: "beverage",
-            name: "Diet Pepsi",
-            size: "16oz",
-          },
-        ],
-      },
-      {
-        name: "Popeye",
-        address:"1 Sweetwater",
-        items: [
-          {
-            type: "pizza",
-            size: "large",
-            toppings: ["garlic", "spinach"]
-          },
-          {
-            type: "calzone",
-            toppings: ["ham"],
-          },
-        ]
-      }
-    ]);
-
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
+    console.log(JSON.stringify(await myColl.find().toArray()));
   } finally {
     await client.close();
   }
 }
 
-
-async function runAllArrayElements() {
-
-  try {
-    const database = client.db("test");
-    const pizza = database.collection("pizza");
-
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
-
-    // start allArrayElement example
-    const query = { "name": "Popeye" };
-    const updateDocument = {
-      $push: { "items.$[].toppings": "fresh mozzarella" }
-    };
-    const result = await pizza.updateOne(query, updateDocument);
-    // end allArrayElement example
-    console.log(result.modifiedCount);
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
-  } finally {
-    await client.close();
-  }
-}
 async function runFirstArrayElement() {
-
   try {
-    const database = client.db("test");
-    const pizza = database.collection("pizza");
+    const myDB = client.db("test");
+    const myColl = myDB.collection("testColl");
 
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
+    console.log(JSON.stringify(await myColl.find().toArray()));
 
     // start firstArrayElement example
-    const query = { name: "Steve Lobsters", "items.type": "pizza" };
+    const query = { "entries.x": { $type : "string" } };
     const updateDocument = {
-      $set: { "items.$.size": "extra large" }
+      $inc: { "entries.$.y": 33 }
     };
-    const result = await pizza.updateOne(query, updateDocument);
+    const result = await myColl.updateOne(query, updateDocument);
     // end firstArrayElement example
     console.log(result.modifiedCount);
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
+    console.log(JSON.stringify(await myColl.find().toArray()));
   } finally {
     await client.close();
   }
 }
 
-
-async function arrayFiltersOne() {
+async function runAllArrayElements() {
   try {
-    const database = client.db("test");
-    const pizza = database.collection("pizza");
+    const myDB = client.db("test");
+    const myColl = myDB.collection("testColl");
 
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
+    console.log(JSON.stringify(await myColl.find().toArray()));
 
-    // start arrayFiltersOne example
-    const query = { name: "Steve Lobsters" };
+    // start allArrayElement example
+    const query = { date: "5/15/2023" };
     const updateDocument = {
-      $push: { "items.$[orderItem].toppings": "garlic" }
+      $unset: { "calls.$[].duration": "" }
     };
-    const options = {
-      arrayFilters: [{
-        "orderItem.type": "pizza",
-        "orderItem.size": "large",
-      }]
-    };
-
-    const result = await pizza.updateMany(query, updateDocument, options);
-    // end arrayFiltersOne example
-
+    const result = await myColl.updateOne(query, updateDocument);
+    // end allArrayElement example
     console.log(result.modifiedCount);
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
+    console.log(JSON.stringify(await myColl.find().toArray()));
   } finally {
     await client.close();
   }
 }
 
-async function arrayFiltersTwo() {
+async function arrayFiltersIdentifier() {
   try {
-    const database = client.db("test");
-    const pizza = database.collection("pizza");
+    const myDB = client.db("test");
+    const myColl = myDB.collection("testColl");
 
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
+    console.log(JSON.stringify(await myColl.find().toArray()));
 
-    // start arrayFiltersTwo example
-    const query = { name: "Steve Lobsters" };
+    // start arrayFiltersIdentifier example
+    const query = { date: "11/12/2023" };
     const updateDocument = {
-      $push: { "items.$[item].toppings": "salami" },
+      $mul: { "items.$[i].quantity": 2 }
     };
     const options = {
       arrayFilters: [
         {
-          "item.type": "pizza",
-          "item.toppings": "pepperoni",
-        },
-      ],
+          "i.recipe": "Fried rice",
+          "i.item": { $not: { $regex: "oil" } },
+        }
+      ]
     };
-    const result = await pizza.updateOne(query, updateDocument, options);
-    // end arrayFiltersTwo example
+    const result = await myColl.updateOne(query, updateDocument, options);
+    // end arrayFiltersIdentifier example
     console.log(result.modifiedCount);
 
-    pizza.insertOne({
-      name: "Steve Lobsters",
-      address: "731 Yexington Avenue",
-      items: [
-        {
-          type: "pizza",
-          size: "large",
-          toppings: ["pepperoni"],
-        },
-        {
-          type: "pizza",
-          size: "medium",
-          toppings: ["mushrooms", "sausage", "green peppers"],
-          comment: "Extra green peppers please!",
-        },
-        {
-          type: "pizza",
-          size: "large",
-          toppings: ["pineapple, ham"],
-          comment: "red pepper flakes on top",
-        },
-        {
-          type: "calzone",
-          fillings: ["canadian bacon", "sausage", "onion"],
-        },
-        {
-          type: "beverage",
-          name: "Diet Pepsi",
-          size: "16oz",
-        },
-      ],
-    });
-
-    console.log(JSON.stringify(await (await pizza.find()).toArray()));
+    console.log(JSON.stringify(await myColl.find().toArray()));
   } finally {
     await client.close();
   }
