@@ -48,6 +48,12 @@ same config servers for different sharded clusters.
    number of config servers impacted, the cluster may be read-only or
    offline for a period of time.
 
+Starting in MongoDB 7.0, you can configure a config server to store
+application data in addition to the usual sharded cluster metadata. The
+config server is then known as a *config shard*. You'll learn more later
+on this page in the :ref:`sharded-cluster-config-server-config-shards`
+section.
+
 .. _csrs:
 .. _replset-config-servers:
 
@@ -176,3 +182,130 @@ appropriate security settings in order to enforce internal authentication.
 
 See :doc:`/tutorial/deploy-sharded-cluster-with-keyfile-access-control` for a
 tutorial on deploying a secured sharded cluster.
+
+.. _sharded-cluster-config-server-config-shards:
+
+Config Shards
+-------------
+
+.. include:: /includes/config-shard-introduction.rst
+
+You cannot use the same config shard for multiple sharded clusters.
+
+Commands
+~~~~~~~~
+
+To configure a dedicated config server to run as a config shard, run the
+:dbcommand:`transitionFromDedicatedConfigServer` command. 
+
+To configure a config shard to run as a dedicated config server, run the
+:dbcommand:`transitionToDedicatedConfigServer` command.
+
+Users
+~~~~~
+
+A user created on a config shard has the same behavior as a user created
+on a dedicated config server.
+
+Config Shard Identity Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A config shard has a document in the :data:`admin.system.version`
+collection to identify the config server as a config shard:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: 'shardIdentity',
+      shardName: 'config',
+      clusterId: ObjectId("<objectID>"),
+      configsvrConnectionString: '<config server replica set connection string>',
+   }
+
+The following example retrieves a shard identity document from
+:data:`admin.system.version` in the :term:`admin database`:
+
+.. code-block:: javascript
+
+   use admin
+   db.system.version.find()
+
+Output extract:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      _id: 'shardIdentity',
+      shardName: 'config',
+      clusterId: ObjectId("6441bdd6779584849dcac095"),
+      configsvrConnectionString: 'configRepl/localhost:27007'
+   }
+
+.. _sharded-cluster-config-server-config-shards-downgrade:
+
+Downgrade Feature Compatibility Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your cluster has a config shard and you need to downgrade the
+:ref:`feature compatibility version <view-fcv>` to earlier than 7.0,
+connect to :binary:`~bin.mongos` and use the :term:`admin database` and
+then perform this procedure:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Run ``transitionToDedicatedConfigServer`` command
+
+      Example:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { 
+            transitionToDedicatedConfigServer: 1
+         } )
+
+   .. step:: Run ``movePrimary`` command
+
+      Syntax for :dbcommand:`movePrimary` command:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         db.adminCommand( { movePrimary: <databaseName>, to: <newPrimaryShard> } )
+
+      Replace ``databaseName`` and ``newPrimaryShard`` with your
+      database name and new primary shard name.
+
+      The following example moves the primary shard in the ``test``
+      database to the ``shard01`` primary shard:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { movePrimary: "test", to: "shard01" } )
+
+   .. step:: Wait for balancer to move sharded collection data off config server
+   
+      Run ``transitionToDedicatedConfigServer`` command again:
+
+      Example:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { 
+            transitionToDedicatedConfigServer: 1
+         } )
+
+      The response after a successful data move contains ``state:
+      "completed"``. For full response details, see
+      :dbcommand:`removeShard`.
+
+   .. step:: Run ``setFeatureCompatibilityVersion`` command
+
+      The following example sets the feature compatibility version to
+      ``6.0``:
+
+      .. code-block:: javascript
+
+         db.adminCommand( { setFeatureCompatibilityVersion: "6.0" } )
