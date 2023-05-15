@@ -64,13 +64,6 @@ Currently, {+serverless-instances+} don't support the following actions:
   documents stored in all collections, plus the bytes stored in 
   their associated indexes.
 
-- :doc:`Configure alerts </alerts>` on service metrics billing 
-  metrics. [#f2]_
-
-  |service| supports :doc:`configuring alerts </configure-alerts>`
-  for your project or organization if your bill exceeds a certain 
-  threshold.
-
 - Perform :doc:`automated restores </backup-restore-cluster>`
   from backup snapshots.
 
