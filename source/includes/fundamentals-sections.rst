@@ -18,5 +18,4 @@ Fundamentals section:
 - :ref:`Encrypt Fields <golang-fle>`
 - :ref:`Work with Geospatial Data <golang-geo>`
 
-.. - :doc:`Use the Driver's Data Formats </fundamentals/data-formats>`
 .. - :doc:`Record Events in the Driver </fundamentals/logging>`
