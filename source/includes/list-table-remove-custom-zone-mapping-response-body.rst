@@ -12,10 +12,10 @@
        
    * - ``managedNamespaces``
      - array of documents
-     - Each document specifies a managed namespace for a :doc:`Global Cluster
-       </global-clusters>` managed by |service|. The array is empty
+     - Each document specifies a managed namespace for a global cluster
+       managed by |service|. The array is empty
        if no managed namespaces are specified for the |global-write-cluster|.
-       For more information, see :doc:`Global Clusters </reference/api/global-clusters>`.
+       For more information, see :ref:`create-new-global-write-cluster`.
 
    * - ``managedNamespaces[n].collection``
      - string
