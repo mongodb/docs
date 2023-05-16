@@ -15,30 +15,24 @@ Definition
 
 .. method:: db.createCollection(name, options)
 
-   Creates a new collection or :ref:`view <views-landing-page>`. For views,
-   see also :method:`db.createView()`.
+   Creates a new collection. For :ref:`views <views-landing-page>`,
+   see :method:`db.createView()`.
 
    Because MongoDB creates a collection implicitly when the collection
    is first referenced in a command, this method is used primarily for
-   creating new collections that use specific options. For example, you use
-   :method:`db.createCollection()` to create a:
+   creating new collections that use specific options. For example, you
+   use ``db.createCollection()`` to create a:
    
    - :term:`Capped collection <capped collection>`.
    - :term:`Clustered collection <clustered collection>`.
-   - New collection that uses :doc:`document validation
-     </core/schema-validation>`.
+   - New collection that uses :ref:`document validation
+     <schema-validation-overview>`.
 
-   :method:`db.createCollection()` is a wrapper around the database
+   ``db.createCollection()`` is a wrapper around the database
    command :dbcommand:`create`.
 
-   The :method:`db.createCollection()` method has the following prototype form:
-
-   .. note:: Starting in MongoDB 4.2
-
-
-      MongoDB removes the MMAPv1 storage engine and the MMAPv1 specific
-      options ``paddingFactor``, ``paddingBytes``, ``preservePadding``
-      for :method:`db.createCollection()`.
+   The ``db.createCollection()`` method has the following 
+   prototype form:
 
    .. code-block:: javascript
 
@@ -48,10 +42,12 @@ Definition
            timeseries: {                  // Added in MongoDB 5.0
               timeField: <string>,        // required for time series collections
               metaField: <string>,
-              granularity: <string>
+              granularity: <string>,
+              bucketMaxSpanSeconds: <number>,  // Added in MongoDB 6.3
+              bucketRoundingSeconds: <number>  // Added in MongoDB 6.3
            },
            expireAfterSeconds: <number>,
-           clusteredIndex: <document>,    // Added in MongoDB 5.3
+           clusteredIndex: <document>,  // Added in MongoDB 5.3
            changeStreamPreAndPostImages: <document>,  // Added in MongoDB 6.0
            size: <number>,
            max: <number>,
@@ -70,8 +66,7 @@ Definition
 
    .. _create_collection_parameters:
 
-   The :method:`db.createCollection()` method has the following parameters:
-
+   The ``db.createCollection()`` method has the following parameters:
 
    .. list-table::
       :header-rows: 1
@@ -137,23 +132,57 @@ Definition
           except array.
 
       * - ``timeseries.granularity``
+ 
         - string
-        - Optional. Possible values are ``"seconds"`` (default),
-          ``"minutes"``, and ``"hours"``. Set the granularity to the
-          value that is the closest match to the time span between
-          consecutive incoming measurements. Setting the ``granularity``
-          parameter improves performance by optimizing how data in the
-          time series collection is stored internally.
+ 
+        - Optional, do not use if setting ``bucketRoundingSeconds`` and 
+          ``bucketMaxSpanSeconds``. Possible values are ``seconds`` 
+          (default), ``minutes``, and ``hours``.
+     
+          Set ``granularity`` to the value that most closely matches 
+          the time between consecutive incoming timestamps. This 
+          improves performance by optimizing how MongoDB internally 
+          stores data in the collection.
+
+          For more information on granularity and bucket intervals, see 
+          :ref:`timeseries-granularity`.
+
+
 
       * - ``timeseries.bucketMaxSpanSeconds``
+ 
         - integer
-        - .. include:: /includes/time-series/fact-bucket-max-span-description.rst
+ 
+        - Optional, used with ``bucketRoundingSeconds`` as an
+          alternative to ``granularity``. Sets the maximum time between
+          timestamps in the same bucket. Possible values are 1-31536000.
+          If you set ``bucketMaxSpanSeconds``, you must set
+          ``bucketRoundingSeconds`` to the same value.
+
+          To downgrade below MongoDB 6.3, you must either modify the
+          collection to use the corresponding ``granularity`` value, or
+          drop the collection. For details, see :dbcommand:`collMod`.
+
 
       * - ``timeseries.bucketRoundingSeconds``
+ 
         - integer
-        - .. include:: /includes/time-series/fact-bucket-rounding-description.rst
-  
-      * - :ref:`expireAfterSeconds <db.createCollection.expireAfterSeconds>`
+ 
+        - Optional, used with ``bucketMaxSpanSeconds`` as an alternative
+          to ``granularity``. Sets the number of seconds to round down
+          by when MongoDB sets the minimum timestamp for a new bucket.
+          Must be equal to ``bucketMaxSpanSeconds``
+
+          For example, setting both parameters to ``1800`` rounds new
+          buckets down to the nearest 30 minutes. If a document with a
+          time of ``2023-03-27T18:24:35Z`` does not fit an
+          existing bucket, MongoDB creates a new bucket with a minimum
+          time of ``2023-03-27T18:00:00Z`` and a maximum time of
+          ``2023-03-27T18:30:00Z``.
+
+
+      * - ``expireAfterSeconds``
+
         - number
         - .. _db.createCollection.expireAfterSeconds:
         
@@ -165,19 +194,21 @@ Definition
           automatically based on the clustered index key ``_id`` and
           the values must be date types. See :ref:`index-feature-ttl`.
 
-      * - :ref:`clusteredIndex <db.createCollection.clusteredIndex>`
+
+      * - ``clusteredIndex``
         - document
         - .. _db.createCollection.clusteredIndex:
         
           .. include:: /includes/clustered-index-fields.rst
 
-      * - :ref:`changeStreamPreAndPostImages <db.createCollection.changeStreamPreAndPostImages>`
+
+      * - ``changeStreamPreAndPostImages``
         - document
         - .. _db.createCollection.changeStreamPreAndPostImages:
         
           .. include:: /includes/change-stream-pre-and-post-images-field.rst
 
-          For a :method:`db.createCollection()` example on this page,
+          For a ``db.createCollection()`` example on this page,
           see
           :ref:`createCollection-change-stream-pre-and-post-images-example`.
 
@@ -223,9 +254,9 @@ Definition
 
       * - ``validator``
         - document
-        - Optional. Allows users to specify :doc:`validation rules or expressions
-          </core/schema-validation>` for the collection. For more information,
-          see :doc:`/core/schema-validation`.
+   
+        - Optional. Allows users to specify :ref:`validation rules or
+          expressions <schema-validation-overview>` for the collection.
           
           The ``validator`` option takes a document that specifies the
           validation rules or expressions. You can specify the expressions using
@@ -278,27 +309,19 @@ Definition
           
       * - ``viewOn``
         - string
-        - The name of the source collection or view from which to create the
-          view. The name is not the full namespace of the collection or
-          view; i.e. does not include the database name and implies the same
-          database as the view to create. You must create views in the same
-          database as the source collection.
-          
-          
-          See also :method:`db.createView()`.
+   
+        - The name of the source collection or view from which to create
+          a view. For details, see :method:`db.createView()`.
           
       * - ``pipeline``
         - array
         - An array that consists of the :ref:`aggregation pipeline stage(s)
-          <aggregation-pipeline>`.  :method:`db.createView` creates the view by
-          applying the specified ``pipeline`` to the ``viewOn`` collection or view.
-          
-          .. include:: /includes/extracts/views-restriction-output-to-disk.rst
-                  
-          .. include:: /includes/extracts/views-public-definition.rst
+          <aggregation-pipeline>`.  :method:`db.createView` creates a
+          view by applying the specified ``pipeline`` to the ``viewOn``
+          collection or view. For details, see :method:`db.createView()`.
           
           
-          See also :method:`db.createView()`.
+          
    
       * - ``collation``
         - document
@@ -338,18 +361,14 @@ Behavior
 Resource Locking
 ~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 4.2
-
 .. include:: /includes/extracts/createCollection-resource-lock.rst
 
 Transactions
 ~~~~~~~~~~~~
 
-.. versionchanged:: 4.4
-
 .. include:: /includes/extracts/transactions-explicit-ddl.rst
 
-.. |operation| replace:: :method:`db.createCollection()`
+.. |operation| replace:: ``db.createCollection()``
 
 
 Examples
@@ -372,7 +391,7 @@ reaches the maximum document count. Consider the following example:
 This command creates a collection named ``log`` with a maximum size of 5
 megabytes and a maximum of 5000 documents.
 
-See :doc:`/core/capped-collections` for more
+See :ref:`manual-capped-collection` for more
 information about capped collections.
 
 Create a Time Series Collection
@@ -390,6 +409,24 @@ for the past 24 hours, issue this command:
              timeField: "timestamp",
              metaField: "data",
              granularity: "hours"
+          },
+          expireAfterSeconds: 86400
+       }
+   )
+
+Alternately, to create the same collection but limit each bucket to
+timestamp values within the same hour, issue this command:
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "data",
+             bucketMaxSpanSeconds: "3600",
+             bucketRoundingSeconds: "3600"
           },
           expireAfterSeconds: 86400
        }
@@ -481,7 +518,7 @@ Specify Storage Engine Options
 
 You can specify collection-specific storage engine configuration
 options when you create a collection with
-:method:`db.createCollection()`. Consider the following operation:
+``db.createCollection()``. Consider the following operation:
 
 .. code-block:: javascript
 

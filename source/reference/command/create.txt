@@ -26,7 +26,15 @@ Definition
 Syntax
 ------
 
-The :dbcommand:`create` command has the following syntax:
+The ``create`` command has the following syntax:
+
+.. note::
+   
+   MongoDB 6.3 adds the ``bucketMaxSpanSeconds`` and
+   ``bucketRoundingSeconds`` parameters. To downgrade below 6.3, you
+   must either drop all collections with these parameters, or modify
+   them to use the corresponding ``granularity``, if possible. For 
+   details see :dbcommand:`collMod`.
 
 .. code-block:: javascript
 
@@ -38,8 +46,8 @@ The :dbcommand:`create` command has the following syntax:
            timeField: <string>,
            metaField: <string>,
            granularity: <string>,
-           bucketMaxSpanSeconds: <int>,
-           bucketRoundingSeconds: <int>
+           bucketMaxSpanSeconds: <timespan>,  // Added in MongoDB 6.3
+           bucketRoundingSeconds: <timespan>  // Added in MongoDB 6.3
         },
         expireAfterSeconds: <number>,
         clusteredIndex: <document>,  // Added in MongoDB 5.3
@@ -63,7 +71,7 @@ The :dbcommand:`create` command has the following syntax:
 Command Fields
 ~~~~~~~~~~~~~~
 
-The :dbcommand:`create` command has the following fields:
+The ``create`` command has the following fields:
 
 .. list-table::
    :header-rows: 1
@@ -84,6 +92,8 @@ The :dbcommand:`create` command has the following fields:
        specify ``true``. If you specify ``true``, you must also set a maximum
        size in the ``size`` field.
  
+ 
+ 
    * - ``timeseries.timeField``
      - string
      - Required when creating a :term:`time series collection`. The
@@ -103,105 +113,85 @@ The :dbcommand:`create` command has the following fields:
        except array.
  
    * - ``timeseries.granularity``
+ 
      - string
  
-     - Optional. Defaults to ``"seconds"`` if unset. If you set 
-       ``granularity`` you must not set ``bucketMaxSpanSeconds`` or ``bucketRoundingSeconds``. Possible values are ``"seconds"`` (default),``"minutes"``, and ``"hours"``. 
+     - Optional, do not use if setting ``bucketRoundingSeconds`` and 
+       ``bucketMaxSpanSeconds``. Possible values are ``seconds`` (default), ``minutes``, and ``hours``.
      
-       Set the granularity to the value that is the 
-       closest match to the time span between consecutive incoming 
-       measurements. Setting the ``granularity`` parameter accurately 
-       improves performance by optimizing how data in the time series 
-       collection is stored internally.
+       Set ``granularity`` to the value that most closely matches 
+       the time between consecutive incoming timestamps. This improves 
+       performance by optimizing how MongoDB internally stores data in 
+       the collection.
 
-       For more information on how granularity settings differ, see 
+       For more information on granularity and bucket intervals, see 
        :ref:`timeseries-granularity`.
 
 
 
    * - ``timeseries.bucketMaxSpanSeconds``
  
-     - string
+     - integer
  
-     - Optional. If unset, the collection uses ``"granularity":
-       "seconds"`` by default. If you set ``bucketMaxSpanSeconds`` you
-       must also set ``bucketRoundingSeconds``, and you must not set
-       ``granularity``. Possible values are any positive integer up to
-       ``31536000`` (inclusive).
+     - Optional, used with ``bucketRoundingSeconds`` as an alternative
+       to ``granularity``. Sets the maximum time between timestamps in
+       the same bucket. Possible values are 1-31536000. If you set
+       ``bucketMaxSpanSeconds``, you must set ``bucketRoundingSeconds``
+       to the same value.
 
-       Set the maximum range for timestamps within the same bucket.
-
-       If you use this setting and need to downgrade below MongoDB 6.3,
-       use :dbcommand:`collMod` and set bucket ``granularity`` to
-       ``seconds``, ``minutes``, or ``hours`` before downgrading.
-       
-       For more information on how granularity settings differ, see 
-       :ref:`timeseries-granularity`.
-
+       To downgrade below MongoDB 6.3, you must either modify the
+       collection to use the corresponding ``granularity`` value, or
+       drop the collection. For details, see :dbcommand:`collMod`.
 
 
    * - ``timeseries.bucketRoundingSeconds``
  
-     - string
+     - integer
  
-     - Optional. If unset, the collection uses ``"granularity":
-       "seconds"`` by default. If you set ``bucketRoundingSeconds`` you
-       must also set ``bucketMaxSpanSeconds``, and you must not set
-       ``granularity``. Possible values are any positive integer that is less than or equal to ``bucketMaxSpanSeconds``.
+     - Optional, used with ``bucketMaxSpanSeconds`` as an alternative to
+       ``granularity``. Sets the number of seconds to round down by when
+       MongoDB sets the minimum timestamp for a new bucket. Must be
+       equal to ``bucketMaxSpanSeconds``
 
-       Set the rounding behavior used to determine the minimum timestamp value for a new bucket. For example, setting
-       this to ``"3600"`` rounds down to the nearest hour. If the value
-       ``"2023-03-27T18:24:35Z"`` does not fit an existing bucket,
-       MongoDB creates a new bucket with a minimum value of
-       ``"2023-03-27T18:00:00Z"``.
-       
-       If you use this setting and need to downgrade below MongoDB 6.3,
-       use :dbcommand:`collMod` and set bucket ``granularity`` to
-       ``seconds``, ``minutes``, or ``hours`` before downgrading.
+       For example, setting both parameters to ``1800`` rounds new
+       buckets down to the nearest 30 minutes. If a document with a time
+       of ``2023-03-27T18:24:35Z`` does not fit an
+       existing bucket, MongoDB creates a new bucket with a minimum time
+       of ``2023-03-27T18:00:00Z`` and a maximum time of ``2023-03-27T18:30:00Z``.
 
-       For more information on how granularity settings differ, see 
-       :ref:`timeseries-granularity`.
- 
 
 
    * - ``expireAfterSeconds``
-     - number
+ 
+     - integer
+ 
      - Optional. Specifies the seconds after which documents in a
        :term:`time series collection` or :term:`clustered collection`
        expire. MongoDB deletes expired documents automatically.
  
  
 
-   * - :ref:`clusteredIndex <create.clusteredIndex>`
+   * - ``clusteredIndex``
      - document
      - .. _create.clusteredIndex:
  
        .. include:: /includes/clustered-index-fields.rst
  
-   * - :ref:`changeStreamPreAndPostImages <create.changeStreamPreAndPostImages>`
+ 
+ 
+   * - ``changeStreamPreAndPostImages``
      - document
      - .. _create.changeStreamPreAndPostImages:
  
        .. include:: /includes/change-stream-pre-and-post-images-field.rst
  
-       For a :dbcommand:`create` example on this page, see
+       For a ``create`` example on this page, see
        :ref:`create-change-stream-pre-and-post-images-example`.
  
        .. versionadded:: 6.0
+       
+       
  
-   * - ``autoIndexId``
-     - boolean
-     - Optional. Specify ``false`` to disable the automatic creation of an index on the
-       ``_id`` field.
-       
-       .. important::
-       
-          Starting in MongoDB 4.0, you cannot set the option ``autoIndexId``
-          to ``false`` when creating collections in databases other than the
-          ``local`` database.
-       
-       .. deprecated:: 3.2
-       
    * - ``size``
      - integer
      - Optional. Specify a maximum size in bytes for a capped collection. Once a
@@ -242,15 +232,15 @@ The :dbcommand:`create` command has the following fields:
  
    * - ``validator``
      - document
-     - Optional. Allows users to specify :doc:`validation rules or expressions
-       </core/schema-validation>` for the collection. For more information,
-       see :doc:`/core/schema-validation`.
+ 
+     - Optional. Allows users to specify :ref:`validation rules or
+       expressions <schema-validation-overview>` for the collection.
        
        The ``validator`` option takes a document that specifies the
-       validation rules or expressions. You can specify the expressions using
-       the same operators as the :ref:`query operators <query-selectors>`
-       with the exception of :query:`$near`, :query:`$nearSphere`,
-       :query:`$text`, and :query:`$where`.
+       validation rules or expressions. You can specify the expressions
+       using the same operators as the :ref:`query operators
+       <query-selectors>` with the exception of :query:`$near`,
+       :query:`$nearSphere`, :query:`$text`, and :query:`$where`.
        
        .. note::
        
@@ -312,7 +302,7 @@ The :dbcommand:`create` command has the following fields:
    * - ``pipeline``
      - array
      - An array that consists of the :ref:`aggregation pipeline stage(s)
-       <aggregation-pipeline>`.  :dbcommand:`create` creates the view by
+       <aggregation-pipeline>`.  ``create`` creates the view by
        applying the specified ``pipeline`` to the ``viewOn`` collection or view.
        
        .. include:: /includes/extracts/views-restriction-output-to-disk.rst
@@ -368,11 +358,9 @@ The :dbcommand:`create` command has the following fields:
    * - ``comment``
      - any
      - .. include:: /includes/extracts/comment-content.rst
-    
-       .. versionadded:: 4.4
  
 The :method:`db.createCollection()` method and the
-:method:`db.createView()` method wrap the :dbcommand:`create`
+:method:`db.createView()` method wrap the ``create``
 command.
 
 Behavior
@@ -381,14 +369,10 @@ Behavior
 Resource Locking
 ~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 4.2
-
 .. include:: /includes/extracts/create-resource-lock.rst
 
 Transactions
 ~~~~~~~~~~~~
-
-.. versionchanged:: 4.4
 
 .. include:: /includes/extracts/transactions-explicit-ddl.rst
 
@@ -400,7 +384,7 @@ Stable API
 .. versionchanged:: 5.0
 
 When using :ref:`Stable API <stable-api>` V1, you cannot specify
-the following fields in a :dbcommand:`create` command:
+the following fields in a ``create`` command:
 
 - ``autoIndexId``
 - ``capped``
@@ -505,11 +489,9 @@ Create a View
    views. For discussion of on-demand materialized views, see
    :pipeline:`$merge` instead.
 
-.. versionchanged:: 4.2
-
 .. include:: /includes/extracts/views-restriction-output-to-disk.rst
 
-To create a :ref:`view <views-landing-page>` using the :dbcommand:`create`
+To create a :ref:`view <views-landing-page>` using the ``create``
 command, use the following syntax:
 
 .. code-block:: javascript
