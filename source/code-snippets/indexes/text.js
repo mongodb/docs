@@ -10,23 +10,26 @@ const client = new MongoClient(uri);
 async function run() {
   try {
     // begin-idx
-    const database = client.db("sample_mflix");
-    const movies = database.collection("movies");
+    const myDB = client.db("testDB");
+    const myColl = myDB.collection("blogPosts");
 
-    // Create a text index on the "fullplot" field in the
-    // "movies" collection.
-    const result = await movies.createIndex({ fullplot: "text" }, { default_language: "english" });
-    console.log(`Index created: ${result}`);
+    // Create a text index on the "title" and "body" fields
+    const result = await myColl.createIndex(
+      { title: "text", body: "text" },
+      { default_language: "english" },
+      { weights: { body: 10, title: 3 } }
+    );
     // end-idx
+    console.log(`Index created: ${result}`);
 
     // begin-query
-    const query = { $text: { $search: "java coffee shop" } };
-    const projection = { _id: 0, fullplot: 1 };
-    const cursor = movies
-      .find(query)
-      .project(projection);
+    const query = { $text: { $search: "life ahead" } };
+    const projection = { _id: 0, title: 1 };
+    const cursor = myColl.find(query).project(projection);
     // end-query
-
+    for await (const doc of cursor) {
+      console.log(doc);
+    }
   } finally {
     await client.close();
   }
