@@ -1,5 +1,3 @@
-
-
 .. _index-feature-ttl:
 
 ===========
@@ -25,26 +23,69 @@ TTL Indexes
 
 TTL indexes are special single-field indexes that MongoDB can use to
 automatically remove documents from a collection after a certain amount
-of time or at a specific clock time. Data expiration is useful for certain types of information
-like machine generated event data, logs, and session information that
-only need to persist in a database for a finite amount of time.
+of time or at a specific clock time. Data expiration is useful for
+certain types of information like machine generated event data, logs,
+and session information that only need to persist in a database for a 
+finite amount of time.
 
 Create a TTL Index
 ------------------
 
 To create a TTL index, use the :method:`~db.collection.createIndex()`
 method on a field whose value is either a :ref:`date
-<document-bson-type-date>` or an array that contains :ref:`date values
-<document-bson-type-date>`, and specify the ``expireAfterSeconds``
-option with the desired TTL value in seconds.
+<document-bson-type-date>` or an array that contains date values, then specify the ``expireAfterSeconds`` option with the desired TTL value in
+seconds. 
 
 For example, to create a TTL index on the ``lastModifiedDate`` field of
-the ``eventlog`` collection, with a TTL value of ``3600`` seconds, use
+the ``eventlog`` collection with a TTL value of ``3600`` seconds, use
 the following operation in :binary:`~bin.mongosh`:
 
 .. code-block:: javascript
 
-   db.eventlog.createIndex( { "lastModifiedDate": 1 }, { expireAfterSeconds: 3600 } )
+   db.eventlog.createIndex( { "lastModifiedDate": 1 }, {
+   expireAfterSeconds: 3600 } )
+   
+Starting in MongoDB 6.3, you can create partial TTL indexes on 
+:ref:`time series collections <manual-timeseries-landing>`. These
+indexes use the collection ``timeField`` as the key field, and require a
+:ref:`partial filter expression <index-type-partial>` on the  ``metaField``.
+
+Time series collections include an optional ``expireAfterSeconds``
+field. If you do not set it, a TTL index with a
+``partialFilterExpression`` lets you set an expiration period for
+documents that match the filter. If you do set ``expireAfterSeconds``,
+a partial TTL index lets you set a different, shorter expiration period
+for matching documents. You can only create a ``partialFilterExpression`` on the ``metaField``.
+
+.. important::
+
+   If the ``expireAfterSeconds`` value of the collection is lower than
+   the ``expireAfterSeconds`` of the partial TTL index, the collection
+   deletes documents after the shorter time, so the TTL index has no effect.
+
+This weather data time series collection deletes documents after 24 hours:
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "sensor",
+             granularity: "hours"
+          },
+          expireAfterSeconds: 86400})
+
+This TTL index deletes documents from the MongoDB NYC
+headquarters weather sensor after 1 hour, instead of 24 hours:
+
+.. code-block:: javascript
+
+   db.eventlog.createIndex( 
+     { "timestamp": 1 },
+     { partialFilterExpression: { "sensor": { $eq: "40.761873, -73.984287" } } },
+     { expireAfterSeconds: 3600 } )
 
 .. _convert-non-ttl-single-field-index-into-ttl:
 
@@ -118,11 +159,18 @@ Expiration of Data
 
 TTL indexes expire documents after the specified number of seconds has
 passed since the indexed field value; i.e. the expiration threshold is
-the indexed field value plus the specified number of seconds.
+the indexed field value plus the specified number of seconds. 
 
 If the field is an array, and there are multiple date values in the
 index, MongoDB uses *lowest* (i.e. earliest) date value in the array to
 calculate the expiration threshold.
+
+For time series collections, TTL indexes also remove a bucket of data
+when all documents inside it expire. This is equal to the upper
+timestamp limit of the bucket, plus the ``expireAfterSeconds`` value.
+For example, if a bucket covers data up until ``2023-03-27T18:29:59Z``
+and ``expireAfterSeconds`` is 300, the TTL index expires the
+bucket after ``2023-03-27T18:34:59Z``.
 
 If the indexed field in a document is not a
 :ref:`date <document-bson-type-date>` or an array that holds one or
@@ -146,9 +194,9 @@ output of :method:`db.currentOp()` or in the data collected by the
 Timing of the Delete Operation
 ``````````````````````````````
 
-MongoDB begins removing expired documents as soon as the index
-finishes building on the :term:`primary`. For more information on the
-index build process, see :ref:`index-operations`.
+MongoDB begins removing expired documents or time series buckets as soon
+as the index finishes building on the :term:`primary`. For more
+information on the index build process, see :ref:`index-operations`.
 
 .. include:: /includes/fact-ttl-collection-background-timing.rst
 
@@ -177,10 +225,8 @@ Restrictions
 - You cannot create a TTL index on a :ref:`capped collection
   <manual-capped-collection>`.
 
-- You cannot create a TTL index on a :doc:`time series collection
-  </core/timeseries-collections>`. Similar functionality is provided
-  through :ref:`automatic removal on time series collections
-  <manual-timeseries-automatic-removal>` instead.
+- You can only create TTL indexes for a :ref:`time series collection
+  <manual-timeseries-landing>` on the collection ``timeField``.
 
 - You cannot use :method:`~db.collection.createIndex()` to change the
   value of ``expireAfterSeconds`` of an existing index. Instead use the

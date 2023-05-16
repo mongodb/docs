@@ -1,6 +1,6 @@
-The TTL index does not guarantee that expired data will be deleted
-immediately upon expiration. There may be a delay between the time that a
-document expires and the time that MongoDB removes the document from
+The TTL index does not guarantee that expired data is deleted
+immediately upon expiration. There may be a delay between the time that
+a document expires and the time that MongoDB removes the document from
 the database.
 
 The background task that removes expired documents runs *every 60
