@@ -332,35 +332,25 @@ This sets the maximum number of ``file descriptors`` for the process to
 How Can I Prevent a Slow Operation From Delaying Other Operations?
 ------------------------------------------------------------------
 
-A slow operation may delay your other operations that occur after it, if
-the ``maxPoolSize`` has not been set in the
-:ref:`connection options <node-connection-options>`.
-MongoDB is synchronous and uses a single execution thread per socket,
-meaning that MongoDB will execute one single operation per socket at any
-point in time. Any other operation sent to that socket will have to wait
-until the current operation is finished. If you have a slow-running
-operation that holds up other operations, the best solution is to create
-a separate connection pool for the slow operation, isolating it from
-other, faster operations.
+To control the maximum size of a connection pool, you can set the
+``maxPoolSize`` option in the :ref:`connection options
+<node-connection-options>`. The default value of ``maxPoolSize`` is
+``100``. If the number of in-use connections to a server reaches
+``maxPoolSize``, the next request to that server will wait 
+until a connection becomes available. To prevent long-running operations
+from slowing down your application, you can increase ``maxPoolSize``.
 
-.. note::
-    If the number of operations is greater than the value of the
-    ``maxPoolSize`` option and a slow operation occurs, subsequent
-    operations will be delayed.
+The driver does not limit the number of requests that can wait for
+sockets to become available. Requests wait for the amount of time
+specified in the ``waitQueueTimeoutMS`` option, which
+defaults to ``0`` (no limit). You should set this option if it is
+more important to stop long-running operations than it is to complete
+every operation.
 
-To create a separate connection pool, instantiate another ``MongoClient``
-call the ``connect()`` method on it. See the following example for the
-syntax you can use to create two clients, each with its own connection
-pool:
-
-.. code-block:: javascript
-
-   const clientA = new MongoClient(uri, options);
-   clientA.connect(); // any method calls on clientA use clientA's connection pool
-
-   const clientB = new MongoClient(uri, options);
-   clientB.connect(); // any method calls on clientB use clientB's connection pool
-
+.. tip::
+   
+   To learn more about connection pooling, see :ref:`How Does Connection
+   Pooling Work in the Node Driver? <node-faq-connection-pool>`.
 
 How Can I Ensure My Connection String Is Valid for a Replica Set?
 -----------------------------------------------------------------
