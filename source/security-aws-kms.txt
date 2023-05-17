@@ -12,7 +12,7 @@ Manage Customer Keys with AWS KMS
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. include:: /includes/fact-aws-kms-role-auth.rst
@@ -45,6 +45,67 @@ before enabling it on clusters in that project.
 
 Enable Customer-Managed Keys with AWS KMS
 -----------------------------------------
+
+Key Concepts 
+~~~~~~~~~~~~
+
+.. expression:: MongoDB Master Key
+
+   :expression:`MongoDB Master Key` is an encryption key used by the
+   MongoDB Server to encrypt the WiredTiger Storage Engine. The key
+   isn't stored in the MongoDB database, but it's supplied externally
+   through |kmip| or a local keyfile. When the MongoDB server starts, it
+   obtains the master key from the |kmip| or local file and then stores
+   it in memory. This key is then used to decrypt the data stored in the
+   WiredTiger storage engine. 
+
+   |service| maintains a layer that translates requests between MongoDB
+   Server and a |cmk| that you created in |aws|. To translate the
+   requests, |service| uses the layer to request the |cmk| to create an
+   encrypted data encryption key (DEK). This encrypted
+   :abbr:`DEK (data encryption key)` is generated per |service| deployment. 
+
+   For example, for a three node M10+ replica set as shown in the
+   following figure, there are three unique encrypted :abbr:`DEK (data
+   encryption key)`\s, one per node. |service| stores the encrypted
+   :abbr:`DEK (data encryption key)` on disk on each node in the
+   |service| cluster. When the cluster starts up, the |service| layer
+   decrypts the :abbr:`DEK (data encryption key)` using the customer
+   provided encryption key and supplies this to the MongoDB Server.  
+
+   .. figure:: /images/aws-kms-cmk-key-concepts.png 
+      :figwidth: 100%
+      :alt: Atlas and AWS KMS key transfer workflow
+
+.. expression:: Per Database Encryption Key in a MongoDB Cluster
+
+   MongoDB Server maintains a per database encryption key in the MongoDB 
+   cluster. In the preceding figure, there are three databases on the
+   MongoDB cluster, each of which is encrypted with a unique database
+   encryption key. Each of these keys are then encrypted with the
+   :expression:`MongoDB Master Key`.  
+
+.. expression:: Data Encryption Key (in cloud provider terminology) or MongoDB Master Key 
+
+   |service| uses the customer provided encryption key to create an
+   encrypted :abbr:`DEK (data encryption key)`. |service| also uses a 
+   customer key management instance to decrypt this encrypted :abbr:`DEK
+   (data encryption key)` and supply the resulting plaintext key to the 
+   MongoDB Server over the wire using |tls|. When MongoDB Server uses
+   this plaintext key, it refers to it as the :expression:`MongoDB
+   Master Key`, whereas a cloud provider's customer key management
+   instance might refer to it as a :abbr:`DEK (data encryption key)`. 
+   To learn more about :abbr:`DEK (data encryption key)`\s, see `Data Keys
+   <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#data-keys>`__.
+
+.. expression:: Customer Master Key (CMK)
+
+   :abbr:`Customer Master Key (CMK)` is a concept of a customer key
+   management instance. |cmk|\s are used to  encrypt and decrypt a
+   :expression:`MongoDB Master Key` (or :abbr:`DEK (data encryption
+   key)`). The |cmk| exists only on the customer key management
+   instance. To learn more about |cmk|\s, see `Data Keys
+   <https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-mgmt>`__.
 
 .. _aws-ksm-prereqs:
 .. _security-aws-kms-restrictions:
@@ -128,21 +189,33 @@ Rotate your AWS Customer Master Key
 
 .. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
 
+MongoDB Master Key - MongoDB Responsibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. include:: /includes/fact-atlas-key-rotation.rst
 
-|service| does *not* automatically rotate the |aws| customer master key
-(CMK) used for |aws|\-provided Encryption at Rest.
+Your |aws| |cmk| - Your Responsibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| automatically creates an
-:alert:`alert <AWS encryption key elapsed time since last rotation is above (n) days>`
-to remind you to rotate your |cmk| every 90 days by default when you
+|service| does *not* automatically rotate the |aws| |cmk| used for
+|aws|\-provided Encryption at Rest. 
+
+As a best practice, |service| creates an :alert:`alert <AWS encryption
+key elapsed time since last rotation is above (n) days>` to remind you
+to rotate your |aws| |cmk| every 90 days by default when you
 :ref:`enable Encryption at Rest <security-aws-kms>` for |a-service|
-project.
+project. You can configure the time period of this alert.
 
-|aws| |kms| supports
-:aws:`automatic CMK rotation </kms/latest/developerguide/rotate-keys.html>`.
-|aws| automatic |cmk| rotation does not require you to update the
-|service| Encryption at Rest project settings, including the |cmk| ID.
+You can rotate your |aws| |cmk| yourself or configure your |aws| |kms|
+instance to :aws:`automatically rotate
+</kms/latest/developerguide/rotate-keys.html>` your |cmk|. If
+you configure automatic |aws| |cmk| rotation, the default time period
+for rotation is approximately 365 days.
+
+If you have already set up an automatic |cmk| rotation in |aws| and
+don't want to receive the |service| alert to rotate your |cmk| every 90 
+days, you can :ref:`modify <configure-alerts>` the default alert period
+to be greater than 365 days.
 
 This page explains how to create a new key and update the |cmk| ID in
 |service| to rotate your |service| project |cmk|. This method of key

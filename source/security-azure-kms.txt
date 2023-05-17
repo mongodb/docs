@@ -39,6 +39,67 @@ before enabling it on clusters in that project.
 Enable Customer-Managed Keys with Azure Key Vault
 -------------------------------------------------
 
+Key Concepts 
+~~~~~~~~~~~~
+
+.. expression:: MongoDB Master Key
+
+   :expression:`MongoDB Master Key` is an encryption key used by the
+   MongoDB Server to encrypt the WiredTiger Storage Engine. The key
+   isn't stored in the MongoDB database, but it's supplied externally
+   through |kmip| or a local keyfile. When the MongoDB server starts, it
+   obtains the master key from the |kmip| or local file and then stores
+   it in memory. This key is then used to decrypt the data stored in the
+   WiredTiger storage engine. 
+
+   |service| maintains a layer that translates requests between MongoDB
+   Server and a |cmk| that you created in |azure|. To translate the
+   requests, |service| uses the layer to request the |cmk| to create an
+   encrypted data encryption key (DEK). This encrypted
+   :abbr:`DEK (data encryption key)` is generated per |service| deployment. 
+
+   For example, for a three node M10+ replica set as shown in the
+   following figure, there are three unique encrypted :abbr:`DEK (data
+   encryption key)`\s, one per node. |service| stores the encrypted
+   :abbr:`DEK (data encryption key)` on disk on each node in the
+   |service| cluster. When the cluster starts up, the |service| layer
+   decrypts the :abbr:`DEK (data encryption key)` using the customer
+   provided encryption key and supplies this to the MongoDB Server.  
+
+   .. figure:: /images/azure-kms-cmk-key-concepts.png 
+      :figwidth: 100%
+      :alt: Atlas and AWS KMS key transfer workflow
+
+.. expression:: Per Database Encryption Key in a MongoDB Cluster
+
+   MongoDB Server maintains a per database encryption key in the MongoDB 
+   cluster. In the preceding figure, there are three databases on the
+   MongoDB cluster, each of which is encrypted with a unique database
+   encryption key. Each of these keys are then encrypted with the
+   :expression:`MongoDB Master Key`.  
+
+.. expression:: Data Encryption Key (in cloud provider terminology) or MongoDB Master Key 
+
+   |service| uses the customer provided encryption key to create an
+   encrypted :abbr:`DEK (data encryption key)`. |service| also uses a 
+   customer key management instance to decrypt this encrypted :abbr:`DEK
+   (data encryption key)` and supply the resulting plaintext key to the 
+   MongoDB Server over the wire using |tls|. When MongoDB Server uses
+   this plaintext key, it refers to it as the :expression:`MongoDB
+   Master Key`, whereas a cloud provider's customer key management
+   instance might refer to it as a :abbr:`DEK (data encryption key)`. 
+   To learn more about :abbr:`DEK (data encryption key)`\s, see `Data
+   Encryption <https://learn.microsoft.com/en-us/azure/security/fundamentals/encryption-overview>`__.
+
+.. expression:: Customer Master Key (CMK)
+
+   :abbr:`Customer Master Key (CMK)` is a concept of a customer key
+   management instance. |cmk|\s are used to  encrypt and decrypt a
+   :expression:`MongoDB Master Key` (or :abbr:`DEK (data encryption
+   key)`). The |cmk| exists only on the customer key management
+   instance. To learn more about |cmk|\s, see `Customer-managed keys 
+   <https://learn.microsoft.com/en-us/azure/storage/common/customer-managed-keys-overview>`__. 
+
 .. _azure-kms-prereqs:
 
 .. _security-azure-kms-restrictions:
@@ -138,16 +199,35 @@ Rotate your Azure Key Identifier
 
 .. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
 
+MongoDB Master Key - MongoDB Responsibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. include:: /includes/fact-atlas-key-rotation.rst
 
-|service| does *not* automatically rotate the Key Identifier
-used for Azure-provided key management.
+Rotate your Azure Key ID - Your Responsibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|service| automatically creates an
-:alert:`encryption key rotation alert <Azure encryption key elapsed time since last rotation is above (n) days>`
-to remind you to rotate your Azure Key Identifier every 90 days by
+|service| does *not* automatically rotate the Key Identifier used for
+Azure Key Vault. 
+
+|service| automatically creates an :alert:`encryption key rotation alert
+<Azure encryption key elapsed time since last rotation is above (n)
+days>` to remind you to rotate your Azure Key Identifier every 90 days by
 default when you :ref:`enable Encryption at Rest <security-azure-kms>`
 for |a-service| project.
+
+You can `rotate <https://learn.microsoft.com/en-us/azure/container-registry/tutorial-rotate-revoke-customer-managed-keys>`__ 
+|cmk| stored in Azure Key Vault yourself or configure
+your Azure Key Vault to automatically rotate your keys. If you
+configure `automatic rotation
+<https://learn.microsoft.com/en-us/azure/virtual-machines/disk-encryption#automatic-key-rotation-of-customer-managed-keys>`__ 
+in Azure Key Vault, the default time period for rotation is
+approximately 365 days.  
+
+If you have already set up an automatic rotation in Azure Key Vault and
+don't want to receive the |service| alert to rotate your Azure Key
+Identifier every 90 days, you can :ref:`modify <configure-alerts>` the
+default alert period to be greater than 365 days. 
 
 Prerequisites
 ~~~~~~~~~~~~~

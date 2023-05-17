@@ -39,6 +39,68 @@ before enabling it on clusters in that project.
 Enable Customer-Managed Keys with Google Cloud KMS
 --------------------------------------------------
 
+Key Concepts 
+~~~~~~~~~~~~
+
+.. expression:: MongoDB Master Key
+
+   :expression:`MongoDB Master Key` is an encryption key used by the
+   MongoDB Server to encrypt the WiredTiger Storage Engine. The key
+   isn't stored in the MongoDB database, but it's supplied externally
+   through |kmip| or a local keyfile. When the MongoDB server starts, it
+   obtains the master key from the |kmip| or local file and then stores
+   it in memory. This key is then used to decrypt the data stored in the
+   WiredTiger storage engine. 
+
+   |service| maintains a layer that translates requests between MongoDB
+   Server and a |cmk| that you created in |gcp|. To translate the
+   requests, |service| uses the layer to request the |cmk| to create an
+   encrypted data encryption key (DEK). This encrypted :abbr:`DEK (data
+   encryption key)` is generated per |service| deployment.  
+
+   For example, for a three node M10+ replica set as shown in the
+   following figure, there are three unique encrypted :abbr:`DEK (data
+   encryption key)`\s, one per node. |service| stores the encrypted
+   :abbr:`DEK (data encryption key)` on disk on each node in the
+   |service| cluster. When the cluster starts up, the |service| layer
+   decrypts the :abbr:`DEK (data encryption key)` using the customer
+   provided encryption key and supplies this to the MongoDB Server.  
+
+   .. figure:: /images/gcp-kms-cmk-key-concepts.png 
+      :figwidth: 100%
+      :alt: Atlas and AWS KMS key transfer workflow
+
+.. expression:: Per Database Encryption Key in a MongoDB Cluster
+
+   MongoDB Server maintains a per database encryption key in the MongoDB 
+   cluster. In the preceding figure, there are three databases on the
+   MongoDB cluster, each of which is encrypted with a unique database
+   encryption key. Each of these keys are then encrypted with the
+   :expression:`MongoDB Master Key`.  
+
+.. expression:: Data Encryption Key (in cloud provider terminology) or MongoDB Master Key 
+
+   |service| uses the customer provided encryption key to create an
+   encrypted :abbr:`DEK (data encryption key)`. |service| also uses a 
+   customer key management instance to decrypt this encrypted :abbr:`DEK
+   (data encryption key)` and supply the resulting plaintext key to the 
+   MongoDB Server over the wire using |tls|. When MongoDB Server uses
+   this plaintext key, it refers to it as the :expression:`MongoDB
+   Master Key`, whereas a cloud provider's customer key management
+   instance might refer to it as a :abbr:`DEK (data encryption key)`. 
+   To learn more about :abbr:`DEK (data encryption key)`\s, see `Data
+   encryption keys
+   <https://cloud.google.com/kms/docs/envelope-encryption#data_encryption_keys>`__. 
+
+.. expression:: Customer Master Key (CMK)
+
+   Customer Master Keys are used to  encrypt and decrypt a
+   :expression:`MongoDB Master Key` (or :abbr:`DEK (data encryption
+   key)`). The |cmk| exists only on the customer key management
+   instance. To learn more about |cmk|\s, see `Customer-managed
+   encryption keys  
+   <https://cloud.google.com/storage/docs/encryption/customer-managed-keys>`__.
+
 .. _gcp-kms-prereqs:
 .. _security-gcp-kms-restrictions:
 
@@ -100,16 +162,34 @@ Rotate your GCP Key Version Resource ID
 
 .. include:: /includes/unavailable-serverless-m0-m2-m5-clusters.rst
 
+MongoDB Master Key - MongoDB Responsibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 .. include:: /includes/fact-atlas-key-rotation.rst
+
+Your |gcp| |cmk| - Your Responsibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| does *not* automatically rotate the Key Version Resource ID
 used for |gcp| key management.
 
-|service| automatically creates an
-:alert:`encryption key rotation alert <GCP encryption key elapsed time since last rotation is above (n) days>`
-to remind you to rotate your GCP Key Version Resource ID every 90 days
-by default when you :ref:`enable Encryption at Rest <security-gcp-kms>`
-for |a-service| project.
+As a best practice, |service| creates an :alert:`alert <AWS encryption
+key elapsed time since last rotation is above (n) days>` to remind you
+to rotate your GCP Key Version Resource ID every 90 days by default when 
+you :ref:`enable Encryption at Rest <security-gcp-kms>` for the
+|service| project. You can configure the time period of this alert.
+
+You can `rotate <https://cloud.google.com/kms/docs/rotate-key>`__ your
+|gcp| |cmk| yourself or configure your |gcp| |kms| instance to
+`automatically rotate
+<https://cloud.google.com/kms/docs/rotate-key#automatic>`__ 
+your |cmk|. If you configure automatic |gcp| |cmk| rotation, the default
+time period for rotation is approximately 365 days.
+
+If you have already set up an automatic |cmk| rotation in |gcp| and
+don't want to receive the |service| alert to rotate your |cmk| every 90 
+days, you can :ref:`modify <configure-alerts>` the default alert period
+to be greater than 365 days.
 
 Prerequisites
 ~~~~~~~~~~~~~
