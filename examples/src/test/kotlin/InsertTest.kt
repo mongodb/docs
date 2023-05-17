@@ -22,14 +22,6 @@ internal class InsertTest {
     )
     // :snippet-end:
 
-    // :snippet-start: data-model
-    data class PaintOrder(
-        @BsonId val id: ObjectId? = null,
-        val qty: Int,
-        val color: String
-    )
-    // :snippet-end:
-
     companion object {
         val dotenv = dotenv()
         val client = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
