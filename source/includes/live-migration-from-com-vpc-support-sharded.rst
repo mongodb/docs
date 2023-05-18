@@ -1,5 +1,5 @@
 The following table lists the current support status for :ref:`VPC peering <vpc-peering>`
-and :ref:`private endpoints <private-endpoint>` for source and target
+and :ref:`private endpoints <private-endpoint>` for source and destination
 sharded {+clusters+} that you live migrate to |service|.
 
 .. list-table::
@@ -29,4 +29,4 @@ sharded {+clusters+} that you live migrate to |service|.
 To enable VPC peering with live migration on |azure|, |aws|, or |gcp|:
 
 - Configure a :ref:`VPC peering connection <vpc-peering>` between the
-  migration host and the target |service| {+cluster+}.
+  migration host and the destination |service| {+cluster+}.

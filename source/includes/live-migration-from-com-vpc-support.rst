@@ -1,5 +1,5 @@
 The following table lists the current support status for :ref:`VPC peering <vpc-peering>`
-and :ref:`private endpoints <private-endpoint>` for source and target
+and :ref:`private endpoints <private-endpoint>` for source and destination
 replica set {+clusters+} that you live migrate to |service|.
 
 .. list-table::
@@ -25,12 +25,12 @@ replica set {+clusters+} that you live migrate to |service|.
 To enable VPC peering with live migration on |azure|, |aws|, or |gcp|:
 
 - Configure a :ref:`VPC peering connection <vpc-peering>` between the
-  migration host and the target |service| {+cluster+}.
+  migration host and the destination |service| {+cluster+}.
 
 To enable private endpoints with live migration on |azure|, |aws|, or |gcp|:
 
 - Configure a :ref:`private endpoint <private-endpoint>` between the
-  migration host and the target |service| {+cluster+}.
+  migration host and the destination |service| {+cluster+}.
 
   .. note::
 

@@ -32,8 +32,8 @@
 
   - Consider configuring a :ref:`VPC peering connection <vpc-peering>`
     or a :ref:`private endpoint <private-endpoint>` between each
-    migration host and the target |service| {+cluster+} on the same cloud
-    provider and in the same region as the target {+cluster+}.
+    migration host and the destination |service| {+cluster+} on the same cloud
+    provider and in the same region as the destination {+cluster+}.
 
     .. note::
 

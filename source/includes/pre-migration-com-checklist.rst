@@ -3,7 +3,7 @@ Pre-Migration Checklist
 
 Before starting this Live Migration procedure from |com| to |service|:
 
-- If you don't already have a target cluster,
+- If you don't already have a destination {+cluster+),
   :doc:`create </tutorial/create-new-cluster>` a new |service|
   deployment and test that you can :ref:`connect <connect-mongo-shell>`
   to it from all client servers where your applications run.

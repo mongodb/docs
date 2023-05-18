@@ -1,9 +1,9 @@
-|service| doesn't migrate any user or role data to the target cluster.
+|service| doesn't migrate any user or role data to the destination {+cluster+}.
 
-If the source cluster enforced authentication, before you migrate you
+If the source {+cluster+} enforced authentication, before you migrate you
 must re-create the appropriate authentication mechanism used by your
-applications on the target |service| cluster. The following table lists
-authentication mechanisms and how to configure them in |service|.
+applications on the destination |service| {+cluster+}. The following
+table lists authentication mechanisms and how to configure them in |service|.
 
 .. list-table::
    :widths: 30 70
