@@ -14,53 +14,54 @@ Overview
 --------
 
 In this guide, you can learn how to use MongoDB databases and
-collections with the MongoDB Java driver. 
+collections with the MongoDB Kotlin driver. 
 
-MongoDB organizes data into a hierachy of the following levels:
+MongoDB organizes data into a hierarchy of the following levels:
 
-- Databases
+#. **Databases**: Databases are the top level of data organization in a MongoDB instance.
 
-- Collections
+#. **Collections**: Databases are organized into collections which contain **documents**.
 
-- Documents
+#. **Documents**: Documents contain literal data such as strings, numbers, and dates, as well as other embedded documents. For more information on document field types and structure, see the :manual:`server documentation for documents </core/document/>`. 
 
-Databases are the top level of data organization in a MongoDB instance.
-Databases are organized into collections which contain **documents**.
-Documents
-contain literal data such as strings, numbers, and dates as well as
-other (embedded) documents. For more information on document field
-types and structure, see the server documentation for 
-:manual:`documents </core/document/>`. 
+With the MongoDB Kotlin driver, data can be modeled using Kotlin data classes or you can use a 
+`Document <{+api+}/apidocs/bson/org/bson/Document.html>`__ class
+to store and retrieve data from MongoDB.
+
+.. TODO:(DOCSP-29224): add back in when document data format data classes are documented
+.. To learn more about using data classes to store and retrieve data, refer to
+.. :ref:`Document Data Format: Data Classes <fundamentals-data-classes>`.
 
 Access a Database
 -----------------
 
 Use the `getDatabase()
-<{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClient.html#getDatabase(java.lang.String)>`__ method of
+<{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-client/get-database.html>`__ method of
 a ``MongoClient`` instance to access a ``MongoDatabase`` in a MongoDB
 instance.
 
 The following example accesses a database named "testDatabase":
 
-.. code-block:: java
-
-   MongoDatabase database = mongoClient.getDatabase("testDatabase");
+.. literalinclude:: /examples/generated/DatabaseCollectionsTest.snippet.access-database.kt
+   :language: kotlin
 
 Access a Collection
 -------------------
 
 Use the `getCollection()
-<{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String)>`__
+<{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/get-collection.html>`__
 method of a ``MongoDatabase`` instance to access a
 ``MongoCollection`` in a database of your connected MongoDB instance.
 
-The following example accesses a collection named "testCollection" from
-a ``MongoDatabase``:
+The following example accesses a collection named "testCollection" from a 
+``MongoDatabase`` that contains documents of type ``ExampleDataClass``:
 
-.. code-block:: java
+.. literalinclude:: /examples/generated/DatabaseCollectionsTest.snippet.test-data-class.kt
+   :language: kotlin
+   :caption: ExampleDataClass data model
 
-   MongoDatabase database = mongoClient.getDatabase("testDatabase");
-   MongoCollection<Document> collection = database.getCollection("testCollection");
+.. literalinclude:: /examples/generated/DatabaseCollectionsTest.snippet.access-collection.kt
+   :language: kotlin
 
 .. tip::
 
@@ -72,16 +73,14 @@ Create a Collection
 -------------------
 
 Use the `createCollection()
-<{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#createCollection(java.lang.String,com.mongodb.client.model.CreateCollectionOptions)>`__
+<{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/create-collection.html>`__
 method of a ``MongoDatabase`` instance to create a collection
 in a database of your connected MongoDB instance.
 
 The following example creates a collection called "exampleCollection":
 
-
-.. code-block:: java
-
-   database.createCollection("exampleCollection");
+.. literalinclude:: /examples/generated/DatabaseCollectionsTest.snippet.create-collection.kt
+   :language: kotlin
 
 You can specify collection options like maximum size and document
 validation rules using the `CreateCollectionOptions
@@ -100,12 +99,8 @@ class, which accepts a series of `Filters
 <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html>`__
 that specifies the validation rules and expressions:
 
-.. code-block:: java
-
-   ValidationOptions collOptions = new ValidationOptions().validator(
-       Filters.or(Filters.exists("commander"), Filters.exists("first officer")));
-   database.createCollection("ships",
-       new CreateCollectionOptions().validationOptions(collOptions));
+.. literalinclude:: /examples/generated/DatabaseCollectionsTest.snippet.validation.kt
+   :language: kotlin
 
 For more information, see the server documentation for :manual:`document
 validation </core/document-validation>`.
@@ -115,25 +110,27 @@ Get a List of Collections
 
 You can query for a list of collections in a database using the
 `MongoDatabase.listCollectionNames()
-<{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#listCollectionNames()>`__ method:
+<{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/list-collection-names.html>`__ method:
 
-.. code-block:: java
+.. io-code-block::
 
-   for (String name : database.listCollectionNames()) {
-       System.out.println(name);
-   }
+   .. input:: /examples/generated/DatabaseCollectionsTest.snippet.get-collections.kt
+      :language:  kotlin
+
+   .. output:: 
+      :language:  console
+
+      [movies, exampleCollection]
 
 Drop a Collection
 -----------------
 
 You can remove a collection from the database using the 
 `MongoCollection.drop()
-<{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#drop()>`__ method:
+<{+api-kotlin+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#drop()>`__ method:
 
-.. code-block:: java
-
-   MongoCollection<Document> collection = database.getCollection("bass");
-   collection.drop();
+.. literalinclude:: /examples/generated/DatabaseCollectionsTest.snippet.drop-collections.kt
+   :language: kotlin
 
 .. warning:: Dropping a Collection Deletes All Data in the Collection
 
@@ -161,17 +158,17 @@ of a ``MongoDatabase`` or ``MongoCollection`` with a read preference,
 read concern, or write concern that differs from the setting they would
 normally inherit:
 
-- `MongoDatabase.withReadConcern() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#withReadConcern(com.mongodb.ReadConcern)>`__
+- `MongoDatabase.withReadConcern() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/with-read-concern.html>`__
 
-- `MongoDatabase.withReadPreference() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#withReadPreference(com.mongodb.ReadPreference)>`__
+- `MongoDatabase.withReadPreference() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/with-read-preference.html>`__
 
-- `MongoDatabase.withWriteConcern() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#withWriteConcern(com.mongodb.WriteConcern)>`__
+- `MongoDatabase.withWriteConcern() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/with-write-concern.html>`__
 
-- `MongoCollection.withReadConcern() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#withReadConcern(com.mongodb.ReadConcern)>`__
+- `MongoCollection.withReadConcern() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/with-read-concern.html>`__
 
-- `MongoCollection.withReadPreference() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#withReadPreference(com.mongodb.ReadPreference)>`__
+- `MongoCollection.withReadPreference() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/with-read-preference.html>`__
 
-- `MongoCollection.withWriteConcern() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#withWriteConcern(com.mongodb.WriteConcern)>`__
+- `MongoCollection.withWriteConcern() <{+api-kotlin+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/with-write-concern.html>`__
 
 .. tip::
 

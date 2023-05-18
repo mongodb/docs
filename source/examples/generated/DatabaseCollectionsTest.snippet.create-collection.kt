@@ -1,0 +1,1 @@
+database.createCollection("exampleCollection")
