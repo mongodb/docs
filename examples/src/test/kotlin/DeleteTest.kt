@@ -1,3 +1,4 @@
+
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Sorts.ascending
 import com.mongodb.kotlin.client.coroutine.MongoClient
@@ -12,16 +13,15 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-// :snippet-start: delete-data-model
-data class PaintOrder(
-    @BsonId val id: Int,
-    val qty: Int,
-    val color: String
-)
-// :snippet-end:
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class DeleteTest {
+    // :snippet-start: delete-data-model
+    data class PaintOrder(
+        @BsonId val id: Int,
+        val qty: Int,
+        val color: String
+    )
+    // :snippet-end:
 
     companion object {
         val dotenv = dotenv()

@@ -11,9 +11,6 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-
-
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ChangeTest {
     // :snippet-start: data-model
