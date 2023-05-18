@@ -15,7 +15,7 @@ Overview
 --------
 
 In this guide, you can learn how to use **documents** in the
-MongoDB Java Driver.
+MongoDB Kotlin driver.
 
 A MongoDB document is a data structure that contains key/value fields in
 binary JSON (BSON) format. You can use documents and the data they contain
@@ -25,7 +25,7 @@ MongoDB.
 For more information on the terminology, structure, and limitations of documents,
 read our page on :manual:`Documents </core/document>` in the MongoDB manual.
 
-The MongoDB Java driver and BSON library include the following classes that help you
+The MongoDB Kotlin driver and BSON library include the following classes that help you
 access and manipulate the BSON data in documents:
 
 .. list-table::
@@ -53,11 +53,6 @@ access and manipulate the BSON data in documents:
      - No
      - When you only want to work with JSON strings.
 
-   * - ``BasicDBObject``
-     - ``com.mongodb``
-     - No
-     - When you are migrating your application from a legacy driver version.
-
 While you can use any of these classes in your application, we recommend
 that you use the ``Document`` class since it can concisely represent
 dynamically structured documents of any complexity. It implements the
@@ -68,107 +63,76 @@ Document
 --------
 
 The ``Document`` class offers a flexible representation of a BSON document.
-You can access and manipulate fields using Java types from the standard
+You can access and manipulate fields using Kotlin types from the standard
 library with this class. See the following table for mappings between
-frequently-used BSON and Java types:
+frequently-used BSON and Kotlin types:
 
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
 
    * - BSON type
-     - Java type
+     - Kotlin type
    * - Array
-     - ``java.util.List``
+     - ``kotlin.collections.List``
    * - Binary
      - ``org.bson.types.Binary``
    * - Boolean
-     - ``java.lang.Boolean``
+     - ``kotlin.Boolean``
    * - Date
      - ``java.util.Date``
    * - Document
      - ``org.bson.Document``
    * - Double
-     - ``java.lang.Double``
+     - ``kotlin.Double``
    * - Int32
-     - ``java.lang.Integer``
+     - ``kotlin.Int``
    * - Int64
-     - ``java.lang.Long``
+     - ``kotlin.Long``
    * - Null
      - ``null``
    * - ObjectId
      - ``org.bson.types.ObjectId``
    * - String
-     - ``java.lang.String``
-
-The preceding mapping table shows the default mapping when working with the
-``Document`` class. You can customize the type mapping by specifying a
-custom codec. For more information on customizing mapped types, see our guide
-on using :doc:`Codecs </fundamentals/data-formats/codecs>`.
+     - ``kotlin.String``
 
 In the following code snippet, we show how to instantiate and build a sample
 ``Document`` instance representing a document containing several
 different field types:
 
-.. code-block:: java
-
-   Document author = new Document("_id", new ObjectId())
-       .append("name", "Gabriel García Márquez")
-       .append("dateOfDeath", Date.from(LocalDate.of(2014, 4, 17).atStartOfDay(ZoneId.systemDefault()).toInstant()))
-       .append("novels", Arrays.asList(
-           new Document("title", "One Hundred Years of Solitude").append("yearPublished", 1967),
-           new Document("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
-           new Document("title", "Love in the Time of Cholera").append("yearPublished", 1985)));
+.. literalinclude:: /examples/generated/DocumentsTest.snippet.create-document.kt
+   :language: kotlin
 
 To insert this document into a collection, instantiate a collection
-using the ``getCollection()`` method and call the :doc:`insertOne
-</usage-examples/insertOne>` operation as follows:
+using the ``getCollection()`` method and call the :ref:`insertOne
+<insert-single-document>` operation as follows:
 
-.. code-block:: java
-
-   // MongoClient mongoClient = <code to instantiate your client>;
-
-   MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
-   MongoCollection<Document> collection = database.getCollection("authors");
-
-   InsertOneResult result = collection.insertOne(author);
+.. literalinclude:: /examples/generated/DocumentsTest.snippet.insert-document.kt
+   :language: kotlin
 
 Once you perform a successful insert, you can retrieve the sample document
 data from the collection using the following code:
 
-.. code-block:: java
+.. io-code-block::
+   :copyable: true
 
-   import com.mongodb.client.model.Filters;
-   // <MongoCollection setup code here>
+   .. input:: /examples/generated/DocumentsTest.snippet.retrieve-document.kt
+      :language:  kotlin
 
-   Document doc = collection.find(Filters.eq("name", "Gabriel García Márquez")).first();
-   if (doc != null) {
-       System.out.println("_id: " + doc.getObjectId("_id")
-           + ", name: " + doc.getString("name")
-           + ", dateOfDeath: " + doc.getDate("dateOfDeath"));
+   .. output::
+      :language: none
 
-       doc.getList("novels", Document.class).forEach((novel) -> {
-           System.out.println("title: " + novel.getString("title")
-               + ", yearPublished: " + novel.getInteger("yearPublished"));
-           });
-   }
+      _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
+      title: One Hundred Years of Solitude, yearPublished: 1967
+      title: Chronicle of a Death Foretold, yearPublished: 1981
+      title: Love in the Time of Cholera, yearPublished: 1985
 
 .. tip::
 
    The preceding code sample uses helper methods that check the returned type
    and throw an exception if it is unable to cast the field value.
-   You can call the ``get()`` method specified by the ``Map`` interface
-   to retrieve field values as type ``Object`` and to skip type checking.
-
-The output should look something like this:
-
-.. code-block:: none
-   :copyable: false
-
-   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
-   title: One Hundred Years of Solitude, yearPublished: 1967
-   title: Chronicle of a Death Foretold, yearPublished: 1981
-   title: Love in the Time of Cholera, yearPublished: 1985
+   You can call the ``get()`` method to retrieve values as type
+   ``Object`` and to skip type checking.
 
 For more information on retrieving and manipulating MongoDB data, see our
 :doc:`CRUD guide </fundamentals/crud>`.
@@ -177,23 +141,23 @@ For more information about the methods and classes mentioned in this section,
 see the following API Documentation:
 
 - `Document <{+api+}/apidocs/bson/org/bson/Document.html>`__
-- `getCollection() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String)>`__
+- `getCollection() </apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/get-collection.html>`__
 - `get() <{+api+}/apidocs/bson/org/bson/Document.html#get(java.lang.Object)>`__
 
 BsonDocument
 ------------
 
 The ``BsonDocument`` class provides a type-safe API to access and manipulate
-a BSON document. You need to specify the BSON type from the Java BSON
+a BSON document. You need to specify the BSON type from the BSON
 library for each field. See the following table for mappings between
-frequently-used BSON and Java BSON library types:
+frequently-used BSON and BSON library types:
 
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
 
    * - BSON type
-     - Java BSON library type
+     - BSON library type
    * - Array
      - ``org.bson.BsonArray``
    * - Binary
@@ -221,70 +185,40 @@ In the following code snippet, we show how to instantiate and build a sample
 ``BsonDocument`` instance representing a document containing several
 different field types:
 
-.. code-block:: java
-
-   BsonDocument author = new BsonDocument()
-       .append("_id", new BsonObjectId())
-       .append("name", new BsonString("Gabriel García Márquez"))
-       .append("dateOfDeath", new BsonDateTime(LocalDate.of(2014, 4, 17).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()))
-       .append("novels", new BsonArray(Arrays.asList(
-           new BsonDocument().append("title", new BsonString("One Hundred Years of Solitude")).append("yearPublished", new BsonInt32(1967)),
-           new BsonDocument().append("title", new BsonString("Chronicle of a Death Foretold")).append("yearPublished", new BsonInt32(1981)),
-           new BsonDocument().append("title", new BsonString("Love in the Time of Cholera")).append("yearPublished", new BsonInt32(1985))
-      )));
+.. literalinclude:: /examples/generated/DocumentsTest.snippet.create-bson-document.kt
+   :language: kotlin
 
 To insert this document into a collection, instantiate a collection
 using the ``getCollection()`` method specifying the ``BsonDocument``
 class as the ``documentClass`` parameter. Then, call the
-:doc:`insertOne </usage-examples/insertOne>` operation as follows:
+:ref:`insertOne <insert-single-document>` operation as follows:
 
-.. code-block:: java
-
-   // MongoClient mongoClient = <code to instantiate your client>;
-
-   MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
-   MongoCollection<BsonDocument> collection = database.getCollection("authors", BsonDocument.class);
-
-   InsertOneResult result = collection.insertOne(author);
+.. literalinclude:: /examples/generated/DocumentsTest.snippet.insert-bson-document.kt
+   :language: kotlin
 
 Once you perform a successful insert, you can retrieve the sample document
 data from the collection using the following code:
 
-.. code-block:: java
+.. io-code-block::
+   :copyable: true
 
-   import com.mongodb.client.model.Filters;
+   .. input:: /examples/generated/DocumentsTest.snippet.retrieve-bson-document.kt
+      :language:  kotlin
 
-   // <MongoCollection setup code here>
+   .. output::
+      :language: none
 
-   BsonDocument doc = collection.find(Filters.eq("name", "Gabriel García Márquez")).first();
-   if (doc != null) {
-       System.out.println("_id: " + doc.getObjectId("_id").getValue()
-               + ", name: " + doc.getString("name").getValue()
-               + ", dateOfDeath: " + new Date(doc.getDateTime("dateOfDeath").getValue()));
-
-       doc.getArray("novels").forEach((novel) -> {
-           System.out.println("title: " + novel.asDocument().getString("title").getValue()
-                   + ", yearPublished: " + novel.asDocument().getInt32("yearPublished").getValue());
-       });
-   }
+      _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
+      title: One Hundred Years of Solitude, yearPublished: 1967
+      title: Chronicle of a Death Foretold, yearPublished: 1981
+      title: Love in the Time of Cholera, yearPublished: 1985
 
 .. tip::
 
    The preceding code sample uses helper methods that check the returned type
    and throw a ``BsonInvalidOperationException`` if it is unable to cast
-   the field value. You can call the ``get()`` method specified by the
-   ``Map`` interface to retrieve field values as type ``BsonValue`` and
-   to skip type checking.
-
-The output should look something like this:
-
-.. code-block:: none
-   :copyable: false
-
-   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
-   title: One Hundred Years of Solitude, yearPublished: 1967
-   title: Chronicle of a Death Foretold, yearPublished: 1981
-   title: Love in the Time of Cholera, yearPublished: 1985
+   the field value. You can call the ``get()`` method to retrieve values as type
+   ``BsonValue`` and to skip type checking.
 
 For more information about the methods and classes mentioned in this section,
 see the following API Documentation:
@@ -307,106 +241,36 @@ You can customize the format of JSON in ``JsonObject`` by specifying a
 ``JsonObjectCodec`` and passing it a ``JsonWriterSettings``
 object. For more information on JSON formats, see
 our :doc:`Extended JSON guide </fundamentals/data-formats/document-data-format-extended-json/>`.
-For more information on specifying codecs, see our
-:doc:`Codecs guide </fundamentals/data-formats/codecs>`.
 
 In the following code snippet, we show how to instantiate a sample ``JsonObject``
 instance wrapping an Extended JSON string containing different types of key value pairs:
 
-.. code-block:: java
-
-   String ejsonStr = "{\"_id\": {\"$oid\": \"6035210f35bd203721c3eab8\"},"
-           + "\"name\": \"Gabriel Garc\\u00eda M\\u00e1rquez\","
-           + "\"dateOfDeath\": {\"$date\": \"2014-04-17T04:00:00Z\"},"
-           + "\"novels\": ["
-           + "{\"title\": \"One Hundred Years of Solitude\",\"yearPublished\": 1967},"
-           + "{\"title\": \"Chronicle of a Death Foretold\",\"yearPublished\": 1981},"
-           + "{\"title\": \"Love in the Time of Cholera\",\"yearPublished\": 1985}]}";
-   JsonObject author = new JsonObject(ejsonStr);
+.. literalinclude:: /examples/generated/DocumentsTest.snippet.create-json-object.kt
+   :language: kotlin
 
 To insert this document into a collection, instantiate a collection
 using the ``getCollection()`` method specifying the ``JsonObject`` class
 as the ``documentClass`` parameter. Then, call the
-:doc:`insertOne </usage-examples/insertOne>` operation as follows:
+:ref:`insertOne <insert-single-document>` operation as follows:
 
-.. code-block:: java
-
-   // MongoClient mongoClient = <code to instantiate your client>;
-
-   MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
-   MongoCollection<JsonObject> collection = database.getCollection("authors", JsonObject.class);
-
-   InsertOneResult result = collection.insertOne(author);
+.. literalinclude:: /examples/generated/DocumentsTest.snippet.insert-json-object.kt
+   :language: kotlin
 
 Once you perform a successful insert, you can retrieve the sample JSON data from the
 collection. While you can use any class that extends ``Bson`` to specify your query,
 here is how to query your data using a ``JsonObject``:
 
-.. code-block:: java
+.. io-code-block::
+   :copyable: true
 
-   // MongoClient mongoClient = <code to instantiate your client>;
+   .. input:: /examples/generated/DocumentsTest.snippet.retrieve-json-object.kt
+      :language:  kotlin
 
-   JsonObject query = new JsonObject("{\"name\": \"Gabriel Garc\\u00eda M\\u00e1rquez\"}");
-   JsonObject jsonResult = collection.find(query).first();
-   if (jsonResult != null) {
-       System.out.println("query result in extended json format: " + jsonResult.getJson());
-   }
 
-The output should look something like this:
+   .. output::
+      :language: none
 
-.. code-block:: none
-   :copyable: false
-
-   query result in extended json format: {"_id": {"$oid": "6035210f35bd203721c3eab8"}, "name": "Gabriel García Márquez", "dateOfDeath": {"$date": "2014-04-17T04:00:00Z"}, "novels": [{"title": "One Hundred Years of Solitude", "yearPublished": 1967}, {"title": "Chronicle of a Death Foretold", "yearPublished": 1981}, {"title": "Love in the Time of Cholera", "yearPublished": 1985}]}
-
-.. tip::
-
-   If you would like to work with other formats of JSON strings
-   in your application, you can use the ``JsonObjectCodec`` class
-   along with ``JsonWriterSettings`` to specify your desired JSON
-   format.
-
-   The following code example reads and writes
-   to our MongoDB instance using
-   :manual:`Relaxed mode JSON </reference/mongodb-extended-json/>`
-   strings and outputs ``ObjectId`` instances as hex strings:
-
-   .. code-block:: java
-
-      import static org.bson.codecs.configuration.CodecRegistries.fromCodecs;
-
-      // MongoClient mongoClient = <code to instantiate your client>;
-
-      MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
-      MongoCollection<JsonObject> collection = database.getCollection("authors", JsonObject.class)
-              .withCodecRegistry(
-                      fromCodecs(
-                              // define a JsonObjectCodec with a JsonWriterSettings in Relaxed mode
-                              new JsonObjectCodec(JsonWriterSettings
-                                      .builder()
-                                      .outputMode(JsonMode.RELAXED)
-                                      .objectIdConverter((objectId, strictJsonWriter) -> {
-                                          strictJsonWriter.writeString(objectId.toHexString());
-                                      })
-                                      .build())));
-      JsonObject author = new JsonObject("{\"_id\": \"6035210f35bd203721c3eab8\", "
-              + "\"name\": \"Gabriel García Márquez\", "
-              + "\"dateOfDeath\": {\"$date\": \"2014-04-17T04:00:00Z\"}, "
-              + "\"novels\": [{\"title\": \"One Hundred Years of Solitude\", \"yearPublished\": 1967}, {\"title\": \"Chronicle of a Death Foretold\", \"yearPublished\": 1981}, "
-              + "{\"title\": \"Love in the Time of Cholera\", \"yearPublished\": 1985}]}\n");
-      collection.insertOne(author);
-      JsonObject query = new JsonObject("{\"name\": \"Gabriel Garc\\u00eda M\\u00e1rquez\"}");
-      JsonObject jsonResult = collection.find(query).first();
-      if (jsonResult != null) {
-          System.out.println("query result in relaxed json format: " + jsonResult.getJson());
-      }
-
-   The output of this code should look something like this:
-
-   .. code-block:: none
-      :copyable: false
-
-      query result in relaxed json format: {"_id": "6035210f35bd203721c3eab8", "name": "Gabriel García Márquez", "dateOfDeath": {"$date": "2014-04-17T04:00:00Z"}, "novels": [{"title": "One Hundred Years of Solitude", "yearPublished": 1967}, {"title": "Chronicle of a Death Foretold", "yearPublished": 1981}, {"title": "Love in the Time of Cholera", "yearPublished": 1985}]}
+      query result in extended json format: {"_id": {"$oid": "6035210f35bd203721c3eab8"}, "name": "Gabriel García Márquez", "dateOfDeath": {"$date": "2014-04-17T04:00:00Z"}, "novels": [{"title": "One Hundred Years of Solitude", "yearPublished": 1967}, {"title": "Chronicle of a Death Foretold", "yearPublished": 1981}, {"title": "Love in the Time of Cholera", "yearPublished": 1985}]}
 
 For more information about the methods and classes mentioned in this section,
 see the following API Documentation:
@@ -414,99 +278,7 @@ see the following API Documentation:
 - `JsonObject <{+api+}/apidocs/bson/org/bson/json/JsonObject.html>`__
 - `JsonObjectCodec <{+api+}/apidocs/bson/org/bson/codecs/JsonObjectCodec.html>`__
 - `JsonWriterSettings <{+api+}/apidocs/bson/org/bson/json/JsonWriterSettings.html>`__
-- `getCollection() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String,java.lang.Class)>`__
-
-BasicDBObject
--------------
-
-The ``BasicDBObject`` class allows you to access and manipulate document data
-using Java types. We recommend that you avoid using this class unless you
-are migrating an application from an older driver version
-because of the following limitations:
-
-- ``BasicDBObject`` does not implement ``Map<K, V>`` and therefore
-  lacks the data access and manipulation convenience methods of a ``Map``.
-- It implements the ``DBObject`` interface rather than a class, so you
-  cannot extend the API without breaking `binary compatibility <https://docs.oracle.com/javase/specs/jls/se7/html/jls-13.html#jls-13.2>`__.
-  This means that if the interface was ever changed in a way that broke
-  the binary compatibility, all applications and classes that use the
-  interface need to be recompiled to run the new version without errors.
-
-In the following code snippet, we show how to instantiate and build a sample
-``BasicDBObject`` instance representing a document containing several
-different field types:
-
-.. code-block:: java
-
-   BasicDBObject author = new BasicDBObject("_id", new ObjectId())
-       .append("name", "Gabriel García Márquez")
-       .append("dateOfDeath", Date.from(LocalDate.of(2014, 4, 17).atStartOfDay(ZoneId.systemDefault()).toInstant()))
-       .append("novels", Arrays.asList(
-           new BasicDBObject("title", "One Hundred Years of Solitude").append("yearPublished", 1967),
-           new BasicDBObject("title", "Chronicle of a Death Foretold").append("yearPublished", 1981),
-           new BasicDBObject("title", "Love in the Time of Cholera").append("yearPublished", 1985)));
-
-To insert this document into a collection, instantiate a collection using
-the ``getCollection()`` method specifying the ``BasicDBObject`` class as
-the ``documentClass`` parameter. Then, call the
-:doc:`insertOne </usage-examples/insertOne>` operation as follows:
-
-.. code-block:: java
-
-   // MongoClient mongoClient = <code to instantiate your client>;
-
-   MongoDatabase database = mongoClient.getDatabase("fundamentals_data");
-   MongoCollection<BasicDBObject> collection = database.getCollection("authors", BasicDBObject.class);
-
-   InsertOneResult result = collection.insertOne(author);
-
-Once you perform a successful insert, you can retrieve the sample document
-data from the collection using the following code:
-
-.. code-block:: java
-
-   import com.mongodb.client.model.Filters;
-   // <MongoCollection setup code here>
-
-   BasicDBObject doc = collection.find(Filters.eq("name", "Gabriel García Márquez")).first();
-   if (doc != null) {
-       System.out.println("_id: " + doc.getObjectId("_id")
-           + ", name: " + doc.getString("name")
-           + ", dateOfDeath: " + doc.getDate("dateOfDeath"));
-
-       BasicDBList novels = (BasicDBList) doc.get("novels");
-       if (novels != null) {
-           BasicDBObject[] novelArr = novels.toArray(new BasicDBObject[0]);
-           for (BasicDBObject novel : novelArr) {
-               System.out.println("title: " + novel.getString("title")
-               + ", yearPublished: " + novel.getInt("yearPublished"));
-           }
-       }
-   }
-
-.. tip::
-
-   The preceding code sample uses helper methods that check the returned type
-   and throw an exception if it is unable to cast the field value.
-   You can call the ``get()`` method to retrieve values as type
-   ``Object`` and to skip type checking.
-
-The output should look something like this:
-
-.. code-block:: none
-   :copyable: false
-
-   _id: 5fb5fad05f734e3794741a35, name: Gabriel García Márquez, dateOfDeath: Thu Apr 17 00:00:00 EDT 2014
-   title: One Hundred Years of Solitude, yearPublished: 1967
-   title: Chronicle of a Death Foretold, yearPublished: 1981
-   title: Love in the Time of Cholera, yearPublished: 1985
-
-For more information about the methods and classes mentioned in this section,
-see the following API Documentation:
-
-- `BasicDBObject <{+api+}/apidocs/mongodb-driver-core/com/mongodb/BasicDBObject.html>`__
-- `getCollection() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoDatabase.html#getCollection(java.lang.String,java.lang.Class)>`__
-- `get() <{+api+}/apidocs/bson/org/bson/BasicBSONObject.html?is-external=true#get(java.lang.String)>`__
+- `getCollection() </apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-database/get-collection.html>`__
 
 Summary
 -------
@@ -514,7 +286,7 @@ Summary
 In this guide, we covered the following topics on classes you can use to
 work with BSON data:
 
-- Described four Java classes you can use to work with MongoDB documents and
+- Described Kotlin classes you can use to work with MongoDB documents and
   why you might prefer one over the other.
 - Provided usage examples for each class on building documents containing
   multiple types, inserting them into a collection, and

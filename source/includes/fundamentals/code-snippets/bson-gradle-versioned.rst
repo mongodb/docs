@@ -1,6 +1,6 @@
-.. code-block:: groovy
+.. code-block:: kotlin
 
    dependencies {
-      compile 'org.mongodb:bson:{+full-version+}'
+      implementation("org.mongodb:bson:{+full-version+}")
    }
 

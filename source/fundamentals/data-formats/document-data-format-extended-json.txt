@@ -17,7 +17,7 @@ Overview
 --------
 
 In this guide, you can learn how to use the Extended JSON format in the
-MongoDB Java driver.
+MongoDB Kotlin driver.
 
 JSON is a data format that represents the values of objects, arrays, numbers,
 strings, booleans, and nulls. The **Extended JSON** format defines a reserved
@@ -28,7 +28,7 @@ store data.
 This guide explains the following topics:
 
 - The different MongoDB Extended JSON formats
-- How to use the BSON library to convert between Extended JSON and Java objects
+- How to use the BSON library to convert between Extended JSON and Kotlin objects
 - How to create a custom conversion of BSON types
 
 For more information on the difference between these formats, see our
@@ -96,8 +96,6 @@ The following examples show a document containing an ObjectId, date, and long
 number field represented in each Extended JSON format. Click the tab that
 corresponds to the format of the example you want to see:
 
-.. Generate output using source/includes/fundamentals/code-snippets/JsonFormats.java
-
 .. tabs::
 
    .. tab:: Extended
@@ -151,7 +149,7 @@ Read Extended JSON
 Using the Document Classes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can read an Extended JSON string into a Java document object by calling
+You can read an Extended JSON string into a Kotlin document object by calling
 the ``parse()`` static method from either the ``Document`` or ``BsonDocument``
 class, depending on which object type you need. This method parses the Extended
 JSON string in any of the formats and returns an instance of that class
@@ -161,20 +159,15 @@ The following example shows how you can use the ``Document`` class to read
 an example Extended JSON string into a ``Document`` object using the
 ``parse()`` method:
 
-.. code-block:: java
+.. io-code-block::
 
-   String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
-                     "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
+   .. input:: /examples/generated/EjsonTest.snippet.read-ejson-document.kt
+      :language: kotlin
 
-   Document doc = Document.parse(ejsonStr);
-   System.out.println(doc);
+   .. output::
+      :language: console
 
-The output of the preceding code should look something like this:
-
-.. code-block:: none
-   :copyable: False
-
-   Document{{_id=507f1f77bcf86cd799439011, myNumber=4794261}}
+      Document{{_id=507f1f77bcf86cd799439011, myNumber=4794261}}
 
 For more information, see our Fundamentals page
 on :doc:`Documents </fundamentals/data-formats/documents>`.
@@ -182,44 +175,25 @@ on :doc:`Documents </fundamentals/data-formats/documents>`.
 Using the BSON Library
 ~~~~~~~~~~~~~~~~~~~~~~
 
-You can also read an Extended JSON string into Java objects without using
-the MongoDB Java driver's document classes by using the ``JsonReader`` class.
+You can also read an Extended JSON string into Kotlin objects without using
+the MongoDB Kotlin driver's document classes by using the ``JsonReader`` class.
 This class contains methods to sequentially parse the fields and values
-in any format of the Extended JSON string, and returns them as Java objects.
+in any format of the Extended JSON string, and returns them as Kotlin objects.
 The driver's document classes also use this class to parse Extended JSON.
 
 The following code example shows how you can use the ``JsonReader`` class to convert
-an Extended JSON string into Java objects:
+an Extended JSON string into Kotlin objects:
 
-.. code-block:: java
+.. io-code-block::
 
-   String ejsonStr = "{ \"_id\": { \"$oid\": \"507f1f77bcf86cd799439011\"}," +
-                     "\"myNumber\": {\"$numberLong\": \"4794261\" }}}";
+   .. input:: /examples/generated/EjsonTest.snippet.read-ejson-bson.kt
+      :language: kotlin
 
-   JsonReader jsonReader = new JsonReader(ejsonStr);
+   .. output::
+      :language: console
 
-   jsonReader.readStartDocument();
-
-   jsonReader.readName("_id");
-   ObjectId id = jsonReader.readObjectId();
-   jsonReader.readName("myNumber");
-   Long myNumber = jsonReader.readInt64();
-
-   jsonReader.readEndDocument();
-
-   System.out.println(id + " is type: " + id.getClass().getName());
-   System.out.println(myNumber + " is type: " + myNumber.getClass().getName());
-
-   jsonReader.close();
-
-The output of this code example should look something like this:
-
-.. code-block:: none
-   :copyable: False
-
-   507f1f77bcf86cd799439011 is type: org.bson.types.ObjectId
-   4794261 is type: java.lang.Long
-
+      507f1f77bcf86cd799439011 is type: org.bson.types.ObjectId
+      4794261 is type: java.lang.Long
 
 For more information, see the `JsonReader
 <{+api+}/apidocs/bson/org/bson/json/JsonReader.html>`__ API Documentation.
@@ -236,54 +210,40 @@ instance of ``JsonWriterSettings`` to specify the Extended JSON format.
 
 In this example, we output the Extended JSON in the Relaxed mode format.
 
-.. code-block:: java
+.. io-code-block::
 
-   Document myDoc = new Document();
-   myDoc.append("_id", new ObjectId("507f1f77bcf86cd799439012")).append("myNumber", 11223344);
+   .. input:: /examples/generated/EjsonTest.snippet.write-ejson-document.kt
+      :language: kotlin
 
-   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.RELAXED).build();
-   System.out.println(doc.toJson(settings));
+   .. output::
+      :language: javascript
 
-The output of this code example should look something like this:
-
-.. code-block:: none
-   :copyable: false
-
-   {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": 11223344}
+      {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": 11223344}
 
 Using the BSON Library
 ~~~~~~~~~~~~~~~~~~~~~~
 
-You can also output an Extended JSON string from data in Java objects using
+You can also output an Extended JSON string from data in Kotlin objects using
 the BSON library with the ``JsonWriter`` class. To construct an instance
 of ``JsonWriter``, pass a subclass of a Java ``Writer`` to specify how
 you want to output the Extended JSON. You can optionally pass a ``JsonWriterSettings``
 instance to specify options such as the Extended JSON format. By default, the
-``JsonWriter`` uses the Relaxed mode format. The MongoDB Java driver's
+``JsonWriter`` uses the Relaxed mode format. The MongoDB Kotlin driver's
 document classes also use this class to convert BSON to Extended JSON.
 
 The following code example shows how you can use ``JsonWriter`` to create an
 Extended JSON string and output it to ``System.out``. We specify the format
 by passing the ``outputMode()`` builder method the ``JsonMode.EXTENDED`` constant:
 
-.. code-block:: java
+.. io-code-block::
 
-   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.EXTENDED).build();
+   .. input:: /examples/generated/EjsonTest.snippet.write-ejson-bson.kt
+      :language: kotlin
 
-   try (JsonWriter jsonWriter = new JsonWriter(new BufferedWriter(new OutputStreamWriter(System.out)), settings)) {
-       jsonWriter.writeStartDocument();
-       jsonWriter.writeObjectId("_id", new ObjectId("507f1f77bcf86cd799439012"));
-       jsonWriter.writeInt64("myNumber", 11223344);
-       jsonWriter.writeEndDocument();
-       jsonWriter.flush();
-   }
+   .. output::
+      :language: javascript
 
-The output of this code example should look something like this:
-
-.. code-block:: none
-   :copyable: false
-
-   {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": {"$numberLong": "11223344"}}
+      {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "myNumber": {"$numberLong": "11223344"}}
 
 For more information about the methods and classes mentioned in this section,
 see the following API Documentation:
@@ -297,43 +257,25 @@ Custom BSON Type Conversion
 
 In addition to specifying the ``outputMode()`` to format the JSON output, you
 can further customize the output by adding converters to your
-``JsonWriterSettings.Builder``. These converter methods detect the Java types
+``JsonWriterSettings.Builder``. These converter methods detect the Kotlin types
 and execute the logic defined by the ``Converter`` passed to them.
 
 The following sample code shows how to append converters, defined as lambda
 expressions, to simplify the Relaxed mode JSON output.
 
-.. code-block:: java
+.. io-code-block::
 
-   JsonWriterSettings settings = JsonWriterSettings.builder().outputMode(JsonMode.RELAXED)
-           .objectIdConverter((value, writer) -> writer.writeString(value.toHexString()))
-           .dateTimeConverter(
-                   (value, writer) -> {
-                       ZonedDateTime zonedDateTime = Instant.ofEpochMilli(value).atZone(ZoneOffset.UTC);
-                       writer.writeString(DateTimeFormatter.ISO_DATE_TIME.format(zonedDateTime));
-                   })
-           .build();
+   .. input:: /examples/generated/EjsonTest.snippet.custom-bson-type-conversion.kt
+      :language: kotlin
 
-   Document doc = new Document()
-        .append("_id", new ObjectId("507f1f77bcf86cd799439012"))
-        .append("createdAt", Date.from(Instant.ofEpochMilli(1601499609000L)))
-        .append("myNumber", 4794261);
+   .. output::
+      :language: javascript
 
-   System.out.println(doc.toJson(settings)));
+      {"_id": "507f1f77bcf86cd799439012", "createdAt": "2020-09-30T21:00:09Z", "myNumber": 4794261}
 
-The output of this code should look something like this:
-
-.. code-block:: json
-   :copyable: false
-
-   {"_id": "507f1f77bcf86cd799439012", "createdAt": "2020-09-30T21:00:09Z", "myNumber": 4794261}
-
-Without specifying the converters, the Relaxed mode JSON output should look something like this:
-
-.. code-block:: json
-   :copyable: false
-
-   {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "createdAt": {"$date": "2020-09-30T21:00:09Z"}, "myNumber": 4794261}
+      // Without specifying the converters, the Relaxed mode JSON output
+      // should look something like this:
+      {"_id": {"$oid": "507f1f77bcf86cd799439012"}, "createdAt": {"$date": "2020-09-30T21:00:09Z"}, "myNumber": 4794261}
 
 For more information about the methods and classes mentioned in this section,
 see the following API Documentation:
