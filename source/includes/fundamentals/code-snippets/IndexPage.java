@@ -156,4 +156,13 @@ public class IndexPage {
         }
         // end unique index
     }
+    private void wildcardIndex() {
+        System.out.println("wildcard index");
+        collection = database.getCollection("theaters");
+
+        // begin wildcard index
+        String resultCreateIndex = collection.createIndex(Indexes.ascending("location.$**")); 
+        System.out.println(String.format("Index created: %s", resultCreateIndex));
+        // end wildcard index
+    }
 }
