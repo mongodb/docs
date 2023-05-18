@@ -13,16 +13,16 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.*
 
-// :snippet-start: search-data-model
-data class Movies(
-    @BsonId val id: Int,
-    val title: String,
-    val tags: List<String>
-)
-// :snippet-end:
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SearchTextTest {
+    // :snippet-start: search-data-model
+    data class Movies(
+        @BsonId val id: Int,
+        val title: String,
+        val tags: List<String>
+    )
+// :snippet-end:
 
     companion object {
         val dotenv = dotenv()
