@@ -26,7 +26,7 @@
 
    * - ``forceDisableTelemetry``
      - boolean
-     - ``true``
+     - ``false``
      - Only available in the global configuration file. When true,
        users cannot enable telemetry manually.
 
