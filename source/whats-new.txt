@@ -174,7 +174,7 @@ New features of the 5.0 {+driver-short+} release include:
      This change is for Typescript only, and does not affect queries or operations
      at runtime.
 
-- Optional installation of ``@aws-sdk/credential-providers`` as a dependency.
+- Optional installation of ``@aws-sdk/credential-providers`` as a peer dependency.
 
   - The driver no longer includes AWS SDK modules by default. Use the
     following ``npm`` command to install the SDK:
@@ -270,19 +270,35 @@ To learn more, see the `v4.12.0 Release Highlights <https://github.com/mongodb/n
 What's New in 4.11
 ------------------
 
+Prioritization Order in Monitoring
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 When connecting to MongoDB Server version 6.0 or later, the driver prioritizes
 ``electionId`` settings before ``setVersion`` settings during Server Discovery and
 Monitoring events. In previous versions, the prioritization order was reversed.
 
-This release also includes added support for **mutually
+Changes to AWS Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you install the optional ``aws-sdk/credential-providers``
+dependency, the driver uses the AWS SDK to retrieve AWS credentials from the
+environment.
+
+To learn more about this behavior, see the :ref:`MONGODB-AWS
+<mongodb-aws>` section of the Authentication Mechanisms guide.
+
+Mutually Recursive Schema Type Checking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This release includes added support for **mutually
 recursive** collection schema types. The driver also provides type safety for
 dot-notation queries up to a depth of eight in this release. At a depth greater
 than or equal to eight, Typescript successfully compiles your code but does not
 provide type safety. This depth limit on recursive types is a current limitation
 of TypeScript.
 
-Mutually Recursive Schema Type Checking Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example
+```````
 
 Suppose we have a collection of type ``Collection<Author>`` that contains the
 following mutually recursive types:
@@ -520,7 +536,7 @@ Key Changes
 ~~~~~~~~~~~
 
 Node.js Version
-+++++++++++++++
+```````````````
 
 The minimum supported version of Node.js is now v12.9 or greater for
 version 4 of the driver. Support for our 3.x branches will continue
@@ -532,7 +548,7 @@ until summer 2022 to allow time to upgrade.
 
 
 Cursor Improvements
-+++++++++++++++++++
+```````````````````
 
 Our Cursor implementation is now updated to make it clear what is possible
 before and after execution of an operation.
@@ -564,7 +580,7 @@ similar to the following:
   - ``ListCollectionsCursor``
 
 Cursor Stream API
-^^^^^^^^^^^^^^^^^
++++++++++++++++++
 
 Our Cursor types no longer extend ``Readable`` directly. They must be
 transformed into a stream by calling ``cursor.stream()``.
@@ -584,7 +600,7 @@ Use ``for await of`` syntax or any ``Promise`` helpers for
 asynchronous iteration.
 
 ``MongoClientOptions`` Interface
-+++++++++++++++++++++++++++++++++
+````````````````````````````````
 
 With type hinting, you should find that options passed to a ``MongoClient``
 are enumerated and discoverable. We've made a large effort to process
@@ -599,7 +615,7 @@ to get your app up and running in a correct state quickly.
 - It is no longer required to specify ``useUnifiedTopology`` or ``useNewUrlParser``.
 
 ``createCollection()``
-++++++++++++++++++++++
+``````````````````````
 
 This method no longer supports a ``strict`` option, which returned
 an error if the collection did not exist. To assert the existence of
@@ -618,7 +634,7 @@ a collection, use the ``listCollections()`` method instead.
       }
 
 ``BulkWriteError`` → ``MongoBulkWriteError``
-++++++++++++++++++++++++++++++++++++++++++++
+````````````````````````````````````````````
 
 ``BulkWriteError`` is now renamed to ``MongoBulkWriteError``.
 
@@ -627,20 +643,20 @@ depending on your settings. Import the new class name ``MongoBulkWriteError``
 when testing for errors in bulk operations.
 
 ``DB``
-++++++
+``````
 
 ``DB`` is no longer an ``EventEmitter``. Listen for events directly from your
 ``MongoClient`` instance.
 
 ``Collection.group()``
-++++++++++++++++++++++
+``````````````````````
 
 The ``Collection.group()`` helper, deprecated since MongoDB 3.4,
 is now removed. Use the aggregation pipeline :manual:`$group </reference/operator/aggregation/group/#pipe._S_group>`
 operator instead.
 
 Authentication
-++++++++++++++
+``````````````
 
 - ``gssapiServiceName`` is now removed. Use `authMechanismProperties.SERVICE_NAME <{+api+}/interfaces/MongoClientOptions.html#authMechanismProperties>`__ in the URI or as an option on ``MongoClientOptions``.
 
@@ -664,7 +680,7 @@ Authentication
         new MongoClient(url, { auth: { username: "<>", password: "<>" } })
 
 ``GridStore`` Removal
-+++++++++++++++++++++
+`````````````````````
 
 The GridStore API (already deprecated in 3.x) is now replaced with ``GridFSBucket``.
 For more information on ``GridFS``, see the :manual:`mongodb manual </core/gridfs>`.
@@ -672,7 +688,7 @@ For more information on ``GridFS``, see the :manual:`mongodb manual </core/gridf
 Below are some snippets that represent equivalent operations.
 
 Construction
-^^^^^^^^^^^^
+++++++++++++
 
 .. example::
 
@@ -684,7 +700,7 @@ Construction
       const bucket = new GridFSBucket(client.db('test')[,options])
 
 File Seeking
-^^^^^^^^^^^^
+++++++++++++
 
 GridFSBucket uses the Node.js Stream API. You can replicate file seeking
 by using the ``start`` and ``end`` options, creating a download stream
@@ -697,7 +713,7 @@ from your ``GridFSBucket``.
       bucket.openDownloadStreamByName(filename, { start: 0, end: 100 })
 
 File Upload & Download
-^^^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++++
 
 .. example::
 
@@ -736,7 +752,7 @@ File Upload & Download
    ``GridFSBucket`` does not need to be closed like ``GridStore``.
 
 File Deletion
-^^^^^^^^^^^^^
++++++++++++++
 
 .. example::
 
@@ -748,7 +764,7 @@ File Deletion
       bucket.delete(file_id);
 
 Finding File Metadata
-^^^^^^^^^^^^^^^^^^^^^
++++++++++++++++++++++
 
 File metadata that used to be accessible on the ``GridStore`` instance can be
 found by querying the bucket.
@@ -760,7 +776,7 @@ found by querying the bucket.
       const fileMetaDataList: GridFSFile[] = bucket.find({}).toArray();
 
 Unified Topology
-++++++++++++++++
+````````````````
 
 - We internally now only manage a ``unifiedTopology`` when you connect
   to a ``mongod``. The differences between this and previous versions
@@ -772,13 +788,13 @@ Unified Topology
   to connect to uninitialized replica set members.
 
 Explain
-+++++++
+```````
 
 Support is now added for fine-grained verbosity modes. You can learn more
 about each mode :manual:`here </reference/method/cursor.explain/#behavior/>`.
 
 Command Monitoring
-++++++++++++++++++
+``````````````````
 
 The ``instrument()`` method is now removed. Use command monitoring instead.
 See our guide on :doc:`command monitoring </fundamentals/monitoring/command-monitoring>`
