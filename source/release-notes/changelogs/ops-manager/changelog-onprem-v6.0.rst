@@ -336,7 +336,7 @@ User Interface
 ``````````````
 
 - Changes to MongoDB's current fonts, colors and UI components.
-- Deprecates the :ref:`om-manage-sharding-ui` UI. |onprem| 7.0.0 will not
+- Deprecates the Managed Sharded Collections UI. |onprem| 7.0.0 will not
   include this feature.
 
 |onprem| Platform Support
