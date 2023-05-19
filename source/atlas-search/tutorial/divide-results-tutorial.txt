@@ -1,0 +1,346 @@
+.. _pagination-skip-limit-tutorial:
+
+===============================================
+How to Divide Query Results into Discrete Pages
+===============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: In this tutorial, learn how to use $skip and $limit after the $search stage to paginate query results.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+|fts| queries might return many results. To make navigating results 
+easier, you can use the following :manual:`aggregation pipeline stages 
+</core/aggregation-pipeline/>` to paginate your query results:
+
+1. :pipeline:`$skip` bypasses the specified number of documents that 
+   pass into the stage and passes the remaining documents to the next 
+   stage in the pipeline.
+
+#. :pipeline:`$limit` restricts the number of documents passed to the 
+   next stage in the pipeline.
+
+You can extend this method to your applications so that a 
+:guilabel:`Next Page` button skips past the first ten results and 
+shows the next ten results from that point.
+
+You can also use the :ref:`fts-facet-aggregation-variable` to return 
+the total number of search results. You can use this information in 
+your applications to show the total number of search results, or the 
+number of pages available to your application user.
+
+This tutorial takes you through the following steps:
+
+1. Set up an |fts| index with dynamic mapping for the 
+   ``sample_mflix.movies`` collection.
+
+#. Run an |fts| query using the following:
+
+   - :pipeline:`$skip` and :pipeline:`$limit` 
+     after the :pipeline:`$search` stage to paginate the results.
+
+   - :ref:`fts-facet-aggregation-variable` to return the 
+     total number of search results.
+
+Before you begin, ensure that your |service| {+cluster+} meets the 
+requirements described in the :ref:`Prerequisites 
+<fts-tutorials-prereqs>`.
+
+Create the |fts| Index With Dynamic Mapping 
+-------------------------------------------
+
+In this section, we create an |fts| index that uses :ref:`dynamic 
+mapping <static-dynamic-mappings>` to index the fields in the 
+``sample_mflix.movies`` collection. 
+
+.. include:: /includes/steps/fts-pagination-tutorial-create-index.rst
+   
+Run a Query and Paginate the Results
+------------------------------------
+
+In this section, we run |fts| queries using the 
+following:
+
+- :pipeline:`$skip` and :pipeline:`$limit` after the 
+  :pipeline:`$search` stage to paginate the results.
+- :ref:`fts-facet-aggregation-variable` to return the total 
+  number of search results in addition to paginating the 
+  results.
+
+You can run one or all of the following queries against the collection 
+using the same index definition.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to your {+cluster+} in {+mongosh+}.
+
+      Open {+mongosh+} in a terminal window and
+      connect to your {+cluster+}. For detailed instructions on 
+      connecting, see :doc:`/mongo-shell-connection`.
+
+   .. step:: Use the ``sample_mflix`` database.
+
+      Run the following command in the {+mongosh+} prompt:
+
+      .. code-block:: javascript
+
+         use sample_mflix
+
+   .. step:: Run an |fts| query against the ``movies`` collection.
+
+      You can run one or all of the following query examples against 
+      the collection using the same index definition.
+
+      .. tabs::
+
+         .. tab:: Paginate Results
+            :tabid: pagination
+
+            The following query uses :pipeline:`$skip` and 
+            :pipeline:`$limit` after the :pipeline:`$search` stage to 
+            paginate the results. It skips past the first ten results 
+            and shows the next ten results from that point.
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input::
+                  :language: json
+
+                  db.movies.aggregate([
+                    {
+                      "$search": {
+                        "index": "pagination-tutorial",
+                        "text": {
+                          "query": "tom hanks",
+                          "path": "cast"
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 0,
+                        "title": 1,
+                        "cast": 1
+                      }
+                    }, 
+                    {
+                      "$skip": 10
+                    },
+                    {
+                      "$limit": 10    
+                    }
+                  ])
+
+               .. output::
+                  :language: json
+                  :visible: true
+
+                  [
+                    {
+                      title: 'Toy Story',
+                      cast: [ 'Tom Hanks', 'Tim Allen', 'Don Rickles', 'Jim Varney' ]
+                    },
+                    {
+                      title: 'Toy Story 2',
+                      cast: [ 'Tom Hanks', 'Tim Allen', 'Joan Cusack', 'Kelsey Grammer' ]
+                    },
+                    {
+                      cast: [ 'Tom Hanks', 'Nick Searcy', 'Lane Smith', 'David Andrews' ],
+                      title: 'From the Earth to the Moon'
+                    },
+                    {
+                      title: "You've Got Mail",
+                      cast: [ 'Tom Hanks', 'Meg Ryan', 'Greg Kinnear', 'Parker Posey' ]
+                    },
+                    {
+                      cast: [
+                        'Tom Hanks',
+                        'Stephen Ambrose',
+                        'Russ Meyer',
+                        'Walter Rosenblum'
+                      ],
+                      title: 'Shooting War'
+                    },
+                    {
+                      title: 'Catch Me If You Can',
+                      cast: [
+                        'Leonardo DiCaprio',
+                        'Tom Hanks',
+                        'Christopher Walken',
+                        'Martin Sheen'
+                      ]
+                    },
+                    {
+                      title: 'The Polar Express',
+                      cast: [ 'Tom Hanks', 'Leslie Zemeckis', 'Eddie Deezen', 'Nona Gaye' ]
+                    },
+                    {
+                      cast: [ 'Tom Hanks', 'Audrey Tautou', 'Ian McKellen', 'Jean Reno' ],
+                      title: 'The Da Vinci Code'
+                    },
+                    {
+                      cast: [ 'Tom Hanks', 'Tim Allen', 'Joan Cusack', 'Ned Beatty' ],
+                      title: 'Toy Story 3'
+                    },
+                    {
+                      cast: [ 'Tom Hanks', 'Thomas Horn', 'Sandra Bullock', 'Zoe Caldwell' ],
+                      title: 'Extremely Loud & Incredibly Close'
+                    }
+                  ]
+            
+         .. tab:: Return Total and Paginate Results
+            :tabid: return-total
+
+            The following query uses :pipeline:`$skip` and 
+            :pipeline:`$limit` after the :pipeline:`$search` stage to 
+            paginate the results. It skips past the first ten results 
+            and shows the next ten results from that point.
+
+            The following query also uses the 
+            :ref:`fts-facet-aggregation-variable` to return a count of 
+            the total number of search results in addition to 
+            paginating the results.
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input::
+                  :language: json
+
+                  db.movies.aggregate([
+                    {
+                      "$search": {
+                        "index": "pagination-tutorial",
+                        "text": {
+                          "query": "tom hanks",
+                          "path": "cast"
+                        }
+                      }
+                    },
+                    {
+                      "$project": {
+                        "_id": 0,
+                        "title": 1,
+                        "cast": 1
+                      }
+                    }, 
+                    {
+                      "$set": {
+                        "score": {
+                          "$meta": "searchScore"
+                        }
+                      }
+                    },
+                    {
+                      "$facet": {
+                        "rows": [
+                          {
+                            "$skip": 10
+                          },
+                          {
+                            "$limit": 10
+                          }
+                        ],
+                        "totalRows": [
+                          {
+                            "$replaceWith": "$$SEARCH_META"
+                          },
+                          {
+                            "$limit": 1
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "$set": {
+                        "totalRows": {
+                          "$arrayElemAt": [
+                            "$totalRows", 0
+                          ]
+                        }
+                      }
+                    }
+                  ])
+
+               .. output::
+                  :language: json
+
+                  [
+                    {
+                      rows: [
+                        {
+                          title: 'Toy Story',
+                          cast: [ 'Tom Hanks', 'Tim Allen', 'Don Rickles', 'Jim Varney' ],
+                          score: 4.670748710632324
+                        },
+                        {
+                          title: 'Toy Story 2',
+                          cast: [ 'Tom Hanks', 'Tim Allen', 'Joan Cusack', 'Kelsey Grammer' ],
+                          score: 4.670748710632324
+                        },
+                        {
+                          cast: [ 'Tom Hanks', 'Nick Searcy', 'Lane Smith', 'David Andrews' ],
+                          title: 'From the Earth to the Moon',
+                          score: 4.670748710632324
+                        },
+                        {
+                          title: "You've Got Mail",
+                          cast: [ 'Tom Hanks', 'Meg Ryan', 'Greg Kinnear', 'Parker Posey' ],
+                          score: 4.670748710632324
+                        },
+                        {
+                          cast: [
+                            'Tom Hanks',
+                            'Stephen Ambrose',
+                            'Russ Meyer',
+                            'Walter Rosenblum'
+                          ],
+                          title: 'Shooting War',
+                          score: 4.670748710632324
+                        },
+                        {
+                          title: 'Catch Me If You Can',
+                          cast: [
+                            'Leonardo DiCaprio',
+                            'Tom Hanks',
+                            'Christopher Walken',
+                            'Martin Sheen'
+                          ],
+                          score: 4.670748710632324
+                        },
+                        {
+                          title: 'The Polar Express',
+                          cast: [ 'Tom Hanks', 'Leslie Zemeckis', 'Eddie Deezen', 'Nona Gaye' ],
+                          score: 4.670748710632324
+                        },
+                        {
+                          cast: [ 'Tom Hanks', 'Audrey Tautou', 'Ian McKellen', 'Jean Reno' ],
+                          title: 'The Da Vinci Code',
+                          score: 4.670748710632324
+                        },
+                        {
+                          cast: [ 'Tom Hanks', 'Tim Allen', 'Joan Cusack', 'Ned Beatty' ],
+                          title: 'Toy Story 3',
+                          score: 4.670748710632324
+                        },
+                        {
+                          cast: [ 
+                            'Tom Hanks',
+                            'Thomas Horn',
+                            'Sandra Bullock',
+                            'Zoe Caldwell' ],
+                          title: 'Extremely Loud & Incredibly Close',
+                          score: 4.670748710632324
+                        }
+                      ]
+                      totalRows: { count: { lowerBound: Long("470") } }
+                    }
+                  ]
