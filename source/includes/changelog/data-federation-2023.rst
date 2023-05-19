@@ -7,6 +7,15 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230509:
+
+09 May 2023 Release
+~~~~~~~~~~~~~~~~~~~
+
+- Optimizes partition attributes for selecting files on |s3| when
+  using the :manual:`$in </reference/operator/aggregation/in/>` operator
+  in aggregation pipelines.  
+
 .. _adf-v20230418:
 
 18 April 2023 Release
