@@ -18,6 +18,13 @@ This page contains frequently asked questions and their corresponding answers.
    see the :ref:`node-issues-help` page for next steps and more
    resources.
 
+Why Am I Getting Errors While Connecting to MongoDB?
+----------------------------------------------------
+
+If you have trouble connecting to a MongoDB deployment, see
+the :ref:`Connection Troubleshooting Guide <node-connection-troubleshooting>`
+for possible solutions.
+
 .. _node-faq-connection-pool:
 
 How Does Connection Pooling Work in the Node Driver?
@@ -99,35 +106,6 @@ closes only inactive sockets, so you cannot interrupt or terminate
 any ongoing operations by using this method. The driver closes these
 sockets only when the process completes.
 
-How to fix a "MongoServerSelectionError: connect ECONNREFUSED ::1:27017" error?
--------------------------------------------------------------------------------
-
-Beginning with version 17, Node.js defaults to using ``IPV6``. You have a few
-options to resolve this error:
-
-- Start your ``mongod`` in ``IPV6`` mode with :manual:`the --ipv6 flag </reference/program/mongod/#std-option-mongod.--ipv6>`, or
-  setting the ``net.ipv6`` option to ``true`` :manual:`in your configuration file </reference/configuration-options/#mongodb-setting-net.ipv6>`.
-
-  .. code-block:: sh
-     :caption: Starting mongod with the --ipv6 flag
-
-     mongod --ipv6
-
-  .. code-block:: yaml
-     :caption: Setting the net.ipv6 option in the configuration file
-
-     net:
-       ipv6: true
-
-- Explicitly use ``IPV4`` by specifying ``family: 4`` as an
-  `option to your MongoClient <{+api+}/interfaces/MongoClientOptions.html#family>`__.
-
-  .. code-block:: js
-
-      const client = new MongoClient(uri, {
-        family: 4,
-      });
-
 What Is the Difference Between "connectTimeoutMS", "socketTimeoutMS" and "maxTimeMS"?
 -------------------------------------------------------------------------------------
 
@@ -185,20 +163,6 @@ timeout specification to an operation that returns a ``Cursor``:
 
    const cursor = myColl.find({}).maxTimeMS(50);
 
-How Can I Prevent the Driver From Hanging During Connection or From Spending Too Long Trying to Reach Unreachable Replica Sets?
--------------------------------------------------------------------------------------------------------------------------------
-
-To prevent the driver from hanging during connection or to prevent the
-driver from spending too long trying to reach unreachable replica sets,
-you can set the ``connectTimeoutMS`` option of your
-:ref:`connection options <node-connection-options>`.
-Generally, you should ensure that the
-``connectTimeoutMS`` setting is not lower than the longest network
-latency you have to a member of the set. If one of the secondary members
-is on the other side of the planet and has a latency of 10000
-milliseconds, setting the ``connectTimeoutMS`` to anything lower will
-prevent the driver from ever connecting to that member.
-
 What Happens to Running Operations If the Client Disconnects?
 -------------------------------------------------------------
 
@@ -230,7 +194,7 @@ How Can I Prevent Sockets From Timing out Before They Become Active?
 --------------------------------------------------------------------
 
 Having a large connection pool does not always reduce reconnection
-requests.  Consider the following example:
+requests. Consider the following example:
 
 An application has a connection pool size of 5 sockets and has the
 ``socketTimeoutMS`` option set to 5000 milliseconds. Operations occur,
@@ -299,35 +263,6 @@ are some things to check:
 
 #. The firewall should send a ``FIN packet`` when closing a socket,allowing the driver to detect that the socket is closed.
 #. The firewall should allow ``keepAlive`` probes.
-
-What Can I Do If I'm Getting "ECONNRESET" When Calling "client.connect()"?
-------------------------------------------------------------------------------
-
-In most operating systems, each connection is associated with a `file
-descriptor
-<https://www.computerhope.com/jargon/f/file-descriptor.htm>`_. There is
-typically a limit set by the operating system on the number of file
-descriptors used by a single process. An ``ECONNRESET`` error can occur
-if the connection pool size surpasses the limit of ``file descriptors``.
-
-Consider the following operation:
-
-.. literalinclude:: /code-snippets/faq/econnresetWithClientConnect-example.js
-  :language: javascript
-  :linenos:
-
-If this operation causes an ``ECONNRESET`` error, you may have run into
-the ``file descriptor`` limit for your Node.js process. In that case you
-must increase the number of ``file descriptors`` for the Node.js process. On
-MacOS and Linux you do this with the `ulimit
-<https://ss64.com/bash/ulimit.html>`_ shell command.
-
-.. code-block:: sh
-
-   ulimit -n 6000
-
-This sets the maximum number of ``file descriptors`` for the process to
-6000, allowing Node.js to connect with a pool size of 5000 sockets.
 
 How Can I Prevent a Slow Operation From Delaying Other Operations?
 ------------------------------------------------------------------
