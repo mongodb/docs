@@ -1,5 +1,4 @@
 class IsWriteable : ClusterListener {
-    // TODO: make publically gettable but not settable
     private var isWritable = false
 
 

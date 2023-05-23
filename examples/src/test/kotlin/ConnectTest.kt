@@ -10,7 +10,11 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
-
+// :replace-start: {
+//    "terms": {
+//       "CONNECTION_URI_PLACEHOLDER": "\"<connection string>\""
+//    }
+// }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ConnectionTest {
@@ -89,3 +93,4 @@ internal class ConnectionTest {
 
 
 }
+// :replace-end:

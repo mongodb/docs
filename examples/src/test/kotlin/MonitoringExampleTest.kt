@@ -60,7 +60,6 @@ class MonitoringTest {
         // Run some commands to test the counter
         collection.find().firstOrNull()
         collection.find().firstOrNull()
-
         // :snippet-end: monitor-command-example
         assertEquals(2, commandCounter.commandCount["find"])
         mongoClient.close()
@@ -70,7 +69,6 @@ class MonitoringTest {
     fun monitorClusterEventTest() = runBlocking {
         // :snippet-start: cluster-listener-impl
         class IsWriteable : ClusterListener {
-            // TODO: make publically gettable but not settable
             private var isWritable = false
 
             // :remove-start:

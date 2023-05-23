@@ -10,4 +10,5 @@ val pipeline = listOf(
     Aggregates.sort(Sorts.descending("qty"))
 )
 val resultsFlow = collection.aggregate<AggregationResult>(pipeline)
+
 resultsFlow.collect { println(it) }

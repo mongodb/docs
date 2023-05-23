@@ -30,7 +30,7 @@ internal class InsertTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 client.close()
             }

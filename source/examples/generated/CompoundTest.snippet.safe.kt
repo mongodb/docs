@@ -9,6 +9,7 @@ suspend fun bookARoomSafe(guestName: String) {
         println("Sorry, we are booked, $guestName")
         return
     }
+
     val myRoomName = myRoom.room
     println("You got the $myRoomName, $guestName")
 }

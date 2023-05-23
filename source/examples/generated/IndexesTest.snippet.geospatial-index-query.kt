@@ -5,4 +5,5 @@ val filter = Filters.near(
     refPoint, 1000.0, 0.0
 )
 val resultsFlow = theatersCollection.find(filter)
+
 resultsFlow.collect { println(it) }

@@ -81,6 +81,7 @@ internal class CompoundOperationsTest {
             or null if the document was inserted due to upsert
             being true */
         val result = collection.findOneAndUpdate(filter, update, options)
+
         println(result)
         // :snippet-end:
         // Junit test for the above code
@@ -104,6 +105,7 @@ internal class CompoundOperationsTest {
         val options = FindOneAndReplaceOptions()
             .returnDocument(ReturnDocument.AFTER)
         val result = collection.withDocumentClass<Music>().findOneAndReplace(filter, replace, options)
+
         println(result)
         // :snippet-end:
         assertEquals(replace, result)
@@ -121,7 +123,7 @@ internal class CompoundOperationsTest {
         val filter = Filters.empty()
         val options = FindOneAndDeleteOptions().sort(sort)
         val result = collection.findOneAndDelete(filter, options)
-        // Returns the deleted document
+
         println(result)
         // :snippet-end:
         // Junit test for the above code
@@ -140,6 +142,7 @@ internal class CompoundOperationsTest {
             }
 
             val myRoomName = myRoom.room
+
             println("You got the $myRoomName, $guestName")
 
             val update = Updates.combine(Updates.set("reserved", true), Updates.set("guest", guestName))
@@ -164,6 +167,7 @@ internal class CompoundOperationsTest {
             println("Sorry, we are booked, $guestName")
             return
         }
+
         val myRoomName = myRoom.room
         println("You got the $myRoomName, $guestName")
     }

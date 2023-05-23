@@ -62,6 +62,7 @@ internal class UpdateArraysTest {
         val options = FindOneAndUpdateOptions()
             .returnDocument(ReturnDocument.AFTER)
         val result = collection.findOneAndUpdate(filter, update, options)
+
         print(result)
         // :snippet-end:
         // Junit test for the above code
@@ -79,6 +80,7 @@ internal class UpdateArraysTest {
         val options = FindOneAndUpdateOptions()
             .returnDocument(ReturnDocument.AFTER)
         val result = collection.findOneAndUpdate(filter, update, options)
+
         print(result)
         // :snippet-end:
         // Junit test for the above code
@@ -97,6 +99,7 @@ internal class UpdateArraysTest {
         val options = FindOneAndUpdateOptions()
             .returnDocument(ReturnDocument.AFTER)
         val result = collection.findOneAndUpdate(filter, update, options)
+
         println(result)
         // :snippet-end:
         // Junit test for the above code
@@ -116,6 +119,7 @@ internal class UpdateArraysTest {
             .arrayFilters(listOf(smallerFilter))
         val update = Updates.inc("${PaintOrder::qty.name}.$[smaller]", 5)
         val result = collection.findOneAndUpdate(filter, update, options)
+
         println(result)
         // :snippet-end:
         // Junit test for the above code

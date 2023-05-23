@@ -16,4 +16,5 @@ val geoWithinComparison = Filters.geoWithin(
 )
 val resultsFlow = collection.find<TheaterResults>(geoWithinComparison)
     .projection(projection)
+
 resultsFlow.collect { println(it) }

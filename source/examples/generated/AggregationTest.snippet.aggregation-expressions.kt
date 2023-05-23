@@ -14,4 +14,5 @@ val resultsFlow = collection.aggregate<Results>(
         )
     )
 )
+
 resultsFlow.collect { println(it) }

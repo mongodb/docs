@@ -30,7 +30,7 @@ internal class LimitTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 val books = listOf(
                     Book(1, "The Brothers Karamazov", "Dostoyevsky", 824),
@@ -46,7 +46,7 @@ internal class LimitTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()
@@ -60,6 +60,7 @@ internal class LimitTest {
         val results = collection.find()
             .sort(descending("length"))
             .limit(3)
+
         results.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
@@ -78,6 +79,7 @@ internal class LimitTest {
             .sort(descending("length"))
             .skip(3)
             .limit(3)
+
         results.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code

@@ -36,7 +36,7 @@ internal class ProjectTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 collection.insertMany(
                     listOf(
@@ -51,7 +51,7 @@ internal class ProjectTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()
@@ -73,6 +73,7 @@ internal class ProjectTest {
             Projections.include(FruitName::name.name)
         )
         val flowResults = collection.find<FruitName>(filter).projection(projection)
+
         flowResults.collect { println(it)}
         // :snippet-end:
         val resultList = listOf(
@@ -101,6 +102,7 @@ internal class ProjectTest {
                 Projections.excludeId()
             )
             val flowResults = collection.find<FruitName>(filter).projection(projection)
+
             flowResults.collect { println(it)}
             // :snippet-end:
             val resultList = listOf(
@@ -127,6 +129,7 @@ internal class ProjectTest {
                 Projections.excludeId()
             )
             val flowResults = collection.find<FruitRating>(filter).projection(projection)
+
             flowResults.collect { println(it)}
             // :snippet-end:
             val resultList = listOf(

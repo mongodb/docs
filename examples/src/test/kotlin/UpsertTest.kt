@@ -33,7 +33,7 @@ internal class UpsertTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 val paintOrders = listOf(
                     PaintOrder(ObjectId(), 5, "red"),
@@ -51,7 +51,7 @@ internal class UpsertTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()

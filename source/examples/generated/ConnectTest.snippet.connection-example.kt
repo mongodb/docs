@@ -1,5 +1,5 @@
 // Replace the placeholder with your Atlas connection string
-val uri = CONNECTION_URI_PLACEHOLDER
+val uri = "<connection string>"
 
 // Construct a ServerApi instance using the ServerApi.builder() method
 val serverApi = ServerApi.builder()

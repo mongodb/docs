@@ -7,6 +7,7 @@ suspend fun bookARoomUnsafe(guestName: String) {
     }
 
     val myRoomName = myRoom.room
+
     println("You got the $myRoomName, $guestName")
 
     val update = Updates.combine(Updates.set("reserved", true), Updates.set("guest", guestName))

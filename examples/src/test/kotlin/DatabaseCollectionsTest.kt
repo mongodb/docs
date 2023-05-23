@@ -55,6 +55,7 @@ internal class DatabaseCollectionsTest {
         database.createCollection("movies")
         // :snippet-start: get-collections
         val collectionList = database.listCollectionNames().toList()
+
         println(collectionList)
         // :snippet-end:
         // :snippet-start: drop-collections

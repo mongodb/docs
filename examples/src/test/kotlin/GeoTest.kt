@@ -64,7 +64,7 @@ internal class SearchGeospatialTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 collection.insertMany(
                     listOf(
@@ -316,7 +316,7 @@ internal class SearchGeospatialTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
 
                 collection.drop()
@@ -366,6 +366,7 @@ internal class SearchGeospatialTest {
             Projections.excludeId()
         )
         val resultsFlow = collection.find(query).projection(projection)
+
         resultsFlow.collect { println(it) }
         // :snippet-end:
         val results = resultsFlow.toList()
@@ -393,6 +394,7 @@ internal class SearchGeospatialTest {
         )
         val resultsFlow = collection.find<TheaterResults>(geoWithinComparison)
             .projection(projection)
+
         resultsFlow.collect { println(it) }
         // :snippet-end:
         val results = resultsFlow.toList()

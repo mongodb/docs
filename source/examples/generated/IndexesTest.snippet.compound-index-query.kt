@@ -8,4 +8,5 @@ val projection = Projections.fields(
     Projections.excludeId()
 )
 val resultsFlow = moviesCollection.find(filter).sort(sort).projection(projection)
+
 resultsFlow.collect { println(it) }

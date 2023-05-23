@@ -4,4 +4,5 @@ val ejsonStr = """
     """.trimIndent()
 
 val doc = Document.parse(ejsonStr)
+
 println(doc)

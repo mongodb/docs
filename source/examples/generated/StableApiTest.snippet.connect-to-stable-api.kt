@@ -3,7 +3,7 @@ val serverApi = ServerApi.builder()
     .build()
 
 // Replace the uri string placeholder with your MongoDB deployment's connection string
-val uri = CONNECTION_URI_PLACEHOLDER
+val uri = "<connection string>"
 
 val settings = MongoClientSettings.builder()
     .applyConnectionString(ConnectionString(uri))

@@ -9,4 +9,5 @@ val options = FindOneAndUpdateOptions()
     or null if the document was inserted due to upsert
     being true */
 val result = collection.findOneAndUpdate(filter, update, options)
+
 println(result)

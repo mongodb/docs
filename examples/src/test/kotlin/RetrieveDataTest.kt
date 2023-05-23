@@ -60,6 +60,7 @@ internal class RetrieveDataTest {
         // :snippet-start: basic-find
         val filter = Filters.and(Filters.gt("qty", 3), Filters.lt("qty", 9))
         val resultsFlow = collection.find(filter)
+
         resultsFlow.collect { println(it) }
         // :snippet-end:
         val expected = listOf(
@@ -84,6 +85,7 @@ internal class RetrieveDataTest {
             Aggregates.sort(Sorts.descending("qty"))
         )
         val resultsFlow = collection.aggregate<AggregationResult>(pipeline)
+
         resultsFlow.collect { println(it) }
         // :snippet-end:
         val expected = listOf(

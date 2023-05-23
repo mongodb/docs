@@ -6,5 +6,6 @@ val explanation = collection.aggregate<Results>(
         Aggregates.group("\$${Restaurant::stars.name}", Accumulators.sum("count", 1))
     )
 ).explain(ExplainVerbosity.EXECUTION_STATS)
+
 // Prettyprint the output
 println(explanation.toJson(JsonWriterSettings.builder().indent(true).build()))

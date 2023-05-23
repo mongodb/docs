@@ -7,4 +7,5 @@ val projection = Projections.fields(
 data class Results(val fullplot: String)
 
 val resultsFlow = moviesCollection.find<Results>(filter).projection(projection)
+
 resultsFlow.collect { println(it) }

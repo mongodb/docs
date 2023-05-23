@@ -8,4 +8,5 @@ val projection = Projections.fields(
 data class Results(val title: String)
 
 val resultsFlow = moviesCollection.find<Results>(filter).sort(sort).projection(projection)
+
 resultsFlow.collect { println(it) }

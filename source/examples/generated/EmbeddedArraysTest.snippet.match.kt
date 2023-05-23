@@ -5,4 +5,5 @@ val options = FindOneAndUpdateOptions()
     .arrayFilters(listOf(smallerFilter))
 val update = Updates.inc("${PaintOrder::qty.name}.$[smaller]", 5)
 val result = collection.findOneAndUpdate(filter, update, options)
+
 println(result)

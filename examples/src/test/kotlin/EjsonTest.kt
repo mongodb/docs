@@ -27,6 +27,7 @@ internal class EjsonTest {
             """.trimIndent()
 
         val doc = Document.parse(ejsonStr)
+
         println(doc)
         // :snippet-end:
         assertEquals("507f1f77bcf86cd799439011", doc.getObjectId("_id").toString())
@@ -66,7 +67,7 @@ internal class EjsonTest {
             .append("myNumber", 11223344)
 
         val settings = JsonWriterSettings.builder().outputMode(JsonMode.RELAXED).build()
-        (myDoc.toJson(settings))
+        myDoc.toJson(settings)
         // :snippet-end:
         assertEquals(11223344, myDoc.getInteger("myNumber"))
     }

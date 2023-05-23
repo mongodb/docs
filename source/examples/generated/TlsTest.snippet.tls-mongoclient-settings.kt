@@ -1,5 +1,5 @@
 val settings = MongoClientSettings.builder()
-    .applyConnectionString(ConnectionString(CONNECTION_URI_PLACEHOLDER))
+    .applyConnectionString(ConnectionString("<connection string>"))
     .applyToSslSettings { builder ->
         builder.enabled(true)
     }

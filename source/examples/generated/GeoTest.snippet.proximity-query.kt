@@ -10,4 +10,5 @@ val projection = Projections.fields(
     Projections.excludeId()
 )
 val resultsFlow = collection.find(query).projection(projection)
+
 resultsFlow.collect { println(it) }

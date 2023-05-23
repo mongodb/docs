@@ -12,6 +12,11 @@ import java.util.*
 import javax.net.ssl.SSLContext
 import kotlin.test.*
 
+// :replace-start: {
+//    "terms": {
+//       "CONNECTION_URI_PLACEHOLDER": "\"<connection string>\""
+//    }
+// }
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class TlsTest {
@@ -102,3 +107,4 @@ internal class TlsTest {
         assertEquals(true, settings.streamFactoryFactory is NettyStreamFactoryFactory)
     }
 }
+// :replace-end:

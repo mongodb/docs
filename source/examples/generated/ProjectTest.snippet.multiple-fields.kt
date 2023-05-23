@@ -9,4 +9,5 @@ val projection = Projections.fields(
     Projections.excludeId()
 )
 val flowResults = collection.find<FruitRating>(filter).projection(projection)
+
 flowResults.collect { println(it)}

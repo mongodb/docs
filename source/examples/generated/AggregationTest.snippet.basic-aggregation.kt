@@ -7,4 +7,5 @@ val resultsFlow = collection.aggregate<Results>(
             Accumulators.sum("count", 1))
     )
 )
+
 resultsFlow.collect { println(it) }

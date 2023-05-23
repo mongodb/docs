@@ -14,7 +14,8 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-
+// TODO: light refactor on these examples so that they don't collect directly from find() op, but rather assign to val findFlow
+// and then collect/println from that for consistency with other examples
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class SkipTest {
     // :snippet-start: skip-data-model
@@ -32,7 +33,7 @@ internal class SkipTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
 
                 val paintOrders = listOf(
@@ -52,7 +53,7 @@ internal class SkipTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()

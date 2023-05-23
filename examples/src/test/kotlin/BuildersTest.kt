@@ -37,7 +37,7 @@ internal class BuildersTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 val users = listOf(
                     User(BsonObjectId(), "female", 29, "baz@example.com"),
@@ -50,7 +50,7 @@ internal class BuildersTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()

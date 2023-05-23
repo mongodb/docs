@@ -31,7 +31,7 @@ internal class DeleteTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 val paintOrders = listOf(
                     PaintOrder(1, 5, "red"),
@@ -50,7 +50,7 @@ internal class DeleteTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()
@@ -101,6 +101,7 @@ internal class DeleteTest {
         // :snippet-start: find-one-and-delete
         val filter = Filters.eq("color", "purple")
         val result = collection.findOneAndDelete(filter)
+
         println("The following was deleted: $result")
         // :snippet-end:
         // Junit test for the above code

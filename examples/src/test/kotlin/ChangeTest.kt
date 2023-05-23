@@ -30,7 +30,7 @@ internal class ChangeTest {
 
         @BeforeAll
         @JvmStatic
-        private fun beforeAll() {
+        fun beforeAll() {
             runBlocking {
                 val paintOrders = listOf(
                     PaintOrder(1, "red", 5),
@@ -45,7 +45,7 @@ internal class ChangeTest {
 
         @AfterAll
         @JvmStatic
-        private fun afterAll() {
+        fun afterAll() {
             runBlocking {
                 collection.drop()
                 client.close()
@@ -58,6 +58,7 @@ internal class ChangeTest {
         val filter = Filters.eq(PaintOrder::color.name, "yellow")
         val update = Updates.inc(PaintOrder::qty.name, 1)
         val result = collection.updateOne(filter, update)
+
         println("Matched document count: $result.matchedCount")
         println("Modified document count: $result.modifiedCount")
         // :snippet-end:
@@ -70,6 +71,7 @@ internal class ChangeTest {
         val filter = Filters.empty()
         val update = Updates.inc(PaintOrder::qty.name, 20)
         val result = collection.updateMany(filter, update)
+
         println("Matched document count: $result.matchedCount")
         println("Modified document count: $result.modifiedCount")
         // :snippet-end:
@@ -83,6 +85,7 @@ internal class ChangeTest {
         val filter = Filters.eq(PaintOrder::color.name, "pink")
         val update = PaintOrder(5, "orange", 25)
         val result = collection.replaceOne(filter, update)
+
         println("Matched document count: $result.matchedCount")
         println("Modified document count: $result.modifiedCount")
         // :snippet-end:

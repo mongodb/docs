@@ -9,7 +9,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.assertEquals
 
-
+// :replace-start: {
+//    "terms": {
+//       "CONNECTION_URI_PLACEHOLDER": "\"<connection string>\""
+//    }
+// }
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class StableApiTest {
 
@@ -53,3 +57,4 @@ internal class StableApiTest {
     }
 
 }
+// :replace-end:
