@@ -42,11 +42,11 @@ public class ChangeStreams {
 //        ChangeStreams.allFullDocumentOptions(collection);
 //        ChangeStreams.aggregationExample(collection);
     }
-    private static void openExample(MongoCollection<Document> collection) {
+    private static void openExample(MongoDatabase database) {
         // begin openChangeStreamExample
-        // The collection variable references a MongoCollection instance
-        ChangeStreamIterable<Document> changeStream = collection.watch();
+        MongoCollection<Document> collection = database.getCollection("myColl");
 
+        ChangeStreamIterable<Document> changeStream = collection.watch();
         changeStream.forEach(event ->
                 System.out.println("Received a change: " + event));
         // end openChangeStreamExample
