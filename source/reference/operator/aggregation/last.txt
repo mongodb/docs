@@ -1,5 +1,5 @@
 ===============================
-$last (aggregation accumulator)
+$last (aggregation)
 ===============================
 
 .. default-domain:: mongodb
@@ -21,27 +21,41 @@ Definition
 
    .. include:: /includes/extracts/fact-aggregation-accumulator-last.rst
 
-   .. note:: Disambiguation
-
-      
-      The following page describes the accumulator :group:`$last`,
-      available only within the :pipeline:`$group` stage. For the array
-      operator :expression:`$last`, see :expression:`$last
-      (array operator) <$last>` instead.
-
 Syntax
 ------
 
-:expression:`$last` has the following syntax:
+``$last`` syntax:
 
 .. code-block:: javascript
 
    { $last: <expression> }
 
-For more information on expressions, see :ref:`aggregation-expressions`.
+Behaviors
+---------
 
-Behavior
---------
+Array Operator
+~~~~~~~~~~~~~~
+
+If the expression resolves to an array:
+
+- For a group of documents, as with the :pipeline:`$group` stage,
+  ``$last`` returns the entire array from the last document. It does not
+  traverse array elements.
+
+- For an individual document, as with the :pipeline:`$addFields` stage, 
+  ``$last`` returns the last element of the array.
+
+Missing Values
+~~~~~~~~~~~~~~
+
+Documents in a group may be missing fields or may have fields with
+missing values.
+
+- If there are no documents from the prior pipeline stage, the 
+  :pipeline:`$group` stage returns nothing.
+
+- If the field that the ``$last`` accumulator is processing is
+  missing, ``$last`` returns ``null``.
 
 When using :group:`$last` in a :pipeline:`$group` stage, the output
 value depends on the order of the documents coming into pipeline. To
@@ -64,9 +78,9 @@ Consider a ``sales`` collection with the following documents:
    { "_id" : 7, "item" : "xyz", "date" : ISODate("2014-02-15T14:12:12Z"), "price" : 5, "quantity" : 10 }
 
 The following operation first sorts the documents by ``item`` and
-``date``, and then in the following :pipeline:`$group` stage, groups
-the now sorted documents by the ``item`` field and uses the
-:group:`$last` accumulator to compute the last sales date for each item:
+``date``, and then in the following ``$group`` stage, groups the now
+sorted documents by the ``item`` field and uses the ``$last``
+accumulator to compute the last sales date for each item:
 
 .. code-block:: javascript
 
