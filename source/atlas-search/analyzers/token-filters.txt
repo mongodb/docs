@@ -1365,111 +1365,221 @@ has the following attribute:
      - yes
 
 .. example::
+
+   .. tabs:: 
+
+      .. tab:: Simple Example 
+         :tabid: simple 
+
+         The following example index definition indexes the ``title``
+         field in the :ref:`minutes  <custom-analyzers-eg-coll>`
+         collection as type :ref:`autocomplete
+         <bson-data-types-autocomplete>` with the ``nGram`` tokenization
+         strategy. It applies a custom analyzer named ``keywordLowerer``
+         on the ``title`` field. The custom analyzer specifies the
+         following: 
          
-   The following index definition indexes the ``message`` field in the 
-   :ref:`minutes  <custom-analyzers-eg-coll>` collection using a custom 
-   analyzer named ``lowerCaser``. The custom analyzer specifies the 
-   following: 
-   
-   a. Apply :ref:`standard-tokenizer-ref` tokenizer to create tokens 
-      based on word break rules.  
-   #. Apply the following filters on the tokens: 
-      
-      - :ref:`icunormalizer-tf-ref` to normalize the tokens using a 
-        standard Unicode Normalization Mode. 
-      - ``lowercase`` token filter to convert token text to lowercase.
+         a. Apply :ref:`keyword-tokenizer-ref` tokenizer to create a
+            single token for a string or array of strings.
+         #. Apply the ``lowercase`` token filter to convert token text
+            to lowercase. 
 
-   .. code-block:: json
+         .. code-block:: json 
 
-      {
-        "mappings": {
-          "fields": {
-            "message": {
-              "type": "string",
-              "analyzer": "lowerCaser"
-            }
-          }
-        },
-        "analyzers": [
-          {
-            "name": "lowerCaser",
-            "charFilters": [],
-            "tokenizer": {
-              "type": "standard"
-            },
-            "tokenFilters": [
-              {
-                "type": "icuNormalizer",
-                "normalizationForm": "nfkd"
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "analyzer": "keywordLowerer",
+                    "tokenization": "nGram",
+                    "type": "autocomplete"
+                  }
+                }
               },
-              {
-                "type": "lowercase"
-              }
-            ]
-          }
-        ]
-      }
+              "analyzers": [
+                {
+                  "name": "keywordLowerer",
+                  "charFilters": [],
+                  "tokenizer": {
+                    "type": "keyword"
+                  },
+                  "tokenFilters": [
+                    {
+                      "type": "lowercase"
+                    }
+                  ]
+                }
+              ]
+            }
 
-   The following query searches the ``message`` field for the term
-   ``sign-in``. 
+         The following query searches the ``title`` field using the
+         :ref:`autocomplete <autocomplete-ref>` operator for the
+         characters ``standup``. 
 
-   .. io-code-block::
-      :copyable: true
+         .. io-code-block::
+            :copyable: true
    
-      .. input::
-         :language: json
+            .. input::
+               :language: json
 
-         db.minutes.aggregate([
-           {
-             "$search": {
-               "index": "default",
-               "text": {
-                 "query": "sign-in",
-                 "path": "message"
-               }
-             } 
-           },
-           {
-             "$project": {
-               "_id": 1,
-               "message": 1
-             }
-           }
-         ])
+               db.minutes.aggregate([
+                 {
+                   "$search": {
+                     "index": "default",
+                     "autocomplete": {
+                       "query": "standup",
+                       "path": "title"
+                     }
+                   }
+                 },
+                 {
+                   "$project": {
+                     "_id": 1,
+                     "title": 1
+                   }
+                 }
+               ])
 
-      .. output::
-         :language: json
+            .. output:: 
+               :language: json 
 
-         [
-           { _id: 1, message: 'try to siGn-In' },
-           { _id: 3, message: 'try to sign-in' },
-           { _id: 2, message: 'do not forget to SIGN-IN. See ① for details.' }
-         ]
+               [ { _id: 4, title: 'The daily huddle on tHe StandUpApp2' } ]
+               
+         |fts| returns the document with ``_id: 4`` in the results
+         because the document contains the query term ``standup``. |fts|
+         creates tokens for the ``title`` field using the ``keyword``
+         tokenizer, ``lowercase`` token filter, and the ``nGram``
+         tokenization strategy for the :ref:`autocomplete
+         <bson-data-types-autocomplete>` type. Specifically, |fts| uses
+         the ``keyword`` tokenizer to tokenize the entire string as a
+         single token, which supports only exact matches on the entire
+         string, and then it uses the ``lowercase`` token filter to
+         convert the tokens to lowercase. For the document in the
+         results, |fts| creates the following token using the custom
+         analyzer:  
 
-   |fts| returns the documents with ``_id: 1``, ``_id: 3``, and ``_id: 
-   2`` in the results for the query term ``sign-in`` because the
-   ``icuNormalizer`` tokenizer first creates separate tokens by
-   splitting the text, including the hyphenated word, but retains the
-   original letter case in the document and then the ``lowercase`` token 
-   filter converts the tokens to lowercase. |fts| also analyzes the
-   query term using the index analyzer (or if specified, using the 
-   ``searchAnalyzer``) to split the query term and match it to the
-   document. 
+         .. list-table:: 
 
-   .. list-table:: 
+            * - Document ID 
+              - Output Tokens 
 
-      * - Normalization Forms 
-        - Output Tokens 
+            * - ``_id: 4``
+              - ``the daily huddle on the standupapp2``
 
-      * - ``_id: 1``
-        - ``try``, ``to``, ``sign``, ``in``
+         After applying the custom analyzer, |fts| creates further
+         tokens of n-grams because |fts| indexes the ``title`` field as
+         the :ref:`autocomplete <bson-data-types-autocomplete>` type as
+         specified in the index definition. |fts| uses the tokens of
+         n-grams, which includes a token for ``standup``, to match the
+         document to the query term ``standup``. 
 
-      * - ``_id: 3``
-        - ``try``, ``to``, ``sign``, ``in``
+      .. tab:: Advanced Example 
+         :tabid: advanced
+         
+         The following index definition indexes the ``message`` field in the  
+         :ref:`minutes  <custom-analyzers-eg-coll>` collection using a custom 
+         analyzer named ``lowerCaser``. The custom analyzer specifies the 
+         following: 
+   
+         a. Apply :ref:`standard-tokenizer-ref` tokenizer to create tokens 
+            based on word break rules.  
+         #. Apply the following filters on the tokens: 
+      
+            - :ref:`icunormalizer-tf-ref` to normalize the tokens using a 
+              standard Unicode Normalization Mode. 
+            - ``lowercase`` token filter to convert token text to lowercase.
 
-      * - ``_id: 2``
-        - ``do``, ``not``, ``forget``, ``to``, ``sign``, ``in``,
-          ``see``, ``for``, ``details``
+         .. code-block:: json
+
+            {
+              "mappings": {
+                "fields": {
+                  "message": {
+                    "type": "string",
+                    "analyzer": "lowerCaser"
+                  }
+                }
+              },
+              "analyzers": [
+                {
+                  "name": "lowerCaser",
+                  "charFilters": [],
+                  "tokenizer": {
+                    "type": "standard"
+                  },
+                  "tokenFilters": [
+                    {
+                      "type": "icuNormalizer",
+                      "normalizationForm": "nfkd"
+                    },
+                    {
+                      "type": "lowercase"
+                    }
+                  ]
+                }
+              ]
+            }
+
+         The following query searches the ``message`` field for the term
+         ``sign-in``. 
+
+         .. io-code-block::
+            :copyable: true
+   
+            .. input::
+               :language: json
+
+               db.minutes.aggregate([
+                 {
+                   "$search": {
+                     "index": "default",
+                     "text": {
+                       "query": "sign-in",
+                       "path": "message"
+                     }
+                   } 
+                 },
+                 {
+                   "$project": {
+                     "_id": 1,
+                     "message": 1
+                   }
+                 }
+               ])
+
+            .. output::
+               :language: json
+
+               [
+                 { _id: 1, message: 'try to siGn-In' },
+                 { _id: 3, message: 'try to sign-in' },
+                 { _id: 2, message: 'do not forget to SIGN-IN. See ① for details.' }
+               ]
+
+         |fts| returns the documents with ``_id: 1``, ``_id: 3``, and ``_id: 
+         2`` in the results for the query term ``sign-in`` because the
+         ``icuNormalizer`` tokenizer first creates separate tokens by
+         splitting the text, including the hyphenated word, but retains the
+         original letter case in the document and then the ``lowercase`` token 
+         filter converts the tokens to lowercase. |fts| also analyzes the
+         query term using the index analyzer (or if specified, using the 
+         ``searchAnalyzer``) to split the query term and match it to the
+         document. 
+
+         .. list-table:: 
+
+            * - Normalization Forms 
+              - Output Tokens 
+
+            * - ``_id: 1``
+              - ``try``, ``to``, ``sign``, ``in``
+
+            * - ``_id: 3``
+              - ``try``, ``to``, ``sign``, ``in``
+
+            * - ``_id: 2``
+              - ``do``, ``not``, ``forget``, ``to``, ``sign``, ``in``,
+                ``see``, ``for``, ``details``
 
 .. _ngram-tf-ref:
 
