@@ -1,128 +1,50 @@
 ---
-title: "Open your standalone resource |yaml| file."
+title: "Deploy a standalone resource with the |k8s-op-short|."
 level: 4
 stepnum: 1
-ref: open-sa-resource
+ref: open-standalone-resource
 content: |
+  If you haven't deployed a standalone resource, follow the instructions to
+  :ref:`deploy one <deploy-standalone>`.
 
+  This procedure uses the following example:
+
+  .. literalinclude:: /includes/code-examples/yaml-files/example-standalone.yaml
+      :language: yaml
+      :start-after: START-standalone-exposed-full
+      :end-before: END-standalone-exposed-full
+      :linenos:
+      :lineno-start: 20
 ---
+ref: create-external-services-standalone
 stepnum: 2
-ref: copy-k8s-example-sa
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: copy-k8s-example-resource
+inherit:
+  file: steps-create-external-services.yaml
+  ref: create-external-services
 replacement:
-  k8sResource: :term:`standalone`
-  k8sExampleFileName: example-standalone.yaml
-  k8sResourceType: standalone
-  k8sExample: |
-
-    .. literalinclude:: /includes/code-examples/yaml-files/example-standalone.yaml
-       :language: yaml
-       :start-after: START-standalone-exposed-upper
-       :end-before: END-standalone-exposed-upper
-       :linenos:
-       :lineno-start: 1
-       :copyable: false
-
-    .. literalinclude:: /includes/code-examples/yaml-files/example-standalone.yaml
-       :language: yaml
-       :start-after: START-standalone-exposed-lower
-       :end-before: END-standalone-exposed-lower
-       :linenos:
-       :lineno-start: 15
-
+  podType: the MongoDB Pod
+  k8sResource: standalone resource
+  annotations: :setting:`spec.externalAccess.externalService.annotations`
+  overrides: :setting:`spec.externalAccess.externalService.spec`
 ---
-level: 4
 stepnum: 3
-ref: paste-k8s-example-sa
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: paste-k8s-example-resource-section
+ref: verify-external-services-standalone
+inherit:
+  file: steps-create-external-services.yaml
+  ref: verify-external-services
 replacement:
-  k8sResource: :term:`standalone`
-
+  deployment: your standalone resource
+  format: <pod-name>-0-svc-external
+  example: <my-standalone>-0-svc-external
+  spec: :ref:`external service specification <spec-external-access-external-service>`
 ---
-title: "Change the highlighted settings to your preferred values."
-level: 4
 stepnum: 4
-ref: change-replset-resource
-content: |
-
-  .. include:: /includes/list-tables/resource-keys-external-access-standalone.rst
-
----
-level: 4
-stepnum: 5
-ref: save-object-spec-sa
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: save-object-spec-update
+ref: test-connection-standalone
+inherit:
+  file: steps-create-external-services.yaml
+  ref: test-connection-external-services
 replacement:
-  k8sResource: :term:`standalone`
----
-level: 4
-stepnum: 6
-ref: start-k8s-deployment-sa
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: restart-k8s-deployment
-replacement:
-  k8sResource: :term:`standalone`
-  k8sResourceType: standalone
-
----
-title: Discover the dynamically assigned NodePorts.
-level: 4
-stepnum: 7
-ref: k8s-ext-sa-discover-nodeports
-content: |
-
-  Discover the dynamically assigned NodePort:
-
-  .. code-block:: sh
-
-     kubectl get services -n <metadata.namespace>
-
-  The list output should contain an entry similar to the following:
-
-  .. code-block:: sh
-     :copyable: false
-
-     NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
-
-     <my-standalone>           NodePort    10.102.27.116   <none>        27017:30994/TCP   8m30s
-
-  - |k8s| exposes |mongod| on port ``27017`` within the |k8s|
-    container.
-
-  - The NodePort service exposes the ``mongod`` via port ``30994``.
-    NodePorts range from 30000 to 32767, inclusive.
-
----
-title: Test the connection to the standalone.
-level: 4
-stepnum: 8
-ref: k8s-ext-sa-test-conn
-content: |
-
-  To connect to your deployment from outside of the |k8s| cluster, run
-  the |mongod| command with the external |fqdn| of a |k8s-node| as the
-  ``--host`` flag.
-
-  .. example::
-
-     If a node in the |k8s| cluster has an external |fqdn| of
-     ``ec2-54-212-23-143.us-west-2.compute.amazonaws.com``, you can
-     connect to this standalone instance from outside of the |k8s|
-     cluster using the following command:
-
-     .. code-block:: sh
-        :copyable: false
-
-        mongosh --host ec2-54-212-23-143.us-west-2.compute.amazonaws.com \
-          --port 30994
-
-  .. include:: /includes/admonitions/fact-get-external-dns.rst
-
-...
+  k8sResource: standalone resource
+  podType: MongoDB Pod address
+  addressExample: an external |fqdn| of ``<my-standalone>.<external-domain>``
+  addressCommand: mongodb://<my-standalone>.<external-domain>

@@ -17,8 +17,7 @@
 
   * - ``Port``
     - ``<Port Number>``
-    - A port for |mongod|. If you set |external-domain|,
-      the external service adds another port (``Port Number + 1``) for backups.
+    - A port for |mongod|.
   
   * - ``publishNotReadyAddress``
     - ``true``
