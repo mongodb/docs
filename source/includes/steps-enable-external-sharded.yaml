@@ -1,127 +1,103 @@
 ---
-title: "Open your sharded cluster resource |yaml| file."
+title: "Deploy a sharded cluster with the |k8s-op-short|."
 level: 4
 stepnum: 1
 ref: open-sc-resource
 content: |
+  If you haven't deployed a sharded cluster, follow the instructions to
+  :ref:`deploy one <deploy-sharded-cluster>`.
 
+  You must enable |tls| for the sharded cluster by configuring the 
+  following settings:
+
+  .. include:: /includes/list-tables/resource-keys-external-access-sharded.rst
 ---
+ref: create-external-services-sharded
 stepnum: 2
-ref: copy-k8s-example-sc
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: copy-k8s-example-resource
+inherit:
+  file: steps-create-external-services.yaml
+  ref: create-external-services
 replacement:
-  k8sResource: :term:`sharded cluster`
-  k8sExampleFileName: example-sharded-cluster.yaml
-  k8sResourceType: sharded-cluster
-  k8sExample: |
-   
-    .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
-       :language: yaml
-       :start-after: START-exposed-sharded-upper
-       :end-before: END-exposed-sharded-upper
-       :linenos:
-       :lineno-start: 1
-       :copyable: false
-
-    .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
-       :language: yaml
-       :start-after: START-exposed-sharded-tls-lower
-       :end-before: END-exposed-sharded-tls-lower
-       :linenos:
-       :lineno-start: 19
+  podType: the ``mongos`` Pods
+  k8sResource: sharded cluster
+  annotations: :setting:`spec.externalAccess.externalService.annotations`
+  overrides: :setting:`spec.externalAccess.externalService.spec`
 ---
+title: "Add Subject Alternate Names to your |tls| certificates."
 level: 4
 stepnum: 3
-ref: paste-k8s-example-sc
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: paste-k8s-example-resource-section
-replacement:
-  k8sResource: :term:`sharded cluster`
+ref: add-san-to-cert-sharded
+content: |
 
+  Add each external |dns| name to the certificate |san-dns|.
+
+  Each MongoDB host uses the following |san-dns|\s:
+
+  .. code-block:: sh
+      :copyable: false
+
+      <my-sharded-cluster>-<shard>-<pod-index>.<external-domain>
+      <my-sharded-cluster>-config-<pod-index>.<external-domain>
+      <my-sharded-cluster>-mongos-<pod-index>.<external-domain>
+  
+  The |mongos| instance uses the following |san-dns|:
+
+  .. code-block:: sh
+     :copyable: false
+     
+     <my-sharded-cluster>-mongos-<pod-index>-svc-external.<external-domain>
+
+  Configure the :setting:`spec.security.tls.additionalCertificateDomains` setting similar
+  to the following example. Each |tls| certificate that you use must include the 
+  corresponding |san-dns| for the shard, config server, or ``mongos`` instance.  
+  The |k8s-op-short| validates your configuration. 
+
+  .. literalinclude:: /includes/code-examples/yaml-files/example-sharded-cluster.yaml
+      :language: yaml
+      :start-after: START-exposed-sharded-tls-full
+      :end-before: END-exposed-sharded-tls-full
+      :linenos:
+      :lineno-start: 1
+      :copyable: false
 ---
-title: "Change the highlighted settings to your preferred values."
-level: 4
 stepnum: 4
-ref: change-replset-resource
+level: 4
+ref: verify-external-services-sc
+title: Verify the external services.
 content: |
-
-   .. include:: /includes/list-tables/resource-keys-external-access-sharded.rst
-
----
-level: 4
-stepnum: 5
-ref: save-object-spec-sc
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: save-object-spec-update
-replacement:
-  k8sResource: :term:`sharded cluster`
----
-level: 4
-stepnum: 6
-ref: start-k8s-deployment-sc
-source:
-  file: steps-source-deploy-k8s-resource.yaml
-  ref: restart-k8s-deployment
-replacement:
-  k8sResource: :term:`sharded cluster`
-  k8sResourceType: sharded-cluster
-
----
-title: Discover the dynamically assigned NodePorts.
-level: 4
-stepnum: 7
-ref: k8s-ext-sc-discover-nodeports
-content: |
-
-  Discover the dynamically assigned NodePort:
+  In your sharded cluster, run the following command to verify that 
+  the |k8s-op-short| created the external services for your deployment.
 
   .. code-block:: sh
 
-     kubectl get services -n <metadata.namespace>
+     $ kubectl get services
 
-  The list output should contain an entry similar to the following:
+  The command returns a list of services similar to the following output.
+  For each ``mongos`` instance in the cluster, the |k8s-op-short| creates an external service 
+  named ``<pod-name>-<pod-idx>-svc-external``. This service is configured according to the values 
+  and overrides you provide in the :ref:`external service specification 
+  <spec-external-access-external-service>`.
 
   .. code-block:: sh
      :copyable: false
 
-     NAME                      TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)           AGE
-
-     <my-sharded cluster>      NodePort    10.106.44.30    <none>        27017:30078/TCP   10s
-
-  - |k8s| exposes |mongod| on port ``27017`` within the |k8s|
-    container.
-
-  - The NodePort service exposes the ``mongod`` via port ``30078``.
-    NodePorts range from 30000 to 32767, inclusive.
-
+     NAME                                              TYPE         CLUSTER-IP     EXTERNAL-IP       PORT(S)           AGE
+     <my-sharded-cluster>-mongos-0-svc-external    LoadBalancer   10.102.27.116  <lb-ip-or-fqdn>   27017:27017/TCP    8m30s
+     <my-sharded-cluster>-mongos-1-svc-external    LoadBalancer   10.102.27.116  <lb-ip-or-fqdn>   27017:27017/TCP    8m30s
+  
+  Depending on your cluster configuration or cloud provider, the IP address of the 
+  LoadBalancer service is an externally accessible IP address or |fqdn|. You can use 
+  the IP address or |fqdn| to route traffic from your external domain. This example 
+  has two ``mongos`` instances, therefore the |k8s-op-short| creates two external services.
 ---
-title: Test the connection to the sharded cluster.
-level: 4
-stepnum: 8
-ref: k8s-ext-sc-test-conn
-content: |
-
-  To connect to your deployment from outside of the |k8s| cluster, run
-  the |mongod| command with the external |fqdn| of a |k8s-node| as the
-  ``--host`` flag.
-
-  .. example::
-
-     If a node in the |k8s| cluster has an external |fqdn| of
-     ``ec2-54-212-23-143.us-west-2.compute.amazonaws.com``, you can
-     connect to this sharded cluster instance from outside of the |k8s|
-     cluster using the following command:
-
-     .. code-block:: sh
-        :copyable: false
-
-        mongosh --host ec2-54-212-23-143.us-west-2.compute.amazonaws.com \
-          --port 30078
-
-  .. include:: /includes/admonitions/fact-get-external-dns.rst
-
+stepnum: 5
+ref: test-connection-sc
+inherit:
+  file: steps-create-external-services.yaml
+  ref: test-connection-external-services
+replacement:
+  k8sResource: sharded cluster
+  podType: addresses for the ``mongos`` instances
+  addressExample: external |fqdn|\s of ``<my-sharded-cluster>-mongos-0-svc-external.<external-domain>`` and ``<my-sharded-cluster>-mongos-1-svc-external.<external-domain>``
+  addressCommand: mongodb://<my-sharded-cluster>-mongos-0-svc-external.<external-domain>,<my-sharded-cluster>-mongos-1-svc-external.<external-domain>
 ...

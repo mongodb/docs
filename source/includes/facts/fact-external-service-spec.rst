@@ -1,5 +1,5 @@
-When you set the :setting:`spec.externalAccess` setting, the |k8s-op-short| 
-automatically creates an external load balancer service with preset values. 
+When you set the |external-access| setting, the |k8s-op-short| 
+automatically creates an external load balancer service with |default-values|. 
 You can override certain values or add new values depending on your needs. 
 For example, if you intend to create :k8sdocs:`NodePort services
 </concepts/services-networking/service/#type-nodeport>`
