@@ -13,7 +13,7 @@ The stages in the live migration workflow are:
 
   a. In the |service| organization, go to :guilabel:`Live Migration`.
   #. Select :guilabel:`Migrate from Ops Manager or Cloud Manager` and
-     start the Live Migration wizard.
+     start the live migration wizard.
   #. If you are :opsmgr:`migrating </tutorial/migrate-community-to-atlas>`
      from MongoDB Community using |onprem|, accept
      the :opsmgr:`Ops Manager Migration Agreement
@@ -29,6 +29,12 @@ The stages in the live migration workflow are:
     in |mms|. A migration host runs a dedicated MongoDB Agent
     that orchestrates the live migration process from |com| to |service|.
 
+    .. note::
+
+       If you are migrating a source MongoDB deployment that hasn't used
+       |onprem| or |mms| before, :opsmgr:`add existing MongoDB processes to Ops Manager </tutorial/add-existing-mongodb-processes/>`
+       or :cloudmgr:`add existing MongoDB processes to Cloud Manager </tutorial/add-existing-mongodb-processes/>`.
+
   - In the :guilabel:`Live Migration: Connect to Atlas` section of your
     |com| organization's :guilabel:`Settings` page, select
     :guilabel:`Connect to Atlas` and paste the link-token
@@ -39,4 +45,4 @@ The stages in the live migration workflow are:
     </tutorial/connect-to-atlas-live-migration>` in |mms|.
 
 - **Stage 3: Start the Migration**. In |service|, follow the
-  steps in the wizard to start the Live Migration process.
+  steps in the wizard to start the live migration process.
