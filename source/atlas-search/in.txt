@@ -1,0 +1,290 @@
+.. _in-ref:
+
+==
+in
+==
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Perform a search for a single or array of numeric, date, boolean, or objectID values. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+The ``in`` operator performs a search for an array of ``number``,
+``date``, ``boolean``, or ``objectId`` values at the given path and
+returns documents where the value of the field equals any value in the
+specified array. If the specified field holds an array, then the ``in``
+operator selects the documents whose field holds an array that contains
+at least one element that matches any value in the specified array.
+
+.. _in-ref-syntax:
+
+Syntax 
+------
+
+The ``in`` operator has the following syntax: 
+
+.. code-block:: json 
+   :copyable: true
+
+   { 
+     $search: {  
+       "index": <index name>, // optional, defaults to "default"
+       "in": {
+         "path": "<field-to-search>",
+         "score": <options>,
+         "value": <single-or-array-of-values-to-search>
+       }
+     }
+   }
+
+.. _in-ref-fields:
+
+Fields 
+------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20 60 10 
+
+   * - Field
+     - Type 
+     - Description 
+     - Necessity
+
+   * - ``path``
+     - string 
+     - Indexed field to search. You can also specify a :ref:`wildcard
+       path <ref-path-usage>` to search. See :ref:`path construction
+       <ref-path>` for more information. 
+     - Required
+
+   * - ``score``
+     - object
+     - Score to assign to matching search term results. Use one of 
+       the following options to modify the score:
+
+       - ``boost``: multiply the result score by the given number.
+       - ``constant``: replace the result score with the given number.
+       - ``function``: replace the result score using the function
+         expression. 
+
+     - Optional
+
+   * - ``value`` 
+     - :ref:`boolean <boolean-ref>`, :ref:`objectId <objectId-ref>`, 
+       :ref:`number <bson-data-types-number>`, or :ref:`date
+       <bson-data-types-date>` 
+     - Value or values to search. Value can be either a single value or
+       an array of values of only one of the supported |bson| types and
+       can't be a mix of different types.  
+     - Required
+
+.. _in-ref-egs:
+
+Examples 
+--------
+
+The following examples use the ``in`` operator to query collections in 
+the :ref:`sample_analytics.customers <sample-analytics>` collection. If
+you load the sample data on your |service| cluster and :ref:`create
+<ref-create-index>` an |fts| index named ``default`` that uses
+:ref:`dynamic mappings <static-dynamic-mappings>` on the collection, you 
+can run the following queries against the collections. 
+
+.. tabs:: 
+
+   .. tab:: Single Value Match
+      :tabid: single 
+
+      The following query uses the ``in`` operator to search for
+      customers who were born on given dates. The query uses the
+      :pipeline:`$project` stage to:  
+
+      - Omit the ``_id`` field in the results.
+      - Include only the ``name`` and ``birthdate`` fields in the 
+        results. 
+  
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language:  json
+            :linenos: 
+
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "in": {
+                    "path": "birthdate",
+                    "value": [ISODate("1977-03-02T02:20:31.000+00:00"), ISODate("1977-03-01T00:00:00.000+00:00"), ISODate("1977-05-06T21:57:35.000+00:00")]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "name": 1,
+                  "birthdate": 1
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              {
+                name: 'Elizabeth Ray',
+                birthdate: ISODate("1977-03-02T02:20:31.000Z")
+              },
+              {
+                name: 'Brad Cardenas',
+                birthdate: ISODate("1977-05-06T21:57:35.000Z")
+              }
+            ]
+
+      |fts| returns two documents that it matches with the dates
+      specified in the query.
+  
+   .. tab:: Array Value Match
+      :tabid: multiple 
+
+      The following query uses the ``in`` operator to query for customers
+      with account numbers ``371138``, ``371139``, or ``371140``. The
+      query uses the :pipeline:`$project` stage to:
+
+      - Omit the ``_id`` field in the results.
+      - Include only the ``name`` and ``accounts`` fields in the results.
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language:  json
+            :linenos: 
+
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "in": {
+                    "path": "accounts",
+                    "value": [371138, 371139, 371140]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "name": 1,
+                  "accounts": 1
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              {
+                name: 'Elizabeth Ray',
+                accounts: [ 371138, 324287, 276528, 332179, 422649, 387979 ]
+              }
+            ]
+
+      |fts| returns only one document that it matches with the account
+      number ``371138`` specified in the query. 
+
+   .. tab:: Compound Query Match 
+      :tabid: compound 
+
+      The following query uses the ``text`` operator to query for
+      customers whose first name is ``James`` in the ``name`` field.
+      The query specifies preference using the ``in`` operator for
+      customers associated with the given objectIds. The query uses
+      :pipeline:`$limit` stage to limit the output to 5 results and the
+      :pipeline:`$project` stage to: 
+
+      - Include only the ``_id`` and ``name`` fields in the results. 
+      - Add a field named ``score`` to the results.
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language:  json
+            :linenos: 
+
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "text": {
+                        "path": "name",
+                        "query": "James"
+                      },
+                    }],
+                    "should": [{
+                      "in": {
+                        "path": "_id",
+                        "value": [ObjectId("5ca4bbcea2dd94ee58162a72"), ObjectId("5ca4bbcea2dd94ee58162a91")]
+                      }
+                    }]
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "name": 1,
+                  "score": { $meta: "searchScore" }
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              {
+                _id: ObjectId("5ca4bbcea2dd94ee58162a72"),
+                title: 'James Sanchez',
+                score: 2.6952457427978516
+              },
+              {
+                _id: ObjectId("5ca4bbcea2dd94ee58162a91"),
+                name: 'James Moore',
+                score: 2.6952457427978516
+              },
+              {
+                _id: ObjectId("5ca4bbcea2dd94ee58162aa5"),
+                name: 'James Smith',
+                score: 1.6952458620071411
+              },
+              {
+                _id: ObjectId("5ca4bbcea2dd94ee58162b0b"),
+                name: 'James Lopez',
+                score: 1.6952458620071411
+              },
+              {
+                _id: ObjectId("5ca4bbcea2dd94ee58162b2e"),
+                name: 'James Jones',
+                score: 1.6952458620071411
+              }
+            ]
+
