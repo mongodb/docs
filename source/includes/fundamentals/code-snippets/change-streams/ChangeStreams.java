@@ -29,7 +29,7 @@ public class ChangeStreams {
         CreateCollectionOptions collectionOptions = new CreateCollectionOptions();
         collectionOptions.changeStreamPreAndPostImagesOptions(new ChangeStreamPreAndPostImagesOptions(true));
 
-        database.createCollection("myChangeStreamCollection", collectionOptions);
+        database.createCollection("myColl", collectionOptions);
         // end createCollection
 
         MongoCollection<Document> collection = database.getCollection("myChangeStreamCollection");
@@ -53,8 +53,10 @@ public class ChangeStreams {
     }
 
     // use configuration to specify inclusion of pre-images
-    private static void fullDocumentBeforeChangeExample(MongoCollection<Document> collection) {
+    private static void fullDocumentBeforeChangeExample(MongoDatabase database) {
         // begin fullDocumentBeforeChangeExample
+        MongoCollection<Document> collection = database.getCollection("myColl");
+
         ChangeStreamIterable<Document> changeStream = collection.watch()
                 .fullDocumentBeforeChange(FullDocumentBeforeChange.REQUIRED);
 
@@ -64,10 +66,12 @@ public class ChangeStreams {
     }
 
     // use configuration to specify inclusion of post-images
-    private static void fullDocumentExample(MongoCollection<Document> collection) {
+    private static void fullDocumentExample(MongoDatabase database) {
         // begin fullDocumentExample
+        MongoCollection<Document> collection = database.getCollection("myColl");
+
         ChangeStreamIterable<Document> changeStream = collection.watch()
-                .fullDocument(FullDocument.UPDATE_LOOKUP);
+                .fullDocument(FullDocument.WHEN_AVAILABLE);
 
         changeStream.forEach(event ->
                 System.out.println("Received a change: " + event));
@@ -99,14 +103,14 @@ public class ChangeStreams {
         t4.start();
     }
 
-    private static void aggregationExample(MongoCollection<Document> collection){
+    private static void aggregationExample(MongoDatabase database){
         // begin aggregationExample
+        MongoCollection<Document> collection = database.getCollection("myColl");
+
         List<Bson> pipeline = Arrays.asList(
                 Aggregates.match(Filters.in("operationType", Arrays.asList("insert", "update"))));
 
-        // collection references a MongoCollection instance
         ChangeStreamIterable<Document> changeStream = collection.watch(pipeline);
-
         changeStream.forEach(event ->
                 System.out.println("Received a change to the collection: " + event));
         // end aggregationExample
