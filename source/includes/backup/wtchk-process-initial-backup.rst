@@ -15,11 +15,6 @@
    database files in storage to be copied in a consistent state while
    still accepting writes.
 
-   .. note::
-
-      The Backup Module may back up one |mongod| process per MongoDB
-      deployment per host at one time.
-
 #. The {+mdbagent+} Backup function copies and processes these data
    files.
 
