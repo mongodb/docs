@@ -7,7 +7,7 @@ $planCacheStats
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -27,11 +27,6 @@ Definition
    .. code-block:: javascript
 
       { $planCacheStats: { } }
-
-   .. note:: 4.4 Changes
-
-
-      .. include:: /includes/extracts/4.4-changes-planCache-changes.rst
 
 .. seealso::
 
@@ -89,183 +84,258 @@ cache information from just one member of each shard replica set.
 Output
 ------
 
-For each plan cache entry, the :pipeline:`$planCacheStats` stage returns a
-document similar to the following:
+.. versionchanged:: 7.0
 
-.. code-block:: javascript
+The output of ``$planCacheStats`` depends on the query engine used to
+complete the query. The value of the ``version`` field of the
+``$planCacheStats`` indicates which query engine was used:
 
-   {
-      "createdFromQuery" : <document>,
-      "queryHash" : <hexadecimal string>,
-      "planCacheKey" : <hexadecimal string>,
-      "isActive" :  <boolean>,
-      "works" : <NumberLong>,
-      "cachedPlan" : {
-         "stage" : <STAGE1>,
-         "filter" : <document>,
-         "inputStage" : {
-            "stage" : <STAGE2>,
-            ...
-         }
-      },
-      "timeOfCreation" : <date>,
-      "creationExecStats" : [   // Exec Stats Document for each candidate plan
+- ``1`` indicates that the classic engine was used.
+
+- ``2`` indicates that the :ref:`{+sbe+} <5.1-rel-notes-sbe>` was used.
+
+.. tabs::
+
+   .. tab:: Classic Execution Engine
+      :tabid: classic-sample-output
+
+      For queries that use the classic execution engine,
+      ``$planCacheStats`` returns a document similar to the following:
+
+      .. code-block:: none
+
          {
-            "nReturned" : <num>,
-            "executionTimeMillisEstimate" : <num>
-            "totalKeysExamined" : <num>
-            "totalDocsExamined" :<num>
-            "executionStages" : {
-               "stage" : <STAGE A>,
-               ...
+            "version" : 1,
+            "createdFromQuery" : <document>,
+            "queryHash" : <hexadecimal string>,
+            "planCacheKey" : <hexadecimal string>,
+            "isActive" :  <boolean>,
+            "works" : <NumberLong>,
+            "cachedPlan" : {
+               "stage" : <STAGE1>,
+               "filter" : <document>,
                "inputStage" : {
-                  "stage" : <STAGE B>,
+                  "stage" : <STAGE2>,
                   ...
                }
-            }
-         },
-         ...
-      ],
-      "candidatePlanScores" : [
-         <number>,
-         ...
-      ],
-      "indexFilterSet" : <boolean>,
-      "estimatedSizeBytes" : <num>, // Available starting in MongoDB 5.0, 4.4.3, 4.2.12
-      "host" : <string>,   // Available starting in MongoDB 4.4
-      "shard" : <string>   // Available starting in MongoDB 4.4 if run on sharded cluster
-   }
+            },
+            "timeOfCreation" : <date>,
+            "creationExecStats" : [   // Exec Stats Document for each candidate plan
+               {
+                  "nReturned" : <num>,
+                  "executionTimeMillisEstimate" : <num>,
+                  "totalKeysExamined" : <num>,
+                  "totalDocsExamined" :<num>,
+                  "executionStages" : {
+                     "stage" : <STAGE A>,
+                     ...
+                     "inputStage" : {
+                        "stage" : <STAGE B>,
+                        ...
+                     }
+                  }
+               },
+               ...
+            ],
+            "candidatePlanScores" : [
+               <number>,
+               ...
+            ],
+            "indexFilterSet" : <boolean>,
+            "estimatedSizeBytes" : <num>,
+            "host" : <string>,
+            "shard" : <string>
+         }
 
-Each document includes various query plan and execution stats,
-including:
+      Each document includes various query plan and execution stats,
+      including:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 30 70
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
 
-   * - Field
-     - Description
+         * - Field
+           - Description
 
-   * - :ref:`createdFromQuery <plancachestats-createdFromQuery>`
+         * - ``version``
 
-     - .. _plancachestats-createdFromQuery:
+           - .. _planCacheStats-classic-version:
 
-       A document that contains the specific query that resulted in
-       this cache entry; i.e.
-
-       .. code-block:: javascript
-          :copyable: false
-
-          {
-            "query" : <document>,
-            "sort" : <document>,
-            "projection" : <document>
-          }
-
-   * - ``isActive``
-
-     - A boolean that indicates whether the entry is active or inactive.
-    
-       - If active, the query planner is currently using the entry to
-         generate query plans.
-
-       - If inactive, the query planner is not currently using the
-         entry to generate query plans.
+             .. include:: /includes/planCacheStats/version.rst
          
-       .. seealso::
+         * - ``createdFromQuery``
 
-          :ref:`cache-entry-state`
+           - .. _plancachestats-createdFromQuery:
 
-   * - :ref:`queryHash <plancachestats-queryHash>`
+             A document that contains the specific query that resulted in
+             this cache entry. For example:
 
-     - .. _plancachestats-queryHash:
-   
-       A hexadecimal string that represents the hash of the :term:`query 
-       shape`. For more information, see
-       :data:`explain.queryPlanner.queryHash`
+             .. code-block:: javascript
+                :copyable: false
 
-   * - :ref:`planCacheKey <plancachestats-planCacheKey>`
+                {
+                  "query" : <document>,
+                  "sort" : <document>,
+                  "projection" : <document>
+                }
 
-     - .. _plancachestats-planCacheKey:
+         * - ``isActive``
 
-       A hexadecimal string that represents the hash of the key used to
-       find the plan cache entry associated with this query. The plan
-       cache key is a function of both the query shape and the
-       currently available indexes for that shape. For more information, see
-       :data:`explain.queryPlanner.planCacheKey`
+           - .. include:: /includes/planCacheStats/isActive.rst
 
-   * - :ref:`cachedPlan <plancachestats-cachedPlan>`
+         * - ``queryHash``
 
-     - .. _plancachestats-cachedPlan:
+           - .. _plancachestats-queryHash:
+         
+             .. include:: /includes/planCacheStats/queryHash.rst
 
-       The details of the cached plan. See :data:`explain.queryPlanner`.
+         * - ``planCacheKey``
 
-   * - ``works``
+           - .. _plancachestats-planCacheKey:
 
-     - The number of "work units" performed by the query execution plan
-       during the trial period when the query planner evaluates
-       candidate plans. For more information, see
-       :data:`explain.executionStats.executionStages.works`
+             .. include:: /includes/planCacheStats/planCacheKey.rst
 
-   * - ``timeOfCreation``
-     - Time of creation for the entry.
+         * - ``cachedPlan``
 
-   * - :ref:`creationExecStats <plancachestats-creationExecStats>`
+           - .. _plancachestats-cachedPlan:
 
-     - .. _plancachestats-creationExecStats:
+             .. include:: /includes/planCacheStats/cachedPlan.rst
 
-       An array of execution stats documents. The array contains a
-       document for each candidate plan.
+         * - ``works``
 
-       For details on the execution stats, see
-       :data:`explain.executionStats`.
+           - .. include:: /includes/planCacheStats/works.rst
 
-   * - :ref:`candidatePlanScores <plancachestats-candidatePlanScores>`
+         * - ``timeOfCreation``
+           - Time of creation for the entry.
 
-     - .. _plancachestats-candidatePlanScores:
+         * - ``creationExecStats``
 
-       An array of scores for the candidate plans listed in the
-       ``creationExecStats`` array.
+           - .. _plancachestats-creationExecStats:
 
-   * - ``indexFilterSet``
+             An array of execution stats documents. The array contains a
+             document for each candidate plan.
 
-     - A boolean that indicates whether the an :ref:`index filter
-       <index-filters>` exists for the query shape.
+             For details on the execution stats, see
+             :data:`explain.executionStats`.
 
-   * - ``estimatedSizeBytes``
+         * - ``candidatePlanScores``
 
-     - A number that describes the estimated size in bytes of a plan
-       cache entry.
+           - .. _plancachestats-candidatePlanScores:
 
-       .. versionadded:: 5.0
-       
-       Starting in MongoDB 5.0, 4.4.3, and 4.2.12, this field is available.
+             An array of scores for the candidate plans listed in the
+             ``creationExecStats`` array.
 
-   * - :ref:`host <plancachestats-host>`
+         * - ``indexFilterSet``
 
-     - .. _plancachestats-host:
+           - .. include:: /includes/planCacheStats/indexFilterSet.rst
 
-       The hostname and port of the :binary:`~bin.mongod` instance from
-       which the plan cache information was returned.
+         * - ``estimatedSizeBytes``
 
-       When run on a sharded cluster, the operation returns plan cache
-       entry information from a single member in each shard replica
-       set. This member is identified with the :ref:`shard
-       <plancachestats-shard>` and :ref:`host <plancachestats-host>`
-       fields. See also :ref:`plancachestats-read-pref`.
+           - .. include:: /includes/planCacheStats/estimatedSizeBytes.rst
 
-       .. versionadded:: 4.4
+         * - ``host``
 
-   * - :ref:`shard <plancachestats-shard>`
+           - .. _plancachestats-host:
 
-     - .. _plancachestats-shard:
+             .. include:: /includes/planCacheStats/host.rst
 
-       The name of the shard from which :pipeline:`$planCacheStats`
-       retrieved the cache entry.
+         * - ``shard``
 
-       Only available if run on a sharded cluster.
+           - .. _plancachestats-shard:
 
-       .. versionadded:: 4.4
+             The name of the shard from which :pipeline:`$planCacheStats`
+             retrieved the cache entry.
+
+             Only available if run on a sharded cluster.
+
+   .. tab:: {+sbe-title+}
+      :tabid: sbe-sample-output
+      
+      For queries that use the {+sbe+}, ``$planCacheStats`` returns a
+      document similar to the following:
+
+      .. code-block:: none
+
+         {
+            "version" : 2,
+            "queryHash" : <hexadecimal string>,
+            "planCacheKey" : <hexadecimal string>,
+            "isActive" :  <boolean>,
+            "works" : <NumberLong>,
+            "cachedPlan" : {
+               "slots" : <string>,
+               "stages": <string>
+            },
+            "indexFilterSet" : <boolean>,
+            "estimatedSizeBytes" : <num>,
+            "host" : <string>
+         }
+
+      Each document includes various query plan and execution stats,
+      including:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
+
+         * - Field
+           - Description
+
+         * - ``version``
+
+           - .. _planCacheStats-sbe-version:
+
+             .. include:: /includes/planCacheStats/version.rst
+
+         * - ``queryHash``
+
+           - .. _plancachestats-sbe-queryHash:
+         
+             .. include:: /includes/planCacheStats/queryHash.rst
+
+         * - ``planCacheKey``
+
+           - .. _plancachestats-sbe-planCacheKey:
+
+             .. include:: /includes/planCacheStats/planCacheKey.rst
+
+         * - ``isActive``
+
+           - .. _plancachestats-sbe-isActive:
+           
+             .. include:: /includes/planCacheStats/isActive.rst
+
+         * - ``works``
+
+           - .. _plancachestats-sbe-works:
+           
+             .. include:: /includes/planCacheStats/works.rst
+
+         * - ``cachedPlan``
+
+           - .. _plancachestats-sbe-cachedPlan:
+
+             .. include:: /includes/planCacheStats/cachedPlan.rst
+         
+         * - ``indexFilterSet``
+
+           - .. _plancachestats-sbe-indexFilterSet:
+             
+             .. include:: /includes/planCacheStats/indexFilterSet.rst
+
+         * - ``estimatedSizeBytes``
+
+           - .. _plancachestats-sbe-estimatedSizeBytes:
+           
+             .. include:: /includes/planCacheStats/estimatedSizeBytes.rst
+
+         * - ``host``
+
+           - .. _plancachestats-sbe-host:
+
+             .. include:: /includes/planCacheStats/host.rst
+
+.. _planCacheStats-examples:
 
 Examples
 --------
@@ -310,6 +380,8 @@ Run some queries against the collection:
    db.orders.find( { quantity: { $gte: 20 } } )
    db.orders.find( { quantity: { $gte: 5 }, type: "apparel" } )
 
+The preceding queries are completed using the {+sbe+}.
+
 Return Information for All Entries in the Query Cache
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -322,365 +394,124 @@ return information on the plan cache entries for the collection:
       { $planCacheStats: { } }
    ] )
 
-The operation returns all entries in the cache:
-
-.. code-block:: javascript
-
-   {                                               // Plan Cache Entry 1
-      "createdFromQuery" : {
-         "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" },
-         "sort" : { },
-         "projection" : { }
-      },
-      "queryHash" : "4D151C4C",
-      "planCacheKey" : "DD67E353",
-      "isActive" : false,
-      "works" : NumberLong(4),
-      "cachedPlan" : {
-         ...
-      },
-      "timeOfCreation" : ISODate("2020-02-06T18:15:44.849Z"),
-      "creationExecStats" : [
-         {
-            ... // Exec Stats for Candidate 1
-         },
-         {
-            ... // Exec Stats for Candidate 2
-         }
-      ],
-      "candidatePlanScores" : [
-         1.5002,
-         1.5002
-      ],
-      "indexFilterSet" : false,
-      "estimatedSizeBytes" : NumberLong(3160),     // Available starting in MongoDB 5.0, 4.4.3, 4.2.12
-      "host" : "mongodb1.example.net:27018",       // Available starting in MongoDB 4.4
-      "shard" : "shardA"                           // Available starting in MongoDB 4.4 if run on sharded cluster
-   }
-   {                                               // Plan Cache Entry 2
-      "createdFromQuery" : {
-         "query" : { "quantity" : { "$gte" : 20 } },
-         "sort" : { },
-         "projection" : { }
-      },
-      "queryHash" : "23B19B75",
-      "planCacheKey" : "6F23F858",
-      "isActive" : false,
-      "works" : NumberLong(1),
-      "cachedPlan" : {
-         ...
-      },
-      "timeOfCreation" : ISODate("2020-02-06T18:15:44.454Z"),
-      "creationExecStats" : [
-         {
-            ... // Exec Stats for Candidate 1
-         },
-         {
-            ... // Exec Stats for Candidate 2
-         }
-      ],
-      "candidatePlanScores" : [
-         1.0002,
-         1.0002
-      ],
-      "indexFilterSet" : false,
-      "estimatedSizeBytes" : NumberLong(2539),     // Available starting in MongoDB 5.0, 4.4.3, 4.2.12
-      "host" : "mongodb1.example.net:27018",       // Available starting in MongoDB 4.4
-      "shard" : "shardA"                           // Available starting in MongoDB 4.4 if run on sharded cluster
-   }
-   {                                               // Plan Cache Entry 3
-      "createdFromQuery" : {
-         "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } },
-         "sort" : { },
-         "projection" : { }
-      },
-      "queryHash" : "117A6B10",
-      "planCacheKey" : "A1824628",
-      "isActive" : true,
-      "works" : NumberLong(4),
-      "cachedPlan" : {
-         ...
-      },
-      "timeOfCreation" : ISODate("2020-02-06T18:15:44.452Z"),
-      "creationExecStats" : [
-         {
-            ... // Exec Stats for Candidate 1
-         },
-         {
-            ... // Exec Stats for Candidate 2
-         }
-      ],
-      "candidatePlanScores" : [
-         1.7502,
-         1.7502
-      ],
-      "indexFilterSet" : false,
-      "estimatedSizeBytes" : NumberLong(3183),     // Available starting in MongoDB 5.0, 4.4.3, 4.2.12
-      "host" : "mongodb1.example.net:27018",       // Available starting in MongoDB 4.4
-      "shard" : "shardA"                           // Available starting in MongoDB 4.4 if run on sharded cluster
-   }
-   {                                               // Plan Cache Entry 4
-      "createdFromQuery" : {
-         "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } },
-         "sort" : { },
-         "projection" : { }
-      },
-      "queryHash" : "117A6B10",
-      "planCacheKey" : "2E6E536B",
-      "isActive" : true,
-      "works" : NumberLong(3),
-      "cachedPlan" : {
-         ...
-      },
-      "timeOfCreation" : ISODate("2020-02-06T18:15:44.449Z"),
-      "creationExecStats" : [
-         {
-            ... // Exec Stats for Candidate 1
-         },
-         {
-            ... // Exec Stats for Candidate 2
-         },
-         {
-            ... // Exec Stats for Candidate 3
-         }
-      ],
-      "candidatePlanScores" : [
-         1.6668666666666665,
-         1.6668666666666665,
-         1.6668666666666665
-      ],
-      "indexFilterSet" : false,
-      "estimatedSizeBytes" : NumberLong(4653),     // Available starting in MongoDB 5.0, 4.4.3, 4.2.12
-      "host" : "mongodb1.example.net:27018",       // Available starting in MongoDB 4.4
-      "shard" : "shardA"                           // Available starting in MongoDB 4.4 if run on sharded cluster
-   }
-
-See also :ref:`plan-cache-key`. 
-
-.. _planCacheStats-list-query-shapes:
-
-List Query Shapes
-~~~~~~~~~~~~~~~~~
-
-MongoDB 4.4 removes the deprecated ``planCacheListQueryShapes`` command
-and its helper method ``PlanCache.listQueryShapes()``.
-
-As an alternative, you can use the :pipeline:`$planCacheStats` stage to
-obtain a list of all of the query shapes for which there is a cached
-plan.
-
-For example, the following uses the :pipeline:`$project` stage to only
-output the ``createdFromQuery`` field and the ``queryHash`` field.
-
-.. code-block:: javascript
-
-   db.orders.aggregate( [ { $planCacheStats: { } } , { $project: {createdFromQuery: 1, queryHash: 1 } } ] )
- 
-The operation returns the following query shapes:
+Output:
 
 .. code-block:: javascript
    :copyable: false
 
-   { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("5") } }, "sort" : {  }, "projection" : {  } }, "queryHash" : "117A6B10" }
-   { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" }, "sort" : {  }, "projection" : {  } }, "queryHash" : "4D151C4C" }
-   { "createdFromQuery" : { "query" : { "quantity" : { "$gte" : 20 } }, "sort" : {  }, "projection" : {  } }, "queryHash" : "23B19B75" }
-   { "createdFromQuery" : { "query" : { "item" : "abc", "price" : { "$gte" : NumberDecimal("10") } }, "sort" : {  }, "projection" : {  } }, "queryHash" : "117A6B10" }
+   [
+     {                                             // Plan Cache Entry 1
+       version: '2',
+       queryHash: '478AD696',
+       planCacheKey: '21AE23AD',
+       isActive: true,
+       works: Long("7"),
+       timeOfCreation: ISODate("2023-05-22T20:33:49.031Z"),
+       cachedPlan: {
+         ...
+       },
+       indexFilterSet: false,
+       isPinned: false,
+       estimatedSizeBytes: Long("8194"),
+       host: 'mongodb1.example.net:27018'
+     },
+     {                                             // Plan Cache Entry 2
+          version: '2',
+          queryHash: '3D8AFDC6',
+          planCacheKey: '1C2C4360',
+          isActive: true,
+          works: Long("6"),
+          timeOfCreation: ISODate("2023-05-22T20:33:50.584Z"),
+          cachedPlan: {
+            ...
+          },
+          indexFilterSet: false,
+          isPinned: false,
+          estimatedSizeBytes: Long("11547"),
+          host: 'mongodb1.example.net:27018'
+        },
+        {                                          // Plan Cache Entry 3
+          version: '2',
+          queryHash: '27285F9B',
+          planCacheKey: '20BB9404',
+          isActive: true,
+          works: Long("1"),
+          timeOfCreation: ISODate("2023-05-22T20:33:49.051Z"),
+          cachedPlan: {
+            ...
+          },
+          indexFilterSet: false,
+          isPinned: false,
+          estimatedSizeBytes: Long("7406"),
+          host: 'mongodb1.example.net:27018'
+        },
+        {                                          // Plan Cache Entry 4
+          version: '2',
+          queryHash: '478AD696',
+          planCacheKey: 'B1435201',
+          isActive: true,
+          works: Long("5"),
+          timeOfCreation: ISODate("2023-05-22T20:33:49.009Z"),
+          cachedPlan: {
+            ...
+          },
+          indexFilterSet: false,
+          isPinned: false,
+          estimatedSizeBytes: Long("7415"),
+          host: 'mongodb1.example.net:27018'
+        }
+      ]
 
-.. _planCacheStats-list-plans-for-shape:
+See also :ref:`plan-cache-key`. 
 
-.. _planCacheStats-cache-entry-for-query-shape:
+.. _planCacheStats-cache-entry-for-query-hash:
 
-Find Cache Entry Details for a Query Shape
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Find Cache Entry Details for a Query Hash
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To return plan cache information for a particular query shape, the
+To return plan cache information for a particular query hash, the
 :pipeline:`$planCacheStats` stage can be followed by a
 :pipeline:`$match` on the ``planCacheKey`` field.
 
 The following aggregation pipeline uses :pipeline:`$planCacheStats`
-followed by a :pipeline:`$match` and :pipeline:`$project` to return
-specific information for a particular query shape:
+followed by a :pipeline:`$match` stage to return specific information
+for a particular query hash:
 
 .. code-block:: javascript
 
    db.orders.aggregate( [
       { $planCacheStats: { } },
-      { $match: { planCacheKey: "DD67E353"} }
+      { $match: { planCacheKey: "B1435201"} }
    ] )
 
-The operation returns the following:
+Output:
 
 .. code-block:: javascript
    :copyable: false
 
-   {
-      "createdFromQuery" : {
-         "query" : { "quantity" : { "$gte" : 5 }, "type" : "apparel" },
-         "sort" : { },
-         "projection" : { }
-      },
-      "queryHash" : "4D151C4C",
-      "planCacheKey" : "DD67E353",
-      "isActive" : false,
-      "works" : NumberLong(4),
-      "cachedPlan" : {
-         "stage" : "FETCH",
-         "filter" : {
-            "type" : {
-               "$eq" : "apparel"
-            }
-         },
-         "inputStage" : {
-            "stage" : "IXSCAN",
-            "keyPattern" : {
-               "quantity" : 1
-            },
-            "indexName" : "quantity_1",
-            "isMultiKey" : false,
-            "multiKeyPaths" : {
-               "quantity" : [ ]
-            },
-            "isUnique" : false,
-            "isSparse" : false,
-            "isPartial" : false,
-            "indexVersion" : 2,
-            "direction" : "forward",
-            "indexBounds" : {
-               "quantity" : [
-                  "[5.0, inf.0]"
-               ]
-            }
-         }
-      },
-      "timeOfCreation" : ISODate("2020-02-06T18:15:44.849Z"),
-      "creationExecStats" : [
-         {
-            "nReturned" : 2,
-            "executionTimeMillisEstimate" : 0,
-            "totalKeysExamined" : 3,
-            "totalDocsExamined" : 3,
-            "executionStages" : {
-               "stage" : "FETCH",
-               "filter" : {
-                  "type" : {
-                     "$eq" : "apparel"
-                  }
-               },
-               "nReturned" : 2,
-               "executionTimeMillisEstimate" : 0,
-               "works" : 4,
-               "advanced" : 2,
-               "needTime" : 1,
-               "needYield" : 0,
-               "saveState" : 0,
-               "restoreState" : 0,
-               "isEOF" : 1,
-               "docsExamined" : 3,
-               "alreadyHasObj" : 0,
-               "inputStage" : {
-                  "stage" : "IXSCAN",
-                  "nReturned" : 3,
-                  "executionTimeMillisEstimate" : 0,
-                  "works" : 4,
-                  "advanced" : 3,
-                  "needTime" : 0,
-                  "needYield" : 0,
-                  "saveState" : 0,
-                  "restoreState" : 0,
-                  "isEOF" : 1,
-                  "keyPattern" : {
-                     "quantity" : 1
-                  },
-                  "indexName" : "quantity_1",
-                  "isMultiKey" : false,
-                  "multiKeyPaths" : {
-                     "quantity" : [ ]
-                  },
-                  "isUnique" : false,
-                  "isSparse" : false,
-                  "isPartial" : false,
-                  "indexVersion" : 2,
-                  "direction" : "forward",
-                  "indexBounds" : {
-                     "quantity" : [
-                        "[5.0, inf.0]"
-                     ]
-                  },
-                  "keysExamined" : 3,
-                  "seeks" : 1,
-                  "dupsTested" : 0,
-                  "dupsDropped" : 0
-               }
-            }
-         },
-         {
-            "nReturned" : 2,
-            "executionTimeMillisEstimate" : 0,
-            "totalKeysExamined" : 3,
-            "totalDocsExamined" : 2,
-            "executionStages" : {
-               "stage" : "FETCH",
-               "nReturned" : 2,
-               "executionTimeMillisEstimate" : 0,
-               "works" : 4,
-               "advanced" : 2,
-               "needTime" : 1,
-               "needYield" : 0,
-               "saveState" : 0,
-               "restoreState" : 0,
-               "isEOF" : 1,
-               "docsExamined" : 2,
-               "alreadyHasObj" : 0,
-               "inputStage" : {
-                  "stage" : "IXSCAN",
-                  "nReturned" : 2,
-                  "executionTimeMillisEstimate" : 0,
-                  "works" : 4,
-                  "advanced" : 2,
-                  "needTime" : 1,
-                  "needYield" : 0,
-                  "saveState" : 0,
-                  "restoreState" : 0,
-                  "isEOF" : 1,
-                  "keyPattern" : {
-                     "quantity" : 1,
-                     "type" : 1
-                  },
-                  "indexName" : "quantity_1_type_1",
-                  "isMultiKey" : false,
-                  "multiKeyPaths" : {
-                     "quantity" : [ ],
-                     "type" : [ ]
-                  },
-                  "isUnique" : false,
-                  "isSparse" : false,
-                  "isPartial" : false,
-                  "indexVersion" : 2,
-                  "direction" : "forward",
-                  "indexBounds" : {
-                     "quantity" : [
-                        "[5.0, inf.0]"
-                     ],
-                     "type" : [
-                        "[\"apparel\", \"apparel\"]"
-                     ]
-                  },
-                  "keysExamined" : 3,
-                  "seeks" : 2,
-                  "dupsTested" : 0,
-                  "dupsDropped" : 0
-               }
-            }
-         }
-      ],
-      "candidatePlanScores" : [
-         1.5002,
-         1.5002
-      ],
-      "indexFilterSet" : false,
-      "estimatedSizeBytes" : NumberLong(3160),     // Available starting in MongoDB 5.0, 4.4.3, 4.2.12
-      "host" : "mongodb1.example.net:27018",       // Available starting in MongoDB 4.4
-      "shard" : "shardA"                           // Available starting in MongoDB 4.4 if run on sharded cluster
-   }
+   [
+     {
+       version: '2',
+       queryHash: '478AD696',
+       planCacheKey: 'B1435201',
+       isActive: true,
+       works: Long("5"),
+       timeOfCreation: ISODate("2023-05-22T20:33:49.009Z"),
+       cachedPlan: {
+         slots: '$$RESULT=s11 env: { s3 = 1684787629009 (NOW), s6 = Nothing, s5 = Nothing, s1 = TimeZoneDatabase(Asia/Kuwait...Etc/UCT) (timeZoneDB), s10 = {"item" : 1, "price" : 1}, s2 = Nothing (SEARCH_META) }',
+         stages: '[2] nlj inner [] [s4, s7, s8, s9, s10] \n' +
+           '    left \n' +
+           '        [1] cfilter {(exists(s5) && exists(s6))} \n' +
+           '        [1] ixseek s5 s6 s9 s4 s7 s8 [] @"358822b7-c129-47b7-ad7f-40017a51b03c" @"item_1_price_1" true \n' +
+           '    right \n' +
+           '        [2] limit 1 \n' +
+           '        [2] seek s4 s11 s12 s7 s8 s9 s10 none none [] @"358822b7-c129-47b7-ad7f-40017a51b03c" true false \n'
+       },
+       indexFilterSet: false,
+       isPinned: false,
+       estimatedSizeBytes: Long("7415"),
+       host: 'mongodb1.example.net:27018'
+     }
+   ]
 
 See also :ref:`plan-cache-key` and :ref:`query-hash`.
