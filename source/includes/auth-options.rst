@@ -33,7 +33,7 @@ username as URI-style query parameters:
        - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
 
        LDAP and Kerberos require `MongoDB Enterprise
-       <https://www.mongodb.com/download-center/enterprise?ct=atlasheader2>`__.
+       <https://www.mongodb.com/try/download/enterprise?ct=atlasheader2>`__.
        Set the source to ``$external`` when using LDAP or Kerberos.
 
        Not required if :setting:`~security.defaultMechanism` is set in your
