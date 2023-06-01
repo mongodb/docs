@@ -1,24 +1,14 @@
-.. note:: EOL Notice
-
-   - MongoDB 5.0 Community Edition removes support for
-     :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6 on
-     :ref:`x86_64 <prod-notes-supported-platforms-x86_64>`
-
-   - MongoDB 5.0 Community Edition removes support for
-     :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7 on
-     :ref:`s390x <prod-notes-supported-platforms-s390x>`
-
 MongoDB {+version+} Community Edition supports the following
 :red:`64-bit` versions of Red Hat Enterprise Linux (RHEL), CentOS Linux,
 Oracle Linux [#oracle-linux]_, Rocky Linux, and AlmaLinux 
 [#rocky-almalinux-note]_
 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
-- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle / Rocky / AlmaLinux 8
+- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS Stream / Oracle / Rocky / AlmaLinux 9
+
+- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS Stream / Oracle / Rocky / AlmaLinux 8
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
-
-- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6
 
 MongoDB only supports the 64-bit versions of these platforms.
 

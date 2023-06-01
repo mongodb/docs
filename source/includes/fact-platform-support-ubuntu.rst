@@ -1,20 +1,10 @@
-.. note:: EOL Notice
-
-   - MongoDB 5.0 Community Edition removes support for
-     Ubuntu 16.04 on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>`
-
-   - MongoDB 5.0 Community Edition removes support for
-     Ubuntu 18.04 on :ref:`s390x <prod-notes-supported-platforms-s390x>`
-
 MongoDB {+version+} Community Edition supports the following
 :red:`64-bit` Ubuntu LTS (long-term support) releases on 
 :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
+- 22.04 :abbr:`LTS (Long Term Support)` ("Jammy")
+
 - 20.04 :abbr:`LTS (Long Term Support)` ("Focal")
-
-- 18.04 :abbr:`LTS (Long Term Support)` ("Bionic")
-
-- 16.04 :abbr:`LTS (Long Term Support)` ("Xenial")
 
 MongoDB only supports the 64-bit versions of these platforms.
 

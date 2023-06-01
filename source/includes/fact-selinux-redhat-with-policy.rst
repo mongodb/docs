@@ -3,7 +3,7 @@ MongoDB installations that:
 
 - Use an ``.rpm`` installer.
 - Use default configuration settings.
-- Run on RHEL7 or RHEL8.
+- Run on RHEL7 or later.
 
 If your installation does not meet these requirements, refer to the
 :ref:`SELinux Instructions
