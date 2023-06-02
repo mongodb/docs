@@ -10,4 +10,4 @@ The following items are required to complete this tutorial:
 - :manual:`mongoimport </reference/program/mongoimport/>`.
   ``mongoimport`` is included in the Community and Enterprise versions
   of MongoDB available in the `download center
-  <https://www.mongodb.com/download-center/enterprise>`_.
+  <https://www.mongodb.com/try/download/enterprise>`_.
