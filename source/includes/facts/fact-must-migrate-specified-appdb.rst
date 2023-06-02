@@ -6,7 +6,7 @@ MongoDB version for the :opsmgr:`Application Database
 </core/system-overview/#application-database>` in the required
 :opsmgrkube:`spec.applicationDatabase.version` setting.
 For the list of supported MongoDB versions, see the
-:qr-mdb:`container registry </mongodb-enterprise-appdb-database?tab=tags>`.
+:qr-mdb:`container registry </mongodb-enterprise-server?tab=tags>`.
 
 You must migrate the Application Database to the latest available
 enterprise edition of MongoDB if your ``MongoDBOpsManager`` custom
