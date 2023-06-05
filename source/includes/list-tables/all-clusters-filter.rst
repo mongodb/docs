@@ -31,7 +31,6 @@
 
        - All
        - Inconsistent
-       - 4.2
        - 4.4
        - 5.0
        - 6.0

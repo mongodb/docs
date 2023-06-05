@@ -2,7 +2,7 @@
 
    Effective 23 March 2020, all new clusters can *only* use {+Cloud-Backup+}s.
 
-   When you upgrade to 4.2, your backup system upgrades to
+   When you upgrade to 4.4, your backup system upgrades to
    {+cloud-backup+} if it is currently set to {+old-backup+}. After this
    upgrade:
 
