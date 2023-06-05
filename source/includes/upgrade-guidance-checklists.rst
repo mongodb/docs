@@ -47,4 +47,5 @@ environment.
 Downgrade Consideration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-|downgradepath|
+Starting in MongoDB 7.0, if you downgrade your deployment's {+fcv+}, you cannot 
+downgrade your deployment's binary version without assistance from support.
