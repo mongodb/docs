@@ -1,3 +1,10 @@
+.. _mongodb-12.0.22.7705:
+
+MongoDB Agent 12.0.22.7705
+--------------------------
+
+:ref:`Released with Ops Manager 6.0.14 on 2023-06-01 <opsmgr-server-6.0.14>`
+
 .. _mongodb-12.0.21.7698:
 
 MongoDB Agent 12.0.21.7698
@@ -91,9 +98,9 @@ MongoDB Agent 12.0.10.7591
 
 .. include:: /includes/extracts/om6-warning-server-68925.rst
 
-Supports :manual:`encryption at rest </core/security-encryption-at-rest/#encryption-at-rest>`
-for audit logs using
-:ref:`advanced configuration options <deployment-advanced-options-audit-log>`.
+- Supports :manual:`encryption at rest </core/security-encryption-at-rest/#encryption-at-rest>`
+  for audit logs using
+  :ref:`advanced configuration options <deployment-advanced-options-audit-log>`.
 
 .. _mongodb-12.0.9.7579:
 

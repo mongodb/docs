@@ -1,3 +1,23 @@
+.. _opsmgr-server-6.0.14:
+
+|onprem| Server 6.0.14
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-06-01*
+
+- Updates the {+mdbagent+} to :ref:`12.0.22.7705 <mongodb-12.0.22.7705>`.
+- Updates Golang builds to 1.19.9.
+- Updates ``org.bitbucket.b_c:jose4j`` version 0.7.10 to version 0.9.3 to address 
+  `SNYK-JAVA-ORGBITBUCKETBC-5488281 <https://security.snyk.io/vuln/SNYK-JAVA-ORGBITBUCKETBC-5488281>`__.
+- Updates ``net.minidev:json-smart@2.4.2`` to version 2.4.11 to address 
+  `CVE-2023-1370 <https://www.cve.org/CVERecord?id=CVE-2023-1370>`.
+- Updates ``org.json:json@20211205`` to ``org.json:json@20230227`` 
+  to address `CVE-2022-45688 <https://www.cve.org/CVERecord?id=CVE-2022-45688>`__.
+- Includes BI Connector 2.14.6.
+- Snapshots now include a flag that indicates whether or not they are incremental.
+- Adds the ability for |onprem| administrators to access performance and snapshot metrics.
+  Administrators can now use Prometheus to query newly created collections and view metrics graphs.
+
 .. _opsmgr-server-6.0.13:
 
 |onprem| Server 6.0.13
