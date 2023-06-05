@@ -6,7 +6,6 @@
 *Released 2023-06-01*
 
 - Updates the {+mdbagent+} to :ref:`12.0.22.7705 <mongodb-12.0.22.7705>`.
-- Updates Golang builds to 1.19.9.
 - Updates ``org.bitbucket.b_c:jose4j`` version 0.7.10 to version 0.9.3 to address 
   `SNYK-JAVA-ORGBITBUCKETBC-5488281 <https://security.snyk.io/vuln/SNYK-JAVA-ORGBITBUCKETBC-5488281>`__.
 - Updates ``net.minidev:json-smart@2.4.2`` to version 2.4.11 to address 
