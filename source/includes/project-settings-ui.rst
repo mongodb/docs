@@ -115,6 +115,15 @@ You can set the following in the {+atlas-ui+}:
       
       .. include:: /includes/fact-serverless-schema-advisor.rst
 
+  * - :guilabel:`Managed Slow Operations`
+
+    - Dynamically sets the 
+      :ref:`Slow Query Threshold <pa-slow-queries>`
+      based on execution times of operations across your cluster.
+
+      Disable this feature to set a fixed, user-specified slow query
+      threshold.
+
   * - :guilabel:`Enable Extended Storage Sizes`
 
     - Allows you to configure M40+ {+clusters+} with greater maximum
