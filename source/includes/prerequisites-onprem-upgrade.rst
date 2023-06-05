@@ -36,8 +36,8 @@ If you plan to run |onprem| in :ref:`Local Mode <om-use-local-mode>`,
 download the MongoDB software to your versions library directory. The
 required software includes:
 
-- All versions of MongoDB :dl:`Community </community>` or
-  :dl:`Enterprise </enterprise>` that you want to install
+- All versions of MongoDB :dl:`Community <community>` or
+  :dl:`Enterprise <enterprise>` that you want to install
 - :db-tools:`MongoDB Tools </>`. The version of MongoDB Tools must
   match the version that the :ref:`Ops Manager release notes
   <mms-changelog>` list as compatible with your |onprem| version. 
