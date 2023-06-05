@@ -1,3 +1,21 @@
+.. _opsmgr-server-5.0.21:
+
+|onprem| Server 5.0.21
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-06-1*
+
+- Updates JDK to ``jdk-11.0.19+7``.
+- Updates the {+mdbagent+} to :ref:`11.0.26.7158
+  <mongodb-11.0.26.7158>`.
+- Updates Golang builds to 1.19.9.
+- Includes BI Connector 2.14.6.
+- Includes :db-tools:`MongoDB Database Tools 100.7.0
+  </release-notes/database-tools-changelog/#100.7.0-changelog>`.
+- Defaults the :guilabel:`Multiple Workers` option for a single file 
+  during backup to :guilabel:`On`.
+- Snapshots now include a flag that indicates whether or not they are incremental.
+
 .. _opsmgr-server-5.0.20:
 
 |onprem| Server 5.0.20
