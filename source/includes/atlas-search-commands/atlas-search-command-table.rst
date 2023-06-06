@@ -8,12 +8,12 @@
 
    * - :dbcommand:`createSearchIndexes`
 
-     - .. include:: /includes/atlas-search-commands/command-descriptions.rst/createSearchIndexes-description.rst
+     - .. include:: /includes/atlas-search-commands/command-descriptions/createSearchIndexes-description.rst
 
    * - :dbcommand:`dropSearchIndex`
 
-     - .. include:: /includes/atlas-search-commands/command-descriptions.rst/dropSearchIndex-description.rst
+     - .. include:: /includes/atlas-search-commands/command-descriptions/dropSearchIndex-description.rst
 
    * - :dbcommand:`updateSearchIndex`
 
-     - .. include:: /includes/atlas-search-commands/command-descriptions.rst/updateSearchIndex-description.rst
+     - .. include:: /includes/atlas-search-commands/command-descriptions/updateSearchIndex-description.rst
