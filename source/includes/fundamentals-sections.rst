@@ -8,6 +8,7 @@ Fundamentals section:
 - :doc:`Access Return Values </fundamentals/promises>`
 - :doc:`Transform your Data </fundamentals/aggregation>`
 - :doc:`Create and Manage Transactions </fundamentals/transactions>`
+- :doc:`Run a Database Command </fundamentals/run-command>`
 - :doc:`Create Indexes to Speed Up Queries </fundamentals/indexes>`
 - :doc:`Sort Using Collations </fundamentals/collations>`
 - :doc:`Log Events in the Driver </fundamentals/logging>`
