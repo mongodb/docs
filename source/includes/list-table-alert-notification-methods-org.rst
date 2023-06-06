@@ -148,10 +148,11 @@
        Define escalation and routing rules directly in VictorOps.
 
        This option is available only for alerts that you must
-       acknowledge. Informational alerts like |a-service| user has 
-       joined the organization can't use this notification method.
-
-       Acknowledge VictorOps alerts from the VictorOps dashboard.
+       acknowledge. You can recieve informational alerts from this 
+       :ref:`third-party monitoring service <third-party-integrations>` 
+       in |service|. However, you must resolve these alerts within the 
+       external service. Acknowledge VictorOps alerts from the 
+       VictorOps dashboard.
 
        .. include:: /includes/fact-api-key-redacted.rst
 
@@ -167,11 +168,11 @@
        in Opsgenie.
 
        This option is available only for alerts that you must
-       acknowledge. Informational alerts like |a-service| user has 
-       joined the organization can't use this notification method.
-
-       `Acknowledge Opsgenie 
-       alerts <https://docs.opsgenie.com/docs/acknowledge-and-unacknowledge>`_ 
+       acknowledge. You can recieve informational alerts from this 
+       :ref:`third-party monitoring service <third-party-integrations>` 
+       in |service|. However, you must resolve these alerts within the 
+       external service. `Acknowledge Opsgenie alerts 
+       <https://docs.opsgenie.com/docs/acknowledge-and-unacknowledge>`_ 
        from the Opsgenie dashboard.
 
        .. include:: /includes/fact-api-key-redacted.rst
