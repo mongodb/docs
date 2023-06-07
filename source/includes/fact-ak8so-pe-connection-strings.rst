@@ -40,8 +40,8 @@ a. Copy the following command:
    .. code-block:: sh
 
       {
-        "connectionStringPrivate": "mongodb://pl-0-eastus2.uzgh6.gcp.mongodb.net:1024,pl-0-eastus2.uzgh6.gcp.mongodb.net:1025,pl-0-eastus2.uzgh6.gcp.mongodb.net:1026/?ssl=truereplicaSet=atlas-18bndf-shard-0",
-        "connectionStringPrivateSrv": "mongodb+srv://cluster0-pl-0.uzgh6.gcp.mongodb.net",
+        "connectionStringPrivate": "mongodb://pl-0-eastus2.uzgh6.mongodb.net:1024,pl-0-eastus2.uzgh6.mongodb.net:1025,pl-0-eastus2.uzgh6.mongodb.net:1026/?ssl=truereplicaSet=atlas-18bndf-shard-0",
+        "connectionStringPrivateSrv": "mongodb+srv://cluster0-pl-0.uzgh6.mongodb.net",
         "password": "P@@sword%",
         "username": "theuser"
        }

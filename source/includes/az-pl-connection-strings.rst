@@ -12,14 +12,14 @@
         .. code-block:: none
            :copyable: false
 
-           mongodb+srv://cluster0-pl-0.uzgh6.azure.mongodb.net
+           mongodb+srv://cluster0-pl-0.uzgh6.mongodb.net
 
       - Standard connection string
 
         .. code-block:: none
            :copyable: false
 
-           mongodb://pl-0-eastus2.uzgh6.azure.mongodb.net:1024,pl-0-eastus2.uzgh6.azure.mongodb.net:1025,pl-0-eastus2.uzgh6.azure.mongodb.net:1026/?ssl=truereplicaSet=atlas-18bndf-shard-0
+           mongodb://pl-0-eastus2.uzgh6.mongodb.net:1024,pl-0-eastus2.uzgh6.mongodb.net:1025,pl-0-eastus2.uzgh6.mongodb.net:1026/?ssl=truereplicaSet=atlas-18bndf-shard-0
 
       When a client in your VNet connects to an |service| cluster using
       one of these private endpoint-aware connection strings, the
@@ -37,29 +37,29 @@
 
       The following example shows the SRV record for an 
       {+az-pl+}-enabled single-region cluster, showing three unique
-      ports defined for ``pl-0-eastus2.uzgh6.azure.mongodb.net``:
+      ports defined for ``pl-0-eastus2.uzgh6.mongodb.net``:
 
 
       .. code-block:: sh
          :copyable: false
 
-         $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0.uzgh6.azure.mongodb.net
+         $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net
 
          Server:  127.0.0.53
          Address:  127.0.0.53#53
 
          Non-authoritative answer:
-         _mongodb._tcp.cluster0-pl-0.uzgh6.azure.mongodb.net service = 0 0 1024 pl-0-eastus2.uzgh6.azure.mongodb.net.
-         _mongodb._tcp.cluster0-pl-0.uzgh6.azure.mongodb.net service = 0 0 1025 pl-0-eastus2.uzgh6.azure.mongodb.net.
-         _mongodb._tcp.cluster0-pl-0.uzgh6.azure.mongodb.net service = 0 0 1026 pl-0-eastus2.uzgh6.azure.mongodb.net.
+         _mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net service = 0 0 1024 pl-0-eastus2.uzgh6.mongodb.net.
+         _mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net service = 0 0 1025 pl-0-eastus2.uzgh6.mongodb.net.
+         _mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net service = 0 0 1026 pl-0-eastus2.uzgh6.mongodb.net.
 
       .. tip::
 
          In the preceding example:
 
-         - ``_mongodb._tcp.cluster0-pl-0.uzgh6.azure.mongodb.net`` is
+         - ``_mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net`` is
             the SRV record that the connection string references. 
-         - ``pl-0-eastus2.uzgh6.azure.mongodb.net`` is the hostname for
+         - ``pl-0-eastus2.uzgh6.mongodb.net`` is the hostname for
             each node in one |service| cluster in one region for which
             you have configured {+az-pl+}.
          - ``1024``, ``1025``, and ``1026`` are unique ports that 
@@ -81,12 +81,12 @@
       .. code-block:: sh
          :copyable: false
 
-         $ nslookup pl-0-eastus2.uzgh6.azure.mongodb.net
+         $ nslookup pl-0-eastus2.uzgh6.mongodb.net
          Server:  127.0.0.53
          Address:  127.0.0.53#53
 
          Non-authoritative answer:
-         Name:	pl-0-eastus2.uzgh6.azure.mongodb.net
+         Name:	pl-0-eastus2.uzgh6.mongodb.net
          Address: 10.0.0.4
 
    .. tab:: {+Serverless-Instances+}
@@ -100,7 +100,7 @@
         .. code-block:: none
            :copyable: false
 
-           mongodb+srv://cluster0-pl-0.uzgh6.azure.mongodb.net
+           mongodb+srv://cluster0-pl-0.uzgh6.mongodb.net
 
       When a client in your VNet connects to an |service| 
       {+database-deployment+} using the private-endpoint-aware
