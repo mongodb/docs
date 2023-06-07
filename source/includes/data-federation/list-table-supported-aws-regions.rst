@@ -1,9 +1,9 @@
 .. list-table::
-   :widths: 75 25
+   :widths: 50 50
    :header-rows: 1
 
-   * - {+df+} Regions
-     - |aws| Regions
+   * - Region Name
+     - |aws| Region
 
    * - Virginia, USA
      - us-east-1
