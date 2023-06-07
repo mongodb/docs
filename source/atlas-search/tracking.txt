@@ -1,0 +1,203 @@
+:noprevnext:
+
+.. _fts-tracking-ref:
+
+==================
+Track Search Terms
+==================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas search, track query, tag query, track search terms, search tracking syntax, search tracking options, view query analytics, view metrics, search query metrics, search query tracking example
+   :description: Learn how to use the tracking option to track search terms.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The |fts| ``tracking`` option allows you to track your search queries.
+When you track your queries, |service| tracks the search terms and
+provides analytics information about the search terms in your queries.
+You can use the analytics information to improve the quality of your
+search application and to refine your query to return relevant results. 
+
+.. note:: 
+
+   You must have an ``M10`` or higher cluster to take advantage of the
+   analytics information returned by |fts| ``tracking`` option.
+   |service| doesn't track search terms or display analytics for
+   queries on free and shared-tier clusters.
+
+.. _fts-tracking-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+   :emphasize-lines: 7-9 
+
+   {
+     $search: {  
+       "index": "<index name>", 
+       "<operator>": { 
+         <operator-specification>
+       },
+       "tracking": { 
+         "searchTerms": "<term-to-search>"
+       }
+     }
+   }
+
+.. _fts-tracking-options:
+
+Options 
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 55 10
+
+   * - Field
+     - Type
+     - Description
+     - Necessity
+
+   * - ``searchTerms``
+     - string
+     - Text or term associated with the query to track. You can specify
+       only one term per query.
+     - Required
+
+.. _fts-tracking-behavior:
+
+Behavior
+--------
+
+For each |fts| index on your |service| cluster, |service| collects the
+following metrics for the tracked search terms that were run using that
+index: 
+
+- Number of |fts| queries for the tracked terms.
+- Number of times |fts| didn't return any results for queries for the
+  tracked terms. 
+
+|service| counts the number of queries per day for tracked search terms.
+|service| has a limit on the number of search terms that it captures per
+{+cluster+} each day from tracked :pipeline:`$search` queries. Once
+|service| reaches the limit, it doesn't capture new, unique search
+terms. However, if you run queries for previously tracked terms for the
+day after |service| reaches the limit and stops capturing, |service|
+continues to increment the counter for those terms regardless of the
+limit for the day.  
+
+|service| resets the terms that are tracked, the count for the terms
+that are tracked, and the limit on the number of tracked search terms at
+the beginning of each day in :abbr:`UTC (Coordinated Universal Time)`.
+
+.. example:: 
+
+   This example demonstrates how |service| counts the terms that are
+   tracked. Suppose you run queries for the term ``summer`` on:
+   
+   - Day 1 before |service| reaches the limit on the number of tracked
+     search terms for that day. Then on Day 1, |service| counts the
+     number of queries for ``summer`` and  metrics are available for
+     ``summer`` if ``summer`` is one of the top search terms on that day.
+   - Day 2 before and after |service| reaches the limit on the number of
+     tracked search terms for that day. Then on Day 2, |service| counts
+     the number of queries for ``summer`` before and after it reaches
+     the limit for the number of tracked search terms and metrics are
+     available for ``summer`` if ``summer`` is one of the top search
+     terms on that day. 
+   - Day 3 after |service| reaches the limit on the number of tracked
+     search terms for that day. Then on Day 3, |service| doesn't count
+     the query for term ``summer`` and metrics aren't available for
+     ``summer`` on that day. 
+
+|fts| doesn't use the term that you specify with the ``tracking`` option
+to process the query. Also, the search term that you specify with the
+``tracking`` option doesn't have any effect on the results that |fts|
+returns for the query. 
+
+.. _fts-tracking-output:
+
+Output 
+------
+
+You can view metrics for the queries tracked using the ``tracking``
+option in the {+atlas-ui+} :guilabel:`Query Analytics` page for an
+|fts| index. To learn more, see :ref:`fts-query-analytics-page-nav`. 
+
+The :guilabel:`Query Analytics` page displays the following metrics 
+for a predefined date range such as the current day, last 7 days, last 
+30 days, or last 90 days, or a custom range (in :abbr:`UTC (Coordinated
+Universal Time)`) that you specify, with a per day granularity: 
+
+- :ref:`fts-query-analytics-all-tracked-queries`
+- :ref:`fts-query-analytics-no-results-queries`
+
+To learn more, see :ref:`fts-query-analytics`.
+
+.. _fts-tracking-egs:
+
+Examples 
+--------
+
+The following query against the ``sample_mflix.movies`` collection
+searches the ``title`` field for the term ``summer``. The query uses the
+``tracking`` option (highlighted) to enable |fts| to capture analytics
+information for the query term ``summer``. If you have the sample data
+on your cluster and an |fts| index named ``default`` on the ``title``
+field in the collection, you can run the following query against the 
+``sample_mflix.movies`` collection on your cluster. To learn more about
+loading the sample data and creating an |fts| index, see
+:ref:`fts-tutorial-ref` tutorial.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :emphasize-lines: 8-10
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "summer",
+              "path": "title"
+            },
+            "tracking": {
+              "searchTerms": "summer"
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
+
+      [
+        { title: 'Summer' },
+        { title: 'Summer Stock' },
+        { title: 'Early Summer' },
+        { title: 'Summer Interlude' },
+        { title: 'Violent Summer' }
+      ]
+
+If you run this query, you can view metrics for it in the
+:guilabel:`Query Analytics` page for the index if |service| collected
+data for the tracked search term. To learn more, see
+:ref:`fts-query-analytics`. 
