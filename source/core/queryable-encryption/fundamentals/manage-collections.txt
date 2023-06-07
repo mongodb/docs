@@ -12,14 +12,8 @@ Encrypted Collection Management
    :depth: 2
    :class: singlecol
 
-It is important that you understand the performance and storage costs of field level encryption. Each encrypted field:
-
-- Adds adds writes to insert, update, and delete operations.
-- Requires additional storage, because MongoDB maintains an encrypted field index.
-
-This section lists the writes per operation and explains how to compact
-encrypted collection indexes so that you can minimize write and storage
-costs.
+In this guide, you can learn how to manage your encrypted collections,
+and the storage and write costs of {+qe+}.
 
 Overview
 --------
@@ -30,9 +24,9 @@ fields.
 
 With {+qe+}, a given plaintext value always encrypts to a different
 ciphertext, while still remaining queryable. To enable
-this functionality, {+qe+} uses three data structures:
+this functionality, {+qe+} uses four data structures:
 
-- Two metadata collections
+- Three metadata collections
 - A field in every document in the encrypted collection called ``__safeContent__``
 
 .. important::
@@ -43,10 +37,11 @@ this functionality, {+qe+} uses three data structures:
 Metadata Collections
 --------------------
 
-When you create an encrypted collection, MongoDB creates two
+When you create an encrypted collection using {+qe+}, MongoDB creates three
 metadata collections:
 
 - ``enxcol_.<collectionName>.esc``, referred to as ``ESC``
+- ``enxcol_.<collectionName>.ecc``, referred to as ``ECC``
 - ``enxcol_.<collectionName>.ecoc``, referred to as ``ECOC``
 
 .. example::
@@ -55,13 +50,14 @@ metadata collections:
    following metadata collections:
 
    - ``enxcol_.patients.esc``
+   - ``enxcol_.patients.ecc``
    - ``enxcol_.patients.ecoc``
 
 
-When you insert documents with a queryable encrypted field,
+When you insert documents with encrypted fields that you wish to query on,
 MongoDB updates the metadata collections to maintain an index
-that enables querying. The field becomes an "indexed field". This
-comes at a cost in storage and write speed for every such field.
+that enables you to query. MongoDB refers to this as "indexed field". This
+comes at a cost in storage and write speed.
 
 Storage Costs
 -------------
@@ -69,11 +65,14 @@ Storage Costs
 Storage and write costs increase based on the number of indexed fields
 per document.
 
-.. important::
+.. important:: Technical Preview
 
-   Expect a {+qe+} collection to have 2-3 times the storage requirements
-   of the documents, to account for metadata collections. For example, a
-   1 GB collection may have a storage requirement of 2-3 GB.
+   MongoDB's guidance during the technical preview is to expect two to
+   three times the storage requirement for a {+qe+} collection and
+   associated metadata collections. For example, a 1 GB collection may
+   have a storage requirement of 2-3 GB for associated metadata collections.
+
+   This guidance will be tuned in a future release.
 
 Write Costs
 -----------
@@ -98,10 +97,11 @@ metadata collections.
 Update Operations
 ~~~~~~~~~~~~~~~~~
 
-When updating a document, each indexed field requires three writes to
+When updating a document, each indexed field requires four writes to
 metadata collections.
 
 - One write to ``ESC``
+- One write to ``ECC``
 - Two writes to ``ECOC``
 
 
@@ -110,15 +110,16 @@ metadata collections.
    Updating a document with two indexed fields requires:
 
    - One write to the encrypted collection.
-   - Six writes to the metadata collections.
+   - Eight writes to the metadata collections.
 
 
 Delete Operations
 ~~~~~~~~~~~~~~~~~
 
-When deleting a document, each indexed field requires one write to the
+When deleting a document, each indexed field requires two writes to the
 metadata collections.
 
+- One write to ``ECC``
 - One write to ``ECOC``
 
 
@@ -126,8 +127,8 @@ metadata collections.
 
    Deleting a document with two indexed fields requires:
 
-   - One write to the encrypted collection.
-   - Two writes to the metadata collections.
+   - One write into the encrypted collection.
+   - Four writes to the metadata collections.
 
 
 .. _qe-index-compaction:
@@ -135,19 +136,19 @@ metadata collections.
 Index Compaction
 ----------------
 
+.. important:: Technical Preview
+
+   You are required to run index compaction during the technical preview.
+   MongoDB plans to automatically run index compaction in a future release.
+
 As you insert, update, and delete documents, the metadata collections
-change and grow. Index compaction prunes the metadata collections and 
-reduces their size.
+change and grow. Index compaction is a process that prunes the metadata
+collections and reduces their size.
 
-.. important::
-
-   You must manually run index compaction. Compaction only works on
-   clients configured for {+qe+}.
-
-Run index compaction when the size of ``ECOC`` exceeds 1 GB.
+You should run index compaction when the size of ``ECOC`` exceeds 1 GB.
 
 You can check the size of your collections using :binary:`~bin.mongosh`
-and issuing the :method:`db.collection.totalSize()` command.
+and issuing the ``db.collection.totalSize()`` command.
 
 .. example::
 
@@ -164,6 +165,10 @@ and issuing the :method:`db.collection.totalSize()` command.
         :language: sh
 
         1407960328
+
+.. important::
+
+   You must configure your client for {+qe+} to run index compaction.
 
 To run index compaction, use :binary:`~bin.mongosh` and run the
 ``db.collection.compactStructuredEncryptionData()`` command to reduce
