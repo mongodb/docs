@@ -155,8 +155,7 @@
   - ``us-west4`` (Las Vegas, NV, USA)
    
 - Spreads newly deployed {+clusters+} in the following |azure| regions 
-  across three availability :ref:`availability zones 
-  <microsoft-azure-availability-zones>`:
+  across three :ref:`availability zones <microsoft-azure-availability-zones>`:
  
   - ``brazilsouth`` (São Paulo, Brazil)
   - ``eastasia`` (Hong Kong, China)
