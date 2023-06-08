@@ -14,6 +14,7 @@
 - Defaults the :guilabel:`Multiple Workers` option for a single file 
   during backup to :guilabel:`On`.
 - Snapshots now include a flag that indicates whether or not they are incremental.
+- Fixes `CVE-2023-0342 <https://nvd.nist.gov/vuln/detail/CVE-2023-0342>`__.
 
 .. _opsmgr-server-5.0.20:
 
