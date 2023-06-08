@@ -16,22 +16,160 @@ Deploy a {+FDI+}
 
 *Estimated completion time: 15 minutes*
 
-This part of the tutorial will guide you through deploying a {+fdi+}.
+This part of the tutorial guides you through deploying a {+fdi+} using the following quickstart wizards in the {+atlas-ui+}: 
+
+- The :ref:`Feed Downstream Systems <feed-downstream-systems>` wizard helps you set up a {+fdi+} that exports data from your |service| {+cluster+}, transforms the data into `Parquet <https://parquet.apache.org/docs/>`__, :ref:`CSV <adf-csv-tsv-data>`, |bson|, or :manual:`MongoDB Extended JSON </reference/mongodb-extended-json/>`, and copies the data to your |aws| |s3| buckets at specified intervals using :ref:`Atlas Triggers <triggers>`.
+
+- The :ref:`Explore with Sample Data <explore-sample-data>` wizard helps you set up a {+fdi+} loaded with sample data to demonstrate  how to connect to the {+fdi+} and run queries.
+
+- The :ref:`Query Data Across Clusters <query-across-clusters>` wizard helps you set up a {+fdi+} that accesses data from multiple |service| {+cluster+}\s so you can run federated queries across collections from all of them.
+
+To learn more about the storage configuration options, including storage configuration options for {+adl+} datasets and publicly 
+accessible |url|\s, see :ref:`config-adf`. 
 
 Prerequisites 
 -------------
 
-To complete this part of the tutorial, you will need to create a 
-`MongoDB Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_atlas>`__  
-account, if you do not have one already.
+To complete this part of the tutorial, make sure you meet the following prerequisites:
 
-Procedure 
----------
+- Create a `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_atlas>`__ account, if you don't have one already.
+
+- For the Feed Downstream Systems wizard, you need:
+
+  - The `AWS CLI <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html>`__, `configured to access your AWS account <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration>`__. Alternatively, you must have access to the |aws| Management Console with permission to create `IAM roles <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user.html>`__.
+
+  - An |s3| bucket to store extracted data.
+        
+  - At least one |service| {+cluster+} with a database.
+
+- For the Query Data Across {+Clusters+} wizard, you need:
+  
+  - At least one |service| {+cluster+} deployed in the same project you'll use for your {+fdi+}.
+   
+  - At least one database collection. You can :ref:`load sample data <sample-data>` if you don't have collections already.
+
+.. _feed-downstream-systems:
+
+Use the Feed Downstream Systems Wizard 
+--------------------------------------
+
+The Feed Downstream Systems wizard helps you set up a {+fdi+} that writes data from your |service| {+cluster+} to your |aws| |s3| bucket continuously on a schedule.
 
 .. include:: /includes/steps/adf-deploy-gst.rst
+
+.. _explore-sample-data:
+
+Use the Explore with Sample Data Wizard 
+---------------------------------------
+
+The Explore with Sample Data wizard helps you set up a {+fdi+} loaded with sample data.
+
+.. include:: /includes/steps/adf-deploy-sample-data.rst
+
+
+This {+fdi+} includes the following sample datasets that you can use to practice
+:ref:`running queries <gst-run-queries>`: 
+
+- ``/airbnb/listingsAndReviews/{bedrooms int}/{review_scores.review_scores_rating int}/``
+
+  This path references the ``airbnb`` dataset, which contains the 
+  vacation home listing details and customer reviews. To learn more 
+  about this dataset, see :atlas:`Sample AirBnB Listings Dataset 
+  </sample-data/sample-airbnb>`.
+
+  For this path, the {+fdi+} uses partitions optimized for queries on 
+  the ``bedrooms`` field and ``review_scores.review_score_ratings`` 
+  fields.
+
+- ``/analytics/accounts/{limit int}/``
+
+  This path references the ``analytics`` dataset, which contains data 
+  for a typical financial services application. To learn more about 
+  this dataset, see :atlas:`Sample Analytics Dataset 
+  </sample-data/sample-analytics#sample_analytics.accounts>`.
+
+  For this path, the {+fdi+} uses partitions optimized for queries on 
+  the ``limit`` field.
+
+- ``/analytics/customers/{birthdate isodate}/``
+
+  This data references the ``analytics`` dataset, which contains 
+  collections for a typical financial services application. To learn 
+  more about this dataset, see :atlas:`Sample Analytics Dataset 
+  </sample-data/sample-analytics#sample_analytics.customers>`.
+
+  For this path, the {+fdi+} uses partitions optimized for queries on 
+  the ``birthdate`` field.
+
+- ``/analytics/transactions/{account_id int}/``
+
+  This path references the ``analytics`` dataset, which contains 
+  data for a typical finanacial services application. To learn more 
+  about this dataset, see :atlas:`Sample Analytics Dataset 
+  </sample-data/sample-analytics#sample_analytics.transactions>`.
+
+  For this path, the {+fdi+} uses partitions optimized for queries on 
+  the ``account_id`` field.
+
+- ``/mflix/movies/{type string}/{year int}/``
+
+  This path references the ``mflix`` dataset, which contains data on 
+  movies and movie theaters. To learn more about this dataset, see 
+  :atlas:`Sample Mflix Dataset </sample-data/sample-mflix#sample_mflix.movies>`.
+
+  For this path, the {+fdi+} uses partitions optimized for queries on 
+  the ``type`` and ``year`` fields.
+
+- ``/mflix/sessions.json``
+  
+  This path references the ``mflix`` dataset, which contains data on 
+  movies and movie theaters. To learn more about this dataset, see 
+  :atlas:`Sample Mflix Dataset </sample-data/sample-mflix#sample_mflix.sessions>`.
+
+  This path does not contain any partition attributes and so, for 
+  queries against data in the collection, {+df+} searches all the 
+  files in the collection.
+
+- ``/mflix/theaters/{theaterId string}/{location.address.zipcode string}/``
+
+  This path references the ``mflix`` dataset, which contains data on 
+  movies and movie theaters. To learn more about this dataset, see 
+  :atlas:`Sample Mflix Dataset </sample-data/sample-mflix#sample_mflix.theaters>`.
+
+  For this path, the {+fdi+} uses partitions optimized for queries on 
+  the ``theaterId`` and ``location.address.zipcode`` fields.
+
+- ``/mflix/users.json``
+
+  This path references the ``mflix`` collection, which contains data 
+  on movies and movie theaters. To learn more about this dataset, see 
+  :atlas:`Sample Mflix Dataset 
+  </sample-data/sample-mflix#sample_mflix.users>`.
+
+  This path does not contain any partition attributes and so, for  
+  queries against data in the collection, the {+fdi+} searches all the 
+  files in the collection.
+
+- ``/nyc-yellow-cab-trips/{trip_start_isodate isodate}/{passenger_count int}/{fare_type string}/``
+
+  This path references the ``nyc-yellow-cab-trips`` dataset, which 
+  contains data on the trips, including trip date, fare, and number 
+  of passengers. 
+
+  For this path, the {+fdi+} uses partitions optimized for queries on 
+  the ``trip_start_isodate``, ``passenger_count``, and ``fare_type`` 
+  fields.
+
+.. _query-across-clusters:
+
+Use the Query Data Across {+Clusters+} Wizard 
+---------------------------------------------
+
+The Query Data Across {+Clusters+} wizard helps you set up a {+fdi+} that accesses data from multiple |service| {+clusters+}.
+
+.. include:: /includes/steps/adf-deploy-across-clusters.rst
 
 Next Steps
 ----------
 
-Now that your {+fdi+} is deployed, proceed to :doc:`Connect to your 
-{+fdi+} </data-federation/tutorial/connect>`.
+Now that your {+fdi+} is deployed, proceed to :ref:`config-connection`.
