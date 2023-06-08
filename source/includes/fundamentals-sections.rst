@@ -10,11 +10,11 @@ Fundamentals section:
 - :doc:`Create Indexes to Speed Up Queries </fundamentals/indexes>`
 - :doc:`Log Events in the Driver </fundamentals/logging>`
 - :doc:`Monitor Driver Events </fundamentals/monitoring>`
+- :doc:`Encrypt Fields in a Document </fundamentals/encrypt-fields>`
 
 .. TODO : add back in after MVP
 .. - :doc:`Authenticate with MongoDB </fundamentals/auth>`
 .. - :doc:`Transform your Data </fundamentals/aggregation>`
 .. - :doc:`Sort Using Collations </fundamentals/collations>`
 .. - :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`
-.. - :doc:`Encrypt Fields in a Document </fundamentals/csfle>`
 .. - :doc:`Use a Time Series Collection </fundamentals/time-series>`
