@@ -2,7 +2,7 @@
 import com.mongodb.client.model.*
 import com.mongodb.client.model.Sorts.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
+import config.getConfig
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.codecs.pojo.annotations.BsonId
@@ -26,8 +26,8 @@ internal class SortTest {
         )
         // :snippet-end:
 
-        val dotenv = dotenv()
-        val client = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
+        val config = getConfig()
+        val client = MongoClient.create(config.connectionUri)
         val database = client.getDatabase("cafe")
         val collection = database.getCollection<FoodOrder>("food_order")
 

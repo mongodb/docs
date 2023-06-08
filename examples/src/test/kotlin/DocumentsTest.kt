@@ -2,7 +2,7 @@
 import com.mongodb.client.model.Filters
 import com.mongodb.client.result.InsertOneResult
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
+import config.getConfig
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import org.bson.*
@@ -21,8 +21,8 @@ import kotlin.test.*
 internal class DocumentsTest {
 
     companion object {
-        private val dotenv = dotenv()
-        val mongoClient = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
+        private val config = getConfig()
+        val mongoClient = MongoClient.create(config.connectionUri)
 
         @AfterAll
         @JvmStatic

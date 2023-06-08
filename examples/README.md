@@ -46,3 +46,22 @@ mlaunch start
 ```
 
 Refer to the mlaunch docs for install info and other commands.
+
+## Running tests
+
+All tests in the project are automatically run on PRs as a GitHub action.
+
+To manually run tests, run the `test` task using the Gradle wrapper. 
+Use the `--tests` flag to run specific test files or tests.
+
+```
+./gradlew :shared:test
+```
+
+```
+./gradlew :shared:test --tests ClassName
+```
+
+```
+./gradlew :shared:test --tests ClassName.individualTestName
+```

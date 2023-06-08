@@ -3,7 +3,7 @@ import com.mongodb.*
 import com.mongodb.client.model.Filters.*
 import com.mongodb.client.model.Projections.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
+import config.getConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.bson.BsonObjectId
@@ -30,8 +30,8 @@ internal class BuildersTest {
     // :snippet-end:
 
     companion object {
-        val dotenv = dotenv()
-        val client = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
+        val config = getConfig()
+        val client = MongoClient.create(config.connectionUri)
         val database = client.getDatabase("marketing")
         val collection = database.getCollection<User>("users")
 

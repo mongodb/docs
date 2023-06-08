@@ -3,7 +3,7 @@ import com.mongodb.client.model.CreateCollectionOptions
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.ValidationOptions
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
+import config.getConfig
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.codecs.pojo.annotations.BsonId
@@ -23,8 +23,8 @@ internal class DatabaseCollectionsTest {
     )
     // :snippet-end:
     companion object {
-        val dotenv = dotenv()
-        val client = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
+        val config = getConfig()
+        val client = MongoClient.create(config.connectionUri)
         // :snippet-start: access-database
         val database = client.getDatabase("testDatabase")
         // :snippet-end:
