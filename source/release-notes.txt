@@ -12,6 +12,102 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.20.x:
+
+|k8s-op-full| 1.20 Series
+-------------------------
+
+.. _ent_op-1.20.1:
+
+|k8s-op-full| 1.20.1
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-06-07*
+
+This release fixes an issue that prevented upgrading the |k8s-op-short| to 1.20.0 in OpenShift.
+
+Breaking Changes
+````````````````
+
+- Removes ``appdb.connectionSpec.Project``, which was deprecated more than two years ago.
+
+Bug Fixes
+`````````
+
+- Fixes an issue where the ``MongoDBMultiCluster`` resource was not watching |onprem|'s connection ConfigMap and secret.
+- Fixes support for rotating the ``clusterfile`` secret, which is used for internal X.509 authentication in the ``MongoDB`` and ``MongoDBMultiCluster`` resources.
+
+MongoDBOpsManager Resource
+``````````````````````````
+
+- Adds support for votes, priority, and tags by introducing the 
+  ``spec.applicationDatabase.memberConfig.votes``, 
+  ``spec.applicationDatabase.memberConfig.priority``, 
+  and ``spec.applicationDatabase.memberConfig.tags`` settings.
+
+- Changes the container registry for the Application Database image from 
+  ``quay.io/mongodb/mongodb-enterprise-appdb-database-ubi`` to ``quay.io/mongodb/mongodb-enterprise-server``. This results in the following changes when you upgrade to
+  this release:
+
+  - The Helm chart setting for the Application Database image, ``values.mongodb.name``,
+    defaults to ``mongodb-enterprise-server``. 
+  
+  - The |k8s-op-short| updates your Application Database replica set Pods to use the new
+    images referenced in the ``values.mongodb.name`` Helm setting. The new images are
+    functionally equivalent to the previous ones assuming that the MongoDB version is the same. 
+  
+  - The |k8s-op-short| automatically updates the tag suffix for all Application Database
+    images that reference the new container registry from ``-ent`` to ``-ubi8`` or the
+    suffix set in :ref:`mdb-image-type` or :ref:`mongodb-image-type`. For example,
+    the |k8s-op-short| changes ``quay.io/mongodb/mongodb-enterprise-server:4.4.5-ent``
+    to ``quay.io/mongodb/mongodb-enterprise-server:4.4.5-ubi8``. You don't need to update
+    the ``applicationDatabase.version`` setting in the ``MongoDBOpsManager`` resource. 
+  
+  - You can stop the |k8s-op-short| from automatically updating the tag suffix by setting          
+    :ref:`old-suffix` or :ref:`old-suffix-helm` to ``true``. For example, you might want
+    to stop the automatic suffix change if you're mirroring this image from your own repository.
+
+- Adds support for specifying versions without a suffix in
+  ``spec.applicationDatabase.version``. For example, you can specify a version, such as
+  ``6.0.5``, without adding the ``-ubi8`` suffix. The |k8s-op-short| automatically converts
+  this to ``6.0.5-${MDB_IMAGE_TYPE}``. The default for the ``MDB_IMAGE_TYPE`` environment
+  variable is ``-ubi8``.
+ 
+New Images
+``````````
+
+- Changes all images to reference UBI variants by default. The new images use the suffix ``-ubi``. 
+  
+  - quay.io/mongodb/mongodb-enterprise-database-ubi
+  
+  - quay.io/mongodb/mongodb-enterprise-init-database-ubi
+  
+  - quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
+  
+  - quay.io/mongodb/mongodb-enterprise-init-ops-manager-ubi
+  
+  - quay.io/mongodb/mongodb-enterprise-init-appdb-ubi
+  
+  - quay.io/mongodb/mongodb-agent-ubi
+  
+  - quay.io/mongodb/mongodb-enterprise-appdb-database-ubi
+
+- Changes the default Application Database image repository to use the official MongoDB Enterprise repository by setting ``values.mongodb.name`` to ``quay.io/mongodb/mongodb-enterprise-server`` by default.
+  
+- Introduces the ``values.mongodb.imageType`` environment variable to override the new default ``-ubi8`` Application Database image tag suffix used by the ``MongoDBOpsManager`` resource.
+
+.. _ent_op-1.20.0:
+
+|k8s-op-full| 1.20.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-06-07*
+
+.. warning:: **Upgrade to |k8s-op-short| 1.20.1**
+  
+   This release (1.20.0) is tied to a broken release on the Openshift Marketplace.
+   Don't upgrade to 1.20.0, and instead upgrade to the 1.20.1 release.
+
 .. _ent-op-1.19.x:
 
 |k8s-op-full| 1.19 Series
