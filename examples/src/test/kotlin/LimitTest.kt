@@ -11,17 +11,17 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 import kotlin.test.*
 
-// :snippet-start: data-model
-data class Book(
-    @BsonId val id: Int,
-    val title: String,
-    val author: String,
-    val length: Int
-)
-// :snippet-end:
-
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class LimitTest {
+
+    // :snippet-start: data-model
+    data class Book(
+        @BsonId val id: Int,
+        val title: String,
+        val author: String,
+        val length: Int
+    )
+    // :snippet-end:
 
     companion object {
         val config = getConfig()

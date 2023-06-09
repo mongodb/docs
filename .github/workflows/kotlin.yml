@@ -12,7 +12,10 @@ defaults:
 jobs:
   build:
     name: Run Kotlin Example Tests
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mongodb-version: ['6.0']
 
     steps:
       - uses: actions/checkout@v3
@@ -21,8 +24,18 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 11
-      - name: Run Kotlin tests
+    
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.9.0
+        with:
+          mongodb-version: ${{ matrix.mongodb-version }}
+          mongodb-replica-set: test-rs
+  
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+  
+      - name: Run Tests
         run: ./gradlew test --stacktrace --info
         env: 
           CI: true
-          CONNECTION_URI: ${{ secrets.CONNECTION_URI }}
+          CONNECTION_URI: "mongodb://localhost:27017"

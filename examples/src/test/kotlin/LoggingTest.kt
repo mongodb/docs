@@ -1,7 +1,3 @@
-
-
-// :snippet-start: slf4j-import
-// :snippet-end:
 import InsertTest.Companion.client
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
@@ -11,7 +7,9 @@ import org.bson.Document
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
+// :snippet-start: slf4j-import
 import org.slf4j.LoggerFactory
+// :snippet-end:
 import java.util.*
 import kotlin.test.*
 

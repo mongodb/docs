@@ -56,7 +56,6 @@ internal class BuildersTest {
                 client.close()
             }
         }
-
     }
 
     @Test

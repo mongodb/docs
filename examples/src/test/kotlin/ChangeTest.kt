@@ -53,6 +53,7 @@ internal class ChangeTest {
             }
         }
     }
+
     @Test
     fun updateOneTest() = runBlocking {
         // :snippet-start: update-one

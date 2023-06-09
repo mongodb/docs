@@ -63,7 +63,7 @@ internal class ConnectionTest {
         }
         // :snippet-end:
         higherScopedClient = mongoClient
-        assertEquals(1, higherScopedCommandResult["ok"])
+        assertEquals(1.0, higherScopedCommandResult["ok"].toString().toDouble())
     }
 
     @Test
