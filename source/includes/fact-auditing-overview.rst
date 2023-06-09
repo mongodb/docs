@@ -1,9 +1,3 @@
-.. note:: **Required Privileges**
-
-   To configure audit logs, you must have the 
-   :authrole:`Organization Owner` role or the :authrole:`Project Owner` 
-   role for the project that you want to update.
-
 Database auditing lets administrators track system activity for 
 deployments with multiple users. |service| administrators can select 
 the actions, database users, |service| roles, and LDAP groups that they 
@@ -128,3 +122,11 @@ four separate actions:
 To learn about how MongoDB writes audit events to disk, see 
 :manual:`Audit Guarantee </core/auditing/#audit-guarantee>`
 in the MongoDB Manual.
+
+Required Access
+---------------
+
+To configure audit logs, you must have
+:authrole:`Project Owner` access to the project that
+you want to update or :authrole:`Organization Owner` access
+to the organization that contains the project that you want to update.
