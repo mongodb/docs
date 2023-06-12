@@ -9,7 +9,9 @@ collection are **mergeable** when they meet all of these conditions:
   snapshot reads:
 
   - The last migration involving the chunk happened at least as many
-    seconds ago as the value of ``minSnapshotHistoryWindowInSeconds``.
+    seconds ago as the value of 
+    :parameter:`minSnapshotHistoryWindowInSeconds`.
   - The last migration involving the chunk happened at least as many 
-    seconds ago as the value of ``transactionLifetimeLimitSeconds``.
+    seconds ago as the value of 
+    :parameter:`transactionLifetimeLimitSeconds`.
 
