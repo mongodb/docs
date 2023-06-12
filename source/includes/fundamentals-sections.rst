@@ -7,6 +7,7 @@ Fundamentals section:
 - :doc:`Read from and Write to MongoDB </fundamentals/crud>`
 - :doc:`Simplify your Code with Builders </fundamentals/builders>`
 - :doc:`Transform your Data </fundamentals/aggregation>`
+- :doc:`Create Aggregation Expressions </fundamentals/aggregation-expression-operations>`
 - :doc:`Create Indexes to Speed Up Queries </fundamentals/indexes>`
 - :doc:`Log Events in the Driver </fundamentals/logging>`
 - :doc:`Monitor Driver Events </fundamentals/monitoring>`
