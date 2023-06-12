@@ -19,9 +19,9 @@
 
 
 
-- Sets the limit of unique :manual:`shard keys </core/sharding-shard-key/>`
-  for Global Clusters per |service| :ref:`project <projects>` to 40.
-  To learn more, see :ref:`Shard a Global Collection <shard-global-collection-limitations>`.
+- Sets the limit of unique :ref:`shard keys for Global Clusters <shard-global-collection>`
+  per |service| :ref:`project <projects>` to 40.
+  To learn more, see :ref:`atlas-limitations`.
 
 .. _atlas_2023_05_03:
 
