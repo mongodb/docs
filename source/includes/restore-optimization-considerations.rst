@@ -1,8 +1,9 @@
 To optimize performance and reduce the amount of time it takes to
 restore, follow these principles where applicable:
 
-- Select a target cluster that isn't a global, multi-region, or
-  multi-cloud cluster.
+- Select a target cluster that isn't global or multi-cloud.
+- Select a multi-region cluster only if copies of the snapshot you plan
+  to restore exist in every region of that cluster.
 - Select a target cluster that belongs to the same |service|
   project and the same cloud provider region as the snapshot.
 - Select a cluster tier with the same storage capacity as the
