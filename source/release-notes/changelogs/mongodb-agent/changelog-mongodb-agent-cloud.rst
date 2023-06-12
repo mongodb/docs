@@ -1,3 +1,38 @@
+.. _12.17.0.8238-1:
+
+MongoDB Agent 12.17.0.8238-1
+============================
+
+*Released* 2023-05-24
+
+- Uses aggregation operators instead of ``currentOp`` and ``collStats`` commands.
+- Adds support for the ``security.kmip.useLegacyProtocol`` MongoDB configuration
+  file option.
+
+.. _12.16.0.8175-1:
+
+MongoDB Agent 12.16.0.8175-1
+============================
+
+*Released* 2023-05-03
+
+Fixes an issue where restores could be interrupted by transient issues
+when retrieving a replication status.
+
+
+.. _12.15.0.8092:
+
+MongoDB Agent 12.15.0.8092
+==========================
+
+*Released* 2023-04-12
+
+- The MongoDB Agent now properly supports the simultaneous change of the
+  Agent's authentication mechanism, deployment authentication mechanism,
+  and the MongoDB version.
+- Adds support for Ubuntu 20, 22.
+
+
 .. _12.14.0.8069:
 
 MongoDB Agent 12.14.0.8069
@@ -5,8 +40,8 @@ MongoDB Agent 12.14.0.8069
 
 *Released* 2023-03-21
 
-- Fixes a formatting issue that could prevent the |k8s-op-short| from
-  successfully passing a localhost override to the monitoring module.
+Fixes a formatting issue that could prevent the |k8s-op-short| from
+successfully passing a localhost override to the monitoring module.
 
 .. _12.13.0.8043:
 
@@ -15,7 +50,7 @@ MongoDB Agent 12.13.0.8043
 
 *Released* 2023-03-01
 
-- Improves logging.
+Improves logging.
 
 .. _12.12.0.8018-1:
 
