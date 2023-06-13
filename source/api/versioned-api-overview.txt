@@ -1,0 +1,270 @@
+.. _api-versioning-overview:
+
+===========================================
+Versioned {+atlas-admin-api+} Overview
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+|service| provides versioned {+atlas-admin-api+} for a predictable and
+consistent experience when handling |api| changes. The |api| versioning
+happens at the individual |api| resource-level. So, you need to take
+action if and when |service| deprecates the resources that you are
+utilizing. You don't need to take any action if you haven't implemented
+a resource for which |service| released a new version. This allows you
+to plan for new features, prevent breaking changes, and ensure a smooth
+integration process while maintaining stability and minimizing
+disruptions in your production environment.
+
+Benefits of the Versioned {+atlas-admin-api+}
+---------------------------------------------------
+
+The new versioned {+atlas-admin-api+} gives a significantly better
+overall experience in accessing |service| programmatically. The 
+versioned {+atlas-admin-api+} provides the following:
+
+Clear Separation of Breaking and Non-Breaking Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| introduces all new feature with breaking changes in a new
+resource version. Features that contain non-breaking changes will
+continue to be added to the current, stable resource version. When
+|service| introduces a new resource version, you can continue to use the
+current stable resource version until it is fully deprecated while you
+develop and test on the new |api| resource version.
+
+Extended Support and Deprecation Periods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| deprecates and then removes resource versions only when it
+introduces a new stable |api| resource version. |service| will continue
+to support the older resource version for use in your production
+environment for up to twelve months, which provides you with time to
+plan and execute your migration to the next version.
+
+.. _api-versioning-schema:
+
+Versioning Schema 
+-----------------
+
+Starting with the new Versioned {+atlas-admin-api+} (v2),
+{+atlas-admin-api+} version is based on the lifecycle of the
+{+atlas-admin-api+} resource.   
+
+Versioned {+atlas-admin-api+} Lifecycle 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in Versioned {+atlas-admin-api+} (v2), {+atlas-admin-api+}
+endpoints go through the ``stable``, ``deprecated``, and ``sunset``
+stages in the lifecycle.  
+
+.. important:: 
+
+   The stages only apply to {+atlas-admin-api+} endpoints in Versioned
+   {+atlas-admin-api+} (``v2``) of the resource. These stages don't
+   affect {+atlas-admin-api+} endpoints in resource ``v1.0`` or
+   ``v1.5``. |service| exposes all legacy (v1.0 and v1.5)
+   {+atlas-admin-api+} resources in its first release on 2023-02-01 in
+   ``stable`` state. 
+
+.. HIDDEN FOR INITIAL RELEASE 
+
+   .. expression:: preview 
+
+   |service| exposes all new endpoints for preview. |service| supports
+   endpoints in this state for evaluation, testing, and development
+   purposes only. Don't use {+atlas-admin-api+} endpoints in preview in
+   your production environment as endpoints in preview might include   
+   breaking and non-breaking changes. {+atlas-admin-api+} endpoints in
+   preview also have a short deprecation window of approximately three weeks,
+   after which the endpoints could move to either ``stable`` or
+   ``deprecated`` state. |service| provides documentation, with 
+   :ref:`changelogs <versioned-api-changelog>`, for all preview endpoints. 
+
+   To use |api| endpoints in preview, send a request to the resource and
+   include the following HTTP header: 
+
+   .. code-block:: shell 
+
+      Accept: application/vnd.atlas.<yyyy-mm-dd>~preview
+
+   where the value for ``<yyyy-mm-dd>`` is the release date of the
+   resource as listed in the documentation and the :ref:`changelog
+   <versioned-api-changelog>`. 
+   
+   |service| returns `406 Not Acceptable
+   <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406>`__
+   error response code if your request omits or specifies a revision
+   that doesn't exist in the header. 
+
+.. expression:: stable 
+
+   |service| supports stable endpoints for use in production
+   environments. |service| provides documentation, with :ref:`changelogs
+   <versioned-api-changelog>`, for all stable endpoints. Resource
+   version in this state will only be updated with non-breaking changes. 
+   
+   When |service| introduces breaking changes to endpoints, it creates a
+   new resource version. When a new resource version is released,
+   |service| also automatically deprecates the current stable version of
+   that resource. |service| exposes all legacy (v1.0 and v1.5)
+   {+atlas-admin-api+} resources in its first release on ``2023-02-01``
+   in stable state. |service| will support the first release (2023-01-01
+   and 2023-02-01) of the versioned {+atlas-admin-api+} for 24 months
+   after its deprecation. Note that the ``/clusters`` resource version
+   2023-01-01 (and equivalent of  ``/v1.0/clusters``) resource is 
+   marked as deprecated with two years deprecation window. 
+   
+   If you omit the state in the request header, |service| defaults to
+   the ``stable`` state for any endpoint.   
+
+   To use {+atlas-admin-api+}\s in this state, send a request to the
+   resource and include the following with ``stable`` as the HTTP Accept
+   header:  
+
+   .. code-block:: shell 
+
+      Accept: application/vnd.atlas.<yyyy-mm-dd>~stable
+
+   where the value for ``<yyyy-mm-dd>`` is the release date of the
+   endpoint as listed in the documentation and the :ref:`changelog
+   <versioned-api-changelog>`.  
+
+   |service| returns `406 Not Acceptable
+   <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406>`__
+   error response code if your request omits or specifies a resource
+   version that doesn't exist in the header. 
+
+.. expression:: deprecated 
+
+   |service| automatically deprecates a resource version when |service|
+   introduces a new, stable resource version. |service| releases a new, 
+   stable version when it introduces breaking changes to an existing
+   resource. 
+   
+   |service| notifies you about deprecated resource versions in the
+   response header for requests. |service| will support the first
+   releases of the {+atlas-admin-api+} (2023-01-01 and 2023-02-01) for 
+   twenty-four months after deprecation. Subsequently, |service| 
+   supports any future deprecated resource versions for use in your
+   production environment for twelve months before automatically
+   removing them.   
+
+   .. example:: 
+
+      The following shows an example response header for a request to a
+      deprecated resource scheduled for removal in the future.
+
+      .. code-block:: shell 
+         :copyable: false 
+
+         Deprecation: Wed, 1 Feb 2023 00:00:00 GMT
+         Sunset: Sun, 1 Jun 2025 00:00:00 GMT
+
+   You can continue to send requests to older resource versions of the
+   endpoint until they are removed. However, you should migrate to the
+   latest resource version as soon as possible to mitigate disruptions
+   when older resource versions are removed. To learn more about
+   migrating to a new resource version, see
+   :ref:`atlas-migrate-api-version`. 
+
+.. expression:: sunset 
+
+   |service| automatically removes resource versions after one year of
+   deprecation. If you send a request to a removed resource version,
+   |service| returns the `410 Gone
+   <https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/410>`__  
+   error response code. 
+
+.. example:: 
+
+   The following example illustrates the lifecycle of a resource and its
+   impact on versioning. 
+
+   .. figure:: /images/admin-api-versioning-strategy.png
+      :alt: Illustration of admin API versioning lifecycle
+      :figwidth: 650px
+
+   The preceding illustration shows the following: 
+
+   .. list-table:: 
+      :stub-columns: 1
+
+      * - Release Date 
+        - Release Details 
+        - API Lifecyle 
+
+      * - 2023-06-01 
+        - First release of a resource in the Versioned API.
+          It has a deprecation period of 12 months. 
+        - - ``#stable``: ``application/vnd.atlas.2023-06-01+json``
+          - ``#deprecated``: None 
+          - ``#sunset``: None 
+      
+      * - 2024-06-01
+        - New resource version created, older versions are automatically
+          deprecated.
+        - - ``#stable``: ``application/vnd.atlas.2024-06-01+json``
+          - ``#deprecated``: ``application/vnd.atlas.2023-06-01+json`` 
+          - ``#sunset``: None 
+
+      * - 2025-01-01
+        - New stable version created, with short sunset 
+        - - ``#stable``: ``application/vnd.atlas.2025-01-01+json``
+          - ``#deprecated``: 
+            
+            - ``application/vnd.atlas.2024-12-01~preview+json``
+            - ``application/vnd.atlas.2024-06-01+json``
+          
+          - ``#sunset``: ``application/vnd.atlas.2023-06-01+json`` 
+
+|api| Endpoints 
+~~~~~~~~~~~~~~~
+
+For legacy unversioned {+atlas-admin-api+} endpoints, |service|
+introduced new and breaking changes in the same version. Starting in 
+versioned {+atlas-admin-api+} (v2), |service| introduces breaking
+changes only in a new resurce version. |service| will continue to
+introduce non-breaking changes to existing ``stable`` version. Use the
+release date of a resource to submit a request to a specific version of
+a versioned {+atlas-admin-api+} (v2) endpoint. 
+
+The following table shows the legacy |api| endpoint versions, whether
+the version has a corresponding versioned {+atlas-admin-api+} (v2)
+endpoint, and the release date of the versioned {+atlas-admin-api+} 
+(v2) resource. Note that an equivalent of v1.0 in the unversioned
+{+atlas-admin-api+} is represented by ``2023-01-01`` in the versioned
+{+atlas-admin-api+}, which is now deprecated.  
+
+.. list-table:: 
+   :header-rows: 1 
+
+   * - Version Number 
+     - Supported in v2?
+     - v2 Resource Version (in ``yyyy-mm-dd`` format) 
+
+   * - ``v1.0``
+     - √
+     - ``2023-01-01`` 
+
+   * - ``v1.5`` 
+     - √
+     - ``2023-02-01`` 
+
+Next Steps
+----------
+
+1. Review the :ref:`API changelog <versioned-api-changelog>`, which
+   gives you visibility into all |api| changes across different versions.
+#. Review the :atlas:`API Specification
+   </reference/api-resources-spec/>`, which contains information for all
+   stable and deprecated resource versions. 
+#. Follow the steps in the :ref:`Migration Guide
+   <atlas-migrate-api-version>` to migrate from the current unversioned
+   {+atlas-admin-api+} to the new versioned {+atlas-admin-api+}.

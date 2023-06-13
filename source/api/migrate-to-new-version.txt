@@ -1,0 +1,141 @@
+.. _atlas-migrate-api-version:
+
+==============================================================
+Migrate to the New Versioned {+atlas-admin-api+}
+==============================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecols
+
+With the introduction of the Versioned {+atlas-admin-api+} (referred to
+here as ``/v2``), we recommend that you migrate from the Legacy
+{+atlas-admin-api+} (referred to as ``/v1``) to the new Versioned
+{+atlas-admin-api+} (``/v2``). 
+
+Versioned {+atlas-admin-api+} Introduction
+------------------------------------------------------
+
+The new versioned {+atlas-admin-api+} gives a significantly better
+overall experience in accessing |service| programmatically. The 
+versioned {+atlas-admin-api+} provides a predictable and consistent
+experience with API changes and gives better visibility into new
+features and changes. 
+
+Versioned {+atlas-admin-api+} Lifecycle
+---------------------------------------------------
+
+|service| exposes a new resource version of an existing |api| endpoint
+when |service| introduces breaking changes to the current stable version
+of the |api| endpoint. When |service| exposes a new resource version,
+|service| automatically deprecates the old resource version. |service|
+automatically deletes the deprecated resource version twelve months
+after deprecation. Although |service| will continue to support the older 
+resource version for use in your production environment for up to
+twelve months, you should migrate to the new version of the
+|api| endpoint :abbr:`ASAP (as soon as possible)`. To learn more, see
+the example in :ref:`api-versioning-schema`.
+
+Note that with resource-level versioning, each resource in the versioned 
+{+atlas-admin-api+} might introduce a new version independently from
+other resources. You have to take action only when the resources you are 
+utilizing are deprecated.   
+
+.. example::
+
+   Suppose |service| introduces new ``/serverless`` resource in
+   2023-06-01, but ``/backup`` doesn't have any breaking changes and
+   stays on 2023-02-01. You must migrate to 2023-06-01 only if you are
+   utilizing the ``/serverless`` resource. If you haven't implemented
+   the ``/serverless`` resource, you don't need to take any action.
+
+|service| supports deprecated resource version for at least twelve
+months until it is removed, which provides you with time to plan and 
+transition to the new version. You can see changes in each new resource
+in the :ref:`API Changelog <versioned-api-changelog>` and details of the
+API version in the API specification. 
+
+Procedure 
+---------
+
+To migrate to the new Versioned {+atlas-admin-api+}, you must do the
+following:  
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Specify the number representing the Versioned API in the base |url| for the resource. 
+
+      .. code-block:: shell
+         :caption: Base URL
+
+         https://cloud.mongodb.com/api/atlas/<version-number>/ 
+
+      .. example:: 
+
+         Consider the following base |url| for the legacy version of an
+         {+atlas-admin-api+} resource: 
+
+         .. code-block:: shell
+
+            https://cloud.mongodb.com/api/atlas/v1.0/ 
+
+         With the introduction of Versioned Admin API, the preceding
+         base |url| indicates you are using resources that are not
+         versioned. To send a request to the Versioned
+         {+atlas-admin-api+} (``/v2``) resource, you must send your
+         request to the following base |url|:  
+
+         .. code-block:: shell
+
+            https://cloud.mongodb.com/api/atlas/v2/
+
+         To learn about submitting requests to {+atlas-admin-api+} 
+         endpoints in different states, see :ref:`api-versioning-schema`. 
+
+   .. step:: Add the versioning ``Accept`` header to requests.
+
+      To use the versioned {+atlas-admin-api+}, you must provide a
+      resource version for your resources. The first version is the same
+      across all resources and for the initial migration from the
+      unversioned legacy API to the versioned API, you must use the
+      version number that corresponds to the resource version date. 
+
+      .. example:: 
+
+         The following curl command is an example of a request to a
+         versioned {+atlas-admin-api+} (v2) endpoint with the header:   
+
+         .. code-block:: shell 
+
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+              --header "Accept: application/vnd.atlas.{yyyy-mm-dd}~stable" \
+              --request {GET|POST|PUT|PATCH|DELETE}
+              "https://cloud.mongodb.com/api/atlas/v2/{RESOURCE}/{ENDPOINT}?{PARAMS}"
+      
+      To learn more about versioned {+atlas-admin-api+} headers, see |api|
+      lifecycle under :ref:`api-versioning-schema`.
+
+   .. step:: Review the changelog to determine the syntax changes for the {+atlas-admin-api+} endpoint in the new resource version. 
+      
+      New resource versions of |api| endpoints might include breaking changes. 
+      Ensure that your request to the new resource incorporates those changes 
+      and the request header includes the state of the endpoint to which you 
+      are sending the request. 
+
+      .. note:: 
+
+         You need not check the :ref:`API Changelog
+         <versioned-api-changelog>` for the initial migration from the
+         unversioned {+atlas-admin-api+} to the versioned 
+         {+atlas-admin-api+} on the resource version 2023-02-01 unless
+         you are migrating the ``/v1.0/clusters`` resource to the
+         versioned {+atlas-admin-api+} (v2) ``/clusters`` resource. The
+         initial release of the versioned {+atlas-admin-api+} on
+         ``2023-02-01`` contains syntax changes for only the
+         ``/clusters`` resource. To learn more, see API specification
+         for :oas-atlas-tag:`Clusters </Clusters>`. 
