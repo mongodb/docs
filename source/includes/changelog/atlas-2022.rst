@@ -132,7 +132,7 @@
   - ``francesouth`` (Marseille, France)
   - ``norwaywest`` (Stavanger, Norway)
   - ``swedencentral`` (Gävle, Sweden)
-  - ``swedensouth`` (Staffanstrop, Sweden)
+  - ``swedensouth`` (Staffanstorp, Sweden)
   - ``southafricawest`` (Cape Town, South Africa)
   - ``brazilsoutheast`` (Rio de Janeiro, Brazil)
   - ``westus3`` (Arizona, USA)
