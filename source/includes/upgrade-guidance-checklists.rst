@@ -43,8 +43,10 @@ Before upgrading MongoDB, always test your application in a staging
 environment before deploying the upgrade to your production
 environment.
 
-
 Downgrade Consideration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-|downgradepath|
+Starting in MongoDB 7.0, you cannot downgrade your deployment's binary version 
+without assistance from support.
+
+To learn more, see :ref:`7.0-downgrade`.
