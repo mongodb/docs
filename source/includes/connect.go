@@ -12,7 +12,7 @@ import (
 func main() {
 
 	// Replace the following with your Atlas connection string               
-	uri := "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?w=majority"
+	uri := "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"
 
 	// Connect to your Atlas cluster
 	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))

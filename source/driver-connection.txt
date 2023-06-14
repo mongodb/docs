@@ -21,6 +21,15 @@ connect to a {+database-deployment+} with an application using a
 
 .. include:: /includes/serverless-driver-options.rst
 
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the example on this page.
+
+----------
+
 Prerequisites
 -------------
 
@@ -51,6 +60,9 @@ Prerequisites
 
    .. tab::
       :tabid: java-sync
+
+   .. tab::
+      :tabid: kotlin-coroutine
 
    .. tab::
       :tabid: nodejs
@@ -168,12 +180,10 @@ Connect Your Application
 Driver Examples
 ---------------
 
-In the following example
-:manual:`URI connection strings </reference/connection-string/>`, the
-user ``kay`` provides their password ``myRealPassword`` to
-authenticate and connect to |a-service| {+database-deployment+}.
-
-Select your driver from the following options:
+In the following example, you authenticate and connect to |a-service| 
+{+database-deployment+} by using a :manual:`URI connection string 
+</reference/connection-string/>`. Replace the placeholders in the example 
+with your credentials and deployment details.
 
 .. tabs-drivers::
 
@@ -186,8 +196,8 @@ Select your driver from the following options:
 
       .. code-block:: c
 
-         client = mongoc_client_new ("mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/?serverSelectionTryOnce=false&serverSelectionTimeoutMS=15000&w=majority");
-         db = mongoc_client_get_database (client, "test");
+         client = mongoc_client_new ("mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority");
+         db = mongoc_client_get_database (client, "<databaseName>");
 
       .. list-table::
          :header-rows: 1
@@ -200,7 +210,7 @@ Select your driver from the following options:
              latest recommended driver versions.
 
          * - MongoDB 4.4 and later
-           - Version 1.11 and later.
+           - Version 1.11 and later
 
       Behavior
       ~~~~~~~~
@@ -222,8 +232,8 @@ Select your driver from the following options:
          //...
 
          mongocxx::instance inst{};
-         mongocxx::client conn{mongocxx::uri{"mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?serverSelectionTryOnce=false&serverSelectionTimeoutMS=15000&w=majority"}};
-         mongocxx::database db = conn["test"];
+         mongocxx::client conn{mongocxx::uri{"mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"}};
+         mongocxx::database db = conn["<databaseName>"];
 
       .. list-table::
          :header-rows: 1
@@ -254,8 +264,8 @@ Select your driver from the following options:
 
       .. code-block:: csharp
 
-         var client = new MongoClient("mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority");
-         var database = client.GetDatabase("test");
+         var client = new MongoClient("mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority");
+         var database = client.GetDatabase("<databaseName>");
 
       .. list-table::
          :header-rows: 1
@@ -268,7 +278,7 @@ Select your driver from the following options:
              latest recommended driver versions.
 
          * - MongoDB 4.4 and later
-           - Version 2.7 and later.
+           - Version 2.7 and later
 
       .. note::
 
@@ -290,7 +300,7 @@ Select your driver from the following options:
 
       .. code-block:: go
 
-         uri := "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority"
+         uri := "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"
 
          ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
          defer cancel()
@@ -322,7 +332,7 @@ Select your driver from the following options:
              latest recommended driver versions.
 
          * - MongoDB 4.4 and later
-           - Version 1.0.0 and later.
+           - Version 1.0.0 and later
 
 
    .. tab::
@@ -335,10 +345,10 @@ Select your driver from the following options:
       .. code-block:: java
 
          MongoClientURI uri = new MongoClientURI(
-             "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority");
+             "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority");
 
          MongoClient mongoClient = MongoClients.create(uri);
-         MongoDatabase database = mongoClient.getDatabase("test");
+         MongoDatabase database = mongoClient.getDatabase("<databaseName>");
 
       .. list-table::
          :header-rows: 1
@@ -351,8 +361,50 @@ Select your driver from the following options:
              latest recommended driver versions.
 
          * - MongoDB 4.4 and later
-           - Version 3.8 and later.
-  
+           - Version 3.8 and later
+
+   .. tab::
+      :tabid: kotlin-coroutine
+
+      .. note::
+
+         .. include:: /includes/extracts/driver-free-tier-kotlin.rst
+
+      .. code-block:: kotlin
+
+         val uri = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"
+
+         // Construct a ServerApi instance using the ServerApi.builder() method
+         val serverApi = ServerApi.builder()
+            .version(ServerApiVersion.V1)
+            .build()
+         val settings = MongoClientSettings.builder()
+            .applyConnectionString(ConnectionString(uri))
+            .serverApi(serverApi)
+            .build()
+            
+         // Create a new client and connect to the server
+         val mongoClient = MongoClient.create(settings)
+         val database = mongoClient.getDatabase("<databaseName>")
+         try {
+            // Send a ping to confirm a successful connection
+            val command = Document("ping", BsonInt64(1))
+            val commandResult = database.runCommand(command)
+            println("Pinged your deployment. You successfully connected to MongoDB!")
+         } 
+         
+         catch (me: MongoException) {
+            System.err.println(me)
+         }
+
+      .. list-table::
+         :header-rows: 1
+
+         * - MongoDB Version
+           - Recommended Driver Versions
+
+         * - MongoDB 4.4 and later
+           - Version 4.10 and later
 
    .. tab::
       :tabid: nodejs
@@ -366,10 +418,10 @@ Select your driver from the following options:
          import mongodb from 'mongodb';
          
          const MongoClient = mongodb.MongoClient;
-         const uri = "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority";
+         const uri = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority";
          const client = new MongoClient(uri, { useNewUrlParser: true });
          client.connect(err => {
-           const collection = client.db("test").collection("devices");
+           const collection = client.db("<databaseName>").collection("<collectionName>");
            // perform actions on the collection object
            client.close();
          });
@@ -378,13 +430,12 @@ Select your driver from the following options:
 
       .. example::
 
-         The following connection string specifies ``test`` in the
-         database component and includes the ``authSource=admin``
-         option.
+         The following connection string specifies the ``cluster0`` deployment and ``test``
+         database component, and includes the ``authSource=admin`` option.
 
          .. code-block:: javascript
 
-            var uriTestDb = "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?ssl=true&authSource=admin&w=majority";
+            var uriTestDb = "mongodb+srv://<username>:<password>@cluster0.mongodb.net/test?ssl=true&authSource=admin&w=majority";
             MongoClient.connect(uriTestDb, function(err, db) {
                db.close();
             });
@@ -400,7 +451,7 @@ Select your driver from the following options:
              latest recommended driver versions.
 
          * - MongoDB 4.4 and later
-           - Version 3.1 and later.
+           - Version 3.1 and later
 
 
    .. tab::
@@ -412,8 +463,8 @@ Select your driver from the following options:
 
       .. code-block:: perl
 
-         my $client = MongoDB->connect('mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority');
-         my $db = $client->get_database( 'test' );
+         my $client = MongoDB->connect('mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority');
+         my $db = $client->get_database( '<databaseName>' );
 
       .. list-table::
          :header-rows: 1
@@ -445,9 +496,9 @@ Select your driver from the following options:
       .. code-block:: php
 
          $client = new MongoDB\Client(
-             'mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?serverSelectionTryOnce=false&serverSelectionTimeoutMS=15000&w=majority"');
+             'mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority');
 
-         $db = $client->test;
+         $db = $client-><databaseName>;
 
       .. list-table::
          :header-rows: 1
@@ -480,8 +531,8 @@ Select your driver from the following options:
          import pymongo
          import dns # required for connecting with SRV
 
-         client = pymongo.MongoClient("mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority")
-         db = client.test
+         client = pymongo.MongoClient("mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority")
+         db = client.<databaseName>
 
       .. list-table::
          :header-rows: 1
@@ -494,7 +545,7 @@ Select your driver from the following options:
              latest recommended driver versions.
 
          * - MongoDB 4.4 and later
-           - Version 3.7 and later.
+           - Version 3.7 and later
 
 
       .. note:: macOS and Python 3.6 Installers
@@ -530,18 +581,18 @@ Select your driver from the following options:
 
       .. code-block:: ruby
 
-         client = Mongo::Client.new('mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/?ssl=true&w=majority')
+         client = Mongo::Client.new('mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority')
 
       .. include:: /includes/extracts/connection-details-driver.rst
 
       .. example::
 
-         The following connection string specifies ``test`` in the
-         database component and includes the ``authSource=admin`` option.
+         The following connection string specifies the ``cluster0`` deployment and the ``test``
+         database component, and includes the ``authSource=admin`` option.
 
          .. code-block:: ruby
 
-            client = Mongo::Client.new('mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?ssl=true&replicaSet=Mycluster0-shard-0&authSource=admin&w=majority')
+            client = Mongo::Client.new('mongodb+srv://<username>:<password>@cluster0.mongodb.net/test?ssl=true&replicaSet=Mycluster0-shard-0&authSource=admin&w=majority')
 
       .. list-table::
          :header-rows: 1
@@ -554,7 +605,7 @@ Select your driver from the following options:
              latest recommended driver versions.
 
          * - MongoDB 4.4 and later
-           - Version 2.6 and later.
+           - Version 2.6 and later
 
       Mongoid Example
       ~~~~~~~~~~~~~~~
@@ -578,10 +629,10 @@ Select your driver from the following options:
                  - mycluster0-shard-00-02.mongodb.net:27017
                options:
                  # The name of the user for authentication.
-                 user: kay
+                 user: <username>
 
                  # The password of the user for authentication.
-                 password: myRealPassword
+                 password: <password>
 
                  # The database or source to authenticate the user against. If the database
                  # specified above is not admin, admin MUST be specified here.
@@ -616,11 +667,11 @@ Select your driver from the following options:
          #[tokio::main]
              async fn main() -> mongodb::error::Result<()> {
                  let client_options = ClientOptions::parse(
-                     "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?ssl=true&replicaSet=Mycluster0-shard-0&authSource=admin&w=majority",
+                     "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority",
                  )
                  .await?;
                  let client = Client::with_options(client_options)?;
-                 let _database = client.database("testDB");
+                 let _database = client.database("<databaseName>");
                  
              // List the names of the databases in that cluster
              for db_name in client.list_database_names(None, None)? {
@@ -654,7 +705,7 @@ Select your driver from the following options:
          use mongodb::{bson::doc, sync::Client};
          fn main() -> mongodb::error::Result<()> {
                  let client_options = ClientOptions::parse(
-                     "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?ssl=true&replicaSet=Mycluster0-shard-0&authSource=admin&w=majority",
+                     "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority",
                  )?;
 
          // Ping the server to see if you can connect to the cluster
@@ -689,10 +740,10 @@ Select your driver from the following options:
 
       .. code-block:: scala
 
-         val uri: String = "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority"
+         val uri: String = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"
          System.setProperty("org.mongodb.async.type", "netty")
          val client: MongoClient = MongoClient(uri)
-         val db: MongoDatabase = client.getDatabase("test")
+         val db: MongoDatabase = client.getDatabase("<databaseName>")
 
       .. list-table::
          :header-rows: 1
@@ -718,7 +769,7 @@ Select your driver from the following options:
          
          let elg = MultiThreadedEventLoopGroup(numberOfThreads: 4)
 
-         let uri = "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority"
+         let uri = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"
          let client = try MongoClient(
              uri,
              using: elg
@@ -758,7 +809,7 @@ Select your driver from the following options:
 
          import MongoSwiftSync
 
-         let uri = "mongodb+srv://kay:myRealPassword@cluster0.mongodb.net/test?w=majority"
+         let uri = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority"
          let client = try MongoClient(uri)
 
          // print a list of database names to confirm connection

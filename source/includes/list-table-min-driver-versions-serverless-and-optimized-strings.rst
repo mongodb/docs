@@ -14,6 +14,8 @@
      - 1.6.0
    * - :driver:`Java </java-drivers>`
      - 4.3.0
+   * - :driver:`Kotlin </kotlin/coroutine>`
+     - 4.10.0
    * - :driver:`Motor </motor>`
      - 2.5.0
    * - :driver:`Node.js </node>`
