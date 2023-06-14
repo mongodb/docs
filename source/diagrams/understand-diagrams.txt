@@ -1,3 +1,223 @@
+.. _understand-diagrams:
+
 ===================
 Understand Diagrams
 ===================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page explains how to interpret diagrams created in the Relational
+Migrator. Each diagram is comprised of two views, one for your
+relational database and one for your MongoDB database. The views show
+the relationships between entities in your databases.
+
+Relational View
+---------------
+
+In the relational view, each box represents a table in your
+relational database. The box title indicates the table name.
+
+Each box lists the columns in the corresponding table. For each column,
+the box indicates the column name and its data type.
+
+Some columns have icons to indicate their role within the table:
+
+- A key icon indicates the table's primary key.
+
+- A link icon indicates a foreign key.
+
+MongoDB View
+------------
+
+In the MongoDB view, each box represents a collection in your
+MongoDB database. The box title indicates the collection name.
+
+Each box lists the fields in the corresponding collection. For each
+field, the box indicates the field name and its data type.
+
+If a collection contains embedded documents or arrays, those fields are
+shown in-line in the same collection.
+
+Some fields have icons to indicate their role within the table:
+
+- A key icon indicates the collection's ``_id`` field. When you use the
+  ``wrapped`` key handling strategy, the ``_id`` field contains
+  sub-fields. In this case, the box contains multiple key icons which
+  apply to a single field.
+
+- A link icon indicates that the field maps to a relational column used
+  in a foreign key.
+
+Choose View Mode
+----------------
+
+The Relational Migrator provides different view modes for your diagrams:
+Horizontal Split, Vertical Split, Relational view, and MongoDB view.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - View Mode
+     - Description
+
+   * - Horizontal Split
+     - Displays the relational view on top and the MongoDB view is on
+       the bottom. When you create a new project, Horizontal Split is
+       the default view mode.
+
+   * - Vertical Split
+     - Displays the relational view on the left and the MongoDB view on
+       the right. 
+
+   * - Relational View
+     - Displays only your relational database diagram.
+
+   * - MongoDB View
+     - Displays only your MongoDB database diagram.
+
+To switch view modes, click a view mode option in the left navigation
+bar:
+
+.. image:: /img/diagrams/viewing-mode.png
+   :alt: View Modes
+
+Color Coding
+------------
+
+Entities in the diagram are color-coded based on whether they represent
+the relational or MongoDB database:
+
+- Entities with pink highlights are relational tables.
+
+- Entities with green highlights are MongoDB collections.
+
+Entity Links
+------------
+
+The lines between boxes represent the relationships that connect
+database entities. If two boxes are connected, the corresponding
+entities are linked with a foreign key. The lines may show the following
+features of relationships:
+
+- A small bar across a relationship link indicates a one-to-one
+  relationship between entities.
+
+- A prong (or "crow's feet") indicates "many" in the relationship.
+
+Relational and MongoDB View Links
+---------------------------------
+
+When you click a box in either the relational or MongoDB view, the
+Relational Migrator highlights the corresponding entity in the opposite
+view. This allows you to see how your relational tables and MongoDB
+collections are mapped to one another.
+
+Example
+-------
+
+The following example shows a sample diagram for a database that
+tracks orders at a store.
+
+Relational View
+~~~~~~~~~~~~~~~
+
+This relational view shows the relationship of several tables within a
+relational database:
+
+.. image:: /img/diagrams/relational-diagram.png
+   :alt: Relational Diagram Example
+
+
+The view shows the following relationships:
+
+
+- In the ``Order`` table, ``OrderID`` is the primary key. ``CustomerID`` and
+  ``OrderStatusID`` are foreign keys. The ``Customer`` and ``OrderStatus``
+  tables contain the references for these foreign keys, respectively.
+
+
+  - ``Order`` to ``Customer`` and ``Order`` to ``OrderStatus`` are both
+    many-to-one relationships:
+
+
+    - A customer can have multiple orders, and each order only applies
+      to a single customer. In this example, Order is the parent and
+      Customer is the child.
+
+    - An order status can apply to multiple orders, and each order only
+      has a single order status. In this example, Order is the parent
+      and OrderStatus is the child.
+
+- In the ``OrderLine`` table, ``OrderLineID`` is the primary key. ``OrderID``
+  and ``ProductID`` are foreign keys. The ``Order`` and ``Product`` tables
+  contain the references for these foreign keys, respectively.
+
+
+  - ``OrderLine`` to ``Order`` and ``OrderLine`` to ``Product`` are both
+    many-to-one relationships:
+
+
+    - An order line is an individual transaction within an order. An
+      order can have multiple order lines, and each order line applies
+      to a single order. In this example, OrderLine is the parent and
+      Order is the child.
+
+    - A product can apply to multiple order lines, and each order line
+      contains a single product. In this example, OrderLine is the parent
+      and Product is the child.
+
+MongoDB View
+~~~~~~~~~~~~
+
+This MongoDB view corresponds to the previous Relational view:
+
+
+.. image:: /img/diagrams/mongodb-diagram-2.png
+   :alt: MongoDB Diagram Example
+
+
+The collections and data types presented in the view reflect the
+mapping rules specified for the project.
+
+The link icons indicate fields which map to a relational column used in a
+foreign key. For example, in the ``Order`` collection, the ``OrderStatusID``
+field represents a foreign key that links the ``Order`` and ``OrderStatus``
+tables.
+
+New Mapping Rules
+~~~~~~~~~~~~~~~~~
+
+The following new mapping rules have been created to better utilize
+MongoDB's embedded data model:
+
+
+- The ``Order`` collection contains a rule that maps ``OrderLines`` as
+  an :ref:`Embedded array <mapping-rule-embedded-array>`. The
+  ``OrderLine`` table from the relational schema is mapped as an array
+  of objects inside the ``Order`` documents, using the foreign key
+  relationship from the relational schema.
+
+
+  .. image:: /img/diagrams/order-mapping-example.png
+     :alt: Order Mapping Rule Example
+
+
+- The ``Customer`` collection contains a rule which maps ``Orders`` as
+  an :ref:`Embedded array <mapping-rule-embedded-array>`. The ``Order``
+  table from the relational schema is mapped as an array of objects
+  inside the ``Customer`` documents, using the foreign key relationship
+  from the relational schema.
+
+
+  .. image:: /img/diagrams/customer-mapping-example.png
+     :alt: Customer Mapping Rule Example
+
+Both of the preceding mapping rules remove the ID fields from the
+mapping. Since the ``OrderLines`` and ``Orders`` fields are embedded in
+their parent fields rather than being referenced with a foreign key, the
+ID fields are not required to link the fields together.
