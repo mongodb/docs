@@ -478,6 +478,13 @@ Filter by event
           - Project scheduled maintenance will occur
           - Project was created
           - Project was deleted
+ 
+      * - Resource Tags
+        - Events related to |service| :ref:`resource tags 
+          <configure-resource-tags>`. The following filter is 
+          available:
+
+          - Tag(s) were added/modified.
 
       * - Search
         - Events related to :ref:`Atlas Search Indexes <ref-index-definitions>`. The following filters are available:
