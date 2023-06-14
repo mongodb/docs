@@ -1,4 +1,5 @@
 .. note::
 
-   URI's are optional, you can use connection string forms to
-   enter your connection details instead of manually providing a URI.
+   URIs in Relational Migrator are optional. You can use the connection 
+   string forms to enter your connection details instead of manually 
+   providing URIs.

@@ -1,3 +1,125 @@
+.. _rm-mongodb-database-connection-strings:
+
 ===================================
 MongoDB Database Connection Strings
 ===================================
+
+.. include:: /includes/uri-usage-disclaimer.rst
+
+To start a migration job, Relational Migrator must connect to your MongoDB 
+database. Relational Migrator requires a username and password which has ``readWrite`` 
+access in the target database. This page describes 
+the procedure to make an authenticated user account and the Uniform Resource 
+Identifier (URI) formats for defining connections to your target 
+MongoDB database. 
+
+Relational Migrator can use both Atlas and on-premises URIs. This page 
+provides separate instructions for each deployment type.
+
+Atlas
+-----
+
+Connect to Your Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To provision user accounts in Atlas you need to be 
+`logged in to the Atlas GUI <https://cloud.mongodb.com/v2/>`__.
+
+Create a New User
+~~~~~~~~~~~~~~~~~
+
+#. In the :guilabel:`Security` section of the left navigation, click :guilabel:`Database Access`.
+#. Click :guilabel:`Add New Database User`.
+#. In the :guilabel:`Authentication Method` section of the :guilabel:`Add New Database User` modal window, select the box labeled :guilabel:`Password`.
+#. Under :guilabel:`Password Authentication`, enter the username ``migrator-service`` for the new user in the top text field.
+#. Enter the password ``password`` for the new user in the lower text field.
+#. Under :guilabel:`Database User Privileges`, click :guilabel:`Built-in Role`.
+#. Select :guilabel:`Read and write to any database`.
+#. Click :guilabel:`Add User`.
+
+Connection URI
+~~~~~~~~~~~~~~
+
+Using the previously created account credentials, format the connection
+URI for the target database. In this case ``MongoEnterprises``.
+
+.. code-block::
+
+   mongodb+srv://migrator-service:password@sandbox.xxxxx.mongodb.net/MongoEnterprises
+
+On-Premises
+-----------
+
+In this example, use ``mongosh`` to provision a user account that 
+connects to the ``MongoEnterprises`` database.
+
+This examples assume your deployment is running on ``localhost`` and the 
+default port of ``27017``.
+
+Connect to Your Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When connecting to your deployment, your user account requires the 
+`createRole <https://www.mongodb.com/docs/manual/reference/method/db.createRole/>`__
+permission in both the ``admin`` and ``MongoEnterprises`` databases.
+Copy the following code with your admin credentials into a terminal to 
+connect to your deployment with ``mongosh``.
+
+.. code-block::
+
+   mongosh "mongodb://myadminuser:myadminpassword@localhost:27017/admin"
+
+For details on ``mongosh`` connections see : 
+`Connecting to your MongoDB Deployment <https://www.mongodb.com/docs/mongodb-shell/connect/>`__.
+
+Create a New User
+~~~~~~~~~~~~~~~~~
+
+In ``mongosh``, run the following command to create a 
+user in the ``admin`` database:
+
+.. code-block::
+
+   use admin
+
+   db.createUser(
+      { user: "migrator-service",
+         pwd: "password",
+         roles:[{role: "readWrite" , db:"MongoEnterprises"}]
+      }
+   )
+
+Create the same user in the user in the ``MongoEnterprises`` database:
+
+.. code-block::
+
+   use MongoEnterprises
+   db.createUser(
+      { user: "migrator-service",
+         pwd: "password",
+         roles:[{role: "readWrite" , db:"MongoEnterprises"}]
+      }
+   )
+
+These commands:
+
+- Create a new user ``migrator-service`` with the password ``password`` 
+  in the ``admin`` and ``MongoEnterprises`` databases.
+- Apply the ``readWrite`` system role to the ``MongoEnterprises``
+  database for the user ``migrator-service``.
+
+Connection URI
+~~~~~~~~~~~~~~
+
+Using the previously created account credentials, format the connection
+URI for the target database. In this case ``MongoEnterprises``.
+
+.. code-block::
+
+   mongodb://migrator-service:password@localhost:27017/MongoEnterprises
+
+Results
+-------
+
+The MongoDB connection URI is optionally specified as part of the process for
+creating a Relational Migrator project or when creating a sync job.
