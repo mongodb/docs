@@ -1,7 +1,7 @@
 To navigate to the |service| :guilabel:`AWS IAM Role Access` screen:
 
-1. Expand the :guilabel:`Options` menu next to your project name
-   in the {+atlas-ui+} upper left corner. Select 
+1. Expand the :icon-fa5:`ellipsis-v` :guilabel:`Options` menu next to 
+   your project name in the {+atlas-ui+} upper left corner. Select 
    :guilabel:`Integrations`.
 
 #. Click the :guilabel:`Configure` button in the :guilabel:`AWS IAM
