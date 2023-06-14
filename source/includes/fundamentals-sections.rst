@@ -3,6 +3,7 @@ Fundamentals section:
 
 - :doc:`Connect to MongoDB </fundamentals/connection>`
 - :doc:`Use the Stable API </fundamentals/stable-api>`
+- :doc:`Authenticate with MongoDB </fundamentals/auth>`
 - :doc:`Convert between MongoDB Data Formats and Kotlin Objects </fundamentals/data-formats>`
 - :doc:`Read from and Write to MongoDB </fundamentals/crud>`
 - :doc:`Simplify your Code with Builders </fundamentals/builders>`
@@ -15,7 +16,6 @@ Fundamentals section:
 - :doc:`Encrypt Fields in a Document </fundamentals/encrypt-fields>`
 
 .. TODO : add back in after MVP
-.. - :doc:`Authenticate with MongoDB </fundamentals/auth>`
 .. - :doc:`Transform your Data </fundamentals/aggregation>`
 .. - :doc:`Sort Using Collations </fundamentals/collations>`
 .. - :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`
