@@ -34,6 +34,7 @@ The command has the following syntax:
         configureCollectionBalancing: "<db>.<collection>",
         chunkSize: <num>,
         defragmentCollection: <bool>
+        enableAutoMerger: <bool> 
       } 
    )
 
@@ -44,22 +45,33 @@ Command Fields
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 20 80
+   :widths: 20 20 20 40 
  
    * - Field
      - Type
+     - Necessity
      - Description
    * - ``configureCollectionBalancing``
      - string
-     - Required: The name of the database and sharded collection to
-       configure.
+     - Required
+     - The name of the database and sharded collection to configure.
    * - ``chunkSize``
      - integer
-     - Optional: Sets the chunk size in MiB for the collection. The
-       recommended size is 256, 512, or larger.
+     - Optional
+     - Sets the chunk size in MiB for the collection. The
+       recommended size is 256, 512, or larger. For details on default
+       behavior, see :ref:`chunksize-not-specified`.
    * - ``defragmentCollection``
      - boolean
-     - Optional: Causes the balancer to defragment the collection.
+     - Optional
+     - Causes the balancer to defragment the collection.
+       Defaults to ``false``.
+   * - ``enableAutoMerger``
+     - boolean
+     - Optional
+     - Whether or not the :ref:`{+auto-merge-upper+} 
+       <automerger-concept>` takes this collection into account. 
+       Defaults to ``true``.
  
 
 For more information, see :ref:`Data Partitioning with Chunks
@@ -74,15 +86,17 @@ To learn about defragmenting sharded collections, see
 Behavior
 --------
 
-No Collection ``chunkSize`` Specified
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _chunksize-not-specified:
+
+Default Behavior When chunkSize Is Not Specified
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you do not specify ``chunkSize`` for a collection and no custom size 
 has been set previously, the global default ``chunkSize`` is 
 used for balancing.
 
-Specifying ``chunkSize: 0``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Specifying chunkSize: 0
+~~~~~~~~~~~~~~~~~~~~~~~
 
 If you use :dbcommand:`configureCollectionBalancing` with
 ``chunkSize: 0``, the per-collection ``chunkSize`` is reset and the 
@@ -90,6 +104,14 @@ global default ``chunkSize`` is used for balancing.
 
 For more information on configuring default ``chunkSize``,
 see :ref:`tutorial-modifying-range-size`.
+
+Default Behavior When enableAutoMerger Is Not Specified
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you do not specify ``enableAutoMerger`` for a collection and no 
+custom {+auto-merge-action+} behavior has been previously set, it 
+defaults to ``true`` and will be taken into account by the 
+{+auto-merge-upper+}.
 
 Examples
 --------
@@ -160,4 +182,17 @@ together:
       configureCollectionBalancing: "test.students",
       chunkSize: 512,
       defragmentCollection: true
+   } )
+
+Disable the {+auto-merge-upper+} on a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To explicitly disable the {+auto-merge-upper+} on a collection,
+set the ``enableAutoMerger`` option to ``false``:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      configureCollectionBalancing: "test.students",
+      enableAutoMerger: false
    } )
