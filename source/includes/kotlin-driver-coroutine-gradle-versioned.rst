@@ -4,5 +4,4 @@
 
    dependencies {
        implementation("org.mongodb:mongodb-driver-kotlin-coroutine:{+full-version+}")
-       implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:+")
    }
