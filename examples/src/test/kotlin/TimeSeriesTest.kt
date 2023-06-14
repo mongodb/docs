@@ -5,7 +5,7 @@ import com.mongodb.client.model.Filters.*
 import com.mongodb.client.model.Projections.*
 import com.mongodb.client.model.TimeSeriesOptions
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
+import config.getConfig
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.json.JsonWriterSettings
@@ -20,8 +20,8 @@ import kotlin.test.*
 internal class TimeSeriesTest {
     
     companion object {
-        val dotenv = dotenv()
-        val mongoClient = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
+        val config = getConfig()
+        val mongoClient = MongoClient.create(config.connectionUri)
 
         @AfterAll
         @JvmStatic
