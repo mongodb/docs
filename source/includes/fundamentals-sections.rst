@@ -10,6 +10,7 @@ Fundamentals section:
 - :doc:`Transform your Data </fundamentals/aggregation>`
 - :doc:`Create Aggregation Expressions </fundamentals/aggregation-expression-operations>`
 - :doc:`Create Indexes to Speed Up Queries </fundamentals/indexes>`
+- :doc:`Sort Using Collations </fundamentals/collations>`
 - :doc:`Log Events in the Driver </fundamentals/logging>`
 - :doc:`Monitor Driver Events </fundamentals/monitoring>`
 - :doc:`Use a Time Series Collection </fundamentals/time-series>`
@@ -17,5 +18,4 @@ Fundamentals section:
 
 .. TODO : add back in after MVP
 .. - :doc:`Transform your Data </fundamentals/aggregation>`
-.. - :doc:`Sort Using Collations </fundamentals/collations>`
 .. - :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`
