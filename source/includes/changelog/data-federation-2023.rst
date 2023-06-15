@@ -7,6 +7,15 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230613:
+
+13 June 2023 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces new :ref:`onboarding experience <adf-getting-started>` with 
+  templates for the most common {+adf+} use cases.
+- Improves error message for :ref:`$out to S3 <adf-out-stage>` queries to provide more detail.
+
 .. _adf-v20230509:
 
 09 May 2023 Release
