@@ -7,7 +7,6 @@ import com.mongodb.client.model.mql.*
 import com.mongodb.client.model.mql.MqlValues.current
 import com.mongodb.client.model.mql.MqlValues.of
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.Document

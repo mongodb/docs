@@ -1,7 +1,7 @@
 
 import com.mongodb.client.model.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
+import config.getConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -28,8 +28,8 @@ internal class CollationTest {
     // :snippet-end:
     
     companion object {
-        val dotenv = dotenv()
-        val client: MongoClient = MongoClient.create(dotenv["MONGODB_CONNECTION_URI"])
+        val config = getConfig()
+        val client: MongoClient = MongoClient.create(config.connectionUri)
         val database = client.getDatabase("example_db")
         val nameCollection = database.getCollection<FirstName>("names")
         val collationExampleCollection = database.getCollection<CollationExample>("collation_examples")
