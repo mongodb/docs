@@ -1,6 +1,6 @@
 # MongoDB Kotlin Driver Documentation
 
-This repository contains documentation for the MongoDB Java Driver.
+This repository contains documentation for the MongoDB Kotlin Driver.
 
 ## File JIRA Tickets
 
