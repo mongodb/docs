@@ -3,3 +3,378 @@
 =====================
 Add Calculated Fields
 =====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Calculated fields let you create new fields in your documents by
+combining values from existing database columns using JavaScript
+expressions. Calculated fields are evaluated each time a row is
+processed during a sync job.
+
+Before you Begin
+----------------
+
+To create a calculated field, you must define a mapping rule.
+
+To create mapping rules, see the following pages:
+
+- :ref:`rm-new-rules-from-mappings`
+
+- :ref:`rm-create-rule-to-mdb`
+
+- :ref:`rm-create-mapping-rules`
+
+About this Task
+---------------
+
+Calculated field expressions access values from the current source
+database row using the syntax ``columns["<COLUMN_NAME>"]``.
+
+Steps
+-----
+
+#. From the :guilabel:`Mapping` screen, click a table or collection name
+   on the :guilabel:`schema model` pane or diagram view.
+
+#. Add a new mapping rule or edit an existing mapping rule.
+
+#. Click the :guilabel:`+` icon to the right of the :guilabel:`All
+   fields` label.
+
+#. Define a name for the new field in the :guilabel:`Field Name` text
+   box.
+
+#. Define a valid JavaScript expression for the new field in the ``Value
+   expression`` text box.
+
+#. Click :guilabel:`Done`.
+
+#. Click :guilabel:`Save and close`.
+
+The new field is visible in MongoDB after your next sync job runs.
+
+Examples
+--------
+
+The following examples show JavaScript expressions that you can use in
+calculated fields:
+
+Concatenate Strings
+~~~~~~~~~~~~~~~~~~~
+
+Combine two columns into a single field.
+
+The following example concatenates string values from the ``firstName``
+and ``lastName`` columns.
+
+Expression:
+
+.. code-block:: none
+
+    columns["firstName"] + ' ' + columns["lastName"]
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``firstName``
+     - ``John``
+
+   * - ``lastName``
+     - ``Smith``
+
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   "John Smith"
+
+Split Strings
+~~~~~~~~~~~~~
+
+Split column values into an array based on a specified character.
+
+The following example splits the ``fullName`` column into an array using
+a space character as a delimiter, and returns the first element of the
+array.
+
+Expression:
+
+.. code-block:: none
+
+    columns["fullName"].split(' ')[0]
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``fullName``
+     - ``John Doe``
+
+Output:
+   
+.. code-block:: none
+   :copyable: false
+
+   "John"
+
+Replace Strings
+~~~~~~~~~~~~~~~
+
+Apply regex patterns to replace string values in a column.
+
+The following example performs a case-insensitive regex search on the
+``fullName`` column for the string ``smith``. If a match is found, the
+expression replaces the matching string with ``Doe``.
+
+Expression:
+
+.. code-block:: none
+
+    columns["fullName"].replace(/smith/i, "Doe")
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``fullName``
+     - ``John Smith``
+
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   "John Doe"
+
+Check for String Values
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Return true or false based on whether a column contains a string value.
+
+The following example returns ``true`` if the value in the ``fullName``
+column includes the string ``Smith``. If the ``fullName`` column does
+not include the string ``Smith``, the expression returns ``false``.
+
+Expression:
+
+.. code-block:: none
+
+    columns["fullName"].includes("Smith")
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``fullName``
+     - ``John Smith``
+
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   true
+
+Perform Mathematic Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Perform mathematic operations on column values.
+
+The following example multiplies values from the columns ``col1`` and
+``col2``.
+
+Expression:
+
+.. code-block:: none
+
+    columns["col1"] * columns["col2"]
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``coll1``
+     - ``3``
+
+   * - ``coll2``
+     - ``2``
+
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   6
+
+Assign Values Based on Logical Conditions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Assign column values based on logical conditions.
+
+The following example returns ``yes`` if the value of ``col1`` is
+``3``, and ``no`` if ``col1`` is a value other than ``3``.
+
+Expression:
+
+.. code-block:: none
+
+    columns["col1"] === 3 ? "yes" : "no"
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``coll1``
+     - ``3``
+
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   yes
+
+Extract JSON Values
+~~~~~~~~~~~~~~~~~~~
+
+Access data stored as JSON data type with calculated field expressions.
+Requires JSON data type columns (Postgres).
+
+The following example returns the value of the embedded ``state`` field
+from values in the ``Employee`` column.
+
+Expression:
+
+.. code-block:: none
+
+    columns["Employee"].Address.state
+
+Input:
+
+.. code-block:: json
+    
+   {
+      Employee: { 
+         name: "Mark",
+         Address: {
+            state: "California"
+         } 
+      }
+   }
+            
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   "California"
+
+Access Array Elements
+~~~~~~~~~~~~~~~~~~~~~
+
+Access data stored as array data type with calculated fields
+expressions. Requires array data type columns (Postgres or MySQL).
+
+The following example returns the second element of the values in the
+``myArray`` column.
+
+Expression:
+
+.. code-block:: none
+
+    columns["myArray"][1]
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``myArray``
+     - [ "a", "b", "c" ]
+            
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   "b"
+
+Parse Dates
+~~~~~~~~~~~
+
+Parse an ISO8601-formatted date string into a date.
+
+The following example converts string values from the ``dateAsString``
+column into dates.
+
+Expression:
+
+.. code-block:: none
+
+    new Date(columns["dateAsString"])
+
+Input:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10
+
+   * - Column
+     - Value
+
+   * - ``dateAsString``
+     - "2009-02-11"
+            
+Output: 
+   
+.. code-block:: none
+   :copyable: false
+
+   2009-02-11T0:00:00Z
+
+Learn More
+----------
+
+- :ref:`rm-delete-calculated-fields`
+- :ref:`rm-edit-calculated-fields`
+- :ref:`rm-view-calculated-fields`
