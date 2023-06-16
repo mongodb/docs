@@ -118,12 +118,12 @@ To archive data:
    c. Writes each subsequent quantity of document data (up to 2 GB)
       with each query run.
 
-{+Online-Archive+} runs on your |service| cluster and utilizes the same 
-underlying resources (e.g. |iops|). The default limit of 2GB per job 
-prevents the operation from utilizing too many resources. If your 
-cluster is currently satisfying workloads at the edge of its resource 
-limits, you could push it past its capacity by activating 
-{+Online-Archive+}. Ensure that your |service| cluster has excess 
+{+Online-Archive+} runs on your |service| {+cluster+} and uses the
+same underlying resources (e.g. |iops|). The default limit of 2GB per
+job prevents the operation from using too many resources. If your 
+{+cluster+} is currently satisfying workloads at the edge of its
+resource limits, you could push it past its capacity by activating 
+{+Online-Archive+}. Ensure that your |service| {+cluster+} has excess 
 resources before activating {+Online-Archive+}.
 
 If you activate {+Online-Archive+}, you can select one of the following
@@ -137,20 +137,35 @@ regions to store your archived data.
    encryption S3-managed keys (SSE-S3)
    <https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingServerSideEncryption.html>`__
    for archived data. It can't use any encryption-at-rest encryption 
-   keys you might have used on your cluster data. 
+   keys you might have used on your {+cluster+} data. 
 
 When you archive data, |service| first copies the data to the cloud 
-object storage and then deletes the data from your |service| cluster. 
-:manual:`WiredTiger </core/wiredtiger/>` does not release the storage 
-blocks of the deleted data back to the OS for performance reasons. 
-However, |service| eventually automatically reuses these storage blocks 
-for new data. This helps the |service| cluster to avoid fragmentation. 
-To learn more about reclaiming the disk space, see :manual:`How do I 
-reclaim disk space in WiredTiger? 
-</faq/storage/#how-do-i-reclaim-disk-space-in-wiredtiger>`
+object storage and then deletes the data from your |service| {+cluster+}. 
+During archival, for a brief period of time, you might see duplicate
+documents on your |service| {+cluster+} and the {+Online-Archive+}. But 
+after the archival and when your {+Online-Archive+} state is ``idle``,
+the already archived documents won't be present in your |service|
+{+cluster+}.  
+
+:manual:`WiredTiger </core/wiredtiger/>` doesn't release the
+storage blocks of the deleted data back to the OS for performance
+reasons. However, |service| eventually automatically reuses these
+storage blocks for new data. This helps the |service| {+cluster+} to avoid
+fragmentation. To learn more about reclaiming the disk space, see
+:manual:`How do I reclaim disk space in WiredTiger? 
+</faq/storage/#how-do-i-reclaim-disk-space-in-wiredtiger>`.
+
+Your {+Online-Archive+} is read-only. |service| doesn't *update*
+archived data. You can configure deletion of archived data after a
+certain period of time. To purge archived data, configure the
+:guilabel:`Deletion Age Limit` setting for your {+Online-Archive+} when
+you :ref:`create <config-online-archive>` or :ref:`modify
+<edit-online-archive>` the {+Online-Archive+}. |service| doesn't sync
+your {+Online-Archive+} with the |service| {+cluster+} to maintain
+consistency after the data is archived. 
 
 |service| provides a unified endpoint. You can use it to query all
-databases and collections on your live cluster and archived data using
+databases and collections on your live {+cluster+} and archived data using
 the same database and collection name that you use in your |service|
 cluster. You can't use the unified endpoint over a 
 :doc:`Network Peering Connection </security-vpc-peering>`, but you can 
@@ -162,7 +177,7 @@ standard internet connection over |tls|.
 {+adf+} for {+Online-Archive+}
 ----------------------------------------
 
-When you configure your ``M10`` or greater |service| cluster for
+When you configure your ``M10`` or greater |service| {+cluster+} for
 {+Online-Archive+}, |service| creates a read-only :ref:`Federated 
 Database Instance <atlas-data-federation>`, one per cluster, for your 
 archived data.
@@ -256,7 +271,7 @@ Manage Your {+Online-Archive+}
 ------------------------------
 
 You can configure an {+Online-Archive+} for a collection on your
-cluster through your |service| console and |api|. Once you create an
+{+cluster+} through your |service| console and |api|. Once you create an
 {+Online-Archive+}, you can: 
 
 - :ref:`View the list of Online Archives <view-online-archive>`.
