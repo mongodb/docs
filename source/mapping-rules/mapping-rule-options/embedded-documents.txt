@@ -1,3 +1,257 @@
+.. _rm-embedded-documents:
+
 ==================
 Embedded Documents
 ==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The :guilabel:`Embedded Documents` mapping rule is an advanced mapping 
+rule option. It must be explicitly added to a mapping model.
+
+About this Task
+---------------
+
+The :guilabel:`Embedded Documents` mapping rule is available if the relational
+table it is mapping from is on the one side of the foreign key relationship.
+
+The table containing the foreign key must also be mapped to a 
+collection in the MongoDB model.
+
+Behavior
+--------
+
+Use the :guilabel:`Embedded Documents` mapping rule to denormalize
+a foreign key relationship. With :guilabel:`Embedded Documents` you can
+nest child foreign key fields in a parent collection.
+
+You have two main options when denormalizing your relational data 
+with the :guilabel:`Embedded Documents` option:
+
+- You can embed the child documents into the parent and designate a 
+  :guilabel:`Prefix` and :guilabel:`Field name` to embed fields as sub documents.
+
+- You can merge into the parent, which represents the rows as 
+  fields at the parent level.
+
+Examples
+--------
+
+This section demonstrates the relational input and
+the MongoDB output of the :guilabel:`Embedded Documents` mapping rule.
+
+Embedded Documents
+~~~~~~~~~~~~~~~~~~
+
+In this example:
+
+- A :guilabel:`Embedded Documents` mapping rule is applied to the ``Order`` table.
+- The ``OrderLine`` table has two rows and the ``Order`` table has one row.
+- The parent collection is set to :guilabel:`OrderLine`.
+- :guilabel:`Merge fields into the parent` is not selected.
+- The :guilabel:`Field name` is set to :guilabel:`order`.
+
+
+Click the tabs below to see the input and output for this example:
+
+.. tabs::
+
+   .. tab:: Relational Input
+      :tabid: Embedded-doc-in
+
+      ``OrderLine`` table:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - OrderLineID
+           - OrderID
+           - ProductID
+           - Quantity
+         * - 1
+           - 1
+           - 1
+           - 1
+         * - 4
+           - 1
+           - 3
+           - 1
+
+      ``Order`` table:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - OrderID
+           - CustomerID
+           - TotalAmount
+           - OrderStatusID
+         * - 1
+           - 1
+           - 550.00
+           - 1
+
+   .. tab:: MongoDB Output
+      :tabid: Embedded-doc-out
+
+      The documents in the ``OrderLine`` collection now has the ``Order`` details
+      embedded as an embedded document called ``Orders``.
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 8-13,22-27
+
+         {
+         ObjectID: {
+            OrderLineID: 1,
+         },
+         OrderID: 1,
+         ProductID: 1,
+         Quantity: 1,
+         Orders: {
+            OrderID: 1,
+            CustomerID: 1,
+            TotalAmount: 550,
+            OrderStatusID: 1,
+         },
+         },
+         {
+         ObjectID: {
+            OrderLineID: 4,
+         },
+         OrderID: 1,
+         ProductID: 3,
+         Quantity: 1,
+         Orders: {
+            OrderID: 1,
+            CustomerID: 1,
+            TotalAmount: 550,
+            OrderStatusID: 1,
+         },
+         }
+
+Merge fields into the parent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this example:
+
+- The ``OrderLine`` table has four rows and the Order table has three rows.
+- A :guilabel:`Embedded Documents` mapping rule is applied to the ``Order`` table.
+- The parent collection is set to :guilabel:`OrderLine`.
+- :guilabel:`Merge fields into the parent` is selected.
+- The :guilabel:`Prefix` is set to :guilabel:`(root)`.
+
+
+Click the tabs below to see the input and output for this example:
+
+.. tabs::
+
+   .. tab:: Relational Input
+      :tabid: merge-parent-in
+
+      ``OrderLine`` table:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - OrderLineID
+           - OrderID
+           - ProductID
+           - Quantity
+         * - 1
+           - 1
+           - 1
+           - 1
+         * - 2
+           - 2
+           - 2
+           - 1
+         * - 3
+           - 3
+           - 3
+           - 1
+         * - 4
+           - 1
+           - 3
+           - 1
+
+      ``Order`` table:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - OrderID
+           - CustomerID
+           - TotalAmount
+           - OrderStatusID
+         * - 1
+           - 1
+           - 550.00
+           - 1
+         * - 2
+           - 2
+           - 100.00
+           - 2
+         * - 3
+           - 3
+           - 500.00
+           - 3
+
+   .. tab:: MongoDB Output
+      :tabid: merge-parent-out
+
+      The documents in the ``OrderLine`` collection have the ``Order`` details
+      merged into the parent document as fields.
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 8-10,19-21,30-32,41-43
+
+         {
+         _id: {
+            orderLineId: 1,
+         },
+         orderId: 1,
+         productId: 1,
+         quantity: 1,
+         customerId: 1,
+         orderStatusId: 1,
+         totalAmount: 550,
+         },
+         {
+         _id: {
+            orderLineId: 2,
+         },
+         orderId: 2,
+         productId: 2,
+         quantity: 1,
+         customerId: 2,
+         orderStatusId: 2,
+         totalAmount: 100,
+         },
+         {
+         _id: {
+            orderLineId: 3,
+         },
+         orderId: 3,
+         productId: 3,
+         quantity: 1,
+         customerId: 3,
+         orderStatusId: 3,
+         totalAmount: 500,
+         },
+         {
+         _id: {
+            orderLineId: 4,
+         },
+         orderId: 1,
+         productId: 3,
+         quantity: 1,
+         customerId: 1,
+         orderStatusId: 1,
+         totalAmount: 550,
+         }
