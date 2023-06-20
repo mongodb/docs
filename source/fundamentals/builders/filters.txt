@@ -12,34 +12,34 @@ Filters Builders
 
 .. _filters-builders:
 
-Overview 
+Overview
 --------
 
 In this guide, you can learn how to use **builders** to specify
-**filters** for your queries in the MongoDB Java driver.
+**filters** for your queries in the MongoDB Kotlin driver.
 
-Builders are classes provided by the MongoDB Java driver that help you
+Builders are classes provided by the MongoDB Kotlin driver that help you
 construct :ref:`BSON <bson>` objects. To learn more, see our :doc:`guide
-on builders </fundamentals/builders/>`. 
+on builders </fundamentals/builders/>`.
 
 Filters are the operations MongoDB uses to limit your results to what
-you want to see. 
+you want to see.
 
-Some places we use filters are:
+You can use filters in the following places:
 
-- ``find()``
-- match stage of aggregation
-- ``deleteOne()``/``deleteMany()``
-- ``updateOne()``/``updateMany()``
+- As a parameter to the ``find()`` method
+- In a match stage of an aggregation pipeline
+- As a parameter to the ``deleteOne()`` or ``deleteMany()`` method
+- As a parameter to the ``updateOne()`` or ``updateMany()`` method
 
-Some examples of results from queries with filters are: 
+Some examples of results from queries with filters are:
 
 - Items that cost $0 to $25
 - A hotel with amenities that include an indoor swimming pool and free parking
-- A food critic review that mentions "spicy" 
+- A food critic review that mentions "spicy"
 
 This guide shows you how to use builders with examples of the following
-types of operators: 
+types of operators:
 
 - :ref:`Comparison <comparison>`
 - :ref:`Logical <logical>`
@@ -51,23 +51,19 @@ types of operators:
 
 The ``Filters`` class provides static factory methods for all the MongoDB query
 operators. Each method returns an instance of the :ref:`BSON <bson>`
-type, which you can pass to any method that expects a query filter. 
+type, which you can pass to any method that expects a query filter.
 
 .. tip::
 
    For brevity, you may choose to import all methods of the
    `Filters <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html>`__
-   class statically: 
+   class statically:
 
-   .. code-block:: java
+   .. code-block:: kotlin
 
-      import static com.mongodb.client.model.Filters.*;
+      import com.mongodb.client.model.Filters.*
 
-   The following examples assume this static import.
-
-The Filter examples in this guide use the following sample collections:
-
-Collection: ``paint_purchases``
+Most of the ``Filter`` examples in this guide use the following sample collection ``paints``:
 
 .. code-block:: json
 
@@ -80,33 +76,21 @@ Collection: ``paint_purchases``
    { "_id": 7, "color": "green", "qty": 8,"vendor": ["B", "C"] }
    { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
 
-Collection: ``binary_numbers``
+These documents in the ``paints`` collection are modeled by the following data class for use
+with the Kotlin driver:
 
-.. code-block:: json
-
-   { "_id": 9, "a": 54, "binaryValue": "00110110" }
-   { "_id": 10, "a": 20, "binaryValue": "00010100" }
-   { "_id": 11, "a": 68, "binaryValue": "1000100" }
-   { "_id": 12, "a": 102, "binaryValue": "01100110" }
-
-Collection: ``geo_points``
-
-.. code-block:: json
-
-   { "_id": 13, "coordinates": { "type": "Point", "coordinates": [2.0, 2.0] } }
-   { "_id": 14, "coordinates": { "type": "Point", "coordinates": [5.0, 6.0] } }
-   { "_id": 15, "coordinates": { "type": "Point", "coordinates": [1.0, 3.0] } }
-   { "_id": 16, "coordinates": { "type": "Point", "coordinates": [4.0, 7.0] } }
+.. literalinclude:: /examples/generated/FiltersBuildersTest.snippet.paint-order-data-class.kt
+    :language: kotlin
 
 .. _comparison:
 
-Comparison 
+Comparison
 ----------
 
 The comparison filters include all operators that compare the value in a
-document to a specified value. 
+document to a specified value.
 
-The comparison operator methods include:
+The ``Filters`` comparison operator methods include:
 
 .. list-table::
    :header-rows: 1
@@ -114,13 +98,13 @@ The comparison operator methods include:
 
    * - Comparison Method
      - Matches
-      
+
    * - `eq() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#eq(java.lang.String,TItem)>`__
      - values equal to a specified value.
 
    * - `gt() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#gt(java.lang.String,TItem)>`__
      - values greater than a specified value.
-      
+
    * - `gte() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#gte(java.lang.String,TItem)>`__
      - values greater than or equal to a specified value.
 
@@ -143,59 +127,53 @@ The comparison operator methods include:
      - all the documents.
 
 The following example creates a filter that matches all documents where
-the value of the ``qty`` field equals "5" in the ``paint_purchases`` collection:
+the value of the ``qty`` field equals "5" in the ``paints`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin equalComparison
-   :end-before: end equalComparison
+.. io-code-block::
 
-The following shows the output of the preceding query:
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.equalComparison.kt
+      :language: kotlin
 
-.. code-block:: json
-   :copyable: false
-   
-   { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
-   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+   .. output::
+      :language: console
+
+      PaintOrder(id=1, qty=5, color=red, vendors=[A])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
 
 The following example creates a filter that matches all documents where
 the value of the ``qty`` field is greater than or equal to "10" in the
-``paint_purchases`` collection: 
+``paints`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin gteComparison
-   :end-before: end gteComparison
+.. io-code-block::
 
-The following shows the output of the preceding query:
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.gteComparison.kt
+      :language: kotlin
 
-.. code-block:: json
-   :copyable: false
-   
-   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
-   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
 
 The following example creates a filter that matches all documents in
-the ``paint_purchases`` collection because the predicate is empty: 
+the ``paints`` collection because the predicate is empty:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin emptyComparison
-   :end-before: end emptyComparison
+.. io-code-block::
 
-The output of the preceding query consists of
-all the documents in the collection.
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.emptyComparison.kt
+      :language: kotlin
 
-.. code-block:: json
-   :copyable: false
-      
-   { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
-   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
-   { "_id": 3, "color": "blue", "qty": 8, "vendor": ["B", "A"] } 
-   ...
+   .. output::
+      :language: console
+
+      PaintOrder(id=1, qty=5, color=red, vendors=[A])
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=3, qty=8, color=blue, vendors=[B, A])
+      PaintOrder(id=4, qty=6, color=white, vendors=[D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
+      PaintOrder(id=7, qty=8, color=green, vendors=[B, C])
+      PaintOrder(id=8, qty=7, color=orange, vendors=[A, D])
 
 .. _logical:
 
@@ -203,7 +181,7 @@ Logical
 -------
 The logical operators perform logical operations based on the conditions of the specified method.
 
-The logical operator methods include:
+The ``Filters`` logical operator methods include:
 
 .. list-table::
    :header-rows: 1
@@ -226,22 +204,19 @@ The logical operator methods include:
 
 The following example creates a filter that matches documents where
 the value of the ``qty`` field is greater than "8" or the value
-of the ``color`` field equals "pink" in the ``paint_purchases`` collection: 
+of the ``color`` field equals "pink" in the ``paints`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin orComparison
-   :end-before: end orComparison
+.. io-code-block::
 
-The following shows the output of the preceding query:
-   
-.. code-block:: json
-   :copyable: false
-      
-   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
-   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
-   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.orComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
 
 .. _arrays:
 
@@ -250,7 +225,7 @@ Arrays
 
 The array operators evaluate the array field in a document.
 
-The array operator methods include:
+The ``Filters`` array operator methods include:
 
 .. list-table::
    :header-rows: 1
@@ -269,20 +244,18 @@ The array operator methods include:
      - documents if the array field is a specified number of elements.
 
 The following example matches documents with a ``vendors`` array
-containing both "A" and "D" in the ``paint_purchases`` collection: 
+containing both "A" and "D" in the ``paints`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin allComparison
-   :end-before: end allComparison
+.. io-code-block::
 
-The following shows the output of the preceding query:
-   
-.. code-block:: json
-   :copyable: false
-      
-   { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.allComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=8, qty=7, color=orange, vendors=[A, D])
+
 
 .. _elements:
 
@@ -291,7 +264,7 @@ Elements
 
 The elements operators evaluate the nature of a specified field.
 
-The elements operator methods include:
+The ``Filters`` elements operator methods include:
 
 .. list-table::
    :header-rows: 1
@@ -307,23 +280,20 @@ The elements operator methods include:
      - documents if a field is of the specified type.
 
 The following example matches documents that have a ``qty`` field and
-its value does not equal "5" or "8" in the ``paint_purchases`` collection:
+its value does not equal "5" or "8" in the ``paints`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin existsComparison
-   :end-before: end existsComparison
+.. io-code-block::
 
-The following shows the output of the preceding query:
-   
-.. code-block:: json
-   :copyable: false
-      
-   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
-   { "_id": 4, "color": "white", "qty": 6, "vendor": ["D"]}
-   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
-   { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.existsComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=4, qty=6, color=white, vendors=[D])
+      PaintOrder(id=5, qty=11, color=yellow, vendors=[A, B])
+      PaintOrder(id=8, qty=7, color=orange, vendors=[A, D])
 
 .. _evaluation:
 
@@ -332,7 +302,7 @@ Evaluation
 
 The evaluation operators evaluate the value of any field in a document.
 
-The evaluation operator methods include:
+The ``Filters`` evaluation operator methods include:
 
 .. list-table::
    :header-rows: 1
@@ -354,21 +324,18 @@ The evaluation operator methods include:
      - documents which contain a specified JavaScript expression.
 
 The following example matches documents that have a ``color`` field
-starting with the letter "p" in the ``paint_purchases`` collection:
+starting with the letter "p" in the ``paints`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin regexComparison
-   :end-before: end regexComparison
+.. io-code-block::
 
-The following shows the output of the preceding query:
-   
-.. code-block:: json
-   :copyable: false
-      
-   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
-   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.regexComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      PaintOrder(id=2, qty=10, color=purple, vendors=[C, D])
+      PaintOrder(id=6, qty=5, color=pink, vendors=[C])
 
 .. _bitwise:
 
@@ -378,7 +345,7 @@ Bitwise
 The bitwise operators convert a number into its binary value to
 evaluate its bits.
 
-The bitwise operator methods include:
+The ``Filters`` bitwise operator methods include:
 
 .. list-table::
    :header-rows: 1
@@ -399,23 +366,27 @@ The bitwise operator methods include:
    * - `bitsAnyClear() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#bitsAnyClear(java.lang.String,long)>`__
      - documents where at least one of the specified bits of a field are clear (i.e. "0").
 
-The following example matches documents that have a ``bitField`` field
+The following example matches documents that have a ``decimalValue`` field
 with bits set at positions of the corresponding bitmask "34" (i.e.
-"00100010") in the ``binary_numbers`` collection: 
+"00100010") in this ``binary_numbers`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin bitsComparison
-   :end-before: end bitsComparison
-
-The following shows the output of the preceding query:
-   
 .. code-block:: json
-   :copyable: false
-      
-   { "_id": 9, "a": 54, "binaryValue": "00110110" }
-   { "_id": 12, "a": 102, "binaryValue": "01100110" }
+
+   { "_id": 9, "decimalValue": 54, "binaryValue": "00110110" }
+   { "_id": 10, "decimalValue": 20, "binaryValue": "00010100" }
+   { "_id": 11, "decimalValue": 68, "binaryValue": "1000100" }
+   { "_id": 12, "decimalValue": 102, "binaryValue": "01100110" }
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.bitsComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      BinaryNumber(id=1, decimalValue=54, binaryValue=00110110)
+      BinaryNumber(id=4, decimalValue=102, binaryValue=01100110)
 
 .. _geospatial:
 
@@ -423,16 +394,16 @@ Geospatial
 ----------
 
 The geospatial operators evaluate a specified coordinate and its
-relation to a shape or location. 
+relation to a shape or location.
 
-The geospatial operator methods include:
+The ``Filters`` geospatial operator methods include:
 
 .. list-table::
    :widths: 30, 70
    :header-rows: 1
    :stub-columns: 1
 
-   * - Geospatial Method 
+   * - Geospatial Method
      - Matches
       
    * - `geoWithin() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Filters.html#geoWithin(java.lang.String,org.bson.conversions.Bson)>`__
@@ -461,19 +432,23 @@ The geospatial operator methods include:
 
 The following example creates a filter that matches documents in which
 the ``point`` field contains a GeoJSON geometry that falls within
-the given :manual:`Polygon </reference/geojson/#polygon>` 
-in the ``geo_points`` collection:
+the given :manual:`Polygon </reference/geojson/#polygon>`
+in this ``stores`` collection:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/Filters.java
-   :language: java
-   :dedent:
-   :start-after: begin geoWithinComparison
-   :end-before: end geoWithinComparison
-
-The following shows the output of the preceding query:
-   
 .. code-block:: json
-   :copyable: false
 
-   { "_id": 13, "coordinates": {"type": "Point", "coordinates": [2.0, 2.0]} }
-   { "_id": 15, "coordinates": {"type": "Point", "coordinates": [1.0, 3.0]} }
+   { "_id": 13, "coordinates": { "type": "Point", "coordinates": [2.0, 2.0] } }
+   { "_id": 14, "coordinates": { "type": "Point", "coordinates": [5.0, 6.0] } }
+   { "_id": 15, "coordinates": { "type": "Point", "coordinates": [1.0, 3.0] } }
+   { "_id": 16, "coordinates": { "type": "Point", "coordinates": [4.0, 7.0] } }
+
+.. io-code-block::
+
+   .. input:: /examples/generated/FiltersBuildersTest.snippet.geoWithinComparison.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Store(id=13, name=Store 13, coordinates=Point{coordinate=Position{values=[2.0, 2.0]}})
+      Store(id=15, name=Store 15, coordinates=Point{coordinate=Position{values=[1.0, 3.0]}})

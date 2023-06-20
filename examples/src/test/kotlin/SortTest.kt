@@ -163,7 +163,7 @@ internal class SortTest {
     fun combineSortTest() = runBlocking {
         // :snippet-start: combine-sort
         val orderBySort = Sorts.orderBy(
-            Sorts.descending(FoodOrder::letter.name), ascending("_id")
+            Sorts.descending(FoodOrder::letter.name), Sorts.ascending("_id")
         )
         val results = collection.find().sort(orderBySort)
 

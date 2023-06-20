@@ -1,0 +1,301 @@
+====================
+Projections Builders
+====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _projections-builders:
+
+Overview
+--------
+
+In this guide, you can learn how to specify **projections** using
+:doc:`builders </fundamentals/builders/>` in the MongoDB Kotlin driver.
+
+MongoDB supports **field projection**, specifying which fields to include and exclude when returning results from a
+query. Projection in MongoDB follows some basic rules:
+
+- The ``_id`` field is *always* included unless explicitly excluded
+- Specifying a field for inclusion implicitly excludes all other fields **except** the ``_id`` field
+- Specifying a field for exclusion removes **only** that field in a query result
+
+Find more information about projection mechanics in the :manual:`Project Fields to Return from Query guide</tutorial/project-fields-from-query-results/>` in the MongoDB Server documentation.
+
+The ``Projections`` class provides static factory methods for
+all the MongoDB projection operators. Each method returns an instance of the :ref:`BSON <bson>` type which you can pass
+to any method that expects a projection.
+
+.. tip::
+
+   For brevity, you may choose to import the methods of the
+   `Projections <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Projections.html>`__
+   class:
+
+
+   .. code-block:: kotlin
+
+      import com.mongodb.client.model.Projections.*
+
+
+Sample Documents and Examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following sections feature examples that run query and projection operations
+on a sample collection called ``projection_builders``. Each section uses
+a variable named ``collection`` to refer to the ``MongoCollection`` instance
+of the ``projection_builders`` collection.
+
+The collection contains the following documents, representing the monthly average
+temperatures in Celsius for the years 2018 and 2019:
+
+.. code-block:: json
+
+   {
+     "year" : 2018,
+     "type" : "even number but not a leap year",
+     "temperatures" : [
+       { "month" : "January", "avg" : 9.765 },
+       { "month" : "February", "avg" : 9.675 },
+       { "month" : "March", "avg" : 10.004 },
+       { "month" : "April", "avg" : 9.983 },
+       { "month" : "May", "avg" : 9.747 },
+       { "month" : "June", "avg" : 9.65 },
+       { "month" : "July", "avg" : 9.786 },
+       { "month" : "August", "avg" : 9.617 },
+       { "month" : "September", "avg" : 9.51 },
+       { "month" : "October", "avg" : 10.042 },
+       { "month" : "November", "avg" : 9.452 },
+       { "month" : "December", "avg" : 9.86 }
+     ]
+   },
+   {
+     "year" : 2019,
+     "type" : "odd number, can't be a leap year",
+     "temperatures" : [
+       { "month" : "January", "avg" : 10.023 },
+       { "month" : "February", "avg" : 9.808 },
+       { "month" : "March", "avg" : 10.43 },
+       { "month" : "April", "avg" : 10.175 },
+       { "month" : "May", "avg" : 9.648 },
+       { "month" : "June", "avg" : 9.686 },
+       { "month" : "July", "avg" : 9.794 },
+       { "month" : "August", "avg" : 9.741 },
+       { "month" : "September", "avg" : 9.84 },
+       { "month" : "October", "avg" : 10.15 },
+       { "month" : "November", "avg" : 9.84 },
+       { "month" : "December", "avg" : 10.366 }
+     ]
+   }
+
+The following data class is used to represent the documents in the collection:
+
+.. literalinclude:: /examples/generated/ProjectionsBuildersTest.snippet.example-data-class.kt
+   :language: kotlin
+
+Projection Operations
+---------------------
+
+The following sections contain information on the available projection
+operations and how to construct them using the ``Projections`` class.
+
+Inclusion
+~~~~~~~~~
+
+Use the ``include()`` method to specify the inclusion of one or more fields.
+
+The following example includes the ``year`` field and implicitly the ``_id`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.include-one.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(id=6467808db5003e6354a1ee22, year=2018)
+      Results(id=6467808db5003e6354a1ee23, year=2019)
+
+The following example includes the ``year`` and ``type`` fields and implicitly the ``_id`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.include-many.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(id=646780e3311323724f69a907, year=2018, type=even number but not a leap year)
+      Results(id=646780e3311323724f69a908, year=2019, type=odd number, can't be a leap year)
+
+Exclusion
+~~~~~~~~~
+
+Use the ``exclude()`` method to specify the exclusion of one or more fields.
+
+The following example excludes the ``temperatures`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.exclude-one.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(id=6462976102c85b29a7bfc9d5, year=2018, type=even number but not a leap year)
+      Results(id=6462976102c85b29a7bfc9d6, year=2019, type=odd number, can't be a leap year)
+
+The following example excludes the ``temperatures`` and ``type`` fields:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.exclude-many.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(id=64629783d7760d2365215147, year=2018)
+      Results(id=64629783d7760d2365215148, year=2019)
+
+Combining Projections
+~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``fields()`` method to combine multiple projections.
+
+The following example includes the ``year`` and ``type`` fields and excludes the
+``_id`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.combine-projections.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(year=2018, type=even number but not a leap year)
+      Results(year=2019, type=odd number, can't be a leap year)
+
+Exclusion of ``_id``
+~~~~~~~~~~~~~~~~~~~~
+
+Use the ``excludeId()`` convenience method to specify the exclusion of the ``_id`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.exclude-id.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(year=2018, type=even number but not a leap year, temperatures=[MonthlyTemperature(month=January, avg=9.765), MonthlyTemperature(month=February, avg=9.675), MonthlyTemperature(month=March, avg=10.004), MonthlyTemperature(month=April, avg=9.983), MonthlyTemperature(month=May, avg=9.747), MonthlyTemperature(month=June, avg=9.65), MonthlyTemperature(month=July, avg=9.786), MonthlyTemperature(month=August, avg=9.617), MonthlyTemperature(month=September, avg=9.51), MonthlyTemperature(month=October, avg=10.042), MonthlyTemperature(month=November, avg=9.452), MonthlyTemperature(month=December, avg=9.86)])
+      Results(year=2019, type=odd number, can't be a leap year, temperatures=[MonthlyTemperature(month=January, avg=10.023), MonthlyTemperature(month=February, avg=9.808), MonthlyTemperature(month=March, avg=10.43), MonthlyTemperature(month=April, avg=10.175), MonthlyTemperature(month=May, avg=9.648), MonthlyTemperature(month=June, avg=9.686), MonthlyTemperature(month=July, avg=9.794), MonthlyTemperature(month=August, avg=9.741), MonthlyTemperature(month=September, avg=9.84), MonthlyTemperature(month=October, avg=10.15), MonthlyTemperature(month=November, avg=9.84), MonthlyTemperature(month=December, avg=10.366)])
+
+Project an Array Element Match
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``elemMatch(String, Bson)`` method variant to specify an array projection that will include the first
+element of an array that matches a supplied query filter. This filtering occurs *after* all documents matching the
+query filter (if supplied) are retrieved.
+
+.. note::
+
+   Only the first element that matches the specified query filter will be included,
+   regardless of how many matches there may be.
+
+The following example projects the first element of the ``temperatures`` array where the ``avg`` field is
+greater that ``10.1``:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.project-array-element-match.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(year=2018, temperatures=null)
+      Results(year=2019, temperatures=[MonthlyTemperature(month=March, avg=10.43)])
+
+When you've specified matching criteria in the **query** portion of your operation, use the ``elemMatch(String)`` method
+variant to specify a :manual:`positional projection </reference/operator/projection/positional/#sorts-and-the-positional-operator>` to include
+the first element of an array. Only documents that match the query filter will be retrieved.
+
+.. important::
+
+   In MongoDB version 4.4 and earlier, the specified array field must appear in the query filter. Beginning in MongoDB 4.4,
+   you can use a positional project on an array field that does not appear in the query filter.
+
+
+The following example projects the first element of the ``temperatures`` array:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.elem-match-string.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(year=2019, temperatures=[MonthlyTemperature(month=March, avg=10.43)])
+
+Project an Array Slice
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``slice()`` method to project a :manual:`slice </reference/operator/projection/slice/>` of an array.
+
+The following example projects the first 6 elements of the ``temperatures`` array:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.project-array-slice.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(temperatures=[MonthlyTemperature(month=January, avg=9.765), MonthlyTemperature(month=February, avg=9.675), MonthlyTemperature(month=March, avg=10.004), MonthlyTemperature(month=April, avg=9.983), MonthlyTemperature(month=May, avg=9.747), MonthlyTemperature(month=June, avg=9.65)])
+      Results(temperatures=[MonthlyTemperature(month=January, avg=10.023), MonthlyTemperature(month=February, avg=9.808), MonthlyTemperature(month=March, avg=10.43), MonthlyTemperature(month=April, avg=10.175), MonthlyTemperature(month=May, avg=9.648), MonthlyTemperature(month=June, avg=9.686)])
+
+
+The following example skips the first 6 elements of the ``temperatures`` array and projects the next **6**:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.project-array-slice-with-skip.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(temperatures=[MonthlyTemperature(month=July, avg=9.786), MonthlyTemperature(month=August, avg=9.617), MonthlyTemperature(month=September, avg=9.51), MonthlyTemperature(month=October, avg=10.042), MonthlyTemperature(month=November, avg=9.452), MonthlyTemperature(month=December, avg=9.86)])
+      Results(temperatures=[MonthlyTemperature(month=July, avg=9.794), MonthlyTemperature(month=August, avg=9.741), MonthlyTemperature(month=September, avg=9.84), MonthlyTemperature(month=October, avg=10.15), MonthlyTemperature(month=November, avg=9.84), MonthlyTemperature(month=December, avg=10.366)])
+
+Project a Text Score
+~~~~~~~~~~~~~~~~~~~~
+
+Use the ``metaTextScore()`` method to specify a projection of the
+:manual:`score of a text query </reference/operator/query/text/#text-score>`.
+
+The following example projects the text score as the value of the ``score`` field:
+
+.. io-code-block::
+
+   .. input:: /examples/generated/ProjectionsBuildersTest.snippet.project-with-text-score.kt
+      :language: kotlin
+
+   .. output::
+      :language: console
+
+      Results(year=2018, score=1.25)
+      Results(year=2019, score=0.625)

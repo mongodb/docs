@@ -1,0 +1,1 @@
+replaceRoot("\$${Book::spanishTranslation.name}")

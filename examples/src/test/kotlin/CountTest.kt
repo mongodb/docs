@@ -19,7 +19,7 @@ internal class CountTest {
     companion object {
         val config = getConfig()
         val client = MongoClient.create(config.connectionUri)
-        private val database = client.getDatabase("sample_mflix")
+        private val database = client.getDatabase("count_test")
         val collection = database.getCollection<Movie>("movies")
 
         @BeforeAll
