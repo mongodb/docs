@@ -1,0 +1,206 @@
+.. _wildcard-index-query-sort-support:
+
+=====================================
+Wildcard Index Query and Sort Support
+=====================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB supports creating wildcard indexes on a field, or a set of
+fields, to support different types of queries.
+
+Wildcard indexes support:
+
+- :ref:`Covered Queries <wc-index-covered>`
+- :ref:`Multi-Field Query Predicates <wc-index-multi>`
+- :ref:`Queries with Sort <wc-index-sort>`
+- :ref:`Queries with Explicit Array Indices <wc-index-explicit>`
+
+Some query patterns are unsupported: :ref:`Unsupported Query Patterns
+<wc-index-unsupported>`
+
+.. important::
+
+   .. include:: /includes/indexes/wildcard-not-planning-replacement.rst
+
+.. _wc-index-covered:
+
+Covered Queries
+~~~~~~~~~~~~~~~
+
+Wildcard indexes can support a :ref:`covered query <covered-queries>` 
+**only if** all of the following are true:
+
+- The query planner selects the wildcard index for satisfying the
+  query predicate.
+
+- The query predicate specifies *exactly* one field covered by the wildcard
+  index.
+
+- The projection explicitly excludes ``_id`` and includes *only* the query
+  field.
+
+- The specified query field is never an array.
+
+Consider the following wildcard index on the ``employees`` collection:
+
+.. code-block:: javascript
+
+   db.employees.createIndex( { "$**" : 1 } )
+
+The following operation queries for a single field 
+``lastName`` and projects out all other fields from the
+resulting document:
+
+.. code-block:: javascript
+
+   db.employees.find(
+     { "lastName" : "Doe" },
+     { "_id" : 0, "lastName" : 1 }
+   )
+
+Assuming that the specified ``lastName`` is never an array, MongoDB
+can use the ``$**`` wildcard index for supporting a covered query.
+
+.. _wc-index-multi:
+
+Multi-Field Query Predicates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wildcard indexes can support at most *one* query predicate field. That 
+is:
+
+- MongoDB cannot use a non-wildcard index to satisfy one part of a 
+  query predicate and a wildcard index to satisfy another.
+
+- MongoDB cannot use one wildcard index to satisfy one part of a query 
+  predicate and another wildcard index to satisfy another.
+
+- Even if a single wildcard index could support multiple query fields, 
+  MongoDB can use the wildcard index to support only one of the query 
+  fields. All remaining fields are resolved without an index.
+
+However, MongoDB may use the same wildcard index for satisfying each 
+independent argument of the query :query:`$or` or aggregation 
+:expression:`$or` operators.
+
+.. _wc-index-sort:
+
+Queries with Sort
+~~~~~~~~~~~~~~~~~
+
+MongoDB can use a wildcard index for satisfying the 
+:method:`~cursor.sort()` **only if** all of the following are true:
+
+- The query planner selects the wildcard index for satisfying the
+  query predicate.
+
+- The :method:`~cursor.sort()` specifies **only** the query predicate
+  field.
+
+- The specified field is never an array.
+
+If the above conditions are not met, MongoDB cannot use the wildcard 
+index for the sort. MongoDB does not support :method:`~cursor.sort`
+operations that require a different index from that of the query
+predicate. For more information, see :ref:`index-intersection-sort`.
+
+Consider the following wildcard index on the ``products`` collection:
+
+.. code-block:: javascript
+
+   db.products.createIndex( { "product_attributes.$**" : 1 } )
+
+The following operation queries for a single field 
+``product_attributes.price`` and sorts on that same field:
+
+.. code-block:: javascript
+
+   db.products.find(
+     { "product_attributes.price" : { $gt : 10.00 } },
+   ).sort(
+     { "product_attributes.price" : 1 }
+   )
+
+Assuming that the specified ``price`` is never an array, MongoDB
+can use the ``product_attributes.$**`` wildcard index for satisfying 
+both the :method:`~db.collection.find()` and :method:`~cursor.sort()`.
+
+.. _wc-index-explicit:
+.. _wildcard-query-support-explicit-array-indices:
+
+Queries with Explicit Array Indices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB wildcard indexes do not record the array position of any given
+element in an array during indexing. However, MongoDB may still select
+the wildcard index to answer a query which includes a field path with
+one or more explicit array indices (for example,
+``parentArray.0.nestedArray.0``). Due to the increasing complexity of
+defining index bounds for each consecutive nested array, MongoDB does
+not consider the wildcard index to answer a given field path in the
+query if that path contains more than ``8`` explicit array indices.
+MongoDB can still consider the wildcard index to answer other field
+paths in the query.
+
+For example:
+
+.. code-block:: json
+
+   {
+     "parentObject" : {
+       "nestedArray" : [ 
+          "elementOne",
+          {
+            "deeplyNestedArray" : [ "elementTwo" ]
+          }
+        ]
+     }
+   }
+
+MongoDB can select a wildcard index which includes ``parentObject`` to
+satisfy the following queries:
+
+- ``"parentObject.nestedArray.0" : "elementOne"``
+- ``"parentObject.nestedArray.1.deeplyNestedArray.0" : "elementTwo"``
+
+If a given field path in the query predicate specifies more than 8
+explicit array indices, MongoDB does not consider the wildcard index for
+answering that field path. MongoDB instead either selects another
+eligible index to answer the query, *or* performs a collection scan.
+
+Note that wildcard indexes themselves do not have any limits on the
+depth to which they traverse a document while indexing it; the
+limitation only applies to queries which explicitly specify exact array
+indices. By issuing the same queries without the explicit array indices,
+MongoDB may select the wildcard index to answer the query:
+
+- ``"parentObject.nestedArray" : "elementOne"``
+- ``"parentObject.nestedArray.deeplyNestedArray" : "elementTwo"``
+
+.. seealso::
+
+   :limit:`Nested Depth for BSON Documents`
+
+.. _wc-index-unsupported:
+
+Unsupported Query Patterns
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Wildcard indexes **cannot** support the following query patterns:
+
+- Queries that check if a field does not exist
+
+- Queries that check if a field is or is not equal to a document or an
+  array
+
+- Queries that check if a field is equal to null
+
+For details, see :ref:`wildcard-index-restrictions-query-aggregation`.
+
