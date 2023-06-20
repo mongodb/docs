@@ -1,5 +1,8 @@
 
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.ReturnDocument
+import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.count
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.TestInstance
+import java.time.LocalDate
 import java.util.*
 import kotlin.test.*
 
@@ -71,6 +75,26 @@ internal class DataClassTest {
         resultsFlow.collect { println(it) }
         // :snippet-end:
         assertEquals(tape, resultsFlow.firstOrNull())
+
+        // :snippet-start: retrieve-diff-data-class
+        // Define a data class for returned documents
+        data class NewDataStorage(
+            val productName: String,
+            val capacity: Double,
+            val releaseDate: LocalDate
+        )
+
+        val filter = Filters.eq(DataStorage::productName.name, "tape")
+        val update = Updates.currentDate("releaseDate")
+        val options = FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+
+        // Specify the class for returned documents as the type parameter in withDocumentClass()
+        val result = collection
+            .withDocumentClass<NewDataStorage>()
+            .findOneAndUpdate(filter, update, options)
+
+        println("Updated document: ${result}")
+        // :snippet-end:
     }
 
     // :snippet-start: annotated-data-class
