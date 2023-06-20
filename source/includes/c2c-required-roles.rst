@@ -1,7 +1,7 @@
-For source replica sets running MongoDB 6.0.4 or later a MongoDB user must have
+For source replica sets running MongoDB 6.0.5 or later a MongoDB user must have
 the :authrole:`readAnyDatabase` and :authrole:`backup` roles.
 
-For source sharded {+clusters+} running MongoDB 6.0.4 or later a MongoDB user
+For source sharded {+clusters+} running MongoDB 6.0.5 or later a MongoDB user
 must have the :authrole:`readAnyDatabase`, :authrole:`backup`, and
 :authrole:`clusterMonitor` roles.
 

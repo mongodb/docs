@@ -8,7 +8,7 @@ The stages in the live migration workflow are:
 
 - **Stage 1: Link with Atlas**. Perform this step in |service|,
   after you have created your |service| account, organization, and
-  project; deployed your paid {+cluster+} in this project; and can
+  project; deployed your dedicated {+cluster+} in this project; and can
   connect to it.
 
   a. In the |service| organization, go to :guilabel:`Live Migration`.

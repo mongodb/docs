@@ -8,13 +8,12 @@ content: |
 
   #. Click :guilabel:`Migrate from Ops Manager or Cloud Manager`.
 
-  #. Click :guilabel:`I'm Ready to Start` and, if you are
-     :opsmgr:`migrating </tutorial/migrate-community-to-atlas>` from
-     MongoDB Community using |onprem|, click :guilabel:`Ops Manager
-     License Agreement` to read and accept it. To read the agreement
-     outside of the Live Migration Wizard, see the
-     :opsmgr:`Ops Manager Migration Agreement
-     </reference/legal/live-migration-atlas-licensing>`.
+     .. note::
+        The UI label mentions |onprem|, however, for this procedure, you
+        can only migrate to |service| MongoDB deployments 6.0.5 or later
+        that |mms| monitors.
+
+  #. Click :guilabel:`I'm Ready to Start`.
 
   |service| displays a Live Migration wizard with instructions on how
   to proceed with the process. The process pushes the data from your
@@ -30,14 +29,6 @@ content: |
   a. Click :guilabel:`Generate Link-Token`. |service| displays the
      page for generating a :term:`link-token`.
 
-     - If you are migrating from |onprem|, enter the external IP addresses
-       or a |cidr| block of your |onprem| instances to add them to the access
-       list of the API Key embedded in the link-token. This allows |onprem|
-       to send project and cluster information to |service|.
-       |onprem| does not send any data stored in your MongoDB databases
-       in this step. For example, enter ``23.248.95.14``.
-     - If you are migrating from |mms|, skip this step.
-
   #. Click :guilabel:`Next` to see a page that contains the generated link-token.
 
   #. Copy the link-token and store it in a secure location. |service|
@@ -47,19 +38,19 @@ content: |
 
      .. note::
         Use one unique :term:`link-token` for live migrating all
-        projects in one |com| organization to |service|.
+        projects in one |mms| organization to |service|.
 
   #. Click :guilabel:`Done`.
 
 ---
-title: "Paste the link-token into Ops Manager or Cloud Manager."
-ref: live-migration-from-com-paste-link-token
+title: "Paste the link-token into Cloud Manager."
+ref: live-migration-c2c-push-paste-link-token
 level: 4
 content: |
 
-  a. Access the organization in |com|:
+  a. Access the organization in |mms|:
   
-     Open |onprem| or |mms|, and navigate to the organization
+     Open |mms|, and navigate to the organization
      whose project's {+cluster+} you are live migrating to |service|.
 
   #. Click :guilabel:`Settings` in the left navigation panel.
@@ -70,13 +61,9 @@ content: |
 
   #. Paste the link-token you generated in the previous step of the
      Live Migration wizard and click :guilabel:`Connect to Atlas`.
-     |com| establishes the connection to |service|. Use the
+     |mms| establishes the connection to |service|. Use the
      :guilabel:`Refresh` button to send an update to |service|, if
-     needed. To learn more, see
-     :opsmgr:`Connect to Atlas for Live Migration
-     </tutorial/connect-to-atlas-live-migration>` in Ops Manager, or
-     :cloudmgr:`Connect to Atlas for Live Migration
-     </tutorial/connect-to-atlas-live-migration>` in |mms|.
+     needed.
 
 ---
 title: "Create the destination Atlas cluster."
@@ -85,7 +72,7 @@ level: 4
 content: |
 
   If you haven't already, create a destination {+cluster+} in |service|.
-  See :ref:`migrate-from-com-prereqs`.
+  See :ref:`migrate-from-c2c-push-prereqs`.
 
 ---
 title: "Initiate the migration from the destination cluster."
@@ -102,12 +89,18 @@ content: |
        from the dropdown list to start the migration.
        The :guilabel:`Migrate Data to This Cluster` page opens.
 
-    #. Click :guilabel:`Migrate from Ops Manager or Cloud Manager` and
-       fill in the fields as follows:
+    #. Click :guilabel:`Migrate from Ops Manager or Cloud Manager`.
+       
+       .. note::
+        
+          The UI label mentions |onprem|, however, for this procedure, you
+          can only migrate to |service| MongoDB deployments 6.0.5 or later
+          that |mms| monitors.
+       
+       Fill in the fields as follows:
 
-       - Select the source project in |com|, if it's not  already selected.
+       - Select the source project in |mms|, if it's not already selected.
        - Select a migration host for handling the migration.
-
        - Review the IP address access list and check that the migration
          host's external IP address is included in this list. If it's not
          added, add it now:
@@ -117,10 +110,16 @@ content: |
          - Return to the Live Migration wizard. Select the source
            cluster from the dropdown and choose
            :guilabel:`Migrate data to this cluster` under :icon-fa5:`ellipsis-h`.
-       
+
        - Select the source {+cluster+} from the drop-down.
 
-       - If you suspend the source {+cluster+} from automation in |com|, but
+       - If the source {+cluster+} enforces authentication, enter a username and
+         password into the provided text boxes.
+
+         See :ref:`live-import-c2c-security` for guidance on the
+         user permissions required by |service| live migration.
+
+       - If you suspend the source {+cluster+} from automation in |mms|, but
          continue to monitor the source {+cluster+} with the Monitoring Agent,
          the :guilabel:`Username` and :guilabel:`Password` display. If
          your deployment requires user authentication, provide the user
@@ -142,7 +141,7 @@ content: |
          read the certificate. |service| checks that the certificate is
          present and readable.
 
-       - If your replica set destination {+cluster+} has data, and you
+       - If your destination {+cluster+} has data, and you
          want to preserve it, keep the
          :guilabel:`Clear any existing data on your destination cluster` option
          unchecked. The live migration service warns you if it finds duplicate
@@ -153,22 +152,22 @@ content: |
          :guilabel:`Standard connection` always shows as available in
          the UI. However, other connection options are enabled only if
          you have previously configured a VPC peering connection or a
-         private endpoint. If |service| detects that you don't have VPC
-         connections or private endpoints configured, these options are
-         grayed out.
+         private endpoint for replica sets. If |service| detects that you
+         don't have VPC connections or private endpoints configured, these
+         options are grayed out.
        
          - If you aren't using VPC peering or a private endpoint, click
            :guilabel:`Standard connection` and proceed to the
            :guilabel:`Validation` stage of this step.
 
          - If you configured a :ref:`VPC peering connection <vpc-peering>`
-           between the migration host and the |service| {+cluster+}, the
+           between the migration host and the |service| replica set, the
            :guilabel:`VPC Peering` option is active. Click
            :guilabel:`VPC Peering` to connect using VPC peering for live
            migration. If the :guilabel:`VPC Peering` option is grayed out,
            :ref:`configure a VPC peering connection <vpc-peering>` before
            starting this procedure. To learn more, see
-           :ref:`migrate-from-com-vpc-support`.
+           :ref:`migrate-push-c2c-vpc-support`.
 
          - If you are migrating a replica set and configured a
            :ref:`private endpoint <private-endpoint>` between the
@@ -193,16 +192,9 @@ content: |
          to |service|.
 
          To take advantage of the following validation checks,
-         :opsmgr:`upgrade the MongoDB Agent in Ops Manager
-         </tutorial/update-mongodb-agent-from-automation-agent/>`, or
          :cloudmgr:`upgrade the MongoDB Agent in Cloud Manager 
          </tutorial/update-mongodb-agent-from-automation-agent/>` to
          the latest version.
-         If the live migration process detects that the source cluster is
-         running a version of MongoDB Agent earlier than 12.0.11.7606 for
-         Ops Manager, or 12.5.0.7713 for |mms|, it displays a banner
-         warning suggesting that you upgrade the MongoDB Agent.
-
          The following validation checks run during the live migration:
 
          - The migration host can connect to the destination {+cluster+}.
@@ -211,16 +203,12 @@ content: |
            the source cluster using |tls-ssl|.
          - The database user credentials are valid. This validation check
            runs only if you suspend the source cluster from automation in
-           |com|, but continue to monitor the source cluster with the
+           |mms|, but continue to monitor the source cluster with the
            Monitoring Agent.
 
-         - If you are migrating from |onprem| before version 5.0.9, the
-           live migration process validates that the destination {+cluster+}
-           has enough disk space based on the data size. If you are migrating
-           from |mms| or |onprem| 5.0.9 or later, the migration process
-           validates that the destination {+cluster+} has enough disk space
-           based on the storage size of the compressed data. To learn more
-           about data and storage sizes, see
+         - The migration process validates that the destination {+cluster+}
+           has enough disk space based on the storage size of the compressed
+           data. To learn more about data and storage sizes, see
            :manual:`dbStats </reference/command/dbStats/#output>`.
 
        - If validation fails, check the migration host, the validity of
@@ -228,9 +216,7 @@ content: |
          Also check the database user credentials, your |tls-ssl|
          certificates, and the amount of disk storage size on the destination
          {+cluster+}.
-       - If validation succeeds, click :guilabel:`Next`. The
-         :guilabel:`Migrate from Ops Manager or Cloud Manager` page displays.
-
+       - If validation succeeds, click :guilabel:`Next`.
 ---
 title: "Start the migration."
 ref: live-import-com-start
@@ -247,14 +233,9 @@ title: "Prepare to Cut Over."
 ref: lm-com-prepare-cutover
 level: 4
 content: |
-     A lag time value dispays during the final oplog tailing phase that
-     represents the current lag between the source and destination {+clusters+}.
-     This lag time may fluctuate depending on the rate of oplog generation
-     on the source cluster, but should decrease over time as the live
-     migration process copies the oplog entries to the destination {+cluster+}.
-
-     a. When the lag timer and the :guilabel:`Prepare to Cutover` button
-        turn green, click it to proceed to the next step.
+     
+     When the lag timer and the :guilabel:`Prepare to Cutover` button
+     turn green, click it to proceed to the next step.
 ---
 title: "Perform the cutover."
 ref: live-import-com-prepare-cutover

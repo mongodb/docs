@@ -10,10 +10,13 @@
   - :ref:`Scale up <scale-cluster-open-dialog>` the destination {+cluster+}
     to a tier with more processing power, bandwidth or disk IO.
 
-  - When migrating large data sets, use M80 with 6000 IOPS disks or higher.
+  - For the best migration experience, use at least an M40 {+cluster+}.
+    When migrating large data sets, use M80 with 6000 IOPS disks or higher.
 
-  - Set the minimum oplog window to 2-4 hours for the duration of the live
-    migration process.
+  - To prevent unbounded growth of the oplog collection,
+    :ref:`set a fixed oplog size <set-fixed-oplog-size>` for the duration
+    of the live migration process.
 
   - To learn more, see :ref:`scale-cluster-open-dialog`
-    and :ref:`cluster-config-options`.
+    and :ref:`cluster-config-options`. If you are observing performance issues even after you've followed
+    these recommendations, :ref:`contact support <request-support>`.

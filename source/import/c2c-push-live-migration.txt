@@ -1,0 +1,223 @@
+.. _c2c-push-live-migration:
+
+===========================================================================================
+Live Migrate (Push) a MongoDB 6.0.5 or Later Cluster Monitored by Cloud Manager into Atlas
+===========================================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If both the source and destination {+clusters+} are running MongoDB 6.0.5
+or later, and |mms| monitors the source {+cluster+}, |service| can push
+a source {+cluster+} to an |service| {+cluster+} using the procedure
+described in this section.
+
+This process uses |mongosync| as the underlying data migration tool,
+enabling faster live migrations with less downtime:
+
+- |service| syncs data from the source to the destination {+cluster+} until
+  you cut your applications over to the destination |service| replica set.
+
+- Once you reach the cutover step in the following procedure:
+
+  - Stop writes to the source {+cluster+}.
+  - Stop your application instances, point them to the |service| {+cluster+},
+    and restart them.
+
+.. _c2c-push-limitations:
+
+Restrictions
+------------
+
+This live migration has the following limitations:
+
+.. include:: /includes/c2c-limitations.rst
+
+.. _migrate-push-c2c-vpc-support:
+
+Support for VPC Peering and Private Endpoints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/live-migration-push-c2c-vpc-support.rst
+
+.. _migrate-from-c2c-push-prereqs:
+
+Prerequisites
+-------------
+
+Before you begin the push live migration from a {+cluster+} running
+MongoDB 6.0.5 or later monitored in |mms| to |service|:
+
+.. include:: /includes/live-migration-c2c-push-prereqs.rst
+
+.. _live-migration-push-c2c-workflow:
+
+Live Migration Workflow
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This section outlines the workflow. For detailed steps,
+see the :ref:`procedure for migrating a cluster from Cloud Manager to Atlas <lm-push-c2c-procedure>`.
+
+.. include:: /includes/live-migration-push-c2c-workflow.rst
+
+.. _lm-push-c2c-upgrade-path:
+
+Migration Path and Supported Platforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/list-tables/live-migration-push-c2c-platforms.rst
+
+|service| live migration (push) supports the following migration paths:
+
+.. include:: /includes/list-tables/push-live-migration-c2c-upgrade-path.rst
+
+.. _lm-push-c2c-network-access:
+
+.. include:: /includes/import/network-access-push-lm-c2c.rst
+
+.. _lm-push-c2c-migration-validation:
+
+Pre-Migration Validation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before starting the live migration procedure, |service| runs validation
+checks on the source and destination {+clusters+}.
+
+- The source and destination {+cluster+}\'s MongoDB version is at least |fcv|
+  6.0 and is matching as described in :ref:`c2c-push-limitations`.
+- The source {+cluster+}\'s database user has the correct permissions as
+  described in :ref:`live-import-push-c2c-security`.
+- The source and destination {+clusters+} are either both replica sets, or they
+  are both sharded {+clusters+} with the same number of shards.
+
+  If the source {+cluster+} is a standalone, before using this migration process,
+  :manual:`convert the standalone to a replica set </tutorial/convert-standalone-to-replica-set>`.
+
+  If migrating a sharded {+cluster+} to another sharded {+cluster+}, the
+  source sharded {+cluster+} must use CSRS (Config Server Replica Sets).
+  See :ref:`replset-config-servers`.
+
+- .. include:: /includes/fact-validate-enable-collect-dbstats-push-c2c.rst
+
+- The destination |service| {+cluster+} doesn't have |bic| enabled.
+
+.. _live-import-push-c2c-security:
+
+Source {+Cluster+} Security
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/c2c-pull-source-cluster-security.rst
+
+Considerations
+--------------
+
+.. include:: /includes/fact-network-encryption-push-migration.rst
+
+.. _security-lm-push-c2c:
+
+Database Users and Roles
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-create-atlas-user.rst
+
+.. include:: /includes/import/security-lm-from-com.rst
+
+Destination {+Cluster+} Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the destination {+cluster+}, the following considerations apply:
+
+- The source and destination {+clusters+} are either both replica sets, or
+  they are both sharded {+clusters+} with the same number of shards.
+
+- You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared-tier
+  {+cluster+} as the destination for live migration.
+
+.. include:: /includes/fact-live-migration-perf-target-cluster.rst
+
+- Do **not** change the ``featureCompatibilityVersion`` flag while
+  |service| live migration is running.
+
+Avoid Workloads on the Destination {+Cluster+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mongomirror-no-workloads-target-cluster.rst
+
+Avoid Cloud Backups
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-avoid-backups.rst
+
+
+Avoid Namespace Changes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-mongomirror-namespace-changes.rst
+
+Avoid Elections
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-avoid-elections.rst
+
+Rolling Restarts
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/live-import-rolling-restarts.rst
+
+
+Staging and Production Environments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/live-migrate-from-com-staging-prod.rst
+
+Migrate Your {+Cluster+}
+------------------------
+
+.. important::
+
+   Avoid making changes to the source {+cluster+} configuration while the
+   live migration procedure runs, such as removing replica set members
+   or modifying :binary:`mongod <bin.mongod>` runtime settings, such as
+   ``featureCompatibilityVersion``.
+
+.. _lm-push-c2c-procedure:
+
+Procedure
+~~~~~~~~~
+
+.. include:: /includes/steps/migrate-push-c2c.rst
+
+.. _lm-push-c2c-api:
+
+Push Live Migration APIs
+------------------------
+
+.. include:: /includes/live-migration-apis.rst
+
+.. note::
+   The Live Migration APIs mention |com|, however, the type of live migration
+   described in this section only supports migrating source {+clusters+}
+   monitored in |mms| to destination {+clusters+} in |service|.
+
+Push Live Migration CLI Commands
+--------------------------------
+
+.. include:: /includes/live-migrate-with-cli-rs.rst
+
+.. note::
+      The Live Migration CLI commands might mention |com|, however, the
+      type of live migration described in this section only supports
+      migrating source {+clusters+} monitored in |mms| to destination
+      {+clusters+} in |service|.
+
+.. _lm-push-c2c-support:
+
+Migration Support
+------------------
+
+.. include:: /includes/live-migration-support.rst

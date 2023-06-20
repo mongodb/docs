@@ -38,7 +38,7 @@
 
 - Adds the ability to pull a source sharded {+cluster+} to |a-service|
   sharded {+cluster+} for source and destination {+clusters+} running
-  MongoDB 6.0.4 or later. To learn more, see :ref:`Live Migrate a MongoDB 6.0.4 or Later Cluster into Atlas
+  MongoDB 6.0.5 or later. To learn more, see :ref:`Live Migrate a MongoDB 6.0.5 or Later Cluster into Atlas
   <c2c-pull-live-migration>`.
 
 - Upgrades each of your {+clusters+} that run MongoDB 4.2 to MongoDB 4.4.
@@ -75,8 +75,8 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Supports the ability to live migrate the source {+clusters+} to |service|
-  destination {+clusters+} for replica sets running MongoDB 6.0.4 or later.
-  To learn more, see :ref:`Live Migrate a MongoDB 6.0.4 or Later Cluster into Atlas
+  destination {+clusters+} for replica sets running MongoDB 6.0.5 or later.
+  To learn more, see :ref:`Live Migrate a MongoDB 6.0.5 or Later Cluster into Atlas
   <c2c-pull-live-migration>`.
 
 .. _atlas_2023_02_15:
