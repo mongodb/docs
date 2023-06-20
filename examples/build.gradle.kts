@@ -4,6 +4,7 @@ plugins {
     kotlin("jvm") version "1.8.0"
     id("com.google.osdetector") version "1.7.3"
     application
+    kotlin("plugin.serialization") version "1.8.21"
 }
 
 group = "org.mongodb.docs.kotlin"
@@ -27,6 +28,9 @@ dependencies {
     implementation("io.netty:netty-tcnative-boringssl-static:2.0.59.Final:${osdetector.classifier}")
     implementation("org.xerial.snappy:snappy-java:1.1.10.0")
     implementation("com.github.luben:zstd-jni:1.5.5-4")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    implementation("org.mongodb:bson-kotlinx:4.10.0-alpha1")
 }
 
 tasks.test {
