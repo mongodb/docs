@@ -15,7 +15,12 @@ Definition
 
 .. dbcommand:: createSearchIndexes
 
+.. |fts-indexes| replace:: :atlas:`{+fts+} indexes </atlas-search/atlas-search-overview/#fts-indexes>`
+
 .. include:: /includes/atlas-search-commands/command-descriptions/createSearchIndexes-description.rst
+
+The ``mongosh`` method :method:`db.collection.createSearchIndex()`
+provides a wrapper around the ``createSearchIndexes`` database command.
 
 .. include:: /includes/atlas-search-commands/atlas-only-db-command.rst
 
@@ -91,24 +96,36 @@ Search Index Definition Syntax
 Access Control
 --------------
 
-If your deployment enforces access control, the user running the
-``createSearchIndexes`` command must have the
-:authaction:`createSearchIndexes` privilege action on the database:
+.. |method-name| replace:: the ``createSearchIndexes`` command
+
+.. include:: /includes/atlas-search-commands/access-control/create-access-control.rst
+
+Output
+------
+
+The ``createSearchIndexes`` command output resembles the following:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { resource: { database : true }, actions: [ "createSearchIndex" ] }
+   {
+      ok: 1,
+      indexesCreated: [
+         {
+            id: "<index Id>",
+            name: "<index name>"   
+         }
+      ]
+   }
 
-The built-in :authrole:`readWrite` role provides the
-``createSearchIndex`` privilege. The following example grants
-``accountUser01`` the ``readWrite`` role on the ``products`` database:
+.. important::
 
-.. code-block:: javascript
+   The response field ``ok: 1`` indicates that the command was
+   successful. However, there may be a delay between when you receive
+   the response and when the created indexes are ready for use.
 
-   db.grantRolesToUser(
-      "accountUser01",
-      [ { role: "readWrite", db: "products" } ]
-   )
+   To see the status of your search indexes, use the
+   :pipeline:`$listSearchIndexes` aggregation stage.
 
 Examples
 --------
@@ -138,8 +155,8 @@ means that the index contains all fields in the collection that have
 Create a Search Index with a Language Analyzer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A language analyzer changes which words the index uses as stop-words,
-which are words that are not significant enough to be indexed.
+A language analyzer introduces stop-words, which are words that are not
+significant enough to be indexed.
 
 The following example creates a search index named ``frenchIndex01`` on
 the ``cars`` collection, and specifies the ``lucene.french`` analyzer on

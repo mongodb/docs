@@ -1,2 +1,1 @@
-Deletes an existing :atlas:`{+fts+} index
-</atlas-search/atlas-search-overview/#fts-indexes>`.
+Deletes an existing |fts-index|.
