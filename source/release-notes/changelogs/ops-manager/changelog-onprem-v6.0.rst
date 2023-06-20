@@ -209,6 +209,8 @@
 - Updates the {+mdbagent+} to :ref:`12.0.10.7591
   <mongodb-12.0.10.7591>`.
 
+  .. include:: /includes/note-push-pull-migration-deprecation-for-om.rst
+
   .. include:: /includes/extracts/om6-warning-server-68925.rst
 
 .. _opsmgr-server-6.0.1:
