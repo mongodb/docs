@@ -2,14 +2,20 @@
    :header-rows: 1
    :stub-columns: 1
    :class: compatibility
-   :widths: 55 15 15 15
+   :widths: 40 15 15 15 15
 
-   * - C Driver Versions
+   * - C Driver Version
+     - C17/C18
      - C11
      - C99
      - C89
-     
-   * - All Versions
+   * - 1.24
+     - ✓
+     - ✓
+     - ✓
+     -
+   * - <= 1.23
+     -
      - ✓
      - ✓
      - ✓
