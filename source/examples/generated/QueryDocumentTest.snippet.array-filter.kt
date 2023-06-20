@@ -1,2 +1,3 @@
 val filter = Filters.size("vendor", 3)
-collection.find(filter).collect { println(it) }
+val findFlow = collection.find(filter)
+findFlow.collect { println(it) }

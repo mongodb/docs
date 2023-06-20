@@ -17,5 +17,4 @@ Fundamentals section:
 - :doc:`Encrypt Fields in a Document </fundamentals/encrypt-fields>`
 
 .. TODO : add back in after MVP
-.. - :doc:`Transform your Data </fundamentals/aggregation>`
 .. - :doc:`Store and Retrieve Large Files in MongoDB </fundamentals/gridfs>`

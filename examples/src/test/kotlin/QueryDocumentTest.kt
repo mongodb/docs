@@ -12,8 +12,6 @@ import org.junit.jupiter.api.TestInstance
 import java.util.*
 import kotlin.test.*
 
-// TODO: light refactor on these examples so that they don't collect directly from find() op, but rather assign to val findFlow
-// and then collect/println from that for consistency with other examples
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class QueryDocumentTest {
     // :snippet-start: query-data-model
@@ -67,7 +65,8 @@ internal class QueryDocumentTest {
     fun comparisonQueryTest() = runBlocking {
         // :snippet-start: comparison-filter
         val filter = Filters.gt("qty", 7)
-        collection.find(filter).collect { println(it) }
+        val findFlow = collection.find(filter)
+        findFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
@@ -75,14 +74,15 @@ internal class QueryDocumentTest {
             PaintOrder(2, 8, "purple", listOf("B", "D", "F"), 5),
             PaintOrder(7, 8, "green", listOf("C", "E"), 7)
         )
-        assertEquals(expected, collection.find(filter).toList() )
+        assertEquals(expected, findFlow.toList() )
     }
 
     @Test
     fun logicalQueryTest() = runBlocking {
         // :snippet-start: logical-filter
         val filter = Filters.and(Filters.lte("qty", 5), Filters.ne("color", "pink"))
-        collection.find(filter).collect { println(it) }
+        val findFlow = collection.find(filter)
+        findFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
@@ -96,21 +96,23 @@ internal class QueryDocumentTest {
     fun arrayQueryTest() = runBlocking {
         // :snippet-start: array-filter
         val filter = Filters.size("vendor", 3)
-        collection.find(filter).collect { println(it) }
+        val findFlow = collection.find(filter)
+        findFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
             PaintOrder(2, 8, "purple", listOf("B", "D", "F"), 5),
             PaintOrder(8, 7, "black", listOf("A", "C", "D"))
         )
-        assertEquals(expected, collection.find(filter).toList() )
+        assertEquals(expected, findFlow.toList() )
     }
 
     @Test
     fun elementQueryTest() = runBlocking {
         // :snippet-start: element-filter
         val filter = Filters.exists("rating")
-        collection.find(filter).collect { println(it) }
+        val findFlow = collection.find(filter)
+        findFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
@@ -118,20 +120,21 @@ internal class QueryDocumentTest {
             PaintOrder(4, 6, "white", listOf("D"), 9),
             PaintOrder(7, 8, "green", listOf("C", "E"), 7)
         )
-        assertEquals(expected, collection.find(filter).toList() )
+        assertEquals(expected, findFlow.toList() )
     }
 
     @Test
     fun evaluationQueryTest() = runBlocking {
         // :snippet-start: evaluation-filter
         val filter = Filters.regex("color", "k$")
-        collection.find(filter).collect { println(it) }
+        val findFlow = collection.find(filter)
+        findFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
             PaintOrder(6, 3, "pink", listOf("C")),
             PaintOrder(8, 7, "black", listOf("A", "C", "D"))
         )
-        assertEquals(expected, collection.find(filter).toList() )
+        assertEquals(expected, findFlow.toList() )
     }
 }
