@@ -14,7 +14,7 @@
        .. include:: /includes/steps/add-x509-user.rst
 
    - id: aws-iam
-     name: AWS IAM Authentication
+     name: AWS IAM
      content: |
 
        .. note::
@@ -46,3 +46,9 @@
 
           mongosh "mongodb+srv://<atlas-host-name>/test?authSource=%24external&authMechanism=MONGODB-AWS" \
             --username <access-key-id> --password <secret-key>
+
+   - id: oidc
+     name: OIDC
+     content: |
+
+       .. include:: /includes/steps/create-oidc-user.rst
