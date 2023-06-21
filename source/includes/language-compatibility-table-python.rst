@@ -20,6 +20,20 @@ Python 3 Compatibility
      - Python 3.2
      - Python 3.1
 
+   * - 4.4
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     -
+     -
+     -
+     -
+     -
+     -
+     -
+
    * - 4.3
      - ✓
      - ✓
