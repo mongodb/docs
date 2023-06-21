@@ -18,3 +18,83 @@ Compatibility Changes in MongoDB 7.0
 
 This page describes changes introduced in MongoDB 7.0 that can affect
 compatibility with older versions of MongoDB.
+
+MongoDB 7.0 is a |lts| Release, which means that it is supported for
+both MongoDB Atlas and on-premises deployments. MongoDB 7.0 includes
+changes introduced in MongoDB Rapid Releases 6.1, 6.2, and 6.3. This
+page describes compatibility changes introduced in those Rapid Releases
+and MongoDB 7.0.
+
+To learn more about the differences between |lts| and Rapid Releases,
+see :ref:`release-version-numbers`.
+
+For detail on downgrading from MongoDB 7.0, see :ref:`7.0-downgrade`.
+
+Backward-Incompatible Features
+------------------------------
+
+.. include:: /includes/fact-7.0-backwards-incompatible
+
+Intra-Node Authentication
+-------------------------
+
+Starting in MongoDB 7.0, you can configure servers to authetnicate 
+X.509 certificates as cluster members identified by attributes or extension
+values.  You can also override this configuration to accept alternate 
+certificates during a rolling upgrade.
+
+To downgrade to MongoDB 6.0, perform the certificate rotation procedure to unset
+the :setting:`net.tls.clusterAuthX509` setting and rotate the cluster
+membership certificates to ones with matching DC, O, and OU attributes.
+
+Once this is complete, you can downgrade the cluster.  
+
+Time-Series
+-----------
+
+- Remove partial TTL indexes from time series collections.
+
+- Remove or modify collections using new index parameters.  In some cases, you
+  may use :dbcommand:`collMod` to switch to legacy granulairty settings, if not
+  you need to drop the collection before downgrading.
+
+Indexes
+-------
+
+Remove columnar indexes from collections before downgrading the server.
+
+Cluster Configuration
+---------------------
+
+Active :parameter:`setClusterParameter` paramemter operations prevent
+feature Compatibility Version (fCV) from successful completion.
+
+
+Encrypted Multi-Map (EMM)
+--------------------------
+
+Remove collections that use the ``encryptedFields`` collection option 
+before downgrading.
+
+Colocated Config Servers
+------------------------
+
+Remove colocated config servers from the cluster before downgrading.
+
+#. Run the :dbcommand:`transitionToDedicatedConfigServer` command 
+   to drain data from the config server.  
+
+   Wait for the balancert o move all chunks off the config server.
+
+#. Use the :dbcommand:`movePrimary` command to move databases off 
+   the config server.
+
+#. Run the :dbcommand:`transitionToDedicatedConfigServer` command to complete
+   the transition.
+
+Wildcard Indexes
+----------------
+
+Compound wildcard indexes require fCV 7.0 or greater. A pre-7.0
+:binary:`mongod` does not start if you are using one or more compound
+wildcard indexes.
