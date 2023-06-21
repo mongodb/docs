@@ -1,17 +1,23 @@
-- Wildcard indexes can support at most *one* field in any given query 
-  predicate. For more information on wildcard index query
-  support, see :ref:`wildcard-index-query-sort-support`.
-
 - Wildcard indexes omit the ``_id`` field by default. To include the
-  ``_id`` field in the wildcard index, you must explicitly include it in
-  the wildcardProjection document (i.e. ``{ "_id" : 1 }``).
+  ``_id`` field in a wildcard index, you must explicitly include it in
+  the ``wildcardProjection`` document.
+  
+  .. code-block:: javascript
+    
+     db.salesData.createIndex(
+        { "$**" : 1 },
+        { "wildcardProjection" :
+           { "_id": 1, "customers.lastName": 1, "customers.FirstName": 1, }
+        }
+     )
 
-- You can create multiple wildcard indexes in a collection.
+- You can create more than one wildcard index on a collection.
 
 - A wildcard index may cover the same fields as other indexes in the 
   collection.
 
-- Wildcard indexes are :ref:`sparse <index-type-sparse>` and only
-  contain entries for documents that have the indexed field, even if the
-  index field contains a null value.
+- Wildcard indexes are :ref:`sparse <index-type-sparse>`. They only
+  include entries for documents that contain the indexed field.
 
+  The document is not indexed if all of the fields in the compound
+  wildcard index are missing.

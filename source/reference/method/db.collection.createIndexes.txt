@@ -48,54 +48,8 @@ Definition
           the index key and the value describes the type of index for that
           field. For an ascending index on a field, specify a value of ``1``; for
           descending index, specify a value of ``-1``.
-          
-          
-          
-          MongoDB supports several different index types including
-          ``text``, :ref:`geospatial <index-feature-geospatial>`, and 
-          :ref:`hashed <index-type-hashed>` indexes. See :ref:`index 
-          types <index-types>` for more information.
-          
-          
-          :ref:`Wildcard indexes <wildcard-index-core>`
-          support workloads where users query against custom fields or a
-          large variety of fields in a collection:
-          
-          - To create a wildcard index on all fields and subfields in a 
-            document, specify ``{ "$**" : 1 }`` as the index key. You
-            cannot specify a descending index key when creating a
-            wildcard index.
-          
-            You can also either include *or* exclude specific fields and
-            their subfields from the index using the optional
-            ``wildcardProjection`` parameter.
-          
-            .. include:: /includes/extracts/wildcard-index-id.rst
-          
-          - You can create a wildcard index on a specific field
-            and its subpaths by specifying the full path to that field
-            as the index key and append ``"$**"`` to the path:
-          
-            ``{ "path.to.field.$**" : 1 }`` 
-          
-            You cannot specify a descending index key when creating a
-            wildcard index.
-          
-            The path-specific wildcard index syntax is incompatible with
-            the ``wildcardProjection`` option. You cannot specify
-            additional inclusions or exclusions on the specified path.
-          
-            The wildcard index key **must** use one of the syntaxes 
-            listed above. For example, you cannot specify a
-            :ref:`compound index key <index-type-compound>`.  For more
-            complete documentation on wildcard indexes, including
-            restrictions on their creation, see 
-            :ref:`wildcard-index-restrictions`.
 
-            For more information on creating wildcard indexes, see
-            :ref:`createIndexes-method-wildcard-behavior`.
-          
-          
+          .. include:: /includes/indexes/wildcard-use-wc-methods.rst
 
       * - ``options``
    
@@ -569,11 +523,15 @@ The following option is available for
 
      - document
 
-     - Optional. Allows users to include or exclude specific field paths from
-       the  :ref:`wildcard index <wildcard-index-core>`. This option is only 
-       valid if creating a :ref:`wildcard index <wildcard-index-core>`.
+     - Optional. Allows users to include or exclude specific field paths
+       from a :ref:`wildcard index <wildcard-index-core>`.
        
-       
+       This option is only valid when you create an :ref:`wildcard index
+       <wildcard-index-core>` on all document fields. You cannot specify
+       the ``wildcardProjection`` option when you create a wildcard
+       index on a specific field path and its subfields.
+      
+       .. include:: /includes/indexes/wildcard-projection-specifications.rst
        
        The ``wildcardProjection`` option takes the following form:
        
@@ -587,19 +545,16 @@ The following option is available for
        The ``<value>`` can be either of the following:
        
        - ``1`` or ``true`` to include the field in the wildcard index.
-       
        - ``0`` or ``false`` to exclude the field from the wildcard index. 
        
        .. include:: /includes/extracts/wildcard-index-id.rst
        
-       Options specified to :method:`db.collection.createIndexes` apply to **all** of the index
-       specifications included in the key pattern array. Specify 
-       ``wildcardProjection`` only if you are creating a single wildcard index using 
+       Options specified to :method:`db.collection.createIndexes` apply
+       to **all** of the index specifications included in the key
+       pattern array. Specify ``wildcardProjection`` only if you are
+       creating a single wildcard index using
        :method:`db.collection.createIndexes`.
        
-       
-
-
 
 Behaviors
 ---------
@@ -817,9 +772,7 @@ The following operation creates a wildcard index on all scalar fields
 .. code-block:: bash
 
    use inventory
-   db.products_catalog.createIndexes(
-     [ { "$**" : 1 } ]
-   )
+   db.products_catalog.createIndexes( [ { "$**" : 1 } ] )
 
 With this wildcard index, MongoDB indexes all scalar fields for each
 document in the collection. If a given field is a nested document or
@@ -866,17 +819,18 @@ fields in the index.
      }
    )
 
-While the key pattern ``"$**"`` covers all fields in the document, the
-``wildcardProjection`` field limits the index to only the included
-fields. For complete documentation on ``wildcardProjection``, see 
-:ref:`createIndexes-method-wildcard-option`.
+The pattern ``"$**"`` includes all fields in the document. Use the
+``wildcardProjection`` field to limit the index to the specified fields.
+
+For complete documentation on ``wildcardProjection``, see 
+:ref:`createIndex-method-wildcard-option`.
 
 If a field is a nested document or array, the wildcard
 index recurses into the document/array and indexes all scalar fields in 
 the document/array.
 
-The created index can support queries on any scalar field
-included in the ``wildcardProjection``:
+The wildcard index supports queries on any scalar field included in
+the ``wildcardProjection``:
 
 .. code-block:: bash
 
@@ -889,16 +843,15 @@ included in the ``wildcardProjection``:
 
 .. _createIndexes-method-exclusion:
 
-Create a Wildcard Index that Excludes Multiple Specific Field Paths
-```````````````````````````````````````````````````````````````````
+Omit Specific Fields from Wildcard Index Coverage
+`````````````````````````````````````````````````
 
 .. include:: /includes/extracts/wildcard-index-example-pre.rst
 
-The following operation creates a wildcard index and uses
-the ``wildcardProjection`` document to index all scalar fields
-for each document in the collection, *excluding* the 
-``product_attributes.elements`` and ``product_attributes.resistance``
-fields:
+This example uses a wildcard index and a ``wildcardProjection``
+document to index the scalar fields for each document in the collection.
+The wildcard index excludes the ``product_attributes.elements`` and
+``product_attributes.resistance`` fields:
 
 .. code-block:: bash
 
@@ -913,17 +866,19 @@ fields:
      }
    )
 
-While the key pattern ``"$**"`` covers all fields in the document, the
-``wildcardProjection`` field excludes the specified fields from the
-index. For complete documentation on ``wildcardProjection``, see 
-:ref:`createIndexes-method-wildcard-option`.
+The wildcard pattern ``"$**"`` includes all of the fields in the
+document. However, the ``wildcardProjection`` field excludes the
+specified fields from the index.
+
+For complete documentation on ``wildcardProjection``, see 
+:ref:`createIndex-method-wildcard-option`.
 
 If a field is a nested document or array, the wildcard
 index recurses into the document/array and indexes all scalar fields in 
 the document/array.
 
-The created index can support queries on any scalar field **except**
-those excluded by ``wildcardProjection``:
+The index can support queries on any scalar field **except** fields that
+are excluded by ``wildcardProjection``:
 
 .. code-block:: bash
 
