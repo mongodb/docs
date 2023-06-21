@@ -1,0 +1,404 @@
+.. _sql-reference:
+
+=========================================
+{+asql+} Language Reference
+=========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page outlines the syntax and semantics of {+asql+},
+a SQL dialect designed to provide first-class support for
+working with MongoDB's flexible document model.
+This page lists and describes supported clauses, operators, expressions, and functions.
+
+.. _sql-limitations:
+
+Compatability and Limitations
+-----------------------------
+
+{+asql+} is based on the SQL-92 standard.
+However {+asql+} is not fully SQL-92 compatible due to the following limitations:
+
+- The ``UNION`` function is not supported. However, ``UNION ALL`` is supported.
+- The ``date`` data type is not supported. Use ``timestamp`` instead.
+- ``DISTINCT`` is not supported.
+- Interval and date interval arithmetic are not supported.
+
+Type System
+-----------
+
+.. _asql-data-types:
+
+Data Types
+~~~~~~~~~~
+
+{+asql+} data types are the set of `BSON types <https://bsonspec.org/spec.html>`_.
+All of these types can be queried in {+asql+}. They are:
+
+- String (``STRING``)
+- Document (``DOCUMENT``)
+- Array (``ARRAY``)
+- BinData (``BINDATA``)
+- ObjectId (``OBJECTID``)
+- Boolean (``BOOL``)
+- Date (``DATE``)
+- Null (``NULL``)
+- Regex (``REGEX``)
+- 32-bit integer (``INT``)
+- Double (``DOUBLE``)
+- Long (``LONG``)
+- Timestamp (``BSON_TIMESTAMP``)
+- Decimal (``DECIMAL``)
+- MinKey (``MINKEY``)
+- MaxKey (``MAXKEY``)
+- DBPointer (``DBPOINTER``)
+- Symbol (``SYMBOL``)
+- Javascript with scope (``JAVASCRIPTWITHSCOPE``)
+
+Each type in {+asql+} has a name (in parentheses above), which is a keyword that can be used to
+reference the type when necessary (e.g. in an expression like ``CAST``).
+
+Type Conversions
+~~~~~~~~~~~~~~~~
+
+Explicit type conversions are expressed via the ``CAST`` function or the ``::`` operator.
+Numeric types are all mutually comparable;
+{+asql+} allows operations between the various numeric types without casting the operands to be the same numeric type.
+
+.. _asql-schema-type-constraint:
+
+Schemas
+~~~~~~~~~~
+
+{+asql+} converts MongoDB's flexible document values into types using a schema.
+An {+asql+} :ref:`schema <sql-schema-management>` is a collection of facts about an expression or
+collection that are known to be true at compile time.
+
+For example, an {+asql+} schema might dictate that
+an expression is either a boolean or a document with subfields,
+or that an expression is either an array with a length of one or a positive integer.
+
+If a static type constraint is not satisfied, the query will fail to compile.
+
+.. _asql-aggregation-functions:
+
+Aggregation Functions
+---------------------
+
+{+asql+} supports MongoDB's :manual:`aggregation pipeline </core/aggregation-pipeline/>` in the :ref:`GROUP BY <asql-group-by-clause>` clause.
+
+Clauses
+-------
+
+{+asql+} queries support a basic set of SQL clauses.
+The available clauses are:
+
+ ``SELECT``
+ ``FROM``
+ ``WHERE``
+ ``GROUP BY``
+ ``HAVING``
+ ``ORDER BY``
+ ``OFFSET``
+ ``LIMIT``
+
+SELECT
+~~~~~~
+
+``SELECT`` begins every Atlas SQL query.
+{+asql+} allows ``SELECT VALUE`` and ``SELECT VALUES`` to be used interchangeably.
+
+{+asql+} requires nested ``SELECT`` statements to have an alias.
+
+.. code-block:: none
+
+   SELECT foo FROM (SELECT bar ) as subSelect
+
+.. _from-clause:
+
+FROM
+~~~~
+
+``FROM`` is the first clause evaluated in every {+asql+} query.
+
+FROM can pull data from various sources including collections (``SELECT * FROM foo``),
+joins (``SELECT * FROM (a JOIN b)``), and from :ref:`FLATTEN and UNWIND <asql-flatten-and-unwind>`.
+  
+.. _asql-where-clause:
+
+WHERE
+~~~~~
+
+The ``WHERE`` clause is a filter on incoming data.
+Its expression must be a ``BOOLEAN``.
+
+.. _asql-group-by-clause:
+
+GROUP BY
+~~~~~~~~
+
+``GROUP BY`` provides a means for grouping and aggregating data.
+
+If using ``GROUP BY`` on a field that has been flattened using :ref:`FLATTEN or UNWIND <asql-flatten-and-unwind>`,
+an alias is required.
+
+.. code-block:: none
+     
+   SELECT customerAge, COUNT(*) FROM Sales GROUP BY customer.age AS customerAge
+
+.. _asql-agg-funcs:
+
+Aggregation Functions
+`````````````````````
+{+asql+} supports the following aggregation functions.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Notes
+   * - ``ADD_TO_ARRAY``
+     - Pushes the argument to the end of an array.
+       The total output of this function will be an array.
+     - The argument to ``ADD_TO_ARRAY`` can have any type.
+   * - ``ADD_TO_SET``
+     - Pushes the argument to the end of an array removing duplicates.
+       The total output of this function will be an array with all duplicate items removed.
+       Duplicates are determined using the ``=`` operator.
+     - The argument to ``ADD_TO_SET`` can have any type.
+   * - ``AVG``
+     - Returns the average of all the arguments.
+     - The argument must be statically typed to a numeric type.
+   * - ``COUNT``
+     - Counts the number of elements.
+       ``COUNT(*)`` counts all values unconditionally.
+       ``COUNT(<expression>)`` counts all values for which the expression does not result in ``NULL`` or ``MISSING``.
+     - The argument to ``COUNT`` can have any type.
+   * - ``FIRST``
+     - Returns the first element in the group.
+     - Deterministic only when the input has deterministic order, otherwise undefined.
+   * - ``LAST``
+     - Returns the first element in the group.
+       Deterministic only when the input has deterministic order, otherwise undefined.
+     - The argument to ``LAST`` can have any type.
+   * - ``MAX``
+     - Returns the maximum element as ordered by the {+asql+} ``>`` operator.
+     - The argument must be statically typed to be comparable via the ``>`` operator.
+   * - ``MERGE_DOCUMENTS``
+     - Returns a document formed by successively merging documents,
+       with the previous element used as the left hand side.
+       In the case of duplicate keys, the value of the key in the new element is kept.
+       As with ``FIRST`` and ``LAST``,
+       the output is only deterministic when the input has deterministic ordering.
+     - The argument must be statically typed as ``DOCUMENT``,
+       and thus ``MERGE_DOCUMENTS(DISTINCT x)`` is not supported.
+   * - ``MIN``
+     - Returns the minimum element as ordered by the {+asql+} ``<`` operator.
+     - The argument must be statically typed to be comparable via the ``<`` operator.
+   * - ``STDDEV_POP``
+     - Returns the standard deviation of all elements over the entire group population.
+     - The argument must be statically typed to a numeric type.
+       See :manual:`stdDevPop </reference/operator/aggregation/stdDevPop>`.
+   * - ``STDDEV_SAMP``
+     - Returns the standard deviation of a sample of all elements in the group.
+       See :manual:`stdDevPop </reference/operator/aggregation/stdDevSamp>`.
+     - The argument must be statically typed to a numeric type.
+   * - ``SUM``
+     - Returns the sum of all the arguments.
+     - The argument must be statically typed to a numeric type.
+
+HAVING
+~~~~~~
+
+The ``HAVING`` clause operates in the same way as a ``WHERE`` clause, but after the ``GROUP BY`` clause.
+Like the ``WHERE`` clause, the ``HAVING`` clause takes an expression
+that must statically have type ``BOOL`` or ``NULL`` and may evaluate to ``MISSING``.
+It can reference aliases defined in the ``GROUP BY`` and can contain expressions with aggregation functions.
+Only aliases defined in the ``GROUP BY`` are available to the ``HAVING`` clause.
+
+ORDER BY
+~~~~~~~~
+
+The ``ORDER BY`` clause provides a way to order a result set by one or more sort keys.
+Each sort key can be either a column reference,
+or an integer literal referring to a ``SELECT`` expression by its position in the select expression list.
+Sort keys that are column references can be compound identifiers.
+These compound identifiers can be qualified with datasource names or refer to document subfields.
+
+{+asql+} sorts ``MISSING`` before ``NULL``, and ``NULL`` before all other values.
+The ``ORDER BY`` clause requires that all possible values in a sort key expression
+can be statically verified to be comparable via the ``>`` (greater than)  and ``<`` (less than) operators.
+
+LIMIT and OFFSET
+~~~~~~~~~~~~~~~~
+
+The ``LIMIT`` and ``OFFSET`` clauses allow users to retrieve only some of the rows returned by a query.
+If a ``LIMIT`` number is provided, no more than that number of rows will be returned.
+If an ``OFFSET`` number is provided, that number of rows is skipped before returning rows.
+
+Both ``LIMIT`` and ``OFFSET`` numbers must be positive integers.
+Using ``LIMIT`` or ``OFFSET`` without ``ORDER BY`` does not guarantee the same result.
+
+When ``LIMIT`` and ``OFFSET`` are both set,
+the ``OFFSET`` rows will be skipped before returning the rest of the results,
+which should contain no more than the ``LIMIT`` number rows.
+
+``LIMIT i, j`` is a shorter form of ``LIMIT i OFFSET j``.
+
+``LIMIT`` and ``OFFSET`` can be used in subqueries.
+
+Set operations
+--------------
+
+The ``UNION ALL`` set operator returns a single result set for two ``SELECT`` queries.
+The ``UNION ALL`` operator does not remove duplicate rows from the result set.
+The result set returned by the ``UNION ALL`` operator does not have a defined order.
+
+{+asql+} does not support distinct ``UNION``, ``INTERSECT``, or ``EXCEPT`` set operations.
+
+.. _asql-expressions:
+
+Expressions
+-----------
+
+Identifiers
+~~~~~~~~~~~
+
+Identifiers in {+asql+} refer to databases, tables, and columns.
+{+asql+} identifiers support all UTF-8 characters except the null character ``\x00``.
+
+In {+asql+}, some identifiers are restricted to avoid conflicts
+with characters that have other semantic meaning; for an identifier to include such a character, it must be *delimited*,
+that is, surrounded by double quotes or backticks.
+For example, an identifier must be delimited if it begins with a digit or if it conflicts with a reserved keyword
+(e.g. ``"10cent"``).
+Identifiers are case-sensitive, whether delimited or not.
+
+.. _asql-aliases:
+
+Aliases
+~~~~~~~
+
+Identifiers are used for all aliases in {+asql+}.
+In most cases, {+asql+} returns an error if an alias is used more than once in the same clause.
+The exception to this is that aliases can be repeated on both sides of a ``UNION ALL``.
+This also applies to automatically generated aliases.
+
+Keywords
+~~~~~~~~
+
+{+asql+} keywords (such as ``SELECT``, ``FROM``, ``JOIN``, etc.) cannot be used as undelimited identifiers.
+
+Literals
+~~~~~~~~
+
+{+asql+} supports literals for booleans, null, numbers, and strings.
+Strings are enclosed in single quotes.
+To include a single quote character in a string literal, double it (``"o''clock"``).
+
+Literal integers are typed as ``INT`` when within the 32-bit signed integer range and ``LONG`` otherwise.
+Literal floating point numbers or scientific notation numbers have type ``DOUBLE``.
+
+{+asql+} does not support literals for every type.
+For example ``OBJECTID``, ``BSON_DATE``, and ``DECIMAL`` have no literal syntax.
+For such types, pseudo-literal values can be obtained by using the ``CAST`` operator
+to get from a string or numeric representation of those types to their respective type.
+Some types may also have "constructor" functions which alias the relevant ``CAST`` invocations.
+
+Parenthesized Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A parenthesized expression is an expression grouped by parentheses.
+Any time infix operators are present, the need for parentheses (or a similar mechanism) to distinguish order of operations may be necessary.
+{+asql+} has several infix operators, such as ``+`` and ``::``.
+For example, the value of ``1 + 2 * 3`` is 7, while the value of ``(1 + 2) * 3`` is 9.
+
+Operators
+~~~~~~~~~
+
+{+asql+} supports the following basic operators:
+
+- ``+``
+- ``-``
+- ``<``
+- ``<=``
+- ``!=``
+- ``==``
+- ``>``
+- ``>=``
+- ``BETWEEN``
+- ``AND``
+- ``OR``
+- ``NOT``
+
+Subquery Expressions
+~~~~~~~~~~~~~~~~~~~~
+
+A subquery is a SQL query within a query.
+You can use a subquery anywhere an expression can be used.
+
+{+asql+} supports scalar subquery and table subquery.
+A scalar subquery returns a result set with zero or one row and one column.
+It can be used in most places a literal or single column value is valid.
+A table subquery returns zero or more rows and one or more columns.
+
+Document and Field-Access Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Documents can be represented with a syntax similar to JSON objects.
+Keys must be strings and values can have any of the :ref:`supported types <asql-data-types>`.
+To access document fields, {+asql+} supports two options: "dot" notation and "bracket" notation.
+
+Dot notation is similar to field access in MongoDB aggregation.
+For example, if a document ``doc`` contains a field ``f``, then the expression ``doc.f`` is used to access the value of that field.
+Bracket notation uses square brackets (``[`` and ``]``) around a field name to access the field with that name.
+For example, consider the same document described before: ``doc["f"]`` is used to access the value of that field.
+
+Array, Indexing, and Slicing Expressions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Arrays are ordered lists of values.
+Elements can have any of the :ref:`supported types <asql-data-types>` and do not need to all be the same type.
+Access array elements in {+asql+} with bracket notation.
+For example, if an array ``arr`` contains the elements ``1``, ``2``, and ``3`` in that order,
+then the expression ``arr[0]`` is used to access the first element, ``1``.
+
+The index must be ``NULL`` or ``INT``, and may evaluate to ``MISSING``.
+
+The semantics of array element access match those of the :manual:`aggregation operator </reference/operator/aggregation/arrayElemAt/>`.
+
+Null and Missing
+~~~~~~~~~~~~~~~~
+
+BSON distinguishes between ``NULL`` and ``MISSING``.
+In the case of ``NULL`` there is a field with the literal value ``NULL``,
+whereas in the case of ``MISSING``, the field is gone.
+
+Comments
+--------
+
+Comments are sequences of characters within queries that do not impact query execution.
+{+asql+} supports both standard SQL comments and C-style block comments.
+
+Standard SQL comments begin with double dashes and end with a new line:
+
+.. code-block::
+   :copyable: false
+
+   \-- This is a standard SQL comment
+
+Block comments begin with ``\*`` and end at the matching occurrence of ``*/``.
+
+.. code-block::
+   :copyable: false
+
+   \* This is a
+   multiline comment
+   */

@@ -1,8 +1,8 @@
-.. _sql-reference:
+.. _aslq-write-asql-queries:
 
-=========================
-{+asql+} Reference
-=========================
+=========================================
+Query Atlas SQL with {+asql+}
+=========================================
 
 .. default-domain:: mongodb
 
@@ -12,22 +12,65 @@
    :depth: 2
    :class: singlecol
 
-.. include:: /includes/extracts/fact-adf-sql-preview-message.rst 
+The page gives example {+asql+} queries.
+You'll find basic examples that use SQL syntax to query collections,
+as well more advanced ones that use ``FLATTEN`` and ``UNWIND`` to work with nested data.
 
-The {+asql+} interface is a SQL-92 compatible dialect (read-only) with 
-some :ref:`limitations <sql-limitations>`. 
-This reference covers specific capabilities of the dialect that are 
-included to make it easier for you to interact with document structures.
+Example Queries
+---------------
+
+Try running the following {+asql+} queries against the 
+:ref:`sql-getting-started` sample {+fdi+}, or modify them to read your 
+own data.
+
+.. note::
+
+   These examples use :ref:`short-form syntax <short-sql-syntax>`.
+
+SELECT Statement
+~~~~~~~~~~~~~~~~
+
+.. code-block:: sh
+   :copyable: true
+
+   SELECT * FROM sessions;
+
+{+asql+} returns all documents from the ``Sessions`` collection.
+
+LIMIT Statement
+~~~~~~~~~~~~~~~
+
+.. code-block:: sh
+   :copyable: true
+      
+   SELECT * FROM users LIMIT 2;
+
+{+asql+} returns two documents from the ``Users`` collection.
+
+WHERE Statement
+~~~~~~~~~~~~~~~
+
+.. code-block:: sh
+   :copyable: true
+      
+   SELECT * FROM users WHERE name = 'Jon Snow';
+
+{+asql+} returns documents from the ``Users`` collection where the user's ``name`` is ``Jon Snow``.
+
+.. _asql-flatten-and-unwind:
+
+FLATTEN and UNWIND
+------------------
+
+This section covers two {+asql+} capabilities that make it easier to interact with document structures.
+These are unique to {+asql+}.
 
 FLATTEN
--------
+~~~~~~~
 
 ``FLATTEN`` flattens semi-structured data (name-value pairs in 
 JSON) into separate columns. Field names become column names that hold 
 all of the values for that field in rows.
-
-Syntax
-~~~~~~
 
 The syntax for flattening nested documents is a ``FLATTEN`` function 
 that can be used in the ``FROM`` clause in conjunction with a data 
@@ -62,6 +105,8 @@ source and options.
      - String to use as the delimiter when concatenating 
        field names. Defaults to ``_``.
 
+.. _asql-flatten-example:
+       
 Flatten Example
 ~~~~~~~~~~~~~~~
 
@@ -118,18 +163,15 @@ When you use ``FLATTEN``, each flattened field from the original
 document becomes a top-level field in the result set. Nested fields are 
 concatenated with their parent field names and separated by the default 
 delimiter, ``_``.
-     
+
 UNWIND
-------
+~~~~~~
 
 ``UNWIND`` deconstructs an array field from the input data source to 
 output one row for each item in that array. To learn more about 
 unwinding, see the 
 :manual:`$unwind </reference/operator/aggregation/unwind/>` aggregation 
 stage documentation.
-
-Syntax
-~~~~~~
 
 The syntax for unwinding array fields is an ``UNWIND`` function that 
 can be used in the ``FROM`` clause in conjunction with a data source 
@@ -256,8 +298,8 @@ If you run the query
 When you use ``UNWIND`` with ``PATH => visits``, each ``visits`` object 
 becomes a table row.
 
-Unwind and Flatten Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Combined FLATTEN and UNWIND Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example combines the ``FLATTEN`` and ``UNWIND`` functions.
 
@@ -356,21 +398,5 @@ If you run the query
      - 8
      - 7
 
-When you use both the ``FLATTEN`` and ``UNWIND`` functions, {+asql+} 
-flattens the ``customer`` nested document, and unwinds and flattens the 
-``visits`` array.
-
-.. _sql-limitations:
-
-Limitations
------------
-
-{+asql+} is not fully SQL-92 compatible due to the following 
-limitations:
-
-- The ``UNION`` function is not supported. However, ``UNION ALL`` is 
-  supported.
-
-- The ``date`` data type is not supported. Use ``timestamp`` instead.
-
-- Interval and date interval arithmetic are not supported.
+When you use both the ``FLATTEN`` and ``UNWIND`` functions,
+the ``visits`` array is unwound, and the resulting document is then flattened.
