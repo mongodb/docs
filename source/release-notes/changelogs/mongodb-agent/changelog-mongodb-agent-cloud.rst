@@ -16,8 +16,10 @@ MongoDB Agent 12.16.0.8175-1
 
 *Released* 2023-05-03
 
-Fixes an issue where restores could be interrupted by transient issues
-when retrieving a replication status.
+- Fixes an issue where restores could be interrupted by transient issues
+  when retrieving a replication status.
+- Improves |tls| certificate validation when configuring |tls| for 
+  MongoDB deployments in the UI.
 
 
 .. _12.15.0.8092:
