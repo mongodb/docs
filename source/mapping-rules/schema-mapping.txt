@@ -1,0 +1,138 @@
+==============
+Schema Mapping
+==============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Schema mapping is the process by which you decide how your source relational schema 
+should be represented in your target MongoDB database. Facilitate the schema 
+mapping process in Relational Migrator through customized mappings rules.
+
+Mapping Rules
+-------------
+
+During the schema mapping design process, Relational Migrator automatically derives 
+the source data model from the schema of your relational database. The destination data 
+model can be influenced by customizing:
+
+- Mapping Rule options
+
+- Project ID field options
+
+.. image:: /img/schema-mapping/schema-mapping-relational-migrator-concept-diagram-b.png
+   :figwidth: 450 px
+   :alt: Schema Mapping Concept
+
+Example
+-------
+
+This section provides a scenario and example implementation for the schema mapping 
+process. This example converts a relational data model to a MongoDB data 
+model.
+
+Using the ``MongoEnterprises`` relational database, the goal is to flatten 
+all of the database's tables, so that all the order and customer data is 
+available in a single MongoDB collection.
+
+Use-Case Denormalizing Table Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following image shows the relational data model to be denormalized using the 
+Relational Migrator.
+
+.. image:: /img/schema-mapping/schema-mapping-mongo-enterprises.png
+   :figwidth: 450 px
+   :alt: Relational Data Model
+
+Mapping Rule Results
+~~~~~~~~~~~~~~~~~~~~
+
+When using Relational Migrator, the goal is to achieve the following MongoDB data model. 
+The ``Order`` collection contains all the child elements from the ``Customer``, 
+``Order``, ``Product`` and ``Order Line`` tables. The collection has nested 
+objects for the migrated tables. The results look like this:
+
+.. code-block:: json
+
+   {
+     "_id": {
+       "OrderID": 1
+     },
+     "CustomerID": 1,
+     "OrderStatusID": 1,
+     "TotalAmount": 550,
+     "Customer": {
+       "CustomerID": 1,
+       "Name": "Joelynn Fawthrop",
+       "Address1": "86 Dwight Pass",
+       "Address2": "Carregal",
+       "Address3": "3800-854"
+     },
+     "OrderLines": [
+       {
+         "OrderLineID": 1,
+         "OrderID": 1,
+         "ProductID": 1,
+         "Quantity": 1,
+         "Product": {
+           "ProductID": 1,
+           "Name": "Mark Porter Action Figure",
+           "Price": 50
+         }
+       },
+       {
+         "OrderLineID": 4,
+         "OrderID": 1,
+         "ProductID": 3,
+         "Quantity": 1,
+         "Product": {
+           "ProductID": 3,
+           "Name": "Gold Plated MongoDB Compass",
+           "Price": 500
+         }
+       }
+     ],
+     "OrderStatus": {
+       "OrderStatusID": 1,
+       "Name": "Order Placed"
+     }
+   }
+
+Mapping Rule Implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To accomplish the target data model results with Relational Migrator, configure 
+the ``Order`` table with the following mapping rule options:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Relational Table
+     - Mapping Rule Type
+     - Root Path
+  
+   * - Order
+     - :ref:`New Documents <rm-new-documents>`
+     - N/A
+
+   * - OrderLine
+     - :ref:`Embedded array <rm-embedded-array>`
+     - ``OrderLines``
+
+   * - Customer
+     - :ref:`Embedded documents <rm-embedded-documents>`
+     - ``Customer``
+
+   * - OrderStatus
+     - :ref:`Embedded documents <rm-embedded-documents>`
+     - ``OrderStatus``
+
+   * - Product
+     - :ref:`Embedded documents <rm-embedded-documents>`
+     - ``OrderLInes.Product``
