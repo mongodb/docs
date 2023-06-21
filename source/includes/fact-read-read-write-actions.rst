@@ -53,22 +53,26 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`convertToCapped`
        - :authaction:`createCollection`
        - :authaction:`createIndex`
+       - ``createSearchIndex``
        - :authaction:`dbHash`
        - :authaction:`dbStats`
        - :authaction:`dropCollection`
        - :authaction:`dropDatabase`
        - :authaction:`dropIndex`
+       - ``dropSearchIndex``
        - :authaction:`enableProfiler`
        - :authaction:`find`
        - :authaction:`killCursors`
        - :authaction:`listCollections`
        - :authaction:`listIndexes`
+       - ``listSearchIndexes``
        - :authaction:`planCacheIndexFilter`
        - :authaction:`planCacheRead`
        - :authaction:`planCacheWrite`
        - :authaction:`reIndex`
        - :authaction:`renameCollectionSameDB`
        - :authaction:`storageDetails`
+       - ``updateSearchIndex``
        - :authaction:`validate`
 
    * - ``dbAdminAnyDatabase``
@@ -92,6 +96,7 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`killCursors`
        - :authaction:`listIndexes`
        - :authaction:`listCollections`
+       - ``listSearchIndexes``
 
    * - ``readWrite``
      - User configured
@@ -100,16 +105,19 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`collStats`
        - :authaction:`convertToCapped`
        - :authaction:`createCollection`
+       - ``createSearchIndex``
        - :authaction:`dbHash`
        - :authaction:`dbStats`
        - :authaction:`dropCollection`
        - :authaction:`createIndex`
        - :authaction:`dropIndex`
+       - ``dropSearchIndex``
        - :authaction:`find`
        - :authaction:`insert`
        - :authaction:`killCursors`
        - :authaction:`listIndexes`
        - :authaction:`listCollections`
+       - ``listSearchIndexes``
        - :authaction:`remove`
        - :authaction:`renameCollectionSameDB`
        - :authaction:`update`
@@ -130,9 +138,11 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`collStats`
        - :authaction:`convertToCapped`
        - :authaction:`createCollection`
+       - ``createSearchIndex``
        - :authaction:`dbHash`
        - :authaction:`dbStats`
        - :authaction:`dropCollection`
+       - ``dropSearchIndex``
        - :authaction:`createIndex`
        - :authaction:`dropIndex`
        - :authaction:`find`
@@ -141,6 +151,7 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`listIndexes`
        - :authaction:`listCollections`
        - :authaction:`listDatabases`
+       - ``listSearchIndexes``
        - :authaction:`remove`
        - :authaction:`renameCollectionSameDB`
        - :authaction:`update`
@@ -158,3 +169,4 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`listIndexes`
        - :authaction:`listCollections`
        - :authaction:`listDatabases`
+       - ``listSearchIndexes``
