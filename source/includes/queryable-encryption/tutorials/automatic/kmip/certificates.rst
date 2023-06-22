@@ -23,27 +23,37 @@ a client certificate that your {+kmip-kms+} accepts:
    .. tab::
       :tabid: nodejs
 
-      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/node/kmip/reader/make_data_key.js
-         :start-after: start-create-tls
-         :end-before: end-create-tls
+      .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+         :start-after: // start-tls-options
+         :end-before: // end-tls-options
          :language: javascript
          :dedent:
 
    .. tab::
       :tabid: python
 
-      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/python/kmip/reader/make_data_key.py
-         :start-after: start-create-tls
-         :end-before: end-create-tls
+      .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_helpers.py
+         :start-after: # start-tls-options
+         :end-before: # end-tls-options
          :language: python
          :dedent:
 
    .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/qe-tutorials/mongosh/queryable-encryption-helpers.js
+         :start-after: // start-tls-options
+         :end-before: // end-tls-options
+         :language: javascript
+         :dedent:
+
+
+   .. tab::
       :tabid: csharp
 
-      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/dotnet/kmip/reader/QueryableEncryption/MakeDataKey.cs
-         :start-after: start-create-tls
-         :end-before: end-create-tls
+      .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
+         :start-after: // start-tls-options
+         :end-before: // end-tls-options
          :language: csharp
          :dedent:
 
@@ -61,11 +71,12 @@ a client certificate that your {+kmip-kms+} accepts:
    .. tab::
       :tabid: go
 
-      .. literalinclude:: /includes/generated/in-use-encryption/queryable-encryption/go/kmip/reader/make-data-key.go
-         :start-after: start-create-tls
-         :end-before: end-create-tls
+      .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
+         :start-after: // start-tls-options
+         :end-before: // end-tls-options
          :language: go
          :dedent:
+
 
       .. important::
 

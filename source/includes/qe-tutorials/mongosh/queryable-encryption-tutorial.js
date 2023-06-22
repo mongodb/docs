@@ -51,8 +51,11 @@ async function runExample() {
   );
   await qeHelper.dropExistingCollection(encryptedClient, keyVaultDatabaseName);
 
-  // start-create-encrypted-collection
+  // start-client-encryption
   const clientEncryption = encryptedClient.getClientEncryption()
+  // end-client-encryption
+
+  // start-create-encrypted-collection
   await clientEncryption.createEncryptedCollection(
     encryptedDatabaseName, 
     encryptedCollectionName, 

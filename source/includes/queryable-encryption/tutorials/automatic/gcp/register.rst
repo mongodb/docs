@@ -22,6 +22,11 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+
+         .. tab::
             :tabid: nodejs
 
             .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst

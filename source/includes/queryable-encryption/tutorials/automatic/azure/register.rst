@@ -16,6 +16,11 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: shell
+
+            .. include:: /includes/queryable-encryption/tutorials/automatic/azure/record-credentials.rst
+
+         .. tab::
             :tabid: nodejs
 
             .. include:: /includes/queryable-encryption/tutorials/automatic/azure/record-credentials.rst
