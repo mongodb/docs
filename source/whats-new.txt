@@ -4,8 +4,6 @@
 What's New
 ==========
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -44,6 +42,84 @@ What's New in 1.12
    - The ``mongo.NewClient()`` and ``client.Connect()`` methods are
      deprecated. You can create a client and connect in one call
      by using the ``mongo.Connect()`` method.
+
+New features of the 1.12 Go driver release include: 
+
+Queryable Encryption
+~~~~~~~~~~~~~~~~~~~~
+
+This driver version adds support for :ref:`qe-manual-feature-qe` (QE). To learn
+more about the requirements for using the QE feature, see the
+:ref:`Queryable Encryption Driver Compatibility Table
+<qe-compatibility-reference>`.
+  
+The ``ClientEncryption.CreateEncryptedCollection()``
+method automatically creates data encryption keys when
+you create a new encrypted collection. To learn how to use the QE
+feature, see the :ref:`qe-quick-start` in the Server manual.
+
+Logging Interface
+~~~~~~~~~~~~~~~~~
+
+You can now record connection management and command execution events by
+using the ``LogSink`` logging interface.
+
+The ``LogSink`` interface is
+compatible with the `logr.LogSink <https://pkg.go.dev/github.com/go-logr/logr#LogSink>`__ interface.
+You can use existing ``logr`` adapters with the logging interface
+such as :github:`zerologr <go-logr/zerologr>` or :github:`zapr <go-logr/zapr>`.
+
+Alternatively, you can implement your own ``LogSink`` adapter. The following
+example shows how to implement logging with an existing :github:`zerolog
+<rs/zerolog>` logger, called ``myLogger``:
+
+.. code-block:: go
+
+   sink := zerologr.New(&myLogger).GetSink()
+   loggerOptions := options.Logger().SetSink(sink)
+   options.Client().SetLoggerOptions(loggerOptions)
+
+Additional BSON Marshalling Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version adds features to the ``options`` package to specify
+how the driver marshals and unmarshals BSON.
+
+The following example shows how to set BSON options on your
+``Client``. The options specify the following behaviors:
+
+- The driver falls back to ``json`` :ref:`struct tags
+  <golang-struct-tags>` if ``bson`` struct tags are absent.
+- The driver marshals ``nil`` Go map types as empty BSON documents.
+- The driver marshals ``nil`` Go slice types as empty BSON arrays.
+
+.. code-block:: go
+
+   bsonOpts := &options.BSONOptions{
+   	UseJSONStructTags: true,
+   	NilMapAsEmpty:     true,
+   	NilSliceAsEmpty:   true,
+   }
+   options.Client().SetBSONOptions(bsonOpts)
+
+For a full example of how to specify and implement the ``BSONOptions``
+type, see the `API documentation <{+api+}/mongo#example-Connect-BSONOptions>`__.
+
+Simplified Write Concern Specification
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This driver version simplifies the ``WriteConcern`` API. To learn more about
+the changes, see :ref:`Write Concern <golang-writeconcern>`.
+
+Additional Changes
+~~~~~~~~~~~~~~~~~~
+
+- Support for authentication with AWS IAM roles in EKS.
+- Addition of the ``Cursor.SetBatchSize()`` method to allow
+  specification of the size of batches fetched when iterating through a
+  cursor.
+- Addition of the ``UnmarshalValue()`` method to allow ummarshalling of
+  BSON values marshalled with the ``MarshalValue()`` method.
 
 .. _version-1.11.0:
 .. _version-1.11:
