@@ -77,6 +77,46 @@ function getKMSProviderCredentials(kmsProviderName) {
   }
 }
 
+function getCustomerMasterKeyCredentials(kmsProviderString) {
+  let customerMasterKeyCredentials;
+  switch (kmsProviderString) {
+    case "aws":
+      // start-aws-cmk-credentials
+      customerMasterKeyCredentials = {
+        key: process.env["AWS_KEY_ARN"], // Your AWS Key ARN
+        region: process.env["AWS_KEY_REGION"], // Your AWS Key Region
+      };
+      // end-aws-cmk-credentials
+      return customerMasterKeyCredentials;
+    case "azure":
+      // start-azure-cmk-credentials
+      customerMasterKeyCredentials = {
+        keyVaultEndpoint: process.env["AZURE_KEY_VAULT_ENDPOINT"], // Your Azure Key Vault Endpoint
+        keyName: process.env["AZURE_KEY_NAME"], // Your Azure Key Name
+      };
+      // end-azure-cmk-credentials
+      return customerMasterKeyCredentials;
+    case "gcp":
+      // start-gcp-cmk-credentials
+      customerMasterKeyCredentials = {
+        projectId: process.env["GCP_PROJECT_ID"], // Your GCP Project ID
+        location: process.env["GCP_LOCATION"], // Your GCP Key Location
+        keyRing: process.env["GCP_KEY_RING"], //  Your GCP Key Ring
+        keyName: process.env["GCP_KEY_NAME"], // Your GCP Key Name
+      };
+      // end-gcp-cmk-credentials
+      return customerMasterKeyCredentials;
+    case "kmip":
+    case "local":
+      // start-kmip-local-cmk-credentials
+      customerMasterKeyCredentials = {};
+      // end-kmip-local-cmk-credentials
+      return customerMasterKeyCredentials;
+    default:
+      throw new Error("Invalid KMS provider name");
+  }
+}
+
 async function getAutoEncryptionOptions(
   kmsProviderName,
   keyVaultNamespace,

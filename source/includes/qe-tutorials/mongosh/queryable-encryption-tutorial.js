@@ -15,13 +15,13 @@ async function runExample() {
   // end-setup-application-variables
 
   const kmsProviderCredentials = qeHelper.getKMSProviderCredentials(kmsProviderName);
+  const customerMasterKeyCredentials = qeHelper.getCustomerMasterKeyCredentials(kmsProviderName);
 
   const autoEncryptionOpts = await qeHelper.getAutoEncryptionOptions(
     kmsProviderName,
     keyVaultNamespace,
     kmsProviderCredentials
   );
-  autoEncryptionOpts.bypassQueryAnalysis = false
   
   // start-encrypted-fields-map
   const encryptedFieldsMap = {
@@ -40,7 +40,6 @@ async function runExample() {
     },
   };
   // end-encrypted-fields-map
-  autoEncryptionOpts.encryptedFieldsMap = encryptedFieldsMap
   
   // start-create-client
   const encryptedClient = Mongo(uri, autoEncryptionOpts);
@@ -51,6 +50,19 @@ async function runExample() {
     encryptedDatabaseName
   );
   await qeHelper.dropExistingCollection(encryptedClient, keyVaultDatabaseName);
+
+  // start-create-encrypted-collection
+  const clientEncryption = encryptedClient.getClientEncryption()
+  await clientEncryption.createEncryptedCollection(
+    encryptedDatabaseName, 
+    encryptedCollectionName, 
+    {
+      provider: kmsProviderName, 
+      createCollectionOptions: encryptedFieldsMap,
+      masterKey: customerMasterKeyCredentials
+    }
+  );
+  // end-create-encrypted-collection
 
   // start-insert-document
   const patientDocument = {
