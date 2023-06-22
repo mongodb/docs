@@ -1,0 +1,188 @@
+.. _bson-data-types-knn-vector:
+
+================================================
+How to Index Vector Embeddings for Vector Search 
+================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Atlas Search knnVector field type to index vector embeddings for vector search using the knnBeta operator.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. |data-type| replace:: number 
+.. |fts-field-type| replace:: ``knnVector``
+.. |properties-link| replace:: :ref:`Field Properties <fts-knn-vector-type-options>`
+.. |sample-collection| replace:: :ref:`sample_mflix.embedded_movies <mflix-embedded_movies>`
+
+You can use the ``knnVector`` type to index vector embeddings. The
+vector field should be represented as an array of :ref:`numbers 
+<bson-data-types-number>` (|bson| ``int32``, ``int64``, or ``double`` 
+data types only). 
+
+.. note:: 
+
+   You can't use the :guilabel:`Visual Editor` in the {+atlas-ui+} to
+   configure fields of type ``knnVector``. Instead, use the
+   :guilabel:`JSON Editor` to configure fields of type ``knnVector``. 
+
+.. _fts-knn-vector-type-vib-jsonib:
+
+Define the Index for the |fts-field-type| Type  
+----------------------------------------------
+
+.. include:: /includes/extracts/fts-jsonib-index-definition.rst 
+
+.. code-block:: json
+   :copyable: true 
+   :linenos:
+   :emphasize-lines: 6-8
+
+   {
+     "mappings": {
+       "dynamic": true|false,
+       "fields": {
+         "<field-name>": {
+           "type": "knnVector",
+           "dimensions": <number-of-dimensions>,
+           "similarity": "euclidean | cosine | dotProduct"
+         }
+       }
+     }
+   }
+
+.. _fts-knn-vector-type-options:
+
+Configure |fts-field-type| Field Properties  
+-------------------------------------------
+
+The ``knnVector`` type has the following options:
+
+.. list-table::
+   :widths: 25 10 15 50
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+
+   * - ``type``
+     - string
+     - Required
+     - Human-readable label that identifies this field type. Value must 
+       be ``knnVector``.
+
+   * - ``dimensions``
+     - int
+     - Required
+     - Number of vector dimensions, which |fts| enforces at index- and 
+       query-time. This value can't be greater than ``2048``. 
+
+   * - ``similarity``
+     - string
+     - Required
+     - Vector similarity function to use to search for top K-nearest 
+       neighbors. Value can be one of the following:
+
+       - ``euclidean`` - measures the distance between ends of vectors. 
+         This allows you to measure similarity based on varying 
+         dimensions. To learn more, see :wikipedia:`Euclidean 
+         <Euclidean_distance>`.
+       - ``cosine`` - measures similarity based on the angle between 
+         vectors. This allows you to measure similarity that isn't 
+         scaled by magnitude. You can't use zero magnitude vectors with 
+         ``cosine``. To measure cosine similarity, we recommend that 
+         you normalize your vectors and use ``dotProduct`` instead. To 
+         learn more, see :wikipedia:`Cosine <Cosine_similarity>`.
+       - ``dotProduct`` - measures similar to ``cosine``, but takes 
+         into account the magnitude of the vector. This allows you to 
+         efficiently measure similarity based on both angle and 
+         magnitude. To use ``dotProduct``, you must normalize the 
+         vector to unit length at index- and query-time. To learn more, 
+         see :wikipedia:`Dot Product <Dot_product>`.
+
+       .. note:: 
+
+          If you normalize the magnitude, ``cosine`` and 
+          ``dotProduct`` are almost identical in measuring similarity. 
+
+.. _knn-vector-egs:
+
+Try an Example for the |fts-field-type| Type  
+--------------------------------------------
+
+Consider a collection named ``cheese_varieties`` with the following
+documents: 
+
+.. code-block:: json 
+      
+   {
+     "_id": 1,
+     "name": "mozzarella",
+     "description": "Italian cheese typically made from buffalo's milk.",
+     "countryOfOrigin": "Italy",
+     "egVector": [-0.09950768947601318,-0.02402166835963726,-0.046839360147714615,0.06274440884590149,-0.0920015424489975],
+     "aging": "none",
+     "yearProduced": 2022,
+     "brined": false
+   }
+
+.. code-block:: json 
+
+   {
+     "_id": 2,
+     "name": "parmesan",
+     "description": "Italian hard, granular cheese produced from cow's milk.",
+     "countryOfOrigin": "Italy",
+     "egVector": [-0.04228218272328377,-0.024080513045191765,-0.029374264180660248,-0.04369240626692772,-0.01295427419245243],
+     "aging": "at least 1 year",
+     "yearProduced": 2021,
+     "brined": false
+   }
+
+.. code-block:: json 
+
+   {
+     "_id": 3,
+     "name": "feta",
+     "description": "Greek brined white cheese made from sheep's milk or from a mixture of sheep and goat's milk.",
+     "countryOfOrigin": "Greece",
+     "egVector": [-0.015739429742097855,0.04937680810689926,-0.1067470908164978,0.1293928325176239,-0.03162907809019089],
+     "aging": "about 3 months",
+     "yearProduced": 2021,
+     "brined": true
+   }
+
+The following index definition for the ``cheese_varieties`` 
+collection dynamically indexes all the dynamically indexable fields 
+in the collection and statically indexes ``egVector`` as 
+a ``knnVector`` type. The index definition also specifies ``5`` vector 
+dimensions and measures similarity using ``euclidean``.
+
+.. code-block:: json 
+   :linenos:
+
+   {
+     "mappings": {
+       "dynamic": true,
+       "fields": {
+         "egVector": {
+           "type": "knnVector",
+           "dimensions": 5,
+           "similarity": "euclidean"
+         }
+       }
+     }
+   }
+
+If you add the ``cheese_varieties`` collection to a database on your 
+cluster and create the preceding |fts| index for this collection, 
+you can run :ref:`knn-beta-ref` queries against this collection. To 
+learn more about the sample queries that you can run, see 
+:ref:`knn-beta-egs`.
