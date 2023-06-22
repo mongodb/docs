@@ -29,7 +29,7 @@ func main() {
 	coll := database.Collection("myColl")
 
 	// start-session
-	wc := writeconcern.New(writeconcern.WMajority())
+	wc := writeconcern.Majority()
 	txnOptions := options.Transaction().SetWriteConcern(wc)
 
 	session, err := client.StartSession()

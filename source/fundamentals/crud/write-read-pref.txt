@@ -4,8 +4,6 @@
 Modify Execution of CRUD Operations
 ===================================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -34,6 +32,8 @@ the following levels:
 You should read this guide if you need to customize the consistency and
 availability of the data in your replica sets.
 
+.. _golang-writeconcern:
+
 Write Concern
 -------------
 
@@ -49,9 +49,9 @@ Options
 
 The {+driver-long+} provides the ``writeconcern`` package, which lets
 you specify the write concern for a replica set. Set the write
-concern using the ``SetWriteConcern()`` method with an ``Option``
-type. The ``Option`` type has the following methods to specify the
-write concern:
+concern using the ``SetWriteConcern()`` method with a ``WriteConcern``
+type. The ``WriteConcern`` type has the following methods to
+select common write concern specifications:
 
 .. list-table::
    :widths: 25 75
@@ -60,56 +60,110 @@ write concern:
    * - Method
      - Description
 
-   * - ``J()``
-     - | The client requests acknowledgement that write operations are written to the
-         journal. For more information, see the
+   * - ``Custom()``
+     - | The client requests acknowledgement that write operations propagate to
+         tagged members of a ``mongod`` instance. For more
+         information, see the :rapid:`Write Concern specification
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-custom-write-concern-name->`.
+       |
+       | **Parameter**: ``string``
+
+   * - ``Journaled()``
+     - | The client requests acknowledgement that write operations are
+         written to the on-disk journal. For more information, see the
          :rapid:`Write Concern specification </reference/write-concern/#j-option>`.
        |
-       | **Parameter**: ``bool``
+       | **Parameter**: none
 
-   * - ``W()``
+   * - ``Majority()``
      - | The client requests acknowledgement that write operations propagate to the
-         specified number of ``mongod`` instances. For more information, see the
-         :rapid:`Write Concern specification </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->`.
-       |
-       | **Parameter**: ``int``
-
-   * - ``WMajority()``
-     - | The client requests acknowledgement that write operations propagate to the
-         majority of ``mongod`` instances. For more information, see the
+         majority of data-bearing voting members. For more information, see the
          :rapid:`Write Concern specification
          </reference/write-concern/#mongodb-writeconcern-writeconcern.-majority->`.
        |
        | **Parameter**: none
 
-   * - ``WTagSet()``
-     - | The client requests acknowledgement that write operations propagate to the
-         specified ``mongod`` instance. For more
-         information, see the :rapid:`Write Concern specification
-         </reference/write-concern/#mongodb-writeconcern-writeconcern.-custom-write-concern-name->`.
+   * - ``Unacknowledged()``
+     - | The client requests requests no acknowledgment of write
+         operations. For more information, see the
+         :rapid:`Write Concern specification for w: 0
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->`.
        |
-       | **Parameter**: ``string``
-       
+       | **Parameter**: none
+
+   * - ``W1()``
+     - | The client requests acknowledgement that write operations have
+         been written to memory on one node, such as the standalone mongod or
+         the primary in a replica set. For more
+         information, see the :rapid:`Write Concern specification for w: 1
+         </reference/write-concern/#mongodb-writeconcern-writeconcern.-number->`.
+       |
+       | **Parameter**: none
+
+If you require a more specialized write concern, you can define a custom
+``WriteConcern`` struct literal. You can set the following fields in a
+``WriteConcern`` struct:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``W``
+     - | Specifies the number of ``mongod`` instances or tagged members
+         that write operations must propagate to for acknowledgement. Common values include
+         ``1``, ``0``, and ``"majority"``.
+       |
+       | **Type**: ``string`` or ``int``
+
+   * - ``Journal``
+     - | Specifies if write operations need to be written to the on-disk
+         journal for acknowledgement.
+       |
+       | **Type**: ``bool``
+
+   * - ``WTimeout``
+     - | Specifies a time limit for the write concern. This setting is
+         applicable only for ``W`` values greater than 1. Specifying this
+         setting and specifying a :ref:`Timeout
+         <golang-timeout-setting>` on the client at the same time
+         results in undefined behavior. To learn more, see the
+         :manual:`Write Concern specification for wtimeout </reference/write-concern/#wtimeout>`.
+       |
+       | **Type**: ``time.Duration``
+
 .. tip::
 
    You can alternatively specify a write concern in your connection
-   string. See the :manual:`Server Manual entry on Write Concern Options
+   string. See the :manual:`Server manual entry on Write Concern Options
    </reference/connection-string/#write-concern-options>` for more information.
 
 Example
 ~~~~~~~
 
-The following code shows how you can specify a write concern to request
-acknowledgement from two replica set members. The code then creates a ``Client``
-with this option.
+The following code shows how you can specify different write concerns
+at the client and collection level. The *client-level* write concern
+requests acknowledgement from two replica set members and sets journaling to
+``false``. The *collection-level* write concern requests
+acknowledgement from the majority of replica set members.
 
 .. code-block:: go
-   :emphasize-lines: 2-3
+   :emphasize-lines: 2-6,10-11
    
    uri := "mongodb://<hostname>:<port>"
-   wc := writeconcern.W(2)
-   opts := options.Client().ApplyURI(uri).SetWriteConcern(writeconcern.New(wc))
-   client, err := mongo.Connect(context.TODO(), opts)
+   cliWC := &writeconcern.WriteConcern{
+       W: 2,
+       Journal: false,
+   }
+   clOpts := options.Client().ApplyURI(uri).SetWriteConcern(cliWC)
+   client, err := mongo.Connect(context.TODO(), clOpts)
+   ...
+   
+   collWC := writeconcern.Majority()
+   collOpts := options.Collection().SetWriteConcern(collWC)
+   coll := client.Database("myDB").Collection("myColl", collOpts)
 
 Read Concern
 ------------
@@ -210,30 +264,30 @@ type has the following methods to specify the read preference:
    * - ``Nearest()``
      - The client reads from a random eligible replica set member,
        primary or secondary, based on a specified latency threshold. For more information, see the
-       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-nearest>`.
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-nearest>`.
 
    * - ``Primary()``
      - The client reads from the current replica set primary node. For more information, see the
-       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-primary>`.
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-primary>`.
 
    * - ``PrimaryPreferred()``
      - The client reads from the primary node in most situations. If the primary is
        unavailable, operations read from secondary members. For more
-       information, see the :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-primaryPreferred>`.
+       information, see the :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-primaryPreferred>`.
 
    * - ``Secondary()``
      - The client reads from the secondary members of the replica set. For more information, see the
-       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-secondary>`.
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-secondary>`.
 
    * - ``SecondaryPreferred()``
      - The client reads from the secondary nodes in most situations. If the secondaries are
        unavailable, operations read from the primary member. For more information, see the
-       :rapid:`Read Preference Server Manual entry </core/read-preference/#mongodb-readmode-secondaryPreferred>`.
+       :rapid:`Read Preference Server manual entry </core/read-preference/#mongodb-readmode-secondaryPreferred>`.
 
 .. tip::
 
    You can alternatively specify a read preference in your connection
-   string. See the :manual:`Server Manual entry on Read Preference
+   string. See the :manual:`Server manual entry on Read Preference
    Options </reference/connection-string/#read-preference-options>` for
    more information.
 
@@ -265,7 +319,6 @@ Server documentation:
 API Documentation
 ~~~~~~~~~~~~~~~~~
 
-- `Option <{+api+}/mongo/writeconcern#Option>`__
 - `WriteConcern <{+api+}/mongo/writeconcern#WriteConcern>`__
 - `ReadConcern <{+api+}/mongo/readconcern#ReadConcern>`__
 - `ReadPref <{+api+}/mongo/readpref#ReadPref>`__
