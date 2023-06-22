@@ -76,11 +76,11 @@ Some operations are not available with views:
 
 For more information, see :ref:`views-supported-operations`.
 
-Example
--------
+Examples
+--------
 
-This example populates a collection with student data and creates a view
-to query the data.
+The first example populates a collection with student data and creates a
+view to query the data.
 
 Populate the Collection
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -201,6 +201,129 @@ lowercase letters.
      { sID: 18020, name: 'Harley', year: 5, score: 2.8 },
      { sID: 17301, name: 'harley', year: 6, score: 3.1 }
    ]
+
+.. _create-view-user-roles-system-variable-example:
+
+Retrieve Documents for Roles Granted to the Current User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/user-roles-system-variable-introduction.rst
+
+Perform the following steps to create a view and retrieve the documents
+accessible to ``John``:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the view
+
+      .. include:: /includes/user-roles-system-variable-example-description-start.rst
+
+      Run:
+
+      .. code-block:: javascript
+         :emphasize-lines: 7
+
+         db.createView(
+            "budgetView", "budget",
+            [ {
+               $match: {
+                  $expr: {
+                     $not: {
+                        $eq: [ { $setIntersection: [ "$allowedRoles", "$$USER_ROLES.role" ] }, [] ]
+                     }
+                  }
+               }
+            } ]
+         )
+
+      If you cannot create the view, ensure you log in as a user with
+      the privilege to create a view.
+
+      .. include:: /includes/user-roles-system-variable-example-description.rst
+
+   .. step:: Log in as John
+
+      .. include:: /includes/user-roles-system-variable-example-login-john.rst
+
+   .. step:: Retrieve the documents
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.budgetView.find()
+
+   .. step:: Examine the documents
+
+      .. include:: /includes/user-roles-system-variable-example-output-john.rst
+
+Perform the following steps to retrieve the documents accessible to
+Jane:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Log in as ``Jane``
+
+      .. include:: /includes/user-roles-system-variable-example-login-jane.rst
+
+   .. step:: Retrieve the documents
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.budgetView.find()
+
+   .. step:: Examine the documents
+
+      .. include:: /includes/user-roles-system-variable-example-output-jane.rst
+
+Roles with the Same Name in Multiple Databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Multiple databases can have roles with the same name. If you create a
+view and reference a specific role in the view, you should either
+specify both the ``db`` database name field and the ``role`` field, or
+specify the ``_id`` field that contains the database name and the role.
+
+The following example returns the roles assigned to ``Jane``, who has
+roles with different names. The example returns the ``_id``, ``role``,
+and ``db`` database name:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Log in as ``Jane``
+
+      .. include:: /includes/user-roles-system-variable-example-login-jane.rst
+
+   .. step:: Retrieve the documents
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.budget.findOne( {}, { myRoles: "$$USER_ROLES" } )
+
+   .. step:: Examine the documents
+
+      Example output, which shows the ``_id``, ``role``, and ``db``
+      database name in the ``myRoles`` array:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 3-6
+
+         {
+            _id: 0,
+            myRoles: [
+               { _id: 'test.Operations', role: 'Operations', db: 'test' },
+               { _id: 'test.Sales', role: 'Sales', db: 'test' },
+               { _id: 'test.read', role: 'read', db: 'test' }
+            ]
+         }
 
 Behavior
 --------
