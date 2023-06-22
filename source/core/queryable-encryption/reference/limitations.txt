@@ -12,48 +12,34 @@ Limitations
    :depth: 2
    :class: singlecol
 
-Preview Specific Limitations
-----------------------------
-
-.. note::
-
-   The following limitations apply during the technical preview for {+qe+}.
+Overview
+--------
+Consider these limitations and restrictions before enabling {+qe+}. Some
+operations are unsupported, and others behave differently.
 
 Contention Factor
-+++++++++++++++++
+-----------------
 
 Contention factor is a setting that helps tune performance based on the
 number of concurrent connections.
 
-You can set the contention factor only when specifying the field for encryption.
+You can set the contention factor only when specifying a field for encryption.
 Once you specify a field for encryption, the contention factor is immutable. If
 you don't specify the contention factor, it uses the default value of ``4``.
 
-Manual Data Key Creation
-++++++++++++++++++++++++
-
-You must manually create a unique {+dek-long+} for each field you
-want to encrypt. In a future release, you will be able to omit the ``keyId``
-field from your {+efm+} and a {+qe+} compatible driver will create the
-{+dek-abbr+} automatically.
-
 Manual Compaction
-+++++++++++++++++
+-----------------
 
-You will need to manually run :ref:`index compaction <qe-index-compaction>`
-when your metadata collections exceed 1 GB during the technical preview.
-In a future release, compaction will be run automatically when the
-metadata collections exceed a defined size.
+Manually run :ref:`index compaction <qe-index-compaction>`
+when your metadata collections exceed 1 GB. Compaction decreases the
+size of the metadata collections associated with encrypted fields, and
+improves performance.
 
-Compaction is a process that decreases the size of the metadata collections
-associated with encrypted fields, and improves performance.
+encryptedFieldsMap Modification
+-------------------------------
 
-{+efm+} Modification
-++++++++++++++++++++++++++++++++++++++++++
-
-Do not modify the {+efm+} passed to your ``MongoClient`` during the
-technical preview. Doing so can result in unexpected and incorrect
-behavior when querying.
+Do not modify the {+efm+} passed to your ``MongoClient``. Doing so can
+result in unexpected and incorrect behavior when querying.
 
 ..
   {+qe+} encrypts the set of fields in the  :ref:`encryptedFieldsMap <qe-fundamentals-encrypt-query>`
@@ -71,7 +57,6 @@ behavior when querying.
   future queries.
 
 
-
 Read and Write Operation Support
 --------------------------------
 
@@ -83,6 +68,57 @@ value may be incorrect or unexpected when compared to issuing that same
 expression or operator against the decrypted value. The ``mongod``
 throws an error if the expression or operator does not support
 ``BinData`` values.
+
+.. _qe-redaction:
+
+Redaction
+---------
+
+To improve security, {+qe+} removes some fields from
+query results for encrypted collections, and omits certain operations
+from the query log. An encrypted collection is any collection with the
+``encryptedFields`` option.
+
+Query Log and Database Profiler Redaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The CRUD operations below are omitted from the :ref:`slow operations
+<log-message-slow-ops>` query log and the :ref:`Database Profiler
+<profiler>` ``system.profile`` collection when you run them on an encrypted collection.
+
+* :dbcommand:`aggregate`
+* :dbcommand:`count`
+* :dbcommand:`delete`
+* :dbcommand:`find`
+* :dbcommand:`findAndModify`
+* :dbcommand:`insert`
+* :dbcommand:`update`
+* :method:`db.collection.bulkWrite()`
+* The ``compactStructuredEncryptionData`` command
+* The ``cleanupStructuredEncryptionData`` command
+
+Command and Aggregation Stage Output Redaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :dbcommand:`collStats` command and :pipeline:`$collStats`
+aggregation stage:
+
+* Omit ``"queryExecStats"``
+* Omit ``"latencyStats"``
+* Redact ``"WiredTiger"``, if present, to include only the ``url`` field.
+
+The :dbcommand:`currentOp` command and :pipeline:`$currentOp` aggregation stage:
+
+* Omit all fields after ``"command"``.
+* Redact ``"command"`` to include only the first element, ``$comment``,
+  and ``$db``.
+
+The :dbcommand:`top` command only returns the collection name of
+encrypted collections.
+
+The :pipeline:`$planCacheStats` aggregation stage omits
+operations against encrypted collections, even though the operations are cached as normal.
+
 
 Topology Support
 ----------------
@@ -103,7 +139,6 @@ CRUD
 - {+qe+} does not support batch operations. The following operations are
   not supported:
 
-  - :method:`db.collection.insertMany()`
   - :method:`db.collection.updateMany()`
   - :method:`db.collection.deleteMany()`
 
@@ -112,53 +147,60 @@ CRUD
   - ``fields`` is not allowed
   - ``new`` must be false
 
+- When performing an upsert operation, any encrypted fields in the
+  filter are excluded from the insert.
+
 
 Collections
 -----------
 
+- You cannot use {+csfle+} with {+qe+} on the same
+  collection.
+
+  - {+qe+} does not support migration from collections encrypted with {+csfle+}.
+    You must decrypt your documents and import them one-by-one.
+
 - {+qe+} supports new collections only. You cannot add or remove {+qe+}
   to existing collections.
-- You cannot specify ``jsonSchema`` to :method:`db.createCollection()`
-  when creating a {+qe+} collection if the ``jsonSchema`` contains the
-  ``encrypt`` keyword. You cannot use {+csfle+} with {+qe+} on the same
-  collection.
-- You can specify both ``encryptedFields`` and ``jsonSchema`` to
-  :method:`db.createCollection()` as long as your :ref:`jsonSchema <schema-validation-overview>`
-  does not contain validation for encrypted fields.
+- You cannot rename a collection with encrypted fields.
 - {+qe+} does not support automatic migration from an unencrypted collection.
   You must import the documents one-by-one.
-- {+qe+} does not support migration from collections encrypted with {+csfle+}.
-  You must decrypted your documents and import them one-by-one.
+- You cannot specify ``jsonSchema`` to :method:`db.createCollection()`
+  when creating a {+qe+} collection if the ``jsonSchema`` contains the
+  ``encrypt`` keyword. 
+
+  - You can specify both ``encryptedFields`` and ``jsonSchema`` to
+    :method:`db.createCollection()` as long as your :ref:`jsonSchema <schema-validation-overview>`
+    does not contain validation for encrypted fields.
+
 - {+qe+} does not support :ref:`views-landing-page`,
   :ref:`manual-timeseries-collection`, or :ref:`capped collection <manual-capped-collection>`.
 - {+qe+} does not support :ref:`index-feature-ttl` or :ref:`index-type-unique`.
-- You cannot rename a collection with encrypted fields.
 - You cannot disable ``jsonSchema`` validation.
-
-  - Automatic Encryption document validation when ``encryptedFields`` is
-    present in the collection information.
+- When a collection uses the ``encryptedFields`` option:
+  
   - You cannot set ``validationLevel`` to ``none``.
   - You cannot set ``validationAction`` to ``warn``.
 
 Drop Collection
-+++++++++++++++
+~~~~~~~~~~~~~~~
 
 - Dropping collections from a ``MongoClient`` that is not configured for {+qe+}
-  *will not* drop the associated metadata collections.``mongod`` logs a
+  doesn't drop the associated metadata collections. ``mongod`` logs a
   warning if you drop a collection with encrypted fields before dropping
   the metadata collections.
 
 .. tip::
 
-   {+qe+} compatible drivers drop the metadata collections when
-   dropping the collection when using a ``MongoClient`` configured for {+qe+}.
+   When dropping a collection with a ``MongoClient`` configured for
+   {+qe+}, QE compatible drivers drop the associated metadata
+   collections as well.
 
 
 Create Collection
-+++++++++++++++++
+~~~~~~~~~~~~~~~~~
 
-You should always explicitly create collections for use with {+qe+}. Using
-implicit collection creation will not create necessary indexes and
+Always explicitly create any collections that use {+qe+}. Implicit collection creation doesn't create the necessary indexes and
 metadata collections, resulting in poor query performance.
 
 Query Types
@@ -202,10 +244,8 @@ return unexpected or incorrect results.
 
 For more information on collations, see :ref:`collation-document-fields`.
 
-While MongoDB version 6.0 or later compatible drivers configured for automatic
-encryption have :ref:`supported operations for automatic encryption
-<qe-reference-automatic-encryption-supported-operations>`,
-for unsupported read and write operations the underlying support library
+{+qe+}-compatible drivers have a list of :ref:`supported operations for automatic encryption
+<qe-reference-automatic-encryption-supported-operations>`. For unsupported read and write operations, the underlying support library
 cannot introspect the collection catalog to identify the default
 collation. Applications therefore cannot rely on the {+qe+}
 validation to prevent querying on encrypted fields with
@@ -214,28 +254,27 @@ collation defaults.
 Unique Indexes
 --------------
 
-:ref:`Unique indexes <index-type-unique>` *cannot* guarantee
-uniqueness if the index key specifies any
-encrypted fields.
+:ref:`Unique indexes <index-type-unique>` can't guarantee
+uniqueness if the index key specifies any encrypted fields.
 
-{+qe+} *always* produces a different encrypted value given a specific input.
-The server considers each encrypted value unique even though the decrypted
-value may not be unique. The collection could therefore contain multiple
-documents with duplicate plaintext values for fields with an index-enforced
-unique constraint.
+{+qe+} always outputs a different encrypted value, even for the same input. The server considers each encrypted value unique, even though the
+decrypted value may not be. This means that even if a collection uses an
+index-enforced unique constraint on fields, the collection can still
+contain multiple documents with duplicate plaintext values for that 
+field.
 
-While MongoDB version 6.0 or later compatible drivers configured for
-automatic encryption have :ref:`supported operations for automatic encryption
-<qe-reference-automatic-encryption-supported-operations>`
-for unsupported read and write operations, the underlying support library
-cannot introspect the index catalog to identify a given field as unique.
-Applications cannot rely on automatic encryption validation to prevent
-unique constraint violations on randomly-encrypted fields.
+{+qe+} compatible drivers configured for automatic encryption
+:ref:`support some operations for automatic encryption
+<qe-reference-automatic-encryption-supported-operations>`.
+For unsupported read and write operations, the underlying
+library can't introspect the index catalog to identify a given field as
+unique. Applications can't rely on automatic encryption validation to
+prevent unique constraint violations on randomly-encrypted fields.
 
 The _id Field
 -------------
 
-You cannot instruct {+qe+} to encrypt the ``_id`` field because it relies on
+You cannot configure {+qe+} to encrypt the ``_id`` field because it relies on
 the value auto-generated by MongoDB.
 
 Read/Write Query Support
@@ -243,4 +282,4 @@ Read/Write Query Support
 
 Automatic encryption supports a subset of commands, query operators,
 update operators, aggregation stages, and aggregation expressions. For
-complete documentation, see :ref:`Supported Operations for Automatic Encryption <qe-reference-automatic-encryption-supported-operations>`.
+the list of supported operations, see :ref:`Supported Operations for Automatic Encryption <qe-reference-automatic-encryption-supported-operations>`.

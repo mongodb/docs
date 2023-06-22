@@ -1,2 +1,1 @@
-If query type is not explicitly specified, the query type will
-default to ``none`` and the data will not be queryable.
+If query type isn't explicitly specified, it defaults to ``none`` and the data isn't queryable.

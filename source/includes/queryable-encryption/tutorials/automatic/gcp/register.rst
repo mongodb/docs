@@ -22,6 +22,16 @@
       .. tabs-drivers::
 
          .. tab::
+            :tabid: nodejs
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+            
+         .. tab::
+            :tabid: python
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+
+         .. tab::
             :tabid: java-sync
 
             .. important::
@@ -33,21 +43,11 @@
                tutorial.
 
          .. tab::
-            :tabid: nodejs
+            :tabid: go
 
             .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
-            
-         .. tab::
-            :tabid: python
-
-            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
-
+         
          .. tab::
             :tabid: csharp
-
-            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
-
-         .. tab::
-            :tabid: go
 
             .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst

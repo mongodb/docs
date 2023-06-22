@@ -1,4 +1,4 @@
-.. _aws-create-master-key:
+.. _azure-create-master-key:
 
 .. procedure::
    :style: connected

@@ -1,10 +1,9 @@
 .. _qe-tutorial-automatic-aws:
+.. _qe-tutorial-automatic-dek-aws:
 
 =========================================================
 Use Automatic {+qe+} with AWS
 =========================================================
-
-.. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
@@ -15,14 +14,23 @@ Use Automatic {+qe+} with AWS
 Overview
 --------
 
-This guide shows you how to build a {+qe+} enabled
-application using Amazon Web Services (AWS) {+kms-abbr+}.
+This guide shows you how to build an application that implements the MongoDB
+{+qe+} feature to automatically encrypt and decrypt document fields and use
+Amazon Web Services (AWS) {+kms-abbr+} for key management.
 
 After you complete the steps in this guide, you should have:
 
-- A {+cmk-long+} hosted on an AWS KMS instance.
+- A {+cmk-long+} managed by AWS KMS
+- An AWS IAM user with permissions to access the {+cmk-long+}
+  in AWS KMS
 - A working client application that inserts {+in-use-docs+}
-  using your {+cmk-long+}.
+  using your {+cmk-long+}
+
+.. tip:: Customer Master Keys
+
+   To learn more about the {+cmk-long+}, read the
+   :ref:`qe-reference-keys-key-vaults`
+   documentation.
 
 Before You Get Started
 ----------------------
@@ -31,42 +39,38 @@ Before You Get Started
 
 .. see:: Full Application
 
-   To see the complete code for the application you make in this guide,
+   To see the complete code for this sample application,
    select the tab corresponding to your programming language and follow
-   the provided link:
+   the provided link. Each sample application repository includes a
+   ``README.md`` file that you can use to learn how to set up your environment
+   and run the application.
 
    .. tabs::
-
-      .. tab:: Mongosh
-         :tabid: shell
-
-         `Complete Mongosh Application <{+sample-app-url-qe+}/mongosh/aws/reader/>`__
 
       .. tab:: Node.js
          :tabid: nodejs
 
-         `Complete Node.js Application <{+sample-app-url-qe+}/node/aws/reader/>`__
+         `Complete Node.js Application <{+sample-app-url-qe+}/node/>`__
 
       .. tab:: Python
          :tabid: python
 
-         `Complete Python Application <{+sample-app-url-qe+}/python/aws/reader/>`__
+         `Complete Python Application <{+sample-app-url-qe+}/python/>`__
 
       .. tab:: Java
          :tabid: java-sync
 
-         `Complete Java Application <{+sample-app-url-qe+}/java/aws/reader/>`__
+         `Complete Java Application <{+sample-app-url-qe+}/java/>`__
 
       .. tab:: Go
          :tabid: go
 
-         `Complete Go Application <{+sample-app-url-qe+}/go/aws/reader/>`__
+         `Complete Go Application <{+sample-app-url-qe+}/go/>`__
 
       .. tab:: C#
          :tabid: csharp
 
-         `Complete C# Application <{+sample-app-url-qe+}/dotnet/aws/reader/>`__
-
+         `Complete C# Application <{+sample-app-url-qe+}/dotnet/>`__
 
 .. tabs-selector:: drivers
 
@@ -84,199 +88,822 @@ Set Up the KMS
 
       .. include:: /includes/queryable-encryption/tutorials/automatic/aws/user.rst
 
-
 Create the Application
 ----------------------
 
 .. procedure::
    :style: normal
 
-   .. step:: Create a Unique Index on your {+key-vault-long+}
+   .. step:: Assign Your Application Variables
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/key-vault-index.rst
+      The code samples in this tutorial use the following variables to perform
+      the {+qe+} workflow:
 
-   .. step:: Create your {+dek-long+}s and Encrypted Collection
+      .. tabs-drivers::
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/dek.rst
+         .. tab::
+            :tabid: nodejs
 
-      .. see:: Complete Code
+            - **kmsProviderName** - The KMS you're using to store your {+cmk-long+}.
+              Set this variable to ``"aws"`` for this tutorial.
+            - **uri** - Your MongoDB deployment connection URI. Set your connection
+              URI in the ``MONGODB_URI`` environment variable or replace the value
+              directly.
+            - **keyVaultDatabaseName** - The database in MongoDB where your data
+              encryption keys (DEKs) will be stored. Set this variable
+              to ``"encryption"``.
+            - **keyVaultCollectionName** - The collection in MongoDB where your DEKs
+              will be stored. Set this variable to ``"__keyVault"``.
+            - **keyVaultNamespace** - The namespace in MongoDB where your DEKs will
+              be stored. Set this variable to the values of the ``keyVaultDatabaseName``
+              and ``keyVaultCollectionName`` variables, separated by a period.
+            - **encryptedDatabaseName** - The database in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"medicalRecords"``.
+            - **encryptedCollectionName** - The collection in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"patients"``.
 
-         .. tabs-drivers::
+            You can declare these variables by using the following code:
 
-            .. tab::
-               :tabid: shell
+            .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-tutorial.js
+               :start-after: // start-setup-application-variables
+               :end-before: // end-setup-application-variables
+               :language: javascript
+               :dedent:
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/mongosh/aws/reader/make_data_key.js>`__.
+         .. tab::
+            :tabid: python
 
-            .. tab::
-               :tabid: nodejs
+            - **kms_provider_name** - The KMS you're using to store your {+cmk-long+}.
+              Set this variable to ``"aws"`` for this tutorial.
+            - **uri** - Your MongoDB deployment connection URI. Set your connection
+              URI in the ``MONGODB_URI`` environment variable or replace the value
+              directly.
+            - **key_vault_database_name** - The database in MongoDB where your data
+              encryption keys (DEKs) will be stored. Set this variable
+              to ``"encryption"``.
+            - **key_vault_collection_name** - The collection in MongoDB where your DEKs
+              will be stored. Set this variable to ``"__keyVault"``.
+            - **key_vault_namespace** - The namespace in MongoDB where your DEKs will
+              be stored. Set this variable to the values of the ``key_vault_database_name``
+              and ``key_vault_collection_name`` variables, separated by a period.
+            - **encrypted_database_name** - The database in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"medicalRecords"``.
+            - **encrypted_collection_name** - The collection in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"patients"``.
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/node/aws/reader/make_data_key.js>`__.
+            You can declare these variables by using the following code:
 
-            .. tab::
-               :tabid: python
+            .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_tutorial.py
+               :start-after: # start-setup-application-variables
+               :end-before: # end-setup-application-variables
+               :language: python
+               :dedent:
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/python/aws/reader/make_data_key.py>`__.
+         .. tab::
+            :tabid: java-sync
 
-            .. tab::
-               :tabid: java-sync
+            - **kmsProviderName** - The KMS you're using to store your {+cmk-long+}.
+              Set this variable to ``"aws"`` for this tutorial.
+            - **uri** - Your MongoDB deployment connection URI. Set your connection
+              URI in the ``MONGODB_URI`` environment variable or replace the value
+              directly.
+            - **keyVaultDatabaseName** - The database in MongoDB where your data
+              encryption keys (DEKs) will be stored. Set this variable
+              to ``"encryption"``.
+            - **keyVaultCollectionName** - The collection in MongoDB where your DEKs
+              will be stored. Set this variable to ``"__keyVault"``.
+            - **keyVaultNamespace** - The namespace in MongoDB where your DEKs will
+              be stored. Set this variable to the values of the ``keyVaultDatabaseName``
+              and ``keyVaultCollectionName`` variables, separated by a period.
+            - **encryptedDatabaseName** - The database in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"medicalRecords"``.
+            - **encryptedCollectionName** - The collection in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"patients"``.
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/java/aws/reader/src/main/java/com/mongodb/qe/MakeDataKey.java>`__.
+            You can declare these variables by using the following code:
 
-            .. tab::
-               :tabid: go
+            .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/QueryableEncryptionTutorial.java
+               :start-after: // start-setup-application-variables
+               :end-before: // end-setup-application-variables
+               :language: java
+               :dedent:
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/go/aws/reader/make-data-key.go>`__.
+         .. tab::
+            :tabid: go
 
-            .. tab::
-               :tabid: csharp
+            - **kmsProviderName** - The KMS you're using to store your {+cmk-long+}.
+              Set this variable to ``"aws"`` for this tutorial.
+            - **uri** - Your MongoDB deployment connection URI. Set your connection
+              URI in the ``MONGODB_URI`` environment variable or replace the value
+              directly.
+            - **keyVaultDatabaseName** - The database in MongoDB where your data
+              encryption keys (DEKs) will be stored. Set this variable
+              to ``"encryption"``.
+            - **keyVaultCollectionName** - The collection in MongoDB where your DEKs
+              will be stored. Set this variable to ``"__keyVault"``.
+            - **keyVaultNamespace** - The namespace in MongoDB where your DEKs will
+              be stored. Set this variable to the values of the ``keyVaultDatabaseName``
+              and ``keyVaultCollectionName`` variables, separated by a period.
+            - **encryptedDatabaseName** - The database in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"medicalRecords"``.
+            - **encryptedCollectionName** - The collection in MongoDB where your encrypted
+              data will be stored. Set this variable to ``"patients"``.
 
-               To view the complete code for making a {+dek-long+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/dotnet/aws/reader/QueryableEncryption/MakeDataKey.cs>`__.
+            You can declare these variables by using the following code:
 
+            .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_tutorial.go
+               :start-after: // start-setup-application-variables
+               :end-before: // end-setup-application-variables
+               :language: go
+               :dedent:
 
-   .. step:: Configure your MongoClient for Encrypted Reads and Writes
+         .. tab::
+            :tabid: csharp
 
-      .. tip::
+            - **kmsProviderName** - The KMS you're using to store your {+cmk-long+}.
+              Set this value to ``"aws"`` for this tutorial.
+            - **keyVaultDatabaseName** - The database in MongoDB where your data
+              encryption keys (DEKs) will be stored. Set the value of ``keyVaultDatabaseName``
+              to ``"encryption"``.
+            - **keyVaultCollectionName** - The collection in MongoDB where your DEKs
+              will be stored. Set the value of ``keyVaultCollectionName`` to ``"__keyVault"``.
+            - **keyVaultNamespace** - The namespace in MongoDB where your DEKs will
+              be stored. Set ``keyVaultNamespace`` to a new ``CollectionNamespace`` object whose name
+              is the values of the ``keyVaultDatabaseName`` and ``keyVaultCollectionName`` variables,
+              separated by a period.
+            - **encryptedDatabaseName** - The database in MongoDB where your encrypted
+              data will be stored. Set the value of ``encryptedDatabaseName`` to ``"medicalRecords"``.
+            - **encryptedCollectionName** - The collection in MongoDB where your encrypted
+              data will be stored. Set the value of ``encryptedCollectionName`` to ``"patients"``.
+            - **uri** - Your MongoDB deployment connection URI. Set your connection
+              URI in the ``MONGODB_URI`` environment variable or replace the value
+              directly.
 
-         Follow the remaining steps in this tutorial in a separate file
-         from the one created in the previous steps.
+            You can declare these variables by using the following code:
 
-         .. tabs-drivers::
+            .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionTutorial.cs
+               :start-after: // start-setup-application-variables
+               :end-before: // end-setup-application-variables
+               :language: csharp
+               :dedent:
 
-            .. tab::
-               :tabid: shell
+      .. important:: {+key-vault-long-title+} Namespace Permissions
 
-               To view the complete code for this file, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/mongosh/aws/reader/insert_encrypted_document.js>`__.
+         The {+key-vault-long+} is in the ``encryption.__keyVault``
+         namespace. Ensure that the database user your application uses to connect
+         to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+         permissions on this namespace.
 
-            .. tab::
-               :tabid: nodejs
+      .. include:: /includes/queryable-encryption/env-variables.rst
 
-               To view the complete code for this file, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/node/aws/reader/insert_encrypted_document.js>`__.
+   .. step:: Create your Encrypted Collection
 
-            .. tab::
-               :tabid: python
+      .. procedure::
+         :style: connected
 
-               To view the complete code for this file, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/python/aws/reader/insert_encrypted_document.py>`__.
+         .. step:: Add Your AWS KMS Credentials
 
-            .. tab::
-               :tabid: java-sync
+            Create a variable containing your AWS {+km-service-long+} credentials with the
+            following structure. Use the Access Key ID and Secret Access Key you created
+            in the :ref:`Create an IAM User <qe-tutorial-aws-create-iam-user>` step of
+            this tutorial.
 
-               To view the complete code for this file, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java>`__.
+            .. tabs-drivers::
 
-            .. tab::
-               :tabid: go
+               .. tab::
+                  :tabid: nodejs
 
-               To view the complete code for this file, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/go/aws/reader/insert-encrypted-document.go>`__.
+                  .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+                     :start-after: // start-aws-kms-credentials
+                     :end-before: // end-aws-kms-credentials
+                     :language: javascript
+                     :dedent:
 
-            .. tab::
-               :tabid: csharp
+               .. tab::
+                  :tabid: python
 
-               To view the complete code for this file, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs>`__.
+                  .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_helpers.py
+                     :start-after: # start-aws-kms-credentials
+                     :end-before: # end-aws-kms-credentials
+                     :language: python
+                     :dedent:
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/client.rst
+               .. tab::
+                  :tabid: java-sync
+
+                  .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/util/QueryableEncryptionHelpers.java
+                     :start-after: // start-aws-kms-credentials
+                     :end-before: // end-aws-kms-credentials
+                     :language: java
+                     :dedent:
+
+               .. tab::
+                  :tabid: go
+
+                  .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
+                     :start-after: // start-aws-kms-credentials
+                     :end-before: // end-aws-kms-credentials
+                     :language: go
+                     :dedent:
+
+               .. tab::
+                  :tabid: csharp
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
+                     :start-after: // start-aws-kms-credentials
+                     :end-before: // end-aws-kms-credentials
+                     :language: csharp
+                     :dedent:
+
+         .. step:: Add your {+cmk-long+} Credentials
+
+            .. tabs-drivers::
+
+               .. tab::
+                  :tabid: nodejs
+
+                  Create a variable containing your {+cmk-long+} credentials with the
+                  following structure. Use the {+aws-arn-abbr+} and Region you recorded
+                  in the :ref:`Create a {+cmk-long+} <qe-aws-create-master-key>`
+                  step of this tutorial.
+
+                  .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+                     :start-after: // start-aws-cmk-credentials
+                     :end-before: // end-aws-cmk-credentials
+                     :language: javascript
+                     :dedent:
+
+               .. tab::
+                  :tabid: python
+
+                  Create a variable containing your {+cmk-long+} credentials with the
+                  following structure. Use the {+aws-arn-abbr+} and Region you recorded
+                  in the :ref:`Create a {+cmk-long+} <qe-aws-create-master-key>`
+                  step of this tutorial.
+
+                  .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_helpers.py
+                     :start-after: # start-aws-cmk-credentials
+                     :end-before: # end-aws-cmk-credentials
+                     :language: python
+                     :dedent:
+
+               .. tab::
+                  :tabid: java-sync
+
+                  Create a variable containing your {+cmk-long+} credentials with the
+                  following structure. Use the {+aws-arn-abbr+} and Region you recorded
+                  in the :ref:`Create a {+cmk-long+} <qe-aws-create-master-key>`
+                  step of this tutorial.
+                  
+                  .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/util/QueryableEncryptionHelpers.java
+                     :start-after: // start-aws-cmk-credentials
+                     :end-before: // end-aws-cmk-credentials
+                     :language: java
+                     :dedent:
+
+               .. tab::
+                  :tabid: go
+
+                  Create a variable containing your {+cmk-long+} credentials with the
+                  following structure. Use the {+aws-arn-abbr+} and Region you recorded
+                  in the :ref:`Create a {+cmk-long+} <qe-aws-create-master-key>`
+                  step of this tutorial.
+                  
+                  .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
+                     :start-after: // start-aws-cmk-credentials
+                     :end-before: // end-aws-cmk-credentials
+                     :language: go
+                     :dedent:
+
+               .. tab::
+                  :tabid: csharp
+
+                  Create a variable containing your {+cmk-long+} credentials with the
+                  following structure. Use the {+aws-arn-abbr+} and Region you recorded
+                  in the :ref:`Create a {+cmk-long+} <qe-aws-create-master-key>`
+                  step of this tutorial.
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
+                     :start-after: // start-aws-cmk-credentials
+                     :end-before: // end-aws-cmk-credentials
+                     :language: csharp
+                     :dedent:
+
+         .. step:: Set Your Automatic Encryption Options
+
+            Create an object containing the following automatic encryption options:
+
+            .. tabs-drivers::
+
+               .. tab::
+                  :tabid: nodejs
+
+                  - The variable containing your AWS KMS credentials
+                  - The namespace of your {+key-vault-long+}
+                  - An object containing the path to your {+shared-library+}
+
+                  .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+                     :start-after: // start-auto-encryption-options
+                     :end-before: // end-auto-encryption-options
+                     :language: javascript
+                     :dedent:
+
+               .. tab::
+                  :tabid: python
+
+                  - The variable containing your AWS KMS credentials
+                  - The namespace of your {+key-vault-long+}
+                  - An object containing the path to your {+shared-library+}
+
+                  .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_helpers.py
+                     :start-after: # start-auto-encryption-options
+                     :end-before: # end-auto-encryption-options
+                     :language: python
+                     :dedent:
+
+               .. tab::
+                  :tabid: java-sync
+
+                  - The variable containing your AWS KMS credentials
+                  - The namespace of your {+key-vault-long+}
+                  - An object containing the path to your {+shared-library+}
+
+                  .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/util/QueryableEncryptionHelpers.java
+                     :start-after: // start-auto-encryption-options
+                     :end-before: // end-auto-encryption-options
+                     :language: java
+                     :dedent:
+
+               .. tab::
+                  :tabid: go
+
+                  - The variable containing your AWS KMS credentials
+                  - The namespace of your {+key-vault-long+}
+                  - An object containing the path to your {+shared-library+}
+
+                  .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
+                     :start-after: // start-auto-encryption-options
+                     :end-before: // end-auto-encryption-options
+                     :language: go
+                     :dedent:
+
+               .. tab::
+                  :tabid: csharp
+
+                  - The variable containing your AWS KMS credentials
+                  - The namespace of your {+key-vault-long+}
+                  - An object containing the path to your {+shared-library+}
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
+                     :start-after: // start-auto-encryption-options
+                     :end-before: // end-auto-encryption-options
+                     :language: csharp
+                     :dedent:
+
+            .. include:: /includes/queryable-encryption/shared-lib-learn-more.rst
+
+         .. step:: Create a Client to Set Up an Encrypted Collection
+
+            To create a client used to encrypt and decrypt data in
+            your collection, instantiate a new ``MongoClient`` by using your
+            connection URI and your automatic encryption options.
+
+            .. tabs-drivers::
+
+               .. tab::
+                  :tabid: nodejs
+
+                  .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-tutorial.js
+                     :start-after: // start-create-client
+                     :end-before: // end-create-client
+                     :language: javascript
+                     :dedent:
+
+               .. tab::
+                  :tabid: python
+
+                  .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_tutorial.py
+                     :start-after: # start-create-client
+                     :end-before: # end-create-client
+                     :language: python
+                     :dedent:
+
+               .. tab::
+                  :tabid: java-sync
+
+                  .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/QueryableEncryptionTutorial.java
+                     :start-after: // start-create-client
+                     :end-before: // end-create-client
+                     :language: java
+                     :dedent:
+
+               .. tab::
+                  :tabid: go
+
+                  .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_tutorial.go
+                     :start-after: // start-create-client
+                     :end-before: // end-create-client
+                     :language: go
+                     :dedent:
+
+               .. tab::
+                  :tabid: csharp
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionTutorial.cs
+                     :start-after: // start-create-client
+                     :end-before: // end-create-client
+                     :language: csharp
+                     :dedent:
+
+         .. step:: Specify Fields to Encrypt
+
+            To encrypt a field, add it to the encrypted fields map.
+            To enable queries on a field, add the "queries"
+            property. Create the encrypted fields map as follows:
+
+            .. tabs-drivers::
+
+               .. tab::
+                  :tabid: nodejs
+
+                  .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-tutorial.js
+                     :start-after: // start-encrypted-fields-map
+                     :end-before: // end-encrypted-fields-map
+                     :language: javascript
+                     :dedent:
+
+               .. tab::
+                  :tabid: python
+
+                  .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_tutorial.py
+                     :start-after: # start-encrypted-fields-map
+                     :end-before: # end-encrypted-fields-map
+                     :language: python
+                     :dedent:
+
+               .. tab::
+                  :tabid: java-sync
+
+                  .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/QueryableEncryptionTutorial.java
+                     :start-after: // start-encrypted-fields-map
+                     :end-before: // end-encrypted-fields-map
+                     :language: java
+                     :dedent:
+
+               .. tab::
+                  :tabid: go
+
+                  .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_tutorial.go
+                     :start-after: // start-encrypted-fields-map
+                     :end-before: // end-encrypted-fields-map
+                     :language: go
+                     :dedent:
+
+               .. tab::
+                  :tabid: csharp
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionTutorial.cs
+                     :start-after: // start-encrypted-fields-map
+                     :end-before: // end-encrypted-fields-map
+                     :language: csharp
+                     :dedent:
+
+            .. note::
+
+               In the previous code sample, both the "ssn" and
+               "billing" fields are encrypted, but only the "ssn"
+               field can be queried.
+
+         .. step:: Create the Collection
+
+            .. tabs-drivers::
+
+               .. tab::
+                  :tabid: nodejs
+
+                  Instantiate ``ClientEncryption`` to access the API for the
+                  encryption helper methods.
+
+                  .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+                     :start-after: // start-client-encryption
+                     :end-before: // end-client-encryption
+                     :language: javascript
+                     :dedent:
+
+               .. tab::
+                  :tabid: python
+
+                  Instantiate ``ClientEncryption`` to access the API for the
+                  encryption helper methods.
+
+                  .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_helpers.py
+                     :start-after: # start-client-encryption
+                     :end-before: # end-client-encryption
+                     :language: python
+                     :dedent:
+
+               .. tab::
+                  :tabid: java-sync
+
+                  Instantiate ``ClientEncryption`` to access the API for the
+                  encryption helper methods.
+
+                  .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/QueryableEncryptionTutorial.java
+                     :start-after: // start-client-encryption
+                     :end-before: // end-client-encryption
+                     :language: java
+                     :dedent:
+
+               .. tab::
+                  :tabid: go
+
+                  Instantiate ``ClientEncryption`` to access the API for the
+                  encryption helper methods.
+
+                  .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_helpers.go
+                     :start-after: // start-client-encryption
+                     :end-before: // end-client-encryption
+                     :language: go
+                     :dedent:
+
+               .. tab::
+                  :tabid: csharp
+
+                  Instantiate ``ClientEncryption`` to access the API for the
+                  encryption helper methods.
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionHelpers.cs
+                     :start-after: // start-client-encryption
+                     :end-before: // end-client-encryption
+                     :language: csharp
+                     :dedent:
+
+            .. tabs-drivers::
+
+               .. tab::
+                  :tabid: nodejs
+
+                  Create your encrypted collection by using the encryption
+                  helper method accessed through the ``ClientEncryption`` class.
+                  This method automatically generates data encryption keys for your
+                  encrypted fields and creates the encrypted collection:
+
+                  .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-helpers.js
+                     :start-after: // start-create-encrypted-collection
+                     :end-before: // end-create-encrypted-collection
+                     :language: javascript
+                     :dedent:
+
+                  .. tip:: Database vs. Database Name
+
+                     The method that creates the encrypted collection requires a reference
+                     to a database *object* rather than the database *name*. You can
+                     obtain this reference by using a method on your client object.
+
+               .. tab::
+                  :tabid: python
+
+                  Create your encrypted collection by using the encryption
+                  helper method accessed through the ``ClientEncryption`` class.
+                  This method automatically generates data encryption keys for your
+                  encrypted fields and creates the encrypted collection:
+
+                  .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_tutorial.py
+                     :start-after: # start-create-encrypted-collection
+                     :end-before: # end-create-encrypted-collection
+                     :language: python
+                     :dedent:
+
+                  .. tip:: Database vs. Database Name
+
+                     The method that creates the encrypted collection requires a reference
+                     to a database *object* rather than the database *name*. You can
+                     obtain this reference by using a method on your client object.
+
+               .. tab::
+                  :tabid: java-sync
+
+                  Create your encrypted collection by using the encryption
+                  helper method accessed through the ``ClientEncryption`` class.
+                  This method automatically generates data encryption keys for your
+                  encrypted fields and creates the encrypted collection:
+
+                  .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/QueryableEncryptionTutorial.java
+                     :start-after: // start-create-encrypted-collection
+                     :end-before: // end-create-encrypted-collection
+                     :language: java
+                     :dedent:
+
+                  .. tip:: Database vs. Database Name
+
+                     The method that creates the encrypted collection requires a reference
+                     to a database *object* rather than the database *name*. You can
+                     obtain this reference by using a method on your client object.
+
+               .. tab::
+                  :tabid: go
+
+                  The Golang version of this tutorial uses data models to
+                  represent the document structure. Add the following
+                  structs to your project to represent the data in your
+                  collection:
+
+                  .. literalinclude:: /includes/qe-tutorials/go/models.go
+                     :start-after: start-patient-document
+                     :end-before: end-patient-document
+                     :language: go
+                     :dedent:
+
+                  .. literalinclude:: /includes/qe-tutorials/go/models.go
+                     :start-after: start-patient-record
+                     :end-before: end-patient-record
+                     :language: go
+                     :dedent:
+
+                  .. literalinclude:: /includes/qe-tutorials/go/models.go
+                     :start-after: start-payment-info
+                     :end-before: end-payment-info
+                     :language: go
+                     :dedent:
+
+                  After you've added these classes, create your encrypted
+                  collection by using the encryption helper method accessed
+                  through the ``ClientEncryption`` class.
+                  This method automatically generates data encryption keys for your
+                  encrypted fields and creates the encrypted collection:
+
+                  .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_tutorial.go
+                     :start-after: // start-create-encrypted-collection
+                     :end-before: // end-create-encrypted-collection
+                     :language: go
+                     :dedent:
+
+                  .. tip:: Database vs. Database Name
+
+                     The method that creates the encrypted collection requires a reference
+                     to a database *object* rather than the database *name*. You can
+                     obtain this reference by using a method on your client object.
+
+               .. tab::
+                  :tabid: csharp
+
+                  The C# version of this tutorial uses separate classes as data models
+                  when creating the encrypted collection.
+                  Add the following ``Patient``, ``PatientRecord``, and ``PatientBilling``
+                  classes to your project:
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/Patient.cs
+                     :start-after: // start-patient
+                     :end-before: // end-patient
+                     :language: csharp
+                     :dedent:
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/PatientRecord.cs
+                     :start-after: // start-patient-record
+                     :end-before: // end-patient-record
+                     :language: csharp
+                     :dedent:
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/PatientBilling.cs
+                     :start-after: // start-patient-billing
+                     :end-before: // end-patient-billing
+                     :language: csharp
+                     :dedent:
+
+                  After you've added these classes, create your encrypted collection by
+                  using the encryption helper method accessed through the
+                  ``ClientEncryption`` class.
+                  This method automatically generates data encryption keys for your
+                  encrypted fields and creates the encrypted collection:
+
+                  .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionTutorial.cs
+                     :start-after: // start-create-encrypted-collection
+                     :end-before: // end-create-encrypted-collection
+                     :language: csharp
+                     :dedent:
+
+                  .. tip:: Database vs. Database Name
+
+                     The method that creates the encrypted collection requires a reference
+                     to a database *object* rather than the database *name*. You can
+                     obtain this reference by using a method on your client object.
+
+   .. _qe-aws-insert:
 
    .. step:: Insert a Document with Encrypted Fields
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/insert.rst
+      Create a sample document that describes a patient's personal information.
+      Use the encrypted client to insert it into the ``patients`` collection,
+      as shown in the following example:
 
-      .. see:: Complete Code
+      .. tabs-drivers::
 
-         .. tabs-drivers::
+         .. tab::
+            :tabid: nodejs
 
-            .. tab::
-               :tabid: shell
+            .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-tutorial.js
+               :start-after: // start-insert-document
+               :end-before: // end-insert-document
+               :language: javascript
+               :dedent:
 
-               To view the complete code for inserting a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/mongosh/aws/reader/insert_encrypted_document.js>`__.
+         .. tab::
+            :tabid: python
 
-            .. tab::
-               :tabid: nodejs
+            .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_tutorial.py
+               :start-after: # start-insert-document
+               :end-before: # end-insert-document
+               :language: python
+               :dedent:
 
-               To view the complete code for inserting a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/node/aws/reader/insert_encrypted_document.js>`__.
+         .. tab::
+            :tabid: java-sync
 
-            .. tab::
-               :tabid: python
+            .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/QueryableEncryptionTutorial.java
+               :start-after: // start-insert-document
+               :end-before: // end-insert-document
+               :language: java
+               :dedent:
 
-               To view the complete code for inserting a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/python/aws/reader/insert_encrypted_document.py>`__.
+         .. tab::
+            :tabid: go
 
-            .. tab::
-               :tabid: java-sync
+            .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_tutorial.go
+               :start-after: // start-insert-document
+               :end-before: // end-insert-document
+               :language: go
+               :dedent:
 
-               To view the complete code for inserting a {+in-use-doc+}
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java>`__.
+         .. tab::
+            :tabid: csharp
 
-            .. tab::
-               :tabid: go
+            .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionTutorial.cs
+               :start-after: // start-insert-document
+               :end-before: // end-insert-document
+               :language: csharp
+               :dedent:
 
-               To view the complete code for inserting a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/go/aws/reader/insert-encrypted-document.go>`__.
+   .. step:: Query on an Encrypted Field
 
-            .. tab::
-               :tabid: csharp
+      The following code sample uses a ``MongoClient`` configured for automatic {+qe+}
+      to query on an encrypted field and view the decrypted data:
 
-               To view the complete code for inserting a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs>`__.
+      .. tabs-drivers::
 
+         .. tab::
+            :tabid: nodejs
 
-   .. step:: Retrieve Your {+in-use-doc-title+}
+            .. literalinclude:: /includes/qe-tutorials/node/queryable-encryption-tutorial.js
+               :start-after: // start-find-document
+               :end-before: // end-find-document
+               :language: javascript
+               :dedent:
 
-      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/find.rst
+         .. tab::
+            :tabid: python
 
-      .. see:: Complete Code
+            .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_tutorial.py
+               :start-after: # start-find-document
+               :end-before: # end-find-document
+               :language: python
+               :dedent:
 
-         .. tabs-drivers::
+         .. tab::
+            :tabid: java-sync
 
-            .. tab::
-               :tabid: shell
+            .. literalinclude:: /includes/qe-tutorials/java/src/main/java/com/mongodb/tutorials/qe/QueryableEncryptionTutorial.java
+               :start-after: // start-find-document
+               :end-before: // end-find-document
+               :language: java
+               :dedent:
 
-               To view the complete code for finding a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/mongosh/aws/reader/insert_encrypted_document.js>`__.
+         .. tab::
+            :tabid: go
 
-            .. tab::
-               :tabid: nodejs
+            .. literalinclude:: /includes/qe-tutorials/go/queryable_encryption_tutorial.go
+               :start-after: // start-find-document
+               :end-before: // end-find-document
+               :language: go
+               :dedent:
 
-               To view the complete code for finding a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/node/aws/reader/insert_encrypted_document.js>`__.
+         .. tab::
+            :tabid: csharp
 
-            .. tab::
-               :tabid: python
+            .. literalinclude:: /includes/qe-tutorials/csharp/QueryableEncryptionTutorial.cs
+               :start-after: // start-find-document
+               :end-before: // end-find-document
+               :language: csharp
+               :dedent:
 
-               To view the complete code for finding a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/python/aws/reader/insert_encrypted_document.py>`__.
+      The output of the preceding code sample should look similar to the
+      following:
 
-            .. tab::
-               :tabid: java-sync
+      .. literalinclude:: /includes/qe-tutorials/encrypted-document.json
+         :language: json
+         :copyable: false
+         :dedent:
 
-               To view the complete code for finding a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/java/aws/reader/src/main/java/com/mongodb/qe/InsertEncryptedDocument.java>`__.
-
-            .. tab::
-               :tabid: go
-
-               To view the complete code for finding a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/go/aws/reader/insert-encrypted-document.go>`__.
-
-            .. tab::
-               :tabid: csharp
-
-               To view the complete code for finding a {+in-use-doc+}, see
-               `the {+qe+} sample application repository <{+sample-app-url-qe+}/dotnet/aws/reader/QueryableEncryption/InsertEncryptedDocument.cs>`__.
-
-
+      .. include:: /includes/queryable-encryption/safe-content-warning.rst
 
 Learn More
 ----------
