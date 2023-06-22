@@ -1,3 +1,21 @@
+.. _opsmgr-server-6.0.15:
+
+|onprem| Server 6.0.15:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-06-15*
+
+- Updates the {+mdbagent+} to :ref:`12.0.23.7711 <mongodb-12.0.23.7711>`.
+- Adds support for |bic-full| 2.14.7.
+- Updates Go to 1.19.9+ to address the following |cve|\s:
+
+  - :cve-id:`CVE-2023-29400 </CVE-2023-29400>`
+  - :cve-id:`CVE-2023-24539 </CVE-2023-24539>`
+  - :cve-id:`CVE-2023-24540 </CVE-2023-24540>`
+
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+  </release-notes/database-tools-changelog/#100.7.0-changelog>`.
+
 .. _opsmgr-server-6.0.14:
 
 |onprem| Server 6.0.14
@@ -16,6 +34,8 @@
 - Snapshots now include a flag that indicates whether or not they are incremental.
 - Adds the ability for |onprem| administrators to access performance and snapshot metrics.
   Administrators can now use Prometheus to query newly created collections and view metrics graphs.
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+  </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 
 .. _opsmgr-server-6.0.13:
 
@@ -35,6 +55,8 @@
   ``automation-agent-fatal.log`` file. 
   :ref:`Reinstall the MongoDB Agent <update-agent-fatal-log-rotation>` 
   to enable automatic fatal log file rotation.
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+  </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 
 .. _opsmgr-server-6.0.12:
 
