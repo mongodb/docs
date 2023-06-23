@@ -1,2 +1,3 @@
 val filter = Filters.text("fate 7")
-collection.find(filter).collect { println(it) }
+val findFlow = collection.find(filter)
+findFlow.collect { println(it) }

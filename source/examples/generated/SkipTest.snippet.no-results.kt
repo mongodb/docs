@@ -4,4 +4,5 @@ val emptyQuery = listOf(
     Aggregates.sort(descending(PaintOrder::qty.name)),
     Aggregates.skip(9)
 )
-collection.aggregate(emptyQuery).collect { println(it) }
+val findFlow = collection.aggregate(emptyQuery)
+findFlow.collect { println(it) }
