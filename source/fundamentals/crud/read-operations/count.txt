@@ -1,0 +1,246 @@
+.. _csharp-count-documents:
+
+===============
+Count Documents
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to get an :ref:`accurate
+<csharp-accurate-count>` and :ref:`estimated <csharp-estimated-count>` count of
+the number of documents in your collection.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the following documents in a collection called
+``students``:
+
+.. code-block:: json
+ 
+   { "_id": 1, "name": "Jonathon Howard ", "finalGrade": 87.5 }
+   { "_id": 2, "name": "Keisha Freeman", "finalGrade": 12.3 }
+   { "_id": 3, "name": "Wei Zhang", "finalGrade": 99.0 }
+   { "_id": 4, "name": "Juan Gonzalez", "finalGrade": 85.5 }
+   { "_id": 5, "name": "Erik Trout", "finalGrade": 72.3 }
+   { "_id": 6, "name": "Demarcus Smith", "finalGrade": 88.8 }
+
+The following ``Student`` class models the documents in this
+collection:
+
+.. literalinclude:: /includes/fundamentals/code-examples/CountDocuments.cs
+   :start-after: start-student-struct
+   :end-before: end-student-struct
+   :language: csharp
+   :dedent:
+
+.. note::
+
+   The documents in the ``students`` collection use the camel-case naming
+   convention. The examples in this guide use a ``ConventionPack``
+   to deserialize the fields in the collection into Pascal case and map them to
+   the properties in the ``Student`` class. 
+
+   To learn more about custom serialization, see
+   :ref:`csharp-custom-serialization`. 
+   
+.. _csharp-accurate-count:
+
+Accurate Count
+--------------
+
+To count the number of documents that match your :ref:`query filter <csharp-specify-query>`, use the
+``CountDocuments()`` method. If you pass an empty query filter, this method
+returns the total number of documents in the collection.
+
+Example 
+~~~~~~~
+
+The following example counts the number of documents where the
+value of ``finalGrade`` is less than ``80``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: csharp
+
+      var filter = Builders<Student>.Filter.Lt(s => s.FinalGrade, 80.0);
+      var count = _myColl.CountDocuments(filter);
+      Console.WriteLine("Number of documents with a final grade less than 80: " + count);
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Number of documents with a final grade less than 80: 2
+
+Modify Behavior
+~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``CountDocuments()`` by passing a ``CountOptions`` type as 
+a parameter. If you don't specify any options, the driver uses default values.
+
+You can set the following properties in a ``CountOptions`` object:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``Collation``
+     - | The type of language collation to use when sorting results.  
+       | Default: ``nil``
+
+   * - ``Hint`` 
+     - | The index to use to scan for documents to count. 
+       | Default: ``nil``
+
+   * - ``Limit`` 
+     - | The maximum number of documents to count. 
+       | Default: ``0`` 
+
+   * - ``MaxTime``
+     - | The maximum amount of time that the query can run on the server.
+       | Default: ``nil``
+
+   * - ``Skip`` 
+     - | The number of documents to skip before counting.
+       | Default: ``0``
+
+.. tip::
+
+   When you use ``CountDocuments()`` to return the total number of documents in a
+   collection, MongoDB performs a collection scan. You can avoid a collection scan and
+   improve the performance of this method by using a hint to take advantage of the built-in index on
+   the ``_id`` field. Use this technique only when calling ``CountDocuments()``
+   with an empty query parameter.
+
+   .. code-block:: csharp
+      :emphasize-lines: 1, 2
+
+      var filter = Builders<Student>.Filter.Empty;
+      CountOptions opts = new CountOptions(){Hint = "_id_"};
+      var count = collection.CountDocuments(filter, opts);
+
+.. _csharp-estimated-count:
+
+Estimated Count
+---------------
+
+To estimate the total number of documents in your collection, use the
+``EstimatedDocumentCount()`` method. 
+
+.. note:: 
+
+    The ``EstimatedDocumentCount()`` method is more efficient than the
+    ``CountDocuments()`` method because it uses the collection's
+    metadata rather than scanning the entire collection. 
+
+Modify Behavior
+~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``EstimatedDocumentCount()`` by passing a
+``EstimatedDocumentCountOptions`` type as a parameter. If you don't
+specify any options, the driver uses default values.
+
+You can set the following properties in a ``EstimatedDocumentCountOptions`` object:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``MaxTime``
+     - | The maximum amount of time that the query can run on the server.
+       | Default: ``nil``
+
+Example
+```````
+
+The following example estimates the number of documents in the
+``students`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: csharp
+
+      var count = _myColl.EstimatedDocumentCount();
+      Console.WriteLine("Estimated number of documents in the students collection: " + count);
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Estimated number of documents in the students collection: 6
+
+.. _csharp-count-aggregation:
+
+Aggregation
+-----------
+
+You can use the ``Count()`` builder method to count the number
+of documents in an aggregation pipeline.
+
+Example
+~~~~~~~
+
+The following example performs the following actions:
+
+- Specifies a match stage to find documents with a ``FinalGrade`` value
+  greater than ``80``
+- Counts the number of documents that match the criteria
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: csharp
+
+      var filter = Builders<Student>
+        .Filter.Gt(s => s.FinalGrade, 80);
+      var result = _myColl.Aggregate().Match(filter).Count();
+      Console.WriteLine("Number of documents with a final grade more than 80: " + result.First().Count);
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Number of documents with a final grade more than 80: 2
+      
+
+Additional Information
+----------------------
+
+To learn more about the operations mentioned, see the following
+guides:
+
+- :ref:`csharp-specify-query`
+- :ref:`csharp-bson`
+- :ref:`csharp-guids`
+- :ref:`csharp-builders` 
+- :ref:`csharp-poco`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `CountDocuments() <{+api-root+}/M_MongoDB_Driver_IMongoCollection_1_CountDocuments.htm>`__
+- `CountOptions <{+api-root+}/T_MongoDB_Driver_CountOptions.htm>`__
+- `EstimatedDocumentCount() <{+api-root+}/M_MongoDB_Driver_MongoCollectionBase_1_EstimatedDocumentCount.htm>`__
+- `EstimatedDocumentCountOptions <{+api-root+}/T_MongoDB_Driver_EstimatedDocumentCountOptions.htm>`__
