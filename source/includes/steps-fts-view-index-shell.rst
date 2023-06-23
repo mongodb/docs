@@ -1,5 +1,6 @@
 To retrieve your |fts| indexes through {+mongosh+}, use 
-the ``db.collection.getSearchIndexes()`` command.
+the :method:`db.collection.getSearchIndexes() 
+<db.collection.getSearchIndexes()>` method.
 
 The command has the following syntax.
 If you omit the index name, |fts| returns all
@@ -17,6 +18,7 @@ index named ``default`` from the ``movies`` collection.
 Your results should resemble the example output:
 
 .. io-code-block::
+   :copyable: true 
 
    .. input::
       :language: shell

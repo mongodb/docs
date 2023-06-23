@@ -1,5 +1,6 @@
 To edit an |fts| index through {+mongosh+}, use 
-the ``db.collection.updateSearchIndex()`` command.
+the :method:`db.collection.updateSearchIndex() 
+<db.collection.updateSearchIndex()>` method.
 
 The command has the following syntax.
 Specify the name of the index that you want to edit 
@@ -8,6 +9,7 @@ replaces the index's existing definition. To learn more,
 see :ref:`ref-index-definitions`.
 
 .. code-block:: javascript
+   :copyable: true
 
    db.<collection>.updateSearchIndex(
         "<index-name>",
@@ -22,6 +24,7 @@ index named ``default`` from the ``movies`` collection
 to use :ref:`static mappings <static-dynamic-mappings>`:
 
 .. code-block::
+   :copyable: true
 
    db.movies.updateSearchIndexes(
        "default",

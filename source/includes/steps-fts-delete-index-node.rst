@@ -19,6 +19,7 @@ to delete an index on your collection. Specify the following values:
 To run the sample application, use the following command.
 
 .. code-block::
+   :copyable: true
 
    node drop-index.js
 

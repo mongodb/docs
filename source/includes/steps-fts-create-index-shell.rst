@@ -1,5 +1,6 @@
 To create an |fts| index through {+mongosh+}, use 
-the ``db.collection.createSearchIndex()`` command.
+the :method:`db.collection.createSearchIndex() 
+<db.collection.createSearchIndex()>` method.
 
 The command has the following syntax.
 If you omit the index name, |fts| names the index 
@@ -22,6 +23,7 @@ dynamically indexes the fields in the ``movies``
 collection, run the following command:
 
 .. io-code-block::
+   :copyable: true
 
    .. input::
       :language: shell

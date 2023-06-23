@@ -1,9 +1,11 @@
 To delete an |fts| index through {+mongosh+}, use 
-the ``db.collection.dropSearchIndex()`` command.
+the :method:`db.collection.dropSearchIndex() 
+<db.collection.dropSearchIndex()>` method.
 
 The command has the following syntax:
 
 .. code-block:: javascript
+   :copyable: true
 
    db.<collection>.dropSearchIndex("<index-name>")
 
@@ -14,6 +16,7 @@ The following command deletes a search
 index named ``default`` from the ``movies`` collection:
 
 .. code-block:: javascript
+   :copyable: true
 
    db.movies.dropSearchIndex("default")
 

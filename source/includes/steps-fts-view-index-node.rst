@@ -30,6 +30,7 @@ To run the sample application, use the following command.
 Your results should resemble the example output:
 
 .. io-code-block::
+   :copyable: true
 
    .. input::
       :language: shell

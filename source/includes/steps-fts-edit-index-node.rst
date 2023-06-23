@@ -23,6 +23,7 @@ to update an existing index definition. Specify the following values:
 To run the sample application, use the following command:
 
 .. code-block::
+   :copyable: true
 
    node update-index.js
 

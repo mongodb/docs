@@ -24,6 +24,7 @@ Specify the following values:
 To run the sample application, use the following command:
 
 .. io-code-block::
+   :copyable: true
 
    .. input::
       :language: shell
