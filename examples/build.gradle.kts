@@ -19,8 +19,6 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-kotlin-coroutine:$kotlin_mongodb_version")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     testImplementation(kotlin("test"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-Beta")
-    implementation("org.mongodb:mongodb-driver-kotlin-coroutine:4.10.0-SNAPSHOT")
     implementation("org.slf4j:slf4j-api:2.0.5")
     implementation("ch.qos.logback:logback-classic:1.4.7")
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
