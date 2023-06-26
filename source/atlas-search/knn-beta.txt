@@ -139,21 +139,22 @@ equal to the sum of the numbers you specify for :pipeline:`$skip` and
 Usage 
 ~~~~~
 
-You can use ``knnBeta`` within the :ref:`compound-ref` operator to 
-perform a hybrid of keyword search and semantic search. ``knnBeta`` 
-always returns only ``k`` results, which is the number of nearest 
-neighbors. Therefore, if you use ``knnBeta`` inside the 
-:ref:`compound-ref` operator ``must`` clause with other operators, 
-|fts| uses the other operators for post-filtering of the semantic 
-search results. For pre-filtering, you can use the ``filter`` option 
-inside ``knnBeta``. On sharded clusters, |fts| returns ``k`` results 
-from each shard, but you can use :pipeline:`$limit` to limit the total 
-number of results.
-
 |fts| scores the results for :abbr:`kNN (K-nearest neighbors)` queries 
 in a fixed range from ``0`` to ``1`` only. You can customize the 
 default score for your keyword and semantic subqueries using 
 :ref:`scoring-boost` and other :ref:`scoring options <scoring-ref>`. 
+
+.. _knn-beta-limitation:
+
+Limitations 
+~~~~~~~~~~~
+
+``knnBeta`` operator must be the top-level operator in your queries and
+therefore, you can't use the ``knnBeta`` operator inside the following:  
+
+- :ref:`embedded-document-ref` operator 
+- :ref:`compound-ref` operator  
+- :ref:`fts-facet-ref` collector
 
 .. _knn-beta-egs:
 
@@ -337,114 +338,3 @@ against the collection.
       document with ``"_id": 2`` higher because it matches the search 
       criteria in the ``filter`` option and also the ``vector`` 
       dimensions in the query.
-
-   .. tab:: Compound Example 
-      :tabid: compound
-
-      The following query uses the :ref:`compound-ref` operator to run 
-      subqueries using the ``knnBeta`` and ``text`` operators. The 
-      query uses the ``should`` clause to search the following fields:
-      
-      - ``egVector`` field for ``vector`` dimensions and requests up to 
-        ``3`` nearest neighbors in the results.
-      - ``countryOfOrigin`` field for the term ``italy``.
-      
-      The query also specifies a :pipeline:`$project` stage 
-      to: 
-
-      - Exclude all fields except ``name``, ``description``, 
-        ``egVector``, ``countryOfOrigin``, and ``_id`` in the results.
-      - Add a field named ``score`` in the results.
-
-      .. io-code-block:: 
-         :copyable: true 
-
-         .. input:: 
-            :language: json 
-            :linenos:
-
-            db.cheese_varieties.aggregate([
-              {
-                "$search": {
-                  "index": "default",
-                  "compound": {
-                    "should": [{
-                      "knnBeta": {
-                        "vector": [-0.09950768947601318,-0.02402166835963726,-0.046839360147714615,0.06274440884590149,-0.0920015424489975],
-                        "path": "egVector",
-                        "k": 3
-                      }
-                    },
-                    {
-                      "text": {
-                        "path": "countryOfOrigin",
-                        "query": "italy"
-                      }
-                    }]
-                  }
-                }
-              },
-              {
-                "$project": {
-                  "name": 1,
-                  "description": 1,
-                  "egVector": 1,
-                  "countryOfOrigin": 1,
-                  "score": { $meta: "searchScore" }
-                }
-              }
-            ])
-
-         .. output::
-            :language: js
-            :linenos:
-
-            [
-              {
-                _id: 1,
-                name: 'mozzarella',
-                description: "Italian cheese typically made from buffalo's milk.",
-                countryOfOrigin: 'Italy',
-                egVector: [
-                  -0.09950768947601318,
-                  -0.02402166835963726,
-                  -0.046839360147714615,
-                  0.06274440884590149,
-                  -0.0920015424489975
-                ],
-                score: 1.2136380672454834
-              },
-              {
-                _id: 2,
-                name: 'parmesan',
-                description: "Italian hard, granular cheese produced from cow's milk.",
-                countryOfOrigin: 'Italy',
-                egVector: [
-                  -0.04228218272328377,
-                  -0.024080513045191765,
-                  -0.029374264180660248,
-                  -0.04369240626692772,
-                  -0.01295427419245243
-                ],
-                score: 1.1929192543029785
-              },
-              {
-               _id: 3,
-                name: 'feta',
-                description: "Greek brined white cheese made from sheep's milk or from a mixture of sheep and goat's milk.",
-                countryOfOrigin: 'Greece',
-                egVector: [
-                  -0.015739429742097855,
-                  0.04937680810689926,
-                  -0.1067470908164978,
-                  0.1293928325176239,
-                  -0.03162907809019089
-                ],
-                score: 0.9764859676361084
-              }
-            ]
-
-      In the preceding results, documents ``"_id":1`` and ``"_id": 2`` 
-      contain the query term ``italy`` in the ``countryOfOrigin`` 
-      field, and document with ``"_id": 1`` contains the ``vector`` 
-      dimensions also in the query. 
