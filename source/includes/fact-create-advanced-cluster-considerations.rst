@@ -1,3 +1,8 @@
+- To minimize network latency and data transfer costs, and 
+  to increase overall stability and security, use the 
+  same cloud provider and region to host
+  your application and {+cluster+} when possible.
+
 - .. include:: /includes/facts/cross-region-limits.rst
 
 - .. include:: /includes/fact-database-deployment-project-limit.rst
