@@ -30,7 +30,7 @@ configurations:
 - :doc:`Global Clusters </global-clusters>`
 
 - :doc:`Private Endpoints on Google Cloud using {+gcp-psc+} 
-  </security-private-endpoint>` [#f1]_
+  </security-private-endpoint>`
 
 - :doc:`Network Peering (VPC/VNet) </security-vpc-peering>`
 
@@ -39,8 +39,6 @@ configurations:
   
   {+Serverless-instances+} do support X.509 certificates and IAM 
   for authentication.
-
-.. [#f1] Coming soon.
 
 Unsupported Actions
 -------------------
