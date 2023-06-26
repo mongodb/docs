@@ -9,3 +9,14 @@ Install [Rust](https://www.rust-lang.org/learn/get-started).
 3) Change to the tool directory: `cd tools/license-tool/`.
 4) Run the tool: `cargo run`.
 5) Paste the output into the docs at `source/third-party-licenses.txt`.
+
+# Troubleshooting
+
+If you run into an error with `cargo run`, 
+try adding the following text to `~/.carg/config`
+(create this file if it does not exist):
+
+```
+[net]
+git-fetch-with-cli = true
+```
