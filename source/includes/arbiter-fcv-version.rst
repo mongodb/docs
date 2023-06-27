@@ -1,3 +1,3 @@
 
-For example, an arbiter in a MongoDB |newversion| cluster, has an FCV
+For example, an arbiter in a MongoDB |newversion| cluster, has an fCV
 value of |oldversion|.
