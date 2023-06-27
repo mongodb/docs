@@ -1,0 +1,115 @@
+.. _atlas-cli-ephemeral-cluster:
+
+=====================================================
+Test Automations with Ephemeral Projects and Clusters
+=====================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial demonstrates how to quickly create and delete ephemeral 
+|service| projects and {+clusters+} using the {+atlas-cli+}. Ephemeral
+projects and {+clusters+} provide temporary testing environments that
+you isolate from your production projects and {+clusters+}. You can use
+ephemeral projects and {+clusters+} to test your automation scripts
+before using the scripts on production {+clusters+}.
+
+.. _atlas-cli-ephemeral-reqs:
+
+Prerequisites 
+-------------
+
+Before you begin, complete the following tasks: 
+
+- Create an |service| user account.
+- :ref:`Create <atlas-organizations-create>` an 
+  :atlas:`Atlas organization </organizations-projects/>` and
+  note its organization ID. You can find the organization ID by running the :ref:`atlas-organizations-list` command.
+- :ref:`install-atlas-cli`.
+- :ref:`connect-atlas-cli`.
+
+Follow These Steps
+------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the ephemeral project, {+cluster+}, and database user.
+
+      a. Run the :ref:`atlas-users-describe` command to find your 
+         |service| user ID. Replace <YOUR-EMAIL> with the email address
+         that is associated with your |service| user account.
+
+         .. code-block::
+
+            atlas users describe --username <YOUR-EMAIL>
+
+      b. Run the :ref:`atlas-projects-create` command to create the
+         ephemeral project. Replace <ORG-ID> with the organization ID
+         and replace <YOUR-USER-ID> with your |service| user ID that
+         you retrieved in the previous step.
+
+         .. code-block::
+
+            atlas projects create myEphemeralProject --orgId <ORG-ID> --ownerId <YOUR-USER-ID>
+
+      c. Retrieve the project ID for the ephemeral project you created
+         from the response. In the following example response, the
+         project ID is ``64933bde48add154124e343f``.
+
+         .. code-block::
+
+            Project '64933bde48add154124e343f' created.
+
+         Alternatively, you can use the :ref:`atlas-projects-list`
+         command to find the project ID.
+
+      d. Run the :ref:`atlas-quickstart` command to create an ``M10``
+         {+cluster+} and a database user. Replace <YOUR-PASSWORD> with a password for the database user and replace <PROJECT-ID> with
+         the project ID for the ephemeral project you created.
+
+         .. code-block::
+
+            atlas quickstart --clusterName myEphemeralCluster --provider AWS --region US_EAST_1 --tier M10 --username myEphemeralUser --password <YOUR-PASSWORD> --currentIp --skipSampleData --projectId <PROJECT-ID> --force
+
+         After |service| creates the {+cluster+}, the {+atlas-cli+}
+         provides the :manual:`connection string 
+         </reference/connection-string/#connection-string-options>` and
+         connects to your {+cluster+} through {+mongosh+}.
+
+   .. step:: Test your automations on the ephemeral project and {+cluster+}.
+
+   .. step:: Delete the ephemeral project, {+cluster+}, and database user.
+
+      a. Run the :ref:`atlas-clusters-delete` command to delete the
+         ephemeral {+cluster+} and its database users. Replace <PROJECT-ID> with the project ID for your ephemeral project.
+
+         .. code-block::
+
+            atlas clusters delete myEphemeralCluster --projectId <PROJECT-ID> --force
+
+      b. Run the :ref:`atlas-projects-delete` command to delete the
+         ephemeral project. Replace <PROJECT-ID> with the project ID
+         for your ephemeral project.
+
+         .. code-block::
+
+            atlas projects delete <PROJECT-ID> --force
+
+         .. note::
+
+            You can't delete the ephemeral project until the ephemeral
+            {+cluster+} finishes shutting down. If you get an error
+            stating ``CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS``, wait
+            five minutes, then run the ``atlas projects delete``
+            command again.
+
+      You can run the :ref:`atlas-projects-list` command to confirm
+      successful deletion of the ephemeral project and {+cluster+}. If
+      the ephemeral project is missing from the list, you successfully
+      deleted both the project and the {+cluster+}.
