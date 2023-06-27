@@ -8,7 +8,7 @@ most of the documented :ref:`system event actions
 - When an |service| user performs an action in the {+atlas-ui+} on a 
   {+cluster+}, both the audit logs and ``mongodb.log`` file log the 
   ``mms-automation`` database user as the user performing the auditable 
-  auction. However, the :ref:`Project Activity Feed 
+  action. However, the :ref:`Project Activity Feed 
   <view-activity-feed>` logs the actual username of the |service| user
   responsible for the action.
 
