@@ -33,6 +33,11 @@ F
    fatal
      :icon-fa4:`times-circle` Use *serious* instead.
 
+   fCV
+     A MongoDB term that describes the "feature compatibility version"
+     of a server. Abbreviate by using mixed case, ``fCV``. Do not use
+     ``FCV``.
+
    fewer
      **less**
      Use *fewer* for countable items. Use *less* for collective or
