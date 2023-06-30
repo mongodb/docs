@@ -1,0 +1,227 @@
+.. procedure:: 
+   :style: normal
+
+   .. step:: Go to the :guilabel:`Search Tester` page.
+
+      a. Click the cluster name to view the cluster details.
+      #. Click the :guilabel:`Search` tab.
+      #. Click the :guilabel:`Query` button to the right of the index to
+         query. 
+
+   .. step:: View and edit the query syntax.
+
+      Click :guilabel:`Edit $search Query` to view a default query
+      syntax sample in |json| format.
+      
+   .. step:: Run an |fts| query with the ``embeddedDocument`` operator on the ``schools`` collection.
+
+      Copy and paste the following query into the :guilabel:`Query
+      Editor`, and then click the :guilabel:`Search` button in the
+      :guilabel:`Query Editor`.
+
+      .. note::
+
+         .. include:: /includes/fact-fts-expand-search-tester-results.rst
+
+      .. tabs:: 
+
+         .. tab:: Basic Search 
+            :tabid: basic
+
+            .. include:: /includes/extracts/fts-embedded-document-simple-query-intro.rst
+      
+            .. io-code-block::
+               :copyable: true
+      
+               .. input:: 
+                  :language: json
+                  :linenos: 
+
+                  [
+                    {
+                      "$search": {
+                        "index": "embedded-documents-tutorial",
+                        "embeddedDocument": {
+                          "path": "teachers",
+                          "operator": {
+                            "compound": {
+                              "must": [{
+                                "text": {
+                                  "path": "teachers.first",
+                                  "query": "John"
+                                }
+                              }],
+                              "should":[{
+                                "text": {
+                                  "path": "teachers.last",
+                                  "query": "Smith"
+                                }
+                              }]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+      
+               .. output:: 
+                  :visible: true 
+
+                  SCORE: 0.7830756902694702  _id:  “1”
+                    name: "Evergreen High"
+                    mascot: "Jaguars"
+                    teachers: Array 
+                    0: Object
+                      first: "Jane"
+                      last: "Earwhacker"
+                      classes: Array
+                        0: Object
+                          subject: "art"
+                          grade: "9th"
+                        1: Object
+                          subject: "science"
+                          grade: "12th"
+                    1: Object
+                      first: "John"
+                      last: "Smith"
+                      classes: Array
+                        0: Object
+                          subject: "math"
+                          grade: "12th"
+                        1: Object
+                          subject: "art"
+                          grade: "10th"
+
+                  SCORE: 0.468008816242218  _id:  “2”
+                    name: "Lincoln High"
+                    mascot: "Sharks"
+                    teachers: Array
+                      0: Object
+                        first: "Jane"
+                        last: "Smith"
+                        classes: Array
+                          0: Object
+                            subject: "science"
+                            grade: "9th"
+                          1: Object
+                            subject: "math"
+                            grade: "12th"
+                      1: Object
+                        first: "John"
+                        last: "Redman"
+                        classes: Array
+                          0: Object
+                            subject: "art"
+                            grade: "12th"
+
+         .. tab:: Nested Array Search 
+            :tabid: advanced
+
+            .. include:: /includes/extracts/fts-embedded-document-advanced-query-intro.rst 
+
+            .. io-code-block::
+               :copyable: true
+            
+               .. input:: 
+                  :language: json
+
+                  [
+                    {
+                      $search: {
+                        index: "embedded-documents-tutorial",
+                        "embeddedDocument": {
+                          "path": "teachers",
+                          "operator": {
+                            "compound": {
+                              "must": [{
+                                "embeddedDocument": {
+                                  "path": "teachers.classes",
+                                  "operator": {
+                                    "compound": {
+                                      "must": [{
+                                        "text": {
+                                          "path": "teachers.classes.grade",
+                                          "query": "12th"
+                                        }
+                                      },
+                                      {
+                                        "text": {
+                                          "path": "teachers.classes.subject",
+                                          "query": "science"
+                                        }
+                                      }]
+                                    }
+                                  }
+                                }
+                              }],
+                              "should": [{
+                                "text": {
+                                  "path": "teachers.last",
+                                  "query": "smith"
+                                }
+                              }]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+            
+               .. output:: 
+                  :visible: true
+
+                  SCORE: 0.9415585994720459
+                    name: "Springfield High"
+                    mascot: "Pumas"
+                    teachers: Array
+                      0: Object
+                        first: "Jane"
+                        last: "Smith"
+                        classes: Array
+                          0: Object
+                            subject: "art of science"
+                            grade: "12th"
+                          1: Object
+                            subject: "applied science and practical science"
+                            grade: "9th"
+                          2: Object
+                            subject: "remedial math"
+                            grade: "12th"
+                          3: Object
+                            subject: "science"
+                            grade: "10th"
+                      1: Object
+                        first: "Bob"
+                        last: "Green"
+                        classes: Array
+                          0: Object
+                            subject: "science of art"
+                            grade: "11th"
+                          1: Object
+                            subject: "art art art"
+                            grade: "10th"
+            
+                  SCORE: 0.7779859304428101  _id:  “1”
+                    name: "Evergreen High"
+                    mascot: "Jaguars"
+                    teachers: Array
+                      0: Object
+                        first: "Jane"
+                        last: "Earwhacker"
+                        classes: Array
+                          0: Object
+                            subject: "art"
+                            grade: "9th"
+                          1: Object
+                            subject: "science"
+                            grade: "12th"
+                      1: Object
+                        first: "John"
+                        last: "Smith"
+                        classes: Array
+                          0: Object
+                            subject: "math"
+                            grade: "12th"
+                          1: Object
+                            subject: "art"
+                            grade: "10th"
