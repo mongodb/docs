@@ -26,11 +26,11 @@
        project or organization depending on your location.
 
    * - ``apps``
-     - Go to the top-level :appservices:`{+atlas-app-services+}` page 
+     - Go to the top-level :appservices:`{+atlas-app-services+} </>` page 
        for the current project.
 
    * - ``apps {projectName}``
-     - Go to the top-level :appservices:`{+atlas-app-services+}` page 
+     - Go to the top-level :appservices:`{+atlas-app-services+} </>` page 
        for the specified project.
 
    * - ``backup``
