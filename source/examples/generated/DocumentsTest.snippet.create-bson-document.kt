@@ -4,8 +4,7 @@ val author = BsonDocument()
     .append(
         "dateOfDeath",
         BsonDateTime(
-            LocalDate.of(2014, 4, 17)
-                .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+            LocalDateTime.of(2014, 4, 17, 0, 0).atZone(ZoneId.of("America/New_York")).toInstant().toEpochMilli()
         )
     )
     .append(

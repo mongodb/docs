@@ -2,10 +2,7 @@ val author = Document("_id", ObjectId())
     .append("name", "Gabriel García Márquez")
     .append(
         "dateOfDeath",
-        Date.from(
-            LocalDate.of(2014, 4, 17)
-                .atStartOfDay(ZoneId.systemDefault()).toInstant()
-        )
+        LocalDateTime.of(2014, 4, 17, 4, 0)
     )
     .append(
         "novels", listOf(
