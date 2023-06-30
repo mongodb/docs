@@ -48,10 +48,13 @@
 - For restricted access to defined IP ranges, :azure:`allow access 
   </key-vault/general/network-security>` 
   from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` and the public 
-  IP addresses of your cluster nodes. Ensure |service| can communicate 
-  with your key vault. To avoid connectivity interruptions, update your 
-  configuration whenever node IP addresses :ref:`change 
-  <faq-public-ip-changes>`.
+  IP addresses of your cluster nodes.
+  
+  - Ensure |service| can communicate 
+    with your key vault. To avoid connectivity interruptions, update 
+    your configuration whenever node IP addresses :ref:`change 
+    <faq-public-ip-changes>`. For example, you might need to update 
+    your :ref:`inbound access rules <atlas-add-inbound-ips>`.
 
   - If you restrict access to the key vault, you create more 
     complexity when IP addresses change. For example, when you create 
