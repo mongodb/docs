@@ -193,7 +193,7 @@
 - Changes how disk space is calculated for Cloud Live Migrations. Starting with this release, 
   the migration process validates that the target |service| cluster has enough free disk based 
   on the storage size of the compressed data. To learn more about data and storage sizes, see 
-  :manual:`dbStats <//reference/command/dbStats/#dbstats>`.
+  :manual:`dbStats </reference/command/dbStats/#dbstats>`.
 - Fixes an issue when creating LDAP group mappings through the API.
 - Updates the {+mdbagent+} to :ref:`11.0.14.7064 <mongodb-11.0.14.7064>`.
 - Compatible with :db-tools:`MongoDB Database Tools 100.5.2 
