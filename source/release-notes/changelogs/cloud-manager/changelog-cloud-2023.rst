@@ -1,3 +1,16 @@
+.. _cloudmanager_20230614:
+
+14 June 2023 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`13.1.0.8282-1 <13.1.0.8282-1>`.
+- Adds support for |bic-full| 2.14.7.
+- Updates Go to 1.19.9+ to address the following |cve|\s:
+
+  - :cve-id:`CVE-2023-29400 </CVE-2023-29400>`
+  - :cve-id:`CVE-2023-24539 </CVE-2023-24539>`
+  - :cve-id:`CVE-2023-24540 </CVE-2023-24540>`
+
 .. _cloudmanager_20230525:
 
 25 May 2023 Release
