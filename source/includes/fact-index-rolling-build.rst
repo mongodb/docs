@@ -56,21 +56,9 @@ Replica Sets </tutorial/build-indexes-on-replica-sets>`.
 
 .. note::
 
-   The following :manual:`index options 
+   :manual:`Unique 
+   </reference/method/db.collection.createIndex#options-for-all-index-types>` 
+   :manual:`index options 
    </reference/method/db.collection.createIndex/#options>` are 
-   incompatible with building indexes in a rolling fashion:
-
-   - :manual:`unique
-     </reference/method/db.collection.createIndex#options-for-all-index-types>`
-
-   - :manual:`storageEngine
-     </reference/method/db.collection.createIndex#options-for-all-index-types>`
-
-   - :manual:`textIndexVersion
-     </reference/method/db.collection.createIndex#options-for-text-indexes>`
-
-   - :manual:`2dsphereIndexVersion
-     </reference/method/db.collection.createIndex#options-for-2d-indexes>`
-
-   If you specify any of these options in the :guilabel:`Options` pane, 
-   |service| rejects your configuration with an error message.
+   incompatible with building indexes in a rolling fashion. If you specify ``unique`` in the :guilabel:`Options`
+   pane, |service| rejects your configuration with an error message.
