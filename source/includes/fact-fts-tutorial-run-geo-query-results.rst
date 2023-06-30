@@ -1,7 +1,7 @@
 - Uses a compound :pipeline:`$search` stage to:
 
-  - Specify that ``address.location`` results ``must`` be within 
-    a ``Polygon`` defined by a set of ``coordinates``.
+  - Specify that results ``must`` be within a ``Polygon`` defined by a
+    set of ``coordinates``. 
 
   - Give preference to results for properties of type ``condominium``.
 
