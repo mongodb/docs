@@ -7,6 +7,15 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230627:
+
+27 June 2023 Release 
+~~~~~~~~~~~~~~~~~~~~
+
+- Supports the ``$$SEARCH_META`` aggregation variable when you run 
+  :pipeline:`$search` queries on an |service| {+cluster+} through
+  {+adf+}.
+
 .. _adf-v20230613:
 
 13 June 2023 Release
