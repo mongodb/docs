@@ -1,10 +1,9 @@
-﻿namespace QueryableEncryption
+﻿namespace QueryableEncryption;
+
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
-        {
-            QueryableEncryptionTutorial.RunExample();
-        }
+        QueryableEncryptionTutorial.RunExample();
     }
 }

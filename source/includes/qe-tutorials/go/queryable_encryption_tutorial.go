@@ -48,15 +48,12 @@ func main() {
 		options.Client().ApplyURI(uri).SetAutoEncryptionOptions(autoEncryptionOptions),
 	)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to connect to MongoDB: %v\n", err)
-		panic(errMsg)
+		panic(fmt.Sprintf("Unable to connect to MongoDB: %v\n", err))
 	}
 	defer func() {
 		_ = encryptedClient.Disconnect(context.TODO())
 	}()
 	// end-create-client
-
-	// TODO: figure out formatting
 
 	keyVaultCollection := encryptedClient.Database(keyVaultDatabaseName).Collection(keyVaultCollectionName)
 	if err := keyVaultCollection.Drop(context.TODO()); err != nil {
@@ -116,9 +113,9 @@ func main() {
 	// start-insert-document
 	patientDocument := &PatientDocument{
 		PatientName: "John Doe",
-		PatientId:   12345678,
+		PatientID:   12345678,
 		PatientRecord: PatientRecord{
-			Ssn: "987-65-4320",
+			SSN: "987-65-4320",
 			Billing: PaymentInfo{
 				Type:   "Visa",
 				Number: "4111111111111111",
@@ -130,8 +127,7 @@ func main() {
 
 	_, err = coll.InsertOne(context.TODO(), patientDocument)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to insert the patientDocument: %s", err)
-		panic(errMsg)
+		panic(fmt.Sprintf("Unable to insert the patientDocument: %s", err))
 	}
 	// end-insert-document
 
@@ -141,11 +137,11 @@ func main() {
 		context.TODO(),
 		bson.M{"patientRecord.ssn": "987-65-4320"},
 	).Decode(&findResult)
+	// end-find-document
 	if err != nil {
 		fmt.Print("Unable to find the document\n")
 	} else {
 		output, _ := json.MarshalIndent(findResult, "", "    ")
 		fmt.Printf("%s\n", output)
 	}
-	// end-find-document
 }

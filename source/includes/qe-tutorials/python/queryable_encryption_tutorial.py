@@ -51,7 +51,6 @@ encrypted_fields_map = {
         }
     ]
 }
-
 # end-encrypted-fields-map
 
 client_encryption = helpers.get_client_encryption(
@@ -87,9 +86,9 @@ patient_document = {
 encrypted_collection = encrypted_client[encrypted_database_name][encrypted_collection_name]
 
 result = encrypted_collection.insert_one(patient_document)
+# end-insert-document
 if result.acknowledged:
     print("Successfully inserted the patient document.")
-# end-insert-document
 
 
 # start-find-document

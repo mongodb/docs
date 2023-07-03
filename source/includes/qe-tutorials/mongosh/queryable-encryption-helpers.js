@@ -53,9 +53,9 @@ function getKMSProviderCredentials(kmsProviderName) {
       (function () {
         // start-generate-local-key
         try {
-          masterKeyPath = "master-key.txt";
-          if (!fs.existsSync(masterKeyPath)) {
-            fs.writeFileSync(masterKeyPath, crypto.randomBytes(96));
+          customerMasterKeyPath = "customer-master-key.txt";
+          if (!fs.existsSync(customerMasterKeyPath)) {
+            fs.writeFileSync(customerMasterKeyPath, crypto.randomBytes(96));
           }
         } catch (err) {
           console.error(err);
@@ -64,7 +64,7 @@ function getKMSProviderCredentials(kmsProviderName) {
       })();
       // start-get-local-key
       // WARNING: Do not use a local key file in a production application
-      const localMasterKey = fs.readFileSync("./master-key.txt");
+      const localMasterKey = fs.readFileSync("./customer-master-key.txt");
       kmsProviderCredentials = {
         local: {
           key: localMasterKey,
@@ -125,7 +125,6 @@ async function getAutoEncryptionOptions(
   if (kmsProviderName === "kmip") {
     const tlsOptions = getKmipTlsOptions();
     // start-kmip-encryption-options
-
     const autoEncryptionOptions = {
       keyVaultNamespace: keyVaultNamespace,
       kmsProviders: kmsProviderCredentials,

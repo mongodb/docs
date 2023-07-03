@@ -83,13 +83,13 @@ async function runExample() {
   const encryptedCollection = encryptedClient.getDB(encryptedDatabaseName).getCollection(encryptedCollectionName);
 
   const insertResult = await encryptedCollection.insertOne(patientDocument);
-
+  // end-insert-document
+  
   try {
     assert(insertResult.acknowledged == true)
   } catch(err) {
     console.error(err);
   }
-  // end-insert-document
 
   // start-find-document
   const findResult = await encryptedCollection.findOne({

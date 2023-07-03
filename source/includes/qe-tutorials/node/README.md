@@ -14,16 +14,14 @@ dependencies:
 - Automatic Encryption Shared Library version 7.0 or later
 - Node.js
 - npm
-- [direnv](https://direnv.net/docs/installation.html) to assign your KMS
-  credentials to environment variables.
 
 For more information on installation requirements for QE, see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install).
 
 ## Configure Your Environment
 
-1. Copy the `envrc_template` file in the root of the project directory to a file named `.envrc`.
+1. Copy the `env_template` file in the root of the project directory to a file named `.env`.
 
-1. Replace the placeholder values in the ``.envrc`` file with your own credentials.
+1. Replace the placeholder values in the `.env` file with your own credentials.
 
 1. Start a MongoDB replica set with three nodes.
 
@@ -37,12 +35,6 @@ For more information on installation requirements for QE, see [Installation Requ
 ## Run the App
 
 1. In a shell, navigate to the project root directory.
-
-1. Run `direnv allow` to load the environment variables defined in your `.envrc`
-   file into your environment.
-
-   > **Note:** `direnv allow` only needs to be run the first time you are
-   > running this application.
 
 1. Run `npm install` to install the Node.js driver and
    `mongodb-client-encryption` packages.

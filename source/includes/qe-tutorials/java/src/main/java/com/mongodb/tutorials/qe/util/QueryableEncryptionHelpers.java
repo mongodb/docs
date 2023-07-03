@@ -28,12 +28,12 @@ public final class QueryableEncryptionHelpers {
 
         switch (kmsProviderName) {
             case "local":
-                // Reuse the key from the existing master-key.txt file if it exists
-                if (! new File("./master-key.txt").isFile()) {
+                // Reuse the key from the customer-master-key.txt file if it exists
+                if (! new File("./customer-master-key.txt").isFile()) {
                     // start-generate-local-key
                     byte[] localMasterKeyWrite = new byte[96];
                     new SecureRandom().nextBytes(localMasterKeyWrite);
-                    try (FileOutputStream stream = new FileOutputStream("master-key.txt")) {
+                    try (FileOutputStream stream = new FileOutputStream("customer-master-key.txt")) {
                         stream.write(localMasterKeyWrite);
                     }
                     // end-generate-local-key
@@ -42,7 +42,7 @@ public final class QueryableEncryptionHelpers {
                 // start-get-local-key
                 byte[] localMasterKeyRead = new byte[96];
 
-                try (FileInputStream fis = new FileInputStream("master-key.txt")) {
+                try (FileInputStream fis = new FileInputStream("customer-master-key.txt")) {
                     if (fis.read(localMasterKeyRead) < 96)
                         throw new Exception("Expected to read 96 bytes from the customer master key file");
                 }
@@ -108,7 +108,7 @@ public final class QueryableEncryptionHelpers {
                 // start-kmip-local-cmk-credentials
                 BsonDocument customerMasterKeyCredentials = new BsonDocument();
                 // end-kmip-local-cmk-credentials
-                return new BsonDocument();
+                return customerMasterKeyCredentials;
             case "aws":
                 // start-aws-cmk-credentials
                 BsonDocument awsCustomerMasterKeyCredentials = new BsonDocument();

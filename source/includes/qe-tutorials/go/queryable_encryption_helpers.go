@@ -57,35 +57,31 @@ func GetKmsProviderCredentials(kmsProviderName string) map[string]map[string]int
 		return kmsProviderCredentials
 	case "local":
 
-		// Reuse the key from the existing master-key.txt file if it exists
-		if _, err := os.Stat("./master-key.txt"); errors.Is(err, os.ErrNotExist) {
+		// Reuse the key from the customer-master-key.txt file if it exists
+		if _, err := os.Stat("./customer-master-key.txt"); errors.Is(err, os.ErrNotExist) {
 			// start-generate-local-key
 			key := make([]byte, 96)
 			if _, err := rand.Read(key); err != nil {
-				errMsg := fmt.Sprintf("Unable to create a random 96 byte data key: %v\n", err)
-				panic(errMsg)
+				panic(fmt.Sprintf("Unable to create a random 96 byte data key: %v\n", err))
 			}
-			if err := os.WriteFile("master-key.txt", key, 0644); err != nil {
-				errMsg := fmt.Sprintf("Unable to write key to file: %v\n", err)
-				panic(errMsg)
+			if err := os.WriteFile("customer-master-key.txt", key, 0644); err != nil {
+				panic(fmt.Sprintf("Unable to write key to file: %v\n", err))
 			}
 			// end-generate-local-key
 
 		}
 
 		// start-get-local-key
-		key, err := os.ReadFile("master-key.txt")
+		key, err := os.ReadFile("customer-master-key.txt")
 		if err != nil {
-			errMsg := fmt.Sprintf("Could not read the key from master-key.txt: %v", err)
-			panic(errMsg)
+			panic(fmt.Sprintf("Could not read the Customer Master Key: %v", err))
 		}
 		kmsProviderCredentials := map[string]map[string]interface{}{"local": {"key": key}}
 		// end-get-local-key
 		return kmsProviderCredentials
 
 	default:
-		errMsg := fmt.Sprintf("Unrecognized KMS provider name: %s\n", kmsProviderName)
-		panic(errMsg)
+		panic(fmt.Sprintf("Unrecognized KMS provider name: %s\n", kmsProviderName))
 	}
 }
 
@@ -123,8 +119,7 @@ func GetCustomerMasterKeyCredentials(kmsProviderName string) map[string]string {
 		// end-kmip-local-cmk-credentials
 		return cmkCredentials
 	default:
-		errMsg := fmt.Sprintf("Unrecognized KMS provider name: %s\n", kmsProviderName)
-		panic(errMsg)
+		panic(fmt.Sprintf("Unrecognized KMS provider name: %s\n", kmsProviderName))
 	}
 }
 
@@ -136,16 +131,17 @@ func GetClientEncryption(
 ) *mongo.ClientEncryption {
 
 	if kmsProviderName == "kmip" {
+		tlsConfig := GetKmipTlsOptions()
+
 		// start-kmip-client-encryption
 		opts := options.ClientEncryption().
 			SetKeyVaultNamespace(keyVaultNamespace).
 			SetKmsProviders(kmsProviderCredentials).
-			SetTLSConfig(GetKmipTlsOptions())
+			SetTLSConfig(tlsConfig)
 
 		clientEncryption, err := mongo.NewClientEncryption(client, opts)
 		if err != nil {
-			errMsg := fmt.Sprintf("Unable to create a ClientEncryption instance: %s\n", err)
-			panic(errMsg)
+			panic(fmt.Sprintf("Unable to create a ClientEncryption instance: %s\n", err))
 		}
 		// end-kmip-client-encryption
 		return clientEncryption
@@ -158,8 +154,7 @@ func GetClientEncryption(
 
 	clientEncryption, err := mongo.NewClientEncryption(client, opts)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to create a ClientEncryption instance: %s\n", err)
-		panic(errMsg)
+		panic(fmt.Sprintf("Unable to create a ClientEncryption instance: %s\n", err))
 	}
 	// end-client-encryption
 	return clientEncryption
@@ -173,8 +168,7 @@ func GetKmipTlsOptions() map[string]*tls.Config {
 	}
 	kmipConfig, err := options.BuildTLSConfig(tlsOpts)
 	if err != nil {
-		errMsg := fmt.Sprintf("Unable to retrieve certificates from your environment: %s\n", err)
-		panic(errMsg)
+		panic(fmt.Sprintf("Unable to retrieve certificates from your environment: %s\n", err))
 	}
 	tlsConfig := map[string]*tls.Config{
 		"kmip": kmipConfig,
@@ -190,7 +184,7 @@ func GetAutoEncryptionOptions(
 ) *options.AutoEncryptionOptions {
 
 	if kmsProviderName == "kmip" {
-		kmipTlsOptions := GetKmipTlsOptions()
+		tlsConfig := GetKmipTlsOptions()
 
 		// start-kmip-encryption-options
 		cryptSharedLibraryPath := map[string]interface{}{
@@ -201,7 +195,7 @@ func GetAutoEncryptionOptions(
 			SetKeyVaultNamespace(keyVaultNamespace).
 			SetKmsProviders(kmsProviderCredentials).
 			SetExtraOptions(cryptSharedLibraryPath).
-			SetTLSConfig(kmipTlsOptions)
+			SetTLSConfig(tlsConfig)
 		// end-kmip-encryption-options
 		return autoEncryptionOptions
 	} else {

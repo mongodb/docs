@@ -1,4 +1,4 @@
-.. note:: Generate a CMK from the Command Line
+.. tip:: Generate a CMK from the Command Line
 
    Use the following command to generate a {+cmk-abbr+}
    from a Unix shell or PowerShell:

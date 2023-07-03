@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/joho/godotenv v1.5.1
-	go.mongodb.org/mongo-driver v1.12.0-prerelease.0.20230612122956-09631fa3b262
+	go.mongodb.org/mongo-driver v1.12.0
 )
 
 require (

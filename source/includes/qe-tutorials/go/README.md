@@ -41,8 +41,13 @@ see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryab
    of `<Your KMS Provider Name>` with the name of your KMS provider.
 
 1. From the project root, run the following build command which
-   downloads the dependencies defined in the `go.mod` file and
-   compiles the application:
+   downloads the dependencies defined in the `go.mod` file:
+
+   ```golang
+   go get go-qe-tutorial
+   ```
+
+1. Run the following command to compile the application:
 
    ```golang
    go build -tags cse

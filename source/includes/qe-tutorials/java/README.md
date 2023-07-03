@@ -42,8 +42,8 @@ see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryab
 
 ## Run the App
 
-   > **Note:** We recommend you use an IDE such as IntelliJ to manage your
-   > project, its dependencies and JVM options.
+> **Note:** We recommend you use an IDE such as IntelliJ to manage your
+> project, its dependencies and JVM options.
 
 1. Download the project dependencies. If you use Maven, you can use the
    `pom.xml` file included in the project directory. Otherwise, make sure you
@@ -62,11 +62,11 @@ see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryab
    configuration.
 
 1. In `QueryableEncryptionTutorial.java`, which you can find in the
-   `/java/src/main/com/mongodb/qe/` directory, replace the placeholder 
+   `/java/src/main/com/mongodb/tutorials/qe/` directory, replace the placeholder
    `<Your KMS Provider Name>` with a valid KMS provider name.
 
 1. Compile the project and run the `QueryableEncryptionTutorial.java` class in
-   the `/java/src/main/com/mongodb/qe/` directory.
+   the `/java/src/main/com/mongodb/tutorials/qe/` directory.
 
    If you are using `maven` on the command line, you can run the following
    commands from the project root that contains the `pom.xml` to build and run

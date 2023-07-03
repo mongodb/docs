@@ -1,14 +1,21 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Encryption;
 
 namespace QueryableEncryption;
 
-public static class QueryableEncryptionHelpers
+public class QueryableEncryptionHelpers
 {
-    public static Dictionary<string, IReadOnlyDictionary<string, object>> GetKmsProviderCredentials(string kmsProvider,
+    private readonly IConfigurationRoot _appSettings;
+    public QueryableEncryptionHelpers(IConfigurationRoot appSettings)
+    {
+        _appSettings = appSettings;
+    }
+    
+    public Dictionary<string, IReadOnlyDictionary<string, object>> GetKmsProviderCredentials(string kmsProvider,
         bool generateNewLocalKey)
     {
         if (kmsProvider == "aws")
@@ -17,8 +24,8 @@ public static class QueryableEncryptionHelpers
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var awsKmsOptions = new Dictionary<string, object>
             {
-                { "accessKeyId", Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID")! }, // Your AWS access key ID
-                { "secretAccessKey", Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY")! } // Your AWS secret access key
+                { "accessKeyId", _appSettings["Aws:AccessKeyId"] }, // Your AWS access key ID
+                { "secretAccessKey", _appSettings["Aws:SecretAccessKey"] } // Your AWS secret access key
             };
             kmsProviderCredentials.Add(kmsProvider, awsKmsOptions);
             // end-aws-kms-credentials
@@ -30,9 +37,9 @@ public static class QueryableEncryptionHelpers
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var azureKmsOptions = new Dictionary<string, object>
             {
-                { "tenantId", Environment.GetEnvironmentVariable("AZURE_TENANT_ID")! }, // Your Azure tenant ID
-                { "clientId", Environment.GetEnvironmentVariable("AZURE_CLIENT_ID")! }, // Your Azure client ID
-                { "clientSecret", Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET")! } // Your Azure client secret
+                { "tenantId", _appSettings["Azure:TenantId"] }, // Your Azure tenant ID
+                { "clientId", _appSettings["Azure:ClientId"] }, // Your Azure client ID
+                { "clientSecret", _appSettings["Azure:ClientSecret"] } // Your Azure client secret
             };
             kmsProviderCredentials.Add(kmsProvider, azureKmsOptions);
             // end-azure-kms-credentials
@@ -44,8 +51,8 @@ public static class QueryableEncryptionHelpers
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var gcpKmsOptions = new Dictionary<string, object>
             {
-                { "email", Environment.GetEnvironmentVariable("GCP_EMAIL")! }, // Your GCP email
-                { "privateKey", Environment.GetEnvironmentVariable("GCP_PRIVATE_KEY")! } // Your GCP private key
+                { "email", _appSettings["Gcp:Email"] }, // Your GCP email
+                { "privateKey", _appSettings["Gcp:PrivateKey"] } // Your GCP private key
             };
             kmsProviderCredentials.Add(kmsProvider, gcpKmsOptions);
             // end-gcp-kms-credentials
@@ -57,7 +64,7 @@ public static class QueryableEncryptionHelpers
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             var kmipKmsOptions = new Dictionary<string, object>
             {
-                { "endpoint", Environment.GetEnvironmentVariable("KMIP_KMS_ENDPOINT")! } // Your KMIP KMS endpoint
+                { "endpoint", _appSettings["Kmip:KmsEndpoint"] } // Your KMIP KMS endpoint
             };
             kmsProviderCredentials.Add(kmsProvider, kmipKmsOptions);
             // end-kmip-kms-credentials
@@ -67,7 +74,7 @@ public static class QueryableEncryptionHelpers
         {
             if (generateNewLocalKey)
             {
-                File.Delete("master-key.txt");
+                File.Delete("customer-master-key.txt");
 
                 // start-generate-local-key
                 using var randomNumberGenerator = RandomNumberGenerator.Create();
@@ -76,7 +83,7 @@ public static class QueryableEncryptionHelpers
                     var bytes = new byte[96];
                     randomNumberGenerator.GetBytes(bytes);
                     var localCustomerMasterKeyBase64Write = Convert.ToBase64String(bytes);
-                    File.WriteAllText("master-key.txt", localCustomerMasterKeyBase64Write);
+                    File.WriteAllText("customer-master-key.txt", localCustomerMasterKeyBase64Write);
                 }
                 catch (Exception e)
                 {
@@ -90,7 +97,7 @@ public static class QueryableEncryptionHelpers
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
             try
             {
-                var localCustomerMasterKeyBase64Read = File.ReadAllText("master-key.txt");
+                var localCustomerMasterKeyBase64Read = File.ReadAllText("customer-master-key.txt");
                 var localCustomerMasterKeyBytes = Convert.FromBase64String(localCustomerMasterKeyBase64Read);
 
                 var localOptions = new Dictionary<string, object>
@@ -100,11 +107,11 @@ public static class QueryableEncryptionHelpers
 
                 kmsProviderCredentials.Add(kmsProvider, localOptions);
             }
+            // end-get-local-key
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
-            // end-get-local-key
             return kmsProviderCredentials;
 
         }
@@ -112,15 +119,15 @@ public static class QueryableEncryptionHelpers
         throw new Exception("Invalid KMS provider string");
     }
 
-    public static BsonDocument GetCustomerMasterKeyCredentials(string kmsProvider)
+    public BsonDocument GetCustomerMasterKeyCredentials(string kmsProvider)
     {
         if (kmsProvider == "aws")
         {
             // start-aws-cmk-credentials
             var customerMasterKeyCredentials = new BsonDocument
             {
-                { "key", Environment.GetEnvironmentVariable("AWS_KEY_ARN")}, // Your AWS Key ARN
-                { "region", Environment.GetEnvironmentVariable("AWS_KEY_REGION") } // Your AWS Key Region
+                { "key", _appSettings["Aws:KeyArn"] }, // Your AWS Key ARN
+                { "region", _appSettings["Aws:KeyRegion"] } // Your AWS Key Region
             };
             // end-aws-cmk-credentials
             return customerMasterKeyCredentials;
@@ -130,8 +137,8 @@ public static class QueryableEncryptionHelpers
             // start-azure-cmk-credentials
             var customerMasterKeyCredentials = new BsonDocument
             {
-                { "keyVaultEndpoint", Environment.GetEnvironmentVariable("AZURE_KEY_VAULT_ENDPOINT") }, // Your Azure Key Vault Endpoint
-                { "keyName", Environment.GetEnvironmentVariable("AZURE_KEY_NAME") } // Your Azure Key Name
+                { "keyVaultEndpoint", _appSettings["Azure:KeyVaultEndpoint"] }, // Your Azure Key Vault Endpoint
+                { "keyName", _appSettings["Azure:KeyName"] } // Your Azure Key Name
             };
             // end-azure-cmk-credentials
             return customerMasterKeyCredentials;
@@ -141,43 +148,44 @@ public static class QueryableEncryptionHelpers
             // start-gcp-cmk-credentials
             var customerMasterKeyCredentials = new BsonDocument
             {
-                { "projectId", Environment.GetEnvironmentVariable("GCP_PROJECT_ID") }, // Your GCP Project ID
-                { "location", Environment.GetEnvironmentVariable("GCP_LOCATION") }, // Your GCP Key Location
-                { "keyRing", Environment.GetEnvironmentVariable("GCP_KEY_RING") }, // Your GCP Key Ring
-                { "keyName", Environment.GetEnvironmentVariable("GCP_KEY_NAME")} // Your GCP Key Name
+                { "projectId", _appSettings["Gcp:ProjectId"] }, // Your GCP Project ID
+                { "location", _appSettings["Gcp:Location"] }, // Your GCP Key Location
+                { "keyRing", _appSettings["Gcp:KeyRing"] }, // Your GCP Key Ring
+                { "keyName", _appSettings["Gcp:KeyName"] } // Your GCP Key Name
             };
             // end-gcp-cmk-credentials
-            return customerMasterKeyCredentials;           
+            return customerMasterKeyCredentials;
         }
-        else if (kmsProvider == "kmip")
+        else if (kmsProvider == "kmip" || kmsProvider == "local")
         {
             // start-kmip-local-cmk-credentials
             var customerMasterKeyCredentials = new BsonDocument();
             // end-kmip-local-cmk-credentials
             return customerMasterKeyCredentials;
-        } else
-        { 
+        }
+        else
+        {
             throw new Exception("Invalid KMS provider string");
         }
     }
 
-    public static AutoEncryptionOptions GetAutoEncryptionOptions(CollectionNamespace keyVaultNamespace,
+    public AutoEncryptionOptions GetAutoEncryptionOptions(CollectionNamespace keyVaultNamespace,
         IReadOnlyDictionary<string, IReadOnlyDictionary<string, object>> kmsProviderCredentials)
     {
         var kmsProvider = kmsProviderCredentials.Keys.First();
 
         if (kmsProvider == "kmip")
         {
+            var tlsOptions = GetKmipTlsOptions();
+
             // start-kmip-encryption-options
             var extraOptions = new Dictionary<string, object>
             {
-                { "cryptSharedLibPath", Environment.GetEnvironmentVariable(
-                    "CRYPT_SHARED_LIB_PATH") } // Path to your Automatic Encryption Shared Library
+                { "cryptSharedLibPath", _appSettings["CryptSharedLibPath"] } // Path to your Automatic Encryption Shared Library
             };
 
-            var tlsOptions = GetKmipTlsOptions();
-
-            var autoEncryptionOptions = new AutoEncryptionOptions(keyVaultNamespace,
+            var autoEncryptionOptions = new AutoEncryptionOptions(
+                keyVaultNamespace,
                 kmsProviderCredentials,
                 extraOptions: extraOptions,
                 tlsOptions: tlsOptions);
@@ -189,11 +197,11 @@ public static class QueryableEncryptionHelpers
             // start-auto-encryption-options
             var extraOptions = new Dictionary<string, object>
             {
-                { "cryptSharedLibPath", Environment.GetEnvironmentVariable(
-                    "CRYPT_SHARED_LIB_PATH") } // Path to your Automatic Encryption Shared Library
+                { "cryptSharedLibPath", _appSettings["CryptSharedLibPath"] } // Path to your Automatic Encryption Shared Library
             };
 
-            var autoEncryptionOptions = new AutoEncryptionOptions(keyVaultNamespace,
+            var autoEncryptionOptions = new AutoEncryptionOptions(
+                keyVaultNamespace,
                 kmsProviderCredentials,
                 extraOptions: extraOptions);
             // end-auto-encryption-options
@@ -202,7 +210,7 @@ public static class QueryableEncryptionHelpers
         }
     }
 
-    public static ClientEncryption GetClientEncryption(IMongoClient keyVaultClient,
+    public ClientEncryption GetClientEncryption(IMongoClient keyVaultClient,
         CollectionNamespace keyVaultNamespace, Dictionary<string, IReadOnlyDictionary<string, object>> kmsProviderCredentials)
     {
         var kmsProvider = kmsProviderCredentials.Keys.First();
@@ -236,12 +244,12 @@ public static class QueryableEncryptionHelpers
         }
     }
 
-    private static Dictionary<string, SslSettings> GetKmipTlsOptions()
+    private Dictionary<string, SslSettings> GetKmipTlsOptions()
     {
         // start-tls-options
         var tlsOptions = new Dictionary<string, SslSettings>();
         var sslSettings = new SslSettings();
-        var clientCertificate = new X509Certificate2(Environment.GetEnvironmentVariable("KMIP_TLS_CERT_P12")!); // Full path to your client certificate p12 file
+        var clientCertificate = new X509Certificate2(_appSettings["Kmip:TlsCertP12"]!); // Full path to your client certificate p12 file
         sslSettings.ClientCertificates = new[] { clientCertificate };
         tlsOptions.Add("kmip", sslSettings);
         // end-tls-options

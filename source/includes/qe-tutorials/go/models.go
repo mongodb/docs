@@ -9,7 +9,7 @@ package main
 // start-patient-document
 type PatientDocument struct {
 	PatientName   string        `bson:"patientName"`
-	PatientId     int32         `bson:"patientId"`
+	PatientID     int32         `bson:"patientId"`
 	PatientRecord PatientRecord `bson:"patientRecord"`
 }
 
@@ -17,7 +17,7 @@ type PatientDocument struct {
 
 // start-patient-record
 type PatientRecord struct {
-	Ssn     string      `bson:"ssn"`
+	SSN     string      `bson:"ssn"`
 	Billing PaymentInfo `bson:"billing"`
 }
 

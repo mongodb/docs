@@ -102,10 +102,11 @@ public class QueryableEncryptionTutorial {
 
 
             InsertOneResult result = coll.insertOne(patientDocument);
+            // end-insert-document
+            
             if (result.wasAcknowledged()) {
                 System.out.println("Successfully inserted the patient document.");
             }
-            // end-insert-document
 
             // start-find-document
             BsonDocument findResult = coll.find(new BsonDocument()

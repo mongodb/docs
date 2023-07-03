@@ -1,7 +1,7 @@
+using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
-using static QueryableEncryption.QueryableEncryptionHelpers;
 
 namespace QueryableEncryption;
 
@@ -11,7 +11,7 @@ public static class QueryableEncryptionTutorial
     {
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
-        
+
         // start-setup-application-variables
         // KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
         const string kmsProviderName = "<your KMS provider name>";
@@ -21,20 +21,23 @@ public static class QueryableEncryptionTutorial
             CollectionNamespace.FromFullName($"{keyVaultDatabaseName}.{keyVaultCollectionName}");
         const string encryptedDatabaseName = "medicalRecords";
         const string encryptedCollectionName = "patients";
-        var uri = Environment.GetEnvironmentVariable("MONGODB_URI"); // Your connection URI 
+
+        var appSettings = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+        var uri = appSettings["MongoDbUri"];
         // end-setup-application-variables
-        
-        var kmsProviderCredentials = GetKmsProviderCredentials(kmsProviderName,
-            generateNewLocalKey: false);
-        
+
+        var qeHelpers = new QueryableEncryptionHelpers(appSettings);
+        var kmsProviderCredentials = qeHelpers.GetKmsProviderCredentials(kmsProviderName,
+            generateNewLocalKey: true);
+
         // start-create-client
         var clientSettings = MongoClientSettings.FromConnectionString(uri);
-        clientSettings.AutoEncryptionOptions = GetAutoEncryptionOptions(
+        clientSettings.AutoEncryptionOptions = qeHelpers.GetAutoEncryptionOptions(
             keyVaultNamespace,
             kmsProviderCredentials);
         var encryptedClient = new MongoClient(clientSettings);
         // end-create-client
-        
+
         var keyDatabase = encryptedClient.GetDatabase(keyVaultDatabaseName);
 
         // Drop the collection in case you created it in a previous run of this application.
@@ -51,7 +54,7 @@ public static class QueryableEncryptionTutorial
                         { "keyId", BsonNull.Value },
                         { "path", "record.ssn" },
                         { "bsonType", "string" },
-                        { "queries", new BsonDocument("queryType", "equality") } 
+                        { "queries", new BsonDocument("queryType", "equality") }
                     },
                     new BsonDocument
                     {
@@ -63,25 +66,29 @@ public static class QueryableEncryptionTutorial
             }
         };
         // end-encrypted-fields-map
-        
+
         var patientDatabase = encryptedClient.GetDatabase(encryptedDatabaseName);
-        var clientEncryption = GetClientEncryption(encryptedClient,
+        patientDatabase.DropCollection(encryptedCollectionName);
+
+        var clientEncryption = qeHelpers.GetClientEncryption(encryptedClient,
             keyVaultNamespace,
             kmsProviderCredentials);
-        
+
+        var customerMasterKeyCredentials = qeHelpers.GetCustomerMasterKeyCredentials(kmsProviderName);
+
         // start-create-encrypted-collection
         var createCollectionOptions = new CreateCollectionOptions<Patient>
         {
-            EncryptedFields = encryptedFields 
+            EncryptedFields = encryptedFields
         };
-        
-        clientEncryption.CreateEncryptedCollection(patientDatabase, 
+
+        clientEncryption.CreateEncryptedCollection(patientDatabase,
             encryptedCollectionName,
             createCollectionOptions,
             kmsProviderName,
-            GetCustomerMasterKeyCredentials(kmsProviderName));
+            customerMasterKeyCredentials);
         // end-create-encrypted-collection
-        
+
         // start-insert-document
         var patient = new Patient
         {
@@ -100,10 +107,10 @@ public static class QueryableEncryptionTutorial
 
         var encryptedCollection = encryptedClient.GetDatabase(encryptedDatabaseName).
             GetCollection<Patient>(encryptedCollectionName);
-        
+
         encryptedCollection.InsertOne(patient);
         // end-insert-document
-    
+
         // start-find-document
         var ssnFilter = Builders<Patient>.Filter.Eq("record.ssn", patient.Record.Ssn);
         var findResult = await encryptedCollection.Find(ssnFilter).ToCursorAsync();

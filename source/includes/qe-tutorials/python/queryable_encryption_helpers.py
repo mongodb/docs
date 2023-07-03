@@ -48,18 +48,18 @@ def get_kms_provider_credentials(kms_provider_string):
 
         return kms_provider_credentials
     elif kms_provider_string == "local":
-        # Reuse the key from the existing master-key.txt file if it exists
-        if not os.path.exists("./master-key.txt"):
+        # Reuse the key from the customer-master-key.txt file if it exists
+        if not os.path.exists("./customer-master-key.txt"):
 
             # start-generate-local-key
-            path = "master-key.txt"
+            path = "customer-master-key.txt"
             file_bytes = os.urandom(96)
             with open(path, "wb") as f:
                 f.write(file_bytes)
             # end-generate-local-key
 
         # start-get-local-key
-        path = "./master-key.txt"
+        path = "./customer-master-key.txt"
         with open(path, "rb") as f:
             local_master_key = f.read()
             kms_provider_credentials = {
@@ -89,8 +89,8 @@ def get_customer_master_key_credentials(kms_provider_string):
            "keyName": os.environ['AZURE_KEY_NAME'], # Your Azure key name
            "keyVaultEndpoint": os.environ['AZURE_KEY_VAULT_ENDPOINT'] # Your Azure key vault endpoint
        }
-       return customer_master_key_credentials
        # end-azure-cmk-credentials
+       return customer_master_key_credentials
     elif kms_provider_string == "gcp":
        # start-gcp-cmk-credentials
        customer_master_key_credentials = {
@@ -157,12 +157,13 @@ def get_auto_encryption_options(
 ):
 
     if kms_provider_name == "kmip":
+        tls_options = get_kmip_tls_options()
         # start-kmip-encryption-options
         auto_encryption_opts = AutoEncryptionOpts(
             kms_provider_credentials,
             key_vault_namespace,
             crypt_shared_lib_path=os.environ['SHARED_LIB_PATH'], # Path to your Automatic Encryption Shared Library
-            kms_tls_options=get_kmip_tls_options()
+            kms_tls_options=tls_options
         )
         # end-kmip-encryption-options
         return auto_encryption_opts

@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { MongoClient } from "mongodb";
 import * as qeHelper from "./queryable-encryption-helpers.js";
 
@@ -85,11 +86,11 @@ async function runExample() {
     .collection(encryptedCollectionName);
 
   const result = await encryptedCollection.insertOne(patientDocument);
+  // end-insert-document
 
   if (result.acknowledged) {
     console.log("Successfully inserted the patient document.");
   }
-  // end-insert-document
 
   // start-find-document
   const findResult = await encryptedCollection.findOne({

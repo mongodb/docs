@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { randomBytes } from "crypto";
 import { ClientEncryption } from "mongodb-client-encryption";
@@ -14,8 +15,8 @@ export function getKMSProviderCredentials(kmsProviderName) {
       // start-aws-kms-credentials
       kmsProviders = {
         aws: {
-          accessKeyId: process.env["AWS_ACCESS_KEY_ID"], // Your AWS access key ID
-          secretAccessKey: process.env["AWS_SECRET_ACCESS_KEY"], // Your AWS secret access key
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID, // Your AWS access key ID
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY, // Your AWS secret access key
         },
       };
       // end-aws-kms-credentials
@@ -24,9 +25,9 @@ export function getKMSProviderCredentials(kmsProviderName) {
       // start-azure-kms-credentials
       kmsProviders = {
         azure: {
-          tenantId: process.env["AZURE_TENANT_ID"], // Your Azure tenant ID
-          clientId: process.env["AZURE_CLIENT_ID"], // Your Azure client ID
-          clientSecret: process.env["AZURE_CLIENT_SECRET"], // Your Azure client secret
+          tenantId: process.env.AZURE_TENANT_ID, // Your Azure tenant ID
+          clientId: process.env.AZURE_CLIENT_ID, // Your Azure client ID
+          clientSecret: process.env.AZURE_CLIENT_SECRET, // Your Azure client secret
         },
       };
       // end-azure-kms-credentials
@@ -35,8 +36,8 @@ export function getKMSProviderCredentials(kmsProviderName) {
       // start-gcp-kms-credentials
       kmsProviders = {
         gcp: {
-          email: process.env["GCP_EMAIL"], // Your GCP email
-          privateKey: process.env["GCP_PRIVATE_KEY"], // Your GCP private key
+          email: process.env.GCP_EMAIL, // Your GCP email
+          privateKey: process.env.GCP_PRIVATE_KEY, // Your GCP private key
         },
       };
       // end-gcp-kms-credentials
@@ -45,7 +46,7 @@ export function getKMSProviderCredentials(kmsProviderName) {
       // start-kmip-kms-credentials
       kmsProviders = {
         kmip: {
-          endpoint: process.env["KMIP_KMS_ENDPOINT"], // Your KMIP KMS endpoint
+          endpoint: process.env.KMIP_KMS_ENDPOINT, // Your KMIP KMS endpoint
         },
       };
       // end-kmip-kms-credentials
@@ -53,9 +54,9 @@ export function getKMSProviderCredentials(kmsProviderName) {
     case "local":
       (function () {
         // start-generate-local-key
-        if (!existsSync("./master-key.txt")) {
+        if (!existsSync("./customer-master-key.txt")) {
           try {
-            writeFileSync("master-key.txt", randomBytes(96));
+            writeFileSync("customer-master-key.txt", randomBytes(96));
           } catch (err) {
             console.error(err);
           }
@@ -64,7 +65,7 @@ export function getKMSProviderCredentials(kmsProviderName) {
       })();
       // start-get-local-key
       // WARNING: Do not use a local key file in a production application
-      const localMasterKey = readFileSync("./master-key.txt");
+      const localMasterKey = readFileSync("./customer-master-key.txt");
       kmsProviders = {
         local: {
           key: localMasterKey,
@@ -84,26 +85,26 @@ export function getCustomerMasterKeyCredentials(kmsProviderString) {
     case "aws":
       // start-aws-cmk-credentials
       customerMasterKeyCredentials = {
-        key: process.env["AWS_KEY_ARN"], // Your AWS Key ARN
-        region: process.env["AWS_KEY_REGION"], // Your AWS Key Region
+        key: process.env.AWS_KEY_ARN, // Your AWS Key ARN
+        region: process.env.AWS_KEY_REGION, // Your AWS Key Region
       };
       // end-aws-cmk-credentials
       return customerMasterKeyCredentials;
     case "azure":
       // start-azure-cmk-credentials
       customerMasterKeyCredentials = {
-        keyVaultEndpoint: process.env["AZURE_KEY_VAULT_ENDPOINT"], // Your Azure Key Vault Endpoint
-        keyName: process.env["AZURE_KEY_NAME"], // Your Azure Key Name
+        keyVaultEndpoint: process.env.AZURE_KEY_VAULT_ENDPOINT, // Your Azure Key Vault Endpoint
+        keyName: process.env.AZURE_KEY_NAME, // Your Azure Key Name
       };
       // end-azure-cmk-credentials
       return customerMasterKeyCredentials;
     case "gcp":
       // start-gcp-cmk-credentials
       customerMasterKeyCredentials = {
-        projectId: process.env["GCP_PROJECT_ID"], // Your GCP Project ID
-        location: process.env["GCP_LOCATION"], // Your GCP Key Location
-        keyRing: process.env["GCP_KEY_RING"], //  Your GCP Key Ring
-        keyName: process.env["GCP_KEY_NAME"], // Your GCP Key Name
+        projectId: process.env.GCP_PROJECT_ID, // Your GCP Project ID
+        location: process.env.GCP_LOCATION, // Your GCP Key Location
+        keyRing: process.env.GCP_KEY_RING, //  Your GCP Key Ring
+        keyName: process.env.GCP_KEY_NAME, // Your GCP Key Name
       };
       // end-gcp-cmk-credentials
       return customerMasterKeyCredentials;
@@ -128,7 +129,7 @@ export async function getAutoEncryptionOptions(
 
     // start-kmip-encryption-options
     const sharedLibraryPathOptions = {
-      cryptSharedLibPath: process.env["SHARED_LIB_PATH"], // Path to your Automatic Encryption Shared Library
+      cryptSharedLibPath: process.env.SHARED_LIB_PATH, // Path to your Automatic Encryption Shared Library
     };
 
     const autoEncryptionOptions = {
@@ -142,7 +143,7 @@ export async function getAutoEncryptionOptions(
   } else {
     // start-auto-encryption-options
     const sharedLibraryPathOptions = {
-      cryptSharedLibPath: process.env["SHARED_LIB_PATH"], // Path to your Automatic Encryption Shared Library
+      cryptSharedLibPath: process.env.SHARED_LIB_PATH, // Path to your Automatic Encryption Shared Library
     };
 
     const autoEncryptionOptions = {
@@ -160,8 +161,8 @@ function getKmipTlsOptions() {
   // start-tls-options
   const tlsOptions = {
     kmip: {
-      tlsCAFile: process.env["KMIP_TLS_CA_FILE"], // Path to your TLS CA file
-      tlsCertificateKeyFile: process.env["KMIP_TLS_CERT_FILE"], // Path to your TLS certificate key file
+      tlsCAFile: process.env.KMIP_TLS_CA_FILE, // Path to your TLS CA file
+      tlsCertificateKeyFile: process.env.KMIP_TLS_CERT_FILE, // Path to your TLS certificate key file
     },
   };
   // end-tls-options
