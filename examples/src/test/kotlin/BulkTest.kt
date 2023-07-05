@@ -14,9 +14,11 @@ import java.util.*
 import kotlin.test.*
 
 // :snippet-start: bulk-data-model
-data class SampleDoc(
+data class Person(
     @BsonId val id: Int,
-    val x: Int? = null
+    val name: String,
+    val age: Int? = null,
+    val location: String? = null
 )
 // :snippet-end:
 
@@ -26,15 +28,16 @@ internal class BulkTest {
         val config = getConfig()
         val client = MongoClient.create(config.connectionUri)
         val database = client.getDatabase("sample_db")
-        val collection = database.getCollection<SampleDoc>("sample_docs")
+        val collection = database.getCollection<Person>("people")
 
         @BeforeAll
         @JvmStatic
         fun beforeAll() {
             runBlocking {
                 val sampleDocuments = listOf(
-                    SampleDoc(1),
-                    SampleDoc(2)
+                    Person(1, "Karen Sandoval", 31),
+                    Person(2, "William Chin", 54),
+                    Person(8, "Shayla Ray", 20)
                 )
                 collection.insertMany(sampleDocuments)
             }
@@ -53,16 +56,14 @@ internal class BulkTest {
     @Test
     fun insertOperationTest() = runBlocking {
         // :snippet-start: insert-one
-        val doc3 = InsertOneModel(SampleDoc(3))
-        val doc4 = InsertOneModel(SampleDoc(4))
+        val juneDoc = InsertOneModel(Person(3, "June Carrie", 17))
+        val kevinDoc = InsertOneModel(Person(4, "Kevin Moss", 22))
         // :snippet-end:
         // :snippet-start: bulk-write-exception
-        val doc5 = InsertOneModel(SampleDoc(1))
-        val doc6 = InsertOneModel(SampleDoc(3))
         try {
             val bulkOperations = listOf(
-                (doc5),
-                (doc6)
+                (InsertOneModel(Person(1, "James Smith", 13))),
+                (InsertOneModel(Person(3, "Colin Samuels")))
             )
             val bulkWrite = collection.bulkWrite(bulkOperations)
             assertFalse(bulkWrite.wasAcknowledged()) // :remove:
@@ -72,8 +73,9 @@ internal class BulkTest {
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
-            SampleDoc(1),
-            SampleDoc(2)
+            Person(1, "Karen Sandoval", 31),
+            Person(2, "William Chin", 54),
+            Person(8, "Shayla Ray", 20)
         )
         assertEquals(expected, collection.find().toList())
     }
@@ -82,7 +84,7 @@ internal class BulkTest {
     fun replaceOneTest() = runBlocking {
         // :snippet-start: replace-one
         val filter = Filters.eq("_id", 1)
-        val insert = SampleDoc(1, 4)
+        val insert = Person(1, "Celine Stork", location = "San Diego, CA")
         val doc = ReplaceOneModel(filter, insert)
         // :snippet-end:
         // Junit test for the above code
@@ -94,8 +96,8 @@ internal class BulkTest {
     fun updateOneTest() = runBlocking {
         // :snippet-start: update-one
         val filter = Filters.eq("_id", 2)
-        val update = Updates.set(SampleDoc::x.name, 8)
-        val doc = UpdateOneModel<SampleDoc>(filter, update)
+        val update = Updates.inc(Person::age.name, 1)
+        val doc = UpdateOneModel<Person>(filter, update)
         // :snippet-end:
         // Junit test for the above code
         val updateTest = collection.bulkWrite(listOf(doc))
@@ -105,66 +107,71 @@ internal class BulkTest {
     @Test
     fun deleteOneTest() = runBlocking {
         // :snippet-start: delete
-        val filter = Filters.eq("_id", 1)
-        val doc = DeleteOneModel<SampleDoc>(filter)
+        val deleteId1 = DeleteOneModel<Person>(Filters.eq("_id", 1))
+        val deleteAgeLt30 = DeleteManyModel<Person>(Filters.lt(Person::age.name, 30))
         // :snippet-end:
         // Junit test for the above code
-        val deleteTest = collection.bulkWrite(listOf(doc))
+        val deleteTest = collection.bulkWrite(listOf(deleteId1, deleteAgeLt30))
         assertTrue(deleteTest.wasAcknowledged())
-        assertTrue(collection.find(filter).toList().isEmpty())
+        val expected = listOf(
+            Person(2, "William Chin", 54),
+        )
+        assertEquals(expected, collection.find().toList())
     }
 
     @Test
     fun orderOfOperationsTest() = runBlocking {
         // :snippet-start: ordered
-        val doc1= InsertOneModel(SampleDoc(3))
-        val doc2 = ReplaceOneModel(
+        val insertMdl = InsertOneModel(Person(6, "Zaynab Omar", 37))
+        val replaceMdl = ReplaceOneModel(
             Filters.eq("_id", 1),
-            SampleDoc(1, 2)
+            Person(1, "Sandy Kane", location = "Helena, MT")
         )
-        val doc3  = UpdateOneModel<SampleDoc>(
-                Filters.eq("_id", 3),
-                Updates.set(SampleDoc::x.name, 2)
+        val updateMdl  = UpdateOneModel<Person>(
+                Filters.eq("_id", 6),
+                Updates.set(Person::name.name, "Zaynab Hassan")
             )
-        val doc4 = DeleteManyModel<SampleDoc>(Filters.eq(SampleDoc::x.name, 2))
+        val deleteMdl = DeleteManyModel<Person>(Filters.gt(Person::age.name, 50))
 
         val bulkOperations = listOf(
-            doc1,
-            doc2,
-            doc3,
-            doc4
+            insertMdl,
+            replaceMdl,
+            updateMdl,
+            deleteMdl
         )
 
-        val update = collection.bulkWrite(bulkOperations)
+        val result = collection.bulkWrite(bulkOperations)
         // :snippet-end:
         // Junit test for the above code
-        assertTrue(update.wasAcknowledged())
+        assertTrue(result.wasAcknowledged())
+        collection.drop()
     }
 
     @Test
     fun unorderedExecutionTest() = runBlocking {
-        val doc1 = InsertOneModel(SampleDoc(3))
-        val doc2 = ReplaceOneModel(
+        val insertMdl = InsertOneModel(Person(6, "Zaynab Omar", 37))
+        val replaceMdl = ReplaceOneModel(
             Filters.eq("_id", 1),
-            SampleDoc(1, 2)
+            Person(1, "Sandy Kane", location = "Helena, MT")
         )
-        val doc3 = UpdateOneModel<SampleDoc>(
-                Filters.eq("_id", 3),
-                Updates.set(SampleDoc::x.name, 2)
-            )
-        val doc4 = DeleteManyModel<SampleDoc>(Filters.eq(SampleDoc::x.name, 2))
+        val updateMdl  = UpdateOneModel<Person>(
+            Filters.eq("_id", 6),
+            Updates.set(Person::name.name, "Zaynab Hassan")
+        )
+        val deleteMdl = DeleteManyModel<Person>(Filters.gt(Person::age.name, 50))
 
         val bulkOperations = listOf(
-            doc1,
-            doc2,
-            doc3,
-            doc4
+            insertMdl,
+            replaceMdl,
+            updateMdl,
+            deleteMdl
         )
         // :snippet-start: unordered
         val options = BulkWriteOptions().ordered(false)
-        val unorderedUpdate = collection.bulkWrite(bulkOperations, options)
+        val unorderedResult = collection.bulkWrite(bulkOperations, options)
         // :snippet-end:
         // Junit test for the above code
-        assertTrue(unorderedUpdate.wasAcknowledged())
+        assertTrue(unorderedResult.wasAcknowledged())
+        collection.drop()
     }
 }

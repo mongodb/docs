@@ -1,9 +1,7 @@
-val doc5 = InsertOneModel(SampleDoc(1))
-val doc6 = InsertOneModel(SampleDoc(3))
 try {
     val bulkOperations = listOf(
-        (doc5),
-        (doc6)
+        (InsertOneModel(Person(1, "James Smith", 13))),
+        (InsertOneModel(Person(3, "Colin Samuels")))
     )
     val bulkWrite = collection.bulkWrite(bulkOperations)
 } catch (e: MongoBulkWriteException) {

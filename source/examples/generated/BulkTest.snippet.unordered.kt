@@ -1,2 +1,2 @@
 val options = BulkWriteOptions().ordered(false)
-val unorderedUpdate = collection.bulkWrite(bulkOperations, options)
+val unorderedResult = collection.bulkWrite(bulkOperations, options)

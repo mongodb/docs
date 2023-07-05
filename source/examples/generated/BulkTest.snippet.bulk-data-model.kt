@@ -1,4 +1,6 @@
-data class SampleDoc(
+data class Person(
     @BsonId val id: Int,
-    val x: Int? = null
+    val name: String,
+    val age: Int? = null,
+    val location: String? = null
 )

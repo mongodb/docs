@@ -1,2 +1,2 @@
-val doc3 = InsertOneModel(SampleDoc(3))
-val doc4 = InsertOneModel(SampleDoc(4))
+val juneDoc = InsertOneModel(Person(3, "June Carrie", 17))
+val kevinDoc = InsertOneModel(Person(4, "Kevin Moss", 22))

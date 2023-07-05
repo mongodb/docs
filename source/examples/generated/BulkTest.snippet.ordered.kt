@@ -1,19 +1,19 @@
-val doc1= InsertOneModel(SampleDoc(3))
-val doc2 = ReplaceOneModel(
+val insertMdl = InsertOneModel(Person(6, "Zaynab Omar", 37))
+val replaceMdl = ReplaceOneModel(
     Filters.eq("_id", 1),
-    SampleDoc(1, 2)
+    Person(1, "Sandy Kane", location = "Helena, MT")
 )
-val doc3  = UpdateOneModel<SampleDoc>(
-        Filters.eq("_id", 3),
-        Updates.set(SampleDoc::x.name, 2)
+val updateMdl  = UpdateOneModel<Person>(
+        Filters.eq("_id", 6),
+        Updates.set(Person::name.name, "Zaynab Hassan")
     )
-val doc4 = DeleteManyModel<SampleDoc>(Filters.eq(SampleDoc::x.name, 2))
+val deleteMdl = DeleteManyModel<Person>(Filters.gt(Person::age.name, 50))
 
 val bulkOperations = listOf(
-    doc1,
-    doc2,
-    doc3,
-    doc4
+    insertMdl,
+    replaceMdl,
+    updateMdl,
+    deleteMdl
 )
 
-val update = collection.bulkWrite(bulkOperations)
+val result = collection.bulkWrite(bulkOperations)
