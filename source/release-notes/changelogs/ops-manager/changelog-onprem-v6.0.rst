@@ -1,3 +1,17 @@
+.. _opsmgr-server-6.0.16:
+
+|onprem| Server 6.0.16:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-07-06*
+
+- Updates the {+mdbagent+} to :ref:`12.0.24.7719
+  <mongodb-12.0.24.7719>`.
+- Upgrades :mvn:`org.xerial.snappy:snappy-java
+  </org.xerial.snappy/snappy-java/1.1.10.1>` to version 1.1.10.1.
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.3
+  </release-notes/database-tools-changelog/#100.7.3-changelog>`.
+
 .. _opsmgr-server-6.0.15:
 
 |onprem| Server 6.0.15:
