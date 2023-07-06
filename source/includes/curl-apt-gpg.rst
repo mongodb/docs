@@ -1,9 +1,10 @@
 
-From a terminal, install ``gnupg`` if it is not already available:
+From a terminal, install ``gnupg`` and ``curl`` if they are not already
+available:
 
 .. code-block:: bash
 
-     sudo apt-get install gnupg
+     sudo apt-get install gnupg curl
    
 Issue the following command to import the
 MongoDB public GPG Key from `<https://pgp.mongodb.com/server-{+version+}.asc>`_:
