@@ -1,0 +1,462 @@
+.. _golang-logging:
+
+=======
+Logging
+=======
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the driver to configure **logging**
+for your application. The purpose of logging is to record driver events.
+
+A logger logs messages at a severity, or verbosity, level that you
+can specify. By enabling a logger in your application, you can receive
+information about your application's activities at a high level, a
+detailed level, or somewhere in between.
+
+.. tip::
+
+   To learn more about logging severity levels, see the Wikipedia entry on
+   the :wikipedia:`Syslog standard for message logging <Syslog#Severity_level>`.
+
+Enable Logging
+--------------
+
+To configure a logger on your ``Client`` instance, call the
+``SetLoggerOptions()`` method when creating your ``ClientOptions``
+object. The ``SetLoggerOptions()`` method takes a ``LoggerOptions`` type 
+as a parameter. Set this ``LoggerOptions`` type to configure the
+logger for your application.
+
+The following code shows how to create a client with logging enabled:
+
+.. code-block:: go
+   :emphasize-lines: 8
+   
+   loggerOptions := options.
+   	Logger().
+   	SetComponentLevel(options.LogComponentCommand, options.LogLevelDebug)
+
+   clientOptions := options.
+   	Client().
+   	ApplyURI(uri).
+   	SetLoggerOptions(loggerOptions)
+
+   client, err := mongo.Connect(context.TODO(), clientOptions)
+
+Configure a Logger
+------------------
+
+To create a ``LoggerOptions`` object, call the ``options.Logger()``
+method. The following table describes how to set properties on
+a ``LoggerOptions`` type to configure your logger. The first column lists
+the ``LoggerOptions`` properties, the second column describes the
+properties, and the third column lists the corresponding setter method and
+parameters for each property:
+
+.. list-table::
+   :widths: 31 38 31
+   :header-rows: 1
+
+   * - Property
+     - Description
+     - Setter Method
+
+   * - | ``ComponentLevels``
+       |
+       | **Type**: ``map[LogComponent]LogLevel``
+     - | A mapping of components to log severity levels. The driver uses the
+         ``LogLevel`` for each ``LogComponent`` to determine if the log
+         message should be generated.
+       |
+       | To learn more about the ``LogComponent`` and ``LogLevel`` types, see
+         the :ref:`Log Components and Severity Levels <golang-logging-component-severity>`
+         section of this guide.
+     - | ``SetComponentLevel()``
+       |
+       | **Parameters**: ``LogComponent``, ``LogLevel``
+
+   * - | ``Sink``
+       |
+       | **Type**: ``LogSink``
+     - | The logging interface that the driver uses to log messages.
+         The ``LogSink`` type is an interface that you can implement to
+         provide a custom sink or integrate a third-party
+         logger for the driver's logs. If you don't set this
+         property, the driver uses the standard logging library.
+       |
+       | To learn more, see the :ref:`Use a Custom Logger
+         <golang-logging-custom>` and :ref:`Integrate Third-Party
+         Loggers <golang-logging-thirdparty>` sections of this guide.
+     - | ``SetSink()``
+       |
+       | **Parameter**: ``LogSink``
+
+   * - | ``MaxDocumentLength``
+       |
+       | **Type**: ``uint``
+       | **Default**: ``1000``
+     - | The maximum length in bytes of each log message that the driver emits. If the
+         message is larger than this value, the driver
+         truncates it and appends ellipses to the partial log message.
+     - | ``SetMaxDocumentLength()``
+       |
+       | **Parameter**: ``uint``
+
+.. tip:: Write Logs to a Specific File
+   
+   By default, the standard logger logs messages to your console (``stderr``). You can
+   specify a logging destination by setting the ``MONGODB_LOG_PATH``
+   environment variable to ``stdout`` or a filepath.
+
+.. _golang-logging-component-severity:
+
+Log Components and Severity Levels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify the components that the driver logs against, set the
+``LogComponent`` type. The following table describes built-in
+specifications for ``LogComponent``:
+
+.. list-table::
+   :widths: 30 40 30
+   :header-rows: 1
+
+   * - Setting
+     - Description
+     - Enumeration Value
+
+   * - ``LogComponentAll``
+     - Enables logging for all components
+     - ``0``
+
+   * - ``LogComponentCommand``
+     - Enables command monitor logging
+     - ``1``
+
+   * - ``LogComponentTopology``
+     - Enables topology logging
+     - ``2``
+
+   * - ``LogComponentServerSelection``
+     - Enables server selection logging
+     - ``3``
+
+   * - ``LogComponentConnection``
+     - Enables connection services logging
+     - ``4``
+
+You can specify the log component by using either the setting name
+or its enumeration value. The following code shows equivalent ways
+of enabling command monitoring:
+
+.. code-block:: go
+   :copyable: false
+
+   // Using named value
+   comp := options.LogComponentCommand
+
+   // Using enumeration
+   comp := options.LogComponent(1)
+
+To specify the log severity level, set the ``LogLevel``
+type. The following code shows how to enable logging at the
+``LevelDebug`` level:
+
+.. code-block:: go
+   :copyable: false
+
+   lvl := options.LogLevelDebug
+
+.. important::
+
+   The {+driver-short+} currently emits only ``LevelDebug`` level
+   messages, but it supports other specifications for ``LogLevel``. To
+   learn more, see the `LogLevel <{+api+}/mongo/options#LogLevel>`__ API
+   documentation.
+
+Example
+~~~~~~~
+
+This example shows how to configure the standard logger with the
+following specifications:
+
+- The maximum document length is ``25`` bytes.
+- The log component is ``LogComponentCommand``.
+- The logging severity level is ``LevelDebug``.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/logging.go
+   :language: go
+   :dedent:
+   :emphasize-lines: 1-4, 9
+   :start-after: start-standard-logger
+   :end-before: end-standard-logger
+
+The following code performs an insert operation, which generates log
+messages:
+
+.. io-code-block::
+   :copyable: false
+
+   .. input:: /includes/fundamentals/code-snippets/logging.go
+      :language: go
+      :dedent:
+      :start-after: start-insert
+      :end-before: end-insert
+
+   .. output::
+      :language: console
+      :visible: false
+
+      {"command":"{\"insert\": \"testColl\",\"or...","commandName":"insert","databaseName":"testDB","driverConnectionId":1,"message":"Command started","operationId":0,"requestId":13,"serverConnectionId":97377,"serverHost":"...","serverPort":27017,"timestamp":...}
+      {"commandName":"insert","driverConnectionId":1,"durationMS":19,"message":"Command succeeded","operationId":0,"reply":"{\"n\": {\"$numberInt\":\"1\"},...","requestId":13,"serverConnectionId":97377,"serverHost":"...","serverPort":27017,"timestamp":...}
+
+.. _golang-logging-custom:
+
+Use a Custom Logger
+-------------------
+
+If the standard logging library does not meet your needs, you can
+implement a custom logger. By customizing your logging configuration,
+you have more control over the content, format, and frequency of log messages.
+
+To use a custom logger, define a logger struct and implement the
+``Info()`` and ``Error()`` methods for the struct. Next, set the logger as
+the ``LogSink`` for your ``Client`` by calling the ``SetSink()`` method on
+your ``LoggerOptions`` instance.
+
+Example
+~~~~~~~
+
+This example demonstrates how to define and implement a custom logger.
+
+.. procedure::
+
+   .. step:: Define the ``CustomLogger`` struct.
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/logging.go
+         :language: go
+         :dedent:
+         :start-after: start-customlogger-struct
+         :end-before: end-customlogger-struct
+      
+      .. note::
+
+         The preceding code snippet uses a ``Mutex`` type in the
+         ``CustomLogger`` struct to ensure atomic writes and prevent
+         race conditions. Setting a ``Mutex`` makes your logger safe for
+         concurrent use by multiple goroutines.
+
+   .. step:: Implement the ``Info()`` and ``Error()`` methods with custom log message formatting.
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/logging.go
+         :language: go
+         :dedent:
+         :start-after: start-customlogger-funcs
+         :end-before: end-customlogger-funcs
+
+   .. step:: Assign a ``Writer`` to your logger and set it as the ``Sink`` for your ``Client``.
+
+      In this example, the logger logs commands and connection
+      events at the ``LevelDebug`` level:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/logging.go
+         :language: go
+         :dedent:
+         :emphasize-lines: 1-2, 4-8, 13
+         :start-after: start-set-customlogger
+         :end-before: end-set-customlogger
+
+   .. step:: Perform an operation.
+
+      The following code performs an insert operation, which generates log
+      messages:
+
+      .. io-code-block::
+         :copyable: false
+
+         .. input:: /includes/fundamentals/code-snippets/logging.go
+            :language: go
+            :dedent:
+            :start-after: start-insert
+            :end-before: end-insert
+
+         .. output::
+            :language: console
+            :visible: false
+
+            level: 1 DEBUG, message: Connection pool created
+            level: 1 DEBUG, message: Connection pool ready
+            level: 1 DEBUG, message: Connection pool created
+            level: 1 DEBUG, message: Connection pool ready
+            level: 1 DEBUG, message: Connection pool created
+            level: 1 DEBUG, message: Connection pool ready
+            level: 1 DEBUG, message: Connection checkout started
+            level: 1 DEBUG, message: Connection created
+            level: 1 DEBUG, message: Connection ready
+            level: 1 DEBUG, message: Connection checked out
+            level: 1 DEBUG, message: Command started
+            level: 1 DEBUG, message: Command succeeded
+            level: 1 DEBUG, message: Connection checked in
+
+.. _golang-logging-thirdparty:
+
+Integrate Third-Party Loggers
+-----------------------------
+
+There are many third-party logging packages available in Go. To use
+a third-party logger in your application, create a logger and assign it
+as the sink in your ``LoggerOptions`` instance.
+
+Example
+~~~~~~~
+
+This example demonstrates how to integrate ``logrus``,
+a third-party logging package, into your application.
+
+.. procedure::
+
+   .. step:: Install the necessary packages.
+
+      Run the following ``go get`` commands in your terminal to download
+      the ``logrus`` packages needed for this example:
+      
+      .. code-block:: bash
+      
+         go get github.com/bombsimon/logrusr/v4
+         go get github.com/sirupsen/logrus
+
+   .. step:: Define the ``logrus`` logger.
+
+      The following code creates a ``logrus`` logger with these
+      specifications:
+      
+      - The logger logs messages to the console.
+      - The logger logs messages at the ``DebugLevel`` level.
+      - The logger formats messages using the ``JSONFormatter``
+        formatter.
+      
+      .. literalinclude:: /includes/fundamentals/code-snippets/logging.go
+         :language: go
+         :dedent:
+         :start-after: start-make-logrus
+         :end-before: end-make-logrus
+
+   .. step:: Set the logger as the ``Sink`` for your ``Client``.
+
+      In the following code example, the logger is configured to log
+      commands at the ``LevelDebug`` level.
+      
+      .. literalinclude:: /includes/fundamentals/code-snippets/logging.go
+         :language: go
+         :dedent:
+         :emphasize-lines: 1, 3-6, 11
+         :start-after: start-set-thirdparty-logger
+         :end-before: end-set-thirdparty-logger
+
+   .. step:: Perform operations.
+
+      The following code performs some CRUD operations, which generate log
+      messages:
+
+      .. io-code-block::
+         :copyable: false
+
+         .. input:: /includes/fundamentals/code-snippets/logging.go
+            :language: go
+            :dedent:
+            :start-after: start-log-operations
+            :end-before: end-log-operations
+
+         .. output::
+            :language: console
+            :visible: false
+
+            {
+              "command": "{\"insert\": \"testColl\", ...}",
+              "commandName": "insert",
+              "databaseName": "testDB",
+              ...
+              "level": "debug",
+              "message": "Command started",
+              "msg": "Command started",
+              ...
+              "time": "2023-07-06 10:23:42"
+            }
+            {
+              "commandName": "insert",
+              ...
+              "level": "debug",
+              "message": "Command succeeded",
+              "msg": "Command succeeded",
+              ...
+              "time": "2023-07-06 10:23:42"
+            }
+            {
+              "command": "{\"delete\": \"testColl\", ...}",
+              "commandName": "delete",
+              "databaseName": "testDB",
+              ...
+              "level": "debug",
+              "message": "Command started",
+              "msg": "Command started",
+              ...
+              "time": "2023-07-06 10:23:42"
+            }
+            {
+              "commandName": "delete",
+              ...
+              "level": "debug",
+              "message": "Command succeeded",
+              "msg": "Command succeeded",
+              ...
+              "time": "2023-07-06 10:23:42"
+            }
+
+.. tip:: Logging Packages
+
+   You can find more information on third-party logging packages in their
+   respective GitHub repositories:
+   
+   - :github:`logrus <sirupsen/logrus>`
+   - :github:`zap <uber-go/zap>`
+   - :github:`zerolog <rs/zerolog>`
+   
+   To see full code examples that integrate these loggers, see the
+   :github:`logging tests in the {+driver-short+} Github repository <mongodb/mongo-go-driver/tree/master/examples/_logger>`.
+
+Additional Information
+----------------------
+
+For more information about setting client options, see the
+:ref:`golang-connection-guide`.
+
+.. tip:: Monitoring
+
+   In addition to logging, you can enable server selection and
+   topology monitoring in your application. To learn more, see the
+   :ref:`golang-monitoring` Fundamentals guide.
+
+.. _golang-logging-api:
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the types or methods discussed in this
+guide, see the following API Documentation:
+
+- `SetLoggerOptions() <{+api+}/mongo/options#ClientOptions.SetLoggerOptions>`__
+- `LoggerOptions <{+api+}/mongo/options#LoggerOptions>`__
+- `LogSink <{+api+}/mongo/options#LogSink>`__
+- `SetComponentLevel() <{+api+}/mongo/options#LoggerOptions.SetComponentLevel>`__
+- `SetMaxDocumentLength() <{+api+}/mongo/options#LoggerOptions.SetMaxDocumentLength>`__
+- `SetSink() <{+api+}/mongo/options#LoggerOptions.SetSink>`__
+- `LogComponent <{+api+}/mongo/options#LogComponent>`__
+- `LogLevel <{+api+}/mongo/options#LogLevel>`__
