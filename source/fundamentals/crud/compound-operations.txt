@@ -2,8 +2,6 @@
 Compound Operations
 ===================
 
-.. default-domain:: mongodb
-
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -13,52 +11,66 @@ Compound Operations
 Overview
 --------
 
-Most database requests only need to read data out of a database or
-write data into a database. However, client applications sometimes need
-to read and write data in a single interaction with the database.
+Most database requests need to either read data out of a database or
+write data into a database. However, there are instances where you may
+need to read and write data in a single interaction.
 
-Compound operations combine read and write operations
+**Compound operations** combine read and write operations
 in a single atomic statement, so there's no chance of data changing in
-between a read and a subsequent write; in fact, both operations take
-place in the same line of code from the perspective of your client
-application.
+between a read and a subsequent write.
 
-This property can be useful in cases where you want to write to a
-specific document, but you haven't found it yet. If you just perform a
-read for the document's ``_id`` and then try to alter the document you
-just found, it's possible that someone else can alter the document in
-between your read and write operations. This doesn't stop you from doing
-this work, but it can make error handling much more difficult. Compound
-operations help keep your logic straightforward by handling that logic
-entirely inside the database behind a layer of abstraction, so you don't
-have to worry about it. While you can accomplish this task using
-separate reads and writes, doing so requires the client application to
-gracefully handle potential errors at any stage of the process and in
-multiple potential error states. This increases the complexity of your
-code and can make your client application brittle and difficult to test.
+If you execute each operation separately, another request may alter the
+data between the read and write operations. These data changes may not
+prevent your operation from succeeding, but they can make error handling
+more difficult. When your application has to handle potential errors at
+any stage of the process, it can become brittle and difficult
+to test.
 
 Built-in Methods
 ----------------
 
-There are three major compound operations:
+The {+driver-short+} provides the following methods to perform compound
+operations:
 
 - `findOneAndDelete() <{+api+}/classes/Collection.html#findOneAndDelete>`__
-  matches multiple documents to a supplied query and removes the first
-  of those matched documents.
-
 - `findOneAndUpdate() <{+api+}/classes/Collection.html#findOneAndUpdate>`__
-  matches multiple documents to a supplied query and updates the first
-  of those matched documents using the provided update document.
-
 - `findOneAndReplace() <{+api+}/classes/Collection.html#findOneAndReplace>`__
-  matches multiple documents to a supplied query and replaces the first
-  of those matched documents using the provided replacement document.
 
-All three methods accept an optional ``options`` object with
-configurable :doc:`sort </fundamentals/crud/read-operations/sort>` and
-:doc:`projection </fundamentals/crud/read-operations/project>` options
-that work just like their read operation equivalents.
-``findOneAndUpdate()`` and ``findOneAndDelete()`` allow the client to
-configure the ``returnDocument``  option, a boolean that determines if
-the method returns the pre-update or post-update version of the modified
-document.
+These methods accept an optional ``options`` object with
+configurable :ref:`sort <node-fundamentals-sort>` and
+:ref:`projection <node-fundamentals-project>` options.
+
+.. note:: includeResultMetadata Option
+   
+   Starting in version 5.7, you can set the ``includeResultMetadata``
+   setting in the ``options`` object to specify the return type for each
+   of these methods. The setting defaults to ``true``, which means the
+   method returns a ``ModifyResult`` type. If you set
+   ``includeResultMetadata`` to ``false``, the method returns the
+   modified document.
+
+   Suppose a collection contains the following document:
+   
+   .. code-block:: json
+
+      { _id: 1, x: "on" }
+
+   The following code shows the return type for ``findOneAndDelete()``
+   operations when ``includeResultMetadata`` is set to ``true`` and
+   ``false``:
+
+   .. code-block:: js
+      
+      // returns { _id: 1, x: 'on' }
+      await coll.findOneAndDelete({ x: "on" }, { includeResultMetadata: false });
+
+      // returns { lastErrorObject: { n: 1 }, value: { _id: 1, x: 'on' }, ok: 1, ... }
+      await coll.findOneAndDelete({ x: "on" }, { includeResultMetadata: true });
+
+      // no document matched, returns null
+      await coll.findOneAndDelete({ x: "off" }, { includeResultMetadata: false });
+
+You can set the ``returnDocument`` setting in the ``options`` object for the
+``findOneAndUpdate()`` and ``findOneAndDelete()`` methods, which lets
+you specify if the method returns the pre-update or post-update version
+of the modified document.
