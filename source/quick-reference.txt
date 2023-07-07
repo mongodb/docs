@@ -28,13 +28,13 @@ their related reference and API documentation.
           .. input::
              :language: go
 
-             err = coll.FindOne(context.TODO(), bson.D{{"rating", 5}}).Decode(&result)
+             err = coll.FindOne(context.TODO(), bson.D{{"firstName", Mike}}).Decode(&result)
 
           .. output::
              :language: go
              :visible: false 
 
-             [{type Assam}, {rating 5} ...]
+             [{firstName Mike}, {lastName Smith} ...]
 
    * - | **Find Multiple Documents**
        |
@@ -48,14 +48,14 @@ their related reference and API documentation.
           .. input::
              :language: go
 
-             cursor, err := coll.Find(context.TODO(), bson.D{{"rating", bson.D{{"$gte", 8}}}})
+             cursor, err := coll.Find(context.TODO(), bson.D{{"age", bson.D{{"$gte", 46}}}})
 
           .. output::
              :language: go
              :visible: false 
 
-             [{type Masala}, {rating 10}, ... ]
-             [{type Earl Grey}, {rating 8}, ... ]
+             [{firstName Kyle}, {age 51}, ... ]
+             [{firstName Omar}, {age 47}, ... ]
 
    * - | **Insert a Document**
        |
@@ -69,9 +69,8 @@ their related reference and API documentation.
           result, err := coll.InsertOne(
               context.TODO(), 
               bson.D{
-                  {"type", "Masala"}, 
-                  {"rating", 10}, 
-                  {"vendor", bson.A{"A", "C"}}
+                  {"animal", "Dog"}, 
+                  {"breed", "Beagle"} 
               }
           )
 
@@ -85,10 +84,10 @@ their related reference and API documentation.
           :copyable: true
 
           docs := []interface{} {
-              bson.D{{"type", "English Breakfast"}, {"rating", 6}},
-              bson.D{{"type", "Oolong"}, {"rating", 7}, {"vendor", bson.A{"C"}}},
-              bson.D{{"type", "Assam"}, {"rating", 5}},
-              bson.D{{"type", "Earl Grey"}, {"rating", 8}, {"vendor", bson.A{"A", "B"}}},
+              bson.D{{"firstName", "Erik"}, {"age", 27}},
+              bson.D{{"firstName", "Mohammad"}, {"lastName", "Ahmad"}, {"age", 10}},
+              bson.D{{"firstName", "Todd"}},
+              bson.D{{"firstName", "Juan"}, {"lastName", "Pablo"}}
            }
 
           result, err := coll.InsertMany(context.TODO(), docs)
@@ -107,15 +106,16 @@ their related reference and API documentation.
 
              result, err := coll.UpdateOne(
                  context.TODO(), 
-                 bson.D{{"type", "Oolong"}}, 
-                 bson.D{{"$set", bson.D{{"rating", 8}}}}
+                 bson.D{{"firstName", "Erik"}}, 
+                 bson.D{{"$set", bson.D{{"age", 28}}}}
              )
+             fmt.Printf("The number of modified documents: %d\n", result.ModifiedCount)
 		
           .. output::
              :language: go
              :visible: false 
 
-             [{type Oolong}, {rating: 8} ...}]
+             The number of modified documents: 1
 
    * - | **Update Multiple Documents**
        |
@@ -131,17 +131,16 @@ their related reference and API documentation.
 
              result, err := coll.UpdateMany(
                  context.TODO(), 
-                 bson.D{{"rating", bson.D{{"$lt", 10}}}}, 
-                 bson.D{{"$inc", bson.D{{"rating", 2}}}}
+                 bson.D{{"age", bson.D{{"$gte", 58}}}}, 
+                 bson.D{{"$set", bson.D{{"description", "Senior"}}}}
              )
+             fmt.Printf("The number of modified documents: %d\n", result.ModifiedCount)
 
           .. output::
              :language: go
              :visible: false 
 
-             [{type English Breakfast}, {rating 8}, ... ]
-             [{type Oolong}, {rating 9}, ... ]
-             ...
+             The number of modified documents: 4
 
    * - | **Update Arrays in Documents**
        |
@@ -157,15 +156,15 @@ their related reference and API documentation.
              result, err := coll.UpdateMany(
                  context.TODO(), 
                  bson.D{}, 
-                 bson.D{{"$push", bson.D{{"vendor", "D"}}}}
+                 bson.D{{"$push", bson.D{{family, "brother"}}}}
              )
 
           .. output::
              :language: go
              :visible: false 
 
-             [{type English Breakfast}, {vendor ["D"]}, ... ]
-             [{type Oolong}, {vendor ["C", "D"]}, ... ]
+             [{firstName Xiao}, {family ["brother"]}, ... ]
+             [{firstName Omar}, {family ["brother", "mother"]}, ... ]
              ...
 
    * - | **Replace a Document**
@@ -182,15 +181,15 @@ their related reference and API documentation.
 
              result, err := coll.ReplaceOne(
                  context.TODO(), 
-                 bson.D{{"type", "Oolong"}}, 
-                 bson.D{{"type", "Jasmine"}, {"rating", 9}}
+                 bson.D{{"firstName", "Mick"}}, 
+                 bson.D{{"firstName", "Mike"}, {"lastName", "Doe"}}
              )
 
           .. output::
              :language: go
              :visible: false 
 
-             [{type Jasmine}, {rating 9}, ... }]
+             [{{firstName Mike}, {lastName Doe} }]
 
    * - | **Delete a Document**
        |
@@ -203,7 +202,7 @@ their related reference and API documentation.
 
           result, err := coll.DeleteOne(
               context.TODO(), 
-              bson.D{{"type", "Earl Grey"}}
+              bson.D{{"firstName", "Xiao"}}
           )
 
    * - | **Delete Multiple Documents**
@@ -217,7 +216,7 @@ their related reference and API documentation.
 
           results, err := coll.DeleteMany(
               context.TODO(), 
-              bson.D{{"rating", bson.D{{"$gt", 7}}}}
+              bson.D{{"age", bson.D{{"$lte", 12}}}}
           )
 
    * - | **Bulk Write**
@@ -233,9 +232,9 @@ their related reference and API documentation.
              :language: go 
 
              models := []mongo.WriteModel{
-                 mongo.NewInsertOneModel().SetDocument(bson.D{{"type", "Chrysanthemum"}, {"rating", 5}}),
-                 mongo.NewUpdateOneModel().SetFilter(bson.D{{"type", "Jasmine"}}).
-                     SetUpdate(bson.D{{"$set", bson.D{{"type", "Oolong"}}}}),
+                 mongo.NewInsertOneModel().SetDocument(bson.D{{"firstName", "John"}, {"age", 5}}),
+                 mongo.NewUpdateOneModel().SetFilter(bson.D{{"firstName", "Juan"}}).
+                     SetUpdate(bson.D{{"$set", bson.D{{"age", 12}}}}),
              }
              opts := options.BulkWrite().SetOrdered(true)
 
@@ -245,8 +244,8 @@ their related reference and API documentation.
              :language: go
              :visible: false
 
-             [{type Chrysanthemum}, {rating 5} ... ]
-             [{type Oolong},  ... ]
+             [{firstName John}, {age 5} ... ]
+             [{firstName Juan}, {age 12} ... ]
 
    * - | **Monitor Data Changes**
        |
@@ -284,9 +283,9 @@ their related reference and API documentation.
              :language: go
              :visible: false 
 
-             [{type Masala} ... ]
-             [{type English Breakfast} ...]
-             [{type Oolong} ...]
+             [{firstName Doug} ... ]
+             [{firstName Erik} ...]
+             [{lastName Chang} ...]
              ...
 
    * - | **Access Data from a Cursor as an Array**
@@ -311,9 +310,9 @@ their related reference and API documentation.
              :language: go
              :visible: false 
 
-             [{type Masala} ... ]
-             [{type English Breakfast} ...]
-             [{type Oolong} ...]
+             [{name Mike} ... ]
+             [{name Edgar} ...]
+             [{name Freddie} ...]
              ...
 
    * - | **Count Documents**
@@ -347,14 +346,14 @@ their related reference and API documentation.
           .. input::
              :language: go
 
-             results, err := coll.Distinct(context.TODO(), "type", bson.D{})
+             results, err := coll.Distinct(context.TODO(), "firstName", bson.D{})
 
           .. output::
              :language: go
              :visible: false 
 
-             Masala
-             Oolong
+             Mike
+             Xiao
              ...
 
    * - | **Limit the Number of Documents Retrieved**
@@ -374,8 +373,8 @@ their related reference and API documentation.
              :language: go
              :visible: false 
 
-             [{type Masala} ... ]
-             [{type English Breakfast} ...]
+             [{breed Beagle} ... ]
+             [{breed German Shepard} ...]
 
    * - | **Skip Retrieved Documents**
        |
@@ -395,8 +394,8 @@ their related reference and API documentation.
              :language: go
              :visible: false 
 
-             [{type Earl Grey} ... ]
-             [{type Chrysanthemum} ...]
+             [{item Pen} ... ]
+             [{item Chair} ...]
 
    * - | **Sort the Documents When Retrieving Them**
        |
@@ -409,15 +408,15 @@ their related reference and API documentation.
           .. input::
              :language: go
 
-             cursor, err := coll.Find(context.TODO(), bson.D{}, options.Find().SetSort(bson.D{{"rating", 1}}))
+             cursor, err := coll.Find(context.TODO(), bson.D{}, options.Find().SetSort(bson.D{{"age", 1}}))
 
           .. output::
              :language: go
              :visible: false 
 
-             [{type Chrysanthemum} {rating 5} ... ]
-             [{type Assam} {rating 7} ... ]
-             [{type English Breakfast} {rating 8} ... ]
+             [{firstName Dev} {age 5} ... ]
+             [{firstName Jose} {age 7} ... ]
+             [{firstName Om} {age 8} ... ]
 
    * - | **Project Document Fields When Retrieving Them**
        |
@@ -434,7 +433,7 @@ their related reference and API documentation.
                  context.TODO(), 
                  bson.D{},
                  options.Find().SetProjection(
-                     bson.D{{"vendor", 0}, {"_id",0}}
+                     bson.D{{"age", 0}, {"_id",0}}
                  )
              )
 
@@ -442,8 +441,8 @@ their related reference and API documentation.
              :language: go
              :visible: false 
 
-             [{type Masala} {rating 10}]
-             [{type English Breakfast} {rating 8}]
+             [{firstName Lester}]
+             [{firstName Wendall} {lastName Griffin}]
              ...
 
    * - | **Create an Index**
@@ -454,7 +453,7 @@ their related reference and API documentation.
      - .. code-block:: go
           :copyable: true
 
-          model := mongo.IndexModel{Keys: bson.D{{"type", 1}, {"rating", -1}}}
+          model := mongo.IndexModel{Keys: bson.D{{"firstName", 1}, {"lastName", -1}}}
           name, err := coll.Indexes().CreateOne(context.TODO(), model)
 
    * - | **Search Text**
@@ -469,10 +468,10 @@ their related reference and API documentation.
              :language: go
 
              // only searches fields with text indexes
-             cursor, err := coll.Find(context.TODO(), bson.D{{"$text", bson.D{{"$search", "Breakfast"}}}})
+             cursor, err := coll.Find(context.TODO(), bson.D{{"$text", bson.D{{"$search", "beagle"}}}})
 
           .. output::
              :language: go
              :visible: false 
 
-             [{type English Breakfast} {rating 8} ... ]
+             [{"firstName": "Emily" , "Description": "I love to play sports and walk my beagle."} ... ]
