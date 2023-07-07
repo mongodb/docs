@@ -1,63 +1,149 @@
 .. _server-replica-set-deploy-convert:
 
-=====================================
-Convert a Standalone to a Replica Set
-=====================================
+================================================
+Convert a Standalone mongod to a Replica Set
+================================================
 
 .. default-domain:: mongodb
 
 
-This tutorial describes the process for converting a :term:`standalone`
-:binary:`~bin.mongod` instance into a :term:`replica set`. Use
-standalone instances for testing and development, but always use
-replica sets in production.
+A :term:`standalone` :binary:`mongod` instance is useful for testing and
+development. A standalone instance isn't a good choice for a production
+deployment because it can be a single point of failure. A :ref:`replica
+set <replication>`, also known as a *cluster*, provides redundancy and
+availability. Always use a replica set in production.
 
-To deploy a replica set without using a pre-existing
-:binary:`~bin.mongod` instance, see :doc:`/tutorial/deploy-replica-set`
-instead.
+If you have a standalone server with data that you want to use in
+production, convert the standalone server to a replica set first. 
 
-To install a standalone instance, see the :ref:`installation tutorials
-<tutorials-installation>`.
+.. important::
+
+   If you convert a development server to a replica set for production
+   use, consult the :ref:`security checklist <security-checklist>`
+   before you expose your cluster to the internet. 
+
+Before You Begin
+----------------
+
+Before you convert your standalone instance, consider whether a
+:ref:`replica set <replication>` or a :ref:`sharded cluster
+<sharding-background>` is more appropriate for your workload.
+
+A sharded cluster is a special kind of cluster. A sharded cluster
+provides redundancy and availability; it also distributes data across
+:ref:`shards <shards-concepts>`. Shards are usually hosted on multiple
+servers and allow for horizontal scaling.
+
 
 Procedure
 ---------
 
-.. include:: /includes/important-hostnames.rst
+.. procedure::
+   :style: normal
 
-#. Shut down the :term:`standalone` :binary:`~bin.mongod` instance.
+   .. step:: Shut down the standalone instance.
 
-#. Restart the instance. Use the :option:`--replSet <mongod --replSet>`
-   option to specify the name of the new replica set.
+      Use :binary:`mongosh` to :ref:`connect <mdb-shell-connect>` to
+      your ``mongod`` instance.
 
-   For example, the following command starts a standalone instance as a
-   member of a new replica set named ``rs0``. The command uses the
-   standalone's existing database path of ``/srv/mongodb/db0``:
+      .. code-block:: shell
 
-   .. include:: /includes/warning-bind-ip-security-considerations.rst
+         mongosh
 
-   .. code-block:: bash
+      Switch to the ``admin`` database and run :dbcommand:`shutdown`.
 
-      mongod --port 27017 --dbpath /srv/mongodb/db0 --replSet rs0 --bind_ip localhost,<hostname(s)|ip address(es)>
+      .. code-block:: javascript
 
-   .. include:: /includes/fact-unique-replica-set-names.rst
+         use admin
+         db.adminCommand( 
+            {
+               shutdown: 1,
+               comment: "Convert to cluster"
+            }
+         )      
 
-   For more information on configuration options, see
-   :doc:`/reference/configuration-options` and the :binary:`~bin.mongod`
-   manual page.
+   .. step:: Name the replica set. 
+        
+      If you configure your ``mongod`` instance from the command line,
+      use the :option:`--replSet <mongod --replSet>` option to set a
+      name for your replica set.
 
-#. Connect :binary:`~bin.mongosh` to the :binary:`~bin.mongod` instance.
+      A typical command line invocation might include:
 
-#. Use :method:`rs.initiate()` to initiate the new replica set:
+      .. list-table::
+         :header-rows: 1
 
-   .. code-block:: javascript
+         * - Purpose
+           - Option
 
-      rs.initiate()
+         * - Cluster name
+           - :option:`--replSet <mongod --replSet>`
+      
+         * - Network details
+           -  :option:`--port <mongod --port>`
+      
+         * - Data path
+           - :option:`--dbpath <mongod --dbpath>`
+       
+         * - Authentication details 
+           - :option:`--authenticationDatabase <mongosh
+             --authenticationDatabase>`, :option:`--username
+             <mongosh --username>`, :option:`--password <mongosh
+             --password>`
+      
+      Update the example code with the settings for your deployment.
 
-   The replica set is now operational. To view the replica set
-   configuration, use :method:`rs.conf()`. To check the status of the
-   replica set, use :method:`rs.status()`.
+      .. code-block:: shell
 
-To add members to this replica set, use the :method:`rs.add()` method.
-For more information on adding members to a replica set, see
-:doc:`/tutorial/expand-replica-set`.
+         mongod --replSet rs0 \
+                --port 27017 \ 
+                --dbpath /path/to/your/mongodb/dataDirectory \
+                --authenticationDatabase "admin" \
+                --username "adminUserName" \
+                --password
 
+      If you use a configuration file to start ``mongodb``, add a
+      ``replication`` section to your configuration file. Edit the
+      ``replSetName`` value to set the name of your replica set. 
+
+      .. code-block:: shell
+
+         replication:
+            replSetName: rs0              
+
+   .. step:: Initialize the replica set.
+    
+       To initialize the replica set, use ``mongosh`` to reconnect to
+       your server instance. Then, run :method:`rs.initiate()
+       <rs.initiate>`.
+
+       .. code-block:: javascript
+
+          rs.initiate()
+
+       You only have to initiate the replica set once.
+
+       To view the replica set configuration, use :method:`rs.conf()`.
+       
+       To check the status of the replica set, use :method:`rs.status()`.
+
+   .. step:: Add nodes to the replica set.
+
+      The new replica set has a single, primary node. The next step is
+      to add new nodes to the replica set. Review the documentation on
+      clusters before you add additional nodes:
+
+      - :ref:`Replica set architectures
+        <replica-set-deployment-overview>`
+      - :ref:`Adding members to a replica set
+        <server-replica-set-deploy-expand>`
+
+      When you are ready to add nodes, use :method:`rs.add()`.
+
+
+Learn More
+----------
+
+- :ref:`Configuration options <configuration-options>`
+- :ref:`Deploy a standalone instance <tutorials-installation>`
+- :ref:`Deploy a new replica set <server-replica-set-deploy>`
