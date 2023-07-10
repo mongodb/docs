@@ -22,7 +22,9 @@ Definition
 .. expression:: queryString
 
    The ``queryString`` operator supports querying a combination of
-   indexed fields and values.
+   indexed fields and values. You can perform text, wildcard, regular
+   expression, fuzzy, and range searches on ``string`` fields using the 
+   ``queryString`` operator.
 
 .. _querystring-syntax:
 
@@ -96,6 +98,13 @@ Options
               value must be absent for a document to be included in 
               the results.
 
+          * - ``TO`` 
+            - Indicates the range to search. You can use ``[]`` for an
+              inclusive range, ``{}`` for an exclusive range, or ``{]``
+              and ``[}`` for an half-open range. Any value that falls
+              within the specified range must be present for a document
+              to be included in the results. 
+
           * - ``()``
             - Delimiters for subqueries. Use the parentheses to group
               fields and values to search.
@@ -105,6 +114,58 @@ Options
           :ref:`querystring-ref-examples` for some sample queries that
           use the operators and delimiters to search the sample
           ``movies`` collection.
+
+       You can run wildcard and regular expression queries using the
+       following: 
+
+       .. list-table::
+          :widths: 10 90
+
+          * - ``?``
+            - Indicates any single character to match. 
+
+          * - ``*``
+            - Indicates 0 or more characters to match.
+
+          * - ``/`` 
+            - Delimiter for regular expression. 
+
+          * - ``~``
+            - Indicates fuzzy search to find strings which are similar
+              to the search term. If you use this with multiple terms in 
+              a string, the ``queryString`` operator does a proximity 
+              search for the terms within the specified number of terms.
+
+              .. note:: 
+
+                 For fuzzy search, the ``queryString`` operator matches
+                 terms up to at most ``2`` edits. Higher distances are
+                 not useful as it might match a significant amount of
+                 the dictionary term. For example, ``"foo":"stop"~2``
+                 is equal to the following: 
+
+                 .. code-block:: shell 
+                    :copyable: false
+
+                    { "path": "foo", "query": "stop", "maxEdits": 2 }
+
+                 For proximity search, the ``queryString`` operator
+                 matches terms using the distance specified between
+                 words in the search phrase. For example, ``"foo":"New 
+                 York"~2`` is equal to the following: 
+
+                 .. code-block:: shell 
+                    :copyable: false
+
+                    { "path": "foo", "query": "New York", "slop": 2 }
+
+       .. note:: 
+
+          The ``queryString`` operator doesn't support a wildcard query
+          with ``*`` as the first character in the query. The
+          ``queryString`` operator treats any character preceding the
+          ``*`` as prefix or as characters that must exactly match. 
+          
      - yes
 
    * - ``score``
@@ -132,17 +193,21 @@ Examples
 
 The following examples use the ``movies`` collection in the
 ``sample_mflix`` database. If you have the :ref:`sample dataset
-<available-sample-datasets>` on your cluster, you can create the |fts|
-``default`` index and run the example queries on your cluster. 
+<available-sample-datasets>` on your {+cluster+} , you can create the
+|fts| index named ``default`` with dynamic mappings and run the example 
+queries on your {+cluster+} .  
 
-Basic Examples
-~~~~~~~~~~~~~~
+Boolean Operator Queries
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Basic Examples 
+``````````````
 
 .. tabs::
 
    tabs:
      - id: beg1
-       name: AND OR Example
+       name: AND OR 
        content: |
 
         The following example uses the ``queryString`` operator to query for
@@ -187,11 +252,12 @@ Basic Examples
               { "title" : "Rocky IV" }
 
      - id: beg2
-       name: AND NOT Example
+       name: AND NOT 
        content: |
 
         The following example uses the ``queryString`` operator to 
-        query for movies with the title ``Rocky`` and not ``II``, ``III``, ``VI``, or ``V``.
+        query for movies with the title ``Rocky`` and not ``II``,
+        ``III``, ``VI``, or ``V``. 
 
         .. example::
 
@@ -239,7 +305,7 @@ Basic Examples
               ]
 
      - id: beg3
-       name: AND Example
+       name: AND 
        content: |
 
         The following example uses the ``queryString`` operator to query for
@@ -319,7 +385,7 @@ Basic Examples
               }
 
      - id: beg4
-       name: OR AND Example
+       name: OR AND 
        content: |
 
         The following example uses the ``queryString`` operator to query for
@@ -402,7 +468,7 @@ Basic Examples
              ``enterprise``.
 
 Advanced Examples
-~~~~~~~~~~~~~~~~~
+`````````````````
 
 The following example uses the ``queryString`` operator to query for
 movie plots that contain the terms ``captain``, ``kirk``, and
@@ -546,3 +612,334 @@ included in the search results.
            gets a higher score because |fts| also finds the terms ``kirk``
            and ``chess`` in the ``fullplot`` field although the terms are
            not required to be present to meet the criteria for a match.
+
+Range Queries 
+~~~~~~~~~~~~~
+
+.. tabs::
+
+   .. tab:: TO 
+      :tabid: to
+
+      The following example uses the ``queryString`` operator to query the
+      movie titles a range of textual values from the characters
+      ``count`` to any character (defined using the wildcard character
+      ``*``) in ascending alphabetical order. 
+
+      .. example:: 
+
+         .. io-code-block::
+            :copyable: true 
+      
+            .. input:: 
+               :language: json
+               :linenos: 
+
+                db.movies.aggregate([
+                  {
+                    "$search": {
+                      "queryString": {
+                         "defaultPath": "plot",
+                         "query": "title:[count TO *]"
+                      }
+                    }
+                  },
+                  {
+                    "$limit": 10
+                  },
+                  {
+                    "$project": {
+                      "_id": 0,
+                      "title": 1
+                    }
+                  }
+                ])
+            
+            .. output:: 
+               :language: json
+               :linenos: 
+
+               [
+                 { title: 'Blacksmith Scene' },
+                 { title: 'The Great Train Robbery' },
+                 { title: 'The Land Beyond the Sunset' },
+                 { title: 'A Corner in Wheat' },
+                 { title: 'Winsor McCay, the Famous Cartoonist of the N.Y. Herald and His Moving Comics' },
+                 { title: 'Traffic in Souls' },
+                 { title: 'Gertie the Dinosaur' },
+                 { title: 'In the Land of the Head Hunters' },
+                 { title: 'The Perils of Pauline' },
+                 { title: 'The Birth of a Nation' }
+               ]      
+
+         |fts| results include movies with titles ``Blacksmith Scene``
+         and ``A Corner in Wheat`` although the range in the query
+         starts from characters ``count``. When you index with
+         the default analyzer, ``lucene.standard``, |fts| creates
+         separate tokens for the terms in the ``title`` field and
+         matches the query term to the individual tokens. Specifically,
+         |fts| creates the following tokens, at least one of which
+         (indicated by √) matches the query criteria: 
+
+         .. list-table:: 
+            :widths: 30 70
+            :header-rows: 1
+
+            * - Title 
+              - Standard Analyzer Tokens 
+
+            * - Blacksmith Scene
+              - ``blacksmith``, ``scene`` √
+         
+            * - A Corner in Wheat
+              - ``a``, ``corner``, ``in``, ``wheat`` √
+         
+         If you index using the ``lucene.keyword`` analyzer, |fts|
+         would create a single token for the whole string in the
+         ``title`` field, resulting in results similar to the following 
+         for the same query: 
+
+         .. code-block:: json 
+            :copyable: false 
+
+            [
+              { title: 'è Nous la Libertè' },
+              { title: 'tom thumb' },
+              { title: 'è nos amours' },
+              { title: 'èke och hans vèrld' },
+              { title: 'èdipussi' },
+              { title: 's/y Glèdjen' },
+              { title: 'èAy, Carmela!' },
+              { title: 'èlisa' },
+              { title: 'èxtasis' },
+              { title: 'eXistenZ' }
+            ]
+
+   .. tab:: TO AND
+      :tabid: to-and
+
+      The following example uses the ``queryString`` operator to query the
+      movie genres for ``drama`` and the titles for a range of textual
+      values between ``man`` and ``men``, including both, in ascending
+      alphabetical order. 
+
+      .. example:: 
+
+         .. io-code-block::
+            :copyable: true 
+      
+            .. input:: 
+               :language: json
+               :linenos: 
+
+                db.movies.aggregate([
+                  {
+                     "$search": {
+                       "queryString": {
+                       "defaultPath": "plot",
+                       "query": "title:[man TO men] AND genres: Drama"
+                     }
+                   }
+                 },
+                 {
+                   "$limit": 10
+                 },
+                 {
+                   "$project": {
+                     "_id": 0,
+                     "title": 1,
+                     "genres": 1
+                    }
+                  }
+                ])
+            
+            .. output:: 
+               :language: json
+               :linenos:
+
+               [
+                 { genres: [ 'Drama' ], title: 'The Wedding March' },
+                 { genres: [ 'Drama' ], title: 'Maria Chapdelaine' },
+                 { genres: [ 'Drama' ], title: 'Of Mice and Men' },
+                 { genres: [ 'Drama' ], title: 'All the King's Men' },
+                 { genres: [ 'Drama' ], title: 'Wuya yu maque' },
+                 { genres: [ 'Drama' ], title: 'The Men' },
+                 { genres: [ 'Drama' ], title: 'The Member of the Wedding' },
+                 { genres: [ 'Drama' ], title: 'The Great Man' },
+                 { genres: [ 'Drama' ], title: 'A Matter of Dignity' },
+                 { genres: [ 'Drama' ], title: 'The Last Angry Man' }
+               ]
+
+         The documents in the results match because the ``genres`` field
+         contains the term ``drama`` and the movie ``title`` field
+         contains terms between ``Man`` and ``Men`` in alphabetical order
+         (``Man``, ``Maque``, ``March``, ``Maria``, ``Matter``,
+         ``Member``, and ``Men`` in the results). 
+
+Wildcard Queries 
+~~~~~~~~~~~~~~~~
+
+The following examples use the ``queryString`` operator to query for
+movie titles using fuzzy, wildcard, and regular expressions. The queries
+include a :pipeline:`$project` stage to exclude all fields except
+``title``. 
+
+.. tabs:: 
+
+   .. tab:: Fuzzy Example 
+      :tabid: fuzzy
+
+      The following query uses fuzzy (``~``) to do a fuzzy search in
+      the ``title`` field for movie titles that contain terms similar to 
+      ``catch`` with up to a two character variation. 
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "queryString": {
+                    "defaultPath": "title",
+                    "query": "catch~2"
+                  }
+                }
+              },
+              {
+                "$limit": 10
+              },
+              {
+                "$project": {
+                   "_id": 0,
+                   "title": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :linenos:
+
+            [
+              { title: 'Catch-22' },
+              { title: 'Catch That Girl' },
+              { title: 'Catch That Kid' },
+              { title: 'Catch a Fire' },
+              { title: 'Catch Me Daddy' },
+              { title: 'Death Watch' },
+              { title: 'Patch Adams' },
+              { title: "Batch '81" },
+              { title: 'Briar Patch' },
+              { title: 'Night Watch' }
+            ]
+
+   .. tab:: Wildcard Example 
+      :tabid: wildcard 
+
+      The following query uses wildcard expression to search the
+      ``title`` field for movie titles that contain characters
+      ``cou*t?*``, where ``*`` indicates any additional number of
+      characters and ``?`` indicates any single character. 
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "queryString": {
+                    "defaultPath": "title",
+                    "query": "cou*t?*" 
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              { title: 'A Day in the Country' },
+              { title: 'Diary of a Country Priest' },
+              { title: 'Cry, the Beloved Country' },
+              { title: 'The Country Girl' },
+              { title: 'Raintree County' }
+            ]
+
+      The documents in the results match because the ``title``
+      field contains the term ``Country`` or ``County``, which matches
+      the query criteria for characters starting with ``cou`` followed
+      by any number of characters (``n`` in the results) and then ``t`` 
+      followed by at least one or many characters (``r`` as in
+      ``country`` or ``y`` as in ``county`` in the results). 
+
+   .. tab:: Regular Expression Example 
+      :tabid: regex
+
+      The following query uses a regular expression to search the
+      ``title`` field for movie titles that contain characters that
+      start with any character followed by the characters ``tal`` 
+      and either ``y`` or ``ian`` after ``tal``. 
+
+      .. io-code-block::
+         :copyable: true
+      
+         .. input:: 
+            :language: json
+            :linenos: 
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "queryString": {
+                    "defaultPath": "title",
+                    "query": "/.tal(y|ian)/" 
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+      
+         .. output:: 
+            :language: json
+            :linenos: 
+
+            [
+              { title: 'The Italian' },
+              { title: 'Journey to Italy' },
+              { title: 'Divorce Italian Style' },
+              { title: 'Marriage Italian Style' },
+              { title: 'Jealousy, Italian Style' }
+            ]
+
+      The documents in the results match because the ``title``
+      field contains the term ``Italy`` or ``Italian``, which matches
+      the query criteria for any character (``I`` in the results)
+      followed by ``tal`` with either ``y`` (as in ``Italy`` in the
+      results) or ``ian`` (as in ``Italian`` in the results).  
