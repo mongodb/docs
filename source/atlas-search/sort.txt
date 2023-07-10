@@ -1,9 +1,3 @@
-:noprevnext:
-:orphan:
-
-.. meta::
-   :robots: noindex, nosnippet
-
 .. _sort-ref:
 
 ==================
@@ -12,272 +6,52 @@ Sort |fts| Results
 
 .. default-domain:: mongodb
 
+.. meta::
+   :description: Sort you Atlas Search results by date, number, and string fields.
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 2
    :class: singlecol
-
-.. important:: 
-
-   This feature is in Beta. Make a note of the following: 
-
-   - The name and syntax of the field types and operator might 
-     change during Beta and will change for GA.
-   - Resource usage might change. For more information, see 
-     :ref:`sort-considerations`.
    
 Overview
 --------
 
-|fts| supports sorting in ascending or descending order on fields that
-you define in your |fts| index for sorting. You can sort by date, number
-(integer, float, and double values), and string values using the
-``sortBetaV1`` operator. 
+|fts| allows you to sort the results in ascending or descending order on 
+fields that you define in your |fts| index. You can sort by date, number
+(integer, float, and double values), and string fields using the
+``sort`` option.   
 
 Usage 
 ~~~~~
 
 To sort your |fts| results, you must do the following:
 
-1. Create an |fts| index on the fields your wish to sort your results
-   by. To learn more, see :ref:`sort-beta-index`.
-#. Create and run your query using the ``sortBetaV1`` operator against
-   the fields you defined in the index for sorting. To learn more, see 
-   :ref:`sort-beta-v1-ref`.
+1. Create an |fts| index on the fields to sort the results by. 
    
-.. _sort-considerations:
+   |fts| automatically indexes number and date fields in all indexes
+   created after :ref:`July 2023 <fts20230710>` for sorting. For
+   preexisting indexes, you must trigger an index rebuild from the
+   {+atlas-ui+} to use any date and number fields in the indexes for
+   sorting. To learn more, see :ref:`sort-index-rebuild`.
 
-Considerations 
-~~~~~~~~~~~~~~
+   For string fields, you must manually index the field as ``token``
+   type. To learn more, see :ref:`bson-data-types-token`. 
 
-Consistency 
-```````````
-
-|fts| indexes are eventually :ref:`consistent
-<index-eventual-consistency-and-latency>`, and values returned in
-results might be different from values used in sorting.
-
-Performance 
-```````````
-
-This feature optimizes queries that use :pipeline:`$search` with
-:pipeline:`$limit` as a subsequent stage. If |fts| needs to sort all 
-documents in the collection, the response might be slow.
-
-Scoring 
-```````
-
-|fts| returns :ref:`scores <scoring-ref>` for all documents in the
-results. 
-
-Limitations 
-~~~~~~~~~~~
-
-The following limitations apply:
-
-- You can't index and sort on fields in sharded collections.
-- You can't sort and :ref:`fts-facet-ref` in the same query.
-- You can't sort on fields in :ref:`bson-data-types-embedded-documents`. 
-- You can't configure a field with more than one of
-  ``sortableDateBetaV1``, ``sortableNumberBetaV1``, or 
-  ``sortableStringBetaV1`` field types. 
-
-.. _sort-beta-index:
-
-Index Definition 
-----------------
-
-To sort by date, number, or string values, you must index these
-fields as a ``sortableDateBetaV1``, ``sortableNumberBetaV1``, or 
-``sortableStringBetaV1`` type respectively. 
-
-.. note:: 
-
-   When you index a field as ``sortableDateBetaV1``,
-   ``sortableNumberBetaV1``, or ``sortableStringBetaV1`` type, you
-   can only *sort* your results by that field. To also *query* that
-   field, you must index that field as also ``date``, ``number``, or
-   ``string`` type. 
-
-Sort by Date
-~~~~~~~~~~~~
-
-Use ``sortableDateBetaV1`` type to index date fields for sorting. 
-
-Option 
-``````
-
-The ``sortableDateBetaV1`` type has the following option: 
-
-.. list-table::
-   :widths: 20 10 10 60
-   :header-rows: 1
-
-   * - Option
-     - Type 
-     - Necessity
-     - Purpose
-
-   * - ``type``
-     - string 
-     - Required
-     - Human-readable label that identifies this field type. 
-       Value must be ``sortableDateBetaV1``.
-
-Example 
-```````
-
-The following index definition for the ``sample_mflix.movies``
-collection in the :ref:`sample dataset <available-sample-datasets>`
-indexes the date field  ``released`` for sorting.
-
-.. code-block:: 
-
-   {
-     "mappings": {
-       "dynamic": false,
-       "fields": {
-         "released": {
-           "type": "sortableDateBetaV1"
-         }
-       }
-     }
-   }
-
-Sort by Number
-~~~~~~~~~~~~~~
-
-Use ``sortableNumberBetaV1`` type to index numeric fields for sorting. 
-
-.. note:: 
-
-   |fts| converts ``int32`` and ``int64`` values to ``double`` when 
-   indexing the field, which might result in loss of precision for
-   ``int64`` values larger than ``2^53`` and smaller than ``-2^53``. 
-
-Option 
-``````
-
-The ``sortableNumberBetaV1`` type has the following option: 
-
-.. list-table::
-   :widths: 20 10 10 60
-   :header-rows: 1
-
-   * - Option
-     - Type 
-     - Necessity
-     - Purpose
-
-   * - ``type``
-     - string 
-     - Required
-     - Human-readable label that identifies this field type. 
-       Value must be ``sortableNumberBetaV1``.
-
-Example 
-```````
-
-The following index definition for the ``sample_mflix.movies``
-collection in the :ref:`sample dataset <available-sample-datasets>`
-indexes the numeric field  ``awards.wins`` for sorting.
-
-.. code-block:: 
-
-   {
-     "mappings": {
-       "dynamic": false,
-       "fields": {
-         "awards": {
-           "type": "document",
-           "dynamic": false,
-           "fields": {
-             "wins": {
-               "type": "sortableNumberBetaV1"
-             }
-           }
-         }
-       }
-     }
-   }
-
-Sort by String
-~~~~~~~~~~~~~~
-
-Use ``sortableStringBetaV1`` type to index string fields for sorting.  
-
-Option 
-``````
-
-The ``sortableStringBetaV1`` type has the following option: 
-
-.. list-table::
-   :widths: 20 10 10 60
-   :header-rows: 1
-
-   * - Option
-     - Type 
-     - Necessity
-     - Purpose
-
-   * - ``type``
-     - string 
-     - Required
-     - Human-readable label that identifies this field type. 
-       Value must be ``sortableStringBetaV1``.
-
-Example 
-```````
-
-The following index definition for the ``sample_mflix.movies``
-collection in the :ref:`sample dataset <available-sample-datasets>`
-indexes the string field  ``title`` for sorting.
-
-.. code-block:: 
-
-   {
-     "mappings": {
-       "dynamic": false,
-       "fields": {
-         "title": {
-           "type": "sortableStringBetaV1"
-         }
-       }
-     }
-   }
-
-.. _sort-beta-v1-ref:
-
-``sortBetaV1`` Operator
------------------------
-
-.. expression:: sortBetaV1
-
-   The ``sortBetaV1`` operator sorts your |fts| results in ascending or
-   descending order based on the fields you defined in your |fts| index
-   for sorting. 
-
-Syntax 
-~~~~~~
-
-``sortBetaV1`` operator has the following syntax: 
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-     "sortBetaV1": {
-       "<field-name-to-sort-by>": <sort-order>,
-       ...
-     }
-   }
-
+#. Create and run your query with the ``sort`` option against the fields
+   you defined in the index for sorting. To learn more, see 
+   :ref:`sort-syntax-ref`.
+   
 Behavior 
 ~~~~~~~~
 
-The ``sortBetaV1`` takes a document that specifies the fields to sort
-by and the respective sort order. 
+The ``sort`` option takes a document that specifies the fields to sort 
+by and the respective sort order. |fts| follows the :manual:`MongoDB
+comparison order </reference/bson-type-comparison-order/>` for the
+supported data types. It treats null and missing values as equivalent in
+its sort order. To learn more, see :manual:`non-existent fields
+</reference/bson-type-comparison-order/#non-existent-fields>`. 
 
 You can specify the following sort order to sort your results by: 
 
@@ -353,27 +127,138 @@ When comparing with elements inside an array:
         5
         -20
 
+.. _sort-considerations:
+
+Considerations 
+~~~~~~~~~~~~~~
+
+Consistency 
+```````````
+
+|fts| indexes are eventually :ref:`consistent
+<index-eventual-consistency-and-latency>`, and values returned in
+results might be different from values used in sorting.
+
+Performance 
+```````````
+
+This feature optimizes queries that use :pipeline:`$search` with
+:pipeline:`$limit` as a subsequent stage. If |fts| needs to sort all 
+documents in the collection, the response might be slow.
+
+Scoring 
+```````
+
+|fts| returns :ref:`scores <scoring-ref>` for all documents in the
+results. However, you might see higher scoring documents after lower
+scoring documents because the order of documents in the results is based
+on the sort criteria.  
+
+Limitations 
+~~~~~~~~~~~
+
+- You can't sort on fields of :ref:`embeddedDocuments
+  <bson-data-types-embedded-documents>` type.
+- You can't use the ``sort`` option with the :ref:`knn-beta-ref`
+  operator. 
+
+.. _sort-syntax-ref:
+
+Syntax 
+------
+
+``sort`` has the following syntax:
+
+.. code-block:: json
+   :emphasize-lines: 7-10
+
+   {
+     "$search": {  
+       "index": "<index name>", // optional, defaults to "default"
+       "<operator>": { // such as "text", "compound", or "phrase"
+         <operator-specification>
+       },
+       "sort": { 
+         "<field-to-sort>": <sort-order>, 
+         ...
+       }
+     }
+   }
+
+.. _sort-index-rebuild:
+
+Rebuild Index for Sorting  
+-------------------------
+
+|fts| automatically indexes fields of type date and number for indexes
+created after :ref:`July 2023 <fts20230710>` for sorting. For
+preexisting indexes, you must rebuild the indexes to use the date and
+number fields in the indexes for sorting the |fts| results. To rebuild
+the index, do the following:
+
+.. note:: 
+
+   |fts| index rebuild operation is both time and resource
+   intensive. You must allocate free disk space equal to 125% of
+   the disk space used by your old index for this operation. 
+
+.. procedure:: 
+
+   .. step:: Log in to |service| and navigate to the :guilabel:`Search` page.
+
+      To navigate to the |fts| page:
+
+      a. Click :guilabel:`Search` from the :guilabel:`Services` menu in
+         the navigation bar. 
+      
+      #. Select the {+cluster+} from the :guilabel:`Select data source`
+         dropdown and click :guilabel:`Go to Atlas Search`.
+
+   .. step:: Click the name of the index that you want to rebuild. 
+
+       The {+atlas-ui+} shows a warning icon next to the name of the
+       indexes that you can upgrade to avail of the sort functionality.
+
+   .. step:: Update your index to use the new capability for date and numeric fields. 
+    
+      To update your index: 
+      
+      a. In the :guilabel:`Index Overview` page, click :guilabel:`Update` in the banner.
+      #. Click :guilabel:`Update Index` in the confirmation window. 
+
+         While your index is rebuilding, you can continue to query your
+         collection using your previous index.
+
 Examples 
-~~~~~~~~
+--------
 
 The following examples use the ``sample_mflix.movies`` collection in the
 :ref:`sample data <sample-data>`. 
 
 Index Definition
-````````````````
+~~~~~~~~~~~~~~~~
 
 The example queries in this section use the following index. The index
 definition for the collection specifies the following: 
 
-- Index ``awards.wins`` field as ``sortableNumberBetaV1`` type for
-  sorting and ``number`` type for querying. 
-- Index ``released`` field as ``sortableDateBetaV1`` type for sorting
-  and ``date`` type for querying. 
-- Index ``title`` field as ``sortableStringBetaV1`` type for sorting and 
-  ``string`` type for querying. 
+- Index ``awards.wins`` field as: 
+
+  - ``number`` type for sorting and querying
+  - ``numberFacet`` type for running :ref:`fts-facet-ref` queries
+
+- Index ``released`` field as: 
+
+  - ``date`` type for sorting and querying
+  - ``dateFacet`` type for running :ref:`fts-facet-ref` queries
+
+- Index ``title`` field as: 
+
+  - ``token`` type for sorting 
+  - ``string`` type for querying  
 
 .. code-block:: json
    :copyable: true 
+   :linenos:
 
    {
      "mappings": {
@@ -384,22 +269,25 @@ definition for the collection specifies the following:
            "fields": {
              "wins": [
                {
-                 "type": "sortableNumberBetaV1"
+                 "type": "number"
                },
                {
-                 "type": "number"
+                 "type": "numberFacet"
                }
              ]
            },
            "type": "document"
          },
-         "released": [{
-           "type": "sortableDateBetaV1"
-         }, {
-           "type": "date"
-         }],
+         "released": [
+           {
+             "type": "date"
+           },
+           {
+             "type": "dateFacet"
+           }
+         ],
          "title": [{
-           "type": "sortableStringBetaV1"
+           "type": "token"
          }, {
            "type": "string"
          }]
@@ -412,15 +300,15 @@ For the preceding index definition, |fts| creates an index named
 specified fields. 
 
 Date Search and Sort 
-````````````````````
+~~~~~~~~~~~~~~~~~~~~
 
 The following query uses the :pipeline:`$search` stage to do the
 following: 
 
 - Search for movies released between 01 January, 2010 and 01, January,
   2015 using the :ref:`range-ref` operator. 
-- Sort the results in descending order of released date using
-  ``sortBetaV1`` operator. 
+- Sort the results in descending order of released date using the 
+  ``sort`` option. 
 
 The query uses the :pipeline:`$limit` stage to limit the output to ``5``
 documents. It also uses the :pipeline:`$project` stage to omit all fields
@@ -440,7 +328,7 @@ except ``title`` and ``released`` in the results.
               "gt": ISODate("2010-01-01T00:00:00.000Z"),
               "lt": ISODate("2015-01-01T00:00:00.000Z")
             },
-            "sortBetaV1": {
+            "sort": {
               "released": -1
             }
           }
@@ -484,13 +372,13 @@ except ``title`` and ``released`` in the results.
       ]
 
 Number Search and Sort 
-``````````````````````
+~~~~~~~~~~~~~~~~~~~~~~
 
 The following query uses the :pipeline:`$search` stage to do the
 following: 
 
 - Search for movies that have won awards.  
-- Sort the results in descending order using ``sortBetaV1`` operator. 
+- Sort the results in descending order using ``sort`` option. 
 
 The query uses the :pipeline:`$limit` stage to limit the output to ``5``
 documents. It also uses the :pipeline:`$project` stage to omit all fields
@@ -504,12 +392,12 @@ except ``title`` and ``awards.wins`` in the results.
 
       db.movies.aggregate([
         {
-          $search: {
+          "$search": {
              "range": {
                "path": "awards.wins",
                "gt": 3
             },
-            "sortBetaV1": {
+            "sort": {
               "awards.wins": -1
             }
           }
@@ -541,13 +429,13 @@ except ``title`` and ``awards.wins`` in the results.
       ]
 
 String Search and Sort 
-``````````````````````
+~~~~~~~~~~~~~~~~~~~~~~
 
 The following query uses the :pipeline:`$search` stage to do the
 following: 
 
 - Search for movies that have the term ``country`` in the title.  
-- Sort the results in ascending order using ``sortBetaV1`` operator. 
+- Sort the results in ascending order using ``sort`` option. 
 
 The query uses the :pipeline:`$limit` stage to limit the output to ``5``
 documents. It also uses the :pipeline:`$project` stage to do the
@@ -569,7 +457,7 @@ following:
               "path": "title",
               "query": "country"
             },
-            "sortBetaV1": {
+            "sort": {
               "title": 1
             }
           }
@@ -598,7 +486,7 @@ following:
       ]
 
 Compound Search and Sort 
-````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following query uses the :pipeline:`$search` stage to do the
 following: 
@@ -646,7 +534,7 @@ following:
                 }
               }]
             },
-            "sortBetaV1": {
+            "sort": {
               "awards.wins": -1, 
               "title": 1, 
               "released": -1
@@ -675,31 +563,31 @@ following:
           title: 'Shall We Dance?',
           released: ISODate("1997-07-11T00:00:00.000Z"),
           awards: { wins: 57 },
-          score: 3.9811458587646484
+          score: 4.9811458587646484
         },
         {
           title: 'Shall We Dance?',
           released: ISODate("1997-07-11T00:00:00.000Z"),
           awards: { wins: 57 },
-          score: 3.9811458587646484
+          score: 4.9811458587646484
         },
         {
           title: 'War Dance',
           released: ISODate("2008-11-01T00:00:00.000Z"),
           awards: { wins: 11 },
-          score: 4.466421127319336
+          score: 5.466421127319336
         },
         {
           title: 'Dance with the Devil',
           released: ISODate("1997-10-31T00:00:00.000Z"),
           awards: { wins: 6 },
-          score: 3.615056037902832
+          score: 4.615056037902832
         },
         {
           title: 'Save the Last Dance',
           released: ISODate("2001-01-12T00:00:00.000Z"),
           awards: { wins: 6 },
-          score: 3.615056037902832
+          score: 4.615056037902832
         },
         {
           title: 'Dance with a Stranger',
@@ -711,25 +599,187 @@ following:
           title: 'The Baby Dance',
           released: ISODate("1998-08-23T00:00:00.000Z"),
           awards: { wins: 4 },
-          score: 3.9811458587646484
+          score: 4.981145858764648
         },
         {
           title: 'Three-Step Dance',
           released: ISODate("2004-02-19T00:00:00.000Z"),
           awards: { wins: 4 },
-          score: 3.9811458587646484
+          score: 4.981145858764648
         },
         {
           title: "Cats Don't Dance",
           released: ISODate("1997-03-26T00:00:00.000Z"),
           awards: { wins: 3 },
-          score: 3.9811458587646484
+          score: 4.981145858764648
         },
         {
           title: 'Dance Me Outside',
           released: ISODate("1995-03-10T00:00:00.000Z"),
           awards: { wins: 3 },
-          score: 3.9811458587646484
+          score: 4.981145858764648
         }
       ]
 
+Facet Search and Sort 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following query uses the :pipeline:`$search` stage to do the
+following: 
+
+- Search for movies released between 01 January, 2010 and 01, January,
+  2015 using the :ref:`range-ref` operator. 
+- Get a count of the number of movies that won ``1``, ``5``, ``10``, and
+  ``15`` awards.
+- Get a count of the number of movies released on ``2010-01-01``,
+  ``2011-01-01``, ``2012-01-01``, ``2013-01-01``, ``2014-01-01``, and
+  ``2015-01-01``.
+- Sort the results in descending order of released date using the 
+  ``sort`` option. 
+
+The query uses the :pipeline:`$limit` stage to do the following: 
+
+- Limit the output to ``5`` documents in the ``docs`` output field. 
+- Limit the output to ``1`` document in the ``meta`` output field. 
+
+It uses the :pipeline:`$project` stage to omit all fields except the
+``awards.wins``, ``released``, and ``title`` fields.
+
+It also uses the :pipeline:`$replaceWith` stage to include the metadata
+results stored in the ``$$SEARCH_META`` variable in the ``meta`` output
+field and the :pipeline:`$set` stage to add the ``meta`` field to the
+results.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "facet": {
+              "operator": {
+                "range": {
+                  "path": "released",
+                  "gt": ISODate("2010-01-01T00:00:00.000Z"),
+                  "lt": ISODate("2015-01-01T00:00:00.000Z")
+                }
+              },
+              "facets": {
+                "awardsFacet": {
+                  "type": "number",
+                  "path": "awards.wins",
+                  "boundaries" : [1,5,10,15]
+                },
+                "releasedFacet" : {
+                  "type" : "date",
+                  "path" : "released",
+                  "boundaries" : [ISODate("2010-01-01T00:00:00.000Z"), ISODate("2011-01-01T00:00:00.000Z"), ISODate("2012-01-01T00:00:00.000Z"), ISODate("2013-01-01T00:00:00.000Z"), ISODate("2014-01-01T00:00:00.000Z"), ISODate("2015-01-01T00:00:00.000Z")]
+                }
+              }
+            },
+            "sort": {
+              "released": -1
+            }
+          }
+        },
+        {
+          "$facet": {
+            "docs": [
+              { "$limit": 5 },
+              { "$project":
+                {
+                  "_id": 0,
+                  "title": 1,
+                  "released": 1,
+                  "awards.wins": 1
+                }
+              }
+            ],
+            "meta": [
+              {"$replaceWith": "$$SEARCH_META"},
+              {"$limit": 1}
+            ]
+          }
+        },
+        {
+          "$set": {
+            "meta": {
+              "$arrayElemAt": ["$meta", 0]
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+
+      [
+        {
+          docs: [
+            {
+              title: 'Cold in July',
+              released: ISODate("2014-12-31T00:00:00.000Z"),
+              awards: { wins: 1 }
+            },
+            {
+              title: 'The Gambler',
+              released: ISODate("2014-12-31T00:00:00.000Z"),
+              awards: { wins: 7 }
+            },
+            {
+              title: 'Force Majeure',
+              released: ISODate("2014-12-30T00:00:00.000Z"),
+              awards: { wins: 31 }
+            },
+            {
+              title: 'LFO',
+              released: ISODate("2014-12-27T00:00:00.000Z"),
+              awards: { wins: 3 }
+            },
+            {
+              title: 'Peace After Marriage',
+              released: ISODate("2014-12-26T00:00:00.000Z"),
+              awards: { wins: 5 }
+            }
+          ],
+          meta: {
+            count: { lowerBound: Long("5429") },
+            facet: {
+              releasedFacet: {
+                buckets: [
+                  {
+                    _id: ISODate("2010-01-01T00:00:00.000Z"),
+                    count: Long("938")
+                  },
+                  {
+                    _id: ISODate("2011-01-01T00:00:00.000Z"),
+                    count: Long("1046")
+                  },
+                  {
+                    _id: ISODate("2012-01-01T00:00:00.000Z"),
+                    count: Long("1065")
+                  },
+                  {
+                    _id: ISODate("2013-01-01T00:00:00.000Z"),
+                    count: Long("1187")
+                  },
+                  {
+                    _id: ISODate("2014-01-01T00:00:00.000Z"),
+                    count: Long("1193")
+                  }
+                ]
+              },
+              awardsFacet: {
+                buckets: [
+                  { _id: 1, count: Long("2616") },
+                  { _id: 5, count: Long("698") },
+                  { _id: 10, count: Long("274") }
+                ]
+              }
+            }
+          }
+        }
+      ]
