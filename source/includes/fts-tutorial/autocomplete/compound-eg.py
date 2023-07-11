@@ -1,46 +1,43 @@
 import pymongo
-import dns
 
-client = pymongo.MongoClient('mongodb+srv://kanchana:passW0rd@sbx.vlfczaf.mongodb-dev.net/myFirstDatabase?retryWrites=true&w=majority')
-result = client['sample_mflix']['movies'].aggregate([
+# connect to your Atlas cluster
+client = pymongo.MongoClient('<connection-string>')
+
+# define pipeline
+pipeline = [
     {
         '$search': {
             'compound': {
                 'should': [
                     {
                         'autocomplete': {
-                            'path': 'title',
-                            'query': 'ball',
-                            'score': {
-                                'boost': {
-                                    'value': 3
-                                }
-                            }
+                            'query': 'inter', 
+                            'path': 'title'
                         }
                     }, {
-                        'text': {
-                            'path': 'title',
-                            'query': 'ball',
-                            'fuzzy': {
-                                'maxEdits': 1
-                            }
+                        'autocomplete': {
+                            'query': 'inter', 
+                            'path': 'plot'
                         }
                     }
-                ]
+                ], 
+                'minimumShouldMatch': 1
             }
         }
-    }, {
-        '$limit': 15
-    }, {
+    }, 
+    {
+        '$limit': 10
+    }, 
+    {
         '$project': {
-            '_id': 0,
-            'title': 1,
-            'score': {
-                '$meta': 'searchScore'
-            }
+            '_id': 0, 'title': 1, 'plot': 1
         }
     }
-])
+]
+# run pipeline
+result = client["sample_mflix"]["movies"].aggregate(pipeline)
 
+# print results
 for i in result:
     print(i)
+

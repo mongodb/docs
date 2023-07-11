@@ -17,31 +17,30 @@ from the dropdown and adding the query for that stage. Click
             "compound": {
               "should": [{
                 "autocomplete": {
-                  "path": "title",
-                  "query": "ball",
-                  "score": { "boost": { "value": 3}}
+                  "query": "inter",
+                  "path": "title"
                 }
               },
               {
                 "text": {
-                  "path": "title",
-                  "query": "ball",
-                  "fuzzy": { "maxEdits": 1 }
+                  "path": "inter",
+                  "query": "plot",
                 }
-              }]
+              }],
+              "minimumShouldMatch": 1
             }
           }
 
    * - ``$limit``
      - .. code-block:: javascript
 
-          15
+          10
 
    * - ``$project``
      - .. code-block:: javascript
 
           {
-            "score": { $meta: "searchScore" },
+            "_id": 0,
             "title": 1,
-            "_id": 0
+            "plot": 1
           }

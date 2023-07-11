@@ -1,54 +1,61 @@
-const MongoClient = require("mongodb").MongoClient;
-const assert = require("assert");
+const { MongoClient } = require("mongodb");
 
-const agg = [
-  {
-    '$search': {
-      'compound': {
-        'should': [
-          {
-            'autocomplete': {
-              'path': 'title', 
-              'query': 'ball', 
-              'score': {
-                'boost': {
-                  'value': 3
+// connect to your Atlas cluster
+const uri =
+    "<connection-string>";
+
+const client = new MongoClient(uri);
+
+async function run() {
+    try {
+        await client.connect();
+
+        // set namespace
+        const database = client.db("sample_mflix");
+        const coll = database.collection("movies");
+
+        // define pipeline
+        const agg = [
+            {
+                '$search': {
+                    'compound': {
+                        'should': [
+                            {
+                                'autocomplete': {
+                                    'query': 'inter', 
+                                    'path': 'title'
+                                }
+                            }, 
+                            {
+                                'autocomplete': {
+                                    'query': 'inter', 
+                                    'path': 'plot'
+                                }
+                            }
+                        ], 
+                        'minimumShouldMatch': 1
+                    }
                 }
-              }
+            }, 
+            {
+                '$limit': 10
+            }, 
+            {
+                '$project': {
+                    '_id': 0, 
+                    'title': 1, 
+                    'plot': 1
+                }
             }
-          }, {
-            'text': {
-              'path': 'title', 
-              'query': 'ball', 
-              'fuzzy': {
-                'maxEdits': 1
-              }
-            }
-          }
-        ]
-      }
-    }
-  }, {
-    '$limit': 15
-  }, {
-    '$project': {
-      '_id': 0, 
-      'title': 1, 
-      'score': {
-        '$meta': 'searchScore'
-      }
-    }
-  }
-];
+        ];
+        // run pipelines
+        const result = await coll.aggregate(agg);
 
-MongoClient.connect(
-  "<connection-string>",
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  async function (connectErr, client) {
-    assert.equal(null, connectErr);
-    const coll = client.db("sample_mflix").collection("movies");
-    let cursor = await coll.aggregate(agg);
-    await cursor.forEach((doc) => console.log(doc));
-    client.close();
-  }
-);
+        // print results
+        await result.forEach((doc) => console.log(doc));
+    } finally {
+        await client.close();
+    }
+}
+run().catch(console.dir);
+
