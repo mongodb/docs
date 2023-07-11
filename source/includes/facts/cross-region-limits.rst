@@ -7,6 +7,7 @@ project to a total of 40. This total excludes:
 
 - |gcp| regions communicating with each other
 - {+Free-clusters+} or {+shared-clusters+}
+- {+Serverless-instances+}
 
 The total number of nodes between any two regions must meet this
 constraint.
