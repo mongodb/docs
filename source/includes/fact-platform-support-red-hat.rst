@@ -21,8 +21,6 @@ on :ref:`x86_64 <prod-notes-supported-platforms-x86_64>` architecture:
 
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 7
 
-- :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS / Oracle 6
-
 MongoDB {+version+} Community Edition also supports the :ref:`ARM64
 <prod-notes-supported-platforms-ARM64>` architecture on :abbr:`RHEL (Red
 Hat Enterprise Linux)` / CentOS / Oracle / Rocky / AlmaLinux 8.
