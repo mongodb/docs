@@ -1,5 +1,5 @@
 Starting in version 6.0, MongoDB can use the :ref:`slot-based execution
-query engine <5.1-rel-notes-sbe>` to execute :pipeline:`$lookup` stages
+query engine <sbe-landing>` to execute :pipeline:`$lookup` stages
 if *all* preceding stages in the pipeline can also be executed by the
 |sbe-short| and none of the following conditions are true:
 
