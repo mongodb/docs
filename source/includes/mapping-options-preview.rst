@@ -3,10 +3,10 @@ blue dotted box in the MongoDB diagram pane. This allows you to preview
 the mapping rule before you run a sync job.
 
 - If the collection entity did not previously exist, it is added to the 
-   diagram with a preview state around the entire card.
+  diagram with a preview state around the entire card.
 
 - If the collection entity already existed, the embedded mappings are 
-   added to the card with a preview state around the new fields.
+  added to the card with a preview state around the new fields.
 
 .. image:: /img/mapping-options/mappings-options-embedded-documents-preview.png
    :alt: Preview Mapping Options
