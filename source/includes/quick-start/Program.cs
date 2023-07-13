@@ -4,7 +4,7 @@ using MongoDB.Bson;
 var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
 if (connectionString == null)
 {
-    Console.WriteLine("You must set your 'MONGODB_URI' environmental variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable");
+    Console.WriteLine("You must set your 'MONGODB_URI' environment variable. To learn how to set it, see https://www.mongodb.com/docs/drivers/csharp/current/quick-start/#set-your-connection-string");
     Environment.Exit(0);
 }
 
