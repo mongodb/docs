@@ -242,45 +242,60 @@ ref: live-import-com-prepare-cutover
 level: 4
 content: |
 
-  When |service| detects that the source and destination {+clusters+} are
-  nearly in sync, it starts an extendable 120 hour (5 day) timer to
-  begin the cutover stage of the live migration procedure. If the
-  120 hour period passes, |service| stops synchronizing with the source
-  {+cluster+}. You can extend the time remaining by 24 hours by clicking
-  :guilabel:`Extend time` below the :guilabel:`<time> left to cut over`
-  timer.
+   When |service| detects that the source and destination {+clusters+} are
+   nearly in sync, it starts an extendable 120 hour (5 day) timer to begin
+   the cutover stage of the live migration procedure. After the 120 hour period
+   passes, |service| stops synchronizing with the source {+cluster+}. You
+   can extend the time remaining by 24 hours by clicking
+   :guilabel:`Extend time` below the :guilabel:`<time> left to cut over` timer.
 
-  To finish migrating your MongoDB data to your |service| {+cluster+},
-  complete the following steps on the
-  :guilabel:`Your migration is almost complete!` page:
+   a. Click :guilabel:`Prepare to Cutover`. |service| displays a walk-through
+      screen that states: :guilabel:`Your migration is almost complete!`
+      The walk-through screen displays the following instructions on how to
+      proceed with the cutover process:
 
-  1. Prepare to point to your |service| {+cluster+}. Copy the new
-     :manual:`connection string </reference/connection-string/>` so that
-     you can update it and point your application to the destination
-     |service| {+cluster+}.
+      1. Stop your application. This ensures that no more writes occur on
+         the source {+cluster+}.
+      2. Wait for the optime gap to reach zero. When the counter reaches
+         zero, the source and destination {+clusters+} are in sync.
+      3. Check the box that states: :guilabel:`I confirm that I am ready to
+         cut over the application to the destination cluser. By proceeding,
+         Atlas will finalize the migration. This process will take a
+         few seconds. Once it is complete you can point your application
+         at the destination cluster and begin writing to it.`
 
-  #. Stop your application. This action ensures that no more writes occur
-     on the source {+cluster+}.
+   b. Click :guilabel:`Cutover`.
+      |service| completes the migration and displays the :guilabel:`Connect` page.
 
-  #. Wait for the optime gap to reach zero. When the counter reaches zero,
-     the source and destination {+clusters+} are in sync.
+   c. Decide when to resume writes on the destination {+cluster+}. You can do one of the following:
 
-  #. Wait for additional time until |service| configures your destination
-     {+cluster+} and it is ready to use. For smaller clusters, this time
-     is 3-5 minutes. For larger clusters, this time can extend up to
-     10 minutes or longer, depending on the {+cluster+} size and configuration.
+      - Wait for the banner on your {+cluster+} card to state:
+        :guilabel:`Your cluster migration is complete` and then resume writes
+        on the destination {+cluster+}. If you choose to wait for the migration
+        to complete, your application experiences a temporary pause in writes
+        during the time period needed to finalize the migration.
 
-  #. Restart your application using the new |service| connection
-     string and confirm that your application is working with the
-     |service| {+cluster+}.
+        or
 
-  #. Click :guilabel:`Cut Over` to complete the migration process.
+      - Begin application's writes to the destination {+cluster+} without
+        waiting for the migration to complete, while your {+cluster+} card
+        banner states: :guilabel:`Your destination cluster in Atlas is ready to accept writes, but we are still finalizing the migration.`
+        If you choose to move writes to the destination {+cluster+} without
+        waiting until the end of the migration process, and live migration fails
+        in the final stages and issues an error, you must redirect writes
+        back to your source {+cluster+} and restart the live migration process.
 
-     If you click :guilabel:`Cancel` on the live migration progress bar,
-     |service| stops synchronizing writes from the source {+cluster+}.
-     All migrated data remains on your |service| {+cluster+}.
+   d. When you are ready to redirect writes to the destination {+cluster+} in |service|:
 
-     You can click :guilabel:`Cut Over` again to allow |service| to
-     complete the migration process.
+      1. Use the destination {+cluster+}'s connection string to connect to your application.
+      2. Confirm that your application is working with the destination |service| {+cluster+}.
+
+   |service| performs these actions to complete the process:
+
+   - Removes the MongoDB live migration server subnets from the IP access
+     list on the destination {+cluster+}.
+   - Removes the database user that live migration used to import data
+     to the destination {+cluster+}.
+   - Marks the migration process as complete.
 
 ...
