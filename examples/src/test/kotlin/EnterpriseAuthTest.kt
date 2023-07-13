@@ -1,7 +1,10 @@
 
-import com.mongodb.*
+import com.mongodb.ConnectionString
+import com.mongodb.KerberosSubjectProvider
+import com.mongodb.MongoClientSettings
+import com.mongodb.MongoCredential
+import com.mongodb.ServerAddress
 import com.mongodb.kotlin.client.coroutine.MongoClient
-import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.runBlocking
 import javax.security.auth.Subject
 import javax.security.auth.login.LoginContext

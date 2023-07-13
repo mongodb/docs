@@ -1,17 +1,17 @@
 
-import com.mongodb.*
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
 import com.mongodb.connection.netty.NettyStreamFactoryFactory
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.SslProvider
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.*
 import javax.net.ssl.SSLContext
-import kotlin.test.*
+import kotlin.test.assertEquals
 
 // :replace-start: {
 //    "terms": {

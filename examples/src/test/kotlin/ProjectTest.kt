@@ -1,20 +1,16 @@
 
-import com.mongodb.*
 import com.mongodb.client.model.Filters
-import com.mongodb.client.model.Filters.*
 import com.mongodb.client.model.Projections
-import com.mongodb.client.model.Projections.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.codecs.pojo.annotations.BsonId
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.*
-import kotlin.test.*
+import kotlin.test.assertEquals
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class ProjectTest {

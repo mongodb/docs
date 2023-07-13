@@ -1,15 +1,19 @@
 
-import com.mongodb.*
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
+import com.mongodb.MongoException
+import com.mongodb.ServerAddress
+import com.mongodb.ServerApi
+import com.mongodb.ServerApiVersion
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.runBlocking
 import org.bson.BsonInt64
 import org.bson.Document
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.*
-import kotlin.test.*
 // :replace-start: {
 //    "terms": {
 //       "CONNECTION_URI_PLACEHOLDER": "\"<connection string>\""

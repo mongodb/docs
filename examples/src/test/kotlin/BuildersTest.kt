@@ -1,7 +1,6 @@
 
-import com.mongodb.*
-import com.mongodb.client.model.Filters.*
-import com.mongodb.client.model.Projections.*
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Projections
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.first
@@ -10,11 +9,10 @@ import org.bson.BsonObjectId
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.*
-import kotlin.test.*
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class BuildersTest {
@@ -75,8 +73,8 @@ internal class BuildersTest {
         // :snippet-start: builders
         data class Results(val email: String)
 
-        val filter = and(eq(User::gender.name, "female"), gt(User::age.name, 29))
-        val projection = fields(excludeId(), include("email"))
+        val filter = Filters.and(Filters.eq(User::gender.name, "female"), Filters.gt(User::age.name, 29))
+        val projection = Projections.fields(Projections.excludeId(), Projections.include("email"))
         val results = collection.find<Results>(filter).projection(projection)
         // :snippet-end:
         assertEquals("foo@example.com", results.first().email)

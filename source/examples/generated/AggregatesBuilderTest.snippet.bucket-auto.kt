@@ -1,1 +1,1 @@
-bucketAuto("\$${Screen::screenSize.name}", 5)
+Aggregates.bucketAuto("\$${Screen::screenSize.name}", 5)

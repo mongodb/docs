@@ -1,4 +1,4 @@
 Aggregates.group("\$${Order::customerId.name}",
-    sum("totalQuantity", "\$${Order::ordered.name}"),
-    avg("averageQuantity", "\$${Order::ordered.name}")
+    Accumulators.sum("totalQuantity", "\$${Order::ordered.name}"),
+    Accumulators.avg("averageQuantity", "\$${Order::ordered.name}")
 )

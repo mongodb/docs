@@ -1,9 +1,24 @@
 
 import com.mongodb.MongoNamespace
-import com.mongodb.client.model.*
-import com.mongodb.client.model.Accumulators.*
-import com.mongodb.client.model.Aggregates.*
-import com.mongodb.client.model.Sorts.ascending
+import com.mongodb.client.model.Accumulators
+import com.mongodb.client.model.Aggregates
+import com.mongodb.client.model.BucketAutoOptions
+import com.mongodb.client.model.BucketGranularity
+import com.mongodb.client.model.BucketOptions
+import com.mongodb.client.model.Facet
+import com.mongodb.client.model.Field
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.GraphLookupOptions
+import com.mongodb.client.model.IndexOptions
+import com.mongodb.client.model.Indexes
+import com.mongodb.client.model.MergeOptions
+import com.mongodb.client.model.MongoTimeUnit
+import com.mongodb.client.model.Projections
+import com.mongodb.client.model.Sorts
+import com.mongodb.client.model.UnwindOptions
+import com.mongodb.client.model.Variable
+import com.mongodb.client.model.WindowOutputFields
+import com.mongodb.client.model.Windows
 import com.mongodb.client.model.densify.DensifyOptions
 import com.mongodb.client.model.densify.DensifyRange
 import com.mongodb.client.model.fill.FillOptions
@@ -21,7 +36,10 @@ import kotlinx.coroutines.runBlocking
 import org.bson.Document
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import java.time.LocalDateTime
 import kotlin.test.Ignore
 import kotlin.test.assertEquals
@@ -116,8 +134,8 @@ class AggregatesBuilderTest {
         val collection = database.getCollection<Document>("someCollection")
         collection.insertOne(Document("someField", "someCriteria"))
         // :snippet-start: methods-example
-        val matchStage = match(Filters.eq("someField", "someCriteria"))
-        val sortByCountStage = sortByCount("\$someField")
+        val matchStage = Aggregates.match(Filters.eq("someField", "someCriteria"))
+        val sortByCountStage = Aggregates.sortByCount("\$someField")
         val results = collection.aggregate(
             listOf(matchStage, sortByCountStage)).toList()
         // :snippet-end:
@@ -338,8 +356,8 @@ class AggregatesBuilderTest {
         val grouping = orderCollection.aggregate<Results>(listOf(
             // :snippet-start: group
             Aggregates.group("\$${Order::customerId.name}",
-                sum("totalQuantity", "\$${Order::ordered.name}"),
-                avg("averageQuantity", "\$${Order::ordered.name}")
+                Accumulators.sum("totalQuantity", "\$${Order::ordered.name}"),
+                Accumulators.avg("averageQuantity", "\$${Order::ordered.name}")
             )
             // :snippet-end:
         ))
@@ -673,7 +691,7 @@ class AggregatesBuilderTest {
 
         val resultsFlow = translateCollection.aggregate<Results>(listOf(
             // :snippet-start: replace-root
-            replaceRoot("\$${Book::spanishTranslation.name}")
+            Aggregates.replaceRoot("\$${Book::spanishTranslation.name}")
             //  :snippet-end:
 
         ))
@@ -686,7 +704,7 @@ class AggregatesBuilderTest {
         data class Results (val watched: Boolean, val type: String)
         val resultsFlow = movieCollection.aggregate<Results>(listOf(
             // :snippet-start: add-fields
-            addFields(
+            Aggregates.addFields(
                 Field("watched", false),
                 Field("type", "movie")
             )
@@ -711,7 +729,7 @@ class AggregatesBuilderTest {
     fun bucketTest() = runBlocking {
         val resultsFlow = screenCollection.aggregate<Document>(listOf(
             // :snippet-start: bucket
-            bucket("\$${Screen::screenSize.name}", listOf(0, 24, 32, 50, 70, 1000))
+            Aggregates.bucket("\$${Screen::screenSize.name}", listOf(0, 24, 32, 50, 70, 1000))
             // :snippet-end:
         ))
         assertEquals(4, resultsFlow.toList().size)
@@ -722,12 +740,12 @@ class AggregatesBuilderTest {
         data class Results(val count: Int, val matches: List<Int>)
         val resultsFlow = screenCollection.aggregate<Results>(listOf(
             // :snippet-start: bucket-options
-            bucket("\$${Screen::screenSize.name}", listOf(0, 24, 32, 50, 70),
+            Aggregates.bucket("\$${Screen::screenSize.name}", listOf(0, 24, 32, 50, 70),
                 BucketOptions()
                     .defaultBucket("monster")
                     .output(
-                        sum("count", 1),
-                        push("matches", "\$${Screen::screenSize.name}")
+                        Accumulators.sum("count", 1),
+                        Accumulators.push("matches", "\$${Screen::screenSize.name}")
                     )
             )
             // :snippet-end:
@@ -741,7 +759,7 @@ class AggregatesBuilderTest {
         data class Results(@BsonId val id: MinMax, val count: Int)
         val resultsFlow = screenCollection.aggregate<Results>(listOf(
             // :snippet-start: bucket-auto
-            bucketAuto("\$${Screen::screenSize.name}", 5)
+            Aggregates.bucketAuto("\$${Screen::screenSize.name}", 5)
             // :snippet-end:
         ))
         assertEquals(5, resultsFlow.toList().size)
@@ -755,11 +773,11 @@ class AggregatesBuilderTest {
         // example kotlin nested data classes
         val resultsFlow = screenCollection.aggregate<Results>(listOf(
             // :snippet-start: bucket-auto-options
-            bucketAuto(
+            Aggregates.bucketAuto(
                 "\$${Screen::price.name}", 5,
                 BucketAutoOptions()
                     .granularity(BucketGranularity.POWERSOF2)
-                    .output(sum("count", 1), avg("avgPrice", "\$${Screen::price.name}"))
+                    .output(Accumulators.sum("count", 1), Accumulators.avg("avgPrice", "\$${Screen::price.name}"))
                     )
             // :snippet-end:
         ))
@@ -774,19 +792,19 @@ class AggregatesBuilderTest {
         data class Results(val `Screen Sizes`: List<ScreenSize>)
         val resultsFlow = screenCollection.aggregate<Results>(listOf(
             // :snippet-start: facet
-            facet(
+            Aggregates.facet(
                 Facet(
                     "Screen Sizes",
-                    bucketAuto(
+                    Aggregates.bucketAuto(
                         "\$${Screen::screenSize.name}",
                         5,
-                        BucketAutoOptions().output(sum("count", 1))
+                        BucketAutoOptions().output(Accumulators.sum("count", 1))
                     )
                 ),
                 Facet(
                     "Manufacturer",
-                    sortByCount("\$${Screen::manufacturer.name}"),
-                    limit(5)
+                    Aggregates.sortByCount("\$${Screen::manufacturer.name}"),
+                    Aggregates.limit(5)
                 )
             )
             // :snippet-end:
@@ -852,7 +870,7 @@ class AggregatesBuilderTest {
         val resultsFlow = weatherCollection.aggregate<Weather>(
             listOf(
                 Aggregates.fill(
-                    FillOptions.fillOptions().sortBy(ascending(Weather::hour.name)),
+                    FillOptions.fillOptions().sortBy(Sorts.ascending(Weather::hour.name)),
                     FillOutputField.value(Weather::temperature.name, "23.6C"),
                     FillOutputField.linear(Weather::air_pressure.name)
                 )
@@ -881,7 +899,7 @@ class AggregatesBuilderTest {
         weatherCollection.insertMany(weather)
         val resultsFlow = weatherCollection.aggregate<Document>(listOf(
             // :snippet-start: densify
-            densify(
+            Aggregates.densify(
                 "ts",
                 DensifyRange.partitionRangeWithStep(15, MongoTimeUnit.MINUTE),
                 DensifyOptions.densifyOptions().partitionByFields("Position.coordinates")

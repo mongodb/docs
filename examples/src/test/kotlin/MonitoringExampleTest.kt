@@ -1,7 +1,14 @@
 
 import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
-import com.mongodb.event.*
+import com.mongodb.event.ClusterDescriptionChangedEvent
+import com.mongodb.event.ClusterListener
+import com.mongodb.event.CommandFailedEvent
+import com.mongodb.event.CommandListener
+import com.mongodb.event.CommandSucceededEvent
+import com.mongodb.event.ConnectionCheckOutFailedEvent
+import com.mongodb.event.ConnectionCheckedOutEvent
+import com.mongodb.event.ConnectionPoolListener
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import com.mongodb.management.JMXConnectionPoolListener
 import config.getConfig

@@ -1,1 +1,1 @@
-replaceRoot("\$${Book::spanishTranslation.name}")
+Aggregates.replaceRoot("\$${Book::spanishTranslation.name}")

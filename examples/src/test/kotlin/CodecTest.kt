@@ -7,7 +7,11 @@ import kotlinx.coroutines.runBlocking
 import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonWriter
-import org.bson.codecs.*
+import org.bson.codecs.BsonTypeClassMap
+import org.bson.codecs.Codec
+import org.bson.codecs.DecoderContext
+import org.bson.codecs.EncoderContext
+import org.bson.codecs.IntegerCodec
 import org.bson.codecs.configuration.CodecProvider
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.configuration.CodecRegistry

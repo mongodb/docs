@@ -1,5 +1,11 @@
 
-import com.mongodb.client.model.*
+import com.mongodb.client.model.DeleteManyModel
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Indexes
+import com.mongodb.client.model.InsertOneModel
+import com.mongodb.client.model.Projections
+import com.mongodb.client.model.Sorts
+import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.delay

@@ -1,5 +1,10 @@
 
-import com.mongodb.client.model.*
+import com.mongodb.client.model.CreateCollectionOptions
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.ReturnDocument
+import com.mongodb.client.model.Updates
+import com.mongodb.client.model.ValidationOptions
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.toList
@@ -7,10 +12,10 @@ import kotlinx.coroutines.runBlocking
 import org.bson.codecs.pojo.annotations.BsonId
 import org.bson.types.ObjectId
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import kotlin.test.assertTrue
+import org.junit.jupiter.api.Assertions.assertTrue
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class DatabaseCollectionsTest {
@@ -126,6 +131,6 @@ internal class DatabaseCollectionsTest {
         // :snippet-end:
 
         // Junit test for the above code
-        Assertions.assertEquals(NewFruit(1,"strawberry", 205, listOf("summer", "fall")), result)
+        assertEquals(NewFruit(1,"strawberry", 205, listOf("summer", "fall")), result)
     }
 }

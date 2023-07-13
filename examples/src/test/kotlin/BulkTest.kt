@@ -1,17 +1,25 @@
 
 import com.mongodb.MongoBulkWriteException
-import com.mongodb.client.model.*
+import com.mongodb.client.model.BulkWriteOptions
+import com.mongodb.client.model.DeleteManyModel
+import com.mongodb.client.model.DeleteOneModel
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.InsertOneModel
+import com.mongodb.client.model.ReplaceOneModel
+import com.mongodb.client.model.UpdateOneModel
+import com.mongodb.client.model.Updates
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.bson.codecs.pojo.annotations.BsonId
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import java.util.*
-import kotlin.test.*
 
 // :snippet-start: bulk-data-model
 data class Person(

@@ -1,5 +1,10 @@
 
-import com.mongodb.*
+import com.mongodb.AwsCredential
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
+import com.mongodb.MongoCredential
+import com.mongodb.MongoException
+import com.mongodb.ServerAddress
 import com.mongodb.connection.ClusterSettings
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.github.cdimascio.dotenv.dotenv
@@ -7,7 +12,6 @@ import kotlinx.coroutines.runBlocking
 import org.bson.BsonInt64
 import org.bson.Document
 import org.junit.jupiter.api.TestInstance
-import java.util.*
 import java.util.function.Supplier
 import kotlin.test.Ignore
 

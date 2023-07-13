@@ -1,15 +1,15 @@
-facet(
+Aggregates.facet(
     Facet(
         "Screen Sizes",
-        bucketAuto(
+        Aggregates.bucketAuto(
             "\$${Screen::screenSize.name}",
             5,
-            BucketAutoOptions().output(sum("count", 1))
+            BucketAutoOptions().output(Accumulators.sum("count", 1))
         )
     ),
     Facet(
         "Manufacturer",
-        sortByCount("\$${Screen::manufacturer.name}"),
-        limit(5)
+        Aggregates.sortByCount("\$${Screen::manufacturer.name}"),
+        Aggregates.limit(5)
     )
 )

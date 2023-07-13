@@ -5,13 +5,12 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import org.bson.Document
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 // :snippet-start: slf4j-import
 import org.slf4j.LoggerFactory
 // :snippet-end:
-import java.util.*
-import kotlin.test.*
 
 // :replace-start: {
 //    "terms": {
