@@ -1,4 +1,4 @@
-Create a unique partial index on the ``keyAltNames`` field in your
+Create a partial unique index on the ``keyAltNames`` field in your
 ``encryption.__keyVault`` namespace. This index should have a 
 ``partialFilterExpression`` for documents where ``keyAltNames`` exists.
 
