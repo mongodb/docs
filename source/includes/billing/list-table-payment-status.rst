@@ -25,6 +25,14 @@
    * - ``PENDING``
      - The payment is pending.
 
+   * - ``PENDING REVERSAL``
+     - The payment charge attempt is processing and the status will be 
+       updated to ``REFUNDED`` or ``CANCELLED`` in a few days.
+
+   * - ``REFUNDED``
+     - The charge has been refunded. However, your usage is still due 
+       with another payment method.
+
    * - ``CLOSED``
      - All payments for the subscription cycle have been finalized, the 
        balance is more than zero, and you have not been charged yet.

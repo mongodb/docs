@@ -28,7 +28,7 @@
    * - ``CLOSED``
      - All charges for the subscription cycle have been finalized, the 
        balance is more than zero, and you have not been charged yet.
-
+   
    * - ``FORGIVEN``
      - The charge has been forgiven. If the charge succeeded, it has 
        been refunded by MongoDB.
