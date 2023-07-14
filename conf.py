@@ -110,6 +110,7 @@ extlinks = {
     'snyk-vuln' : ('https://snyk.io/vuln/%s',''),
     'db-tools' : ('https://www.mongodb.com/docs/database-tools%s?tck=docs',''),
     'mdb-shell' : ('https://www.mongodb.com/docs/mongodb-shell%s',''),
+    'mongosync' : ('https://www.mongodb.com/docs/cluster-to-cluster-sync%s',''),
     'mdb-sup' : ('https://support.mongodb.com%s?tck=docs',''),
     'mdb-feedback' : ('https://feedback.mongodb.com%s?tck=docs',''),
     'mdbu' : ('https://university.mongodb.com%s?tck=docs',''),
@@ -121,6 +122,7 @@ extlinks = {
     'gcpc' : ('https://cloud.google.com/compute/docs%s',''),
     'msa' : ('https://docs.microsoft.com/en-us/azure%s',''),
     'prom-docs' : ('https://prometheus.io/docs%s','')
+
 }
 
 source_constants = {
@@ -168,7 +170,9 @@ source_constants = {
     'onprem': 'Ops Manager',
     'fcv-current' : '4.4',
     'fcv-previous' : '4.2',
-    'mongosh' : ':binary:`~bin.mongosh`'
+    'mongosh' : ':binary:`~bin.mongosh`',
+    'mongos' : ':binary:`~bin.mongos`'
+
 }
 
 languages = [
