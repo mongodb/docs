@@ -67,36 +67,29 @@ The command accepts the following fields:
      - non-negative integer
      - Optional. 
 
-       Specifies a time limit in milliseconds for processing
-       operations on a cursor. If you do not specify a value for 
-       ``maxTimeMS``, operations will not time out. A value of ``0`` 
-       explicitly specifies the default unbounded behavior.
+       The maximum amount of time MongoDB waits for new documents to be
+       added to the cursor for the current ``getMore`` command. If you
+       set ``maxTimeMS`` to 0, operations time out immediately. If 
+       unset, defaults to 1000 milliseconds.
        
        MongoDB terminates operations that exceed their allotted time limit
        using the same mechanism as :method:`db.killOp()`. MongoDB only
-       terminates an operation at one of its designated :term:`interrupt 
-       points <interrupt point>`.
+       terminates an operation at one of its designated :term:`interrupt points <interrupt point>`.
 
-       With *tailable* cursors:
-
-       - ``maxTimeMS`` on ``getMore`` specifies the maximum amount of time 
-         MongoDB waits for new documents to be added to the cursor for that 
-         specific ``getMore`` command. If no value is provided, this defaults 
-         to 1000 milliseconds.
-       - The command that creates the cursor only sets ``maxTimeMS`` for the 
-         initial operation. It does not set ``maxTimeMS`` for subsequent operations.
-       - Set ``maxTimeMS`` individually for each call to ``getMore``.
-       - A timeout on ``getMore`` will retain the documents accumulated
-         before the timeout occurred in the cursor.
+       - You cannot set ``maxTimeMS`` when calling ``getMore`` on a
+         non-tailable cursor. Instead, set it via
+         :method:`~cursor.maxTimeMS()` when you create the cursor.
+       - To use ``getMore`` with ``maxTimeMS`` on a tailable cursor, 
+         enable ``awaitData`` when you create the cursor using :method:`cursor.tailable()`.
+       - Setting ``maxTimeMS`` on the command that creates a cursor only
+         sets the time limit for that operation. Use ``getMore`` to set
+         a limit on further operations.
+       - You can set or omit ``maxTimeMS`` for each call to 
+         ``getMore``, and you don't have to use the same value.
+       - For a tailable cursor, a timeout on ``getMore`` retains the
+         documents accumulated before the timeout occurred in the
+         cursor. For a non-tailable cursor, a timeout raises an error.
        
-       With *non-tailable* cursors:
-
-       - The command that creates the cursor sets ``maxTimeMS``. This 
-         is the maximum amount of time that the initial operation, and 
-         any subsequent operations, can spend on the entire cursor.
-       - A timeout on ``getMore`` raises an error.
-       - ``maxTimeMS`` cannot be set when ``getMore`` is called on a
-         non-tailable cursor.
 
    * - ``comment``
      - any
@@ -107,17 +100,15 @@ The command accepts the following fields:
           If omitted, ``getMore`` inherits any ``comment`` set on the
           originating :dbcommand:`find` or :dbcommand:`aggregate` command.
 
-       .. versionadded:: 4.4
-
 Output
 ------
 
 The command returns a document that contains the cursor information
 as well as the next batch. 
 
-For example, a document similar to the one below may be returned when
-:dbcommand:`getMore` is run on a cursor that was originally created by a
-:dbcommand:`find` operation on a sharded cluster:
+For example, running ``getMore`` on a cursor created by a 
+:dbcommand:`find` operation on a sharded cluster returns a document 
+similar to the one below:
 
 .. code-block:: javascript
 
@@ -157,22 +148,7 @@ For example, a document similar to the one below may be returned when
      - Contains the cursor information, including the
        cursor ID as well as the ``nextBatch`` of documents.
 
-       Starting in 4.4, if the cursor from a :dbcommand:`find` command
-       returns partial results due to the unavailability of the queried
-       shard(s), the ``cursor`` document includes a
-       ``partialResultsReturned`` field. To return partial results,
-       rather than error, due to the unavailability of the queried
-       shard(s), the initial :dbcommand:`find` command must run with
-       :ref:`allowPartialResults <cmd-find-allowPartialResults>` set to
-       ``true``. See :ref:`allowPartialResults
-       <cmd-find-allowPartialResults>`.
-
-       If the queried shards are initially available for the
-       :dbcommand:`find` command but one or more shards become
-       unavailable in subsequent :dbcommand:`getMore` commands, only
-       the :dbcommand:`getMore` commands run when a queried shard or
-       shards are unavailable include the ``partialResultsReturned``
-       flag in the output.
+       .. include:: /includes/find-getmore-partialresults.rst
 
        The ``postBatchResumeToken`` field can be used with the
        :pipeline:`$changeStream` pipeline to start or resume
@@ -183,15 +159,15 @@ For example, a document similar to the one below may be returned when
      - Indicates whether the command has succeeded (``1``) or failed
        (``0``).
 
-In addition to the aforementioned :dbcommand:`getMore`-specific fields,
-the :method:`db.runCommand()` includes the following information for
-replica sets and sharded clusters:
+In addition to these fields, the :method:`db.runCommand()` response
+includes the following information for replica sets and sharded 
+clusters:
 
 - ``$clusterTime``
   
 - ``operationTime``
 
-See :ref:`db.runCommand() Results <command-response>` for details.
+See :ref:`db.runCommand() Response <command-response>` for details.
 
 
 Behavior
@@ -201,23 +177,19 @@ Access Control
 ~~~~~~~~~~~~~~
 
 If :ref:`authentication <authentication>` is turned on, you can 
-only issue a :dbcommand:`getMore` against cursors you created.
+only run ``getMore`` against cursors you created.
 
 Sessions
 ~~~~~~~~
 
-.. versionadded:: 4.0
-
 For cursors created inside a session, you cannot call
-:dbcommand:`getMore` outside the session.
+``getMore`` outside the session.
 
 Similarly, for cursors created outside of a session, you cannot call
-:dbcommand:`getMore` inside a session.
+``getMore`` inside a session.
 
 Transactions
 ````````````
-
-.. versionadded:: 4.0
 
 For :ref:`multi-document transactions <transactions>`:
 
