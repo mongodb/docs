@@ -106,8 +106,7 @@
    * - Datadog
 
      - Sends the alert to a `Datadog <https://www.datadoghq.com/alerts/>`_
-       account as a Datadog
-       `event <https://docs.datadoghq.com/graphing/event_stream/>`_. 
+       account as a Datadog event.
 
        When the alert is first opened, |service| sends the alert as an
        "error" event. Subsequent updates are sent as "info" events.

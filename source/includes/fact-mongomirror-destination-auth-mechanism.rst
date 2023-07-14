@@ -27,5 +27,5 @@
      - External authentication using LDAP. You can also use ``PLAIN`` 
        for authenticating in-database users. ``PLAIN`` transmits 
        passwords in plain text. This mechanism is available only in 
-       `MongoDB Enterprise <http://www.mongodb.com/products/mongodb-enterprise?tck=docs_atlas>`_.
+       {+MongoDB-Enterprise+}.
    
