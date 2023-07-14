@@ -14,7 +14,7 @@ public class QueryableEncryptionHelpers
     {
         _appSettings = appSettings;
     }
-    
+
     public Dictionary<string, IReadOnlyDictionary<string, object>> GetKmsProviderCredentials(string kmsProvider,
         bool generateNewLocalKey)
     {
@@ -22,12 +22,12 @@ public class QueryableEncryptionHelpers
         {
             // start-aws-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
-            var awsKmsOptions = new Dictionary<string, object>
+            var kmsOptions = new Dictionary<string, object>
             {
                 { "accessKeyId", _appSettings["Aws:AccessKeyId"] }, // Your AWS access key ID
                 { "secretAccessKey", _appSettings["Aws:SecretAccessKey"] } // Your AWS secret access key
             };
-            kmsProviderCredentials.Add(kmsProvider, awsKmsOptions);
+            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
             // end-aws-kms-credentials
             return kmsProviderCredentials;
         }
@@ -35,13 +35,13 @@ public class QueryableEncryptionHelpers
         {
             // start-azure-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
-            var azureKmsOptions = new Dictionary<string, object>
+            var kmsOptions = new Dictionary<string, object>
             {
                 { "tenantId", _appSettings["Azure:TenantId"] }, // Your Azure tenant ID
                 { "clientId", _appSettings["Azure:ClientId"] }, // Your Azure client ID
                 { "clientSecret", _appSettings["Azure:ClientSecret"] } // Your Azure client secret
             };
-            kmsProviderCredentials.Add(kmsProvider, azureKmsOptions);
+            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
             // end-azure-kms-credentials
             return kmsProviderCredentials;
         }
@@ -49,12 +49,12 @@ public class QueryableEncryptionHelpers
         {
             // start-gcp-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
-            var gcpKmsOptions = new Dictionary<string, object>
+            var kmsOptions = new Dictionary<string, object>
             {
                 { "email", _appSettings["Gcp:Email"] }, // Your GCP email
                 { "privateKey", _appSettings["Gcp:PrivateKey"] } // Your GCP private key
             };
-            kmsProviderCredentials.Add(kmsProvider, gcpKmsOptions);
+            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
             // end-gcp-kms-credentials
             return kmsProviderCredentials;
         }
@@ -62,11 +62,11 @@ public class QueryableEncryptionHelpers
         {
             // start-kmip-kms-credentials
             var kmsProviderCredentials = new Dictionary<string, IReadOnlyDictionary<string, object>>();
-            var kmipKmsOptions = new Dictionary<string, object>
+            var kmsOptions = new Dictionary<string, object>
             {
                 { "endpoint", _appSettings["Kmip:KmsEndpoint"] } // Your KMIP KMS endpoint
             };
-            kmsProviderCredentials.Add(kmsProvider, kmipKmsOptions);
+            kmsProviderCredentials.Add(kmsProvider, kmsOptions);
             // end-kmip-kms-credentials
             return kmsProviderCredentials;
         }
