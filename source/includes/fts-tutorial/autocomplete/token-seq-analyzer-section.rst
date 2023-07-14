@@ -42,7 +42,30 @@ The following query searches for movie titles that start with the term
 .. tabs-drivers::
 
    .. tab::
+      :tabid: atlas-ui
+
+      Copy and paste the following query into the 
+      :guilabel:`Query Editor`, and then click the :guilabel:`Search` 
+      button in the :guilabel:`Query Editor`.
+
+      .. code-block:: json
+
+         [
+           {
+             $search: {
+               autocomplete: {
+                 path: "title",
+                 query: "Fast &",
+                 tokenOrder: "sequential"
+               }
+             }
+           }
+         ]
+
+   .. tab::
       :tabid: shell
+
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
   
       .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with-shell.js
          :language: js
@@ -51,10 +74,14 @@ The following query searches for movie titles that start with the term
    .. tab::
       :tabid: compass
 
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
+
       .. include:: /includes/fts-tutorial/autocomplete/starts-with.rst
 
    .. tab:: 
       :tabid: csharp
+
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
 
       .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with.cs
          :language: csharp
@@ -63,12 +90,16 @@ The following query searches for movie titles that start with the term
    .. tab:: 
       :tabid: go
 
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
+
       .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with.go
          :language: go
          :dedent:
 
    .. tab:: 
       :tabid: java-sync 
+
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
 
       .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with.java
          :language: java
@@ -77,6 +108,8 @@ The following query searches for movie titles that start with the term
    .. tab::
       :tabid: nodejs
 
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
+
       .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with.js
          :language: js
          :dedent:
@@ -84,11 +117,35 @@ The following query searches for movie titles that start with the term
    .. tab::
       :tabid: python
 
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
+
       .. literalinclude:: /includes/fts-tutorial/autocomplete/token-seq.py
          :language: python
          :dedent:
 
 .. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. code-block::
+         :copyable: false
+
+         SCORE: 10.042893409729004  _id:  “573a13bdf29313caabd5929f”
+           fullplot: "Heading back to the streets where it all began, two men rejoin two wom…"
+           imdb: Object
+           year: 2009
+           ...
+           title: "Fast & Furious"
+         
+         SCORE: 9.515419006347656  _id:  “573a13d3f29313caabd95cc5”
+           fullplot: "Since Dom (Diesel) and Brian's (Walker) Rio heist toppled a kingpin's …"
+           imdb: Object
+           year: 2013
+           ...
+           title "Fast & Furious 6"
+
+      .. include:: /includes/fact-fts-expand-search-tester-results.rst
 
    .. tab::
       :tabid: shell
