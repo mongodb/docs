@@ -1,1 +1,1 @@
-collection.find().sort(Sorts.ascending(FoodOrder::letter.name, "_id"))
+collection.find().sort(Sorts.ascending(Order::date.name, Order::orderTotal.name))

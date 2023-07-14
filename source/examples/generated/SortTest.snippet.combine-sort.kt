@@ -1,5 +1,5 @@
 val orderBySort = Sorts.orderBy(
-    Sorts.descending(FoodOrder::letter.name), Sorts.ascending("_id")
+    Sorts.descending(Order::date.name), Sorts.ascending(Order::orderTotal.name)
 )
 val results = collection.find().sort(orderBySort)
 

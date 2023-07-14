@@ -1,1 +1,1 @@
-collection.find().sort(Sorts.ascending("_id"))
+val resultsFlow = collection.find().sort(Sorts.ascending(Order::orderTotal.name))

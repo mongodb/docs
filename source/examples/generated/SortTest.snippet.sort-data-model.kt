@@ -1,5 +1,6 @@
-data class FoodOrder(
+data class Order(
     @BsonId val id: Int,
-    val letter: String,
-    val food: String
+    val date: String,
+    val orderTotal: Double,
+    val description: String,
 )

@@ -19,31 +19,32 @@ internal class SortTest {
 
     companion object {
         // :snippet-start: sort-data-model
-        data class FoodOrder(
+        data class Order(
             @BsonId val id: Int,
-            val letter: String,
-            val food: String
+            val date: String,
+            val orderTotal: Double,
+            val description: String,
         )
         // :snippet-end:
 
         val config = getConfig()
         val client = MongoClient.create(config.connectionUri)
-        val database = client.getDatabase("cafe")
-        val collection = database.getCollection<FoodOrder>("food_order")
+        val database = client.getDatabase("testDB")
+        val collection = database.getCollection<Order>("orders")
 
         @BeforeAll
         @JvmStatic
         fun beforeAll() {
             runBlocking {
-                val foodOrders = listOf(
-                    FoodOrder(1, "c", "coffee with milk"),
-                    FoodOrder(3, "a", "maple syrup"),
-                    FoodOrder(4, "b", "coffee with sugar"),
-                    FoodOrder(5, "a", "milk and cookies"),
-                    FoodOrder(2, "a", "donuts and coffee"),
-                    FoodOrder(6, "c", "maple donut")
+                val orders = listOf(
+                    Order(1, "2022-01-03", 17.86, "1/2 lb cream cheese and 1 dozen bagels"),
+                    Order(2, "2022-01-11", 83.87, "two medium vanilla birthday cakes"),
+                    Order(3, "2022-01-11",  19.49, "1 dozen vanilla cupcakes"),
+                    Order(4, "2022-01-15", 43.62, "2 chicken lunches and a diet coke"),
+                    Order(5, "2022-01-23", 60.31, "one large vanilla and chocolate cake"),
+                    Order(6, "2022-01-23", 10.99, "1 bagel, 1 orange juice, 1 muffin")
                 )
-                collection.insertMany(foodOrders)
+                collection.insertMany(orders)
             }
         }
 
@@ -60,39 +61,39 @@ internal class SortTest {
     @Test
     fun basicSortTest() = runBlocking {
         // :snippet-start: basic-sort
-        collection.find().sort(Sorts.ascending("_id"))
+        val resultsFlow = collection.find().sort(Sorts.ascending(Order::orderTotal.name))
         // :snippet-end:
         // Junit test for the above code
         val filter = Filters.empty()
         val expected = listOf(
-            FoodOrder(1, "c", "coffee with milk"),
-            FoodOrder(2, "a", "donuts and coffee"),
-            FoodOrder(3, "a", "maple syrup"),
-            FoodOrder(4, "b", "coffee with sugar"),
-            FoodOrder(5, "a", "milk and cookies"),
-            FoodOrder(6, "c", "maple donut")
-
+            Order(6, "2022-01-23", 10.99, "1 bagel, 1 orange juice, 1 muffin"),
+            Order(1, "2022-01-03", 17.86, "1/2 lb cream cheese and 1 dozen bagels"),
+            Order(3, "2022-01-11",  19.49, "1 dozen vanilla cupcakes"),
+            Order(4, "2022-01-15", 43.62, "2 chicken lunches and a diet coke"),
+            Order(5, "2022-01-23", 60.31, "one large vanilla and chocolate cake"),
+            Order(2, "2022-01-11", 83.87, "two medium vanilla birthday cakes")
         )
-        assertEquals(expected, collection.find(filter).sort((Sorts.ascending("_id"))).toList() )
+
+        assertEquals(expected, resultsFlow.toList() )
     }
 
     @Test
     fun aggregationSortTest() = runBlocking {
         // :snippet-start: aggregation-sort
         val resultsFlow = collection.aggregate(listOf(
-            Aggregates.sort(Sorts.ascending("_id"))
+            Aggregates.sort(Sorts.ascending(Order::orderTotal.name))
         ))
 
         resultsFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
-            FoodOrder(1, "c", "coffee with milk"),
-            FoodOrder(2, "a", "donuts and coffee"),
-            FoodOrder(3, "a", "maple syrup"),
-            FoodOrder(4, "b", "coffee with sugar"),
-            FoodOrder(5, "a", "milk and cookies"),
-            FoodOrder(6, "c", "maple donut")
+            Order(6, "2022-01-23", 10.99, "1 bagel, 1 orange juice, 1 muffin"),
+            Order(1, "2022-01-03", 17.86, "1/2 lb cream cheese and 1 dozen bagels"),
+            Order(3, "2022-01-11",  19.49, "1 dozen vanilla cupcakes"),
+            Order(4, "2022-01-15", 43.62, "2 chicken lunches and a diet coke"),
+            Order(5, "2022-01-23", 60.31, "one large vanilla and chocolate cake"),
+            Order(2, "2022-01-11", 83.87, "two medium vanilla birthday cakes")
         )
         assertEquals(expected, resultsFlow.toList())
     }
@@ -101,18 +102,18 @@ internal class SortTest {
     fun ascendingSortTest() = runBlocking {
         // :snippet-start: ascending-sort
         val resultsFlow = collection.find()
-            .sort(Sorts.ascending("_id"))
+            .sort(Sorts.ascending(Order::orderTotal.name))
 
         resultsFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
-            FoodOrder(1, "c", "coffee with milk"),
-            FoodOrder(2, "a", "donuts and coffee"),
-            FoodOrder(3, "a", "maple syrup"),
-            FoodOrder(4, "b", "coffee with sugar"),
-            FoodOrder(5, "a", "milk and cookies"),
-            FoodOrder(6, "c", "maple donut")
+            Order(6, "2022-01-23", 10.99, "1 bagel, 1 orange juice, 1 muffin"),
+            Order(1, "2022-01-03", 17.86, "1/2 lb cream cheese and 1 dozen bagels"),
+            Order(3, "2022-01-11",  19.49, "1 dozen vanilla cupcakes"),
+            Order(4, "2022-01-15", 43.62, "2 chicken lunches and a diet coke"),
+            Order(5, "2022-01-23", 60.31, "one large vanilla and chocolate cake"),
+            Order(2, "2022-01-11", 83.87, "two medium vanilla birthday cakes")
         )
         assertEquals(expected, resultsFlow.toList())
     }
@@ -121,41 +122,41 @@ internal class SortTest {
     fun descendingSortTest() = runBlocking {
         // :snippet-start: descending-sort
         val resultsFlow = collection.find()
-            .sort(Sorts.descending("_id"))
+            .sort(Sorts.descending(Order::orderTotal.name))
 
         resultsFlow.collect { println(it) }
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
-            FoodOrder(6, "c", "maple donut"),
-            FoodOrder(5, "a", "milk and cookies"),
-            FoodOrder(4, "b", "coffee with sugar"),
-            FoodOrder(3, "a", "maple syrup"),
-            FoodOrder(2, "a", "donuts and coffee"),
-            FoodOrder(1, "c", "coffee with milk")
-            )
+            Order(2, "2022-01-11", 83.87, "two medium vanilla birthday cakes"),
+            Order(5, "2022-01-23", 60.31, "one large vanilla and chocolate cake"),
+            Order(4, "2022-01-15", 43.62, "2 chicken lunches and a diet coke"),
+            Order(3, "2022-01-11",  19.49, "1 dozen vanilla cupcakes"),
+            Order(1, "2022-01-03", 17.86, "1/2 lb cream cheese and 1 dozen bagels"),
+            Order(6, "2022-01-23", 10.99, "1 bagel, 1 orange juice, 1 muffin")
+        )
         assertEquals(expected, resultsFlow.toList())
     }
 
     @Test
     fun handleTiesTest() = runBlocking {
         // :snippet-start: handle-ties-1
-        collection.find().sort(Sorts.ascending(FoodOrder::letter.name))
+        collection.find().sort(Sorts.ascending(Order::date.name))
         // :snippet-end:
         val results =
         // :snippet-start: handle-ties-2
-        collection.find().sort(Sorts.ascending(FoodOrder::letter.name, "_id"))
+        collection.find().sort(Sorts.ascending(Order::date.name, Order::orderTotal.name))
         // :snippet-end:
         // Junit test for the above code
         val filter = Filters.empty()
         val expected = listOf(
-            FoodOrder(2, "a", "donuts and coffee"),
-            FoodOrder(3, "a", "maple syrup"),
-            FoodOrder(5, "a", "milk and cookies"),
-            FoodOrder(4, "b", "coffee with sugar"),
-            FoodOrder(1, "c", "coffee with milk"),
-            FoodOrder(6, "c", "maple donut")
-        )
+            Order(1, "2022-01-03", 17.86, "1/2 lb cream cheese and 1 dozen bagels"),
+            Order(3, "2022-01-11",  19.49, "1 dozen vanilla cupcakes"),
+            Order(2, "2022-01-11", 83.87, "two medium vanilla birthday cakes"),
+            Order(4, "2022-01-15", 43.62, "2 chicken lunches and a diet coke"),
+            Order(6, "2022-01-23", 10.99, "1 bagel, 1 orange juice, 1 muffin"),
+            Order(5, "2022-01-23", 60.31, "one large vanilla and chocolate cake")
+            )
         assertEquals(expected, results.toList() )
     }
 
@@ -163,7 +164,7 @@ internal class SortTest {
     fun combineSortTest() = runBlocking {
         // :snippet-start: combine-sort
         val orderBySort = Sorts.orderBy(
-            Sorts.descending(FoodOrder::letter.name), Sorts.ascending("_id")
+            Sorts.descending(Order::date.name), Sorts.ascending(Order::orderTotal.name)
         )
         val results = collection.find().sort(orderBySort)
 
@@ -172,12 +173,12 @@ internal class SortTest {
         // Junit test for the above code
         val filter = Filters.empty()
         val expected = listOf(
-            FoodOrder(1, "c", "coffee with milk"),
-            FoodOrder(6, "c", "maple donut"),
-            FoodOrder(4, "b", "coffee with sugar"),
-            FoodOrder(2, "a", "donuts and coffee"),
-            FoodOrder(3, "a", "maple syrup"),
-            FoodOrder(5, "a", "milk and cookies")
+            Order(6, "2022-01-23", 10.99, "1 bagel, 1 orange juice, 1 muffin"),
+            Order(5, "2022-01-23", 60.31, "one large vanilla and chocolate cake"),
+            Order(4, "2022-01-15", 43.62, "2 chicken lunches and a diet coke"),
+            Order(3, "2022-01-11",  19.49, "1 dozen vanilla cupcakes"),
+            Order(2, "2022-01-11", 83.87, "two medium vanilla birthday cakes"),
+            Order(1, "2022-01-03", 17.86, "1/2 lb cream cheese and 1 dozen bagels"),
         )
         assertEquals(expected, results.toList() )
     }
@@ -185,24 +186,23 @@ internal class SortTest {
     @Test
     fun textSearchTest() = runBlocking {
         // :snippet-start: food-order-score
-        data class FoodOrderScore(
+        data class OrderScore(
            @BsonId val id: Int,
-            val letter: String,
-            val food: String,
-            val score: Double
+           val description: String,
+           val score: Double
         )
         // :snippet-end:
         // :snippet-start: text-search
-        collection.createIndex(Indexes.text(FoodOrderScore::food.name))
+        collection.createIndex(Indexes.text(Order::description.name))
         val metaTextScoreSort = Sorts.orderBy(
-            Sorts.metaTextScore(FoodOrderScore::score.name),
+            Sorts.metaTextScore(OrderScore::score.name),
             Sorts.descending("_id")
         )
-        val metaTextScoreProj = Projections.metaTextScore(FoodOrderScore::score.name)
-        val searchTerm = "maple donut"
+        val metaTextScoreProj = Projections.metaTextScore(OrderScore::score.name)
+        val searchTerm = "vanilla"
         val searchQuery = Filters.text(searchTerm)
 
-        val results = collection.find<FoodOrderScore>(searchQuery)
+        val results = collection.find<OrderScore>(searchQuery)
             .projection(metaTextScoreProj)
             .sort(metaTextScoreSort)
 
@@ -210,10 +210,10 @@ internal class SortTest {
         // :snippet-end:
         // Junit test for the above code
         val expected = listOf(
-            FoodOrderScore(6, "c", "maple donut",1.5),
-            FoodOrderScore(3, "a", "maple syrup", 0.75),
-            FoodOrderScore(2, "a", "donuts and coffee", 0.75),
-            )
+            OrderScore(3, "1 dozen vanilla cupcakes", 0.625),
+            OrderScore(5, "one large vanilla and chocolate cake", 0.6),
+            OrderScore(2, "two medium vanilla birthday cakes", 0.6)
+        )
         assertEquals(expected, results.toList())
     }
 }

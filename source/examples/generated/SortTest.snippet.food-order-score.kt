@@ -1,6 +1,5 @@
-data class FoodOrderScore(
+data class OrderScore(
    @BsonId val id: Int,
-    val letter: String,
-    val food: String,
-    val score: Double
+   val description: String,
+   val score: Double
 )
