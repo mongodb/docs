@@ -1,6 +1,6 @@
 You can preview how mapping rules affect your data model by viewing the 
 blue dotted box in the MongoDB diagram pane. This allows you to preview 
-the mapping rule before you run a sync job.
+the mapping rule before you apply it.
 
 - If the collection entity doesn't exist, it is added to the 
   diagram with a preview state around the entire card.
