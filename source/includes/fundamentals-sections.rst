@@ -1,10 +1,10 @@
 Learn how to perform the following tasks using the {+driver-short+} in the
 Fundamentals section:
 
+- :ref:`Connect to MongoDB <rust-connection>`
 - :ref:`Read from and Write to MongoDB <rust-crud>`
 
 ..
-  - :ref:`Connect to MongoDB <rust-connection-guide>`
   - :atlas:`Connect to MongoDB Atlas from AWS Lambda </manage-connections-aws-lambda/>`
   - :ref:`Specify the Stable API Version <rust-stable-api>`
   - :ref:`Authenticate to MongoDB <rust-authentication-mechanisms>`
