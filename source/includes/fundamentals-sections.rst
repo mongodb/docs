@@ -1,8 +1,9 @@
 Learn how to perform the following tasks using the {+driver-short+} in the
 Fundamentals section:
 
+- :ref:`Connect to MongoDB <rust-connection>`
+
 ..
-  - :ref:`Connect to MongoDB <golang-connection-guide>`
   - :atlas:`Connect to MongoDB Atlas from AWS Lambda </manage-connections-aws-lambda/>`
   - :ref:`Specify an API Version <golang-stable-api>`
   - :ref:`How the Driver Uses Context <golang-context>`
