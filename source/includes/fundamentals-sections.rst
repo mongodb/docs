@@ -1,7 +1,7 @@
 Learn how to perform the following tasks using the {+driver-short+} in the
 Fundamentals section:
 
-  - :ref:`Read from and Write to MongoDB <rust-crud>`
+- :ref:`Read from and Write to MongoDB <rust-crud>`
 
 ..
   - :ref:`Connect to MongoDB <rust-connection-guide>`
