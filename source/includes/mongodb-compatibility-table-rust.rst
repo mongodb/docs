@@ -11,7 +11,7 @@
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
-   * - 2.6 [#2.6-limitation]_
+   * - 2.6 [#2.5-2.6-limitation]_
      - ✓
      - ✓
      - ✓
@@ -19,7 +19,7 @@
      - ✓
      - ✓
      - ✓
-   * - 2.5 [#2.5-limitation]_
+   * - 2.5 [#2.5-2.6-limitation]_
      - ⊛
      - ⊛
      - ✓
@@ -35,7 +35,7 @@
      - ✓
      - ✓
      - ✓
-   * - 2.3 [#2.2-limitation]_
+   * - 2.3 [#2.2-2.3-limitation]_
      - ⊛
      - ⊛
      - ✓
@@ -43,7 +43,7 @@
      - ✓
      - ✓
      - ✓
-   * - 2.2 [#2.2-limitation]_
+   * - 2.2 [#2.2-2.3-limitation]_
      - ⊛
      - ⊛
      - ✓
@@ -59,7 +59,7 @@
      - ✓
      - ✓
      - ✓
-   * - 2.0 [#limitations]_
+   * - 2.0 [#2.0-limitation]_
      - ⊛
      - ⊛
      - ✓
@@ -68,33 +68,30 @@
      - ✓
      - ✓
 
-The Rust driver is not compatible with MongoDB server versions older than 3.6.
+The {+driver-short+} is not compatible with {+server+} versions
+older than 3.6.
 
-.. [#2.6-limitation] The Rust driver does not support
+.. [#2.5-2.6-limitation] This {+driver-short+} version does not support
    :manual:`OCSP </core/security-transport-encryption/>`.
 
-.. [#2.5-limitation] The Rust driver does not support
-   :manual:`OCSP </core/security-transport-encryption/>`.
-
-.. [#2.4-limitation] The Rust driver does not support Decimal128
+.. [#2.4-limitation] This {+driver-short+} version does not support Decimal128
    or :manual:`OCSP </core/security-transport-encryption/>`.
 
-.. [#2.2-limitation] The Rust driver does not support Decimal128,
+.. [#2.2-2.3-limitation] This {+driver-short+} version does not support Decimal128,
    :ref:`Client-Side Field Level Encryption <manual-csfle-feature>`,
-   :manual:`GridFS </core/gridfs/>`, and
+   :manual:`GridFS </core/gridfs/>`, or
    :manual:`OCSP </core/security-transport-encryption/>`.
 
-.. [#2.1-limitation] The Rust driver does not support Decimal128,
+.. [#2.1-limitation] This {+driver-short+} version does not support Decimal128,
    :ref:`Client-Side Field Level Encryption <manual-csfle-feature>`,
    :manual:`GridFS </core/gridfs/>`,
    :manual:`OCSP </core/security-transport-encryption/>`,
-   and :ref:`change streams <changeStreams>`.
+   or :ref:`change streams <changeStreams>`.
 
-.. [#limitations] Not all features in MongoDB are available in these driver versions. Unsupported
-   features include Decimal128,
+.. [#2.0-limitation] This {+driver-short+} version does not support Decimal128,
    :ref:`Client-Side Field Level Encryption <manual-csfle-feature>`,
    :manual:`GridFS </core/gridfs/>`,
    :manual:`OCSP </core/security-transport-encryption/>`,
    :ref:`change streams <changeStreams>`,
-   :manual:`Causal Consistency </core/causal-consistency-read-write-concerns>`, and
+   :manual:`Causal Consistency </core/causal-consistency-read-write-concerns>`, or
    :atlas:`Serverless Instances </reference/serverless-instance-limitations>`.
