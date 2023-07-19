@@ -7,7 +7,7 @@ namespace CSharpExamples.UsageExamples.FindMany;
 public class FindManyAsync
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
-    private const string MongoConnectionString = "<Your MongoDB URI>";
+    private const string MongoConnectionString = "<connection string>";
 
     public static async Task Main(string[] args)
     {

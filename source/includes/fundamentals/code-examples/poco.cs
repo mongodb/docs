@@ -6,7 +6,7 @@ namespace DataFormats.Poco;
 public class Poco
 {
     private static IMongoCollection<Clothing> _myColl;
-    private static string _mongoConnectionString = "<Your MongoDB URI>";
+    private static string _mongoConnectionString = "<connection string>";
 
     public static void Main(string[] args)
     {

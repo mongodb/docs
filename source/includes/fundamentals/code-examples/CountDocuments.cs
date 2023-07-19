@@ -4,7 +4,7 @@ namespace TestRun.Fundamentals;
 public class CountDocuments
 {
     private static IMongoCollection<Student> _myColl;
-    private const string MongoConnectionString = "<Your MongoDB URI>";
+    private const string MongoConnectionString = "<connection string>";
     public static void Main(string[] args)
     {
         Setup();

@@ -6,7 +6,7 @@ namespace CSharpExamples.UsageExamples.UpdateMany;
 public class UpdateManyAsync
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
-    private const string MongoConnectionString = "<Your MongoDB URI>";
+    private const string MongoConnectionString = "<connection string>";
 
     private const string OldCuisine = "Pizza";
     private const string NewCuisine = "Pasta and breadsticks";

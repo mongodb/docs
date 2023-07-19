@@ -8,7 +8,7 @@ using MongoDB.Driver.Search;
 public class AtlasSearchExamples
 {
     private static IMongoCollection<Guitar> guitarsCollection;
-    private static string _mongoConnectionString = "<Your MongoDB URI>";
+    private static string _mongoConnectionString = "<connection string>";
 
     public static void Main(string[] args)
     {

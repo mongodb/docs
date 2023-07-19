@@ -7,7 +7,7 @@ namespace CsharpExamples.UsageExamples.InsertOne;
 public class InsertOne
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
-    private const string MongoConnectionString = "<Your MongoDB URI>";
+    private const string MongoConnectionString = "<connection string>";
 
     public static void Main(string[] args)
     {

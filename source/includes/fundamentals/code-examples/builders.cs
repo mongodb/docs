@@ -6,7 +6,7 @@ namespace TestRun.Fundamentals;
 public class Builders
 {
     private static IMongoCollection<Flower> _flowerCollection;
-    private static string _mongoConnectionString = "<Your MongoDB URI>";
+    private static string _mongoConnectionString = "<connection string>";
 
     public static void Main(string[] args)
     {

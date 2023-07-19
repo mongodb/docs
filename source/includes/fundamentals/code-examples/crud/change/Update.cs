@@ -7,7 +7,7 @@ namespace Fundamentals
     public class Update
     {
         private static IMongoCollection<Restaurant> _restaurantsCollection;
-        private const string MongoConnectionString = "<your MongoDB URI>";
+        private const string MongoConnectionString = "<connection string>";
 
         private const string OldValue = "Manhattan";
         private const string NewValue = "Manhattan (north)";

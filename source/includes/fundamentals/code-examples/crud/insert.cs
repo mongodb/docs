@@ -6,7 +6,7 @@ namespace TestRun.Fundamentals;
 public class Insert
 {
     private static IMongoCollection<Restaurant> _restaurantsCollection;
-    private static string _mongoConnectionString = "<Your MongoDB URI>";
+    private static string _mongoConnectionString = "<connection string>";
 
     public static void Main(string[] args)
     {
