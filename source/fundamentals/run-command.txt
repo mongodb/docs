@@ -1,0 +1,195 @@
+.. _rust-run-command:
+
+=============
+Run a Command
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+}
+to run a database command. You can use database commands to perform a
+variety of administrative and diagnostic tasks, such as fetching server
+statistics, initializing a replica set, or running an aggregation pipeline.
+
+.. important:: Prefer Driver Methods to Database Commands
+
+   The driver provides wrapper methods for many database commands.
+   We recommend using driver methods instead of executing database
+   commands when possible.
+   
+   To perform administrative tasks, use the :mongosh:`MongoDB Shell </>`
+   instead of the {+driver-short+}. Calling the ``db.runCommand()``
+   method inside the shell is the preferred way to issue database
+   commands, as it provides a consistent interface between the shell and
+   drivers.
+
+Execute a Command
+-----------------
+
+To run a database command, you must specify the command and any relevant
+parameters in a command document, then pass the command document to the
+``run_command()`` method.
+
+The following code shows how you can use the ``run_command()``
+method to run the ``hello`` command, which returns information about
+the current member's role in the replica set, on a database:
+
+.. code-block:: rust
+
+   let result: Document = my_db.run_command(doc! { "hello": 1 }, None).await?;
+
+For a full list of database commands and corresponding parameters, see
+the :ref:`Additional Information section <addl-info-runcommand>`.
+
+.. note:: Read Preference
+
+   The ``run_command()`` method does not obey the read preference you
+   might have set on your ``Database`` object elsewhere in your code. By
+   default, it uses the ``primary`` read preference.
+   
+   You can set a read preference for command execution by
+   passing an options object. The following code shows how to specify a
+   read preference in a ``SelectionCriteria`` instance and pass it as an
+   option to the ``run_command()`` method:
+   
+   .. code-block:: rust
+
+      let command_options: SelectionCriteria = SelectionCriteria::ReadPreference(
+          ReadPreference::Primary
+      );
+      let result: Document = my_db.run_command(command_doc, command_options).await?;
+   
+   For more information on read preference options, see :manual:`Read
+   Preference </core/read-preference/>` in the Server manual.
+
+Response
+--------
+
+The ``run_command()`` method returns a ``Document`` object that contains
+the response from the database after the command has been executed. Each
+database command performs a different function, so the response content
+can vary across commands. However, every response contains a document
+with the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - <command result>
+     - Fields specific to the database command. For example,
+       ``count`` returns the ``n`` field and ``explain`` returns the
+       ``queryPlanner`` field.
+
+   * - ``ok``
+     - Whether the command has succeeded (``1``)
+       or failed (``0``).
+
+   * - ``operationTime``
+     - The logical time of the operation. MongoDB uses the
+       logical time to order operations.
+       
+       .. seealso::
+  
+          To learn more about logical time, see our blog post about the
+          :website:`Global Logical Clock </blog/post/transactions-background-part-4-the-global-logical-clock>`.
+
+   * - ``$clusterTime``
+     - A document that contains the signed cluster time. Cluster time is a
+       logical time used for the ordering of operations.
+
+       This document contains the following fields:
+
+       - ``clusterTime``, the timestamp of the highest known cluster time for the member
+       - ``signature``, a document that contains the hash of the cluster time and the ID
+         of the key used to sign the cluster time
+
+Example
+-------
+
+The following code shows how you can use the ``run_command()`` method to run
+the ``explain`` command for a ``count`` operation on the ``flowers``
+collection of the ``plants`` database. The ``explain`` command runs in the
+``"queryPlanner"`` verbosity mode:
+
+.. literalinclude:: /code-snippets/crud/run-command.rs
+   :language: rust
+   :dedent:
+   :start-after: start-runcommand
+   :end-before: end-runcommand
+
+Output
+~~~~~~
+
+The output includes fields explaining the
+execution of the ``count`` operation, such as the winning plan, which is
+the plan selected by the query optimizer, and any rejected
+plans. The output also contains information about the execution of the
+``explain`` command:
+
+.. code-block:: json
+   :emphasize-lines: 9-13,19-29
+
+   {
+       "$clusterTime": {
+           "clusterTime": {
+               "T": 1673969525,
+               "I": 24
+           },
+           "signature": {...}
+       },
+       "command": {
+           "$db": "plants",
+           "count": "flowers"
+       },
+       "explainVersion": "1",
+       "ok": 1,
+       "operationTime": {
+           "T": 1673969525,
+           "I": 24
+       },
+       "queryPlanner": {
+           "indexFilterSet": false,
+           "maxIndexedAndSolutionsReached": false,
+           "maxIndexedOrSolutionsReached": false,
+           "maxScansToExplodeReached": false,
+           "namespace": "plants.flowers",
+           "rejectedPlans": [],
+           "winningPlan": {
+               "stage": "RECORD_STORE_FAST_COUNT"
+           }
+       },
+       "serverInfo": {...},
+       "serverParameters": {
+           "internalDocumentSourceGroupMaxMemoryBytes": 104857600,
+           ...
+       }
+   }
+
+.. _addl-info-runcommand:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following documentation:
+
+- :manual:`db.runCommand() </reference/method/db.runCommand/>`
+- :manual:`Database Commands </reference/command/>`
+- :manual:`hello Command </reference/command/hello/>`
+- :manual:`explain Command </reference/command/explain/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `run_command() <{+api+}/struct.Database.html#method.run_command>`__
+- `SelectionCriteria <{+api+}/options/enum.SelectionCriteria.html>`__
+- `ReadPreference <{+api+}/options/enum.ReadPreference.html>`__
