@@ -1,0 +1,240 @@
+.. _rust-aggregation:
+
+===========
+Aggregation
+===========
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to perform **aggregation operations** in
+the {+driver-short+}.
+
+Aggregation operations process data in your MongoDB collections based on
+specifications you can set in an **aggregation pipeline**. An aggregation
+pipeline consists of one or more **stages**. Each stage performs an
+operation based on its expression operators. After the driver executes
+the aggregation pipeline, it returns an aggregated result.
+
+Analogy
+~~~~~~~
+
+Aggregation operations function similarly to car factories with assembly
+lines. The assembly lines have stations with specialized tools to
+perform specific tasks. For example, when building a car, the assembly
+line begins with the frame. Then, as the car frame moves through the
+assembly line, each station assembles a separate part. The result is a
+transformed final product, the finished car.
+
+The assembly line represents the *aggregation pipeline*, the individual
+stations represent the *aggregation stages*, the specialized tools
+represent the *expression operators*, and the finished product
+represents the *aggregated result*.
+
+Compare Aggregation and Find Operations
+---------------------------------------
+
+The following table lists the different tasks you can perform with find
+operations, compared to what you can achieve with aggregation
+operations. The aggregation framework provides expanded functionality
+that allows you to transform and manipulate your data.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Find Operations
+     - Aggregation Operations
+
+   * - | Select *certain* documents to return
+       | Select *which* fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+     - | Select *certain* documents to return
+       | Select *which* fields to return
+       | Sort the results
+       | Limit the results
+       | Count the results
+       | Rename fields
+       | Compute new fields
+       | Summarize data
+       | Connect and merge data sets
+
+Limitations
+-----------
+
+When performing aggregation operations, consider the following
+limitations:
+
+- Returned documents must not violate the :manual:`BSON document size
+  limit </reference/limits/#BSON-Document-Size>` of 16 megabytes.
+- Pipeline stages have a memory limit of 100 megabytes by default. If
+  required, you may exceed this limit by setting the `allow_disk_use
+  <{+api+}/options/struct.AggregateOptions.html#structfield.allow_disk_use>`__
+  field in your ``AggregateOptions``.
+- The :manual:`$graphLookup
+  </reference/operator/aggregation/graphLookup/>` operator
+  has a strict memory limit of 100 megabytes and ignores
+  the ``allow_disk_use`` setting.
+
+Examples
+--------
+
+.. TODO decide if we should use structs on this page. might get long
+
+To run the examples in this section, load the sample data into a
+collection called ``db.site_users`` with the following code:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/aggregation.rs
+   :start-after: begin-insert
+   :end-before: end-insert
+   :language: rust
+   :dedent:
+
+.. include:: /includes/fundamentals/automatic-creation.rst
+
+Each document represents a user of a book-reviewing website and contains
+information about their name, age, genre interests, and date that they were
+last active on the website.
+
+Age Insights by Genre
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example calculates the average, minimum, and maximum age of users
+interested in each genre.
+
+The aggregation pipeline contains the following stages:
+
+- An ``$unwind`` stage to separate each array entry in the
+  ``genre_interests`` field into a new document.
+- A ``$group`` stage to group documents by the value of the
+  ``genre_interests`` field. This stage finds the average, minimum, and
+  maximum user age for users, using the ``$avg``, ``$min``, and ``$max``
+  operators, respectively.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/aggregation.rs
+      :start-after: begin-age-agg
+      :end-before: end-age-agg
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      * { "_id": "memoir", "avg_age": 25.8, "min_age": 18, "max_age": 39 }
+      * { "_id": "sci-fi", "avg_age": 42, "min_age": 18, "max_age": 66 }
+      * { "_id": "fiction", "avg_age": 33.333333333333336, "min_age": 16, "max_age": 66 }
+      * { "_id": "nonfiction", "avg_age": 53.5, "min_age": 31, "max_age": 76 }
+      * { "_id": "self help", "avg_age": 56, "min_age": 56, "max_age": 56 }
+      * { "_id": "poetry", "avg_age": 39, "min_age": 39, "max_age": 39 }
+      * { "_id": "literary", "avg_age": 49.5, "min_age": 21, "max_age": 76 }
+      * { "_id": "fantasy", "avg_age": 34.666666666666664, "min_age": 18, "max_age": 66 }
+      * { "_id": "mystery", "avg_age": 24.666666666666668, "min_age": 20, "max_age": 31 }
+      * { "_id": "theory", "avg_age": 33, "min_age": 21, "max_age": 45 }
+      * { "_id": "art", "avg_age": 39, "min_age": 39, "max_age": 39 }
+      * { "_id": "sports", "avg_age": 22.5, "min_age": 16, "max_age": 29 }
+
+Group by Time Component
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example finds how many users were last active in each
+month.
+
+The aggregation pipeline contains the following stages:
+
+- A ``$project`` stage to extract the month from the ``last_active``
+  field as a number into the ``month_last_active`` field.
+- A ``$group`` stage to group documents by the ``month_last_active``
+  field and count the number of documents for each month.
+- A ``$sort`` stage to set an ascending sort on the month.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/aggregation.rs
+      :start-after: begin-lastactive-agg
+      :end-before: end-lastactive-agg
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      * { "_id": { "month_last_active": 1 }, "number": 3 }
+      * { "_id": { "month_last_active": 5 }, "number": 4 }
+      * { "_id": { "month_last_active": 6 }, "number": 1 }
+      * { "_id": { "month_last_active": 7 }, "number": 1 }
+      * { "_id": { "month_last_active": 8 }, "number": 2 }
+      * { "_id": { "month_last_active": 11 }, "number": 1 }
+
+Calculate Popular Genres
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example finds the three most popular genres based on how
+often they appear in users' interests.
+
+The aggregation pipeline contains the following stages:
+
+- An ``$unwind`` stage to separate each array entry in the
+  ``genre_interests`` field into a new document.
+- A ``$group`` stage to group documents by the ``genre_interests``
+  field and count the number of documents for each genre.
+- A ``$sort`` stage to set a descending sort on the genre popularity.
+- A ``$limit`` stage to show only the first three genres.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/aggregation.rs
+      :start-after: begin-popular-agg
+      :end-before: end-popular-agg
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      * { "_id": "fiction", "number": 6 }
+      * { "_id": "memoir", "number": 5 }
+      * { "_id": "literary", "number": 4 }
+
+Additional Information
+----------------------
+
+To learn more about the terms mentioned, see the following
+guides:
+
+- :manual:`Expression Operators </reference/operator/aggregation/>`
+- :manual:`Aggregation Pipeline </core/aggregation-pipeline/>`
+- :manual:`Aggregation Stages </meta/aggregation-quick-reference/#stages>`
+- :manual:`Operator Expressions </meta/aggregation-quick-reference/#operator-expressions>`
+- :manual:`Aggregation Pipeline Limits </core/aggregation-pipeline-limits/>`
+
+.. TODO To view more aggregation examples, see the following guides:
+.. 
+.. - :ref:`Count <>`
+.. - :ref:`Limit <>`
+.. - :ref:`Skip <>`
+.. - :ref:`Text <>`
+
+.. TODO To learn more about the ``aggregate()`` method and its behavior, see
+.. :ref:`Retrieve Data <>`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `aggregate() <{+api+}/struct.Collection.html#method.aggregate>`__
+- `AggregateOptions <{+api+}/options/struct.AggregateOptions.html>`__
