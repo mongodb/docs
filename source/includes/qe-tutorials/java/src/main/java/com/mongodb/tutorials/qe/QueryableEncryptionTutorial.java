@@ -18,7 +18,6 @@ import java.util.Map;
 
 public class QueryableEncryptionTutorial {
     public static void main(String[] args) throws Exception {
-
         // start-setup-application-variables
         // KMS provider name should be one of the following: "aws", "gcp", "azure", "kmip" or "local"
         String kmsProviderName = "<KMS provider name>";
@@ -43,7 +42,6 @@ public class QueryableEncryptionTutorial {
                 .build();
 
         try (MongoClient encryptedClient = MongoClients.create(clientSettings)) {
-            // ...
             // end-create-client
             encryptedClient.getDatabase(keyVaultDatabaseName).getCollection(keyVaultCollectionName).drop();
             encryptedClient.getDatabase(encryptedDatabaseName).getCollection(encryptedCollectionName).drop();
@@ -62,7 +60,7 @@ public class QueryableEncryptionTutorial {
                                     .append("path", new BsonString("patientRecord.billing"))
                                     .append("bsonType", new BsonString("object")))));
             // end-encrypted-fields-map
-         
+
             // start-client-encryption
             ClientEncryptionSettings clientEncryptionSettings = ClientEncryptionSettings.builder()
                     .keyVaultMongoClientSettings(MongoClientSettings.builder()
@@ -80,13 +78,18 @@ public class QueryableEncryptionTutorial {
             CreateEncryptedCollectionParams encryptedCollectionParams = new CreateEncryptedCollectionParams(kmsProviderName);
             encryptedCollectionParams.masterKey(customerMasterKeyCredentials);
 
-            clientEncryption.createEncryptedCollection(
-                    encryptedClient.getDatabase(encryptedDatabaseName),
-                    encryptedCollectionName,
-                    createCollectionOptions,
-                    encryptedCollectionParams);
+            try {
+                clientEncryption.createEncryptedCollection(
+                        encryptedClient.getDatabase(encryptedDatabaseName),
+                        encryptedCollectionName,
+                        createCollectionOptions,
+                        encryptedCollectionParams);
+            } 
             // end-create-encrypted-collection
-
+            catch (Exception e) {
+                throw new Exception("Unable to create encrypted collection due to the following error: " + e.getMessage());
+            }
+            
             // start-insert-document
             MongoDatabase encryptedClientDb = encryptedClient.getDatabase(encryptedDatabaseName);
             MongoCollection<BsonDocument> coll = encryptedClientDb.getCollection(encryptedCollectionName, BsonDocument.class);
@@ -103,7 +106,7 @@ public class QueryableEncryptionTutorial {
 
             InsertOneResult result = coll.insertOne(patientDocument);
             // end-insert-document
-            
+
             if (result.wasAcknowledged()) {
                 System.out.println("Successfully inserted the patient document.");
             }

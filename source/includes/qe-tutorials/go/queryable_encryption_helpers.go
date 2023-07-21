@@ -81,7 +81,7 @@ func GetKmsProviderCredentials(kmsProviderName string) map[string]map[string]int
 		return kmsProviderCredentials
 
 	default:
-		panic(fmt.Sprintf("Unrecognized KMS provider name: %s\n", kmsProviderName))
+		panic(fmt.Sprintf("Unrecognized value for kmsProviderName encountered while retrieving KMS credentials.: %s\n", kmsProviderName))
 	}
 }
 
@@ -119,7 +119,7 @@ func GetCustomerMasterKeyCredentials(kmsProviderName string) map[string]string {
 		// end-kmip-local-cmk-credentials
 		return cmkCredentials
 	default:
-		panic(fmt.Sprintf("Unrecognized KMS provider name: %s\n", kmsProviderName))
+		panic(fmt.Sprintf("Unrecognized value for kmsProviderName encountered while retrieving Customer Master Key credentials: %s\n", kmsProviderName))
 	}
 }
 
@@ -141,7 +141,7 @@ func GetClientEncryption(
 
 		clientEncryption, err := mongo.NewClientEncryption(client, opts)
 		if err != nil {
-			panic(fmt.Sprintf("Unable to create a ClientEncryption instance: %s\n", err))
+			panic(fmt.Sprintf("Unable to create a ClientEncryption instance due to the following error: %s\n", err))
 		}
 		// end-kmip-client-encryption
 		return clientEncryption
@@ -154,7 +154,7 @@ func GetClientEncryption(
 
 	clientEncryption, err := mongo.NewClientEncryption(client, opts)
 	if err != nil {
-		panic(fmt.Sprintf("Unable to create a ClientEncryption instance: %s\n", err))
+		panic(fmt.Sprintf("Unable to create a ClientEncryption instance due to the following error: %s\n", err))
 	}
 	// end-client-encryption
 	return clientEncryption

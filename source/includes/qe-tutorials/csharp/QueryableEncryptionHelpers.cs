@@ -87,7 +87,7 @@ public class QueryableEncryptionHelpers
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine(e.Message);
+                    throw new Exception("Unable to write Customer Master Key file due to the following error: " + e.Message);
                 }
                 // end-generate-local-key
             }
@@ -110,13 +110,13 @@ public class QueryableEncryptionHelpers
             // end-get-local-key
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                throw new Exception("Unable to read the Customer Master Key due to the following error: " + e.Message);
             }
             return kmsProviderCredentials;
 
         }
 
-        throw new Exception("Invalid KMS provider string");
+        throw new Exception("Unrecognized value for KMS provider name \"" + kmsProvider + "\"  encountered while retrieving KMS credentials.");
     }
 
     public BsonDocument GetCustomerMasterKeyCredentials(string kmsProvider)
@@ -165,7 +165,7 @@ public class QueryableEncryptionHelpers
         }
         else
         {
-            throw new Exception("Invalid KMS provider string");
+            throw new Exception("Unrecognized value for KMS provider name \"" + kmsProvider + "\"  encountered while retrieving Customer Master Key credentials.");
         }
     }
 
@@ -219,6 +219,7 @@ public class QueryableEncryptionHelpers
         if (kmsProvider == "kmip")
         {
             var tlsOptions = GetKmipTlsOptions();
+
             // start-kmip-client-encryption
             var clientEncryptionOptions = new ClientEncryptionOptions(
                 keyVaultClient: keyVaultClient,
@@ -226,6 +227,7 @@ public class QueryableEncryptionHelpers
                 kmsProviders: kmsProviderCredentials,
                 tlsOptions: tlsOptions
             );
+
             var clientEncryption = new ClientEncryption(clientEncryptionOptions);
             // end-kmip-client-encryption
             return clientEncryption;

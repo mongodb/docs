@@ -22,7 +22,7 @@ async function runExample() {
     keyVaultNamespace,
     kmsProviderCredentials
   );
-  
+
   // start-encrypted-fields-map
   const encryptedFieldsMap = {
     encryptedFields: {
@@ -40,7 +40,7 @@ async function runExample() {
     },
   };
   // end-encrypted-fields-map
-  
+
   // start-create-client
   const encryptedClient = Mongo(uri, autoEncryptionOpts);
   // end-create-client
@@ -55,17 +55,23 @@ async function runExample() {
   const clientEncryption = encryptedClient.getClientEncryption()
   // end-client-encryption
 
-  // start-create-encrypted-collection
-  await clientEncryption.createEncryptedCollection(
-    encryptedDatabaseName, 
-    encryptedCollectionName, 
-    {
-      provider: kmsProviderName, 
-      createCollectionOptions: encryptedFieldsMap,
-      masterKey: customerMasterKeyCredentials
-    }
-  );
-  // end-create-encrypted-collection
+  try {
+    // start-create-encrypted-collection
+    await clientEncryption.createEncryptedCollection(
+      encryptedDatabaseName,
+      encryptedCollectionName,
+      {
+        provider: kmsProviderName,
+        createCollectionOptions: encryptedFieldsMap,
+        masterKey: customerMasterKeyCredentials,
+      }
+    );
+    // end-create-encrypted-collection
+  } catch (err) {
+    throw new Error(
+      `Unable to create encrypted collection due to the following error: ${err}`
+    );
+  }
 
   // start-insert-document
   const patientDocument = {
@@ -84,11 +90,13 @@ async function runExample() {
 
   const insertResult = await encryptedCollection.insertOne(patientDocument);
   // end-insert-document
-  
+
   try {
-    assert(insertResult.acknowledged == true)
-  } catch(err) {
-    console.error(err);
+    assert(insertResult.acknowledged == true);
+  } catch (err) {
+    throw new Error(
+      `The insert failed due to the following error: ${err}`
+    );
   }
 
   // start-find-document

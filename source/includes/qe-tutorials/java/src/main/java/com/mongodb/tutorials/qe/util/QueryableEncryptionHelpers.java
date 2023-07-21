@@ -19,7 +19,6 @@ import org.bson.BsonString;
 import java.io.FileInputStream;
 
 public final class QueryableEncryptionHelpers {
-
     // This loads the variables defined in the .env file
     private static final Dotenv dotEnv = Dotenv.configure()
             .directory("./.env")
@@ -34,8 +33,12 @@ public final class QueryableEncryptionHelpers {
                 new SecureRandom().nextBytes(localMasterKeyWrite);
                 try (FileOutputStream stream = new FileOutputStream("customer-master-key.txt")) {
                     stream.write(localMasterKeyWrite);
+
+                    // ...
+                    // end-generate-local-key
+                } catch (Exception e) {
+                    throw new Exception("Unable to write Customer Master Key file due to the following error:" + e.getMessage());
                 }
-                // end-generate-local-key
             }
 
             // start-get-local-key
@@ -44,6 +47,8 @@ public final class QueryableEncryptionHelpers {
             try (FileInputStream fis = new FileInputStream("customer-master-key.txt")) {
                 if (fis.read(localMasterKeyRead) < 96)
                     throw new Exception("Expected to read 96 bytes from the customer master key file");
+            } catch (Exception e) {
+                throw new Exception("Unable to read the Customer Master Key due to the following error: " + e.getMessage());
             }
             Map<String, Object> keyMap = new HashMap<String, Object>();
             keyMap.put("key", localMasterKeyRead);
@@ -97,7 +102,7 @@ public final class QueryableEncryptionHelpers {
             // end-kmip-kms-credentials
             return kmsProviderCredentials;
         }
-        throw new Exception("Unrecognized KMS provider");
+        throw new Exception("Unrecognized KMS provider name \"" + kmsProviderName + "\" encountered while retrieving KMS credentials.");
     }
     
     public static BsonDocument getCustomerMasterKeyCredentials(String kmsProviderName) throws Exception {
@@ -133,7 +138,7 @@ public final class QueryableEncryptionHelpers {
             // end-gcp-cmk-credentials
             return customerMasterKeyCredentials;
         }
-        throw new Exception("Unrecognized KMS provider");
+        throw new Exception("Unrecognized KMS provider name \"" + kmsProviderName + "\" encountered while retrieving Customer Master Key credentials.");
     }
 
     public static AutoEncryptionSettings getAutoEncryptionOptions(

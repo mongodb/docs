@@ -76,18 +76,25 @@ public static class QueryableEncryptionTutorial
 
         var customerMasterKeyCredentials = qeHelpers.GetCustomerMasterKeyCredentials(kmsProviderName);
 
-        // start-create-encrypted-collection
-        var createCollectionOptions = new CreateCollectionOptions<Patient>
+        try
         {
-            EncryptedFields = encryptedFields
-        };
+            // start-create-encrypted-collection
+            var createCollectionOptions = new CreateCollectionOptions<Patient>
+            {
+                EncryptedFields = encryptedFields
+            };
 
-        clientEncryption.CreateEncryptedCollection(patientDatabase,
-            encryptedCollectionName,
-            createCollectionOptions,
-            kmsProviderName,
-            customerMasterKeyCredentials);
-        // end-create-encrypted-collection
+            clientEncryption.CreateEncryptedCollection(patientDatabase,
+                encryptedCollectionName,
+                createCollectionOptions,
+                kmsProviderName,
+                customerMasterKeyCredentials);
+            // end-create-encrypted-collection
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Unable to create encrypted collection due to the following error: " + e.Message);
+        }
 
         // start-insert-document
         var patient = new Patient

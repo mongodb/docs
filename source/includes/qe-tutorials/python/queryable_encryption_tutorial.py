@@ -60,15 +60,18 @@ client_encryption = helpers.get_client_encryption(
     key_vault_namespace
 )
 
-# start-create-encrypted-collection
-client_encryption.create_encrypted_collection(
-    encrypted_client[encrypted_database_name],
-    encrypted_collection_name,
-    encrypted_fields_map,
-    kms_provider_name,
-    customer_master_key_credentials,
-)
-# end-create-encrypted-collection
+try:
+    # start-create-encrypted-collection
+    client_encryption.create_encrypted_collection(
+        encrypted_client[encrypted_database_name],
+        encrypted_collection_name,
+        encrypted_fields_map,
+        kms_provider_name,
+        customer_master_key_credentials,
+    )
+    # end-create-encrypted-collection
+except Exception as e:
+    raise Exception("Unable to create encrypted collection due to the following error: ", e)
 
 # start-insert-document
 patient_document = {

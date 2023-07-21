@@ -58,30 +58,40 @@ export function getKMSProviderCredentials(kmsProviderName) {
           try {
             writeFileSync("customer-master-key.txt", randomBytes(96));
           } catch (err) {
-            console.error(err);
+            throw new Error(
+              `Unable to write Customer Master Key to file due to the following error: ${err}`
+            );
           }
         }
         // end-generate-local-key
       })();
-      // start-get-local-key
-      // WARNING: Do not use a local key file in a production application
-      const localMasterKey = readFileSync("./customer-master-key.txt");
-      kmsProviders = {
-        local: {
-          key: localMasterKey,
-        },
-      };
-      // end-get-local-key
+      try {
+        // start-get-local-key
+        // WARNING: Do not use a local key file in a production application
+        const localMasterKey = readFileSync("./customer-master-key.txt");
+        kmsProviders = {
+          local: {
+            key: localMasterKey,
+          },
+        };
+        // end-get-local-key
+      } catch (err) {
+        throw new Error(
+          `Unable to read the Customer Master Key due to the following error: ${err}`
+        );
+      }
       return kmsProviders;
 
     default:
-      throw new Error("Invalid KMS provider name");
+      throw new Error(
+        `Unrecognized value for KMS provider name \"${kmsProviderName}\" encountered while retrieving KMS credentials.`
+      );
   }
 }
 
-export function getCustomerMasterKeyCredentials(kmsProviderString) {
+export function getCustomerMasterKeyCredentials(kmsProviderName) {
   let customerMasterKeyCredentials;
-  switch (kmsProviderString) {
+  switch (kmsProviderName) {
     case "aws":
       // start-aws-cmk-credentials
       customerMasterKeyCredentials = {
@@ -115,7 +125,9 @@ export function getCustomerMasterKeyCredentials(kmsProviderString) {
       // end-kmip-local-cmk-credentials
       return customerMasterKeyCredentials;
     default:
-      throw new Error("Invalid KMS provider name");
+      throw new Error(
+        `Unrecognized value for KMS provider name \"${kmsProviderName}\" encountered while retrieving Customer Master Key credentials.`
+      );
   }
 }
 
@@ -184,15 +196,21 @@ export async function createEncryptedCollection(
   encryptedFieldsMap,
   customerMasterKeyCredentials
 ) {
-  // start-create-encrypted-collection
-  await clientEncryption.createEncryptedCollection(
-    encryptedDatabase,
-    encryptedCollectionName,
-    {
-      provider: kmsProviderName,
-      createCollectionOptions: encryptedFieldsMap,
-      masterKey: customerMasterKeyCredentials,
-    }
-  );
-  // end-create-encrypted-collection
+  try {
+    // start-create-encrypted-collection
+    await clientEncryption.createEncryptedCollection(
+      encryptedDatabase,
+      encryptedCollectionName,
+      {
+        provider: kmsProviderName,
+        createCollectionOptions: encryptedFieldsMap,
+        masterKey: customerMasterKeyCredentials,
+      }
+    );
+    // end-create-encrypted-collection
+  } catch (err) {
+    throw new Error(
+      `Unable to create encrypted collection due to the following error: ${err}`
+    );
+  }
 }

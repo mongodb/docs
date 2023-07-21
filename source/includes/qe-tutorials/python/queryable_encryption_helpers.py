@@ -50,25 +50,30 @@ def get_kms_provider_credentials(kms_provider_string):
     elif kms_provider_string == "local":
         # Reuse the key from the customer-master-key.txt file if it exists
         if not os.path.exists("./customer-master-key.txt"):
+            try:
+                # start-generate-local-key
+                path = "customer-master-key.txt"
+                file_bytes = os.urandom(96)
+                with open(path, "wb") as f:
+                    f.write(file_bytes)
+                # end-generate-local-key
+            except Exception as e:
+                raise Exception("Unable to write Customer Master Key to file due to the following error: ", e)
 
-            # start-generate-local-key
-            path = "customer-master-key.txt"
-            file_bytes = os.urandom(96)
-            with open(path, "wb") as f:
-                f.write(file_bytes)
-            # end-generate-local-key
-
-        # start-get-local-key
-        path = "./customer-master-key.txt"
-        with open(path, "rb") as f:
-            local_master_key = f.read()
-            kms_provider_credentials = {
-                "local": {
-                    "key": local_master_key
-                },
-            }
-        # end-get-local-key
-        return kms_provider_credentials
+        try:
+            # start-get-local-key
+            path = "./customer-master-key.txt"
+            with open(path, "rb") as f:
+                local_master_key = f.read()
+                kms_provider_credentials = {
+                    "local": {
+                        "key": local_master_key
+                    },
+                }
+            # end-get-local-key
+            return kms_provider_credentials
+        except Exception as e:
+            raise Exception("Unable to read Customer Master Key from file due to the following error: ", e)
     else:
         raise ValueError(
             "Unrecognized value for kms_provider_name encountered while retrieving KMS credentials.")
@@ -107,7 +112,7 @@ def get_customer_master_key_credentials(kms_provider_string):
        # end-kmip-local-cmk-credentials
        return customer_master_key_credentials
     else:
-       raise ValueError("Unrecognized value for kms_provider_name encountered while retrieving customer master key credentials.")
+       raise ValueError("Unrecognized value for kms_provider_name encountered while retrieving Customer Master Key credentials.")
 
 def get_client_encryption(
         client,

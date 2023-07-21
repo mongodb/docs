@@ -51,35 +51,45 @@ function getKMSProviderCredentials(kmsProviderName) {
       return kmsProviderCredentials;
     case "local":
       (function () {
-        // start-generate-local-key
         try {
+          // start-generate-local-key
           customerMasterKeyPath = "customer-master-key.txt";
           if (!fs.existsSync(customerMasterKeyPath)) {
             fs.writeFileSync(customerMasterKeyPath, crypto.randomBytes(96));
           }
+          // end-generate-local-key
         } catch (err) {
-          console.error(err);
+          throw new Error(
+            `Unable to write Customer Master Key to file due to the following error: ${err}`
+          );
         }
-        // end-generate-local-key
       })();
-      // start-get-local-key
-      // WARNING: Do not use a local key file in a production application
-      const localMasterKey = fs.readFileSync("./customer-master-key.txt");
-      kmsProviderCredentials = {
-        local: {
-          key: localMasterKey,
-        },
-      };
-      // end-get-local-key
+      try {
+        // start-get-local-key
+        // WARNING: Do not use a local key file in a production application
+        const localMasterKey = fs.readFileSync("./customer-master-key.txt");
+        kmsProviderCredentials = {
+          local: {
+            key: localMasterKey,
+          },
+        };
+        // end-get-local-key
+      } catch (err) {
+        throw new Error(
+          `Unable to read the Customer Master Key due to the following error: ${err}`
+        );
+      }
       return kmsProviderCredentials;
     default:
-      throw new Error("Invalid KMS provider name");
+      throw new Error(
+        `Unrecognized value for KMS provider name \"${kmsProviderName}\" encountered while retrieving KMS credentials.`
+      );
   }
 }
 
-function getCustomerMasterKeyCredentials(kmsProviderString) {
+function getCustomerMasterKeyCredentials(kmsProviderName) {
   let customerMasterKeyCredentials;
-  switch (kmsProviderString) {
+  switch (kmsProviderName) {
     case "aws":
       // start-aws-cmk-credentials
       customerMasterKeyCredentials = {
@@ -113,7 +123,9 @@ function getCustomerMasterKeyCredentials(kmsProviderString) {
       // end-kmip-local-cmk-credentials
       return customerMasterKeyCredentials;
     default:
-      throw new Error("Invalid KMS provider name");
+      throw new Error(
+        `Unrecognized value for KMS provider name \"${kmsProviderName}\" encountered while retrieving Customer Master Key credentials.`
+      );
   }
 }
 
