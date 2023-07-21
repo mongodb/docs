@@ -16,24 +16,34 @@ async function run() {
 
     // define pipeline
     const agg = [
-      {$search: {
-        index: "sort-tutorial",
-        compound: {
-          filter: {wildcard: {query: "Summer*", path: "title"}},
-          must: [{near: {path: "released", origin: new Date("2014-04-18T00:00:00.000Z"), pivot: 13149000000}}]
-        },
-        sort: { released: -1 }
-      }},
-    {$limit: 5},
-    {$project: {_id: 0, title: 1, released: 1, score: {$meta: "searchScore"}}}
-  ];
-           
+      {
+        '$search': {
+          'index': 'sort-tutorial',
+          'range': {
+            'path': 'awards.wins', 
+            'gte': 10
+          }, 
+          'sort': {
+            'awards.wins': -1
+          }
+        }
+      }, {
+        '$limit': 5
+      }, {
+        '$project': {
+          '_id': 0, 
+          'title': 1, 
+          'awards.wins': 1
+        }
+      }
+    ];
+
     // run pipeline
     const result = await coll.aggregate(agg);
 
     // print results
     await result.forEach((doc) => console.log(doc));
-    
+
   } finally {
     await client.close();
   }

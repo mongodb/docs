@@ -1,13 +1,13 @@
-ref: fts-sort-for-precision-desc
+ref: fts-sort-by-string-desc
 content: | 
 
-  The following query shows how to sort a string field to increase the
-  precision of your query. It searches for titles that begin with
-  ``Prince`` or ``Prance`` and sorts the results by the
-  :ref:`scoring-constant` score assigned to the different titles.
+  The following query shows how to query and sort the results by a
+  string field. It searches for titles that begin with ``Prance`` or
+  ``Prince`` and sorts the results by the ``title`` field in ascending
+  order. 
 
 ---
-ref: fts-sort-for-precision-stage
+ref: fts-sort-by-string-stage
 content: | 
 
   The query uses the following pipeline stages:
@@ -15,11 +15,8 @@ content: |
   - :pipeline:`$search` to search the ``title`` field
     using the ``should`` clause with the :ref:`wildcard-ref` operator to
     search for titles that begin with ``Prance`` and ``Prince``.
-    Each subquery specifies a score that replaces the base score for
-    matching results with the specified number, which allows the
-    results to be sorted based on the score. The scores from highest
-    to lowest sort the movie titles alphabetically.
-  
+    The query also specifies that results must be sorted by the ``title``
+    field in ascending order.
   - :pipeline:`$limit` stage to limit the output to ``5`` results.
   - :pipeline:`$project` stage to:
     
@@ -27,75 +24,41 @@ content: |
     - Add a field named ``score``.
 
 ---
-ref: fts-sort-for-precision-results
+ref: fts-sort-by-string-results
 content: | 
 
   The |fts| results contain documents with movie titles that begin with
   ``Prance`` and ``Prince``. |fts| returns titles with ``Prance``
-  followed by ``Prince`` because |fts| returns documents from highest to
-  lowest score and you replaced the scores of these terms with a
-  constant value of ``99`` and ``95`` respectively. If you want to sort
-  the results by ``Prince`` first, modify its score value to be greater
-  than ``Prance``.
+  followed by ``Prince`` because |fts| sorts documents by the ``title``
+  field in ascending order. 
 
 ---
-ref: fts-sort-speed-precision-constant-desc
+ref: fts-sort-by-numbers-constant-desc
 content: | 
-  
-  The following query shows how to sort a string field to increase the
-  overall performance of your query. It searches for titles that begin
-  with the term ``Happy`` using the :ref:`autocomplete-ref` operator and
-  retrieves the stored fields to sort your results.
+
+  The following query shows how to sort the results by a numeric field.
+  It uses the :ref:`range-ref` operator to search for movies that have
+  won 10 or more awards and then sorts the results by the numeric field
+  value in descending order.
 
 ---
-ref: fts-sort-speed-precision-stage
+ref: fts-sort-by-numbers-stage
 content: | 
 
   The query uses the following pipeline stages:
   
-  - :pipeline:`$search` stage to search the ``title`` field and retrieve the field stored on ``mongot``.
+  - :pipeline:`$search` stage to search the ``awards.wins`` field and
+    sort the results in descending order.
   - :pipeline:`$limit` stage to limit the output to ``5`` results.
-  - :pipeline:`$sort` stage to sort the titles in descending order.
-  
----
-ref: fts-sort-for-speed-constant-desc
-content: | 
-
-  The following query shows how to sort a numeric field to decrease the
-  time your query executes. It uses the :ref:`near-ref` operator to
-  search for movies that were released in and about five years before or
-  after 2015. 
-  
-  .. note::
-  
-     When you use ``pivot`` on a numeric field, its unit of measure is
-     equal to the data type of the ``path`` field. Since the query is on
-     the ``year`` field, and the unit of measure is in years, then 
-     ``pivot`` is also in years. To learn more, see :ref:`near-ref`.
+  - :pipeline:`$project` stage to exclude all fields except ``title``
+    and ``awards.wins``. 
 
 ---
-ref: fts-sort-for-speed-stage
+ref: fts-sort-by-date-constant-desc
 content: | 
 
-  The query uses the following pipeline stages:
-  
-  - :pipeline:`$search` stage to search the ``year`` field.
-  - :pipeline:`$limit` stage to limit the output to ``5`` results.
-  - :pipeline:`$project` stage to exclude all fields except ``_id``,
-    ``title``, ``released``, and ``year``.
-
-  .. note:: 
-
-     This method omits the :pipeline:`$sort` stage because
-     the :ref:`near-ref` operator automatically sorts the results in
-     ascending order based on ``_id`` field.
-
----
-ref: fts-sort-date-for-speed-constant-desc
-content: | 
-
-  The following query shows how to sort a date field to decrease the
-  time your query executes. It uses the following operators:
+  The following query shows how to run a :ref:`compound-ref` query and
+  sort the results by a date field. It uses the following operators:  
   
   - :ref:`wildcard-ref` operator to search for movie titles that begin
     with ``Summer``.
@@ -107,27 +70,22 @@ content: |
   
        When you use ``pivot`` on a date field, its unit of measure is
        in milliseconds. |fts| calculates a score for each document based
-       on how close the date field is to the specified date and then sorts
-       them in descending order based on their score. To learn more, see
-       :ref:`near-ref`.
+       on how close the date field is to the specified date. To learn
+       more, see :ref:`near-ref`.
 
 ---
-ref: fts-sort-date-for-speed-stage
+ref: fts-sort-by-date-stage
 content: | 
 
   The query uses the following pipeline stages:
   
-  - :pipeline:`$search` stage to search the ``title`` and ``released`` fields.
+  - :pipeline:`$search` stage to search the ``title`` and ``released``
+    fields and then sort the results by the ``released`` field in
+    descending order. 
   - :pipeline:`$limit` stage to limit the output to ``5`` results.
   - :pipeline:`$project` stage to:
     
-    - Exclude all fields except ``title``, and ``released``.
+    - Exclude all fields except ``title`` and ``released``.
     - Add a field named ``score``.
-
-  .. note:: 
-
-     This method omits the :pipeline:`$sort` stage because
-     the :ref:`near-ref` operator automatically sorts the results in
-     descending order based on ``score`` field.
 
 ...

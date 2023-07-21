@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,7 +11,7 @@ import (
 
 func main() {
 	// connect to your Atlas cluster
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string"))
+	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("<connection-string>"))
 	if err != nil {
 		panic(err)
 	}
@@ -25,26 +24,26 @@ func main() {
 	searchStage := bson.D{{"$search", bson.M{
 		"index": "sort-tutorial",
 		"compound": bson.M{
-			"filter": bson.A{
+			"should": bson.A{
 				bson.M{
 					"wildcard": bson.D{
 						{"path", "title"},
-						{"query", "Summer*"},
+						{"query", "Prance*"},
+						{"allowAnalyzedField", true},
+					}},
+				bson.M{
+					"wildcard": bson.D{
+						{"path", "title"},
+						{"query", "Prince*"},
+						{"allowAnalyzedField", true},
 					}},
 			},
-			"must": bson.A{
-				bson.M{
-					"near": bson.M{
-						"path":   "released",
-						"origin": time.Date(2014, time.April, 18, 0, 0, 0, 0, time.UTC),
-						"pivot":  13149000000}},
-			},
 		},
-		"sort": bson.D{{"released", -1}},
-	    }}}
+		"sort": bson.D{{"title", 1}},
+	}}}
 
 	limitStage := bson.D{{"$limit", 5}}
-	projectStage := bson.D{{"$project", bson.D{{"_id", 0}, {"title", 1}, {"released", 1}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
+	projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"_id", 0}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
 
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, limitStage, projectStage})
