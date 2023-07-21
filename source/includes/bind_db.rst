@@ -9,15 +9,6 @@
             :language: python
             :dedent: 0
 
-     - id: motor
-       content: |
-
-         To access the ``test`` database:
-
-         .. code-block:: python
-
-            db = client.test
-
      - id: go
        content: |
 
@@ -53,3 +44,12 @@
             :caption: CrudRead.cs
             :language: csharp
             :dedent: 0
+
+..     - id: motor
+         content: |
+
+           To access the ``test`` database:
+
+           .. code-block:: python
+
+              db = client.test

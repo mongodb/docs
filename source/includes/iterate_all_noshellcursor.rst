@@ -18,17 +18,6 @@
             :linenos:
             :dedent: 0
 
-     - id: motor
-       content: |
-
-         In the code snippet above you may have noticed the code that
-         iterates the results and prints them to the command line:
-
-         .. code-block:: python
-
-            async for doc in cursor:
-                print(doc)
-
      - id: java-sync
        content: |
 
@@ -67,3 +56,15 @@
             :language: csharp
             :dedent: 0
 
+.. 
+     - id: motor
+       content: |
+
+         In the code snippet above you may have noticed the code that
+         iterates the results and prints them to the command line:
+
+         .. code-block:: python
+
+            async for doc in cursor:
+                print(doc)
+                

@@ -53,13 +53,6 @@
                map[_id:ObjectID("621ff30d2a3e781873fcb65c") hasRings:false mainAtmosphere:[] name:Mercury orderFromSun:1 surfaceTemperatureC:map[max:427 mean:67 min:-173]]
                ...
 
-     - id: motor
-       content: |
-
-         .. code-block:: python
-
-            {'_id': ObjectId('5adb4ee0aea650d05134bf62'), 'item': 'canvas', 'qty': 100, 'tags': ['cotton'], 'size': {'h': 28, 'w': 35.5, 'uom': 'cm'}}
-
      - id: java-sync
        content: |
          Here is the complete code followed by sample output.
@@ -77,9 +70,6 @@
 
                {"_id": {"$oid": "621ff30d2a3e781873fcb65c"}, "name": "Mercury", "orderFromSun": 1, "hasRings": false, "mainAtmosphere": [], "surfaceTemperatureC": {"min": -173, "max": 427, "mean": 67}}
                ...
-
-
-
 
      - id: nodejs
        content: |
@@ -131,3 +121,14 @@
                  'surfaceTemperatureC': {'min': -173, 'max': 427, 'mean': 67}
                },
                ...
+
+..     
+     - id: motor
+       content: |
+
+         .. code-block:: python
+
+            {'_id': ObjectId('5adb4ee0aea650d05134bf62'), 'item':
+            'canvas', 'qty': 100, 'tags': ['cotton'], 'size': {'h': 28,
+            'w': 35.5, 'uom': 'cm'}}
+            
