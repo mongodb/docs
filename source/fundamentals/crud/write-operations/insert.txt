@@ -1,0 +1,308 @@
+.. _rust-insert-guide:
+
+================
+Insert Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to **insert** documents into a MongoDB
+collection.
+
+Before you can find, update, and delete any documents in MongoDB, you need
+to insert them. You can insert documents by using the following methods:
+
+- ``insert_one()`` to insert one document
+- ``insert_many()`` to insert one or more documents
+
+The _id Field
+-------------
+
+In MongoDB, each document *must* contain a unique ``_id`` field.
+MongoDB allows you to manage this field in the following ways:
+
+- Manage this field yourself, ensuring that each ``_id`` value you set
+  is unique. 
+- Let the driver automatically generate unique ``ObjectId`` values. The
+  driver generates a unique ``ObjectId`` value for each document if you do
+  not specify a value for the ``_id`` field when performing an insert.
+
+Unless you provide strong guarantees for uniqueness, we recommend that
+you let the driver automatically generate ``_id`` values for your
+documents.
+
+.. important:: Duplicate _id Values
+
+   If you attempt to perform a write operation that includes duplicate ``_id``
+   values, the duplicate values violate unique index constraints and cause
+   the write operation to fail.
+
+To learn more about the ``_id`` field, see :manual:`Unique Indexes
+</core/index-unique/>` in the Server manual.
+
+To learn more about document structure and rules, see
+:manual:`Documents </core/document>` in the Server manual.
+
+Insert a Document
+-----------------
+
+Use the ``insert_one()`` method to insert a single document into a
+collection.
+
+Upon successful insertion, the method returns an
+``InsertOneResult`` instance that contains the ``_id`` of the inserted
+document.
+
+Example
+~~~~~~~
+
+.. TODO decide if using structs in CRUD fundamentals
+
+The following example uses the ``insert_one()`` method to insert a
+document into the ``books`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/insert.rs
+      :start-after: begin-insert-one
+      :end-before: end-insert-one
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted document with _id: ObjectId("...")
+
+.. include:: /includes/fundamentals/automatic-creation.rst
+
+Modify insert_one Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``insert_one()`` method by
+constructing and passing an ``InsertOneOptions`` struct. The
+following table describes the options available in
+``InsertOneOptions``:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``bypass_document_validation``
+     - | If ``true``, allows the driver to perform a write that violates
+         document-level validation. To learn more about validation, see
+         :manual:`Schema Validation </core/schema-validation>` in the Server manual.
+
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``write_concern``
+     - | The write concern for the operation. To learn more about write
+         concerns, see :manual:`Write Concern
+         </reference/write-concern/>` in the Server manual.
+       
+       | Type: ``WriteConcern``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+    
+       | Type: ``Bson``
+
+The following code shows how to construct an ``InsertOneOptions``
+instance:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/insert.rs
+   :start-after: begin-one-options
+   :end-before: end-one-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+Insert Multiple Documents
+-------------------------
+
+Use the ``insert_many()`` method to insert multiple documents into a
+collection.
+
+Upon successful insertion, the method returns an
+``InsertManyResult`` instance that contains the ``_id`` values of the
+inserted documents.
+
+Example
+~~~~~~~
+
+.. TODO decide if using structs in CRUD fundamentals
+
+The following example uses the ``insert_many()`` method to insert
+multiple documents into the ``books`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/insert.rs
+      :start-after: begin-insert-many
+      :end-before: end-insert-many
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Inserted documents with _ids:
+      ObjectId("...")
+      ObjectId("...")
+      ObjectId("...")
+
+.. include:: /includes/fundamentals/automatic-creation.rst
+
+Modify insert_many Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``insert_many()`` method by
+constructing and passing an ``InsertManyOptions`` struct. The
+following table describes the options available in
+``InsertManyOptions``:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``bypass_document_validation``
+     - | If ``true``, allows the driver to perform a write that violates
+         document-level validation. To learn more about validation, see
+         :manual:`Schema Validation </core/schema-validation>` in the Server manual.
+
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``ordered``
+     - | If ``true``, when any insert fails, the operation returns
+         without inserting the remaining documents. If ``false``, even
+         if an insert fails, the operation continues with the remaining
+         writes. To learn more about ordered inserts, see the
+         :ref:`Ordered Behavior Example <rust-ordered-behavior>` section
+         of this guide.
+       
+       | Type: ``bool``
+       | Default: ``true``
+
+   * - ``write_concern``
+     - | The write concern for the operation. To learn more about write
+         concerns, see :manual:`Write Concern
+         </reference/write-concern/>` in the Server manual.
+       
+       | Type: ``WriteConcern``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+    
+       | Type: ``Bson``
+
+The following code shows how to construct an ``InsertManyOptions``
+instance:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/insert.rs
+   :start-after: begin-many-options
+   :end-before: end-many-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-ordered-behavior:
+
+Ordered Behavior Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Assume you want to insert the following documents into the ``books``
+collection:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 1, "title": "Where the Wild Things Are" }
+   { "_id": 2, "title": "The Very Hungry Caterpillar" }
+   { "_id": 1, "title": "Blueberries for Sal" }
+   { "_id": 3, "title": "Goodnight Moon" }
+
+When you attempt to insert these documents, the result depends on the
+value of the ``ordered`` option in your ``InsertManyOptions``:
+
+- If ``ordered`` is ``true`` (the default value), the driver throws a
+  ``BulkWriteError`` when it attempts to insert the document with the
+  duplicate ``_id`` value. However, the driver still inserts the
+  documents before the error occurs. 
+
+- If you set ``ordered`` to ``false``, the driver still throws a
+  ``BulkWriteError`` when it attempts to insert the document with the
+  duplicate ``_id`` value, but it inserts every other document.
+
+The following code shows how to perform an unordered write operation to
+insert the preceding documents:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/insert.rs
+   :start-after: begin-unordered
+   :end-before: end-unordered
+   :emphasize-lines: 8-9
+   :language: rust
+   :copyable:
+   :dedent:
+
+Even though this operation results in a ``BulkWriteError``, you can
+still find the non-error-producing documents in your collection:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": 1, "title": "Where the Wild Things Are" }
+   { "_id": 2, "title": "The Very Hungry Caterpillar" }
+   { "_id": 3, "title": "Goodnight Moon" }
+
+Additional Information
+----------------------
+
+.. TODO For runnable examples of the insert operations, see the following usage
+.. examples:
+
+.. TODO To learn more about performing the operations mentioned, see the
+.. following guides:
+.. 
+.. - :ref:`rust-query-guide`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `insert_one() <{+api+}/struct.Collection.html#method.insert_one>`__
+- `InsertOneResult <{+api+}/results/struct.InsertOneResult.html>`__
+- `InsertOneOptions <{+api+}/options/struct.InsertOneOptions.html>`__
+- `insert_many() <{+api+}/struct.Collection.html#method.insert_many>`__
+- `InsertManyResult <{+api+}/results/struct.InsertManyResult.html>`__
+- `InsertManyOptions <{+api+}/options/struct.InsertManyOptions.html>`__
+- `BulkWriteError <{+api+}/error/struct.BulkWriteError.html>`__
+- `BulkWriteFailure <{+api+}/error/struct.BulkWriteFailure.html>`__
