@@ -7,8 +7,9 @@ all :term:`shard key` values, and the configured :term:`chunk` size.
    These limits only apply for the initial sharding operation. Sharded
    collections can grow to *any* size after successfully enabling sharding.
 
-Use the following formulas to calculate the *theoretical* maximum
-collection size. 
+MongoDB distributes documents in the collection so that
+each chunk is half full at creation. Use the following formulas to
+calculate the *theoretical* maximum collection size. 
 
 .. code-block:: javascript
 
