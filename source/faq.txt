@@ -148,6 +148,35 @@ When ``MongoClient.close()`` is called by any thread, the driver
 closes all idle sockets and closes all sockets that are in
 use as they are returned to the pool.
 
+How do I prevent the "IllegalStateException: state should be: open" error?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You may encounter this exception if you call an operation on a ``MongoClient``
+instance that closed its connections to MongoDB. Once the ``close()`` method
+is called on the ``MongoClient``, any further operation calls on that instance
+throw this exception.
+
+To avoid this exception, do not call operations on ``MongoClient`` instance
+after any code that calls ``close()`` on it.
+
+.. tip::
+
+   The code that closes the ``MongoClient`` instance may be difficult to
+   locate in certain cases. To locate potential sources of this exception,
+   search for the following cases:
+
+   - Calls to ``close()`` on a ``MongoClient`` instance
+   - Operation calls on a ``MongoClient`` instance that are outside the scope
+     of the try-with-resources statement in which the ``MongoClient`` is
+     declared
+
+   If your application uses a framework to manage the ``MongoClient``
+   such as Spring Boot, check the documentation of the framework to locate the
+   best practices for managing the connection behavior.
+
+   To learn more about accessing MongoDB from Spring Boot, see
+   `Spring Boot and MongoDB <https://www.mongodb.com/compatibility/spring-boot>`__.
+
 POJOs
 -----
 
@@ -224,7 +253,7 @@ For example, the following methods throws an exception during encoding:
    public String setField(String x);
 
 How do I fix: "org.bson.codecs.configuration.CodecConfigurationException: Can't find a codec for class X."?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This exception means you need to register a codec for the class since
 there is none at the moment.
