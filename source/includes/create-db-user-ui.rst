@@ -52,3 +52,10 @@
      content: |
 
        .. include:: /includes/steps/create-oidc-user.rst
+
+   - id: ldap
+     name: LDAP
+     content: |
+
+       Follow the steps to :ref:`config-auth-ldap`, then follow the
+       steps to :ref:`add-db-user-group-ldap`.
