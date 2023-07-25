@@ -4,7 +4,7 @@
   </reference/read-concern-local/>`.  
 - ``available`` - to return data from an instance with no guarantee that
   the data has been written to a majority of the replica set members.
-  This can return :term:`orphaned documents <orphaned-document>` when
+  This can return :term:`orphaned documents <orphaned document>` when
   reading from a sharded collection. To learn more, see :manual:`Read
   Concern "available" </reference/read-concern-available/>`.  
 - ``majority`` - to return data that has been acknowledged by a
