@@ -25,8 +25,13 @@ a. Add the :setting:`spec.encryptionAtRest.googleCloudKms` object to
                     
       * - ``spec.encryptionAtRest.googleCloudKms.``
           ``serviceAccountKey``
-        - String-formatted |json| object containing {+gcp+} |kms|
+        - |json| object that contains the {+gcp+} |kms|
           credentials from your {+gcp+} account.
+
+          .. important::
+            
+             You must format the |json| object properly. Ensure you 
+             properly indent the credential fields within the YAML file.
 
 #. Run the following command:
 
@@ -43,5 +48,18 @@ a. Add the :setting:`spec.encryptionAtRest.googleCloudKms` object to
           googleCloudKms: 
             enabled: true
             keyVersionResourceID: "projects/my-project-common-0/locations/us-east4/keyRings/my-key-ring-0/cryptoKeys/my-key-0/cryptoKeyVersions/1"
-            serviceAccountKey: "{\"type\": \"service_account\",\"project_id\": \"my-project-common-0\",\"private_key_id\": \"e120598ea4f88249469fcdd75a9a785c1bb3\",\"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEuwIBA(truncated)SfecnS0mT94D9\\n-----END PRIVATE KEY-----\\n\",\"client_email\": \"my-email-kms-0@my-project-common-0.iam.gserviceaccount.com\",\"client_id\": \"10180967717292066\",\"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\"token_uri\": \"https://accounts.google.com/o/oauth2/token\",\"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/my-email-kms-0%40my-project-common-0.iam.gserviceaccount.com\"}"
+            serviceAccountKey: |
+              {
+                "type": "service_account",
+                "project_id": "my-project-common-0",
+                "private_key_id": "e120598ea4f88249469fcdd75a9a785c1bb3\",
+                "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEuwIBA(truncated)SfecnS0mT94D9\\n-----END PRIVATE KEY-----\\n\",
+                "client_email": "my-email-kms-0@my-project-common-0.iam.gserviceaccount.com\",
+                "client_id": "10180967717292066",
+                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                "token_uri": "https://accounts.google.com/o/oauth2/token",
+                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/my-email-kms-0%40my-project-common-0.iam.gserviceaccount.com"
+                "universe_domain": "googleapis.com"
+              }
       EOF
