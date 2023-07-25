@@ -5,6 +5,10 @@
 
 *Released 2023-07-06*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates the {+mdbagent+} to :ref:`12.0.24.7719
   <mongodb-12.0.24.7719>`.
 - Upgrades :mvn:`org.xerial.snappy:snappy-java
@@ -18,6 +22,10 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2023-06-15*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
 
 - Updates the {+mdbagent+} to :ref:`12.0.23.7711 <mongodb-12.0.23.7711>`.
 - Adds support for |bic-full| 2.14.7.
@@ -36,6 +44,10 @@
 ~~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2023-06-01*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
 
 - Updates the {+mdbagent+} to :ref:`12.0.22.7705 <mongodb-12.0.22.7705>`.
 - Updates ``org.bitbucket.b_c:jose4j`` version 0.7.10 to version 0.9.3 to address 
@@ -58,6 +70,10 @@
 
 *Released 2023-05-04*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates the {+mdbagent+} to :ref:`12.0.21.7698 
   <mongodb-12.0.21.7698>`.
 - Updates JDK to ``jdk-11.0.19+7``.
@@ -79,6 +95,10 @@
 
 *Released 2023-04-07*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates the {+mdbagent+} to :ref:`12.0.20.7686 
   <mongodb-12.0.20.7686>`.
 - Compatible with :db-tools:`MongoDB Database Tools 100.7.0
@@ -93,6 +113,10 @@
 ~~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2023-03-15*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
 
 - Updates the {+mdbagent+} to :ref:`12.0.19.7676 
   <mongodb-12.0.19.7676>`.
@@ -117,6 +141,10 @@
 
 *Released 2023-03-02*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates the {+mdbagent+} to :ref:`12.0.18.7668
   <mongodb-12.0.18.7668>`.
 - The {+mdbagent+} now compresses its own rotated logs.
@@ -133,6 +161,10 @@
 
 *Released 2023-02-02*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates the {+mdbagent+} to :ref:`12.0.17.7665
   <mongodb-12.0.17.7665>`.
 - Updates JDK to ``jdk-11.0.18+10``.
@@ -144,6 +176,10 @@
 
 *Released 2023-01-12*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates the {+mdbagent+} to :ref:`12.0.16.7656
   <mongodb-12.0.16.7656>`.
 - Reintroduces :ref:`Namespace Filtering for backups <namespaces-filter>`.
@@ -154,6 +190,10 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2022-12-01*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
 
 - Updates the {+mdbagent+} to :ref:`12.0.15.7646 
   <mongodb-12.0.15.7646>`.
@@ -172,6 +212,10 @@
 
 *Released 2022-11-08*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates the {+mdbagent+} to :ref:`12.0.14.7630 
   <mongodb-12.0.14.7630>`.
 - Updates JDK to ``jdk-11.0.17+8``.
@@ -188,6 +232,10 @@
 
 *Released 2022-10-20*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Updates ``commons-text`` to 1.10.0 to address 
   :cve-id:`CVE-2022-42889 <CVE-2022-42889>`.
 
@@ -197,6 +245,10 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2022-10-13*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
 
 - Updates the {+mdbagent+} to :ref:`12.0.12.7624 <mongodb-12.0.12.7624>`.
 - Compatible with :db-tools:`MongoDB Database Tools 100.6.0 
@@ -208,13 +260,16 @@
 - Fixes an issue where the :guilabel:`Project List` was overriden in the
   left navigation bar in the UI.
 
-
 .. _opsmgr-server-6.0.3:
 
 |onprem| Server 6.0.3
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2022-09-01*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
 
 - Moves the :guilabel:`User to Distinguished Name Mapping` field in
   :guilabel:`Security Settings` from the :guilabel:`LDAP Authorization`
@@ -236,6 +291,10 @@
 
 *Released 2022-08-04*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Removes spurious audit log rotation errors from the MongoDB Agent log 
   files and corrects file suffix handling.
 - Adds MongoDB 6.0.0 as a deployment option.
@@ -255,6 +314,10 @@
 
 *Released 2022-07-20*
 
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
 - Supports MongoDB 6.0 as a deployment option, but doesn't display 
   MongoDB 6.0.0 as an available deployment option by default. To 
   display MongoDB 6.0.0 as a deployment option, set  
@@ -271,6 +334,10 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 *Released 2022-07-19*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
 
 - Updates the {+mdbagent+} to :ref:`12.0.8.7575 <mongodb-12.0.8.7575>`.
 
