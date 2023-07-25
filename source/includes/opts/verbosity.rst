@@ -1,7 +1,7 @@
 .. reference/configuration.txt
 .. reference/mongosync.txt
 
-*Default*: ``INFO``
+*Default*: ``DEBUG``
 
 Sets the verbosity level to use in log messages.
 {+c2c-product-name+} logs all messages at the specified level and
