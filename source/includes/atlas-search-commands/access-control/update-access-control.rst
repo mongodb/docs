@@ -12,13 +12,13 @@ action on the database or collection:
       actions: [ "updateSearchIndex" ]
    }
 
-The built-in :authrole:`dbAdmin` and :authrole:`restore` roles provide
+The built-in :authrole:`readWrite` and :authrole:`restore` roles provide
 the ``updateSearchIndex`` privilege. The following example grants the
-``restore`` role on the ``admin`` database:
+``readWrite`` role on the ``qa`` database:
 
 .. code-block:: javascript
 
    db.grantRolesToUser(
       "<user>",
-      [ { role: "restore", db: "admin" } ]
+      [ { role: "readWrite", db: "qa" } ]
    )
