@@ -1,4 +1,4 @@
-You can enable this setting only if your |service| project contains no replica sets.
+You can enable this setting only if your |service| project contains no non-sharded replica sets.
 
 You can't disable this setting if you have: 
 
