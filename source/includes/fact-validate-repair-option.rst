@@ -17,14 +17,13 @@ The repair fixes these issues:
 - If extra index entries are found, the extra keys are removed from the
   index.
 
-- If :doc:`multikey </core/index-multikey>` documents are found for an
-  index that is not a :doc:`multikey </core/index-multikey>` index, the
-  index is changed to a :doc:`multikey </core/index-multikey>` index.
+- If :ref:`multikey <index-type-multikey>` documents are found for an
+  index that is not a multikey index, the index is changed to a multikey
+  index.
 
-- If :doc:`multikey </core/index-multikey>` documents are found that are
-  not specified by an index's :doc:`multikey </core/index-multikey>`
-  paths, the index's :doc:`multikey </core/index-multikey>` paths are
-  updated.
+- If :ref:`multikey <index-type-multikey>` documents are found that are
+  not specified by an index's multikey paths, the index's multikey paths
+  are updated.
 
 - If corrupt documents with invalid BSON data are found, the documents
   are removed.

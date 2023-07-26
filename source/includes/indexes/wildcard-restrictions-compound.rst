@@ -1,16 +1,18 @@
-- A :ref:`compound wildcard index <wildcard-index-compound>` can only
-  have one wildcard term.
+:ref:`Compound wildcard indexes <wildcard-index-compound>` have the
+following restrictions:
 
-  This is an illegal index specification:
+- A compound wildcard index can only have one wildcard term.
+
+  For example, you cannot specify the following index:
 
   .. code-block:: javascript
-    :copyable: false
+     :copyable: false
 
-     { userID: 1, “someThings.$**”: 1, “otherThings.$**”: 1 }
+     { userID: 1, "object1.$**": 1, "object2.$**": 1 }
 
 
 - The non-wildcard terms in a ``compound wildcard index`` must be single
-  key terms. :ref:`Multi-key <index-type-multikey>` index terms are not
+  key terms. :ref:`Multikey <index-type-multikey>` index terms are not
   permitted.
 
 - The ``wildcardProjection`` option is only valid when the wildcard
@@ -51,7 +53,6 @@
   - Use a ``wildcardProjection``
   - Specify the ``_id`` field
 
-
   .. code-block:: javascript
    
      db.studentGrades.createIndex(
@@ -67,7 +68,7 @@
         }
      )
 
-- The same field cannot be included in the wildcard fields and the
+- You cannot include the same field in the wildcard fields and the
   regular fields. You can use a ``wildcardProjection`` to exclude fields
   from the wildcard pattern.
 
@@ -86,5 +87,4 @@
            }
         }
      )
-
      
