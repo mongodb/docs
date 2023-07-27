@@ -1,22 +1,23 @@
-- The live migration process may not be able to keep up with a source
-  {+cluster+} whose write workload is greater than what can be transferred
-  and applied to the destination cluster. You may need to scale up the
-  destination {+cluster+} to a tier with more processing power, bandwidth,
-  or disk IO.
+- The destination {+cluster+} in |service| must match or exceed the source
+  deployment in terms of RAM, CPU, and storage. Provision a destination
+  {+cluster+} of an adequate size so that it can accommodate both the
+  migration process and the expected workload, or :ref:`scale up <scale-cluster-open-dialog>`
+  the destination {+cluster+} to a tier with more processing power, bandwidth or disk IO.
 
-  To maximize migration performance, use a higher instance size and disk
-  configuration on the destination {+cluster+}:
+- To maximize migration performance, use at least an M40 {+cluster+} for the
+  destination {+cluster+}. When migrating large data sets, use an M80 
+  {+cluster+} with 6000 IOPS disks or higher.
 
-  - :ref:`Scale up <scale-cluster-open-dialog>` the destination {+cluster+}
-    to a tier with more processing power, bandwidth or disk IO.
+  You can also choose to temporarily increase the destination |service|
+  {+cluster+}'s size for the duration of the migration process. Once you
+  migrate your application's workload to a {+cluster+} in |service|,
+  :ref:`contact support <request-support>` for assistance with further
+  performance tuning and sizing of your destination {+cluster+} to minimize costs.
 
-  - For the best migration experience, use at least an M40 {+cluster+}.
-    When migrating large data sets, use M80 with 6000 IOPS disks or higher.
+- To avoid unexpected sizing changes, disable auto-scaling on the destination
+  {+cluster+}. To learn more, see :ref:`manage-clusters`.
 
-  - To prevent unbounded growth of the oplog collection,
-    :ref:`set a fixed oplog size <set-fixed-oplog-size>` for the duration
-    of the live migration process.
-
-  - To learn more, see :ref:`scale-cluster-open-dialog`
-    and :ref:`cluster-config-options`. If you are observing performance issues even after you've followed
-    these recommendations, :ref:`contact support <request-support>`.
+- To prevent unbounded growth of the oplog collection, :ref:`set a fixed oplog size <set-fixed-oplog-size>`
+  for the duration of the live migration process. To learn more, see :ref:`scale-cluster-open-dialog`
+  and :ref:`cluster-config-options`. If you are observing performance issues
+  even after you've followed these recommendations, :ref:`contact support <request-support>`.
