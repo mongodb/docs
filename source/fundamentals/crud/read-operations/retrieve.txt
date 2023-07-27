@@ -1,0 +1,401 @@
+.. _rust-retrieve-guide:
+
+=============
+Retrieve Data
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to retrieve data from your MongoDB
+collections using **read operations**. Read operations are commands that
+retrieve documents from the server.
+
+There are two types of read operations:
+
+- Find operations, which allow you to retrieve documents from your collections
+- Aggregation operations, which allow you to transform the data in your collections
+
+This guide includes the following sections:
+
+- :ref:`Sample Data for Examples <rust-retrieve-sample-data>`: presents
+  the sample data that is used by the read operation examples
+
+- :ref:`Find Operations <rust-retrieve-find>`: describes how to use the
+  driver to execute find operations
+
+- :ref:`Aggregation Operations <rust-retrieve-aggregation>`: describes how to use the
+  driver to execute aggregation operations
+
+- :ref:`Additional Information <rust-crud-retrieve-addtl-info>`:
+  provides links to additional resources and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-retrieve-sample-data:
+
+Sample Data for Examples
+------------------------
+
+.. TODO decide on structs in crud
+
+The examples in this guide use the following sample documents. Each
+document represents an item in a store's inventory and contains
+information about its categorization and unit price:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "item": "candle", "category": "decor", "unit_price": 2.89 },
+   { "item": "blender", "category": "kitchen", "unit_price": 38.49 },
+   { "item": "placemat", "category": "kitchen", "unit_price": 3.19 },
+   { "item": "watering can", "category": "garden", "unit_price": 11.99 }
+
+.. _rust-retrieve-find:
+
+Find Operations
+---------------
+
+Use **find operations** to retrieve data from MongoDB. Find operations
+consist of the ``find()`` and ``find_one()`` methods.
+
+Find All Matching Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To find *all of the documents* that match your criteria, use the
+``find()`` method. This method takes a query filter as a parameter. A
+query filter consists of the fields and values that form criteria for
+documents to match.
+
+The method returns a ``Cursor`` type that you can iterate through to
+retrieve any documents that match the filter criteria.
+
+To see an example that uses this method to retrieve data, see
+the :ref:`find() example <rust-find-example>`.
+
+.. TODO To learn about query filters, see :ref:`Specify a Query <...>`.
+.. TODO To learn how to access data from a cursor, see :ref:`rust-cursor-guide`.
+
+Find One Document
+~~~~~~~~~~~~~~~~~
+
+To find *the first document* that matches your criteria, use the
+``find_one()`` method. This method takes a query filter as a parameter. A
+query filter consists of the fields and values that form criteria for
+documents to match.
+
+If a document matches the filter criteria, the method returns a ``Some``
+type. If it does not match any documents, it returns a ``None`` type.
+
+To see an example that uses this method to retrieve data, see
+the :ref:`find_one() example <rust-find-one-example>`.
+
+.. _rust-retrieve-options:
+
+Modify Find Behavior
+~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``find()`` by passing
+a ``FindOptions`` instance as a parameter, and you can modify the
+behavior of ``find_one()`` by passing a ``FindOneOptions`` instance.
+
+To use default values for each setting, specify the value ``None`` as
+the options parameter.
+
+The following table describes commonly used settings that you can specify in
+``FindOptions`` and ``FindOneOptions``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``collation`` 
+     - | The collation to use when sorting results.
+       | Default: ``nil``
+
+   * - ``hint`` 
+     - | The index to use for the operation. To learn more about
+         indexes, see :manual:`Indexes </indexes/>` in the Server
+         manual.
+       | Default: ``nil``
+
+   * - ``projection`` 
+     - | The projection to use when returning results.
+       | Default: ``nil``
+
+   * - ``read_concern`` 
+     - | The read concern to use for the find operation. If you don't
+         set a read concern, the operation inherits the one set for the
+         collection. To learn more about read concerns, see
+         :manual:`Read Concern </reference/read-concern/>`
+         in the Server manual.
+
+   * - ``skip`` 
+     - | The number of documents to skip when returning results.  
+       | Default: ``nil``
+
+   * - ``sort`` 
+     - | The sort to use when returning results. By default, the driver
+         returns documents in their natural order, or as they appear in
+         the database. To learn more, see :manual:`natural order </reference/glossary/#std-term-natural-order>`
+         in the Server manual glossary.
+       | Default: ``nil``
+
+.. TODO link to projection fundamentals page under projection setting
+.. TODO link to collation fundamentals page under collations setting
+.. TODO link to skip fundamentals page under skip setting
+.. TODO link to sort fundamentals page under sort setting
+
+.. note:: Instantiating Options
+   
+   The {+driver-short+} implements the Builder design pattern for the
+   creation of many different types, such as ``FindOneOptions`` or
+   ``FindOptions``. You can use each type's ``builder()`` method to
+   construct an options instance by chaining option builder functions
+   one at a time.
+
+For a full list of settings you can specify for each type, see the API
+documentation for `FindOptions
+<{+api+}/options/struct.FindOptions.html>`__ and `FindOneOptions
+<{+api+}/options/struct.FindOneOptions.html>`__.
+
+Examples
+~~~~~~~~
+
+The following sections contain examples that use the ``find()`` and
+``findOne()`` methods to retrieve sample documents that match filter
+criteria.
+
+.. _rust-find-example:
+
+find() Example
+``````````````
+
+This example shows how to call the ``find()`` method with the
+following parameters:
+
+- A query filter that matches documents where the value of ``unit_price``
+  is less than ``12.00`` and the value of ``category`` is not ``"kitchen"``
+- A ``FindOptions`` instance that sorts matched documents by
+  ``unit_price`` in descending order
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/retrieve.rs
+      :start-after: begin-find-many
+      :end-before: end-find-many
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      { 
+        "_id": { ... },
+        "item": "watering can",
+        "category": "garden",
+        "unit_price": 11.99
+      }
+      {
+        "_id": { ... },
+        "item": "candle",
+        "category": "decor",
+        "unit_price": 2.89
+      }
+
+.. _rust-find-one-example:
+
+find_one() Example
+``````````````````
+
+This example shows how to call the ``find_one()`` method with the
+following parameters:
+
+- A query filter that matches documents where the value of ``unit_price``
+  is less than or equal to ``20.00``
+- A ``FindOneOptions`` instance that skips the first two matched documents
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/retrieve.rs
+      :start-after: begin-find-one
+      :end-before: end-find-one
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      {
+        "_id": { ... },
+        "item": "watering can",
+        "category": "garden",
+        "unit_price": 11.99
+      }
+
+.. _rust-retrieve-aggregation:
+
+Aggregation Operations
+----------------------
+
+Use **aggregation operations** to retrieve and transform data from your
+collections. You can perform aggregation operations by using the ``aggregate()``
+method.
+
+Aggregate Document Data
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``aggregate()`` method takes an **aggregation pipeline** as a
+parameter. An aggregation pipeline includes one or more **stages** that
+specify how to transform data. A stage includes an aggregation operator
+(prefixed with a ``$``) and any required parameters for that operator.
+
+.. TODO To learn more about aggregation, see the
+.. :ref:`Aggregation <rust-aggregation>` guide.
+
+The method returns the resulting documents in a ``Cursor`` type. If
+your aggregation pipeline does not contain a :manual:`$match
+</reference/operator/aggregation/match/>` stage, the pipeline processes
+all of the documents in the collection.
+
+.. TODO To learn how to access data from a cursor, see :ref:`rust-cursor-guide`.
+
+Modify Aggregation Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of ``aggregate()`` by passing
+an ``AggregateOptions`` instance as an optional parameter.
+
+To use default values for each setting, specify the value ``None`` as
+the options parameter.
+
+The following table describes commonly used settings that you can specify in
+``AggregateOptions``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``allow_disk_use`` 
+     - | Enables writing to temporary files. If ``true``,
+         aggregation stages can write data to the ``_tmp`` subdirectory in the
+         ``dbPath`` directory.
+
+       | Default: ``false``
+
+   * - ``batch_size`` 
+     - The number of documents the server should return in each cursor batch.
+
+   * - ``collation``
+     - | The collation to use when sorting results.
+       | Default: ``nil``
+
+   * - ``hint`` 
+     - | The index to use for the operation. To learn more about
+         indexes, see :manual:`Indexes </indexes/>` in the Server
+         manual.
+       | Default: ``nil``
+
+   * - ``read_concern`` 
+     - | The read concern to use for the find operation. If you don't
+         set a read concern, the operation inherits the one set for the
+         collection. To learn more about read concerns, see
+         :manual:`Read Concern </reference/read-concern/>`
+         in the Server manual.
+
+   * - ``write_concern`` 
+     - | The write concern to use for the find operation. If you don't
+         set a write concern, the operation inherits the one set for the
+         collection. To learn more about write concerns, see
+         :manual:`Write Concern </reference/write-concern/>`
+         in the Server manual.
+
+.. TODO link to collation fundamentals page under collations setting
+
+For a full list of settings, see the API
+documentation for `AggregateOptions <{+api+}/options/struct.AggregateOptions.html>`__.
+
+Example
+~~~~~~~
+
+This example shows how to call the ``aggregate()`` method with a
+pipeline that contains the following stages:
+
+- A ``$group`` stage to group documents by the ``category`` field and
+  calculate the average of the ``unit_price`` field by ``category``
+- A ``$sort`` stage to by ``avg_price`` in ascending order
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/retrieve.rs
+      :start-after: begin-agg
+      :end-before: end-agg
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      {
+        "_id": { "category": "garden" },
+        "avg_price": 11.99
+      }
+      {
+        "_id": { "category": "decor" },
+        "avg_price": 2.89
+      }
+      {
+        "_id": { "category": "kitchen" },
+        "avg_price": 20.84
+      }
+
+.. _rust-crud-retrieve-addtl-info:
+
+Additional Information
+----------------------
+
+.. TODO For runnable examples of the find operations, see the following usage
+.. examples:
+.. 
+.. - :ref:`rust-find-one`
+.. - :ref:`rust-find-multiple`
+
+.. TODO To learn more about the operations mentioned, see the following
+.. guides:
+.. 
+.. - :ref:`rust-query-guide`
+.. - :ref:`rust-cursor-guide`
+.. - :ref:`rust-skip-guide`
+.. - :ref:`rust-sort-guide`
+.. - :ref:`rust-limit-guide`
+.. - :ref:`rust-project-guide`
+.. - :ref:`rust-aggregation-guide`
+.. - :ref:`rust-collations-guide`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types discussed in this
+guide, see the following API Documentation:
+
+- `find_one() <{+api+}/struct.Collection.html#method.find_one>`__
+- `find() <{+api+}/struct.Collection.html#method.find>`__
+- `FindOptions <{+api+}/options/struct.FindOptions.html>`__
+- `FindOneOptions <{+api+}/options/struct.FindOneOptions.html>`__
+- `Cursor <{+api+}/struct.Cursor.html>`__
+- `aggregate() <{+api+}/struct.Collection.html#method.aggregate>`__
+- `AggregateOptions <{+api+}/options/struct.AggregateOptions.html>`__
