@@ -1,0 +1,429 @@
+.. _rust-change-guide:
+
+================
+Modify Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to modify documents in MongoDB by using
+**update** and **replace** operations.
+
+Update operations change the fields that you specify while leaving other
+fields and values unchanged. Replace operations remove all existing
+fields of a document except for the ``_id`` field and substitute the
+removed fields with new fields and values.
+
+In MongoDB, all methods to change documents follow the same pattern:
+
+.. figure:: /includes/figures/change_diagram.png
+   :alt: changeX() method signature
+
+.. note::
+
+   ``changeX()`` is a placeholder and not a real method.
+
+These methods take the following parameters:
+
+- A query filter to match one or more documents to change
+- An update document that specifies the field and value changes
+-  *(Optional)* An options type to modify the default behavior of the method
+
+The {+driver-short+} provides the following methods to change documents:
+
+- ``update_one()``
+- ``update_many()``
+- ``replace_one()``
+
+.. TODO link to compound operations - You can retrieve and modify data
+.. in one step using compound operations. To learn more, see ...
+
+The _id Field
+~~~~~~~~~~~~~
+
+Each document in a MongoDB collection has a unique and immutable ``_id``
+field. If you attempt to change the ``_id`` field through an update or
+replace operation, the driver raises a ``WriteError`` and performs no
+updates.
+
+.. _rust-update-documents:
+
+Update Documents
+----------------
+
+You can perform update operations with the following methods:
+
+- ``update_one()``, which updates the first document that matches the
+  search criteria
+- ``update_many()``, which updates all documents that match the search
+  criteria
+
+Parameters
+~~~~~~~~~~
+
+Each method takes a query filter and an **update document** that
+includes at least one **update operator**. The update operator
+specifies the type of update to perform and includes the fields and
+values that describe the change. Update documents use the following format:
+
+.. code-block:: rust
+
+   doc! { "<update operator>": doc! { "<field>": <value> } }
+
+To specify multiple updates in one update document, use the following
+format:
+
+.. code-block:: rust
+
+   doc! {
+       "<update operator>": doc!{"<field>": <value>},
+       "<update operator>": doc!{"<field>": <value>},
+       ...
+   }
+
+See the MongoDB server manual for a :manual:`complete list of update operators
+and descriptions </reference/operator/update-field/>`.
+
+.. note:: Aggregation Pipelines in Update Operations
+
+   If you are using MongoDB Server version 4.2 or later, you can use aggregation
+   pipelines in update operations. To learn more about the aggregation
+   stages MongoDB supports in aggregation pipelines, see our tutorial on performing
+   :manual:`updates with aggregation pipelines
+   </tutorial/update-documents-with-aggregation-pipeline/>`.
+
+Update operations also take an ``UpdateOptions`` parameter. To learn
+about modifying the behavior of the update methods, see the :ref:`Modify
+Update and Replace Behavior <rust-update-options>` section of this guide.
+
+Return Value
+~~~~~~~~~~~~
+
+The ``update_one()`` and ``update_many()`` methods return an
+``UpdateResult`` type if the operation is successful. The
+``UpdateResult`` type contains the following properties that describe
+the operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``matched_count``
+     - The number of documents matched by the filter
+
+   * - ``modified_count``
+     - The number of documents modified by the operation
+
+   * - ``upserted_id`` 
+     - The ``_id`` of the upserted document, or ``nil`` if there is none
+
+If multiple documents match the query filter you pass to ``UpdateOne()``,
+the method selects and updates the first matched document. If no
+documents match the query filter, the update operation makes no
+changes.
+
+.. TODO See our :ref:`upsert guide <rust-upsert-guide>`
+.. to learn how to insert a new document if no documents match the query filter.
+
+.. _rust-update-example:
+
+Update Example
+~~~~~~~~~~~~~~
+
+The following documents describe employees of a company:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": { ... },
+     "name": "Shelley Olson",
+     "department": "Marketing",
+     "role": "Director",
+     "bonus": 3000
+   },
+   {
+     "_id": { ... },
+     "name": "Remi Ibrahim",
+     "department": "Marketing",
+     "role": "Consultant",
+     "bonus": 1800
+   }
+
+This example performs an update operation with the
+``update_many()`` method. The method has the following parameters:
+
+- A query filter to match documents where the value of the
+  ``department`` field is ``"Marketing"``
+
+- An update document that contains the following updates:
+  
+  - A ``$set`` operator to change the value of ``department`` to
+    ``"Business Operations"`` and ``role`` to ``"Analytics Specialist"``
+  
+  - An ``$inc`` operator to increase the value of ``bonus`` by ``500``
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/change.rs
+      :start-after: begin-update
+      :end-before: end-update
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Modified 2 document(s)
+
+The following shows the updated documents resulting from the preceding update operation:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": { ... },
+     "name": "Shelley Olson",
+     "department": "Business Operations",
+     "role": "Analytics Specialist",
+     "bonus": 3500
+   },
+   {
+     "_id": { ... },
+     "name": "Remi Ibrahim",
+     "department": "Business Operations",
+     "role": "Analytics Specialist",
+     "bonus": 2300
+   }
+
+.. _rust-replace-document:
+
+Replace a Document
+------------------
+
+You can perform a replace operation with the ``replace_one()`` method.
+This method replaces all existing fields of a document except for the ``_id``
+field with new fields and values that you specify.
+
+Parameters
+~~~~~~~~~~
+
+The ``replace_one()`` method takes a query filter and a **replacement
+document**, which contains the fields and values that will replace an
+existing document. Replacement documents use the following format:
+
+.. code-block:: rust
+
+   doc! { "<field>": <value>, "<field>": <value>, ... }
+
+Replace operations also take an ``UpdateOptions`` parameter. To learn
+about modifying the behavior of the ``replace_one()`` method, see the :ref:`Modify
+Update and Replace Behavior <rust-update-options>` section of this guide.
+
+Return Values
+~~~~~~~~~~~~~
+
+The ``replace_one`` method returns an
+``UpdateResult`` type if the operation is successful. The
+``UpdateResult`` type contains the following properties that describe
+the operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``matched_count``
+     - The number of documents matched by the filter
+
+   * - ``modified_count``
+     - The number of documents modified by the operation
+
+   * - ``upserted_id`` 
+     - The ``_id`` of the upserted document, or ``nil`` if there is none
+
+If multiple documents match the query filter you pass to ``replace_one()``,
+the method selects and replaces the first matched document. If no
+documents match the query filter, the replace operation makes no
+changes.
+
+.. _rust-replace-example:
+
+Replace Example
+~~~~~~~~~~~~~~~
+
+The following document describes an employee of a company:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": 4501,
+     "name": "Matt DeGuy",
+     "role": "Consultant",
+     "team_members": [ "Jill Gillison", "Susan Lee" ]
+   }
+
+This example uses the ``replace_one()`` method to replace
+the preceding document with one that has the following fields:
+
+- A ``name`` value of ``"Susan Lee"``
+- A ``role`` value of ``"Lead Consultant"``
+- A ``team_members`` value of ``[ "Jill Gillison" ]``
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/change.rs
+      :start-after: begin-replace
+      :end-before: end-replace
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Matched 1 document(s)
+      Modified 1 document(s)
+
+The replaced document contains the contents of the replacement document
+and the immutable ``_id`` field:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": 4501,
+     "name": "Susan Lee",
+     "role": "Lead Consultant",
+     "team_members": [ "Jill Gillison" ]
+   }
+
+.. _rust-update-options:
+
+Modify Update and Replace Behavior
+----------------------------------
+
+You can modify the behavior of the ``update_one()``, ``update_many``,
+and ``replace_one()`` methods by constructing and passing an
+``UpdateOptions`` struct as a parameter. The following table describes
+the options available in ``UpdateOptions``:
+
+.. list-table::
+   :header-rows: 1
+   :class: compatibility-large
+
+   * - Option
+     - Description
+
+   * - ``array_filters``
+     - | Filters specifying to which array elements an update
+         should apply to.
+       
+       | Type: ``Vec<Document>``
+
+   * - ``bypass_document_validation``
+     - | If ``true``, allows the driver to perform a write that violates
+         document-level validation. To learn more about validation, see
+         :manual:`Schema Validation </core/schema-validation>` in the Server manual.
+
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``upsert``
+     - | If true, the operation inserts a document if no documents match
+         the query filter.
+       
+       | Type: ``bool``
+
+   * - ``collation`` 
+     - | The collation to use when sorting results.
+       | Type: ``Collation``
+       | Default: ``nil``
+
+   * - ``hint`` 
+     - | The index to use for the operation. This option is available
+         only when connecting to {+server+} versions 4.2 and later.
+       | Type: ``Hint``
+       | Default: ``nil``
+
+   * - ``write_concern``
+     - | The write concern for the operation. To learn more about write
+         concerns, see :manual:`Write Concern
+         </reference/write-concern/>` in the Server manual.
+       
+       | Type: ``WriteConcern``
+
+   * - ``let_vars``
+     - | A map of parameters and values. These parameters can be accessed
+         as variables in aggregation expressions. This option is available
+         only when connecting to {+server+} versions 5.0 and later.
+       
+       | Type: ``Document``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       | Type: ``Bson``
+
+.. TODO add links to guides for relevant options
+
+The following code shows how to construct an ``UpdateOptions``
+instance and pass it to the ``update_one()`` method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/change.rs
+   :start-after: begin-options
+   :end-before: end-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+Additional Information
+----------------------
+
+.. TODO For runnable examples of the update and replace operations, see the
+.. following usage examples:
+.. 
+.. - :ref:`rust-update-one`
+.. - :ref:`rust-update-many`
+.. - :ref:`rust-replace`
+
+To learn more about the concepts mentioned, see the following
+guides:
+
+- :manual:`Update Operators </reference/operator/update/#update-operators>`
+
+.. - :ref:`rust-query-document`
+.. - :ref:`rust-upsert`
+.. - :ref:`rust-compound-operations`
+
+.. TODO To learn more about updating array elements, see :ref:`rust-update-arrays`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API Documentation:
+
+- `update_one() <{+api+}/struct.Collection.html#method.update_one>`__
+- `update_many() <{+api+}/struct.Collection.html#method.update_many>`__
+- `UpdateResult <{+api+}/results/struct.UpdateResult.html>`__
+- `UpdateOptions <{+api+}/options/struct.UpdateOptions.html>`__
+- `replace_one() <{+api+}/struct.Collection.html#method.replace_one>`__
+- `ReplaceOptions <{+api+}/options/struct.ReplaceOptions.html>`__
+- `WriteError <{+api+}/error/struct.WriteError.html>`__
