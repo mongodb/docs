@@ -57,5 +57,5 @@
    :binary:`~bin.mongosqld` with :option:`--schemaName <mongosqld --schemaName>`.
    If you don't give a custom name to the schema that you upload, the schema
    name defaults to ``defaultSchema``. This results in an error from
-   :binary:`~bin.mongosqld`, similar to the following: ``MongoDB schema not yet available``.
+   :binary:`~bin.mongosqld` similar to the following: ``MongoDB schema not yet available``.
 
