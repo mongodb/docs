@@ -36,7 +36,7 @@
    
       5d793f3f6a26a3ce66c304ea
 
-   The next step is to name the schema, using the :commandoption:`Name <name-schema>` option:
+   The next step is to name the schema, using the :commandoption:`name-schema <name-schema>` command:
 
    .. code-block:: sh
    
@@ -53,7 +53,7 @@
       mongosqld --schemaMode custom --schemaSource <schema-db> --schemaName movies
    
    If you upload a custom schema, you must give it a name with
-   :commandoption:`Name <name-schema>` and then specify this name to the
+   :commandoption:`name-schema <name-schema>` and then specify this name to the
    :binary:`~bin.mongosqld` with :option:`--schemaName <mongosqld --schemaName>`.
    If you don't give a custom name to the schema that you upload, the schema
    name defaults to ``defaultSchema``. This results in an error from
