@@ -13,16 +13,13 @@ returned by the ``USER_ROLES`` system variable.
 
 .. note::
 
-   Another possible ``USER_ROLES`` example scenario: you could store
-   medical diagnosis and insurance data in a collection. You could then
-   use ``USER_ROLES`` in an aggregation pipeline to transform the data
-   so that the diagnosis data can only be viewed by a user with a
-   provider role and the insurance data can only be viewed by a user
-   with a billing role. You don't have to include those user roles in
-   document fields to use ``USER_ROLES``.
+   For another ``USER_ROLES`` example scenario, see
+   :ref:`create-view-user-roles-system-variable-medical-example`. That
+   example doesn't store the user roles in the document fields, as is
+   done in the following example.
 
 For the budget scenario in this section, perform the following steps to
-create the required roles, users, and ``budget`` collection:
+create the roles, users, and ``budget`` collection:
 
 .. procedure::
    :style: normal

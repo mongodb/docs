@@ -202,10 +202,225 @@ lowercase letters.
      { sID: 17301, name: 'harley', year: 6, score: 3.1 }
    ]
 
+.. _create-view-user-roles-system-variable-medical-example:
+
+Retrieve Medical Information for Roles Granted to the Current User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.0, you can use the new :variable:`USER_ROLES`
+system variable to return user :ref:`roles <roles>`.
+
+The example in this section shows users with limited access to fields in
+a collection containing medical information. The example uses a view
+that reads the current user roles from the ``USER_ROLES`` system
+variable and hides fields based on the roles.
+
+The example creates these users:
+
+- ``James`` with a ``Billing`` role who can access a ``creditCard``
+  field.
+- ``Michelle`` with a ``Provider`` role who can access a
+  ``diagnosisCode`` field.
+
+Perform the following steps to create the roles, users, collection, and
+view:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the roles
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.createRole( { role: "Billing", privileges: [ { resource: { db: "test",
+            collection: "medicalView" }, actions: [ "find" ] } ], roles: [ ] } )
+         db.createRole( { role: "Provider", privileges: [ { resource: { db: "test",
+            collection: "medicalView" }, actions: [ "find" ] } ], roles: [ ] } )
+
+   .. step:: Create the users
+
+      Create users named ``James`` and ``Michelle`` with the required
+      roles. Replace the ``test`` database with your database name.
+
+      .. code-block:: javascript
+
+         db.createUser( {
+            user: "James",
+            pwd: "js008",
+            roles: [
+               { role: "Billing", db: "test" }
+            ]
+         } )
+
+         db.createUser( {
+            user: "Michelle",
+            pwd: "me009",
+            roles: [
+               { role: "Provider", db: "test" }
+            ]
+         } )
+
+   .. step:: Create the collection
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.medical.insertMany( [
+            {
+               _id: 0,
+               patientName: "Jack Jones",
+               diagnosisCode: "CAS 17",
+               creditCard: "1234-5678-9012-3456"
+            },
+            {
+               _id: 1,
+               patientName: "Mary Smith",
+               diagnosisCode: "ACH 01",
+               creditCard: "6541-7534-9637-3456"
+            }
+         ] )
+
+   .. step:: Create the view
+
+      .. include:: /includes/user-roles-system-variable-example-description-start.rst
+
+      The view reads the current user roles from the ``USER_ROLES``
+      system variable and hides fields based on the roles.
+
+      Run:
+
+      .. code-block:: javascript
+         :emphasize-lines: 8, 20
+
+         db.createView(
+            "medicalView", "medical",
+            [ {
+               $set: {
+                  "diagnosisCode": {
+                     $cond: {
+                        if: { $in: [
+                           "Provider", "$$USER_ROLES.role"
+                        ] },
+                        then: "$diagnosisCode",
+                        else: "$$REMOVE"
+                     }
+               }
+            },
+            }, {
+               $set: {
+                  "creditCard": {
+                     $cond: {
+                        if: { $in: [
+                           "Billing", "$$USER_ROLES.role"
+                        ] },
+                        then: "$creditCard",
+                        else: "$$REMOVE"
+                     }
+                  }
+               }
+            } ]
+         )
+
+      The view example:
+      
+      - includes the ``diagnosisCode`` field for a user with the
+        ``Provider`` role.
+      - includes the ``creditCard`` field for a user with the
+        ``Billing`` role.
+      - uses :pipeline:`$set` pipeline stages and :variable:`$$REMOVE
+        <REMOVE>` to hide fields based on whether the user who queries
+        the view has the matching role returned in
+        ``$$USER_ROLES.role``.
+
+Perform the following steps to retrieve the information accessible to
+``James``:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Log in as James
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.auth( "James", "js008" )
+
+   .. step:: Retrieve the documents
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.medicalView.find()
+
+   .. step:: Examine the documents
+
+      ``James`` has the ``Billing`` role and sees the following
+      documents, which include the ``creditCard`` field but not the
+      ``diagnosisCode`` field:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 4, 8
+
+         [
+            {
+               _id: 0, patientName: 'Jack Jones',
+               creditCard: '1234-5678-9012-3456'
+            },
+            {
+               _id: 1, patientName: 'Mary Smith',
+               creditCard: '6541-7534-9637-3456'
+            }
+         ]
+
+Perform the following steps to retrieve the information accessible to
+``Michelle``:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Log in as Michelle
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.auth( "Michelle", "me009" )
+
+   .. step:: Retrieve the documents
+
+      Run:
+
+      .. code-block:: javascript
+
+         db.medicalView.find()
+
+   .. step:: Examine the documents
+
+      ``Michelle`` has the ``Provider`` role and sees the following
+      documents, which include the ``diagnosisCode`` field but not the
+      ``creditCard`` field:
+
+      .. code-block:: javascript
+         :copyable: false
+         :emphasize-lines: 3, 5
+
+         [
+            { _id: 0, patientName: 'Jack Jones',
+               diagnosisCode: 'CAS 17' },
+            { _id: 1, patientName: 'Mary Smith',
+               diagnosisCode: 'ACH 01' }
+         ]
+
 .. _create-view-user-roles-system-variable-example:
 
-Retrieve Documents for Roles Granted to the Current User
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Retrieve Budget Documents for Roles Granted to the Current User
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/user-roles-system-variable-introduction.rst
 
