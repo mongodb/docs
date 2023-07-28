@@ -13,14 +13,14 @@
       * - Name
         - Description
    
-      * - :option:`--schemaSource <mongosqld --schemaSource>`
+      * - :option:`--schemaSource <mongodrdl --schemaSource>`
         - *Required.* Specifies the database where the schema information
           is stored.
    
-      * - :option:`--schemaName <mongosqld --schemaName>`
+      * - :option:`--schemaName <mongodrdl --schemaName>`
         - *Required.* The new name of the schema.
    
-      * - :option:`--schema <mongosqld --schema>`
+      * - :option:`--schema <mongodrdl --schema>`
         - *Required* The string representation of the
           :ref:`ObjectId <document-bson-type-object-id>` of the schema.
    
