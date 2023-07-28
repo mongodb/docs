@@ -45,16 +45,17 @@
    To use the newly uploaded schema that received a custom name,
    restart :binary:`~bin.mongosqld` with the schema database specified by the
    :option:`--schemaSource <mongosqld --schemaSource>` option, with the
-   schema's name specified with the :option:`--schemaName <db-name>`, and
-   the :option:`--schemaMode <mongosqld --schemaMode>` set to ``custom``:
+   schema's name specified with :option:`--schemaName <mongosqld --schemaName>`,
+   and the :option:`--schemaMode <mongosqld --schemaMode>` set to ``custom``:
    
    .. code-block:: sh
    
       mongosqld --schemaMode custom --schemaSource <schema-db> --schemaName movies
    
    If you upload a custom schema, you must give it a name with
-   :commandoption:`Name <name-schema>`. If you don't specify a custom name
-   for the loaded schema, the schema name defaults to ``defaultSchema``.
-   This results in an error similar to the following:
-   ``MongoDB schema not yet available``.
+   :commandoption:`Name <name-schema>` and then specify this name to the
+   :binary:`~bin.mongosqld` with :option:`--schemaName <mongosqld --schemaName>`.
+   If you don't give a custom name to the schema that you upload, the schema
+   name defaults to ``defaultSchema``. This results in an error from
+   :binary:`~bin.mongosqld`, similar to the following: ``MongoDB schema not yet available``.
 

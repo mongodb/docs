@@ -28,11 +28,12 @@
           <mongosqld --schemaSource>` database after the |bi-short|
           samples the schema on startup.
    
-    If you upload a custom schema, you must give it a name with
-    :commandoption:`Name <name-schema>`. If you don't specify a custom
-    name for the loaded schema, the schema name
-    defaults to ``defaultSchema``. This results in an error similar
-    to the following: ``MongoDB schema not yet available``.
+   If you upload a custom schema, you must give it a name with
+   :commandoption:`Name <name-schema>` and then specify this name to the
+   :binary:`~bin.mongosqld` with :option:`--schemaName <mongosqld --schemaName>`.
+   If you don't give a custom name to the schema that you upload, the schema
+   name defaults to ``defaultSchema``. This results in an error from
+   :binary:`~bin.mongosqld`, similar to the following: ``MongoDB schema not yet available``.
 
    .. include:: /includes/sampling-ref-chart-link.rst
    
