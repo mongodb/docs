@@ -6,9 +6,9 @@
    
    Optional. The name of the schema to load from or write to
    the :option:`--schemaSource <mongosqld --schemaSource>` database.
-   Specifying schema names allows you to store multiple schemas in
+   Specifying custom schema names allows you to store multiple schemas in
    the :option:`--schemaSource <mongosqld --schemaSource>` database.
-   The behavior depends on on the value of
+   The behavior depends on the value of
    :option:`--schemaMode <mongosqld --schemaMode>`:
    
    .. list-table::
@@ -19,7 +19,7 @@
         - ``--schemaName`` Behavior
    
       * - ``custom``
-        - The name of the schema to load from the database specified
+        - The custom name of the schema to load from the database specified
           by the :option:`--schemaSource <mongosqld --schemaSource>`
           option.
    
@@ -28,8 +28,12 @@
           <mongosqld --schemaSource>` database after the |bi-short|
           samples the schema on startup.
    
-   If not specified, defaults to ``defaultSchema``.
-   
+    If you upload a custom schema, you must give it a name with
+    :commandoption:`Name <name-schema>`. If you don't specify a custom
+    name for the loaded schema, the schema name
+    defaults to ``defaultSchema``. This results in an error similar
+    to the following: ``MongoDB schema not yet available``.
+
    .. include:: /includes/sampling-ref-chart-link.rst
    
 

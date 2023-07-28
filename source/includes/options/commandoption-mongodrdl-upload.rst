@@ -21,7 +21,7 @@
         - *Required.* Path to the ``.drdl`` file to upload.
    
    For example, the following command uploads the schema in the
-   ``movies.drdl`` file to the ``schemas`` database:
+   ``movies.drdl`` file  to the ``schemas`` database:
    
    .. code-block:: sh
    
@@ -35,14 +35,26 @@
       :copyable: false
    
       5d793f3f6a26a3ce66c304ea
+
+   The next step is to name the schema, using the :commandoption:`Name <name-schema>` option:
+
+   .. code-block:: sh
    
-   To use the newly uploaded schema, restart :binary:`~bin.mongosqld`
-   with the schema database specified by the
-   :option:`--schemaSource <mongosqld --schemaSource>` option and
+      mongodrdl name-schema --name movies --schemaSource schemas --schema 5d793f3f6a26a3ce66c304ea
+   
+   To use the newly uploaded schema that received a custom name,
+   restart :binary:`~bin.mongosqld` with the schema database specified by the
+   :option:`--schemaSource <mongosqld --schemaSource>` option, with the
+   schema's name specified with the :option:`--schemaName <db-name>`, and
    the :option:`--schemaMode <mongosqld --schemaMode>` set to ``custom``:
    
    .. code-block:: sh
    
-      mongosqld --schemaMode custom --schemaSource <schema-db>
+      mongosqld --schemaMode custom --schemaSource <schema-db> --schemaName movies
    
+   If you upload a custom schema, you must give it a name with
+   :commandoption:`Name <name-schema>`. If you don't specify a custom name
+   for the loaded schema, the schema name defaults to ``defaultSchema``.
+   This results in an error similar to the following:
+   ``MongoDB schema not yet available``.
 
