@@ -21,7 +21,7 @@
         - *Required.* Path to the ``.drdl`` file to upload.
    
    For example, the following command uploads the schema in the
-   ``movies.drdl`` file  to the ``schemas`` database:
+   ``movies.drdl`` file to the ``schemas`` database:
    
    .. code-block:: sh
    
