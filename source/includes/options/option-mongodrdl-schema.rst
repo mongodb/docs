@@ -2,6 +2,6 @@
 
    .. versionadded:: 2.11
    
-   Specifies The string representation of the
+   *Required*. Specifies the string representation of the
    :ref:`ObjectId <document-bson-type-object-id>` of the schema.
 
