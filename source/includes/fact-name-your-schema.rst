@@ -7,5 +7,5 @@
    If you don't store the schema's name when you upload it, the schema
    name defaults to ``defaultSchema``. If the schema's name doesn't exist,
    this results in an error from :binary:`~bin.mongosqld` similar to the
-   following: ``MongoDB schema not yet available.
-   Error initializing schema: no schema found for name.``.
+   following: MongoDB schema not yet available.
+   Error initializing schema: no schema found for name.
