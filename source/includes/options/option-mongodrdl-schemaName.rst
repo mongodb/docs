@@ -3,6 +3,6 @@
    
    .. versionadded:: 2.11
    
-   Specifies the custom schema name.
+   Specifies the schema name.
    
 

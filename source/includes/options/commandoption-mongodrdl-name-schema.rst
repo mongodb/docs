@@ -17,7 +17,7 @@
         - *Required.* Specifies the database where the schema information
           is stored.
    
-      * - :option:`--schemaName <mongodrdl --schemaName>`
+      * - :option:`--name <mongodrdl --name>`
         - *Required.* The new name of the schema.
    
       * - :option:`--schema <mongodrdl --schema>`
@@ -30,6 +30,6 @@
    
    .. code-block:: sh
    
-      mongodrdl name-schema --schemaName movies --schemaSource schemas --schema 5d72adea5c23a9e44882a1ad
+      mongodrdl name-schema --name movies --schemaSource schemas --schema 5d72adea5c23a9e44882a1ad
    
 
