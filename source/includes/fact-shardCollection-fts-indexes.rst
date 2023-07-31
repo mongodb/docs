@@ -1,8 +1,9 @@
-.. note::
+.. warning::
 
-   If you run :method:`sh.shardCollection() <sh.shardCollection>` on an 
-   unsharded collection with |fts| indexes, the |fts| indexes 
-   might enter an invalid state after sharding. To mitigate this issue, 
-   you can create a new index on the collection after sharding, or 
-   :ref:`contact support <request-support>` to restart the ``mongot`` 
-   processes on the nodes.
+   If you shard a collection that already has an |fts| index, you might
+   experience a brief period of query downtime when the collection
+   begins to appear on a shard. Also, if you add a shard for an already
+   sharded collection that contains an |fts| index, your search queries
+   against that collection will fail until the initial sync process
+   completes on the added shards. To learn more, see :ref:`initial sync process 
+   <troubleshoot-initial-sync>`. 
