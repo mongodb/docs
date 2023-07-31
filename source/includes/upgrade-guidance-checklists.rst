@@ -31,6 +31,10 @@ compatibility with MongoDB |newversion|.
 Upgraded deployments that run on incompatible drivers might encounter 
 unexpected or undefined behavior.
 
+.. warning:: 
+
+   .. include:: /includes/fact-warning-unsupported-opcodes.rst
+
 Preparedness
 ~~~~~~~~~~~~
 
