@@ -17,10 +17,10 @@
         - *Required.* Specifies the database where the schema information
           is stored.
    
-      * - ``--name``
+      * - :option:`--name <mongodrdl --name>`
         - *Required.* The new name of the schema.
    
-      * - ``--schema``
+      * - :option:`--schema <mongodrdl --schema>`
         - *Required* The string representation of the
           :ref:`ObjectId <document-bson-type-object-id>` of the schema.
    

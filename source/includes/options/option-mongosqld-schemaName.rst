@@ -8,7 +8,7 @@
    the :option:`--schemaSource <mongosqld --schemaSource>` database.
    Specifying schema names allows you to store multiple schemas in
    the :option:`--schemaSource <mongosqld --schemaSource>` database.
-   The behavior depends on on the value of
+   The behavior depends on the value of
    :option:`--schemaMode <mongosqld --schemaMode>`:
    
    .. list-table::
@@ -28,8 +28,8 @@
           <mongosqld --schemaSource>` database after the |bi-short|
           samples the schema on startup.
    
-   If not specified, defaults to ``defaultSchema``.
-   
+   .. include:: /includes/fact-name-your-schema.rst
+
    .. include:: /includes/sampling-ref-chart-link.rst
    
 

@@ -35,14 +35,21 @@
       :copyable: false
    
       5d793f3f6a26a3ce66c304ea
+
+   The next step is to store the schema under a name you provide, using
+   the :commandoption:`name-schema <name-schema>` command:
+
+   .. code-block:: sh
    
-   To use the newly uploaded schema, restart :binary:`~bin.mongosqld`
-   with the schema database specified by the
-   :option:`--schemaSource <mongosqld --schemaSource>` option and
-   the :option:`--schemaMode <mongosqld --schemaMode>` set to ``custom``:
+      mongodrdl name-schema --name movies --schemaSource schemas --schema 5d793f3f6a26a3ce66c304ea
+   
+   To use the newly uploaded schema that received a specified name,
+   restart :binary:`~bin.mongosqld` with the schema database specified by the
+   :option:`--schemaSource <mongosqld --schemaSource>` option, with the
+   schema's name specified with :option:`--schemaName <mongosqld --schemaName>`:
    
    .. code-block:: sh
    
-      mongosqld --schemaMode custom --schemaSource <schema-db>
+      mongosqld --schemaSource <schema-db> --schemaName movies
    
-
+   .. include:: /includes/fact-name-your-schema.rst
