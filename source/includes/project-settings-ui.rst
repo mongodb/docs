@@ -87,6 +87,17 @@ You can set the following in the {+atlas-ui+}:
       To learn more about {+cluster+} maintenance windows, see
       :ref:`configure-maintenance-window`. 
 
+  * - :guilabel:`Project Overview`
+
+    - Sets the project landing page to :guilabel:`Overview`. 
+      :guilabel:`Overview` is a home page for |service| that displays
+      modules for common |service| actions.
+
+      |service| enables the :guilabel:`Overview` page by default for
+      all projects created on or after July 12, 2023. To enable or
+      disable the :guilabel:`Overview` page, you must have the
+      :authrole:`Project Owner` role.
+
   * - :guilabel:`Real Time Performance Panel`
 
     - Allows you to see real time metrics from your MongoDB database.
