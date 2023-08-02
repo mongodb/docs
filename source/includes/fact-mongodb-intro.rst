@@ -8,4 +8,3 @@ The manual describes key concepts in MongoDB such as:
 - Operational and administrative references
 - Tutorials and procedures
 
-.. include:: /includes/rapid-release-short.rst
