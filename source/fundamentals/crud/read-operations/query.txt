@@ -1,0 +1,428 @@
+.. _rust-query-guide:
+
+===============
+Specify a Query
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to specify a query to match a subset
+of documents.
+
+.. rust-query-filter-definition:
+
+To match a subset of documents, specify a **query filter** containing
+your **match criteria**. Match criteria consist of the fields and
+values you want documents to match. A query filter contains at least
+one set of match criteria to determine which documents to return. An
+empty query filter matches all of the documents in a collection.
+
+In a query filter, you can match fields with :ref:`literal values
+<rust-literal-values>` or with query operators. Query operators allow
+you to perform mathematical or logical operations to locate documents within a collection.
+
+To match criteria with literal values use the following format:
+
+.. code-block:: rust
+   :copyable: false
+
+   let filter = doc! { "<field>": "<value>" };
+
+To match criteria that include query operators use the following format:
+
+.. code-block:: rust
+   :copyable: false
+
+   let filter = doc! { "<field>": doc! { "<operator>": "<value>" } };
+
+The examples in the following sections show how to specify queries by using the ``find()``
+method to match documents in a collection.
+
+This guide includes the following sections:
+
+- :ref:`Sample Data for Examples <rust-query-sample-data>`: presents
+  the sample data that is used by the read operation examples
+
+- :ref:`Literal Values <rust-literal-values>`: describes how to
+  query for data that exactly matches a value you provide in the query
+  filter
+
+- :ref:`Comparison <rust-query-operators>`: describes how to
+  query for data based on comparisons with values in a collection
+
+- :ref:`Logical <rust-logical-operators>`: describes how to
+  query for data using logic applied to the results of field-level operators
+
+- :ref:`Element <rust-element-operators>`: describes how to
+  query based on the presence, absence, or type of field
+
+- :ref:`Evaluation <rust-evaluation-operators>`: describes how
+  to execute higher-level logic, like regex and text searches, when
+  querying for documents in a collection
+
+- :ref:`Bitwise <rust-bitwise-operators>`: describes how to
+  query based on the equivalent bits set of a base-10 value
+
+- :ref:`Array <rust-array-operators>`: describes how to query
+  a collection based on data within an array-valued field.
+
+.. _rust-query-sample-data:
+
+Sample Data
+-----------
+
+The examples in this guide use the following sample documents. Each
+document represents a fruit in a store's inventory and contains
+information about its quantity. Some documents contain additional fields
+that describe the fruit or its vendors:
+
+
+.. code-block:: json
+   :copyable: true
+
+   { "_id": 1, "name": "orange", "quantity": 7 },
+   { "_id": 2, "name": "apple", "quantity": 4, "description": "Granny Smith" },
+   { "_id": 3, "name": "banana", "quantity": 36 },
+   { "_id": 4, "name": "pear", "quantity": 28, "vendors": ["A", "C" ] }
+
+.. _rust-literal-values:
+
+Literal Values
+--------------
+
+Literal value query filters allow you to query for data that exactly matches
+a value you provide in the query filter. The following operation uses a
+literal query to search for documents containing a field called ``name``
+that has the value of ``pear``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/query.rs
+      :start-after: begin-literal
+      :end-before: end-literal
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 4,
+         "name": "pear",
+         "quantity": 28,
+         "vendors": [
+            "A",
+            "C"
+         ]
+      }
+
+.. note::
+
+   Literal value queries function identically to queries that use the ``$eq`` comparison
+   operator. For example, the following queries are equivalent:
+
+   .. code-block:: rust
+
+      my_coll.find(doc! {
+         "price": doc! { "$eq": 5 }
+      }).await?;
+
+   .. code-block:: rust
+
+      my_coll.find(doc! {
+         "price": 5
+      }).await?;
+
+.. _rust-query-operators:
+
+Comparison
+----------
+
+Comparison operators allow you to query for documents by comparing them
+to values in the query filter. Common comparison operators include
+``$gt`` for "greater than" comparisons, ``$lt`` for "less than" comparisons,
+and ``$ne`` for "not equal to" comparisons. 
+
+Example
+~~~~~~~
+
+The following operation uses the comparison operator ``$gt`` to match
+documents with a ``quantity`` value greater than ``5``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/query.rs
+      :start-after: begin-comparison
+      :end-before: end-comparison
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+        "_id": 1,
+        "name": "orange",
+        "quantity": 7
+      }
+      {
+        "_id": 3,
+        "name": "banana",
+        "quantity": 36
+      }
+      {
+        "_id": 4,
+        "name": "pear",
+        "quantity": 28,
+         "vendors": [
+            "A",
+            "C"
+         ]
+      }
+
+For more information on comparison operators, see :manual:`Comparison
+Query Operators </reference/operator/query-comparison/>` in the Server manual.
+
+.. _rust-logical-operators:
+
+Logical
+-------
+
+Logical operators require at least two match criteria and match documents based on
+if they meet some, all, or none of these criteria. For example, you can use the ``$or``
+method to query for documents that match either a ``$gt`` comparison
+operator or a literal value query. 
+
+Example
+~~~~~~~
+
+The following operation uses the logical operator ``$and`` to match
+documents with a ``quantity`` value that is greater than ``10`` and
+divisible by ``3``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/query.rs
+      :start-after: begin-logical
+      :end-before: end-logical
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 3,
+         "name": "banana",
+         "quantity": 36
+      }
+
+.. note::
+
+   If a query filter contains a literal value query with multiple field-value pairs,
+   the driver matches documents that meet all of the criteria.
+
+   For example, the following queries produce equivalent results:
+
+   .. code-block:: rust
+
+      my_coll.find(doc! {
+         "price": doc! { "$eq": 5 },
+         "quantity": doc! { "$gt": 4 }
+      });
+
+   .. code-block:: rust
+
+      my_coll.find(doc! {
+         $and: vec! [
+            doc! { "price": { "$eq": 5 }},
+            doc! { "quantity": { "$gt": 4 }}
+         ]
+      });
+
+For a full list of logical operators, see :manual:`Logical
+Query Operators </reference/operator/query-logical/>` in the Server manual.
+
+.. _rust-element-operators:
+
+Element
+-------
+
+Element operators allow you to match documents based on the types of
+specified fields or if they include specified fields. 
+
+Example
+~~~~~~~
+
+The following operation uses the element operator
+``$exists`` to search for documents containing the ``description``
+field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/query.rs
+      :start-after: begin-element
+      :end-before: end-element
+      :language: rust
+      :dedent:
+   
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 2,
+         "name": "apple",
+         "quantity": 4,
+         "description": "Granny Smith"
+      }
+
+For a full list of element operators, see :manual:`Element
+Query Operators </reference/operator/query-element/>` in the Server manual.
+
+.. _rust-evaluation-operators:
+
+Evaluation
+----------
+
+Evaluation operators analyze individual fields or a collection's documents to
+determine if they meet certain criteria. Each evaluation operator
+performs a different function. For example, the ``$mod`` operator
+performs a mathematical operation on a field value, and the ``$where``
+operator allows you to evaluate values against JavaScript expressions.
+
+Example
+~~~~~~~
+
+The following operation uses the evaluation operator ``$mod`` to search
+for documents with a ``quantity`` value that is divisible by 3:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/query.rs
+      :start-after: begin-evaluation
+      :end-before: end-evaluation
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 3,
+         "name": "banana",
+         "quantity": 36
+      }
+
+For a full list of evaluation operators, see :manual:`Evaluation
+Query Operators </reference/operator/query-evaluation/>` in the Server manual.
+
+.. _rust-bitwise-operators:
+
+Bitwise
+-------
+
+Bitwise operators convert a numeric field from a base-10 (decimal)
+number into the corresponding base-2 (binary) number. They check whether
+the value in a document has the same bits set as the value in your match
+criteria.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``quantity`` has the same
+bits set as ``7``, which is equivalent to  ``00000111`` in binary:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/query.rs
+      :start-after: begin-bitwise
+      :end-before: end-bitwise
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+        "_id": 1,
+        "name": "orange",
+        "quantity": 7
+      }
+
+For a full list of bitwise operators, see :manual:`Bitwise
+Query Operators </reference/operator/query-bitwise/>` in the Server manual.
+
+.. _rust-array-operators:
+
+Array
+-----
+
+Array operators check the values or amount of elements in an array-valued field.
+
+Example
+~~~~~~~
+
+The following example matches documents where the ``vendor`` contains
+``C``:
+
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/query.rs
+      :start-after: begin-array
+      :end-before: end-array
+      :language: rust
+      :dedent:
+      
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 4,
+         "name": "pear",
+         "quantity": 28,
+         "vendors": [
+            "A",
+            "C"
+         ]
+      }
+
+For a full list of bitwise operators, see :manual:`Array
+Query Operators </reference/operator/query-array/>` in the Server manual.
+
+Additional Information
+----------------------
+
+To learn more about query operators, see :manual:`Query Selectors
+</reference/operator/query/>` in the Server manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types used in this
+guide, see the following API Documentation:
+
+- `find() <{+api+}/struct.Collection.html#method.find>`__
+- `Cursor <{+api+}/struct.Cursor.html>`__
