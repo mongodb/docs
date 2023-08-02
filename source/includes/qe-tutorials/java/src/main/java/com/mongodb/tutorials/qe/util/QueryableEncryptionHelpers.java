@@ -29,10 +29,10 @@ public final class QueryableEncryptionHelpers {
             // Reuse the key from the customer-master-key.txt file if it exists
             if (!new File("./customer-master-key.txt").isFile()) {
                 // start-generate-local-key
-                byte[] localMasterKeyWrite = new byte[96];
-                new SecureRandom().nextBytes(localMasterKeyWrite);
+                byte[] localCustomerMasterKey = new byte[96];
+                new SecureRandom().nextBytes(localCustomerMasterKey);
                 try (FileOutputStream stream = new FileOutputStream("customer-master-key.txt")) {
-                    stream.write(localMasterKeyWrite);
+                    stream.write(localCustomerMasterKey);
 
                     // ...
                     // end-generate-local-key
@@ -42,16 +42,16 @@ public final class QueryableEncryptionHelpers {
             }
 
             // start-get-local-key
-            byte[] localMasterKeyRead = new byte[96];
+            byte[] localCustomerMasterKey = new byte[96];
 
             try (FileInputStream fis = new FileInputStream("customer-master-key.txt")) {
-                if (fis.read(localMasterKeyRead) < 96)
+                if (fis.read(localCustomerMasterKey) < 96)
                     throw new Exception("Expected to read 96 bytes from the customer master key file");
             } catch (Exception e) {
                 throw new Exception("Unable to read the Customer Master Key due to the following error: " + e.getMessage());
             }
             Map<String, Object> keyMap = new HashMap<String, Object>();
-            keyMap.put("key", localMasterKeyRead);
+            keyMap.put("key", localCustomerMasterKey);
 
             Map<String, Map<String, Object>> kmsProviderCredentials = new HashMap<String, Map<String, Object>>();
             kmsProviderCredentials.put("local", keyMap);

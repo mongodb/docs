@@ -31,6 +31,11 @@ public class QueryableEncryptionTutorial {
         String encryptedCollectionName = "patients";
         // end-setup-application-variables
 
+        // start-setup-application-pojo
+        CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+        CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
+        // end-setup-application-pojo
+
         Map<String, Map<String, Object>> kmsProviderCredentials = QueryableEncryptionHelpers.getKmsProviderCredentials(kmsProviderName);
         BsonDocument customerMasterKeyCredentials = QueryableEncryptionHelpers.getCustomerMasterKeyCredentials(kmsProviderName);
 
@@ -89,33 +94,27 @@ public class QueryableEncryptionTutorial {
             catch (Exception e) {
                 throw new Exception("Unable to create encrypted collection due to the following error: " + e.getMessage());
             }
-            
+
             // start-insert-document
-            MongoDatabase encryptedClientDb = encryptedClient.getDatabase(encryptedDatabaseName);
-            MongoCollection<BsonDocument> coll = encryptedClientDb.getCollection(encryptedCollectionName, BsonDocument.class);
+            MongoDatabase encryptedDb = encryptedClient.getDatabase(encryptedDatabaseName).withCodecRegistry(pojoCodecRegistry);
+            MongoCollection<Patient> collection = encryptedDb.getCollection(encryptedCollectionName, Patient.class);
 
-            BsonDocument patientDocument = new BsonDocument()
-                    .append("patientName", new BsonString("Jon Doe"))
-                    .append("patientId", new BsonInt32(12345678))
-                    .append("patientRecord", new BsonDocument()
-                            .append("ssn", new BsonString("987-65-4320"))
-                            .append("billing", new BsonDocument()
-                                    .append("type", new BsonString("Visa"))
-                                    .append("number", new BsonString("4111111111111111"))));
+            PatientBilling patientBilling = new PatientBilling("Visa", "4111111111111111");
+            PatientRecord patientRecord = new PatientRecord("987-65-4320", patientBilling);
+            Patient patientDocument = new Patient("Jon Doe", patientRecord);
 
-
-            InsertOneResult result = coll.insertOne(patientDocument);
+            InsertOneResult result = collection.insertOne(patientDocument);
             // end-insert-document
-
             if (result.wasAcknowledged()) {
                 System.out.println("Successfully inserted the patient document.");
             }
 
             // start-find-document
-            BsonDocument findResult = coll.find(new BsonDocument()
-                    .append("patientRecord.ssn", new BsonString("987-65-4320"))
-            ).first();
-
+            Patient findResult = collection.find(
+                new BsonDocument()
+                        .append("patientRecord.ssn", new BsonString("987-65-4320")))
+                        .first();
+             
             System.out.println(findResult);
             // end-find-document
         }
