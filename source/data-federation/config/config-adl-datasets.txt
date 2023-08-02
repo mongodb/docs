@@ -1,8 +1,9 @@
 .. _adf-configuration-file-adl:
+.. _adf-configuration-file-adl-and-oa:
 
-========================
-{+adl+} Datasets
-========================
+====================================================
+{+adl+} Dataset or {+Online-Archive+}
+====================================================
 
 .. default-domain:: mongodb
 
@@ -12,16 +13,12 @@
    :depth: 2
    :class: singlecol
 
-{+adf+} supports {+adl+} datasets as {+fdi+} stores. You must define 
-mappings in your {+fdi+} storage configuration to your {+dl+} dataset 
-to run queries against your data.
+{+adf+} supports {+adl+} datasets and |service| :ref:`online archives
+<online-archive-overview>` as {+fdi+} stores. You must define mappings
+in your {+fdi+} storage configuration to your {+dl+} dataset or online
+archive to run queries against your data.
 
-.. important:: 
-
-   Information in your storage configuration is visible internally at 
-   MongoDB and stored as operational data to monitor and improve the 
-   performance of {+adf+}. We recommend that you don't use :abbr:`PII 
-   (Personally Identifiable Information)` in your configurations.
+.. include:: /includes/fact-info-visible-internally.rst
 
 Example Configuration for {+adl+} Data Store 
 ----------------------------------------------------
@@ -55,7 +52,7 @@ Example Configuration for {+adl+} Data Store
         ],
         "databases": [
           {
-            "name": "datacenter",
+            "name": "dataCenter",
             "collections": [
               {
                 "name": "inventory",
@@ -77,19 +74,85 @@ Example Configuration for {+adl+} Data Store
 
    Users connected to the {+fdi+} can use the MongoDB Query Language 
    and supported aggregations to query historical data in the snapshot 
-   through the ``datacenter.inventory`` collection. When you run 
+   through the ``dataCenter.inventory`` collection. When you run 
    queries, the query first goes to {+adf+}. Therefore, if you run 
    aggregation queries that are supported by your |service| cluster but 
    not by {+adf+}, the queries will fail. To learn more about supported 
    and unsupported commands in {+df+}, see :ref:`adf-mql-support`.
+
+Example Configuration for |service| {+Online-Archive+} Data Store
+-----------------------------------------------------------------
+
+.. example:: 
+
+   Consider an |service| online archive backed by |aws| with the
+   following ID:
+
+   .. code-block::
+
+      v1$atlas$archive$V3metrics$hardware$69437250-b9da-4ae9-a1cd-8811462c38a4$64679f7c09f07374b4dcc914
+
+   The online archive contains the archived data from the  
+   ``metrics.hardware`` in an |service| cluster. The following
+   configuration:
+
+   - Specifies the |service| online archive in the ``us-east-1`` |aws|
+     region as a {+fdi+} store. 
+
+   - Maps documents from the |service| online archive to the
+     ``dataCenter.inventory``
+     collection in the storage configuration.
+
+   .. code-block:: json 
+
+      {
+        "stores" : [
+          {
+             "name" : "atlasOnlineArchiveStore",
+             "provider" : "dls:aws",
+             "region" : "us-east-1"
+          }
+        ],
+        "databases" : [ 
+          {
+            "name" : "dataCenter", 
+            "collections" : [
+              {
+                "name" : "inventory",
+                "dataSources" : [
+                  {
+                    "storeName" : "atlasOnlineArchiveStore",
+                    "datasetName" : "v1$atlas$archive$V3metrics$hardware$69437250-b9da-4ae9-a1cd-8811462c38a4$64679f7c09f07374b4dcc914",
+                    "provider" : "dls:aws"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+
+   .. note::
+       
+      Since |aws| backs the online archive, the ``provider`` is set to
+      ``dls:aws`` in the example. If |azure| backed the online archive,
+      the ``provider`` would be ``dls:azure``.
+  
+   {+adf+} maps all the documents in the online archive
+   to the ``dataCenter.inventory`` collection in the storage 
+   configuration.
+
+   Users connected to the {+fdi+} can use the MongoDB Query Language 
+   and supported aggregations to analyze data in the |service| cluster 
+   through the ``dataCenter.inventory`` collection.
 
 .. _adf-adl-configuration-format:
 
 Configuration Format
 --------------------
 
-The {+fdi+} configuration for an {+adl+} dataset has the following 
-format:
+The {+fdi+} configuration for an {+adl+} dataset or an |service| online
+archive has the following format:
 
 .. literalinclude:: /includes/data-federation/adl-config-format.json
    :language: json
@@ -109,8 +172,9 @@ format:
    Array of objects where each object represents a data store to 
    associate with the {+fdi+}. The {+fdi+} store references files in an 
    |s3| bucket, documents in an |service| cluster, files stored at 
-   publicly accessible |url|\s, or {+adl+} datasets. {+adf+} can only 
-   access data stores defined in the ``stores`` object.
+   publicly accessible |url|\s, {+adl+} datasets, or |service| online
+   archives. {+adf+} can only access data stores defined in the
+   ``stores`` object.
 
 .. datalakeconf-adl:: stores.[n].name
 
@@ -127,11 +191,12 @@ format:
 
 .. datalakeconf-adl:: stores.[n].region
 
-   Region name of your {+dl+}. Each store is associated with a single 
-   region, where both the metadata and snapshot data are stored. If you 
-   have multiple datasets in different regions, you must add a store 
-   for each region to map data in that region to virtual databases and 
-   collection in {+fdi+}.
+   Region name of your {+dl+} or online archive. Each store is
+   associated with a single region, where both the metadata and
+   snapshot data are stored. If you have multiple datasets or online
+   archives in different regions, you must add a store for each region
+   to map data in that region to virtual databases and collection in 
+   {+fdi+}.
 
    To learn more about the supported regions for |aws|, see 
    :ref:`atlas-data-federation-regions`. 
@@ -148,10 +213,10 @@ format:
 .. datalakeconf-adl:: databases
 
    Array of objects that define the mapping between each {+fdi+} 
-   store defined in ``stores`` and {+adl+} datasets. Each object 
-   represents a database, its collections, and, optionally, any 
-   :manual:`views </core/views/>` on the collections. Each database can 
-   have multiple ``collections`` and ``views`` objects.
+   store defined in ``stores`` and {+adl+} datasets or online archives.
+   Each object represents a database, its collections, and, optionally,
+   any :manual:`views </core/views/>` on the collections. Each database
+   can have multiple ``collections`` and ``views`` objects.
 
 .. datalakeconf-adl:: databases.[n].name
 
@@ -199,8 +264,8 @@ format:
 
 .. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].datasetName 
 
-   Name of the {+adl+} dataset to map with the collection. The 
-   {+adl+} ``datasetName`` is in the following format: 
+   Name of the {+adl+} dataset or online archive to map with the
+   collection. The {+adl+} ``datasetName`` is in the following format: 
 
    .. code-block:: 
 
@@ -227,10 +292,10 @@ format:
 
 .. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].datasetPrefix 
 
-   Dataset name prefix to match against {+adl+} dataset names. You can 
+   Dataset name prefix to match against the {+adl+} dataset name or online archive name. You can 
    set this setting for wildcard collections only. If specified, 
-   {+adf+} maps collections to only the dataset names whose prefix 
-   match the value specified here.
+   {+adf+} maps collections to only the dataset names or online
+   archive names whose prefix match the value specified here.
 
 .. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].trimLevel
 
@@ -313,7 +378,7 @@ format:
           snapshot 
    
       * - ``dataSetName``
-        - Name of the {+dl+} dataset
+        - Name of the {+dl+} dataset or online archive
           (:datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].datasetName`) 
 
    You can't configure this setting using the Visual Editor in the 
