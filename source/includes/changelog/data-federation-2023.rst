@@ -7,6 +7,22 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230801:
+
+01 August 2023 Release 
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance for queries that utilize the :manual:`$ne
+  </reference/operator/query/ne/>` operator.
+
+.. _adf-v20230725:
+
+25 July 2023 Release 
+~~~~~~~~~~~~~~~~~~~~
+
+- Allows you to set :manual:`read concern </reference/read-concern/>`
+  for :ref:`Atlas cluster <adf-configuration-file-atlas>` data store.
+
 .. _adf-v20230627:
 
 27 June 2023 Release 
