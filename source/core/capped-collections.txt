@@ -64,6 +64,8 @@ collections:
   speed of writing log information directly to a file
   system. Furthermore, the built-in *first-in-first-out* property
   maintains the order of events, while managing storage use.
+  For example, the :ref:`oplog <capped-collections-oplog>` 
+  uses a capped collection.
 
 - Cache small amounts of data in a capped collections. Since caches
   are read rather than write heavy, you would either need to ensure
@@ -71,11 +73,22 @@ collections:
   RAM) *or* accept some write penalty for the required index or
   indexes.
 
-For example, the :term:`oplog.rs <oplog>` collection that stores a log
+.. _capped-collections-oplog:
+
+Oplog Collection
+~~~~~~~~~~~~~~~~
+
+The :term:`oplog.rs <oplog>` collection that stores a log
 of the operations in a :term:`replica set` uses a capped collection.
+
 Starting in MongoDB 4.0, unlike other capped collections, the oplog can
 grow past its configured size limit to avoid deleting the :data:`majority
 commit point <replSetGetStatus.optimes.lastCommittedOpTime>`.
+
+.. note::
+   
+   MongoDB rounds the capped size of the oplog 
+   up to the nearest integer multiple of 256, in bytes.
 
 ``_id`` Index
 ~~~~~~~~~~~~~
@@ -148,8 +161,11 @@ space for internal overhead.
 
    db.createCollection( "log", { capped: true, size: 100000 } )
 
-MongoDB increases the provided ``size`` to make it an integer multiple 
-of 256.
+.. note:: 
+   
+   The value that you provide for the ``size`` field 
+   must be greater than ``0`` and less than or equal to 
+   ``1024^5`` (1 {+pb+}).
 
 Additionally, you may also specify a maximum number of documents for the
 collection using the ``max`` field as in the following document:
@@ -158,8 +174,10 @@ collection using the ``max`` field as in the following document:
 
    db.createCollection("log", { capped : true, size : 5242880, max : 5000 } )
 
-.. important:: The ``size`` argument is *always* required, even when
-   you specify ``max`` number of documents. MongoDB will remove older
+.. important:: 
+   
+   The ``size`` field is *always* required, even when
+   you specify the ``max`` number of documents. MongoDB removes older
    documents if a collection reaches the maximum size limit before it
    reaches the maximum document count.
 
@@ -217,7 +235,7 @@ Change a Capped Collection's Size
 
 You can resize a capped collection using the :dbcommand:`collMod` command's 
 ``cappedSize`` option to set the ``cappedSize`` in bytes. ``cappedSize`` must be 
-greater than ``0`` and less than ``1e+15`` (1 PB). 
+greater than ``0`` and less than or equal to ``1024^5`` (1 {+pb+}). 
 
 .. note::
 
