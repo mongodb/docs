@@ -13,10 +13,8 @@
             The following examples illustrate indexes and collation in
             the :doc:`Mongo Shell </mongo/>`.
 
-            Refer to the
-            :hardlink:`MongoDB Compass Documentation
-            </compass/current/indexes/>` for instructions on using
-            custom collation with indexes in Compass.
+            Refer to the :compass:`MongoDB Compass Documentation </>` for 
+            instructions on using custom collation with indexes in Compass.
 
 
      - id: python

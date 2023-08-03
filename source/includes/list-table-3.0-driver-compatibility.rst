@@ -9,10 +9,10 @@
    * - :ecosystem:`C </drivers/c>`
      - `1.1.0 <https://github.com/mongodb/mongo-c-driver/releases>`_
 
-     - :ecosystem:`Perl </drivers/perl>`
+     - `Perl <https://github.com/mongodb-labs/mongo-perl-driver>`__
      - `1.0.0 <https://metacpan.org/release/MongoDB>`__
 
-   * - `C++ <https://github.com/mongodb/mongo-cxx-driver>`_
+   * - :ecosystem:`C++ </drivers/cxx>`
      - `1.0.0 <https://github.com/mongodb/mongo-cxx-driver/releases>`__
 
      - :ecosystem:`PHP </drivers/php>`
@@ -30,9 +30,8 @@
      - :ecosystem:`Motor </drivers/python>`
      - `0.4 <https://pypi.python.org/pypi/motor/>`_
 
-   * - :ecosystem:`Node.js </drivers/node>`
+   * - `Node.js <https://www.mongodb.com/docs/drivers/node/current/>`__
      - `1.4.29 <https://github.com/mongodb/node-mongodb-native/releases>`_
-
 
      - :ecosystem:`Ruby </drivers/ruby>`
      - `1.12 <https://rubygems.org/gems/mongo>`_
