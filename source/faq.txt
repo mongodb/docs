@@ -190,7 +190,7 @@ will close the socket. We recommend that you select a value
 for ``socketTimeoutMS`` that is two to three times as long as the
 expected duration of the slowest operation that your application executes.
 
-How Can I Prevent Sockets From Timing out Before They Become Active?
+How Can I Prevent Sockets From Timing Out Before They Become Active?
 --------------------------------------------------------------------
 
 Having a large connection pool does not always reduce reconnection
@@ -261,31 +261,58 @@ socket connections.
 If you experience unexpected network behavior, here
 are some things to check:
 
-#. The firewall should send a ``FIN packet`` when closing a socket,allowing the driver to detect that the socket is closed.
+#. The firewall should send a ``FIN packet`` when closing a socket,
+   allowing the driver to detect that the socket is closed.
 #. The firewall should allow ``keepAlive`` probes.
 
 How Can I Prevent a Slow Operation From Delaying Other Operations?
 ------------------------------------------------------------------
 
-To control the maximum size of a connection pool, you can set the
-``maxPoolSize`` option in the :ref:`connection options
-<node-connection-options>`. The default value of ``maxPoolSize`` is
-``100``. If the number of in-use connections to a server reaches
-``maxPoolSize``, the next request to that server will wait 
-until a connection becomes available. To prevent long-running operations
-from slowing down your application, you can increase ``maxPoolSize``.
+When you use the same ``MongoClient`` instance to run multiple MongoDB
+operations concurrently, a slow operation can cause delays to other
+operations. Slow operations keep a connection to MongoDB occupied,
+which can cause other operations to wait until an additional connection
+becomes available.
 
-The driver does not limit the number of requests that can wait for
-sockets to become available. Requests wait for the amount of time
-specified in the ``waitQueueTimeoutMS`` option, which
-defaults to ``0`` (no limit). You should set this option if it is
-more important to stop long-running operations than it is to complete
-every operation.
+If you suspect that slow MongoDB operations are causing delays, you
+can check the performance of all in-progress operations by using the
+following methods:
+
+- Enable the database profiler on your deployment. To learn more, see
+  :manual:`Database Profiler </tutorial/manage-the-database-profiler/>`
+  in the Server manual.
+- Run the ``db.currentOp()`` MongoDB Shell command. To learn more, see the 
+  :manual:`db.currentOp() </reference/method/db.currentOp/>`
+  documentation in the Server manual.
+- Enable connection pool monitoring. To learn more, see
+  :ref:`node-connection-pool-monitoring`.
+
+After you determine which operations are causing delays, try to improve
+the performance of these operations. Read the :website:`Best Practices
+Guide for MongoDB Performance </basics/best-practices>` for possible solutions.
+
+If you implement performance best practices but still
+experience delays, you can modify your connection settings to increase
+the size of the connection pool. A connection pool is the group of
+connections to the server that the driver maintains at any time.
+
+To specify the maximum size of a
+connection pool, you can set the ``maxPoolSize`` option in the
+:ref:`connection options <node-connection-options>` for your
+``MongoClient`` instance. The default value
+of ``maxPoolSize`` is ``100``. If the number of in-use connections to a
+server reaches ``maxPoolSize``, the next operation sent to the server
+pauses until a connection to the driver becomes available. The following
+code sets ``maxPoolSize`` to ``150`` when creating a new ``MongoClient``:
+
+.. code-block:: js
+   
+   const client = new MongoClient(uri, { maxPoolSize: 150 });
 
 .. tip::
    
-   To learn more about connection pooling, see :ref:`How Does Connection
-   Pooling Work in the Node Driver? <node-faq-connection-pool>`.
+   To learn more about connection pooling, see the :ref:`How Does Connection
+   Pooling Work in the Node Driver? <node-faq-connection-pool>` FAQ entry.
 
 How Can I Ensure My Connection String Is Valid for a Replica Set?
 -----------------------------------------------------------------
