@@ -1,3 +1,17 @@
+.. _opsmgr-server-5.0.22:
+
+|onprem| Server 5.0.22
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-07-31*
+
+- Updates JDK to ``jdk-11.0.20+8``.
+- Updates the {+mdbagent+} to :ref:`11.0.27.7162
+  <mongodb-11.0.27.7162>`.
+- Includes :db-tools:`MongoDB Database Tools 100.7.1
+  </release-notes/database-tools-changelog/#100.7.1-changelog>`.
+- Fixes CVE-2023-4009.
+
 .. _opsmgr-server-5.0.21:
 
 |onprem| Server 5.0.21
