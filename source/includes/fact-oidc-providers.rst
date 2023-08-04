@@ -24,9 +24,16 @@
     - Required
 
     - Unique prefix applied to each generated ``UserName`` and ``RoleName`` used 
-      in authorization. 
+      in authorization. ``authNamePrefix`` can only contain the
+      following characters:
+
+      - alphanumeric characters (combination of ``a`` to ``z`` and ``0`` to ``9``)
+      - hyphens (``-``)
+      - underscores (``_``) 
 
     - string
+
+
 
   * - ``matchPattern``
 
