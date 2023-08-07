@@ -10,7 +10,15 @@
   <mongodb-11.0.27.7162>`.
 - Includes :db-tools:`MongoDB Database Tools 100.7.1
   </release-notes/database-tools-changelog/#100.7.1-changelog>`.
-- Fixes CVE-2023-4009.
+- Fixes CVE-2023-4009: Privilege Escalation for :authrole:`Project Owner`
+  and :authrole:`Project User Admin` roles in |onprem|.
+
+  - In MongoDB |onprem| 5.0 prior to 5.0.22, an authenticated user with
+    :authrole:`Project Owner` or :authrole:`Project User Admin` access
+    roles could generate an API key with the privileges of the
+    :authrole:`Organization Owner` role resulting in privilege escalation.
+  - CVSS Score: 7.2.
+  - CWE-648: Incorrect Use of Privileged APIs.
 
 .. _opsmgr-server-5.0.21:
 
