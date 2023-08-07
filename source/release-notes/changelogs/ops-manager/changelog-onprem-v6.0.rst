@@ -14,7 +14,15 @@
 - Updates JDK to ``jdk-11.0.20+8``.
 - Compatible with :db-tools:`MongoDB Database Tools 100.7.4
   </release-notes/database-tools-changelog/#100.7.4-changelog>`.
-- Fixes CVE-2023-4009.
+- Fixes CVE-2023-4009: Privilege Escalation for :authrole:`Project Owner`
+  and :authrole:`Project User Admin` roles in |onprem|.
+
+  - In MongoDB |onprem| 6.0 prior to 6.0.17, an authenticated user with
+    with :authrole:`Project Owner` or :authrole:`Project User Admin`
+    access roles could generate an API key with the privileges of the
+    :authrole:`Organization Owner` role resulting in privilege escalation.
+  - CVSS Score: 7.2.
+  - CWE-648: Incorrect Use of Privileged APIs.
 
 .. _opsmgr-server-6.0.16:
 
