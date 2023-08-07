@@ -1,0 +1,547 @@
+.. _rust-compound-operations:
+
+===================
+Compound Operations
+===================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to perform
+**compound operations**.
+
+Compound operations combine the functionality of read and write
+operations into one :manual:`atomic </reference/glossary/#std-term-atomic-operation>` action. If you perform
+a read operation and a write operation in sequence, someone might change
+your target document between the operations, leading to unexpected
+results. When you perform a compound operation, MongoDB prevents
+intermediate data changes by placing a write lock on the document you
+are modifying until the operation completes.
+
+You can perform the following compound operations with the driver:
+
+- Find and delete one document
+- Find and update one document
+- Find and replace one document
+
+This guide includes the following sections:
+
+- :ref:`Sample Data for Examples <rust-compound-sample-data>`: presents
+  the sample data that is used by the compound operation examples
+
+- :ref:`Find and Delete a Document <rust-find-and-delete>`: describes
+  how to find and delete a document in a single operation
+
+- :ref:`Find and Update a Document <rust-find-and-update>`: describes
+  how to find and update a document in a single operation
+
+- :ref:`Find and Replace a Document <rust-find-and-replace>`: describes
+  how to find and replace a document in a single operation
+
+- :ref:`Additional Information <rust-crud-compound-addtl-info>`:
+  provides links to additional resources and API documentation for types
+  and methods mentioned in this guide
+
+.. TODO .. tip::
+
+..    If you need to perform atomic read and writes on more than one
+..    document, use :ref:`transactions <rust-transactions>`.
+
+.. _rust-compound-sample-data:
+
+Sample Data for Examples
+------------------------
+
+.. TODO decide on structs in crud
+
+The examples in this guide use the following sample documents. Each
+document represents a student and contains information about their age
+and the school that they attend:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "name": "Alex Johnson", "age": 8, "school": "Lakeside Elementary" },
+   { "name": "Samara Khan", "age": 11, "school": "Rolling Hills Middle School" },
+   { "name": "Ben Joseph", "age": 16, "school": "Aurora High School" },
+   { "name": "Deanna Porowski", "age": 10, "school": "Lakeside Elementary" }
+
+.. _rust-find-and-delete:
+
+Find and Delete a Document
+--------------------------
+
+The ``find_one_and_delete()`` method finds and deletes the first document that
+matches the specified query filter. If a document matches the filter
+criteria, the method returns a ``Some`` type. If no documents match,
+it returns a ``None`` type.
+
+.. note:: 
+
+   If you want to perform other operations between finding and deleting
+   a document, you can call the ``find_one()`` method followed by the
+   ``delete_one()`` method.
+
+Modify Find and Delete Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can optionally modify the behavior of the ``find_one_and_delete()``
+method by passing a ``FineOneAndDeleteOptions`` instance as a parameter.
+To use default values for each setting, specify the value ``None`` for
+the options parameter.
+
+The following table describes the options available in
+``FineOneAndDeleteOptions``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``max_time`` 
+     - | The maximum amount of time, in milliseconds, that the query can
+         run.
+       | Type: ``Duration``
+
+   * - ``projection`` 
+     - | The projection to use when returning results.
+       | Type: ``Document``
+       | Default: ``nil``
+
+   * - ``sort``
+     - | The sorting order to use when returning results. By default, the driver
+         returns documents in their natural order, or as they appear in
+         the database. To learn more, see :manual:`natural order </reference/glossary/#std-term-natural-order>`
+         in the Server manual glossary.
+       | Type: ``Document``
+       | Default: ``nil``
+
+   * - ``write_concern``
+     - | The write concern for the operation. To learn more about write
+         concerns, see :manual:`Write Concern
+         </reference/write-concern/>` in the Server manual.
+       | Type: ``WriteConcern``
+
+   * - ``collation`` 
+     - | The collation to use when sorting results.
+       | Type: ``Collation``
+       | Default: ``nil``
+
+   * - ``hint`` 
+     - | The index to use for the operation. To learn more about
+         indexes, see :manual:`Indexes </indexes/>` in the Server
+         manual. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       | Type: ``Hint``
+       | Default: ``nil``
+
+   * - ``let_vars``
+     - | A map of parameters and values. You can access these parameters
+         as variables in aggregation expressions. This option is available
+         only when connecting to {+server+} versions 5.0 and later.
+       | Type: ``Document``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       | Type: ``Bson``
+
+.. TODO add links to guides for relevant options
+
+The {+driver-short+} implements the Builder design pattern for the
+creation of a ``FindOneAndDeleteOptions`` instance. You can use the
+type's ``builder()`` method to construct an options instance by
+chaining option builder functions one at a time.
+
+The following code shows how to construct a ``FindOneAndDeleteOptions``
+instance and pass it to the ``find_one_and_delete()`` method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/compound.rs
+   :start-after: begin-find-delete-options
+   :end-before: end-find-delete-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+Find and Delete Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``find_one_and_delete()`` method 
+to match and delete the first document where the value of the ``age`` 
+field is less than or equal to ``10``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/compound.rs
+      :start-after: begin-find_one_and_delete
+      :end-before: end-find_one_and_delete
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Deleted document:
+      {
+        "_id": { ... },
+        "name": "Deanna Porowski",
+        "age": 10,
+        "school": "Lakeside Elementary"
+      }
+
+.. _rust-find-and-update:
+
+Find and Update a Document
+--------------------------
+
+The ``find_one_and_update()`` method finds and updates the first
+document that matches the specified query filter. The operation updates
+the document based on the specifications you provide in an update
+document. If a document matches the filter criteria, the method returns
+a ``Some`` type. If no documents match, it returns a ``None`` type.
+
+.. note:: 
+
+   If you want to perform other operations between finding and updating
+   a document, you can call the ``find_one()`` method followed by the
+   ``update_one()`` method.
+
+Modify Find and Update Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can optionally modify the behavior of the ``find_one_and_update()``
+method by passing a ``FindOneAndUpdateOptions`` instance as a parameter.
+To use default values for each setting, specify the value ``None`` for
+the options parameter.
+
+The following table describes the options available in
+``FineOneAndDeleteOptions``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``array_filters`` 
+     - | The set of filters specifying the array elements to which the
+         update should apply.
+       | Type: ``Vec<Document>``
+
+   * - ``bypass_document_validation``
+     - | If ``true``, allows the driver to perform a write that violates
+         document-level validation. To learn more about validation, see
+         :manual:`Schema Validation </core/schema-validation>` in the Server manual.
+
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``max_time`` 
+     - | The maximum amount of time, in milliseconds, that the query can
+         run.
+       | Type: ``Duration``
+
+   * - ``projection`` 
+     - | The projection to use when returning results.
+       | Type: ``Document``
+       | Default: ``nil``
+
+   * - ``return_document`` 
+     - | If ``Before``, the operation returns the document before the
+         update. If ``After``, the operation returns the updated document.
+       | Type: ``ReturnDocument``
+       | Default: ``ReturnDocument::Before``
+
+   * - ``sort``
+     - | The sorting order to use when returning results. By default, the driver
+         returns documents in their natural order, or as they appear in
+         the database. To learn more, see :manual:`natural order </reference/glossary/#std-term-natural-order>`
+         in the Server manual glossary.
+       | Type: ``Document``
+       | Default: ``nil``
+
+   * - ``upsert``
+     - | If true, the operation inserts a document if no documents match
+         the query filter.
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``write_concern``
+     - | The write concern for the operation. To learn more about write
+         concerns, see :manual:`Write Concern
+         </reference/write-concern/>` in the Server manual.
+       | Type: ``WriteConcern``
+
+   * - ``collation`` 
+     - | The collation to use when sorting results.
+       | Type: ``Collation``
+       | Default: ``nil``
+
+   * - ``hint`` 
+     - | The index to use for the operation. To learn more about
+         indexes, see :manual:`Indexes </indexes/>` in the Server
+         manual. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       | Type: ``Hint``
+       | Default: ``nil``
+
+   * - ``let_vars``
+     - | A map of parameters and values. You can access these parameters
+         as variables in aggregation expressions. This option is available
+         only when connecting to {+server+} versions 5.0 and later.
+       | Type: ``Document``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       | Type: ``Bson``
+
+.. TODO add link to array updates page under option
+.. TODO add links to guides for relevant options
+
+The {+driver-short+} implements the Builder design pattern for the
+creation of a ``FindOneAndUpdateOptions`` instance. You can use the
+type's ``builder()`` method to construct an options instance by
+chaining option builder functions one at a time.
+
+The following code shows how to construct a ``FindOneAndUpdateOptions``
+instance and pass it to the ``find_one_and_update()`` method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/compound.rs
+   :start-after: begin-find-update-options
+   :end-before: end-find-update-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+Find and Update Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to call the ``find_one_and_update()`` method with the
+following parameters:
+
+- A query filter that matches a document where the value of ``school``
+  is ``"Aurora High School"``
+- An update document that sets the ``school`` field to ``"Durango High School"``
+  and increments the ``age`` field by ``1``
+- A ``FindOneAndUpdateOptions`` instance that returns the document
+  *after* the update
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/compound.rs
+      :start-after: begin-find_one_and_update
+      :end-before: end-find_one_and_update
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Updated document:
+      {
+        "_id": { ... },
+        "name": "Ben Joseph",
+        "age": 17,
+        "school": "Durango High School"
+      }
+
+.. _rust-find-and-replace:
+
+Find and Replace a Document
+---------------------------
+
+The ``find_one_and_replace()`` method finds and replaces the first
+document that matches the specified query filter. The operation replaces
+all of the fields of the document except the ``_id`` field with fields
+and values that you provide. If a document matches the filter criteria,
+the method returns a ``Some`` type. If no documents match, it returns a
+``None`` type.
+
+.. note:: 
+
+   If you want to perform other operations between finding and replacing
+   a document, you can call the ``find_one()`` method followed by the
+   ``replace_one()`` method.
+
+Modify Find and Replace Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can optionally modify the behavior of the ``find_one_and_replace()``
+method by passing a ``FindOneAndReplaceOptions`` instance as a parameter.
+To use default values for each setting, specify the value ``None`` for
+the options parameter.
+
+The following table describes the options available in
+``FindOneAndReplaceOptions``:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``bypass_document_validation``
+     - | If ``true``, allows the driver to perform a write that violates
+         document-level validation. To learn more about validation, see
+         :manual:`Schema Validation </core/schema-validation>` in the Server manual.
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``max_time`` 
+     - | The maximum amount of time, in milliseconds, that the query can
+         run.
+       | Type: ``Duration``
+
+   * - ``projection`` 
+     - | The projection to use when returning results.
+       | Type: ``Document``
+       | Default: ``nil``
+
+   * - ``return_document`` 
+     - | If ``Before``, the operation returns the document before the
+         update. If ``After``, the operation returns the updated document.
+       | Type: ``ReturnDocument``
+       | Default: ``ReturnDocument::Before``
+
+   * - ``sort``
+     - | The sorting order to use when returning results. By default, the driver
+         returns documents in their natural order, or as they appear in
+         the database. To learn more, see :manual:`natural order </reference/glossary/#std-term-natural-order>`
+         in the Server manual glossary.
+       | Type: ``Document``
+       | Default: ``nil``
+
+   * - ``upsert``
+     - | If true, the operation inserts a document if no documents match
+         the query filter.
+       | Type: ``bool``
+       | Default: ``false``
+
+   * - ``write_concern``
+     - | The write concern for the operation. To learn more about write
+         concerns, see :manual:`Write Concern
+         </reference/write-concern/>` in the Server manual.
+       | Type: ``WriteConcern``
+
+   * - ``collation`` 
+     - | The collation to use when sorting results.
+       | Type: ``Collation``
+       | Default: ``nil``
+
+   * - ``hint`` 
+     - | The index to use for the operation. To learn more about
+         indexes, see :manual:`Indexes </indexes/>` in the Server
+         manual. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       | Type: ``Hint``
+       | Default: ``nil``
+
+   * - ``let_vars``
+     - | A map of parameters and values. You can access these parameters
+         as variables in aggregation expressions. This option is available
+         only when connecting to {+server+} versions 5.0 and later.
+       | Type: ``Document``
+
+   * - ``comment``
+     - | An arbitrary ``Bson`` value tied to the operation to trace
+         it through the database profiler, ``currentOp``, and
+         logs. This option is available only when connecting to
+         {+server+} versions 4.4 and later.
+       | Type: ``Bson``
+
+.. TODO add link to array updates page under option
+.. TODO add links to guides for relevant options
+   
+The {+driver-short+} implements the Builder design pattern for the
+creation of a ``FindOneAndReplaceOptions`` instance. You can use the
+type's ``builder()`` method to construct an options instance by
+chaining option builder functions one at a time.
+
+The following code shows how to construct a ``FindOneAndReplaceOptions``
+instance and pass it to the ``find_one_and_replace()`` method:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/compound.rs
+   :start-after: begin-find-replace-options
+   :end-before: end-find-replace-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+Find and Replace Example
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to call the ``find_one_and_replace()`` method with the
+following parameters:
+
+- A query filter that matches a document where the value of ``name``
+  includes the string ``"Johnson"``
+- A replacement document that describes a new student
+- A ``FindOneAndReplaceOptions`` instance that returns the document
+  after replacement and projects only the ``name`` and ``school`` fields
+  in the output
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/compound.rs
+      :start-after: begin-find_one_and_replace
+      :end-before: end-find_one_and_replace
+      :language: rust
+      :dedent:
+
+   .. output:: 
+      :language: console
+      :visible: false
+
+      Document after replacement:
+      {
+        "name": "Toby Fletcher",
+        "school": "Durango High School"
+      }
+
+.. _rust-crud-compound-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about performing the previous operations, see the
+following guides:
+
+.. - :ref:`rust-query-guide`
+
+- :ref:`rust-retrieve-guide`
+- :ref:`rust-delete-guide`
+- :ref:`rust-change-guide`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types discussed in this
+guide, see the following API Documentation:
+
+- `find_one_and_delete() <{+api+}/struct.Collection.html#method.find_one_and_delete>`__
+- `FindOneAndDeleteOptions <{+api+}/options/struct.FindOneAndDeleteOptions.html>`__
+- `find_one_and_update() <{+api+}/struct.Collection.html#method.find_one_and_update>`__
+- `FindOneAndUpdateOptions <{+api+}/options/struct.FindOneAndUpdateOptions.html>`__
+- `ReturnDocument <{+api+}/options/enum.ReturnDocument.html>`__
+- `find_one_and_replace() <{+api+}/struct.Collection.html#method.find_one_and_replace>`__
+- `FindOneAndReplaceOptions <{+api+}/options/struct.FindOneAndReplaceOptions.html>`__
