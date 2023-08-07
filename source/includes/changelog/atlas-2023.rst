@@ -1,3 +1,29 @@
+.. _atlas_2023_06_14:
+
+14 June 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :ref:`tags <database-deployment-tags>` for your |service|
+  database deployments through the {+atlas-ui+}, {+atlas-admin-api+},
+  and {+atlas-cli+}.  
+- Provides preview of :ref:`federated access
+  <oidc-authentication-authorization>` to MongoDB 7.0+ databases on 
+  |service| using an identity provider (IdP) that supports OpenID
+  Connect (OIDC), including Azure AD, Okta, and Ping Identity.
+- Introduces resource-level :ref:`versioning <api-versioning-overview>`
+  in the {+atlas-admin-api+}.
+- Provides :ref:`Go SDK <atlas-admin-sdk>` to fetch or modify data from
+  the {+atlas-admin-api+}.
+- Introduces new :authrole:`Organization Billing Viewer` :ref:`role
+  <user-roles>` to restrict billing access to authorized users. 
+- Supports an optional ``federationSettingsId`` parameter in the 
+  :oas-atlas-tag:`createOneOrganization <createOrganization>` |api|
+  endpoint to link an |service| organization to an existing
+  :ref:`federated access <oidc-authentication-authorization>`
+  configuration.   
+- Introduces fine-grained data modification and scalability improvements
+  for time series data. 
+
 .. _atlas_2023_05_24:
 
 24 May 2023 Release
@@ -7,8 +33,6 @@
 
   - ``qatarcentral`` (Doha, Qatar)
 
-
-
 - Supports five new |gcp| :ref:`regions <google-gcp>`:
 
   - ``me-west1`` (Tel Aviv, Israel)
@@ -16,8 +40,6 @@
   - ``me-central1`` (Doha, Qatar)
   - ``us-east5`` (Columbus, OH, USA)
   - ``us-south1`` (Dallas, TX, USA)
-
-
 
 - Sets the limit of unique :ref:`shard keys for Global Clusters <shard-global-collection>`
   per |service| :ref:`project <projects>` to 40.
