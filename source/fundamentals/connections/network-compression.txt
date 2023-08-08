@@ -1,0 +1,173 @@
+.. _rust-network-compression:
+
+===================
+Network Compression
+===================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to configure **network compression** for
+your connection to MongoDB by using the {+driver-short+}.
+
+Network compression is a feature that allows you to compress and
+decompress messages sent between your application and MongoDB, reducing
+the total amount of data passed over the network.
+
+The driver supports the following compressors:
+
+1. `Snappy <https://google.github.io/snappy/>`__: available in MongoDB 3.4 and later
+#. `Zlib <https://zlib.net/>`__: available in MongoDB 3.6 and later
+#. `Zstandard <https://github.com/facebook/zstd/>`__: available in MongoDB 4.2 and later
+
+.. note:: Compressor Selection
+
+   If you specify multiple compressors to use on your connection, the
+   driver selects the first one that is supported by the MongoDB
+   instance that the driver is connected to.
+
+Add Compression Feature Flags
+-----------------------------
+
+To use a compressor, add the relevant feature flag to your
+``mongodb`` dependency's feature list in your project's ``Cargo.toml``
+file.
+
+Select the tab for your preferred compressor to see how to add the
+necessary feature flag to your ``mongodb`` dependency:
+
+.. tabs::
+
+   .. tab:: Snappy
+      :tabid: snappy compressor
+
+      .. code-block:: none
+         
+         [dependencies.mongodb]
+         version = "{+version+}"
+         features = ["snappy-compression"]
+
+   .. tab:: Zlib
+      :tabid: zlib compressor
+
+      .. code-block:: none
+         
+         [dependencies.mongodb]
+         version = "{+version+}"
+         features = ["zlib-compression"]
+
+   .. tab:: Zstandard
+      :tabid: zstd compressor
+
+      .. code-block:: none
+         
+         [dependencies.mongodb]
+         version = "{+version+}"
+         features = ["zstd-compression"]
+
+.. tip::
+   
+   To specify multiple compressors, you must add the feature flag for
+   each compressor to your ``mongodb`` dependency.
+
+Enable Network Compression
+--------------------------
+
+You can enable compression on your ``Client`` instance by specifying
+compressors in the following ways:
+
+- Adding the ``compressors`` parameter to your connection string. To see
+  an example that enables compression this way, see the :ref:`Connection
+  String <rust-compression-connectionstring-ex>` section.
+- Setting the ``compressors`` field of a ``ClientOptions`` instance. You
+  can then pass the options to the ``with_options()`` method when
+  instantiating a ``Client``. To see an example that enables compression
+  this way, see the :ref:`ClientOptions <rust-compression-clientoptions-ex>` section.
+
+.. _rust-compression-connectionstring-ex:
+
+Connection String
+~~~~~~~~~~~~~~~~~
+
+To enable compression by using a connection string, specify
+the ``compressors`` parameter. You can specify one or more of the
+following values for the ``compressors`` parameter:
+
+- ``"snappy"`` for Snappy compression
+- ``"zlib"`` for Zlib compression
+- ``"zstd"`` for Zstandard compression
+
+The following example shows how to specify Snappy, Zlib, and
+Zstandard as the compressors for a connection:
+
+.. code-block:: rust
+   :emphasize-lines: 1
+
+   let uri = "mongodb+srv://<user>:<password>@<cluster-url>/?compressors=snappy,zlib,zstd";
+   let client = Client::with_uri_str(uri).await?;
+
+To learn more about connection strings, see :manual:`Connection String
+URI Format </reference/connection-string/>` in the Server manual.
+
+.. TODO link to connection options page
+
+.. _rust-compression-clientoptions-ex:
+
+ClientOptions
+~~~~~~~~~~~~~
+
+To enable compression within your ``ClientOptions`` instance, set
+the ``compressors`` field, and then pass the options when creating a
+client.
+
+The ``compressors`` field takes a value of
+type ``Vec<Compressor>``. The ``Compressor`` type has the following
+possible values:
+
+- ``Compressor::Snappy``
+- ``Compressor::Zstd { level: <integer> }`` *(Requires Rust version 1.54)*
+- ``Compressor::Zlib { level: <integer> }``
+
+For the compressors that have a ``level`` field, set the value to
+``None`` to indicate the default level. A higher ``level`` value
+results in more compression, which is slower.
+
+The following example shows how to specify Snappy, Zlib, and
+Zstandard as the compressors for a connection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/network-compression.rs
+   :start-after: begin-clientoptions
+   :end-before: end-clientoptions
+   :language: rust
+   :emphasize-lines: 4-8, 10
+   :copyable:
+   :dedent:
+
+.. _rust-addl-info-network-compression:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following
+documentation:
+
+- :ref:`rust-connect-to-mongodb`
+- :manual:`Connection String Compression Options </reference/connection-string/#compression-options>`
+- `All Rust Driver Feature Flags <{+api+}/index.html#all-feature-flags>`__
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `Client <{+api+}/struct.Client.html>`__
+- `with_uri_str() <{+api+}/struct.Client.html#method.with_uri_str>`__
+- `parse() <{+api+}/options/struct.ClientOptions.html#method.parse>`__
+- `with_options() <{+api+}/struct.Client.html#method.with_options>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `compressors <{+api+}/options/struct.ClientOptions.html#structfield.compressors>`__
+- `Compressor <{+api+}/options/enum.Compressor.html>`__
