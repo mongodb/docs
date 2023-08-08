@@ -7,6 +7,16 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230808:
+
+08 August 2023 Release 
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves error message for exceeding the :manual:`maxTimeMS
+  </reference/method/cursor.maxTimeMS/>` limit. 
+- Improves :manual:`explain() results</reference/explain-results/>` for
+  queries that target {+adl+} datasets and {+Online-Archive+}s.
+
 .. _adf-v20230801:
 
 01 August 2023 Release 
