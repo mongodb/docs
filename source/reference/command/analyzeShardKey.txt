@@ -20,7 +20,9 @@ Definition
    .. versionadded:: 7.0
 
    Calculates metrics for evaluating a shard key for an unsharded or 
-   sharded collection.
+   sharded collection. Metrics are based on sampled queries. You
+   can use :dbcommand:`configureQueryAnalyzer` to configure query
+   sampling on a collection.
 
 Syntax
 ------
@@ -45,189 +47,72 @@ Command Fields
 
 .. include:: /includes/analyzeShardKey-command-fields.rst
  
+.. _ask-behavior:
+
 Behavior
 --------
 
-``analyzeShardKey`` returns different metrics depending on 
-the ``keyCharacteristic`` and ``readWriteDistribution`` values 
-you specify when you run the command.
+.. |analyzeShardKey| replace:: ``analyzeShardKey``
+.. include:: /includes/analyzeShardKey-behavior-intro.rst
 
 Metrics About Shard Key Characteristics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``keyCharacteristic`` consists of the metrics about the 
-:ref:`cardinality <sharding-shard-key-cardinality>`, :ref:`frequency 
-<shard-key-frequency>`, and :ref:`monotonicity <shard-key-monotonic>` 
-of the shard key. These metrics are only returned when 
-``keyCharacteristics`` is true.
+.. |suppindx|  replace:: :ref:`supporting index <supporting-indexes-ref>`
+.. |kc-output| replace:: :ref:`keyCharacteristics <key-characteristics-output>`
+.. |rw-output| replace:: :ref:`readWriteDistribution <read-write-distribution-output>`
 
-The metrics are calculated when ``analyzeShardKey`` is run based on 
-documents sampled from the collection. The calculation requires the 
-shard key to have a :ref:`supporting index <supporting-indexes-ref>`. 
-If there is no supporting index, no metrics are returned.
-
-You can configure sampling with the ``sampleRate`` and ``sampleSize`` 
-fields. Both are optional and only one can be specified. If neither is 
-specified, the sample size is set to ``10`` . Configure this value 
-by setting 
-``analyzeShardKeyCharacteristicsDefaultSampleSize``.  
-
-To calculate metrics based on all documents in the collection, 
-set the ``sampleRate`` to ``1``.
+.. include:: /includes/shard-key-characteristics-metrics.rst
 
 Metrics About the Read and Write Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``readWriteDistribution`` consists of the metrics about the query 
-routing patterns and the :ref:`hotness 
-<sharding-troubleshooting-monotonicity>` of shard key ranges. These 
-metrics are only returned when ``readWriteDistribution`` is true. The 
-metrics are calculated when ``analyzeShardKey`` is run based on sampled 
-read and write queries and are not be returned if there are no sampled 
-queries.
-
-- If there are no sampled read queries, the command returns
-  ``writeDistribution`` but omits ``readDistribution``.
-
-- If there are no sampled write queries, the command returns
-  ``readDistribution`` but omits ``writeDistribution``.
-
-
-.. list-table::
-   :header-rows: 1
-
-   * - ``keyCharacteristics`` Value
-     - ``readWriteDistribution`` Value 
-     - Behaviors
-
-   * - ``true``
-     - ``false``
-     -
-       - ``analyzeShardKey`` returns 
-         :ref:`keyCharacteristics <key-characteristics-output>` metrics and 
-         omits :ref:`readWriteDistribution <read-write-distribution-output>`
-         metrics.
-
-       - If the shard key does not have a :ref:`supporting index 
-         <supporting-indexes-ref>`, ``analyzeShardKey`` raises an 
-         ``IllegalOperation`` error.
-
-   * - ``false``
-     - ``true``
-     - ``analyzeShardKey`` returns ``readWriteDistribution`` metrics 
-       and omits ``keyCharacteristics`` metrics.
-
-   * - ``true``
-     - ``true``
-     - 
-       - ``analyzeShardKey`` returns both ``readWriteDistribution`` 
-         metrics and ``keyCharacteristics`` metrics.
-
-       - If the shard key does not have a supporting index, 
-         ``analyzeShardKey`` returns ``readWriteDistribution`` metrics 
-         and omits ``keyCharacteristics`` metrics.
-
+.. include:: /includes/shard-key-read-write-distribution.rst
 
 Non-Blocking Behavior
 ~~~~~~~~~~~~~~~~~~~~~
 
-``analyzeShardKey`` does not block reads or writes to the 
-collection.
+.. include:: /includes/analyzeShardKey-non-blocking.rst
 
 Query Sampling
 ~~~~~~~~~~~~~~
 
-The quality of the metrics about the read and write distribution is
-determined by how representative the workload is when query sampling 
-occurs. For some applications, returning representative metrics may 
-require leaving query sampling on for several days.
+.. include:: /includes/analyzeShardKey-query-sampling.rst
 
 .. _supporting-indexes-ref:
 
 Supporting Indexes
 ~~~~~~~~~~~~~~~~~~
 
-The supporting index required by the ``analyzeShardKey`` command 
-metrics is different from the supporting index required by the 
-:dbcommand:`shardCollection` command. 
-
-This table shows the supporting indexes for the same shard key for both 
-``analyzeShardKey`` and ``shardCollection``:
-
-.. list-table::
-   :header-rows: 1
-
-   * - Command
-     - Shard Key
-     - Supporting Indexes
-
-   * - ``analyzeShardKey``
-     -  ``{ a.x: 1, b: "hashed" }``
-     - 
-       - ``{ a.x: 1, b: 1, ... }``
-       - ``{ a.x: "hashed", b: 1, ... }`` 
-       - ``{ a.x: 1, b: "hashed", ... }``
-       - ``{ a.x: "hashed", b: "hashed", ...}`` 
-
-   * - ``shardCollection``
-     - ``{ a.x: 1, b: "hashed" }``
-     - ``{ a.x: 1, b: “hashed”, ... }``
-
-This allows you to analyze a shard key that may not yet have a 
-supporting index required for sharding it. 
-
-Both ``analyzeShardKey`` and ``shardCollection`` have the following
-index requirements:
-
-- Index has a simple :ref:`collation <collation>` 
-- Index is not :ref:`multi-key <index-type-multikey>`
-- Index is not :ref:`sparse <index-type-sparse>`
-- Index is not :ref:`partial <index-type-partial>`
+.. include:: /includes/analyzeShardKey-supporting-indexes.rst
 
 Read Preference
 ~~~~~~~~~~~~~~~
 
-To minimize the performance, run ``analyzeShardKey`` with the 
-:readmode:`secondary` or :readmode:`secondaryPreferred` read preference. 
-On a sharded cluster, ``mongos`` automatically sets the read preference 
-to ``secondaryPreferred`` if not specified.
+.. include:: /includes/analyzeShardKey-read-pref.rst
 
 Limitations
 ~~~~~~~~~~~
 
-- You cannot run ``analyzeShardKey`` on Atlas
-  :atlas:`multitenant </docs/atlas/build-multi-tenant-arch/>`
-  configurations.
-- You cannot run ``analyzeShardKey`` on standalone deployments.
-- You cannot run ``analyzeShardKey`` directly against a
-  :option:`--shardsvr <mongod --shardsvr>` replica set.
-  When running on a sharded cluster, ``analyzeShardKey``
-  must run against a ``mongos``.
-- You cannot run ``analyzeShardKey`` against
-  :ref:`timeseries <cmd-shard-collection-timeseries>` collections.
-- You cannot run ``analyzeShardKey`` against collections
-  with :ref:`Queryable Encryption <qe-manual-feature-qe>`.
+.. include:: /includes/analyzeShardKey-limitations.rst
+
+.. _ask-access-control:
 
 Access Control
 --------------
 
-``analyzeShardKey`` requires one of the following roles:
+|analyzeShardKey| requires one of the following roles:
 
 - :authaction:`enableSharding` privilege action against the collection 
   being analyzed.
 - :authrole:`clusterManager` role against the cluster.
 
+.. _ask-output:
+
 Output
 ------
 
-``analyzeShardKey`` returns information regarding 
-:ref:`keyCharacteristics <key-characteristics-output>` and 
-:ref:`readWriteDistribution <read-write-distribution-output>`.
-
-- ``keyCharacteristics`` provides metrics about the cardinality, 
-  frequency, and monotonicity of the shard key.
-- ``readWriteDistribution`` provides metrics about query routing 
-  patterns and the hotness of shard key ranges.
+.. include:: /includes/analyzeShardKey-output.rst
 
 .. _key-characteristics-output:
 
@@ -236,7 +121,7 @@ keyCharacteristics
 
 .. include:: /includes/analyzeShardKey-keyCharacteristics.rst
 
-.. _read-write-distribution-output:
+.. _read-write-distribution-output: 
 
 readWriteDistribution
 ~~~~~~~~~~~~~~~~~~~~~
@@ -253,79 +138,24 @@ writeDistribution Fields
 
 .. include:: /includes/analyzeShardKey-readWriteDistribution-write.rst
 
+.. _ask-examples:
+
 Examples
 --------
 
-Consider a simplified version of a social media app. The collection 
-we are trying to shard is the ``post`` collection. 
-
-Documents in the ``post`` collection have the following schema:
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-      userId: <uuid>,
-      firstName: <string>,
-      lastName: <string>,
-      body: <string>,  // the field that can be modified.
-      date: <date>,    // the field that can be modified.
-   }
-
-Background Information
-~~~~~~~~~~~~~~~~~~~~~~
-
-- The app has 1500 users.
-- There are 30 last names and 45 first names, some more common than 
-  others. 
-- There are three celebrity users. 
-- Each user follows exactly five other users and has a very high 
-  probability of following at least one celebrity user.
-
-Sample Workload 
-~~~~~~~~~~~~~~~
-
-- Each user posts about two posts a day at random times. They edit each 
-  post once, right after it is posted.
-- Each user logs in every six hours to read their own profile and posts 
-  by the users they follow from the past 24 hours. They also reply under 
-  a random post from the past three hours.
-- For every user, the app removes posts that are more than three days 
-  old at midnight.
-
-Workload Query Patterns
-~~~~~~~~~~~~~~~~~~~~~~~
-
-This workload has the following query patterns:
-
-- ``find`` command with filter 
-  ``{ userId: , firstName: , lastName: }``
-- ``find`` command with filter 
-  ``{ $or: [{ userId: , firstName: , lastName:, date: { $gte:  }, ] }``
-- ``findAndModify`` command with filter 
-  ``{ userId: , firstName: , lastName: , date:  }`` to 
-  update the body and date field.
-- ``update`` command with ``multi: false`` and filter 
-  ``{ userId: , firstName: , lastName: , date: { $gte: , $lt:  } }`` 
-  to update the body and date field.
-- ``delete`` command with ``multi: true`` and filter 
-  ``{ userId: , firstName: , lastName: , date: { $lt:  } }``
-
-Below are example metrics returned by ``analyzeShardKey`` for some 
-candidate shard keys, with sampled queries collected from seven days of 
-workload.
+.. include:: /includes/analyzeShardKey-example-intro.rst
 
 { lastName: 1 } keyCharacteristics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This ``analyzeShardKey`` command provides metrics on the 
+This |analyzeShardKey| command provides metrics on the 
 ``{ lastName: 1 }`` shard key on the ``social.post`` collection:
 
 .. code-block:: javascript
 
-   db.adminCommand(
+   use social
+   db.post.analyzeShardKey(
       {
-        analyzeShardKey: "social.post",
         key: { lastName: 1 },
         keyCharacteristics: true,
         readWriteDistribution: false,
@@ -334,60 +164,12 @@ This ``analyzeShardKey`` command provides metrics on the
 
 The output for this command is similar to the following:
 
-.. code-block:: none
-   :copyable: false
-
-   {
-      "keyCharacteristics": {
-        "numDocsTotal" : 9039,
-        "avgDocSizeBytes" : 153,
-        "numDocsSampled" : 9039,
-        "isUnique" : false,
-        "numDistinctValues" : 30,
-        "mostCommonValues" : [
-            {
-              "value" : {
-                  "lastName" : "Smith"
-              },
-              "frequency" : 1013
-            },
-            {
-              "value" : {
-                  "lastName" : "Johnson"
-              },
-              "frequency" : 984
-            },
-            {
-              "value" : {
-                  "lastName" : "Jones"
-              },
-              "frequency" : 962
-            },
-            {
-              "value" : {
-                  "lastName" : "Brown"
-              },
-              "frequency" : 925
-            },
-            {
-              "value" : {
-                  "lastName" : "Davies"
-              },
-              "frequency" : 852
-            }
-        ],
-        "monotonicity" : {
-          "recordIdCorrelationCoefficient" : 0.0771959161,
-          "type" : "not monotonic"
-      },
-    }
-   }
-
+.. include:: /includes/analyzeShardKey-example1-output.rst
 
 { userId: 1 } keyCharacteristics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This ``analyzeShardKey`` command provides metrics on the 
+This |analyzeShardKey| command provides metrics on the 
 ``{ userId: 1 }`` shard key on the ``social.post`` collection:
 
 .. code-block:: javascript
@@ -403,59 +185,12 @@ This ``analyzeShardKey`` command provides metrics on the
 
 The output for this command is similar to the following:
 
-.. code-block:: none
-   :copyable: false
-
-   {
-     "keyCharacteristics": {
-       "numDocsTotal" : 9039,
-       "avgDocSizeBytes" : 162,
-       "numDocsSampled" : 9039,
-       "isUnique" : false,
-       "numDistinctValues" : 1495,
-       "mostCommonValues" : [
-         {
-           "value" : {
-             "userId" : UUID("aadc3943-9402-4072-aae6-ad551359c596")
-           },
-           "frequency" : 15
-         },
-        {
-          "value" : {
-            "userId" : UUID("681abd2b-7a27-490c-b712-e544346f8d07")
-          },
-          "frequency" : 14
-        },
-        {
-          "value" : {
-            "userId" : UUID("714cb722-aa27-420a-8d63-0d5db962390d")
-          },
-          "frequency" : 14
-        },
-        {
-          "value" : {
-            "userId" : UUID("019a4118-b0d3-41d5-9c0a-764338b7e9d1")
-          },
-          "frequency" : 14
-        },
-        {
-          "value" : {
-            "userId" : UUID("b9c9fbea-3c12-41aa-bc69-eb316047a790")
-          },
-          "frequency" : 14
-        }
-      ],
-      "monotonicity" : {
-        "recordIdCorrelationCoefficient" : -0.0032039729,
-        "type" : "not monotonic"
-      },
-    }
-   }
+.. include:: /includes/analyzeShardKey-example2-output.rst
 
 { userId: 1 } readWriteDistribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This ``analyzeShardKey`` command provides metrics on the 
+This |analyzeShardKey| command provides metrics on the 
 ``{ userId: 1 }`` shard key on the ``social.post`` collection:
 
 .. code-block:: javascript
@@ -471,68 +206,7 @@ This ``analyzeShardKey`` command provides metrics on the
 
 The output for this command is similar to the following:
 
-.. code-block:: none
-   :copyable: false
-
-   {
-      "readDistribution" : {
-        "sampleSize" : {
-          "total" : 61363,
-          "find" : 61363,
-          "aggregate" : 0,
-          "count" : 0,
-          "distinct" : 0
-        },
-        "percentageOfSingleShardReads" : 50.0008148233,
-        "percentageOfMultiShardReads" : 49.9991851768,
-        "percentageOfScatterGatherReads" : 0,
-        "numReadsByRange" : [
-          688,
-          775,
-          737,
-          776,
-          652,
-          671,
-          1332,
-          1407,
-          535,
-          428,
-          985,
-          573,
-          1496,
-          ...
-          ],
-        },
-      "writeDistribution" : {
-        "sampleSize" : {
-          "total" : 49638,
-          "update" : 30680,
-          "delete" : 7500,
-          "findAndModify" : 11458
-        },
-        "percentageOfSingleShardWrites" : 100,
-        "percentageOfMultiShardWrites" : 0,
-        "percentageOfScatterGatherWrites" : 0,
-        "numWritesByRange" : [
-          389,
-          601,
-          430,
-          454,
-          462,
-          421,
-          668,
-          833,
-          493,
-          300,
-          683,
-          460,
-          ...
-         ],
-         "percentageOfShardKeyUpdates" : 0,
-         "percentageOfSingleWritesWithoutShardKey" : 0,
-         "percentageOfMultiWritesWithoutShardKey" : 0
-       }
-   }
+.. include:: /includes/analyzeShardKey-example3-output.rst
 
 Learn More
 ----------

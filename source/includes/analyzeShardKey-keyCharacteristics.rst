@@ -25,7 +25,7 @@ returned when ``keyCharacteristics`` is set to ``true``:
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 20 30 30 
+   :widths: 20 30 20 30 
 
    * - Field
      - Type
@@ -87,7 +87,9 @@ returned when ``keyCharacteristics`` is set to ``true``:
        by setting ``analyzeShardKeyNumMostCommonValues`` which defaults 
        to ``5``. To avoid exceeding the 16MB BSON size limit for the 
        response, each value is set to "truncated" if its size exceeds 
-       15MB / ``analyzeShardKeyNumMostCommonValues``.
+       15MB / 
+       :ref:`analyzeShardKey
+       NumMostCommonValues <ask-nmcv-param>`.
 
    * - ``mostCommonValues[n].value``
      - document
@@ -121,15 +123,16 @@ returned when ``keyCharacteristics`` is set to ``true``:
 
        You can configure the threshold for the correlation coefficient 
        with 
-       ``analyzeShardKeyMonotonicityCorrelationCoefficientThreshold``.
+       :ref:`analyzeShardKeyMonotonicity
+       CorrelationCoefficientThreshold <ask-mcct-param>`.
 
    * - ``monotoncity.type``
      - string
      - Can be one of: 
 
-       - ``"monotonic"``
-       - ``"not monotonic"``
-       - ``"unknown"``
+       ``"monotonic"``,
+       ``"not monotonic"``,
+       ``"unknown"``
      - Avoid a shard key with type ``"monotonic"`` unless you do not 
        expect to insert new documents often.
 
