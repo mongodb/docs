@@ -12,7 +12,7 @@
      - MongoDB 4.0
      - MongoDB 3.6
    * - 2.6 [#2.5-2.6-limitation]_
-     - ✓
+     - ⊛
      - ✓
      - ✓
      - ✓
