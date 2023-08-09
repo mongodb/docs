@@ -12,50 +12,138 @@ cursor.isExhausted()
 
 .. method:: cursor.isExhausted()
 
-
    .. include:: /includes/fact-mongosh-shell-method.rst
 
+   :returns: Boolean
 
-   :returns: Boolean.
+   :method:`cursor.isExhausted()` returns ``false`` if documents remain
+   in the current document batch read by the cursor. Otherwise,
+   returns ``true``.
 
-   :method:`cursor.isExhausted()` returns ``true`` if the cursor
-   is closed *and* there are no remaining objects in the batch.
+Behavior
+--------
 
-   Use :method:`~cursor.isExhausted()` to support iterating cursors
-   that remain open even if there are no documents remaining in the
-   current batch, such as :method:`tailable <cursor.tailable()>` or
-   :method:`change stream <db.collection.watch()>` cursors.
+Tailable Cursors
+~~~~~~~~~~~~~~~~
 
-Example
--------
+You can use ``isExhausted()`` with a :ref:`tailable cursor
+<tailable-cursors-landing-page>`. A tailable cursor stays open even if
+no documents remain in the current batch. Other cursors are
+automatically closed when no documents remain.
 
-Consider the following ``while`` loop iterating through updates to
-a :method:`change stream <db.collection.watch()>` cursor:
+Change Streams
+~~~~~~~~~~~~~~
 
-.. code-block:: javascript
+You cannot use ``isExhausted()`` with :ref:`change streams
+<changeStreams>`. Instead, to examine if:
 
-   watchCursor = db.collection.watch();
+- documents remain in a change stream cursor, use
+  :method:`cursor.tryNext()`.
+- a change stream cursor is closed, use :method:`cursor.isClosed()`.
 
-   while (watchCursor.hasNext()) {
-      watchCursor.next();
-   }
+For change stream examples, see :ref:`Watch Example <db.watch-example>`
+and :ref:`Change Stream Images Example
+<db.collection.watch-change-streams-pre-and-post-images-example>`.
 
-A change stream cursor can return an empty batch if no new data changes
-have occured within a set period of time. This causes the while loop
-to exit prematurely as :method:`cursor.hasNext()` returns ``false``
-when it detects the empty batch. However, the change stream cursor 
-is still open and able to return more documents in the future.
+Examples
+--------
 
-Use :method:`cursor.isExhausted()` to ensure the while loop only exits
-when the cursor is closed *and* there are no documents remaining in the
-batch:
+This section contains examples that use a cursor to read documents from
+a collection with temperature readings from a weather sensor. You'll see
+examples of ``isExhausted()``.
 
-.. code-block:: javascript
+.. procedure::
+   :style: normal
 
-   watchCursor = db.collection.watch();
+   .. step:: Create the collection
 
-   while (!watchCursor.isExhausted()) {
-      if (watchCursor.hasNext()){
-         watchCursor.next();
-      }
-   }
+      Run:
+
+      .. code-block:: javascript
+
+         db.sensor.insertMany( [
+            { _id: 0, temperature: 12 },
+            { _id: 1, temperature: 23 }
+         ] )
+
+   .. step:: Create a cursor variable
+
+      Create a cursor variable named ``sensorCursor`` that reads the
+      documents from the ``sensor`` collection:
+
+      .. code-block:: javascript
+
+         var sensorCursor = db.sensor.find()
+
+   .. step:: Count the number of documents in the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.count()
+
+      The output is ``2`` because there are two documents in the
+      collection.
+
+   .. step:: Return the first document from the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.next()
+
+      Output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { _id: 0, temperature: 12 }
+
+   .. step:: Examine the ``isExhausted()`` value
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.isExhausted()
+
+      The output is ``false`` because there is a remaining document
+      in ``sensorCursor``.
+
+   .. step:: Return the next document from the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.next()
+
+      Output:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { _id: 1, temperature: 23 }
+
+   .. step:: Attempt to return the next document from the cursor
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.next()
+
+      There are no more documents and the example returns ``null``.
+
+   .. step:: Examine the ``isExhausted()`` value
+
+      Run:
+
+      .. code-block:: javascript
+
+         sensorCursor.isExhausted()
+
+      There are no more documents and ``isExhausted()`` returns
+      ``true``.
