@@ -76,7 +76,7 @@ const tlsOptions = {
 
 // start-extra-options
 const extraOptions = {
-  mongocryptdSpawnPath: "<your path to mongocryptd>",
+  cryptSharedLibPath: "<Full path to your Automatic Encryption Shared Library>",
 };
 // end-extra-options
 

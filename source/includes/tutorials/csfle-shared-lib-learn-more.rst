@@ -5,4 +5,4 @@
    which modifies the application's behavior when accessing encrypted fields.
    
    To learn more about the {+shared-library+}, see
-   the :ref:`<qe-reference-shared-library>` page.
+   the :ref:`<csfle-reference-shared-library>` page.
