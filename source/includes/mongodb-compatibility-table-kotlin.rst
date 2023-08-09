@@ -4,6 +4,7 @@
    :class: compatibility-large
 
    * - Kotlin Driver Version
+     - MongoDB 7.0
      - MongoDB 6.1
      - MongoDB 6.0
      - MongoDB 5.0
@@ -17,6 +18,7 @@
      - MongoDB 2.6
    
    * - 4.10
+     - ✓
      - ✓
      - ✓
      - ✓
