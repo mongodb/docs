@@ -4,10 +4,10 @@ in :atlas:`{+fts+} </atlas-search>`. {+fts+} indexes enable performant
 text search queries by mapping search terms to the documents that
 contain those terms.
 
-Use the following methods to manage {+fts+} indexes.
+Use the following database commands to manage {+fts+} indexes.
 
 .. important::
 
-   The following methods can only be run on deployments hosted on
+   The following commands can only be run on deployments hosted on
    :atlas:`MongoDB Atlas </>`, and require an Atlas cluster tier of at
    least M10.
