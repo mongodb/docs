@@ -18,7 +18,9 @@ Definition
    .. versionadded:: 7.0
 
    Configures query sampling for a collection on a replica set or
-   sharded cluster.
+   sharded cluster. Sampled queries provide information to
+   :dbcommand:`analyzeShardKey` to calculate metrics about read and 
+   write distribution of a shard key.
 
 Syntax
 ------
@@ -38,141 +40,85 @@ The command has the following syntax:
 Command Fields
 ~~~~~~~~~~~~~~
 
-``configureQueryAnalyzer`` has the following fields:
+.. |CQA| replace:: ``configureQueryAnalyzer``
+
+|CQA| has the following fields:
 
 .. list-table::
    :header-rows: 1
-   :widths: 20 20 20 40 
+   :widths: 10 10 10 70 
  
    * - Field
      - Type
      - Necessity
      - Description
-
+   
    * - ``configureQueryAnalyzer``
      - string
      - Required
-     - :term:`namespace` of the collection to configure for query 
+     - :term:`namespace` of the collection to configure for query
        sampling.
 
    * - ``mode``
      - string
      - Required
-     - Mode the query analyzer runs in. Must be set to either 
-       ``"full"`` or ``"off"``. 
+     - Mode the query analyzer runs in. Must be set to either
+       ``"full"`` or ``"off"``.
 
    * - ``samplesPerSecond``
      - double
      - Optional
-     - Number of samples per second. 
-       
-       - When ``mode`` is set to ``"full"``, ``samplesPerSecond`` must 
+     - Number of samples per second.
+
+       - When ``mode`` is set to ``"full"``, ``samplesPerSecond`` must
          be set between ``0`` and ``50``.
        - When ``mode`` is set to ``"off"``, the server ignores
          ``samplesPerSecond``.
 
-       For details, see :ref:`<samplesPerSecond-limit>`.
+       For details, see :ref:`samplesPerSecond Upper Limit 
+       <samplesPerSecond-limit>`.
+
+.. _cqa-access-control:
 
 Access Control
-~~~~~~~~~~~~~~
+--------------
 
-The ``configureQueryAnalyzer`` command requires one of the following 
-roles:
+|CQA| requires one of the following roles:
 
 - :authrole:`dbAdmin` role against the database that contains the 
   collection being analyzed 
 - :authrole:`clusterManager` role against the cluster
 
+.. _cqa-behavior:
+
 Behavior
 --------
 
-Consider the following behavior when running ``configureQueryAnalyzer``:
+Consider the following behavior when running |CQA|:
 
-Dropped Collections and Renamed Collections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Query sampling is disabled automatically when the collection is dropped 
-or renamed. If you want to sample queries after a collection is 
-recreated or renamed, you must reconfigure query sampling.
+.. include:: /includes/cqa-behavior-colls.rst
 
 .. _samplesPerSecond-limit:
 
-samplesPerSeconds Upper Limit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /includes/cqa-samplesPerSecond-limit.rst
 
-The upper limit for ``samplesPerSecond`` is ``50``. A higher rate 
-causes the sampled queries to fill up 10GB of disk space in less than 
-four days.
+.. include:: /includes/cqa-queryAnalysisSampleExpirationSecs.rst
 
-.. _samplesPerSecond-limit-table:
-
-This table shows the estimated disk usage for each sample rate and 
-duration combination: 
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 20 20 20 20
-
-   * - Average Sampled Query Size (kB)
-     - ``samplesPerSecond``
-     - Sampling Duration (Days)
-     - Number of Sampled Queries
-     - Total Size of Sampled Queries (GB)
-
-   * - 0.5
-     - 0.1
-     - 7
-     - 60,480
-     - 0.03024
-
-   * - 0.5
-     - 10
-     - 7
-     - 6,048,000
-     - 3.024
-
-   * - 0.5
-     - 50
-     - 7
-     - 30,240,000
-     - 15.12
-
-   * - 1000
-     - 50
-     - 1
-     - 4,320,000
-     - 4320
-
-   * - 16,000
-     - 50
-     - 1 
-     - 432,0000
-     - 69,120
-
-queryAnalysisSampleExpirationSecs 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Sampled queries are stored in an internal collection that has a TTL 
-index with ``expireAfterSeconds``. Configure ``expireAfterSeconds`` 
-with the ``queryAnalysisSampleExpirationSecs`` server parameter.
-Sampled queries are automatically deleted after 
-``queryAnalysisSampleExpirationSecs``.
+.. include:: /includes/cqa-currentOp.rst
 
 Limitations
 ~~~~~~~~~~~
 
-- You cannot run ``configureQueryAnalyzer`` on Atlas 
-  :atlas:`multitenant </docs/atlas/build-multi-tenant-arch/>`
-  configurations.
-- You cannot run ``configureQueryAnalyzer`` on standalone deployments.
-- You cannot run ``configureQueryAnalyzer`` directly against a 
-  :option:`--shardsvr <mongod --shardsvr>` replica set. 
-  When running on a sharded cluster, ``configureQueryAnalyzer`` 
-  must run against a ``mongos``.
-- You cannot run ``configureQueryAnalyzer`` against 
-  :ref:`timeseries <cmd-shard-collection-timeseries>` collections.
-- You cannot run ``configureQueryAnalyzer`` against collections
-  with :ref:`Queryable Encryption <qe-manual-feature-qe>`.
+.. include:: /includes/cqa-limitations.rst
+
+.. _cqa-output:
+
+Output
+------
+
+.. include:: /includes/cqa-output.rst
+
+.. _cqa-examples:
 
 Examples
 --------
@@ -208,3 +154,8 @@ use the following command:
       } 
    )
 
+Learn More
+----------
+
+- :dbcommand:`configureQueryAnalyzer`
+- :method:`db.collection.configureQueryAnalyzer()`
