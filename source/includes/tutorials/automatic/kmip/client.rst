@@ -216,7 +216,7 @@
                :language: go
                :dedent:
 
-      .. include:: /includes/queryable-encryption/csfle-shared-lib-learn-more.rst
+      .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
 
    .. step:: Create the MongoClient
 
