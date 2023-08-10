@@ -222,10 +222,16 @@ When using :ref:`Queryable Encryption <qe-manual-feature-qe>`,
   ``$comment``, and ``$db``.
 
 
-Example
--------
+Examples
+--------
 
-The following example returns information on inactive sessions that are
+The following examples show how to use the ``$currentOp`` aggregation
+stage.
+
+Inactive Sessions 
+~~~~~~~~~~~~~~~~~
+
+This example returns information on inactive sessions that are
 holding locks as part of a transaction. Specifically:
 
 - The first stage returns documents for all active operations as well
@@ -351,9 +357,7 @@ Both operations return documents of the form:
                }
             },
             "waitingForFlowControl" : false,
-            "flowControlStats" : {
-             }
-      
+            "flowControlStats" : {},
          }
 
 
@@ -548,6 +552,29 @@ Both operations return documents of the form:
             "type" : "idleSession",
             ...
          }
+
+.. _sampled-queries-currentOp-stage:
+
+Sampled Queries
+~~~~~~~~~~~~~~~
+
+This example returns information on query sampling progess. 
+
+- The first stage returns documents for all active operations.
+
+- The second stage filters for documents related to the query
+  analyzer.
+
+.. code-block:: javascript
+
+   db.getSiblingDB("admin").aggregate( [
+      { $currentOp: { allUsers: true, localOps: true } },
+      { $match: { desc: "query analyzer" } } 
+   ] )
+
+This pipeline returns output similar to the following:
+
+.. include:: /includes/currentOp-query-analyzer-output.rst
 
 .. _currentOp-stage-output-fields:
 
@@ -1856,3 +1883,80 @@ relevant for the operation:
         - The resharding operation was canceled.
 
    .. versionadded:: 5.0
+
+.. _currentOp-agg-query-sampling-fields:
+
+.. data:: $currentOp.collUuid
+
+   The UUID of the :ref:`sampled collection <configureQueryAnalyzer>`.
+
+   This field only appears on documents related to query sampling.
+   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   
+   .. versionadded:: 7.0
+
+.. data:: $currentOp.startTime
+
+   The time at which query sampling began.
+
+   This field only appears on documents related to query sampling.
+   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+
+   .. versionadded:: 7.0
+
+.. data:: $currentOp.samplesPerSecond
+
+   The maximum number of queries to sample per second.
+   
+   Only reported when running ``$currentOp`` on ``mongos``.
+   
+   This field only appears on documents related to query sampling.
+   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   
+   .. versionadded:: 7.0
+   
+.. data:: $currentOp.sampledReadsCount
+
+   The number of sampled read queries.
+   
+   This field only appears on documents related to query sampling.
+   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+
+   .. versionadded:: 7.0
+
+.. data:: $currentOp.sampledWritesCount
+
+   The number of sampled write queries.
+   
+   This field only appears on documents related to query sampling.
+   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   
+   .. versionadded:: 7.0
+
+.. data:: $currentOp.sampledReadsBytes
+
+   The size of the sampled read queries, in bytes.
+   
+   On a replica set, this is reported on every ``mongod``.
+
+   On a sharded cluster, this only reported on ``mongod`` with 
+   ``--shardsvr``.
+   
+   This field only appears on documents related to query sampling.
+   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   
+   .. versionadded:: 7.0
+
+.. data:: $currentOp.sampledWritesBytes
+   
+   The size of the sampled write queries, in bytes.
+   
+   On a replica set, this is reported on every ``mongod``.
+
+   On a sharded cluster, this only reported on ``mongod`` with 
+   ``--shardsvr``.
+
+   This field only appears on documents related to query sampling.
+   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   
+   .. versionadded:: 7.0
