@@ -101,6 +101,15 @@
   To learn more, see :ref:`Live Migrate a MongoDB 6.0.5 or Later Cluster into Atlas
   <c2c-pull-live-migration>`.
 
+.. _atlas_2023_03_01:
+
+1 March 2023 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces generally available |service| integrations for |aws| 
+  CloudFormation and the |aws| Cloud Development Kit (CDK). To learn 
+  more, see `MongoDB Atlas Integrations for AWS CloudFormation and CDK are now Generally Available <https://www.mongodb.com/blog/post/atlas-integrations-aws-cloud-formation-cdk-now-generally-available?tck=aws_cloudformation_banner>`__.
+
 .. _atlas_2023_02_15:
 
 15 February 2023 Release
