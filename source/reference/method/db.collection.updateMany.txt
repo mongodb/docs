@@ -406,31 +406,31 @@ Example 1: Update with Aggregation Pipeline Using Existing Fields
 The following examples uses the aggregation pipeline to modify a field
 using the values of the other fields in the document.
 
-Create a ``members`` collection with the following documents:
+Create a ``students`` collection with the following documents:
 
 .. code-block:: javascript
 
-   db.members.insertMany( [
-      { "_id" : 1, "member" : "abc123", "status" : "A", "points" : 2, "misc1" : "note to self: confirm status", "misc2" : "Need to activate", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
-      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60, "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
+   db.students.insertMany( [
+      { "_id" : 1, "student" : "Skye", "points" : 75, "commentsSemester1" : "great at math", "commentsSemester2" : "loses temper", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") },
+      { "_id" : 2, "students" : "Elizabeth", "points" : 60, "commentsSemester1" : "well behaved", "commentsSemester2" : "needs improvement", "lastUpdate" : ISODate("2019-01-01T00:00:00Z") }
    ] )
 
-Assume that instead of separate ``misc1`` and ``misc2`` fields, you
-want to gather these into a new ``comments`` field. The following
+Assume that instead of separate ``commentsSemester1`` and ``commentsSemester2``
+fields, you want to gather these into a new ``comments`` field. The following
 update operation uses an aggregation pipeline to:
    
 - add the new ``comments`` field and set the ``lastUpdate`` field.
 
-- remove the ``misc1`` and ``misc2`` fields for all documents in the
-  collection.
+- remove the ``commentsSemester1`` and ``commentsSemester2`` fields for all 
+  documents in the collection.
 
 .. code-block:: javascript
 
-   db.members.updateMany(
+   db.students.updateMany(
       { },
       [
-         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ], lastUpdate: "$$NOW" } },
-         { $unset: [ "misc1", "misc2" ] }
+         { $set: { comments: [ "$commentsSemester1", "$commentsSemester2" ], lastUpdate: "$$NOW" } },
+         { $unset: [ "commentsSemester1", "commentsSemester2" ] }
       ]
    )
 
@@ -444,7 +444,7 @@ First Stage
    The :pipeline:`$set` stage:
 
    - creates a new array field ``comments`` whose elements are the current
-     content of the ``misc1`` and ``misc2`` fields and 
+     content of the ``commentsSemester1`` and ``commentsSemester2`` fields and 
 
    - sets the field ``lastUpdate`` to the value of the aggregation
      variable :variable:`NOW`. The aggregation variable
@@ -454,14 +454,15 @@ First Stage
      and enclose in quotes.
 
 Second Stage
-   The :pipeline:`$unset` stage removes the ``misc1`` and ``misc2`` fields.
+   The :pipeline:`$unset` stage removes the ``commentsSemester1`` and 
+   ``commentsSemester2`` fields.
 
 After the command, the collection contains the following documents:
 
 .. code-block:: javascript
 
-   { "_id" : 1, "member" : "abc123", "status" : "Modified", "points" : 2, "lastUpdate" : ISODate("2020-01-23T05:50:49.247Z"), "comments" : [ "note to self: confirm status", "Need to activate" ] }
-   { "_id" : 2, "member" : "xyz123", "status" : "Modified", "points" : 60, "lastUpdate" : ISODate("2020-01-23T05:50:49.247Z"), "comments" : [ "reminder: ping me at 100pts", "Some random comment" ] }
+   { "_id" : 1, "student" : "Skye", "status" : "Modified", "points" : 75, "lastUpdate" : ISODate("2020-01-23T05:11:45.784Z"), "comments" : [ "great at math", "loses temper" ] }
+   { "_id" : 2, "student" : "Elizabeth", "status" : "Modified", "points" : 60, "lastUpdate" : ISODate("2020-01-23T05:11:45.784Z"), "comments" : [ "well behaved", "needs improvement" ] }
    
 Example 2: Update with Aggregation Pipeline Using Existing Fields Conditionally
 ```````````````````````````````````````````````````````````````````````````````
@@ -775,28 +776,27 @@ Specify ``hint`` for Update Operations
 
 .. versionadded:: 4.2.1
 
-Create a sample ``members`` collection with the following documents:
+Create a sample ``students`` collection with the following documents:
 
 .. code-block:: javascript
 
-   db.members.insertMany( [
-      { "_id" : 1, "member" : "abc123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
-      { "_id" : 2, "member" : "xyz123", "status" : "A", "points" : 60,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" },
-      { "_id" : 3, "member" : "lmn123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
-      { "_id" : 4, "member" : "pqr123", "status" : "D", "points" : 20,  "misc1" : "Deactivated", "misc2" : null },
-      { "_id" : 5, "member" : "ijk123", "status" : "P", "points" :  0,  "misc1" : null, "misc2" : null },
-      { "_id" : 6, "member" : "cde123", "status" : "A", "points" : 86,  "misc1" : "reminder: ping me at 100pts", "misc2" : "Some random comment" }
+   db.students.insertMany( [
+      { "_id" : 1, "student" : "Richard", "grade" : "F", "points" :  0,  "comments1" : null, "comments2" : null },
+      { "_id" : 2, "student" : "Jane", "grade" : "A", "points" : 60,  "comments1" : "well behaved", "comments2" : "fantastic student" },
+      { "_id" : 3, "student" : "Ronan", "grade" : "F", "points" :  0,  "comments1" : null, "comments2" : null },
+      { "_id" : 4, "student" : "Noah", "grade" : "D", "points" : 20,  "comments1" : "needs improvement", "comments2" : null },
+      { "_id" : 5, "student" : "Adam", "grade" : "F", "points" :  0,  "comments1" : null, "comments2" : null },
+      { "_id" : 6, "student" : "Henry", "grade" : "A", "points" : 86,  "comments1" : "fantastic student", "comments2" : "well behaved" }
    ] )
 
 Create the following indexes on the collection:
 
 .. code-block:: javascript
 
-   db.members.createIndex( { status: 1 } )
-   db.members.createIndex( { points: 1 } )
+   db.students.createIndex( { grade: 1 } )
 
 The following update operation explicitly hints to use the index ``{
-status: 1 }``:
+grade: 1 }``:
 
 .. note::
 
@@ -804,10 +804,10 @@ status: 1 }``:
 
 .. code-block:: javascript
 
-   db.members.updateMany(
-      { "points": { $lte: 20 }, "status": "P" }, 
-      { $set: { "misc1": "Need to activate" } },
-      { hint: { status: 1 } }
+   db.students.updateMany(
+      { "points": { $lte: 20 }, "grade": "F" }, 
+      { $set: { "comments1": "failed class" } },
+      { hint: { grade: 1 } }
    )
 
 The update command returns the following:
@@ -816,41 +816,13 @@ The update command returns the following:
 
    { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
 
-To view the indexes used, you can use the :pipeline:`$indexStats` pipeline:
+To see the index used, run :dbcommand:`explain` on the operation:
 
 .. code-block:: javascript
 
-   db.members.aggregate( [ { $indexStats: { } }, { $sort: { name: 1 } } ] )
+   db.students.explain().updateMany(
+      { "points": { $lte: 20 }, "grade": "F" },
+      { $set: { "comments1": "failed class" } },
+      { multi: true, hint: { grade: 1 } }
+   )
 
-.. _updateMany-example-user-roles-system-variable:
-
-User Roles and Document Updates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/user-roles-system-variable-update-example-introduction.rst
-
-.. procedure::
-   :style: normal
-
-   .. step:: Log in as ``Michelle``
-
-      .. include:: /includes/user-roles-system-variable-example-login-michelle.rst
-
-   .. step:: Perform update
-   
-      .. include:: /includes/user-roles-system-variable-update-many-example.rst
-
-.. include:: /includes/user-roles-system-variable-update-example-middle.rst
-
-.. procedure::
-   :style: normal
-
-   .. step:: Log in as ``James``
-
-      .. include:: /includes/user-roles-system-variable-example-login-james.rst
-
-   .. step:: Attempt to perform update
-   
-      .. include:: /includes/user-roles-system-variable-update-many-example.rst
-
-.. include:: /includes/user-roles-system-variable-update-example-end.rst
