@@ -47,7 +47,7 @@ public class MongoDbAwsAuth {
         MongoClient mongoClient = MongoClients.create(
                 MongoClientSettings.builder()
                 .applyToClusterSettings(builder ->
-                builder.hosts(Arrays.asList(new ServerAddress("<atlasUri>"))))
+                builder.hosts(Arrays.asList(new ServerAddress("<hostname>"))))
                 .credential(credential)
                 .build());
         // end mongoCredential
@@ -60,7 +60,7 @@ public class MongoDbAwsAuth {
         MongoClient mongoClient = MongoClients.create(
                 MongoClientSettings.builder()
                 .applyToClusterSettings(builder ->
-                builder.hosts(Arrays.asList(new ServerAddress("<atlasUri>"))))
+                builder.hosts(Arrays.asList(new ServerAddress("<hostname>"))))
                 .credential(credential)
                 .build());
         // end mechOnlyMongoCredential
@@ -86,7 +86,7 @@ public class MongoDbAwsAuth {
         MongoClient mongoClient = MongoClients.create(
                 MongoClientSettings.builder()
                 .applyToClusterSettings(builder ->
-                builder.hosts(Arrays.asList(new ServerAddress("<atlasUri>"))))
+                builder.hosts(Arrays.asList(new ServerAddress("<hostname>"))))
                 .credential(credential)
                 .build());
         // end mongoCredentialSessionTokenCredential
