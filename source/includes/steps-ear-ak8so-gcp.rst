@@ -18,20 +18,20 @@ a. Add the :setting:`spec.encryptionAtRest.googleCloudKms` object to
           ``false``. If you disable encryption at rest using {+gcp+}
           |kms|, |ak8so| removes the configuration details.
 
-      * - ``spec.encryptionAtRest.googleCloudKms.``
-          ``keyVersionResourceID``
-        - Unique resource path that displays the key version resource
-          ID for your {+gcp+} |kms|.
+      * - ``spec.encryptionAtRest.googleCloudKms.secretRef.name``
+        - Name of the secret that contains your |gcp| credentials.
                     
-      * - ``spec.encryptionAtRest.googleCloudKms.``
-          ``serviceAccountKey``
-        - |json| object that contains the {+gcp+} |kms|
-          credentials from your {+gcp+} account.
+      * - ``spec.encryptionAtRest.googleCloudKms.secretRef.namespace``
+        - Namespace that contains your |gcp| credentials. If 
+          unspecified, this parameter defaults to the namespace of the 
+          ``AtlasProject`` custom resource.
 
-          .. important::
-            
-             You must format the |json| object properly. Ensure you 
-             properly indent the credential fields within the YAML file.
+   We recommend that you use a |k8s-secret| that contains the values 
+   for ``keyVersionResourceID`` and ``serviceAccountKey`` instead of 
+   the following parameters:
+
+   - ``spec.encryptionAtRest.googleCloudKms.keyVersionResourceID``
+   - ``spec.encryptionAtRest.googleCloudKms.serviceAccountKey``
 
 #. Run the following command:
 
@@ -47,19 +47,8 @@ a. Add the :setting:`spec.encryptionAtRest.googleCloudKms` object to
         encryptionAtRest:
           googleCloudKms: 
             enabled: true
-            keyVersionResourceID: "projects/my-project-common-0/locations/us-east4/keyRings/my-key-ring-0/cryptoKeys/my-key-0/cryptoKeyVersions/1"
-            serviceAccountKey: |
-              {
-                "type": "service_account",
-                "project_id": "my-project-common-0",
-                "private_key_id": "e120598ea4f88249469fcdd75a9a785c1bb3\",
-                "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEuwIBA(truncated)SfecnS0mT94D9\\n-----END PRIVATE KEY-----\\n\",
-                "client_email": "my-email-kms-0@my-project-common-0.iam.gserviceaccount.com\",
-                "client_id": "10180967717292066",
-                "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-                "token_uri": "https://accounts.google.com/o/oauth2/token",
-                "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-                "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/my-email-kms-0%40my-project-common-0.iam.gserviceaccount.com"
-                "universe_domain": "googleapis.com"
-              }
+            secretRef:
+              name: gcp-ear-creds
+              namespace: mongodb-atlas-system
       EOF
+      

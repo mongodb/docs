@@ -11,17 +11,6 @@ a. Add the :setting:`spec.encryptionAtRest.azureKeyVault` object to
         - Description
 
       * - ``spec.encryptionAtRest.azureKeyVault.``
-          ``azureEnvironment``
-        - |azure| deployment location where the |azure| account
-          credentials reside. Valid values are ``AZURE``,
-          ``AZURE_CHINA``, and ``AZURE_GERMANY``.
-
-      * - ``spec.encryptionAtRest.azureKeyVault.``
-          ``clientID``
-        - Unique 36-hexadecimal character string that identifies your 
-          |azure| application.
-
-      * - ``spec.encryptionAtRest.azureKeyVault.``
           ``enabled``
         - Flag that indicates whether this project uses |azure| Key
           Vault to encrypt data at rest. To enable encryption at rest
@@ -32,32 +21,10 @@ a. Add the :setting:`spec.encryptionAtRest.azureKeyVault` object to
           details.
 
       * - ``spec.encryptionAtRest.azureKeyVault.``
-          ``keyIdentifier``
-        - Web address with a unique key that identifies your |azure|
-          Key Vault.
-                    
-      * - ``spec.encryptionAtRest.azureKeyVault.``
-          ``keyVaultName``
-        - Unique string that identifies the |azure| Key Vault that
-          contains your key.
-
-      * - ``spec.encryptionAtRest.azureKeyVault.``
-          ``resourceGroupName``
-        - Human-readable label that identifies the |azure| resource
-          group that contains your |azure| Key Vault. |azure| displays
-          the resource group name on the resource group's details page.
-
-      * - ``spec.encryptionAtRest.azureKeyVault.``
           ``secret``
         - Private data associated with the
           |azure| Key Vault tenant you specify in 
           ``spec.encryptionAtRest.azureKeyVault.tenantID``.
-      
-      * - ``spec.encryptionAtRest.azureKeyVault.``
-          ``subscriptionID``
-        - Unique 36-hexadecimal character string that identifies your
-          |azure| subscription. |azure| displays the subscription ID on
-          the subscription's details page.
 
       * - ``spec.encryptionAtRest.azureKeyVault.``
           ``tenantID``
@@ -65,6 +32,26 @@ a. Add the :setting:`spec.encryptionAtRest.azureKeyVault` object to
           |azure| Active Directory tenant within your |azure|
           subscription. |azure| displays the tenant ID on the tenant
           properties page.
+
+      * - ``spec.encryptionAtRest.azureKeyVault.secretRef.name``
+        - Name of the secret that contains your |azure| credentials.
+                    
+      * - ``spec.encryptionAtRest.azureKeyVault.secretRef.namespace``
+        - Namespace that contains your |azure| credentials. If 
+          unspecified, this parameter defaults to the namespace of the 
+          ``AtlasProject`` custom resource.
+
+   We recommend that you use a |k8s-secret| that contains the values 
+   for ``azureEnvironment``, ``clientID``, ``keyIdentifier``, 
+   ``keyVaultName``, ``resourceGroupName``, and ``subscriptionID`` 
+   instead of the following parameters:
+
+   - ``spec.encryptionAtRest.azureKeyVault.azureEnvironment``
+   - ``spec.encryptionAtRest.azureKeyVault.clientID``
+   - ``spec.encryptionAtRest.azureKeyVault.keyIdentifier``
+   - ``spec.encryptionAtRest.azureKeyVault.keyVaultName``
+   - ``spec.encryptionAtRest.azureKeyVault.resourceGroupName``
+   - ``spec.encryptionAtRest.azureKeyVault.subscriptionID``
 
 #. Run the following command:
 
@@ -79,12 +66,11 @@ a. Add the :setting:`spec.encryptionAtRest.azureKeyVault` object to
         name: Test Atlas Operator Project
         encryptionAtRest:
           azureKeyVault: 
-            azureEnvironment: "AZURE"
-            clientID: "g54f9e2-89e3-40fd-8188-EXAMPLEID"
             enabled: true
-            keyIdentifier: "https://EXAMPLEKeyVault.vault.azure.net/keys/EXAMPLEKey/d891821e3d364e9eb88fbd3d11807b86"
-            keyVaultName: "EXAMPLEKeyVault"
-            resourceGroupName: "ExampleRGName"
             secret: "EXAMPLESECRET"
             tenantID: "e8e4b6ba-ff32-4c88-a9af-EXAMPLEID"
+            secretRef:
+              name: azure-ear-creds
+              namespace: mongodb-atlas-system
       EOF
+      
