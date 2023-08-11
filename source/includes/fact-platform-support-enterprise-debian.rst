@@ -6,8 +6,6 @@ MongoDB {+version+} Enterprise Edition supports the following
 
 - Debian 11 "Bullseye"
 
-- Debian 10 "Buster"
-
 MongoDB only supports the 64-bit versions of these platforms.
 
 See :ref:`prod-notes-supported-platforms` for more information.
