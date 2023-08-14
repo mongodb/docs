@@ -110,8 +110,6 @@
                     - The MongoDB user's password. Not required if you 
                       entered a ``Password`` in the previous step.
 
-               .. include:: /includes/data-federation/atlas-sql-tutorial-database-tip.rst
-
          .. step:: Click :guilabel:`Finish`.
 
    .. step:: *(Optional)* Confirm that you can access your {+fdi+} data.
