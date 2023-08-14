@@ -4,7 +4,7 @@ MongoDB {+version+} Community Edition supports the following
 
 - Windows Server 2019
 
-- Windows 10 / Windows Server 2016
+- Windows Server 2016
 
 MongoDB only supports the 64-bit versions of these platforms.
 
