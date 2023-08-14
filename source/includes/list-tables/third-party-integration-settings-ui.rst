@@ -111,6 +111,26 @@
 
           - Datadog API Key
 
+          You might see an inaccurate health status in the following 
+          scenarios:
+
+          - If you have a network partition and the {+mdbagent+} lives 
+            on an isolated node in a replica set, only pings from the 
+            isolated node reach Datadog. The isolated node and 
+            |onprem| UI report the other nodes as down.
+          - If you have a network partition and the MongoDB Agent lives 
+            outside the impacted nodes, pings from all the nodes reach 
+            Datadog, but report different statuses.
+          - If all nodes are unresponsive or their state is hanging, no 
+            new pings come in. The |onprem| UI reports these nodes as 
+            down, but Datadog reports them as healthy and the status 
+            gets older.
+
+          .. important::
+
+             If the health status is ``1``, but no other metrics appear 
+             in Datadog, the replica set might be down.
+
        .. cond:: cloud
 
           The Datadog Metrics integration is not supported with |mms|.
