@@ -10,7 +10,7 @@ section in the Server manual.
 To run this sample application, you first need to install the following
 dependencies:
 
-- MongoDB Server version 7.0 (or the latest release candidate) or later
+- MongoDB Server version 7.0 or later
 - Automatic Encryption Shared Library version 7.0 or later
 - [.NET version 7.0 or later](https://dotnet.microsoft.com/en-us/download/dotnet)
 

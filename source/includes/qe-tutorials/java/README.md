@@ -13,7 +13,7 @@ set up and run this project.
 To run this sample app, you first need to install the following
 dependencies:
 
-- MongoDB Server version 7.0 (or the latest release candidate) or later
+- MongoDB Server version 7.0 or later
 - Automatic Encryption Shared Library version 7.0 or later
 - Java 11 or later
 

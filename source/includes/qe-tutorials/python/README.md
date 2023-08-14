@@ -12,7 +12,7 @@ The following sections provide instructions on how to set up and run this projec
 To run this sample app, you first need to install the following
 dependencies:
 
-- MongoDB Server version 7.0 (or the latest release candidate) or later
+- MongoDB Server version 7.0 or later
 - Automatic Encryption Shared Library version 7.0 or later
 - `python3`
 - `pip`

@@ -8,7 +8,7 @@ mongosh Queryable Encryption tutorial.
 To run this sample application, you first need to install the following
 dependencies:
 
-- MongoDB Server version 7.0 (or the latest release candidate) or later
+- MongoDB Server version 7.0 or later
 - [mongosh](https://www.mongodb.com/try/download/shell)
 - [direnv](https://direnv.net/docs/installation.html) to assign your KMS
   credentials to environment variables.
