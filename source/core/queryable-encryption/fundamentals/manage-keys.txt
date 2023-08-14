@@ -1,8 +1,8 @@
 .. _qe-fundamentals-manage-keys:
 
-=========================
-Encryption Key Management
-=========================
+=================================
+Rotate and Rewrap Encryption Keys
+=================================
 
 .. default-domain:: mongodb
 
@@ -15,100 +15,37 @@ Encryption Key Management
 In this guide, you can learn how to manage your encryption keys with a
 {+kms-long+} ({+kms-abbr+}) in your application.
 
-Encryption Components
----------------------
+Overview
+--------
 
-MongoDB uses the following components to perform {+qe+}:
+This procedure shows you how to rotate encryption keys for {+qe+} using
+:binary:`~bin.mongosh`. Rotating DEKs consists of rewrapping them with a
+new {+cmk-long+}, so the terms "rotate" and "rewrap" are sometimes used interchangeably.
 
-- {+dek-long+}s ({+dek-abbr+})s
-- {+cmk-long+}s ({+cmk-abbr+})s
-- {+key-vault-long+}s
-- {+kms-long+} ({+kms-abbr+})
+After completing this guide, you should be able to rotate your
+{+cmk-long+} ({+cmk-abbr+}) on your {+kms-long+}, and then rewrap 
+existing DEKs in your {+key-vault-long+} with your new
+{+cmk-abbr+}.
+
+.. warning::
+
+   As you rotate keys, confirm that they aren't used to encrypt any keys
+   or data before deleting them. If you delete a {+dek-abbr+}, all
+   fields encrypted with that {+dek-abbr+} become permanently
+   unreadable. If you delete a {+cmk-abbr+}, all fields encrypted with a
+   {+dek-abbr+} using that {+cmk-abbr+} become permanently unreadable.
+
+
+Related Information
+~~~~~~~~~~~~~~~~~~~
+
+For a detailed explanation of the concepts included in this procedure,
+refer to the topics below.
 
 To learn more about keys and key vaults, see
 :ref:`qe-reference-keys-key-vaults`.
-To learn more about why you should use a remote {+kms-abbr+}, see :ref:`qe-reasons-to-use-remote-kms`.
-To view a list of all supported {+kms-abbr+} providers, see the :ref:`qe-fundamentals-kms-providers` page.
-
-.. _qe-fundamentals-rotate-keys:
-
-Rotate Encryption Keys Using mongosh
-------------------------------------
-
-You can rotate encryption keys using the 
-:method:`KeyVault.rewrapManyDataKey()` method. The ``rewrapManyDataKey`` 
-method automatically decrypts multiple data keys and re-encrypts them 
-using a specified {+cmk-long+}. It then updates the rotated keys 
-in the key vault collection. This method allows you to rotate encryption 
-keys based on two optional arguments:
-
-- A :ref:`query filter document <document-query-filter>` used to specify 
-  which keys to rotate. If no data key matches the given filter, no keys 
-  are rotated. Omit the filter to rotate all keys in your key vault 
-  collection.
-
-- An object that represents a new {+cmk-abbr+}. Omit this object to rotate
-  the data keys using their current CMKs.
-
-The ``rewrapManyDataKey`` method has the following syntax:
-
-.. code-block:: json
-
-   let keyVault = db.getMongo().getKeyVault()
-
-   keyVault.rewrapManyDataKey(
-      { 
-         "<Your custom filter>" 
-      },
-      {
-         provider: "<KMS provider>",
-         masterKey: {
-            "<dataKeyOpts Key>" : "<dataKeyOpts Value>"
-         }
-      }
-   )
-
-Supported Key Management Services
----------------------------------
-
-{+qe+} supports the following {+kms-long+} providers:
-
-- {+aws-long+} KMS
-- {+azure-kv+}
-- {+gcp-kms-abbr+}
-- Any KMIP Compliant {+kms-long+}
-- Local Key Provider (for testing only)
-
-To learn more about these providers, including diagrams that show how
-your application uses them to perform {+qe+}, see
-:ref:`qe-fundamentals-kms-providers`.
-
-.. _qe-reasons-to-use-remote-kms:
-
-Reasons to Use a Remote KMS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Using a remote {+kms-long+} to manage your {+cmk-long+}
-has the following advantages over using your local filesystem to host
-the {+cmk-abbr+}:
-
-- Secure storage of the key with access auditing
-- Reduced risk of access permission issues
-- Availability and distribution of the key to remote clients
-- Automated key backup and recovery
-- Centralized encryption key lifecycle management
-
-Additionally, for the following {+kms-abbr+} providers, your
-{+kms-abbr+} remotely encrypts and decrypts your {+dek-long+}, ensuring
-your {+cmk-long+} is never exposed to your {+qe+} enabled
-application:
-
-- {+aws-long+} KMS
-- {+azure-kv+}
-- {+gcp-kms-abbr+}
-
-Learn More
-----------
+To view a list of supported {+kms-abbr+} providers, see the
+:ref:`qe-fundamentals-kms-providers` page.
 
 For tutorials detailing how to set up a {+qe+} enabled
 application with each of the supported {+kms-abbr+} providers, see the
@@ -117,3 +54,61 @@ following pages:
 - :ref:`qe-tutorial-automatic-aws`
 - :ref:`qe-tutorial-automatic-azure`
 - :ref:`qe-tutorial-automatic-gcp`
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Rotate your {+cmk-long+} on your {+kms-long+}
+
+      The process for rotating your {+cmk-abbr+} depends on your
+      {+kms-abbr+}. For details, refer to your key provider's
+      documentation:
+
+      - AWS: `Rotating AWS KMS Keys <https://docs.aws.amazon.com/kms/latest/developerguide/rotate-keys.html>`__
+      - Azure: `Configure cryptographic key auto-rotation in Azure key
+        vault <https://learn.microsoft.com/en-us/azure/key-vault/keys/how-to-configure-key-rotation>`__
+      - GCP: `Rotate a key <https://cloud.google.com/kms/docs/rotate-key>`__
+
+      Once you rotate the {+cmk-abbr+}, MongoDB uses it to wrap all new
+      DEKs. To re-wrap existing DEKs, continue to the following steps.
+   
+   .. step:: Rotate your {+dek-long+}s using ``KeyVault.rewrapManyDataKey()``
+
+      The :method:`KeyVault.rewrapManyDataKey()` method automatically
+      decrypts multiple {+dek-long+}s and re-encrypts them using the
+      specified {+cmk-abbr+}. It then updates the keys in the 
+      {+key-vault-long+}.
+
+      The method has the following syntax:
+
+      .. code-block:: javascript
+
+         let keyVault = db.getMongo().getKeyVault()
+
+         keyVault.rewrapManyDataKey(
+            { 
+               "<Query filter document>" 
+            },
+            {
+               provider: "<KMS provider>",
+               masterKey: {
+                  "<dataKeyOpts Key>" : "<dataKeyOpts Value>"
+               }
+            }
+         )
+      
+      #. Specify a query filter document to select the keys to rotate, or omit the argument to rotate all keys in the {+key-vault-long+}
+
+         If you specify a :ref:`query filter document <document-query-filter>`, but no keys match, then no keys rotate.
+      
+      #. Specify the {+kms-abbr+} provider
+      
+      #. Specify the ``masterKey`` using the new {+cmk-abbr+}, 
+         or omit the argument to rotate keys using their existing {+cmk-abbr+}
+
+Your DEKs themselves are left unchanged after re-wrapping them
+with the new {+cmk-abbr+}. The key rotation process is seamless, and does
+not interrupt your application.
