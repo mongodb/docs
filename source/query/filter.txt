@@ -11,7 +11,7 @@ Query Your Data
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 You can type MongoDB filter documents into the query bar to display only
@@ -29,8 +29,8 @@ Set Query Filter
 
    .. example::
 
-      The following filter only returns documents which have a ``title``
-      value of ``Jurassic Park``:
+      The following filter returns documents that have a ``title`` value
+      of ``Jurassic Park``:
       
       .. code-block:: json
       
@@ -46,6 +46,283 @@ Set Query Filter
 .. note::
 
    .. include:: /includes/extracts/query-bar-results.rst
+
+Examples
+--------
+
+The examples on this page use a small example dataset. To import the
+sample data into your MongoDB deployment, perform the following steps:
+
+1. Copy the following documents to your clipboard:
+
+   .. code-block:: JSON
+
+      [
+         {
+            "name": "Andrea Le",
+            "email": "andrea_le@fake-mail.com",
+            "version": 5,
+            "scores": [ 85, 95, 75 ],
+            "dateCreated": { "$date": "2003-03-26" }
+         },
+         {
+            "email": "no_name@fake-mail.com",
+            "version": 4,
+            "scores": [ 90, 90, 70 ],
+            "dateCreated": { "$date": "2001-04-15" }
+         },
+         {
+            "name": "Greg Powell",
+            "email": "greg_powell@fake-mail.com",
+            "version": 1,
+            "scores": [ 65, 75, 80 ],
+            "dateCreated": { "$date": "1999-02-10" }
+         }
+      ]
+
+#. In |compass-short|, use the left navigation panel to select the 
+   database and the collection you want to import the data to.
+
+#. Click the :guilabel:`Documents` tab.
+
+#. Click :guilabel:`Add Data` and select :guilabel:`Insert Document`.
+
+#. Set the :guilabel:`View` to JSON (``{}``).
+
+#. Paste the JSON documents from your clipboard into the modal.
+
+#. Click :guilabel:`Insert`.
+
+.. note::
+
+   If you do not have a MongoDB deployment or if you want to query a
+   larger sample data set, see :atlas:`Sample Data for Atlas Clusters
+   </sample-data/>` for instructions on creating a free-tier cluster
+   with sample data. The following example queries filter the sample
+   documents provided on this page.
+
+Match by a Single Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter finds all documents where the value of
+``name`` is "Andrea Le":
+
+.. code-block:: shell
+
+   { name: "Andrea Le" }
+
+The query returns the following document:
+
+.. code-block:: JSON
+   :copyable: false
+
+   {
+      "_id": { "$oid": "5e349915cebae490877d561d" },
+      "name": "Andrea Le",
+      "email": "andrea_le@fake-mail.com",
+      "version": 5,
+      "scores": [ 85, 95, 75 ],
+      "dateCreated": { "$date": "2003-03-26" }
+   }
+
+Match by Multiple Conditions ($and)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query filter finds all documents where ``scores`` array
+contains the value ``75``, and the ``name`` is ``Greg Powell``:
+
+.. code-block:: shell
+
+   { scores: 75, name: "Greg Powell" }
+
+The query returns the following document:
+
+.. code-block:: JSON
+   :copyable: false
+
+   {
+      "_id": { "$oid":"5a9427648b0beebeb69579cf" },
+      "name": "Greg Powell",
+      "email": "greg_powell@fake-mail.com",
+      "version": 1,
+      "scores": [ 65, 75, 80 ],
+      "dateCreated": { "$date": "1999-02-10" }
+   }
+
+Match by Multiple Possible Conditions ($or)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following query filter uses the :query:`$or` operator to find
+documents where ``version`` is ``4``, or ``name`` is ``Andrea Le``:
+
+.. code-block:: shell
+
+   { $or: [ { version: 4 }, { name: "Andrea Le" } ] }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid": "5e349915cebae490877d561d" },
+         "name": "Andrea Le",
+         "email": "andrea_le@fake-mail.com",
+         "version": 5,
+         "scores": [ 85, 95, 75 ],
+         "dateCreated": { "$date": "2003-03-26" }
+      },
+      {
+         "_id": { "$oid":"5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      }
+   ]
+
+Match by Exclusion ($not)
+~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$not` operator to find all
+documents where the value of the ``name`` field is **not** equal to
+"Andrea Le", or the ``name`` field does not exist:
+
+.. code-block:: shell
+
+   { name: { $not: { $eq: "Andrea Le" } } }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid":"5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      },
+      {
+         "_id": { "$oid":"5a9427648b0beebeb69579cf" },
+         "name": "Greg Powell",
+         "email": "greg_powell@fake-mail.com",
+         "version": 1,
+         "scores": [ 65, 75, 80 ],
+         "dateCreated": { "$date": "1999-02-10" }
+      }
+   ]
+
+.. seealso::
+
+   For a complete list of logical query operators, see 
+   :manual:`Logical Query Operators</reference/operator/query-logical/>`.
+
+
+Match with Comparison Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$lte` operator to find all
+documents where ``version`` is less than or equal to ``4``:
+
+.. code-block:: shell
+
+   { version: { $lte: 4 } }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid":"5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      },
+      {
+         "_id": { "$oid":"5a9427648b0beebeb69579cf" },
+         "name": "Greg Powell",
+         "email": "greg_powell@fake-mail.com",
+         "version": 1,
+         "scores": [ 65, 75, 80 ],
+         "dateCreated": { "$date": "1999-02-10" }
+      }
+   ]
+
+.. seealso::
+
+   For a complete list of comparison operators, see 
+   :manual:`Comparison Query Operators </reference/operator/query-comparison/>`.
+
+Match by Date
+~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$gt` operator and
+:method:`Date()` method to find all documents where the ``dateCreated``
+field value is later than June 22nd, 2000:
+
+.. code-block:: shell
+
+   { dateCreated: { $gt: Date('2000-06-22') } }
+
+The query returns the following documents:
+
+.. code-block:: JSON
+   :copyable: false
+
+   [
+      {
+         "_id": { "$oid": "5e349915cebae490877d561d" },
+         "name": "Andrea Le",
+         "email": "andrea_le@fake-mail.com",
+         "version": 5,
+         "scores": [ 85, 95, 75 ],
+         "dateCreated": { "$date": "2003-03-26" }
+      },
+      {
+         "_id": { "$oid": "5e349915cebae490877d561e" },
+         "email": "no_name@fake-mail.com",
+         "version": 4,
+         "scores": [ 90, 90, 70 ],
+         "dateCreated": { "$date": "2001-04-15" }
+      }
+   ]
+         
+Match by Array Conditions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+         
+The following query filter uses the :query:`$elemMatch` operator
+to find all documents where at least one value in the ``scores``
+array is greater than ``80`` and less than ``90``:
+
+.. code-block:: shell
+
+   { scores: { $elemMatch: { $gt: 80, $lt: 90 } } }
+
+The query returns the following document because one of the values
+in the ``scores`` array is ``85``:
+
+.. code-block:: JSON
+   :copyable: false
+
+   {
+      "_id": { "$oid": "5e349915cebae490877d561d" },
+      "name": "Andrea Le",
+      "email": "andrea_le@fake-mail.com",
+      "version": 5,
+      "scores": [ 85, 95, 75 ],
+      "dateCreated": { "$date": "2003-03-26" }
+   }
+
+For more query examples, see 
+:manual:`Query Documents </tutorial/query-documents/>` 
+in the MongoDB manual.
 
 Supported Data Types in the Query Bar
 -------------------------------------
@@ -108,273 +385,6 @@ How Does the Compass Query Compare to MongoDB and SQL Queries?
 
          SELECT * FROM article
          WHERE author = "Joe Bloggs";
-
-Examples
---------
-
-.. example::
-
-   The following examples use the JSON documents below as sample data. 
-   To import this sample data to your MongoDB deployment with |compass|:
-
-   1. Copy the array of documents below by clicking :guilabel:`Copy`.
-
-   .. code-block:: JSON
-
-      [
-         {
-            "name":"Andrea Le",
-            "email":"andrea_le@fakegmail.com",
-            "version":5,
-            "scores":[85, 95, 75],
-            "dateCreated":{"$date":"2003-03-26"}
-         },
-         {
-            "email":"no_name@fakegmail.com",
-            "version":4,
-            "scores":[90, 90, 70],
-            "dateCreated":{"$date":"2001-04-15"}
-         },
-         {
-            "name":"Greg Powell",
-            "email":"greg_powell@fakegmail.com",
-            "version":1,
-            "scores":[65, 75, 80],
-            "dateCreated":{"$date":"1999-02-10"}
-         }
-      ]
-
-   2. In |compass-short|, use the left navigation panel to select the 
-      database and the collection you want to import the data to.
-   
-   #. Click the :guilabel:`Documents` tab.
-   
-   #. Click :guilabel:`Add Data` and select :guilabel:`Insert Document`.
-
-   #. Ensure that :guilabel:`View` is set to JSON, or ``{}``, and paste 
-      the copied JSON documents in the field.
-
-   #. Click :guilabel:`Insert`.
-
-.. note::
-
-   If you do not have a MongoDB deployment or if you would like to 
-   query a large sample data set, see
-   :atlas:`Sample Data for Atlas Clusters</sample-data/>` for 
-   instructions on creating a free-tier cluster with sample data. Note 
-   that the examples below are intended to filter the sample JSON 
-   documents provided on this page and may not properly filter another 
-   sample data set.
-
-.. tabs::
-
-   .. tab:: Match
-      :tabid: match
-         
-      The following :ref:`query filter <query-bar-filter>` finds
-      all documents where the value of ``name`` is "Andrea Le".
-
-      .. code-block:: shell
-
-         { name: "Andrea Le" }
-
-      The query returns the following document because the ``name`` 
-      field value is an exact match.
-
-      .. code-block:: JSON
-         :copyable: false
-
-         {
-            "_id": {"$oid": "5e349915cebae490877d561d"},
-            "name":"Andrea Le",
-            "email":"andrea_le@fakegmail.com",
-            "version":5,
-            "scores":[85, 95, 75],
-            "dateCreated":{"$date":"2003-03-26"}
-         }
-
-   .. tab:: Exclusion ($not)
-      :tabid: not
-         
-      The following :ref:`query filter <query-bar-filter>` uses the 
-      :manual:`$not operator </reference/operator/query/not/>` to find 
-      all documents where:
-      
-      - The value of the ``name`` field is **not** equal to "Andrea Le",
-        or
-
-      - The ``name`` field does not exist
-
-      .. code-block:: shell
-
-         { name: { $not: { $eq: "Andrea Le" } } }
-
-      The query returns the following documents because the ``name`` 
-      field either does not exist or its value is something other than 
-      "Andrea Le".
-
-      .. code-block:: JSON
-         :copyable: false
-
-         [
-            {
-               "_id":{"$oid":"5e349915cebae490877d561e"},
-               "email":"no_name@fakegmail.com",
-               "version":4,
-               "scores":[90, 90, 75],
-               "dateCreated":{"$date":"2001-04-15"}
-            },
-            {
-               "_id":{"$oid":"5a9427648b0beebeb69579cf"},
-               "name":"Greg Powell",
-               "email":"greg_powell@fakegmail.com",
-               "version":1,
-               "scores":[65, 75, 80],
-               "dateCreated":{"$date":"1999-02-10"}
-            }
-         ]
-
-      .. seealso::
-
-         For a complete list of logical query operators, see 
-         :manual:`Logical Query Operators</reference/operator/query-logical/>`.
-
-   .. tab:: Comparison
-      :tabid: compare
-         
-      The following :ref:`query filter <query-bar-filter>` uses the 
-      :manual:`$lte operator </reference/operator/query/lte/>` to 
-      find all documents where ``version`` is less than or equal 
-      to ``4``.
-
-      .. code-block:: shell
-
-         { version: { $lte: 4 } }
-
-      The query returns the following documents because 
-      the ``version`` field values are less than or equal to ``4``.
-
-      .. code-block:: JSON
-         :copyable: false
-
-         [
-            {
-               "_id":{"$oid":"5e349915cebae490877d561e"},
-               "email":"no_name@fakegmail.com",
-               "version":4,
-               "scores":[90, 90, 75],
-               "dateCreated":{"$date":"2001-04-15"}
-            },
-            {
-               "_id":{"$oid":"5a9427648b0beebeb69579cf"},
-               "name":"Greg Powell",
-               "email":"greg_powell@fakegmail.com",
-               "version":1,
-               "scores":[65, 75, 80],
-               "dateCreated":{"$date":"1999-02-10"}
-            }
-         ]
-
-      .. seealso::
-
-         For a complete list of comparison operators, see 
-         :manual:`Comparison Query Operators </reference/operator/query-comparison/>`.
-
-   .. tab:: Date
-      :tabid: date
-         
-      The following :ref:`query filter <query-bar-filter>` uses the 
-      :manual:`$gt operator </reference/operator/query/gt/>` and 
-      :manual:`Date() method </reference/method/Date/>` to find all 
-      documents where the ``dateCreated`` field value is later than 
-      June 22nd, 2000.
-
-      .. code-block:: shell
-
-         { dateCreated: { $gt: Date('2000-06-22') } }
-
-      The query returns the following documents because 
-      the ``dateCreated`` field values are after June 22, 2000.
-
-      .. code-block:: JSON
-         :copyable: false
-
-         [
-            {
-               "_id": {"$oid": "5e349915cebae490877d561d"},
-               "name":"Andrea Le",
-               "email":"andrea_le@fakegmail.com",
-               "version":5,
-               "scores":[85, 95, 75],
-               "dateCreated":{"$date":"2003-03-26"}
-            },
-            {
-               "_id":{"$oid":"5e349915cebae490877d561e"},
-               "email":"no_name@fakegmail.com",
-               "version":4,
-               "scores":[90, 90, 75],
-               "dateCreated":{"$date":"2001-04-15"}
-            }
-         ]
-         
-
-   .. tab:: Array
-      :tabid: array
-         
-      The following :ref:`query filter <query-bar-filter>` uses the
-      :manual:`$elemMatch operator </reference/operator/query/elemMatch/>` to find all documents where at least one value in 
-      the ``scores`` array is greater than 80 and less than ``90`` 
-
-      .. code-block:: shell
-
-         { scores: { $elemMatch: { $gt: 80, $lt: 90 } } }
-
-      The query returns the following document because one of the 
-      values in the scores array is ``85``, which matches the 
-      ``$elemMatch`` criteria.
-
-      .. code-block:: JSON
-         :copyable: false
-
-         {
-            "_id": {"$oid": "5e349915cebae490877d561d"},
-            "name":"Andrea Le",
-            "email":"andrea_le@fakegmail.com",
-            "version":5,
-            "scores":[85, 95, 75],
-            "dateCreated":{"$date":"2003-03-26"}
-         }
-   
-   .. tab:: UUID
-      :tabid: uuid
-            
-      The following :ref:`query filter <query-bar-filter>` finds
-      all documents where the UUID is 
-      "002636e1-10cd-4c8b-a9a7-01b7bfd3899c". 
-   
-      .. code-block:: shell
-   
-         {_id: UUID('002636e1-10cd-4c8b-a9a7-01b7bfd3899c')}
-   
-      The query returns the following document because the ``UUID`` 
-      is an exact match.
-   
-      .. code-block:: JSON
-         :copyable: false
-   
-         {
-            "_id": UUID('002636e1-10cd-4c8b-a9a7-01b7bfd3899c'),
-            "name":"Mr. Florencio Breitenberg",
-            "email":"Florencio.Breitenberg",
-            "phone":"876.349.6791 x616"
-            "website":"nelle.name",
-            "country": "Zimbabwe",
-            "age":31
-         }
-
-For more query examples, see 
-:manual:`Query Documents </tutorial/query-documents/>` 
-in the MongoDB manual.
 
 .. toctree::
    :titlesonly:
