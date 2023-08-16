@@ -159,15 +159,20 @@ Fields
              .. important::
 
                 The generated call to |s3| inserts a ``/`` between
-                ``s3.bucket`` and ``s3.filename``. Don't append a
-                ``/`` after the ``s3.bucket``.
+                ``s3.bucket`` and ``s3.filename``. Don't append a ``/``
+                to your ``s3.bucket`` string. 
 
                 .. example::
+                  
+                   If you set ``s3.bucket`` to  ``myBucket``
+                   and ``s3.filename`` to ``myPath/myData``, 
+                   {+adf+} writes the output location as follows:
 
-                   If you set ``s3.bucket`` to ``myBucket`` and
-                   ``s3.filename`` to ``myPath/myData``, {+adf+} writes
-                   this out as 
-                   ``s3://myBucket/myPath/myData.[n].json``.
+                   .. code-block:: sh
+                      :copyable: false
+
+                      s3://myBucket/myPath/myData.[n].json
+                  
 
            - Required
 
@@ -194,11 +199,19 @@ Fields
              .. important::
 
                 The generated call to |s3| inserts a ``/`` between
-                ``s3.bucket`` and ``s3.filename``. Don't prepend a
-                ``/`` before the ``s3.filename``. If you set ``s3.
-                bucket`` to ``myBucket`` and ``s3.filename`` to 
-                ``myPath/myData``, {+adf+} writes this out as 
-                ``s3://myBucket/myPath/myData.[n].json``.
+                ``s3.bucket`` and ``s3.filename``. Don't prepend a ``/`` 
+                to your ``s3.filename`` string. 
+                
+                .. example:: 
+
+                   If you set ``s3.filename`` to  ``myPath/myData``
+                   and ``s3.bucket`` to ``myBucket``, 
+                   {+adf+} writes the output location as follows:
+
+                   .. code-block:: sh
+                      :copyable: false
+
+                      s3://myBucket/myPath/myData.[n].json
 
            - Required
 
@@ -240,7 +253,7 @@ Fields
            - Maximum size of the file in |s3|. When the file size limit
              for the current file is reached, a new file is created in
              |s3|. The first file appends a ``1`` before the filename
-             extension. For each subsequent file, the {+adf+} increments
+             extension. For each subsequent file, {+adf+} increments
              the appended number by one.
 
              .. example::
@@ -249,7 +262,7 @@ Fields
 
                 ``<filename>.2.<fileformat>``
 
-             If a document is larger than the ``maxFileSize``, {+df+}
+             If a document is larger than the ``maxFileSize``, {+adf+}
              writes the document to its own file. The following
              suffixes are supported:
 
@@ -449,7 +462,7 @@ Examples
               }
             }
 
-         The ``s3.region`` is omitted and so, {+df+} determines the 
+         The ``s3.region`` is omitted and so, {+adf+} determines the 
          region where the bucket named ``my-s3-bucket`` is hosted from 
          the storage configuration. |out| writes five compressed |bson| 
          files:
@@ -716,8 +729,8 @@ Limitations
       String Data Type
       ~~~~~~~~~~~~~~~~
 
-      {+df+} interprets empty strings (``""``) as ``null`` values when
-      parsing filenames. If you want {+df+} to generate parseable
+      {+adf+} interprets empty strings (``""``) as ``null`` values when
+      parsing filenames. If you want {+adf+} to generate parseable
       filenames, wrap the field references that could have ``null``
       values using |convert| with an empty string ``onNull`` value.
 
@@ -761,6 +774,8 @@ Limitations
       When writing to :ref:`CSV <adf-csv-tsv-data>`,
       :ref:`TSV <adf-csv-tsv-data>`, or :ref:`Parquet <adf-parquet-data>`
       file format, {+adf+} doesn't support more than 32000 unique fields.
+
+      .. _csv_and_tsv_format:
       
       CSV and TSV File Format
       ~~~~~~~~~~~~~~~~~~~~~~~
@@ -901,8 +916,8 @@ Limitations
 
 .. _adf-out-stage-errors:
 
-Errors
-------
+Error Output
+------------
 
 .. tabs::
    :hidden:
@@ -910,82 +925,109 @@ Errors
    .. tab:: S3
       :tabid: s3
 
-      - If the filename is not of type string, {+df+} writes documents
-        to a special error file in your bucket.
+      {+adf+} uses the error handling mechanism described below for documents
+      that enter the :pipeline:`$out` stage and cannot be written for one of the following reasons:
+      
+      - The ``s3.filename`` does not evaluate to a string value. 
+      - The ``s3.filename`` evaluates to a file that cannot be written to.
+      - The ``s3.format.name`` is set to ``csv``, ``tsv``, ``csv.gz``, or ``tsv.gz`` and the document passed to :pipeline:`$out`
+        contains data types that are not supported by the specified file format. For a full list of unsupported data types, see :ref:`CSV and TSV File Format <csv_and_tsv_format>`. 
 
-      - If the documents cannot be written to a file with the specified
-        filename, {+df+} writes documents to ordinally-named files in
-        the specified format and specified size.
+      
+      If :pipeline:`$out` encounters one of the above errors while processing a document, {+adf+} writes to the following three special error files in the path
+      ``s3://<bucket-name>/atlas-data-lake-<correlation-id>/``: 
 
-        .. example::
+      .. list-table:: Error Files
+        :widths: 10 30
+        :header-rows: 1
 
-          - ``s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-docs/1.json``
-          - ``s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-docs/2.json``
+        * - Error File Name
+          - Description
+        * - out-error-docs/<i>.json
+          - {+adf+} writes the document that encountered an error to this file. 
 
-        {+df+} returns an error message that specifies the number of
-        documents that had invalid filenames and the directory where
-        these documents were written.
+            ``i`` begins with ``1`` and increments whenever the file being written to reaches the ``maxFileSize``. 
+            Then, any further documents are written to the new file ``out-error-docs/<i+1>.json``. 
+        * - out-error-index/<i>.json
+          - {+adf+} writes an error message to this file.
+            Each error message contains a description of the error and an index value ``n`` that begins with ``0``
+            and increments with each additional error message written to the file.
+            
+            ``i`` begins with ``1`` and increments whenever the file being written to reaches the ``maxFileSize``.  
+            Then, any further error messages are written to the new file ``out-error-docs/<i+1>.json``. 
+        * - out-error-summary.json
+          - {+adf+} writes a single summary document for each type of error encountered during an aggregation operation to this file.
+            Each summary document contains a description of the type of error and a count of the number of documents that encountered that type of error.
 
-      - If {+df+} encounters an error while processing a document, 
-        it writes the document to a special error file in your 
-        bucket. 
 
-        .. code-block:: sh
-           :copyable: false
+      .. example::
 
-          s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-docs/{<n>}.json
+         This example shows how to generate error files using :pipeline:`$out` in a {+fdi+}. 
 
-        where ``n`` is the index of the document being written.
+         The following aggregation pipeline sorts documents in the ``analytics.customers`` sample dataset collection 
+         by descending customer birthdate and attempts to write the ``_id``, ``name`` and ``accounts`` fields of the 
+         youngest three customers to the file named ``youngest-customers.csv`` in the S3 bucket named ``customer-data``.   
+        
+         .. code-block:: json
+            :copyable: true
 
-        {+df+} also writes the error message for each document to an 
-        error index file: 
+            db.customers.aggregate([ 
+               { $sort: { "birthdate"  :  -1 } }, 
+               { $unset: [ "username", "address", "email", "tier_and_details", "birthdate" ] }, 
+               { $limit: 3 }, 
+               { $out: {
+                    "s3": {
+                       "bucket": "customer-data", 
+                       "filename": "youngest-customers",
+                       "region":"us-east-2", 
+                       "format": {
+                       "name": "csv"
+                       }
+                    }
+                 }
+               } 
+             ])
 
-        .. code-block:: sh
-           :copyable: false
-
-           s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-index/{<i>}.json
-
-        where ``i`` begins with ``1``. {+df+} writes error messages to 
-        the file until the file reaches the ``maxFileSize`` and then, 
-        {+df+} increments the value of ``i`` and continues writing any 
-        further error messages to the new file. 
-
-        The error messages in the error index file look similar to the 
-        following: 
-
-        .. example::
+         Because ``accounts`` is an array field, :pipeline:`$out` encounters an error when it tries to write
+         a document to ``s3.format.name`` ``csv``. To handle these errors, {+adf+} writes to the following three error files: 
+        
+         - The following output shows the first of three documents written to the ``out-error-docs/1.json`` file: 
 
            .. code-block:: json
-              :copyable: false 
-
-              {
-	              "n": 1234, 
-	              "error": "field \"foo\" is of type array, which is not supported for CSV"
-              }
-
-           where ``n`` is the index of the document which caused the error.
-
-        {+df+} also creates an error summary file after running the entire 
-        query: 
-
-        .. code-block:: sh
-           :copyable: false
-
-           s3://{<bucket-name>}/atlas-data-federation-{<correlation-id>}/out-error-summary.json
-
-        The summary file contains a single document for each type of error 
-        and a count of the number of documents which caused that type of 
-        error. 
-
-        .. example:: 
-
-           .. code-block:: sh
               :copyable: false
+              :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-docs/1.json
 
               {
-	              "errorType": "field is of type array, which is not supported for CSV",
-	              "count": 10
+                "_id" : {"$oid":"5ca4bbcea2dd94ee58162ba7"},
+                "name": "Marc Cain",
+                "accounts": [{"$numberInt":"980440"}, {"$numberInt":"626807"}, {"$numberInt":"313907"}, {"$numberInt":"218101"}, {"$numberInt":"157495"}, {"$numberInt":"736396"}],
               }
+        
+         - The following output shows the first of three error messages written to the ``out-error-index/1.json`` file.  
+           The ``n`` field starts at 0 and increments for each error written to the file.  
+
+           .. code-block:: json
+              :copyable: false
+              :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-index/1.json
+
+              { 
+                "n" : {"$numberInt": "0"},
+                "error" : "field accounts is of unsupported type array"
+              }  
+
+         - The following output shows the error summary document written to the ``out-error-summary`` file. 
+           The ``count`` field represents the number of documents passed to :pipeline:`$out` that encountered 
+           an error due to the ``accounts`` array field. 
+
+           .. code-block:: json
+              :copyable: false
+              :caption: s3://customer-data/atlas-data-lake-1773b3d5e2a7f3858530daf5/out-error-summary.json
+
+                {
+                 "errorType": "field accounts is of unsupported type array",
+                 "count": {"$numberInt":"3"}
+                } 
+
 
    .. tab:: Atlas Cluster
       :tabid: atlas
