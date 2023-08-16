@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Bson.Serialization.Conventions;
 
 // Replace the uri string with your MongoDB deployment's connection string.
 var uri = "mongodb+srv://<user>:<password>@<cluster-url>?retryWrites=true&writeConcern=majority";
@@ -12,7 +13,7 @@ var client = new MongoClient(uri);
 
 // database and collection code goes here
 var db = client.GetDatabase("sample_guides");
-var coll = db.GetCollection<BsonDocument>("comets");
+var coll = db.GetCollection<Comet>("comets");
 
 // update code goes here
 var filter = Builders<Comet>.Filter.Empty;
