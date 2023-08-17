@@ -9,7 +9,7 @@ visualizations:
 
 1. Click the :guilabel:`Dashboards` tab.
 
-#. Click the :guilabel:`New Dashboard` button.
+#. Click the :guilabel:`Add Dashboard` button.
 
 #. Copy the following into the :guilabel:`Title` input:
 
