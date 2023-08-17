@@ -10,9 +10,8 @@ using System;
 
 public class GeoQuery 
 {
-    private static IMongoCollection<AirbnbDocument> airbnbCollection;
-    private static string _mongoConnectionString = "<connection-string>";
-
+    private const string MongoConnectionString = "<connection-string>";
+    
     public static void Main(string[] args) 
     {
         // allow automapping of the camelCase database fields to our AirbnbDocument
@@ -20,9 +19,9 @@ public class GeoQuery
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var airbnbDatabase = mongoClient.GetDatabase("sample_airbnb");
-        airbnbCollection = airbnbDatabase.GetCollection<AirbnbDocument>("listingsAndReviews");
+        var airbnbCollection = airbnbDatabase.GetCollection<AirbnbDocument>("listingsAndReviews");
 
         // declare data for the compound query
         string property_type = "Condominium";

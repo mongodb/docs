@@ -4,12 +4,12 @@ using MongoDB.Driver;
 public class Connect
 {
   // Replace the following with your Atlas connection string               
-  private static string _mongoConnectionString = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority";
+  private const string MongoConnectionString = "mongodb+srv://<username>:<password>@<clusterName>.mongodb.net/?retryWrites=true&w=majority";
 
   public static void Main(string[] args)
   {
     // Connect to your Atlas cluster
-    var client = new MongoClient(_mongoConnectionString);
+    var client = new MongoClient(MongoConnectionString);
 
     // Send a ping to confirm a successful connection
     try {

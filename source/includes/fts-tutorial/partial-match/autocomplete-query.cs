@@ -4,9 +4,9 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Search;
 
-public class PartialAutocomplete {
-    private static IMongoCollection<MovieDocument> moviesCollection;
-    private static string _mongoConnectionString = "<connection-string>";
+public class PartialAutocomplete 
+{
+    private const string MongoConnectionString = "<connection-string>";
 
     public static void Main(string[] args) {
         // allow automapping of the camelCase database fields to our MovieDocument
@@ -14,9 +14,9 @@ public class PartialAutocomplete {
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
-        moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
+        var moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
 
         // define fuzzy options
         SearchFuzzyOptions fuzzyOptions = new SearchFuzzyOptions()

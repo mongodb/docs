@@ -6,9 +6,8 @@ using MongoDB.Driver.Search;
    
 public class DateNumberToStringQuery
 {
-    private static IMongoCollection<matViewDocument> matViewCollection;
-    private static string _mongoConnectionString = "<connection-string>";
-	
+    private const string MongoConnectionString = "<connection-string>";
+
     public static void Main(string[] args)
     {
         // allow automapping of the camelCase database fields to our MovieDocument
@@ -16,9 +15,9 @@ public class DateNumberToStringQuery
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var airbnbDatabase = mongoClient.GetDatabase("sample_airbnb");
-        matViewCollection = airbnbDatabase.GetCollection<matViewDocument>("airbnb_mat_view");
+        var matViewCollection = airbnbDatabase.GetCollection<matViewDocument>("airbnb_mat_view");
 
         // define and run pipeline
         var results = matViewCollection.Aggregate()

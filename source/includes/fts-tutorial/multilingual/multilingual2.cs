@@ -6,8 +6,7 @@ using MongoDB.Driver.Search;
 
 public class TwoLanguagesExample
 {
-    private static IMongoCollection<MovieDocument> moviesCollection;
-    private static string _mongoConnectionString = "<connection-string>";
+    private const string MongoConnectionString = "<connection-string>";
 
     public static void Main(string[] args)
     {
@@ -16,9 +15,9 @@ public class TwoLanguagesExample
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
-        moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
+        var moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
 
         // declare data for compound query
         var startDate = new DateTime(1984, 01, 01, 0, 0, 0, DateTimeKind.Utc);
@@ -57,6 +56,5 @@ public class MovieDocument
     public string [] Genres { get; set; }
     public DateTime Released { get; set; }
     public string Title { get; set; }
-    [BsonElement("score")]
     public double Score { get; set; }
 }

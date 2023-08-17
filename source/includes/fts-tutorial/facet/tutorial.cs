@@ -6,8 +6,7 @@ using MongoDB.Driver.Search;
 
 public class FacetExample
 {
-    private static IMongoCollection<MovieDocument> moviesCollection;
-    private static string _mongoConnectionString = "<connection-string>";
+    private const string MongoConnectionString = "<connection-string>";
 
     public static void Main(string[] args)
     {
@@ -16,9 +15,9 @@ public class FacetExample
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
-        moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
+        var moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
 
         // declare data for date and number fields
         var originDate = new DateTime(1921, 11, 01, 0, 0, 0, DateTimeKind.Utc);

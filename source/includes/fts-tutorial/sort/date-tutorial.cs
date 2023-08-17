@@ -4,10 +4,9 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Search;
 
-public class SortDateForSpeed
+public class SortByStrings
 {
-    private static IMongoCollection<MovieDocument> moviesCollection;
-    private static string _mongoConnectionString = "<connection-string>";
+    private const string MongoConnectionString = "<connection-string>";
 
     public static void Main(string[] args)
     {
@@ -16,20 +15,26 @@ public class SortDateForSpeed
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
-        moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
+        var moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
 
 
         // declare data for compound query
         var originDate = new DateTime(2014, 04, 18, 0, 0, 0, DateTimeKind.Utc);
 
+        // define search options
+        var searchOptions = new SearchOptions<MovieDocument>() 
+            { 
+                Sort = Builders<MovieDocument>.Sort.Descending(movie => movie.Released),
+                IndexName = "sort-tutorial"
+            };
+            
         // define and run pipeline
         var results = moviesCollection.Aggregate()
             .Search(Builders<MovieDocument>.Search.Compound()
                 .Filter(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Summer*"))
-                .Must(Builders<MovieDocument>.Search.Near(movie => movie.Released, originDate, 13149000000, new SearchScoreDefinitionBuilder<MovieDocument>().Boost(100))),
-                indexName: "sort-tutorial")
+                .Must(Builders<MovieDocument>.Search.Near(movie => movie.Released, originDate, 13149000000)), searchOptions)
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Released)
                 .Include(movie => movie.Title)
@@ -53,6 +58,5 @@ public class MovieDocument
     public ObjectId Id { get; set; }
     public DateTime Released { get; set; }
     public string Title { get; set; }
-    [BsonElement("score")]
     public double Score { get; set; }
 }

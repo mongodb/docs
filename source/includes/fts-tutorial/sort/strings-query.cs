@@ -4,10 +4,9 @@ using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Search;
 
-public class SortForPrecision
+public class SortByStrings
 {
-    private static IMongoCollection<MovieDocument> moviesCollection;
-    private static string _mongoConnectionString = "<connection-string>";
+    private const string MongoConnectionString = "<connection-string>";
 
     public static void Main(string[] args)
     {
@@ -16,16 +15,22 @@ public class SortForPrecision
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
-        moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
+        var moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
+
+        // define search options
+        var searchOptions = new SearchOptions<MovieDocument>() 
+            { 
+                Sort = Builders<MovieDocument>.Sort.Ascending(movie => movie.Title),
+                IndexName = "sort-tutorial"
+            };
 
         // define and run pipeline
         var results = moviesCollection.Aggregate()
             .Search(Builders<MovieDocument>.Search.Compound()
-                .Should(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Prance*", true, score: new SearchScoreDefinitionBuilder<MovieDocument>().Constant(99)))
-                .Should(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Prince*", score: new SearchScoreDefinitionBuilder<MovieDocument>().Constant(95))),
-                indexName: "sort-tutorial")
+                .Should(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Prance*", true ))
+                .Should(Builders<MovieDocument>.Search.Wildcard(movie => movie.Title, "Prince*" )), searchOptions)
             .Project<MovieDocument>(Builders<MovieDocument>.Projection
                 .Include(movie => movie.Title)
                 .Exclude(movie => movie.Id)
@@ -47,6 +52,5 @@ public class MovieDocument
     [BsonIgnoreIfDefault]
     public ObjectId Id { get; set; }
     public string Title { get; set; }
-    [BsonElement("score")]
     public double Score { get; set; }
 }

@@ -6,9 +6,8 @@ using MongoDB.Driver.Search;
 
 public class IsNullQuery 
 {
-    private static IMongoCollection<UserDocument> usersCollection;
-    private static string _mongoConnectionString = "<connection-string>";
-
+    private const string MongoConnectionString = "<connection-string>";
+    
     public static void Main(string[] args) 
     {
         // allow automapping of the camelCase database fields to our UserDocument
@@ -16,9 +15,9 @@ public class IsNullQuery
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
-        usersCollection = mflixDatabase.GetCollection<UserDocument>("users");
+        var usersCollection = mflixDatabase.GetCollection<UserDocument>("users");
 
         // define and run pipeline
         var results = usersCollection.Aggregate()

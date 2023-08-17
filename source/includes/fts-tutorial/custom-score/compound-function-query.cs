@@ -6,8 +6,7 @@ using MongoDB.Driver.Search;
 
 public class CompoundFunctionExample
 {
-    private static IMongoCollection<MovieDocument> moviesCollection;
-    private static string _mongoConnectionString = "<connection-string>";
+    private const string MongoConnectionString = "<connection-string>";
 
     public static void Main(string[] args)
     {
@@ -16,9 +15,9 @@ public class CompoundFunctionExample
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
         // connect to your Atlas cluster
-        var mongoClient = new MongoClient(_mongoConnectionString);
+        var mongoClient = new MongoClient(MongoConnectionString);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
-        moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
+        var moviesCollection = mflixDatabase.GetCollection<MovieDocument>("movies");
 
         var scoreFunction = Builders<MovieDocument>.SearchScore.Function(Builders<MovieDocument>.SearchScoreFunction.Add(Builders<MovieDocument>.SearchScoreFunction.Path(movie => movie.Imdb.Rating, 2), Builders<MovieDocument>.SearchScoreFunction.Relevance()));
         // define and run pipeline
@@ -57,7 +56,6 @@ public class MovieDocument
     public int Year { get; set; }
     [BsonElement("highlights")]
     public List<SearchHighlight> Highlights { get; set; }
-    [BsonElement("score")]
     public double Score { get; set; }
 }
 
