@@ -2,11 +2,11 @@
 - The |fcv| for source and destination {+cluster+}\s is at least 6.0 and
   is the same on source and destination {+cluster+}\s.
 - You can't run this live migration procedure for source or destination
-  {+clusters+} with MongoDB versions earlier than MongoDB 6.0.5. To learn more,
+  {+clusters+} with MongoDB versions earlier than MongoDB {+c2c-version+}. To learn more,
   see :manual:`Server Release Notes </release-notes/6.0/>`.
 - This live migration procedure doesn't support MongoDB rapid releases,
   such as 6.1 or 6.2. Only major MongoDB releases, such as 6.0.x (starting
-  from 6.0.5 and later) are supported. To learn more,
+  from {+c2c-version+} and later) are supported. To learn more,
   see :manual:`MongoDB versioning </reference/versioning>`.
 - You can't use {+Serverless-instances+} as destination {+clusters+}.
 - You can't select an ``M0`` (Free Tier) or ``M2/M5`` shared {+cluster+} as the

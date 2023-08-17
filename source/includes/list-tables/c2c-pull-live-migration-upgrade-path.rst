@@ -8,5 +8,5 @@
        | MongoDB Version
 
 
-   * - 6.0.5
-     - 6.0.5
+   * - {+c2c-version+}
+     - {+c2c-version+}
