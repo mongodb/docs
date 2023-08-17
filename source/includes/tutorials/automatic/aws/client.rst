@@ -69,8 +69,6 @@
                :language: java
                :dedent:
 
-            .. include:: /includes/tutorials/automatic/aws/obtain-automatic-credentials.rst
-
          .. tab::
             :tabid: nodejs
 
@@ -106,6 +104,8 @@
                :end-before: end-kmsproviders
                :language: go
                :dedent:
+
+      .. include:: /includes/queryable-encryption/tutorials/automatic/aws/role-authentication.rst
 
    .. step:: Create an Encryption Schema For Your Collection
 
