@@ -12,11 +12,11 @@
      - boolean
      - Required
      - Flag that indicates whether or not you accepted the terms of
-       service for using |s3|\-compatible stores with |onprem|. You
-       must set this to ``true`` to create an |s3|\-compatible store.
+       service for using |s3| stores with |onprem|. You
+       must set this to ``true`` to create an |s3| store.
        
        If you set this to ``false``, |onprem| returns an error. The error states
-       that |onprem| can't create the |s3|\-compatible store.
+       that |onprem| can't create the |s3| store.
 
    * - assignmentEnabled
      - boolean
@@ -135,7 +135,7 @@
    * - s3BucketEndpoint
      - string
      - Required
-     - |url| used to access this |aws| |s3| or |s3|\-compatible bucket.
+     - |url| used to access this |s3| bucket.
  
    * - s3BucketName
      - string
@@ -153,9 +153,9 @@
      - Conditional
      - Region where your |s3| bucket resides.
 
-       Use this field only if your |s3|\-compatible store's 
+       Use this field only if your |s3| store's 
        **s3BucketEndpoint** doesn't support region scoping. Don't use 
-       this field with |aws| |s3| buckets.
+       this field with |aws| S3 buckets.
 
    * - sseEnabled
      - boolean

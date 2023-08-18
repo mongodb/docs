@@ -10,8 +10,8 @@
    * - acceptedTos
      - boolean
      - Flag that indicates whether or not you accepted the terms of
-       service for using |s3|\-compatible stores with |onprem|. You
-       must set this to ``true`` to create an |s3|\-compatible store.
+       service for using |s3| stores with |onprem|. You
+       must set this to ``true`` to create an |s3| store.
 
    * - assignmentEnabled
      - boolean
@@ -92,8 +92,7 @@
 
    * - s3BucketEndpoint
      - string
-     - |url| that |onprem| uses to access this |aws| |s3| or
-       |s3|\-compatible bucket.
+     - |url| that |onprem| uses to access this |s3| bucket.
 
    * - s3BucketName
      - string
@@ -102,7 +101,7 @@
    * - s3RegionOverride
      - string
      - Region where your |s3| bucket resides. This field applies only
-       if your |s3|\-compatible store's **s3BucketEndpoint** doesn't
+       if your |s3| store's **s3BucketEndpoint** doesn't
        support region scoping.
 
        |mms| returns this field only if you included it when you
@@ -125,7 +124,7 @@
      - :manual:`Connection String </reference/connection-string/>`
        that connects to the metadata database for this |s3| oplog
        store. This database stores the locations of the blocks in the
-       |aws| |s3| bucket.
+       |s3| bucket.
 
    * - writeConcern
      - string
