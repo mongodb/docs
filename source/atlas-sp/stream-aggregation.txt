@@ -1,0 +1,766 @@
+.. _stream-aggregation:
+
+======================================================
+Supported Aggregation Pipeline Stages
+======================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $source aggregation pipeline stage, $tumblingWindow aggregation pipeline stage, $hoppingWindow aggregation pipeline stage, $merge aggregation pipeline stage, $emit aggregation pipeline stage, $validate aggregation pipeline stage, 
+   :description: Learn how to use the extensions to the aggregation pipeline syntax provided by Atlas Stream Processing.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: includes/atlas-sp/private-preview.rst
+
+{+atlas-sp+} extends the :manual:`aggregation pipeline 
+</aggregation>` with stages for processing continuous data streams.
+These stages combine with existing aggregation stages built in 
+to the default :manual:`mongod </mongod>` process, enabling you to 
+perform many of the same operations on continuous data as you can 
+perform on data-at-rest.
+
+The following table lists the {+atlas-sp+} aggregation pipeline stages.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+   
+   * - Aggregation Pipeline Stage
+     - Purpose 
+
+   * - :pipeline:`$source`
+     - Specifies a streaming data source to consume messages from.
+
+   * - :pipeline:`$validate`
+     - Validates the documents of a stream against a user-defined 
+       schema.
+
+   * - :pipeline:`$hoppingWindow`
+     - Assigns documents from a stream to 
+       :ref:`windows <atlas-sp-windows>` with user-defined
+       durations and intervals between start times.
+
+   * - :pipeline:`$tumblingWindow`
+     - Assigns documents from a stream to non-overlapping, continuous 
+       :ref:`windows <atlas-sp-windows>` with user-defined
+       durations.
+
+   * - :pipeline:`$emit`
+     - Specifies a stream in the connection registry to emit messages 
+       to.
+
+   * - :pipeline:`$merge`
+     - A version of the existing :ref:`adf-merge-stage` stage where 
+       the value of the ``connectionName`` field must always be the 
+       name of a remote collection in the 
+       :ref:`Connection Registry <manage-spi-connection-add>`.
+
+.. The following can be uncommented once this stage is supported.
+   * - :pipeline:`$validatedSource`
+     - Similar to :pipeline:`$validate`, but is bound to a specific
+       source, allowing you to define one stage in place of both
+       :pipeline:`$source` and :pipeline:`$validate`.
+
+You can also use the following stages supported by all 
+``mongod`` processes in your streaming data pipelines:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Aggregation Pipeline Stage
+     - Use Conditions
+
+   * - :pipeline:`$addFields`
+     - Anywhere
+
+   * - :pipeline:`$match`
+     - Anywhere
+
+   * - :pipeline:`$project`
+     - Anywhere
+
+   * - :pipeline:`$redact`
+     - Anywhere
+
+   * - :pipeline:`$replaceRoot`
+     - Anywhere
+
+   * - :pipeline:`$replaceWith`
+     - Anywhere
+
+   * - :pipeline:`$set`
+     - Anywhere
+
+   * - :pipeline:`$unset`
+     - Anywhere
+
+   * - :pipeline:`$unwind`
+     - Anywhere
+
+   * - :pipeline:`$group`
+     - Only within :pipeline:`$hoppingWindow` or
+       :pipeline:`$tumblingWindow` stages.
+
+   * - :pipeline:`$sort`
+     - Only within :pipeline:`$hoppingWindow` or
+       :pipeline:`$tumblingWindow` stages.
+
+   * - :pipeline:`$limit`
+     - Only within :pipeline:`$hoppingWindow` or
+       :pipeline:`$tumblingWindow` stages.
+
+   * - :pipeline:`$count`
+     - Only within :pipeline:`$hoppingWindow` or
+       :pipeline:`$tumblingWindow` stages.
+
+.. _streams-agg-pipeline-source:
+
+``$source``
+-----------
+
+Definition
+~~~~~~~~~~
+
+The :pipeline:`$source` stage specifies a connection in the 
+:ref:`Connection Registry <manage-spi-connection-add>` to stream data
+from. The following connection types are supported:
+
+- An {+kafka+} broker
+- The change stream for a specific MongoDB collection within a database
+- The change stream for an entire MongoDB database
+
+.. pipeline:: $source
+
+   A ``$source`` pipeline stage has the following prototype form:
+
+   .. code-block:: json
+
+      {
+        "$source": {
+	        "connectionName": "<registered-connection>",
+	        "topic" : "<source-topic>",
+          "config": { 
+            <consumer-properties> 
+          },
+          "tsFieldOverride": "<timestamp>" 
+          "timeField": { 
+            "<timeKey>",
+            $toDate|$dateFromString: <expression>
+          }
+          "allowedLateness": {
+            size: <int> 
+            unit: "<unit-of-time>" 
+          }
+        }
+      }
+
+Fields
+~~~~~~
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``allowedLateness``
+     - document 
+     - Optional
+     - Document that specifies how long to keep 
+       :ref:`windows <atlas-sp-windows>` generated from this
+       source open to accept late-arriving data. 
+
+   * - ``coll``
+     - string
+     - Conditional
+     - The name of a MongoDB collection hosted on the Atlas instance
+       specified by ``connectionName``. The change stream of this 
+       collection acts as the streaming data source. This field is
+       necessary for and limited to connections to MongoDB collections.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document that overrides default configuration. ``$source``
+       supports the ``startAt`` configuration field. ``startAt`` 
+       determines which event in the {+kafka+} source topic to begin 
+       ingestion with. ``startAt`` takes the following values:
+       
+       - ``"latest"`` - to begin ingestion from the latest event in the
+         topic at the time the aggregation is initialized. 
+       - ``"earliest"`` - to begin ingestion from the earliest event in 
+         the topic. 
+         
+       Defaults to ``"latest"``.
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - The name, as it appears in the 
+       :ref:`Connection Registry <manage-spi-connection-add>`, of the
+       connection to ingest data from.
+
+   * - ``db``
+     - string
+     - Conditional
+     - The name of a MongoDB database hosted on the Atlas instance
+       specified by ``connectionName``. The change stream of this 
+       database acts as the streaming data source. This field is
+       necessary for and limited to connections to MongoDB databases. 
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document defining an authoritative timestamp for incoming 
+       messages. If used, it must be one of the following:
+       
+       - a string specifying the name of the field in incoming messages
+         to source the timestamp from 
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+   * - ``topic``
+     - string
+     - Conditional 
+     - The name of the {+kafka+} topic to stream messages from. This
+       field is necessary for and limited to connections to {+kafka+}
+       brokers.
+
+   * - ``tsFieldOverride``
+     - string 
+     - Optional
+     - Specifies a value that overrides message timestamps when 
+       projecting source messages as documents.
+
+Behavior
+~~~~~~~~
+
+:pipeline:`$source` must be the first stage of any pipeline it appears 
+in. You can only use one :pipeline:`$source` stage per pipeline.
+
+.. _stream-agg-pipeline-validate:
+
+``$validate``
+-------------
+
+Definition
+~~~~~~~~~~
+
+The :pipeline:`$validate` stage checks streaming documents for 
+conformity to a schema of expected ranges, values, or datatypes.
+
+.. pipeline:: $validate
+
+   A ``$validate`` pipeline stage has the following prototype form:
+
+   .. code-block:: json
+
+      {
+        "$validate": {
+	        "validator": { <filter> },
+	        "validationAction" : "discard" | "discardQuiet" | "dlq"
+          "logAttributes": <expression>
+        }  
+      }
+
+Fields
+~~~~~~
+
+The ``$validate`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``logAttributes``
+     - document 
+     - Optional
+     - Document of expressions, each defining a field to log. Defaults 
+       to ``$$ROOT``.
+
+   * - ``validationAction`` 
+     - string
+     - Optional 
+     - Specifies the action to take when a message violates the
+       user-defined schema. You can specify one of the following 
+       values:
+
+       - ``discard``: Logs the violation and discards the message.
+       - ``discardQuiet``: Discards the message without logging the 
+         violation.
+       - ``dlq``: Logs the violation to the collection defined in your
+         Stream Processor configuration and performs a best-effort 
+         discard without transactional guarantees.
+
+   * - ``validator``
+     - document
+     - Required
+     - Document of expressions used to validate incoming messages
+       against a user-defined schema. You can use all but the
+       following :ref:`query operators <query-selectors>` to define 
+       validation expressions:
+
+       - ``$near``
+       - ``$nearSphere``
+       - ``$text``
+       - ``$where``
+
+.. I would like to provide an example validator used in testing this
+   feature. Discussion of it would go in the Behavior section. Is one
+   readily available, or should I concoct one?
+
+Behavior
+~~~~~~~~
+
+``$validate`` can be used immediately after the following stages in an 
+aggregation pipeline:
+
+1. Immediately after the :pipeline:`$source` stage to validate raw 
+   incoming messages.
+2. Immediately after the :pipeline:`$project` stage to validate the 
+   results of the projection.
+
+If you specify either the ``discard`` or ``dlq`` options for the
+``validationAction`` field, {+atlas-sp+} logs messages which fail
+validation in the following format:
+
+.. code-block:: json
+
+   {
+    "t": <datetime>,
+    "s": "<severity-level>",
+    "c": "streams-<job-name>",
+    "ctx": "<processed-pipeline>",
+    "msg": "<message-body>",
+    "attrs": {
+      <result-of-logAttributes-evaluation>
+    },
+    "tags": <array-of-strings>,
+    "truncated": {
+      <truncation-description>
+    },
+    "size": <size-of-entry>
+  }
+
+The following table describes the log entry fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 15 70
+
+   * - Field 
+     - Type 
+     - Description
+
+   * - ``attrs``
+     - document 
+     - Document containing the results of evaluating the 
+       ``logAttributes`` field in the ``$validate`` definition. The
+       result is a list of fields.
+
+   * - ``c``
+     - string 
+     - Name of the specific stream processing job in which the 
+       failure occurred. 
+
+   * - ``ctx`` 
+     - string
+     - Name of the streaming data pipeline being processed.
+
+   * - ``msg``
+     - string
+     - Body of the message that failed validation. 
+     
+.. Add the following back to the above field description when
+   $validatedSource is added:
+   If the log is generated by a :pipeline:`$validatedSource` stage, it
+   includes additional metadata from the source stream.
+
+   * - ``s`` 
+     - string
+     - Severity level of the validation failure.
+
+   * - ``size`` 
+     - integer
+     - Original size of the message in bytes. Included only if
+       the message was truncated on ingestion.
+
+   * - ``t`` 
+     - datetime
+     - Timestamp of the validation failure event.
+
+   * - ``tags`` 
+     - array
+     - Array of strings where each string is a tag on the message.
+
+   * - ``truncated`` 
+     - document
+     - Document containing information about the truncation of the
+       message.
+
+{+atlas-sp+} only supports 
+`JSON Schema Draft 4 <https://json-schema.org/specification-links.html#draft-4>`__
+or earlier.
+
+Validator Example
+`````````````````
+
+The following document shows an example validator expression using 
+:manual:`$and </reference/operator/query/and/>` to perform a logical 
+AND operation:
+
+.. code-block:: json
+
+  { 
+    $validate: {
+      validator: {
+        $and: [{
+          $expr: {
+            $ne: [
+              "$Racer_Name",
+              "Pace Car"
+            ]
+          }
+        },
+        {
+          $jsonSchema: {
+            required: [ "Racer_Num", "Racer_Name", "lap", "Corner_Num", "timestamp" ],
+            properties: {
+              Racer_Num: {
+                bsonType: "int",
+                description: "'Racer_Num' is the integer number of the race car and is required"
+              },
+              Racer_Name: {
+                bsonType: "string",
+                description: "'Racer_Name' must be a string and is required"
+              },
+              lap: {
+                bsonType: "int",
+                minimum: 1,
+                description: "'lap' must be a int and is required"
+              },
+              Corner_Num: {
+                bsonType: "int",
+                minimum: 1,
+                maximum: 4,
+                description: "'Corner_Num' must be a int between 1 and 4 and is required"
+              },
+              timestamp: {
+                bsonType: "string",
+                pattern: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{6}$",
+                description: "'timestamp' must be a string matching iso date pattern and is required"
+              }
+            }
+          }
+        }]
+      }, validationAction : "dlq"
+    }
+  }
+
+.. Commit 2de43ac of PR 4592 for DOCSP-30690 contains a description of
+   the $validatedSource aggregation stage. At the time of this comment
+   (26th of June, 2023) it is not slated for private preview and has
+   been removed. Refer to the aforementioned commit for the text rather
+   than rewriting the whole section when it's implemented.
+
+.. _stream-agg-pipeline-hoppingWindow:
+
+``$hoppingWindow``
+------------------
+
+Definition
+~~~~~~~~~~
+
+The :pipeline:`$hoppingWindow` stage specifies a 
+:ref:`hopping window <hopping-windows>` for aggregation of data.
+{+atlas-sp+} windows are stateful, can be recovered if interrupted,
+and have mechanisms for processing late-arriving data. You must apply
+all other aggregation queries to your streaming data within this window
+stage.
+
+.. pipeline:: $hoppingWindow
+
+   A ``$hoppingWindow`` pipeline stage has the following prototype 
+   form:
+
+   .. code-block:: json
+
+      {
+        "$hoppingWindow": {
+	        "interval": { 
+            "size": <number>,
+            "unit": <string>
+          },
+          "hopSize": {
+            "size": <number>,
+            "unit": <string>
+          },
+	        "pipeline" : [ 
+            <aggregation-stage-array> 
+          ]
+        }  
+      }
+
+Fields
+~~~~~~
+
+The ``$hoppingWindow`` stage takes a document with the following 
+fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``hopSize``
+     - document 
+     - Required
+     - Document that specifies the length of the 
+       :ref:`hop <hopping-windows>` between window start times as a 
+       combination of a size and a unit of time. The value of 
+       ``size`` must be an integer. The value of ``unit`` can be one of 
+       the following:
+
+       - ``"second"``
+       - ``"minute"``
+       - ``"hour"``
+       - ``"day"``
+       - ``"month"``
+       - ``"year"``
+
+       For example, a ``size`` of ``10`` and a ``unit`` of ``second``
+       defines a 10-second hop between window start times.
+
+   * - ``interval``
+     - document 
+     - Required
+     - Document specifying the interval of a 
+       :ref:`hopping window <hopping-windows>` as a combination of
+       a size and a unit of time. The value of ``size`` must be an
+       integer. The value of ``unit`` can be one of 
+       the following:
+
+       - ``"second"``
+       - ``"minute"``
+       - ``"hour"``
+       - ``"day"``
+       - ``"month"``
+       - ``"year"``
+
+
+       For example, a ``size`` of ``20`` and a ``unit`` of ``second``
+       will set each window to remain open for 20 seconds.
+
+   * - ``pipeline`` 
+     - array
+     - Required 
+     - A nested aggregation pipeline evaluated against the messages
+       within the window.
+
+Behavior
+~~~~~~~~
+
+``$hoppingWindow`` must follow the :pipeline:`$source` stage. 
+{+atlas-sp+} supports only one :ref:`window <atlas-sp-windows>` 
+stage per pipeline.
+
+Support for certain aggregation stages might be limited or unavailable
+within windows. To learn more, see :ref:`atlas-sp-aggregation-support`.
+
+In the event of a service interruption, you can resume the internal
+pipeline of a window from its state at the point of interruption. To
+learn more, see :ref:`Checkpoints <atlas-sp-checkpointing>`.
+
+.. _stream-agg-pipeline-tumblingWindow:
+
+``$tumblingWindow``
+-------------------
+
+Definition
+~~~~~~~~~~
+
+The :pipeline:`$tumblingWindow` stage specifies a 
+:ref:`tumbling window <tumbling-windows>` for aggregation of data.
+{+atlas-sp+} windows are stateful, can be recovered if interrupted,
+and have mechanisms for processing late-arriving data. You must apply
+all other aggregation queries to your streaming data within this window
+stage.
+
+.. pipeline:: $tumblingWindow
+
+   A ``$tumblingWindow`` pipeline stage has the following prototype 
+   form:
+
+   .. code-block:: json
+
+      {
+        "$tumblingWindow": {
+	        "interval": { 
+            "size": <number>,
+            "unit": <string>
+          },
+	        "pipeline" : [ 
+            <aggregation-stage-array> 
+          ]
+        }  
+      }
+
+Fields
+~~~~~~
+
+The ``$tumblingWindow`` stage takes a document with the following 
+fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``interval``
+     - document 
+     - Required
+     - Document specifying the interval of a 
+       :ref:`hopping window <hopping-windows>` as a combination of
+       a size and a unit of time. The value of ``size`` must be an
+       integer. The value of ``unit`` can be one of 
+       the following:
+
+       - ``"second"``
+       - ``"minute"``
+       - ``"hour"``
+       - ``"day"``
+       - ``"month"``
+       - ``"year"``
+
+
+       For example, a ``size`` of ``20`` and a ``unit`` of ``second``
+       will set each window to remain open for 20 seconds.
+
+   * - ``pipeline`` 
+     - array
+     - Required 
+     - A nested aggregation pipeline evaluated against the messages
+       within the window.
+
+Behavior
+~~~~~~~~
+
+``$tumblingWindow`` must follow the :pipeline:`$source` stage. 
+{+atlas-sp+} supports only one :ref:`window <atlas-sp-windows>` stage 
+per pipeline.
+
+Support for certain aggregation stages might be limited or unavailable
+within windows. To learn more, see :ref:`atlas-sp-aggregation-support`.
+
+In the event of a service interruption, you can resume the internal
+pipeline of a window from its state at the point of interruption. To
+learn more, see :ref:`Checkpoints <atlas-sp-checkpointing>`.
+
+.. _stream-agg-pipeline-emit:
+
+``$emit``
+-----------
+
+Definition
+~~~~~~~~~~
+
+The :pipeline:`$emit` stage specifies a connection in the 
+:ref:`Connection Registry <manage-spi-connection-add>` to emit messages
+to. The connection must be an {+kafka+} broker.
+
+.. pipeline:: $emit
+
+   An ``$emit`` pipeline stage has the following prototype form:
+
+   .. code-block:: json
+
+      {
+        "$emit": {
+          "connectionName": "<registered-connection>",
+          "topic" : "<target-topic>",
+          "config": { 
+            <consumer-properties> 
+          }
+        }  
+      }
+
+Fields
+~~~~~~
+
+The ``$emit`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document that overrides default configuration. 
+
+.. ^ (What are the possible configurable fields? What is the 'default configuration'?)
+   The Google Doc doesn't give detail on the actual implementation, it just includes
+   some prescriptions.
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - The logical name, as it appears in the 
+       :ref:`Connection Registry <manage-spi-connection-add>`, of the
+       connection to ingest data from.
+
+   * - ``topic``
+     - string
+     - Conditional 
+     - The name of the {+kafka+} topic to emit messages to.
+
+Behavior
+~~~~~~~~
+
+``$emit`` must be the last stage of any pipeline it appears in. You can
+use only one ``$emit`` stage per pipeline.
+
+.. _stream-agg-pipeline-merge:
+
+``$merge``
+-----------
+
+Definition
+~~~~~~~~~~
+
+A version of the existing :ref:`adf-merge-stage` stage where the value 
+of the ``connectionName`` field must always be the name of a remote 
+collection in the 
+:ref:`Connection Registry <manage-spi-connection-add>`. 

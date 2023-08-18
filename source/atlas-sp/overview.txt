@@ -1,0 +1,376 @@
+.. _what-is-atlas-sp:
+
+=================================
+{+atlas-sp+} Overview
+=================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, atlas stream processing overview, streaming data, data stream, real time, data processing, apache kafka, kafka
+   :description: Learn how MongoDB Atlas can connect to sources and sinks of streaming data to provide real time data processing leveraging the full power of MongoDB aggregation pipelines.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: includes/atlas-sp/private-preview.rst
+
+About {+atlas-sp+}
+-------------------------------
+
+{+atlas-sp+} is a stream processing framework that allows you to 
+operate on streaming data by using the same tools you use with at-rest 
+data in MongoDB. {+atlas-sp+} works in conjunction with streaming data 
+platforms like {+kafka+}. With {+atlas-sp+}, you can:
+
+- Ingest, process, and emit heterogenous data without preprocessing.
+
+- Extract insights from data-in-motion by using MongoDB 
+  :manual:`Aggregation </aggregation-pipeline>` operations. This enables
+  you to support time-sensitive applications without maintaining a 
+  separate stream processing platform or learning a new query language. 
+  To learn more about the aggregation pipeline stages available in 
+  {+atlas-sp+}, see 
+  :ref:`Supported Aggregation Pipeline Stages <stream-aggregation>`.
+
+{+atlas-sp+} components belong directly to |service| projects and
+operate independent of |service| {+clusters+}. 
+
+.. _atlas-sp-data:
+
+What is a Stream?
+-----------------
+
+A stream is a continuous flow of data originating from one or more 
+sources, taking the form of an append-only log—also called a journal. 
+Examples of data streams include temperature or pressure readings from 
+sensors, records of financial transactions, or change data capture 
+events.
+
+Data streams originate from **sources** such as {+kafka-topics+} or 
+:manual:`change streams </changeStreams/>`. You can then write processed
+data to **sinks** such as {+kafka-topics+} or |service| collections.
+
+Streams of data originate in systems with rapidly changing state.
+{+atlas-sp+} provides native stream processing capabilities to operate
+on continuous data without the time and computational constaints of an
+at-rest database.
+
+.. _atlas-sp-concepts:
+
+{+atlas-sp+} Key Concepts
+-----------------------------------------
+
+.. expression:: Stream Processor
+
+   A stream processor is a MongoDB 
+   :manual:`aggregation pipeline <aggregation-pipeline>` query that 
+   runs continuously against your data stream. Each stream processor 
+   has a name unique to its {+spi+}, and its pipeline definition is 
+   persisted. You can apply a stream processor to any connection 
+   defined in the connection registry. You can start or stop stream 
+   processors as needed.
+
+.. expression:: Connection Registry
+
+   A list of connections to streaming data sources and sinks, with 
+   metadata and connection strings for each entry.
+
+.. expression:: Stream Processing Instance
+
+   A {+spi+} is an |service| namespace with an associated:
+
+   - Connection string
+   - Cloud provider
+   - Cloud provider region
+   - (Optional) Security context. 
+
+   Each {+spi+} associates one connection registry with one or more 
+   stream processors to enable you to operate on streams of data. You
+   can connect to an {+spi+} to manage stream processor queries by 
+   using the same connection methods that you use for |service| 
+   {+clusters+}.
+
+.. expression:: Allowed Lateness
+
+   The configurable period of time after the close of a 
+   :ref:`window <atlas-sp-windows>` during which late-arriving messages
+   are written to a :ref:`<atlas-sp-dlq>`.
+
+   A late-arriving message is a message issued while a given window is
+   open, but does not reach {+atlas-sp+} until after that same window
+   closes. Network delays and packet corruption are common reasons for
+   late arrival.
+
+.. expression:: Processing Guarantee
+
+   A guarantee of correctness in streaming data processing. A system
+   can guarantee either:
+
+   - **At most once** processing. The system either receives and 
+     processes the message once or skips it entirely.
+
+   - **At least once** processing. The system always receives and
+     processes a message, but it might process the same message
+     more than once.
+
+     {+atlas-sp+} guarantees **at least once** processing.
+
+.. _atlas-sp-windows:
+
+Windows
+-------
+
+Streaming data is infinite, but you can apply queries to finite
+sets of streaming data documents by setting time intervals for stream
+sampling. These time-bounded sets of documents from streams are 
+called **windows**.
+
+Windows in {+atlas-sp+} are 
+:ref:`aggregation pipeline stages <atlas-sp-aggregation-support>` that 
+capture subsets of a data stream beginning with the first document that 
+arrives after the defined start time and ending with the last document 
+that arrives before the defined end time. Windows also contain the 
+aggregation pipeline that defines the processing logic you wish to 
+apply to your data stream. This logic is applied by each window to the 
+set of documents captured in that window.
+
+{+atlas-sp+} provides support for :ref:`tumbling-windows` and 
+:ref:`hopping-windows`.
+
+.. _tumbling-windows:
+
+Tumbling Windows
+~~~~~~~~~~~~~~~~
+
+**Tumbling windows** are windows defined by the time intervals they 
+capture. These time intervals don't overlap. 
+
+.. example:: 
+   
+   You define a tumbling window with an interval of 3 seconds.
+   When you start your stream processor:
+   
+   - A window opens for 3 seconds.
+   - The first window captures all documents that the stream generates 
+     within those 3 seconds. 
+   - After 3 seconds elapse, the window closes and applies your 
+     aggregation logic to all the documents in that window. 
+   - A new window opens as soon as the first one closes and captures 
+     documents from the stream for the next 3 seconds.
+
+Tumbling windows ensure comprehensive capture of data streams without 
+repeated processing of individual documents.
+
+.. _hopping-windows:
+
+Hopping Windows
+~~~~~~~~~~~~~~~
+
+**Hopping windows** are windows defined by the time interval they 
+capture and the interval between opening each window, called the 
+**hop**. Since duration is decoupled from frequency, you can configure
+hopping windows to overlap or be spaced apart.
+
+To define a hopping window with overlap, set a hop smaller than the
+interval.
+
+.. example:: 
+
+   You define a hopping window with an interval of 20 seconds and a hop
+   of 5 seconds. When you start your stream processor:
+
+   - A window opens for 20 seconds. 
+   - The first window captures all documents that the stream generates
+     within those 20 seconds.
+   - 5 seconds later, another window opens and captures all documents
+     within the next 20 seconds. Because the first window is still 
+     open, all documents that the stream generates for the next 15 
+     seconds are captured by both windows. 
+   - 20 seconds after the first window opened, it closes and applies 
+     your aggregation logic to all the documents in that window. 
+   - 5 seconds later, the second window closes and applies your 
+     aggregation logic to all the documents in that window, *including* 
+     those that were already subject to aggregation logic in the first 
+     window.
+
+To define a hopping window with spacing, set a hop larger than the
+interval.
+
+.. example::
+
+   You define a hopping window with an interval of 3 seconds and a hop 
+   of 5 seconds. When you start a stream processor: 
+   
+   - A window opens for 3 seconds.
+   - The first window captures all documents for the next 3 seconds. 
+   - After 3 seconds elapse, the window closes and applies your 
+     aggregation logic to all the documents in that window.
+   - The next window opens after a further 2 seconds elapse.
+   - {+atlas-sp+} does not process any documents in the stream during 
+     those 2 seconds.
+
+.. _atlas-sp-checkpointing:
+
+Recoverability
+--------------
+
+{+atlas-sp+} checkpoints store the processing state, so you can resume 
+processing in the event of an interruption. Checkpoints are documents 
+subject to the flow of your stream processor logic that have unique 
+IDs. Whenever the last operator of your stream processor finishes 
+handling the checkpoint document, {+atlas-sp+} commits that checkpoint. 
+This commit takes the form of two types of documents: 
+
+- A single commit record that validates the ID of the checkpoint and 
+  the stream processor being used. 
+- Records describing the state of each operator in your stream 
+  processor at the instant {+atlas-sp+} committed that checkpoint.
+
+When you resume stream processing after an interruption, {+atlas-sp+}
+queries internal storage for the latest committed checkpoint and 
+restarts your stream processor with the associated state.
+
+.. _atlas-sp-validation:
+
+Schema Validation
+-----------------
+
+Data streams often contain records from varied sources with varied 
+schemas. {+atlas-sp+} leverages MongoDB's :manual:`flexible document 
+model </core/data-modeling-introduction>` to process this data without 
+preprocessing or schema validation. However, for applications with 
+strict schema requirements, {+atlas-sp+} supports optional schema 
+definition and validation in the form of the 
+:ref:`stream aggregation <stream-aggregation>` stage.
+
+For more information, see :pipeline:`$validate`.
+
+.. _atlas-sp-dlq:
+
+Dead Letter Queue
+-----------------
+
+{+atlas-sp+} supports the use of an |service| database collection as a 
+Dead Letter Queue (DLQ). When {+atlas-sp+} cannot process a 
+document from your data stream, it writes the content of the document 
+to the DLQ along with details of the processing failure. You can assign
+a collection as a DLQ in your stream processor definitions. 
+
+To learn more, see :ref:`Create a Stream Processor 
+<streams-manage-create>`.
+
+Continuous Merge
+----------------
+
+{+atlas-sp+} supports continuous merging of streaming data into a
+collection with the :pipeline:`$merge` operator, or into an 
+{+kafka-topic+} with the :pipeline:`$emit` operator. You can't use 
+a time series collection as either a source or a sink.
+
+.. _atlas-sp-aggregation-support:
+
+Supported Aggregation Pipeline Stages
+-------------------------------------
+
+{+atlas-sp+} provides a number of extensions to the core MongoDB 
+:manual:`Aggregation Pipeline </aggregation-pipeline>` syntax. To learn 
+more about these extensions, see
+:ref:`Supported Aggregation Pipeline Stages <stream-aggregation>`.
+
+Certain core Aggregation Pipeline stages have limited support, or are 
+unsupported as noted in the following table. If a stage is not listed 
+in the table, {+atlas-sp+} supports it.
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Aggregation Stage
+     - Support Status
+
+   * - :pipeline:`$group`
+     - Only supported in a :pipeline:`$tumblingWindow` or 
+       :pipeline:`$hoppingWindow`.
+
+   * - :pipeline:`$sort`
+     - Only supported in a :pipeline:`$tumblingWindow` or 
+       :pipeline:`$hoppingWindow`.
+
+   * - :pipeline:`$limit`
+     - Only supported in a :pipeline:`$tumblingWindow` or 
+       :pipeline:`$hoppingWindow`.
+
+   * - :pipeline:`$skip`
+     - Unsupported.
+
+   * - :pipeline:`$count`
+     - Only supported in a :pipeline:`$tumblingWindow` or 
+       :pipeline:`$hoppingWindow`.
+
+   * - :pipeline:`$bucket`
+     - Unsupported.
+
+   * - :pipeline:`$bucketAuto`
+     - Unsupported.
+
+   * - :pipeline:`$fill`
+     - Unsupported.
+
+   * - :pipeline:`$densify`
+     - Unsupported.
+
+   * - :pipeline:`$setWindowFields`
+     - Unsupported.
+
+   * - :pipeline:`$facet`
+     - Unsupported.
+
+   * - :pipeline:`$sample`
+     - Unsupported.
+
+   * - :pipeline:`$sortByCount`
+     - Unsupported.
+
+   * - :pipeline:`$unionWith`
+     - Unsupported.
+
+   * - :pipeline:`$lookup`
+     - Unsupported.
+
+   * - :pipeline:`$collStats`
+     - Unsupported.
+
+   * - :pipeline:`$graphLookup`
+     - Unsupported.
+
+   * - :pipeline:`$listSessions`
+     - Unsupported.
+
+   * - :pipeline:`$geoNear`
+     - Unsupported.
+
+   * - :pipeline:`$indexStats`
+     - Unsupported.
+
+   * - :pipeline:`$planCacheStats`
+     - Unsupported.
+
+   * - :pipeline:`$search`
+     - Unsupported.
+
+   * - :pipeline:`$searchMeta`
+     - Unsupported.
+
+   * - :pipeline:`$changeStream`
+     - Unsupported.
+
+   * - :pipeline:`$documents`
+     - Unsupported.
+
+.. Having a list of sample use-cases for Stream Processing to throw in 
+   as a closing section here would be great. Open to suggestions, especially
+   any that we have learned of from specific interested private previewers.

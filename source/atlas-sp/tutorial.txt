@@ -1,0 +1,304 @@
+.. _atlas-sp-tutorial:
+
+========================================
+Get Started with {+atlas-sp+}
+========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+   
+.. include:: includes/atlas-sp/private-preview.rst
+
+This tutorial takes you through the steps of setting up {+atlas-sp+}
+and running your first stream processing query.
+
+Prerequisites
+-------------
+
+To complete this tutorial you will need:
+
+- An |service| project
+- :manual:`mongosh </mongodb-shell/install/>`
+- |service| :authrole:`Project Owner` privileges
+- An |service| {+cluster+} with no data
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the Stream Processing page for your project.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: If it is not already displayed, select the 
+            organization that contains your desired project from the
+            |ui-org-menu| in the navigation bar.
+
+         .. step:: If it is not already displayed, select your desired
+            project from the :guilabel:`Projects` menu in the
+            navigation bar.
+
+         .. step:: In the left-hand menu, 
+            click :guilabel:`Stream Processing` under the 
+            :guilabel:`SERVICES` heading.
+
+   .. step:: Create a {+SPI+}.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Click the :guilabel:`Create Instance`
+            button.
+
+         .. step:: Set the :guilabel:`Instance Name` to ``tutorial``. 
+            Select ``AWS`` for your :guilabel:`Cloud Provider`, and 
+            select ``us-east-1`` as your :guilabel:`Region`.
+
+         .. step:: Click :guilabel:`Create`.
+
+            A confirmation message displays when the {+SPI+}
+            initializes.
+
+   .. step:: Get the {+spi+} connection string.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Locate the overview panel of the ``tutorial`` 
+            {+spi+} and click :guilabel:`Connect`. 
+            
+         .. step:: Select 
+            :guilabel:`I have the MongoDB shell installed`.
+
+         .. step:: From the 
+            :guilabel:`Select your mongo shell version` dropdown
+            menu, select the latest version of ``mongosh``.
+
+         .. step:: Under the 
+            :guilabel:`Run your connection string in your command line`
+            heading, select the :guilabel:`Password (SCRAM)` 
+            authentication option.
+
+         .. step:: Copy the connection string provided under 
+            :guilabel:`Run your connection string in your command line`.
+            You will need this in a later step.
+
+         .. step:: Click 
+            :guilabel:`Done`.
+
+   .. step:: Add the sample stream connection to the connection 
+      registry.
+
+      This connection will serve as your streaming data source.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: In the pane for your ``tutorial`` instance, click
+            :guilabel:`Configure`.
+
+         .. step:: In the :guilabel:`Connections Registry` tab, click
+            :guilabel:`+ Add Connection` in the upper right.
+
+         .. step:: Click :guilabel:`Sample Stream`. From the 
+            ``Sample stream`` dropdown, select ``sample_stream_solar``.
+
+         .. step:: Click :guilabel:`Add connection`.
+
+   .. step:: Add a MongoDB |service| connection to the connection 
+      registry.
+
+      This connection will serve as our streaming data sink.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: In the pane for your ``tutorial`` instance, click
+            :guilabel:`Configure`.
+
+         .. step:: In the :guilabel:`Connections Registry` tab, click
+            :guilabel:`+ Add Connection` in the upper right.
+
+         .. step:: Click :guilabel:`Atlas Database`. In the 
+            :guilabel:`Connection Name` field, enter ``mongodb1``.
+            From the :guilabel:`Atlas Cluster` drop down, select an
+            |service| {+cluster+} without any data stored on it.
+
+         .. step:: Click :guilabel:`Add connection`.
+
+   .. step:: Verify that your streaming data source emits messages.
+
+      To do this, create a simple stream query.
+
+      .. procedure::
+         :style: connected
+
+         .. step:: Open a terminal
+            application of your choice.
+
+         .. step:: Connect to your {+spi+} 
+            with ``mongosh``.
+            
+            Paste the ``mongosh`` connection string that you copied
+            in a previous step into your terminal, where 
+            ``<atlas-stream-processing-url>`` is the URL of your {+spi+}
+            and ``<username>`` is a user with the 
+            :authrole:`Project Owner` role.
+            
+            .. code-block: sh
+
+               mongosh "mongodb://<atlas-stream-processing-url>/" 
+               --tls --authenticationDatabase admin --username <username>
+
+            Enter your password when prompted.
+
+         .. step:: Create the stream 
+            query.
+         
+            Copy the following code into your ``mongosh`` prompt:
+
+            .. code-block::
+               :copyable: true
+
+               var s='$source' : { 
+                  connectionName: 'sample_stream_solar',
+                  timeField: {
+                     $dateFromString: {
+                        dateString: '$timestamp'
+                     }
+                  }
+               }
+
+               var pipeline = [{ 
+                  $source: {
+                     connectionName: "sample_stream_solar",
+                     timeField: { 
+                        $dateFromString: { 
+                           dateString: '$timestamp' 
+                        }
+                     }
+                  }
+               },
+               { 
+                  $tumblingWindow: {
+                     interval: {
+                        size: NumberInt(1), 
+                        unit: "hour"
+                     },
+                     pipeline: [{ 
+                        $unwind: { 
+                           path: "$obs"
+                        }
+                     },
+                     {
+                        $group: {
+                           _id: "$group_id",
+                           max: { 
+                              $max: "$obs.watts"
+                           },
+                           avg: {
+                              $avg: "$obs.watts"
+                           }
+                        }
+                     }]
+                  }
+               }]
+
+               sp.process([s,pipeline])
+
+            Verify that data from the ``sample_stream_solar`` 
+            connection displays to the console, and terminate 
+            the process.
+
+   .. step:: Create a stream processor.
+      
+      Copy the following code into your ``mongosh`` prompt:
+
+      .. code-block:: sh
+         :copyable: true
+
+         var m= {
+            $merge: {
+               into: {
+                  connectionName: "mongodb1",
+                  db: "MySolar",
+                  coll: "solar"
+               }
+            }
+         }
+
+         sp.createStreamProcessor("avgWatts",[s,pipeline,m])
+
+      This creates a stream processor named ``avgwatts`` that
+      applies the previously defined query and writes the 
+      processed data to the ``solar`` collection of the 
+      ``MySolar`` database on the {+cluster+} you connected to. 
+      
+      It returns the average and peak wattage of all 
+      observed solar panels over 1 hour intervals.
+
+   .. step:: Start the stream processor. 
+
+      Run the following command in ``mongosh``:
+
+      .. code-block: sh
+
+         sp.StreamProcessor.start("avgWatts")
+
+   .. step:: Verify the output of the stream processor.
+
+      To verify that the processor is active, run the following
+      command in ``mongosh``:
+
+      .. code-block: sh
+
+         sp.StreamProcessor.stats("avgWatts")
+
+      This command reports operational statistics of the 
+      ``avgWatts`` stream processor.
+
+      To verify that the stream processor is writing data to your
+      |service| {+cluster+}, navigate to the :guilabel:`Collections`
+      tab of the {+cluster+} and view the ``MySolar`` collection.
+
+   .. step:: Stop the stream processor.
+
+      Run the following command in ``mongosh``:
+
+      .. code-block:
+         :copyable:true
+
+         sp.StreamProcessor.stop("avgWatts")
+      
+   .. step:: Drop the stream processor.
+
+      Run the following command in ``mongosh``:
+
+      .. code-block:
+         :copyable:true
+
+         sp.StreamProcessor.drop("avgWatts")
+
+      To confirm that you have dropped ``avgWatts``, list
+      all your available stream processors:
+
+      .. code-block:
+         :copyable:true
+
+         sp.listStreamProcessors.()
+
+Next Steps
+----------
+
+Learn how to:
+
+- :ref:`streams-manage-processor`
+- :ref:`manage-spi`
