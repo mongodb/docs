@@ -26,7 +26,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Supports filtering partitions by `Parquet file row group 
-  <https://parquet.apache.org/documentation/latest/>`_ statistics.
+  <https://parquet.apache.org/docs/>`_ statistics.
 
 - Supports :manual:`ObjectIds </reference/method/ObjectId/>` in the 
   path when specifying partition 

@@ -144,7 +144,7 @@
 - Adds support for evaluating string :manual:`$convert
   </reference/operator/aggregation/convert/>` expressions in the ``filename``
   for :ref:`adf-out-stage` to |s3|.
-- Updates `Parquet <https://parquet.apache.org/documentation/latest/>`__
+- Updates `Parquet <https://parquet.apache.org/docs/>`__
   support for `MAP types
   <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__.
 - Improves error messaging for :ref:`adf-out-stage` to |s3|.
