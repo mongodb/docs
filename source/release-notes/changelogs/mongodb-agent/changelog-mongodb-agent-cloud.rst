@@ -1,3 +1,24 @@
+.. _13.3.0.8373-1:
+
+MongoDB Agent 13.3.0.8373-1
+===========================
+
+*Released* 2023-08-02
+
+- Adds the following improvements for backup snapshots: 
+  
+  - Ensures that the backup cursor stops if the {+mdbagent+} is not the session winner.
+  - Increases the socket timeout length when the backup cursor opens.
+
+.. _13.2.0.8337-1:
+
+MongoDB Agent 13.2.0.8337-1
+===========================
+
+*Released* 2023-07-12
+
+- Adds support for the upcoming release of MongoDB 7.0.
+
 .. _13.1.0.8282-1:
 
 MongoDB Agent 13.1.0.8282-1
