@@ -1,4 +1,5 @@
-You can choose one of the following options:
+You can adjust the X-axis label angle to one of 
+the following options:
 
 .. list-table::
    :header-rows: 1
@@ -18,7 +19,7 @@ You can choose one of the following options:
 
 To set this option:
 
-1. Open the :ref:`Customize <customize-charts>` pane for your chart.
+1. Click the :guilabel:`Customize` tab for your chart.
 
 #. In the :guilabel:`Axes` section, select a :guilabel:`Label Angle` 
    for the :guilabel:`X Axis`.
