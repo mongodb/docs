@@ -23,10 +23,10 @@
      - `mongomirror-linux-x86_64-rhel70-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-rhel70-{+mongomirror-version+}.tgz>`_
    * - RHEL 7.1 PPC64LE
      - `mongomirror-linux-ppc64le-rhel71-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-rhel71-{+mongomirror-version+}.tgz>`_
+   * - RHEL 7.2 s390x
+     - `mongomirror-linux-s390x-rhel72-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-s390x-rhel72-{+mongomirror-version+}.tgz>`_
    * - RHEL 8.0
      - `mongomirror-linux-x86_64-rhel80-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-x86_64-rhel80-{+mongomirror-version+}.tgz>`_
-   * - RHEL 8.0 s390x
-     - `mongomirror-linux-s390x-rhel80-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-s390x-rhel80-{+mongomirror-version+}.tgz>`_
    * - RHEL 8.1 PPC64LE
      - `mongomirror-linux-ppc64le-rhel81-{+mongomirror-version+}.tgz <https://translators-connectors-releases.s3.amazonaws.com/mongomirror/binaries/linux/mongomirror-linux-ppc64le-rhel81-{+mongomirror-version+}.tgz>`_
    * - SLES 12
