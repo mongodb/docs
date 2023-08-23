@@ -1,3 +1,16 @@
+.. _cloudmanager_20230712:
+
+12 July 2023 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`13.2.0.8337-1 <13.2.0.8337-1>`.
+- Improves the groom job logs. 
+- Fixes an issue with the :guilabel:`Modify` button for projects with multiple instances 
+  of |bic-full|. 
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.3 
+  </release-notes/database-tools-changelog#100.7.3-changelog>`. 
+- Adds cluster removal, shutdown, startup, and restart ability to the :ref:`managedSharding <autoconfig-sharded-clusters>` API parameter. 
+
 .. _cloudmanager_20230614:
 
 14 June 2023 Release
