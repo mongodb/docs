@@ -238,32 +238,50 @@ to an operation that returns a ``Cursor``:
 .. literalinclude:: /code-snippets/faq/maxTimeMS-example.js
   :language: javascript
 
-What Does the "keepAlive" Setting Do?
----------------------------------------
+.. _node-faq-keepalive:
 
-``keepAlive`` is a ``connection-setting`` that sets the number of
-milliseconds to wait before initiating a :wikipedia:`TLS keepAlive
-<Keepalive#TCP_keepalive>` on a TCP Socket. The ``keepAlive`` option
-will keep a socket alive by sending periodic probes to MongoDB. However,
-this only works if the operating system supports ``SO_KEEPALIVE``\ .
+What Does the keepAlive Option Do?
+----------------------------------
 
-This setting is deprecated in v5.3 of the {+driver-short+} and later.
+The ``keepAlive`` connection option specifies whether to enable
+:wikipedia:`Transmission Control Protocol (TCP) keepalives
+<Keepalive#TCP_keepalive>` on a TCP socket. If you enable keepalives,
+the driver checks whether the connection is active by sending periodic pings
+to your MongoDB deployment. This functionality only works if your
+operating system supports the ``SO_KEEPALIVE`` socket option.
+
+The ``keepAliveInitialDelay`` option specifies the number of
+milliseconds that the driver waits before initiating a keepalive.
+
+The 5.3 driver version release deprecated these options. Starting in
+version 6.0 of the driver, the ``keepAlive`` option is permanently set
+to ``true``, and the ``keepAliveInitialDelay`` is set to 300000
+milliseconds (300 seconds).
 
 .. warning::
-    If a firewall ignores or drops the ``keepAlive`` packets this may not work
+   
+   If your firewall ignores or drops the keepalive messages, you might
+   not be able to identify dropped connections.
 
 What Can I Do If I'm Experiencing Unexpected Network Behavior?
 --------------------------------------------------------------
-Internal firewalls that exist between application servers and MongoDB
-are often misconfigured and are overly aggressive in their removal of
-socket connections.
 
-If you experience unexpected network behavior, here
-are some things to check:
+You might experience unexpected network behavior if the firewall between
+your application and MongoDB is misconfigured. These firewalls can be
+overly aggressive in their removal of connections, which can lead to
+unexpected errors.
 
-#. The firewall should send a ``FIN packet`` when closing a socket,
-   allowing the driver to detect that the socket is closed.
-#. The firewall should allow ``keepAlive`` probes.
+Confirm that your firewall exhibits the following behavior:
+
+- The firewall sends a ``FIN`` packet when closing a connection,
+  informing the driver that the socket is closed.
+
+- The firewall allows keepalive messages.
+
+.. tip::
+   
+   To learn more about keepalive messages, see the :ref:`What Does the
+   keepAlive Option Do? <node-faq-keepalive>` FAQ entry.
 
 How Can I Prevent a Slow Operation From Delaying Other Operations?
 ------------------------------------------------------------------
