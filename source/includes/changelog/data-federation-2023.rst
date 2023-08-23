@@ -7,6 +7,15 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20230822:
+
+22 August 2023 Release 
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds a ``lastModified`` timestamp field to |s3| object provenance metadata. To learn more,
+  see :datalakeconf-aws:`databases.[n].collections.[n].dataSources.[n].provenanceFieldName`.
+- Supports provenance metadata for {+Online-Archive+} datasets.
+
 .. _adf-v20230808:
 
 08 August 2023 Release 
