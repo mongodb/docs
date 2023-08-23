@@ -128,6 +128,11 @@
        trying to close the group by removing all users, please
        delete the group instead.
 
+   * - .. apierror:: CANNOT_REMOVE_ALL_USER_ROLES
+     - `403`_
+     - You cannot remove all roles from a user. Specify at least one 
+       role.
+
    * - .. apierror:: CANNOT_DEMOTE_LAST_ORG_OWNER
      - `403`_
      - Cannot demote the last owner of the organization.

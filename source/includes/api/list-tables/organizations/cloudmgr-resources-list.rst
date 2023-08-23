@@ -26,6 +26,11 @@
      - :doc:`/orgs/{ORG-ID}/users </reference/api/organizations/organization-get-all-users>`
      - Return all users in the specified organization.
 
+   * - PUT
+     - :doc:`/orgs/{ORG-ID}/users/{USER-ID}/roles 
+       </reference/api/organizations/update-org-roles-for-one-user>`
+     - Update organization roles for one user.
+
    * - PATCH
      - :doc:`/orgs/{ORG-ID} </reference/api/organizations/organization-rename>`
      - Update one organization.
