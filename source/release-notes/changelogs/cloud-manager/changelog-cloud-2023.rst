@@ -1,3 +1,23 @@
+.. _cloudmanager_20230802:
+
+2 August 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`13.3.1.8376-1 <13.3.1.8376-1>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.7.4 
+  </release-notes/database-tools-changelog#100.7.4-changelog>`.
+- Adds support for |bic-full| 2.14.9.
+- Improves validations for custom privileges when you edit a role in the UI.
+- Fixes `CVE-2023-4009 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-4009>`__: Privilege Escalation for :authrole:`Project Owner`
+  and :authrole:`Project User Admin` roles in |onprem|.
+
+  - In MongoDB |onprem| 5.0 prior to 5.0.22, an authenticated user with
+    :authrole:`Project Owner` or :authrole:`Project User Admin` access
+    roles could generate an API key with the privileges of the
+    :authrole:`Organization Owner` role, resulting in privilege escalation.
+  - CVSS Score: 7.2.
+  - `CWE-648 <https://cwe.mitre.org/data/definitions/648.html>`__: Incorrect Use of Privileged APIs.
+
 .. _cloudmanager_20230712:
 
 12 July 2023 Release
