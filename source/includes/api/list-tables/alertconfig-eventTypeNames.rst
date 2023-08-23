@@ -181,7 +181,7 @@
 **Project**
 
 - | ``USERS_WITHOUT_MULTI_FACTOR_AUTH``
-  | Users do not have two-factor authentication enabled
+  | Users do not have |mfa| enabled.
 
 **Replica Set**
 
