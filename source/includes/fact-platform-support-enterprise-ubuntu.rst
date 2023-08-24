@@ -6,7 +6,13 @@ MongoDB {+version+} Enterprise Edition supports the following
 
 - 20.04 :abbr:`LTS (Long Term Support)` ("Focal")
 
-MongoDB only supports the 64-bit versions of these platforms.
+MongoDB only supports the 64-bit versions of these platforms. To
+determine which Ubuntu release your host is running, run the following
+command on the host's terminal:
+
+.. code-block:: bash
+    
+   cat /etc/lsb-release
 
 MongoDB {+version+} Enterprise Edition on Ubuntu also supports the
 :ref:`ARM64 <prod-notes-supported-platforms-ARM64>` architecture on
@@ -15,4 +21,3 @@ select platforms.
 See :ref:`prod-notes-supported-platforms` for more information.
 
 .. include:: /includes/admonition-power-ubuntu-restriction.rst
-
