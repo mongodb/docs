@@ -20,110 +20,130 @@ BulkWriteResult()
 Properties
 ----------
 
-The :method:`BulkWriteResult` has the following properties:
+``BulkWriteResult`` has the following properties:
 
-.. data:: BulkWriteResult.nInserted
+.. data:: BulkWriteResult.acknowledged
 
-   The number of documents inserted using the :method:`Bulk.insert()`
-   method. For documents inserted through operations with the
-   :method:`Bulk.find.upsert()` option, see the
-   :data:`~BulkWriteResult.nUpserted` field instead.
+   Boolean indicating whether or not the bulk write was acknowledged.
 
-.. data:: BulkWriteResult.nMatched
+.. data:: BulkWriteResult.deletedCount
 
-   The number of existing documents selected for update or replacement.
-   If the update/replacement operation results in no change to an
-   existing document, e.g. :update:`$set` expression updates the value
-   to the current value, :data:`~BulkWriteResult.nMatched` can be
-   greater than :data:`~BulkWriteResult.nModified`.
+   Count of deleted documents.
 
-.. data:: BulkWriteResult.nModified
+.. data:: BulkWriteResult.insertedCount
 
-   The number of existing documents updated or replaced. If the
-   update/replacement operation results in no change to an existing
-   document, such as setting the value of the field to its current
-   value, :data:`~BulkWriteResult.nModified` can be less than
-   :data:`~BulkWriteResult.nMatched`. Inserted documents do not affect
-   the number of :data:`~BulkWriteResult.nModified`; refer to the
-   :data:`~BulkWriteResult.nInserted` and
-   :data:`~BulkWriteResult.nUpserted` fields instead.
+   Count of inserted documents.
 
-.. data:: BulkWriteResult.nRemoved
+.. data:: BulkWriteResult.insertedIds
 
-   The number of documents removed.
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 45 45
 
-.. data:: BulkWriteResult.nUpserted
+      * - ``mongosh`` Version
+        - Description
+        - Example
 
-   The number of documents inserted through operations with the
-   :method:`Bulk.find.upsert()` option.
+      * - v1.x
+        - Array of inserted documents by ``ObjectId``. 
+        - ``[ ObjectId(...), ObjectId(...), ObjectId(...) ]``
 
-.. data:: BulkWriteResult.upserted
+      * - v2.x
+        - Map from each inserted document index to its ``ObjectId``.
+        - ``{ 0: ObjectId(...), 1: ObjectId(...), 2: ObjectId(...) }```
 
-   An array of documents that contains information for each document
-   inserted through operations with the :method:`Bulk.find.upsert()`
-   option.
+.. data:: BulkWriteResult.matchedCount
 
-   Each document contains the following information:
+   Count of matched documents.
 
-   .. data:: BulkWriteResult.upserted.index
+.. data:: BulkWriteResult.modifiedCount
 
-      An integer that identifies the operation in the
-      bulk operations list, which uses a zero-based index.
+   Count of modified documents.
 
-   .. data:: BulkWriteResult.upserted._id
+.. data:: BulkWriteResult.upsertedCount
 
-      The ``_id`` value of the inserted document.
+   Count of upserted documents.
 
-.. data:: BulkWriteResult.writeErrors
+.. data:: BulkWriteResult.upsertedIds
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 45 45
+
+      * - ``mongosh`` Version
+        - Description
+        - Example
+
+      * - v1.x
+        - Array of upserted documents by ``ObjectId``. 
+        - ``[ ObjectId(...), ObjectId(...), ObjectId(...) ]``
+
+      * - v2.x
+        - Map from each upserted document index to its ``ObjectId``.
+        - ``{ 0: ObjectId(...), 1: ObjectId(...), 2: ObjectId(...) }```
+
+writeErrors Exception
+---------------------
+
+If there is a write error while processing the bulk write,
+``mongosh`` raises an exception that contains a ``writeErrors``
+property with the following fields:
+
+.. data:: writeErrors
 
    An array of documents that contains information regarding any error,
    unrelated to write concerns, encountered during the update
-   operation. The :data:`~BulkWriteResult.writeErrors` array contains
-   an error document for each write operation that errors.
+   operation. ``writeErrors`` contains an error document for each write 
+   operation that errors.
 
    Each error document contains the following fields:
 
-   .. data:: BulkWriteResult.writeErrors.index
+   .. data:: writeErrors.index
 
-      An integer that identifies the write operation in the bulk
+      Integer that identifies the write operation in the bulk
       operations list, which uses a zero-based index. See also
       :method:`Bulk.getOperations()`.
 
-   .. data:: BulkWriteResult.writeErrors.code
+   .. data:: writeErrors.code
 
-      An integer value identifying the error.
+      Integer value identifying the error.
 
-   .. data:: BulkWriteResult.writeErrors.errmsg
+   .. data:: writeErrors.errmsg
 
-      A description of the error.
+      Description of the error.
 
-   .. data:: BulkWriteResult.writeErrors.op
+   .. data:: writeErrors.op
 
       A document identifying the operation that failed. For instance,
-      an update/replace operation error will return a document
-      specifying the query, the update, the ``multi`` and the
-      ``upsert`` options; an insert operation will return the document
+      an update or replace operation error will return a document
+      specifying the query, the update, the ``multi``, and the
+      ``upsert`` options. An insert opertation returns the document
       the operation tried to insert.
 
-.. data:: BulkWriteResult.writeConcernError
+writeConcernError Exception
+---------------------------
 
-   Document that describe error related to write concern and contains
-   the field:
+If there is a write concern error while processing the bulk write,
+``mongosh`` raises an exception that contains a ``writeConcernError``
+property with the following fields:
 
-   .. data:: BulkWriteResult.writeConcernError.code
+.. data:: writeConcernError
 
-      An integer value identifying the cause of the write concern error.
+   Document that describes the error related to write concern and 
+   contains the fields:
 
-   .. data:: BulkWriteResult.writeConcernError.errmsg
+   .. data:: writeConcernError.code
 
-      A description of the cause of the write concern error.
+      Integer value identifying the cause of the write concern error.
 
-   .. data:: BulkWriteResult.writeConcernError.errInfo.writeConcern
+   .. data:: writeConcernError.errmsg
 
-      .. versionadded:: 4.4
+      Description of the cause of the write concern error.
+
+   .. data:: writeConcernError.errInfo.writeConcern
 
       .. include:: /includes/fact-errInfo-wc.rst
 
-      .. data:: BulkWriteResult.writeConcernError.errInfo.writeConcern.provenance
+      .. data:: writeConcernError.errInfo.writeConcern.provenance
 
          .. include:: /includes/fact-errInfo-wc-provenance.rst
