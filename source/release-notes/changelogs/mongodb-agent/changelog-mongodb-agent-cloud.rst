@@ -1,4 +1,14 @@
 
+.. _13.4.01.8413-1:
+
+MongoDB Agent 13.4.01.8413-1
+============================
+
+*Released* 2023-08-23
+
+- Flushes the |mongos| cache when you upgrade from MongoDB 5.0 to MongoDB 6.0.
+- Ensures that the {+mdbagent+} always runs a shutdown on request, even when the MongoDB process is unresponsive.
+
 .. _13.3.1.8376-1:
 
 MongoDB Agent 13.3.1.8376-1

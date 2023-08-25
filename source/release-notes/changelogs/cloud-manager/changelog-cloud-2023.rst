@@ -1,3 +1,13 @@
+.. _cloudmanager_20230823:
+
+23 August 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`13.4.01.8413-1 <13.4.01.8413-1>`.
+- Adds support for |bic-full| 2.14.10.
+- Compatible with :db-tools:`MongoDB Database Tools 100.8.0 
+  </release-notes/database-tools-changelog#100.8.0-changelog>`.
+
 .. _cloudmanager_20230802:
 
 2 August 2023 Release
