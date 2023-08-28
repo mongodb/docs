@@ -16,7 +16,7 @@ dependencies:
 Do not install mongosh via homebrew on Mac OS. See 
 https://jira.mongodb.org/browse/MONGOSH-1216 for details.
 
-For more information on installation requirements for QE, see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install).
+For more information on installation requirements for {+qe+}, see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install).
 
 ## Configure Your Environment
 

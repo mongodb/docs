@@ -15,7 +15,7 @@ dependencies:
 - Node.js
 - npm
 
-For more information on installation requirements for QE, see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install).
+For more information on installation requirements for {+qe+}, see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryable-encryption/install/#std-label-qe-install).
 
 ## Configure Your Environment
 

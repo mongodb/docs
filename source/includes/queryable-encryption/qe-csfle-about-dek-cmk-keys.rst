@@ -1,5 +1,5 @@
 In-use encryption uses a multi-level key hierarchy to protect your data,
-often called :term:`Envelope Encryption` or "wrapping keys".
+often called ":term:`envelope encryption`" or "wrapping keys".
 
 A {+cmk-long+} ({+cmk-abbr+}), sometimes called a
 {+kms-long+} ({+kms-abbr+}) key, is the top-level key you create in your

@@ -44,7 +44,7 @@ dataKeyOpts Object
 ``````````````````
 
 The following table presents the structure of a ``dataKeyOpts`` object
-for a KMIP compliant {+km-service-long+}:
+for a KMIP compliant {+kms-long+}:
 
 .. list-table::
     :header-rows: 1
