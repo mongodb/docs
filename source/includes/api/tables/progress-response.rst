@@ -1,3 +1,4 @@
+
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -47,11 +48,13 @@
      - Describes the total amount of data being copied and the
        amount that has already been copied to the destination cluster.
 
-   * - ``collectionCopy.estimatedTotalBytes``
+   * - ``collectionCopy``
+       ``.estimatedTotalBytes``
      - integer
      - Estimated total number of bytes to be copied.
 
-   * - ``collectionCopy.estimatedCopiedBytes``
+   * - ``collectionCopy``
+       ``.estimatedCopiedBytes``
      - integer
      - Estimated number of bytes which have been copied to the
        destination cluster.
@@ -61,25 +64,17 @@
      - Describes the mapping direction for the synchronization, namely
        the source and destination clusters.
 
-   * - ``directionMapping.Source``
+   * - ``directionMapping``
+       ``.Source``
      - string
      - Source cluster. Returned in the form
        ``<cluster name>: <host>:<port>``.
 
-   * - ``directionMapping.Destination``
+   * - ``directionMapping``
+       ``.Destination``
      - string
      - Destination cluster. Returned in the form
        ``<cluster name>: <host>:<port>``.
-
-   * - ``error``
-     - string
-     - If an error occurred, indicates the name of the error. This field
-       is omitted when the call to the endpoint is successful.
-
-   * - ``errorDescription``
-     - string
-     - If an error occurred, gives a detailed description of the error.
-       This field is omitted when the call to the endpoint is successful
 
    * - ``mongosyncID``
      - string
