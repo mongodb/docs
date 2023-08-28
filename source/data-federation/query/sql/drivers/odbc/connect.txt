@@ -16,19 +16,40 @@ Connect with ODBC Driver
    :class: singlecol
 
 This page describes how to install and configure the 
-MongoDB |odbc| Driver for connecting to a {+fdi+}.
+MongoDB |odbc| driver for connecting to a {+fdi+}.
+
+Currently, the ODBC driver is available for the following architectures:
+
+- Windows
+- Ubuntu 22.04 (x86_64)
 
 Prerequisites
 -------------
 
-- A {+fdi+} mapped to one or more data stores.
+.. tabs::
 
-  .. include:: includes/data-federation/fact-asql-recommended-mongodb-version
+   .. tab:: Windows
+      :tabid: windows
 
-- An application or BI tool that you want to connect to your 
-  {+fdi+} with the ODBC driver.
+      .. include:: /includes/fact-shared-prereqs-odbc-driver.rst
 
-- The `MongoDB ODBC Driver <https://www.mongodb.com/try/download/odbc-driver>`__.
+   .. tab:: Ubuntu
+      :tabid: ubuntu
+
+      - The `unixODBC <https://www.unixodbc.org/>`__ package:
+        
+        .. code-block:: sh
+
+           sudo apt install unixodbc
+
+      - The `odbcinst 
+        <https://packages.debian.org/unstable/odbcinst>`__ package:
+
+        .. code-block:: sh
+
+           sudo apt install odbcinst
+
+      .. include:: /includes/fact-shared-prereqs-odbc-driver.rst
 
 Procedure
 ---------
@@ -36,12 +57,167 @@ Procedure
 You can use the ODBC driver to connect to SQL-based tools that accept
 an |odbc| API.
 
-Download the ODBC Driver
-~~~~~~~~~~~~~~~~~~~~~~~~
+.. tabs::
 
-.. include:: /data-federation/query/sql/drivers/odbc/download
+   .. tab:: Windows
+      :tabid: windows
 
-Install and Configure the ODBC Driver
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Download the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/steps/install-odbc-driver.rst
+      .. include:: /data-federation/query/sql/drivers/odbc/download
+
+      Install and Configure the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/steps/install-odbc-driver.rst
+
+   .. tab:: Ubuntu
+      :tabid: ubuntu
+
+      Download the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      1. Download the `MongoDB ODBC Driver 
+         <https://www.mongodb.com/try/download/odbc-driver>`__.
+
+         **Example:**
+
+         .. note::
+
+            Check the download site for the appropriate URL.
+
+         .. code-block:: sh
+
+            curl https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/ubuntu2204/1.0.1/release/mongoodbc.tar.gz --output mongoodbc.tar.gz
+
+      #. Extract the ODBC driver:
+
+         The following example extracts the archive contents to 
+         ``/usr/local/lib/mongoodbc``. The ``mongoodbc`` directory 
+         contains a ``LICENSE`` file, a ``README.MD`` file, and a 
+         ``bin`` directory. The ``bin`` directory contains the 
+         ``libatsql.so`` ODBC driver library.
+
+         .. code-block:: sh
+
+            sudo tar -zxf mongoodbc.tar.gz --directory /usr/local/lib
+
+      Install and Configure the ODBC Driver
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Locate the ODBC driver configuration files.
+
+            a. Run the following command:
+               
+               .. code-block:: sh
+
+                  odbcinst -j
+
+            #. Note the locations of the configuration files for the 
+               ``DRIVERS``, ``SYSTEM DATA SOURCES``, and 
+               ``USER DATA SOURCES``.
+
+               **Example:**
+
+               .. code-block:: sh
+
+                  unixODBC 2.3.9
+                  DRIVERS............: /etc/odbcinst.ini
+                  SYSTEM DATA SOURCES: /etc/odbc.ini
+                  FILE DATA SOURCES..: /etc/ODBCDataSources
+                  USER DATA SOURCES..: /home/ubuntu/.odbc.ini
+                  SQLULEN Size.......: 8
+                  SQLLEN Size........: 8
+                  SQLSETPOSIROW Size.: 8
+
+         .. step:: Configure the ODBC driver.
+
+            a. Open the ``odbcinst.ini`` file in your preferred 
+               editor.
+
+               **Example:**
+
+               .. code-block:: sh
+
+                  sudo vim /etc/odbcinst.ini
+
+            #. Add the following entries to the file and specify the 
+               path to the ``libatsql.so`` ODBC driver library.
+
+               **Example:**
+
+               .. code-block:: sh
+
+                  [ODBC Drivers]
+                  MongoDB Atlas SQL ODBC Driver = Installed
+
+                  [MongoDB Atlas SQL ODBC Driver]
+                  Driver=/usr/local/lib/mongoodbc/bin/libatsql.so
+
+         .. step:: Configure the System DSN or User DSN.
+
+            If multiple users share the DSN, configure the System DSN. 
+            If multiple users user shouldn't share the DSN, configure 
+            the User DSN. If a single user uses the DSN, you can 
+            configure the System DSN or User DSN.
+
+            a. Open the ``SYSTEM DATA SOURCES`` file or
+               ``USER DATA SOURCES`` file in your preferred 
+               editor.
+
+               **System DSN Example:**
+
+               .. code-block:: sh
+
+                  sudo vim /etc/odbc.ini
+
+               **User DSN Example:**
+
+               .. code-block:: sh
+
+                  sudo vim /home/ubuntu/.odbc.ini
+
+            #. Add the following entries to the file and specify the 
+               appropriate values.
+
+               .. include:: /includes/fact-system-user-odbc-config.rst
+
+         .. step:: Test your connection.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+               iusql -v MongoDB_Atlas_SQL
+
+            The following example shows a successful connection:
+
+            .. code-block:: sh
+
+               +---------------------------------------+
+               | Connected!                            |
+               |                                       |
+               | sql-statement                         |
+               | help [tablename]                      |
+               | quit                                  |
+               |                                       |
+               +---------------------------------------+
+
+            If the connection fails, verify the details in your 
+            configuration files against your {+adf+} instance.
+
+            .. note::
+
+               The following warning doesn't impact the ODBC driver 
+               operation:
+
+               .. code-block:: sh
+                  
+                  [MongoDB][API] Buffer size "0" not large enough for data.
+              
+               The ODBC driver doesn't support the ``iusql`` query 
+               function.
