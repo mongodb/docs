@@ -25,15 +25,30 @@ application database in containers in your |k8s| environment.
 Each |onprem| resource uses an |k8s-obj| specification in |yaml| to
 define the characteristics and settings of the deployment.
 
+.. _om_resource_spec_example_single_cluster:
+.. _om_resource_spec_example_multi_cluster:
+
 Examples
 ---------
 
-The following example shows a resource specification for an |onprem|
+The following examples show a resource specification for an |onprem|
 deployment:
 
-.. literalinclude:: /reference/k8s/example-ops-manager.yaml
-   :language: yaml
-   :linenos:
+.. tabs::
+
+     .. tab:: Single Kubernetes Cluster
+        :tabid: single-cluster
+
+        .. literalinclude:: /reference/k8s/example-ops-manager.yaml
+           :language: yaml
+           :linenos:
+
+     .. tab:: Multi-Kubernetes Cluster
+        :tabid: multi-cluster
+
+        .. literalinclude:: /reference/k8s/example-ops-manager-multi-cluster.yaml
+           :language: yaml
+           :linenos:
 
 
 Required |onprem| Resource Settings
@@ -77,7 +92,7 @@ resources.
    *Type*: string
 
    *Required*. Version of |onprem| that you want to install
-   on this MongoDB |k8s| resource.
+   on this MongoDB |k8s| resource. 
 
 .. opsmgrkube:: spec.adminCredentials
 
@@ -92,14 +107,6 @@ resources.
    The admin user is granted the
    :opsmgr:`Global Owner </reference/user-roles/#global-automation-admin-role>`
    role.
-
-.. opsmgrkube:: spec.applicationDatabase.members
-
-   *Type*: integer
-
-   *Required*. Number of members in the
-   :opsmgr:`Application Database </core/system-overview/#application-database>`
-   replica set.
 
 .. opsmgrkube:: spec.applicationDatabase.version
 
@@ -137,25 +144,61 @@ Optional |onprem| Resource Settings
 
    The following settings from the
    :ref:`replica set <replica-set-settings>` resource specification are
-   optional:
-
-   - ``spec.applicationDatabase.``:setting:`~spec.additionalMongodConfig`
-   - ``spec.applicationDatabase.``:setting:`~spec.agent`
-   - ``spec.applicationDatabase.agent.``:setting:`~spec.agent.startupOptions`
-   - ``spec.applicationDatabase.monitoringAgent.``:setting:`~spec.agent.startupOptions`
-   - ``spec.applicationDatabase.``:setting:`~spec.featureCompatibilityVersion`
-   - ``spec.applicationDatabase.``:setting:`~spec.logLevel`
-   - ``spec.applicationDatabase.podSpec.persistence.``:setting:`~spec.podSpec.persistence.single`
-   - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.data`
-   - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.journal`
-   - ``spec.applicationDatabase.podSpec.persistence.multiple.``:setting:`~spec.podSpec.persistence.multiple.logs`
-   - ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podTemplate`
+   optional.
 
 .. note::
    All settings under ``spec.applicationDatabase.agent`` apply to both
    Automation and Monitoring, unless you specify values for Automation
    and Monitoring separately in ``spec.applicationDatabase.agent`` and
    ``spec.applicationDatabase.monitoringAgent``.
+
+.. opsmgrkube:: spec.applicationDatabase.topology
+
+   *Type*: string
+
+   *Optional*. The type of the |k8s| deployment for the Application Database.
+   
+   - The values are ``SingleCluster`` or ``MultiCluster``. If omitted,
+     the default value is ``SingleCluster``.
+   - If you specify ``MultiCluster``, you must specify
+     the :opsmgrkube:`clusterSpecList <spec.applicationDatabase.clusterSpecList>` and
+     include in it the :opsmgrkube:`clusterName <spec.applicationDatabase.clusterSpecList.clusterName>`
+     of each |k8s| cluster included in your |multi-cluster|, and the number
+     of :opsmgrkube:`members <spec.applicationDatabase.clusterSpecList.clusterName.members>`
+     in each |k8s| cluster.
+
+   - If you specify ``MultiCluster``, the |k8s-op-short| ignores values
+     that you set for the :setting:`spec.applicationDatabase.members <spec.members>`
+     field, if specified.
+
+   To learn more, see the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
+
+.. opsmgrkube:: spec.applicationDatabase.clusterSpecList
+
+  *Type*: collection
+
+  Details of selected |k8s| member clusters in a |multi-cluster|
+  that serve as nodes that host the Application Database.
+
+.. opsmgrkube:: spec.applicationDatabase.clusterSpecList.clusterName
+
+  *Type*: string
+
+  Name of the member |k8s| cluster in a |multi-cluster| where the |k8s-op|
+  schedules the |k8s-statefulset| for the Application Database.
+
+
+  .. important::
+
+     .. include:: /includes/facts/fact-cannot-convert-om-crd-multi.rst
+
+.. opsmgrkube:: spec.applicationDatabase.clusterSpecList.clusterName.members
+
+  *Type*: number
+
+  Number of statefulSet nodes in the given member cluster. The member cluster
+  is one of the member clusters that hosts the Application Database in
+  a |multi-cluster|.
 
 .. opsmgrkube:: spec.applicationDatabase.memberConfig.priority
 

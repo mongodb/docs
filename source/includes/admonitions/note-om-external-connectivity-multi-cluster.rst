@@ -14,8 +14,8 @@ central cluster in a |multi-cluster|, use one of the following methods:
       --namespace "mongodb" \
        -f https://raw.githubusercontent.com/mongodb/mongodb-enterprise-kubernetes/master/samples/ops-manager/ops-manager-external.yaml
 
-- Add the central cluster and all member clusters to the service mesh.
-  The service mesh establishes communication from the central and all
+- Add the central cluster and all member clusters to the same service mesh.
+  The service mesh establishes communication from the the central and all
   member clusters to the |onprem| instance. To learn more, see the
   :ref:`Multi-Kubernetes-Cluster Quick Start <multi-cluster-quick-start-ref>`
   procedures and see the step that references the ``istio-injection=enabled``
