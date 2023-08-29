@@ -12,6 +12,92 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.21.x:
+
+|k8s-op-full| 1.21 Series
+-------------------------
+
+.. _ent_op-1.21.0:
+
+|k8s-op-full| 1.21.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-08-25*
+
+Breaking Changes
+````````````````
+
+- Renames the environment variable ``CURRENT_NAMESPACE`` to ``NAMESPACE``. This variable 
+  tracks the namespace of the |k8s-op-short|. If you've set this variable by editing the 
+  |k8s-mdbrscs|, update ``CURRENT_NAMESPACE`` to ``NAMESPACE`` while 
+  :ref:`upgrading the Kubernetes Operator <upgrade-k8s-operator>`.
+ 
+Bug Fixes
+`````````
+
+- Fixes an issue where ``StatefulSet`` override labels failed to override the ``StatefulSet``.
+ 
+Improvements
+````````````
+
+- Supports configuring backups of the Application Database and MongoDB for the |mongodb-multi|.
+- Adds documentation for configuring a |mongodb-multis| deployment in a GitOps environment. 
+  To learn more, see :ref:`multi-cluster-gitops`.
+- Adds ``MetadataWrapper``, a label and annotations wrapper, to the |k8s-mdbrsc|, 
+  |mongodb-multi| and ``MongoDBOpsManager`` resources. The wrapper supports 
+  overriding ``metadata.Labels`` and ``metadata.Annotations``.
+
+MongoDBOpsManager Resource
+``````````````````````````
+
+Breaking Changes and Deprecations
++++++++++++++++++++++++++++++++++
+
+- The ``appdb-ca`` is not automatically added to the JVM trust store in |onprem|. The 
+  ``appdb-ca`` is the |certauth| saved in the ConfigMap specified in 
+  :opsmgrkube:`spec.applicationDatabase.security.tls.ca`. This impacts you if:
+
+  - You use the same custom certificate for the ``appdb-ca`` and your |s3| snapshot store.
+  - You use a version of |k8s-op-short| earlier than 1.17.0 or you've mounted your own 
+    trust store to |onprem|.
+  
+  If you need to use the same custom certificate for ``appdb-ca`` and the |s3| snapshot 
+  store, specify the CA with :opsmgrkube:`spec.backup.s3Stores.customCertificateSecretRefs`.
+
+- Deprecates the :opsmgrkube:`spec.backup.s3Stores.customCertificate` and 
+  :opsmgrkube:`spec.backup.s3OpLogStores.customCertificate` settings. Use 
+  :opsmgrkube:`spec.backup.s3OpLogStores.customCertificateSecretRefs` and 
+  :opsmgrkube:`spec.backup.s3Stores.customCertificateSecretRefs` instead.
+
+Bug Fixes
++++++++++
+
+- Fixes an issue that prevented setting an arbitrary port number for 
+  :opsmgrkube:`spec.externalConnectivity.port` when using the ``LoadBalancer`` service type 
+  to expose |onprem| externally.
+- Fixes an issue that caused |onprem| to reject certificates by enabling the |k8s-op-short| 
+  to import the ``appdb-ca``, which is a bundle of CAs, into the |onprem| JVM trust store.
+
+Improvements
+++++++++++++
+
+- Supports configuring the ``MongoDBOpsManager`` resource with a highly available 
+  Application Database across multiple |k8s| clusters by adding the following new fields
+  to the ``MongoDBOpsManager`` resource:
+
+  - :opsmgrkube:`spec.applicationDatabase.topology`
+  - :opsmgrkube:`spec.applicationDatabase.clusterSpecList`
+  
+  The default value for the new optional :opsmgrkube:`spec.applicationDatabase.topology` 
+  field is ``singleCluster``, and it is used if you omit the value. To upgrade to |k8s-op-short| 
+  1.21, you don't need to update your ``MongoDBOpsManager`` resources. This makes the addition 
+  of the :opsmgrkube:`spec.applicationDatabase.topology` setting backward-compatible with 
+  single |k8s| cluster deployments of the Application Database. To learn more, see :ref:`deploy-om-container` and 
+  the :ref:`k8s-om-specification`.
+- Allows you to add a list of custom certificates for backups in the |s3| snapshot store 
+  using the :opsmgrkube:`spec.backup.s3Stores.customCertificateSecretRefs` and 
+  :opsmgrkube:`spec.backup.s3OpLogStores.customCertificateSecretRefs` fields in the ``MongoDBOpsManager`` resource.
+
 .. _ent-op-1.20.x:
 
 |k8s-op-full| 1.20 Series
