@@ -4,6 +4,7 @@ Fundamentals section:
 - :ref:`Connect to MongoDB <rust-connection>`
 - :ref:`Specify the {+stable-api+} Version <rust-stable-api>`
 - :ref:`Read from and Write to MongoDB <rust-crud>`
+- :ref:`Manage Databases and Collections <rust-db-coll>`
 - :ref:`Perform Aggregations <rust-aggregation>`
 - :ref:`Record Driver Events <rust-tracing-logging>`
 - :ref:`Run A Database Command <rust-run-command>`
