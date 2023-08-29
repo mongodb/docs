@@ -1,0 +1,506 @@
+.. _mongosh-ejson-stringify:
+
+=================
+EJSON.stringify()
+=================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/links-urls/ejson.rst
+
+The ``EJSON.stringify()`` method converts BSON values to strings. 
+
+Syntax
+------
+
+The ``EJSON.stringify()`` method takes a BSON object as input and
+optional modifiers that control the format of the output string.
+
+.. code-block:: javascript
+   :copyable: false
+
+   EJSON.stringify(BSON object, [replacer], [space], [options])
+
+Command Fields
+--------------
+
+The ``EJSON.stringify()`` method has these fields:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``value``
+     -  BSON object
+     -  Required
+     -  Object ``EJSON.stringify()`` transforms
+
+   * - ``replacer``
+     -  array or function
+     -  Optional
+     -  Modifies output. If the value exists but it is not an array or a
+        function, ``EJSON.stringify()`` returns all document fields. 
+ 
+        .. list-table::
+           :header-rows: 1
+           :widths: 30 70
+
+           * - Value
+             - Effect
+
+           * - array
+             - An array of document fields to include in the output
+
+           * - function
+             - A function that takes two parameters, ``key`` and
+               ``value``. ``key`` provides the function's ``this``
+               context. EJSON returns the transformed ``value``. See
+               below for an :ref:`example <ex-ejson-function>`   
+
+   * - ``spacer``
+     -  integer or string
+     -  Optional
+     -  Controls spacing in the output. Use ``null`` as a place holder
+        for ``replacer`` if you only want to specify the ``spacer``
+        option.
+ 
+        .. list-table::
+           :header-rows: 1
+           :widths: 30 70
+
+           * - Value
+             - Effect
+
+           * - integer
+             - The number of spaces to indent each level. ``10`` is the
+               maximum.
+
+           * - string
+             - A character to use to indent each level. This option
+               produces invalid JSON if you use a character other than a
+               space or tab. For more information see
+               |mdn-json-stringify| 
+
+   * - ``options``
+     -  boolean
+     -  Optional
+     -  Additional configuration options
+      
+        .. list-table::
+           :header-rows: 1
+           :widths: 25 25 50
+
+           * - Option
+             - Default
+             - Meaning
+
+           * - ``relaxed``
+             - ``true``
+             - Enable relaxed mode for Extended JSON. Returns native 
+               JSON types instead of attaching BSON type information
+               where applicable.
+
+Behavior
+--------
+
+You can call the EJSON interface from inside an interactive ``mongosh``
+session or from the system command line using ``--eval``.
+
+Call the EJSON interface from an interactive session: 
+
+.. code-block:: javascript
+
+   EJSON.stringify( db.sales.find().toArray(), null, 2  )
+
+Call the EJSON interface from the system command line: 
+
+.. code-block:: shell
+
+   mongosh --eval "EJSON.stringify( db.sales.find().toArray(), null, 2  )"
+
+To control how documents are passed to EJSON, use one of the ``mongosh``
+:ref:`cursor method <doc-cursor-methods>` iterators. 
+
+.. list-table::
+   :header-rows: 1
+
+   * - Iterator
+     - Characteristics
+
+   * - :method:`.toArray() <cursor.toArray>`
+     - Blocking, buffers the entire result
+
+   * - :method:`.foreach <cursor.forEach()>`
+     - Non-blocking, prints documents one-by-one
+
+   * - :method:`.next() <cursor.next>`
+     - Non-blocking, manually iterate over results
+
+Examples
+--------
+
+To try these examples, first create the ``sales`` collection:
+
+.. code-block:: javascript
+
+   db.sales.insertMany( [ 
+      { custId: 345, purchaseDate: ISODate("2023-07-04"), quantity: 4, cost: Decimal128("100.60"), },
+      { custId: 346, purchaseDate: ISODate("2023-07-12"), quantity: 3, cost: Decimal128("175.45"), },
+      { custId: 486, purchaseDate: ISODate("2023-08-01"), quantity: 9, cost: Decimal128("200.53"), },
+   ] )
+
+Change Output Spacing
+~~~~~~~~~~~~~~~~~~~~~
+
+To increase indentation between levels, set the ``spacing`` option.
+
+.. code-block:: javascript
+
+   EJSON.stringify( db.sales.findOne( { custId: 345 } ), null , 5 )
+
+``EJSON.stringify()`` indents each document level five spaces.
+
+.. code-block:: javascript
+
+   {
+        "_id": {
+             "$oid": "64da90c1175f5091debcab26"
+        },
+        "custId": 345,
+        "purchaseDate": {
+             "$date": "2023-07-04T00:00:00Z"
+        },
+        "quantity": 4,
+        "cost": {
+             "$numberDecimal": "100.60"
+        }
+   }
+
+Select Output Fields
+~~~~~~~~~~~~~~~~~~~~
+
+To select a subset of document fields, use an array to set the
+``replace`` option.
+
+.. code-block:: javascript
+
+   EJSON.stringify( db.sales.find().toArray(), [ "quantity", "cost" ] )
+
+EJSON formats the ``quantity`` and ``cost`` for each document.
+
+.. code-block:: javascript
+
+   [{"quantity":4,"cost":{}},{"quantity":3,"cost":{}},{"quantity":9,"cost":{}}]
+
+The ``spacing`` option is not specified in this example, so EJSON
+returns the selected fields on a single line. 
+
+.. _ex-ejson-function:
+
+Use a Function to Transform Output Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To transform field values, use a JavaScript function to set the
+``replace`` option.
+
+.. code-block:: javascript
+
+   let queryResults = db.sales.find().toArray()
+   let replacer = function( key, value ){
+      if ( key === '_id' ) { 
+         value = undefined; 
+      }
+      if ( key === 'quantity' ) { 
+         value = 2 * value; 
+      }
+
+      return value; 
+   }
+
+   EJSON.stringify( queryResults, replacer, 3 )
+
+The function runs recursively against the input object.
+
+.. code-block:: javascript
+
+   [
+      {
+         "custId": 345,
+         "purchaseDate": {
+            "$date": "2023-07-04T00:00:00Z"
+         },
+         "quantity": 8,
+         "cost": {
+            "$numberDecimal": "100.60"
+         }
+      },
+      {
+         "custId": 346,
+         "purchaseDate": {
+            "$date": "2023-07-12T00:00:00Z"
+         },
+         "quantity": 6,
+         "cost": {
+            "$numberDecimal": "175.45"
+         }
+      },
+      {
+         "custId": 486,
+         "purchaseDate": {
+            "$date": "2023-08-01T00:00:00Z"
+         },
+         "quantity": 18,
+         "cost": {
+            "$numberDecimal": "200.53"
+         }
+      }
+   ]
+
+The ``replacer`` function updates two fields, ``_id`` and ``quantity``.
+
+``EJSON.stringify()`` ignores fields with undefined values, so setting
+``_id: undefined`` removes the ``_id`` field from the output string.
+
+The function also modifies the ``quantity`` field in the output string.
+All of the ``quantity`` values are multiplied by two in the output
+string. ``EJSON.stringify()`` does not update the collection.
+
+Write to a File from Inside mongosh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To write to a file from within ``mongosh``, use the ``fs`` API. Use
+``EJSON.stringify()`` to format the string that you pass to ``fs``. 
+
+.. code-block:: javascript
+
+   const sales_2023_07 = db.sales.find( 
+      { 
+         purchaseDate:
+         {
+             $gte: ISODate( "2023-07-01" ),
+             $lte: ISODate( "2023-07-31" ) 
+         }
+      }
+   )
+
+   fs.writeFileSync(
+      'sales_2023_07.json',
+      EJSON.stringify( sales_2023_07.toArray(), null, 2 )
+   ) 
+  
+The example queries the ``sales`` collection for sales in July, 2023.
+
+- ``sales_2023_07`` stores a MongoDB BSON object.
+- ``EJSON.stringify()`` formats the object as a JSON string. 
+- ``fs.writeFileSync()`` writes the formatted string to the 
+  ``sales_2023_07.json`` file in the directory where you ran
+  ``mongosh``. 
+
+Run from the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To run a query from the operating system shell, use the :option:`--eval
+<mongosh --eval>` option.
+
+.. code-block:: shell
+
+   # Note: This example is formatted to fit on the page.
+
+   mongosh --quiet \
+           --eval "db.sales.find().forEach( \
+                      o => print( EJSON.stringify( o ) ) )"
+ 
+The command returns a single line of JSON for each document:
+
+- ``--quiet`` suppresses the ``mongosh`` connection information
+- ``--eval`` calls the :method:`find <db.collection.find()>` method
+- ``.forEach`` is a JavaScript method that tells ``mongosh`` to iterate
+  over the response
+- ``EJSON.stringify()`` converts each document to JSON
+
+The output is: 
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id":{"$oid":"64da90c1175f5091debcab26"},"custId":345,"purchaseDate":{"$date":"2023-07-04T00:00:00Z"},"quantity":4,"cost":{"$numberDecimal":"100.60"}}
+   {"_id":{"$oid":"64da90c1175f5091debcab27"},"custId":346,"purchaseDate":{"$date":"2023-07-12T00:00:00Z"},"quantity":3,"cost":{"$numberDecimal":"175.45"}}
+   {"_id":{"$oid":"64da90c1175f5091debcab28"},"custId":486,"purchaseDate":{"$date":"2023-08-01T00:00:00Z"},"quantity":9,"cost":{"$numberDecimal":"200.53"}}
+
+The single-line output format is convenient for scripting. 
+``EJSON.stringify()`` can also produce human-readable formatting:
+
+.. code-block:: shell
+
+   # Note: This example is formatted to fit on the page.
+
+   mongosh --quiet \
+           --eval "db.sales.find().forEach( \
+                      o => print( EJSON.stringify(o, null, 3 ) ) )"
+
+The output is: 
+
+.. code-block:: json
+   :copyable: false 
+
+   # Note: This is only the first document.
+
+   {
+      "_id": {
+         "$oid": "64da90c1175f5091debcab26"
+      },
+      "custId": 345,
+      "purchaseDate": {
+         "$date": "2023-07-04T00:00:00Z"
+      },
+      "quantity": 4,
+      "cost": {
+         "$numberDecimal": "100.60"
+      }
+   }
+
+- ``o`` is the BSON value that ``EJSON.stringify()`` converts on each
+  iteration of ``.forEach()``.
+- ``null`` is a place holder for an optional ``replacer``.  When the
+  ``replacer`` is absent, ``EJSON.stringify()`` returns all fields that
+  have a defined value.
+- ``3`` is the ``spacer`` value. It tells ``EJSON.stringify()`` to
+  indent each new level by 3 spaces. 
+
+If the you want the output string to have additional type information,
+add the ``{ relaxed: false }`` option:
+
+.. code-block:: shell
+
+   # Note: This example is formatted to fit on the page.
+
+   mongosh --quiet \
+           --eval "db.sales.find().forEach( \
+                 o => print( \
+                     EJSON.stringify( o, null, 3, { relaxed: false } ) \
+              ) )"
+
+The output is: 
+
+.. code-block:: json
+   :copyable: false 
+
+   # Note: This is only the first document.
+
+   {
+      "_id": {
+         "$oid": "64da90c1175f5091debcab26"
+      },
+      "custId": {
+         "$numberInt": "345"
+      },
+      "purchaseDate": {
+         "$date": {
+            "$numberLong": "1688428800000"
+         }
+      },
+      "quantity": {
+         "$numberInt": "4"
+      },
+      "cost": {
+         "$numberDecimal": "100.60"
+      }
+   }
+
+Filter Output Fields
+~~~~~~~~~~~~~~~~~~~~
+
+``EJSON.stringify()`` provides formatting options that reduce the need
+for an additional JSON parser like ``jq``. 
+
+.. code-block:: shell
+
+   # Note: This example is formatted to fit on the page.
+
+   mongosh --quiet \
+           --eval "EJSON.stringify( \
+                db.sales.find( {}, \
+                   { _id: 0, custId: 1, quantity: 1 } ).toArray(), null, 2 \
+             );"
+
+The output is: 
+
+.. code-block:: json
+   :copyable: false 
+
+   [
+     {
+       "custId": 345,
+       "quantity": 4
+     },
+     {
+       "custId": 346,
+       "quantity": 3
+     },
+     {
+       "custId": 486,
+       "quantity": 9
+     }
+   ]
+
+Legacy ``tojsononeline()``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongosh`` formats query output differently than the deprecated
+``mongo`` shell. You may have scripts which rely on the old format. To
+reformat ``mongosh`` output on a single line, use ``EJSON.stringify()``.
+
+Run a sample query in ``mongosh`` and ``mongo`` to see the different
+formats.
+
+.. code-block:: javascript
+
+   db.sales.find( { custId: 345 } )
+
+Legacy output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { "_id" : ObjectId("64da90c1175f5091debcab26"), "custId" : 345, "purchaseDate" : ISODate("2023-07-04T00:00:00Z"), "quantity" : 4, "cost" : NumberDecimal("100.60") }
+
+``mongosh`` output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   db.sales.find( { custId: 345 } )
+   [
+     {
+       _id: ObjectId("64da90c1175f5091debcab26"),
+       custId: 345,
+       purchaseDate: ISODate("2023-07-04T00:00:00.000Z"),
+       quantity: 4,
+       cost: Decimal128("100.60")
+     }
+   ]
+
+Reformat the output with ``EJSON.stringify()``.
+
+.. code-block:: javascript
+
+   EJSON.stringify( db.sales.find( { custId: 345 } ).toArray() )
+
+.. code-block:: javascript
+   :copyable: false
+
+   [{"_id":{"$oid":"64da90c1175f5091debcab26"},"custId":345,"purchaseDate":{"$date":"2023-07-04T00:00:00Z"},"quantity":4,"cost":{"$numberDecimal":"100.60"}}]
+
+Learn More
+----------
+
+- |ejsonUrl| documentation
+- Mozilla Developer Network |mdn-json-stringify| documentation
