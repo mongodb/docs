@@ -218,6 +218,7 @@ rst_epilog = '\n'.join([
     '.. |service-fullname| replace:: MongoDB Atlas',
     '.. |service-pricing| replace:: Atlas pricing page',
     '.. |service| replace:: Atlas',
+    '.. |mdb-support| replace:: `MongoDB Support <https://support.mongodb.com/welcome>`__',
     '.. |svc-api-key| replace:: Programmatic API Key',
     '.. |sms| replace:: :abbr:`SMS (short message service)`',
     '.. |sni| replace:: :abbr:`SNI (Server Name Indication)`',

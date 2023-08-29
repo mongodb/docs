@@ -5,18 +5,30 @@ inherit:
   file: steps-configure-kubectl-namespace.yaml
   ref: configure-kubectl-namespace
 ---
-title: "Copy the following example |onprem| |k8s| |k8s-obj|."
+title: "Copy one of the following |onprem| |k8s| |k8s-obj| examples."
 stepnum: 2
 level: 4
 ref: copy-k8s-example
 content: |
 
-   Change the highlighted settings to match your desired
-   |onprem| configuration.
+   Change the settings to match your |onprem| configuration.
 
-   .. literalinclude:: /reference/k8s/example-opsmgr-minimal.yaml
-      :language: yaml
-      :linenos:
+   .. tabs::
+
+     .. tab:: Single Kubernetes Cluster
+        :tabid: single-cluster-tls
+
+        .. literalinclude:: /reference/k8s/example-opsmgr-minimal.yaml
+           :language: yaml
+           :linenos:
+
+
+     .. tab:: Multi-Kubernetes Cluster
+        :tabid: multi-cluster-tls
+
+        .. literalinclude:: /reference/k8s/example-opsmgr-multi-cluster-http.yaml
+           :language: yaml
+           :linenos:  
 
 ---
 title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
@@ -24,7 +36,7 @@ stepnum: 3
 level: 4
 ref: paste-k8s-example
 ---
-title: "Configure the settings included in the prior example."
+title: "Configure the settings included in the previous example."
 stepnum: 4
 level: 4
 ref: change-k8s-values
@@ -132,6 +144,33 @@ content: |
 
         - .. include:: /includes/facts/fact-which-appdb-version.rst
 
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.``:opsmgrkube:`~spec.applicationDatabase.topology`
+        - string
+        - *Optional*.
+
+          The type of the |k8s| deployment for the Application Database.
+          If omitted, the default is ``SingleCluster``.
+
+          If you specify ``MultiCluster``, the |k8s-op-short| ignores
+          values that you set for the
+          :setting:`spec.applicationDatabase.members <spec.members>`
+          field, if specified.
+
+          Instead, you must specify the :opsmgrkube:`clusterSpecList <spec.applicationDatabase.clusterSpecList>`
+          and include in it the :opsmgrkube:`clusterName <spec.applicationDatabase.clusterSpecList.clusterName>`
+          of each selected |k8s| member cluster on which you want to deploy the Application Database, and
+          the number of :opsmgrkube:`members <spec.applicationDatabase.clusterSpecList.clusterName.members>`
+          (MongoDB nodes) in each |k8s| cluster.
+
+          .. note::
+
+             .. include:: /includes/facts/fact-cannot-convert-om-crd-multi.rst
+
+          See also the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
+
+        - ``MultiCluster``
 ---
 title: "Configure backup settings."
 stepnum: 5
@@ -175,7 +214,9 @@ content: |
         | ``.mongodbResourceRef``
         | ``.``:opsmgrkube:`~spec.backup.opLogStores.mongodbResourceRef.name`
       - string
-      - Name of the MongoDB database resource for the oplog store.
+      - Name of the |k8s-mdbrsc| or |mongodb-multi| for the oplog store.
+        The resource's ``metadata.name`` must match this name.
+        
       - ``my-oplog-db``
 
   You must also configure an :term:`S3 snapshot store <s3 snapshot store>` 
@@ -273,9 +314,9 @@ content: |
         | ``.mongodbResourceRef``
         | ``.``:opsmgrkube:`~spec.backup.blockStores.mongodbResourceRef.name`
       - string
-      - Name of the MongoDB database resource that you create for the 
-        blockstore. You must deploy this database resource in the same 
-        namespace as the |onprem| resource.
+      - Name of the |k8s-mdbrsc|  that you create for the blockstore.
+        You must deploy this database resource in the same namespace as
+        the |onprem| resource. The resource's ``metadata.name`` must match this name.
       - ``my-mongodb-blockstore``
 ---
 title: "Configure any additional settings for an |onprem| backup."
@@ -348,7 +389,7 @@ content: |
 
      status:
       applicationDatabase:
-       lastTransition: "2020-04-01T09:49:22Z"
+       lastTransition: "2022-04-01T09:49:22Z"
        message: AppDB Statefulset is not ready yet
        phase: Reconciling
        type: ""
@@ -376,22 +417,22 @@ content: |
 
       status:
         applicationDatabase:
-          lastTransition: "2020-04-01T09:50:20Z"
+          lastTransition: "2022-04-01T09:50:20Z"
           members: 3
           phase: Running
           type: ReplicaSet
-          version: "4.4.5-ubi8"
+          version: "6.0.5-ubi8"
        backup:
-        lastTransition: "2020-04-01T09:57:42Z"
+        lastTransition: "2022-04-01T09:57:42Z"
         message: The MongoDB object <namespace>/<oplogresourcename> 
           doesn't exist
         phase: Pending
         opsManager:
-          lastTransition: "2020-04-01T09:57:40Z"
+          lastTransition: "2022-04-01T09:57:40Z"
           phase: Running
           replicas: 1
           url: http://om-svc.cloudqa.svc.cluster.local:8080
-          version: "5.0.0"
+          version: "6.0.17"
 
   Backup remains in a ``Pending`` state until you configure the backup 
   databases.
@@ -459,7 +500,7 @@ content: |
   service, refer to the documentation for your solution.
 
 ---
-title: "Create credentials for the Kubernetes Operator."
+title: "Create credentials for the |k8s-op-short|."
 stepnum: 12
 level: 4
 optional: true
@@ -489,7 +530,7 @@ content: |
      kubectl get om -o yaml -w
 
   The command returns the URL of the |application| in the
-  ``status.opsManager.url`` field.
+  ``status.opsManager.url`` field, similar to the following example:
 
   .. code-block:: yaml
      :copyable: false
@@ -497,22 +538,22 @@ content: |
 
       status:
         applicationDatabase:
-          lastTransition: "2020-04-01T10:00:32Z"
+          lastTransition: "2022-04-01T10:00:32Z"
           members: 3
           phase: Running
           type: ReplicaSet
-          version: "4.4.5-ubi8"
+          version: "6.0.5-ubi8"
        backup:
-        lastTransition: "2020-04-01T09:57:42Z"
+        lastTransition: "2022-04-01T09:57:42Z"
         message: The MongoDB object <namespace>/<oplogresourcename> 
           doesn't exist
         phase: Pending
         opsManager:
-          lastTransition: "2020-04-01T09:57:40Z"
+          lastTransition: "2022-04-01T09:57:40Z"
           phase: Running
           replicas: 1
           url: http://om-svc.cloudqa.svc.cluster.local:8080
-          version: "5.0.0"
+          version: "6.0.17"
 
   .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
 
@@ -579,21 +620,21 @@ content: |
 
      status:
        applicationDatabase:
-         lastTransition: "2020-04-01T10:00:32Z"
+         lastTransition: "2022-04-01T10:00:32Z"
          members: 3
          phase: Running
          type: ReplicaSet
-         version: "4.4.5-ubi8"
+         version: "6.0.5-ubi8"
        backup:
-         lastTransition: "2020-04-01T10:00:53Z"
+         lastTransition: "2022-04-01T10:00:53Z"
          phase: Running
-         version: "4.2.8"
+         version: "6.0.5-ubi8"
        opsManager:
-         lastTransition: "2020-04-01T10:00:34Z"
+         lastTransition: "2022-04-01T10:00:34Z"
          phase: Running
          replicas: 1
          url: http://om-svc.cloudqa.svc.cluster.local:8080
-         version: "5.0.0"
+         version: "6.0.17"
 
   See :doc:`/reference/troubleshooting` for information about the
   resource deployment statuses.
