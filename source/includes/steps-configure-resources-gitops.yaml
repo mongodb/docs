@@ -1,0 +1,111 @@
+---
+stepnum: 1
+ref: create-rbac-resources-gitops
+title: Create and apply RBAC resources to each cluster.
+content: |
+
+  Use :github:`these RBAC resource examples </mongodb/mongodb-enterprise-kubernetes/tree/1.20.1/samples/multi-cluster-cli-gitops/resources/rbac>` to create your own. To learn more about these 
+  RBAC resources, see :ref:`multi-cluster-rbac-manual`.
+  
+  To apply them to your central and member clusters with GitOps, you can use a tool like :argo-cd:`Argo CD </cd>`.
+
+---
+stepnum: 2
+ref: create-configmap-gitops
+title: Create and apply the ConfigMap file.
+content: |
+
+  The |k8s-op-short| keeps track of its member clusters using a |k8s-configmap-def| file. Copy, modify, and apply the following example ConfigMap:
+
+  .. code-block:: yaml
+
+     apiVersion: v1
+     kind: ConfigMap
+     data:
+       cluster1: ""
+       cluster2: ""
+     metadata:
+       namespace: <namespace>
+       name: mongodb-enterprise-operator-member-list
+       labels:
+         multi-cluster: "true"
+
+---
+stepnum: 3
+ref: configure-kubeconfig-gitops
+title: Configure the ``kubeconfig`` secret for the |k8s-op-short|.
+content: |
+
+  The |k8s-op-short|, which runs in the central cluster, communicates with the Pods in 
+  the member clusters through the Kubernetes API. For this to work, the |k8s-op-short| 
+  needs a :k8sdocs:`kubeconfig </concepts/configuration/organize-cluster-access-kubeconfig/>` 
+  file that contains the service account tokens of the member clusters. Create this 
+  ``kubeconfig`` file by following these steps: 
+
+  1. Obtain a list of |k8s-service-accounts| configured in the |k8s-op-short|'s namespace.  For example, if you chose to use the default ``mongodb`` namespace, then you can obtain the service accounts using the following command:
+
+     .. code-block:: sh
+        
+        kubectl get serviceaccounts -n mongodb
+
+  #. Get the secret for each service account that belongs to a member cluster.
+
+     .. code-block:: sh
+
+        kubectl get secret <service-account-name> -n mongodb -o yaml
+
+  #. In each service account secret, copy the |certauth| certificate and token. For example, copy ``<ca_certificate>`` and ``<token>`` from the secret, as shown in the following example:  
+
+     .. code-block:: yaml
+
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: my-service-account
+          namespace: mongodb
+        data:
+          ca.crt: <ca_certificate>
+          token: <token>
+
+  #. Copy the following ``kubeconfig`` example for the central cluster and replace 
+     the placeholders with the ``<ca_certificate>`` and ``<token>`` you copied from the service account secrets.
+
+     .. code-block:: yaml
+          
+        apiVersion: v1
+        clusters:
+        - cluster:
+            certificate-authority-data: <cluster-1-ca.crt>
+            server: https://:
+          name: kind-e2e-cluster-1
+        - cluster:
+            certificate-authority-data: <cluster-2-ca.crt>
+            server: https://:
+          name: kind-e2e-cluster-2
+        contexts:
+        - context:
+            cluster: kind-e2e-cluster-1
+            namespace: mongodb
+            user: kind-e2e-cluster-1
+          name: kind-e2e-cluster-1
+        - context:
+            cluster: kind-e2e-cluster-2
+            namespace: mongodb
+            user: kind-e2e-cluster-2
+          name: kind-e2e-cluster-2
+        kind: Config
+        users:
+        - name: kind-e2e-cluster-1
+          user:
+            token: <cluster-1-token>
+        - name: kind-e2e-cluster-2
+          user:
+            token: <cluster-2-token>
+
+  #. Save the ``kubeconfig`` file.
+  
+  #. Create a secret in the central cluster that you mount in the |k8s-op-short| as illustrated in :github:`the reference Helm chart </mongodb/helm-charts/blob/enterprise-operator-1.20.1/charts/enterprise-operator/templates/operator.yaml#L191-L197/>`. For example:
+
+     .. code-block:: sh
+
+        kubectl --context="${CTX_CENTRAL_CLUSTER}" -n <operator-namespace> create secret --from-file=kubeconfig=<path-to-kubeconfig-file> <kubeconfig-secret-name>
