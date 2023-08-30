@@ -21,10 +21,11 @@ Overview
 
    Retrieve documents in MongoDB with counts of specific values.
 
-In this guide, you will learn how to run a query with the facet 
-operator.
+In this guide, you will learn how to run a query with the 
+:ref:`facet collector <fts-facet-ref>` to group your query results 
+and returns the count for each of these groups.
 
-.. time:: 15
+.. time:: 10
 
 What You'll Need
 ----------------
@@ -39,11 +40,26 @@ Procedure
 .. procedure::
    :style: normal
 
-   .. include:: /includes/navigate_to_collections.rst
+   .. include:: /includes/navigate_to_cluster.rst
 
    .. step:: Create a search index with facets.
 
-      .. include:: /includes/create_index_sample_sales.rst
+      .. procedure::
+         :style: connected
+
+         .. step:: Click the :guilabel:`Search` tab.
+
+         .. step:: Click 
+            :guilabel:`Create Index`.
+
+         .. step:: Select the :guilabel:`Visual Editor` configuration 
+            method, then click :guilabel:`Next`.
+
+         .. step:: For the :guilabel:`Index Name`, type ``facets``.
+
+         .. step:: For the :guilabel:`Database and Collection`, select the 
+            ``sample_supplies`` database and the ``sales`` collection. 
+            Then, click :guilabel:`Next`.
 
          .. step:: Click :guilabel:`Refine Your Index`. In the 
             :guilabel:`Index Configuration` pane, toggle off
@@ -74,7 +90,7 @@ Procedure
 
          You now have a search index that enables faceted queries.
 
-   .. step:: Run a query on your index using the Aggregation Pipeline.
+   .. step:: Run a faceted query on your index by using the Aggregation Pipeline.
 
       .. procedure::
          :style: connected
@@ -82,39 +98,49 @@ Procedure
          .. step:: Click the 
             :guilabel:`Aggregation` tab.
 
-         .. step:: If you do not see a pipeline with an initial
-            stage window in the right pane, click 
-            :guilabel:`Create New` and select :guilabel:`Pipeline`.
-
-         .. step:: In the Aggregation pane, click on the dropdown menu
+         .. step:: Click :guilabel:`+ Add Stage` to begin creating
+            your aggregation pipeline.
+            
+         .. step:: In the stage window, click on the dropdown menu
             labeled :guilabel:`Select...` and select the 
             :guilabel:`$searchMeta` stage.
 
          .. step:: Replace the placeholder code with the following
-            ``compound`` operator:
+            query.
 
             .. code-block:: json
 
                {
-               "facet": {
-                  "operator": {
-                     "text": {
-                     "query": ["In store"],
-                     "path": "purchaseMethod"
-                     }
-                  },
-                  "facets": {
-                     "locationFacet": {
-                     "type": "string",
-                     "path": "storeLocation",
+                  "facet": {
+                     "operator": {
+                        "text": {
+                        "query": ["In store"],
+                        "path": "purchaseMethod"
+                        }
+                     },
+                     "facets": {
+                        "locationFacet": {
+                        "type": "string",
+                        "path": "storeLocation",
+                        }
                      }
                   }
                }
-               }
 
-         .. step:: Review the results of the compound search in the
-            right-hand pane. The following sample document is shown 
-            partially expanded.
+            This query uses the ``facet`` collector with:
+
+            - The ``text`` operator 
+              to count only documents with a ``purchaseMethod`` 
+              value of ``In store``.
+
+            - The facet named 
+              ``locationFacet`` that creates a bucket
+              for each different ``storeLocation`` value.
+
+         .. step:: Review the results of the faceted query.
+
+            Your results should resemble the following sample document,
+            which is shown partially expanded:
 
             .. code-block:: json
                :copyable: false
@@ -125,28 +151,24 @@ Procedure
                locationFacet: Object
                   buckets: Array
                      0: Object
-                     id: "Denver"
-                     count: 864
+                        id: "Denver"
+                        count: 864
                      1: Object
-                     id: "Seattle"
-                     count: 648
+                        id: "Seattle"
+                        count: 648
                      2: Object
                      3: Object
                      4: Object
                      5: Object
-
-
-            The ``count`` field returns the number of
-            records with a ``purchaseMethod`` value of ``In store``.
-            The ``facet`` field returns an array of ``buckets`` that
-            show how many of the matching records belong to each
-            ``storeLocation``.
+            
+            You can expand ``Array`` and ``Object`` fields to view their 
+            contents by clicking on them.
 
 Summary
 -------
 
 If you successfully completed the procedure in this guide, you have
-created an Atlas Search index with faceting, and created an aggregation
+created an Atlas Search index with faceting and created an aggregation
 pipeline that leverages faceting to organize matching records into
 categories for improved visibility.
 
