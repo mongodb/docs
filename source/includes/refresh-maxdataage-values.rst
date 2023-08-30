@@ -85,7 +85,7 @@
        refresh the chart or dashboard, |charts| renders the chart or 
        dashboard with data from the cache if the age of the data is 
        less than the minimum ``maxDataAge`` value of 60 seconds. If 
-       the age of the data data from the cache is older than 60 
+       the age of the data from the cache is older than 60 
        seconds, |charts-short| queries the data source for the latest 
        data, refreshes the cache, and renders the chart or dashboard 
        using this data.
