@@ -134,7 +134,7 @@
                :language: csharp
                :dedent:
 
-   .. step:: Create an {+enc-schema-title+} For Your Collection
+   .. step:: Create an {+enc-fields-map-title+} For Your Collection
 
       .. tabs-drivers::
 
