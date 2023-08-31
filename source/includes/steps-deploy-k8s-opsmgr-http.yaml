@@ -179,8 +179,17 @@ optional: true
 ref: configure-backup-settings
 content: |
 
-  If you want to enable backup, you must configure all of the following 
-  settings:
+  To configure backup, you must enable it, and then:
+  
+  - Choose to configure an :term:`S3 snapshot store <s3 snapshot store>` 
+    or a :term:`blockstore <Backup Blockstore Database>`. If you deploy
+    both an |s3| :term:`snapshot store <s3 snapshot store>` and a
+    :term:`blockstore <Backup Blockstore Database>`, |onprem| 
+    randomly choses one to use for backup.
+  
+  - Choose to configure an oplog store or an |s3| oplog store.
+    If you deploy both an oplog store and an |s3| oplog store, |onprem|
+    randomly choses one of them to use for the oplog backup.
 
   .. list-table::
     :widths: 30 10 40 20
@@ -197,7 +206,7 @@ content: |
       - boolean
       - Flag that indicates that backup is enabled. You must specify 
         ``spec.backup.enabled: true`` to configure settings
-        for the head database, oplog store, and snapshot store.
+        for the head database, oplog store, |s3| oplog store, and snapshot store.
       - ``true``
 
     * - | ``spec``
@@ -220,6 +229,14 @@ content: |
 
     * - | ``spec``
         | ``.backup``
+        | ``.s3opLogStores``
+        | ``.``:opsmgrkube:`~spec.backup.s3opLogStores.name`
+      - string
+      - Name of the |s3| oplog store.
+      - ``my-s3-oplog-store``
+
+    * - | ``spec``
+        | ``.backup``
         | ``.opLogStores``
         | ``.mongodbResourceRef``
         | ``.``:opsmgrkube:`~spec.backup.opLogStores.mongodbResourceRef.name`
@@ -228,6 +245,15 @@ content: |
         The resource's ``metadata.name`` must match this name.
         
       - ``my-oplog-db``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3opLogStores``
+        | ``.mongodbResourceRef``
+        | ``.``:opsmgrkube:`~spec.backup.s3opLogStores.mongodbResourceRef.name`
+      - string
+      - Name of the MongoDB database resource for the |s3| oplog store.
+      - ``my-s3-oplog-db``
 
   You must also configure an :term:`S3 snapshot store <s3 snapshot store>` 
   or a :term:`blockstore <Backup Blockstore Database>`.
@@ -318,6 +344,7 @@ content: |
       - Name of the blockstore.
       - ``blockStore1``
 
+
     * - | ``spec``
         | ``.backup``
         | ``.blockStores``
@@ -328,6 +355,7 @@ content: |
         You must deploy this database resource in the same namespace as
         the |onprem| resource. The resource's ``metadata.name`` must match this name.
       - ``my-mongodb-blockstore``
+
 ---
 title: "Configure any additional settings for an |onprem| backup."
 stepnum: 6
@@ -384,14 +412,13 @@ level: 4
 ref: track-k8s-instance
 content: |
 
-  To check the status of your |onprem| resource, invoke the following
-  command:
+  To check the status of your |onprem| resource, invoke the following command:
 
   .. code-block:: sh
 
      kubectl get om -o yaml -w
 
-  The command returns the following output under the ``status`` field
+  The command returns output similar to the following, under the ``status`` field
   while the resource deploys:
 
   .. code-block:: yaml
@@ -419,8 +446,8 @@ content: |
   one enters the ``Running`` phase.
 
   After the |onprem| resource completes the ``Reconciling`` phase, the 
-  command returns the following output under the ``status`` field if you
-  enabled backup:
+  command returns the output similar to the following under the ``status``
+  field if you enabled backup:
 
   .. code-block:: yaml
      :copyable: false

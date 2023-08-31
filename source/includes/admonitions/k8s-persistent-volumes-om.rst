@@ -11,5 +11,4 @@
    :k8sdocs:`discussion 
    </tasks/configure-pod-container/security-context/#discussion>` in 
    the |k8s| documentation. If redeploying the resource doesn't fix
-   issues with your Persistent Volume, contact `MongoDB Support
-   <https://support.mongodb.com/welcome>`__.
+   issues with your Persistent Volume, contact |mdb-support|.
