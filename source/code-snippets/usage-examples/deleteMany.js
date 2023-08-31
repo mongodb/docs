@@ -1,12 +1,10 @@
 // Delete multiple documents
 
-// Import the MongoClient type from the mongodb package.
 import { MongoClient } from "mongodb";
 
 // Replace the uri string with your MongoDB deployment's connection string.
 const uri = "<connection string uri>";
 
-// Create a new client and connect to MongoDB.
 const client = new MongoClient(uri);
 
 async function run() {
@@ -22,7 +20,7 @@ async function run() {
     // Print the number of deleted documents
     console.log("Deleted " + result.deletedCount + " documents");
   } finally {
-    // Close the client after the operation completes
+    // Close the connection after the operation completes
     await client.close();
   }
 }
