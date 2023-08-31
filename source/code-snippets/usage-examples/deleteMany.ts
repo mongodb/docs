@@ -1,4 +1,4 @@
-/* Delete multiple documents */
+// Delete multiple documents
 
 // Import the MongoClient type from the mongodb package
 import { MongoClient } from "mongodb";
