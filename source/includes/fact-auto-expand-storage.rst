@@ -16,3 +16,5 @@
      AWS clusters with local :ref:`NVMe SSDs <nvme-storage>` cannot
      expand incrementally. When disk usage reaches 90%, NVMe clusters
      scale to the next available cluster tier, if any.
+
+     .. include:: /includes/fact-nvme-fcbis.rst

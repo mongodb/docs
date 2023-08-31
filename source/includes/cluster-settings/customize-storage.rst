@@ -58,6 +58,8 @@ depending on the selected cloud provider and cluster tier.
           NVMe clusters scale to the next available cluster tier, if
           any.
 
+          .. include:: /includes/fact-nvme-fcbis.rst
+
    * - |iops|
      - AWS only
      - .. include:: /includes/cluster-settings/provision-iops-note.rst
