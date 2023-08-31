@@ -61,13 +61,16 @@ Application Database
 Topology
 ++++++++
 
-When you create an instance of |onprem| through the |k8s-op-short|, the
-:ref:`mms-application-database` is deployed as a :term:`replica set`.
-You can't configure the Application Database as a :term:`standalone` database
-or :term:`sharded cluster`. If you have concerns about performance or size
-requirements for the Application Database, contact `MongoDB Support
-<https://support.mongodb.com/welcome>`__.
+- When you create an instance of |onprem| through the |k8s-op-short| in
+  a single |k8s| cluster deployment of MongoDB, the :ref:`mms-application-database`
+  is deployed as a :term:`replica set`. You can't configure the Application Database
+  as a :term:`standalone` database or :term:`sharded cluster`. If you have
+  concerns about performance or size requirements for the Application Database,
+  contact |mdb-support|.
 
+- When you create an instance of |onprem| through
+  the |k8s-op-short| in a |multi-cluster|, the |k8s-op-short| can configure
+  the :ref:`mms-application-database` on multiple member clusters.
 
 Monitoring
 ++++++++++
@@ -176,7 +179,7 @@ Backup
 
 |k8s-op-short| enables :ref:`mms-backup-functional-overview` by
 default. The |k8s-op-short| deploys a |k8s-statefulset| comprised of
-one pod to host the :ref:`backup-daemon`, and then creates a |k8s-pvc|
+one Pod to host the :ref:`backup-daemon` and then creates a |k8s-pvc|
 and |k8s-pv| for the Backup Daemon's :term:`head database`. The
 |k8s-op-short| uses the :opsmgr:`Ops Manager API </reference/api/>` to
 enable the Backup Daemon and configure the head database.
@@ -187,13 +190,13 @@ enable the Backup Daemon and configure the head database.
    for the :term:`oplog store <oplog store database>` and for one of the
    following:
 
-   - |s3| :term:`snapshot store <s3 snapshot store>`.
-   - :term:`blockstore <Backup Blockstore Database>`.
-
-   If you deploy both an |s3|
-   :term:`snapshot store <s3 snapshot store>` and a
-   :term:`blockstore <Backup Blockstore Database>`, |onprem| chooses
-   one to use for Backup at random.
+   - :term:`oplog store <oplog store database>` or |s3| oplog store.
+     If you deploy both the oplog store and the |s3|  oplog store, |onprem|
+     chooses one to use for Backup at random.
+   - |s3| :term:`snapshot store <s3 snapshot store>` or :term:`blockstore <Backup Blockstore Database>`.
+     If you deploy both an |s3| :term:`snapshot store <s3 snapshot store>` and a
+     :term:`blockstore <Backup Blockstore Database>`, |onprem| chooses one
+     to use for Backup at random.
 
    The |onprem| resource remains in a ``Pending`` state until you configure these Backup resources.
 
@@ -204,6 +207,16 @@ You must deploy a three-member replica set to store your
 :term:`oplog slices <Oplog Slice>`.
 
 .. include:: /includes/admonitions/fact-backing-db-auth.rst
+
+S3 Oplog Store
+++++++++++++++
+
+To configure an |s3| oplog store, you must create an |aws| |s3| or
+|s3|-compatible bucket to store your database Backup Oplog.
+
+You can configure the oplog store for both |k8s-mdbrsc| and |mongodb-multi|,
+using the :opsmgrkube:`spec.backup.s3OpLogStores.mongodbResourceRef.name` setting
+in the |onprem| resource definition.
 
 Blockstore
 ++++++++++
@@ -224,19 +237,11 @@ then configure it using the
 :opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name` settings in
 the |onprem| resource definition.
 
+You can configure the |s3| snapshot store for both |k8s-mdbrsc| and |mongodb-multi|.
+
 You can update any additional |s3|
 :opsmgr:`configuration settings </tutorial/manage-s3-blockstore-storage/#provide-the-s3-blockstore-details>`
 that |k8s-op-short| doesn't manage through the |application|.
-
-S3 Oplog Store
-++++++++++++++
-
-To configure an |s3| oplog store, you must create an |aws| |s3| or
-|s3|-compatible bucket to store your database Backup Oplog.
-
-You can configure storing the oplog using the
-:opsmgrkube:`spec.backup.s3OpLogStores.mongodbResourceRef.name` setting
-in the |onprem| resource definition.
 
 Disable Backup
 ++++++++++++++

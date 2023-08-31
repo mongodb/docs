@@ -81,6 +81,7 @@ content: |
      .. code-block:: sh
 
         cat cert1.crt cert2.crt cert3.crt cert4.crt  >> mms-ca.crt
+
   #. Concatenate your |certauth|\'s certificate file for the application
      database with the entire |tls| certificate chain from 
      ``downloads.mongodb.com`` that
@@ -89,6 +90,7 @@ content: |
      .. code-block:: sh
 
         cat cert1.crt cert2.crt cert3.crt cert4.crt  >> ca-pem
+
   #. Create the |k8s-configmap| for |onprem|:
 
      .. code-block:: sh
@@ -125,7 +127,7 @@ content: |
 
         .. literalinclude:: /reference/k8s/example-opsmgr-multi-cluster-https.yaml
            :language: yaml
-           :linenos:  
+           :linenos:
 
 ---
 title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
@@ -290,6 +292,7 @@ content: |
              .. include:: /includes/facts/fact-cannot-convert-om-crd-multi.rst
 
           See also the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
+
         - ``MultiCluster``
 
       * - | ``spec``
@@ -328,15 +331,24 @@ content: |
       both the |onprem| and the Application Database Pods.
 
 ---
-title: "Configure Backup settings"
+title: "Configure Backup settings."
 stepnum: 7
 level: 4
 optional: true
 ref: configure-backup-https
 content: |
 
-  If you want to enable Backup for your |onprem| instance, you must
-  configure all of the following settings:
+  To configure backup, you must enable it, and then:
+  
+  - Choose to configure an :term:`S3 snapshot store <s3 snapshot store>` 
+    or a :term:`blockstore <Backup Blockstore Database>`. If you deploy
+    both an |s3| :term:`snapshot store <s3 snapshot store>` and a
+    :term:`blockstore <Backup Blockstore Database>`, |onprem| 
+    randomly choses one to use for backup.
+  
+  - Choose to configure an oplog store or an |s3| oplog store.
+    If you deploy both an oplog store and an |s3| oplog store, |onprem|
+    randomly choses one of them to use for the oplog backup.
 
   .. list-table::
      :widths: 30 15 40 15
@@ -376,6 +388,14 @@ content: |
 
      * - | ``spec``
          | ``.backup``
+         | ``.s3opLogStores``
+         | ``.``:opsmgrkube:`~spec.backup.s3opLogStores.name`
+       - string
+       - Name of the |s3| oplog store.
+       - ``my-s3-oplog-store``
+
+     * - | ``spec``
+         | ``.backup``
          | ``.opLogStores``
          | ``.mongodbResourceRef``
          | ``.``:opsmgrkube:`~spec.backup.opLogStores.mongodbResourceRef.name`
@@ -383,6 +403,16 @@ content: |
        - Name of the |k8s-mdbrsc| or |mongodb-multi| for the oplog store.
          The resource's ``metadata.name`` must match this name.
        - ``my-oplog-db``
+
+     * - | ``spec``
+         | ``.backup``
+         | ``.s3opLogStores``
+         | ``.mongodbResourceRef``
+         | ``.``:opsmgrkube:`~spec.backup.s3opLogStores.mongodbResourceRef.name`
+       - string
+       - Name of the |k8s-mdbrsc| or |mongodb-multi| for the |s3| oplog store.
+         The resource's ``metadata.name`` must match this name.
+       - ``my-s3-oplog-db``
 
   You must also configure an :term:`S3 snapshot store <s3 snapshot store>`
   or a :term:`blockstore <Backup Blockstore Database>`.
@@ -441,7 +471,7 @@ content: |
       - string
       - Name of the |s3| or |s3|-compatible bucket that stores the
         database Backup snapshots.
-      - my-bucket
+      - ``my-bucket``
 
   To configure a blockstore, configure the following settings:
 
@@ -468,14 +498,29 @@ content: |
         | ``.mongodbResourceRef``
         | ``.``:opsmgrkube:`~spec.backup.blockStores.mongodbResourceRef.name`
       - string
-      - Name of the MongoDB database resource that you create for the
-        blockstore. You must deploy this database resource in the same
-        namespace as the |onprem| resource.
+      - Name of the |k8s-mdbrsc| that you create for the blockstore. You must
+        deploy this database resource in the same namespace as the |onprem| resource.
       - ``my-mongodb-blockstore``
 
 ---
-title: "Configure any additional settings for an |onprem| deployment."
+title: "Configure any additional settings for an |onprem| backup."
 stepnum: 8
+level: 4
+optional: true
+ref: add-k8s-optional-values-backups-https
+content: |
+
+  Add any :ref:`optional settings <optional-om-k8s-settings>` for backups
+  that you want to apply to your deployment to the |k8s-obj| specification
+  file. For example, for each type of backup store, and for |onprem| backup
+  daemon processes, you can assign labels to associate particular backup
+  stores or backup daemon processes with specific projects.
+  Use ``spec.backup.[*].assignmentLabels`` elements of the OpsManager
+  resources.
+
+---
+title: "Configure any additional settings for an |onprem| deployment."
+stepnum: 9
 level: 4
 optional: true
 ref: add-k8s-values
@@ -485,13 +530,13 @@ content: |
   want to apply to your deployment to the |k8s-obj| specification file.
 ---
 title: "Save this file with a ``.yaml`` file extension."
-stepnum: 9
+stepnum: 10
 level: 4
 ref: save-object-spec
 
 ---
 title: "Create your |onprem| instance."
-stepnum: 10
+stepnum: 11
 level: 4
 ref: start-k8s-instance
 content: |
@@ -509,7 +554,7 @@ content: |
 
 ---
 title: "Track the status of your |onprem| instance."
-stepnum: 11
+stepnum: 12
 level: 4
 ref: track-k8s-instance
 content: |
@@ -521,15 +566,15 @@ content: |
 
      kubectl get om -o yaml -w
 
-  The command returns the following output under the ``status`` field
-  while the resource deploys:
+  The command returns the output similar to the following under the ``status``
+  field while the resource deploys:
 
   .. code-block:: yaml
      :copyable: false
 
      status:
       applicationDatabase:
-       lastTransition: "2020-04-01T09:49:22Z"
+       lastTransition: "2022-04-01T09:49:22Z"
        message: AppDB Statefulset is not ready yet
        phase: Reconciling
        type: ""
@@ -549,14 +594,14 @@ content: |
   one enters the ``Running`` phase.
 
   After the |onprem| resource completes the ``Reconciling`` phase, the
-  command returns the following output under the ``status`` field if you
-  enabled Backup:
+  command returns output similar to the following under the ``status``
+  field if you enabled Backup:
 
   .. code-block:: yaml
      :copyable: false
 
-      status:
-        applicationDatabase:
+     status:
+      applicationDatabase:
           lastTransition: "2022-04-01T09:50:20Z"
           members: 3
           phase: Running
@@ -585,13 +630,13 @@ content: |
      ConfigMap <create-k8s-project>`.
 
   After the resource completes the ``Reconciling`` phase, the command
-  returns the following output under the ``status`` field:
+  returns output similar to the following under the ``status`` field:
 
   .. code-block:: yaml
      :copyable: false
 
-      status:
-        applicationDatabase:
+     status:
+       applicationDatabase:
           lastTransition: "2022-12-06T18:23:22Z"
           members: 3
           phase: Running
@@ -616,7 +661,7 @@ content: |
 
 ---
 title: "Access the |onprem| application."
-stepnum: 12
+stepnum: 13
 level: 4
 ref: access-opsmgr-instance
 content: |
@@ -671,7 +716,7 @@ content: |
 
 ---
 title: "Create credentials for the Kubernetes Operator."
-stepnum: 13
+stepnum: 14
 level: 4
 ref: create-credentials
 content: |
@@ -683,7 +728,7 @@ content: |
 
 ---
 title: "Create a project using a |k8s-configmap|."
-stepnum: 14
+stepnum: 15
 level: 4
 ref: create-project
 content: |
@@ -696,29 +741,23 @@ content: |
   - Set ``data.baseUrl`` in the ConfigMap to the |application|\'s |url|.
     To find this |url|, invoke the following command:
 
-    |
-
     .. code-block:: sh
 
-      kubectl get om -o yaml -w
-
-    |
+       kubectl get om -o yaml -w
 
     The command returns the URL of the |application| in the
-    ``status.opsManager.url`` field.
-
-    |
+    ``status.opsManager.url`` field, similar to the following example:
 
     .. code-block:: yaml
-      :copyable: false
+       :copyable: false
 
-        status:
+       status:
           applicationDatabase:
             lastTransition: "2022-12-06T18:23:22Z"
             members: 3
             phase: Running
             type: ReplicaSet
-            version: "6.0.55-ubi8"
+            version: "6.0.5-ubi8"
           opsManager:
             lastTransition: "2022-12-06T18:23:26Z"
             message: The MongoDB object namespace/oplogdbname doesn't exist
@@ -729,14 +768,14 @@ content: |
     .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
 
   - Set ``data.sslMMSCAConfigMap`` to the name of your
-    |k8s-configmap| containing the root :abbr:`CA (Certificate
-    Authority)` certificate used to sign the |onprem| host's
-    certificate. The |k8s-op-short| requires this name to be
+    |k8s-configmap| containing the root
+    :abbr:`CA (Certificate Authority)` certificate used to sign the
+    |onprem| host's certificate. The |k8s-op-short| requires this name to be
     ``mms-ca.crt``.
 
 ---
-title: "Deploy MongoDB database resources to complete the Backup configuration."
-stepnum: 15
+title: "Deploy MongoDB database resources to complete the backup configuration."
+stepnum: 16
 level: 4
 ref: configure-backup
 content: |
@@ -772,7 +811,7 @@ content: |
 
 ---
 title: "Confirm that the |onprem| resource is running."
-stepnum: 16
+stepnum: 17
 level: 4
 ref: confirm-running
 content: |
@@ -784,8 +823,8 @@ content: |
 
      kubectl get om -o yaml -w
 
-  When |onprem| is running, the command returns the following
-  output under the ``status`` field:
+  When |onprem| is running, the command returns the output similar to the
+  following, under the ``status`` field:
 
   .. code-block:: yaml
      :copyable: false
