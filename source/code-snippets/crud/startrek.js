@@ -1,12 +1,14 @@
+/* Text search */
+
 const { MongoClient } = require("mongodb");
 
-// Replace the following string with your MongoDB deployment's connection string.
-const uri =
-  "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
+// Replace the following string with your MongoDB deployment's connection string
+const uri = "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 const client = new MongoClient(uri);
 
 async function word(movies) {
   // start word text example
+  // Create a query that searches for the string "trek"
   const query = { $text: { $search: "trek" } };
 
   // Return only the `title` of each matched document
@@ -15,14 +17,15 @@ async function word(movies) {
     title: 1,
   };
 
-  // find documents based on our query and projection
+  // Find documents based on our query and projection
   const cursor = movies.find(query).project(projection);
   // end word text example
 
-  // print a message if no documents were found
+  // Print a message if no documents were found
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
+  // Print all documents that were found
   for await (const doc of cursor) {
     console.dir(doc);
   } 
@@ -30,6 +33,7 @@ async function word(movies) {
 
 async function phrase(movies) {
   // start phrase text example
+  // Create a query that searches for the phrase "star trek"
   const query = { $text: { $search: "\"star trek\"" } };
 
   // Return only the `title` of each matched document
@@ -38,14 +42,15 @@ async function phrase(movies) {
     title: 1,
   };
 
-  // find documents based on our query and projection
+  // Find documents based on the query and projection
   const cursor = movies.find(query).project(projection);
   // end phrase text example
 
-  // print a message if no documents were found
+  // Print a message if no documents were found
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
+  // Print all documents that were found
   for await (const doc of cursor) {
     console.dir(doc);
   } 
@@ -53,6 +58,7 @@ async function phrase(movies) {
 
 async function negation(movies) {
   // start negation text example
+  // Create a query that searches for the phrase "star trek" while omitting "into darkness"
   const query = { $text: { $search: "\"star trek\"  -\"into darkness\"" } };
 
   // Include only the `title` field of each matched document
@@ -61,14 +67,15 @@ async function negation(movies) {
     title: 1,
   };
 
-  // find documents based on our query and projection
+  // Find documents based on the query and projection
   const cursor = movies.find(query).project(projection);
   // end negation text example
 
-  // print a message if no documents were found
+  // Print a message if no documents were found
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
+  // Print all documents that were found
   for await (const doc of cursor) {
     console.dir(doc);
   } 
@@ -76,10 +83,12 @@ async function negation(movies) {
 
 async function relevance(movies) {
   // start relevance text example
+  // Create a query that searches for the phrase "star trek" while omitting "into darkness"r
   const query = { $text: { $search: "\"star trek\"  -\"into darkness\"" } };
 
-  // sort returned documents by descending text relevance score
+  // Sort returned documents by descending text relevance score
   const sort = { score: { $meta: "textScore" } };
+
   // Include only the `title` and `score` fields in each returned document
   const projection = {
     _id: 0,
@@ -87,17 +96,18 @@ async function relevance(movies) {
     score: { $meta: "textScore" },
   };
 
-  // find documents based on our query, sort, and projection
+  // Find documents based on the query, sort, and projection
   const cursor = movies
     .find(query)
     .sort(sort)
     .project(projection);
   // end relevance text example
 
-  // print a message if no documents were found
+  // Print a message if no documents were found
   if ((await movies.countDocuments(query)) === 0) {
     console.log("No documents found!");
   }
+  // Print all documents that were found
   for await (const doc of cursor) {
     console.dir(doc);
   } 
@@ -113,6 +123,7 @@ async function run() {
     await negation(movies);
     await relevance(movies);
   } finally {
+    // Close the database connection on completion or error
     await client.close();
   }
 }

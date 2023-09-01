@@ -1,13 +1,12 @@
 const { MongoClient } = require("mongodb");
 
-// Replace the following with your MongoDB deployment's connection
-// string.
+// Replace the following with your MongoDB deployment's connection string
 const uri =
   "mongodb+srv://<clusterUrl>/?replicaSet=rs&writeConcern=majority";
 
 const client = new MongoClient(uri);
 
-// Replace <event name> with the name of the event you are subscribing to.
+// Replace <event name> with the name of the event you are subscribing to
 const eventName = "<event name>";
 client.on(eventName, (event) =>
   console.log("\nreceived event:\n", event)
