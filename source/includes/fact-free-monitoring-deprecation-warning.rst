@@ -18,9 +18,6 @@
      - :ref:`Performance Advisor <performance-advisor>`
      - :ref:`Real-Time Performance Panel <real-time-metrics-status-tab>`
 
-     Get $100 in Atlas credits by applying the code
-     ``FREE-MONITORING-100``. Limited to the first 300 users.
-
    - **Deploy a MongoDB Atlas free cluster**. A free Atlas cluster includes
      basic monitoring and alerting capabilities. After you
      :atlas:`create a free cluster
