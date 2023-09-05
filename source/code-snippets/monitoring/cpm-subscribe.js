@@ -8,6 +8,8 @@ const client = new MongoClient(uri);
 
 // Replace <event name> with the name of the event you are subscribing to
 const eventName = "<event name>";
+
+// Subscribe to the event
 client.on(eventName, (event) =>
   console.log("\nreceived event:\n", event)
 );

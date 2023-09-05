@@ -10,6 +10,7 @@ const client = new MongoClient(uri);
 async function run() {
   try {
     // begin-idx
+    // Get the database and collection on which to create the index 
     const myDB = client.db("testDB");
     const myColl = myDB.collection("blogPosts");
 
@@ -23,8 +24,13 @@ async function run() {
     console.log(`Index created: ${result}`);
 
     // begin-query
+    // Query for documents where body or title contain "life ahead"
     const query = { $text: { $search: "life ahead" } };
+    
+    // Show only the title field
     const projection = { _id: 0, title: 1 };
+
+    // Execute the find operation
     const cursor = myColl.find(query).project(projection);
     // end-query
     for await (const doc of cursor) {

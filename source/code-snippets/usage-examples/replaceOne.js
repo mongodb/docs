@@ -7,17 +7,23 @@ const client = new MongoClient(uri);
 
 async function run() {
   try {
+    
+    // Get the database and collection on which to run the operation
     const database = client.db("sample_mflix");
     const movies = database.collection("movies");
 
-    // create a query for a movie to update
+    // Create a query for documents where the title contains "The Cat from"
     const query = { title: { $regex: "The Cat from" } };
-    // create a new document that will be used to replace the existing document
+    
+    // Create the document that will replace the existing document
     const replacement = {
       title: `The Cat from Sector ${Math.floor(Math.random() * 1000) + 1}`,
     };
 
+    // Execute the replace operation
     const result = await movies.replaceOne(query, replacement);
+    
+    // Print the result 
     console.log(`Modified ${result.modifiedCount} document(s)`);
   } finally {
     await client.close();

@@ -7,18 +7,21 @@ const client = new MongoClient(uri);
 
 async function run() {
   try {
-    // define a database and collection on which to run the method
+    
+    // Get the database and collection on which to run the operation
     const database = client.db("sample_mflix");
     const movies = database.collection("movies");
 
-    // specify the document field
+    // Specify the document field to find distinct values for
     const fieldName = "year";
 
-    // specify an optional query document
+    // Specify an optional query document to narrow results
     const query = { directors: "Barbra Streisand" };
 
+    // Execute the distinct operation
     const distinctValues = await movies.distinct(fieldName, query);
 
+    // Print the result
     console.log(distinctValues);
   } finally {
     await client.close();
