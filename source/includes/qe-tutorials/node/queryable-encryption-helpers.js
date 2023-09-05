@@ -181,9 +181,9 @@ function getKmipTlsOptions() {
   return tlsOptions;
 }
 
-export function getClientEncryption(client, autoEncryptionOptions) {
+export function getClientEncryption(encryptedClient, autoEncryptionOptions) {
   // start-client-encryption
-  const clientEncryption = new ClientEncryption(client, autoEncryptionOptions);
+  const clientEncryption = new ClientEncryption(encryptedClient, autoEncryptionOptions);
   // end-client-encryption
   return clientEncryption;
 }

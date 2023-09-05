@@ -115,7 +115,7 @@ def get_customer_master_key_credentials(kms_provider_string):
        raise ValueError("Unrecognized value for kms_provider_name encountered while retrieving Customer Master Key credentials.")
 
 def get_client_encryption(
-        client,
+        encrypted_client,
         kms_provider_name,
         kms_provider_credentials,
         key_vault_namespace
@@ -126,7 +126,7 @@ def get_client_encryption(
         client_encryption = ClientEncryption(
             kms_providers=kms_provider_credentials,
             key_vault_namespace=key_vault_namespace,
-            key_vault_client=client,
+            key_vault_client=encrypted_client,
             codec_options=CodecOptions(uuid_representation=STANDARD),
             kms_tls_options=get_kmip_tls_options()
         )
@@ -137,7 +137,7 @@ def get_client_encryption(
     client_encryption = ClientEncryption(
         kms_providers=kms_provider_credentials,
         key_vault_namespace=key_vault_namespace,
-        key_vault_client=client,
+        key_vault_client=encrypted_client,
         codec_options=CodecOptions(uuid_representation=STANDARD)
     )
     # end-client-encryption

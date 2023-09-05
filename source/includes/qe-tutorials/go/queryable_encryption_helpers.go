@@ -124,7 +124,7 @@ func GetCustomerMasterKeyCredentials(kmsProviderName string) map[string]string {
 }
 
 func GetClientEncryption(
-	client *mongo.Client,
+	encryptedClient *mongo.Client,
 	kmsProviderName string,
 	kmsProviderCredentials map[string]map[string]interface{},
 	keyVaultNamespace string,
@@ -139,7 +139,7 @@ func GetClientEncryption(
 			SetKmsProviders(kmsProviderCredentials).
 			SetTLSConfig(tlsConfig)
 
-		clientEncryption, err := mongo.NewClientEncryption(client, opts)
+		clientEncryption, err := mongo.NewClientEncryption(encryptedClient, opts)
 		if err != nil {
 			panic(fmt.Sprintf("Unable to create a ClientEncryption instance due to the following error: %s\n", err))
 		}
@@ -152,7 +152,7 @@ func GetClientEncryption(
 		SetKeyVaultNamespace(keyVaultNamespace).
 		SetKmsProviders(kmsProviderCredentials)
 
-	clientEncryption, err := mongo.NewClientEncryption(client, opts)
+	clientEncryption, err := mongo.NewClientEncryption(encryptedClient, opts)
 	if err != nil {
 		panic(fmt.Sprintf("Unable to create a ClientEncryption instance due to the following error: %s\n", err))
 	}
