@@ -82,7 +82,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 - Introduces :ref:`compute auto-scaling <cluster-autoscaling>` in
-  public beta.
+  public preview.
 - Enhances Integrations interface for third party services.
 - Introduces EU destinations for DataDog and Opsgenie integrations.
 - Supports the official

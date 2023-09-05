@@ -35,7 +35,7 @@
   Business Intelligence Connector.
 - Can restrict MongoDB employee access to their Atlas servers.
 - Can use Snapshot Backups for sharded clusters AWS and Azure as
-  private beta.
+  private preview.
 - Can now create rolling indexes via Data Explorer.
 
 .. _atlas-v20181002:

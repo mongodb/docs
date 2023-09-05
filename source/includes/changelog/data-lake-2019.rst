@@ -123,4 +123,4 @@
 18 June 2019
 ~~~~~~~~~~~~
 
-Initial public beta release of :ref:`atlas-data-federation`.
+Initial public preview release of :ref:`atlas-data-federation`.
