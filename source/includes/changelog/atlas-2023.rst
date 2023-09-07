@@ -1,3 +1,15 @@
+.. _atlas_2023_08_02:
+
+2 August 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :ref:`online archives <online-archive-overview>` as a source
+  for {+adf+}. To learn more, see
+  :ref:`adf-configuration-file-adl-and-oa`.
+- Adds a new :ref:`project overview <project-overview>` that displays
+  modules containing common |service| actions. You can configure the 
+  project overview to display as your project's landing page.
+
 .. _atlas_2023_06_14:
 
 14 June 2023 Release
