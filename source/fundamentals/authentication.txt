@@ -1,0 +1,328 @@
+.. _rust-authentication:
+
+=========================
+Authentication Mechanisms
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: nones
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the **authentication
+mechanisms** available in the MongoDB Community Edition. When you connect
+to MongoDB, you can use an authentication mechanism to establish trust
+between the driver and the server.
+
+.. tip::
+   
+   .. TODO To learn how to authenticate to MongoDB by using ``GSSAPI/Kerberos`` or
+   .. ``LDAP``, see the guide on :ref:`rust-enterprise-auth`.
+   
+   To learn more about connecting to a MongoDB deployment, see the
+   :ref:`rust-connect-to-mongodb`.
+
+This guide describes the following authentication mechanisms:
+
+- :ref:`SCRAM-Based Mechanisms <rust-auth-scram-mechanisms>`
+- :ref:`MONGODB-AWS Mechanism <rust-auth-aws>`
+- :ref:`MONGODB-X509 Mechanism <rust-auth-x509>`
+
+To select a specific authentication mechanism, you can specify the
+mechanism, your credentials, and other necessary information
+in the options of your connection string or in a ``Credential`` struct.
+
+In this guide, the examples demonstrate how to configure
+authentication in a ``Credential`` struct. To learn more about the
+connection string options for authentication, see the
+:manual:`Authentication
+Options </reference/connection-string/#authentication-options>` section
+of the Connection String URI Format guide in the Server manual.
+
+.. _rust-auth-scram-mechanisms:
+
+SCRAM-Based Mechanisms
+----------------------
+
+Salted challenge response authentication mechanism (SCRAM) refers to a
+group of authentication mechanisms that use a username and
+password to authenticate to a server.
+
+MongoDB supports the following SCRAM-based authentication mechanisms:
+
+- :ref:`SCRAM-SHA-256 <rust-auth-scramsha256>`: an authentication mechanism that
+  uses your username and password, encrypted with the ``SHA-256``
+  algorithm
+- :ref:`SCRAM-SHA-1 <rust-auth-scramsha1>`: an authentication mechanism that
+  uses your username and password, encrypted with the ``SHA-1``
+  algorithm
+
+.. important:: Default Authentication Mechanism
+
+   If you do not specify an authentication mechanism, the server
+   attempts to validate credentials by using the default authentication
+   mechanism, a SCRAM-based mechanism that varies depending on the
+   version of the server that you are connecting to. 
+   
+   The ``SCRAM-SHA-256`` mechanism is the default authentication
+   mechanism for MongoDB Server versions 4.0 and later.
+
+   To use the default authentication mechanism, omit only the
+   ``mechanism`` field when you instantiate your ``Credential`` struct.
+   This example uses the following placeholders:
+
+   - ``username``: Your username
+   - ``password``: Your password
+   - ``db``: The authentication database associated with the user
+   
+   .. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+      :language: rust
+      :dedent:
+      :start-after: start-default
+      :end-before: end-default
+
+.. _rust-auth-scramsha256:
+
+SCRAM-SHA-256
+~~~~~~~~~~~~~
+
+To specify the ``SCRAM-SHA-256`` authentication mechanism, set the
+``mechanism`` field of your ``Credential`` struct to
+``AuthMechanism::ScramSha256``. This example specifies the
+authentication mechanism by using the following placeholders:
+
+- ``username``: Your username
+- ``password``: Your password
+- ``db``: The authentication database associated with the user
+
+.. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-scramsha256
+   :end-before: end-scramsha256
+
+.. _rust-auth-scramsha1:
+
+SCRAM-SHA-1
+~~~~~~~~~~~
+
+To specify the ``SCRAM-SHA-1`` authentication mechanism, set the
+``mechanism`` field of your ``Credential`` struct to
+``AuthMechanism::ScramSha1``. This example specifies the
+authentication mechanism by using the following placeholders:
+
+- ``username``: Your username
+- ``password``: Your password
+- ``db``: The authentication database associated with the user
+
+.. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-scramsha1
+   :end-before: end-scramsha1
+
+.. _rust-auth-aws:
+
+MONGODB-AWS Mechanism
+---------------------
+
+The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate your
+user.
+
+To use this authentication mechanism, you must add the ``aws-auth``
+feature flag to your ``mongodb`` dependency in your project's
+``Cargo.toml`` file. The following shows an example of what your
+``mongodb`` dependency feature list must include to enable the
+``MONGODB-AWS`` authentication mechanism:
+
+.. code-block:: none
+   :emphasize-lines: 3
+   
+   [dependencies.mongodb]
+   version = "{+version+}"
+   features = [ "aws-auth", ... ]
+
+.. important::
+
+   To use the ``MONGODB-AWS`` authentication mechanism in the
+   {+driver-short+}, your application must meet the following
+   requirements:
+   
+   - You are connected to MongoDB Server version 4.4 or later.
+   - You are using the ``tokio`` asynchronous runtime.
+
+The driver obtains the credentials only from the first source in which
+they are found. The driver checks for your credentials from the following
+sources in the following order:
+
+1. ``Credential`` struct or connection string
+#. Environment variables
+#. Web identity token file
+#. AWS ECS endpoint specified in the ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI``
+   environment variable
+#. AWS EC2 endpoint. For more information, see `IAM Roles for Tasks
+   <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`__
+   in the AWS documentation.
+
+For example, if you specify your AWS credentials in your connection string, the
+driver uses those credentials and ignores any that you might have
+specified in environment variables.
+
+Select from the :guilabel:`Credential Struct`, :guilabel:`Environment
+Variables`, and :guilabel:`Web Identity Token File` tabs below for
+code samples that demonstrate how to set your AWS IAM credentials in
+the corresponding ways.
+
+.. tabs::
+
+   .. tab:: Credential Struct
+      :tabid: credential struct
+
+      To specify the ``MONGODB-AWS`` authentication mechanism, set the
+      ``mechanism`` field of your ``Credential`` struct to
+      ``AuthMechanism::MongoDbAws``. This example specifies the
+      authentication mechanism by using the following placeholders:
+      
+      - ``access key ID``: Your AWS access key ID
+      - ``secret access key``: Your AWS secret access key
+      - ``db``: The authentication database associated with the user
+
+      If you are using temporary credentials, create a document that
+      contains the value of your AWS session token, and then set the
+      ``mechanism_properties`` field of the ``Credential`` struct to
+      this document. If you are not using temporary credentials, omit
+      line 9 of the following example:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+         :language: rust
+         :dedent:
+         :start-after: start-aws
+         :end-before: end-aws
+         :linenos:
+
+      .. tip::
+
+         You can obtain temporary AWS IAM credentials from a Security
+         Token Service (STS) Assume Role request. Learn more about
+         this process in the `AssumeRole AWS documentation <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__.
+
+   .. tab:: Environment Variables
+      :tabid: environment variables
+
+      To store your AWS credentials in environment variables, run the
+      following commands in your shell:
+
+      .. code-block:: bash
+
+         export AWS_ACCESS_KEY_ID=<access key ID>
+         export AWS_SECRET_ACCESS_KEY=<secret access key>
+         export AWS_SESSION_TOKEN=<session token>
+
+      If you are not using an AWS session token, omit the line
+      that sets the ``AWS_SESSION_TOKEN`` environment variable.
+
+      Set the ``mechanism`` option in your
+      ``Credential`` struct to ``AuthMechanism::MongoDbAws``. The driver
+      reads your AWS IAM credentials from your environment variables.
+      The following code shows how to define a ``Credential`` struct
+      with AWS authentication specified and connect to MongoDB:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+         :language: rust
+         :dedent:
+         :start-after: start-aws-env-var
+         :end-before: end-aws-env-var
+
+   .. tab:: Web Identity Token File
+      :tabid: web-identity-token-file
+
+      You can use the OpenID Connect (OIDC) token obtained from a web
+      identity provider to authenticate to Amazon Elastic Kubernetes
+      Service (EKS) or other services. To use an OIDC token, create a
+      file that contains your token, then define an environment variable
+      whose value is the absolute path to the token file as shown in the
+      following shell command:
+
+      .. code-block:: bash
+
+         export AWS_WEB_IDENTITY_TOKEN_FILE=<absolute path to OIDC token file>
+      
+      Set the ``mechanism`` option in your
+      ``Credential`` struct to ``AuthMechanism::MongoDbAws``. The driver
+      reads your AWS IAM credentials from the token file.
+      The following code shows how to define a ``Credential`` struct
+      with AWS authentication specified and connect to MongoDB:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+         :language: rust
+         :dedent:
+         :start-after: start-aws-env-var
+         :end-before: end-aws-env-var
+
+.. _rust-auth-x509:
+
+MONGODB-X509 Mechanism
+----------------------
+
+The ``MONGODB-X509`` authentication mechanism uses Transport Level Security (TLS)
+with X.509 certificates to authenticate your user, which is identified
+by the relative distinguished names (RDNs) of your client certificate.
+
+.. tip::
+   
+   To learn more about TLS, see the Wikipedia entry on
+   :wikipedia:`Transport Layer Security <w/index.php?title=Transport_Layer_Security&oldid=1172659512>`.
+
+When you specify this authentication mechanism, the server authenticates
+the connection by reading the following files:
+
+- A certificate authority (CA) file, which contains one or more
+  certificate authorities to trust when making a TLS connection
+- A certificate key file, which references the client certificate private key
+
+To specify the ``MONGODB-X509`` authentication mechanism, set the
+``mechanism`` field of your ``Credential`` struct to
+``AuthMechanism::MongoDbX509``. This example specifies the
+authentication mechanism by using the following placeholders:
+      
+- ``path to CA certificate``: The filepath for your CA file
+- ``path to private client key``: The filepath for your certificate key file
+- ``db``: The authentication database associated with the user
+
+The following code shows how to reference your certificates in your
+connection string, specify the ``MONGODB-X509`` authentication mechanism, and
+connect to MongoDB:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+   :language: rust
+   :dedent:
+   :start-after: start-x509
+   :end-before: end-x509
+
+.. TODO To learn more about enabling TLS on a connection, see :ref:`rust-tls`.
+
+Additional Information
+----------------------
+
+To learn more about authenticating to MongoDB, see
+:manual:`Authentication </core/authentication/>` in the Server manual.
+
+To learn more about managing users of your MongoDB deployment, see
+:manual:`Users </core/security-users/>` in the Server manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types discussed in this
+guide, see the following API Documentation:
+
+- `Credential <{+api+}/options/struct.Credential.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `Client <{+api+}/options/struct.Client.html>`__
+- `Client::with_options() <{+api+}/struct.Client.html#method.with_options>`__
+- `ClientOptions::parse() <{+api+}/options/struct.ClientOptions.html#method.parse>`__
