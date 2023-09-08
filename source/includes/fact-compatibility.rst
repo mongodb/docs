@@ -1,4 +1,4 @@
-You can use |operator-method| for deployments hosted on the following
+You can use |operator-method| for deployments hosted in the following
 environments:
 
 .. include:: /includes/fact-environments.rst
