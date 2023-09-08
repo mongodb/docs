@@ -1,11 +1,12 @@
+// Cursor-based document retrieval
 const { MongoClient } = require("mongodb");
 const stream = require("stream");
 
-// Replace the following string with your MongoDB deployment's connection string.
+// Replace the following string with your MongoDB deployment's connection string
 const uri =
   "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 const client = new MongoClient(uri);
-
+// Asynchronous iteration by using cursor methods
 async function asyncIteration(myColl) {
   // start async cursor example
   const cursor = myColl.find({});
@@ -15,7 +16,7 @@ async function asyncIteration(myColl) {
   }
   // end async cursor example
 }
-
+// Manual iteration using cursor methods
 async function manualIteration(myColl) {
   // start manual cursor example
   const cursor = myColl.find({});
@@ -25,14 +26,14 @@ async function manualIteration(myColl) {
   }
   // end manual cursor example
 }
-
+// Stream documents
 async function streamAPI(myColl) {
   // start stream cursor example
   const cursor = myColl.find({});
   cursor.stream().on("data", doc => console.log(doc));
   // end stream cursor example
 }
-
+// Event-based iteration using cursor events
 async function eventAPI(myColl) {
   // start event cursor example
   const cursor = myColl.find({});
@@ -40,7 +41,7 @@ async function eventAPI(myColl) {
   cursor.on("data", data => console.log(data));
   // end event cursor example
 }
-
+// Fetch all documents as an array using the toArray method
 async function fetchAll(myColl) {
   // start fetchAll cursor example
   const cursor = myColl.find({});
@@ -48,7 +49,7 @@ async function fetchAll(myColl) {
   // end fetchAll cursor example
   console.log(allValues.length);
 }
-
+// Rewind the cursor
 async function rewind(myColl) {
   // start rewind cursor example
   const cursor = myColl.find({});
@@ -59,7 +60,7 @@ async function rewind(myColl) {
   console.log("Second count: " + secondResult.length);
   // end rewind cursor example
 }
-
+// Close a cursor
 async function close(myColl) {
   const cursor = myColl.find({});
 

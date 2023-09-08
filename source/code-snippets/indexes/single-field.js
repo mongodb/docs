@@ -1,7 +1,7 @@
+// Creating single field indexes 
 const { MongoClient } = require("mongodb");
 
-// Replace the following with your MongoDB deployment's connection
-// string.
+// Replace the following with your MongoDB deployment's connection string
 const uri =
   "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 
@@ -20,10 +20,11 @@ async function run() {
     // end-idx
 
     // begin-query
+    // Define the query parameters
     const query = { title: "Batman" }
     const sort = { title: 1 };
     const projection = { _id: 0, title: 1 };
-
+    // Execute the query using the defined parameters
     const cursor = movies
       .find(query)
       .sort(sort)

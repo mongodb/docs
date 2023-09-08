@@ -1,7 +1,7 @@
+// Search Index operations 
 const { MongoClient } = require("mongodb");
 
-// Replace the following with your MongoDB deployment's connection
-// string.
+// Replace the following with your MongoDB deployment's connection string
 const uri =
     "mongodb+srv://<user>:<password>@<cluster-url>?writeConcern=majority";
 
@@ -17,6 +17,7 @@ async function run() {
         const collection = database.collection("<collectionName>");
 
         // start createSearchIndex example
+        // Create a search index
         const index1 = {
             name: "search1",
             definition: {
@@ -29,6 +30,7 @@ async function run() {
         // end createSearchIndex example
 
         // start listSearchIndexes example
+        // List search indexes
         const result = await collection.listSearchIndexes().toArray();
         console.log("Existing search indexes:\n");
         for (const doc in result) {
@@ -37,6 +39,7 @@ async function run() {
         // end listSearchIndexes example
 
         // start updateSearchIndex example
+        // Update a search index
         const index2 = {
             "mappings": {
                 "dynamic": true,
@@ -51,6 +54,7 @@ async function run() {
         // end updateSearchIndex example
 
         // start dropSearchIndex example
+        // Dropping (deleting) a search index
         await collection.dropSearchIndex("search1");
         // end dropSearchIndex example
     } finally {

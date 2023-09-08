@@ -1,4 +1,4 @@
-/* Bulk write operation */ 
+// Bulk write operation
 
 // Import MongoClient from the MongoDB node driver package
 const { MongoClient } = require("mongodb");

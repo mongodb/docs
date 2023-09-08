@@ -1,3 +1,4 @@
+// Creating a unique index 
 const { MongoClient } = require("mongodb");
 
 // Replace the following with your MongoDB deployment's connection
