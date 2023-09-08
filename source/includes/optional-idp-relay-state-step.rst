@@ -10,8 +10,8 @@ You can use:
      - RelayState URL
      
    * - MongoDB |service|
-     - The :guilabel:`Login URL` that was generated for your identity 
-       provider configuration in the |service| 
+     - :guilabel:`Login URL` generated for your identity provider 
+       configuration in the |service| 
        :ref:`Federation Management App <federation-management-access>`.
    
    * - MongoDB Support Portal

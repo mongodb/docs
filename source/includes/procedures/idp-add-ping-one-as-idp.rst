@@ -70,23 +70,23 @@
                   - Value
 
                 * - :guilabel:`Configuration Name`
-                  - A descriptive label that identifies the configuration
+                  - Descriptive label that identifies the configuration
 
                 * - :guilabel:`Issuer URI`
-                  - Click :guilabel:`Fill with Placeholder Values`
+                  - :guilabel:`Fill with Placeholder Values`
 
                 * - :guilabel:`Single Sign-On URL`
-                  - Click :guilabel:`Fill with Placeholder Values`
+                  - :guilabel:`Fill with Placeholder Values`
 
                 * - :guilabel:`Identity Provider Signature Certificate`
-                  - Provide the certificate you received from |idp-provider|
+                  - Certificate you received from |idp-provider|
                     in a prior step
 
                 * - :guilabel:`Request Binding`
-                  - :guilabel:`HTTP POST`
+                  - ``HTTP POST``
 
                 * - :guilabel:`Response Signature Algorithm`
-                  - :guilabel:`SHA-256`
+                  - ``SHA-256``
 
          .. step:: Click the :guilabel:`Next` button to see the values
             for the |idp-provider| configuration.
@@ -103,7 +103,7 @@
           - Value
 
         * - :guilabel:`Signing Certificate`
-          - Provide the certificate you received from |idp-provider|
+          - Certificate that you received from |idp-provider|
             in a prior step
 
         * - :guilabel:`Protocol Version`
@@ -136,10 +136,10 @@
           - Unchecked
 
         * - :guilabel:`Signing`
-          - :guilabel:`Sign Assertion`
+          - ``Sign Assertion``
 
         * - :guilabel:`Signing Algorithm`
-          - :guilabel:`RSA_SHA256`
+          - ``RSA_SHA256``
 
         * - :guilabel:`Force Re-authentication`
           - Unchecked
@@ -207,10 +207,10 @@
            - Value
 
          * - :guilabel:`Issuer URI`
-           - Provide the :guilabel:`Issuer` value you noted earlier.
+           - :guilabel:`Issuer` value that you noted earlier.
 
          * - :guilabel:`Single Sign-On URL`
-           - Provide the following URL:
+           - URL that connects to Single Sign-On:
              ``https://sso.connect.pingidentity.com/sso/idp/SSO.saml2?idpid=<IDP_ID>``
              where ``<IDP_ID>`` is the :guilabel:`idpid` value you
              noted earlier.
