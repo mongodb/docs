@@ -17,98 +17,152 @@ Migrate Data into a Time Series Collection
 
 To migrate data from an existing collection into a :ref:`time series
 collection <manual-timeseries-collection>`, use an :pipeline:`$out`
-stage in your aggregation pipeline. If the data model does not have a
-designated field for metadata, you can transform the collection as part
-of the :pipeline:`$out` stage.
+stage in your aggregation pipeline. If your documents do not have a
+suitable metadata field, use a :pipeline:`$addFields` stage before
+the :pipeline:`$out` stage to add one.
 
-Transform Data (Optional)
--------------------------
+Migrate Data to a Time Series Collection
+----------------------------------------
 
-Time series collections support :ref:`secondary indexes
-<timeseries-add-secondary-index>` on the ``metaField``. If the data
-model does not specify a ``metaField``, you can transform the 
-collection as part of the :pipeline:`$out` stage.
+.. procedure::
 
-Consider a collection with weather data of the following format:
+   .. step:: Create a new time series collection
+      Create a new :ref:`time series collection <manual-timeseries-collection>` 
+      by issuing the following command in the :binary:`~bin.mongosh`, changing the ``timeField``, ``metaField``, and ``granularity`` values as needed to match the data you're migrating:
 
-.. code-block:: javascript
+      .. code-block:: javascript
 
-   {
-      "_id" : ObjectId("5553a998e4b02cf7151190b8"),
-      "st" : "x+47600-047900",
-      "ts" : ISODate("1984-03-05T13:00:00Z"),
-      "position" : {
-        "type" : "Point",
-        "coordinates" : [ -47.9, 47.6 ]
-      },
-      "elevation" : 9999,
-      "callLetters" : "VCSZ",
-      "qualityControlProcess" : "V020",
-      "dataSource" : "4",
-      "type" : "FM-13",
-      "airTemperature" : { "value" : -3.1, "quality" : "1" },
-      "dewPoint" : { "value" : 999.9, "quality" : "9" },
-      "pressure" : { "value" : 1015.3, "quality" : "1" },
-      "wind" : {
-        "direction" : { "angle" : 999, "quality" : "9" },
-        "type" : "9",
-        "speed" : { "rate" : 999.9, "quality" : "9" }
-      },
-      "visibility" : {
-        "distance" : { "value" : 999999, "quality" : "9" },
-        "variability" : { "value" : "N", "quality" : "9" }
-      },
-      "skyCondition" : {
-        "ceilingHeight" : { "value" : 99999, "quality" : "9", "determination" : "9" },
-        "cavok" : "N"
-      },
-      "sections" : [ "AG1" ],
-      "precipitationEstimatedObservation" : { "discrepancy" : "2", "estimatedWaterDepth" : 999 }
-  }
+         db.createCollection(
+           "weathernew", {
+             timeseries: {
+               timeField: "ts",
+               metaField: "metaData",
+               granularity: "hours"
+             }
+           }
+         )
+      
+      For detailed information on creating a new time series collection,
+      see :ref:`Create and Query a Time Series Collection
+      <timeseries-create-query-procedures>`.
 
-To transform this data, issue the following command:
+   .. step:: (Optional) Transform your data and specify a metadata field
+      If your original collection doesn't have a metadata field, use the :pipeline:`$addFields` aggregation stage to add it. For the example in this procedure, documents require a ``metaData`` field.
 
-.. code-block:: javascript
+      Consider a collection with weather data that uses the format:
 
-   db.weather_data.aggregate([
-     {
-        $addFields: {
-          metaData: {
-            "st": "$st",
-            "position": "$position",
-            "elevation": "$elevation",
-            "callLetters": "$callLetters",
-            "qualityControlProcess": "$qualityControlProcess",
-            "type": "$type"
-          }
-        },
-     }, {
-        $project: {
-           _id: 1,
-           ts: 1,
-           metaData: 1,
-           dataSource: 1,
-           airTemperature: 1,
-           dewPoint: 1,
-           pressure: 1,
-           wind: 1,
-           visibility: 1,
-           skyCondition: 1,
-           sections: 1,
-           precipitationEstimatedObservation: 1
+      .. code-block:: javascript
+
+         {
+            "_id" : ObjectId("5553a998e4b02cf7151190b8"),
+            "st" : "x+47600-047900",
+            "ts" : ISODate("1984-03-05T13:00:00Z"),
+            "position" : {
+              "type" : "Point",
+              "coordinates" : [ -47.9, 47.6 ]
+            },
+            "elevation" : 9999,
+            "callLetters" : "VCSZ",
+            "qualityControlProcess" : "V020",
+            "dataSource" : "4",
+            "type" : "FM-13",
+            "airTemperature" : { "value" : -3.1, "quality" : "1" },
+            "dewPoint" : { "value" : 999.9, "quality" : "9" },
+            "pressure" : { "value" : 1015.3, "quality" : "1" },
+            "wind" : {
+              "direction" : { "angle" : 999, "quality" : "9" },
+              "type" : "9",
+              "speed" : { "rate" : 999.9, "quality" : "9" }
+            },
+            "visibility" : {
+              "distance" : { "value" : 999999, "quality" : "9" },
+              "variability" : { "value" : "N", "quality" : "9" }
+            },
+            "skyCondition" : {
+              "ceilingHeight" : { "value" : 99999, "quality" : "9", "determination" : "9" },
+              "cavok" : "N"
+            },
+            "sections" : [ "AG1" ],
+            "precipitationEstimatedObservation" : { "discrepancy" : "2",
+            "estimatedWaterDepth" : 999 }
         }
-     }, {
-        $out: "weathertimeseries"
-     }
-   ])
 
+      The following pipeline stages add a ``metaData`` field as
+      specified in Step 1 and use :pipeline:`$project` to include or
+      exclude the remaining fields in the document:
 
-After you run this command, you have the ``weathertimeseries``
+      .. code-block:: javascript
+         { $addFields: {
+             metaData: {
+               "st": "$st",
+               "position": "$position",
+               "elevation": "$elevation",
+               "callLetters": "$callLetters",
+               "qualityControlProcess": "$qualityControlProcess",
+               "type": "$type"
+             }
+           },
+         }, 
+         { $project: {
+             _id: 1,
+             ts: 1,
+             metaData: 1,
+             dataSource: 1,
+             airTemperature: 1,
+             dewPoint: 1,
+             pressure: 1,
+             wind: 1,
+             visibility: 1,
+             skyCondition: 1,
+             sections: 1,
+             precipitationEstimatedObservation: 1
+           }
+         }
+
+   .. step:: Run the aggregation pipeline with :pipeline:`$out` as the 
+      final stage
+      The example below uses the :method:`db.collection.aggregate` helper method:
+
+      .. code-block:: javascript
+
+         db.weather_data.aggregate([
+           {
+              $addFields: {
+                metaData: {
+                  "st": "$st",
+                  "position": "$position",
+                  "elevation": "$elevation",
+                  "callLetters": "$callLetters",
+                  "qualityControlProcess": "$qualityControlProcess",
+                  "type": "$type"
+                }
+              },
+           }, {
+              $project: {
+                 _id: 1,
+                 ts: 1,
+                 metaData: 1,
+                 dataSource: 1,
+                 airTemperature: 1,
+                 dewPoint: 1,
+                 pressure: 1,
+                 wind: 1,
+                 visibility: 1,
+                 skyCondition: 1,
+                 sections: 1,
+                 precipitationEstimatedObservation: 1
+              }
+           }, {
+              $out: "weathernew"
+           }
+         ])
+
+After you run this command, you have the ``weathernew``
 collection below:
 
 .. code-block:: javascript
 
-   db.weathertimeseries.findOne()
+   db.weathernew.findOne()
    {
       "_id" : ObjectId("5553a998e4b02cf7151190b8"),
       "ts" : ISODate("1984-03-05T13:00:00Z"),
