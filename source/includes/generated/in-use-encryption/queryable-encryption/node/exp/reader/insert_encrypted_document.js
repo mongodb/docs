@@ -89,8 +89,8 @@ async function run() {
     });
 
     console.log("Finding a document with manually encrypted field:");
-    // end-find
     console.log(await encryptedColl.findOne({ patientId: findPayload }));
+    // end-find
   } finally {
     await unencryptedClient.close();
     await encryptedClient.close();
