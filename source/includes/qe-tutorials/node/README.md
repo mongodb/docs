@@ -42,6 +42,9 @@ For more information on installation requirements for {+qe+}, see [Installation 
    > **Note:** `mongodb-client-encryption` must be version 2.8.0 or later.
    > For more information on compatible package versions, see the
    > [Driver Compatibility Table](https://www.mongodb.com/docs/manual/core/queryable-encryption/reference/compatibility/).
+   >
+   > When using Node.js driver version `6.0.0` or later,
+   > `mongodb-client-encryption` must have the same major version number as the driver.
 
 1. In `queryable-encryption-tutorial.js`, replace the placeholder `<Your KMS
 Provider Name>` with a valid KMS provider name.

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { writeFileSync, readFileSync, existsSync } from "fs";
 import { randomBytes } from "crypto";
-import { ClientEncryption } from "mongodb-client-encryption";
+import { ClientEncryption } from "mongodb";
 
 export async function dropExistingCollection(client, databaseName) {
   const database = client.db(databaseName);

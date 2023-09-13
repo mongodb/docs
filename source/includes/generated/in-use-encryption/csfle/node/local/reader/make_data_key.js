@@ -1,6 +1,5 @@
 const mongodb = require("mongodb");
-const { ClientEncryption } = require("mongodb-client-encryption");
-const { MongoClient, Binary } = mongodb;
+const { MongoClient, Binary, ClientEncryption } = mongodb;
 
 // start-local-cmk
 const fs = require("fs");
