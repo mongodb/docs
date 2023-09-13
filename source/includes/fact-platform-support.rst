@@ -92,7 +92,7 @@
   * - Ubuntu 18.04
     - |checkmark|
     - |checkmark|
-    - |checkmark|
+    - 
     -
 
   * - Ubuntu 16.04
