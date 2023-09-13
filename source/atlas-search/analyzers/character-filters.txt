@@ -17,8 +17,9 @@ Character Filters
    :depth: 2
    :class: singlecol
 
-Character filters require a type field, and some take additional
-options as well.
+Character filters examine text one character at a time and perform
+filtering operations. Character filters require a type field, and some
+take additional options as well.
 
 .. code-block:: json
 
@@ -39,16 +40,26 @@ options as well.
 The following sample index definitions and queries use the :ref:`sample 
 collection <custom-analyzers-eg-coll>` named ``minutes``. If you add 
 the ``minutes`` collection to a database in your |service| {+cluster+}, you 
-can create the following sample indexes and run the sample queries against this 
-collection.
+can create the following sample indexes from the Visual Editor or |json|
+Editor in the {+atlas-ui+} and run the sample queries against this 
+collection. To create these indexes, after you select your preferred
+configuration method in the {+atlas-ui+}, select the database and
+collection, and refine your index as shown in the examples on this page
+to add custom analyzers that use character filters. 
+
+.. include:: /includes/fact-fts-custom-analyzer-ui.rst 
 
 .. _htmlStrip-ref:
 
 htmlStrip
 ---------
 
-The ``htmlStrip`` character filter strips out HTML constructs. It has 
-the following attributes:
+The ``htmlStrip`` character filter strips out HTML constructs. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
 
 .. list-table::
    :widths: 10 10 45 10 10
@@ -73,122 +84,143 @@ the following attributes:
      - no
      - 
 
-.. example::
+Example
+~~~~~~~
 
-   The following index definition example indexes the ``text.en_US``
-   field using a custom analyzer named ``htmlStrippingAnalyzer``. The
-   custom analyzer specifies the following: 
+The following index definition example indexes the ``text.en_US``
+field in the :ref:`minutes <custom-analyzers-eg-coll>` collection
+using a custom analyzer named ``htmlStrippingAnalyzer``. The
+custom analyzer specifies the following: 
    
-   - Remove all HTML tags from the text except the ``a`` tag using the
-     ``htmlStrip`` character filter.  
-   - Generate tokens based on word break rules from the `Unicode Text
-     Segmentation algorithm 
-     <https://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__
-     using the :ref:`standard-tokenizer-ref` tokenizer.  
+- Remove all HTML tags from the text except the ``a`` tag using the
+  ``htmlStrip`` character filter.  
+- Generate tokens based on word break rules from the `Unicode Text
+  Segmentation algorithm 
+  <https://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__
+  using the :ref:`standard-tokenizer-ref` tokenizer.  
 
-   .. code-block:: json
-      :copyable: true 
-      :linenos:
+.. tabs:: 
 
-     {
-       "mappings": {
-         "fields": {
-           "text": {
-             "type": "document",
-             "dynamic": true,
-             "fields": {
-               "en_US": {
-                 "type": "string",
-                 "analyzer": "htmlStrippingAnalyzer",
-               }
-             }
-           }
-         }
-       },
-       "analyzers": [{
-         "name": "htmlStrippingAnalyzer",
-         "charFilters": [{
-           "type": "htmlStrip",
-           "ignoredTags": ["a"]
-         }],
-         "tokenizer": {
-           "type": "standard"
-         },
-         "tokenFilters": []
-       }]
-     }
+   .. tab:: Visual Editor 
+      :tabid: vib 
 
-   The following query looks for occurrences of the string ``head`` in
-   the ``text.en_US`` field of the ``minutes`` collection. 
+      .. |analyzer-name| replace:: ``htmlStrippingAnalyzer``
+      .. |fts-char-filter| replace:: :guilabel:`htmlStrip`
+      .. |fts-char-filter-option-name| replace:: :guilabel:`ignoredTags`
+      .. |fts-char-filter-option-value| replace:: ``a``
+      .. |fts-tokenizer| replace:: :guilabel:`standard`
+      .. |minutes-collection-field| replace:: **text.en_US** nested 
+      .. |fts-field-type| replace:: **String**
 
-   .. io-code-block:: 
-      :copyable: true 
+      .. include:: /includes/extracts/fts-char-filter-htmlstrip-config.rst 
 
-      .. input:: 
-         :language: json
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true 
          :linenos:
 
-         db.minutes.aggregate([   
-           {     
-             "$search": {
+         {
+           "mappings": {
+             "fields": {
                "text": {
-                 "query": "head",
-                 "path": "text.en_US"
+                 "type": "document",
+                 "dynamic": true,
+                 "fields": {
+                   "en_US": {
+                     "type": "string",
+                     "analyzer": "htmlStrippingAnalyzer",
+                   }
+                 }
                }
              }
            },
-           {
-             "$project": {
-               "_id": 1,
-               "text.en_US": 1
-             }
-           }
-         ])
+           "analyzers": [{
+             "name": "htmlStrippingAnalyzer",
+             "charFilters": [{
+               "type": "htmlStrip",
+               "ignoredTags": ["a"]
+             },
+             "tokenizer": {
+               "type": "standard"
+             },
+             "tokenFilters": []
+           }]
+         }
 
-      .. output:: 
-         :language: json
+The following query looks for occurrences of the string ``head`` in
+the ``text.en_US`` field of the ``minutes`` collection. 
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json
+      :linenos:
+
+      db.minutes.aggregate([   
+        {     
+          "$search": {
+            "text": {
+              "query": "head",
+              "path": "text.en_US"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "text.en_US": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
     
-         [
-           {
-             _id: 2,
-             text: { en_US: "The head of the sales department spoke first." }
-           },
-           {
-             _id: 3,
-             text: {
-               en_US: "<body>We'll head out to the conference room by noon.</body>"
-             }
-           }
-         ]
+      [
+        {
+          _id: 2,
+          text: { en_US: "The head of the sales department spoke first." }
+        },
+        {
+          _id: 3,
+          text: {
+            en_US: "<body>We'll head out to the conference room by noon.</body>"
+          }
+        }
+      ]
 
-   |fts| doesn't return the document with ``_id: 1`` because the 
-   string ``head`` is part of the HTML tag ``<head>``. The 
-   document with ``_id: 3`` contains HTML tags, but the string 
-   ``head`` is elsewhere so the document is a match. The following
-   table shows the tokens that |fts| generates for the ``text.en_US``
-   field values in documents ``_id: 1``, ``_id: 2``, and  ``_id: 3`` in
-   the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
-   ``htmlStrippingAnalyzer``. 
+|fts| doesn't return the document with ``_id: 1`` because the 
+string ``head`` is part of the HTML tag ``<head>``. The 
+document with ``_id: 3`` contains HTML tags, but the string 
+``head`` is elsewhere so the document is a match. The following
+table shows the tokens that |fts| generates for the ``text.en_US``
+field values in documents ``_id: 1``, ``_id: 2``, and  ``_id: 3`` in
+the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
+``htmlStrippingAnalyzer``. 
 
-   .. list-table:: 
-      :header-rows: 1
-      :widths: 20 80
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
 
-      * - Document ID 
-        - Output Tokens 
+   * - Document ID 
+     - Output Tokens 
 
-      * - ``_id: 1``
-        - ``This``, ``page``, ``deals``, ``with``, ``department``,
-          ``meetings`` 
+   * - ``_id: 1``
+     - ``This``, ``page``, ``deals``, ``with``, ``department``,
+       ``meetings``  
 
-      * - ``_id: 2``
-        - ``The``, ``head``, ``of``, ``the``, ``sales``, ``department``,
-          ``spoke``, ``first`` 
+   * - ``_id: 2``
+     - ``The``, ``head``, ``of``, ``the``, ``sales``, ``department``,
+       ``spoke``, ``first`` 
 
-      * - ``_id: 3``
-        - ``We'll``, ``head``, ``out``, ``to``, ``the``, ``conference``,
-          ``room``, ``by``, ``noon``
-
+   * - ``_id: 3``
+     - ``We'll``, ``head``, ``out``, ``to``, ``the``, ``conference``,
+       ``room``, ``by``, ``noon``
 
 .. _icuNormalize-ref:
 
@@ -198,6 +230,9 @@ icuNormalize
 The ``icuNormalize`` character filter normalizes text with the `ICU 
 <http://site.icu-project.org/>`__ Normalizer. It is based on Lucene's 
 `ICUNormalizer2CharFilter <https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html>`__. 
+
+Attributes 
+~~~~~~~~~~
 
 It has the following attribute:
 
@@ -218,102 +253,122 @@ It has the following attribute:
      - yes
      - 
 
-.. example::
+Example
+~~~~~~~
 
-   The following index definition example indexes the ``message`` field
-   using a custom analyzer named ``normalizingAnalyzer``. The custom
-   analyzer specifies the following: 
+The following index definition example indexes the ``message`` field
+in the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+custom analyzer named ``normalizingAnalyzer``. The custom analyzer
+specifies the following:  
    
-   - Normalize the text in the ``message`` field value using the
-     ``icuNormalize`` character filter. 
-   - tokenize the words in the field based on occurrences of whitespace
-     between words using the :ref:`whitespace-tokenizer-ref` tokenizer. 
+- Normalize the text in the ``message`` field value using the
+  ``icuNormalize`` character filter. 
+- Tokenize the words in the field based on occurrences of whitespace
+  between words using the :ref:`whitespace-tokenizer-ref` tokenizer. 
 
-   .. code-block:: json
-      :copyable: true 
-      :linenos:
+.. tabs:: 
 
-      {
-        "mappings": {
-          "fields": {
-            "message": {
-              "type": "string",
-              "analyzer": "normalizingAnalyzer"
-            }
-          }
-        },
-        "analyzers": [
-          {
-            "name": "normalizingAnalyzer",
-            "charFilters": [
-              {
-                "type": "icuNormalize"
-              }
-            ],
-            "tokenizer": {
-              "type": "whitespace"
-            },
-            "tokenFilters": []
-          }
-        ]
-      }
+   .. tab:: Visual Editor 
+      :tabid: vib 
 
-   The following query searches for occurrences of the string 
-   ``no`` (for  number) in the ``message`` field of the ``minutes``
-   collection. 
+      .. |analyzer-name| replace:: ``normalizingAnalyzer``
+      .. |fts-char-filter| replace:: :guilabel:`icuNormalize`
+      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
+      .. |minutes-collection-field| replace:: **message**
+      .. |fts-field-type| replace:: **String**
 
-   .. io-code-block:: 
-      :copyable: true 
+      .. include:: /includes/extracts/fts-character-filter-config-steps-without-options.rst 
 
-      .. input:: 
-         :language: json 
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true 
          :linenos:
 
-         db.minutes.aggregate([
-           {
-             "$search": {
-               "text": {
-                 "query": "no",
-                 "path": "message"
+         {
+           "mappings": {
+             "fields": {
+               "message": {
+                 "type": "string",
+                 "analyzer": "normalizingAnalyzer"
                }
              }
            },
-           {
-             "$project": {
-               "_id": 1,
-               "message": 1,
-               "title": 1
+           "analyzers": [
+             {
+               "name": "normalizingAnalyzer",
+               "charFilters": [
+                 {
+                   "type": "icuNormalize"
+                 }
+               ],
+               "tokenizer": {
+                 "type": "whitespace"
+               },
+               "tokenFilters": []
              }
-           }
-         ])
+           ]
+         }
 
-      .. output::
-         :language: json
+The following query searches for occurrences of the string 
+``no`` (for  number) in the ``message`` field of the ``minutes``
+collection. 
 
-         [
-           {
-             _id: 4,
-             title: 'The daily huddle on tHe StandUpApp2',
-             message: 'write down your signature or phone №'
-           }
-         ]
+.. io-code-block:: 
+   :copyable: true 
 
-   |fts| matched document with ``_id: 4`` to the query term ``no``
-   because it normalized the numero symbol ``№`` in the field using the 
-   ``icuNormalize`` character filter and created the token ``no`` for
-   that typographic abbreviation of the word "number". |fts| generates
-   the following tokens for the ``message`` field value in document
-   ``_id: 4`` using the ``normalizingAnalyzer``:
+   .. input:: 
+      :language: json 
+      :linenos:
 
-   .. list-table:: 
-      :header-rows: 1
-      :widths: 20 80
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "no",
+              "path": "message"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "message": 1,
+            "title": 1
+          }
+        }
+      ])
 
-      * - Document ID 
-        - Output Tokens 
+   .. output::
+      :language: json
 
-      * - ``_id: 4``
-        - ``write``, ``down``, ``your``, ``signature``, ``or``, ``phone``, ``no``
+      [
+        {
+          _id: 4,
+          title: 'The daily huddle on tHe StandUpApp2',
+          message: 'write down your signature or phone №'
+        }
+      ]
+
+|fts| matched document with ``_id: 4`` to the query term ``no``
+because it normalized the numero symbol ``№`` in the field using the 
+``icuNormalize`` character filter and created the token ``no`` for
+that typographic abbreviation of the word "number". |fts| generates
+the following tokens for the ``message`` field value in document
+``_id: 4`` using the ``normalizingAnalyzer``:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Document ID 
+     - Output Tokens 
+
+   * - ``_id: 4``
+     - ``write``, ``down``, ``your``, ``signature``, ``or``, ``phone``, ``no``
 
 .. _mapping-ref:
 
@@ -323,6 +378,10 @@ mapping
 The ``mapping`` character filter applies user-specified normalization 
 mappings to characters. It is based on Lucene's `MappingCharFilter 
 <https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html>`__. 
+
+Attributes 
+~~~~~~~~~~
+
 It has the following attributes:
 
 .. list-table::
@@ -351,145 +410,166 @@ It has the following attributes:
      - yes
      -
 
-.. example::
+Example
+~~~~~~~
          
-   The following index definition example indexes the 
-   ``page_updated_by.phone`` field using a custom analyzer named 
-   ``mappingAnalyzer``. The custom analyzer specifies the  following:  
+The following index definition example indexes the 
+``page_updated_by.phone`` field in the :ref:`minutes 
+<custom-analyzers-eg-coll>` collection using a custom analyzer named 
+``mappingAnalyzer``. The custom analyzer specifies the  following:  
          
-   - Remove instances of hyphen (``-``), dot (``.``), open parenthesis 
-     (``(``), close parenthesis ( ``)``), and space characters in 
-     the phone field using the ``mapping`` character filter.  
-   - Tokenize the entire input as a single token using the 
-     :ref:`keyword-tokenizer-ref` tokenizer.
+- Remove instances of hyphen (``-``), dot (``.``), open parenthesis 
+  (``(``), close parenthesis ( ``)``), and space characters in 
+  the phone field using the ``mapping`` character filter.  
+- Tokenize the entire input as a single token using the 
+  :ref:`keyword-tokenizer-ref` tokenizer.
 
-   .. code-block:: json
-      :copyable: true 
-      :linenos:
+.. tabs:: 
 
-      {
-        "mappings": {
-          "fields": {
-            "page_updated_by": {
-              "fields": {
-                "phone": {
-                  "analyzer": "mappingAnalyzer",
-                  "type": "string"
-                }
-              },
-              "type": "document"
-            }
-          }
-        },
-        "analyzers": [
-          {
-            "name": "mappingAnalyzer",
-            "charFilters": [
-              {
-                "mappings": {
-                  "-": "",
-                  ".": "",
-                  "(": "",
-                  ")": "",
-                  " ": ""
-                },
-                "type": "mapping"
-              }
-            ],
-            "tokenizer": {
-              "type": "keyword"
-            }
-          }
-        ]
-      }
+   .. tab:: Visual Editor 
+      :tabid: vib 
 
-   The following query searches the ``page_updated_by.phone`` field for
-   the string ``1234567890``. 
+      .. |analyzer-name| replace:: ``mappingAnalyzer``
+      .. |fts-char-filter| replace:: :guilabel:`mapping`
+      .. |fts-char-filter-options| replace:: :guilabel:`mappings`
+      .. |fts-tokenizer| replace:: :guilabel:`keyword`
+      .. |minutes-collection-field| replace:: **page_updated_by.phone** (:manual:`nested </core/document/#dot-notation>`) 
+      .. |fts-field-type| replace:: **String**
 
-   .. io-code-block:: 
-      :copyable: true 
+      .. include:: /includes/extracts/fts-char-filter-mapping-config.rst 
 
-      .. input:: 
-         :language: json 
-         :linenos: 
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
 
-         db.minutes.aggregate([
-           {
-             "$search": {
-               "text": {
-                 "query": "1234567890",
-                 "path": "page_updated_by.phone"
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {
+           "mappings": {
+             "fields": {
+               "page_updated_by": {
+                 "fields": {
+                   "phone": {
+                     "analyzer": "mappingAnalyzer",
+                     "type": "string"
+                   }
+                 },
+                 "type": "document"
                }
              }
            },
-           {
-             "$project": {
-               "_id": 1,
-               "page_updated_by.phone": 1,
-               "page_updated_by.last_name": 1
+           "analyzers": [
+             {
+               "name": "mappingAnalyzer",
+               "charFilters": [
+                 {
+                   "mappings": {
+                     "-": "",
+                     ".": "",
+                     "(": "",
+                     ")": "",
+                     " ": ""
+                   },
+                   "type": "mapping"
+                 }
+               ],
+               "tokenizer": {
+                 "type": "keyword"
+               }
              }
-           }
-         ])
+           ]
+         }
 
-      .. output::
-         :language: json
+The following query searches the ``page_updated_by.phone`` field for
+the string ``1234567890``. 
 
-         [
-           {
-             _id: 1,
-             page_updated_by: { last_name: 'AUERBACH', phone: '(123)-456-7890' }
-           }
-         ]
+.. io-code-block:: 
+   :copyable: true 
 
-   The |fts| results contain one document where the numbers in the
-   ``phone`` string match the query string. |fts| matched the
-   document to the query string even though the query doesn't
-   include the parentheses around the phone area code and the
-   hyphen between the numbers because |fts| removed these
-   characters using the ``mapping`` character filter and created a
-   single token for the field value. Specifically, |fts| generated
-   the following token for the ``phone`` field in document with
-   ``_id: 1``:  
+   .. input:: 
+      :language: json 
+      :linenos: 
+
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "1234567890",
+              "path": "page_updated_by.phone"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "page_updated_by.phone": 1,
+            "page_updated_by.last_name": 1
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+
+      [
+        {
+          _id: 1,
+          page_updated_by: { last_name: 'AUERBACH', phone: '(123)-456-7890' }
+        }
+      ]
+
+The |fts| results contain one document where the numbers in the
+``phone`` string match the query string. |fts| matched the
+document to the query string even though the query doesn't
+include the parentheses around the phone area code and the
+hyphen between the numbers because |fts| removed these
+characters using the ``mapping`` character filter and created a
+single token for the field value. Specifically, |fts| generated
+the following token for the ``phone`` field in document with
+``_id: 1``:  
          
-   .. list-table:: 
-      :header-rows: 1
-      :widths: 20 80
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
 
-      * - Document ID 
-        - Output Tokens 
+   * - Document ID 
+     - Output Tokens 
 
-      * - ``_id: 1``
-        - ``1234567890``
+   * - ``_id: 1``
+     - ``1234567890``
          
-   |fts| would also match document with  ``_id: 1`` for searches
-   for ``(123)-456-7890``, ``123-456-7890``, ``123.456.7890``, and
-   so on because for :ref:`bson-data-types-string` fields, |fts| also
-   analyzes search query terms using the index analyzer (or if
-   specified, using the ``searchAnalyzer``). The following table shows
-   the tokens that |fts| creates by removing instances of hyphen
-   (``-``), dot (``.``), open parenthesis (``(``), close parenthesis (
-   ``)``), and space characters in the query term:
+|fts| would also match document with  ``_id: 1`` for searches
+for ``(123)-456-7890``, ``123-456-7890``, ``123.456.7890``, and
+so on because for :ref:`bson-data-types-string` fields, |fts| also
+analyzes search query terms using the index analyzer (or if
+specified, using the ``searchAnalyzer``). The following table shows
+the tokens that |fts| creates by removing instances of hyphen
+(``-``), dot (``.``), open parenthesis (``(``), close parenthesis (
+``)``), and space characters in the query term:
 
-   .. list-table:: 
-      :header-rows: 1
-      :widths: 20 80
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
 
-      * - Query Term 
-        - Output Tokens 
+   * - Query Term 
+     - Output Tokens 
 
-      * - ``(123)-456-7890``
-        - ``1234567890``
+   * - ``(123)-456-7890``
+     - ``1234567890``
 
-      * - ``123-456-7890``
-        - ``1234567890``
+   * - ``123-456-7890``
+     - ``1234567890``
 
-      * - ``123.456.7890``
-        - ``1234567890``
+   * - ``123.456.7890``
+     - ``1234567890``
 
-   .. seealso:: 
+.. seealso:: Additional Sample Index Definitions and Queries
    
-      The :ref:`shingle-tf-ref` token filter for a sample index 
-      definition and query. 
+   - :ref:`shingle-tf-ref` token filter
+   - :ref:`regexcapturegroup-tokenizer-ref` tokenizer
 
 .. _persian-ref:
 
@@ -500,6 +580,10 @@ The ``persian`` character filter replaces instances of `zero-width
 non-joiner <https://en.wikipedia.org/wiki/Zero-width_non-joiner>`__ 
 with the space character. This character filter is based on Lucene's 
 `PersianCharFilter <https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html>`__. 
+
+Attributes 
+~~~~~~~~~~
+
 It has the following attribute:
 
 .. list-table::
@@ -519,104 +603,124 @@ It has the following attribute:
      - yes
      - 
 
-.. example::
+Example
+~~~~~~~
 
-   The following index definition example indexes the ``text.fa_IR``
-   field using a custom analyzer named ``persianCharacterIndex``. The
-   custom analyzer specifies the following:  
+The following index definition example indexes the ``text.fa_IR``
+field in the :ref:`minutes <custom-analyzers-eg-coll>` collection
+using a custom analyzer named ``persianCharacterIndex``. The 
+custom analyzer specifies the following:  
 
-   - Apply the ``persian`` character filter to replace non-printing
-     characters in the field value with the space character.
-   - Use the :ref:`whitespace-tokenizer-ref` tokenizer to create tokens
-     based on occurrences of whitespace between words.
+- Apply the ``persian`` character filter to replace non-printing
+  characters in the field value with the space character.
+- Use the :ref:`whitespace-tokenizer-ref` tokenizer to create tokens
+  based on occurrences of whitespace between words.
 
-   .. code-block:: json
-      :copyable: true 
-      :linenos:
+.. tabs:: 
 
-      {
-        "analyzer": "lucene.standard",
-        "mappings": {
-          "fields": {
-            "text": {
-              "dynamic": true,
-              "fields": {
-                "fa_IR": {
-                  "analyzer": "persianCharacterIndex",
-                  "type": "string"
-                }
-              },
-              "type": "document"
-            }
-          }
-        },
-        "analyzers": [
-          {
-            "name": "persianCharacterIndex",
-            "charFilters": [
-              {
-                "type": "persian"
-              }
-            ],
-            "tokenizer": {
-              "type": "whitespace"
-            }
-          }
-        ]
-      }
-      
-   The following query searches the ``text.fa_IR`` field for the term
-   ``صحبت``. 
+   .. tab:: Visual Editor 
+      :tabid: vib 
 
-   .. io-code-block:: 
-      :copyable: true 
+      .. |analyzer-name| replace:: ``persianCharacterIndex``
+      .. |fts-char-filter| replace:: :guilabel:`persian`
+      .. |fts-tokenizer| replace:: :guilabel:`whitespace`
+      .. |minutes-collection-field| replace:: **text.fa_IR** (:manual:`nested </core/document/#dot-notation>`)
+      .. |fts-field-type| replace:: **String**
 
-      .. input:: 
-         :language: json 
-         :linenos: 
+      .. include:: /includes/extracts/fts-character-filter-config-steps-without-options.rst 
 
-         db.minutes.aggregate([
-           {
-             "$search": {
+   .. tab:: JSON Editor 
+      :tabid: jsoneditor
+
+      Replace the default index definition with the following:
+
+      .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {
+           "analyzer": "lucene.standard",
+           "mappings": {
+             "fields": {
                "text": {
-                 "query": "صحبت",
-                 "path": "text.fa_IR"
+                 "dynamic": true,
+                 "fields": {
+                   "fa_IR": {
+                     "analyzer": "persianCharacterIndex",
+                     "type": "string"
+                   }
+                 },
+                 "type": "document"
                }
              }
            },
-           {
-             "$project": {
-               "_id": 1,
-               "text.fa_IR": 1,
-               "page_updated_by.last_name": 1
+           "analyzers": [
+             {
+               "name": "persianCharacterIndex",
+               "charFilters": [
+                 {
+                   "type": "persian"
+                 }
+               ],
+               "tokenizer": {
+                 "type": "whitespace"
+               }
              }
-           }
-         ])
+           ]
+         }
+      
+The following query searches the ``text.fa_IR`` field for the term
+``صحبت``. 
 
-      .. output::
-         :language: json
+.. io-code-block:: 
+   :copyable: true 
 
-         [
-           {
-             _id: 2,
-             page_updated_by: { last_name: 'OHRBACH' },
-             text: { fa_IR: 'ابتدا رئیس بخش فروش صحبت کرد' }
-           }
-         ]
+   .. input:: 
+      :language: json 
+      :linenos: 
 
-   |fts| returns the  ``_id: 2`` document that contains the query term.
-   |fts| matches the query term to the document by first replacing
-   instances of zero-width non-joiners with the space character and
-   then creating individual tokens for each word in the field value
-   based on occurrences of whitespace between words. Specifically, |fts|
-   generates the following tokens for document with ``_id: 2``: 
+      db.minutes.aggregate([
+        {
+          "$search": {
+            "text": {
+              "query": "صحبت",
+              "path": "text.fa_IR"
+            }
+          }
+        },
+        {
+          "$project": {
+            "_id": 1,
+            "text.fa_IR": 1,
+            "page_updated_by.last_name": 1
+          }
+        }
+      ])
 
-   .. list-table:: 
-      :header-rows: 1
-      :widths: 20 80
+   .. output::
+      :language: json
 
-      * - Document ID 
-        - Output Tokens 
+      [
+        {
+          _id: 2,
+          page_updated_by: { last_name: 'OHRBACH' },
+          text: { fa_IR: 'ابتدا رئیس بخش فروش صحبت کرد' }
+        }
+      ]
 
-      * - ``_id: 2``
-        - ``ابتدا``, ``رئیس``, ``بخش``, ``فروش``, ``صحبت``, ``کرد``
+|fts| returns the  ``_id: 2`` document that contains the query term.
+|fts| matches the query term to the document by first replacing
+instances of zero-width non-joiners with the space character and
+then creating individual tokens for each word in the field value
+based on occurrences of whitespace between words. Specifically, |fts|
+generates the following tokens for document with ``_id: 2``: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Document ID 
+     - Output Tokens 
+
+   * - ``_id: 2``
+     - ``ابتدا``, ``رئیس``, ``بخش``, ``فروش``, ``صحبت``, ``کرد``
