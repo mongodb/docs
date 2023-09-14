@@ -11,7 +11,7 @@ databases.
 The ``includeNamespaces`` array in this example defines a filter on two
 of the databases:
 
-.. code-block:: shell
+.. code-block:: json
 
    {
       "source": "cluster0",
@@ -52,7 +52,7 @@ Renaming a Collection
 
 You can rename any collection in the ``staff`` database. 
 
-.. code-block:: shell
+.. code-block:: javascript
 
    // This code works 
    use admin
@@ -62,7 +62,7 @@ You can only rename a collection within the ``students`` database if the
 new and old names are both in the filter. If either of the names is not
 in the filter, ``monogsync`` reports an error and exists.
 
-.. code-block:: shell
+.. code-block:: javascript
 
    // This code works 
    use admin
@@ -71,7 +71,7 @@ in the filter, ``monogsync`` reports an error and exists.
 If a collection is specified in the filter, you can drop it, but you
 cannot rename it to remove it from the filter.
 
-.. code-block:: shell
+.. code-block:: javascript
    :copyable: false 
 
    // This code produces an error and mongosync stops syncing 
@@ -83,14 +83,14 @@ collections to add them to the filter:
 
 - Source collection is specified in the filter
 
-  .. code-block:: shell
+  .. code-block:: javascript
 
      use admin
      db.runCommand( { renameCollection: "students.adjuncts", to: "staff.adjuncts" } )
 
 - Source collection is not specified in the filter
 
-  .. code-block:: shell
+  .. code-block:: javascript
 
      use admin
      db.runCommand( { renameCollection: "prospects.current", to: "staff.newHires" } )
@@ -98,7 +98,7 @@ collections to add them to the filter:
 You can also rename collections in the source database when the whole
 target database is in the filter:
 
-.. code-block:: shell
+.. code-block:: javascript
 
    use admin
    db.runCommand( { renameCollection: "staff.employees", to: "staff.onPayroll" } )

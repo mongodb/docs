@@ -2,13 +2,15 @@ curl -X POST "http://localhost:27182/api/v1/start" --data '
    {
       "source": "cluster0",
       "destination": "cluster1",
-      "includeNamespaces" : [
+      "includeNamespaces": [
          {
-             "database" : "sales",
-             "collections": [ "EMEA", "APAC" ]
-         },
-         {
-             "database" : "marketing"
+             "database": "sales",
+             "collectionRegex": {
+                "pattern": "^accounts_.+$",
+                "options": "i"
+             }
+         }, {
+            "database": "marketing"
          }
       ]
    } '

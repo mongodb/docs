@@ -12,7 +12,7 @@ of the databases, ``sales`` and ``marketing``.
 The ``sales`` database also filters on the ``EMEA`` and ``APAC``
 collections. 
 
-.. code-block:: javascript
+.. code-block:: json
 
    "includeNamespaces" : [
          {
