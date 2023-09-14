@@ -26,91 +26,101 @@ Definition
    sharded clusters, use a rolling index build procedure as described
    on :doc:`/tutorial/build-indexes-on-replica-sets`.
 
-   :method:`db.collection.createIndex()` takes the following parameters:
+Compatibility
+-------------
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Parameter
-   
-        - Type
-   
-        - Description
-   
-      * - ``keys``
-   
-        - document
-   
-        - A document that contains the field and value pairs where the
-          field is the index key and the value describes the type of
-          index for that field.
-          
-          For an ascending index on a field, specify a value of ``1``.
-          For descending index, specify a value of ``-1``.
-          
-          An asterisk (``*``) is not a valid index name.
-          
-          MongoDB supports several different index types, including:
+.. |operator-method| replace:: ``db.collection.createIndex()``
 
-          - :ref:`text <index-feature-text>` 
-          - :ref:`geospatial <index-feature-geospatial>` 
-          - :ref:`hashed indexes <index-type-hashed>`
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :method:`~db.collection.createIndex()` method has the following
+form:
+
+.. code-block:: javascript
+
+   db.collection.createIndex( <keys>, <options>, <commitQuorum>)
+
+The :method:`~db.collection.createIndex()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``keys``
+     - document
+     - A document that contains the field and value pairs where the
+       field is the index key and the value describes the type of
+       index for that field.
        
-          See :ref:`index types <index-types>` for more information.
-          
-          :ref:`Wildcard indexes <wildcard-index-core>`
-          support workloads where users query against custom fields or a
-          large variety of fields in a collection.
-          
-          - You can create a wildcard index on a specific field and its
-            subpaths or on all of the fields in a document.
+       For an ascending index on a field, specify a value of ``1``.
+       For descending index, specify a value of ``-1``.
+       
+       An asterisk (``*``) is not a valid index name.
+       
+       MongoDB supports several different index types, including:
 
-            For details, see :ref:`wildcard-index-core`.
+       - :ref:`text <index-feature-text>` 
+       - :ref:`geospatial <index-feature-geospatial>` 
+       - :ref:`hashed indexes <index-type-hashed>`
+     
+       See :ref:`index types <index-types>` for more information.
+       
+       :ref:`Wildcard indexes <wildcard-index-core>`
+       support workloads where users query against custom fields or a
+       large variety of fields in a collection.
+       
+       - You can create a wildcard index on a specific field and its
+         subpaths or on all of the fields in a document.
 
-      * - ``options``
-   
-        - document
-   
-        - Optional. A document that contains a set of options that controls the creation
-          of the index. See :ref:`ensureIndex-options` for details.
-          
-      * - :ref:`commitQuorum <createIndex-method-commitQuorum>`
+         For details, see :ref:`wildcard-index-core`.
 
-        - integer or string
+   * - ``options``
+     - document
+     - Optional. A document that contains a set of options that controls the creation
+       of the index. See :ref:`ensureIndex-options` for details.
+       
+   * - :ref:`commitQuorum <createIndex-method-commitQuorum>`
+     - integer or string
+     - .. _createIndex-method-commitQuorum:
+     
+       Optional. The minimum number of data-bearing voting replica
+       set members (i.e. commit quorum), including the primary, that
+       must report a successful :ref:`index build
+       <index-operations-replicated-build>` before the primary
+       marks the ``indexes`` as ready. A "voting" member is any
+       replica set member where :rsconf:`members[n].votes` is greater
+       than ``0``.
+       
+       Supports the following values:
 
-        - .. _createIndex-method-commitQuorum:
-        
-          Optional. The minimum number of data-bearing voting replica
-          set members (i.e. commit quorum), including the primary, that
-          must report a successful :ref:`index build
-          <index-operations-replicated-build>` before the primary
-          marks the ``indexes`` as ready. A "voting" member is any
-          replica set member where :rsconf:`members[n].votes` is greater
-          than ``0``.
-          
-          Supports the following values:
+       - ``"votingMembers"`` - all data-bearing voting replica set
+         members (*Default*).
 
-          - ``"votingMembers"`` - all data-bearing voting replica set
-            members (*Default*).
+       - ``"majority"`` - a simple majority of data-bearing voting
+         replica set members.
 
-          - ``"majority"`` - a simple majority of data-bearing voting
-            replica set members.
+       - ``<int>`` - a specific number of data-bearing voting 
+         replica set members.
 
-          - ``<int>`` - a specific number of data-bearing voting 
-            replica set members.
+       - ``0`` - Disables quorum-voting behavior. Members 
+         start the index build simultaneously but do *not* 
+         vote or wait for quorum before completing the 
+         index build. If you start an index build with 
+         a commit quorum of ``0``, you cannot later modify the 
+         commit quorum using :dbcommand:`setIndexCommitQuorum`.
 
-          - ``0`` - Disables quorum-voting behavior. Members 
-            start the index build simultaneously but do *not* 
-            vote or wait for quorum before completing the 
-            index build. If you start an index build with 
-            a commit quorum of ``0``, you cannot later modify the 
-            commit quorum using :dbcommand:`setIndexCommitQuorum`.
+       - A replica set :doc:`tag name
+         </tutorial/configure-replica-set-tag-sets>`.
 
-          - A replica set :doc:`tag name
-            </tutorial/configure-replica-set-tag-sets>`.
-
-          .. versionadded:: 4.4
+       .. versionadded:: 4.4
 
 .. _ensureIndex-options:
 .. _createIndex-options:
