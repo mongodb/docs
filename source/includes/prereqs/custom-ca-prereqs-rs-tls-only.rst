@@ -19,7 +19,7 @@
 
   .. include:: /includes/prereqs/mdbagent-reqs.rst
 
-- You must possess the |certauth| certificate and the key that you used to 
-  sign your |tls| certificates.
+- You must have the |certauth| certificate file and name it ``ca-pem``.
+- You must have the key that you used to sign your |tls| certificates.
 
 .. include:: /includes/prereqs/pem-format.rst
