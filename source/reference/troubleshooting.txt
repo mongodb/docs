@@ -215,6 +215,45 @@ invoke this command:
    This returns the :ref:`Automation Agent Log <agent-logs>` for this
    replica set.
 
+.. _k8s-validation-webhook:
+
+Check Messages from the Validation Webhook
+------------------------------------------
+
+The |k8s-op-short| uses a validation |k8s-webhook| to prevent users
+from applying invalid resource definitions. The webhook rejects invalid
+requests.
+
+The |k8s-cr| and |k8s-crb| for the webhook are included in the default
+configuration files that you apply during the installation. To create
+the role and binding, you must have :k8sdocs:`cluster-admin privileges </reference/access-authn-authz/rbac/#user-facing-roles>`.
+
+If you create an invalid resource definition, the webhook returns
+a message similar to the following that describes the error to the shell:
+
+.. code-block:: sh
+   :copyable: false
+ 
+   error when creating "my-ops-manager.yaml":
+   admission webhook "ompolicy.mongodb.com" denied the request:
+   shardPodSpec field is not configurable for application databases as
+   it is for sharded clusters and appdb replica sets
+
+When the |k8s-op-short| reconciles each resource, it also validates that
+resource. The |k8s-op-short| doesn't require the validation webhook to
+create or update resources.
+
+If you omit the validation webhook, or if you remove the webhook's role
+and binding from the default configuration, or have insufficient
+privileges to run the configuration, the |k8s-op-short| issues warnings,
+as these are not critical errors. If the |k8s-op-short| encounters a
+critical error, it marks the resource as ``Failed``.
+
+.. admonition:: |gke| deployments
+
+   |gke| has a known issue with the webhook when deploying to private
+   clusters. To learn more, see :ref:`k8s-private-cluster-on-gke`.
+
 View All |k8s-mdbrsc| Specifications
 ------------------------------------
 
