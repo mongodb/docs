@@ -12,74 +12,217 @@ Considerations
    :depth: 1
    :class: singlecol
 
-Set ``MANAGED_SECURITY_CONTEXT`` for |k8s-op-short| OpenShift Deployments
--------------------------------------------------------------------------
+This page details best practices and system configuration
+recommendations for the |k8s-op-full| when running in production.
 
-When you deploy the |k8s-op-short| to OpenShift, you must set the
-``MANAGED_SECURITY_CONTEXT`` flag to ``true``. This value is set for
-you in the :github-raw:`values-openshift.yaml </mongodb/helm-charts/main/charts/enterprise-operator/values-openshift.yaml>`
-file. To learn more, see the :ref:`Operator installation
-<install-k8s-operator>` and choose the installation method you want to use.
+.. _deploy_recommended-number-sets:
 
-Understand the Default Permissions for |k8s-op-short| Objects
--------------------------------------------------------------
+Deploy the Recommended Number of MongoDB Replica Sets
+-----------------------------------------------------
 
-Objects in the |k8s-op-short| configuration use the following default
-permissions. These are the minumum permissions required for
-the |k8s-op-short| to deploy and manage |onprem| and MongoDB resources
-in a |k8s| cluster:
+We recommend that you use a single instance of the |k8s-op-short|
+to deploy up to 20 replica sets in parallel.
 
-.. include:: /includes/list-tables/default-k8s-object-permissions.rst
+You **may** increase this number to 50 and expect a reasonable
+increase in the time that the |k8s-op-short| takes to download,
+install, deploy, and reconcile its resources.
 
-.. _k8s-validation-webhook:
+For 50 replica sets, the time to deploy varies and might take up to
+40 minutes. This time depends on the network bandwidth of the |k8s|
+cluster and the time it takes each {+mdbagent+} to download MongoDB
+installation binaries from the Internet for each MongoDB cluster member.
 
-Check Messages from the Validation Webhook
+To deploy more than 50 MongoDB replica sets in parallel,
+use multiple instances of the |k8s-op-short|.
+
+Specify CPU and Memory Resource Requirements
+--------------------------------------------
+
+.. note:: 
+
+   The following considerations apply:
+
+   - All sizing and performance recommendations for common MongoDB deployments
+     through the |k8s-op-short| in this section are subject to change. Do
+     not treat these recommendations as guarantees or limitations of any kind.
+
+   - These recommendations reflect performance testing findings and represent
+     our suggestions for production deployments. We ran the tests on a cluster
+     comprised of seven AWS EC2 instances of type ``t2.2xlarge`` and a
+     master node of type ``t2.medium``.
+
+   - The recommendations in this section don't discuss characteristics of
+     any specific deployment. Your deployment's characteristics may differ
+     from the assumptions made to create these recommendations. Contact
+     |mdb-support| for further help with sizings.
+
+In |k8s|, each Pod includes parameters that allow you
+to specify :k8sdocs:`CPU resources </tasks/configure-pod-container/assign-cpu-resource/>`
+and :k8sdocs:`memory resources
+</tasks/configure-pod-container/assign-memory-resource/>` for each
+container in the Pod.
+
+To indicate resource bounds, |k8s| uses the :k8sdocs:`requests and limits
+</concepts/configuration/manage-resources-containers/#requests-and-limits>`
+parameters, where:
+  
+- *request* indicates a lower bound of a resource.
+- *limit* indicates an upper bound of a resource.
+
+The following sections illustrate how to:
+
+- :ref:`set CPU and Memory for the Operator Pod <operator_pod_resources>`.
+- :ref:`set CPU and Memory for MongoDB Pods <mdb_pods_resources>`.
+
+For the Pods hosting |onprem|, use the
+:github:`default resource limits configurations
+</mongodb/mongodb-enterprise-kubernetes/blob/master/samples/ops-manager/ops-manager-pod-spec.yaml#L38-L46>`.
+
+Co-locate ``mongos`` Pods with Your Applications
+------------------------------------------------
+
+You can run the lightweight ``mongos`` instance on the same |k8s-node|
+as your apps using MongoDB. The |k8s-op-short| supports standard |k8s|
+:k8sdocs:`node affinity and anti-affinity </concepts/configuration/assign-pod-node/#affinity-and-anti-affinity>`
+features. Using these features, you can force install the ``mongos``
+on the same node as your application.
+
+The following abbreviated example shows affinity and multiple
+availability zones configuration.
+
+The ``podAffinity`` key determines whether to install an application
+on the same Pod, node, or data center as another application.
+
+To specify Pod affinity:
+
+1. Add a label and value in the ``spec.podSpec.podTemplate.metadata.labels``
+   |yaml| collection to tag the deployment. See
+   :setting:`spec.podSpec.podTemplate.metadata`,
+   and the
+   :k8sdocs:`Kubernetes PodSpec v1 core API </reference/generated/kubernetes-api/{+k8s-api-version+}/#podspec-v1-core>`.
+
+#. Specify which label the ``mongos`` uses in the
+   ``spec.mongosPodSpec.podAffinity``
+   ``.requiredDuringSchedulingIgnoredDuringExecution.labelSelector``
+   |yaml| collection. The ``matchExpressions`` collection defines the
+   ``label`` that the |k8s-op-short| uses to identify the Pod for hosting
+   the ``mongos``.
+
+.. example::
+
+   .. code-block:: yaml
+      :copyable: false
+      :linenos:
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: my-replica-set
+      spec:
+        members: 3
+        version: 4.2.1-ent
+        service: my-service
+
+        ...
+          podAntiAffinityTopologyKey: nodeId
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+              matchExpressions:
+              - key: security
+                operator: In
+                values:
+                - S1
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+
+          nodeAffinity:
+             requiredDuringSchedulingIgnoredDuringExecution:
+               nodeSelectorTerms:
+               - matchExpressions:
+                 - key: kubernetes.io/e2e-az-name
+                 operator: In
+                 values:
+                 - e2e-az1
+                 - e2e-az2
+
+See the full example of multiple availability zones and node affinity
+configuration in
+:github:`replica-set-affinity.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/samples/mongodb/affinity/replica-set-affinity.yaml>`
+in the :github:`Affinity Samples </mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/persistent-volumes>`
+directory.
+
+This directory also contains sample affinity and multiple
+zones configurations for sharded clusters and standalone
+MongoDB deployments.
+
+.. seealso::
+
+   - :k8sdocs:`Assigning Pods to Nodes </concepts/scheduling-eviction/assign-pod-node/#nodeselector>`
+   - :k8sdocs:`Node affinity and anti-affinity </concepts/configuration/assign-pod-node/#affinity-and-anti-affinity>`
+   - :k8sdocs:`Kubernetes PodSpec v1 core API </reference/generated/kubernetes-api/{+k8s-api-version+}/#podspec-v1-core>`
+
+Name Your MongoDB Service with its Purpose
 ------------------------------------------
 
-The |k8s-op-short| uses a validation |k8s-webhook| to prevent users
-from applying invalid resource definitions. The webhook rejects invalid
-requests.
+Set the :setting:`spec.service` parameter to a value that identifies
+this deployment's purpose, as illustrated in the following example.
 
-The |k8s-cr| and |k8s-crb| for the webhook are included in the default
-configuration files that you apply during the installation. To create
-the role and binding, you must have :k8sdocs:`cluster-admin privileges </reference/access-authn-authz/rbac/#user-facing-roles>`.
-
-If you create an invalid resource definition, the webhook returns
-a message similar to the following that describes the error to the shell:
-
-.. code-block:: sh
+.. code-block:: yaml
    :copyable: false
- 
-   error when creating "my-ops-manager.yaml":
-   admission webhook "ompolicy.mongodb.com" denied the request:
-   shardPodSpec field is not configurable for application databases as
-   it is for sharded clusters and appdb replica sets
+   :linenos:
+   :emphasize-lines: 8
 
-When the |k8s-op-short| reconciles each resource, it also validates that
-resource. The |k8s-op-short| doesn't require the validation webhook to
-create or update resources.
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-replica-set
+   spec:
+     members: 3
+     version: "4.4.0-ent"
+     service: drilling-pumps-geosensors
+     featureCompatibilityVersion: "4.0"
 
-If you omit the validation webhook, or if you remove the webhook's role
-and binding from the default configuration, or have insufficient
-privileges to run the configuration, the |k8s-op-short| issues warnings,
-as these are not critical errors. If the |k8s-op-short| encounters a
-critical error, it marks the resource as ``Failed``.
+.. seealso::
 
-.. admonition:: |gke| deployments
+   :setting:`spec.service`
 
-   |gke| has a known issue with the webhook when deploying to private
-   clusters. To learn more, see :ref:`k8s-private-cluster-on-gke`.
+Use Labels to Differentiate Between Deployments
+-----------------------------------------------
 
+Use the :k8sdocs:`Pod affinity
+</concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>`
+|k8s| feature to:
+
+- Separate different MongoDB resources, such as ``test``, ``staging``,
+  and ``production`` environments.
+
+- Place |k8s-pods| on some specific nodes to take advantage of
+  features such as |ssd| support.
+
+.. code-block:: yaml
+   :copyable: false
+   :linenos:
+
+   mongosPodSpec:
+     podAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         - labelSelector:
+           matchExpressions:
+           - key: security
+             operator: In
+             values:
+             - S1
+           topologyKey: failure-domain.beta.kubernetes.io/zone
+
+.. seealso::
+
+  :k8sdocs:`Pod affinity
+  </concepts/configuration/assign-pod-node/#inter-pod-affinity-and-anti-affinity>`
 
 Customize the CustomResourceDefinitions that the |k8s-op-short| Watches
 -----------------------------------------------------------------------
 
-Earlier versions of the |k8s-op-short| would crash on startup if any
-one of the MongoDB |k8s-crds| was not present in the cluster. For
-instance, you had to install the CustomResourceDefinition for |onprem|
-even if you did not plan to deploy it with the |k8s-op-short|.
-
-You can now specify which custom resources you want the |k8s-op-short|
+You can specify which custom resources you want the |k8s-op-short|
 to watch. This allows you to install the CustomResourceDefinition for
 only the resources that you want the |k8s-op-short| to manage.
 
@@ -104,3 +247,311 @@ but make the following adjustments:
       helm install <deployment-name> mongodb/enterprise-operator \
         --set operator.watchedResources="{mongodb,mongodbusers}" \
            --skip-crds
+
+Ensure Proper Persistence Configuration
+---------------------------------------
+
+The |k8s| deployments orchestrated by the |k8s-op-short| are
+stateful. The |k8s| container uses |k8s-pvs| to maintain the
+cluster state between restarts.
+
+To satisfy the statefulness requirement, the |k8s-op-short| performs
+the following actions:
+
+- Creates |k8s-pvs| for your MongoDB deployment.
+- Mounts storage devices to one or more directories
+  called mount points.
+- Creates one persistent volume for each MongoDB mount point.
+- Sets the default path in each |k8s| container to ``/data``.
+
+To meet your MongoDB cluster's storage needs, make the following
+changes in your configuration for each replica set deployed with
+the |k8s-op-short|:
+
+- Verify that persistent volumes are enabled in
+  :setting:`spec.persistent`. This setting defaults to ``true``.
+- Specify a sufficient amount of storage for the |k8s-op-short|
+  to allocate for each of the volumes. The volumes store the data
+  and the logs.
+
+  - To set multiple volumes, each for data, logs, and the ``oplog``, use
+    :setting:`spec.podSpec.persistence.multiple.data`.
+  - To set a single volume to store data, logs, and the ``oplog``,
+    use :setting:`spec.podSpec.persistence.single`.
+
+The following abbreviated example shows recommended persistent storage
+sizes.
+
+.. code-block:: yaml
+   :linenos:
+   :emphasize-lines: 8, 13-19
+   
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-replica-cluster
+   spec:
+     
+     ...
+     persistent: true
+     
+     
+     shardPodSpec:
+     ...
+       persistence:
+         multiple:
+           data:
+             storage: "20Gi"
+           logs:
+             storage: "4Gi"
+             storageClass: standard
+
+For a full example of persistent volumes configuration, see
+:github:`replica-set-persistent-volumes.yaml 
+</mongodb/mongodb-enterprise-kubernetes/blob/master/samples/mongodb/persistent-volumes/replica-set-persistent-volumes.yaml>`
+in the :github:`Persistent Volumes Samples
+</mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/persistent-volumes>` directory. This
+directory also contains sample persistent volumes configurations for
+sharded clusters and standalone deployments.
+
+.. seealso::
+
+   - :setting:`spec.persistent`
+   - :setting:`spec.podSpec.persistence.single`
+   - :setting:`spec.podSpec.persistence.multiple.data`
+
+.. _operator_pod_resources:
+
+Set CPU and Memory Utilization Bounds for the |k8s-op-short| Pod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you deploy replica sets with the |k8s-op-short|, CPU usage for
+Pod used to host the |k8s-op-short| is initially high during the
+reconciliation process, however, by the time the deployment completes,
+it lowers.
+
+For production deployments, to satisfy deploying up to 50 MongoDB
+replica sets or sharded clusters in parallel with the |k8s-op-short|,
+set the CPU and memory resources and limits for the |k8s-op-short| Pod
+as follows:
+
+- ``spec.template.spec.containers.resources.requests.cpu`` to 500m
+- ``spec.template.spec.containers.resources.limits.cpu`` to 1100m
+- ``spec.template.spec.containers.resources.requests.memory`` to 200Mi
+- ``spec.template.spec.containers.resources.limits.memory`` to 1Gi
+
+If you don't include the unit of measurement for CPUs, |k8s| interprets
+it as the number of cores. If you specify ``m``, such as 500m, |k8s|
+interprets it as ``millis``. To learn more, see
+:k8sdocs:`Meaning of CPU </concepts/configuration/manage-resources-containers/#meaning-of-cpu>`.
+  
+The following abbreviated example shows the configuration with
+recommended CPU and memory bounds for the |k8s-op-short| Pod in your
+deployment of 50 replica sets or sharded clusters. If you are
+deploying fewer than 50 MongoDB clusters, you may use lower
+numbers in the configuration file for the |k8s-op-short| Pod.
+
+.. note::
+
+   Monitoring tools report the size of the |k8s-node| rather than the
+   actual size of the container.
+
+.. example::
+
+   .. code-block:: yaml
+      :copyable: false
+      :linenos:
+      :emphasize-lines: 24-25, 34-40
+
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+       name: mongodb-enterprise-operator
+       namespace: mongodb
+      spec:
+       replicas: 1
+       selector:
+        matchLabels:
+           app.kubernetes.io/component: controller
+           app.kubernetes.io/name: mongodb-enterprise-operator
+           app.kubernetes.io/instance: mongodb-enterprise-operator
+       template:
+        metadata:
+         labels:
+           app.kubernetes.io/component: controller
+           app.kubernetes.io/name: mongodb-enterprise-operator
+           app.kubernetes.io/instance: mongodb-enterprise-operator
+         spec:
+           serviceAccountName: mongodb-enterprise-operator
+           securityContext:
+             runAsNonRoot: true
+             runAsUser: 2000
+           containers:
+           - name: mongodb-enterprise-operator
+             image: quay.io/mongodb/mongodb-enterprise-operator:1.9.2
+             imagePullPolicy: Always
+             args:
+              - "-watch-resource=mongodb"
+              - "-watch-resource=opsmanagers"
+              - "-watch-resource=mongodbusers"
+             command:
+              - "/usr/local/bin/mongodb-enterprise-operator"
+             resources:
+               limits:
+                 cpu: 1100m
+                 memory: 1Gi
+               requests:
+                 cpu: 500m
+                 memory: 200Mi
+
+For a full example of CPU and memory utilization resources and limits
+for the |k8s-op-short| Pod that satisfy parallel deployment of up to
+50 MongoDB replica sets, see the :github:`mongodb-enterprise.yaml
+</mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml#L219-L235>`
+file.
+
+.. seealso::
+
+   - :k8sdocs:`Requests and Limits </concepts/configuration/manage-resources-containers/#requests-and-limits>`
+   - :k8sdocs:`Assign CPU Resources to Containers and Pods </tasks/configure-pod-container/assign-cpu-resource/>`
+
+.. _mdb_pods_resources:
+
+Set CPU and Memory Utilization Bounds for MongoDB Pods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The values for Pods hosting replica sets or sharded clusters map
+to the :k8sdocs:`requests field </reference/generated/kubernetes-api/{+k8s-api-version+}/#resourcerequirements-v1-core>`
+for CPU and memory for the created Pod. These values are consistent
+with :manual:`considerations </administration/production-notes#allocate-sufficient-ram-and-cpu>`
+stated for MongoDB hosts.
+
+The |k8s-op-short| uses its allocated memory for processing, for the
+WiredTiger cache, and for storing packages during the deployments.
+
+For production deployments, set the CPU and memory resources and limits
+for the MongoDB Pod as follows:
+
+- ``spec.podSpec.podTemplate.spec.containers.resources.requests.cpu`` to 0.25
+- ``spec.podSpec.podTemplate.spec.containers.resources.limits.cpu`` to 0.25
+- ``spec.podSpec.podTemplate.spec.containers.resources.requests.memory`` to 512M
+- ``spec.podSpec.podTemplate.spec.containers.resources.limits.memory`` to 512M
+
+If you don't include the unit of measurement for CPUs, |k8s| interprets
+it as the number of cores. If you specify ``m``, such as 500m, |k8s|
+interprets it as ``millis``. To learn more, see
+:k8sdocs:`Meaning of CPU </concepts/configuration/manage-resources-containers/#meaning-of-cpu>`.
+
+The following abbreviated example shows the configuration with
+recommended CPU and memory bounds for each Pod hosting a MongoDB
+replica set member in your deployment.
+
+.. example::
+
+  .. code-block:: yaml
+     :linenos:
+     :emphasize-lines: 5, 12-20
+     :copyable: false
+
+     apiVersion: mongodb.com/v1
+     kind: MongoDB
+     metadata:
+     name: my-replica-set
+     spec:
+       members: 3
+       version: 4.0.0-ent
+       service: my-service
+       ...
+
+       persistent: true
+       podSpec:
+         podTemplate:
+           spec:
+             containers:
+             - name: mongodb-enterprise-database
+               resources:
+                 limits:
+                   cpu: "0.25"
+                   memory: 512M
+
+For a full example of CPU and memory utilization resources and limits
+for Pods hosting MongoDB replica set members, see the
+:github:`replica-set-podspec.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/samples/mongodb/podspec/replica-set-podspec.yaml#L38-L45>`
+file in the :github:`MongoDB Podspec Samples </mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/podspec>` directory.
+
+This directory also contains sample CPU and memory limits
+configurations for Pods used for:
+
+- A sharded cluster, in the :github:`sharded-cluster-podspec.yaml </mongodb/mongodb-enterprise-kubernetesblob/master/samples/mongodb/podspec/sharded-cluster-podspec.yaml#L62-91>`.
+- Standalone MongoDB deployments, in the :github:`standalone-podspec.yaml </mongodb/mongodb-enterprise-kubernetesblob/master/samples/mongodb/podspec/standalone-podspec.yaml#L36-39>`.
+
+.. seealso::
+
+   - :setting:`spec.podSpec.podTemplate.spec`
+   - :k8sdocs:`Requests and Limits </concepts/configuration/manage-resources-containers/#requests-and-limits>`
+   - :k8sdocs:`Assign CPU Resources to Containers and Pods </tasks/configure-pod-container/assign-cpu-resource/>`
+
+Use Multiple Availability Zones
+-------------------------------
+
+Set the |k8s-op-short| and |k8s-statefulsets| to distribute all members
+of one replica set to different |k8s-nodes| to ensure high
+availability.
+
+The following abbreviated example shows affinity and multiple
+availability zones configuration.
+
+.. example::
+
+   .. code-block:: yaml
+      :copyable: false
+      :linenos:
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: my-replica-set
+      spec:
+        members: 3
+        version: 4.2.1-ent
+        service: my-service
+        ...
+          podAntiAffinityTopologyKey: nodeId
+          podAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+              matchExpressions:
+              - key: security
+                operator: In
+                values:
+                - S1
+              topologyKey: failure-domain.beta.kubernetes.io/zone
+
+          nodeAffinity:
+             requiredDuringSchedulingIgnoredDuringExecution:
+               nodeSelectorTerms:
+               - matchExpressions:
+                 - key: kubernetes.io/e2e-az-name
+                 operator: In
+                 values:
+                 - e2e-az1
+                 - e2e-az2
+
+In this example, the |k8s-op-short| schedules the Pods deployment to
+the nodes which have the label ``kubernetes.io/e2e-az-name`` in ``e2e-az1`` or
+``e2e-az2`` availability zones. Change ``nodeAffinity`` to
+schedule the deployment of Pods to the desired availability zones.
+
+See the full example of multiple availability zones configuration in
+:github:`replica-set-affinity.yaml </mongodb/mongodb-enterprise-kubernetes/blob/master/samples/mongodb/affinity/replica-set-affinity.yaml>`
+in the :github:`Affinity Samples </mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/persistent-volumes>`
+directory.
+
+This directory also contains sample affinity and multiple zones
+configurations for sharded clusters and standalone MongoDB deployments.
+
+.. seealso::
+
+   - :k8sdocs:`Running in Multiple Zones </setup/best-practices/multiple-zones/>`
+   - :k8sdocs:`Node affinity </concepts/scheduling-eviction/assign-pod-node/#node-affinity>`

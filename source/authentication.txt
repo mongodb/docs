@@ -1,0 +1,83 @@
+.. _k8s-authentication:
+
+=====================
+Enable Authentication
+=====================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The |k8s-op-short| supports :ref:`X.509 <create-x509-certs>`, LDAP,
+and :ref:`SCRAM <add-db-user-scram>` user authentication.
+
+.. note::
+   For LDAP configuration, see the
+   :setting:`spec.security.authentication.ldap.automationLdapGroupDN`
+   setting.
+   
+You must create an additional |k8s-crd| for your
+MongoDB users and the {+mdbagent+} instances.
+The |k8s-op-short| generates and distributes the certificate.
+
+See the full X.509 certificates configuration examples in the
+:github:`x509 Authentication
+</mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/authentication/x509>` directory in
+the :github:`Authentication </mongodb/mongodb-enterprise-kubernetes/tree/master/samples/mongodb/authentication>`
+samples directory. This directory also contains sample LDAP and SCRAM configurations.
+
+Example Deployment CRD
+----------------------
+
+.. code-block:: yaml
+   :copyable: false
+   :emphasize-lines: 14-17
+   :linenos:
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-tls-enabled-rs
+   spec:
+     type: ReplicaSet
+     members: 3
+     version: "4.0.4-ent"
+     project: my-project
+     credentials: my-credentials
+     security:
+       tls:
+         enabled: true
+       authentication:
+         enabled: true
+         modes: ["X509"]
+         internalCluster: "X509"
+
+Example User CRD
+----------------
+
+.. code-block:: yaml
+   :copyable: false
+   :linenos:
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDBUser
+   metadata:
+     name: user-with-roles
+   spec:
+     username: "CN=mms-user-1,OU=cloud,O=MongoDB,L=New York,ST=New York,C=US"
+     db: "$external"
+     project: my-project
+     roles:
+       - db: "admin"
+         name: "clusterAdmin"
+
+.. seealso::
+
+   - :ref:`mongodbuser-specification`
+   - :setting:`spec.security.authentication.ldap.automationLdapGroupDN`
+   - :ref:`Manage Database Users Using X.509 Authentication <create-x509-certs>`
+   - :ref:`Manage Database Users Using SCRAM Authentication <add-db-user-scram>`

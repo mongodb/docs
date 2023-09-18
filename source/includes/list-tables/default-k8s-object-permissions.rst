@@ -3,7 +3,7 @@
    :header-rows: 1
 
    * - Kubernetes Resources
-     - Verbs
+     - API Verbs
 
    * - Configmaps
      - Require the following permissions:
