@@ -18,7 +18,7 @@ Release Notes for mongosync 1.6
 1.6.0 Release
 -------------
 
-**Upcoming**
+**September 18, 2023**
 
 Exclusion Filters
 ~~~~~~~~~~~~~~~~~
@@ -42,7 +42,64 @@ For more information, see :ref:`c2c-filter-regex`.
 
 Starting in 1.6.0, ``mongosync`` supports sync with MongoDB 7.0.
 
+Other Notes
+~~~~~~~~~~~
+
+New Features:
+
+- Sped up the commit process by parallelizing metadata cleanup. 
+
+- Reduced memory allocation during change event application by approximately 
+  30% for pre-6.0 releases of MongoDB Server versions.
+
+- Changed telemetry to also send error messages to Segment when ``mongosync``
+  exits with a fatal error.
+
+- Added support for ``mongosync`` to sync between source and destination 
+  clusters that have the same major and minor versions, but different 
+  patch versions.
+
+- Upgraded build to use Go 1.20.
+
+- ``mongosync`` now periodically logs when server operations take a longer 
+  than expected time.
+
+Issues Fixed:
+
+- Fixed a bug introduced in 1.5, where ``mongosync`` could fail to apply change
+  events for a document if they occur shortly after the document is copied during
+  the Collection Copy phase.
+
+- Fixed a bug where ``mongosync`` could crash due to the source cluster containing
+  legacy indexes with unknown index options.
+
+- Fixed a bug where ``mongosync`` could crash with an error during change event 
+  application, if the application fails to read 500 documents within 5 minutes
+  or reaches the end of the oplog when reading from change streams on the source
+  cluster.
+
+- Fixed a bug where ``mongosync`` could crash when indexes apply constraints 
+  to collection documents.
+
+  This crash occured when such an index was added or dropped at nearly the same
+  time as an index that violated these constrains was deleted or inserted.  It 
+  would manifest with an error like:
+
+  .. code-block:: text
+     :copyable: false
+
+     Ambiguous field name found in array (do not use numeric field names in embedded elements in an array)
+
+  or a similar error. This fix makes this crash less likely, but it does not
+  elimiate the possibility that it will occur.
+
+
+
+- Fixed a bug where ``mongosync`` can fail to copy certain documents if 
+  the insertion of documents causes duplicate key errors at the same time 
+  as a write concern error. This bug has been present in mongosync since its first release and may have arisen if the destination cluster logs reported a write concern error alongside a duplicate key error.
+
 Minimum Supported Version
 -------------------------
 
-In 1.6, the minimum supported version of MongoDB is 6.0.8.
+In 1.6, the minimum supported versions of MongoDB are 6.0.8 and 7.0.0.
