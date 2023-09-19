@@ -18,16 +18,10 @@ Filtered Sync
 .. include:: /includes/api/facts/filtering-intro.rst
 
 Starting in 1.1, ``mongosync`` supports inclusion filters to specify which
-databases and collections to include in sync.  Starting in 1.6, ``mongosync``
-also supports exclusion filters and regular expressions.
+databases and collections to include in sync.  
 
 - With inclusion filters, ``mongosync`` syncs matching
   databases and collections.
-- With exclusion filters, ``mongosync`` syncs all databases
-  and collections, except for those that match the filters.
-- With both inclusion and exclusion filters, ``mongosync`` only syncs
-  databases and collections that match the inclusion filters then excludes
-  any that also match the exclusion filters.
 - With no filters, ``mongosync`` syncs all databases and collections.
 
 .. _c2c-filter-syntax:
@@ -35,17 +29,9 @@ also supports exclusion filters and regular expressions.
 Filter Syntax
 -------------
 
-The :ref:`c2c-api-start` API endpoint accepts two fields that configure 
-filtered sync: ``includeNamespaces`` and ``excludeNamespaces``.
-Each field takes an array of filters that specify the databases and collections 
-to include or exclude from sync.
-
-.. note::
-
-   If the :ref:`c2c-api-start` call uses both ``includeNamespaces`` and 
-   ``excludeNamespaces`` parameters, ``mongosync`` first matches databases
-   and collections from the inclusion filters, then excludes those that
-   also match an exclusion filter.
+The :ref:`c2c-api-start` API endpoint accepts one field to configure filtered
+sync: ``includeNamespaces``.  This field takes an array of filters to specify
+the databases and collections to include in the sync.
 
 Filters have the following syntax:
 
@@ -58,38 +44,10 @@ Filters have the following syntax:
           "collections": [
              "<collection-name>"
           ]
-          "databaseRegex": {
-             "pattern": "<regex-pattern>",
-             "options": "<options>"
-          },
-          "collectionRegex": {
-             "pattern": "<regex-pattern>",
-             "options": "<options>"
-          }
-       }
-    ],
-    "excludeNamespaces": [
-       {
-          "database": "<database-name>",
-          "collections": [
-             "<collection-name>"
-          ]
-          "databaseRegex": {
-             "pattern": "<regex-pattern>",
-             "options": "<options>"
-          },
-          "collectionRegex": {
-             "pattern": "<regex-pattern>",
-             "options": "<options>"
-          }
        }
     ]
 
-Filters must include either the ``database`` field or the ``databaseRegex`` field.
-
-If you need the filter to match specific collections, you can use either 
-the ``collections`` array to specify collections individually or define 
-a regular expression using the ``collectionRegex`` field.
+Filters must include the ``database`` field. 
 
 .. _c2c-configure-filter:
 
@@ -116,43 +74,33 @@ Configure a Filter
 
    .. step:: Create a Filter.
 
-      The :ref:`c2c-api-start` API accepts two parameters that configure
+      The :ref:`c2c-api-start` API accepts a parameter to configure a series of
       optional filters: 
       
       - The ``includeNamespaces`` parameter takes an array of filters, which
         are used to determines which databases and collections ``mongosync`` 
         should include in the sync.
-      - The ``excludeNamespaces`` parameter takes an array of filters, which
-        are used to determine which databases and collections ``mongosync``
-        should exclude from the sync.
      
       If you don't specify a filter, ``mongosync`` performs a full cluster
       sync.
 
-      Create inclusion and/or exclusion filters to identify the databases and
+      Create inclusion filters to identify the databases and
       collections you want to sync.
 
       For example, this inclusion filter would configure ``mongosync`` to only
-      sync collections whose names begin with ``accounts_`` from the ``sales`` 
-      database, except for the ``accounts_old`` collection:
+      sync ``accounts_us`` and ``accounts_eu`` collections in the ``sales`` 
+      database.
 
       .. code-block:: json
 
          "includeNamespaces": [
             {
                "database": "sales",
-               "collectionRegex": {
-                  "pattern": "^accounts_.+$",
-                  "options": "ms"
-               }
-         ],
-         "excludeNamespaces": [
-             {
-                 "database": "sales",
-                 "collections": [
-                     "accounts_old"
-                 ]
-             }
+               "collections": [
+                   "accounts_us",
+                   "accounts_eu",
+               ]
+            }
          ]
 
       For more information on filters, see :ref:`c2c-filter-syntax`. 
@@ -349,9 +297,4 @@ Adding and Renaming Collections While Syncing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/example-filter-collection-with-renaming.rst
-
-.. toctree::
-   :hidden:
-
-   /reference/collection-level-filtering/filter-regex
 
