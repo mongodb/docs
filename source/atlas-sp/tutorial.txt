@@ -50,28 +50,19 @@ Procedure
             :guilabel:`SERVICES` heading.
 
    .. step:: Create a {+SPI+}.
-
-      .. procedure::
-         :style: connected
-
-         .. step:: Click the :guilabel:`Create Instance`
-            button.
-
-         .. step:: Set the :guilabel:`Instance Name` to ``tutorial``. 
-            Select ``AWS`` for your :guilabel:`Cloud Provider`, and 
-            select ``us-east-1`` as your :guilabel:`Region`.
-
-         .. step:: Click :guilabel:`Create`.
-
-            A confirmation message displays when the {+SPI+}
-            initializes.
+             
+             Click :guilabel:`Get Started` in the lower-right corner.
+             After displaying a brief explanation of the core 
+             {+atlas-sp+} components, {+atlas-sp+} creates an instance 
+             and displays the name and cloud provider region in a modal 
+             window.
 
    .. step:: Get the {+spi+} connection string.
 
       .. procedure::
          :style: connected
 
-         .. step:: Locate the overview panel of the ``tutorial`` 
+         .. step:: Locate the overview panel of your 
             {+spi+} and click :guilabel:`Connect`. 
             
          .. step:: Select 
@@ -81,17 +72,12 @@ Procedure
             :guilabel:`Select your mongo shell version` dropdown
             menu, select the latest version of ``mongosh``.
 
-         .. step:: Under the 
-            :guilabel:`Run your connection string in your command line`
-            heading, select the :guilabel:`Password (SCRAM)` 
-            authentication option.
-
          .. step:: Copy the connection string provided under 
             :guilabel:`Run your connection string in your command line`.
             You will need this in a later step.
 
          .. step:: Click 
-            :guilabel:`Done`.
+            :guilabel:`Close`.
 
    .. step:: Add the sample stream connection to the connection 
       registry.
@@ -101,16 +87,14 @@ Procedure
       .. procedure::
          :style: connected
 
-         .. step:: In the pane for your ``tutorial`` instance, click
+         .. step:: In the pane for your {+spi+}, click
             :guilabel:`Configure`.
 
-         .. step:: In the :guilabel:`Connection Registry` tab, click
-            :guilabel:`+ Add Connection` in the upper right.
-
-         .. step:: Click :guilabel:`Sample Stream`. From the 
-            ``Sample stream`` dropdown, select ``sample_stream_solar``.
-
-         .. step:: Click :guilabel:`Add connection`.
+         .. step:: Click :guilabel:`Add sample connection.` This 
+            creates a ``sample_stream_solar`` connection of type 
+            ``Sample Stream``. Click on the 
+            :guilabel:`Connection Registry` tab to verify that the
+            connection exists.
 
    .. step:: Add a MongoDB |service| connection to the connection 
       registry.
@@ -120,7 +104,7 @@ Procedure
       .. procedure::
          :style: connected
 
-         .. step:: In the pane for your ``tutorial`` instance, click
+         .. step:: In the pane for your {+spi+}, click
             :guilabel:`Configure`.
 
          .. step:: In the :guilabel:`Connection Registry` tab, click
@@ -167,76 +151,69 @@ Procedure
             .. code-block::
                :copyable: true
 
-               var s='$source' : { 
-                  connectionName: 'sample_stream_solar',
-                  timeField: {
-                     $dateFromString: {
-                        dateString: '$timestamp'
-                     }
-                  }
-               }
-
-               var pipeline = [{ 
-                  $source: {
-                     connectionName: "sample_stream_solar",
-                     timeField: { 
-                        $dateFromString: { 
-                           dateString: '$timestamp' 
-                        }
-                     }
-                  }
-               },
-               { 
-                  $tumblingWindow: {
-                     interval: {
-                        size: NumberInt(1), 
-                        unit: "hour"
-                     },
-                     pipeline: [{ 
-                        $unwind: { 
-                           path: "$obs"
-                        }
-                     },
-                     {
-                        $group: {
-                           _id: "$group_id",
-                           max: { 
-                              $max: "$obs.watts"
-                           },
-                           avg: {
-                              $avg: "$obs.watts"
-                           }
-                        }
-                     }]
-                  }
-               }]
-
-               sp.process([s,pipeline])
+               sp.process([{"$source": {
+                  "connectionName": "sample_stream_solar"
+               }}])
 
             Verify that data from the ``sample_stream_solar`` 
             connection displays to the console, and terminate 
             the process.
 
-   .. step:: Create a stream processor.
+   .. step:: Create a persistent stream processor.
       
       Copy the following code into your ``mongosh`` prompt:
 
       .. code-block:: sh
          :copyable: true
 
+         var pipeline = [{
+            $source: {
+            connectionName: "sample_stream_solar",
+               timeField: {
+                  $dateFromString: {
+                  dateString: '$timestamp'
+                  }
+            }
+            }
+         },
+         {
+            $tumblingWindow: {
+            interval: {
+               size: NumberInt(1),
+               unit: "hour"
+               },
+            pipeline: [{
+               $unwind: {
+                  path: "$obs"
+               }
+            },
+            {
+               $group: {
+                  _id: "$group_id",
+                  max: {
+                  $max: "$obs.watts"
+                  },
+                  avg: {
+                  $avg: "$obs.watts"
+                  }
+               }
+            }]
+            }
+         }]
+
          var m= {
             $merge: {
-               into: {
-                  connectionName: "mongodb1",
-                  db: "MySolar",
-                  coll: "solar"
-               }
+            into: {
+               connectionName: "mongodb1",
+               db: "MySolar",
+               coll: "solar"
+            }
             }
          }
 
-         sp.createStreamProcessor("avgWatts",[s,pipeline,m])
+         sp.createStreamProcessor("avgWatts", [...pipeline, m])
 
-      This creates a stream processor named ``avgwatts`` that
+      This creates a stream processor named ``avgWatts`` that
       applies the previously defined query and writes the 
       processed data to the ``solar`` collection of the 
       ``MySolar`` database on the {+cluster+} you connected to. 
@@ -250,7 +227,7 @@ Procedure
 
       .. code-block:: sh
 
-         sp.StreamProcessor.start("avgWatts")
+         sp.avgWatts.start()
 
    .. step:: Verify the output of the stream processor.
 
@@ -275,7 +252,7 @@ Procedure
       .. code-block:: shell
          :copyable: true
 
-         sp.StreamProcessor.stop("avgWatts")
+         sp.avgWatts.stop()
       
    .. step:: Drop the stream processor.
 
@@ -284,7 +261,7 @@ Procedure
       .. code-block:: shell
          :copyable: true
 
-         sp.StreamProcessor.drop("avgWatts")
+         sp.avgWatts.drop()
 
       To confirm that you have dropped ``avgWatts``, list
       all your available stream processors:
@@ -292,7 +269,7 @@ Procedure
       .. code-block:: shell
          :copyable: true
 
-         sp.listStreamProcessors.()
+         sp.listStreamProcessors()
 
 Next Steps
 ----------
