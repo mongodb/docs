@@ -3,7 +3,7 @@
    :stub-columns: 1
    :class: compatibility-large
 
-   * - Java Driver Version 
+   * - Java Driver Version
      - Java 17
      - Java 11 [#lts-note]_
      - Java 8
