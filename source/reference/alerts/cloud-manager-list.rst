@@ -550,7 +550,7 @@ Organization
      - Scopes
 
    * - .. alert:: ALL_ORG_USERS_HAVE_MFA
-     - Organization users have multi-factor authentication enabled
+     - Organization users have two-factor authentication enabled
      - Organization, Global
 
    * - .. alert:: ORG_ACTIVATED
@@ -657,8 +657,7 @@ Organization
      - Organization, Global
 
    * - .. alert:: ORG_USERS_WITHOUT_MFA
-     - Organization users do not have multi-factor authentication 
-       enabled
+     - Organization users do not have two-factor authentication enabled
      - Organization, Global
 
 Project
@@ -685,7 +684,7 @@ Project
      - Project, Global
 
    * - .. alert:: USERS_WITHOUT_MULTI_FACTOR_AUTH
-     - Users do not have multi-factor authentication enabled
+     - Users do not have two-factor authentication enabled
      - Project, Global
 
 Replica Set
