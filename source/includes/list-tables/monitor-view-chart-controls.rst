@@ -40,9 +40,16 @@
        the database for which to display metrics. 
 
    * - :guilabel:`Display Opcounters on Separate Charts`
-     - Directs |service| to split the :guilabel:`Opcounters`
-       chart into its individual components. You can then choose
-       to chart one or more of those components.
+     - Directs |service| to split the :guilabel:`Opcounters` chart into
+       its individual components. You can then choose to chart one or
+       more of those components. If you select this checkbox, |service|
+       displays the number of the following operations per second on a
+       ``mongot`` process: 
+
+       - delete 
+       - getmore
+       - insert
+       - update
 
    * - :guilabel:`Display Timeline Annotations`
      - Directs |service| to display or hide chart annotations. 
