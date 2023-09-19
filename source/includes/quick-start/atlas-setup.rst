@@ -37,7 +37,7 @@ want to connect to as shown below.
    :alt: Atlas Connection GUI cluster selection screen
 
 Proceed to the :guilabel:`Connect Your Application` step and select the Java driver.
-Select "4.1 or Later" for the version.
+Select "4.3 or Later" for the version.
 Click the :guilabel:`Copy` icon to copy the *connection string* to your clipboard as
 shown below.
 
