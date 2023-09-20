@@ -10,6 +10,14 @@
   modules containing common |service| actions. You can configure the 
   project overview to display as your project's landing page.
 
+.. _atlas_2023_07_12:
+
+12 July 2023 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Provides preview of MongoDB 7.0+ databases support for {+dedicated-clusters+}.
+- Suppports cross-organization billing in :atlas:`Atlas for Government </government>`.
+
 .. _atlas_2023_06_14:
 
 14 June 2023 Release
