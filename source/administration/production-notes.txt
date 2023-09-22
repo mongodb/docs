@@ -15,19 +15,13 @@ Production Notes
 This page details system configurations that affect MongoDB,
 especially when running in production.
 
-.. warning:: MMAPv1 Removed
-
-
-   MongoDB 4.2 removes the deprecated MMAPv1 storage engine. To change
-   your MMAPv1 storage engine deployment to :doc:`/core/wiredtiger`, see:
-
-   - :doc:`/tutorial/change-standalone-wiredtiger`
-
-   - :doc:`/tutorial/change-replica-set-wiredtiger`
-
-   - :doc:`/tutorial/change-sharded-cluster-wiredtiger`
-
 .. include:: /includes/fact-mms-summary.rst
+
+.. |link-topic-ing| replace:: running in production
+
+.. |atlas-url| replace:: :atlas:`Atlas Production Notes </production-notes/>`
+
+.. include:: /includes/fact-atlas-link.rst
 
 .. _prod-notes-supported-platforms:
 
@@ -40,12 +34,6 @@ recommendations.
 
 Platform Support Notes
 ----------------------
-
-.. note::
-
-   .. include:: /includes/extracts/4.0-errata-wt-4018.rst
-
-   For details, see :issue:`WT-4018`.
 
 x86_64
 ~~~~~~
@@ -101,6 +89,16 @@ Platform Support Matrix
    pack 5. Earlier versions of MongoDB are tested against SLES 12 
    with no service pack.
 
+.. [#SLES15-SP-info]
+
+   MongoDB versions 7.0 and later are tested against SLES 15 service pack 4. 
+   Earlier versions of MongoDB are tested against SLES 15 with no service pack.
+
+.. [#RHEL7-compat]
+   
+   MongoDB version 7.0 is built and tested against RHEL 7.9. Earlier versions 
+   of MongoDB are tested against RHEL 7 and assume forward compatibility.
+
 .. _prod-notes-recommended-platforms:
 
 Recommended Platforms
@@ -113,7 +111,7 @@ systems are recommended for production use on ``x86_64`` architecture:
 - Debian 10
 - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS 7 and 8 [#rocky-almalinux]_
 - SLES 12 and 15
-- Ubuntu LTS 18.04 and 20.04
+- Ubuntu LTS 20.04 and 22.04
 - Windows Server 2016 and 2019
 
 .. [#oracle-linux]
@@ -162,6 +160,8 @@ engine other than the one specified by :option:`--storageEngine <mongod --storag
 
 :binary:`~bin.mongod` must possess read and write permissions for the specified
 :setting:`~storage.dbPath`.
+
+.. include:: /includes/security/fact-antivirus-scan.rst
 
 .. _prod-notes-concurrency:
 
@@ -590,9 +590,20 @@ Scheduling for Virtual or Cloud Hosted Devices
 
 For local block devices attached to a virtual machine instance via
 the hypervisor or hosted by a cloud hosting provider, the guest operating system
-should use a *noop* scheduler for best performance. The
-*noop* scheduler allows the operating system to defer I/O scheduling to
+should use the :term:`cfq` scheduler for best performance. The
+``cfq`` scheduler allows the operating system to defer I/O scheduling to
 the underlying hypervisor.
+
+.. note::
+
+   The :term:`noop` scheduler can be used for scheduling if all the 
+   following conditions are met:
+
+   - The hypervisor is VMware.
+   - A replica set topology or sharded cluster is used.
+   - The virtual machines are located on the same virtual host.
+   - The underlying storage containing the DBpaths is a common 
+     :abbr:`LUN (logical unit number)` blockstore.
 
 Scheduling for Physical Servers
 +++++++++++++++++++++++++++++++
@@ -638,7 +649,7 @@ compression library:
       Provides better compression rate than ``snappy`` but has a
       higher CPU cost than both ``snappy`` and ``zstd``.
 
-- :term:`zstd` (Available starting in MongoDB 4.2) 
+- :term:`zstd` 
       Provides better compression rate than both ``snappy`` and
       ``zlib`` and has a lower CPU cost than ``zlib``.
 
@@ -678,13 +689,6 @@ operations like the following:
 - Features which rely on timekeeping may have inconsistent or
   unpredictable behavior in clusters with clock drift between MongoDB
   components. 
-
-NTP synchronization is required for deployments running MongoDB lower
-than ``3.4.6`` or ``3.2.17`` with the Wired Tiger storage engine, where
-clock drift could lead to :issue:`checkpoint hangs <WT-3227>`. The issue
-was fixed in MongoDB :ref:`3.4.6+ <3.4.6-changelog>` and MongoDB
-:ref:`3.2.17+ <3.2.17-release-notes>`, and is resolved in all point
-release of MongoDB 3.6, 4.0, 4.2, and later releases.
 
 .. _prod-notes-platform-considerations:
 
@@ -1036,13 +1040,6 @@ KVM
 
 Performance Monitoring
 ----------------------
-
-.. note::
-
-   Starting in version 4.0, MongoDB offers :doc:`free Cloud monitoring
-   </administration/free-monitoring>` for standalones and replica sets.
-   For more information, see :doc:`/administration/free-monitoring`.
-
 
 iostat
 ~~~~~~

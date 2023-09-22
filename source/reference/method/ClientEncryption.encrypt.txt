@@ -27,7 +27,7 @@ ClientEncryption.encrypt()
 Syntax
 ------
 
-.. code-block:: bash
+.. code-block:: javascript
 
    clientEncryption = db.getMongo().getClientEncryption()
   
@@ -105,38 +105,13 @@ Syntax
          <set-qe-algorithm>`.
 
          For details on the supported encryption algorithms, see
-         :ref:`<qe-fundadmentals-man-enc-algorithm-choice>`.
+         :ref:`<qe-fundamentals-man-enc-algorithm-choice>`.
 
 
 Behavior
 --------
 
-Create an Encrypted Database Connection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :binary:`~bin.mongosh` client-side field level and queryable 
-encryption methods require a database connection configured for 
-client-side encryption. If the current database connection was not 
-initiated with client-side field level encryption enabled, either:
-
-- Use the :method:`Mongo()` constructor from the :binary:`~bin.mongosh`
-  to establish a connection with the required client-side field
-  level encryption options. The :method:`Mongo()` method supports the
-  following Key Management Service (KMS) providers for Customer
-  Master Key (CMK) management:
-
-- :ref:`Amazon Web Services KMS <field-level-encryption-aws-kms>`
-- :ref:`Azure Key Vault <field-level-encryption-azure-keyvault>`
-- :ref:`Google Cloud Platform KMS <field-level-encryption-gcp-kms>`
-- :ref:`Locally Managed Key <field-level-encryption-local-kms>`
-
-*or*
-
-- Use the :binary:`~bin.mongosh` :ref:`command line options
-  <mongosh-client-side-field-level-encryption-options>` to establish a
-  connection with the required options. The command line options only
-  support the :ref:`Amazon Web Services KMS
-  <field-level-encryption-aws-kms>` provider for CMK management. 
+.. include:: /includes/create-an-encrypted-db-conn.rst 
 
 .. _encrypt-bson-types:
 
@@ -161,7 +136,7 @@ BSON types:
 - ``bool``
 - ``object``
 - ``array``
-- ``javascriptWithScope`` (*Deprecated*)
+- ``javascriptWithScope`` (*Deprecated in MongoDB 4.4*)
 
 Examples
 --------
@@ -174,37 +149,46 @@ Client-Side Field Level Encryption
 The following example uses a locally managed KMS for the client-side
 field level encryption configuration.
 
-.. include:: /includes/csfle-connection-boilerplate-example.rst
+.. procedure::
+   :style: normal
 
-Retrieve the :method:`ClientEncryption <getClientEncryption()>` object
-and use the :method:`ClientEncryption.encrypt()` method to encrypt
-a value using a specific data encryption key ``UUID`` and 
-:ref:`encryption algorithm <field-level-encryption-algorithms>`:
+   .. step:: Create Your Encrypted Connection
 
-.. code-block:: javascript
+      .. include:: /includes/csfle-connection-boilerplate-example.rst
 
-   clientEncryption = encryptedClient.getClientEncryption();
+   .. step:: Encrypt Your Data
 
-   clientEncryption.encrypt(
-     UUID("64e2d87d-f168-493c-bbdf-a394535a2cb9"), 
-     "123-45-6789", 
-     "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
-   )
+      Retrieve the :method:`ClientEncryption <getClientEncryption()>` object
+      and use the :method:`ClientEncryption.encrypt()` method to encrypt
+      a value using a specific data encryption key ``UUID`` and 
+      :ref:`encryption algorithm <field-level-encryption-algorithms>`:
 
-You can also specify the algorithm using a document with an
-``algorithm`` field:
+      .. code-block:: javascript
 
-.. code-block:: javascript
+         clientEncryption = encryptedClient.getClientEncryption();
 
-   clientEncryption = encryptedClient.getClientEncryption();
+         clientEncryption.encrypt(
+           UUID("64e2d87d-f168-493c-bbdf-a394535a2cb9"), 
+           "123-45-6789", 
+           "AEAD_AES_256_CBC_HMAC_SHA_512-Random"
+         )
 
-   clientEncryption.encrypt(
-     UUID("64e2d87d-f168-493c-bbdf-a394535a2cb9"), 
-     "123-45-6789", 
-     { algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" }
-   )
+      You can also specify the algorithm using a document with an
+      ``algorithm`` field:
 
-If sucessful, :method:`~ClientEncryption.encrypt` returns the encrypted 
+      .. code-block:: javascript
+
+         clientEncryption = encryptedClient.getClientEncryption();
+
+         clientEncryption.encrypt(
+           UUID("64e2d87d-f168-493c-bbdf-a394535a2cb9"), 
+           "123-45-6789", 
+           { algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Random" }
+         )
+
+Example Results
+```````````````
+If successful, :method:`~ClientEncryption.encrypt` returns the encrypted 
 value:
 
 .. code-block:: javascript
@@ -223,57 +207,67 @@ Queryable Encryption
 The following example uses a locally managed KMS for the 
 queryable encryption configuration.
 
-.. include:: /includes/qe-connection-boilerplate.rst
+.. procedure::
+   :style: normal
 
-Retrieve the :method:`ClientEncryption <getClientEncryption()>` object
-and use the :method:`ClientEncryption.encrypt()` method to encrypt
-a value using a specific data encryption key ``UUID`` and 
-:ref:`encryption algorithm <field-level-encryption-algorithms>`:
+   .. step:: Create Your Encrypted Connection
 
-.. code-block:: javascript
+      .. include:: /includes/qe-connection-boilerplate.rst
 
-   const eDB = "encrypted"
-   const eKV = "__keyVault"
+   .. step:: Encrypt Your Data
 
-   const clientEncryption = encryptedClient.getClientEncryption();
-   const keyVaultClient = Mongo().getDB(eDB).getCollection(eKV)
+      Retrieve the :method:`ClientEncryption <getClientEncryption()>` object
+      and use the :method:`ClientEncryption.encrypt()` method to encrypt
+      a value using a specific data encryption key ``UUID`` and 
+      :ref:`encryption algorithm <field-level-encryption-algorithms>`:
 
-   const dek = keyVaultClient.findOne({ keyAltNames: "dataKey1" })
+      .. code-block:: javascript
 
-   clientEncryption.encrypt(
-     dek._id,
-     "123-45-6789", 
-     "Unindexed"
-   )
+         const eDB = "encrypted"
+         const eKV = "__keyVault"
 
-You can also specify the algorithm using a document containing the
-fields:
+         const clientEncryption = encryptedClient.getClientEncryption();
+         const keyVaultClient = Mongo().getDB(eDB).getCollection(eKV)
 
-- ``algorithm``
-- ``queryType``
-- ``contentionFactor``
+         const dek = keyVaultClient.findOne({ keyAltNames: "dataKey1" })
 
-.. code-block:: javascript
+         clientEncryption.encrypt(
+           dek._id,
+           "123-45-6789", 
+           "Unindexed"
+         )
 
-   const eDB = "encrypted"
-   const eKV = "__keyVault"
+      You can also specify the algorithm using a document containing the
+      fields:
 
-   const clientEncryption = encryptedClient.getClientEncryption();
-   const keyVaultClient = Mongo().getDB(eDB).getCollection(eKV)
+      - ``algorithm``
+      - ``queryType``
+      - ``contentionFactor``
 
-   const dek = keyVaultClient.findOne({ keyAltNames: "dataKey1" })
+      .. code-block:: javascript
 
-   clientEncryption.encrypt(
-     dek._id,
-     "123-45-6789", 
-     { 
-       algorithm: "Indexed", 
-       queryType: "equality", 
-       contentionFactor: 4
-     }
-   )
+         const eDB = "encrypted"
+         const eKV = "__keyVault"
 
-If sucessful, :method:`~ClientEncryption.encrypt` returns the encrypted 
+         const clientEncryption = encryptedClient.getClientEncryption();
+         const keyVaultClient = Mongo().getDB(eDB).getCollection(eKV)
+
+         const dek = keyVaultClient.findOne({ keyAltNames: "dataKey1" })
+
+         clientEncryption.encrypt(
+           dek._id,
+           "123-45-6789", 
+           { 
+             algorithm: "Indexed", 
+             queryType: "equality", 
+             contentionFactor: 4
+           }
+         )
+
+Example Results
+```````````````
+
+If successful, :method:`~ClientEncryption.encrypt` returns the encrypted 
 value:
 
 
@@ -281,3 +275,9 @@ value:
    :copyable: false
 
    Binary(Buffer.from("05b100000005640020000000005ab3581a43e39a8e855b1ac87013e841735c09d19ae86535eea718dd56122ba50573002000000000703d2cba9832d90436c6c92eb232aa5b968cdcd7a3138570bc87ef0a9eb3a0e905630020000000009cb61df010b1bb54670a5ad979f25f4c48889059dfd8920782cf03dd27d1a50b05650020000000003f5acea703ea357d3eea4c6a5b19139a580089341424a247839fd4d5cf0d312a12636d00040000000000000000", "hex"), 6)
+
+Learn More
+----------
+
+For complete documentation on initiating MongoDB connections with
+client-side field level encryption enabled, see :method:`Mongo()`.

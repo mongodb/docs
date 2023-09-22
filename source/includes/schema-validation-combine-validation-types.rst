@@ -3,7 +3,7 @@ validation:
 
 .. code-block:: javascript
 
-   db.createCollection{ "sales", {
+   db.createCollection("sales", {
      validator: {
        "$and": [
          // Validation with query operators
@@ -18,11 +18,12 @@ validation:
              "properties": {
                "items": { "bsonType": "array" }
              }
-           }
-         }
-       ]
-     }
-   }
+            }
+          }
+        ]
+      }
+    }
+  )
 
 The preceding validation enforces these rules for documents in the
 ``sales`` collection:

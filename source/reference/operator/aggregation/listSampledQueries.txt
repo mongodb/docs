@@ -1,0 +1,201 @@
+===================
+$listSampledQueries
+===================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Definition
+----------
+
+.. pipeline:: $listSampledQueries
+
+   Returns sampled queries for all collections or a specific 
+   collection. Sampled queries are used by the
+   ``analyzeShardKey`` command to calculate metrics about the read and 
+   write distribution of a shard key.
+
+Syntax
+------
+
+``$listSampledQueries`` has this syntax:
+
+.. code-block:: javascript
+
+   {  
+      $listSampledQueries: { namespace: <namespace> } 
+   }
+
+Behavior
+--------
+
+- To list sampled queries for a single collection, specify
+  the collection in the ``namespace`` argument.
+
+- To list sampled queries for all collections, omit the ``namespace``
+  argument.
+
+Access Control
+--------------
+
+``$listSampledQueries`` requires the :authrole:`clusterMonitor` role 
+on the cluster. 
+
+Limitations
+-----------
+
+- You cannot use ``$listSampledQueries`` on Atlas
+  :atlas:`multitenant </docs/atlas/build-multi-tenant-arch/>`
+  configurations.
+- You cannot use ``$listSampledQueries`` on standalone deployments.
+- You cannot use ``$listSampledQueries`` directly against a
+  :option:`--shardsvr <mongod --shardsvr>` replica set.
+  When running on a sharded cluster, ``$listSampledQueries``
+  must run against a ``mongos``.
+
+Examples
+--------
+
+List Sampled Queries for All Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation lists all sampled queries for all
+collections in the replica set:
+
+.. code-block:: javascript
+
+   db.aggregate( [  { $listSampledQueries: {  } } ] )
+
+List Sampled Queries for A Specific Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation operation lists all sampled queries for a 
+``post`` collections on the ``social`` database:
+
+.. code-block:: javascript
+
+   db.aggregate( [  { $listSampledQueries: { namespace: "social.post" } } ] )
+
+Output
+------
+
+The output fields differ for read and write queries.
+
+Read Queries 
+~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      _id: <uuid>,  
+      ns: "<database>.<collection>",
+      collectionUuid: <collUUID>,
+      cmdName: <find|aggregate|count|distinct>,
+      cmd: {
+        filter: <object>,
+        collation: <object>,
+        let: <object>
+      },
+      expireAt: <date>
+   }
+
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+
+   * - ``_id``
+     - UUID
+     - Sample ID for the query.
+
+   * - ``ns``
+     - string
+     - Namespace of the sampled collection.
+
+   * - ``collectionUuid``
+     - UUID
+     - ID of the sampled collection.
+   
+   * - ``cmdName``
+     - string
+     - Name of the sampled command. Can be one of:
+
+       - ``"find"``
+       - ``"aggregate"``
+       - ``"count"``
+       - ``"distinct"``
+
+   * - ``cmd.filter``
+     - object
+     - Filter the command ran with, if applicable.
+
+   * - ``cmd.collation``
+     - object
+     - Collation the command ran with, if applicable.
+
+   * - ``cmd.let``
+     - object
+     - Custom variables the command ran with, if applicable.
+
+   * - ``expireAt``
+     - date
+     - Date that the sample expires.
+
+Write Queries
+~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   {
+      _id: <uuid>,
+      ns: "<database>.<collection>",
+      collectionUuid: <collUUID>,
+      cmdName: <update|delete|findAndModify>,
+      cmd: <object>,
+      expireAt: <date>
+   }
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field Name
+     - Type
+     - Description
+
+   * - ``_id``
+     - UUID
+     - Sample ID for the query.
+
+   * - ``ns``
+     - string
+     - Namespace of the sampled collection.
+
+   * - ``collectionUuid``
+     - UUID
+     - ID of the sampled collection.
+   
+   * - ``cmdName``
+     - string
+     - Name of the sampled command. Can be one of:
+
+       - ``"update"``
+       - ``"delete"``
+       - ``"findAndModify"``
+
+   * - ``cmd``
+     - object
+     - Command object
+
+   * - ``expireAt``
+     - date
+     - Date that the sample expires.

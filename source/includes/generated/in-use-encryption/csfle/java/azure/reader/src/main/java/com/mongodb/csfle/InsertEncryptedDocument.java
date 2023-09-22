@@ -19,9 +19,6 @@ package com.mongodb.csfle;
 
 import java.util.*;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static com.mongodb.client.model.Filters.eq;
 
 import com.mongodb.AutoEncryptionSettings;
@@ -94,7 +91,7 @@ public class InsertEncryptedDocument {
 
         // start-extra-options
         Map<String, Object> extraOptions = new HashMap<String, Object>();
-        extraOptions.put("mongocryptdSpawnPath", "<your path to mongocryptd>"));
+        extraOptions.put("cryptSharedLibPath", "<Full path to your Automatic Encryption Shared Library>"));
         // end-extra-options
 
         MongoClientSettings clientSettingsRegular = MongoClientSettings.builder()

@@ -1,10 +1,12 @@
 ref: listCollections-auth-required-access
 content: |
 
-   To run :dbcommand:`listCollections` when access control is enforced,
-   users must, in general, have privileges that grant
-   :authaction:`listCollections` action on the database. For example,
-   the following privilege grants users to run
+   The :dbcommand:`listCollections` command requires the
+   :authaction:`listCollections` action when access control is enforced.
+   Users must have privileges that grant the ``listCollections`` action
+   on the database to run ``listCollections``.
+   
+   For example, the following command grants the privilege to run
    :method:`db.getCollectionInfos()` against the ``test`` database:
 
    .. code-block:: javascript
@@ -12,47 +14,69 @@ content: |
       { resource: { db: "test", collection: "" }, actions: [ "listCollections" ] }
 
    The built-in role :authrole:`read` provides the privilege to run
-   :dbcommand:`listCollections` for a specific database.
+   ``listCollections`` for a specific database.
 
-   Users without the required privilege
-   can run the command with **both** ``authorizedCollections`` and
-   ``nameOnly`` options set to ``true``. In this case, the command returns
-   just the name and type of the collection(s) to which the user has
-   privileges.
+   Users without the required ``read`` privilege can run
+   ``listCollections`` when ``authorizedCollections`` and ``nameOnly``
+   are both set to ``true``. In this case, the command returns the names
+   and types for collection(s) where the user has privileges.
 
-   For example, consider a user with a role that grants just the following
-   privilege:
-
-   .. code-block:: javascript
-
-      { resource: { db: "test", collection: "foo" }, actions: [ "find" ] }
-
-   The user can run the command if the command includes **both**
-   ``authorizedCollections`` and ``nameOnly`` options set to ``true``
-   (with or without the ``filter`` option):
+   For example, consider a user with a role that grants the following
+   ``find`` privilege:
 
    .. code-block:: javascript
 
-      db.runCommand( { listCollections: 1.0, authorizedCollections: true, nameOnly: true } )
+      { resource: { db: "sales", collection: "currentQuarter" }, actions: [ "find" ] }
 
-   The operation returns the name and type of the ``foo`` collection.
-
-   However, the following operations (with or without the ``filter``
-   option) error for the user without the required access:
+   The user can run ``listCollections`` if  ``authorizedCollections``
+   and ``nameOnly`` are both set to ``true``.
 
    .. code-block:: javascript
 
-      db.runCommand( { listCollections: 1.0, authorizedCollections: true } )
-      db.runCommand( { listCollections: 1.0, nameOnly: true } )
+      db.runCommand(
+         {
+             listCollections: 1.0,
+             authorizedCollections: true,
+             nameOnly: true
+         }
+      )
+
+   The operation returns the name and type of the ``currentQuarter``
+   collection.
+
+   However, the following operations return an error if the user does
+   not have the required access authorization:
+
+   .. code-block:: javascript
+
+      db.runCommand(
+         {
+             listCollections: 1.0,
+             authorizedCollections: true
+         }
+      )
+
+      db.runCommand(
+         {
+             listCollections: 1.0,
+             nameOnly: true
+         }
+      )
 ---
 ref: listCollections-auth-show-collections
 content: |
 
-   The ``mongo`` shell, ``show collections`` is equivalent to:
+   The ``mongosh`` method ``show collections`` is similar to:
 
    .. code-block:: javascript
 
-      db.runCommand( { listCollections: 1.0, authorizedCollections: true, nameOnly: true } )
+      db.runCommand(
+         {
+             listCollections: 1.0,
+             authorizedCollections: true,
+             nameOnly: true
+         }
+      )
 
    - For users with the required access, ``show collections`` lists the
      non-system collections for the database.
@@ -82,7 +106,13 @@ content: |
 
    .. code-block:: javascript
 
-      db.runCommand( { listCollections: 1.0, authorizedCollections: true, nameOnly: true } )
+      db.runCommand(
+         {
+             listCollections: 1.0,
+             authorizedCollections: true,
+             nameOnly: true
+         }
+      )
 
    - For users with the required access (privileges that grant
      :authaction:`listCollections` action on the database), the method

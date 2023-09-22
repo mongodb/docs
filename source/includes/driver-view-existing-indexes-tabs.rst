@@ -14,7 +14,7 @@
 
          To return a list of all indexes on a collection, use the
          :method:`db.collection.getIndexes()` method or a similar :api:`method
-         for your driver </>`.
+         for your driver <>`.
 
          For example, to view all indexes on the ``people`` collection, run the
          following command:
@@ -45,7 +45,7 @@
          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
          To list all indexes of a certain type (such as :ref:`hashed
-         <index-type-hashed>` or :ref:`text <index-feature-text>`) for 
+         <index-type-hashed>` or :ref:`text <index-type-text>`) for 
          all collections in all database, run the following command in
          :binary:`~bin.mongosh`:
 

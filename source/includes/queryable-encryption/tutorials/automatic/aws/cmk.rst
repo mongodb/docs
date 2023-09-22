@@ -29,10 +29,7 @@
          Record the Amazon Resource Name ({+aws-arn-abbr+}) and Region of
          your {+cmk-long+}. You will use these in later steps of this guide.
 
-      .. tip:: Learn More
-
-         To learn more about your {+cmk-long+}s, see
-         :ref:`qe-reference-keys-key-vaults`.
+      .. tip:: Key Policies 
 
          To learn more about key policies, see
          `Key Policies in AWS KMS <https://docs.aws.amazon.com/kms/latest/developerguide/key-policies.html>`__

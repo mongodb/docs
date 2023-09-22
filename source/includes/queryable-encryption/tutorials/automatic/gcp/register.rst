@@ -22,15 +22,9 @@
       .. tabs-drivers::
 
          .. tab::
-            :tabid: java-sync
+            :tabid: shell
 
-            .. important::
-
-               When creating your service account key, you receive a one-time
-               download of the private key information. Unless you are using an
-               attached service account, make sure to download this
-               file in either the PKCS12 or JSON format for use later in this
-               tutorial.
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
 
          .. tab::
             :tabid: nodejs
@@ -43,11 +37,22 @@
             .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
 
          .. tab::
-            :tabid: csharp
+            :tabid: java-sync
 
-            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+            .. important::
+
+               When creating your service account key, you receive a one-time
+               download of the private key information. Unless you are using an
+               attached service account, make sure to download this
+               file in either the PKCS12 or JSON format for use later in this
+               tutorial.
 
          .. tab::
             :tabid: go
+
+            .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst
+         
+         .. tab::
+            :tabid: csharp
 
             .. include:: /includes/tutorials/automatic/gcp/record-credentials.rst

@@ -26,12 +26,15 @@ Definition
 Syntax
 ------
 
-The :dbcommand:`create` command has the following syntax:
+The ``create`` command has the following syntax:
 
-.. note:: Starting in MongoDB 4.2
-
-   MongoDB removes the MMAPv1 storage engine and the MMAPv1 specific
-   option ``flags`` for :dbcommand:`create`.
+.. note::
+   
+   MongoDB 6.3 adds the ``bucketMaxSpanSeconds`` and
+   ``bucketRoundingSeconds`` parameters. To downgrade below 6.3, you
+   must either drop all collections with these parameters, or modify
+   them to use the corresponding ``granularity``, if possible. For 
+   details see :dbcommand:`collMod`.
 
 .. code-block:: javascript
 
@@ -42,7 +45,9 @@ The :dbcommand:`create` command has the following syntax:
         timeseries: {
            timeField: <string>,
            metaField: <string>,
-           granularity: <string>
+           granularity: <string>,
+           bucketMaxSpanSeconds: <timespan>,  // Added in MongoDB 6.3
+           bucketRoundingSeconds: <timespan>  // Added in MongoDB 6.3
         },
         expireAfterSeconds: <number>,
         clusteredIndex: <document>,  // Added in MongoDB 5.3
@@ -66,7 +71,7 @@ The :dbcommand:`create` command has the following syntax:
 Command Fields
 ~~~~~~~~~~~~~~
 
-The :dbcommand:`create` command has the following fields:
+The ``create`` command has the following fields:
 
 .. list-table::
    :header-rows: 1
@@ -79,13 +84,18 @@ The :dbcommand:`create` command has the following fields:
    * - ``create``
      - string
      - The name of the new collection or view. See
-       :ref:`restrictions-on-db-names`.
+       :ref:`restrictions-on-db-names`. If you try to create a
+       collection or view that already exists and you provide identical
+       options for that existing collection or view, no action is taken
+       and success is returned.
        
    * - ``capped``
      - boolean
      - Optional. To create a :term:`capped collection`,
        specify ``true``. If you specify ``true``, you must also set a maximum
        size in the ``size`` field.
+ 
+ 
  
    * - ``timeseries.timeField``
      - string
@@ -106,58 +116,85 @@ The :dbcommand:`create` command has the following fields:
        except array.
  
    * - ``timeseries.granularity``
+ 
      - string
-     - Optional. Possible values are ``"seconds"`` (default),
-       ``"minutes"``, and ``"hours"``. Set the granularity to the value
-       that is the closest match to the time span between consecutive
-       incoming measurements. Setting the ``granularity`` parameter
-       accurately improves performance by optimizing how data in the time
-       series collection is stored internally.
+ 
+     - Optional, do not use if setting ``bucketRoundingSeconds`` and 
+       ``bucketMaxSpanSeconds``. Possible values are ``seconds`` (default), ``minutes``, and ``hours``.
+     
+       Set ``granularity`` to the value that most closely matches 
+       the time between consecutive incoming timestamps. This improves 
+       performance by optimizing how MongoDB internally stores data in 
+       the collection.
+
+       For more information on granularity and bucket intervals, see 
+       :ref:`timeseries-granularity`.
+
+
 
    * - ``timeseries.bucketMaxSpanSeconds``
-     - integer
-     - .. include:: /includes/time-series/fact-bucket-max-span-description.rst
  
-   * - ``timeseries.bucketRoundingSeconds``
      - integer
-     - .. include:: /includes/time-series/fact-bucket-rounding-description.rst
+ 
+     - Optional, used with ``bucketRoundingSeconds`` as an alternative
+       to ``granularity``. Sets the maximum time between timestamps in
+       the same bucket. Possible values are 1-31536000. If you set
+       ``bucketMaxSpanSeconds``, you must set ``bucketRoundingSeconds``
+       to the same value.
+
+       To downgrade below MongoDB 6.3, you must either modify the
+       collection to use the corresponding ``granularity`` value, or
+       drop the collection. For details, see :dbcommand:`collMod`.
+
+
+   * - ``timeseries.bucketRoundingSeconds``
+ 
+     - integer
+ 
+     - Optional, used with ``bucketMaxSpanSeconds`` as an alternative to
+       ``granularity``. Sets the number of seconds to round down by when
+       MongoDB sets the minimum timestamp for a new bucket. Must be
+       equal to ``bucketMaxSpanSeconds``
+
+       For example, setting both parameters to ``1800`` rounds new
+       buckets down to the nearest 30 minutes. If a document with a time
+       of ``2023-03-27T18:24:35Z`` does not fit an
+       existing bucket, MongoDB creates a new bucket with a minimum time
+       of ``2023-03-27T18:00:00Z`` and a maximum time of ``2023-03-27T18:30:00Z``.
+
+
 
    * - ``expireAfterSeconds``
-     - number
+ 
+     - integer
+ 
      - Optional. Specifies the seconds after which documents in a
        :term:`time series collection` or :term:`clustered collection`
        expire. MongoDB deletes expired documents automatically.
  
-   * - :ref:`clusteredIndex <create.clusteredIndex>`
+ 
+
+   * - ``clusteredIndex``
      - document
      - .. _create.clusteredIndex:
  
        .. include:: /includes/clustered-index-fields.rst
  
-   * - :ref:`changeStreamPreAndPostImages <create.changeStreamPreAndPostImages>`
+ 
+ 
+   * - ``changeStreamPreAndPostImages``
      - document
      - .. _create.changeStreamPreAndPostImages:
  
        .. include:: /includes/change-stream-pre-and-post-images-field.rst
  
-       For a :dbcommand:`create` example on this page, see
+       For a ``create`` example on this page, see
        :ref:`create-change-stream-pre-and-post-images-example`.
  
        .. versionadded:: 6.0
+       
+       
  
-   * - ``autoIndexId``
-     - boolean
-     - Optional. Specify ``false`` to disable the automatic creation of an index on the
-       ``_id`` field.
-       
-       .. important::
-       
-          Starting in MongoDB 4.0, you cannot set the option ``autoIndexId``
-          to ``false`` when creating collections in databases other than the
-          ``local`` database.
-       
-       .. deprecated:: 3.2
-       
    * - ``size``
      - integer
      - Optional. Specify a maximum size in bytes for a capped collection. Once a
@@ -198,15 +235,15 @@ The :dbcommand:`create` command has the following fields:
  
    * - ``validator``
      - document
-     - Optional. Allows users to specify :doc:`validation rules or expressions
-       </core/schema-validation>` for the collection. For more information,
-       see :doc:`/core/schema-validation`.
+ 
+     - Optional. Allows users to specify :ref:`validation rules or
+       expressions <schema-validation-overview>` for the collection.
        
        The ``validator`` option takes a document that specifies the
-       validation rules or expressions. You can specify the expressions using
-       the same operators as the :ref:`query operators <query-selectors>`
-       with the exception of :query:`$near`, :query:`$nearSphere`,
-       :query:`$text`, and :query:`$where`.
+       validation rules or expressions. You can specify the expressions
+       using the same operators as the :ref:`query operators
+       <query-selectors>` with the exception of :query:`$near`,
+       :query:`$nearSphere`, :query:`$text`, and :query:`$where`.
        
        .. note::
        
@@ -268,7 +305,7 @@ The :dbcommand:`create` command has the following fields:
    * - ``pipeline``
      - array
      - An array that consists of the :ref:`aggregation pipeline stage(s)
-       <aggregation-pipeline>`.  :dbcommand:`create` creates the view by
+       <aggregation-pipeline>`.  ``create`` creates the view by
        applying the specified ``pipeline`` to the ``viewOn`` collection or view.
        
        .. include:: /includes/extracts/views-restriction-output-to-disk.rst
@@ -324,11 +361,9 @@ The :dbcommand:`create` command has the following fields:
    * - ``comment``
      - any
      - .. include:: /includes/extracts/comment-content.rst
-    
-       .. versionadded:: 4.4
  
 The :method:`db.createCollection()` method and the
-:method:`db.createView()` method wrap the :dbcommand:`create`
+:method:`db.createView()` method wrap the ``create``
 command.
 
 Behavior
@@ -339,14 +374,10 @@ Behavior
 Resource Locking
 ~~~~~~~~~~~~~~~~
 
-.. versionchanged:: 4.2
-
 .. include:: /includes/extracts/create-resource-lock.rst
 
 Transactions
 ~~~~~~~~~~~~
-
-.. versionchanged:: 4.4
 
 .. include:: /includes/extracts/transactions-explicit-ddl.rst
 
@@ -363,7 +394,7 @@ Stable API
 .. versionchanged:: 5.0
 
 When using :ref:`Stable API <stable-api>` V1, you cannot specify
-the following fields in a :dbcommand:`create` command:
+the following fields in a ``create`` command:
 
 - ``autoIndexId``
 - ``capped``
@@ -410,6 +441,24 @@ for the past 24 hours, issue this command:
        }
    )
 
+Alternately, to create the same collection but limit each bucket to
+timestamp values within the same hour, issue this command:
+
+.. code-block:: javascript
+
+   db.createCollection(
+       "weather24h",
+       {
+          timeseries: {
+             timeField: "timestamp",
+             metaField: "data",
+             bucketMaxSpanSeconds: "3600",
+             bucketRoundingSeconds: "3600"
+          },
+          expireAfterSeconds: 86400
+       }
+   )
+
 .. note::
 
    In this example ``expireAfterSeconds`` is specified as ``86400``
@@ -450,11 +499,9 @@ Create a View
    views. For discussion of on-demand materialized views, see
    :pipeline:`$merge` instead.
 
-.. versionchanged:: 4.2
-
 .. include:: /includes/extracts/views-restriction-output-to-disk.rst
 
-To create a :ref:`view <views-landing-page>` using the :dbcommand:`create`
+To create a :ref:`view <views-landing-page>` using the ``create``
 command, use the following syntax:
 
 .. code-block:: javascript

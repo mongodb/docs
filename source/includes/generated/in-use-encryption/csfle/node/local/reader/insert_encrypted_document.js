@@ -1,5 +1,4 @@
 const mongodb = require("mongodb");
-const { ClientEncryption } = require("mongodb-client-encryption");
 const { MongoClient, Binary } = mongodb;
 
 var db = "medicalRecords";
@@ -69,7 +68,7 @@ patientSchema[namespace] = schema;
 
 // start-extra-options
 const extraOptions = {
-  mongocryptdSpawnPath: "<your path to mongocryptd>",
+  cryptSharedLibPath: "<Full path to your Automatic Encryption Shared Library>",
 };
 // end-extra-options
 

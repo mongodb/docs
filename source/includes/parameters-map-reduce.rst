@@ -174,8 +174,7 @@ on secondary members of replica sets.
 
    out: { <action>: <collectionName>
            [, db: <dbName>]
-           [, sharded: <boolean> ]
-           [, nonAtomic: <boolean> ] }
+           [, sharded: <boolean> ] }
 
 When you output to a collection with an action, the ``out`` has the
 following parameters:
@@ -221,24 +220,6 @@ following parameters:
 
   If ``true`` and ``collectionName`` is an existing unsharded collection,
   map-reduce fails.
-
-- ``nonAtomic``:
-
-  .. note::
-  
-     Starting in MongoDB 4.2, explicitly setting ``nonAtomic`` to ``false`` is
-     deprecated.
-
-  Optional. Specify output operation as non-atomic. This applies **only**
-  to the ``merge`` and ``reduce`` output modes, which may take minutes to
-  execute.
-
-  By default ``nonAtomic`` is ``false``, and the map-reduce
-  operation locks the database during post-processing.
-
-  If ``nonAtomic`` is ``true``, the post-processing step prevents
-  MongoDB from locking the database: during this time, other clients
-  will be able to read intermediate states of the output collection.
 
 Output Inline
 ~~~~~~~~~~~~~~

@@ -21,154 +21,172 @@ Definition
    Updates a single document based on the ``filter`` and
    ``sort`` criteria.
 
-   The :method:`~db.collection.findOneAndUpdate()` method has the following
-   form:
+   :returns:
+      Returns the original document by default. Returns the updated document
+      if :ref:`returnNewDocument <findOneUpdate-returnNewDocument>` is set to
+      ``true`` or :ref:`returnDocument <findOneUpdate-returnDocument>` is
+      set to ``after``.
 
-   .. code-block:: javascript
+Compatibility
+-------------
 
-      db.collection.findOneAndUpdate(
-         <filter>,
-         <update document or aggregation pipeline>, // Changed in MongoDB 4.2
-         {
-           projection: <document>,
-           sort: <document>,
-           maxTimeMS: <number>,
-           upsert: <boolean>,
-           returnDocument: <string>,
-           returnNewDocument: <boolean>,
-           collation: <document>,
-           arrayFilters: [ <filterdocument1>, ... ]
-         }
-      )
+.. |operator-method| replace:: ``db.collection.findOneAndUpdate()``
 
-   The :method:`~db.collection.findOneAndUpdate()` method takes the following
-   parameters:
+.. include:: /includes/fact-compatibility.rst
 
+Syntax
+------
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Parameter
-        - Type
-        - Description
+The :method:`~db.collection.findOneAndUpdate()` method has the following
+form:
 
-      * - ``filter``
-        - document
-        - The selection criteria for the update. The same :ref:`query
-          selectors <query-selectors>` as in the :method:`find()
-          <db.collection.find()>` method are available.
+.. code-block:: javascript
 
-          To update the first document returned in the collection,
-          specify an empty document ``{ }``.
+   db.collection.findOneAndUpdate(
+       <filter>,
+       <update document or aggregation pipeline>, // Changed in MongoDB 4.2
+       {
+         writeConcern: <document>,
+         projection: <document>,
+         sort: <document>,
+         maxTimeMS: <number>,
+         upsert: <boolean>,
+         returnDocument: <string>,
+         returnNewDocument: <boolean>,
+         collation: <document>,
+         arrayFilters: [ <filterdocument1>, ... ]
+       }
+   )
 
-          If unspecified, defaults to an empty document.
+The :method:`~db.collection.findOneAndUpdate()` method takes the following
+parameters:
 
-          Starting in MongoDB 4.2, the operation returns an error if
-          the query field is not a document.
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
 
-          If no document matches the ``filter``, no document is updated.
+   * - Parameter
+     - Type
+     - Description
 
-      * - ``update``
-        - document or array
-        - The update document or, starting in MongoDB 4.2, an
-          :ref:`aggregation pipeline <aggregation-pipeline>`.
+   * - ``filter``
+     - document
+     - The selection criteria for the update. The same :ref:`query
+       selectors <query-selectors>` as in the :method:`find()
+       <db.collection.find()>` method are available.
 
-          - If passed a document with :ref:`update operator expressions
-            <update-operators>`, |operation| performs the specified
-            modification.
+       To update the first document returned in the collection,
+       specify an empty document ``{ }``.
 
-            .. note:: 
+       If unspecified, defaults to an empty document.
 
-               The document must contain only :ref:`update operators
-               <update-operators-top-level>`. You cannot specify a
-               replacement document ``{ <field1>: <value1>, ...}``. To
-               use a replacement document, see
-               :method:`db.collection.findOneAndReplace()` instead.
+       Starting in MongoDB 4.2, the operation returns an error if
+       the query field is not a document.
 
-          - Starting in MongoDB 4.2, if passed an :ref:`aggregation
-            pipeline <aggregation-pipeline>`
-            ``[ <stage1>, <stage2>, ... ]``, |operation| modifies the
-            document per the pipeline. The pipeline can consist of the
-            following stages:
+       If no document matches the ``filter``, no document is updated.
 
-            .. include:: /includes/list-update-agg-stages.rst
+   * - ``update``
+     - document or array
+     - The update document or, starting in MongoDB 4.2, an
+       :ref:`aggregation pipeline <aggregation-pipeline>`.
 
-      * - ``projection``
-        - document
-        - Optional. A subset of fields to return.
+       - If passed a document with :ref:`update operator expressions
+         <update-operators>`, |operation| performs the specified
+         modification.
 
-          To return all fields in the returned document, omit this parameter.
+         .. note:: 
 
-          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
-          errors if the projection argument is not a document.
+            The document must contain only :ref:`update operators
+            <update-operators-top-level>`. You cannot specify a
+            replacement document ``{ <field1>: <value1>, ...}``. To
+            use a replacement document, see
+            :method:`db.collection.findOneAndReplace()` instead.
 
-      * - ``sort``
-        - document
-        - Optional. Specifies a sorting order for the documents matched by the ``filter``.
+       - Starting in MongoDB 4.2, if passed an :ref:`aggregation
+         pipeline <aggregation-pipeline>`
+         ``[ <stage1>, <stage2>, ... ]``, |operation| modifies the
+         document per the pipeline. The pipeline can consist of the
+         following stages:
 
-          Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
-          errors if the sort argument is not a document.
+         .. include:: /includes/list-update-agg-stages.rst
 
-          See :method:`cursor.sort()`.
+   * - ``writeConcern``
+     - document
+     - Optional. A document expressing the :ref:`write concern <write-concern>`.
+       Omit to use the default write concern.
 
-      * - ``maxTimeMS``
-        - number
-        - Optional. Specifies a time limit in milliseconds within which the operation must 
-          complete within. Throws an error if the limit is exceeded.
+       .. code-block:: javascript
 
-      * - ``upsert``
-        - boolean
+         { w: <value>, j: <boolean>, wtimeout: <number> }
 
-        - .. include:: /includes/extracts/findOneAndUpdate-behavior-method.rst
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
 
-      * - ``returnDocument``
-        - string
-        - .. _findOneUpdate-returnDocument:
+   * - ``projection``
+     - document
+     - Optional. A subset of fields to return.
 
-          Optional. Starting in :binary:`mongosh` 0.13.2,
-          ``returnDocument`` is an alternative for
-          ``returnNewDocument``. If both options are set,
-          ``returnDocument`` takes precedence.
+       To return all fields in the returned document, omit this parameter.
 
-          ``returnDocument: "before"`` returns the original document.
-          ``returnDocument: "after"`` returns the updated document.
+       Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+       errors if the projection argument is not a document.
 
-      * - ``returnNewDocument``
-        - boolean
-        - .. _findOneUpdate-returnNewDocument:
+   * - ``sort``
+     - document
+     - Optional. Specifies a sorting order for the documents matched by the ``filter``.
 
-          Optional. When ``true``, returns the updated document instead
-          of the original document.
+       Starting in MongoDB 4.2 (and 4.0.12+, 3.6.14+, and 3.4.23+), the operation
+       errors if the sort argument is not a document.
 
-          Defaults to ``false``.
+       See :method:`cursor.sort()`.
 
-      * - ``collation``
-        - document
-        - Optional. 
+   * - ``maxTimeMS``
+     - number
+     - Optional. Specifies a time limit in milliseconds within which the operation must 
+       complete within. Throws an error if the limit is exceeded.
 
-          .. include:: /includes/extracts/collation-option.rst
+   * - ``upsert``
+     - boolean
+     - .. include:: /includes/extracts/findOneAndUpdate-behavior-method.rst
 
-      * - ``arrayFilters``
-        - array
-        - Optional. An array of filter documents that determine which array elements to
-          modify for an update operation on an array field.
+   * - ``returnDocument``
+     - string
+     - .. _findOneUpdate-returnDocument:
 
-          .. include::  /includes/extracts/arrayFilters-details.rst
+       Optional. Starting in :binary:`mongosh` 0.13.2,
+       ``returnDocument`` is an alternative for
+       ``returnNewDocument``. If both options are set,
+       ``returnDocument`` takes precedence.
 
-          For examples, see :ref:`findOneAndUpdate-arrayFilters`.
+       ``returnDocument: "before"`` returns the original document.
+       ``returnDocument: "after"`` returns the updated document.
 
-          .. note::
+   * - ``returnNewDocument``
+     - boolean
+     - .. _findOneUpdate-returnNewDocument:
 
-             .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
+       Optional. When ``true``, returns the updated document instead
+       of the original document.
 
-Returns
-~~~~~~~
+       Defaults to ``false``.
 
-Returns the original document by default. Returns the updated document
-if :ref:`returnNewDocument <findOneUpdate-returnNewDocument>` is set to
-``true`` or :ref:`returnDocument <findOneUpdate-returnDocument>` is
-set to ``after``.
+   * - ``collation``
+     - document
+     - Optional. 
+
+       .. include:: /includes/extracts/collation-option.rst
+
+   * - ``arrayFilters``
+     - array
+     - Optional. An array of filter documents that determine which array elements to
+       modify for an update operation on an array field.
+
+       .. include::  /includes/extracts/arrayFilters-details.rst
+
+       For examples, see :ref:`findOneAndUpdate-arrayFilters`.
+
+       .. note::
+
+          .. include:: /includes/extracts/arrayFilters-update-aggregation-restriction.rst
 
 Behavior
 --------

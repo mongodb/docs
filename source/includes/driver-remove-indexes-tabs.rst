@@ -15,12 +15,12 @@
 
          To remove an index, use the :method:`db.collection.dropIndex()` method.
 
-         For example, the following operation removes an ascending index on the
-         ``tax-id`` field in the ``accounts`` collection:
+         For example, the following operation removes an index with the name
+         ``taxIndex`` in the ``accounts`` collection:
 
          .. code-block:: javascript
 
-            db.accounts.dropIndex( { "tax-id": 1 } )
+            db.accounts.dropIndex( { "taxIndex" } )
 
          The operation returns a document with the status of the operation:
 
@@ -31,7 +31,7 @@
          Where the value of ``nIndexesWas`` reflects the number of indexes
          *before* removing this index.
 
-         For :ref:`text <index-feature-text>` indexes, pass the index name to the
+         For :ref:`text <index-type-text>` indexes, pass the index name to the
          :method:`db.collection.dropIndex()` method. See :ref:`drop-text-index`
          for details.
 

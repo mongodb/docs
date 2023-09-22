@@ -628,8 +628,7 @@ primary:
 .. serverstatus:: electionMetrics.stepUpCmd
 
    Metrics on elections that were called by the :binary:`~bin.mongod`
-   instance as part of an :parameter:`election handoff
-   <enableElectionHandoff>` when the primary stepped down.
+   instance as part of an election handoff when the primary stepped down.
 
    The :serverstatus:`~electionMetrics.stepUpCmd` includes both the number of elections
    called and the number of elections that succeeded.
@@ -1172,6 +1171,7 @@ indexBuilds
 
 indexBulkBuilder
 ~~~~~~~~~~~~~~~~
+
 .. code-block:: json
 
    indexBulkBuilder: {
@@ -1181,7 +1181,10 @@ indexBulkBuilder
       filesClosedForExternalSort: <long>, 
       spilledRanges: <long>, 
       bytesSpilledUncompressed: <long>,
-      bytesSpilled: <long>
+      bytesSpilled: <long>,
+      numSorted: <long>,
+      bytesSorted: <long>,
+      memUsage: <long>
    }
 
 .. serverstatus:: indexBulkBuilder
@@ -1231,6 +1234,26 @@ indexBulkBuilder
    .. versionadded:: 6.0.4
 
    The number of times the external sorter spilled to disk. 
+
+.. serverstatus:: indexBulkBuilder.numSorted
+
+   .. versionadded:: 6.3
+
+   The total number of sorted documents.
+
+.. serverstatus:: indexBulkBuilder.bytesSorted
+
+   .. versionadded:: 6.3
+
+   The total number of bytes for sorted documents. For example, if
+   a total of 10 documents were sorted and each document is 20 bytes,
+   the total number of bytes sorted is 200.
+
+.. serverstatus:: indexBulkBuilder.memUsage
+
+   .. versionadded:: 6.3
+
+   The current bytes of memory allocated for building indexes.
 
 .. _server-status-instance-information:
 
@@ -1625,13 +1648,10 @@ metrics
          planCacheTotalSizeEstimateBytes: Long("<num>"),
          updateOneOpStyleBroadcastWithExactIDCount: Long("<num>"),
          lookup: {
-            pipelineTotalCount: Long("<num>"),
-            slotBasedExecutionCounters: {
-               hashLookup: Long("<num>"),
-               hashLookupSpillToDisk: Long("<num>"),
-               indexedLoopJoin: Long("<num>"),
-               nestedLoopJoin: Long("<num>")
-            }
+            hashLookup: Long("<num>"),
+            hashLookupSpillToDisk: Long("<num>"),
+            indexedLoopJoin: Long("<num>"),
+            nestedLoopJoin: Long("<num>")
          },
          multiPlanner: {
             classicCount: Long("<num>"),
@@ -1672,6 +1692,10 @@ metrics
                   { lowerBound: Long("32768"), count: Long("<num>") }
                ]
             }
+         },
+         planCache: {
+            classic: { hits: Long("<num>"), misses: Long("<num>") },
+            sbe: { hits: Long("<num>"), misses: Long("<num>") }
          },
          queryFramework: {
             aggregate: {
@@ -1795,12 +1819,25 @@ metrics
 
 .. serverstatus:: metrics.apiVersions
 
-   A document with client applications and the version of Stable 
-   API which they are configured with. Consider the following when
-   viewing ``metrics.apiVersions``:
+   A document that contains:
+   
+   - The name of each client application
+   - The Stable API version that each application was configured with within
+     the last 24-hour period
+     
+   Consider the following when viewing ``metrics.apiVersions``:
 
-   - The only possible returned values for each ``appname`` are 
-     ``default`` or ``1``.
+   - The possible returned values for each ``appname`` are:
+     
+     - ``default``: The command was issued without a Stable API version specified.
+     - ``1``: The command was issued with Stable API version 1.
+     
+     .. note::
+        
+        You may see both return values for an ``appname`` because you can
+        specify a Stable API version at the command level. Some of your
+        commands may have been issued with no Stable API version, while
+        others were issued with version 1.
 
    - API version metrics are retained for 24 hours. If
      no commands are issued with a specific API version from an 
@@ -1989,7 +2026,8 @@ metrics
 
 .. serverstatus:: metrics.document.updated
 
-   The total number of documents updated.
+   The total number of documents matched for update operations. This value is not 
+   necessarily the same as the number of documents modified by updates.
 
 .. serverstatus:: metrics.dotsAndDollarsFields
 
@@ -2133,6 +2171,15 @@ metrics
 .. serverstatus:: metrics.operation.writeConflicts
 
    The total number of queries that encountered write conflicts.
+
+.. serverstatus:: metrics.query.lookup
+
+   A document that provides detailed data on the use of the  :pipeline:`$lookup` 
+   stage with the |sbe|. To learn more, see :ref:`agg-lookup-optimization-sbe`.
+
+   These metrics are primarily intended for internal use by MongoDB.
+
+   *New in version 6.1* 
 
 .. serverstatus:: metrics.query.multiPlanner
 
@@ -2812,6 +2859,20 @@ network
          clientSupported : <bool>,
          accepted : Long("<num>")
       },
+      compression : {
+         snappy : {
+            compressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") },
+            decompressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") }
+         }, 
+         zstd : { 
+            compressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") },
+            decompressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") }
+         },
+         zlib : {
+            compressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") },
+            decompressor : { bytesIn : Long("<num>"), bytesOut : Long("<num>") }
+         }
+      },
       serviceExecutors : {
          passthrough : {
             threadsRunning : <num>,
@@ -2826,7 +2887,7 @@ network
             clientsWaitingForData : <num>
          }
       },
-      listenerProcessingTime : { durationMicros: <num> }  // Added in MongoDB 6.3
+      listenerProcessingTime : { durationMicros : <num> }  // Added in MongoDB 6.3
    }
 
 .. serverstatus:: network
@@ -2925,6 +2986,26 @@ network
    The total number of accepted incoming TCP Fast Open (TFO) connections
    to the :binary:`~bin.mongod` or :binary:`~bin.mongos` since the 
    ``mongod`` or ``mongos`` last started.
+
+.. serverstatus:: network.compression
+
+   A document that reports on the amount of data compressed and decompressed by 
+   each network compressor library.
+
+.. serverstatus:: network.compression.snappy 
+
+   A document that returns statistics on the number of bytes that have been 
+   compressed and decompressed with the :term:`snappy` library.
+
+.. serverstatus:: network.compression.zstd
+
+   A document that returns statistics on the number of bytes that have been 
+   compressed and decompressed with the :term:`zstd` library.
+
+.. serverstatus:: network.compression.zlib 
+
+   A document that returns statistics on the number of bytes that have been 
+   compressed and decompressed with the :term:`zlib` library.
 
 .. serverstatus:: network.serviceExecutors
 
@@ -3478,7 +3559,7 @@ opWriteConcernCounters
 opcounters
 ~~~~~~~~~~
 
-.. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+
 
 .. code-block:: javascript
 
@@ -3515,28 +3596,21 @@ opcounters
    The total number of insert operations received since the
    :binary:`~bin.mongod` instance last started.
 
-   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
-
 .. serverstatus:: opcounters.query
 
    The total number of queries received since the :binary:`~bin.mongod`
-   instance last started.
-
-   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+   instance last started. Starting in MongoDB 7.1, aggregations 
+   count as query operations and increment this value.
 
 .. serverstatus:: opcounters.update
 
    The total number of update operations received since the
    :binary:`~bin.mongod` instance last started.
 
-   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
-
 .. serverstatus:: opcounters.delete
 
    The total number of delete operations since the :binary:`~bin.mongod`
    instance last started.
-
-   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
 
 .. serverstatus:: opcounters.getmore
 
@@ -3545,18 +3619,18 @@ opcounters
    even if the query count is low. Secondary nodes send
    :dbcommand:`getMore` operations as part of the replication process.
 
-   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
-
 .. serverstatus:: opcounters.command
 
    The total number of commands issued to the database since the
    :binary:`~bin.mongod` instance last started.
 
-   :serverstatus:`opcounters.command` counts all :doc:`commands
-   </reference/command>` **except** the write commands:
-   :dbcommand:`insert`, :dbcommand:`update`, and :dbcommand:`delete`.
-
-   .. include:: /includes/extracts/4.2-changes-opcounters-type.rst
+   :serverstatus:`opcounters.command` counts all :ref:`commands
+   <database-commands>` **except** the following:
+   
+   - :dbcommand:`insert`
+   - :dbcommand:`update`
+   - :dbcommand:`delete`
+   - :dbcommand:`aggregate`
 
 .. serverstatus:: opcounters.deprecated
 
@@ -3723,7 +3797,7 @@ oplogTruncation
 
       Available in the :doc:`/core/wiredtiger`.
 
-.. serverstatus:: oplogTruncation.minRetentionHours
+.. serverstatus:: oplogTruncation.oplogMinRetentionHours
 
    .. versionadded:: 4.4
 
@@ -3770,6 +3844,89 @@ oplogTruncation
    .. versionadded:: 4.2.1
 
       Available in the :doc:`/core/wiredtiger`.
+
+.. _server-status-planCache:
+
+planCache
+~~~~~~~~~
+
+.. versionadded:: 7.0
+
+.. code-block:: javascript
+
+   planCache: {
+      classic: { hits: Long("<num>"), misses: Long("<num>") },
+      sbe: { hits: Long("<num>"), misses: Long("<num>") }
+   }
+
+.. serverstatus:: planCache
+
+   A document that reports query plan cache statistics.
+
+.. serverstatus:: planCache.classic.hits
+
+   Number of classic execution engine query plans found in the query 
+   cache and reused to avoid the query planning phase.
+
+.. serverstatus:: planCache.classic.misses
+
+   Number of classic execution engine query plans which were not found 
+   in the query cache and went through the query planning phase.
+
+.. serverstatus:: planCache.sbe.hits
+
+   Number of slot-based execution engine query plans found in the query 
+   cache and reused to avoid the query planning phase.
+
+.. serverstatus:: planCache.sbe.misses
+
+   Number of slot-based execution engine query plans which were not found 
+   in the query cache and went through the query planning phase.
+
+.. _server-status-queryAnalyzers:                                       
+                                                                        
+queryAnalyzers                                  
+~~~~~~~~~~~~~~
+
+.. versionadded:: 7.0                                                   
+                                                                        
+.. code-block:: javascript                                              
+                                                                        
+   queryAnalyzers: {                                                    
+     activeCollections: <integer>,
+     totalCollections: <integer>,
+     totalSampledReadsCount: <integer>,
+     totalSampledWritesCount: <integer>,
+     totalSampledReadsBytes: <integer>,
+     totalSampledWritesBytes: <integer>
+   }
+
+.. serverstatus:: queryAnalyzers.activeCollections
+
+   Number of collections the :ref:`query analyzer 
+   <configureQueryAnalyzer>` actively samples.           
+                                                                        
+.. serverstatus:: queryAnalyzers.totalCollections
+  
+   Total number of sampled collections.
+
+.. serverstatus:: queryAnalyzers.totalSampledReadsCount
+
+   Total number of sampled read queries.
+
+.. serverstatus:: queryAnalyzers.totalSampledWritesCount
+
+   Total number of sampled write queries.
+
+.. serverstatus:: queryAnalyzers.totalSampledReadsBytes
+   
+   Total size of sampled read queries, in bytes. This metric is
+   only available when running ``serverStatus`` on ``mongod``.
+
+.. serverstatus:: queryAnalyzers.totalSampledWritesBytes
+   
+   Total size of sampled write queries, in bytes. This metric is 
+   only available when running ``serverStatus`` on ``mongod``.
 
 .. _server-status-readConcernCounters:
 
@@ -4501,15 +4658,7 @@ shardingStatistics
                   countIncrementalRefreshesStarted : Long("<num>"),
                   numActiveFullRefreshes : Long("<num>"),
                   countFullRefreshesStarted : Long("<num>"),
-                  countFailedRefreshes : Long("<num>"),
-                  operationsBlockedByRefresh : {
-                    countAllOperations : Long("<num>"),
-                    countInserts : Long("<num>"),
-                    countQueries : Long("<num>"),
-                    countUpdates : Long("<num>"),
-                    countDeletes : Long("<num>"),
-                    countCommands : Long("<num>")
-                  }
+                  countFailedRefreshes : Long("<num>")
                }
             }
 
@@ -4791,77 +4940,6 @@ shardingStatistics
    *Only present when run on a shard member.*
 
    .. versionadded:: 4.4
-
-.. serverstatus:: shardingStatistics.catalogCache.operationsBlockedByRefresh
-
-   A document with statistics about operations blocked by catalog
-   cache refresh activity on a :binary:`~bin.mongos`.
-
-   Only present when run on a :binary:`~bin.mongos`.
-
-   .. versionadded:: 4.2.7
-
-.. serverstatus:: shardingStatistics.catalogCache.operationsBlockedByRefresh.countAllOperations
-
-   The cumulative number of all operations ran on a
-   :binary:`~bin.mongos` that were blocked at any point in their
-   lifetime by a refresh of the catalog cache. This counter is the
-   aggregate sum of all other ``operationsBlockedByRefresh`` metrics
-   tracked below.
-
-   Only present when run on a :binary:`~bin.mongos`.
-
-   .. versionadded:: 4.2.7
-
-.. serverstatus:: shardingStatistics.catalogCache.operationsBlockedByRefresh.countInserts
-
-   The cumulative number of insert operations ran on a
-   :binary:`~bin.mongos` that were blocked at any point in their
-   lifetime by a refresh of the catalog cache.
-
-   Only present when run on a :binary:`~bin.mongos`.
-
-   .. versionadded:: 4.2.7
-
-.. serverstatus:: shardingStatistics.catalogCache.operationsBlockedByRefresh.countQueries
-
-   The cumulative number of query operations ran on a
-   :binary:`~bin.mongos` that were blocked at any point in their
-   lifetime by a refresh of the catalog cache.
-
-   Only present when run on a :binary:`~bin.mongos`.
-
-   .. versionadded:: 4.2.7
-
-.. serverstatus:: shardingStatistics.catalogCache.operationsBlockedByRefresh.countUpdates
-
-   The cumulative number of update operations ran on a
-   :binary:`~bin.mongos` that were blocked at any point in their
-   lifetime by a refresh of the catalog cache.
-
-   Only present when run on a :binary:`~bin.mongos`.
-
-   .. versionadded:: 4.2.7
-
-.. serverstatus:: shardingStatistics.catalogCache.operationsBlockedByRefresh.countDeletes
-
-   The cumulative number of delete operations ran on a
-   :binary:`~bin.mongos` that were blocked at any point in their
-   lifetime by a refresh of the catalog cache.
-
-   Only present when run on a :binary:`~bin.mongos`.
-
-   .. versionadded:: 4.2.7
-
-.. serverstatus:: shardingStatistics.catalogCache.operationsBlockedByRefresh.countCommands
-
-   The cumulative number of command operations ran on a
-   :binary:`~bin.mongos` that were blocked at any point in their
-   lifetime by a refresh of the catalog cache.
-
-   Only present when run on a :binary:`~bin.mongos`.
-
-   .. versionadded:: 4.2.7
 
 .. serverstatus:: shardingStatistics.resharding
 
@@ -6523,6 +6601,12 @@ wiredTiger
             out : <num>,
             available : <num>,
             totalTickets : <num>
+         },
+         monitor : { 
+            timesDecreased: <num>, 
+            timesIncreased: <num>, 
+            totalAmountDecreased: <num>, 
+            totalAmountIncreased: <num>
          }
       },
       snapshot-window-settings : {
@@ -6642,14 +6726,25 @@ wiredTiger
 
 .. serverstatus:: wiredTiger.concurrentTransactions
 
-   A document that returns information on the number of concurrent of
-   read and write transactions allowed into the WiredTiger storage
-   engine. These settings are MongoDB-specific.
+   .. versionchanged:: 7.0
 
-   To change the settings for concurrent
-   reads and write transactions, see
+   A document that returns information about: 
+
+   - The number of concurrent read transactions (read tickets) allowed 
+     into the WiredTiger storage engine.
+   - The number of concurrent write transactions (write tickets) allowed 
+     into the WiredTiger storage engine. 
+   - Any adjustments that the system has made to the number
+     of allowed concurrent transactions (tickets).
+   
+   These settings are MongoDB-specific. To change the settings for 
+   concurrent reads and write transactions (read and write tickets), see
    :parameter:`wiredTigerConcurrentReadTransactions` and
    :parameter:`wiredTigerConcurrentWriteTransactions`.
+
+   .. important::
+
+      .. include:: /includes/7.0-concurrent-transactions.rst
 
 .. _server-status-writebacksqueued:
 .. _server-status-write-backs-queued:

@@ -1,5 +1,5 @@
 Use the :query:`$text` query operator to perform text searches on a
-collection with a :ref:`text index <index-feature-text>`.
+collection with a :ref:`text index <index-type-text>`.
 
 :query:`$text` will tokenize the search string using whitespace and most
 punctuation as delimiters, and perform a logical ``OR`` of all such

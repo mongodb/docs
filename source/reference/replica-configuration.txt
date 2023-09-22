@@ -330,43 +330,43 @@ Replica Set Configuration Fields
 
    .. rsconf::  members[n].priority
 
-      .. versionchanged:: 3.6
-
-         Starting in MongoDB 3.6, arbiters have the priority ``0``. If an
-         arbiter has a priority of ``1``, MongoDB 3.6 reconfigures the
-         arbiter to have a priority of ``0``.
-
       *Optional*.
 
       *Type*: Number between 0 and 1000 for primary/secondary; 0 or 1 for arbiters.
 
       *Default*: 1.0 for primary/secondary; 0 for arbiters.
 
-      A number that indicates the relative eligibility of a member to
-      become a :term:`primary`.
+      A number that indicates the relative likelihood of a replica set
+      member to become the :term:`primary`.
 
-      Specify higher values to make a member *more* eligible to become
-      :term:`primary`, and lower values to make the member *less*
-      eligible. A member with a :rsconf:`members[n].priority` of ``0`` is
-      ineligible to become primary.
+      - To increase the likelihood that a member becomes the primary,
+        specify a higher ``priority`` value for that member.
 
-      .. include:: /includes/fact-rs-nonzero-priority-vote-restriction.rst
+      - To decrease the likelihood that a member becomes the primary,
+        specify a lower ``priority`` value for that member.
 
-      Changing the balance of priority in a replica set will trigger
-      one or more elections. If a lower priority secondary is elected
-      over a higher priority secondary, replica set members will
-      continue to call elections until the highest priority available
-      member becomes primary.
+      Changing a member's priority triggers one or more elections. The
+      election algorithm makes a best-effort attempt to elect the
+      highest-priority member the primary. However, a lower-priority
+      member may become the primary even if a higher-priority secondary
+      is available.
+      
+      If a lower-priority member becomes the primary, the server
+      continues to periodically call elections until the
+      highest-priority replica set member is the primary. The frequency
+      at which the elections occur depends on the difference in priority
+      between the elected member and the highest-priority member.
+      
+      A member with a priority of ``0`` cannot become the primary.
 
-      Members with :rsconf:`~members[n].priority` of ``0`` can 
-      acknowledge write operations issued with :ref:`write-concern`. 
-      For write operations issued with :writeconcern:`"majority"` write 
-      concern, the member must also be a voting member (i.e. 
-      :rsconf:`~members[n].votes` is greater than ``0``).
+      Non-voting members (meaning members that have
+      :rsconf:`~members[n].votes` set to ``0``) must have a priority of
+      ``0``.
 
       .. seealso::
 
-         :ref:`Replica Set Elections <replica-set-elections>`.
+         - :ref:`Replica Set Elections <replica-set-elections>`
+         - :ref:`rs-election-priority`
 
    .. rsconf::  members[n].tags
 
@@ -553,13 +553,6 @@ Replica Set Configuration Fields
       respond in time, other members mark the delinquent member as
       inaccessible.
 
-      .. note::
-
-         For :rsconf:`pv1 <protocolVersion>`,
-         :rsconf:`settings.electionTimeoutMillis` has a greater
-         influence on whether the secondary members call for an
-         election than the :rsconf:`settings.heartbeatTimeoutSecs`.
-
    .. rsconf::  settings.electionTimeoutMillis
 
       *Optional*.
@@ -569,15 +562,20 @@ Replica Set Configuration Fields
       *Default*: 10000 (10 seconds)
 
       The time limit in milliseconds for detecting when a replica set's
-      primary is unreachable:
+      primary is unreachable. This setting controls failover sensitivity
+      when using :rsconf:`protocolVersion: 1 <protocolVersion>`. You can
+      expect the failover timeout to not exceed the value of
+      ``electionTimeoutMillis``.
+
+      Consider the following when selecting a value:
 
       - Higher values result in slower failovers but decreased
         sensitivity to primary node or network slowness or spottiness.
 
-      - Lower values result in faster failover, but increased
+      - Lower values result in faster failover but increased
         sensitivity to primary node or network slowness or spottiness.
 
-      The setting only applies when using :rsconf:`protocolVersion: 1<protocolVersion>`.
+      The setting only applies when using :rsconf:`protocolVersion: 1 <protocolVersion>`.
 
       .. note::
 

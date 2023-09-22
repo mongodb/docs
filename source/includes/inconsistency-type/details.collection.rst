@@ -1,0 +1,3 @@
+
+Information about the collection.
+

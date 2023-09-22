@@ -141,6 +141,8 @@
                :language: javascript
                :dedent:
 
+            .. include:: /includes/tutorials/automatic/node-include-clientEncryption.rst
+
          .. tab::
             :tabid: python
 

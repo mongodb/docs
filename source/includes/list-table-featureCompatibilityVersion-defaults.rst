@@ -5,6 +5,13 @@
    * - Deployments
      - ``featureCompatibilityVersion``
 
+   * - For new 7.0 deployments
+     - ``"7.0"``
+
+   * - For 7.0 deployments :ref:`upgraded from 6.0 <7.0-upgrade>`
+     
+     - ``"6.0"`` until you :dbcommand:`setFeatureCompatibilityVersion` to ``"7.0"``. 
+   
    * - For new 6.0 deployments
      - ``"6.0"``
 

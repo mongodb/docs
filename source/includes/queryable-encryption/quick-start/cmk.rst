@@ -3,7 +3,7 @@
 
 You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+qe+}.
 
-Create a 96-byte {+cmk-long+} and save it to your filesystem,
+Create a 96-byte {+cmk-long+} and save it to your filesystem
 as the file ``master-key.txt``:
 
 .. tabs-drivers::

@@ -30,8 +30,8 @@ The command has the following syntax:
      { 
        moveRange: <namespace>,
        toShard: <ID of the recipient shard>,
-       min: <min key of the range to move>,
-       max: <max key of the range to move>, // optional
+       min: <min key of the range to move>, // conditional
+       max: <max key of the range to move>, // conditional
        forceJumbo: <bool>, // optional
        waitForDelete: <bool>, // optional
        writeConcern: <write concern>, // optional
@@ -58,13 +58,28 @@ The command takes the following fields:
 
    * - ``min``
      - key
-     - Minimum key of the range to move.
+     - Minimum key of the range to move. Required if you don't specify
+       ``max``.
+
+       If you do not specify ``min``, given a chunk ``C`` where ``max``
+       is either the exclusive upper bound of ``C`` or ``C`` includes
+       the shard key ``max``, ``min`` is determined in the following
+       way:
+
+       - If the data size of the range between ``min(C)`` and ``max`` 
+         is less than the per-collection chunk size or the default 
+         chunk size, the chunk's ``min`` value is selected as 
+         ``min`` = ``min(C)``.
+
+       - Otherwise, key ``min`` > ``min(C)`` where ``min`` depends 
+         on the configured chunk size.
 
    * - ``max``
      - key
-     - Optional.
-
-       Maximum key of the range to move. If you do not specify 
+     - Maximum key of the range to move. Required if you don't specify
+       ``min``.
+       
+       If you do not specify 
        ``max``, given a chunk ``C`` including the shard key ``min``, 
        ``max`` is determined in the following way:
 
@@ -222,6 +237,45 @@ values:
        shard.
 
    * - ``10``
+     - 128 MB contained between keys ``x: 10`` and ``x: 30``.
+     - Creates three sub-ranges:
+
+       - ``[x: 0, x: 10)``
+       - ``[x: 10, x: 30)`` 
+       - ``[x: 30, x: 100)``
+
+       Moves all documents in ``[x: 10, x: 30)`` to the recipient
+       shard.
+
+Specify ``max`` but not ``min``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the results of setting ``max`` to various 
+values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - ``max``
+     - Amount of Data in Key Range
+     - Result
+
+   * - ``100``
+     - Less than 128 MB contained between keys ``x: 0`` and ``x: 100``.
+     - Moves all the documents in the range to the recipient shard.
+   
+   * - ``10``
+     - Less than 128 MB contained between keys ``x: 0`` and ``x: 100``.
+     - Creates two sub-ranges:
+
+       - ``[x: 0, x: 10)``
+       - ``[x : 10, x: 100)``
+
+       Moves all documents in ``[x: 0, x: 10)`` to the recipient 
+       shard.
+
+   * - ``30``
      - 128 MB contained between keys ``x: 10`` and ``x: 30``.
      - Creates three sub-ranges:
 
