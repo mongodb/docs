@@ -16,8 +16,8 @@ Overview
 In this guide, you can learn how to use the
 {+driver-short+} to perform **transactions**. Transactions allow you
 to run a series of operations that do not change any data until the
-entire transaction is committed. If any operation in the transaction fails, the
-driver aborts the transaction and discards all data changes before they
+entire transaction is committed. If any operation in the transaction fails, the 
+driver ends the transaction and discards all data changes before they
 ever become visible. This feature is called **atomicity**.
 
 Since all write operations on a single document in MongoDB are atomic, you
@@ -32,7 +32,7 @@ ACID transactions </basics/acid-transactions>`.
 
 .. note::
 
-   To execute a multi-document transactions, you must be connected to a
+   To execute a multi-document transaction, you must be connected to a
    deployment running MongoDB Server version 4.0 or later.
 
    For a detailed list of limitations, see the :manual:`Transactions and
@@ -45,219 +45,95 @@ you want to execute sequentially. We recommend you reuse
 your client for multiple sessions and transactions instead of
 instantiating a new client each time.
 
-When combined with majority read and
-write concerns, the driver can guarantee causal consistency between the
-operations. See the server manual guide on
-:manual:`Client Sessions and Causal Consistency Guarantees </core/read-isolation-consistency-recency/#std-label-sessions>`
-for more information.
+When combined with ``majority`` read and
+write concerns, the driver guarantees causal consistency between the
+operations. To learn more, see :manual:`Client Sessions and Causal Consistency Guarantees
+</core/read-isolation-consistency-recency/#client-sessions-and-causal-consistency-guarantees>` in the
+Server manual.
 
-Learn more about how to use the driver to run multi-document transactions on
-MongoDB in the following sections of this guide:
+Learn more about how to use the driver to perform multi-document
+transactions in the following sections of this guide:
 
 - :ref:`Transaction APIs <nodejs-transaction-apis>`
-- :ref:`Transaction Settings <nodejs-transaction-settings>`
-- :ref:`Core API Examples <nodejs-transaction-examples>`
+- :ref:`Transaction Options <nodejs-transaction-settings>`
+- :ref:`Transaction Errors <nodejs-transaction-errors>`
 
 .. _nodejs-transaction-apis:
 
 Transaction APIs
 ----------------
 
-Use the **Core API** to implement a transaction with the driver. To use the Core
-API, you declare the start and commit points of the transaction.
+The driver provides two APIs for performing transactions, the **Core
+API** and the **Convenient Transaction API**.
+
+The :ref:`Core API <node-txn-core-api>` is a framework that enables
+you to create, commit, and end transactions. When using this API,
+you must explicitly perform the following actions:
+
+- Create, commit, and end the transaction.
+- Create and end the session in which you run the transaction.
+- Implement error-handling logic.
+
+The :ref:`Convenient Transaction API <node-txn-convenient-api>` is a
+framework that enables you to perform transactions without being
+responsible for committing or ending them. This API automatically
+incorporates error-handling logic to retry operations when the server
+raises certain error types. To learn more about this behavior, see the
+:ref:`Transaction Errors <nodejs-transaction-errors>` section of this guide.
+
+.. important::
+   
+   When you connect to MongoDB Server version 4.2 or
+   earlier, you can perform write operations in a transaction only on
+   collections that already exist. When you connect to MongoDB Server
+   version 4.4 and later, the server automatically creates collections
+   as necessary when you perform write operations in a transaction. To
+   learn more about this behavior, see :manual:`Create Collections and
+   Indexes in a Transaction
+   </core/transactions/#create-collections-and-indexes-in-a-transaction>` 
+   in the Server manual.
+
+.. _node-txn-core-api:
 
 Core API
 ~~~~~~~~
 
-The Core API features methods to start, cancel, or commit a transaction.
-When you commit the transaction, you send a request to the server to make the
-changes from your operations atomically. When using this API, you must handle
-certain transaction errors returned by the server manually.
+The Core API provides the following methods to implement transactions:
 
-See
-:manual:`TransientTransactionError </core/transactions-in-applications/#std-label-transient-transaction-error>`
-and
-:manual:`UnknownTransactionCommitResult </core/transactions-in-applications/#-unknowntransactioncommitresult->`
-for more information on these errors.
+- `startSession() <{+api+}/classes/MongoClient.html#startSession>`__:
+  creates a new ``ClientSession`` instance
+- `startTransaction()
+  <{+api+}/classes/ClientSession.html#startTransaction>`__: starts a new
+  transaction
+- `commitTransaction()
+  <{+api+}/classes/ClientSession.html#commitTransaction>`__: commits the
+  active transaction in the session that it was created in
+- `abortTransaction()
+  <{+api+}/classes/ClientSession.html#abortTransaction>`__: ends the
+  active transaction in the session that it was created in
+- `endSession()
+  <{+api+}/classes/ClientSession.html#endSession>`__: ends the
+  active session
+   
+You must perform the following steps when using this API:
 
-To start, cancel, or commit your transaction, you can call the corresponding
-method on the ``Session`` object:
+- Pass the session instance to each operation that
+  you want to run in that session.
+- Implement a ``catch`` block in which you identify
+  server transaction errors and implement error-handling logic.
 
-- ``startTransaction()``
-- ``commitTransaction()``
-- ``abortTransaction()``
+The following code demonstrates how to perform a transaction by using
+the Core API:
 
-See the :ref:`Core API example <nodejs-transaction-core-api-example>` for
-a sample transaction implementation.
-
-.. _nodejs-transaction-settings:
-
-Transaction Settings
---------------------
-
-When you instantiate a transaction, you can specify the following options to
-set the default behavior for that transaction:
-
-.. list-table::
-   :widths: 25 75
-   :header-rows: 1
-
-   * - Setting
-     - Description
-
-   * - ``readConcern``
-     - Specifies how to check for the consistency of the data that the
-       read operations retrieve from replica sets.
-
-       See :manual:`Read Concern </reference/read-concern/>` in the server
-       manual for more information.
-
-   * - ``writeConcern``
-     - Specifies conditions in which to acknowledge the write.
-       See :manual:`Write Concern </reference/write-concern/>` in the
-       server manual for more information.
-
-   * - ``readPreference``
-     - See :manual:`Read Preference </core/read-preference/#read-preference>`
-       in the server manual for more information.
-
-   * - ``maxCommitTimeMS``
-     - Specifies the maximum amount of time to allow a commit action on a
-       transaction to run in milliseconds.
-
-If you do not provide values, the driver uses the client settings.
-
-You can specify the transaction options in the Core API using code that
-resembles the following:
-
-.. code-block:: javascript
-
-   const transactionOptions = {
-     readPreference: 'primary',
-     readConcern: { level: 'local' },
-     writeConcern: { w: 'majority' },
-     maxCommitTimeMS: 1000
-   };
-   session.startTransaction(transactionOptions);
-
-.. _nodejs-transaction-examples:
-
-Examples
---------
-
-Consider a scenario in which a customer purchases items from your online
-store. To record the purchase, your application needs to update
-information related to inventory, the customer's orders, and register the
-order details. Suppose you organize the data updates as follows:
-
-.. list-table::
-   :widths: 25 25 50
-   :header-rows: 1
-
-   * - Collection
-     - Operation
-     - Description of the Change
-
-   * - ``orders``
-     - insert
-     - Record the purchase information
-
-   * - ``customers``
-     - update
-     - Append the order id to associate it with the customer
-
-   * - ``inventory``
-     - update
-     - Subtract quantity of ordered items
-
-A purchase can fail several ways such as if there's insufficient quantity of
-the item in inventory, if the order couldn't be completed, or if your
-payment system is offline.
-
-If the payment fails, you can use a transaction to make sure that you
-avoid exposing any partial updates that might cause data consistency issues
-for other operations that depend on that data.
-
-Sample Data
-~~~~~~~~~~~
-
-The code examples require the following sample data in the ``testdb``
-database to run the multi-document payment transaction:
-
-- A document in the ``customers`` collection that describes a customer and
-  their orders.
-- Documents in the ``inventory`` collection that each track quantity and
-  description of an item.
-
-The document in the ``customers`` collection in this example contains the
-following:
-
-.. code-block:: json
-
-   { _id: 98765, orders: [] }
-
-The documents in the ``inventory`` collection in this example contain the
-following:
-
-.. code-block:: json
-
-   [
-    { name: "sunblock", sku: 5432, qty: 85 },
-    { name: "beach towel", sku: 7865, qty: 41 }
-   ]
-
-The code examples also perform operations on the ``orders`` collection, but
-do not require any prior sample documents.
-
-The code examples use the ``cart`` and ``payment`` variables to represent
-a sample list of items purchased and the order payment details as follows:
-
-.. code-block:: javascript
-
-   const cart = [
-     { name: 'sunblock', sku: 5432, qty: 1, price: 5.19 },
-     { name: 'beach towel', sku: 7865, qty: 2, price: 15.99 }
-   ];
-   const payment = { customer: 98765, total: 37.17 };
-
-.. important::
-
-   The examples in the following sections require that you create the
-   collections outside of the transaction or that you are using MongoDB 4.4 or
-   later. For more information on creating collections inside a transaction,
-   see the
-   :manual:`Create Collections and Indexes in a Transaction </core/transactions/#std-label-transactions-create-collections-indexes>`
-   server guide.
-
-.. _nodejs-transaction-core-api-example:
-
-Core API Implementation
-~~~~~~~~~~~~~~~~~~~~~~~
-
-The code example in this section demonstrates how you can use the Core API to
-run the multi-document payment transaction in a session. This function
-shows how you can perform the following:
-
-1. Start a session
-#. Start a transaction, specifying transaction options
-#. Perform data operations in the same session
-#. Commit a transaction, or cancel it if the driver encounters an error
-#. End a session
-
-.. literalinclude:: /code-snippets/transactions/txn-core.js
+.. literalinclude:: /code-snippets/transactions/txn-api-examples.js
    :language: javascript
-   :linenos:
-   :emphasize-lines: 3-7,13,24,40,51,61,65,73-74,76-77,81,84
-   :start-after: start placeOrder
-   :end-before: end placeOrder
-
-You must pass the session object to each CRUD operation that
-you want to run on that session.
+   :emphasize-lines: 2,4,10,16,20,24,26 
+   :start-after: begin-core
+   :end-before: end-core
 
 .. important:: Use a Session with the Client That Started It
-
-   Starting in version 6.0 of the {+driver-short+}, the driver
-   throws an error if you provide a session from one ``MongoClient``
+   
+   The driver throws an error if you provide a session from one ``MongoClient``
    instance to a different client instance.
 
    For example, the following code generates an
@@ -267,91 +143,139 @@ you want to run on that session.
 
    .. code-block:: js
       :emphasize-lines: 2
-
+      
       const session = client1.startSession();
       client2.db('myDB').collection('myColl').insertOne({ name: 'Jane Eyre' }, { session });
 
-The code and comments in the ``catch`` block demonstrate how you can identify
-the server transaction errors and where you can place your logic to handle
-them. Make sure to include the ``MongoError`` type from the driver in your
-code as shown in the following sample import statement:
+To see a fully runnable example that uses this API, see the
+:ref:`node-usage-core-txn` usage example. 
+
+.. _node-txn-convenient-api:
+
+Convenient Transaction API
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Convenient Transaction API provides the following methods to
+implement transactions:
+
+- `withSession() <{+api+}/classes/MongoClient.html#withSession>`__: Runs
+  the callback passed to it within a session. The API handles the creation and
+  termination of the session automatically.
+- `withTransaction() <{+api+}/classes/ClientSession.html#withTransaction>`__:
+  Runs the callback passed to it within a transaction and calls the 
+  ``commitTransaction()`` method when the callback returns.
+
+These methods return the value that the callback returns. For example,
+if a callback you pass to the ``withTransaction()`` method returns the
+document ``{ hello: "world" }``, then the ``withTransaction()`` method
+also returns that document.
+
+When you use the Convenient Transaction API, you
+can propagate return values from the callback as the return values of
+the ``withTransaction()`` and ``withSession()`` methods to
+work with them elsewhere in your code.
+
+You must perform the following steps when using this API:
+
+- Pass the session instance to each operation that
+  you want to run in that session.
+- Implement the async ``await`` syntax for each operation in the
+  session.
+- Avoid parallelism, such as calling the ``Promise.all()`` method.
+  Using sessions in parallel usually leads to server errors.
+
+The following code demonstrates how to perform a transaction by using
+the Convenient Transaction API:
+
+.. literalinclude:: /code-snippets/transactions/txn-api-examples.js
+   :language: javascript
+   :emphasize-lines: 2-3,8,14
+   :start-after: begin-conv
+   :end-before: end-conv
+
+To see a fully runnable example that uses this API, see the
+:ref:`node-usage-convenient-txn` usage example.
+
+.. _nodejs-transaction-settings:
+
+Transaction Options
+-------------------
+
+You can pass a ``TransactionOptions`` instance to the
+``startTransaction()`` and ``withTransaction()`` methods to configure
+how the driver performs a transaction. When you specify an option,
+it overrides the value of the option that you might have set on your
+``MongoClient`` instance.
+
+The following table includes options that you can specify
+in a ``TransactionOptions`` instance:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``readConcern``
+     - | Specifies read operation consistency of the replica set.
+       | To learn more, see :manual:`Read Concern
+         </reference/read-concern/>` in the Server manual.
+
+   * - ``writeConcern``
+     - | Specifies the write operation level of acknowledgment required
+         from a replica set.
+       | To learn more, see :manual:`Write Concern
+         </reference/write-concern/>` in the Server manual.
+
+   * - ``readPreference``
+     - | Specifies how to route read operations to members of a replica set.
+       | To learn more, see :manual:`Read Preference
+         </core/read-preference/#read-preference>` in the Server manual.
+
+   * - ``maxCommitTimeMS``
+     - Specifies the length of time that a commit action on a
+       transaction can run, in milliseconds.
+
+For a full list of options, see the API documentation for
+`TransactionOptions <{+api+}/interfaces/TransactionOptions.html>`__.
+
+.. note::
+
+   The transaction inherits settings from your ``MongoClient`` instance unless you
+   specify them in your transaction options.
+
+The following code shows how to define and pass transaction options to
+the ``startTransaction()`` method:
 
 .. code-block:: javascript
 
-   const { MongoError, MongoClient } = require('mongodb');
+   const txnOpts = {
+     readPreference: 'primary',
+     readConcern: { level: 'local' },
+     writeConcern: { w: 'majority' },
+     maxCommitTimeMS: 1000
+   };
+   session.startTransaction(txnOpts);
 
-See the :ref:`Payment Transaction Result <nodejs-transaction-example-payment-result>`
-section to see what your collections should contain after you run the
-transaction.
+.. _nodejs-transaction-errors:
 
-.. _nodejs-transaction-example-payment-result:
+Transaction Errors
+------------------
 
-Payment Transaction Result
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+If you are using the Core API to perform a transaction, you must incorporate
+error-handling logic into your application for the following errors:
 
-If your application completes the payment transaction, your
-database should contain all the updates, and if an exception interrupted your
-transaction, none of the changes should exist in your database.
+- ``TransientTransactionError``: Raised if a write operation errors
+  before the driver commits the transaction. To learn more about this error, see the
+  :manual:`TransientTransactionError description
+  </core/transactions-in-applications/#transienttransactionerror>` on
+  the Driver API page in the Server manual.
+- ``UnknownTransactionCommitResult``: Raised if the commit operation
+  encounters an error. To learn more about this error, see the
+  :manual:`UnknownTransactionCommitResult description
+  </core/transactions-in-applications/#unknowntransactioncommitresult>` on
+  the Driver API page in the Server manual.
 
-The ``customers`` collection should contain the customer document with an
-order id appended to the orders field:
-
-.. code-block:: json
-   :copyable: false
-
-   {
-     "_id": 98765,
-     "orders": [
-       "61dc..."
-     ]
-   }
-
-The ``inventory`` collection should contain updated quantities for the
-items "sunblock" and "beach towel":
-
-.. code-block:: json
-   :copyable: false
-
-   [
-     {
-       "_id": ...,
-       "name": "sunblock",
-       "sku": 5432,
-       "qty": 84
-     },
-     {
-       "_id": ...,
-       "name": "beach towel",
-       "sku": 7865,
-       "qty": 39
-     }
-   ]
-
-The ``orders`` collection should contain the order and payment
-information:
-
-.. code-block:: json
-   :copyable: false
-
-   [
-     {
-       "_id": "...",
-       "customer": 98765,
-       "items": [
-         {
-           "name": "sunblock",
-           "sku": 5432,
-           "qty": 1,
-           "price": 5.19
-         },
-         {
-           "name": "beach towel",
-           "sku": 7865,
-           "qty": 2,
-           "price": 15.99
-         }
-       ],
-       "total": 37.17
-     }
-   ]
-
+The Convenient Transaction API incorporates retry logic for these error
+types, so the driver retries the transaction until there is a successful commit.

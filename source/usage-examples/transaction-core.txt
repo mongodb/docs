@@ -1,0 +1,224 @@
+.. _node-usage-core-txn:
+
+================
+Use the Core API
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can perform a transaction to run a series of operations that do not
+change any data until the entire transaction is committed. This usage
+example uses the **Core API** to perform a transaction.
+
+.. seealso::
+   
+   To learn more about the performing transactions in the
+   {+driver-short+}, see the :ref:`nodejs-transactions` guide.
+
+   The {+driver-short+} also provides the Convenient Transaction API to
+   perform transactions. To learn more about the Convenient Transaction
+   API, see the :ref:`node-usage-convenient-txn` usage example.
+
+.. _nodejs-transaction-examples:
+
+Example
+-------
+
+Consider a situation in which a customer purchases items from your online
+shop. To record the purchase, your application must update
+your inventory and the customer's orders. Your
+application also needs to save the order details.
+
+The following table describes the collections that store purchase data
+and how a purchase changes the data in each collection.
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Collection
+     - Operation
+     - Description of the Change
+
+   * - ``orders``
+     - insert
+     - Inserts a document that describes the order
+
+   * - ``customers``
+     - update or upsert
+     - Appends the ``_id`` from the order document to the order history
+       in the customer document
+
+   * - ``inventory``
+     - update
+     - Updates the quantities of items available after a purchase
+
+Sample Data
+~~~~~~~~~~~
+
+The code examples use the following sample data in the ``testdb``
+database:
+
+- Documents in the ``customers`` collection that describe customers and
+  their past orders
+- Documents in the ``inventory`` collection that include quantities and
+  descriptions of all items
+
+The following document is in the ``customers`` collection:
+
+.. code-block:: json
+
+   { _id: 98765, orders: [] }
+
+The ``inventory`` collection contains the following documents:
+
+.. code-block:: json
+
+   { item: "sunblock", item_id: 5432, qty: 85 },
+   { item: "beach towel", item_id: 7865, qty: 41 }
+
+You store purchase records in the ``orders`` collection of the
+``testdb`` database. This collection is empty, as there have been no
+purchases.
+
+The code examples use the ``cart`` and ``payment`` variables to represent
+a sample list of items purchased and the order payment details. The
+following code describes the contents of the ``cart`` and ``payment`` variables:
+
+.. code-block:: javascript
+
+   const cart = [
+     { item: 'sunblock', item_id: 5432, qty: 1, price: 5.19 },
+     { item: 'beach towel', item_id: 7865, qty: 2, price: 15.99 }
+   ];
+   const payment = { customer: 98765, total: 37.17 };
+
+.. _nodejs-transaction-core-api-example:
+
+Implementation
+~~~~~~~~~~~~~~
+
+The code example in this section demonstrates how to use the Core API to
+perform a multi-document transaction in a session. In this example, the
+transaction makes the changes needed when a customer purchases items from
+your shop.
+
+This example code performs a transaction through the following actions:
+
+1. Calls the ``startSession()`` method to create a new session
+
+#. Calls the ``startTransaction()`` method with an options parameter to
+   create a new transaction
+
+#. Performs the following operations within the transaction:
+
+   * Inserts a document to the ``orders`` collection that contains
+     information about the purchase and customer
+   * Updates the ``inventory`` collection if there is
+     sufficient inventory to fulfill the purchase
+   * Ends the transaction and throws an exception if there isn't
+     sufficient inventory for any item in the order
+   * Adds the ID of the order to the list of past orders for the customer
+   * Returns a message acknowledging that the transaction
+     committed successfully with a copy of the purchase record
+
+#. Calls the ``commitTransaction()`` method to commit the transaction if
+   all operations complete successfully
+
+#. Implements a ``catch`` block that contains error-handling logic
+
+#. Calls the ``abortTransaction()`` method to end the transaction
+
+#. Calls the ``endSession()`` method to end the session
+
+.. literalinclude:: /code-snippets/transactions/txn-core.js
+   :language: javascript
+   :start-after: start placeOrder
+   :end-before: end placeOrder
+
+.. _nodejs-transaction-example-payment-result:
+
+Transaction Results
+~~~~~~~~~~~~~~~~~~~
+
+This section describes the data changes created by the transaction.
+
+The ``customers`` collection contains the customer document with an
+order ``_id`` appended to the orders field:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "_id": 98765,
+     "orders": [
+       "61dc..."
+     ]
+   }
+
+The ``inventory`` collection contains updated quantities for the
+items ``"sunblock"`` and ``"beach towel"``:
+
+.. code-block:: json
+   :copyable: false
+
+   [
+     {
+       "_id": ...,
+       "item": "sunblock",
+       "item_id": 5432,
+       "qty": 84
+     },
+     {
+       "_id": ...,
+       "item": "beach towel",
+       "item_id": 7865,
+       "qty": 39
+     }
+   ]
+
+The ``orders`` collection contains the order and payment
+information:
+
+.. code-block:: json
+   :copyable: false
+
+   [
+     {
+       "_id": "...",
+       "customer": 98765,
+       "items": [
+         {
+           "item": "sunblock",
+           "item_id": 5432,
+           "qty": 1,
+           "price": 5.19
+         },
+         {
+           "item": "beach towel",
+           "item_id": 7865,
+           "qty": 2,
+           "price": 15.99
+         }
+       ],
+       "total": 37.17
+     }
+   ]
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+usage example, see the following API Documentation:
+
+- `TransactionOptions <{+api+}/interfaces/TransactionOptions.html>`__
+- `ClientSession <{+api+}/classes/ClientSession.html>`__
+- `startSession() <{+api+}/classes/MongoClient.html#startSession>`__
+- `startTransaction() <{+api+}/classes/ClientSession.html#startTransaction>`__
+- `commitTransaction() <{+api+}/classes/ClientSession.html#commitTransaction>`__
+- `abortTransaction() <{+api+}/classes/ClientSession.html#abortTransaction>`__
+- `endSession() <{+api+}/classes/ClientSession.html#endSession>`__
