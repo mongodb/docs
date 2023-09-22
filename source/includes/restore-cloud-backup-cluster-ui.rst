@@ -8,8 +8,9 @@
 
 #. Find the desired {+cluster+} snapshot to restore.
 
-#. For the desired {+cluster+}, click :guilabel:`Restore` or
-   :guilabel:`Download`.
+#. In the :guilabel:`Actions` column, expand the :icon-fa5:`ellipsis-v` 
+   :guilabel:`Actions` menu, and click :guilabel:`Restore` or 
+   :guilabel:`Download` for the snapshot that you want to restore.
 
 #. Follow the prompts to restore your {+cluster+}. You may choose to 
    one of the following actions:
