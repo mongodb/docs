@@ -16,6 +16,13 @@ The following page describes the configuration options available in
 MongoDB {+latest-lts-version+}. For configuration file options for other 
 versions of MongoDB, see the appropriate version of the MongoDB Manual.
 
+.. note::
+
+   If you're using {+atlas+} to manage your MongoDB deployments in the
+   cloud, you don't need to create a configuration file. To learn how 
+   to configure settings for your {+atlas+} deployment, see 
+   :atlas:`Configure Additional Settings </cluster-additional-settings/>`.
+
 .. _conf-file:
 
 Configuration File
@@ -1063,6 +1070,9 @@ Core Options
          clusterPassword: <string>
          CAFile: <string>
          clusterCAFile: <string>
+         clusterAuthX509:
+           attributes: <string>
+           extensionValue: <string>
          CRLFile: <string>
          allowConnectionsWithoutCertificates: <boolean>
          allowInvalidCertificates: <boolean>
@@ -1196,7 +1206,9 @@ Core Options
 
    *Type*: integer
 
-   *Default*: 65536
+   | *Default (Windows):* 1,000,000
+   | *Default (Linux):* (`RLIMIT_NOFILE
+     <https://man7.org/linux/man-pages/man2/getrlimit.2.html>`__) * 0.8
 
    The maximum number of simultaneous connections that :binary:`~bin.mongos` or :binary:`~bin.mongod` will
    accept. This setting has no effect if it is higher than your operating
@@ -1341,6 +1353,9 @@ Core Options
          clusterCertificateSelector: <string>
          clusterFile: <string>
          clusterPassword: <string>
+         clusterAuthX509:
+           attributes: <string>
+           extensionValue: <string>
          CAFile: <string>
          clusterCAFile: <string>
          CRLFile: <string>
@@ -1614,6 +1629,50 @@ Core Options
    
    .. include:: /includes/extracts/tls-facts-see-more.rst
 
+
+.. setting:: net.tls.clusterAuthX509
+
+   .. versionadded:: 7.0
+
+   .. code-block:: yaml
+
+      net:
+         tls:
+           clusterAuthX509:
+             attributes: <string>
+             extensionValue: <string>
+
+
+.. setting:: net.tls.clusterAuthX509.attributes
+
+   *Type*: string
+
+   .. versionadded:: 7.0
+
+   Specifies a set of X.509 Distinguished Name (DN) attributes and values that
+   the server expects cluster member nodes to contain in their certificate
+   subject names.  This lets you use certificates that don't contain DC,
+   O, and OU values to authenticate cluster members.
+
+   When ``attributes`` is set, MongoDB matches certificates using the DN
+   and ignores extension values.
+
+
+.. setting:: net.tls.clusterAuthX509.extensionValue
+
+   *Type*: string
+
+   .. versionadded:: 7.0
+
+   Specifies an extension value that corresponds to the MongoDB cluster
+   membership extension :abbr:`OID`, 1.3.6.1.4.1.34601.2.1.2, that the server expects cluster 
+   member nodes to contain in their certificates. This allows you 
+   to use certificates that don't contain DC, O, and OU values to authenticate 
+   cluster members.
+
+   When ``extensionValue`` is set, MongoDB matches certificates using
+   certificate extension values and ignores the Distinguished Name (DN).
+
 .. setting:: net.tls.CAFile
 
    *Type*: string
@@ -1763,32 +1822,32 @@ Core Options
 .. setting:: net.tls.disabledProtocols
 
    *Type*: string
-
-   .. versionadded:: 4.2
    
    Prevents a MongoDB server running with TLS from accepting
    incoming connections that use a specific protocol or protocols. To
-   specify multiple protocols, use a comma separated list of protocols.
+   specify multiple protocols, use a comma separated list of protocols,
+   but do not use spaces after the commas. If you include a space before
+   a protocol name, the server interprets it as an unrecognized protocol
+   and doesn't start.
     
    :setting:`net.tls.disabledProtocols` recognizes the following protocols: ``TLS1_0``, ``TLS1_1``,
-   ``TLS1_2``, and starting in version 4.0.4 (and 3.6.9), ``TLS1_3``.
+   ``TLS1_2``, and ``TLS1_3``.
    
    - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0`` and
      ``TLS1_2`` enabled. You must disable at least one of the other
      two, for example, ``TLS1_0,TLS1_1``.
    
    - To list multiple protocols, specify as a comma separated list of
-     protocols. For example ``TLS1_0,TLS1_1``.
+     protocols without spaces after the commas. For example ``TLS1_0,TLS1_1``.
    
-   - Specifying an unrecognized protocol will prevent the server from
-     starting.
+   - Specifying an unrecognized protocol or including a space after a
+     comma prevents the server from starting.
    
    - The specified disabled protocols overrides any default disabled
      protocols.
    
-   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
-   1.1+ is available on the system. To enable the disabled TLS 1.0,
-   specify ``none`` to :setting:`net.tls.disabledProtocols`. See :ref:`4.0-disable-tls`.
+   MongoDB disables the use of TLS 1.0 if TLS 1.1+ is available on the
+   system. To enable TLS 1.0, specify ``none`` to :setting:`net.tls.disabledProtocols`. See :ref:`4.0-disable-tls`.
    
    Members of replica sets and sharded clusters must speak at least one
    protocol in common.
@@ -2036,7 +2095,7 @@ Core Options
    CA certificate, the secure certificate store must contain that root
    CA certificate. If the TLS/SSL certificate was signed with an
    intermediate CA certificate, the secure certificate store must
-   contain the intermedia CA certificate *and* the root CA certificate.
+   contain the intermediate CA certificate *and* the root CA certificate.
 
 .. setting:: net.ssl.clusterCertificateSelector
 
@@ -2079,7 +2138,7 @@ Core Options
    CA certificate, the secure certificate store must contain that root
    CA certificate. If the cluster certificate was signed with an
    intermediate CA certificate, the secure certificate store must
-   contain the intermedia CA certificate *and* the root CA certificate.
+   contain the intermediate CA certificate *and* the root CA certificate.
 
 .. setting:: net.ssl.clusterFile
 
@@ -2772,27 +2831,7 @@ Key Management Configuration Options
    
    The cipher mode to use for encryption at rest:
    
-   .. list-table::
-      :header-rows: 1
-      :widths: 35 65
-   
-      * - Mode
-        - Description
-   
-      * - ``AES256-CBC``
-        - 256-bit Advanced Encryption Standard in Cipher Block Chaining
-          Mode
-   
-      * - ``AES256-GCM``
-   
-        - 256-bit Advanced Encryption Standard in Galois/Counter Mode
-   
-          Available only on Linux.
-   
-          .. versionchanged:: 4.0
-   
-             .. include:: /includes/fact-aes.rst
-   
+   .. include:: /includes/in-use-encryption/table-in-use-encryption-cipher-modes.rst
    
    .. include:: /includes/fact-enterprise-only-admonition.rst
    
@@ -3503,7 +3542,7 @@ Key Management Configuration Options
 
    Starting in MongoDB 5.0, :setting:`~security.ldap.userToDNMapping`
    accepts an empty string ``""`` or empty array ``[ ]`` in place of a
-   mapping documnent. If providing an empty string or empty array to
+   mapping document. If providing an empty string or empty array to
    :setting:`~security.ldap.userToDNMapping`, MongoDB will map the
    authenticated username as the LDAP DN. Previously, providing an
    empty mapping document would cause mapping to fail.
@@ -3512,9 +3551,9 @@ Key Management Configuration Options
    
      The following shows two transformation documents. The first
      document matches against any string ending in ``@ENGINEERING``, placing
-     anything preceeding the suffix into a regex capture group. The
+     anything preceding the suffix into a regex capture group. The
      second document matches against any string ending in ``@DBA``, placing
-     anything preceeding the suffix into a regex capture group.
+     anything preceding the suffix into a regex capture group.
    
      .. important::  You must pass the array to :setting:`~security.ldap.userToDNMapping` as a string.
    
@@ -4190,9 +4229,7 @@ LDAP Parameters
 
    *Default*: 50% of physical RAM less 1 GB
 
-   .. versionchanged:: 3.4
-   
-      Values can range from 256MB to 10TB and can be a float.
+   Values can range from 256MB to 10TB and can be a float.
    
    Maximum amount of memory to allocate for :doc:`in-memory storage
    engine </core/inmemory>` data, including indexes, oplog if the
@@ -4261,21 +4298,14 @@ LDAP Parameters
    
    .. include:: /includes/dbcommand-slowms-definition.rst
    
-
+   This setting is available for :binary:`~bin.mongod` and :binary:`~bin.mongos`.
    
-   .. versionchanged:: 4.0
+   - For :binary:`~bin.mongod` instances, the setting affects both
+     the diagnostic log and, if enabled, the profiler.
    
-      The :setting:`~operationProfiling.slowOpThresholdMs` setting is
-      available for :binary:`~bin.mongod` and :binary:`~bin.mongos`. In
-      earlier versions, :setting:`~operationProfiling.slowOpThresholdMs`
-      is available for :binary:`~bin.mongod` only.
-   
-      - For :binary:`~bin.mongod` instances, the setting affects both
-        the diagnostic log and, if enabled, the profiler.
-   
-      - For :binary:`~bin.mongos` instances, the setting affects the
-        diagnostic log only and not the profiler since profiling is not
-        available on :binary:`~bin.mongos`.
+   - For :binary:`~bin.mongos` instances, the setting affects the
+     diagnostic log only and not the profiler, since profiling is not
+     available on :binary:`~bin.mongos`.
    
 
 
@@ -4481,6 +4511,17 @@ LDAP Parameters
    
    The :setting:`sharding.clusterRole` setting is available only for :binary:`~bin.mongod`.
 
+
+.. setting:: sharding.archiveMovedChunks
+
+   *Type*: boolean
+
+   *Default*: false.
+   
+   During chunk migration, a shard does not save documents migrated from
+   the shard.
+
+
 ``auditLog`` Options
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -4634,70 +4675,8 @@ LDAP Parameters
 
    .. include:: /includes/note-audit-in-enterprise-only.rst
 
-``snmp`` Options
-~~~~~~~~~~~~~~~~
-
-.. note::
-
-   .. include:: /includes/fact-macos-snmp.rst
-
-.. code-block:: yaml
-
-   snmp:
-      disabled: <boolean>
-      subagent: <boolean>
-      master: <boolean>
-
-.. setting:: snmp.disabled
-
-   *Type*: boolean
-
-   *Default*: false
-
-   
-   Disables SNMP access to :binary:`~bin.mongod`. The option is incompatible
-   with :setting:`snmp.subagent` and :setting:`snmp.master`.
-
-   Set to ``true`` to disable SNMP access.
-   
-   The :setting:`snmp.disabled` setting is available only for :binary:`~bin.mongod`.
-   
-   .. versionadded:: 4.0.6
-
-
-.. setting:: snmp.subagent
-
-   *Type*: boolean
-
-   
-   When :setting:`snmp.subagent` is ``true``, SNMP runs as a subagent. The option is incompatible with :setting:`snmp.disabled` set to ``true``.
-
-   The :setting:`snmp.subagent` setting is available only for :binary:`~bin.mongod`.
-
-
-.. setting:: snmp.master
-
-   *Type*: boolean
-
-   
-   When :setting:`snmp.master` is ``true``, SNMP runs as a master. The option is incompatible with :setting:`snmp.disabled` set to ``true``.
-
-   The :setting:`snmp.master` setting is available only for :binary:`~bin.mongod`.
-
-
-.. seealso::
-
-   - :doc:`/tutorial/monitor-with-snmp`
-   - :doc:`/tutorial/monitor-with-snmp-on-windows`
-   - :doc:`/tutorial/troubleshoot-snmp`
-   
 ``mongos``\ -only Options
 -------------------------
-
-.. versionchanged:: 3.4
-
-   MongoDB 3.4 removes ``sharding.chunkSize`` and
-   ``sharding.autoSplit`` settings.
 
 .. code-block:: yaml
 
@@ -4745,9 +4724,6 @@ LDAP Parameters
 .. setting:: sharding.configDB
 
    *Type*: string
-
-   
-   .. versionchanged:: 3.2
    
    The :ref:`configuration servers <sharding-config-server>` for the
    :term:`sharded cluster`.

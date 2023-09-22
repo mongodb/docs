@@ -11,3 +11,7 @@
       - NodeJS wrapper for the ``libmongocrypt`` encryption library.
         The ``libmongocrypt`` library contains bindings to communicate
         with the native library that manages the encryption.
+
+        .. note::
+        
+           .. include:: /includes/in-use-encryption/node-mongodb-client-encryption-note.rst

@@ -76,6 +76,12 @@ search and analysis of log messages easier to perform. Examples of
 analyzing structured log messages can be found in the
 :ref:`log-message-parsing` section.
 
+.. note:: 
+
+   The ``mongod`` quits if it's unable to write to the log file. To
+   ensure that ``mongod`` can write to the log file, verify that the log
+   volume has space on the disk and the logs are rotated. 
+
 .. _log-message-json-output-format:
 
 JSON Log Output Format
@@ -108,7 +114,7 @@ specification, and has the following layout and field order:
      "attr": <Object> // additional attributes (optional)
      "tags": <Array of strings> // tags (optional)
      "truncated": <Object> // truncation info (if truncated)
-     "size": <Integer> // original size of entry (if truncated)
+     "size": <Object> // original size of entry (if truncated)
    }
 
 Field descriptions:
@@ -174,7 +180,7 @@ Field descriptions:
        log entry contains at least one truncated ``attr`` attribute.
 
    * - ``size``
-     - Integer
+     - Object
      - Original size of a log entry if it has been :ref:`truncated
        <log-message-truncation>`. Only included if the log entry
        contains at least one truncated ``attr`` attribute.
@@ -297,8 +303,8 @@ MongoDB log messages can be output to *file*, *syslog*, or *stdout*
 (standard output).
 
 To configure the log output destination, use one of the following
-settings, either in the :doc:`configuration file
-</reference/configuration-options>` or on the command-line:
+settings, either in the :ref:`configuration file
+<configuration-options>` or on the command-line:
 
 **Configuration file:**
   - The :setting:`systemLog.destination` option for *file* or *syslog*
@@ -440,7 +446,7 @@ severe):
      - Debug, for :ref:`verbosity levels
        <log-messages-configure-verbosity>` > ``0``
 
-       Starting in version 4.2, MongoDB indicates the specific
+       MongoDB indicates the specific
        :ref:`debug verbosity level <log-messages-configure-verbosity>`.
        For example, if verbosity level is 2, MongoDB indicates ``D2``.
 
@@ -490,7 +496,7 @@ available components are as follows:
 
 .. data:: COMMAND
 
-   Messages related to :doc:`database commands </reference/command>`,
+   Messages related to :ref:`database commands <database-commands>`,
    such as :dbcommand:`count`. To specify the log level for
    :data:`COMMAND` components, use the
    :setting:`systemLog.component.command.verbosity` setting.
@@ -636,8 +642,8 @@ available components are as follows:
 
    .. versionadded:: 4.0.2
 
-   Messages related to :doc:`multi-document transactions
-   </core/transactions>`. To specify the log level for :data:`TXN`
+   Messages related to :ref:`multi-document transactions
+   <transactions>`. To specify the log level for :data:`TXN`
    components, use the
    :setting:`systemLog.component.transaction.verbosity` setting.
 
@@ -788,12 +794,11 @@ examples that filter on the component field.
 Client Data
 ~~~~~~~~~~~
 
-:driver:`MongoDB drivers </> and
-client applications (including :binary:`~bin.mongosh`) have the
-ability to send identifying information at the time of connection to the
-server. After the connection is established, the client does not send
-the identifying information again unless the connection is dropped
-and reestablished.
+:driver:`MongoDB Drivers </>` and client applications (including 
+:binary:`~bin.mongosh`) have the ability to send identifying information at the 
+time of connection to the server. After the connection is established, the 
+client does not send the identifying information again unless the connection is 
+dropped and reestablished.
 
 This identifying information is contained in the **attributes**
 field of the log entry. The exact information included varies by client. 
@@ -808,7 +813,7 @@ data is contained in the ``doc`` object in the **attributes** field:
    {"t":{"$date":"2020-05-20T16:21:31.561+00:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn202","msg":"client metadata","attr":{"remote":"127.0.0.1:37106","client":"conn202","doc":{"application":{"name":"MongoDB Shell"},"driver":{"name":"MongoDB Internal Client","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
 
 When secondary members of a
-:doc:`replica set </core/replica-set-members/>` initiate
+:ref:`replica set <replica-set-members>` initiate
 a connection to a primary, they send similar data. A sample log message
 containing this initiation connection might appear as follows. The
 client data is contained in the ``doc`` object in the **attributes**
@@ -930,8 +935,8 @@ For example, the following configuration sets the
             journal:
                verbosity: 1
 
-You would set these values in the :doc:`configuration file
-</reference/configuration-options>` or on the command line for your
+You would set these values in the :ref:`configuration file
+<configuration-options>` or on the command line for your
 :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
 
 All components not specified explicitly in the configuration have a
@@ -1009,23 +1014,27 @@ Starting in MongoDB 5.0, :ref:`slow operation
 <database-profiling-specify-slowms-threshold>` log messages include a 
 ``remote`` field specifying client IP address.
 
+.. include:: /includes/sbe/fact-slow-ops-logs.rst
+
+Starting in MongoDB 6.1, :ref:`slow operation
+<database-profiling-specify-slowms-threshold>` log messages include 
+:ref:`cache refresh time fields
+<log-messages-cache-refresh-times>`.
+
 Starting in MongoDB 6.3, :ref:`slow operation
 <database-profiling-specify-slowms-threshold>` log messages and :ref:`database 
 profiler <profiler>` entries include a ``cpuNanos`` field that specifies the 
 total CPU time spent by a query operation in nanoseconds. The ``cpuNanos`` field 
 is only available on Linux systems.
 
-The following example output includes information about
-a slow :doc:`aggregation </aggregation>` operation:
+.. include:: /includes/fact-totalOplogSlotDurationMicros.rst 
 
-.. code-block:: javascript
-   :copyable: false
+.. example:: 
 
-   {"t":{"$date":"2020-05-20T20:10:08.731+00:00"},"s":"I",  "c":"COMMAND",  "id":51803,   "ctx":"conn281","msg":"Slow query","attr":{"type":"command","ns":"stocks.trades","appName":"MongoDB Shell","command":{"aggregate":"trades","pipeline":[{"$project":{"ticker":1.0,"price":1.0,"priceGTE110":{"$gte":["$price",110.0]},"_id":0.0}},{"$sort":{"price":-1.0}}],"allowDiskUse":true,"cursor":{},"lsid":{"id":{"$uuid":"fa658f9e-9cd6-42d4-b1c8-c9160fabf2a2"}},"$clusterTime":{"clusterTime":{"$timestamp":{"t":1590005405,"i":1}},"signature":{"hash":{"$binary":{"base64":"AAAAAAAAAAAAAAAAAAAAAAAAAAA=","subType":"0"}},"keyId":0}},"$db":"test"},"planSummary":"COLLSCAN","cursorid":1912190691485054730,"keysExamined":0,"docsExamined":1000001,"hasSortStage":true,"usedDisk":true,"numYields":1002,"nreturned":101,"reslen":17738,"locks":{"ReplicationStateTransition":{"acquireCount":{"w":1119}},"Global":{"acquireCount":{"r":1119}},"Database":{"acquireCount":{"r":1119}},"Collection":{"acquireCount":{"r":1119}},"Mutex":{"acquireCount":{"r":117}}},"storage":{"data":{"bytesRead":232899899,"timeReadingMicros":186017},"timeWaitingMicros":{"cache":849}},"cpuNanos":22426151000,"remote": "192.168.14.15:37666","protocol":"op_msg","durationMillis":22427}}
+   .. include:: /includes/fact-totalOplogSlotDurationMicrosExample.rst
 
-See the :ref:`examples section <log-message-json-examples>` for a
-:ref:`pretty-printed <log-message-pretty-printing>` version of this log
-entry.
+For a :ref:`pretty-printed <log-message-pretty-printing>` example of a
+slow operation log entry, see :ref:`log-message-json-examples`.
 
 .. _log-messages-remoteOpWaitMillis:
 
@@ -1063,6 +1072,16 @@ to complete. Specifically:
 
 Log Redaction 
 -------------
+
+Queryable Encryption Log Redaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When using :ref:`Queryable Encryption <qe-manual-feature-qe>`, CRUD
+operations against encrypted collections are omitted from the slow query
+log. For details, see :ref:`Queryable Encryption redaction <qe-redaction>`.
+
+Enterprise Log Redaction
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-log-redaction.rst
 
@@ -1363,116 +1382,59 @@ This example shows a :ref:`slow operation message
 
    {
      "t": {
-       "$date": "2020-05-20T20:10:08.731+00:00"
+       "$date": "2023-05-24T13:46:27.853+00:00"
      },
      "s": "I",
      "c": "COMMAND",
      "id": 51803,
-     "ctx": "conn281",
+     "ctx": "conn3",
      "msg": "Slow query",
      "attr": {
        "type": "command",
-       "ns": "stocks.trades",
+       "ns": "db.coll",
        "appName": "MongoDB Shell",
        "command": {
-         "aggregate": "trades",
-         "pipeline": [
-           {
-             "$project": {
-               "ticker": 1,
-               "price": 1,
-               "priceGTE110": {
-                 "$gte": [
-                   "$price",
-                   110
-                 ]
-               },
-               "_id": 0
-             }
-           },
-           {
-             "$sort": {
-               "price": -1
-             }
-           }
-         ],
-         "allowDiskUse": true,
-         "cursor": {},
+         "find": "coll",
+         "filter": {
+           "b": -1
+         },
          "lsid": {
            "id": {
-             "$uuid": "fa658f9e-9cd6-42d4-b1c8-c9160fabf2a2"
+             "$uuid": "5d50b19c-8559-420a-a122-8834e012274a"
            }
          },
-         "$clusterTime": {
-           "clusterTime": {
-             "$timestamp": {
-               "t": 1590005405,
-               "i": 1
-             }
-           },
-           "signature": {
-             "hash": {
-               "$binary": {
-                 "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-                 "subType": "0"
-               }
-             },
-             "keyId": 0
-           }
-         },
-         "$db": "test"
+         "$db": "db"
        },
        "planSummary": "COLLSCAN",
-       "cursorid": 1912190691485054700,
+       "planningTimeMicros": 228,
        "keysExamined": 0,
-       "docsExamined": 1000001,
-       "hasSortStage": true,
-       "usedDisk": true,
-       "mirrored": false,
-       "numYields": 1002,
-       "nreturned": 101,
-       "queryFramework": "classic"
-       "reslen": 17738,
+       "docsExamined": 232922,
+       "fromPlanCache": true,
+       "nBatches": 1,
+       "cursorExhausted": true,
+       "numYields": 232,
+       "nreturned": 0,
+       "queryHash": "9C05019A",
+       "planCacheKey": "C41063D6",
+       "queryFramework": "sbe",
+       "reslen": 96,
        "locks": {
-         "ReplicationStateTransition": {
+         "FeatureCompatibilityVersion": {
            "acquireCount": {
-             "w": 1119
+             "r": 233
            }
          },
          "Global": {
            "acquireCount": {
-             "r": 1119
-           }
-         },
-         "Database": {
-           "acquireCount": {
-             "r": 1119
-           }
-         },
-         "Collection": {
-           "acquireCount": {
-             "r": 1119
-           }
-         },
-         "Mutex": {
-           "acquireCount": {
-             "r": 117
+             "r": 233
            }
          }
        },
-       "storage": {
-         "data": {
-           "bytesRead": 232899899,
-           "timeReadingMicros": 186017
-         },
-         "timeWaitingMicros": {
-           "cache": 849
-         }
-       },
-       "cpuNanos": 22426151000,
-       "remote": "192.168.14.15:37666",
+       "storage": {},
+       "cpuNanos": 111410254,
+       "remote": "127.0.0.1:47150",
        "protocol": "op_msg",
-       "durationMillis": 22427
+       "durationMillis": 111
      }
    }
 
@@ -1731,3 +1693,97 @@ The following table describes the ``durationMicros`` field in ``attr``.
      - Time in microseconds that the operation waited between
        acquisition of a server connection and writing the bytes to send
        to the server over the network.
+
+.. _log-messages-cache-refresh-times:
+
+Cache Refresh Times
+~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 6.1, :ref:`log messages for slow queries
+<log-message-slow-ops>` include the following cache refresh time fields:
+
+- ``catalogCacheDatabaseLookupDurationMillis``
+- ``catalogCacheCollectionLookupDurationMillis``
+- ``databaseVersionRefreshDurationMillis``
+- ``shardVersionRefreshMillis``
+
+Starting in MongoDB 7.0, :ref:`log messages for slow queries
+<log-message-slow-ops>` also include the 
+``catalogCacheIndexLookupDurationMillis`` field that indicates the 
+time that the operation spent fetching information from the index 
+cache. This release also renames the ``shardVersionRefreshMillis`` 
+field to ``placementVersionRefreshMillis``.
+
+The following example includes:
+
+- ``catalogCacheDatabaseLookupDurationMillis``
+- ``catalogCacheCollectionLookupDurationMillis``
+- ``catalogCacheIndexLookupDurationMillis``
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 41-43
+
+   {
+     "t": {
+       "$date": "2023-03-17T09:47:55.929+00:00"
+     },
+     "s": "I",
+     "c": "COMMAND",
+     "id": 51803,
+     "ctx": "conn14",
+     "msg": "Slow query",
+     "attr": {
+       "type": "command",
+       "ns": "db.coll",
+       "appName": "MongoDB Shell",
+       "command": {
+         "insert": "coll",
+         "ordered": true,
+         "lsid": {
+           "id": {
+             "$uuid": "5d50b19c-8559-420a-a122-8834e012274a"
+           }
+         },
+         "$clusterTime": {
+           "clusterTime": {
+             "$timestamp": {
+               "t": 1679046398,
+               "i": 8
+             }
+           },
+           "signature": {
+             "hash": {  
+               "$binary": {
+                 "base64": "AAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                 "subType": "0"
+               }
+             },
+             "keyId": 0
+           }
+         },
+         "$db": "db"
+       },
+       "catalogCacheDatabaseLookupDurationMillis": 19,
+       "catalogCacheCollectionLookupDurationMillis": 68,
+       "catalogCacheIndexLookupDurationMillis": 16026,
+       "nShards": 1,
+       "ninserted": 1,
+       "numYields": 232,
+       "reslen": 96,
+       "readConcern": {
+         "level": "local",
+         "provenance": "implicitDefault",
+       },
+       "cpuNanos": 29640339,
+       "remote": "127.0.0.1:48510",
+       "protocol": "op_msg",
+       "remoteOpWaitMillis": 4078,
+       "durationMillis": 20334
+     }
+   }
+
+Linux Syslog Limitations
+------------------------
+
+.. include:: /includes/linux-syslog-limitations.rst

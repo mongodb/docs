@@ -7,7 +7,7 @@ $exists
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -15,16 +15,18 @@ Definition
 
 .. query:: $exists
 
-   *Syntax*: ``{ field: { $exists: <boolean> } }``
+   The :query:`$exists` operator matches documents that
+   contain or do not contain a specified field, including documents 
+   where the field value is ``null``.
 
-   When ``<boolean>`` is true, :query:`$exists` matches the documents that
-   contain the field, including documents where the field value is
-   ``null``. If ``<boolean>`` is false, the query returns only the
-   documents that do not contain the field. [#type0]_
+   .. note:: 
 
-   MongoDB ``$exists`` does **not** correspond to SQL operator
-   ``exists``. For SQL ``exists``, refer to the :query:`$in`
-   operator.
+      MongoDB ``$exists`` does **not** correspond to SQL operator
+      ``exists``. For SQL ``exists``, refer to the :query:`$in`
+      operator. 
+      
+      For Atlas Search ``exists``, refer to the :ref:`exists-ref` 
+      operator in the Atlas documentation.
 
 .. seealso::
 
@@ -32,9 +34,38 @@ Definition
    - :query:`$in`
    - :ref:`faq-developers-query-for-nulls`
 
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$exists``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+To specify an :query:`$exists` expression, use the following prototype:
+
+.. code-block:: javascript
+   
+   { field: { $exists: <boolean> } }
+
+When ``<boolean>`` is true, :query:`$exists` matches the documents that
+contain the field, including documents where the field value is
+``null``. If ``<boolean>`` is false, the query returns only the
+documents that do not contain the field. [#type0]_
+
 .. [#type0]
 
    .. include:: /includes/extracts/4.2-changes-type-0.rst
+
+Query Data on Atlas by Using Atlas Search 
+-----------------------------------------
+
+.. |search-operator| replace:: :ref:`exists-ref`
+.. |manual-operator| replace:: :query:`$exists`
+
+.. include:: /includes/fact-atlas-search-operator.rst
 
 Examples
 --------
@@ -55,61 +86,66 @@ where the ``qty`` field exists *and* its value does not equal ``5`` or
 Null Values
 ~~~~~~~~~~~
 
-The following examples uses a collection named ``records`` with the
+The following examples uses a collection named ``spices`` with the
 following documents:
 
 .. code-block:: javascript
 
-   { a: 5, b: 5, c: null }
-   { a: 3, b: null, c: 8 }
-   { a: null, b: 3, c: 9 }
-   { a: 1, b: 2, c: 3 }
-   { a: 2, c: 5 }
-   { a: 3, b: 2 }
-   { a: 4 }
-   { b: 2, c: 4 }
-   { b: 2 }
-   { c: 6 }
+   db.spices.insertMany( [
+      { saffron: 5, cinnamon: 5, mustard: null },
+      { saffron: 3, cinnamon: null, mustard: 8 },
+      { saffron: null, cinnamon: 3, mustard: 9 },
+      { saffron: 1, cinnamon: 2, mustard: 3 },
+      { saffron: 2, mustard: 5 },
+      { saffron: 3, cinnamon: 2 },
+      { saffron: 4 },
+      { cinnamon: 2, mustard: 4 },
+      { cinnamon: 2 },
+      { mustard: 6 }
+   ] )
 
 ``$exists: true``
 ^^^^^^^^^^^^^^^^^
 
-The following query specifies the query predicate ``a: { $exists: true }``:
+The following query specifies the query predicate ``saffron: { $exists: true }``:
 
 .. code-block:: javascript
 
-   db.records.find( { a: { $exists: true } } )
+   db.spices.find( { saffron: { $exists: true } } )
 
-The results consist of those documents that contain the field ``a``,
-including the document whose field ``a`` contains a null value:
+The results consist of those documents that contain the field ``saffron``,
+including the document whose field ``saffron`` contains a null value:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { a: 5, b: 5, c: null }
-   { a: 3, b: null, c: 8 }
-   { a: null, b: 3, c: 9 }
-   { a: 1, b: 2, c: 3 }
-   { a: 2, c: 5 }
-   { a: 3, b: 2 }
-   { a: 4 }
+   { saffron: 5, cinnamon: 5, mustard: null }
+   { saffron: 3, cinnamon: null, mustard: 8 }
+   { saffron: null, cinnamon: 3, mustard: 9 }
+   { saffron: 1, cinnamon: 2, mustard: 3 }
+   { saffron: 2, mustard: 5 }
+   { saffron: 3, cinnamon: 2 }
+   { saffron: 4 }
+   
 
 ``$exists: false``
 ^^^^^^^^^^^^^^^^^^
 
-The following query specifies the query predicate ``b: { $exists: false }``:
+The following query specifies the query predicate ``cinnamon: { $exists: false }``:
 
 .. code-block:: javascript
 
-   db.records.find( { b: { $exists: false } } )
+   db.spices.find( { cinnamon: { $exists: false } } )
 
 The results consist of those documents that do not contain the field
-``b``:
+``cinnamon``:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { a: 2, c: 5 }
-   { a: 4 }
-   { c: 6 }
+   { saffron: 2, mustard: 5 }
+   { saffron: 4 }
+   { mustard: 6 }
 
 .. include:: /includes/extracts/4.2-changes-type-0.rst
 
@@ -146,12 +182,12 @@ the following scenario:
    .. code-block:: javascript
 
       db.stockSales.insertMany( [
-         { _id: 0, symbol: "ABC", auditDate: new Date( "2021-05-18T16:12:23Z" ) },
-         { _id: 1, symbol: "ABC", auditDate: new Date( "2021-04-21T11:34:45Z" ) },
-         { _id: 2, symbol: "DEF", auditDate: new Date( "2021-02-24T15:11:32Z" ) },
-         { _id: 3, symbol: "DEF", auditDate: null },
-         { _id: 4, symbol: "DEF", auditDate: new Date( "2021-07-13T18:32:54Z" ) },
-         { _id: 5, symbol: "XYZ" }
+         { _id: 0, symbol: "MDB", auditDate: new Date( "2021-05-18T16:12:23Z" ) },
+         { _id: 1, symbol: "MDB", auditDate: new Date( "2021-04-21T11:34:45Z" ) },
+         { _id: 2, symbol: "MSFT", auditDate: new Date( "2021-02-24T15:11:32Z" ) },
+         { _id: 3, symbol: "MSFT", auditDate: null },
+         { _id: 4, symbol: "MSFT", auditDate: new Date( "2021-07-13T18:32:54Z" ) },
+         { _id: 5, symbol: "AAPL" }
       ] )
 
    The document with an ``_id`` of:

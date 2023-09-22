@@ -48,17 +48,27 @@ information. To minimize the impact of building an index on replica
 sets, including shard replica sets, use a rolling index build procedure
 as described in :ref:`index-build-on-replica-sets`. 
 
-To return information on currently running index creation operations,
-see :ref:`currentOp-index-creation`. To kill a running index creation
-operation on a :term:`primary` or standalone :binary:`~bin.mongod`, use 
-:method:`db.killOp()`. The partially built index will be
-deleted.
+How do I monitor index build progress?
+------------------------------------------------------
 
-You cannot terminate a *replicated* index build on secondary members of
-a replica set. You must first :method:`drop <db.collection.dropIndex()>`
-the index on the primary. The secondaries will replicate the drop
-operation and drop the indexes *after* the index build completes.
-All further replication blocks behind the index build and drop. 
+To return information on currently running index creation operations, see 
+:ref:`currentOp-index-creation`. 
+
+How do I terminate an index build?
+----------------------------------
+
+To terminate an in-progress index build, use the 
+:method:`db.collection.dropIndex()` or its shell helpers dropIndex() or 
+:dbcommand:`dropIndexes`. Do not use :method:`db.killOp()` to terminate 
+in-progress index builds in replica sets or sharded clusters.
+
+You cannot terminate a replicated index build on secondary members of a replica 
+set. You must first drop the index on the primary. Starting in version 4.4, the 
+primary stops the index build and creates an associated ``abortIndexBuild`` 
+:term:`oplog` entry. Secondaries that replicate the ``abortIndexBuild`` oplog 
+entry stop the in-progress index build and discard the build job.
+
+To learn more, see :ref:`dropIndexes-cmd-index-builds`. 
 
 How do I see what indexes exist on a collection?
 ------------------------------------------------

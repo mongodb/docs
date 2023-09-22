@@ -34,6 +34,8 @@ Definition
 Syntax
 ------
 
+.. versionchanged:: 7.0
+
 The command has the following syntax:
 
 .. code-block:: javascript
@@ -41,12 +43,21 @@ The command has the following syntax:
    db.adminCommand( 
       {
         setFeatureCompatibilityVersion: <version>,
+        confirm: true
         writeConcern: { wtimeout: <timeout> }
       } 
    )
 
 Command Fields
 --------------
+
+The ``setFeatureCompatibilityVersion`` command takes the following
+fields:
+
+setFeatureCompatibilityVersion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*Required*
 
 The possible values for ``version`` are:
 
@@ -57,8 +68,14 @@ The possible values for ``version`` are:
    * - Version
      - Description
 
+   * - ``"7.0"``
+     - *Available on MongoDB 7.0 Deployments* 
+
+       Enables the :ref:`7.0 features that persist data incompatible 
+       with MongoDB 6.0 <7.0-downgrade-considerations>`.
+
    * - ``"6.0"``
-     - *Available on MongoDB 6.0 Deployments* 
+     - *Available on MongoDB 6.0 and 7.0 Deployments* 
 
        Enables the :ref:`6.0 features that persist data incompatible 
        with MongoDB 5.0 <6.0-downgrade-considerations>`.
@@ -76,17 +93,33 @@ The possible values for ``version`` are:
        with MongoDB 4.2 <4.4-compatibility-enabled>`.
 
    * - ``"4.2"``
-     - *Available on MongoDB 4.2 and 4.4 Deployments*
+     - *Available on MongoDB 4.4 Deployments*
 
-       Enables the :ref:`4.2 features that persist data incompatible
-       with MongoDB 4.0 <4.2-compatibility-enabled>`.
+       Disables the :ref:`4.4 features that persist data incompatible
+       with MongoDB 4.2 <4.4-compatibility-enabled>`.
 
-       - If set on MongoDB 4.4 deployments,
-           Disables the :ref:`4.4 features that persist data
-           incompatible with MongoDB 4.2
-           <4.4-compatibility-enabled>`.
+confirm
+~~~~~~~
 
-The optional ``writeConcern`` specifies the write concern
+*Required*
+
+.. versionadded:: 7.0
+
+Set to ``true`` to confirm the feature compatibility change and allow
+the operation to proceed.
+
+If you omit the ``confirm`` parameter or set ``confirm`` to a value
+other than ``true``, the command fails and returns a warning about
+modifying the feature compatibility version. The warning states that
+after you upgrade or downgrade your cluster's {+fcv+}, you cannot
+downgrade the binary version without support assistance.
+
+writeConcern
+~~~~~~~~~~~~
+
+*Optional*
+
+The ``writeConcern`` specifies the write concern
 :ref:`wc-wtimeout` value in milliseconds:
 
 - The time period that the :term:`primary` waits for
@@ -105,12 +138,62 @@ The optional ``writeConcern`` specifies the write concern
 Behavior
 --------
 
+Downgrade with Backward-Incompatible Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you try to downgrade the {+fcv+} of a cluster that contains
+incompatible data in the downloaded version, you receive a
+``CannotDowngrade`` error. When this error occurs, the cluster remains
+in the transitionary ``downgrading`` state.
+
+To move the cluster out of the ``downgrading`` state, either:
+
+- Modify your cluster data to remove backwards-incompatible features,
+  then re-run the ``setFeatureCompatibilityVersion`` command with the
+  downgraded version to set the {+fcv+} to the downgraded version.
+
+- Run the ``setFeatureCompatibilityVersion`` command with the original
+  upgraded version to set the {+fcv+} back to the original version.
+
+  .. important::
+
+     Setting the {+fcv+} to the original version stops the downgrade
+     procedure and changes the {+fcv+} back to the upgraded version.
+     This procedure does not reset the cluster back to the state before
+     the {+fcv+} downgrade began.
+
+     If a failed {+fcv+} downgrade's internal metadata is not
+     cleaned up, any subsequent FCV upgrade attempt fails with an
+     error message. You must complete the {+fcv+} downgrade before
+     trying to upgrade the {+fcv+}.
+
+Downgrade Policy Changes in MongoDB 7.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.0, you cannot downgrade your deployment's {+fcv+}
+to or from a :ref:`rapid release <rapid-releases>` version of MongoDB.
+
+If you upgrade or downgrade your deployment's {+fcv+}, you cannot
+downgrade your deployment's binary version without assistance from
+support.
+
+To learn more, see :ref:`7.0-downgrade`.
+
 Conflicts with Background Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Certain background operations may prevent
 execution of :dbcommand:`setFeatureCompatibilityVersion`. Use 
 :dbcommand:`currentOp` to identify any ongoing operations.
+
+Sync Failures
+~~~~~~~~~~~~~
+
+If you trigger a :dbcommand:`setFeatureCompatibilityVersion` change during an 
+initial sync, the sync may fail with an ``OplogOperationUnsupported`` error
+message when replaying entries on the ``oplog`` application phase. The sync 
+following this attempt succeeds because the operation phase no longer replays
+the operation.
 
 Default Values
 ~~~~~~~~~~~~~~
@@ -126,7 +209,7 @@ safely retry the command as the operation is idempotent.
 
 .. _setFeatureCompatibilityVersion-user-write-blocking:
 
-Cluster-to-Cluster Replication and User Write Blocking
+{+c2c-product-name+} and User Write Blocking
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/downgrade-for-user-write-blocking.rst
@@ -144,12 +227,15 @@ Cluster-to-Cluster Replication and User Write Blocking
 #. Downgrade the feature compatibility version using
    :dbcommand:`setFeatureCompatibilityVersion`.
 
+For more information on {+c2c-full-product-name+}, see the 
+`documentation <{+c2c-docs+}>`__.
+
 Feature Compatibility in Arbiters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/arbiter-fcv.rst
 
-For example, an arbiter in a MongoDB 5.0 cluster, has an FCV
+For example, an arbiter in a MongoDB 5.0 cluster, has an fCV
 value of 4.4.
 
 Examples
@@ -167,11 +253,12 @@ instance, run the :dbcommand:`getParameter` command on a
 
 .. code-block:: javascript
 
-   db.adminCommand( {
-                       getParameter: 1,
-                       featureCompatibilityVersion: 1
-                    }
-                  )
+   db.adminCommand(
+      {
+         getParameter: 1,
+         featureCompatibilityVersion: 1
+      }
+    )
 
 The output resembles:
 
@@ -199,6 +286,63 @@ The output resembles:
    to run the command.
 
 .. _set-fcv:
+
+Set Feature Compatibility Version on MongoDB 7.0 Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enable 7.0 Backwards Incompatible Features
+``````````````````````````````````````````
+
+To enable the :ref:`7.0 features that persist data incompatible with
+MongoDB 6.0 <7.0-downgrade-incompatible>`, set the feature compatibility
+to ``"7.0"`` on the MongoDB 7.0 deployment:
+
+.. note::
+
+   Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+   the ``admin`` database.
+
+   .. include:: /includes/list-run-command-targets.rst
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      {
+         setFeatureCompatibilityVersion: "7.0",
+         confirm: true
+      }
+   )
+
+Disable 7.0 Backwards Incompatible Features
+```````````````````````````````````````````
+
+To disable the :ref:`7.0 features that persist data incompatible with
+MongoDB 6.0 <7.0-downgrade-incompatible>`, set the feature compatibility
+to ``"6.0"`` on the MongoDB 7.0 deployment:
+
+.. note::
+
+   Run the :dbcommand:`setFeatureCompatibilityVersion` command against
+   the ``admin`` database.
+
+   .. include:: /includes/list-run-command-targets.rst
+
+   - ``"6.0"`` featureCompatibilityVersion is supported on MongoDB
+     6.0 and MongoDB 7.0 deployments only.
+
+.. code-block:: javascript
+
+   db.adminCommand(
+      {
+         setFeatureCompatibilityVersion: "6.0",
+         confirm: true
+      }
+   )
+
+If run as part of the downgrade process from MongoDB 7.0 to MongoDB 
+6.0, you must also remove all persisted features that are
+:ref:`incompatible <7.0-downgrade-incompatible>` with 6.0. See the
+appropriate downgrade procedures.
 
 Set Feature Compatibility Version on MongoDB 6.0 Deployments
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -329,9 +473,6 @@ to ``"4.2"`` on the MongoDB 4.4 deployment:
 
    .. include:: /includes/list-run-command-targets.rst
 
-   - ``"4.2"`` featureCompatibilityVersion is supported on MongoDB
-     4.2 and MongoDB 4.4 deployments only.
-
 .. code-block:: javascript
 
    db.adminCommand( { setFeatureCompatibilityVersion: "4.2" } )
@@ -340,27 +481,6 @@ If run as part of the downgrade process from MongoDB 4.4 to MongoDB
 4.2, you must also remove all persisted features that are
 :ref:`incompatible <4.4-compatibility-enabled>` with 4.2. See the
 appropriate downgrade procedures.
-
-Set Feature Compatibility Version on MongoDB 4.2 Deployments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Enable 4.2 Backwards Incompatible Features
-``````````````````````````````````````````
-
-To enable the :ref:`4.2 features that persist data incompatible with
-MongoDB 4.0 <4.2-compatibility-enabled>`, set the feature compatibility
-to ``"4.2"`` on the MongoDB 4.2 deployment:
-
-.. note::
-
-   Run the :dbcommand:`setFeatureCompatibilityVersion` command against
-   the ``admin`` database.
-
-   .. include:: /includes/list-run-command-targets.rst
-
-.. code-block:: javascript
-
-   db.adminCommand( { setFeatureCompatibilityVersion: "4.2" } )
 
 Set Write Concern Timeout
 ~~~~~~~~~~~~~~~~~~~~~~~~~

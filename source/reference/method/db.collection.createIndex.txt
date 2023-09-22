@@ -26,120 +26,101 @@ Definition
    sharded clusters, use a rolling index build procedure as described
    on :doc:`/tutorial/build-indexes-on-replica-sets`.
 
-   :method:`db.collection.createIndex()` takes the following parameters:
+Compatibility
+-------------
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Parameter
-   
-        - Type
-   
-        - Description
-   
-      * - ``keys``
-   
-        - document
-   
-        - A document that contains the field and value pairs where the field is
-          the index key and the value describes the type of index for that
-          field. For an ascending index on a field, specify a value of ``1``; for
-          descending index, specify a value of ``-1``.  An asterisk (``*``)
-          is not a valid index name.
-          
-          MongoDB supports several different index types including
-          :ref:`text <index-feature-text>`, :ref:`geospatial
-          <index-feature-geospatial>`, and :ref:`hashed
-          indexes <index-type-hashed>`. See :ref:`index types 
-          <index-types>` for more information.
-          
-          :ref:`Wildcard indexes <wildcard-index-core>`
-          support workloads where users query against custom fields or a
-          large variety of fields in a collection:
-          
-          - To create a wildcard index on all fields and subfields in a 
-            document, specify ``{ "$**" : 1 }`` as the index key. You
-            cannot specify a descending index key when creating a
-            wildcard index.
-          
-            You can also either include *or* exclude specific fields and
-            their subfields from the index using the optional
-            ``wildcardProjection`` parameter.
-          
-            .. include:: /includes/extracts/wildcard-index-id.rst
-          
-          - You can create a wildcard index on a specific field
-            and its subpaths by specifying the full path to that field
-            as the index key and append ``"$**"`` to the path:
-          
-            ``{ "path.to.field.$**" : 1 }`` 
-          
-            You cannot specify a descending index key when creating a
-            wildcard index.
-          
-            The path-specific wildcard index syntax is incompatible with
-            the ``wildcardProjection`` option. You cannot specify
-            additional inclusions or exclusions on the specified path.
-          
-            The wildcard index key **must** use one of the syntaxes
-            listed above. For example, you cannot specify a
-            :doc:`compound index key </core/index-compound>`.  For more 
-            complete documentation on wildcard indexes, including
-            restrictions on their creation, see :ref:`wildcard-index-restrictions`.
-          
-            .. include:: /includes/extracts/wildcard-index-fcv.rst
-          
-          
-            For examples of wildcard index creation, see 
-            :ref:`createIndex-method-wildcard-examples`.
-          
-          
-          
-   
-      * - ``options``
-   
-        - document
-   
-        - Optional. A document that contains a set of options that controls the creation
-          of the index. See :ref:`ensureIndex-options` for details.
-          
-      * - :ref:`commitQuorum <createIndex-method-commitQuorum>`
+.. |operator-method| replace:: ``db.collection.createIndex()``
 
-        - integer or string
+.. include:: /includes/fact-compatibility.rst
 
-        - .. _createIndex-method-commitQuorum:
-        
-          Optional. The minimum number of data-bearing voting replica
-          set members (i.e. commit quorum), including the primary, that
-          must report a successful :ref:`index build
-          <index-operations-replicated-build>` before the primary
-          marks the ``indexes`` as ready. A "voting" member is any
-          replica set member where :rsconf:`members[n].votes` is greater
-          than ``0``.
-          
-          Supports the following values:
+Syntax
+------
 
-          - ``"votingMembers"`` - all data-bearing voting replica set
-            members (*Default*).
+The :method:`~db.collection.createIndex()` method has the following
+form:
 
-          - ``"majority"`` - a simple majority of data-bearing voting
-            replica set members.
+.. code-block:: javascript
 
-          - ``<int>`` - a specific number of data-bearing voting 
-            replica set members.
+   db.collection.createIndex( <keys>, <options>, <commitQuorum>)
 
-          - ``0`` - Disables quorum-voting behavior. Members 
-            start the index build simultaneously but do *not* 
-            vote or wait for quorum before completing the 
-            index build. If you start an index build with 
-            a commit quorum of ``0``, you cannot later modify the 
-            commit quorum using :dbcommand:`setIndexCommitQuorum`.
+The :method:`~db.collection.createIndex()` method takes the following
+parameters:
 
-          - A replica set :doc:`tag name
-            </tutorial/configure-replica-set-tag-sets>`.
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
 
-          .. versionadded:: 4.4
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``keys``
+     - document
+     - A document that contains the field and value pairs where the
+       field is the index key and the value describes the type of
+       index for that field.
+       
+       For an ascending index on a field, specify a value of ``1``.
+       For descending index, specify a value of ``-1``.
+       
+       An asterisk (``*``) is not a valid index name.
+       
+       MongoDB supports several different index types, including:
+
+       - :ref:`text <index-feature-text>` 
+       - :ref:`geospatial <index-feature-geospatial>` 
+       - :ref:`hashed indexes <index-type-hashed>`
+     
+       See :ref:`index types <index-types>` for more information.
+       
+       :ref:`Wildcard indexes <wildcard-index-core>`
+       support workloads where users query against custom fields or a
+       large variety of fields in a collection.
+       
+       - You can create a wildcard index on a specific field and its
+         subpaths or on all of the fields in a document.
+
+         For details, see :ref:`wildcard-index-core`.
+
+   * - ``options``
+     - document
+     - Optional. A document that contains a set of options that controls the creation
+       of the index. See :ref:`ensureIndex-options` for details.
+       
+   * - :ref:`commitQuorum <createIndex-method-commitQuorum>`
+     - integer or string
+     - .. _createIndex-method-commitQuorum:
+     
+       Optional. The minimum number of data-bearing voting replica
+       set members (i.e. commit quorum), including the primary, that
+       must report a successful :ref:`index build
+       <index-operations-replicated-build>` before the primary
+       marks the ``indexes`` as ready. A "voting" member is any
+       replica set member where :rsconf:`members[n].votes` is greater
+       than ``0``.
+       
+       Supports the following values:
+
+       - ``"votingMembers"`` - all data-bearing voting replica set
+         members (*Default*).
+
+       - ``"majority"`` - a simple majority of data-bearing voting
+         replica set members.
+
+       - ``<int>`` - a specific number of data-bearing voting 
+         replica set members.
+
+       - ``0`` - Disables quorum-voting behavior. Members 
+         start the index build simultaneously but do *not* 
+         vote or wait for quorum before completing the 
+         index build. If you start an index build with 
+         a commit quorum of ``0``, you cannot later modify the 
+         commit quorum using :dbcommand:`setIndexCommitQuorum`.
+
+       - A replica set :doc:`tag name
+         </tutorial/configure-replica-set-tag-sets>`.
+
+       .. versionadded:: 4.4
 
 .. _ensureIndex-options:
 .. _createIndex-options:
@@ -248,8 +229,7 @@ otherwise specified:
 
        - :ref:`2dsphere <2dsphere-index>`
        - :ref:`2d <2d-index>`
-       - :doc:`geoHaystack </core/geohaystack>`
-       - :ref:`text <index-feature-text>`
+       - :ref:`Text <index-type-text>`
 
        For a compound index that includes ``2dsphere`` index key(s)
        along with keys of other types, only the ``2dsphere`` index
@@ -269,6 +249,7 @@ otherwise specified:
        
        .. include:: /includes/indexes/expireAfterSeconds-warning.rst
 
+       .. include:: includes/expireAfterSeconds-range.rst
 
    * - :ref:`hidden <method-createIndex-hidden>`
 
@@ -351,7 +332,7 @@ Collation and Index Use
 Options for ``text`` Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following options are available for :ref:`text <index-feature-text>`
+The following options are available for :ref:`text <index-type-text>`
 indexes only:
 
 
@@ -369,12 +350,12 @@ indexes only:
 
      - document
 
-     - Optional. For ``text`` indexes, a document that contains
+     - Optional. For :ref:`text <index-type-text>` indexes, a document that contains
        field and weight pairs. The weight is an integer ranging from 1 to
        99,999 and denotes the significance of the field relative to the
        other indexed fields in terms of the score. You can specify weights
        for some or all the indexed fields. See
-       :doc:`/tutorial/control-results-of-text-search` to adjust the scores.
+       :ref:`control-text-search-results` to adjust the scores.
        The default value is ``1``.
 
        Starting in MongoDB 5.0, the :ref:`weights <specify-weights>` 
@@ -384,11 +365,12 @@ indexes only:
 
      - string
 
-     - Optional. For ``text`` indexes, the language that
+     - Optional. For :ref:`text <index-type-text>` indexes, the language that
        determines the list of stop words and the rules for the stemmer and
        tokenizer. See :ref:`text-search-languages` for the available
-       languages and :doc:`/tutorial/specify-language-for-text-index` for
-       more information and examples. The default value is ``english``.
+       languages and 
+       :doc:`/core/indexes/index-types/index-text/specify-text-index-language` 
+       for more information and examples. The default value is ``english``.
        
        
 
@@ -396,7 +378,7 @@ indexes only:
 
      - string
 
-     - Optional. For ``text`` indexes, the name of the field, in
+     - Optional. For :ref:`text <index-type-text>` indexes, the name of the field, in
        the collection's documents, that contains the override language for
        the document. The default value is ``language``. See
        :ref:`specify-language-field-text-index-example` for an example.
@@ -410,7 +392,7 @@ indexes only:
      - Optional. The ``text`` index version number. Users can use this option to
        override the default version number.
        
-       For available versions, see :ref:`text-versions`.
+       For available versions, see :ref:`text-index-versions`.
 
        
 
@@ -489,50 +471,14 @@ only:
 
      - Optional. For ``2d`` indexes, the upper inclusive boundary for
        the longitude and latitude values. The default value is ``180.0``.
-       
-       
-
-
-
-Options for ``geoHaystack`` Indexes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The following option is available for :doc:`geoHaystack </core/geohaystack>`
-indexes only:
-
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 20 80
-
-   * - Parameter
-
-     - Type
-
-     - Description
-
-   * - ``bucketSize``
-
-     - number
-
-     - For :doc:`geoHaystack </core/geohaystack>` indexes, specify the
-       number of units within which to group the location values; i.e. group
-       in the same bucket those location values that are within the
-       specified number of units to each other.
-       
-       The value must be greater than 0.
-
-.. note:: Removed in MongoDB 5.0
-
-   .. include:: /includes/fact-5.0-geohaystack-removed.rst
 
 .. _createIndex-method-wildcard-option:
 
 Options for ``wildcard`` indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following option is available for
-:ref:`wildcard <wildcard-index-core>` indexes only:
+:ref:`Wildcard indexes <wildcard-index-core>` can use the
+``wildcardProjection`` option.
 
 .. list-table::
    :header-rows: 1
@@ -548,15 +494,15 @@ The following option is available for
 
      - document
 
-     - Optional. Allows users to include or exclude specific field paths from
-       a :ref:`wildcard index <wildcard-index-core>` using the
-       ``{ "$**" : 1}`` key pattern. This option is only 
-       valid if creating a :ref:`wildcard index <wildcard-index-core>` on
-       all document fields. You cannot specify this option if creating
-       a wildcard index on a specific field path and its subfields, e.g.
-       ``{ "path.to.field.$**" : 1 }``
+     - Optional. Allows users to include or exclude specific field paths
+       from a :ref:`wildcard index <wildcard-index-core>`.
        
-       
+       This option is only valid when you create a :ref:`wildcard index
+       <wildcard-index-core>` on all document fields. You cannot specify
+       the ``wildcardProjection`` option when you create a wildcard
+       index on a specific field path and its subfields.
+
+       .. include:: /includes/indexes/wildcard-projection-specifications.rst
        
        The ``wildcardProjection`` option takes the following form:
        
@@ -569,15 +515,10 @@ The following option is available for
        
        The ``<value>`` can be either of the following:
        
-       - ``1`` or ``true`` to include the field in the wildcard index.
-       
+       - ``1`` or ``true`` to include the field in the wildcard index.      
        - ``0`` or ``false`` to exclude the field from the wildcard index. 
        
        .. include:: /includes/extracts/wildcard-index-id.rst
-       
-       
-       
-
 
 .. _create-index-behaviors:
 
@@ -758,19 +699,16 @@ rules, MongoDB can use the index. For details, see :ref:`createIndex-collation-i
 Create a Wildcard Index
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/extracts/wildcard-index-fcv.rst
-
 - .. include:: /includes/extracts/wildcard-index-id.rst
 
-- .. include:: /includes/extracts/wildcard-index-restrictions.rst
+- .. include:: /includes/indexes/wildcard-restrictions.rst
 
-  For complete documentation on wildcard index restrictions, see 
-  :ref:`wildcard-index-restrictions`.
+To learn more, see:
 
-For complete documentation on Wildcard Indexes, see 
-:ref:`wildcard-index-core`.
+- :ref:`About Wildcard Indexes <wildcard-index-core>`
+- :ref:`Wildcard Index Restrictions <wildcard-index-restrictions>`
 
-The following lists examples of wildcard index creation:
+For examples, see:
 
 - :ref:`createIndex-method-wildcard-onepath`
 - :ref:`createIndex-method-wildcard-allpaths`
@@ -842,8 +780,6 @@ within documents in the collection:
    db.products_catalog.find( { "product_price" : { $lt : 25 } } )
    db.products_catalog.find( { "product_attributes.elements" : { $eq: "water" } } )
 
-
-
 .. note::
 
    Wildcard indexes omit the ``_id`` field by default. To include the
@@ -877,17 +813,16 @@ fields in the index.
      }
    )
 
-While the key pattern ``"$**"`` covers all fields in the document, the
-``wildcardProjection`` field limits the index to only the included
-fields. For complete documentation on ``wildcardProjection``, see 
+The pattern ``"$**"`` includes all fields in the document. Use the
+``wildcardProjection`` field to limit the index to fields you specify.
+For complete documentation on ``wildcardProjection``, see 
 :ref:`createIndex-method-wildcard-option`.
 
-If a field is a nested document or array, the wildcard
-index recurses into the document/array and indexes all scalar fields in 
-the document/array.
+If a field is a nested document or array, the wildcard index recurses
+into it and indexes all scalar fields in the document or array.
 
-The created index can support queries on any scalar field
-included in the ``wildcardProjection``:
+The wildcard index supports queries on any scalar field included in
+the ``wildcardProjection``:
 
 .. code-block:: bash
 
@@ -905,11 +840,11 @@ Omit Specific Fields from Wildcard Index Coverage
 
 .. include:: /includes/extracts/wildcard-index-example-pre.rst
 
-The following operation creates a wildcard index and uses
-the ``wildcardProjection`` document to index all scalar fields
-for each document in the collection, *excluding* the 
-``product_attributes.elements`` and ``product_attributes.resistance``
-fields:
+This example uses a wildcard index and a ``wildcardProjection``
+document to index the scalar fields for each document in the collection.
+
+The wildcard index excludes the ``product_attributes.elements`` and
+``product_attributes.resistance`` fields:
 
 .. code-block:: bash
 
@@ -924,17 +859,19 @@ fields:
      }
    )
 
-While the key pattern ``"$**"`` covers all fields in the document, the
-``wildcardProjection`` field excludes the specified fields from the
-index. For complete documentation on ``wildcardProjection``, see 
+The wildcard pattern ``"$**"`` includes all of the fields in the
+document. However, the ``wildcardProjection`` field excludes the
+specified fields from the index.
+
+For complete documentation on ``wildcardProjection``, see 
 :ref:`createIndex-method-wildcard-option`.
 
 If a field is a nested document or array, the wildcard
 index recurses into the document/array and indexes all scalar fields in 
 the document/array.
 
-The created index can support queries on any scalar field **except**
-those excluded by ``wildcardProjection``:
+The index can support queries on any scalar field **except** those
+excluded by ``wildcardProjection``:
 
 .. code-block:: bash
 
@@ -981,7 +918,7 @@ Additional Information
 - :method:`db.collection.getIndexes()` to view the specifications of
   existing indexes for a collection.
 
-- :doc:`/core/index-text` for details on creating ``text``
+- :ref:`<index-type-text>` for details on creating ``text``
   indexes.
 
 - :ref:`index-feature-geospatial` for geospatial queries.

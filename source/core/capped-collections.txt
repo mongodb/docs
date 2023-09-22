@@ -83,7 +83,12 @@ of the operations in a :term:`replica set` uses a capped collection.
 
 Starting in MongoDB 4.0, unlike other capped collections, the oplog can
 grow past its configured size limit to avoid deleting the :data:`majority
-commit point <replSetGetStatus.optimes.lastCommittedOpTime>`.
+commit point <replSetGetStatus.optimes.lastCommittedOpTime>`. 
+
+.. note:: 
+
+   MongoDB rounds the capped size of the oplog up to the nearest 
+   integer multiple of 256, in bytes.
 
 .. note::
    
@@ -164,15 +169,17 @@ space for internal overhead.
 .. note:: 
    
    The value that you provide for the ``size`` field 
-   must be greater than ``0`` and less than or equal to 
-   ``1024^5`` (1 {+pb+}).
+   must be greater than ``0`` and less than or equal to
+   ``1024^5`` (1 {+pb+}). MongoDB rounds the ``size`` of all capped 
+   collections up to the nearest integer multiple of 256, in bytes.
 
 Additionally, you may also specify a maximum number of documents for the
 collection using the ``max`` field as in the following document:
 
 .. code-block:: javascript
 
-   db.createCollection("log", { capped : true, size : 5242880, max : 5000 } )
+   db.createCollection("log", { capped : true, size : 5242880, max :
+   5000 } )
 
 .. important:: 
    
@@ -235,7 +242,7 @@ Change a Capped Collection's Size
 
 You can resize a capped collection using the :dbcommand:`collMod` command's 
 ``cappedSize`` option to set the ``cappedSize`` in bytes. ``cappedSize`` must be 
-greater than ``0`` and less than or equal to ``1024^5`` (1 {+pb+}). 
+greater than ``0`` and less than or equal to ``1024^5`` (1 {+pb+}).
 
 .. note::
 
@@ -257,7 +264,9 @@ Change the Maximum Number of Documents in a Capped Collection
 
 To change the maximum number of documents in a capped collection, use the
 :dbcommand:`collMod` command's ``cappedMax`` option. If ``cappedMax`` is less 
-than or equal to ``0``, there is no maximum document limit.
+than or equal to ``0``, there is no maximum document limit. If
+``cappedMax`` is less than the current number of documents in the
+collection, MongoDB removes the excess documents on the next insert operation.
 
 For example, the following command sets the maximum number of documents in the
 ``"log"`` capped collection to 500:

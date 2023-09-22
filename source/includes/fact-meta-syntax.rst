@@ -33,8 +33,8 @@ The |meta-object| expression can specify the following values as the
 
    * - ``"indexKey"``
 
-     - Returns an index key for the document if a non-:doc:`text
-       </core/index-text>` index is used. The ``{ $meta: "indexKey" }``
+     - Returns an index key for the document if a non-:ref:`text
+       <index-type-text>` index is used. The ``{ $meta: "indexKey" }``
        expression is for debugging purposes only, and not for
        application logic, and is preferred over
        :method:`cursor.returnKey()`.

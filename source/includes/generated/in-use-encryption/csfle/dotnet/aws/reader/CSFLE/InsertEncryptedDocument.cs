@@ -113,10 +113,10 @@ namespace Insert
 
 
             // start-extra-options
-            var mongoBinariesPath = "<Path to mongocryptd binary>";
+            var mongoBinariesPath = "<Full path to your Automatic Encryption Shared Library>";
             var extraOptions = new Dictionary<string, object>()
             {
-               { "mongocryptdSpawnPath", mongoBinariesPath },
+               { "cryptSharedLibPath", mongoBinariesPath },
             };
             // end-extra-options
 

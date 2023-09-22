@@ -12,3 +12,6 @@ the index completes.
 Because the duration of the removal operation depends on the workload
 of your :binary:`~bin.mongod` instance, expired data may exist for some
 time *beyond* the 60 second period between runs of the background task.
+
+The delete operations initiated by the TTL task run in the foreground,
+like other deletes.

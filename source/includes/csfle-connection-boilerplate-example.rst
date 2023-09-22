@@ -1,40 +1,52 @@
-To configure client-side field level encryption for a locally managed
-key:
+.. procedure::
+   :style: normal
 
-- generate a base64-encoded 96-byte string with no line breaks
-- use :binary:`mongosh` to load the key
+   .. step:: Start mongosh
 
-.. code-block:: bash
-   :emphasize-lines: 1
+      Start the ``mongosh`` client.
+    
+      .. code-block:: bash
 
-   export TEST_LOCAL_KEY=$(echo "$(head -c 96 /dev/urandom | base64 | tr -d '\n')")
+         mongosh --nodb
 
-   mongosh --nodb
+   .. step:: Generate Your Key
 
-Create the client-side field level encryption object using the
-generated local key string:
+      To configure client-side field level encryption for a locally 
+      managed key, generate a base64-encoded 96-byte string with no line 
+      breaks.
 
-.. code-block:: javascript
-   :emphasize-lines: 5
+      .. code-block:: javascript
 
-    var autoEncryptionOpts = {
-      "keyVaultNamespace" : "encryption.__dataKeys",
-      "kmsProviders" : {
-        "local" : {
-          "key" : BinData(0, process.env["TEST_LOCAL_KEY"])
-        }
-      }
-    }
+         const TEST_LOCAL_KEY = require("crypto").randomBytes(96).toString("base64")
 
-Use the :method:`Mongo()` constructor with the client-side field level 
-encryption options configured to create a database connection. Replace 
-the ``mongodb://myMongo.example.net`` URI with the :ref:`connection 
-string URI <mongodb-uri>` of the target cluster.
+   .. step:: Create the Client-Side Field Level Encryption Options
+   
+      Create the client-side field level encryption options using the
+      generated local key string:
 
-.. code-block:: javascript
-   :emphasize-lines: 2
-      
-   encryptedClient = Mongo( 
-     "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
-      autoEncryptionOpts
-   )
+      .. code-block:: javascript
+         :emphasize-lines: 5
+
+          var autoEncryptionOpts = {
+            "keyVaultNamespace" : "encryption.__dataKeys",
+            "kmsProviders" : {
+              "local" : {
+                "key" : BinData(0, TEST_LOCAL_KEY)
+              }
+            }
+          }
+
+   .. step:: Create Your Encrypted Client
+
+      Use the :method:`Mongo()` constructor with the client-side field level 
+      encryption options configured to create a database connection. Replace 
+      the ``mongodb://myMongo.example.net`` URI with the :ref:`connection 
+      string URI <mongodb-uri>` of the target cluster.
+
+      .. code-block:: javascript
+         :emphasize-lines: 2
+          
+         encryptedClient = Mongo( 
+           "mongodb://myMongo.example.net:27017/?replSetName=myMongo", 
+            autoEncryptionOpts
+         )

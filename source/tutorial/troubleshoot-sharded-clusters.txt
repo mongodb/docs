@@ -167,3 +167,64 @@ The user will need to resolve the chunk migration failure
 independently. If you encounter this issue, ask the `MongoDB
 Community <https://community.mongodb.com/?tck=docs_server>`_ or
 :ref:`MongoDB Support <technical-support>` to address this issue.
+
+
+Inconsistent Sharding Metadata
+------------------------------
+
+Starting in MongoDB 7.0, the :dbcommand:`checkMetadataConsistency` command
+is available to check sharding metadata for inconsistencies and corruptions
+due to bugs in previous releases of MongoDB.
+
+Inconsistencies in sharding metadata can originate in cases such as:
+
+- Clusters upgraded from a pre-5.0 release of MongoDB that may have
+  corrupted data from past DDL operations.
+
+- Manual interventions, such as manipulating the :ref:`config-database`
+  or bypassing :program:`mongos` to write directly to a shard.
+
+- Maintenance operations, such as upgrade or downgrade procedures.
+
+These inconsistencies can result in incorrect query results
+or data loss.
+
+To check sharding metadata for inconsistencies, run the 
+:dbcommand:`checkMetadataConsistency` command:
+
+.. io-code-block::
+
+   .. input::
+      :language: javascript
+
+      db.runCommand( { checkMetadataConsistency: 1 } )
+
+   .. output::
+      :language: json
+
+      {
+         cursor: {
+            id: Long("0"),
+            ns: "test.$cmd.aggregate",
+            firstBatch: [
+               {
+                  type: "MisplacedCollection",
+                  description: "Unsharded collection found on shard different from database primary shard",
+                  details: {
+                     namespace: "test.authors",
+                     shard: "shard02",
+                     localUUID: new UUID("1ad56770-61e2-48e9-83c6-8ecefe73cfc4")
+                  }
+               }
+            ],
+         },
+         ok: 1
+      }
+
+Documents returned by the :dbcommand:`checkMetadataConsistency` command indicate 
+the inconsistencies identified by MongoDB in the sharding metadata of the
+cluster.
+
+For information on inconsistency documents returned by the
+:dbcommand:`checkMetadataConsistency` command, see :ref:`inconsistency-types`.
+

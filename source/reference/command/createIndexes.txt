@@ -171,53 +171,8 @@ Each document in the ``indexes`` array can take the following fields:
        type <index-types>`. If specifying direction, specify ``1`` for 
        ascending or ``-1`` for descending.
 
-       
-       MongoDB supports several different index types including
-       :ref:`text <index-feature-text>`, :ref:`geospatial
-       <index-feature-geospatial>`, and :ref:`hashed
-       indexes <index-type-hashed>`. See :ref:`index types
-       <index-types>` for more information.
-       
-       :ref:`Wildcard indexes <wildcard-index-core>`
-       support workloads where users query against custom fields or a
-       large variety of fields in a collection:
-       
-       - To create a wildcard index on all fields and subfields in a 
-         document, specify ``{ "$**" : 1 }`` as the index key. You
-         cannot specify a descending index key when creating a wildcard index.
-       
-         You can also either include *or* exclude specific fields and
-         their subfields from the index using the optional
-         ``wildcardProjection`` parameter.
-       
-         .. include:: /includes/extracts/wildcard-index-id.rst
-       
-       - You can create a wildcard index on a specific field
-         and its subpaths by specifying the full path to that field as 
-         the index key and append ``"$**"`` to the path:
-       
-         ``{ "path.to.field.$**" : 1 }`` 
-       
-         You cannot specify a descending index key when creating a
-         wildcard index.
-       
-         The path-specific wildcard index syntax is incompatible with 
-         the ``wildcardProjection`` option. You cannot specify 
-         additional inclusions or exclusions on the specified path.
-       
-       The wildcard index key **must** use one of the syntaxes listed
-       above. For example, you cannot specify a
-       :doc:`compound index key </core/index-compound>`.  For more 
-       complete documentation on wildcard indexes, including 
-       restrictions on their creation, see :ref:`wildcard-index-restrictions`.
-       
-       .. include:: /includes/extracts/wildcard-index-fcv.rst
-       
-       
-       For examples of wildcard index creation, see 
-       :ref:`createIndexes-command-wildcard-examples`.
-       
- 
+       .. include:: /includes/indexes/wildcard-use-wc-methods.rst
+
    * - ``name``
  
      - string
@@ -275,8 +230,7 @@ Each document in the ``indexes`` array can take the following fields:
  
        - :ref:`2dsphere <2dsphere-index>`
        - :ref:`2d <2d-index>`
-       - :doc:`geoHaystack </core/geohaystack>`
-       - :ref:`text <index-feature-text>`
+       - :ref:`Text <index-type-text>`
  
        For a compound index that includes ``2dsphere`` index key(s)
        along with keys of other types, only the ``2dsphere`` index
@@ -295,6 +249,8 @@ Each document in the ``indexes`` array can take the following fields:
      - .. include:: /includes/indexes/expireAfterSeconds-config-option.rst
        
        .. include:: /includes/indexes/expireAfterSeconds-warning.rst
+
+       .. include:: includes/expireAfterSeconds-range.rst
 
    * - :ref:`hidden <cmd-createIndexes-hidden>`
        
@@ -336,12 +292,12 @@ Each document in the ``indexes`` array can take the following fields:
  
      - document
  
-     - Optional. For :ref:`text <index-feature-text>` indexes, a document that contains
+     - Optional. For :ref:`text <index-type-text>` indexes, a document that contains
        field and weight pairs. The weight is an integer ranging from 1 to
        99,999 and denotes the significance of the field relative to the
        other indexed fields in terms of the score. You can specify weights
        for some or all the indexed fields. See
-       :doc:`/tutorial/control-results-of-text-search` to adjust the scores.
+       :ref:`control-text-search-results` to adjust the scores.
        The default value is ``1``.
        
        
@@ -350,11 +306,12 @@ Each document in the ``indexes`` array can take the following fields:
  
      - string
  
-     - Optional. For :ref:`text <index-feature-text>` indexes, the language that
+     - Optional. For :ref:`text <index-type-text>` indexes, the language that
        determines the list of stop words and the rules for the stemmer and
        tokenizer. See :ref:`text-search-languages` for the available
-       languages and :doc:`/tutorial/specify-language-for-text-index` for
-       more information and examples. The default value is ``english``.
+       languages and 
+       :doc:`/core/indexes/index-types/index-text/specify-text-index-language` 
+       for more information and examples. The default value is ``english``.
        
        
  
@@ -362,7 +319,7 @@ Each document in the ``indexes`` array can take the following fields:
  
      - string
  
-     - Optional. For :ref:`text <index-feature-text>` indexes, the name of the field, in
+     - Optional. For :ref:`text <index-type-text>` indexes, the name of the field, in
        the collection's documents, that contains the override language for
        the document. The default value is ``language``. See
        :ref:`specify-language-field-text-index-example` for an example.
@@ -376,7 +333,7 @@ Each document in the ``indexes`` array can take the following fields:
      - Optional. The ``text`` index version number. Users can use this option to
        override the default version number.
        
-       For available versions, see :ref:`text-versions`.
+       For available versions, see :ref:`text-index-versions`.
  
  
    * - ``2dsphereIndexVersion``
@@ -415,20 +372,9 @@ Each document in the ``indexes`` array can take the following fields:
      - number
  
      - Optional. For :ref:`2d <2d-index>` indexes, the upper inclusive boundary for
-       the longitude and latitude values. The default value is ``180.0``.
-       
-       
- 
-   * - ``bucketSize``
- 
-     - number
- 
-     - For :doc:`geoHaystack </core/geohaystack>` indexes, specify the
-       number of units within which to group the location values; i.e. group
-       in the same bucket those location values that are within the
-       specified number of units to each other.
-       
-       The value must be greater than 0.
+       the longitude and latitude values. The default value is
+       ``180.0``.
+
        
        
  
@@ -568,7 +514,7 @@ When using :ref:`Stable API <stable-api>` V1:
   - ``storageEngine``
 
 - You cannot create :ref:`geoHaystack <index-geohaystack-index>` or
-  :ref:`text <index-feature-text>` indexes.
+  :ref:`text <index-type-text>` indexes.
 
 Behavior
 --------
@@ -656,16 +602,13 @@ Wildcard Indexes
 
 - .. include:: /includes/extracts/wildcard-index-id.rst
 
-- .. include:: /includes/extracts/wildcard-index-fcv.rst
+- .. include:: /includes/indexes/wildcard-restrictions.rst
 
-- .. include:: /includes/extracts/wildcard-index-restrictions.rst
+To learn more, see:
 
-  For complete documentation on wildcard index restrictions, see 
-  :ref:`wildcard-index-restrictions`.
-
-For examples of wildcard index creation, see
-:ref:`createIndexes-command-wildcard-examples`.  For complete 
-documentation on Wildcard Indexes, see :ref:`wildcard-index-core`.
+- :ref:`About Wildcard Indexes <wildcard-index-core>`
+- :ref:`Wildcard Index Examples <createIndexes-command-wildcard-examples>`
+- :ref:`Wildcard Index Restrictions <wildcard-index-restrictions>`
 
 Transactions
 ~~~~~~~~~~~~
@@ -726,8 +669,6 @@ Create a Wildcard Index
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 .. note::
-
-   .. include:: /includes/extracts/wildcard-index-fcv.rst
 
    For complete documentation on Wildcard Indexes, see
    :ref:`wildcard-index-core`.

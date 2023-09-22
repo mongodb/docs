@@ -237,6 +237,19 @@ to support sharding:
          "uuid" :  UUID("f8669e52-5c1b-4ea2-bbdc-a00189b341da")
       }
 
+.. data:: config.csrs.indexes
+
+   .. versionadded:: 7.0
+
+   .. include:: /includes/admonition-config-db-is-internal.rst
+
+   The :data:`~config.csrs.indexes` collection stores a document for each 
+   global index available on a shard.
+
+   Each document in the collection contains the following fields: 
+
+   .. include:: /includes/table-csrs-indexes-fields.rst
+
 .. data:: config.databases
 
    .. include:: /includes/admonition-config-db-is-internal.rst
@@ -255,64 +268,6 @@ to support sharding:
 
    The method :method:`sh.status()` returns this information in the
    :ref:`sharding-status-databases-fields` section.
-
-.. data:: config.lockpings
-
-   .. include:: /includes/admonition-config-db-is-internal.rst
-
-   The :data:`~config.lockpings` collection keeps track of the active components
-   in the sharded cluster. Given a cluster with a :binary:`~bin.mongos`
-   running on ``example.com:30000``, the document in the
-   :data:`~config.lockpings` collection would resemble:
-
-   .. code-block:: javascript
-
-      { "_id" : "example.com:30000:1350047994:16807", "ping" : ISODate("2012-10-12T18:32:54.892Z") }
-
-.. data:: config.locks
-
-   .. include:: /includes/admonition-config-db-is-internal.rst
-
-   The :data:`~config.locks` collection stores the distributed locks. The
-   primary of the config server replica set takes a lock by
-   inserting a document into the ``locks``
-   collection.
-
-   .. code-block:: javascript
-
-      {
-         "_id" : "test.myShardedCollection",
-         "state" : 2,
-         "process" : "ConfigServer",
-         "ts" : ObjectId("5be0b9ede46e4f441a60d891"),
-         "when" : ISODate("2018-11-05T21:52:00.846Z"),
-         "who" : "ConfigServer:Balancer",
-         "why" : "Migrating chunk(s) in collection test.myShardedCollection"
-      }
-
-   As of version 3.4, the ``state`` field will always have a value
-   ``2`` to prevent any legacy :binary:`~bin.mongos` instances from
-   performing the balancing operation. The ``when`` field specifies the
-   time when the config server member became the primary.
-
-   In version 3.4, when the balancer is active, the balancer takes a
-   lock, as in the following 3.4 example:
-
-   .. code-block:: javascript
-
-      {
-         "_id" : "balancer",
-         "state" : 2,
-         "ts" : ObjectId("5be0bc6cb20effa83b15baa8"),
-         "who" : "ConfigServer:Balancer",
-         "process" : "ConfigServer",
-         "when" : ISODate("2018-11-05T21:56:13.096Z"),
-         "why" : "CSRS Balancer"
-      }
-
-   Starting in version 3.6, the balancer no longer takes a "lock". If
-   you have upgraded from 3.4 to 3.6, you may choose to delete any
-   residual ``"_id" : "balancer"`` documents.
 
 .. data:: config.migrationCoordinators
 
@@ -509,14 +464,10 @@ instance.
 
    In a sharded cluster, the ``system.sessions`` collection is sharded.
 
-   - When adding a shard to the sharded cluster, if the shard to add
-     already contains its own ``system.sessions`` collection, MongoDB
-     drops the new shard's ``system.sessions`` collection during the
-     add process.
-
-   - Starting in version 4.4 (and 4.2.7), MongoDB automatically splits
-     the ``system.sessions`` collection into at least 1024 chunks and
-     distributes the chunks uniformly across shards in the cluster.
+   When adding a shard to the sharded cluster, if the shard to add
+   already contains its own ``system.sessions`` collection, MongoDB
+   drops the new shard's ``system.sessions`` collection during the
+   add process.
 
 .. data:: config.transactions
 

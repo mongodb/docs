@@ -13,7 +13,6 @@ Time Series Collection Limitations
    :class: singlecol
 
 .. meta::
-   :description: Time Series, IOT
    :keywords: Time Series, IOT
 
 This page describes limitations on using :ref:`time series collections
@@ -46,19 +45,40 @@ collection.
 
 .. _timeseries-limitations-updates-deletes:
 
-Updates and Deletes
-~~~~~~~~~~~~~~~~~~~
+.. _timeseries-limitations-deletes:
 
-Starting in MongoDB 5.1, you can perform some delete and update
-operations.
+Deletes
+~~~~~~~
 
-Delete commands must meet the following requirements:
+Starting in MongoDB 5.1, you can perform limited delete operations on
+time series collections. MongoDB 7.0 removes most limitations from
+operations that are based on the :dbcommand:`delete` command.
+
+Time series deletes are not supported for :ref:`multi-document
+transactions <transactions-atomicity>`.
+
+From MongoDB 5.1 to 6.3, delete commands must meet the following
+requirements:
 
 - You can only match on :ref:`metaField <time-series-fields>` field
   values.
 - Your delete command must not limit the number of documents to be
-  deleted. Set ``justOne: false`` or use the
-  :method:`~db.collection.deleteMany()` method.
+  deleted. Set ``justOne: false`` or use the ``deleteMany()`` method.
+
+Starting in MongoDB 7.0, there is only one time series related
+limitation on these ``delete`` commands:
+
+.. include:: /includes/time-series/fact-delete-operations-list.rst
+
+You cannot use these commands with multi-document transactions. There
+are no other restrictions.
+
+.. _timeseries-limitations-updates:
+
+Updates
+~~~~~~~
+
+Starting in MongoDB 5.1, you can perform limited update operations.
 
 Update commands must meet the following requirements:
 
@@ -79,31 +99,31 @@ To remove all documents from a collection, use the
 Time Series Secondary Indexes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There is improved support for secondary indexes in MongoDB 6.0.
+MongoDB 6.0 and later features improved support for secondary indexes on
+time series collections. For a summary of these options, see :ref:`timeseries-add-secondary-index-mongodb-6.0`.
 
-Time Series Secondary Indexes with MongoDB 6.0 and Later
-````````````````````````````````````````````````````````
+Time Series Secondary Indexes
+`````````````````````````````
+
+Starting in MongoDB 6.3, time series collections support the ``expireAfterSeconds`` index property for :ref:`partial
+indexes <index-type-partial>` on the ``metaField``. For earlier versions
+of MongoDB, use the collection level :ref:`expireAfterSeconds
+<db.createCollection.expireAfterSeconds>` parameter.
 
 Starting in MongoDB 6.0, you can add a :term:`secondary index <secondary
 index>` to any field.
 
+These index types are partially supported:
+ 
+- You can only create :ref:`multikey indexes <index-type-multikey>` on
+  the ``metaField``.
+- You can only create :ref:`sparse indexes <index-type-sparse>` on the ``metaField``.
+
 These index types aren't supported:
 
-- :ref:`Text indexes <index-feature-text>`
+- :ref:`Text indexes <index-type-text>`
 - :ref:`2d indexes <2d-index>`
 - :ref:`Unique indexes <index-type-unique>`
-
-You can only use the :ref:`multikey index <index-type-multikey>` type on
-the ``metaField``.
-
-These index properties are partially supported. You can create:
-
-- :ref:`partial indexes <index-type-partial>` on every field except
-  ``metaField`` and ``timeField``.
-- :ref:`sparse indexes <index-type-sparse>` on the ``metaField``.
-
-For improvements to time series secondary indexes available starting in
-MongoDB 6.0, see :ref:`timeseries-add-secondary-index-mongodb-6.0`.
 
 .. include:: /includes/time-series-secondary-indexes-downgrade-FCV.rst
 
@@ -150,24 +170,13 @@ parameters later.
 
 .. _timeseries-limitations-granularity:
 
-Modification of ``granularity``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Modifying Bucket Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-After you set the ``granularity``, you can only increase it one level at
-a time. The ``granularity`` can change from ``"seconds"`` to
-``"minutes"`` or from ``"minutes"`` to ``"hours"``. Other changes are
-not allowed. 
-
-To change the ``granularity`` from ``"seconds"`` to ``"hours"``, first
-increase the ``granularity`` to ``"minutes"`` and then to ``"hours"``.
-
-Modification of Bucket Parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Once you set a collection's ``bucketMaxSpanSeconds`` and 
-``bucketRoundingSeconds`` parameters, they can only be increased. Use 
-the :dbcommand:`collMod` command to modify the ``bucketMaxSpanSeconds`` 
-and ``bucketRoundingSeconds`` parameters. For example:
+Once you set a collection's ``granularity`` or custom bucketing
+parameters ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds``, you
+can increase them, but not decrease them.
+Use the :dbcommand:`collMod` command to modify the parameters. For example:
 
 .. code-block:: javascript
 
@@ -178,8 +187,9 @@ and ``bucketRoundingSeconds`` parameters. For example:
    
 .. note::
 
-   The ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds`` parameters must be
-   equal. If you modify one parameter, you must also modify the other.
+   ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds`` must be
+   equal. If you modify one parameter, you must also set the other to
+   the same value.
 
 .. _time-series-limitations-sharding:
 
@@ -231,4 +241,3 @@ Views
 
 - You cannot create a view from a time series bucket collection
   namespace (namely, a collection prefixed with ``system.buckets``).
-

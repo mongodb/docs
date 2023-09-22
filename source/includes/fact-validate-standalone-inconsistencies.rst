@@ -1,6 +1,6 @@
 Index inconsistencies include:
 
-- An index is :doc:`multikey </core/index-multikey>` but there are
+- An index is :ref:`multikey <index-type-multikey>` but there are
   no multikey fields.
 - An index has :ref:`multikeyPaths <compound_multikey_indexes>` covering 
   fields that are not multikey.

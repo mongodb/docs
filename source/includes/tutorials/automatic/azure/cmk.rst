@@ -10,6 +10,11 @@
       `Set and retrieve a key from Azure Key Vault using the Azure portal <https://docs.microsoft.com/en-us/azure/key-vault/keys/quick-create-portal>`__
       Quick Start.
 
+      .. note::
+
+         The {+cmk-long+} should have an RSA key size of 2048 or 4096 
+         bits.
+
       .. important:: Record your Credentials
       
          Ensure you record the following credentials:
