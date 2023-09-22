@@ -43,13 +43,20 @@ requirements:
   <shard-key-refine>` instead.
 - Your database meets these resource requirements:
 
-  -  Available storage space: Ensure that your available storage space
-     is at least 1.2x the size of the collection that you want to
-     reshard. For example, if the size of the collection you want to
-     reshard is 1 TB, you should have at least 1.2 TB of free storage
-     when starting the sharding operation.
+  -  Available storage space: Ensure that your cluster has sufficient availible
+     disk space for resharding. If documents in the resharded collection are equally 
+     distributed across the cluster, each shard requires disk space of 
+     approximately 1.2 times the collection size on disk divided by the number of shards. 
+
+     .. note::
+
+        Resharding requires additional disk space because the process creates a new
+        collection with data distributed across shards according to the new shard key. 
+        See :ref:`resharding_process` for more information. 
+    
+
   -  I/O: Ensure that your I/O capacity is below 50%.
-  -  CPU load: Ensure your CPU load is below 80%.
+  -  CPU load: Ensure that your CPU load is below 80%.
 
   .. important::
 
@@ -121,12 +128,16 @@ requirements:
         operationTime: <timestamp>
      }
 
-.. warning::
+.. note::
 
-   We strongly recommend that you check the
-   :ref:`resharding-limitations` and read the :ref:`resharding
-   process <resharding_process>` section in full before resharding your
-   collection.
+    Resharding is a write-intensive process which can generate increased rates 
+    of oplog. You may wish to:
+
+    - set a fixed oplog size to prevent unbounded oplog growth.
+    - increase the oplog size to minimize the chance that one or more
+      secondary nodes becomes stale.
+    
+    See the :ref:`replica-set-oplog` documentation for more details.
 
 .. _resharding-limitations:
 
@@ -179,6 +190,12 @@ Limitations
 
 Resharding Process
 ------------------
+
+.. important::
+
+   We strongly recommend that you check the
+   :ref:`resharding-limitations` and read the :ref:`resharding_process`
+   section in full before resharding your collection.
 
 .. include:: /includes/reshard-collection-introduction.rst
 
