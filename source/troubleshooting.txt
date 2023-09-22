@@ -14,6 +14,144 @@ Troubleshoot Errors
    :depth: 1
    :class: singlecol
 
+.. _local-deploy-errors:
+
+Troubleshoot Local Atlas Deployment Issues
+------------------------------------------
+
+Error: qemu exited unexpectedly with exit code -1, stderr: qemu-system-x86_64: Error: HV_DENIED
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+atlas-cli+} uses `Podman <https://podman.io/>`__ and `QEMU 
+<https://www.qemu.org/>`__. We have identified this issue on MacOS x86 
+architectures. To resolve this isseu, upgrade to the latest version of 
+QEMU and restart Podman.
+
+Error: exit status 127
+~~~~~~~~~~~~~~~~~~~~~~
+
+This error might occur when you use the ``atlas deployments setup`` 
+command on Ubuntu Linux because of a `known issue 
+<https://bugs.launchpad.net/ubuntu/+source/libpod/+bug/2024394>`__ with 
+Podman. We don't support Ubuntu for local |service| deployments during 
+this Public Preview stage.
+
+MongoNetworkError: connect ECONNREFUSED
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This issue might occur after your machine goes into sleep mode or 
+restarts. When you try to connect to the local |service| deployment, 
+this error occurs.
+
+The {+atlas-cli+} uses `Podman <https://podman.io/>`__ and `QEMU 
+<https://www.qemu.org/>`__ to run dockerized instances of MongoDB. 
+Podman has a daemonless architecture. So, the local MongoDB instances 
+don't restart automatically.
+
+To fix this issue:
+
+1. List the available deployments.
+
+   .. code-block:: sh
+
+      atlas deployments list
+
+#. To resume the container, copy and paste the following command into 
+   your terminal, and replace ``{deployment-name}`` with the name of 
+   the deployment to start.
+
+   .. code-block:: sh
+
+      atlas deployments start {deployment-name}
+
+Issues on Windows
+~~~~~~~~~~~~~~~~~
+
+We don't support Windows for local |service| deployments during this 
+Public Preview stage.
+
+Local Machine Issues
+~~~~~~~~~~~~~~~~~~~~
+
+If the {+atlas-cli+} slows down to an unusable state after you create 
+multiple local |service| deployments and load data, you might have 
+reached the limits of your machine.
+
+Consider allocating more memory:
+
+1. Stop the Podman machine:
+
+   .. code-block:: sh
+
+      podman machine stop
+
+#. Allocate more memory based on your machine settings:
+
+   .. code-block:: sh
+
+      podman machine set --cpus 3 --memory 5120
+
+#. Start the Podman machine:
+
+   .. code-block:: sh
+
+      podman machine start
+
+#. List the Podman containers.
+
+   .. code-block:: sh
+
+      podman ps --all
+
+#. To resume the container, copy and paste the following command into 
+   your terminal and replace ``{container-name}`` with the name of the 
+   container to start.
+
+   .. code-block:: sh
+
+      podman start {container-name}
+
+Podman Issues
+~~~~~~~~~~~~~
+
+The {+atlas-cli+} uses `Podman <https://podman.io/>`__ for
+``atlas deployments`` commands.
+
+To install Podman, run the following command:
+
+.. code-block:: sh
+
+   brew install podman
+
+To initialize a Podman machine, run the following command:
+
+.. code-block:: sh
+
+   podman machine init
+
+To start a Podman machine, run the following command:
+
+.. code-block::
+
+   podman machine start
+
+If your local |service| deployment doesn't work, you might need to 
+clean up your Podman environment and start fresh:
+
+.. code-block::
+
+   podman kill --all && podman system prune --force && podman volume rm --all
+
+Run Diagnostics
+~~~~~~~~~~~~~~~
+
+If you run into issues and with ``atlas deployments`` commands and need 
+support, run the following command to provide detailed diagnostics:
+
+.. code-block:: sh
+
+   atlas deployments diagnostics <deploymentName> --output json > out.json
+
 Command Errors
 --------------
 
