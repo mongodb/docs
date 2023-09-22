@@ -151,7 +151,6 @@ from. The following connection types are supported:
           },
           "tsFieldOverride": "<timestamp>" 
           "timeField": { 
-            "<timeKey>",
             $toDate|$dateFromString: <expression>
           }
           "allowedLateness": {
@@ -226,8 +225,6 @@ The ``$source`` stage takes a document with the following fields:
      - Document defining an authoritative timestamp for incoming 
        messages. If used, ``timeField`` must be one of the following:
        
-       - a string specifying the name of the field in incoming messages
-         to source the timestamp from 
        - a ``$toDate`` expression that takes a source message field as 
          an argument
        - a ``$dateFromString`` expression that takes a source message 
@@ -272,8 +269,7 @@ conformity to a schema of expected ranges, values, or datatypes.
       {
         "$validate": {
           "validator": { <filter> },
-          "validationAction" : "discard" | "discardQuiet" | "dlq"
-          "logAttributes": <expression>
+          "validationAction" : "discard" | "dlq"
         }  
       }
 
@@ -291,12 +287,6 @@ The ``$validate`` stage takes a document with the following fields:
      - Necessity 
      - Description
 
-   * - ``logAttributes``
-     - document 
-     - Optional
-     - Document of expressions, each defining a field to log. Defaults 
-       to ``$$ROOT``.
-
    * - ``validationAction`` 
      - string
      - Optional 
@@ -304,9 +294,8 @@ The ``$validate`` stage takes a document with the following fields:
        user-defined schema. You can specify one of the following 
        values:
 
-       - ``discard``: Logs the violation and discards the message.
-       - ``discardQuiet``: Discards the message without logging the 
-         violation.
+       - ``discard``: Discards the message. If you do not specify a 
+         value for ``validationAction``, this is the default behavior.
        - ``dlq``: Logs the violation to the collection defined in your
          Stream Processor configuration and performs a best-effort 
          discard without transactional guarantees.
@@ -324,20 +313,11 @@ The ``$validate`` stage takes a document with the following fields:
        - ``$text``
        - ``$where``
 
-.. I would like to provide an example validator used in testing this
-   feature. Discussion of it would go in the Behavior section. Is one
-   readily available, or should I concoct one?
-
 Behavior
 ~~~~~~~~
 
-``$validate`` can be used immediately after the following stages in an 
-aggregation pipeline:
-
-1. Immediately after the :pipeline:`$source` stage to validate raw 
-   incoming messages.
-2. Immediately after the :pipeline:`$project` stage to validate the 
-   results of the projection.
+You can use ``$validate`` at any point in a pipeline after the 
+``$source`` stage, and before the ``$emit`` or ``$merge`` stage.
 
 If you specify either the ``discard`` or ``dlq`` options for the
 ``validationAction`` field, {+atlas-sp+} logs messages which fail
@@ -540,10 +520,12 @@ fields:
      - Required
      - Document that specifies the length of the 
        :ref:`hop <hopping-windows>` between window start times as a 
-       combination of a size and a unit of time. The value of 
-       ``size`` must be an integer. The value of ``unit`` can be one of 
-       the following:
+       combination of a size and a unit of time where: 
+       
+       - The value of ``size`` must be an integer. 
+       - The value of ``unit`` can be one of the following:
 
+       - ``"ms"`` (millisecond)
        - ``"second"``
        - ``"minute"``
        - ``"hour"``
@@ -559,10 +541,12 @@ fields:
      - Required
      - Document specifying the interval of a 
        :ref:`hopping window <hopping-windows>` as a combination of
-       a size and a unit of time. The value of ``size`` must be an
-       integer. The value of ``unit`` can be one of 
-       the following:
+       a size and a unit of time where: 
+       
+       - The value of ``size`` must be an integer. 
+       - The value of ``unit`` can be one of the following:
 
+       - ``"ms"`` (millisecond)
        - ``"second"``
        - ``"minute"``
        - ``"hour"``
@@ -657,6 +641,7 @@ fields:
        - The value of ``size`` must be an integer. 
        - The value of ``unit`` must be one of the following:
 
+       - ``"ms"`` (millisecond)
        - ``"second"``
        - ``"minute"``
        - ``"hour"``
@@ -677,7 +662,7 @@ fields:
        - The value of ``offsetFromUtc`` must be an integer. 
        - The value of ``unit`` must be one of the following:
 
-       - ``"millisecond"``
+       - ``"ms"`` (millisecond)
        - ``"second"``
        - ``"minute"``
        - ``"hour"``
@@ -729,8 +714,6 @@ to. The connection must be an {+kafka+} broker.
         "$emit": {
           "connectionName": "<registered-connection>",
           "topic" : "<target-topic>",
-          "config": { 
-            <consumer-properties> 
           }
         }  
       }
@@ -748,11 +731,6 @@ The ``$emit`` stage takes a document with the following fields:
      - Type 
      - Necessity 
      - Description
-
-   * - ``config``
-     - document 
-     - Optional
-     - Document that overrides default configuration. 
 
    * - ``connectionName`` 
      - string
