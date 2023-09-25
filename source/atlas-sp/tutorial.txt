@@ -169,52 +169,56 @@ Procedure
       .. code-block:: sh
          :copyable: true
 
-         var pipeline = [{
+         let s = {
             $source: {
-            connectionName: "sample_stream_solar",
+               connectionName: "sample_stream_solar",
                timeField: {
                   $dateFromString: {
-                  dateString: '$timestamp'
-                  }
-            }
-            }
-         },
-         {
-            $tumblingWindow: {
-            interval: {
-               size: NumberInt(1),
-               unit: "hour"
-               },
-            pipeline: [{
-               $unwind: {
-                  path: "$obs"
-               }
-            },
-            {
-               $group: {
-                  _id: "$group_id",
-                  max: {
-                  $max: "$obs.watts"
-                  },
-                  avg: {
-                  $avg: "$obs.watts"
+                     dateString: '$timestamp'
                   }
                }
-            }]
-            }
-         }]
-
-         var m= {
-            $merge: {
-            into: {
-               connectionName: "mongodb1",
-               db: "MySolar",
-               coll: "solar"
-            }
             }
          }
 
-         sp.createStreamProcessor("avgWatts", [...pipeline, m])
+         let u = {
+            $unwind: {
+               path: "$obs"
+            }
+         }
+
+         let g = {
+            $group: {
+               _id: "$group_id",
+               max: {
+                  $max: "$obs.watts"
+               },
+               avg: {
+                  $avg: "$obs.watts"
+               }
+            }
+         }
+
+         let t = {
+            $tumblingWindow: {
+               interval: {
+                  size: NumberInt(1),
+                  unit: "second"
+               },
+               pipeline: [u, g]
+            }
+         }
+
+         let m = {
+            $merge: {
+               into: {
+                  connectionName: "mongodb1",
+                  db: "MySolar",
+                  coll: "solar"
+               }
+            }
+         }
+
+         sp.createStreamProcessor("avgWatts", [s, t, m])
 
       This creates a stream processor named ``avgWatts`` that
       applies the previously defined query and writes the 
