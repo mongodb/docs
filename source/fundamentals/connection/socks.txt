@@ -1,0 +1,136 @@
+.. _java-connect-socks:
+
+==========================================
+Connect to MongoDB by Using a SOCKS5 Proxy
+==========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to connect to MongoDB by using a SOCKS5 proxy.
+SOCKS5 is a standardized protocol for communicating with network services
+through a proxy server.
+
+.. tip::
+
+   To learn more about the SOCKS5 protocol, see the Wikipedia entry on
+   :wikipedia:`SOCKS <w/index.php?title=SOCKS&oldid=1160087146>`.
+
+.. _socks-proxy-settings:
+
+SOCKS5 Proxy Settings
+---------------------
+
+The proxy settings specify the SOCKS5 proxy server address and your
+authentication credentials. You can specify your settings in an instance of
+``MongoClientSettings`` or in your connection string.
+
+.. important::
+
+   The driver ignores the proxy settings if you specify a custom
+   ``StreamFactoryFactory``, which by default creates instances of
+   ``SocketStreamFactory``.
+
+The following table describes the SOCKS5 client options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 20 65
+
+   * - Name
+     - Accepted Values
+     - Description
+
+   * - **proxyHost**
+     - String
+     - Specifies the SOCKS5 proxy IPv4 address, IPv6 address, or hostname.
+       You must provide this value to connect to a SOCKS5 proxy.
+
+   * - **proxyPort**
+     - non-negative Integer
+     - Specifies the TCP port number of the SOCKS5 proxy server. This option
+       defaults to ``1080`` when you set ``proxyHost``.
+
+   * - **proxyUsername**
+     - String
+     - Specifies the username for authentication to the SOCKS5 proxy server.
+       The driver ignores ``null`` and empty string values for this setting.
+       The driver requires that you pass values for both ``proxyUsername``
+       and ``proxyPassword`` or that you omit both values.
+
+   * - **proxyPassword**
+     - String
+     - Specifies the password for authentication to the SOCKS5 proxy server.
+       The driver ignores ``null`` and empty string values for this setting.
+       The driver requires that you pass values for both ``proxyUsername``
+       and ``proxyPassword`` or that you omit both values.
+
+
+Examples
+--------
+
+The following examples show how to instantiate a ``MongoClient`` that connects
+to MongoDB by using a SOCKS5 proxy. The proxy settings can be specified in a
+``MongoClientSettings`` instance or a connection string. These examples use
+the placeholder values described in the :ref:`socks-proxy-settings` section.
+Replace the placeholders with your proxy settings.
+
+Specify Proxy Settings in the MongoClientSettings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code example shows how to specify your SOCKS5 proxy settings by
+using the ``MongoClientSettings`` builder:
+
+.. code-block:: java
+   :emphasize-lines: 5-12
+
+   MongoClient mongoClient = MongoClients.create(
+       MongoClientSettings.builder()
+           .applyConnectionString(
+                   new ConnectionString("mongodb+srv://myDatabaseUser:myPassword@example.org/"))
+           .applyToSocketSettings(builder ->
+                   builder.applyToProxySettings(proxyBuilder ->
+                           proxyBuilder
+                               .host("<proxyHost>")
+                               .port(<proxyPort>)
+                               .username("<proxyUsername>")
+                               .password("<proxyPassword>")
+                           )
+           ).build());
+
+Specify Proxy Settings in the Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following code example shows how to specify your SOCKS5 proxy settings in
+your connection string:
+
+.. code-block:: java
+   :emphasize-lines: 2-5
+
+   String connectionString = "mongodb+srv://myDatabaseUser:myPassword@example.org/" +
+           "?proxyHost=<proxyHost>" +
+           "&proxyPort=<proxyPort>" +
+           "&proxyUsername=<proxyUsername>" +
+           "&proxyPassword=<proxyPassword>";
+
+   MongoClient mongoClient = MongoClients.create(connectionString);
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types discussed in this guide, see the
+following API documentation:
+
+- `MongoClientSettings.Builder <{+api+}/apidocs/mongodb-driver-core/com/mongodb/MongoClientSettings.Builder.html>`__
+- `SocketSettings.Builder <{+api+}/apidocs/mongodb-driver-core/com/mongodb/connection/SocketSettings.Builder.html>`__
+- `MongoClients.create() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClients.html#create(com.mongodb.MongoClientSettings)>`__
+
+.. TODO
+   - provide the link for the proxysettings builder once the API docs are generated:
+   - `ProxySettings.Builder <{+api+}/apidocs/mongodb-driver-core/com/mongodb/connection/ProxySettings.Builder.html>`__
