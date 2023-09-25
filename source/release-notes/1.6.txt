@@ -1,0 +1,156 @@
+.. _c2c-release-notes-1.6:
+
+===================================
+Release Notes for mongosync 1.6
+===================================
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _1.6.0-c2c-release-notes:
+
+1.6.0 Release
+-------------
+
+**September 22, 2023**
+
+Exclusion Filters
+~~~~~~~~~~~~~~~~~
+
+Starting in 1.6.0, the :ref:`c2c-api-start` API endpoint now supports the
+use of exclusion filters through the ``excludeNamespaces`` parameter.
+
+For more information, see :ref:`c2c-filtered-sync`.
+
+Regular Expression Filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Both inclusion and exclusion filters in :ref:`c2c-filtered-sync` now 
+support matching databases and collections using Regular Expressions 
+with the ``databaseRegex`` and ``collectionRegex`` fields.
+
+For more information, see :ref:`c2c-filter-regex`.
+
+Exclusion Filters
+~~~~~~~~~~~~~~~~~
+
+Starting in 1.6.0, the :ref:`c2c-api-start` API endpoint now supports the
+use of exclusion filters through the ``excludeNamespaces`` parameter.
+
+For more information, see :ref:`c2c-filtered-sync`.
+
+7.0 Support
+~~~~~~~~~~~
+
+Starting in 1.6.0, ``mongosync`` supports sync with MongoDB 7.0.
+
+Other Notes
+~~~~~~~~~~~
+
+New Features:
+
+- Sped up the commit process by parallelizing metadata cleanup. 
+
+- Reduced memory allocation during change event application by approximately 
+  30% for pre-6.0 releases of MongoDB Server versions.
+
+- Changed telemetry to also send error messages to Segment when ``mongosync``
+  exits with a fatal error.
+
+- Added support for ``mongosync`` to sync between source and destination 
+  clusters that have the same major and minor versions, but different 
+  patch versions.
+
+- Upgraded build to use Go 1.20.
+
+- ``mongosync`` now periodically logs when server operations take a longer 
+  than expected time.
+
+Issues Fixed:
+
+- Fixed a bug introduced in ``mongosync`` v1.5.0 and discovered by our internal
+  testing where in an unlikely edge case ``mongosync`` can miss a change event 
+  to be applied during the Collection Copy phase. 
+  
+  In order for this bug to occur, the change event must fall between a specific 
+  ``_id`` range that ``mongosync`` is in the process of copying, must occur and 
+  be processed while that specific ``_id`` range is being copied, and must not 
+  be followed by another change event for the same ``_id`` throughout the rest 
+  of the migration. 
+  
+  This bug only occurs when ``mongosync`` is processing change events with near
+  zero replication lag during Collection Copy.
+
+
+- Fixed a bug where ``mongosync`` could crash due to the source cluster
+  containing legacy indexes with unknown index options.
+
+- Fixed a bug where ``mongosync`` could crash with an error during change event
+  application, if the application fails to read 500 documents within 5 minutes
+  or reaches the end of the oplog when reading from change streams on the
+  source cluster.
+
+- Fixed a bug where ``mongosync`` could crash when indexes apply constraints to
+  collection documents.
+
+  This crash occured when such an index was added or dropped at nearly the same
+  time as an index that violated these constrains was deleted or inserted.  It
+  would manifest with an error like:
+
+  .. code-block:: text
+     :copyable: false
+
+     Ambiguous field name found in array (do not use numeric field names in embedded elements in an array)
+
+  or a similar error. This fix makes this crash less likely, but it does not
+  elimiate the possibility that it will occur.
+
+- Fixed a bug where ``mongosync`` can fail to copy certain documents if the
+  insertion of documents causes duplicate key errors at the same time as a
+  write concern error. This bug has been present in mongosync since its first
+  release and may have arisen if the destination cluster logs reported a write
+  concern error alongside a duplicate key error.
+
+- Fixed a bug introduced in ``mongosync`` 1.5 where change events may be
+  skipped during the Collection Copy phase when there is little write activity
+  on the source cluster.
+
+- Fixed a rare bug introduced in ``mongosync`` v1.5.0 and discovered by our
+  internal testing where there may be a small continuity gap between Oplog
+  Rollover Resilience (ORR) cycles in a specific situation, causing the ORR
+  mechanism to potentially miss a change event to be applied during the
+  Collection Copy phase. 
+
+  This is an extreme case as it requires consistently
+  little write activity on the source cluster (i.e. ``mongosync`` replication
+  lag is consistently near zero during Collection Copy) as well as the change
+  event to fall in specific ``_id`` ranges between ORR cycles.
+
+- Fixed a bug introduced in v1.5.0 where ``mongosync`` could cause data
+  consistency errors in collections with non-default collation. 
+  
+  This issue only affects collections with non-simple collation that are
+  present during ``mongosync`` initialization and contain documents with string
+  ``_id`` values. Any collections with non-simple collation created after
+  ``mongosync`` initialization or whose documents have all non-string ``_id``
+  values are unaffected.
+
+  .. note::
+
+     In order to mitigate this issue, ``mongosync`` v1.6.0 automatically
+     disables Oplog Rollover Resilience if it finds at least one collection
+     with non-simple collation during Mongosync initialization. 
+     
+     We will investigate a more permanent solution for future releases.
+
+Minimum Supported Version
+-------------------------
+
+In 1.6, the minimum supported versions of MongoDB are 6.0.8 and 7.0.0.
+
