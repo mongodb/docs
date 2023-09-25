@@ -1,3 +1,21 @@
+.. _opsmgr-server-6.0.18:
+
+|onprem| Server 6.0.18:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-09-07*
+
+.. note::
+   
+   .. include:: /includes/bic-compatibility.rst
+
+- Updates the {+mdbagent+} to :ref:`12.0.26.7740 <mongodb-12.0.26.7740>`.
+- Updates JDK to ``jdk-11.0.20.1+1``.
+- Compatible with :db-tools:`MongoDB Database Tools 100.8.0
+  </release-notes/database-tools-changelog/#100.8.0-changelog>`.
+- Includes |bic-full| 2.14.10.
+- Includes `MongoDB Shell <https://www.mongodb.com/docs/mongodb-shell/>`__ 1.10.4.
+
 .. _opsmgr-server-6.0.17:
 
 |onprem| Server 6.0.17:
