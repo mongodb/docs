@@ -20,8 +20,9 @@ Overview
 
 |fts| allows you to sort the results in ascending or descending order on 
 fields that you define in your |fts| index. You can sort by date, number
-(integer, float, and double values), and string fields using the
-``sort`` option.
+(integer, float, and double values), and string fields indexed as a 
+:ref:`token <bson-data-types-token>` type using the ``sort`` option. You
+can also sort by the score of the documents in the results. 
 
 .. note:: 
 
@@ -47,9 +48,12 @@ To sort your |fts| results, you must do the following:
 #. Create and run your query with the ``sort`` option against the fields
    you defined in the index for sorting. To learn more, see 
    :ref:`sort-syntax-ref`.
-   
+
 Behavior 
 ~~~~~~~~
+
+Sort by Date, Numeric, or String Field 
+``````````````````````````````````````
 
 The ``sort`` option takes a document that specifies the fields to sort 
 by and the respective sort order. |fts| follows the :manual:`MongoDB
@@ -70,8 +74,60 @@ You can specify the following sort order to sort your results by:
        missing values before documents with values. 
 
    * - ``-1`` 
-     - Sort in descending order .
-  
+     - Sort in descending order.
+
+Sort by Score And Date or Numeric Field 
+```````````````````````````````````````
+
+You can also sort by score in ascending or descending order. The
+``sort`` option takes a document that specifies the :manual:`$meta
+</reference/operator/aggregation/meta/>` expression, which requires the
+``searchScore`` value. 
+
+.. example:: 
+
+   Suppose your application allows users to skip to the last page of the
+   search results. The following example sorts the results by score in
+   ascending order so that the document with the lowest score displays at
+   the top of the results: 
+
+   .. code-block:: json 
+      :copyable: true 
+
+      sort: {unused: {$meta: "searchScore", order: 1}}
+
+You can use ``sort`` to also ensure that the results have a determined
+order when multiple documents in the results have identical scores. The
+following example doesn't sort the results by a unique field.   
+
+If you don't specify a unique date or numeric field to sort the results
+by, |fts| defaults to sorting the results by score in descending order
+and returns results with identical scores in an arbitrary order:  
+
+.. example:: 
+
+   .. code-block:: shell 
+      :copyable: false 
+
+      sort: {unused: {$meta: "searchScore"}}
+
+However, if you sort the results by a unique date or numeric field, such
+as a date field named ``lastUpdated`` as shown in the following example,
+|fts| uses the value of the specified field to return results with
+identical scores in a determined order:  
+
+.. example::
+
+   .. code-block:: 
+      :copyable: false
+
+      sort: {unused: {$meta: "searchScore"}, lastUpdated: 1}
+
+To learn more, see :ref:`scoring-ref`.
+
+Sort Arrays 
+```````````
+
 |fts| flattens the arrays for sorting. 
 
 .. example:: 
@@ -157,7 +213,7 @@ Scoring
 |fts| returns :ref:`scores <scoring-ref>` for all documents in the
 results. However, you might see higher scoring documents after lower
 scoring documents because the order of documents in the results is based
-on the sort criteria.  
+on the sort criteria unless you explicitly sort by score.
 
 Limitations 
 ~~~~~~~~~~~
@@ -182,7 +238,8 @@ Syntax
 ``sort`` has the following syntax:
 
 .. code-block:: json
-   :emphasize-lines: 7-10
+   :emphasize-lines: 7-11
+   :linenos:
 
    {
      "$search": {  
@@ -191,9 +248,10 @@ Syntax
          <operator-specification>
        },
        "sort": { 
+         unused: {$meta: "searchScore"},
          "<field-to-sort>": <sort-order>, 
          ...
-       }
+       } 
      }
    }
 
@@ -362,11 +420,11 @@ except ``title`` and ``released`` in the results.
 
       [
         {
-          title: 'Cold in July',
+          title: 'The Gambler',
           released: ISODate("2014-12-31T00:00:00.000Z")
         },
         {
-          title: 'The Gambler',
+          title: 'Cold in July',
           released: ISODate("2014-12-31T00:00:00.000Z")
         },
         {
@@ -378,7 +436,7 @@ except ``title`` and ``released`` in the results.
           released: ISODate("2014-12-27T00:00:00.000Z") 
         },
         {
-          title: 'Peace After Marriage',
+          title: 'The Water Diviner',
           released: ISODate("2014-12-26T00:00:00.000Z")
         }
       ]
@@ -732,14 +790,14 @@ results.
         {
           docs: [
             {
-              title: 'Cold in July',
-              released: ISODate("2014-12-31T00:00:00.000Z"),
-              awards: { wins: 1 }
-            },
-            {
               title: 'The Gambler',
               released: ISODate("2014-12-31T00:00:00.000Z"),
               awards: { wins: 7 }
+            },
+            {
+              title: 'Cold in July',
+              released: ISODate("2014-12-31T00:00:00.000Z"),
+              awards: { wins: 1 }
             },
             {
               title: 'Force Majeure',
@@ -752,9 +810,9 @@ results.
               awards: { wins: 3 }
             },
             {
-              title: 'Peace After Marriage',
+              title: 'The Water Diviner',
               released: ISODate("2014-12-26T00:00:00.000Z"),
-              awards: { wins: 5 }
+              awards: { wins: 8 }
             }
           ],
           meta: {
@@ -796,3 +854,249 @@ results.
           }
         }
       ]
+
+.. _sort-by-score-egs:
+
+Sort by Score
+~~~~~~~~~~~~~
+
+The following examples demonstrate how to sort the results by the score
+of the documents in the results. The examples demonstrate how to perform
+the following actions: 
+
+- Retrieve the lowest scoring documents first by sorting the results in
+  ascending order.
+- Sort the results by score in descending order and for results with
+  identical scores, sort arbitrarily. 
+- Sort the results by score and for results with identical scores, sort
+  using a unique field. 
+
+.. tabs:: 
+
+   .. tab:: Ascending Sort 
+      :tabid: ascending-sort
+
+      The following query uses the :pipeline:`$search` stage to perform
+      the following actions: 
+
+      - Search for movies that have the term ``story`` in the title.  
+      - Sort the results by score in ascending order. 
+
+      The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+      documents. It also uses the :pipeline:`$project` stage to perform the
+      following actions: 
+
+      - Omit all fields except ``title`` in the results.
+      - Add a field named ``score``.
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :emphasize-lines: 8
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "story"
+                  },
+                  "sort": {unused: {$meta: "searchScore", order: 1}}
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "score": {$meta: "searchScore"}
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+            :emphasize-lines: 12-21
+
+            [
+              {
+                title: 'Do You Believe in Miracles? The Story of the 1980 U.S. Hockey Team',
+                score: 0.8674521446228027
+              },
+              {
+                title: 'Once in a Lifetime: The Extraordinary Story of the New York Cosmos',
+                score: 0.9212141036987305
+              },
+              {
+                title: 'The Source: The Story of the Beats and the Beat Generation',
+                score: 0.9820802211761475
+              },
+              {
+                title: 'If These Knishes Could Talk: The Story of the NY Accent',
+                score: 0.9820802211761475
+              },
+              {
+                title: 'Dream Deceivers: The Story Behind James Vance vs. Judas Priest',
+                score: 1.051558256149292
+              }
+            ]
+
+   .. tab:: Default (Descending) Sort 
+      :tabid: descending-sort
+
+      The following query uses the :pipeline:`$search` stage to perform
+      the following actions: 
+
+      - Search for movies that have the term ``summer`` in the title.  
+      - Sort the results by score in descending order and for results
+        with identical scores, sort arbitrarily. 
+
+      The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+      documents. It also uses the :pipeline:`$project` stage to perform the
+      following actions: 
+
+      - Omit all fields except ``_id`` and ``title`` in the results.
+      - Add a field named ``score``.
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :emphasize-lines: 8
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "summer"
+                  },
+                  "sort": {unused: {$meta: "searchScore"}}
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 1,
+                  "title": 1,
+                  "score": {$meta: "searchScore"}
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+
+            [
+              {
+                _id: ObjectId("573a1398f29313caabcea21e"),
+                title: 'Summer',
+                score: 3.5844719409942627
+              },
+              {
+                _id: ObjectId("573a13a6f29313caabd18eca"),
+                title: 'Summer Things',
+                score: 3.000213623046875
+              },
+              {
+                _id: ObjectId("573a13b8f29313caabd4c1d0"),
+                title: 'Summer Palace',
+                score: 3.000213623046875
+              },
+              {
+                _id: ObjectId("573a1394f29313caabcde8e8"),
+                title: 'Summer Stock',
+                score: 3.000213623046875
+              },
+              {
+                _id: ObjectId("573a13acf29313caabd284fa"),
+                title: 'Wolf Summer',
+                score: 3.000213623046875
+              }
+            ]
+
+   .. tab:: Sort by Unique Field
+      :tabid: unique-field-sort
+
+      The following query uses the :pipeline:`$search` stage to perform the
+      following actions: 
+
+      - Search for movies that have the term ``prince`` in the title.  
+      - Sort the results first by score and then by the value of the
+        ``released`` field in ascending order for results with identical
+        scores.  
+
+      The query uses the :pipeline:`$limit` stage to limit the output to ``5``
+      documents. It also uses the :pipeline:`$project` stage to perform the
+      following actions: 
+
+      - Omit all fields except ``title`` and ``released`` in the results.
+      - Add a field named ``score``.
+ 
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: 
+            :language: json 
+            :emphasize-lines: 8
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    "path": "title",
+                    "query": "prince"
+                  },
+                  "sort": {unused: {$meta: "searchScore"}, "released": 1}
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "released": 1,
+                  "score": {$meta: "searchScore"}
+                }
+              }
+            ])
+
+         .. output::
+            :language: json
+
+            [
+              {
+                title: 'Prince',
+                released: ISODate("2015-08-14T00:00:00.000Z"),
+                score: 4.168826103210449
+              },
+              {
+                title: 'Prince Avalanche',
+                released: ISODate("2013-09-19T00:00:00.000Z"),
+                score: 3.4893198013305664
+              },
+              {
+                title: 'The Prince',
+                released: ISODate("2014-08-22T00:00:00.000Z"),
+                score: 3.4893198013305664
+              },
+              {
+                title: 'Prince of Foxes',
+                released: ISODate("1949-12-23T00:00:00.000Z"),
+                score: 3.0002830028533936
+             },
+              {
+                title: 'The Oil Prince',
+                released: ISODate("1966-01-01T00:00:00.000Z"),
+                score: 3.0002830028533936
+              }
+            ]
