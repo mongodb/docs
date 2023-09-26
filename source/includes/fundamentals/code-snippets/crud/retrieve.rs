@@ -20,7 +20,7 @@ async fn main() -> mongodb::error::Result<()> {
     my_coll.insert_many(docs, None).await?;
 
     // begin-find-many
-    let opts: FindOptions = FindOptions::builder()
+    let opts = FindOptions::builder()
         .sort(doc! { "unit_price": -1 })
         .build();
 
@@ -41,7 +41,7 @@ async fn main() -> mongodb::error::Result<()> {
     print!("\n");
 
     // begin-find-one
-    let opts: FindOneOptions = FindOneOptions::builder().skip(2).build();
+    let opts = FindOneOptions::builder().skip(2).build();
     let result = my_coll.find_one(
         doc! { "unit_price":
             doc! { "$lte": 20.00 } },
