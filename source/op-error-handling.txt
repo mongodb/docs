@@ -1,0 +1,160 @@
+.. _rust-operation-errors:
+
+========================
+Operation Error Handling
+========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This page describes errors you might encounter when
+using the {+driver-long+} to perform MongoDB operations. Once you
+understand the types of operation errors that the driver raises, you can take
+appropriate actions to either handle them or correct the error-causing code.
+
+.. note::
+
+   This page addresses only operation error handling. If you encounter
+   any other issues with MongoDB or the driver, visit the following
+   resources:
+
+   - The :ref:`Issues & Help <rust-issues-and-help>` page, which has
+     information about reporting bugs, contributing to the driver, and 
+     finding more resources
+   - The `MongoDB Community Forums <https://community.mongodb.com>`__ for
+     questions, discussions, or general technical support
+
+   ..
+     - The :ref:`Frequently Asked Questions (FAQ) <golang-faq>` for the
+       {+driver-short+}
+     - :ref:`rust-connection-troubleshooting`
+
+Error Type
+----------
+
+If the driver encounters an error while performing an operation, it
+returns an error of the `Error <{+api+}/error/struct.Error.html>`__ type.
+
+The ``Error`` type contains the ``kind`` field, which describes the type of
+error that occurred. The ``kind`` field has a value of enum `ErrorKind
+<{+api+}/error/enum.ErrorKind.html>`__. The ``ErrorKind`` enum has
+variants for different kinds of errors, including the following:
+
+- ``InvalidArgument``: you provided an invalid argument to a method
+- ``Authentication``: the driver encountered an error during authentication
+- ``ServerSelection``: the client couldn't select a server for the operation
+- ``Write``: an error occurred during a write operation
+- ``Transaction``: an error occurred during a transaction
+
+For example, if you attempt to perform an insert operation that
+duplicates an ``_id`` field value that is already in the collection,
+the driver returns an ``Error`` instance and prints the following error
+message:
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 1
+
+   Error: Error { kind: Write(WriteError(WriteError { code: 11000,
+   code_name: None, message: "E11000 duplicate key error collection:
+   db.test_coll index: _id_ dup key: { _id: 1 }", details: None })), labels:
+   {}, wire_version: None, source: None }
+
+In the preceding error message, the value of the ``kind`` field is
+``Write``. To learn more about this type of error, see the :ref:`Write
+Error Types <rust-error-write-errors>` section of this guide.
+
+Connection Errors
+-----------------
+
+A concurrent operation error might clear the connection pool,
+interrupting your connection to the server. In this
+situation, the driver raises an ``Error`` type where the value of the
+``kind`` field is ``ConnectionPoolCleared``. The error message describes
+the reason that the concurrent operation failed.
+
+To learn how to adjust your connection pool to address this error, see
+:manual:`Tuning Your Connection Pool Settings
+</tutorial/connection-pool-performance-tuning/>` in the Server manual.
+
+Depending on the circumstances that produce the error, the driver may
+add a ``RetryableWriteError`` label to the error, as shown in the
+following error message:
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 3
+   
+   Error { kind: ConnectionPoolCleared { message: "Connection pool for
+   localhost:27017 cleared because another operation failed with: Kind:
+   I/O error: timed out, labels: {}" }, labels: {"RetryableWriteError"},
+   wire_version: None, source: None }
+
+This label indicates that the error is write-retryable, which means that
+the driver makes one retry attempt.
+
+.. _rust-error-write-errors:
+
+Write Error Types
+-----------------
+
+When the driver experiences an error while performing a write operation,
+it raises an ``Error`` instance with a ``kind`` field value of ``Write``.
+The body of the ``Write`` variant is the enum `WriteFailure
+<{+api+}/error/enum.WriteFailure.html>`__, which
+takes a value of type `WriteError <{+api+}/error/struct.WriteError.html>`__ or
+`WriteConcernError <{+api+}/error/struct.WriteConcernError.html>`__.
+
+Write Concern Error
+~~~~~~~~~~~~~~~~~~~
+
+The driver raises a ``WriteConcernError`` error when you perform a write
+operation and the driver cannot satisfy the specified write concern. For
+example, if you specify a write concern of ``majority`` for
+operations on a replica set with three nodes, the driver returns
+this error if the write operation propagates only to one node.
+
+To learn more about write concerns, see :manual:`Write Concern
+</reference/write-concern/>` in the Server manual.
+
+Write Error
+~~~~~~~~~~~
+
+The driver raises a ``WriteError`` error for any errors that it
+encounters when performing a write operation that are not related to
+satisfying the write concern. Because there are many causes for this
+error, the ``WriteError`` type contains fields that describe the type of
+write error and reason for the error.
+
+For example, the driver raises a ``WriteError`` error if you attempt to
+insert a document into a collection that violates the collection's
+schema validation rules. Suppose the collection has a rule where the
+value of the ``quantity`` field must be an ``int`` type. If you
+attempt to insert a document where the value of ``quantity`` is
+``"three"``, the driver prints the following error message:
+
+.. code-block:: none
+   :copyable: false
+   :emphasize-lines: 2-3
+
+   Error: Error { kind: Write(WriteError(WriteError { code: 121, code_name:
+   None, message: "Document failed validation", details:
+   Some(Document({"failingDocumentId": Int32(1), "details":
+   Document({"operatorName": String("$jsonSchema"), "title":
+   String("Numerical Validation"), "schemaRulesNotSatisfied":
+   Array(...)})})) })), labels: {},
+   wire_version: None, source: None }
+
+In the preceding error message, the ``message`` field describes the
+reason for the error, and the ``details`` field provides specific
+details about the failing operation. To address this error, you must
+either revise the document to adhere to the schema validation rules or
+bypass validation.
+  
+.. TODO To learn more about schema validation, see <link>.
