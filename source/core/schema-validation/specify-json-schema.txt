@@ -17,6 +17,13 @@ JSON Schema is a vocabulary that allows you to annotate and validate
 JSON documents. You can use JSON schema to specify validation rules for
 your fields in a human-readable format.
 
+Compatibility
+-------------
+
+.. |operator-method| replace:: JSON schema validation
+
+.. include:: /includes/fact-compatibility.rst
+
 Context
 -------
 
@@ -40,38 +47,20 @@ document.
 
 .. procedure::
 
+   .. step:: Connect to your MongoDB deployment.
+
+      To connect to a local MongoDB instance or
+      {+atlas+} deployment using :binary:`~bin.mongosh`,
+      refer to the steps in :mongosh:`Connect to a Deployment </connect>`
+      or :atlas:`Connect via mongosh </mongo-shell-connection/>`.
+
    .. step:: Create a collection with validation.
 
-      Create a ``students`` collection and use the :query:`$jsonSchema`
-      operator to set schema validation rules. For example:
+      In :binary:`~bin.mongosh`, run the following command to 
+      create a ``students`` collection and use the 
+      :query:`$jsonSchema` operator to set schema validation rules:
 
-      .. code-block:: javascript
-
-         db.createCollection("students", {
-            validator: {
-               $jsonSchema: {
-                  bsonType: "object",
-                  title: "Student Object Validation",
-                  required: [ "address", "major", "name", "year" ],
-                  properties: {
-                     name: {
-                        bsonType: "string",
-                        description: "'name' must be a string and is required"
-                     },
-                     year: {
-                        bsonType: "int",
-                        minimum: 2017,
-                        maximum: 3017,
-                        description: "'year' must be an integer in [ 2017, 3017 ] and is required"
-                     },
-                     gpa: {
-                        bsonType: [ "double" ],
-                        description: "'gpa' must be a double if the field exists"
-                     }
-                  }
-               }
-            }
-         } )
+      .. include:: /includes/schema-validation/json-schema-example.rst
 
       .. tip:: Clarify Rules with Title and Description Fields
 
@@ -82,61 +71,66 @@ document.
 
    .. step:: Confirm that the validation prevents invalid documents.
 
-      The following insert operation fails because ``gpa`` is an integer
-      when the ``validator`` requires a ``double``.
+      Run the following command. The insert operation fails 
+      because ``gpa`` is an integer when the ``validator`` requires a 
+      ``double``.
 
-      .. code-block:: javascript
-         :emphasize-lines: 5
+      .. io-code-block:: 
+         :copyable: true
 
-         db.students.insertOne( {
-            name: "Alice",
-            year: Int32( 2019 ),
-            major: "History",
-            gpa: Int32(3),
-            address: {
-               city: "NYC",
-               street: "33rd Street"
-            }
-         } )
+         .. input::
+            :language: javascript
+            :emphasize-lines: 5
 
-      The operation returns this error:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         MongoServerError: Document failed validation
-
-         Additional information: {
-           failingDocumentId: ObjectId("630d093a931191850b40d0a9"),
-           details: {
-             operatorName: '$jsonSchema',
-             title: 'Student Object Validation',
-             schemaRulesNotSatisfied: [
-               {
-                 operatorName: 'properties',
-                 propertiesNotSatisfied: [
-                   {
-                     propertyName: 'gpa',
-                     description: "'gpa' must be a double if the field exists",
-                     details: [
-                       {
-                         operatorName: 'bsonType',
-                         specifiedAs: { bsonType: [ 'double' ] },
-                         reason: 'type did not match',
-                         consideredValue: 3,
-                         consideredType: 'int'
-                       }
-                     ]
-                   }
-                 ]
+            db.students.insertOne( {
+               name: "Alice",
+               year: Int32( 2019 ),
+               major: "History",
+               gpa: Int32(3),
+               address: {
+                  city: "NYC",
+                  street: "33rd Street"
                }
-             ]
-           }
-         }
+            } )
+
+         .. output::
+            :language: json
+
+            MongoServerError: Document failed validation
+
+            Additional information: {
+              failingDocumentId: ObjectId("630d093a931191850b40d0a9"),
+              details: {
+                operatorName: '$jsonSchema',
+                title: 'Student Object Validation',
+                schemaRulesNotSatisfied: [
+                  {
+                    operatorName: 'properties',
+                    propertiesNotSatisfied: [
+                      {
+                        propertyName: 'gpa',
+                        description: "'gpa' must be a double if the field exists",
+                        details: [
+                          {
+                            operatorName: 'bsonType',
+                            specifiedAs: { bsonType: [ 'double' ] },
+                            reason: 'type did not match',
+                            consideredValue: 3,
+                            consideredType: 'int'
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
 
    .. step:: Insert a valid document.
     
-      The insert succeeds after you change the ``gpa`` field to a double:
+      If you change the ``gpa`` field value to a ``double`` type, the 
+      insert operation succeeds. Run the following command to
+      insert the valid document:
 
       .. code-block:: javascript
          :emphasize-lines: 5
@@ -154,28 +148,36 @@ document.
 
    .. step:: Query for the valid document.
 
-      To confirm that the document was successfully inserted, query the
-      ``students`` collection:
+      To confirm that you've successfully inserted the document, run
+      the following command to query the ``students`` collection:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.students.find()
+         .. input::
+            :language: javascript
 
-      MongoDB returns the inserted document:
+            db.students.find()
 
-      .. code-block:: javascript
-         :copyable: false
+         .. output:: 
+            :language: json
 
-         [
-           {
-             _id: ObjectId("62bb413014b92d148400f7a5"),
-             name: 'Alice',
-             year: 2019,
-             major: 'History',
-             gpa: 3,
-             address: { city: 'NYC', street: '33rd Street' }
-           }
-         ]
+            [
+               {
+                  _id: ObjectId("62bb413014b92d148400f7a5"),
+                  name: 'Alice',
+                  year: 2019,
+                  major: 'History',
+                  gpa: 3,
+                  address: { city: 'NYC', street: '33rd Street' }
+               }
+            ]
+
+      .. tip:: 
+          
+         If you're connected to an Atlas deployment, you can also 
+         :atlas:`view and filter for the document in the Atlas UI 
+         </atlas-ui/documents/#view--filter--and-sort-documents>`.
 
 Additional Information
 ----------------------
