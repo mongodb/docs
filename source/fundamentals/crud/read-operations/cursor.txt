@@ -1,1 +1,312 @@
 .. _rust-cursor-guide:
+
+=============================
+Access Data by Using a Cursor
+=============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to access
+data returned from a read operation or aggregation by using a **cursor**. A
+cursor is a mechanism that enables you to iterate through multiple documents
+while holding only a subset of them in memory at a given time. 
+
+The driver offers the ``Cursor`` type to retrieve documents from a cursor.
+For example, when you run a find operation that can return multiple
+documents, the driver returns a ``Cursor`` instance from which you can access
+the matched documents.
+
+After you run a read operation or aggregation, the returned ``Cursor`` instance
+contains the first batch of results from the operation. As you iterate through
+the cursor, the server returns more individual results. If there are more
+matching documents after you reach the end of a batch of results, the ``Cursor``
+instance fetches the next batch of documents until all the results are returned.
+
+This guide includes the following sections:
+
+- :ref:`Retrieve Documents Individually <rust-cursor-individual>`:
+  describes how to use iteration or a stream to access results one at a time
+
+- :ref:`Retrieve Documents as an Array <rust-cursor-array>`:
+  describes how to access all results as a single array by collecting the
+  returned cursor results
+
+- :ref:`Specify Cursor Behavior <rust-cursor-options>`: describes how
+  to configure the cursor that a method returns
+
+- :ref:`Additional Information <rust-cursor-addtl-info>`:
+  provides links to related topics and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-cursor-individual:
+
+Retrieve Documents Individually
+-------------------------------
+
+The driver provides the following access patterns to iterate through
+documents returned by a ``Cursor`` instance:
+
+- :ref:`Built-in Pattern <rust-cursor-indiv-builtin>`: advance the cursor,
+  then retrieve and deserialize the current document
+- :ref:`Stream Implementation Pattern <rust-cursor-indiv-stream>`: iterate over
+  the cursor and call methods provided by ``Stream`` to process single
+  or multiple documents
+
+The following sections describe these access patterns and corresponding
+methods in more detail.
+
+.. _rust-cursor-indiv-builtin:
+
+Built-in Pattern
+~~~~~~~~~~~~~~~~
+
+You can use the driver's built-in access pattern to retrieve and process
+documents one by one.
+
+The ``Cursor`` type includes the ``advance()`` and
+``deserialize_current()`` methods to iterate through a cursor and
+access documents individually.
+
+The ``advance()`` method moves the cursor forward and sends a request to the
+database for more results when the local buffer is exhausted, which occurs
+when the cursor reaches the end of a batch of results. Each time the cursor
+reaches the end of a batch of results, it requests the next batch. The cursor
+is exhausted when it has no more matching documents to return and is no longer
+usable. The ``advance()`` method returns a ``true`` result if new results are
+successfully returned and a ``false`` result if the cursor is closed.
+
+The ``deserialize_current()`` method returns a reference to the current
+result in the cursor and deserializes the result into the type
+associated with the cursor. Unless you specify a type, the method uses the
+same type that your collection is parameterized with.
+
+.. important::
+   
+   You can only call the ``deserialize_current()`` method if the ``advance()``
+   method returns a ``true`` result. The driver generates an error if you call
+   ``deserialize_current()`` on the cursor without a ``true`` result or
+   without calling previously calling ``advance()``.
+
+The following example shows how to implement this access pattern to
+iterate through the results of a find operation on the ``fruits``
+collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/cursor.rs
+      :start-after: start-indiv-builtin
+      :end-before: end-indiv-builtin
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Document({"_id": ObjectId("..."), "name": String("strawberry"), "color": String("red")})
+      Document({"_id": ObjectId("..."), "name": String("pomegranate"), "color": String("red")})
+
+.. _rust-cursor-indiv-stream:
+
+Stream Implementation Pattern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can access cursor results as a stream to retrieve individual documents
+or collect multiple documents at once.
+
+The ``Cursor`` type implements the ``Stream`` trait, so you can iterate
+through the cursor as a stream. This pattern may help you write more
+concise code than the built-in pattern, since the ``Stream`` extension trait
+``StreamExt`` provides numerous functions to combine operations and
+consolidate code.
+
+You can use the following methods to use the stream pattern:
+
+- ``next()``: advances the cursor to the next result and returns an
+  ``Option<Result<T>>`` type
+- ``try_next()``: advances the cursor to the next result and returns
+  a ``Result<Option<T>>`` type
+
+.. important:: Required Imports for Stream Pattern Methods
+
+   To use the ``next()`` method, you must import the ``StreamExt``
+   trait. To use the ``try_next()`` method, you must import the
+   ``TryStreamExt`` trait.
+
+The following example shows how to implement the two stream methods to
+iterate through the results of find operations on the ``fruits``
+collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/cursor.rs
+      :start-after: start-indiv-stream
+      :end-before: end-indiv-stream
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Output from next() iteration:
+      { "_id": ObjectId("..."), "name": "strawberry", "color": "red" }
+      { "_id": ObjectId("..."), "name": "pomegranate", "color": "red" }
+      
+      Output from try_next() iteration:
+      { "_id": ObjectId("..."), "name": "banana", "color": "yellow" }
+      { "_id": ObjectId("..."), "name": "pineapple", "color": "yellow" }
+
+.. _rust-cursor-array:
+
+Retrieve Documents as an Array
+------------------------------
+
+Because the ``Cursor`` type implements the ``Stream`` trait, you can
+collect the results from a cursor into an array.
+
+You can use the following methods to retrieve documents as an array:
+
+- ``collect()``: collects results from a cursor into a
+  ``Vec<Result<T>>`` type
+- ``try_collect()``: collects results from a cursor into a
+  ``Result<Vec<T>>`` type
+
+.. note::
+
+   To use the ``collect()`` method, you must import the ``StreamExt``
+   trait. To use the ``try_collect()`` method, you must import the
+   ``TryStreamExt`` trait.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/cursor.rs
+      :start-after: start-array
+      :end-before: end-array
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Output from collect():
+      [Ok(Document({"_id": ObjectId("..."), "name": String("strawberry"), "color": String("red")})), Ok(Document({"_id": ObjectId("..."), "name": String("pomegranate"), "color": String("red")}))]
+      
+      Output from try_collect():
+      [Document({"_id": ObjectId("..."), "name": String("banana"), "color": String("yellow")}), Document({"_id": ObjectId("..."), "name": String("pineapple"), "color": String("yellow")})]
+
+.. warning:: Avoid Exceeding Application Memory Limits
+
+   Avoid converting large sets of results to arrays. If the array exceeds
+   the size of available application memory, your application might crash.
+   If you expect a large result set, retrieve documents from the cursor individually.
+   To learn how to iterate through the cursor, see the :ref:`Retrieve Documents Individually 
+   <rust-cursor-individual>` section of this guide.
+
+.. _rust-cursor-options:
+
+Specify Cursor Behavior
+-----------------------
+
+To modify the cursor that an operation returns, pass options to
+the method that returns the ``Cursor`` instance. For example, you can
+specify cursor-related options in a ``FindOptions`` type that you pass to the
+``find()`` method.
+
+The following table describes cursor-related options that you can set in
+an options instance:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Setting
+     - Description
+
+   * - ``batch_size`` 
+     - | Specifies the maximum number of documents the server returns per
+         cursor batch. This option sets the number of documents the cursor
+         keeps in memory rather than the number of documents the cursor
+         returns.
+
+       | Type: ``u32``
+       | Default: ``101`` documents initially, ``16 MB`` maximum for
+         subsequent batches
+
+   * - ``cursor_type`` 
+     - | Specifies the type of cursor to return. You can set this option
+         to produce a tailable cursor. To learn more about tailable
+         cursors, see :manual:`Tailable Cursors
+         </core/tailable-cursors/>` in the Server manual.
+
+       | Type: ``CursorType``
+       | Default: ``CursorType::NonTailable``
+
+   * - ``no_cursor_timeout`` 
+     - | Specifies whether the server closes the cursor after a period
+         of inactivity.
+
+       .. important::
+          
+          Because the ``Cursor`` type implements the ``Drop`` trait, the
+          server closes a cursor when it goes out of scope. The server
+          runs an asynchronous ``killCursors`` command to close the
+          cursor. See :manual:`killCursors </reference/command/killCursors/>`
+          in the Server manual to learn more.
+
+       | Type: ``bool``
+       | Default: ``false``
+
+The following code shows how to construct a ``FindOptions``
+instance and specify cursor-related settings:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/cursor.rs
+   :start-after: start-options
+   :end-before: end-options
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-cursor-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about the operations in this guide, see the
+following Rust driver reference documentation:
+
+- :ref:`rust-retrieve-guide`
+- :ref:`rust-query-guide`
+
+.. TODO link to serialization guide
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `Cursor <{+api+}/struct.Cursor.html>`__
+- `advance() <{+api+}/struct.Cursor.html#method.advance>`__
+- `deserialize_current() <{+api+}/struct.Cursor.html#method.deserialize_current>`__
+- `next() <https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.next>`__ in the
+  ``StreamExt`` trait
+- `try_next() <https://docs.rs/futures/latest/futures/stream/trait.TryStreamExt.html#method.try_next>`__ in the
+  ``TryStreamExt`` trait
+- `collect() <https://docs.rs/futures/latest/futures/stream/trait.StreamExt.html#method.collect>`__ in the
+  ``StreamExt`` trait
+- `try_collect() <https://docs.rs/futures/latest/futures/stream/trait.TryStreamExt.html#method.try_collect>`__ in the
+  ``TryStreamExt`` trait
+- `find() <{+api+}/struct.Collection.html#method.find>`__
+- `FindOptions <{+api+}/options/struct.FindOptions.html>`__
