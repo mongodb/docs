@@ -20,7 +20,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // begin-options
     let opts: DeleteOptions = DeleteOptions::builder().comment(bson!("hello!")).build();
-    let _res = my_coll.delete_one(filter, opts).await?;
+    let res = my_coll.delete_one(filter, opts).await?;
     // end-options
 
     Ok(())
