@@ -1,0 +1,207 @@
+.. _rust-connection-troubleshooting:
+
+==========================
+Connection Troubleshooting
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page offers potential solutions to issues you might encounter when
+using the {+driver-long+} to connect to a MongoDB deployment.
+
+.. note::
+
+   This page only addresses connection issues. If you encounter any other issues
+   with MongoDB or the driver, visit the following resources:
+
+   - The :ref:`Issues & Help <rust-issues-and-help>` page, which has
+     information about reporting bugs, contributing to the driver, and 
+     finding more resources
+   - The `MongoDB Community Forums <https://community.mongodb.com>`__ for
+     questions, discussions, or general technical support
+
+   ..
+       TODO:
+     - The :ref:`Frequently Asked Questions (FAQ) <rust-faq>` for the
+       {+driver-short+}
+     - The :ref:`Operation Error Handling <rust-operation-errors>` page
+       for the {+driver-short+}
+      
+
+Server Connection Error
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When you attempt to connect to a server, the {+driver-short+} might generate an
+error message. This message might look similar to the following message indicating
+that the driver cannot connect to a server on the specified hostname or port:
+
+.. code-block:: none
+   :copyable: false
+
+   Error: Error { kind: ServerSelection { message: "Server selection timeout: 
+   No available servers. Topology: { Type: Unknown, Servers: [ { Address: 
+   127.0.0.1:27017, Type: Unknown, Error: Kind: I/O error: Connection refused 
+   (os error 61), labels: {} } ] }" }, labels: {}, wire_version: None, source: 
+   None }
+
+The following sections describe methods that might help resolve the issue.
+
+.. _rust-troubleshooting-connection-string-port:
+
+Check Connection String
+-----------------------
+
+Verify that the hostname and port number in the connection string are both
+accurate. In the sample error message, the hostname is ``127.0.0.1`` and the
+port is ``27017``. The default port value for a MongoDB instance is
+``27017``, but you can configure MongoDB to communicate on another port.
+
+.. _rust-troubleshooting-connection-firewall:
+
+Configure Firewall
+------------------
+
+Assuming that your MongoDB deployment uses the default port, verify that port
+``27017`` is open in your firewall. If your deployment uses a different port,
+verify the correct port is open in your firewall.
+
+.. warning::
+
+   Do not open a port in your firewall unless you are sure that it is the port
+   used by your MongoDB instance.
+
+.. _rust-troubleshooting-connection-number-connections:
+
+Check the Number of Connections
+-------------------------------
+
+Each ``MongoClient`` instance supports a maximum number of concurrent open
+connections in its connection pool. The configuration parameter ``maxPoolSize``
+defines this value and is set to ``100`` by default. If there are already a
+number of open connections equal to ``maxPoolSize``, the server waits until
+a connection becomes available. If this wait time exceeds the ``maxIdleTimeMS``
+value, the driver responds with an error. 
+
+.. 
+   TODO To learn more about how connection pools work in the driver, see
+   the :ref:`FAQ page <rust-faq-connection-pool>`.
+
+Authentication Error
+~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-short+} may be unable connect to a MongoDB instance if
+the authorization is not configured correctly. In these cases, the driver
+raises an error message similar to the following message:
+
+.. code-block:: none
+   :copyable: false
+
+    Error: Error { kind: Authentication { message: "SCRAM failure: bad auth : 
+    authentication failed" }, labels: {}, wire_version: None, source: Some(Error 
+    { kind: Command(CommandError { code: 8000, code_name: "AtlasError", message:
+    "bad auth : authentication failed", topology_version: None }),
+    labels: {}, wire_version: None, source: None }) }
+
+The following sections describe methods that may help resolve the issue.
+
+.. _rust-troubleshooting-connection-string-auth:
+
+Check Connection String
+-----------------------
+
+An invalid connection string is the most common cause of authentication
+issues when attempting to connect to MongoDB.
+
+.. tip::
+
+   For more information about connection strings,
+   see the :ref:`rust-quick-start-connection-string` guide.
+
+If your connection string contains a username and password, ensure that they
+are in the correct format.
+
+.. note::
+
+   If your username or password includes any of the following characters, you
+   must `percent encode <https://tools.ietf.org/html/rfc3986#section-2.1>`__ it:
+
+   .. code-block:: none
+
+      : / ? # [ ] @
+   
+   After percent encoding your username and password, you can use them as
+   credentials in your connection string.
+
+When connecting to a replica set, include all the replica set hosts in
+your connection string. Separate each of the hosts in the connection
+string with a comma. This enables the driver to establish a connection if
+one of the hosts is unreachable. For an example of a connection string
+that specifies multiple replica set hosts, see :ref:`Connect to a Replica Set 
+<rust-connect-replica-set>` in the Connection Guide.
+
+.. _rust-troubleshooting-connection-auth-mechanism:
+
+Verify the Authentication Mechanism
+-----------------------------------
+
+Ensure that your credentials and authentication mechanism are correct. You can
+specify your authentication credentials in the options of your connection string
+or in a ``Credential`` struct.
+
+To learn more about authentication, see the
+:ref:`rust-authentication` guide.
+
+.. _rust-troubleshooting-connection-admin:
+
+Verify User Is in Authentication Database
+-----------------------------------------
+
+To successfully authenticate a connection by using a username and password,
+the username must be defined in the authentication database. The default
+authentication database is the ``admin`` database. To use a different database
+for authentication, specify the ``authSource`` option in the connection string.
+The following example instructs the driver to use ``users`` as the authentication
+database:
+
+.. code-block:: rust
+   :copyable: true
+
+   let uri = "mongodb://<username>:<password>@<hostname>:<port>/?authSource=users";
+   let client = Client::with_uri_str(uri).await?;
+
+DNS Resolution Error
+~~~~~~~~~~~~~~~~~~~~
+
+The {+driver-short+} may be unable to resolve your DNS connection. When this
+happens, you might receive an error message similar to the following message:
+
+.. code-block:: none
+   :copyable: false
+
+   Error: Error { kind: DnsResolve { message: "sample message. type: 
+   SRV class: IN" }, labels: {}, wire_version: None, source: None }
+
+If you receive this error, try the following methods to resolve the issue.
+
+Check Database Deployment Availability
+--------------------------------------
+
+If you are using an Atlas connection string and your driver cannot find the DNS host
+of the Atlas database deployment, the database deployment might be paused or deleted.
+Check that the database deployment exists. If the cluster is paused, you can resume
+the cluster on the Atlas UI or the Atlas command line interface.
+
+To learn how to resume a cluster, see :atlas:`Resume One Cluster 
+</pause-terminate-cluster/#resume-one-cluster/>` in the Atlas documentation.
+
+Check Connection String
+-----------------------
+
+Verify that the connection string in your app is accurate. For more information
+about verifying your connection string, see
+:ref:`Connection Error <rust-troubleshooting-connection-string-port>`
+and :ref:`Authentication Error <rust-troubleshooting-connection-string-auth>`.
