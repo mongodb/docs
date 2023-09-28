@@ -65,7 +65,9 @@ patient_schema = {"medicalRecords.patients": json_schema}
 
 
 # start-extra-options
-extra_options = {"mongocryptd_spawn_path": "<your path to mongocryptd>"}
+extra_options = {
+    "cryptSharedLibPath": "<Full path to your Automatic Encryption Shared Library>"
+}
 # end-extra-options
 
 # start-client

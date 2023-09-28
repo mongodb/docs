@@ -73,7 +73,9 @@ tls_options = {
 # end-create-tls
 
 # start-extra-options
-extra_options = {"mongocryptd_spawn_path": "<your path to mongocryptd>"}
+extra_options = {
+    "cryptSharedLibPath": "<Full path to your Automatic Encryption Shared Library>"
+}
 # end-extra-options
 
 # start-client

@@ -176,10 +176,7 @@
                :dedent:
                :caption: insert-encrypted-document.go
 
-   .. step:: Specify the Location of the Encryption Binary
-
-      Configure the client to spawn the ``mongocryptd`` process by specifying the
-      path to the binary using the following configuration options:
+   .. step:: Specify the Location of the {+shared-library+}
 
       .. tabs-drivers::
 
@@ -193,17 +190,6 @@
                :dedent:
                :caption: InsertEncryptedDocument.java
 
-            .. note:: Encryption Binary Daemon
-
-               If the ``mongocryptd`` daemon is already running, you can
-               configure the client to skip starting it by passing the
-               following option:
-
-               .. code-block:: java
-                  :emphasize-lines: 1
-
-                  extraOptions.put("mongocryptdBypassSpawn", true);
-
          .. tab::
             :tabid: nodejs
 
@@ -213,17 +199,6 @@
                :language: javascript
                :dedent:
                :caption: insert_encrypted_document.js
-
-            .. note:: Encryption Binary Daemon
-
-               If the ``mongocryptd`` daemon is already running, you can
-               configure the client to skip starting it by passing the
-               following option:
-
-               .. code-block:: javascript
-                  :emphasize-lines: 1
-
-                   extraOptions.mongocryptdBypassSpawn = true;
 
          .. tab::
             :tabid: python
@@ -235,24 +210,8 @@
                :dedent:
                :caption: insert_encrypted_document.py
 
-            .. note:: Encryption Binary Daemon
-
-               If the ``mongocryptd`` daemon is already running, you can
-               configure the client to skip starting it by passing the
-               following option:
-
-               .. code-block:: python
-                  :emphasize-lines: 1
-
-                   extra_options['mongocryptd_bypass_spawn'] = True
-
          .. tab::
             :tabid: csharp
-
-            .. note:: Encryption Executable
-
-               If the ``mongocryptd.exe`` executable is not in the PATH,
-               specify the spawn path.
 
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
                :start-after: start-extra-options
@@ -264,14 +223,6 @@
          .. tab::
             :tabid: go
 
-            .. note::
-
-               If ``mongocryptd`` is not in the PATH,
-               specify the spawn path.
-
-         .. tab::
-            :tabid: go
-
             .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/azure/reader/insert-encrypted-document.go
                :start-after: start-extra-options
                :end-before: end-extra-options
@@ -279,17 +230,7 @@
                :dedent:
                :caption: insert-encrypted-document.go
 
-            .. note:: Encryption Binary Daemon
-
-               If the ``mongocryptd`` daemon is already running, you can
-               configure the client to skip starting it by passing the
-               following option:
-
-               .. code-block:: go
-
-                  extraOptions := map[string]interface{}{
-                      "mongocryptdBypassSpawn": true,
-                  }
+      .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
 
    .. step:: Create the MongoClient
 
