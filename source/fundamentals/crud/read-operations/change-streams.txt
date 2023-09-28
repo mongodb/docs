@@ -137,6 +137,53 @@ An update operation on the collection produces the following output:
       ...
    }
 
+Split Large Change Stream Events
+--------------------------------
+
+Starting in MongoDB 7.0, you can use the ``$changeStreamSplitLargeEvent``
+aggregation stage to split events that exceed 16 MB into smaller fragments.
+The $changeStreamSplitLargeEvent stage returns the fragments sequentially. You can
+access the fragments by using a change stream cursor. Each fragment
+includes a ``SplitEvent`` object containing the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Field
+     - Description
+
+   * - ``fragment``
+     - The index of the fragment, starting at ``1``
+
+   * - ``of``
+     - The total number of fragments that compose the split event
+
+The following example modifies your change stream by using the
+``$changeStreamSplitLargeEvent`` aggregation stage to split large events:
+
+.. code-block:: java
+
+   ChangeStreamIterable<Document> changeStream = collection.watch(
+         Arrays.asList(Document.parse("{ $changeStreamSplitLargeEvent: {} }")));
+
+.. note::
+
+   You can have only one ``$changeStreamSplitLargeEvent`` stage in your
+   aggregation pipeline, and it must be the last stage in the pipeline.
+
+You can call the ``getSplitEvent()`` method on your change stream cursor to access
+the ``SplitEvent`` as shown in the following example:
+
+.. code-block:: java
+
+   MongoChangeStreamCursor<ChangeStreamDocument<Document>> cursor = changeStream.cursor();
+   SplitEvent event = cursor.tryNext().getSplitEvent();
+
+For more information on the ``$changeStreamSplitLargeEvent`` aggregation stage,
+see the :manual:`$changeStreamSplitLargeEvent
+</reference/operator/aggregation/changeStreamSplitLargeEvent/>` server documentation.
+
 .. _java-change-stream-configure-pre-post:
 
 Include Pre-images and Post-images
