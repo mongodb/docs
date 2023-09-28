@@ -12,6 +12,112 @@ Release Notes for |k8s-op-full|
    :depth: 1
    :class: singlecol
 
+.. _ent-op-1.22.x:
+
+|k8s-op-full| 1.22 Series
+-------------------------
+
+.. _ent_op-1.22.0:
+
+|k8s-op-full| 1.22.0
+~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-09-21*
+
+Breaking Changes
+````````````````
+
+The |k8s-op-short| no longer uses the ``Reconciling`` state for all custom resources.
+In most cases this state has been replaced with ``Pending`` and a corresponding
+message. If you use monitoring tools with the custom MongoDB resources deployed
+with the |k8s-op-short|, you might need to adjust your dashboards and alerting rules
+to use the ``Pending`` state name.
+
+MongoDBOpsManager Resource
+``````````````````````````
+
+Improvements
+++++++++++++
+
+- Adds support for configuring :opsmgr:`logRotate </reference/cluster-configuration/#mongodb-instances>`
+  on the MongoDB Agent for the Application Database.
+- You can now configure the :manual:`systemLog </reference/configuration-options/#systemlog-options>`
+  to send logs to a custom location other than the default ``/var/log/mongodb-mms-automation`` directory.
+
+- Improves handling of Application Database clusters in |multi-clusters|.
+  
+  In the last release, to scale down processes, the |k8s-op-short| required
+  a connection to the |k8s| cluster. This could block the reconciliation
+  process due to a full-cluster outage.
+
+  In this release, the |k8s-op-short| successfully manages the remaining
+  healthy clusters as long as they have a majority of votes to elect a primary.
+  The |k8s-op-short| doesn't remove associated processes from the automation
+  configuration and replica set configuration. The |k8s-op-short| deletes
+  these processes only if you delete the corresponding cluster from
+  :opsmgrkube:`spec.applicationDatabase.clusterSpecList <spec.applicationDatabase.clusterSpecList>`
+  or change the number of the cluster members to zero. When the |k8s-op-short|
+  deletes these processes, it scales down the replica set by removing
+  processes tied to that cluster one at a time.
+
+``MongoDB`` Resource
+````````````````````
+
+Improvements
+++++++++++++
+
+- Adds an automatic recovery mechanism for ``MongoDB``
+  resources. If a custom resource remains in ``Pending`` or ``Failed`` state
+  for a longer period of time, the automation configuration is pushed to
+  |onprem|. This prevents a deadlock when the MongoDB Agent can't push an
+  updated automation configuration change because the StatefulSet is stuck
+  in a ``Pending`` state due to a previous push of an invalid automation configuration. 
+
+  In addition, introduces the following environment variables:
+
+  - ``MDB_AUTOMATIC_RECOVERY_ENABLE`` controls automatic recovery for
+    ``MongoDB`` resources per Pod. The default is ``true``.
+
+  - ``MDB_AUTOMATIC_RECOVERY_BACKOFF_TIME_S`` controls the time a custom
+    resource remains in a ``Pending`` or ``Failed`` state. Set this variable
+    at the |k8s-op-short| Pod spec level. The default is 1200 seconds (20 minutes).
+
+- Allows you to route the audit logs for the ``MongoDB`` resource to the |k8s|
+  Pod logs. Ensure that you write the ``MongoDB`` resource's audit logs
+  to the ``/var/log/mongodb-mms-automation/mongodb-audit.log`` file.
+  The Pod hosting the resource monitors this file and appends its content
+  to its |k8s| logs.
+  
+  To send audit logs to the |k8s| Pod logs, use the following example
+  configuration in the ``MongoDB`` resource:
+
+  .. code-block:: yaml
+  
+     spec:
+       additionalMongodConfig:
+         auditLog:
+           destination: file
+           format: JSON
+           path: /var/log/mongodb-mms-automation/mongodb-audit.log
+  
+  The |k8s-op-short| tags audit log entries with the ``mongodb-audit`` key
+  in the Pod logs. 
+
+  To extract audit log entries, use a command similar to the following example:
+
+  .. code-block:: yaml
+
+     kubectl logs -c mongodb-enterprise-database replica-set-0 | \
+     jq -r 'select(.logType == "mongodb-audit") | .contents'
+
+Bug Fixes
+++++++++++
+
+Fixes an issue where you couldn't set the :setting:`spec.backup.autoTerminateOnDeletion`
+setting to ``true`` for sharded clusters. This setting controls whether the
+|k8s-op-short| stops and terminates the backup when you delete a MongoDB
+resource. If omitted, the default value is ``false``.
+
 .. _ent-op-1.21.x:
 
 |k8s-op-full| 1.21 Series
@@ -410,9 +516,9 @@ Bug Fixes
 `````````
 
 - Fixes the issue where you configure a liveness probe and it reports a
-  positive result when you terminate a MongoDB Agent's process. This
-  could cause Pods hosting MongoDB resources to run without the
-  Automation Agent. In addition to this fix, consider configuring 
+  positive result when you terminate a MongoDB Agent's process. This could
+  cause Pods hosting MongoDB resources to run without the MongoDB  Agent.
+  In addition to this fix, consider configuring 
   :ref:`readiness probe overrides <readiness-probe-override>`.  
 
 - Fixes the startup script in database Pod that might report errors when
@@ -2709,7 +2815,7 @@ This feature is an alpha release. It is not ready for production use.
   project configMap and the credentials secret then performs a rolling
   upgrade for relevant Kubernetes resources.
 
-- Added |json| structured logging for Automation Agent pods.
+- Added |json| structured logging for MongoDB Agent Pods.
 
 - Support |dns-srv| records for MongoDB access.
 
@@ -2738,7 +2844,7 @@ This feature is an alpha release. It is not ready for production use.
 
 - Improved database logging by adding a new configuration property
   ``logLevel``. This property is set to ``INFO`` by default.
-  Automation Agent and MongoDB logs are merged in to a single log
+  MongoDB Agent and MongoDB logs are merged in to a single log
   stream.
 
 - Added new configuration Operator timeout. It defines waiting time
