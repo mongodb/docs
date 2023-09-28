@@ -42,7 +42,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut results = my_coll.aggregate(age_pipeline, None).await?;
     while let Some(result) = results.try_next().await? {
-        let doc: Document = bson::from_document(result)?;
+        let doc = bson::from_document(result)?;
         println!("* {}", doc);
     }
     // end-age-agg
@@ -57,7 +57,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut results = my_coll.aggregate(last_active_pipeline, None).await?;
     while let Some(result) = results.try_next().await? {
-        let doc: Document = bson::from_document(result)?;
+        let doc = bson::from_document(result)?;
         println!("* {}", doc);
     }
     // end-lastactive-agg
@@ -72,7 +72,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut results = my_coll.aggregate(popularity_pipeline, None).await?;
     while let Some(result) = results.try_next().await? {
-        let doc: Document = bson::from_document(result)?;
+        let doc = bson::from_document(result)?;
         println!("* {}", doc);
     }
     // end-popular-agg

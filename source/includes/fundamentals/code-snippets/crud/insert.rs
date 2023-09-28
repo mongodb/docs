@@ -16,7 +16,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // begin-insert-one
     let my_coll: Collection<Document> = client.database("db").collection("books");
-    let doc: Document = doc! { "title": "Atonement", "author": "Ian McEwan" };
+    let doc = doc! { "title": "Atonement", "author": "Ian McEwan" };
 
     let insert_one_result: InsertOneResult = my_coll.insert_one(doc, None).await?;
     println!("Inserted document with _id: {}", insert_one_result.inserted_id);

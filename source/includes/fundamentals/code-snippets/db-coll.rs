@@ -14,14 +14,14 @@ async fn main() -> mongodb::error::Result<()> {
     // end-list-db
 
     // begin-database
-    let db: mongodb::Database = client.database("test_db");
+    let db = client.database("test_db");
     // end-database
 
     // begin-drop-db
     db.drop(None).await?;
     // end-drop-db
 
-    let db: mongodb::Database = client.database("db");
+    let db = client.database("db");
     // begin-list-coll
     let coll_list = db.list_collection_names(doc! {}).await?;
     println!("{:?}", coll_list);
