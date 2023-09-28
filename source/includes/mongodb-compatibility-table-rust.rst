@@ -11,7 +11,7 @@
      - MongoDB 4.2
      - MongoDB 4.0
      - MongoDB 3.6
-   * - 2.6 [#2.5-2.6-limitation]_
+   * - 2.6 [#2.5-onwards-limitation]_
      - ⊛
      - ✓
      - ✓
@@ -19,7 +19,15 @@
      - ✓
      - ✓
      - ✓
-   * - 2.5 [#2.5-2.6-limitation]_
+   * - 2.6 [#2.5-onwards-limitation]_
+     - ⊛
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+   * - 2.5 [#2.5-onwards-limitation]_
      - ⊛
      - ⊛
      - ✓
@@ -71,7 +79,7 @@
 The {+driver-short+} is not compatible with {+server+} versions
 older than 3.6.
 
-.. [#2.5-2.6-limitation] This {+driver-short+} version does not support
+.. [#2.5-onwards-limitation] This {+driver-short+} version does not support
    :manual:`OCSP </core/security-transport-encryption/#ocsp--online-certificate-status-protocol->`.
 
 .. [#2.4-limitation] This {+driver-short+} version does not support Decimal128
