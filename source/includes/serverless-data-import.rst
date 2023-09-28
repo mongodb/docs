@@ -1,5 +1,5 @@
 
-.. note:: {+Serverless-Instances+} are in Preview
+.. note:: 
 
    To import data using the :dbtools:`MongoDB Tools </>`, including 
    ``mongodump``, ``mongorestore``, ``mongoexport``, and 
