@@ -41,7 +41,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     // begin-options
     let opts: UpdateOptions = UpdateOptions::builder().upsert(true).build();
-    let _res = my_coll.update_one(filter_doc, update_doc, opts).await?;
+    let res = my_coll.update_one(filter_doc, update_doc, opts).await?;
     // end-options
 
     Ok(())

@@ -21,21 +21,21 @@ async fn main() -> mongodb::error::Result<()> {
     let filter = doc! { "name": "xxx" };
     // begin-find-delete-options
     let opts = FindOneAndDeleteOptions::builder().comment(bson!("hello")).build();
-    let _res = my_coll.find_one_and_delete(filter, opts).await?;
+    let res = my_coll.find_one_and_delete(filter, opts).await?;
     // end-find-delete-options
 
     // begin-find_one_and_delete
     let filter = doc! { "age": doc! { "$lte": 10 } };
 
     let res = my_coll.find_one_and_delete(filter, None).await?;
-    println!("Deleted document:\n{}", serde_json::to_string_pretty(&res).unwrap());
+    println!("Deleted document:\n{:?}", res);
     // end-find_one_and_delete
 
     let filter = doc! { "name": "xxx" };
     let update = doc! { "$set": doc! { "check": true } };
     // begin-find-update-options
     let opts = FindOneAndUpdateOptions::builder().comment(bson!("hello")).build();
-    let _res = my_coll.find_one_and_update(filter, update, opts).await?;
+    let res = my_coll.find_one_and_update(filter, update, opts).await?;
     // end-find-update-options
 
     // begin-find_one_and_update
@@ -48,14 +48,14 @@ async fn main() -> mongodb::error::Result<()> {
         .build();
 
     let res = my_coll.find_one_and_update(filter, update, opts).await?;
-    println!("Updated document:\n{}", serde_json::to_string_pretty(&res).unwrap());
+    println!("Updated document:\n{:?}", res);
     // end-find_one_and_update
 
     let filter = doc! { "name": "xxx" };
     let replacement = doc! { "name": "yyy", "age": 10 };
     // begin-find-replace-options
     let opts = FindOneAndReplaceOptions::builder().comment(bson!("hello")).build();
-    let _res = my_coll.find_one_and_replace(filter, replacement, opts).await?;
+    let res = my_coll.find_one_and_replace(filter, replacement, opts).await?;
     // end-find-replace-options
 
     // begin-find_one_and_replace
@@ -70,7 +70,7 @@ async fn main() -> mongodb::error::Result<()> {
         .build();
 
     let res = my_coll.find_one_and_replace(filter, replacement, opts).await?;
-    println!("Document after replacement:\n{}", serde_json::to_string_pretty(&res).unwrap());
+    println!("Document after replacement:\n{:?}", res);
     // end-find_one_and_replace
 
     Ok(())
