@@ -2,6 +2,9 @@ Learn how to perform the following tasks using the {+driver-short+} in the
 Fundamentals section:
 
 - :ref:`Connect to MongoDB <rust-connection>`
+- :ref:`Specify the {+stable-api+} Version <rust-stable-api>`
+- :ref:`Authenticate to MongoDB <rust-authentication>`
+- :ref:`Connect By Using Enterprise Authentication Mechanisms <rust-enterprise-auth>`
 - :ref:`Read from and Write to MongoDB <rust-crud>`
 - :ref:`Implement Schema Validation <rust-schema-validation>`
 - :ref:`Perform Aggregations <rust-aggregation>`
@@ -11,7 +14,6 @@ Fundamentals section:
   - :atlas:`Connect to MongoDB Atlas from AWS Lambda </manage-connections-aws-lambda/>`
   - :ref:`Specify the Stable API Version <rust-stable-api>`
   - :ref:`Authenticate to MongoDB <rust-authentication-mechanisms>`
-  - :ref:`Connect with Enterprise Authentication Mechanisms <rust-enterprise-authentication-mechanisms>`
   - :ref:`Convert Data to and from BSON <rust-bson>`
   - :ref:`Construct Indexes <rust-indexes>`
   - :ref:`Specify Collations to Order Results <rust-collations>`
