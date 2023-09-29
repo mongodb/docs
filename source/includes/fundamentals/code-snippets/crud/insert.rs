@@ -18,12 +18,12 @@ async fn main() -> mongodb::error::Result<()> {
     let my_coll: Collection<Document> = client.database("db").collection("books");
     let doc = doc! { "title": "Atonement", "author": "Ian McEwan" };
 
-    let insert_one_result: InsertOneResult = my_coll.insert_one(doc, None).await?;
+    let insert_one_result = my_coll.insert_one(doc, None).await?;
     println!("Inserted document with _id: {}", insert_one_result.inserted_id);
     // end-insert-one
 
     // begin-one-options
-    let _opts: InsertOneOptions = InsertOneOptions::builder()
+    let _opts = InsertOneOptions::builder()
         .bypass_document_validation(true)
         .build();
     // end-one-options
@@ -36,7 +36,7 @@ async fn main() -> mongodb::error::Result<()> {
         doc! { "title": "Pride and Prejudice", "author": "Jane Austen" }
     ];
 
-    let insert_many_result: InsertManyResult = my_coll.insert_many(docs, None).await?;
+    let insert_many_result = my_coll.insert_many(docs, None).await?;
     println!("Inserted documents with _ids:");
     for (_key, value) in &insert_many_result.inserted_ids {
         println!("{}", value);
@@ -44,7 +44,7 @@ async fn main() -> mongodb::error::Result<()> {
     // end-insert-many
 
     // begin-many-options
-    let _opts: InsertManyOptions = InsertManyOptions::builder()
+    let _opts = InsertManyOptions::builder()
         .comment(bson!("hello world"))
         .build();
     // end-many-options
@@ -57,7 +57,7 @@ async fn main() -> mongodb::error::Result<()> {
         doc! { "_id": 3, "title": "Goodnight Moon" }
     ];
 
-    let opts: InsertManyOptions = InsertManyOptions::builder().ordered(false).build();
+    let opts = InsertManyOptions::builder().ordered(false).build();
     my_coll.insert_many(docs, opts).await?;
     // end-unordered
 
