@@ -32,20 +32,20 @@
 
      - Kill all sessions.
 
-     - Unsupported for :atlas:`M0, M2, M5 </unsupported-commands/#unsupported-commands>` 
+     - No support for :atlas:`M0, M2, M5 </unsupported-commands/#unsupported-commands>` 
        and :atlas:`M10 clusters </unsupported-commands/#unsupported-commands-1>`. 
 
    * - :dbcommand:`killAllSessionsByPattern`
 
      - Kill all sessions that match the specified pattern
      
-     - Unsupported for :atlas:`M0, M2, and M5 clusters </unsupported-commands/#unsupported-commands>`.
+     - No support for :atlas:`M0, M2, and M5 clusters </unsupported-commands/#unsupported-commands>`.
 
    * - :dbcommand:`killSessions`
 
      - Kill specified sessions.
 
-     - Unsupported for :atlas:`M0, M2, and M5 clusters </unsupported-commands/#unsupported-commands>`.
+     - No support for :atlas:`M0, M2, and M5 clusters </unsupported-commands/#unsupported-commands>`.
 
    * - :dbcommand:`refreshSessions`
 
