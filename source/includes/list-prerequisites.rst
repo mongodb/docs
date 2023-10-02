@@ -4,8 +4,8 @@
   `MongoDB white paper <https://www.mongodb.com/collateral/apache-spark-and-mongodb-turning-analytics-into-real-time-action>`__
   for more details.
 
-- Running MongoDB instance (version 4.0 or later).
+- MongoDB version 4.0 or later
 
-- Spark version 3.1 or later.
+- Spark version 3.1 through 3.2.4
 
-- Java 8 or later.
+- Java 8 or later
