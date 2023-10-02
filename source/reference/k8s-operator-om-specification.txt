@@ -152,6 +152,117 @@ Optional |onprem| Resource Settings
    and Monitoring separately in ``spec.applicationDatabase.agent`` and
    ``spec.applicationDatabase.monitoringAgent``.
 
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate
+
+   *Type*: object
+
+   MongoDB configuration object for rotating the MongoDB logs of a process. To use 
+   the ``agent.logRotate`` settings, you must set 
+   :opsmgrkube:`systemLog.destination <spec.applicationDatabase.agent.systemLog.destination>` 
+   to ``file`` because you can't use the ``agent.logRotate`` settings if you're writing 
+   logs to the host's :manual:`syslog </reference/glossary/#std-term-syslog>` system.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numTotal
+
+   *Type*: integer
+
+   *Default*: ``0``
+
+   Total number of log files that |mms| retains. If you don't change the default,
+   |mms| bases rotation on your other ``agent.logRotate`` settings.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.numUncompressed
+
+   *Type*: integer
+
+   *Default*: ``5``
+    
+   Maximum number of total log files to leave uncompressed,
+   including the current log file.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.percentOfDiskspace
+
+   *Type*: number
+
+   *Default*: ``0.02``
+     
+   Maximum percentage of total disk space that |mms| can use to
+   store the log files expressed as decimal. If this limit is
+   exceeded, |mms| deletes compressed log files until it meets this
+   limit. |mms| deletes the oldest log files first.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.sizeThresholdMB
+     
+   *Type*: number
+
+   *Required if rotating logs.*
+  
+   Maximum size in MB for an individual log file before |mms|
+   rotates it. |mms| rotates the log file immediately if it meets
+   the value given in either this ``sizeThresholdMB`` or the
+   :opsmgrkube:`logRotate.timeThresholdHrs <spec.applicationDatabase.agent.logRotate.timeThresholdHrs>` limit.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.logRotate.timeThresholdHrs
+    
+   *Type*: integer
+   
+   *Required if rotating logs*.
+   
+   Maximum duration in hours for an individual log file before the
+   next rotation. The time is since the last rotation. |mms| rotates the log file 
+   immediately if it meets the value given in either this ``timeThresholdHrs`` or the
+   :opsmgrkube:`logRotate.sizeThresholdM <spec.applicationDatabase.agent.logRotate.sizeThresholdM>` limit.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog
+
+   *Type*: object
+
+   MongoDB configuration object for configuring the ``systemLog`` options.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.path
+
+   *Type*: string
+
+   *Default:* ``/var/log/mongodb-mms-automation/mongodb.log``
+
+   The path of the log file to which |mongod| or |mongos| should send all diagnostic 
+   logging information, rather than the standard output or the host's 
+   :manual:`syslog </reference/glossary/#std-term-syslog>`. 
+   MongoDB creates the log file at the specified path.
+
+   The Linux package init scripts don't expect ``systemLog.path`` to change from the defaults. 
+   If you use the Linux packages and change ``systemLog.path``, you will have to use your own 
+   init scripts and disable the built-in scripts.
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.logAppend
+
+   *Type:* boolean
+
+   *Default:* ``false``
+
+   When ``true``, |mongos| or |mongod| appends new entries to the end of the existing 
+   log file when the |mongos| or |mongod| instance restarts. Without this option, |mongod| 
+   will back up the existing log and create a new file.  
+
+.. opsmgrkube:: spec.applicationDatabase.agent.systemLog.destination
+
+   *Type:* string
+
+   The destination to which MongoDB sends all log output. Specify either ``file`` or ``syslog``. 
+   If you specify ``file``, you must also specify 
+   :opsmgrkube:`systemLog.path <spec.applicationDatabase.agent.systemLog.path>`.
+
+   If you don't specify 
+   :opsmgrkube:`systemLog.path <spec.applicationDatabase.agent.systemLog.path>`, MongoDB 
+   sends all log output to standard output.
+
+   .. warning::
+
+      The syslog daemon generates timestamps when it logs a message, not when MongoDB 
+      issues the message. This behavior can lead to misleading timestamps for log entries, 
+      especially when the system is under heavy load. We recommend using the ``file``
+      option for production systems to ensure accurate timestamps.
+
 .. opsmgrkube:: spec.applicationDatabase.topology
 
    *Type*: string
