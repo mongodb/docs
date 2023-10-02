@@ -1,6 +1,7 @@
+use std::env;
 use bson::Document;
 use futures::TryStreamExt;
-use mongodb::{ bson::doc, Client, Collection, options::{ FindOptions } };
+use mongodb::{ bson::doc, Client, Collection };
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
@@ -22,9 +23,8 @@ async fn main() -> mongodb::error::Result<()> {
     //begin-literal
     let query = doc! { "name": "pear" };
     let mut cursor = my_coll.find(query, None).await?;
-    while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
     }
     //end-literal
     println!("");
@@ -32,32 +32,29 @@ async fn main() -> mongodb::error::Result<()> {
     // $gt means "greater than"
     let query = doc! { "quantity": doc! { "$gt": 5 } };
     let mut cursor = my_coll.find(query, None).await?;
-    while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
     }
     //end-comparison
     println!("");
     //begin-logical
     let query =
-        doc! { "$and": vec! [
+        doc! { "$and": [
            doc! { "quantity": doc! { "$gt": 10 } },
            doc! { "quantity": doc! { "$mod": [ 3, 0 ] } }
        ]
     };
     let mut cursor = my_coll.find(query, None).await?;
-    while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
     }
     //end-logical
     println!("");
     //begin-element
     let query = doc! { "description": doc! { "$exists": true } };
     let mut cursor = my_coll.find(query, None).await?;
-    while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
     }
     //end-element
     println!("");
@@ -65,27 +62,24 @@ async fn main() -> mongodb::error::Result<()> {
     // $mod means "modulo" and checks if the remainder is a specific value
     let query = doc! { "quantity": doc! { "$mod": [ 3, 0 ] } };
     let mut cursor = my_coll.find(query, None).await?;
-    while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
     }
     //end-evaluation
     println!("");
     //begin-bitwise
     let query = doc! { "quantity": doc! { "$bitsAllSet": 7 } };
     let mut cursor = my_coll.find(query, None).await?;
-    while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
     }
     //end-bitwise
     println!("");
     //begin-array
     let query = doc! { "vendors": doc! { "$elemMatch": { "$eq": "C" } } };
     let mut cursor = my_coll.find(query, None).await?;
-    while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
     }
     //end-array
 
