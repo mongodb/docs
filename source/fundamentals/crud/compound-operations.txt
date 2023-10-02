@@ -44,43 +44,94 @@ These methods accept an optional ``options`` object with
 configurable :ref:`sort <node-fundamentals-sort>` and
 :ref:`projection <node-fundamentals-project>` options.
 
-.. note:: includeResultMetadata Option
+You can also set the ``includeResultMetadata``
+option to specify the return type of each
+of these methods. To learn more about this option, see the
+:ref:`includeResultMetadata Option <node-compound-metadata-option>`
+section of this guide.
 
-   Starting in version 5.7, you can set the ``includeResultMetadata``
-   setting in the ``options`` object to specify the return type for each
-   of these methods.
+The ``findOneAndUpdate()`` and ``findOneAndDelete()`` methods take the
+``returnDocument`` setting, which specifies if the method returns the
+pre-update or post-update version of the modified document.
+
+.. _node-compound-metadata-option:
+
+includeResultMetadata Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``includeResultMetadata`` option determines the return type of the
+compound methods.
    
-   Starting in version 6.0, this setting defaults to ``false``, which
-   means that each method returns the matched document. If no
-   document is matched, each method returns ``null``. If you set
-   ``includeResultMetadata`` to ``true``, the method returns a
-   ``ModifyResult`` type that contains the found document and additional
-   metadata.
+This setting defaults to ``false``, which
+means that each method returns the matched document. If no
+document is matched, each method returns ``null``. If you set
+``includeResultMetadata`` to ``true``, the method returns a
+``ModifyResult`` type that contains the found document and additional
+metadata.
 
-   Suppose a collection contains only the following document:
+Suppose a collection contains only the following document:
 
-   .. code-block:: json
+.. code-block:: json
 
-      { _id: 1, x: "on" }
+   { _id: 1, x: "on" }
 
-   The following code shows how the value of the
-   ``includeResultMetadata`` option changes the return type of
-   the ``findOneAndDelete()`` method:
+The following table shows how the value of the
+``includeResultMetadata`` option changes the return type of
+the ``findOneAndDelete()`` method:
 
-   .. code-block:: js
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
 
-      // default behavior
-      // returns { _id: 1, x: 'on' }
-      await coll.findOneAndDelete({ x: "on" });
+   * - Option Value
+     - Syntax and Output
 
-      // returns { lastErrorObject: { n: 1 }, value: { _id: 1, x: 'on' }, ok: 1, ... }
-      await coll.findOneAndDelete({ x: "on" }, { includeResultMetadata: true });
+   * - Default: ``false``
 
-      // no document matched
-      // returns null
-      await coll.findOneAndDelete({ x: "off" });
+     - *Document matched*
 
-You can set the ``returnDocument`` setting in the ``options`` object for the
-``findOneAndUpdate()`` and ``findOneAndDelete()`` methods, which lets
-you specify if the method returns the pre-update or post-update version
-of the modified document.
+       .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: js
+
+             await coll.findOneAndDelete({ x: "on" });
+
+          .. output::
+             :language: js
+             :visible: false
+
+             { _id: 1, x: 'on' }
+
+       *No document matched*
+
+       .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: js
+
+             await coll.findOneAndDelete({ x: "off" });
+
+          .. output::
+             :language: js
+             :visible: false
+
+             null   
+
+   * - ``true``
+
+     - .. io-code-block::
+          :copyable: true
+
+          .. input::
+             :language: js
+
+             await coll.findOneAndDelete({ x: "on" }, { includeResultMetadata: true });
+
+          .. output::
+             :language: js
+             :visible: false
+
+             { lastErrorObject: { n: 1 }, value: { _id: 1, x: 'on' }, ok: 1, ... }
