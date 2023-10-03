@@ -83,7 +83,21 @@
                        'backup'
                      ]
                    }
-        
+
+- When you add a cluster under |mms|, |mms| automatically enables log
+  :manual:`rotation </tutorial/rotate-log-files/>`, which could collide
+  with your existing ``logRotate`` configuration for ``mongod`` or
+  ``mongos`` logs. To prevent this collision, do the following:  
+
+  - Disable your ``logRotate`` configuration for ``mongod`` or ``mongos``
+    processes. 
+  - Remove the ``systemLog.logRotate`` and ``systemLog.logAppend``
+    :manual:`options
+    </reference/configuration-options/#systemlog-options>` from the 
+    ``mongod`` or ``mongos`` process :manual:`configuration
+    </reference/configuration-options/#configuration-file>` to use the
+    default of |mms|. 
+
 - The import process requires that the authentication credentials and
   keyfiles are the same on the source and destination clusters. To learn
   more, see :ref:`Authentication Credentials on Source and Destination Clusters
