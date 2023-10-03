@@ -1,1 +1,1 @@
-The MongoDB Rust driver requires Rust 1.57 or later.
+The MongoDB Rust driver requires Rust 1.60 or later.
