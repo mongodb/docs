@@ -1,3 +1,24 @@
+.. _atlas_2023_08_23:
+
+23 August 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces the following billing improvements: 
+
+  - Lowers RPU billing for serverless instances with read-heavy
+    workloads. To learn more, see :ref:`serverless-instance-costs`.
+  - Supports viewing and analyzing |service| usage with a billing cost
+    explorer. To learn more, see :ref:`Billing Cost Explorer
+    <atlas-billing>`. 
+  - Supports viewing resource tags in |service| billing invoices through
+    the {+atlas-admin-api+} and billing invoice |csv| exports. To learn
+    more, see :ref:`resource-tags-on-invoices`.
+
+- Provides preview of using Terraform Provider v1.11.1 or higher to
+  manage your workforce's access to |service-fullname| with :abbr:`OIDC
+  (OpenID Connect)`. To learn more, see
+  :ref:`oidc-authentication-authorization`.
+
 .. _atlas_2023_08_02:
 
 2 August 2023 Release
