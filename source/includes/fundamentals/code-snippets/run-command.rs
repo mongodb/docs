@@ -2,9 +2,9 @@ use mongodb::{ bson::{ doc, Document }, Client, Database };
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
-    let uri: &str = "<connection string>";
+    let uri = "<connection string>";
 
-    let client: Client = Client::with_uri_str(uri).await?;
+    let client = Client::with_uri_str(uri).await?;
 
     // start-runcommand
     let my_db = client.database("plants");
