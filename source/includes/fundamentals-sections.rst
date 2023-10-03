@@ -6,15 +6,14 @@ Fundamentals section:
 - :ref:`Authenticate to MongoDB <rust-authentication>`
 - :ref:`Connect By Using Enterprise Authentication Mechanisms <rust-enterprise-auth>`
 - :ref:`Read from and Write to MongoDB <rust-crud>`
+- :ref:`Manage Databases and Collections <rust-db-coll>`
+- :ref:`Convert Data to and from BSON <rust-serialization>`
 - :ref:`Implement Schema Validation <rust-schema-validation>`
 - :ref:`Perform Aggregations <rust-aggregation>`
 - :ref:`Run A Database Command <rust-run-command>`
 
 ..
   - :atlas:`Connect to MongoDB Atlas from AWS Lambda </manage-connections-aws-lambda/>`
-  - :ref:`Specify the Stable API Version <rust-stable-api>`
-  - :ref:`Authenticate to MongoDB <rust-authentication-mechanisms>`
-  - :ref:`Convert Data to and from BSON <rust-bson>`
   - :ref:`Construct Indexes <rust-indexes>`
   - :ref:`Specify Collations to Order Results <rust-collations>`
   - :ref:`Record Log Messages <rust-logging>`
