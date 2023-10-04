@@ -10,5 +10,7 @@
      the MongoDB manual. MongoDB instances in |onprem| include:
 
      - The |onprem| Application Database,
-     - Each |onprem| Backup Daemon :term:`head database`, and
      - Each blockstore.
+     - Each |onprem| Backup Daemon :term:`head database`. This only
+       applies to FCV 4.0 and earlier. FCV 4.2 and later do not use
+       :term:`head databases <head database>` for backups.
