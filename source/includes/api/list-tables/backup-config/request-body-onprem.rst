@@ -25,6 +25,8 @@
        existing backups in a project, enabling encryption requires an
        :term:`initial sync` to recreate the backups’ head databases.
 
+       .. include:: /includes/head-database-deprecated-encrypt.rst
+
    * - excludedNamespaces
      - array of strings
      - Conditional
