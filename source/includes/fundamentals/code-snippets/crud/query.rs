@@ -8,7 +8,7 @@ async fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
     let client = Client::with_uri_str(uri).await?;
     let my_coll: Collection<Document> = client.database("db").collection("fruits");
-    // Sample documents
+
     let docs = vec![
         //begin-sample-docs
         doc! { "_id": 1, "name": "orange", "quantity": 7 },
