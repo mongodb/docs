@@ -41,6 +41,19 @@
    * - ``Metadata``
 
      - Represents metadata lock.
+  
+   * - ``DDLDatabase``
+
+     - Represents a :term:`DDL <DDL (Data Definition Language)>` database lock.
+
+       .. versionadded:: 7.1
+
+   * - ``DDLCollection``
+    
+     - Represents a :term:`DDL <DDL (Data Definition Language)>` collection 
+       lock.
+
+       .. versionadded:: 7.1 
 
    * - ``oplog``
      - Represents lock on the :term:`oplog`.

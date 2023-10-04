@@ -371,6 +371,8 @@
                              "Database" : <string>,
                              "Collection" : <string>,
                              "Metadata" : <string>,
+                             "DDLDatabase" : <string>,
+                             "DDLCollection" : <string>, 
                              "oplog" : <string>
                          },
                          "waitingForLock" : <boolean>,
