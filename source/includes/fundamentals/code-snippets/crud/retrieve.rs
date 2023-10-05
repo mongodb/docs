@@ -34,9 +34,9 @@ async fn main() -> mongodb::error::Result<()> {
     ).await?;
 
     while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
-    }
+        println!("{}", result);
+    };
+    
     // end-find-many
     print!("\n");
 
@@ -48,7 +48,7 @@ async fn main() -> mongodb::error::Result<()> {
         opts
     ).await?;
 
-    println!("{}", serde_json::to_string_pretty(&result).unwrap());
+    println!("{:#?}", result);
     // end-find-one
     print!("\n");
 
@@ -61,9 +61,8 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut cursor = my_coll.aggregate(pipeline, None).await?;
     while let Some(result) = cursor.try_next().await? {
-        let doc = bson::from_document(result)?;
-        println!("{}", serde_json::to_string_pretty(&doc).unwrap());
-    }
+        println!("{}", result);
+    };
     // end-agg
 
     Ok(())
