@@ -66,7 +66,9 @@ The ``Find()`` method expects you to pass a ``Context`` type and a
 query filter. The method returns *all* documents that match the filter
 as a ``Cursor`` type.
 
-To learn how to access data in a cursor, see :ref:`golang-cursor`.
+For an example that uses the ``Find()`` method, see the :ref:`golang-find-example`
+section of this page. To learn how to access data by using a cursor, see
+the :ref:`golang-cursor` guide.
 
 Find One Document
 ~~~~~~~~~~~~~~~~~
@@ -75,7 +77,13 @@ The ``FindOne()`` method expects you to pass a ``Context`` type and a
 query filter. The method returns *the first document* that matches the
 filter as a ``SingleResult`` type.
 
-To learn how to access data in a ``SingleResult`` see :ref:`golang-bson-unmarshalling`.
+For an example that uses the ``FindOne()`` method, see the
+:ref:`golang-find-one-example` section of this page. For an example that
+uses ``FindOne()`` and queries by using a specific ``ObjectId`` value, see
+the :ref:`golang-find-one-by-id` section of this page.
+
+To learn how to access data from a ``SingleResult`` type, see
+:ref:`golang-bson-unmarshalling` in the BSON guide.
 
 .. _golang-retrieve-options:
 
@@ -122,6 +130,8 @@ following methods:
      - | The field and type of sort to order the matched documents. You can specify an ascending or descending sort.
        | Default: none
 
+.. _golang-find-example:
+
 Find Example
 ````````````
 
@@ -131,43 +141,24 @@ the ``Find()`` method, which performs the following actions:
 - Matches documents where the ``rating`` value is between ``5`` and
   ``9`` (exclusive)
 - Sorts matched documents in ascending order by ``date_ordered``
-
+  
 .. io-code-block::
-   :copyable: true
+  :copyable: true
 
-   .. input::
+  .. input:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
+      :start-after: begin find docs
+      :end-before: end find docs
       :language: go
+      :dedent:
 
-      filter := bson.D{
-          {"$and",
-              bson.A{
-                  bson.D{{"rating", bson.D{{"$gt", 5}}}},
-                  bson.D{{"rating", bson.D{{"$lt", 9}}}},
-              }},
-      }
-      sort := bson.D{{"date_ordered", 1}}
-      opts := options.Find().SetSort(sort)
-      
-      cursor, err := coll.Find(context.TODO(), filter, opts)
-      if err != nil {
-          panic(err)
-      }
-      
-      var results []Review
-      if err = cursor.All(context.TODO(), &results); err != nil {
-          panic(err)
-      }
-      for _, result := range results {
-          res, _ := json.Marshal(result)
-          fmt.Println(string(res))
-      }
-
-   .. output::
+  .. output::
       :language: none
       :visible: false
 
       {"Item":"Sencha","Rating":7,"DateOrdered":"2009-11-18T05:00:00Z"}
       {"Item":"Masala","Rating":8,"DateOrdered":"2009-12-01T05:00:00Z"}
+
+.. _golang-find-one-example:
 
 Find One Example
 ````````````````
@@ -180,28 +171,69 @@ to the ``FindOne()`` method, which performs the following actions:
 - Skips the first two matched documents
 
 .. io-code-block::
-   :copyable: true
+  :copyable: true
 
-   .. input::
+  .. input:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
+      :start-after: begin find one docs
+      :end-before: end find one docs
       :language: go
+      :dedent:
 
-      filter := bson.D{{"date_ordered", bson.D{{"$lte", time.Date(2009, 11, 30, 0, 0, 0, 0, time.Local)}}}}
-      opts := options.FindOne().SetSkip(2)
-      
-      var result Review
-      err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
-      if err != nil {
-          panic(err)
-      }
-      
-      res, _ := json.Marshal(result)
-      fmt.Println(string(res))
-
-   .. output::
+  .. output::
       :language: none
       :visible: false
 
       {"Item":"Masala","Rating":9,"DateOrdered":"2009-11-12T05:00:00Z"}
+
+.. _golang-find-one-by-id:
+
+Find One by ObjectId Example
+````````````````````````````
+
+This example defines an ``id`` variable with a value of type ``ObjectId``
+and uses ``id`` to specify a query filter. The filter matches a document
+with an ``_id`` field value that corresponds to the ``id`` variable.
+This example queries for the following document based on its ``_id`` value:
+
+.. code-block:: json
+   :copyable: false
+   :emphasize-lines: 2
+
+    {
+        _id: ObjectId('65170b42b99efdd0b07d42de'),
+        item: "Hibiscus",
+        rating : 4,
+        date_ordered : 2009-12-18T05:00:00.000+00:00
+    }
+
+The following code passes the filter and a ``FindOneOptions`` instance
+as parameters to the ``FindOne()`` method to perform the following actions:
+
+- Match the document with the specified ``ObjectId`` value
+- Project only the ``Item`` and ``Rating`` fields of the matched document
+
+.. io-code-block::
+  :copyable: true
+
+  .. input:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
+      :start-after: begin objectid
+      :end-before: end objectid
+      :language: go
+      :dedent:
+
+  .. output::
+      :language: none
+      :visible: false
+
+      {"item":"Hibiscus","rating":4}
+
+.. note::
+
+   The {+driver-short+} automatically generates a unique ``ObjectId``
+   value for each document's ``_id`` field, so your ``ObjectId`` value
+   might differ from the preceding code example. For more information
+   about the ``_id`` field, see the :ref:`_id Field <golang-insert-id>`
+   section of the Insert a Document page.
 
 .. _golang-retrieve-aggregation:
 
@@ -290,33 +322,15 @@ performs the following actions:
 - Calculates the average rating for each item
 
 .. io-code-block::
-   :copyable: true
+  :copyable: true
 
-   .. input::
+  .. input:: /includes/fundamentals/code-snippets/CRUD/retrieve.go
+      :start-after: begin aggregate docs
+      :end-before: end aggregate docs
       :language: go
+      :dedent:
 
-      groupStage := bson.D{
-         {"$group", bson.D{
-            {"_id", "$item"},
-            {"average", bson.D{
-               {"$avg", "$rating"},
-            }},
-      }}}
-
-      cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{groupStage})
-      if err != nil {
-         panic(err)
-      }
-
-      var results []bson.M
-      if err = cursor.All(context.TODO(), &results); err != nil {
-         panic(err)
-      }
-      for _, result := range results {
-         fmt.Printf("%v had an average rating of %v \n", result["_id"], result["average"])
-      }
-
-   .. output::
+  .. output::
       :language: none
       :visible: false
 
