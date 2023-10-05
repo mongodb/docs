@@ -9,7 +9,8 @@ provision an exact |iops| value, enable provisioning.
 The minimum standard |iops| for ``M30+`` tier {+clusters+} is 3000.
 The standard |iops| value remains at 3000 unless you set the {+cluster+} storage size
 to 1TB or more. If the storage for your ``M30+`` {+cluster+} meets or exceeds 1TB,
-|service| increases the standard |iops| rate using an |iops| to storage ratio of 3:1.
+|service| increases the standard |iops| rate using an |iops| to a storage
+ratio of 3:1, up to ``16k`` |iops| for |aws| network storage volumes.
 
 Local |nvme| |ssd| class {+clusters+} must use standard |iops|.
 
