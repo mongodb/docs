@@ -17,39 +17,16 @@ Migrate Data into a Time Series Collection
 
 To migrate data from an existing collection into a :ref:`time series
 collection <manual-timeseries-collection>`, use an :pipeline:`$out`
-stage in your aggregation pipeline. If your documents do not have a
-suitable metadata field, use a :pipeline:`$addFields` stage before
-the :pipeline:`$out` stage to add one.
+stage in your aggregation pipeline.
 
 Migrate Data to a Time Series Collection
 ----------------------------------------
 
 .. procedure::
 
-   .. step:: Create a new time series collection
-     
-      Create a new :ref:`time series collection <manual-timeseries-collection>` 
-      by issuing the following command in the :binary:`~bin.mongosh`, changing the ``timeField``, ``metaField``, and ``granularity`` values as needed to match the data you're migrating:
-
-      .. code-block:: javascript
-
-         db.createCollection(
-           "weathernew", {
-             timeseries: {
-               timeField: "ts",
-               metaField: "metaData",
-               granularity: "hours"
-             }
-           }
-         )
-      
-      For detailed information on creating a new time series collection,
-      see :ref:`Create and Query a Time Series Collection
-      <timeseries-create-query-procedures>`.
-
-   .. step:: (Optional) Transform your data and specify a metadata field
+   .. step:: (Optional) Transform your data to create a metadata field if one doesn't exist. This field is not required.
     
-      If your original collection doesn't have a metadata field, use the :pipeline:`$addFields` aggregation stage to add it. For the example in this procedure, documents require a ``metaData`` field.
+      If the original collection doesn't have a metadata field, use the :pipeline:`$addFields` aggregation stage to add it.
 
       Consider a collection with weather data that uses the format:
 
@@ -89,9 +66,9 @@ Migrate Data to a Time Series Collection
             "estimatedWaterDepth" : 999 }
         }
 
-      The following pipeline stages add a ``metaData`` field as
-      specified in Step 1 and use :pipeline:`$project` to include or
-      exclude the remaining fields in the document:
+      The following pipeline stages add a ``metaData`` field and use
+      :pipeline:`$project` to include or exclude the remaining fields in
+      the document:
 
       .. code-block:: javascript
 
@@ -122,10 +99,9 @@ Migrate Data to a Time Series Collection
            }
          }
 
-   .. step:: Run the aggregation pipeline with :pipeline:`$out` as the 
-      final stage
+   .. step:: Use the timeseries option with the $out aggregation stage
     
-      The example below uses the :method:`db.collection.aggregate` helper method:
+      The example below uses the :method:`db.collection.aggregate` helper method. For the aggregation stage syntax, see :pipeline:`$out`. For a full explanation of the time series options, see the :ref:`Time Series Field Reference <time-series-fields>`.
 
       .. code-block:: javascript
 
@@ -157,7 +133,14 @@ Migrate Data to a Time Series Collection
                  precipitationEstimatedObservation: 1
               }
            }, {
-              $out: "weathernew"
+              $out: {
+                db: "mydatabase",
+                coll: "weathernew",
+                timeseries: {
+                  timeField: "ts",
+                  metaField: "metaData"
+                }
+              }
            }
          ])
 
@@ -170,6 +153,17 @@ collection below:
    {
       "_id" : ObjectId("5553a998e4b02cf7151190b8"),
       "ts" : ISODate("1984-03-05T13:00:00Z"),
+      "metaData" : {
+        "st" : "x+47600-047900",
+        "position" : {
+          "type" : "Point",
+          "coordinates" : [ -47.9, 47.6 ]
+        },
+        "elevation" : 9999,
+        "callLetters" : "VCSZ",
+        "qualityControlProcess" : "V020",
+        "type" : "FM-13"
+      },
       "dataSource" : "4",
       "airTemperature" : { "value" : -3.1, "quality" : "1" },
       "dewPoint" : { "value" : 999.9, "quality" : "9" },
@@ -188,18 +182,7 @@ collection below:
         "cavok" : "N"
       },
       "sections" : [ "AG1" ],
-      "precipitationEstimatedObservation" : { "discrepancy" : "2", "estimatedWaterDepth" : 999 },
-      "metaData" : {
-        "st" : "x+47600-047900",
-        "position" : {
-          "type" : "Point",
-          "coordinates" : [ -47.9, 47.6 ]
-        },
-        "elevation" : 9999,
-        "callLetters" : "VCSZ",
-        "qualityControlProcess" : "V020",
-        "type" : "FM-13"
-      }
+      "precipitationEstimatedObservation" : { "discrepancy" : "2", "estimatedWaterDepth" : 999 }
    }
 
 If your original collection had secondary indexes, manually recreate 
