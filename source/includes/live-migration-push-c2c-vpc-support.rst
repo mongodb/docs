@@ -41,13 +41,13 @@ Select the tab for replica sets or sharded {+clusters+}.
 
          * - |azure|
            - :icon-fa5:`minus`
-           - :icon-fa5:`minus`
+           - :icon-fa5:`check`
   
          * - |aws|
            - :icon-fa5:`minus`
-           - :icon-fa5:`minus`
+           - :icon-fa5:`check`
 
          * - |gcp|
            - :icon-fa5:`minus`
-           - :icon-fa5:`minus`
+           - :icon-fa5:`check`
 
