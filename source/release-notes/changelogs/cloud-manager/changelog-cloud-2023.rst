@@ -1,3 +1,12 @@
+.. _cloudmanager_20230913:
+
+13 September 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for |bic-full| 2.14.11.
+- Updates the {+mdbagent+} to :ref:`13.5.0.8451-1 <13.5.0.8451-1>`.
+- Improves error message when importing a replica set.
+
 .. _cloudmanager_20230823:
 
 23 August 2023 Release
