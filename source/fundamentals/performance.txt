@@ -1,0 +1,97 @@
+.. _rust-performance:
+
+==========================
+Performance Considerations
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to optimize performance of the {+driver-short+}.
+To connect to MongoDB, you must create a ``Client`` instance. Your ``Client``
+instance automatically handles most aspects of connection, such as discovering server topology, monitoring
+your connection, and maintaining an internal connection pool.
+This guide describes best practices to configure and use your ``Client`` instance.
+
+.. _rust-performance-client-lifecycle:
+
+Client Lifecycle
+----------------
+
+We recommend that you reuse your client across sessions and operations.
+You can use the same ``Client`` instance to perform multiple tasks, as the ``Client`` type is safe for concurrent use by multiple threads.
+Creating a new ``Client`` instance for each request results in slower performance.
+
+The following code creates a method that accepts a pointer to an existing ``Client`` instance,
+which allows you to execute many requests by using same client:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance.rs
+   :language: rust
+   :dedent:
+   :start-after: start-perf-client-faster
+   :end-before: end-perf-client-faster
+
+.. _rust-performance-parallelism:
+
+Parallelism
+-----------
+
+If you can run parallel data operations, you can optimize performance by running asynchronous, concurrent tasks.
+The following code uses the ``task`` module from the ``tokio`` crate to create separate, concurrent
+tasks for multiple data operations:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-parallel.rs
+   :language: rust
+   :dedent:
+
+.. _rust-performance-runtime:
+
+Runtime
+-------
+
+A ``Client`` instance is bound to the instance of the ``tokio`` or ``async-std`` runtime in which you created it.
+If you use a ``Client`` instance to perform operations on a different runtime, you might experience unexpected behavior or failures.
+
+If you are using the ``test`` helper macro from the ``tokio`` or ``async_std`` crate to test your application,
+you might accidentally run operations on a different runtime than you intended.
+This is because these helper macros create a new runtime for each test.
+You can use one of the following strategies to avoid this issue:
+
+- Attach the runtime to the ``Client`` instance without using the ``test`` helper macros.
+- Create a new ``Client`` instance for every ``async`` test.
+
+This example follows the first strategy and creates a global runtime used only for testing.
+In the following code, the ``test_list_dbs()`` method uses a client that manually connects to this runtime
+to list databases in the deployment.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-bundle-runtime.rs
+   :language: rust
+   :dedent:
+
+Implementing the second strategy,
+the following code creates a new ``Client`` instance for each test run with ``tokio::test``, 
+ensuring that there is no unintended interaction between runtimes:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-new-client.rs
+   :language: rust
+   :dedent:
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following pages:
+
+- :ref:`Connection Guide <rust-connect-to-mongodb-client>`
+
+API Documentation
+-----------------
+
+- `Client() <{+api+}/struct.Client.html>`__
+
+.. TODO link to Async page when done
