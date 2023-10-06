@@ -19,6 +19,11 @@ Overview
 
 .. include:: /includes/clustered-collections-introduction.rst
 
+.. important:: Backward-Incompatible Feature
+
+   You must drop clustered collections before you can downgrade to
+   a version of MongoDB earlier than 5.3.
+
 Benefits
 --------
 
@@ -81,10 +86,18 @@ from secondary indexes:
   collection size returned by the :dbcommand:`collStats` command
   includes the clustered index size.
 
-.. important:: Backward-Incompatible Feature
+Starting in MongoDB 6.2, if a usable clustered index exists, the MongoDB
+query planner evaluates the clustered index against secondary indexes in
+the query planning process. When a query uses a clustered index, MongoDB
+performs a :term:`bounded collection scan`.
 
-   You must drop clustered collections before you can downgrade to
-   a version of MongoDB earlier than 5.3.
+Prior to MongoDB 6.2, if a :term:`secondary index <secondary index>`
+existed on a clustered collection and the secondary index was usable by
+your query, the query planner selected the secondary index instead of the
+clustered index by default. In MongoDB 6.1 and prior, to use the
+clustered index, you must provide a hint because the :doc:`query
+optimizer </core/query-plans>` does not automatically select the
+clustered index. 
 
 Limitations
 -----------
@@ -101,22 +114,6 @@ Clustered collection limitations:
 
   - Export collection data with :binary:`~bin.mongodump` and import the
     data into another collection with :binary:`~bin.mongorestore`.
-
-- By default, if a :term:`secondary index <secondary index>` exists on
-  a clustered collection and the secondary index is usable by your
-  query, the secondary index is selected instead of the clustered
-  index.
-    
-  - You must provide a hint to use the clustered index because it
-    is not automatically selected by the :doc:`query optimizer
-    </core/query-plans>`.
-
-  - The :ref:`clustered index <db.createCollection.clusteredIndex>` is
-    not automatically used by the query optimizer if a usable secondary
-    index exists.
-
-  - When a query uses a clustered index, it will perform a
-    :term:`bounded collection scan`.
 
 - The clustered index key must be on the ``_id`` field.
 
