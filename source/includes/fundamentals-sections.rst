@@ -12,6 +12,7 @@ Fundamentals section:
 - :ref:`Perform Aggregations <rust-aggregation>`
 - :ref:`Record Driver Events <rust-tracing-logging>`
 - :ref:`Run A Database Command <rust-run-command>`
+- :ref:`Optimize Driver Performance <rust-performance>`
 
 ..
   - :atlas:`Connect to MongoDB Atlas from AWS Lambda </manage-connections-aws-lambda/>`
