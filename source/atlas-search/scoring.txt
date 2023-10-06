@@ -28,36 +28,110 @@ Many factors can influence a document's score, including:
 The score assigned to a returned document is part of the document's
 metadata. You can include each returned document's score along with the
 result set by using a :pipeline:`$project` stage in your aggregation
-pipeline. In the :pipeline:`$project` stage, the ``score`` field takes
-the :manual:`$meta </reference/operator/aggregation/meta/>` expression,
-which requires the ``searchScore`` value. You can also specify the
-``searchScoreDetails`` value for the ``scoreDetails`` field
-:manual:`$meta </reference/operator/aggregation/meta/>` expression for a
-detailed breakdown of the score.
+pipeline. 
 
-The following example query uses a :pipeline:`$project` stage to add a
-field named ``score`` to the returned documents:
+After the :pipeline:`$search` stage, in the :pipeline:`$project` stage,
+the ``score`` field takes the :manual:`$meta
+</reference/operator/aggregation/meta/>` expression, which requires the
+``searchScore`` value. You can also specify the ``searchScoreDetails``
+value for the ``scoreDetails`` field :manual:`$meta
+</reference/operator/aggregation/meta/>` expression for a detailed
+breakdown of the score. 
 
-.. code-block:: javascript
-   :linenos:
+After the :pipeline:`$vectorSearch` stage, in the :pipeline:`$project`
+stage, the ``score`` field takes the :manual:`$meta
+</reference/operator/aggregation/meta/>` expression, which requires the 
+``vectorSearchScore`` value to return the score of each document in your
+vector search results. 
 
-   db.movies.aggregate([
-     {
-       $search: {
-         "text": {
-           "query": "Helsinki",
-           "path": "plot"
-         }
-       }
-     },
-     {
-       $project: {
-         plot: 1,
-         title: 1,
-         score: { $meta: "searchScore" }
-       }
-     }
-   ])
+.. example::
+
+   The following query uses a :pipeline:`$project` stage to add a
+   field named ``score`` to the returned documents:
+
+   .. tabs:: 
+   
+      .. tab:: Search Score 
+         :tabid: searchscore
+
+         .. code-block:: javascript
+            :copyable: false
+            :linenos:
+            :emphasize-lines: 13
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    <operator-specification>
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "<field-to-include>": 1,
+                  "<field-to-exclude>": 0,
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+
+         To learn more, see :ref:`modify <scoring-behavior>` and
+         :ref:`normalize <fts-normalize-score>` the search score.
+
+      .. tab:: Search Score Details
+         :tabid: scoredetails
+      
+         .. code-block:: javascript
+            :copyable: false
+            :linenos:
+            :emphasize-lines: 7, 14
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "text": {
+                    <operator-specification>
+                  },
+                  "scoreDetails": true 
+                }
+              },
+              {
+                "$project": {
+                  "<field-to-include>": 1,
+                  "<field-to-exclude>": 0,
+                  "scoreDetails": { "$meta": "searchScoreDetails" }
+                }
+              }
+            ])
+
+         To learn more, see :ref:`return <fts-score-details>` the search
+         score details.
+
+      .. tab:: Vector Search Score
+         :tabid: vectorsearchscore
+
+         .. code-block:: javascript
+            :copyable: false
+            :linenos:
+            :emphasize-lines: 11
+
+            db.movies.aggregate([
+              {
+                "$vectorSearch": {
+                  <query-syntax>
+                }
+              },
+              {
+                "$project": {
+                  "<field-to-include>": 1,
+                  "<field-to-exclude>": 0,
+                  "score": { "$meta": "vectorSearchScore" }
+                }
+              }
+            ])
+
+         To learn more, see :ref:`vectorSearch-agg-pipeline-score`.
 
 After a :pipeline:`$project` stage, you don't need to include a
 descending :pipeline:`$sort` because |fts| returns the documents from
