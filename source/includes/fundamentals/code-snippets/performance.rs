@@ -1,15 +1,6 @@
+// ... Create a client earlier in your code
 
-// start-perf-client-slow
-async fn handle_request() -> Result<(), Box<dyn Error>> {
-    let client = Client::with_uri_str("<connection string>").await?;
-    // Do something with the client
+async fn make_request(client: &Client) -> Result<(), Box<dyn Error>> {
+    // Use the client to perform operations
     Ok(())
 }
-// end-perf-client-slow
-
-// start-perf-client-faster
-async fn handle_request(client: &Client) -> Result<(), Box<dyn Error>> {
-    // Do something with the client
-    Ok(())
-}
-// end-perf-client-faster
