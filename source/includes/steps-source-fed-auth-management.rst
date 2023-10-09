@@ -13,6 +13,6 @@
       .. step:: Click :guilabel:`Settings` in the left navigation 
          pane.
 
-      .. step:: In :guilabel:`Setup Federation Settings`, click
-         :guilabel:`Visit Federation Management App`.
+      .. step:: In :guilabel:`Federated Authentication Settings`, click
+         :guilabel:`Open Federation Management App`.
    
