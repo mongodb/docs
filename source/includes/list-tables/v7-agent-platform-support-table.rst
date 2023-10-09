@@ -39,6 +39,15 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
+      - Amazon Linux 2023
+      - :icon:`check-circle`
+      - 
+      - 
+      - 
+      - 
+      - 
+      - 
+    * -
       - SUSE12
       - :icon:`check-circle`
       - :icon:`check-circle`
