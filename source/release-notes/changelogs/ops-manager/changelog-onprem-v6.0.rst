@@ -1,3 +1,14 @@
+.. _opsmgr-server-6.0.19:
+
+|onprem| Server 6.0.19:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-10-05*
+
+- Updates the {+mdbagent+} to :ref:`12.0.27.7746 <mongodb-12.0.27.7746>`.
+- Releases {+mongosh+} 2.0.0 to |onprem|. To learn more, see {+mongosh+}
+  :mdb-shell:`Release Notes </changelog/#v2.0.0>`.
+
 .. _opsmgr-server-6.0.18:
 
 |onprem| Server 6.0.18:
