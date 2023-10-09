@@ -45,6 +45,8 @@ Syntax
 
 The :pipeline:`$lookup` stage has the following syntaxes:
 
+.. _lookup-single-equality:
+
 Equality Match with a Single Join Condition
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -132,7 +134,7 @@ The operation would correspond to the following pseudo-SQL statement:
 
 See these examples:
 
-- :ref:`lookup-single-equality`
+- :ref:`lookup-single-equality-example`
 - :ref:`unwind-example`
 - :ref:`lookup-mergeObjects`
 
@@ -509,10 +511,93 @@ in the ``from`` parameter of :pipeline:`$lookup` stages.
 
 For more information, see :ref:`agg-lookup-optimization-sbe`.
 
+.. _lookup-performance-considerations:
+
+Performance Considerations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$lookup`` performance depends on the type of operation performed.
+Refer to the following table for performance considerations for
+different ``$lookup`` operations. 
+
+.. list-table::
+   :header-rows: 1 
+   :widths: 20 80
+
+   * - ``$lookup`` Operation
+     - Performance Considerations
+
+   * - :ref:`Equality Match with a Single Join
+       <lookup-single-equality-example>`
+
+     - .. _equality-match-performance:
+
+       - ``$lookup`` operations that perform equality matches with a
+         single join typically perform better when the source collection
+         contains an index on the ``foreignField``.
+
+   * - :ref:`Uncorrelated Subqueries<lookup-uncorrelated-subquery>`
+
+     - .. _uncorrelated-subqueries-performance: 
+
+       - ``$lookup`` operations that contain uncorrelated subqueries
+         typically perform better when the inner pipeline can reference
+         an index on the ``foreignField``. 
+
+       - MongoDB only needs to run the ``$lookup`` subquery once before
+         caching the query because there is no relationship between the
+         source and foreign collections. The ``$lookup`` subquery is not
+         based on any value in the source collection. This behavior
+         improves performance for subsequent executions of this query.
+
+
+   * - :ref:`Correlated Subqueries <lookup-concise-correlated-subquery>`
+
+     - .. _correlated-subqueries-performance: 
+
+       - ``$lookup`` operations that contain correlated subqueries
+         typically perform better when the following conditions apply:
+
+         - The source collection contains an index on the
+           ``localField``.
+         
+         - The foreign collection contains an index on the
+           ``foreignField``.
+
+         - The foreign collection contains an index that references the
+           inner pipline. 
+ 
+       - If your pipeline passes a large number of documents to the
+         ``$lookup`` query, the following strategies may improve
+         performance:
+
+         - Reduce the number of documents that MongoDB passes to the 
+           ``$lookup`` query. For example, set a stricter filter
+           during the ``$match`` stage. 
+
+         - Run the inner pipeline of the ``$lookup`` subquery as a
+           separate query and use ``$out`` to create a temporary
+           collection. Then, run an :ref:`equality match with a single
+           join <lookup-single-equality>`. 
+
+         - Reconsider the data's schema to ensure it is optimal for the
+           use case. 
+
+For general performance strategies, see :ref:`Indexing Strategies
+<manual-indexing-strategies>` and :ref:`Query Optimization
+<read-operations-indexing>`. 
+
+.. important::
+
+   Excessive use of ``$lookup`` within a query may slow down
+   performance. To avoid multiple ``$lookup`` stages, consider an
+   :ref:`embedded data model <embedded-data-modeling>` to optimize query
+   performance. 
+
 Examples
 --------
 
-.. _lookup-single-equality:
+.. _lookup-single-equality-example:
 
 Perform a Single Equality Join with ``$lookup``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -601,6 +686,9 @@ The operation corresponds to this pseudo-SQL statement:
       FROM inventory
       WHERE sku = orders.item
    );
+
+For more information, see
+:ref:`Equality Match Performance Considerations<equality-match-performance>`. 
 
 .. _unwind-example:
 
@@ -975,6 +1063,9 @@ The operation corresponds to this pseudo-SQL statement:
       WHERE year = 2018
    );
 
+For more information, see
+:ref:`Uncorrelated Subquery Performance Considerations <uncorrelated-subqueries-performance>`.
+
 .. _lookup-concise-correlated-subquery:
 
 Perform a Concise Correlated Subquery with ``$lookup``
@@ -1139,3 +1230,6 @@ The previous examples correspond to this pseudo-SQL statement:
       WHERE restaurants.name = orders.restaurant_name
       AND restaurants.beverages = orders.drink
    );
+
+For more information, see
+:ref:`Correlated Subquery Performance Considerations <correlated-subqueries-performance>`.
