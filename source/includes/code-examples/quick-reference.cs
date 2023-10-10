@@ -4,7 +4,7 @@ using MongoDB.Driver;
 using MongoDB.EntityFrameworkCore.Extensions;
 
 // start-create-instance
-// Replace the placeholder with you connection URI
+// Replace the placeholder with your connection URI
 var client = new MongoClient("<Your connection URI>");
 var db = PlanetDbContext.Create(client.GetDatabase("sample_planets"));
 // end-create-instance
