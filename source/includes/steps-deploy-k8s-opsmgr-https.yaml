@@ -33,37 +33,27 @@ content: |
           --key=<appdb-tls-key>
 
 ---
-title: "If necessary, validate your TLS certificates."
+title: "Add additional certificates to custom :abbr:`CA (Certificate
+       Authority)` certificates." 
 stepnum: 3
 ref: validate-tls-cert
 content: |
 
-  If your |onprem| |tls| certificate or your application database 
-  |tls| certificate is signed by a custom |certauth|, you must provide a
-  :abbr:`CA (Certificate Authority)` certificate to validate the |tls|
-  certificate(s). To validate the |tls| certificate(s), create a
-  |k8s-configmap| to hold the |certauth| certificate:
-
-  .. warning::
-
-     You must concatenate your custom |certauth| file and the entire
-     |tls| certificate chain from ``downloads.mongodb.com`` to prevent
-     |onprem| from becoming inoperable if the application database
-     restarts.
+  If your |onprem| |tls| certificate is signed by a custom |certauth|, 
+  the :abbr:`CA (Certificate Authority)` certificate must also contain
+  additional certificates that allow |onprem| Backup Daemon to download
+  MongoDB binaries from the internet. To create the |tls|
+  certificate(s), create a |k8s-configmap| to hold the |certauth|
+  certificate: 
 
   .. important::
 
-     The |k8s-op-short| requires that:
-     
-     - Your |onprem| certificate is named ``mms-ca.crt`` in the
-       ConfigMap.
-     - Your application database certficate is named ``ca-pem`` in
-       the ConfigMap.
+     The |k8s-op-short| requires that your |onprem| certificate is named
+     ``mms-ca.crt`` in the ConfigMap. 
 
-  a. Obtain the entire |tls| certificate chain for both |onprem| and
-     the application database from
+  a. Obtain the entire |tls| certificate chain for |onprem| from
      ``downloads.mongodb.com``. The following ``openssl`` command
-     outputs each certificate in the chain to your current working
+     outputs the certificate in the chain to your current working
      directory, in ``.crt`` format:
 
      .. code-block:: sh
@@ -81,26 +71,11 @@ content: |
 
         cat cert1.crt cert2.crt cert3.crt cert4.crt  >> mms-ca.crt
 
-  #. Concatenate your |certauth|\'s certificate file for the application
-     database with the entire |tls| certificate chain from 
-     ``downloads.mongodb.com`` that
-     you obtained in the previous step:
-
-     .. code-block:: sh
-
-        cat cert1.crt cert2.crt cert3.crt cert4.crt  >> ca-pem
-
   #. Create the |k8s-configmap| for |onprem|:
 
      .. code-block:: sh
 
         kubectl create configmap om-http-cert-ca --from-file="mms-ca.crt"
-
-  #. Create the |k8s-configmap| for the application database:
-
-     .. code-block:: sh
-
-        kubectl create configmap ca --from-file="ca-pem"
 
 ---
 title: "Copy one of the following |onprem| |k8s| |k8s-obj| examples."
