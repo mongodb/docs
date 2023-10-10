@@ -19,7 +19,137 @@ Learn what's new in:
 Upcoming Breaking Changes
 -------------------------
 
-- Beginning with v5.0, the Kotlin Driver will require Java 11 or later.
+- Beginning with v5.0, the {+driver-short+} requires Java 11 or later.
+
+.. _version-4.11:
+
+What's New in 4.11
+------------------
+
+This section includes the following information:
+
+- :ref:`kotlin-deprecations-4.11`
+- :ref:`kotlin-new-features-4.11`
+
+.. _kotlin-deprecations-4.11:
+
+Deprecations in 4.11
+~~~~~~~~~~~~~~~~~~~~
+
+.. warning:: Deprecations in this release
+
+   To avoid breaking changes in future major releases of the driver,
+   replace any application code that depends on deprecated methods and types.
+
+The 4.11 driver release deprecates the following items:
+
+- The following network address-related methods are deprecated and will be removed
+  in v5.0:
+
+  - The `ServerAddress <{+api+}/apidocs/mongodb-driver-core/com/mongodb/ServerAddress.html>`__
+    methods ``getSocketAddress()`` and ``getSocketAddresses()``.
+
+    Instead of ``getSocketAddress()``, use the ``getByName()`` instance
+    method of ``java.net.InetAddress``.
+
+    Instead of ``getSocketAddresses()``, use the ``getAllByName()`` instance
+    method of ``java.net.InetAddress``.
+
+  - The `UnixServerAddress <{+api+}/apidocs/mongodb-driver-core/com/mongodb/UnixServerAddress.html>`__
+    method ``getUnixSocketAddress()``.
+
+    Instead of ``getUnixSocketAddress()``, construct an instance of
+    ``jnr.unixsocket.UnixSocketAddress``. Pass the full path of the UNIX
+    socket file to the constructor. By default, MongoDB creates a UNIX
+    socket file located at ``"/tmp/mongodb-27017.sock"``. To learn more
+    about the ``UnixSocketAddress``, see the `UnixSocketAddress <https://www.javadoc.io/doc/com.github.jnr/jnr-unixsocket/latest/jnr/unixsocket/UnixSocketAddress.html>`__ API documentation.
+
+- The following methods and types related to the
+  `StreamFactory <https://mongodb.github.io/mongo-java-driver/4.10/apidocs/mongodb-driver-core/com/mongodb/connection/StreamFactory.html>`__
+  interface are deprecated and scheduled for removal in v5.0:
+
+  - ``streamFactoryFactory()`` method from ``MongoClientSettings.Builder``
+  - ``getStreamFactoryFactory()`` method from ``MongoClientSettings``
+  - ``NettyStreamFactoryFactory`` class
+  - ``NettyStreamFactory`` class
+  - ``AsynchronousSocketChannelStreamFactory`` class
+  - ``AsynchronousSocketChannelStreamFactoryFactory`` class
+  - ``BufferProvider`` class
+  - ``SocketStreamFactory`` class
+  - ``Stream`` class
+  - ``StreamFactory`` class
+  - ``StreamFactoryFactory`` class
+  - ``TlsChannelStreamFactoryFactory`` class
+
+  If you configure Netty by using
+  ``MongoClientSettings.Builder.streamFactoryFactory()``, your code might resemble
+  the following:
+
+  .. code-block:: java
+     :emphasize-lines: 6
+     :copyable: false
+
+     import com.mongodb.connection.netty.NettyStreamFactoryFactory;
+
+     // ...
+
+     MongoClientSettings settings = MongoClientSettings.builder()
+             .streamFactoryFactory(NettyStreamFactoryFactory.builder().build())
+             .build();
+
+  Replace this code with the `TransportSettings.nettyBuilder() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/connection/TransportSettings.html>`__
+  as shown in the following example:
+
+  .. code-block:: java
+     :emphasize-lines: 6
+
+     import com.mongodb.connection.TransportSettings;
+
+     // ...
+
+     MongoClientSettings settings = MongoClientSettings.builder()
+             .transportSettings(TransportSettings.nettyBuilder().build())
+             .build();
+
+
+.. _kotlin-new-features-4.11:
+
+New Features in 4.11
+~~~~~~~~~~~~~~~~~~~~
+
+New features of the 4.11 driver release include:
+
+- Support for connecting to MongoDB by using a SOCKS5 proxy.
+- Added the ``getSplitEvent()`` method to the ``ChangeStreamDocument`` class
+  to identify fragments of a change stream event that exceeds 16MB. You must
+  use the aggregation stage ``$changeStreamSplitLargeEvent`` in your change
+  stream to handle events that exceed 16MB.
+- Added an aggregation stage builder for ``$vectorSearch``.
+- Added Atlas Search index management helpers.
+- Updated Snappy and Zstd compression library dependency versions. To learn
+  more about the current dependency versions, see :ref:`network-compression`.
+- Added ``getElapsedTime()`` methods to the following classes to monitor the
+  duration of connection pool events:
+
+  - `ConnectionCheckOutFailedEvent <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ConnectionCheckOutFailedEvent.html>`__
+  - `ConnectionCheckedOutEvent <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ConnectionCheckedOutEvent.html>`__
+  - `ConnectionReadyEvent <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ConnectionReadyEvent.html>`__
+
+- Support for Java 21 virtual threads and structured concurrency. The driver
+  internals were updated to avoid unnecessary pinning of virtual threads
+  and to preserve interrupted status of a thread, as the latter matters for
+  structured concurrency where it is used for cancellation.
+
+  To learn more about virtual threads, see the `Virtual Threads <https://openjdk.org/jeps/444>`__
+  JDK enhancement proposal. To learn more about structured concurrency, see the
+  `Structured Concurrency <https://openjdk.org/jeps/453>`__
+  JDK enhancement proposal.
+
+- Updated API documentation for the following types:
+
+  - `ClusterListener <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ClusterListener.html>`__
+  - `ServerListener <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ServerListener.html>`__
+  - `ServerMonitorListener <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ServerMonitorListener.html>`__
 
 .. _version-4.10:
 
@@ -29,7 +159,7 @@ What's New in 4.10
 .. important::
 
    Starting in version 4.10.1 of the {+driver-short+}, you must add
-   the ``bson-kotlinx`` library as an explicit dependency to use the 
+   the ``bson-kotlinx`` library as an explicit dependency to use the
    ``kotlinx-serialization`` library.
 
 - Support for Kotlin server-side usage, both for coroutines and for synchronous applications.
