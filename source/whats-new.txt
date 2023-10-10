@@ -34,67 +34,165 @@ Upcoming Breaking Changes
 
 .. Relocate these items into the source/upgrade.txt page once they become breaking changes
 
-The following changes affect future versions of the driver:
+In addition to the deprecations mentioned in specific driver versions on this
+page, anticipated breaking changes include the following:
 
-- The ``getStats()`` and ``isCapped()`` instance methods of the
-  ``DBCollection`` class are deprecated in v4.11. The corresponding server
-  commands are deprecated in MongoDB v6.2 and later. Use the ``$collStats`` aggregation
-  pipeline stage to retrieve the information provided by these methods
-  instead. You can run the aggregation as shown in the following code example:
-
-  .. code-block:: java
-
-     collection.aggregate(Arrays.asList(
-                      new Document("$collStats",
-                          new Document("storageStats", new Document()))));
-
-  To determine whether the collection is a capped collection, access the value
-  of the ``storageStats.capped`` field returned by this example aggregation.
-
-  To learn more about the ``$collStats`` aggregation operator, see the
-  :manual:`$collStats (aggregation) </reference/operator/aggregation/collStats/>`
-  Server manual entry.
-
-- `MapReduceIterable <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MapReduceIterable.html>`__
-  and map-reduce methods on `MongoCollection <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html#mapReduce(com.mongodb.client.ClientSession,java.lang.String,java.lang.String)>`__
-  are deprecated in MongoDB v4.2 and later. They will be replaced by the
-  aggregation framework and removed in a future release.
-- Beginning with v5.0, the {+driver-short+} will require Java 11 or later.
+- Beginning with v5.0, the {+driver-short+} requires Java 11 or later.
 
 .. _version-4.11:
 
 What's New in 4.11
 ------------------
 
-.. note:: Upgraded Netty Version
+This section includes the following information:
 
-   The {+driver-short+} now tests with version 4.1.87.Final of the
-   ``io.netty:netty-all`` package. This change affects you only if you use the
-   ``SslContext`` class that Netty provides.
+- :ref:`java-deprecations-4.11`
+- :ref:`java-new-features-4.11`
 
-.. New features of the 4.11 driver release include:
+.. _java-deprecations-4.11:
+
+Deprecations in 4.11
+~~~~~~~~~~~~~~~~~~~~
+
+.. warning:: Deprecations in this release
+
+   To avoid breaking changes in future major releases of the driver,
+   replace any application code that depends on deprecated methods and types.
+
+The 4.11 driver release deprecates the following items:
+
+- The ``getStats()`` and ``isCapped()`` instance methods of the
+  ``DBCollection`` class are deprecated. The corresponding server
+  commands are deprecated in MongoDB v6.2 and later. Use the ``$collStats``
+  aggregation pipeline stage to retrieve the information provided by these
+  methods instead. You can run the aggregation as shown in the following code
+  example:
+
+  .. code-block:: java
+
+     Cursor cursor = collection.aggregate(Arrays.asList(
+             new BasicDBObject("$collStats",
+                     new BasicDBObject("storageStats", new BasicDBObject()))),
+             AggregationOptions.builder().build()
+     );
+
+  To determine whether a collection is a capped collection, access the value
+  of the ``storageStats.capped`` field returned by ``Cursor`` instance in the
+  preceding example aggregation.
+
+  To learn more about the ``$collStats`` aggregation operator, see the
+  :manual:`$collStats (aggregation) </reference/operator/aggregation/collStats/>`
+  Server manual entry.
 
 - The following network address-related methods are deprecated and will be removed
   in v5.0:
 
   - The `ServerAddress <{+api+}/apidocs/mongodb-driver-core/com/mongodb/ServerAddress.html>`__
     methods ``getSocketAddress()`` and ``getSocketAddresses()``.
-    
+
     Instead of ``getSocketAddress()``, use the ``getByName()`` instance
     method of ``java.net.InetAddress``.
-    
+
     Instead of ``getSocketAddresses()``, use the ``getAllByName()`` instance
     method of ``java.net.InetAddress``.
 
   - The `UnixServerAddress <{+api+}/apidocs/mongodb-driver-core/com/mongodb/UnixServerAddress.html>`__
     method ``getUnixSocketAddress()``.
-    
+
     Instead of ``getUnixSocketAddress()``, construct an instance of
     ``jnr.unixsocket.UnixSocketAddress``. Pass the full path of the UNIX
     socket file to the constructor. By default, MongoDB creates a UNIX
     socket file located at ``"/tmp/mongodb-27017.sock"``. To learn more
-    about the ``UnixSocketAddress``, see the `UnixSocketAddress API documentation
-    <https://www.javadoc.io/doc/com.github.jnr/jnr-unixsocket/latest/jnr/unixsocket/UnixSocketAddress.html>`__.
+    about the ``UnixSocketAddress``, see the `UnixSocketAddress <https://www.javadoc.io/doc/com.github.jnr/jnr-unixsocket/latest/jnr/unixsocket/UnixSocketAddress.html>`__ API documentation.
+
+- The following methods and types related to the
+  `StreamFactory <https://mongodb.github.io/mongo-java-driver/4.10/apidocs/mongodb-driver-core/com/mongodb/connection/StreamFactory.html>`__
+  interface are deprecated and scheduled for removal in v5.0:
+
+  - ``streamFactoryFactory()`` method from ``MongoClientSettings.Builder``
+  - ``getStreamFactoryFactory()`` method from ``MongoClientSettings``
+  - ``NettyStreamFactoryFactory`` class
+  - ``NettyStreamFactory`` class
+  - ``AsynchronousSocketChannelStreamFactory`` class
+  - ``AsynchronousSocketChannelStreamFactoryFactory`` class
+  - ``BufferProvider`` class
+  - ``SocketStreamFactory`` class
+  - ``Stream`` class
+  - ``StreamFactory`` class
+  - ``StreamFactoryFactory`` class
+  - ``TlsChannelStreamFactoryFactory`` class
+
+  If you configure Netty by using
+  ``MongoClientSettings.Builder.streamFactoryFactory()``, your code might resemble
+  the following:
+
+  .. code-block:: java
+     :emphasize-lines: 6
+     :copyable: false
+
+     import com.mongodb.connection.netty.NettyStreamFactoryFactory;
+
+     // ...
+
+     MongoClientSettings settings = MongoClientSettings.builder()
+             .streamFactoryFactory(NettyStreamFactoryFactory.builder().build())
+             .build();
+
+  Replace this code with the `TransportSettings.nettyBuilder() <{+api+}/apidocs/mongodb-driver-core/com/mongodb/connection/TransportSettings.html>`__
+  as shown in the following example:
+
+  .. code-block:: java
+     :emphasize-lines: 6
+
+     import com.mongodb.connection.TransportSettings;
+
+     // ...
+
+     MongoClientSettings settings = MongoClientSettings.builder()
+             .transportSettings(TransportSettings.nettyBuilder().build())
+             .build();
+
+
+.. _java-new-features-4.11:
+
+New Features in 4.11
+~~~~~~~~~~~~~~~~~~~~
+
+New features of the 4.11 driver release include:
+
+- Support for connecting to MongoDB by using a SOCKS5 proxy. To learn more
+  see :ref:`java-connect-socks`.
+- Added the ``getSplitEvent()`` method to the ``ChangeStreamDocument`` class
+  to identify fragments of a change stream event that exceeds 16MB. You must
+  use the aggregation stage ``$changeStreamSplitLargeEvent`` in your change
+  stream to handle events that exceed 16MB. To learn more, see :ref:`java-split-change-stream-events`.
+- Added an aggregation stage builder for ``$vectorSearch``. To learn more, see :ref:`Atlas Vector Search <java-atlas-vector-search>`.
+- Added Atlas Search index management helpers. To learn more, see :ref:`Atlas Search Indexes <search-indexes>`.
+- Updated Snappy and Zstd compression library dependency versions. To learn
+  more about the current dependency versions, see :ref:`network-compression`.
+- Added ``getElapsedTime()`` methods to the following classes to monitor the
+  duration of connection pool events:
+
+  - `ConnectionCheckOutFailedEvent <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ConnectionCheckOutFailedEvent.html>`__
+  - `ConnectionCheckedOutEvent <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ConnectionCheckedOutEvent.html>`__
+  - `ConnectionReadyEvent <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ConnectionReadyEvent.html>`__
+
+- Support for Java 21 virtual threads and structured concurrency. The driver
+  internals were updated to avoid unnecessary pinning of virtual threads
+  and to preserve interrupted status of a thread, as the latter matters for
+  structured concurrency where it is used for cancellation.
+
+  To learn more about virtual threads, see the `Virtual Threads <https://openjdk.org/jeps/444>`__
+  JDK enhancement proposal. To learn more about structured concurrency, see the
+  `Structured Concurrency <https://openjdk.org/jeps/453>`__
+  JDK enhancement proposal.
+
+- Updated API documentation for the following types:
+
+  - `ClusterListener <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ClusterListener.html>`__
+  - `ServerListener <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ServerListener.html>`__
+  - `ServerMonitorListener <{+api+}/apidocs/mongodb-driver-core/com/mongodb/event/ServerMonitorListener.html>`__
+
 
 .. _version-4.10:
 
@@ -112,7 +210,7 @@ New features of the 4.10 driver release include:
   retry operations. The driver now correctly emits one log message for
   each retry operation.
 - The ``org.bson.codecs.Parameterizable`` interface is deprecated. Instead of
-  implementing this interface on a custom ``Codec`` type, you should
+  implementing this interface on a custom ``Codec`` type,
   override the ``CodecProvider.get()`` method on the
   codec's ``CodecProvider`` if the codec is intended for a parameterized
   type.
@@ -253,7 +351,7 @@ New features of the 4.7 driver release include:
 
 - Added a new API for encryption key management.
 
-- Added builder API methods for additional aggregation stages
+- Added builder API methods for more aggregation stages
   including :pipeline:`$search`/:pipeline:`$searchMeta` (Atlas only),
   :pipeline:`$densify`, and :pipeline:`$fill`. Learn more about these
   methods on the :ref:`Aggregates Builder <aggregates-builders>` page.
@@ -329,12 +427,12 @@ New features of the 4.5 Java driver release include:
   in the Java Language Specification.
 - Added ``EnumCodec`` and ``EnumCodecProvider`` classes to separate codec
   support for ``enum`` types from the ``PojoCodec`` class. The default
-  codec registries, accessible from the ``MongoClientSettings`` and the ``Bson``
+  codec registries, which you can access from the ``MongoClientSettings`` and the ``Bson``
   interfaces, now include the ``enum`` codec classes. If your application uses
   a custom enumeration codec and one of the default registries, ensure
   you order them as described in the section on :ref:`overriding codecs <codecs-override>`.
 - Resolved performance issues that impacted versions 4.4 and 4.3 of the
-  driver. Performance in this version should be similar to performance in 4.2.
+  driver. Performance in this version is similar to performance in 4.2.
 - Resolved an issue in which errors originating from retrieving the cluster
   description weren't passed to the ``onError`` Subscriber callback
 - Resolved an issue with releasing ``ByteBuf`` instances when you connect
