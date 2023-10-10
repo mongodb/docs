@@ -9,22 +9,12 @@ var client = new MongoClient("<Your connection URI>");
 var db = PlanetDbContext.Create(client.GetDatabase("sample_planets"));
 // end-create-instance
 
-FindOneAsync();
-
 void FindOne()
 {
     // start-find-one
     var planet = db.Planets.FirstOrDefault(p => p.name == "Mercury");
-    Console.WriteLine(planet.ToBsonDocument());
+    Console.WriteLine(planet.name);
     // end-find-one
-}
-
-async void FindOneAsync()
-{
-    // start-find-one-async
-    var planet = await db.Planets.FirstOrDefaultAsync(p => p.name == "Mercury", CancellationToken.None);
-    Console.WriteLine(planet);
-    // end-find-one-async
 }
 
 void FindMultiple()
@@ -34,7 +24,7 @@ void FindMultiple()
 
     foreach (var p in planets)
     {
-        Console.WriteLine(p.ToBsonDocument());
+        Console.WriteLine(p.name);
     }
     // end-find-many
 }
@@ -79,7 +69,6 @@ void UpdateMany()
     {
         p.orderFromSun++;
     }
-    db.Planets.UpdateRange(planets);
 
     db.SaveChanges();
     // end-update-many
@@ -114,7 +103,7 @@ void OrderByExample()
 
     foreach (var p in planetList)
     {
-        Console.WriteLine(p.ToBsonDocument());
+        Console.WriteLine(p.name);
     }
     // end-order-by
 }
@@ -126,7 +115,7 @@ void DoubleOrderBy()
 
     foreach (var p in planetList)
     {
-        Console.WriteLine(p.ToBsonDocument());
+        Console.WriteLine("Has rings: " + p.hasRings + ", Name: " + p.name);
     }
     // end-order-by-then-by
 }
@@ -138,7 +127,7 @@ void TakeExample()
 
     foreach (var p in planetList)
     {
-        Console.WriteLine(p.ToBsonDocument());
+        Console.WriteLine(p.name);
     }
     // end-take
 }
@@ -150,21 +139,9 @@ void SkipExample()
 
     foreach (var p in planetList)
     {
-        Console.WriteLine(p.ToBsonDocument());
+        Console.WriteLine(p.name);
     }
     // end-skip
-}
-
-void ProjectExample()
-{
-    // start-project
-    var planetList = db.Planets.Take(8).Select(p => new { Name = p.name, Order = p.orderFromSun });
-
-    foreach (var p in planetList)
-    {
-        Console.WriteLine(p);
-    }
-    // end-project
 }
 
 // start-db-context
