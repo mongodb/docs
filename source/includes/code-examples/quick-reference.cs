@@ -3,8 +3,11 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.EntityFrameworkCore.Extensions;
 
-var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
-var db = PlanetDbContext.Create(client.GetDatabase("sample_guides"));
+// start-create-instance
+// Replace the placeholder with you connection URI
+var client = new MongoClient("<Your connection URI>");
+var db = PlanetDbContext.Create(client.GetDatabase("sample_planets"));
+// end-create-instance
 
 FindOneAsync();
 
