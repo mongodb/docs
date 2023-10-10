@@ -6,6 +6,8 @@ import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.*;
 import static com.mongodb.client.model.Sorts.*;
 import static com.mongodb.client.model.Accumulators.*;
+import static com.mongodb.client.model.search.SearchPath.fieldPath;
+import static com.mongodb.client.model.search.VectorSearchOptions.vectorSearchOptions;
 import static java.util.Arrays.asList;
 // end static import
 
@@ -16,8 +18,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.*;
-
+import com.mongodb.client.model.search.VectorSearchOptions;
 import java.util.List;
+import com.mongodb.client.model.search.FieldSearchPath;
+import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -27,7 +31,7 @@ public class AggBuilders {
     private MongoDatabase database;
 
     private AggBuilders() {
-        final String uri = System.getenv("DRIVER_REF_SRV");
+        final String uri = "<Your connection string>";
 
         mongoClient = MongoClients.create(uri);
         database = mongoClient.getDatabase("sample_mflix");
@@ -77,7 +81,9 @@ public class AggBuilders {
         page.basicBucketAutoStage();
         page.bucketAutoOptionsStage();
         page.facetStage();
-        page.setWindowFieldsStage();
+        page.vectorSearchPipeline();
+// Fix required: https://jira.mongodb.org/browse/DOCSP-33327
+//        page.setWindowFieldsStage();
         page.aggregationExample();
     }
 
@@ -89,6 +95,7 @@ public class AggBuilders {
         // end aggregationSample
     }
 
+    /* Fix required: https://jira.mongodb.org/browse/DOCSP-33327
     private void setWindowFieldsStage() {
         // begin setWindowFields
         Window pastMonth = Windows.timeRange(-1, MongoTimeUnit.MONTH, Windows.Bound.CURRENT);
@@ -97,6 +104,7 @@ public class AggBuilders {
                 WindowedComputations.avg("monthlyAvgTemp", "$temperature", pastMonth));
         // end setWindowFields
     }
+     */
 
     private void facetStage() {
         // begin facet
@@ -247,12 +255,13 @@ public class AggBuilders {
                                 new Document("$gte", asList("$instock", "$$order_qty")))))),
                 project(fields(exclude("stock_item"), excludeId())));
 
-        List<Bson> innerJoinLookup = lookup("warehouses", variables, pipeline, "stockdata");
+        Bson innerJoinLookup = lookup("warehouses", variables, pipeline, "stockdata");
         // end advanced lookup
-        MongoCursor<Document> cursor = collection.aggregate(asList(advancedLookup)).cursor();
-        cursor.forEachRemaining(doc -> System.out.println(doc.toJson()));
-        database = mongoClient.getDatabase("sample_mflix");
-        collection = database.getCollection("movies");
+        // Missing advancedLookup assignment
+//        MongoCursor<Document> cursor = collection.aggregate(asList(advancedLookup)).cursor();
+//        cursor.forEachRemaining(doc -> System.out.println(doc.toJson()));
+//        database = mongoClient.getDatabase("sample_mflix");
+//        collection = database.getCollection("movies");
     }
 
     private void basicLookupStage() {
@@ -303,7 +312,41 @@ public class AggBuilders {
         // end match
     }
 
-    private void documents() {
+    // Requires MongoDB version that supports $vectorSearch
+    private void vectorSearchPipeline() {
+
+        // begin vectorSearch
+        List<Double> queryVector = (asList(-0.0072121937, -0.030757688, -0.012945653));
+        String indexName = "mflix_movies_embedding_index";
+        FieldSearchPath fieldSearchPath = fieldPath("plot_embedding");
+        int numCandidates = 2;
+        int limit = 1;
+        VectorSearchOptions options = vectorSearchOptions().filter(gte("year", 2016));
+
+        List<Bson> pipeline = asList(
+                vectorSearch(
+                        fieldSearchPath,
+                        queryVector,
+                        indexName,
+                        numCandidates,
+                        limit,
+                        options),
+                project(
+                    metaVectorSearchScore("vectorSearchScore")));
+        // end vectorSearch
+
+        // begin vectorSearch-output
+        Document found = collection.aggregate(pipeline).first();
+        double score = found.getDouble("vectorSearchScore").doubleValue();
+
+        System.out.println("vectorSearch score: " + score);
+        // end vectorSearch-output
+
+        // Example output: "vectorSearch score: 0.887437105178833"
+    }
+
+
+    private void documentsStage() {
         // begin documents
         documents(asList(
                 new Document("title", "The Shawshank Redemption"),
