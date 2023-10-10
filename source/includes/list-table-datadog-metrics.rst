@@ -162,6 +162,9 @@
          new pings come in. The {+atlas-ui+} reports these nodes as 
          down, but Datadog reports them as healthy and the status gets 
          older.
+       - If Datadog experiences an outage or slowdown in metrics
+         ingestion, this metric may report incorrectly and produce a 
+         false positive result.
 
        .. important::
 
