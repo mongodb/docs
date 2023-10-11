@@ -36,8 +36,10 @@ Syntax
 
 The :pipeline:`$lookup` stage has the following syntaxes:
 
-Equality Match
-~~~~~~~~~~~~~~
+.. _lookup-single-equality:
+
+Equality Match with a Single Join Condition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To perform an equality match between a field from the input documents
 with a field from the documents of the "joined" collection, the
@@ -117,7 +119,7 @@ The operation would correspond to the following pseudo-SQL statement:
 
 See the following examples:
 
-- :ref:`lookup-single-equality`
+- :ref:`lookup-single-equality-example`
 - :ref:`unwind-example`
 - :ref:`lookup-mergeObjects`
 
@@ -219,7 +221,7 @@ The operation would correspond to the following pseudo-SQL statement:
 See the following examples:
 
 - :ref:`lookup-multiple-joins`
-- :ref:`lookup-uncorrelated-subuery`
+- :ref:`lookup-uncorrelated-subquery`
 
 Consideration
 -------------
@@ -297,10 +299,60 @@ Alternatively, or to join multiple sharded collections, consider:
   <https://docs.mongodb.com/datalake/reference/pipeline/lookup-stage/>`__ 
   pipeline stage to lookup a sharded collection.
 
+.. _lookup-performance-considerations:
+
+Performance Considerations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``$lookup`` performance depends on the type of operation performed.
+Refer to the following table for performance considerations for
+different ``$lookup`` operations. 
+
+.. list-table::
+   :header-rows: 1 
+   :widths: 20 80
+
+   * - ``$lookup`` Operation
+     - Performance Considerations
+
+   * - :ref:`Equality Match with a Single Join
+       <lookup-single-equality-example>`
+
+     - .. _equality-match-performance:
+
+       - ``$lookup`` operations that perform equality matches with a
+         single join typically perform better when the source collection
+         contains an index on the ``foreignField``.
+
+   * - :ref:`Uncorrelated Subqueries <lookup-uncorrelated-subquery>`
+
+     - .. _uncorrelated-subqueries-performance: 
+
+       - ``$lookup`` operations that contain uncorrelated subqueries
+         typically perform better when the inner pipeline can reference
+         an index on the ``foreignField``. 
+
+       - MongoDB only needs to run the ``$lookup`` subquery once before
+         caching the query because there is no relationship between the
+         source and foreign collections. The ``$lookup`` subquery is not
+         based on any value in the source collection. This behavior
+         improves performance for subsequent executions of this query.
+
+For general performance strategies, see :ref:`Indexing Strategies
+<manual-indexing-strategies>` and :ref:`Query Optimization
+<read-operations-indexing>`. 
+
+.. important::
+
+   Excessive use of ``$lookup`` within a query may slow down
+   performance. To avoid multiple ``$lookup`` stages, consider an
+   :ref:`embedded data model <embedded-data-modeling>` to optimize query
+   performance. 
+
 Examples
 --------
 
-.. _lookup-single-equality:
+.. _lookup-single-equality-example:
 
 Perform a Single Equality Join with ``$lookup``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -387,6 +439,12 @@ The operation would correspond to the following pseudo-SQL statement:
    WHERE inventory_docs IN (SELECT *
    FROM inventory
    WHERE sku= orders.item);
+
+For more information, see
+:ref:`Equality Match Performance Considerations<equality-match-performance>`. 
+
+For more information, see
+:ref:`Equality Match Performance Considerations<equality-match-performance>`. 
 
 .. _unwind-example:
 
@@ -617,7 +675,7 @@ collection:
    - :query:`$expr`
    - :doc:`/reference/aggregation-variables/`.
 
-.. _lookup-uncorrelated-subuery:
+.. _lookup-uncorrelated-subquery:
 
 Uncorrelated Subquery
 ~~~~~~~~~~~~~~~~~~~~~
