@@ -3,7 +3,7 @@
    :widths: 50 25 25
 
    * - {+provider-long+}
-     - Entity Framework Core
+     - {+framework-core+}
      - .NET
 
    * - **{+version-number+}**
