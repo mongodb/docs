@@ -8,4 +8,4 @@
 
    * - **{+version-number+}**
      - **7.0**
-     - **6.0 or later**
+     - **7.0 or later**
