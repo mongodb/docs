@@ -6,6 +6,6 @@
      - Entity Framework Core
      - .NET
 
-   * - **{+current-version+}**
+   * - **{+version-number+}**
      - **7.0**
      - **6.0 or later**
