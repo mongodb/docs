@@ -19,23 +19,19 @@ Definition
 
 .. method:: db.fsyncLock()
 
-   Forces the :binary:`~bin.mongod` to flush all pending write operations to
-   disk and locks the *entire* :binary:`~bin.mongod` instance to prevent
-   additional writes until the user releases the lock with a corresponding
-   :method:`db.fsyncUnlock()` command. 
+   Flushes all pending writes from the storage layer to disk and locks the
+   server to prevent any additional writes until the lock is released.  
 
-   .. important::
+   .. versionadded:: 7.1
 
-      The :method:`db.fsyncLock()` and :method:`db.fsyncUnlock()`
-      operations maintain a lock count. :method:`db.fsyncLock()`
-      increments the lock count, and :method:`db.fsyncUnlock()`
-      decrements the lock count.
+      When the ``db.fsyncLock`` method runs on :program:`mongos`, it applies an
+      fsync lock to each shard in the cluster.
+   
+   .. |dbcommand| replace:: :dbcommand:`fsync` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
 
-      To unlock a :binary:`~bin.mongod` instance for writes, the lock count
-      must be zero. That is, for a given number of
-      :method:`db.fsyncLock()` operations, you must issue a
-      corresponding number of :method:`db.fsyncUnlock()` operations to
-      unlock the instance for writes.
+
+   .. include:: /includes/fsync-lock-method
 
    :method:`db.fsyncLock()`  has the syntax:
 
@@ -45,25 +41,23 @@ Definition
 
    The operation returns a document with the following fields:
 
-   - ``info`` - Information on the status of the operation
+   .. list-table::
+      :header-rows: 1
 
-   - ``lockCount`` (*New in version 3.4*)- The number of locks currently on the instance.
+      * - Field
+        - Description
 
-   - ``seeAlso`` - Link to the :dbcommand:`fsync` command documentation.
+      * - ``info``
+        - Information on the status of the operation.
+      * - ``lockCount``  
+        - Number of locks currently on the instance.
+      * - ``seeAlso`` 
+        - Link to the :dbcommand:`fsync` command documentation.
+      * - ``ok`` 
+        - The status code.
 
-   - ``ok`` - The status code.
-   
-   
-   This command provides a simple wrapper around a :dbcommand:`fsync`
-   database command with the following syntax:
-
-   .. code-block:: javascript
-
-      { fsync: 1, lock: true } 
-
-   :method:`db.fsyncLock()` is an administrative command. You can use
-   this operation to locks the database and create a window for
-   :ref:`backup operations <backup-methods>`.
+   :method:`db.fsyncLock()` is an administrative command. Use this method to 
+   lock a server or cluster before :ref:`backup operations <backup-methods>`.
 
 Behavior
 --------
