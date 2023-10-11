@@ -10,7 +10,8 @@ async fn main() -> mongodb::error::Result<()> {
     let client = Client::with_uri_str(uri).await?;
 
     // Get a handle on the movies collection
-    let my_coll: Collection<Document> = client.database("sample_mflix").collection("movies");
+    let database = client.database("sample_mflix");
+    let my_coll: Collection<Document> = database.collection("movies");
 
     // Find a movie based on the title value
     let my_movie = my_coll.find_one(doc! { "title": "The Perils of Pauline" }, None).await?;

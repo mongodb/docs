@@ -1,4 +1,4 @@
-If you need to run the {+server+} on your local machine for development
+If you must run the {+server+} on your local machine for development
 purposes, you must complete the following:
 
 1. Follow the :manual:`Install MongoDB </installation/>` tutorial to
