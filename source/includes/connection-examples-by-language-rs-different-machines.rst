@@ -100,3 +100,10 @@
       .. code-block:: bash
 
          mongodb://myDatabaseUser:D1fficultP%40ssw0rd@db1.example.net,db2.example.com/?replicaSet=test
+
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb://myDatabaseUser:D1fficultP%40ssw0rd@db1.example.net,db2.example.com/?replicaSet=test

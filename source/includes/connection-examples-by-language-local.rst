@@ -89,3 +89,10 @@
       .. code-block:: bash
 
          mongodb://localhost
+
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb://localhost

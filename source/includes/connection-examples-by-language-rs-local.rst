@@ -112,3 +112,10 @@
 
          mongodb://myDatabaseUser:D1fficultP%40ssw0rd@localhost,localhost:27018,localhost:27019/?replicaSet=test
 
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb://myDatabaseUser:D1fficultP%40ssw0rd@localhost,localhost:27018,localhost:27019/?replicaSet=test
+
