@@ -94,5 +94,12 @@
 
          mongodb://myDatabaseUser:D1fficultP%40ssw0rd@router1.example.com:27017,router2.example2.com:27017,router3.example3.com:27017/
 
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb://myDatabaseUser:D1fficultP%40ssw0rd@router1.example.com:27017,router2.example2.com:27017,router3.example3.com:27017/
+
 
 

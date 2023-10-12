@@ -89,3 +89,10 @@
       .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongos0.example.com:27017,mongos1.example.com:27017,mongos2.example.com:27017/?authSource=admin
+
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongos0.example.com/?authSource=admin
