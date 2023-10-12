@@ -134,6 +134,7 @@ source_constants = {
     'cloudmgr-url': 'cloud.mongodb.com',
     'autoagent-version': '6.5.1.5691-1',
     'bagent-version': '7.6.0.1059',
+    'c2c-version': '6.0.8',
     'magent-version': '7.2.0.488-1',
     'mdbagent-version-cloud': '11.11.0.7355',
     'autoagent-version-cloud': '6.5.1.5691-1',
