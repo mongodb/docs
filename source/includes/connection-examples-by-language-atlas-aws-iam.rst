@@ -90,3 +90,10 @@
       .. code-block:: bash
 
          mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS
+
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS
