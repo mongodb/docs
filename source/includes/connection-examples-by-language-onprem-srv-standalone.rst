@@ -10,82 +10,89 @@
    .. tab::
       :tabid: python
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: java-sync
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: java-async
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: nodejs
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: php
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: perl
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
    .. tab::
       :tabid: ruby
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: scala
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: compass
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: csharp
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: go
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
 
    .. tab::
       :tabid: motor
 
-      .. code-block:: none
+      .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com:27017/?authSource=admin
+
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@mongodb0.example.com/?authSource=admin
