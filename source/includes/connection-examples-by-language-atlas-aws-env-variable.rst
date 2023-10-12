@@ -111,3 +111,10 @@
 
          mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS
 
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS
+

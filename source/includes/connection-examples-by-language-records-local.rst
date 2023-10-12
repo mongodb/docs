@@ -89,3 +89,10 @@
       .. code-block:: bash
 
          mongodb://myDatabaseUser:D1fficultP%40ssw0rd@localhost/records
+
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb://myDatabaseUser:D1fficultP%40ssw0rd@localhost/records
