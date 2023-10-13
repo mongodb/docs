@@ -52,6 +52,11 @@ A connection string includes the following components:
        If the port number is not specified, the default port ``27017``
        is used.
 
+       .. note:: 
+          
+          If you use the SRV URI connection format, you can specify only one 
+          host and no port. Otherwise, the driver or :binary:`~bin.mongosh` 
+          raises a parse error and does not perform DNS resolution.
 
    * - ``/defaultauthdb``
      
