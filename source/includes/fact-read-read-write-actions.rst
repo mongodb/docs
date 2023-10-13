@@ -22,7 +22,6 @@ database it applies to, and the :manual:`privilege actions
    * - ``clusterMonitor``
      - ``admin``
      - 
-       - :authaction:`checkFreeMonitoringStatus`
        - :authaction:`connPoolStats`
        - :authaction:`getCmdLineOpts`
        - :authaction:`getDefaultRWConcern`
@@ -38,7 +37,6 @@ database it applies to, and the :manual:`privilege actions
        - :authaction:`replSetGetConfig`
        - :authaction:`replSetGetStatus`
        - :authaction:`serverStatus`
-       - :authaction:`setFreeMonitoring`
        - :authaction:`shardingState`
        - :authaction:`top`
 
