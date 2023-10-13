@@ -192,17 +192,17 @@ value of ``{ "a.loc": "B", "a.qty": null }``.
 
 .. _unique-index-and-missing-field:
 
-Unique Index and Missing Field
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Missing Document Field in a Unique Single-Field Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If a document does not have a value for the indexed field in a unique
-index, the index will store a null value for this document. Because of
-the unique constraint, MongoDB will only permit one document that lacks
-the indexed field. If there is more than one document without a value
-for the indexed field or is missing the indexed field, the index build
-will fail with a duplicate key error.
+If a document has a ``null`` or missing value for the indexed field in a unique
+single-field index, the index stores a ``null`` value for that document.
+Because of the unique constraint, a single-field unique index can only
+contain one document that contains a ``null`` value in its index entry. If there is
+more than one document with a ``null`` value in its index entry, the index
+build fails with a duplicate key error.
 
-For example, a collection has a unique index on ``x``:
+For example, a collection has a unique single-field index on ``x``:
 
 .. code-block:: javascript
 
@@ -216,9 +216,8 @@ field ``x``:
 
    db.collection.insertOne( { y: 1 } )
 
-However, the unique index errors on the insertion of a document without
-the field ``x`` if the collection already contains a document missing
-the field ``x``:
+However, you cannot insert a document without the field ``x`` if the
+collection already contains a document missing the field ``x``:
 
 .. code-block:: javascript
 
@@ -237,11 +236,95 @@ the unique constraint on the value of the field ``x``:
       }
    })
 
-.. seealso::
-
-   :ref:`unique-partial-indexes`
-
 .. _unique-partial-indexes:
+
+Missing Document Fields in a Unique Compound Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a document has a ``null`` or missing value for one or more indexed
+fields in a unique compound index, the index stores a null value for
+each ``null`` or missing field in the document's index entry. Because of
+the unique constraint, a unique compound index only permits one document
+that has a ``null`` value for all indexed fields in an index entry. If
+there is more than one index entry with a ``null`` value for all indexed
+fields, the index build fails with a duplicate key error. MongoDB
+permits multiple documents with missing fields in unique compound
+indexes as long as each index entry is unique. 
+
+For example, a collection ``students`` has a unique compound index on fields
+``name``, ``age``, and ``grade``:
+
+.. code-block:: javascript
+
+   db.students.createIndex( 
+      { 
+         "name": 1, 
+         "age": -1, 
+         "grade": 1 
+      }, 
+      { unique: true } 
+   )
+
+If the collection does not already contain identical documents, the
+unique compound index allows the insertion of the following documents
+that are all missing the ``grade`` field. 
+
+.. code-block:: javascript
+   
+   db.students.insertMany(
+      { "name": "Meredith", "age": 12 }, 
+      { "name": "Olivia", "age": 11 }, 
+      { "name": "Benjamin" } 
+   )
+
+However, you cannot insert a document that has the same index key (value
+for ``name``, ``age``, and ``grade``) as another document in the
+collection. 
+
+.. code-block:: javascript
+   
+   db.students.insertOne( { name: "Meredith", age: 12 } )
+
+The operation fails to insert the document because of the violation of
+the unique constraint on the values of the fields ``name``, ``age``, and ``grade``:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 11000, 
+         "errmsg" :
+            "E11000 duplicate key error collection: test.students 
+            index: name_1_age_-1_grade_1 
+            dup key: { name: "Meredith", age: 12, grade: null }
+      }
+   } )
+
+You also cannot insert a document that is unique but shares an index
+key with an existing index entry. 
+
+.. code-block:: javascript
+   
+   db.students.insertOne( { name: "Olivia", "age": 11, "favorite color": "red"} )
+   
+The operation fails to insert the document because of the violation of
+the unique constraint on the values of the fields ``name``, ``age``, and
+``grade``:
+
+.. code-block:: javascript
+
+   WriteResult({
+      "nInserted" : 0,
+      "writeError" : {
+         "code" : 11000, 
+         "errmsg" :
+            "E11000 duplicate key error collection: test.students 
+            index: name_1_age_-1_grade_1 
+            dup key: { name: "Olivia", age: 11, grade: null }
+      }
+   } )
+
 
 Unique Partial Indexes
 ~~~~~~~~~~~~~~~~~~~~~~
