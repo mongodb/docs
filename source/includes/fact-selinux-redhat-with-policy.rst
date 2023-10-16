@@ -5,6 +5,19 @@ MongoDB installations that:
 - Use default configuration settings.
 - Run on RHEL7 or later.
 
+For MongoDB Enterprise installations that use :abbr:`LDAP (Lightweight Directory 
+Access Protocol)` authentication, the following additional SELinux policies must 
+be in place: 
+
+- For deployments that use :ref:`LDAP authentication via OS libraries 
+  <security-ldap-connect-native>`, MongoDB must have access to the 
+  ``tcontext=system_u:object_r:ldap_port_t:s0`` LDAP ports. You can enable 
+  access by running ``setsebool -P authlogin_nsswitch_use_ldap 1``.
+
+- For deployments that use :ref:`LDAP authentication via saslauthd 
+  <security-ldap-connect-saslauthd>`, you must enable cluster mode by running 
+  ``sudo setsebool -P daemons_enable_cluster_mode 1``.
+
 If your installation does not meet these requirements, refer to the
 :ref:`SELinux Instructions
 <install-enterprise-tarball-rhel-configure-selinux>` for ``.tgz``
@@ -15,7 +28,7 @@ packages.
    If your MongoDB deployment uses custom settings for any of the
    following:
 
-   - :doc:`MongoDB connection ports </reference/default-mongodb-port>`
+   - :ref:`MongoDB connection ports <default-mongodb-port>`
    - :setting:`~storage.dbPath`
    - :setting:`systemLog.path`
    - :setting:`~processManagement.pidFilePath`
