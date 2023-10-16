@@ -4,26 +4,34 @@
 Topic Naming
 ============
 
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
 The examples on this page show how to configure your {+source-connector+}
 to customize the name of the topic to which it publishes records.
 
 By default, the MongoDB Kafka source connector publishes change event data
 to a Kafka topic with the same name as the MongoDB **namespace** from which
 the change events originated. A namespace is a string that's composed of the
-database and collection name concatenated with a dot "." character.
+database and collection name concatenated with a dot (``.``) character.
 
-The following examples show different ways that you can customize the
+The following sections show different ways that you can customize the
 Kafka topics to which the connector publishes change event data:
 
 - :ref:`Topic Prefix <topic-naming-prefix-example>`
 - :ref:`Topic Suffix <topic-naming-suffix-example>`
-- :ref:`Topic Namespace Map <topic-naming-namespace-map-example>`
-- :ref:`Topic Namespace Map with Wildcard <topic-naming-namespace-map-wildcard-example>`
+- :ref:`Topic Namespace Map <topic-naming-namespace-map>`
 
 .. _topic-naming-prefix-example:
 
-Topic Prefix Example
-~~~~~~~~~~~~~~~~~~~~
+Topic Prefix
+------------
 
 You can configure your source connector to prepend a string to the
 namespace of the change event data, and publish records to that Kafka
@@ -45,8 +53,8 @@ in the ``test`` database to the Kafka topic named ``myPrefix.test.data``.
 
 .. _topic-naming-suffix-example:
 
-Topic Suffix Example
-~~~~~~~~~~~~~~~~~~~~
+Topic Suffix
+------------
 
 You can configure your source connector to append a string to the
 namespace of the change event data, and publish records to that Kafka
@@ -66,21 +74,59 @@ setting as shown in the following example:
 Once set, your connector publishes any changes to the ``data`` collection
 in the ``test`` database to the Kafka topic named ``test.data.mySuffix``.
 
-.. _topic-naming-namespace-map-example:
+.. _topic-naming-namespace-map:
 
-Topic Namespace Map Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Topic Namespace Map
+-------------------
 
 You can configure your source connector to map namespace values to Kafka
-topic names for incoming change event data.
+topic names for incoming change event data. Topic namespace maps contain
+**pairs** that are made up of a namespace pattern and a destination
+topic name template.
+
+The following sections describe how the connector interprets namespaces
+and maps them to Kafka topics. In addition to directly mapping databases
+and collections to Kafka topics, the connector supports the use of regex
+and wildcard pairs in topic namespace maps.
+
+The order of the pairs in your namespace map can affect how the
+connector writes events to your topics. The connector matches namespaces
+in the following order:
+
+1. Pairs with database and collection names in the namespace pattern. To
+   learn more about this namespace pattern, see the :ref:`Database and
+   Collection Names <topic-naming-namespace-map-example>` example.
+#. Pairs with only a database name in the namespace pattern. To
+   learn more about this namespace pattern, see the :ref:`Database and
+   Collection Names <topic-naming-namespace-map-example>` example.
+#. Regex pairs in order. To learn more about this namespace pattern, see
+   the :ref:`Regular Expressions <topic-naming-namespace-map-regex-example>` example.
+#. The wildcard pair. To learn more about this namespace pattern, see
+   the :ref:`Wildcard <topic-naming-namespace-map-wildcard-example>` example.
+
+.. _topic-naming-namespace-map-example:
+
+Database and Collection Names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify the names of specific databases and collections within a
+topic namespace map to write change events from these sources to Kafka
+topics.
 
 If the database name or namespace of the change event matches one of the
-fields in the map, the connector publishes the record to the value that
-corresponds to that mapping.
+fields in the map, the connector computes the destination topic name
+based on the topic name template that corresponds to that mapping and
+publishes the event to this topic.
 
-If the database name or namespace of the change event do not match any
+If the database name or namespace of the change event does not match any
 mapping, the connector publishes the record using the default topic naming
 scheme unless otherwise specified by a different topic naming setting.
+
+.. important::
+   
+   Because the ``/`` character denotes that the namespace is a
+   regex pattern, the connector raises a ``ConnectConfigException``
+   if the namespace includes this character in a non-regex context.
 
 Any mapping that includes both database and collection takes precedence
 over mappings that only specify the source database name.
@@ -94,8 +140,8 @@ over mappings that only specify the source database name.
 
 The following example shows how to specify the ``topic.namespace.map``
 setting to define a topic namespace mappings from the ``carDb`` database
-to the ``automobiles`` topic and the ``carDb.ev`` namespace to the
-``electricVehicles`` topic:
+to the ``automobiles`` topic name template and the ``carDb.ev``
+namespace to the ``electricVehicles`` topic name template:
 
 .. code-block:: ini
 
@@ -108,19 +154,109 @@ mapping, the connector performs the following actions:
   the connector sets the destination to the  ``electricVehicles`` topic.
 - If the change event came from the database ``carDb`` and a collection
   other than ``ev``, the connector sets the destination to the
-  ``automobiles.<collectionName>``
-  topic.
+  ``automobiles.<collection name>`` topic.
 - If the change document came from any database other than ``carDb``, the
   connector sets the destination topic to the default namespace naming
   scheme.
-- If defined, the connector applies the ``topic.prefix`` and
-  ``topic.suffix`` settings to the destination topic name after it
-  performs namespace mapping.
+- If you define the ``topic.prefix`` and ``topic.suffix`` settings, the
+  connector applies their values to the destination topic name after it
+  performs the namespace mapping.
+
+.. _topic-naming-namespace-map-regex-example:
+
+Regular Expressions
+~~~~~~~~~~~~~~~~~~~
+
+You can use a regular expression (regex) within a
+topic namespace map. To use a regular expression, start the namespace
+pattern with the forward slash (``/``) character. Create the regular
+expression following the syntax and behavior specified by the
+``java.util.regex.Pattern`` class.
+
+The connector computes the topic name by doing variable expansion on the
+topic name template. The connector supports the following variables: 
+ 
+- ``db``: The database name from the matching namespace.
+- ``sep``: The value of the ``topic.separator`` configuration property.
+  To learn more about this property, see :ref:`source-configuration-kafka-topic`.
+- ``coll``: The collection name from the matching namespace, or an empty
+  string if there is no collection name.
+- ``sep_coll``: The value of the ``coll`` variable prefixed with the value
+  of the ``sep`` variable, or an empty string if the value of ``coll`` is empty.
+- ``coll_sep``: The value of the ``coll`` variable suffixed with the
+  value of the ``sep`` variable, or an empty string if the value of ``coll`` is empty.
+- ``sep_coll_sep``: The value of the ``coll`` variable prefixed and
+  suffixed with the value of the ``sep`` variable, or an empty string if
+  the value of ``coll`` is empty.
+ 
+If you use any of the previous variables in your topic name template,
+you must enclose them in curly brackets (``{}``) for the connector to
+expand them. You can't use curly brackets in the topic name template for
+any other purpose.
+
+.. note:: Escaping Characters
+
+   When you create a namespace pattern, ensure that you properly handle
+   characters that need escaping. For example, to match
+   ``.``, the regex syntax requires that you escape it as ``\.``
+   However, you must escape the backslash ``\`` character as ``\\``
+   according to the JSON syntax. Then, to match ``.`` in your namespace
+   pattern, you must write it as ``\\.``.
+
+This example shows how to specify the ``topic.namespace.map``
+setting so that the connector performs the following mapping:
+
+- Writes events from databases that match a regular expression to a
+  topic computed from the ``industrial{sep_coll}`` topic name template.
+  The regex pattern matches any namespace with the ``vertical`` database
+  name.
+
+- Writes events from the ``vertical.health`` namespace to the
+  ``healthcare`` topic name. In this case, the topic name template and the
+  computed topic name are the same.
+
+.. code-block:: ini
+
+   topic.namespace.map={"/vertical(?:\\..*)?": "industrial{sep_coll}", "vertical.health": "healthcare"}
+
+.. note::
+   
+   In this example, the ``topic.separator`` configuration property is
+   ``"."``, the default value.
+
+Because the ``vertical.health`` namespace mapping takes precedence over
+the regular expression namespace mapping, the connector performs the
+following actions:
+
+- If the change event comes from the ``health`` collection of the
+  ``vertical`` database, the connector sets the destination to the
+  ``healthcare`` topic.
+
+- If the change event comes from any other namespaces with the ``vertical``
+  database name, the connector computes the destination topic based on
+  the ``industrial{sep_coll}`` topic name template. The following examples
+  demonstrate this mapping:
+
+  - If the change event comes from the ``vertical.wasteManagement``
+    namespace, the connector writes to the
+    ``industrial.wasteManagement`` topic.
+  
+  - If the change event comes from the ``vertical``
+    database but no specific collection, the connector writes to the
+    ``industrial`` topic.
+
+- If the change document comes from any database that doesn't match the
+  regex pattern, the connector sets the destination topic to the default
+  namespace naming scheme.
+
+- If you define the ``topic.prefix`` and ``topic.suffix`` settings, the
+  connector applies their values to the destination topic name after it
+  performs the namespace mapping.
 
 .. _topic-naming-namespace-map-wildcard-example:
 
-Topic Namespace Map with Wildcard Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Wildcard
+~~~~~~~~
 
 In addition to specifying database name and namespace in your topic
 namespace map as shown in :ref:`<topic-naming-namespace-map-example>`,
