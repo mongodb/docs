@@ -55,8 +55,9 @@ A connection string includes the following components:
        .. note:: 
           
           If you use the SRV URI connection format, you can specify only one 
-          host and no port. Otherwise, the driver or :binary:`~bin.mongosh` 
-          raises a parse error and does not perform DNS resolution.
+          host and no port. Otherwise, the driver or 
+          :binary:`~bin.mongo` shell returns a parse error and does not 
+          perform DNS resolution.
 
    * - ``/defaultauthdb``
      
