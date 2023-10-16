@@ -175,6 +175,10 @@ limitations and considerations:
      - {+Serverless-instances+} can support up to 500 simultaneous 
        connections.
 
+   * - Cursors
+     - {+Serverless-instances+} can't use the :manual:`noTimeout cursor
+       option </reference/method/cursor.addOption/#flags>`.
+
    * - Database Commands
      - Some database commands have limitations for \
        {+serverless-instances+}. To learn more, see
