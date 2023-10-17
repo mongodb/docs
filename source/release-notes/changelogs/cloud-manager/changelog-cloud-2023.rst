@@ -1,3 +1,18 @@
+.. _cloudmanager_20231004:
+
+04 October 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`13.6.0.8483-1 <13.6.0.8483-1>`.
+- Released MongoDB Shell 2.0.0.
+- Adds support for :atlas:`private endpoints
+  </security-private-endpoint>` for sharded clusters for live migration (push)
+  of a MongoDB 6.0.8+ sharded cluster monitored by |mms| into a sharded
+  cluster in |service|. To learn more, see :atlas:`Private endpoints for
+  Live Migration
+  </import/c2c-push-live-migration/#support-for-vpc-peering-and-private-endpoints>`
+  in the |service| documentation.
+
 .. _cloudmanager_20230913:
 
 13 September 2023 Release
