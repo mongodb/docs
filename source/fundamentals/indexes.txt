@@ -1,0 +1,476 @@
+.. _rust-indexes:
+
+=======
+Indexes
+=======
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to create
+and manage **indexes**. Indexes are special data structures that improve
+query performance in MongoDB.
+
+If you perform a query on a collection without any indexes, MongoDB
+scans every document to find matches. These collection scans are slow
+and can negatively affect the performance of your application. When you
+create an index that covers your query, MongoDB limits the number of
+documents it inspects to find matches, which results in improved
+performance. 
+
+.. tip::
+
+   You can use indexes in update operations, delete operations, and
+   some aggregation pipeline stages. To learn more about using indexes
+   in aggregations, see :manual:`Improve Performance with Indexes and Document Filters
+   </core/aggregation-pipeline-optimization/#improve-performance-with-indexes-and-document-filters>`
+   in the Server manual.
+
+Query Coverage and Performance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes the elements that you can include in a
+MongoDB query:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 70
+
+   * - Element
+     - Description
+
+   * - Query
+     - | *Required*
+       | Specifies the fields and values to match
+
+   * - Options
+     - | *Optional*
+       | Specify how the query executes
+
+   * - Projection
+     - | *Optional*
+       | Specifies the fields that MongoDB returns in matched
+         documents
+
+   * - Sort
+     - | *Optional*
+       | Specifies the order of documents returned
+
+When your query elements reference fields that are all included in the
+same index, MongoDB can return results directly from the index.
+These queries are called **covered queries**.
+
+To learn how to ensure that your index covers your query, see
+:manual:`Covered Query </core/query-optimization/#covered-query>` in
+the Server manual.
+
+.. important:: Sort Criteria
+
+   Your sort criteria must match or invert the order of the index.
+
+   Suppose a collection has the following index on the ``name`` field
+   in ascending order (A-Z) and the ``age`` field in descending order (9-0):
+
+   .. code-block:: none
+      :copyable: false
+
+      name_1_age_-1
+
+   MongoDB uses this index when you sort documents in either
+   of the following configurations:
+
+   - ``name`` ascending, ``age`` descending
+   - ``name`` descending, ``age`` ascending
+
+   If you specify the same sort order for both fields, MongoDB does not
+   use the index and instead performs an in-memory sort.
+
+Operational Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To improve your query performance, create indexes on fields that appear
+often in your queries. However, it is a good practice to track index
+memory and disk usage for capacity planning, because each index consumes
+disk space and memory. Additionally, if a write operation updates an
+indexed field, MongoDB also must update the relevant index.
+
+MongoDB supports dynamic schemas, so your application can query
+against fields with unknown or variable names. If you are connected to
+MongoDB Server version 4.2 or later, you can create wildcard indexes to
+support these queries. To learn more about this index type, see
+:manual:`Wildcard Indexes </core/indexes/index-types/index-wildcard/>`
+in the Server manual.
+
+Index Types
+-----------
+
+MongoDB supports multiple index types to support your queries. The
+following sections describe common index types and show how to create
+each index type in a collection.
+
+.. note:: Sample Collections
+   
+   The examples in this guide use collections from the Atlas sample
+   data. To learn how to import this data, see the :atlas:`Load Sample
+   Data </sample-data/>` tutorial in the Atlas documentation.
+
+You can use the ``create_index()`` and
+``create_indexes()`` methods to create indexes in a collection. The
+``create_index()`` method takes an ``IndexModel`` struct parameter that
+you can construct by using the type's ``builder()`` method.
+
+To view a full list of index types, see
+:manual:`Index Types </core/indexes/index-types>` in the Server manual.
+
+.. _rust-single-field:
+
+Single Field Indexes
+~~~~~~~~~~~~~~~~~~~~
+
+A single field index holds a reference to a document field.
+
+This index improves the performance of single field queries and sorts.
+It also supports TTL indexes that automatically remove documents from a
+collection after a certain amount of time. To learn more about TTL
+indexes, see :manual:`TTL indexes </core/index-ttl/>` in the Server manual.
+
+When you create a new collection, MongoDB automatically creates a
+:ref:`unique <rust-unique>`, single field index on the ``_id`` field.
+
+Example
+```````
+
+The following code creates an ascending index on the
+``city`` field in the ``sample_training.zips`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+      :start-after: begin-single-field
+      :end-before: end-single-field
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Created index:
+      city_1
+
+.. _rust-compound:
+
+Compound Indexes
+~~~~~~~~~~~~~~~~
+
+A compound index holds a reference to multiple document fields.
+
+This index improves the performance of queries and sorts on multiple
+fields. When you create a compound index, you must specify a direction for
+each of the indexed fields.
+
+You can create a multikey index by using the same syntax for creating a
+:ref:`single field index <rust-single-field>`.
+
+Example
+```````
+
+The following code creates a compound index on the
+``city`` and ``pop`` fields in the ``sample_training.zips`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+      :start-after: begin-compound
+      :end-before: end-compound
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Created index:
+      city_1_pop_-1
+
+.. _rust-multikey:
+
+Multikey Indexes (Array Field Indexes)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A multikey index holds a reference to an array-valued field. This index
+improves the performance of queries on array fields.
+
+You can create a multikey index by using the same syntax for creating a
+:ref:`single field index <rust-single-field>`.
+
+Example
+```````
+
+The following code creates a multikey index on the
+``tags`` field in the ``sample_training.posts`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+      :start-after: begin-multikey
+      :end-before: end-multikey
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Created index:
+      tags_1
+
+.. _rust-clustered:
+
+Clustered Indexes
+~~~~~~~~~~~~~~~~~
+
+Clustered indexes improve the performance of insert, update, and delete
+operations on clustered collections. Clustered collections store
+documents ordered by the clustered index key value. To learn more about
+these collections, see :manual:`Clustered Collections
+</core/clustered-collections/>` in the Server manual.
+
+You can create a clustered index only when creating a collection.
+To create a clustered collection, perform the following steps:
+
+1. Create a ``ClusteredIndex`` instance.
+
+#. Set the ``ClusteredIndex`` instance as the value of the
+   ``clustered_index`` field of a ``CreateCollectionOptions`` instance.
+
+#. Pass the options to the ``create_collection()`` method.
+
+You must set the following fields of the ``ClusteredIndex`` struct:
+
+- The ``key`` field, which specifies the key pattern. The value of this
+  field must be ``{ _id: 1 }``.
+- The ``unique`` field, which specifies the uniqueness of the index. The
+  value of this field must be ``true``.
+
+To create a ``ClusteredIndex`` instance that automatically uses the
+required values, you can call the type's ``default()`` method.
+
+Example
+```````
+
+The following code creates a clustered index with default configuration on the
+``_id`` field when creating a new collection called ``items`` in the
+``sample_training`` database:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes.rs
+   :start-after: begin-clustered
+   :end-before: end-clustered
+   :language: rust
+   :dedent:
+
+.. _rust-text:
+
+Text Indexes
+~~~~~~~~~~~~
+
+A text index supports text search queries on string content. This index
+references a field with a string value or a string array value.
+MongoDB supports text search for several languages. When you create a
+text index, you can specify the default language as an option.
+
+A collection can only contain one text index. To create a
+text index on multiple text fields, you can create a :ref:`compound
+index <rust-compound>`. When you run a text search after creating a
+compound index, the search operation runs on all the text fields
+in the compound index.
+
+.. tip:: Atlas Full Text Search
+
+   Text indexes are different from Atlas full text search indexes. To
+   learn more about Atlas Search indexes, see the :atlas:`Atlas Search
+   documentation </atlas-search/>`.
+
+Example
+```````
+
+The following code creates a text index on the ``body`` field in the
+``sample_training.posts`` collection. The code sets an option to specify
+``"spanish"`` as the default language for the text index:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+      :start-after: begin-text
+      :end-before: end-text
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Created index:
+      body_1
+
+.. _golang-geo-indexes:
+
+Geospatial Indexes
+~~~~~~~~~~~~~~~~~~
+
+MongoDB supports queries containing geospatial coordinate data by using
+``2dsphere`` indexes. You can create a ``2dsphere`` index on a field
+with GeoJSON object values.
+
+This index type supports the following tasks:
+
+- Queries on geospatial data to find inclusion, intersection, and proximity
+- Calculation of distances on a Euclidean plane
+
+.. important::
+
+   You cannot create two geospatial indexes on the same field.
+
+Example
+```````
+
+The following sample document in the ``sample_mflix.theaters``
+collection contains the field ``location.geo``. This field has a GeoJSON
+point value:
+
+.. code-block:: javascript
+   :emphasize-lines: 7-11
+
+   {
+     "_id": ...,
+     "theaterId": ...,
+     "location": {
+       "address": ...,
+       "geo": {
+         "type": "Point",
+         "coordinates": [
+           -93.24565,
+           44.85466
+         ]
+       }
+     }
+   }
+
+The following code creates a geospatial ``2dsphere`` index on the
+``location.geo`` field in the ``sample_mflix.theaters`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/indexes.rs
+      :start-after: begin-geo
+      :end-before: end-geo
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: console
+      :visible: false
+
+      Created index:
+      location.geo_"2dsphere"
+
+.. _rust-unique:
+
+Unique Indexes
+~~~~~~~~~~~~~~
+
+A unique index ensures that the indexed fields do not store duplicate
+values. By default, MongoDB creates a unique, single field index on the
+``_id`` field when you create a collection.
+
+To create a unique index, specify the field or combination of fields
+that you want to maintain uniqueness for and set the ``unique`` option
+to ``true``.
+
+Example
+```````
+
+The following code shows how to set the ``unique`` field to ``true`` in an
+``IndexOptions`` instance and pass these options when creating an
+``IndexModel``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes.rs
+   :start-after: begin-unique
+   :end-before: end-unique
+   :language: rust
+   :dedent:
+
+.. _rust-remove-index:
+
+Remove an Index
+---------------
+
+You can remove, or drop, any indexes from a collection except the
+default unique index on the ``_id`` field. To remove an index, pass the
+name of the index to the ``drop_index()`` method.
+
+.. tip:: Remove All Indexes
+   
+   You can remove all the indexes on a collection except for the
+   ``_id`` index at once by using the ``drop_indexes()`` method.
+
+The following example removes an index called ``city_1`` from the
+``sample_training.zips`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes.rs
+   :start-after: begin-drop
+   :end-before: end-drop
+   :language: rust
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn more about designing data models and creating appropriate
+indexes for your application, see :manual:`Indexing Strategies
+</applications/indexes>` and :manual:`Operational Factors and Data
+Models </core/data-model-operations>` in the Server manual.
+
+To learn about performing read operations, see the guides in the
+:ref:`rust-crud-read-operations` category.
+
+To learn more about the concepts mentioned in this guide, see the
+following Server documentation:
+
+- :manual:`Single Field Indexes </core/index-single>`
+- :manual:`TTL Indexes </core/index-ttl>`
+- :manual:`Compound Indexes </core/index-compound>`
+- :manual:`Multikey Indexes </core/index-multikey>`
+- :manual:`Text Indexes </core/index-text>`
+- :manual:`Compound Text Indexes </core/indexes/index-types/index-text/#compound-text-indexes>`
+- :manual:`Geospatial Queries </geospatial-queries/>`
+- :manual:`GeoJSON Objects </reference/geojson>`
+- :manual:`Unique Indexes </core/index-unique>`
+- :manual:`Clustered Collections </core/clustered-collections/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `create_index() <{+api+}/struct.Collection.html#method.create_index>`__
+- `create_indexes() <{+api+}/struct.Collection.html#method.create_indexes>`__
+- `IndexModel <{+api+}/struct.IndexModel.html>`__
+- `IndexOptions <{+api+}/options/struct.IndexOptions.html>`__
+- `ClusteredIndex <{+api+}/options/struct.ClusteredIndex.html>`__
+- `CreateCollectionOptions <{+api+}/options/struct.CreateCollectionOptions.html>`__
+- `drop_index() <{+api+}/struct.Collection.html#method.drop_index>`__
+- `drop_indexes() <{+api+}/struct.Collection.html#method.drop_indexes>`__
