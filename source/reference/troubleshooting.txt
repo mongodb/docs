@@ -841,3 +841,52 @@ following command to remove it:
 .. code-block:: sh
 
    kubectl delete deployment/enterprise-operator
+
+.. _troubleshooting-automatic-recovery:
+
+Recover Resource Due to Broken Automation Configuration 
+-------------------------------------------------------
+
+If a custom resource remains in a ``Pending`` or ``Failed`` state
+for a longer period of time, |k8s-op-short| automatically recovers 
+your ``MongoDB`` resources by pushing the :opsmgr:`automation configuration 
+</reference/cluster-configuration>` to |onprem|. This prevents a deadlock 
+when the MongoDB Agent can't push an updated automation configuration change 
+because the StatefulSet is stuck in a ``Pending`` state due to a previous 
+push of an invalid automation configuration.
+
+To configure automatic recovery, define the following environmental variables
+in your :github:`mongodb-enterprise.yaml 
+</mongodb/mongodb-enterprise-kubernetes/blob/master/mongodb-enterprise.yaml>`
+file:
+
+- :ref:`MDB_AUTOMATIC_RECOVERY_ENABLE <mdb-automatic-recovery-enable>`
+  to enable or disable automatic recovery for ``MongoDB`` resources per Pod. 
+
+- :ref:`MDB_AUTOMATIC_RECOVERY_BACKOFF_TIME_S <mdb-automatic-backoff-time-s>` 
+  to set the number of seconds that a custom resource can remain in a ``Pending`` or 
+  ``Failed`` state before the |k8s-op-short| automatically recovers your 
+  ``MongoDB`` resources.
+
+.. example::
+
+   .. code-block:: yaml
+      :linenos:
+
+      spec:
+        template:
+           spec:
+              serviceAccountName: mongodb-enterprise-operator
+              containers:
+                - name: mongodb-enterprise-operator
+                  image: <operatorVersionUrl>
+                  imagePullPolicy: <policyChoice>
+                  env:
+                   - name: MDB_AUTOMATIC_RECOVERY_ENABLE
+                     value: true
+                   - name: MDB_AUTOMATIC_RECOVERY_BACKOFF_TIME_S
+                     value: 1200
+
+To learn how to define environment variables, see 
+:k8sdocs:`Define Environment Variables for a Container 
+</tasks/inject-data-application/define-environment-variable-container>`.
