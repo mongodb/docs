@@ -1,3 +1,5 @@
+// Runs bulk write operations on a collection by using the Java driver
+
 package usage.examples;
 
 import java.util.Arrays;
@@ -22,33 +24,36 @@ public class BulkWrite {
         String uri = "<connection string uri>";
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
-
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("movies");
 
             try {
+                // Runs a bulk write operation for the specified insert, update, delete, and replace operations
                 BulkWriteResult result = collection.bulkWrite(
                         Arrays.asList(
                                 new InsertOneModel<>(new Document("name", "A Sample Movie")),
                                 new InsertOneModel<>(new Document("name", "Another Sample Movie")),
                                 new InsertOneModel<>(new Document("name", "Yet Another Sample Movie")),
+
                                 new UpdateOneModel<>(new Document("name", "A Sample Movie"),
                                         new Document("$set", new Document("name", "An Old Sample Movie")),
                                         new UpdateOptions().upsert(true)),
+
                                 new DeleteOneModel<>(new Document("name", "Yet Another Sample Movie")),
+
                                 new ReplaceOneModel<>(new Document("name", "Yet Another Sample Movie"),
                                         new Document("name", "The Other Sample Movie").append("runtime",  "42"))
                                 ));
-
+                // Prints the number of inserted, updated, and deleted documents
                 System.out.println("Result statistics:" +
                         "\ninserted: " + result.getInsertedCount() +
                         "\nupdated: " + result.getModifiedCount() +
                         "\ndeleted: " + result.getDeletedCount());
 
+            // Prints a message if any exceptions occur during the operations
             } catch (MongoException me) {
                 System.err.println("The bulk write operation failed due to an error: " + me);
             }
         }
     }
 }
-

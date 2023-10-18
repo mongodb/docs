@@ -1,3 +1,5 @@
+// Deletes a document from a collection by using the Java driver
+
 package usage.examples;
 
 import static com.mongodb.client.model.Filters.eq;
@@ -26,12 +28,14 @@ public class DeleteOne {
             Bson query = eq("title", "The Garbage Pail Kids Movie");
 
             try {
+                // Deletes the first document that has a "title" value of "The Garbage Pail Kids Movie"
                 DeleteResult result = collection.deleteOne(query);
                 System.out.println("Deleted document count: " + result.getDeletedCount());
+
+            // Prints a message if any exceptions occur during the operation
             } catch (MongoException me) {
                 System.err.println("Unable to delete due to an error: " + me);
             }
         }
     }
 }
-

@@ -1,3 +1,5 @@
+// Runs a database command by using the Java driver
+
 package usage.examples;
 
 import org.bson.BsonDocument;
@@ -23,8 +25,14 @@ public class RunCommand {
 
             try {
                 Bson command = new BsonDocument("dbStats", new BsonInt64(1));
+
+                // Retrieves statistics about the specified database
                 Document commandResult = database.runCommand(command);
+                
+                // Prints the database statistics
                 System.out.println("dbStats: " + commandResult.toJson());
+                
+            // Prints a message if any exceptions occur during the command execution
             } catch (MongoException me) {
                 System.err.println("An error occurred: " + me);
             }
