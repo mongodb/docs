@@ -18,7 +18,8 @@
 
 - .. include:: /includes/fact-live-migration-host-alerts.rst
 
-- :manual:`Time-series collections </core/timeseries-collections/>` are not supported.
+- :manual:`Time series collections </core/timeseries-collections/>` are not supported.
+  The migration process skips any time series collections on the source {+cluster+}.
 - Clustered collections with :manual:`expireAfterSeconds </reference/method/db.createCollection/#std-label-db.createCollection.expireAfterSeconds>`
   set aren't supported.
 - :manual:`convertToCapped </reference/command/convertToCapped/#mongodb-dbcommand-dbcmd.convertToCapped>`
