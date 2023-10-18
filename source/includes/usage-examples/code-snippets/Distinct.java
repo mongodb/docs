@@ -1,3 +1,5 @@
+// Retrieves distinct values of a field by using the Java driver
+
 package usage.examples;
 
 import org.bson.Document;
@@ -17,17 +19,20 @@ public class Distinct {
         String uri = "<connection string uri>";
 
         try (MongoClient mongoClient = MongoClients.create(uri)) {
-
             MongoDatabase database = mongoClient.getDatabase("sample_mflix");
             MongoCollection<Document> collection = database.getCollection("movies");
 
             try {
+                // Retrieves the distinct values of the "year" field present in documents that match the filter
                 DistinctIterable<Integer> docs = collection.distinct("year", Filters.eq("directors", "Carl Franklin"), Integer.class);
                 MongoCursor<Integer> results = docs.iterator();
 
+                // Prints the distinct "year" values
                 while(results.hasNext()) {
                     System.out.println(results.next());
                 }
+
+            // Prints a message if any exceptions occur during the operation
             } catch (MongoException me) {
                 System.err.println("An error occurred: " + me);
             }
