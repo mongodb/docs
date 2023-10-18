@@ -1,4 +1,7 @@
-- Upgrade the source {+cluster+} to MongoDB 4.4 or later.
+- While the :ref:`supported migration paths <lm-upgrade-path>` allow you
+  to migrate from a source {+cluster+} on MongoDB 4.0 or 4.2 to a {+cluster+}
+  in |service|, we highly recommend that before you use this procedure,
+  you upgrade the source {+cluster+} to MongoDB 4.4 or later.
 - :ref:`Create an Atlas Account <create-atlas-account>`.
 - :ref:`Create an Atlas organization <create-organization>` and
   then :ref:`create a project <create-project>` in this organization.
