@@ -10,7 +10,7 @@ a three member replica set:
 
    - Write\ :sub:`prev` is the previous write before Write\ :sub:`0`.
 
-   - No other writes have occured after Write\ :sub:`0`. 
+   - No other writes have occurred after Write\ :sub:`0`. 
 
 .. figure:: /images/read-concern-write-timeline.svg
    :alt: Timeline of a write operation to a three member replica set.
