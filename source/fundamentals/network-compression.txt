@@ -1,0 +1,116 @@
+.. _golang-network-compression:
+
+===================
+Network Compression
+===================
+
+In this guide, you can learn how to enable **network compression** by using
+the {+driver-short+}. You can specify a client option to compress messages,
+which reduces the amount of data passed over the network between MongoDB and
+your application.
+
+The {+driver-short+} supports the following compression algorithms:
+
+1. `Snappy <https://google.github.io/snappy/>`__: available in MongoDB 3.4 and later.
+
+2. `Zlib <https://zlib.net/>`__: available in MongoDB 3.6 and later.
+
+3. `Zstandard <https://github.com/facebook/zstd/>`__: available in MongoDB 4.2 and later.
+
+If you specify multiple compression algorithms, the driver selects the
+first one in the list supported by your MongoDB deployment.
+
+You must add dependencies to use the Snappy or Zstandard compression algorithm.
+For more information, see the :ref:`compression-dependencies` section of this
+guide.
+
+.. _enable-compression:
+
+Specify Compression Algorithms
+------------------------------
+
+You can enable compression for the connection to your MongoDB deployment
+by specifying the algorithms in one of two ways: 
+
+- Set the compression algorithm in your connection string.
+- Set the compression algorithm in a ``ClientOptions`` instance.
+
+.. tabs::
+
+   .. tab:: Connection String
+      :tabid: connection-string
+
+      To enable compression by using the connection string, add the compression
+      algorithm as the value of the ``compressors`` parameter to your connection
+      string. You can specify one or more compression algorithms separated by
+      commas:
+
+      .. code-block:: go
+         :emphasize-lines: 1
+
+            opts := options.Client().ApplyURI("mongodb://localhost:27017/?compressors=snappy,zlib,zstd")
+            client, _ := mongo.Connect(context.TODO(), opts)
+
+   .. tab:: ClientOptions
+      :tabid: mongoclientoptions
+
+      To enable compression by specifying a `ClientOptions
+      <{+api+}/mongo/options#ClientOptions>`__ instance, pass one or more
+      compression algorithms to the ``SetCompressors()`` method as a string
+      array:
+
+      .. code-block:: go
+         :emphasize-lines: 1
+
+            opts := options.Client().SetCompressors([]string{"snappy", "zlib", "zstd"})
+            client, _ := mongo.Connect(context.TODO(), opts)
+
+Specify compression algorithms by using the following strings:
+
+- ``"snappy"`` for `Snappy <https://google.github.io/snappy/>`__ compression
+- ``"zlib"`` for `Zlib <https://zlib.net/>`__ compression
+- ``"zstd"`` for `Zstandard <https://github.com/facebook/zstd/>`__ compression
+
+.. _compression-dependencies:
+
+Compression Algorithm Dependencies
+----------------------------------
+
+To add the Snappy compression algorithm to your application, run the
+following code: 
+
+.. code-block:: bash
+
+   go get github.com/golang/snappy
+
+To add the Zstandard compression algorithm to your application, run the
+following code: 
+
+.. code-block:: bash
+
+   go get -u github.com/klauspost/compress
+
+To add the Zlib compression algorithm to your application, import the built-in
+``zlib`` package. You must add the following import statement to application files
+that instantiate a ``Client`` with Zlib compression:
+
+.. code-block:: go
+
+   import "compress/zlib"
+
+Additional Information
+----------------------
+
+For more information about the concepts in this guide, see the following
+documentation:
+
+- :ref:`golang-connection-uri` in the Connection Guide
+- :manual:`Connection String Compression Options </reference/connection-string/#compression-options>`
+  in the Server manual
+- `The zlib package <https://pkg.go.dev/compress/zlib>`__ Go documentation
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `SetCompressors() <{+api+}/mongo/options#ClientOptions.SetCompressors>`__
+- `ClientOptions <{+api+}/mongo/options#ClientOptions>`__
