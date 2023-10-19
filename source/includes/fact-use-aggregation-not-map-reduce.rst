@@ -2,8 +2,8 @@ An :doc:`aggregation pipeline </core/aggregation-pipeline>` provides
 better performance and usability than a :doc:`map-reduce
 </core/map-reduce>` operation.
 
-Map-reduce operations can be rewritten using :doc:`aggregation pipeline
-operators </meta/aggregation-quick-reference>`, such as
+Map-reduce operations can be rewritten using :ref:`aggregation pipeline
+operators <agg-pipeline-quick-ref>`, such as
 :pipeline:`$group`, :pipeline:`$merge`, and others. 
 
 For map-reduce operations that require custom functionality, MongoDB
