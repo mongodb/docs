@@ -1,5 +1,6 @@
-The following table shows rendered icons and rst syntax for all
-supported icons in snooty:
+
+The following table shows the rst syntax and the rendered icons and 
+for all supported icons in snooty:
 
 .. list-table::
    :header-rows: 1 
