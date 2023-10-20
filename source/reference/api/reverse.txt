@@ -44,13 +44,35 @@ To use the ``reverse`` endpoint:
   You cannot update these options after the sync starts.
 - ``mongosync`` must be in the ``COMMITTED`` state.
 - Source and destination clusters must be MongoDB 6.0 or later.
-- :ref:`Unique indexes <index-type-unique>` on the original source
-  cluster must be formatted properly. If an upgraded cluster has unique
-  indexes that were created in MongoDB 4.2 or earlier, you must
-  :ref:`resync <resync-replica-member>` all of the nodes in the
-  original source cluster before reversing.
+- :ref:`index-type-unique` require proper formatting.  Collections with indexes
+  initially created on MongoDB 4.2 may not have the proper formatting. 
+  
+  To validate that collection indexes use the proper formatting, see
+  :ref:`c2c-validate-unique-index`.
 - .. include:: /includes/fact-reverse-limitation.rst
 - .. include:: /includes/fact-permissions-body.rst
+
+.. _c2c-validate-unique-index:
+
+Validate Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to reverse direction, ``mongosync`` requires that all
+:ref:`unique <index-type-unique>` indexes use the correct formatting. 
+Clusters that began with MongoDB 4.2 or older and were since
+upgraded may include unique indexes that are not properly formatted.
+
+To correct indexes, you can :ref:`resync <resync-replica-member>` all nodes
+in the original source cluster.  If you don't want to resync the cluster, you
+can use the :method:`db.collection.validate` method on each collection to 
+determine whether it contains improperly formatted unique indexes.
+
+.. code-block:: javascript
+
+   db.<collection>.validate()
+
+If the method returns a warning about the unique index, you must
+resync all of the nodes in the original source cluster before reversing sync.
 
 Request
 -------
@@ -99,3 +121,4 @@ entire sync process to copy the original data.
 To view the mapping direction for the synchronization of the source and
 destination clusters, use the :ref:`progress <c2c-api-progress>`
 endpoint and check the ``directionMapping`` object.
+
