@@ -1,6 +1,5 @@
-.. warning:: 
-
-   Icon table last refresh date: 10/18/23
+The following table shows rendered icons and rst syntax for all
+supported icons in snooty:
 
 .. list-table::
    :header-rows: 1 
