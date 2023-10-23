@@ -1,0 +1,91 @@
+.. _concurrent-ref:
+
+===========================================
+Parallelize Query Execution Across Segments
+===========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Learn how to execute each individual Atlas Search query using multiple threads.
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The ``concurrent`` option enables intra-query parallelism. In this mode,
+|fts| utilizes more resources, but improves each individual query
+latency. This feature is only available for :ref:`dedicated search nodes
+<what-is-search-node>`. 
+
+Syntax 
+------
+
+``concurrent`` has the following syntax:
+
+.. code-block:: json
+   :emphasize-lines: 7
+
+   {
+     "$searchMeta"|"$search": {  
+       "index": "<index name>", // optional, defaults to "default"
+       "<operator>": { 
+         <operator-specifications>
+       },
+       "concurrent": true | false,
+       ...
+     }
+   }
+
+Behavior 
+--------
+
+The ``concurrent`` boolean option allows you to request |fts| to
+parallelize query execution across segments, which, in many cases, 
+improves the response time. You can set one of the following values for 
+the ``concurrent`` option:
+ 
+- ``true`` - to request |fts| to run the query multi-threaded 
+- ``false`` - to run the query single-threaded (default)
+
+|fts| provides you control over this behavior on a per-query basis
+to enable concurrent execution only for heavy and long-running queries,
+which minimizes the contention and improves overall query throughput.
+Concurrent execution is especially efficient on large datasets, as there
+is a larger amount of segments. 
+
+Limitation 
+----------
+
+When you run queries with the ``concurrent`` option, |fts| doesn't
+guarantee that each query will be executed concurrently. For example,
+when too many concurrent queries are queued, |fts| 
+might fallback to single-threaded execution.  
+
+Example 
+-------
+
+Consider the following query against the :ref:`sample_mflix.movies 
+<sample-mflix>` collection in the sample data. The query indicates a
+concurrent search for movies that contain the term ``new york`` in the
+``title``. 
+
+.. code-block:: json
+   :copyable: true 
+   :linenos: 
+   :emphasize-lines: 8
+
+   db.movies.aggregate([
+     {
+       "$search": {
+         "text": {
+           "path": "title",
+           "query": "new york"
+         },
+         "concurrent": true
+       }
+     }
+   ])
