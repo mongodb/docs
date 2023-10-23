@@ -78,6 +78,10 @@
      - :icon-fa5:`check`
      - 
 
+   * - |service| Kubernetes Operator 
+     - :icon-fa5:`check`
+     - :icon-fa5:`check` [#govcloud-aks-provider]_
+
    * - MongoDB Charts
      - :icon-fa5:`check`
      - 
@@ -100,3 +104,7 @@
 
    |cloudgov-short| backups for |aws-fr-high| deployments are stored 
    in |aws-fr-high| regions.
+
+.. [#govcloud-aks-provider]
+
+   |service| Kubernetes Operator is available on |aws| only.
