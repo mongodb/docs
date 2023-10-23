@@ -83,6 +83,9 @@ node in the |service| cluster. The ``mongot`` process:
    :alt: Atlas Search architecture 
    :figwidth: 100%
 
+Stored Source Architecture 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 If you define :ref:`stored source <fts-stored-source-definition>` 
 fields in your |fts| index, the ``mongot`` process stores the 
 specified fields and, for matching documents, returns the stored fields 
@@ -94,8 +97,54 @@ database if you specify the :ref:`returnStoredSource Option
    :alt: Atlas Search stored source architecture 
    :figwidth: 100%
 
+.. _what-is-search-node:
+
+Search Nodes Architecture 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For dedicated (``M10`` or higher) |service| {+clusters+} on |aws|,
+you can deploy separate search nodes that run only the  ``mongot``
+process for workload isolation. Deploying separate search nodes provides
+the following benefits: 
+
+- Scales storage independent of MongoDB {+cluster+}. 
+- Scales query load independent of MongoDB.
+
+When you deploy separate search nodes, the ``mongot`` processes run on
+separate search nodes that you can configure independently. 
+
+.. image:: /images/fts-search-nodes-architecture.png
+   :alt: Atlas Search separate search nodes architecture 
+   :figwidth: 50%
+
+You can configure search nodes to run the ``mongot`` process separately
+from the database nodes that run the ``mongod`` process on your
+|service| {+cluster+}. You can also configure the number of search nodes
+and the amount of resources provisioned for each search node. 
+
+You can configure search nodes for only single-region |aws|
+{+clusters+}. You can't deploy search nodes separately for
+:ref:`serverless <create-new-serverless-instance>` or :ref:`multi-cloud 
+<create-cluster-multi-region>` {+clusters+}. To learn more
+about deploying search nodes separately, see
+:ref:`configure-search-nodes`. To deploy the search nodes from the UI or  
+|api|, see :ref:`create-new-cluster`.
+
+When you deploy separate search nodes, |service| automatically assigns a
+``mongod`` for each ``mongot``. The ``mongot`` communicates with
+the ``mongod`` to listen for and sync index changes for the indexes that
+it stores. 
+
+If you delete all the search nodes on your {+cluster+}, there will be a
+brief interruption in processing your search query results. To learn
+more, see :ref:`Modify a Cluster <scale-cluster-cloud-provider>`. If you 
+delete your |service| {+cluster+}, |service| pauses and then  deletes
+all associated |fts| deployments (``mongot`` processes).
+
+.. _fts-about-indexing:
+
 |fts| Indexes
-~~~~~~~~~~~~~
+-------------
 
 .. include:: /includes/facts/fts-index-description.rst
 
@@ -169,7 +218,7 @@ After you set up an |fts| index for a collection, you can run queries
 against the indexed fields.
 
 |fts| Queries 
-~~~~~~~~~~~~~
+-------------
 
 |fts| queries take the form of an :manual:`aggregation pipeline stage 
 </aggregation>`. |fts| provides :pipeline:`$search` and 
@@ -218,6 +267,17 @@ IDs and other search metadata for the matching results to ``mongod``.
 The ``mongod`` then performs a full document lookup implicitly for the 
 matching results and returns the results to the client. 
 
+*If you deployed separate search nodes*, when you run a query, the query
+first goes to the MongoDB process based on the :ref:`configured read
+preference <replica-set-tags>`. The ``mongod`` process routes the search
+query through a load balancer on the same node, which distributes the 
+requests across all of the ``mongot`` processes. The |fts| ``mongot``
+process performs the search and scoring and returns the matching results
+to ``mongod``, which ``mongod`` then returns to the client. If you use the
+:pipeline:`$search` :ref:`concurrent <concurrent-ref>` option in your
+query, |fts| enables intra-query parallelism. To learn more, see
+:ref:`concurrent-ref`. 
+
 |fts| associates a relevance-based score with every document in the 
 result set. The relevance-based scoring allows |fts| to return documents
 in the order from the highest score to the lowest. |fts| scores documents 
@@ -226,6 +286,17 @@ the query term appears across many documents in the collection. |fts|
 also supports customizing the relevance-based default score by 
 boosting, decaying, or other modifying options. To learn more about
 customizing the resulting scores, see :ref:`scoring-ref`.
+
+.. _fts-search-node-costs:
+
+Search Nodes Cost 
+-----------------
+
+MongoDB supports separate search nodes on single-region |aws| dedicated
+(``M10`` or higher) {+clusters+} only. Search nodes are deployed on
+compute-intensive NVMe instances (c6gd). You must deploy a minimum of
+two nodes. You will be billed daily for hourly resource usage per node. 
+To learn more, see :ref:`Search Node Costs <fts-search-node-costs>`.
 
 Next Steps 
 ----------
