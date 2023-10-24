@@ -1,0 +1,458 @@
+
+===============
+MongoSQL Errors
+===============
+
+This document describes the errors in the MongoDB MongoSQL Compiler.
+More specifically, this document explains error codes, error meanings,
+common causes for each error, and error resolutions (if self-correctable).
+Each error type (schema, parser, and algebrizer) is detailed in separate sections.
+
+Error Codes Beginning With "1" Overview
+---------------------------------------
+
+The following errors occur when something goes wrong while handling the schema of the data source (collection) that the SQL query is querying data from.
+These errors often occur when you use data types in an incorrect or invalid way.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Error Code
+     - Error Description
+   * - `Error 1001 <#error-1001>`__
+     - A function (Sin, Abs, Round) has the incorrect number of arguments.
+   * - `Error 1002 <#error-1002>`__
+     - The specified operation (Sub, And, Substring) has argument(s) of the incorrect type (string, int).
+   * - `Error 1003 <#error-1003>`__
+     - The argument provided to the aggregation is not of a type that is comparable to itself.
+   * - `Error 1004 <#error-1004>`__
+     - ``COUNT(DISTINCT *)`` is not supported.
+   * - `Error 1005 <#error-1005>`__
+     - The specified comparison operation (Lte, Between) could not be done due to incomparable types of their operands (comparing an int to a string).
+   * - `Error 1007 <#error-1007>`__
+     - A field cannot be accessed because it cannot be found (and likely doesn't exist).
+   * - `Error 1008 <#error-1008>`__
+     - The cardinality of a subquery's result set may be greater than 1. The result set MUST have a cardinality of 0 or 1.
+   * - `Error 1010 <#error-1010>`__
+     - Cannot sort by the specified key because it is of a type that can't be compared against itself.
+   * - `Error 1011 <#error-1011>`__
+     - Cannot group by the specified key because it is of a type that can't be compared against itself.
+   * - `Error 1014 <#error-1014>`__
+     - UNWIND INDEX name conflicts with existing field name.
+   * - `Error 1016 <#error-1016>`__
+     - The collection in the specified database could not be found.
+   * - `Error 1017 <#error-1017>`__
+     - Extended JSON detected in comparison operation. MongoSQL does not support direct comparisons with extended JSON. Use casting instead (look at "Resolution Steps" for an example).
+
+
+Error Codes Beginning With "2" Overview
+---------------------------------------
+
+The following errors occur when something goes wrong while parsing (interpreting) the SQL query.
+This type of error means that the query syntax is not valid and therefore the query cannot be parsed and consequently fails.
+The SQL query has to be amended in order to overcome a parsing error.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Error Code
+     - Error Description
+   * - `Error 2000 <#error-2000>`__
+     - This error is a catch-all for every parser error except unrecognized token.
+   * - `Error 2001 <#error-2001>`__
+     - An unexpected or unrecognized token was encountered.
+
+
+Error Codes Beginning With "3" Overview
+---------------------------------------
+
+The following errors occur when something goes wrong while converting the SQL query to MQL, such as incorrect argument counts or failing to find a field reference or data source.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Error Code
+     - Error Description
+   * - `Error 3002 <#error-3002>`__
+     - A SELECT list with multiple values cannot contain a non-namespaced ``*`` (i.e., ``SELECT a, *, b FROM myTable`` is not supported). A non-namespaced ``*`` must be used by itself.
+   * - `Error 3004 <#error-3004>`__
+     - The array data source contains an identifier. Array data sources must be constant.
+   * - `Error 3005 <#error-3005>`__
+     - SELECT DISTINCT is not allowed.
+   * - `Error 3006 <#error-3006>`__
+     - Distinct UNION is not allowed.
+   * - `Error 3007 <#error-3007>`__
+     - A data source referenced in the SELECT list could not be found.
+   * - `Error 3008 <#error-3008>`__
+     - A field could not be found in any data source.
+   * - `Error 3009 <#error-3009>`__
+     - A field exists in multiple data sources and is ambiguous.
+   * - `Error 3010 <#error-3010>`__
+     - The * argument is only valid in the COUNT aggregate function.
+   * - `Error 3012 <#error-3012>`__
+     - A scalar function was used in an aggregation position.
+   * - `Error 3013 <#error-3013>`__
+     - A non-aggregation expression was found in a GROUP BY aggregation function list.
+   * - `Error 3014 <#error-3014>`__
+     - Aggregation functions must have exactly one argument.
+   * - `Error 3015 <#error-3015>`__
+     - Scalar functions don't support DISTINCT.
+   * - `Error 3016 <#error-3016>`__
+     - A derived data source has overlapping fields.
+   * - `Error 3019 <#error-3019>`__
+     - An OUTER JOIN is missing a JOIN condition. OUTER JOINs must specify a JOIN condition.
+   * - `Error 3020 <#error-3020>`__
+     - A schema environment could not be created due to a duplicate field.
+   * - `Error 3022 <#error-3022>`__
+     - Subquery expressions must have a degree of 1.
+   * - `Error 3023 <#error-3023>`__
+     - A document has multiple fields with the same name.
+   * - `Error 3024 <#error-3024>`__
+     - The same FLATTEN option is defined more than once.
+   * - `Error 3025 <#error-3025>`__
+     - Schema information is insufficient to allow for flattening the data source.
+   * - `Error 3027 <#error-3027>`__
+     - The same UNWIND option is defined more than once.
+   * - `Error 3028 <#error-3028>`__
+     - UNWIND is missing the path option. UNWIND must specify a PATH option.
+   * - `Error 3030 <#error-3030>`__
+     - The target type of the CAST is an invalid type (i.e., it's either an unknown type or a type that MongoSQL does not support casting for).
+
+
+Error 1001
+~~~~~~~~~~
+
+
+* **Description:** A function (Sin, Abs, Round) has the incorrect number of arguments.
+* **Common Causes:** A function has an extra argument or is missing one. For example, in ``SELECT ROUND(a,1,5) FROM foo``
+  where ``a`` is an ``int``\ , ROUND has an extra argument.
+* **Resolution Steps:** The error message lets you know which function has the wrong number of arguments and how much
+  it should have. Use this information to correct your query. Corrected example query: ``SELECT ROUND(a,1) FROM foo``.
+
+Error 1002
+~~~~~~~~~~
+
+
+* **Description:** The specified operation (Sub, And, Substring) has argument(s) of the incorrect type (string, int).
+* **Common Causes:** A field of the wrong type was mistakenly used in the specified function. For example, ``SELECT ROUND(str,5) FROM foo``
+  where ``str`` is a string causes this error.
+* **Resolution Steps:** The error message lets you know which function has the wrong type and what the expected type is.
+  Use this information to correct your query. Corrected example query: ``SELECT ROUND(a,5) FROM foo`` where ``a`` is an ``int``.
+
+Error 1003
+~~~~~~~~~~
+
+
+* **Description:** The argument provided to the aggregation is not of a type that is comparable to itself.
+* **Common Causes:** The column you are attempting to aggregate on is either of type ``object`` or ``array`` which are not types comparable to themselves.
+    For example, ``SELECT * FROM myCol GROUP BY a AGGREGATE MIN(obj) as min`` where ``obj`` is an ``object`` throws this error.
+* **Resolution Steps:** Only use AGGREGATE functions on columns of the appropriate type.
+  If you want to AGGREGATE on a value within an ``array`` or ``object``\ , use the UNWIND or FLATTEN data source keywords.
+  Corrected example query: ``SELECT * FROM myCol GROUP BY a AGGREGATE MIN(a) as min`` where ``a`` is an ``int``.
+
+Error 1004
+~~~~~~~~~~
+
+
+* **Description:** ``COUNT(DISTINCT *)`` is not supported.
+* **Common Causes:** Any use of ``COUNT(DISTINCT *)`` (\ ``SELECT COUNT(DISTINCT *) FROM foo``\ ) doesn't work.
+* **Resolution Steps:** Remove any use of ``COUNT(DISTINCT *)`` from your queries.
+
+Error 1005
+~~~~~~~~~~
+
+
+* **Description:** The specified comparison operation (Lte, Between) could not be done due to incomparable types of their operands (comparing an int to a string).
+* **Common Causes:** Fields of two different types were used in the specified comparison operation. For example, ``SELECT * FROM foo WHERE a <= b`` where
+  ``a`` is an ``int`` and ``b`` is a ``string``. Additionally, keep in mind that ``objects`` and ``arrays`` aren't comparable types and can't be used in comparison operations.
+* **Resolution Steps:** The error message lets you know which comparison operation has conflicting types.
+  Use this information to correct your query. Corrected example query: ``SELECT * FROM foo WHERE a1 <= a2`` where
+  ``a1`` and ``a2`` are ``int``\ 's.
+
+Error 1007
+~~~~~~~~~~
+
+
+* **Description:** A field cannot be accessed because it cannot be found (and likely doesn't exist).
+* **Common Causes:** You are attempting to access a field that doesn't exist, likely due to a typo. For example,
+  you may be doing something like ``SELECT foo.f FROM foo`` where ``f`` is a non-existent field.
+* **Resolution Steps:** Since this error is likely to arise due to a typo, the error message suggests similar fields
+  that you may have meant to put. However, if nothing similar is found, MongoSQL doesn't suggest anything.
+  Use this information to correct your query. Corrected example query: ``SELECT foo.a FROM foo`` where ``a`` exists as ``a`` field of ``foo``.
+
+Error 1008
+~~~~~~~~~~
+
+
+* **Description:** The cardinality of a scalar subquery's result set may be greater than 1. The result set MUST have a cardinality of 0 or 1.
+* **Common Causes:** Your scalar subquery may return more than 1 document (or row in SQL). For example, ``SELECT (SELECT a FROM foo) FROM bar`` causes this error
+  because ``(SELECT a FROM foo)`` could return more than 1 document (or row).
+* **Resolution Steps:** Add a ``LIMIT 1`` to your subquery to ensure that only 1 document/row is returned. Correct example query: ``SELECT (SELECT a FROM foo LIMIT 1) FROM bar``.
+
+Error 1010
+~~~~~~~~~~
+
+
+* **Description:** Cannot sort by the specified key because it is of a type that can't be compared against itself.
+* **Common Causes:** The column you are attempting to sort on is either of type ``object`` or ``array`` which are not types comparable to themselves. For example,
+  ``SELECT * FROM foo ORDER BY obj`` where ``obj`` is an ``object`` throws this error.
+* **Resolution Steps:** Only sort on columns of the appropriate type.
+  If you want to sort on a value within an ``array`` or ``object``\ , use the UNWIND or FLATTEN data source keywords.
+  Corrected example query: ``SELECT * FROM foo ORDER BY a`` where ``a`` is an ``int``.
+
+Error 1011
+~~~~~~~~~~
+
+
+* **Description:** Cannot group by the specified key because it is of a type that can't be compared against itself.
+* **Common Causes:** The column you are attempting to group by is either of type ``object`` or ``array`` which are not types comparable to themselves. For example,
+  ``SELECT * FROM foo GROUP BY obj`` where ``obj`` is an ``object`` throws this error.
+* **Resolution Steps:** Only group by columns of the appropriate type.
+  If you want to group by a value within an ``array`` or ``object``\ , use the UNWIND or FLATTEN data source keywords.
+  Corrected example query: ``SELECT * FROM foo ORDER BY a`` where ``a`` is an ``int``.
+
+Error 1014
+~~~~~~~~~~
+
+
+* **Description:** UNWIND INDEX name conflicts with existing field name.
+* **Common Causes:** INDEX name is the same as a field. For example, if collection ``foo`` has a field ``b``\ , then the
+  query ``SELECT * FROM UNWIND(foo WITH PATH => a, INDEX => b)`` would cause this error.
+* **Resolution Steps:** Change the INDEX name to something that is not an existing field.
+  Corrected example query: ``SELECT * FROM UNWIND(foo WITH PATH => a, INDEX => b2)`` where ``b2`` does not exist.
+
+Error 1016
+~~~~~~~~~~
+
+
+* **Description:** The collection in the specified database could not be found.
+* **Common Causes:** You may be looking in the wrong database or have made a type that is causing the collection to not be found.
+  For example, if collection ``baz`` does not exist, the query ``SELECT * FROM baz`` causes this error.
+* **Resolution Steps:** Ensure everything is spelled correctly and that you are looking in the correct database.
+  Corrected example query: ``SELECT * FROM foo`` where ``foo`` exists in the current database.
+
+Error 1017
+~~~~~~~~~~
+
+
+* **Description:** Extended JSON detected in comparison operation. MongoSQL does not support direct comparisons with extended JSON. Use casting instead (look at "Resolution Steps" for an example).
+* **Common Causes:** Using extended JSON in queries and expecting it to implicitly cast to the correct data type. For example, someone may write the query
+  ``select _id from customers where _id = '{"$oid":"5ca4bbcea2dd94ee58162a6a"}'`` because they think the extended JSON string implicitly casts to an ``ObjectID``.
+  However, this is not the case.
+* **Resolution Steps:** Don't use Extended JSON format and always explicitly CAST. The error message tries to recommend what you should do (casting).
+  Corrected example query: ``select _id from customers where _id = CAST('5ca4bbcea2dd94ee58162a6a' as ObjectID)``. This query explicitly casts to an ``ObjectID``.
+
+Error 2000
+~~~~~~~~~~
+
+
+* **Description:** This error is a catch-all for every parser error except unrecognized token.
+* **Common Causes:** This error can mean many different things since it is a catchall error. However, it generally means that some token (keyword) was used incorrectly.
+* **Resolution Steps:** This error can give several different messages, so paying attention to those messages is important. Additionally, it is a good idea to look over
+  the input query to ensure that every clause (as well as the SQL statement as a whole) is written as specified by the guidelines.
+
+Error 2001
+~~~~~~~~~~
+
+
+* **Description:** An unexpected or unrecognized token was encountered.
+* **Common Causes:** Something may have been spelled wrong or put in the wrong order/format. For example, ``SELECT ** FROM foo AS f`` causes this error due to
+  the ``**`` type.
+* **Resolution Steps:** Ensure that everything is spelled correctly and put in the correct order/format. Additionally, this error suggests a list of
+  tokens that you may have meant to put. Corrected example query: ``SELECT * FROM foo AS f``.
+
+Error 3002
+~~~~~~~~~~
+
+
+* **Description:** A SELECT list with multiple values cannot contain a non-namespaced ``*`` (i.e., ``SELECT a, *, b FROM myTable`` is not supported). A non-namespaced ``*`` must be used by itself.
+* **Common Causes:** Selecting ``*`` and anything else in the same query as shown by this query: ``SELECT *, a from foo``.
+* **Resolution Steps:** Either only select ``*`` (i.e., ``SELECT * FROM ...``\ ) or select multiples values and don't include ``*`` (i.e., ``SELECT a, b FROM ...``\ ).
+
+Error 3004
+~~~~~~~~~~
+
+
+* **Description:** The array data source contains references. Array data sources must be constant.
+* **Common Causes:** Accessing a field in an array data source as shown by this query: ``SELECT * FROM [{'a': foo.a}] AS arr``.
+* **Resolution Steps:** Modify your array data source to only contain constants. Corrected example query: ``SELECT * FROM [{'a': 34}] AS arr``.
+
+Error 3005
+~~~~~~~~~~
+
+
+* **Description:** SELECT DISTINCT is not allowed.
+* **Common Causes:** ``SELECT DISTINCT`` was used in a query. For example, the query ``SELECT DISTINCT * from foo`` causes this error.
+* **Resolution Steps:** Don't use ``SELECT DISTINCT`` in a query.
+
+Error 3006
+~~~~~~~~~~
+
+
+* **Description:** Distinct UNION is not allowed. You can only do ``UNION ALL`` (i.e., duplicate values always have to be allowed).
+* **Common Causes:** Using ``UNION`` instead of ``UNION ALL``. For example, the query ``SELECT a FROM foo AS foo UNION SELECT b, c FROM bar AS bar``
+  causes this error.
+* **Resolution Steps:** Only use ``UNION ALL`` when doing unions. Corrected example query: ``SELECT a FROM foo AS foo UNION ALL SELECT b, c FROM bar AS bar``.
+
+Error 3007
+~~~~~~~~~~
+
+
+* **Description:** A data source referenced in the SELECT list could not be found.
+* **Common Causes:** Doing something like ``SELECT <field>.* FROM ...`` where ``<field>`` does not have any subfields. For example, the query ``SELECT a.* FROM foo`` where
+  ``a`` is an ``int`` causes this error.
+* **Resolution Steps:** Remove any field accesses that are trying to access a field that does not exist.
+
+Error 3008
+~~~~~~~~~~
+
+
+* **Description:** A field could not be found in any data source.
+* **Common Causes:** The field is either spelled wrong or doesn't exist, or you're looking in the wrong collection. For example, ``Select aa from foo`` would cause
+  this error if ``aa`` does not exist in collection ``foo``.
+* **Resolution Steps:** Make sure the field is spelled correctly and that you are looking in the correct collection. Additionally, the error message suggests
+  any similar fields you may have meant to write.
+
+Error 3009
+~~~~~~~~~~
+
+
+* **Description:** A field exists in multiple data sources and is ambiguous.
+* **Common Causes:** Two or more fields have the same name in a collection (or some other data source). For example, assuming ``a`` is a field in ``foo``\ ,
+  ``SELECT a FROM foo AS coll JOIN foo AS coll2`` would cause this error because collections ``coll`` and ``coll2`` both have field ``a``\ , causing ``a`` to be ambiguous.
+* **Resolution Steps:** Qualify your references (\ ``<Collection>.<field>`` instead of ``field``\ ). In the above example, ``coll.a`` or ``coll2.a`` would fix this error.
+
+Error 3010
+~~~~~~~~~~
+
+
+* **Description:** The * argument is only valid in the COUNT aggregate function.
+* **Common Causes:** You can only do ``COUNT(*)``\ , so doing something like ``SUM(*)`` causes this error. For example, the query ``SELECT * FROM foo AS arr GROUP BY a AS a AGGREGATE SUM(*) AS gsum``
+  causes this error.
+* **Resolution Steps:** Only use ``*`` as an argument to ``COUNT``.
+
+Error 3012
+~~~~~~~~~~
+
+
+* **Description:** A scalar function was used in an aggregation position.
+* **Common Causes:** Using a scalar function where only an aggregation function can be used. For example, the query ``SELECT * FROM foo GROUP BY a AGGREGATE round(a) AS round``
+  causes this error because ``round`` is a scalar function.
+* **Resolution Steps:** Remove scalar functions in places where you can only have aggregation functions.
+
+Error 3013
+~~~~~~~~~~
+
+
+* **Description:** A non-aggregation expression was found in a GROUP BY aggregation function list.
+* **Common Causes:** Putting anything other than an aggregation or scalar function where an aggregation should be. (Using a scalar function in place of an aggregation causes a different error: Error 3012).
+  For example, the query ``SELECT * FROM foo GROUP BY a AGGREGATE COUNT(*) + 7 AS whatever`` causes this error because there is an addition operation along with an aggregation instead of just an aggregation.
+* **Resolution Steps:** Only use aggregations in places where aggregations are allowed. Corrected example query: ``SELECT * FROM foo GROUP BY a AGGREGATE COUNT(*) AS whatever``.
+
+Error 3014
+~~~~~~~~~~
+
+
+* **Description:** Aggregation functions must have exactly one argument.
+* **Common Causes:** An aggregation function has more than one argument. For example, the query ``SELECT * FROM foo GROUP BY a AGGREGATE min(a,b) AS min`` causes this error
+  because it provides two arguments for the ``min`` aggregation.
+* **Resolution Steps:** Make sure your aggregations only have one argument. Remove any additional arguments. Corrected example query: ``SELECT * FROM foo GROUP BY a AGGREGATE min(b) AS min``.
+
+Error 3015
+~~~~~~~~~~
+
+
+* **Description:** Scalar functions don't support DISTINCT.
+* **Common Causes:** Using ``DISTINCT`` in a scalar function. For example, the query ``SELECT ROUND(DISTINCT a,2) FROM foo`` causes this error.
+* **Resolution Steps:** Don't use ``DISTINCT`` in scalar functions. ``DISTINCT`` should only be used in aggregation functions. Corrected example query: ``SELECT ROUND(a,2) FROM foo``.
+
+Error 3016
+~~~~~~~~~~
+
+
+* **Description:** A derived data source has overlapping fields.
+* **Common Causes:** When multiple data sources in a subquery have fields of the same name, this happens. For example, assuming collection ``bar`` and collection ``foo`` have
+  fields of the same name, then the query ``SELECT * FROM (SELECT * FROM foo AS foo, bar AS bar) AS derived`` causes this error.
+* **Resolution Steps:** Essentially, you need to make the selected fields that have the same names have unique names.
+  A simple way to accomplish this is by aliasing a unique name for the fields with the same name. Using this technique,
+  here is our corrected example query: ``SELECT * FROM (SELECT a, b, c, ..., z, FROM foo, a AS bar_a, b AS bar_b, c AS bar_c, ..., z AS bar_z FROM bar) AS derived``.
+
+Error 3019
+~~~~~~~~~~
+
+
+* **Description:** An OUTER JOIN is missing a JOIN condition. OUTER JOINs must specify a JOIN condition.
+* **Common Causes:** OUTER JOIN missing a JOIN condition. For example, the query ``SELECT * FROM foo AS foo LEFT OUTER JOIN bar`` causes this error because it is missing the
+  ``ON <condition>`` part.
+* **Resolution Steps:** Add a JOIN condition (i.e., ``ON <condition>``\ ). Corrected example query: ``SELECT * FROM foo AS foo LEFT OUTER JOIN bar ON a = a``.
+
+Error 3020
+~~~~~~~~~~
+
+
+* **Description:** A schema environment could not be created due to a duplicate field.
+* **Common Causes:** Multiple collections have the same alias. For example, the query ``SELECT * FROM foo AS alias, bar AS alias`` causes this error.
+* **Resolution Steps:** Make sure aliases are unique for collections. Corrected example query: ``SELECT * from foo as foo_alias, bar as bar_alias``.
+
+Error 3022
+~~~~~~~~~~
+
+
+* **Description:** Scalar subquery expressions must have a degree of 1.
+* **Common Causes:** Selecting more than one field (or column in sql) in a scalar subquery expression. For example, the query ``SELECT (SELECT * FROM foo LIMIT 1) FROM bar AS bar``
+  causes this error because the subquery is doing ``SELECT *``\ , so it is selecting multiple fields.
+* **Resolution Steps:** Modify your subquery so that you are only selecting a single field. Corrected example query: ``SELECT (SELECT a FROM foo LIMIT 1) FROM bar AS bar``
+
+Error 3023
+~~~~~~~~~~
+
+
+* **Description:** A document has multiple fields with the same name.
+* **Common Causes:** Selecting multiple fields from a collection and giving them the same aliases as shown by the following query: ``SELECT a AS alias, b AS alias FROM foo``.
+* **Resolution Steps:** Change duplicate aliases for fields to unique names. Corrected example query: ``SELECT a as a_alias, b as b_alias FROM foo``.
+
+Error 3024
+~~~~~~~~~~
+
+
+* **Description:** The same FLATTEN option is defined more than once.
+* **Common Causes:** The same option is defined more than once as shown by the following query: ``SELECT * FROM FLATTEN(foo WITH depth => 1, depth => 2)``
+* **Resolution Steps:** Remove any duplicate options to ensure each option is only used once. Corrected example query: ``SELECT * FROM FLATTEN(foo WITH depth => 1)``.
+
+Error 3025
+~~~~~~~~~~
+
+
+* **Description:** Schema information is insufficient to allow for flattening the data source.
+* **Common Causes:** Trying to flatten a collection that doesn't have sufficient schema information. For example, assuming you have a collection called
+  ``noSchemaInfo`` that has no schema defined, then the query ``SELECT * FROM FLATTEN(noSchemaInfo)`` causes this error. Another common cause is trying
+  to flatten a collection with a schema or some field in the schema that has ``additional_properties`` set to true.
+* **Resolution Steps:** Define all fields in the schema to ensure that the schema is sufficiently defined. Additionally, try to avoid setting ``additional_properties`` to true.
+  Instead, choose to fully define the schema.
+
+Error 3027
+~~~~~~~~~~
+
+
+* **Description:** The same UNWIND option is defined more than once.
+* **Common Causes:** The same option is used more than once as shown by the following query: ``SELECT * FROM UNWIND(foo WITH PATH => a, PATH => b)``.
+* **Resolution Steps:** Remove any duplicate options to ensure each option is only used once. Corrected example query: ``SELECT * FROM UNWIND(foo WITH PATH => a)``.
+
+Error 3028
+~~~~~~~~~~
+
+
+* **Description:** UNWIND is missing the PATH option. UNWIND must specify a PATH option.
+* **Common Causes:** UNWIND is missing the PATH option as shown by the erroneous query ``SELECT * FROM UNWIND(foo)``.
+* **Resolution Steps:** Add the PATH option to the UNWIND. Corrected example query: ``SELECT * FROM UNWIND(foo WITH PATH => a)``.
+
+Error 3030
+~~~~~~~~~~
+
+
+* **Description:** The target type of the CAST is an invalid type (i.e., it's either an unknown type or a type that MongoSQL does not support casting for).
+* **Common Causes:** Casting to a type that MongoSQL does not support casting for. For example, the query ``SELECT CAST(a AS DATE) FROM foo``
+    causes this error because ``DATE`` is not a supported target type.
+* **Resolution Steps:** Make sure you only cast to supported target types. Valid target types are ARRAY, DOCUMENT, DOUBLE, STRING, OBJECTID, BOOL, BSON_DATE, INT, LONG, and DECIMAL,
+  or any of their corresponding SQL-92 type aliases: REAL, FLOAT, VARCHAR, CHAR, CHARACTER, CHAR VARYING, CHARACTER VARYING, DEC, NUMERIC, BIT, BOOLEAN, TIMESTAMP, INTEGER, SMALLINT.
+  Corrected example query: ``SELECT CAST(a AS BSON_DATE) FROM foo``.
