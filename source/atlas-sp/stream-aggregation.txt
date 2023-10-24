@@ -41,6 +41,15 @@ The following table lists the {+atlas-sp+} aggregation pipeline stages.
      - Validates the documents of a stream against a user-defined 
        schema.
 
+   * - :ref:`$lookup <stream-agg-pipeline-lookup>`
+     - Performs a left outer join to a specified collection to filter
+       in documents from the "joined" collection for processing.
+     
+       This version of the existing :pipeline:`$lookup` stage requires
+       that you specify a {+service+} collection in the 
+       :ref:`Connection Registry <manage-spi-connection-add>` as the
+       value for the ``from`` field.
+
    * - :pipeline:`$hoppingWindow`
      - Assigns documents from a stream to 
        :ref:`windows <atlas-sp-windows>` with user-defined
@@ -491,6 +500,98 @@ AND operation:
    been removed. Refer to the aforementioned commit for the text rather
    than rewriting the whole section when it's implemented.
 
+.. _stream-agg-pipeline-lookup:
+
+``$lookup``
+-----------
+
+Definition
+~~~~~~~~~~
+
+The :ref:`$lookup <stream-agg-pipeline-lookup>` performs a left outer
+join of the stream of messages from your :pipeline:`$source` to an
+{+service+} collection in your :ref:`Connection Registry <manage-spi-connection-add>`.
+
+A ``$lookup`` pipeline stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$lookup": {
+      "from": {
+        "connectionName": "<registered-atlas-connection>",
+        "db": "<registered-database-name>",
+        "coll": "<atlas-collection-name>"
+      },
+      "localField": "<field-in-source-messages>",
+      "foreignField": "<field-in-from-collection>",
+      "as": "<output-array-field>"
+    }  
+  } 
+
+Fields
+~~~~~~
+
+The ``$lookup`` stage takes a document with the following fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - from
+     - document 
+     - Required 
+     - Document that specifies a collection in an {+service+} database
+       to join to messages from your :pipeline:`$source`. You must 
+       specify a collection from your Connection Registry, and you must
+       identify it with the following fields:
+
+       - ``connectionName``: Name of the connection in your Connection 
+         Registry.
+       - ``db``: Name of the {+service+} database that contains the 
+         collection you want to join.
+       - ``coll``: Name of the collection you want to join.
+
+   * - localField
+     - string
+     - Required 
+     - Field from your ``$source`` messages to join on.
+
+   * - foreignField
+     - string
+     - Required
+     - Field from documents in the ``from`` collection to join on.
+
+   * - as
+     - string
+     - Required
+     - Name of the new array field to add to the input documents. This
+       new array field contains the matching documents from the 
+       ``from`` collection. If the specified name already exists as a 
+       field in the input document, that field is overwritten.
+
+Behavior
+~~~~~~~~
+
+The {+atlas-sp+} version of :ref:`$lookup <stream-agg-pipeline-lookup>` 
+performs a left outer join of messages from your ``$source`` and the 
+documents in a specified {+service+} collection. This version behaves 
+similarly to the :pipeline:`$lookup` stage available in a standard 
+MongoDB database. However, this version requires that you specify an 
+{+service+} collection from your 
+:ref:`Connection Registry <manage-spi-connection-add>` as the value for
+the ``from`` field.
+
+.. warning::
+
+   Using ``$lookup`` to enrich a stream can reduce stream processing
+   speed.
+
 .. _stream-agg-pipeline-hoppingWindow:
 
 ``$hoppingWindow``
@@ -783,14 +884,6 @@ use only one ``$emit`` stage per pipeline.
 
 ``$merge``
 -----------
-
-Definition
-~~~~~~~~~~
-
-A version of the existing :ref:`adf-merge-stage` stage where the value 
-of the ``connectionName`` field must always be the name of a remote 
-collection in the 
-:ref:`Connection Registry <manage-spi-connection-add>`. 
 
 Definition
 ~~~~~~~~~~
