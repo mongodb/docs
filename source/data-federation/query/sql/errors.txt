@@ -1,3 +1,6 @@
+.. NOTE TO WRITERS: Don't edit these files. Docurl pulls the content in automatically from the 10gen/mongosql-rs repo. To make copy edits, change the source files here: https://github.com/10gen/mongosql-rs/tree/master. For rST issues, open a Jira ticket and assign it to Sarah Simpers. 
+
+.. _mongosql-errors: 
 
 ===============
 MongoSQL Errors
@@ -117,6 +120,8 @@ The following errors occur when something goes wrong while converting the SQL qu
      - UNWIND is missing the path option. UNWIND must specify a PATH option.
    * - `Error 3030 <#error-3030>`__
      - The target type of the CAST is an invalid type (i.e., it's either an unknown type or a type that MongoSQL does not support casting for).
+   * - `Error 3034 <#error-3034>`__
+     - A sort key is invalid because it uses complex expressions (i.e., ``ORDER BY {'a': b}.a`` is invalid).
 
 
 Error 1001
@@ -456,3 +461,13 @@ Error 3030
 * **Resolution Steps:** Make sure you only cast to supported target types. Valid target types are ARRAY, DOCUMENT, DOUBLE, STRING, OBJECTID, BOOL, BSON_DATE, INT, LONG, and DECIMAL,
   or any of their corresponding SQL-92 type aliases: REAL, FLOAT, VARCHAR, CHAR, CHARACTER, CHAR VARYING, CHARACTER VARYING, DEC, NUMERIC, BIT, BOOLEAN, TIMESTAMP, INTEGER, SMALLINT.
   Corrected example query: ``SELECT CAST(a AS BSON_DATE) FROM foo``.
+
+Error 3034
+~~~~~~~~~~
+
+
+* **Description:** A sort key is invalid because it uses complex expressions (i.e., ``ORDER BY {'a': b}.a`` is invalid).
+* **Common Causes:** Attempting to ORDER BY complex expressions or "impure" field paths. For example, the query ``SELECT * FROM foo ORDER BY CAST(d AS DOCUMENT).a``
+    causes this error because ``CAST(d AS DOCUMENT)`` is a complex expression.
+* **Resolution Steps:** Make sure you only sort by "pure" field path. A "pure" field path consists only of
+    identifiers, such as ``foo.d.a`` or ``a``.
