@@ -29,4 +29,4 @@ var index = new BsonDocument
   }
 };
 
-guitarsCollection.SearchIndexes.Update("<index-name>", index);
+collection.SearchIndexes.Update("<index-name>", index);
