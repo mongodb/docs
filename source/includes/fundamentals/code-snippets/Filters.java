@@ -65,6 +65,7 @@ public class Filters {
     }
 
     private void equalComparison() {
+        // Prints all documents in a collection that have a "qty" value of "5" as JSON
         // begin equalComparison
         Bson equalComparison = eq("qty", 5);
         collection.find(equalComparison).forEach(doc -> System.out.println(doc.toJson()));
@@ -72,6 +73,7 @@ public class Filters {
     }
 
     private void gteComparison() {
+        // Prints all documents in a collection that have a "qty" value greater than "10" as JSON
         // begin gteComparison
         Bson gteComparison = gte("qty", 10);
         collection.find(gteComparison).forEach(doc -> System.out.println(doc.toJson()));
@@ -79,6 +81,7 @@ public class Filters {
     }
 
     private void orComparison() {
+        // Prints all documents in a collection that have a "qty" value of "8" or a "color" value of "pink" as JSON
         // begin orComparison
         Bson orComparison = or(gt("qty", 8), eq("color", "pink"));
         collection.find(orComparison).forEach(doc -> System.out.println(doc.toJson()));
@@ -86,6 +89,7 @@ public class Filters {
     }
 
     private void emptyComparison() {
+        // Prints all documents in a collection as JSON
         // begin emptyComparison
         Bson emptyComparison = empty();
         collection.find(emptyComparison).forEach(doc -> System.out.println(doc.toJson()));
@@ -93,6 +97,7 @@ public class Filters {
     }
 
     private void allComparison() {
+        // Prints all documents in which the "vendor" field contains all the elements of a list as JSON
         // begin allComparison
         List<String> search = Arrays.asList("A", "D");
         Bson allComparison = all("vendor", search);
@@ -101,6 +106,7 @@ public class Filters {
     }
 
     private void existsComparison() {
+        // Prints documents in which a "qty" field exists and the value is not "5" or "8" as JSON
         // begin existsComparison
         Bson existsComparison = and(exists("qty"), nin("qty", 5, 8));
         collection.find(existsComparison).forEach(doc -> System.out.println(doc.toJson()));
@@ -108,6 +114,7 @@ public class Filters {
     }
 
     private void regexComparison() {
+        // Prints all documents in which the "color" field value starts with "p" as JSON
         // begin regexComparison
         Bson regexComparison = regex("color", "^p");
         collection.find(regexComparison).forEach(doc -> System.out.println(doc.toJson()));
@@ -115,6 +122,7 @@ public class Filters {
     }
 
     private void bitsComparison() {
+        // Prints all documents that contain values in a field called "a" that match the bitmask value of "34"
         // begin bitsComparison
         Bson bitsComparison = bitsAllSet("a", 34);
         collection.find(bitsComparison).forEach(doc -> System.out.println(doc.toJson()));
@@ -129,6 +137,7 @@ public class Filters {
                                             new Position(0, 4),
                                             new Position(0, 0)));
    
+        // Prints documents that contain "coordinates" values that are within the bounds of the polygon passed as the filter parameter
         Bson geoWithinComparison = geoWithin("coordinates", square);
         collection.find(geoWithinComparison).forEach(doc -> System.out.println(doc.toJson()));
         // end geoWithinComparison
@@ -144,6 +153,7 @@ public class Filters {
     private void setupPaintCollection() {
 
         List<Document> filterdata = new ArrayList<>();
+
         String [] p1a = {"A"};
         String [] p2a = {"C", "D"};
         String [] p3a = {"B","A"};

@@ -19,6 +19,7 @@ public class CurrentAPI {
 
     public static void main(String[] args) throws InterruptedException {
         CurrentAPI c = new CurrentAPI();
+
         c.example1();
         c.example2();
 
@@ -29,6 +30,8 @@ public class CurrentAPI {
         MongoClient client = MongoClients.create(URI);
         MongoDatabase db = client.getDatabase(DATABASE);
         MongoCollection<Document> col = db.getCollection(COLLECTION);
+
+        // Prints the first document retrieved from the collection as JSON 
         Document doc = col.find().first();
         System.out.println(doc.toJson());
         // end current-api-example
@@ -36,6 +39,7 @@ public class CurrentAPI {
     }
 
     private void example2() {
+        // Creates a MongoClient that requests write acknowledgement from at least one node
         // start current-api-mongoclientsettings-example
         MongoClientSettings options = MongoClientSettings.builder()
                 .applyConnectionString(new ConnectionString(URI))

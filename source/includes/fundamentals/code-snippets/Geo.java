@@ -46,12 +46,19 @@ public class Geo {
     private void nearExample() {
         // begin findExample
 
-        // code to set up your mongo client ...
+        // Add your MongoClient setup code here
         MongoDatabase database = mongoClient.getDatabase("sample_mflix");
         MongoCollection<Document> collection = database.getCollection("theaters");
+
         Point centralPark = new Point(new Position(-73.9667, 40.78));
+        
+        // Creates a query that matches all locations between 5,000 and 10,000 meters from the specified Point
         Bson query = near("location.geo", centralPark, 10000.0, 5000.0);
+
+        // Creates a projection to include only the "location.address.city" field in the results
         Bson projection = fields(include("location.address.city"), excludeId());
+        
+        // Prints the projected field of the results from the geospatial query as JSON
         collection.find(query)
                 .projection(projection)
                 .forEach(doc -> System.out.println(doc.toJson()));
@@ -62,14 +69,21 @@ public class Geo {
         MongoDatabase database = mongoClient.getDatabase("sample_mflix");
         MongoCollection<Document> collection = database.getCollection("theaters");
         // begin rangeExample
+        // Add your MongoCollection setup code here
 
-        // code to set up your mongo collection ...
+        // Creates a set of points that defines the bounds of a geospatial shape
         Polygon longIslandTriangle = new Polygon(Arrays.asList(new Position(-72, 40),
                 new Position(-74, 41),
                 new Position(-72, 39),
                 new Position(-72, 40)));
+
+        // Creates a projection to include only the "location.address.city" field in the results
         Bson projection = fields(include("location.address.city"), excludeId());
+
+        // Creates a query that matches documents containing "location.geo" values within the specified bounds
         Bson geoWithinComparison = geoWithin("location.geo", longIslandTriangle);
+        
+        // Prints the projected field of the results from the geolocation query as JSON
         collection.find(geoWithinComparison)
                 .projection(projection)
                 .forEach(doc -> System.out.println(doc.toJson()));

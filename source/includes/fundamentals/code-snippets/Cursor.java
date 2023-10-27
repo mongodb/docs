@@ -59,6 +59,7 @@ public class Cursor {
     }
 
     private void forEachIteration(){
+        // Prints the JSON representation of all documents in the collection
         // begin forEachIteration
         FindIterable<Document> iterable = collection.find();
         iterable.forEach(doc -> System.out.println(doc.toJson()));
@@ -66,6 +67,7 @@ public class Cursor {
     }
 
     private void firstExample(){
+        // Prints the first document that matches the query
         // begin firstExample
         FindIterable<Document> iterable = collection.find();
         System.out.println(iterable.first());
@@ -73,6 +75,7 @@ public class Cursor {
     }
 
     private void availableExample(){
+        // Prints the number of query results that are available in the returned cursor
         // begin availableExample
         MongoCursor<Document> cursor = collection.find().cursor();
         System.out.println(cursor.available());
@@ -80,6 +83,7 @@ public class Cursor {
     }
 
     private void explainExample(){
+        // Prints information about your find operation winning execution plan
         // begin explainExample
         Document explanation = collection.find().explain(ExplainVerbosity.EXECUTION_STATS);
         List<String> keys = Arrays.asList("queryPlanner", "winningPlan");
@@ -88,6 +92,7 @@ public class Cursor {
     }
 
     private void intoExample(){
+        // Prints the results of the find operation as a list
         // begin intoExample
         List<Document> results = new ArrayList<>();
         FindIterable<Document> iterable = collection.find();
@@ -97,6 +102,7 @@ public class Cursor {
     }
 
     private void manualIteration(){
+        // Prints the results of the find operation by iterating through a cursor
         // begin manualIteration
         MongoCursor<Document> cursor = collection.find().cursor();
         while (cursor.hasNext()){
@@ -106,6 +112,7 @@ public class Cursor {
     }
 
     private void closeExample(){
+        // Ensures the cursor frees up its resources after printing the documents it retrieved
         // begin closeExample
         MongoCursor<Document> cursor = collection.find().cursor();
         
@@ -120,6 +127,7 @@ public class Cursor {
     }
 
     private void tryWithResourcesExample(){
+        // Frees up a cursor's consumption of resources automatically with a try statement
         // begin tryWithResourcesExample
         try(MongoCursor<Document> cursor = collection.find().cursor()) {
             while (cursor.hasNext()){
@@ -131,6 +139,7 @@ public class Cursor {
 
     public void setupPaintCollection(){
         collection.drop();
+
         collection.insertMany(Arrays.asList(
             new Document("_id", 1).append("color", "red").append("qty", 5), 
             new Document("_id", 2).append("color", "purple").append("qty", 10), 
