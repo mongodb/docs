@@ -1,0 +1,92 @@
+.. _atlas-google-cloud-connections:
+
+====================================
+Manage Connections with {+gcp+}
+====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: google cloud connection
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can interact with your |service| {+database-deployments+} by
+using :gcp:`{+gcp+} Functions 
+</functions/docs/concepts/overview>` and :gcp:`{+gcp+} Run 
+</run/docs/overview/what-is-cloud-run>`.
+
+.. _google-cloud-functions-best-practices:
+
+Best Practices
+~~~~~~~~~~~~~~
+
+Use the following best practices to properly manage connections
+between {+gcp+} functions and |service|:
+
+- Create your Cloud Function with a globally-scoped database connection
+  rather than a function-scoped database connection.
+
+  .. include:: /includes/fact-create-mongoclient-once.rst
+
+  The :ref:`connection example <google-cloud-function-example>` reuses
+  existing database connections to speed up communication with the
+  database and keep connection counts to the database at a reasonable
+  level with respect to application traffic.
+
+  .. include:: /includes/fact-function-sharded.rst
+        
+  To learn more, see :driver:`Connection Options
+  </node/current/fundamentals/connection/connection-options/>`.
+
+- Restrict network access to your |service| cluster.
+  
+  Connect to your |service| cluster over private networking using a
+  :ref:`Network Peering connection <vpc-peering>` 
+  between your |service| cluster and your {+gcp+} function, or,
+  alternatively, a :ref:`private endpoint <private-endpoint-overview>`,
+  so that you can allow only private IP addresses from your
+  :ref:`IP access list <access-list>`.
+
+  If you don't use private networking, consider connecting to your
+  |service| cluster via a :gcp:`NAT gateway </nat/docs/overview>`. Otherwise, you must allow all IP addresses (0.0.0.0/0) to access
+  your |service| cluster.
+
+  .. warning::
+
+     Adding ``0.0.0.0/0`` to your :ref:`IP access list <access-list>`
+     allows cluster access from anywhere in the public internet.
+     Ensure that you're using strong credentials for all database
+     users when allowing access from anywhere.
+
+- Configure concurrency. When you create a new {+gcp+} function: 
+
+  - Select the :guilabel:`2nd gen` environment, which can handle
+    multiple concurrent requests. 2nd gen also reduces the connection load on the server by allowing the function to share a single
+    ``MongoClient`` with many concurrent invocations. 
+  - Increase the concurrency setting to minimize cold starts and
+    improve latency. 
+
+  .. note::
+
+     If you increase the concurrency setting, you may need to
+     increase the CPU for best performance. To learn more, see
+     :gcp:`Concurrency 
+     </functions/docs/configuring/concurrency#console>`.
+  
+.. _google-cloud-function-example:
+
+Google Cloud Connection Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example connects a Node.js {+gcp+} function to an 
+|service| deployment. Replace ``<YOUR-ATLAS-CONNECTION-STRING>`` with
+your |service| connection string.
+
+.. literalinclude:: /includes/google-cloud-function-js.js
+   :language: javascript
+   :copyable:
