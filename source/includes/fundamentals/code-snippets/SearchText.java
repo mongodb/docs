@@ -47,6 +47,7 @@ public class SearchText {
     }
 
     private void termExample(){
+        // Retrieves and prints documents containing the "fast" string in any fields associated with a text index
         // begin termExample
         Bson filter = Filters.text("fast");
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
@@ -54,6 +55,7 @@ public class SearchText {
     }
 
     private void multipleTermExample(){
+        // Retrieves and prints documents containing the "fate 7" string in any fields associated with a text index
         // begin multipleTermExample
         Bson filter = Filters.text("fate 7");
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
@@ -61,6 +63,7 @@ public class SearchText {
     }
     
     private void negateExample(){
+        // Retrieves and prints documents containing the "furious" but not the "fast" string in any fields associated with a text index
         // begin negateExample
         Bson filter = Filters.text("furious -fast");
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
@@ -68,6 +71,7 @@ public class SearchText {
     }
 
     private void phraseExample(){
+        // Retrieves and prints documents containing the "fate of the furious" string in any fields associated with a text index
         // begin phraseExample
         Bson filter = Filters.text("\"fate of the furious\"");
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));

@@ -51,15 +51,21 @@ public class Retrieve {
     }
 
     private void findExample(){
+        //  Creates a filter to match documents that have a "qty" value between 3 and 9
         // begin findExample
         Bson filter = Filters.and(Filters.gt("qty", 3), Filters.lt("qty", 9));
+
+        // Retrieves documents that match the filter and prints them as JSON
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
         // end findExample
     }
 
     private void aggregateExample(){
+        // Creates an empty filter to match all documents in the collection
         // begin aggregateExample
         Bson filter = Filters.empty();
+
+        // Prints the collection's "color" values and each value's frequency in descending frequency order
         collection.aggregate(Arrays.asList(
             Aggregates.match(filter), 
             Aggregates.group("$color", Accumulators.sum("qty", "$qty")),
@@ -69,13 +75,16 @@ public class Retrieve {
     }
 
     private void watchExample(){
+        // Creates instructions to match insert and update operations
         // begin watchExample
         List<Bson> pipeline = Arrays.asList(
             Aggregates.match(Filters.in("operationType", Arrays.asList("insert", "update"))));
         
+        // Creates a change stream that receives change events for the specified operations
         ChangeStreamIterable<Document> changeStream = database.watch(pipeline)
             .fullDocument(FullDocument.UPDATE_LOOKUP);
         
+        // Prints a message each time the change stream receives a change event
         changeStream.forEach(event -> 
             System.out.println("Received a change to the collection: " + event));
         // end watchExample

@@ -39,11 +39,12 @@ public class Skip {
     }
 
     private void skipExample(){
+        // Prints all remaining documents as JSON after applying a descending sort and omitting the first 5 documents
         // begin skipExample
         import com.mongodb.client.model.Filters;
         import com.mongodb.client.model.Sorts;
 
-        // <MongoCollection setup code here>
+        // Add your MongoCollection setup code here
 
         Bson filter = Filters.empty();
         collection.find(filter)             
@@ -54,6 +55,7 @@ public class Skip {
     }
 
     private void noResultsExample(){
+        // Prints all remaining documents as JSON after applying a descending sort and omitting the first 9 documents
         // begin noResultsExample
         Bson filter = Filters.empty();
         collection.find(filter)             
@@ -64,12 +66,13 @@ public class Skip {
     }
 
     private void skipAggregateExample(){
+        // Prints all remaining documents after using an aggregation pipeline to apply a sort and omit the first 5 documents
         // begin skipAggregateExample
         import com.mongodb.client.model.Filters;
         import com.mongodb.client.model.Sorts;
         import com.mongodb.client.model.Aggregates;
 
-        // <MongoCollection setup code here>
+        // Add your MongoCollection setup code here
 
         Bson filter = Filters.empty();
         collection.aggregate(Arrays.asList(
