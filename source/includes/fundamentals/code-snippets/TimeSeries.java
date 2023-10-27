@@ -26,15 +26,20 @@ public class TimeSeriesCollection {
             TimeSeriesOptions tsOptions = new TimeSeriesOptions("temperature");
             CreateCollectionOptions collOptions = new CreateCollectionOptions().timeSeriesOptions(tsOptions);
             
+            // Creates a time series collection that stores "temperature" values over time
             database.createCollection("september2021", collOptions);
             // end time series
             try {
+                // Stores information about the database's collections and views in a document
                 // begin check collection type
                 Document commandResult = database.runCommand(new Document("listCollections", new BsonInt64(1)));
                 
                 List<String> keys = Arrays.asList("cursor");
+
+                // Prints information about the database's collections and views
                 System.out.println("listCollections: " + commandResult.getEmbedded(keys, Document.class).toJson());
                 // end check collection type
+            // Prints a message if any exceptions occur during the command execution
             } catch (MongoException me) {
                 System.err.println("An error occurred: " + me);
             }  

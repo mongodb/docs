@@ -42,9 +42,12 @@ public class Update {
     }
 
     private void updateManyExample(){
+        // Creates a filter and update document to increase the "qty" value of all documents
         // begin updateManyExample
         Bson filter = Filters.empty();
         Bson update = Updates.inc("qty", 20);
+
+        // Updates all documents and prints the number of matched and modified documents
         UpdateResult result = collection.updateMany(filter, update);
         System.out.println("Matched document count: " + result.getMatchedCount());
         System.out.println("Modified document count: " + result.getModifiedCount());
@@ -52,10 +55,15 @@ public class Update {
     }
 
     private void replaceOneExample(){
+        // Creates a filter to match documents with a "color" value of "pink"
         // begin replaceOneExample
         Bson filter = Filters.eq("color", "pink");
         Document document = new Document("color", "orange").append("qty", 25);
+
+        // Replaces the first document that matches the filter with a new document
         UpdateResult result = collection.replaceOne(filter, document);
+
+        // Prints the number of matched and modified documents
         System.out.println("Matched document count: " + result.getMatchedCount());
         System.out.println("Modified document count: " + result.getModifiedCount());
         // end replaceOneExample
