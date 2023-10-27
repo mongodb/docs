@@ -14,6 +14,7 @@ import com.mongodb.client.model.Projections;
 import org.bson.Document;
 
 import java.util.Arrays;
+import java.util.List;
 
 // end imports
 
@@ -30,6 +31,8 @@ public class AggTour {
         // end connection
 
         collection.drop();
+        
+        // Inserts sample documents describing restaurants
         // begin insert
         collection.insertMany(Arrays.asList(
             new Document("name", "Sun Bakery Trattoria").append("contact", new Document().append("phone", "386-555-0189").append("email", "SunBakeryTrattoria@example.org").append("location", Arrays.asList(-74.0056649, 40.7452371))).append("stars", 4).append("categories", Arrays.asList("Pizza", "Pasta", "Italian", "Coffee", "Sandwiches")),
@@ -45,18 +48,21 @@ public class AggTour {
         ));
         // end insert
 
+        // Creates an aggregation pipeline that matches documents, groups them by the "stars" field, and tallies them by distinct values
         // begin aggregation one
         collection.aggregate(
             Arrays.asList(
                 Aggregates.match(Filters.eq("categories", "Bakery")),
                 Aggregates.group("$stars", Accumulators.sum("count", 1))
             )
+        // Prints the result of the aggregation operation as JSON
         ).forEach(doc -> System.out.println(doc.toJson()));
         // end aggregation one
+
         // begin aggregation three
         Document explanation = collection.aggregate(
             Arrays.asList(
-                    Aggregates.match(Filters.eq("categories", "bakery")),
+                    Aggregates.match(Filters.eq("categories", "Bakery")),
                     Aggregates.group("$stars", Accumulators.sum("count", 1))
             )
         ).explain(ExplainVerbosity.EXECUTION_STATS);
@@ -64,6 +70,7 @@ public class AggTour {
         List<Document> stages = explanation.get("stages", List.class);
         List<String> keys = Arrays.asList("queryPlanner", "winningPlan");
 
+        // Prints the JSON representation of the winning execution plans
         for (Document stage : stages) {
             Document cursorStage = stage.get("$cursor", Document.class);
             if (cursorStage != null) {
@@ -71,6 +78,7 @@ public class AggTour {
             }
         }
         // end aggregation three
+        // Prints the restaurant name and the first value in the "categories" array as a field named "firstCategory"
         // begin aggregation two
         collection.aggregate(
             Arrays.asList(
