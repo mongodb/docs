@@ -15,13 +15,12 @@ Work with BSON
 Overview
 --------
 
-In this guide, you can learn about how the Go Driver handles conversions
+In this guide, you can learn about how the {+driver-short+} handles conversions
 between BSON and Go types. The process of converting a Go type to
 BSON is called **marshalling**, while the reverse process is called **unmarshalling**.
 
-You should read this guide if you want to learn more about how the Go Driver
-represents BSON data or need to adjust default marshalling
-and unmarshalling behaviors.
+The following sections explain how the {+driver-short+} represents BSON data
+and how you can adjust default marshalling and unmarshalling behaviors.
 
 .. _golang-bson-types:
 
@@ -31,14 +30,14 @@ Data Types
 MongoDB stores documents in a binary representation called :manual:`BSON
 </reference/bson-types/>` that allows for easy and flexible data processing.
 
-The Go Driver provides four main types for working with BSON data:
+The {+driver-short+} provides four main types for working with BSON data:
 
 - ``D``: An ordered representation of a BSON document (slice)
 - ``M``: An unordered representation of a BSON document (map)
 - ``A``: An ordered representation of a BSON array
 - ``E``: A single element inside a D type
 
-The following example demonstrates how to construct a query filter using the
+The following example demonstrates how to construct a query filter by using the
 ``bson.D`` type to match documents with a ``quantity`` field value greater
 than 100:
 
@@ -46,7 +45,7 @@ than 100:
 
    filter := bson.D{{"quantity", bson.D{{"$gt", 100}}}}
 
-To learn more about how the Go Driver handles BSON data, see the
+To learn more about how the {+driver-short+} handles BSON data, see the
 `bson package API documentation <{+api+}/bson>`__.
 
 .. _golang-struct-tags:
@@ -55,15 +54,12 @@ Struct Tags
 -----------
 
 In Go, a **struct** is a collection of data fields with declared data
-types. The Go Driver can marshal/unmarshal structs and other native Go
-types to/from BSON using a `configurable codec system <{+api+}/bson/bsoncodec>`_.
-
-You can modify the default marshalling and unmarshalling behavior of the Go Driver using
-**struct tags**, which are optional pieces of metadata attached to
-struct fields. The most common use of struct tags is for specifying the
-field name in the BSON document that corresponds to the struct field.
+types. You can modify the default marshalling and unmarshalling behavior of
+a struct field by using **struct tags**, which are optional pieces of metadata
+attached to struct fields. The most common use of struct tags is for specifying
+the field name in the BSON document that corresponds to the struct field.
 The following table describes the additional struct tags that you can
-use with the Go Driver:
+use in the {+driver-short+}:
 
 .. list-table::
    :widths: 25 75
@@ -90,22 +86,22 @@ use with the Go Driver:
      - If the field type is a struct or map field, the field will be
        flattened when marshalling and unflattened when unmarshalling.
 
-Without additional instruction from struct tags, the Go
-Driver will marshal structs using the following rules:
+If you don't specify struct tags, the {+driver-short+} marshals structs by using
+the following rules:
 
-#. The Go Driver only marshals and unmarshals exported fields.
+#. The driver only marshals and unmarshals exported fields.
 
-#. The Go Driver generates BSON key using the lowercase of the
+#. The driver generates a BSON key by using the lowercase of the
    corresponding struct field.
 
-#. The Go Driver marshals embedded struct fields as subdocuments.
-   Each key is the lowercase of the field's type.
+#. The driver marshals embedded struct fields as subdocuments. Each key
+   is the lowercase of the field's type.
 
-#. The Go Driver marshals a pointer field as the underlying type if the
-   pointer is non-nil. If the pointer is nil, the driver marshals it as a BSON null
+#. The driver marshals a pointer field as the underlying type if the pointer
+   is non-nil. If the pointer is nil, the driver marshals it as a BSON null
    value.
 
-#. When unmarshalling, the Go Driver follows `these D/M type mappings
+#. When unmarshalling, the {+driver-short+} follows `these D/M type mappings
    <{+api+}/bson#hdr-Native_Go_Types>`_
    for fields of type ``interface{}``. The driver unmarshals BSON documents
    unmarshalled into an ``interface{}`` field as a ``D`` type.
@@ -115,7 +111,7 @@ Driver will marshal structs using the following rules:
    .. tab:: Struct Tags
       :tabid: struct-tags
 
-      The following example demonstrates how the Go Driver marshals a
+      The following example demonstrates how the {+driver-short+} marshals a
       struct with various struct tags:
 
       .. code-block:: go
@@ -164,8 +160,8 @@ Driver will marshal structs using the following rules:
    .. tab:: No Struct Tags
       :tabid: no-struct-tags
 
-      The following example demonstrates how the Go Driver marshals a
-      struct without any struct tags:
+      The following example demonstrates how the {+driver-short+} marshals
+      a struct without any struct tags:
 
       .. code-block:: go
 
@@ -213,25 +209,42 @@ Driver will marshal structs using the following rules:
 BSON Options
 ------------
 
-You can set ``BSONOptions`` to specify how
-the driver marshals and unmarshals BSON on your collection, database, or
-client.  
+You can specify BSON options to adjust the marshalling and unmarshalling behavior of
+your ``Client`` instance. To set BSON options on your ``Client``, create and configure
+a ``BSONOptions`` instance.
+ 
+This example performs the following actions:
 
-The following example demonstrates how to set ``BSONOptions`` for 
-the ``movies`` collection:
+- Creates a ``BSONOptions`` instance by configuring the following settings:
+  
+  - Sets the ``UseJSONStructTags`` field to ``true``, which instructs the driver
+    to use the ``"json"`` struct tag if a ``"bson"`` struct tag is not specified
+  - Sets the ``OmitZeroStruct`` field to ``true``, which instructs the driver
+    to marshal ``nil`` Go slices as empty BSON arrays
+
+- Passes the ``BSONOptions`` instance to the ``SetBSONOptions()`` helper method to specify
+  a ``ClientOptions`` instance
+- Creates a ``Client`` to apply the specified BSON marshalling and unmarshalling behavior
 
 .. code-block:: go
-   :copyable: false
 
    bsonOpts := &options.BSONOptions {
        UseJSONStructTags: true,
+       OmitZeroStruct: true,
    }
-   coll := client.Database("sample_mflix")
-       .Collection("movies",bsonOpts)
+
+   clientOpts := options.Client().
+       ApplyURI("<connection string>").
+       SetBSONOptions(bsonOpts)
+
+   client, err := mongo.Connect(context.TODO(), clientOpts)
 
 .. tip::    
 
-   To learn more about ``BSONOptions``, see the `API Documentation
+   To learn more about the ``BSONOptions`` type, see the
+   `BSONOptions API documentation <{+api+}/mongo/options#BSONOptions>`__.
+   For an example that specifies a ``BSONOptions`` instance and creates a client with 
+   these options, see the `Connect() BSONOptions example
    <{+api+}/mongo#example-Connect-BSONOptions>`__.
 
 .. _golang-bson-unmarshalling:
@@ -284,9 +297,8 @@ operation:
 The ``Cursor`` type also uses the ``All()`` method, which unmarshals all
 documents stored in the cursor into an array at the same time.
 
-The ``bson`` package includes a family of
-``Marshal()`` and ``Unmarshal()`` methods that work with BSON-encoded data
-of ``[]byte`` type.
+The ``bson`` package includes a family of ``Marshal()`` and ``Unmarshal()``
+methods that work with BSON-encoded data of ``[]byte`` type.
 
 The following code demonstrates how you can unmarshal BSON back into a
 user-defined struct by using methods from the ``bson`` package:
