@@ -50,36 +50,51 @@ public class Query {
     }
 
     private void comparisonFilter(){
+        // Creates a filter to match documents that have a "qty" value over 7
         // begin comparisonFilter
         Bson filter = Filters.gt("qty", 7);
+
+        // Retrieves documents that match the filter and prints them as JSON
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
         // end comparisonFilter
     }
 
     private void logicalFilter(){
+        // Creates a filter to match documents that have a "qty" value less than or equal to 7 and a "color" value of "pink"
         // begin logicalFilter
         Bson filter = Filters.and(Filters.lte("qty", 5), Filters.ne("color", "pink"));
+
+        // Retrieves documents that match the filter and prints them as JSON
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
         // end logicalFilter
     }
 
     private void elementFilter(){
+        // Creates a filter to match documents that contain the "rating" field
         // begin elementFilter
         Bson filter = Filters.exists("rating");
+
+        // Retrieves documents that match the filter and prints them as JSON
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
         // end elementFilter
     }
 
     private void evaluationFilter(){
+        // Creates a filter to match documents that have a "color" value ending with the letter "k"
         // begin evaluationFilter
         Bson filter = Filters.regex("color", "k$");
+
+        // Retrieves documents that match the filter and prints them as JSON
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
         // end evaluationFilter
     }
 
     private void arrayFilter(){
+        // Creates a filter to match documents whose "vendor" values are an array of 3 elements
         // begin arrayFilter
         Bson filter = Filters.size("vendor", 3);
+
+        // Retrieves documents that match the filter and prints them as JSON
         collection.find(filter).forEach(doc -> System.out.println(doc.toJson()));
         // end arrayFilter
     }

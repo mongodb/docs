@@ -8,6 +8,7 @@ import org.bson.codecs.DecoderContext;
 import org.bson.codecs.EncoderContext;
 import org.bson.codecs.configuration.CodecRegistry;
 
+// Implements the Codec interface by overriding the encode(), decode(), and getEncoderClass() methods
 // start class
 public class MonolightCodec implements Codec<Monolight>{
 
@@ -19,6 +20,7 @@ public class MonolightCodec implements Codec<Monolight>{
         this.integerCodec = registry.get(Integer.class);
     }
 
+    // Defines an encode() method to convert Monolight enum values to BSON values
     @Override
     public void encode(BsonWriter writer, Monolight value, EncoderContext encoderContext) {
         writer.writeStartDocument();
@@ -29,6 +31,7 @@ public class MonolightCodec implements Codec<Monolight>{
         writer.writeEndDocument();
     }
 
+    // Defines a decode() method to convert BSON values to Monolight enum values
     @Override
     public Monolight decode(BsonReader reader, DecoderContext decoderContext) {
         Monolight monolight = new Monolight();
@@ -49,6 +52,7 @@ public class MonolightCodec implements Codec<Monolight>{
         return monolight;
     }
 
+    // Returns an instance of the Monolight class, since Java cannot infer the class type
     @Override
     public Class<Monolight> getEncoderClass() {
         return Monolight.class;

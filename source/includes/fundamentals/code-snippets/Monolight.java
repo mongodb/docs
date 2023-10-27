@@ -1,5 +1,6 @@
 package fundamentals.monolightcodec;
 
+// Defines a custom class that contains fields describing a light
 // start class
 public class Monolight {
     private PowerStatus powerStatus = PowerStatus.OFF;
