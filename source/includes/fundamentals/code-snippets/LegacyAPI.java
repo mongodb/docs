@@ -15,10 +15,13 @@ public class LegacyAPI {
     }
 
     private void example1() {
+        // Connects to a MongoDB instance with the legacy API
         // start legacy-api-example
         MongoClient client = new MongoClient(URI);
         DB db = client.getDB(DATABASE);
         DBCollection col = db.getCollection(COLLECTION);
+
+        // Retrieves one document in the collection and prints it
         DBObject doc = col.find().one();
         System.out.println(doc.toString());
         // end legacy-api-example
@@ -26,6 +29,7 @@ public class LegacyAPI {
     }
 
     private void example2() {
+        // Creates a MongoClient with the legacy API that requests write acknowledgement from at least one node
         // start legacy-api-mongoclientoptions-example
         MongoClientURI mongoURI = new MongoClientURI(URI,
                 MongoClientOptions.builder()
