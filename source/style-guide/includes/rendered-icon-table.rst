@@ -36,14 +36,6 @@ for all supported icons in snooty:
      - ``:icon-lg:`Unlock```
      - :icon-lg:`Unlock`
     
-   * - ``lg-Colon``
-     - ``:icon-lg:`Colon```
-     - :icon-lg:`Colon`
-    
-   * - ``lg-Gauge``
-     - ``:icon-lg:`Gauge```
-     - :icon-lg:`Gauge`
-    
    * - ``lg-Save``
      - ``:icon-lg:`Save```
      - :icon-lg:`Save`
@@ -211,10 +203,6 @@ for all supported icons in snooty:
    * - ``lg-Clone``
      - ``:icon-lg:`Clone```
      - :icon-lg:`Clone`
-    
-   * - ``lg-TimeSeriesCollection``
-     - ``:icon-lg:`TimeSeriesCollection```
-     - :icon-lg:`TimeSeriesCollection`
     
    * - ``lg-Visibility``
      - ``:icon-lg:`Visibility```
@@ -547,10 +535,6 @@ for all supported icons in snooty:
    * - ``lg-Charts``
      - ``:icon-lg:`Charts```
      - :icon-lg:`Charts`
-    
-   * - ``lg-Cursor``
-     - ``:icon-lg:`Cursor```
-     - :icon-lg:`Cursor`
     
    * - ``lg-Megaphone``
      - ``:icon-lg:`Megaphone```
@@ -6264,10 +6248,6 @@ for all supported icons in snooty:
      - ``:icon-fa5:`renren```
      - :icon-fa5:`renren`
     
-   * - ``mms-org-icon-activity-feed``
-     - ``:icon-mms:`org-icon-activity-feed```
-     - :icon-mms:`org-icon-activity-feed`
-    
    * - ``fa4-hand-lizard-o``
      - ``:icon-fa4:`hand-lizard-o```
      - :icon-fa4:`hand-lizard-o`
@@ -7263,10 +7243,6 @@ for all supported icons in snooty:
    * - ``fa-leaf``
      - ``:icon-fa5:`leaf```
      - :icon-fa5:`leaf`
-    
-   * - ``charts-icon-geoglobe``
-     - ``:icon-fa5:`icon-geoglobe```
-     - :icon-fa5:`icon-geoglobe`
     
    * - ``fa-road``
      - ``:icon-fa5:`road```
