@@ -1,0 +1,135 @@
+.. _csharp-serialization:
+
+=============
+Serialization
+=============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-long+} to perform
+serialization. Serialization is the process of mapping a C# object to a BSON
+document for storage in MongoDB.
+
+.. tip:: Serialization
+
+   To learn more about serialization, see the :wikipedia:`Serialization </serialization>`
+   article on Wikipedia.
+
+Serializers
+-----------
+
+Serializers are classes that handle the translation of C# objects to and
+from BSON documents. Serializers implement the ``IBsonSerializer``
+interface. The {+driver-short+} has many built-in serializers made to handle
+primitive types, collection types, and custom classes.
+
+For a full list of available serializers, see the
+`Serializers namespace API documentation <{+api-root+}/N_MongoDB_Bson_Serialization_Serializers.htm>`__.
+
+Serializer Registry
+-------------------
+
+The serializer registry contains all registered serializers that are available
+to your application. Many of the built-in serializers are automatically
+registered to the serializer registry during startup of your application.
+However, before you can use a custom serializer, you must add it to the
+serializer registry, as shown in the following example:
+
+.. code-block:: csharp
+
+   BsonSerializer.RegisterSerializer(new CustomTypeSerializer()); 
+
+To access the serializer registry, use the ``SerializerRegistry`` property
+of the ``BsonSerializer`` class as follows:
+
+.. code-block:: csharp
+
+   var intSerializer = BsonSerializer.SerializerRegistry.GetSerializer<int>();
+
+.. important::
+
+   The serializer registry is a global registry. This means that you cannot use
+   multiple registries in a single application.
+
+Custom Serializers
+~~~~~~~~~~~~~~~~~~
+
+In some cases, you might need to create a custom serializer. When creating a
+custom serializer, implement the ``SerializerBase<T>`` abstract base class and
+override the ``Deserialize()`` and ``Serialize()`` methods.
+
+The following code example shows a custom ``BsonRegularExpression`` serializer:
+
+.. code-block:: csharp
+
+   class CustomRegularExpressionSerializer : SerializerBase<RegularExpression>
+   {
+       public override RegularExpression Deserialize(BsonDeserializationContext context, BsonDeserializationArgs args)
+     {
+         var type = context.Reader.GetCurrentBsonType();
+         switch (type)
+         {
+             case BsonType.RegularExpression:
+                 return context.Reader.ReadRegularExpression().AsRegex;
+             case BsonType.String:
+                 var pattern = context.Reader.ReadString();
+                 return new Regex(pattern);
+             default:
+                 throw new NotSupportedException($"Cannot convert a {type} to a RegularExpression.");
+         }
+     }
+
+     public override void Serialize(BsonSerializationContext context, BsonSerializationArgs args, RegularExpression value)
+     {
+         context.Writer.WriteRegularExpression(value);
+     }
+   }
+
+Opt-in Interfaces
+-----------------
+
+The {+driver-short+} has several optional interfaces that your custom serializer
+class can implement, depending on the type of data the serializer handles.
+
+IBsonIdProvider
+~~~~~~~~~~~~~~~
+
+The `IBsonIdProvider
+<{+api-root+}/T_MongoDB_Bson_Serialization_IBsonIdProvider.htm>`__
+interface provides the ``GetDocumentId()`` and ``SetDocumentId()``
+methods, and is useful if the object you are serializing uses an ``_id`` type other than ``ObjectId``.
+
+IBsonDocumentSerializer
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Implementing the `IBsonDocumentSerializer
+<{+api-root+}/T_MongoDB_Bson_Serialization_IBsonDocumentSerializer.htm>`__
+interface enables the driver to access the member
+information of the object you are serializing. This allows the driver to
+properly construct type-safe queries when using a custom serializer.
+
+IBsonArraySerializer
+~~~~~~~~~~~~~~~~~~~~
+
+Implementing the `IBsonArraySerializer
+<{+api-root+}/T_MongoDB_Bson_Serialization_IBsonArraySerializer.htm>`__
+interface enables the driver to access serialization information for individual
+items in an array. 
+
+Additional Information
+----------------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `SerializerRegistry <{+api-root+}/P_MongoDB_Bson_Serialization_BsonSerializer_SerializerRegistry.htm>`__
+- `BsonSerializer <{+api-root+}/T_MongoDB_Bson_Serialization_BsonSerializer.htm>`__
+- `IBsonSerializer <{+api-root+}/T_MongoDB_Bson_Serialization_IBsonSerializer.htm>`__
+- `SerializerBase<T> <{+api-root+}/T_MongoDB_Bson_Serialization_Serializers_SerializerBase_1.htm>`__
