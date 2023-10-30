@@ -1,4 +1,3 @@
-
 The following table shows the rst syntax and the rendered icons and 
 for all supported icons in snooty:
 
