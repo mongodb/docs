@@ -159,8 +159,32 @@ Review the Logs
 ---------------
 
 Keep and review adequate logs to help debug issues and monitor cluster 
-activity. Use the recommended `logging architecture <https://kubernetes.io/docs/concepts/cluster-administration/logging/>`__ to retain 
-|k8s-pod| logs even after a Pod is deleted.
+activity. Use the recommended `logging architecture 
+<https://kubernetes.io/docs/concepts/cluster-administration/logging/>`__ 
+to retain |k8s-pod| logs even after a Pod is deleted.
+
+Logging Process
+~~~~~~~~~~~~~~~
+
+The |k8s-op-short| writes to the Pod logs by using 
+a wrapper that converts logs from the {+mdbagent+} and |mongod| 
+components on the database deployment Pod into a 
+structured logging entry in the following |json| format:
+
+.. code-block:: json
+
+   { "logType": "<log-type>", "contents": "<log line from a log file>" }
+
+The |k8s-op-short| supports the following log types:
+
+- ``automation-agent-verbose``
+- ``automation-agent-stderr``
+- ``mongodb``
+- ``mongodb-audit``
+
+When you read logs from a database container,
+the |k8s-op-short| returns the structured |json| entry 
+that contains logs from different sources.
 
 .. _review-k8s-op-logs:
 
@@ -193,8 +217,8 @@ To find which pods are available, invoke this command first:
 .. _review-all-k8s-logs:
 .. _review-one-k8s-pod:
 
-Review Logs from Specific Pod
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Review Logs from a Specific Pod
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you want to narrow your review to a specific |k8s-pod|, you can
 invoke this command:
@@ -213,6 +237,45 @@ invoke this command:
 
    This returns the :ref:`Automation Agent Log <agent-logs>` for this
    replica set.
+
+Review a Specific Log
+~~~~~~~~~~~~~~~~~~~~~
+
+You can narrow your review to a specific log type. For example,
+the following command returns audit logs from the |k8s| logs 
+of the specified Pod by specifying the ``mongodb-audit`` log type:
+
+.. code-block:: sh
+
+   kubectl logs -c mongodb-enterprise-database replica-set-0 | jq -r 'select(.logType == "mongodb-audit") | .contents'
+
+The command returns an entry similar to the following output:
+
+.. code-block:: json
+
+   {{{ "atype":"startup","ts":{"$date":"2023-08-30T20:43:54.649+00:00"},"uuid":{"$binary":"oDcPEY69R1yiUtpMupaXOQ==","$type":"04"},"local":{"isSystemUser":true},"remote":{"isSystemUser":true},"users":[],"roles":[],"param":{"options":{"auditLog":{"destination":"file","format":"JSON","path":"/var/log/mongodb-mms-automation/mongodb-audit.log"},"config":"/data/automation-mongod.conf","net":{"bindIp":"0.0.0.0","port":27017,"tls":{"mode":"disabled"}},"processManagement":{"fork":true},"replication":{"replSetName":"replica-set"},"storage":{"dbPath":"/data","engine":"wiredTiger"},"systemLog":{"destination":"file","path":"/var/log/mongodb-mms-automation/mongodb.log"}}},"result":0}
+   {"atype":"startup","ts":{"$date":"2023-08-30T20:44:05.466+00:00"},"uuid":{"$binary":"OUbUWC1DQM6k/Ih4hKZq4g==","$type":"04"},"local":{"isSystemUser":true},"remote":{"isSystemUser":true},"users":[],"roles":[],"param":{"options":{"auditLog":{"destination":"file","format":"JSON","path":"/var/log/mongodb-mms-automation/mongodb-audit.log"},"config":"/data/automation-mongod.conf","net":{"bindIp":"0.0.0.0","port":27017,"tls":{"mode":"disabled"}},"processManagement":{"fork":true},"replication":{"replSetName":"replica-set"},"storage":{"dbPath":"/data","engine":"wiredTiger"},"systemLog":{"destination":"file","path":"/var/log/mongodb-mms-automation/mongodb.log"}}},"result":0}}}
+
+Audit Logs
+~~~~~~~~~~
+
+If you want audit logs to display in the |k8s| Pod's logs, configure 
+your resource definition to save audit logs to the 
+``/var/log/mongodb-mms-automation/mongodb-audit.log`` path:
+
+.. code-block:: yaml
+
+   spec:
+      additionalMongodConfig:
+         auditLog:
+            destination: file
+               format: JSON
+               path: /var/log/mongodb-mms-automation/mongodb-audit.log
+
+.. note:: 
+   
+   This file path is fixed. You can't specify a different path to
+   save audit logs.
 
 .. _k8s-validation-webhook:
 
@@ -693,7 +756,7 @@ commands. This requires you to prevent the container from restarting.
 
       kubectl exec -it <pod-name> bash
 
-Verify Corrrectness of Domain Names in TLS Certificates
+Verify Correctness of Domain Names in TLS Certificates
 -------------------------------------------------------
 
 A MongoDB replica set or sharded cluster may fail to reach
