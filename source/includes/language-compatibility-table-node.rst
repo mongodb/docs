@@ -31,7 +31,7 @@
      -
      -
 
-   * - 5.6.X to 5.8.X
+   * - 5.6.X to 5.9.X
      - ✓
      - ✓
      - ✓
@@ -126,3 +126,4 @@
      - ✓
 
 .. [#latest-note] Versions 6.0 and later of the {+driver-short+} require Node.js v16.20.1 or later.
+
