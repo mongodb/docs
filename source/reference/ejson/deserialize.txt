@@ -1,0 +1,166 @@
+.. _mongosh-ejson-deserialize:
+
+===================
+EJSON.deserialize()
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/links-urls/ejson.rst
+
+The ``EJSON.deserialize()`` method converts Extended JSON objects to
+BSON objects.
+
+Syntax
+------
+
+The method has this syntax:
+
+.. code-block:: javascript
+   :copyable: false
+
+   EJSON.deserialize( object, [ options ] )
+
+Method Fields
+-------------
+
+The method takes the following fields:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``object``
+     -  EJSON object
+     -  Required
+     -  EJSON object to convert. For example, an array of documents.
+
+   * - ``options``
+     -  string
+     -  Optional
+     -  Modifies the output object :ref:`types <mongo-shell-data-type>`.
+        The only option is ``{ relaxed: <boolean> }``.
+ 
+        .. list-table::
+           :header-rows: 1
+           :widths: 30 70
+
+           * - Boolean Value
+             - Description
+
+           * - ``true``
+             - Return plain JavaScript object types. Default is
+               ``true``.
+
+           * - ``false``
+             - Return BSON object types.
+
+Behavior
+--------
+
+You can run ``EJSON.deserialize()`` from an interactive ``mongosh``
+session or from the system command line using ``--eval``.
+
+To run ``EJSON.deserialize()`` from an interactive ``mongosh`` session,
+use:
+
+.. code-block:: javascript
+   :copyable: false
+
+   EJSON.deserialize( object, [ options ] )
+
+To run ``EJSON.deserialize()`` from the system command line, use:
+
+.. code-block:: shell
+   :copyable: false
+
+   mongosh --eval "EJSON.deserialize( object, [ options ] )"
+
+Example
+-------
+
+Create the ``sales`` collection:
+
+.. code-block:: javascript
+
+   db.sales.insertMany( [ 
+      { custId: 345, purchaseDate: ISODate("2023-07-04"),
+        quantity: 4, cost: Decimal128("100.60") },
+      { custId: 346, purchaseDate: ISODate("2023-07-12"),
+        quantity: 3, cost: Decimal128("175.45") },
+      { custId: 486, purchaseDate: ISODate("2023-08-01"),
+        quantity: 9, cost: Decimal128("200.53") }
+   ] )
+
+The following sections show how to create an example file and then
+import the file with an ``EJSON.deserialize()`` example.
+
+Create the Example File
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example retrieves the ``sales`` documents as an array and
+saves the results to a file named ``salesDeserialize.json`` on the
+computer's file system:
+
+.. code-block:: javascript
+
+   let salesCollection = EJSON.stringify( db.sales.find().toArray() )   
+
+   fs.writeFileSync( 'salesDeserialize.json', salesCollection ) 
+
+Import the Example File from the Command Line
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To import the ``salesDeserialize.json`` file and create a new collection
+named ``salesFromDeserializeFile``, exit ``mongosh`` and then run this
+example from the command line:
+
+.. code-block:: sh
+
+   # Note: The example is formatted to fit the page.
+
+   mongosh --quiet  --eval "db.salesFromDeserializeFile.insertMany( \
+      EJSON.deserialize( JSON.parse ( \
+      fs.readFileSync( 'salesDeserialize.json', 'utf8' ) ) ) )"
+
+In the example:
+
+- ``fs.readFileSync()`` reads the ``salesDeserialize.json`` file and
+  interprets the content as ``utf8`` Unicode character strings.
+
+- ``JSON.parse()`` converts the strings read from the file to JSON.
+
+- ``EJSON.deserialize()`` outputs JSON.
+
+- ``db.salesFromDeserializeFile.insertMany()`` creates and populates the
+  ``salesFromDeserializeFile`` collection using the JSON returned by
+  ``EJSON.deserialize()``.
+
+.. note::
+
+   You could use ``EJSON.parse()`` in the previous example, which is a
+   simpler approach. ``JSON.parse()`` and ``EJSON.deserialize()``
+   provide more flexibility.
+
+Learn More
+----------
+
+- `EJSON deserialize method
+  <https://github.com/mongodb/js-bson#EJSON.deserialize>`__
+- |ejsonUrl| documentation
