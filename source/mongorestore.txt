@@ -206,6 +206,15 @@ If you specify write concern in both the
 :option:`--writeConcern <mongorestore --writeConcern>` value overrides
 the write concern specified in the URI string.
 
+.. _mongorestore-time-series-collections:
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, you can use ``mongorestore`` to restore 
+:ref:`timeseries collections <manual-timeseries-landing>`.
+For details, see :ref:`mongorestore-example-time-series`.
+
 .. _mongorestore-required-access:
 
 Required Access
@@ -1244,6 +1253,71 @@ the filename. For example:
 .. code-block:: sh
 
    mongodump --archive --db=test --port=27017 | mongorestore --archive --port=27018
+
+
+.. _mongorestore-example-time-series:
+
+Restore a Time Series Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``mongosh`` to create a time series collection. This example 
+uses the default ``test`` database:
+
+.. code-block:: javascript
+
+   db.createCollection(
+      "weather",
+      {
+         timeseries: {
+            timeField: "timestamp",
+            metaField: "metadata",
+            granularity: "hours"
+         }
+      }
+   )
+
+Insert time series documents into the collection:
+
+.. code-block:: javascript
+
+   db.weather.insertMany( [
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
+         "temp": 12
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T04:00:00.000Z"),
+         "temp": 11
+      },
+      {
+         "metadata": { "sensorId": 5578, "type": "temperature" },
+         "timestamp": ISODate("2021-05-18T08:00:00.000Z"),
+         "temp": 11
+      }
+   ] )
+
+From your terminal, use ``mongodump`` to export the time series collection 
+to the ``dump/test`` directory. This commands adds 
+``system.buckets.weather.bson`` and ``weather.metadata.json`` to 
+the directory:
+
+.. code-block:: sh
+
+   mongodump --db=test
+
+Use ``mongorestore`` to restore the data to the ``mongorestore.weather`` 
+namespace:
+
+.. code-block:: sh
+
+   mongorestore --host localhost --port 27017 --nsFrom='test.*' --nsTo='mongorestore.*' dump/
+
+.. note::
+
+       You cannot restore the ``system.buckets.weather.bson`` file
+       by itself. Attempting to do so results in an error.
 
 .. _mongorestore-example-connect-using-aws-iam:
 
