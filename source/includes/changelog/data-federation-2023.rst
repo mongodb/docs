@@ -7,6 +7,18 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20231031:
+
+31 October 2023 Release 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves performance when reading from 
+  :ref:`Parquet <adf-parquet-data-format>` files.
+- Adds support for modifying views with ``collMod``.
+- Adds automatic recognition of ``.jsonl`` files as JSON Lines files.
+- Fixes an issue with :ref:`sqlGenerateSchema <sqlgenerateschema-cmd>` 
+  where it wouldn't run on {+Online-Archive+} or {+adl+} sources.
+
 .. _adf-v20230822:
 
 22 August 2023 Release 
