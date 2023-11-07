@@ -1,3 +1,37 @@
+.. _opsmgr-server-6.0.20:
+
+|onprem| Server 6.0.20:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-11-03*
+
+- Updates JDK to ``jdk-11.0.21+9``.
+- Updates the {+mdbagent+} to :ref:`12.0.28.7763 
+  <mongodb-12.0.28.7763>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.9.0
+  </release-notes/database-tools-changelog/#100.9.0-changelog>`.
+- Updates ``log4j-over-slf4j`` to 1.7.36.
+- Eliminates ``fileSystemStore`` alerts if you have no filesystem 
+  stores configured.
+- Fixes ``Invalid cong`` bug that occurred when you upgraded a managed 
+  deployment with multiple tags.
+- Fixes a bug that prevented S3 store deletion.
+- Improves ``SystemSpaceAlertChecks`` to check all the members.
+- Adds the hostname and port to the abort error log for a job.
+- Releases {+mongosh+} 2.0.2 to |onprem|. To learn more, see {+mongosh+}
+  :mdb-shell:`Release Notes </changelog/#v2.0.2>`.
+- Adds support for automating deployments on RedHat Enterprise Linux 9 
+  x86_64 architectures (with BI connector support).
+- Adds support for automating deployments on Ubuntu 22.04 for both 
+  x86_64 and ARM64/aarch64 architectures (with BI connector support).
+- Adds support for running Ops Manager on RedHat Enterprise Linux 9 and 
+  Ubuntu 22.04 for x86_64 architectures.
+- Fixes the following |cve|\s:
+
+  - :cve-id:`CVE-2023-40167 </CVE-2023-40167>`
+  - :cve-id:`CVE-2023-36479 </CVE-2023-36479>`
+  - :cve-def:`CWE-611 </611>`
+
 .. _opsmgr-server-6.0.19:
 
 |onprem| Server 6.0.19:
