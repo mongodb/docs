@@ -24,4 +24,3 @@ select platforms.
 
 See :ref:`prod-notes-supported-platforms` for more information.
 
-.. include:: /includes/admonition-wsl.rst

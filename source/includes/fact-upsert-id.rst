@@ -17,6 +17,12 @@ result in an error when constructing the document to insert.
 
 .. code-block:: javascript
 
-   db.collection.update( { "_id.name": "Robert Frost", "_id.uid": 0 },
-      { "categories": ["poet", "playwright"] },
-      { upsert: true } )
+   db.collection.update(
+      { "_id.name": "Robert Frost", "_id.uid": 0 },  // Query parameter
+      { $set:
+         {
+            "categories": [ "poet", "playwright" ]  // Replacement document
+         }
+      },
+      { upsert: true }  // Options
+   )

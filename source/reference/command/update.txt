@@ -17,13 +17,15 @@ Definition
 
    The :dbcommand:`update` command modifies documents in a collection.
    A single :dbcommand:`update` command can contain multiple update
-   statements. The update methods provided by the MongoDB drivers use
-   this command internally.
+   statements. 
 
-   :binary:`~bin.mongosh` provides the following helper methods:
-
-   - :method:`db.collection.updateOne()`
-   - :method:`db.collection.updateMany()` 
+   .. |method| replace:: :method:`~db.collection.updateOne`,
+      :method:`~db.collection.updateMany`, 
+      :method:`~db.collection.replaceOne`,
+      :method:`~db.collection.findOneAndReplace`, and
+      :method:`~db.collection.findOneAndUpdate` 
+      helper methods
+   .. include:: /includes/fact-dbcommand-tip
 
 Syntax
 ------
@@ -51,6 +53,7 @@ The :dbcommand:`update` command has the following syntax:
             ...
          ],
          ordered: <boolean>,
+         maxTimeMS: <integer>,
          writeConcern: { <write concern> },
          bypassDocumentValidation: <boolean>,
          comment: <any>,
@@ -88,6 +91,12 @@ The command takes the following fields:
        performing the remaining update statements. If ``false``, then when
        an update fails, continue with the remaining update statements, if
        any. Defaults to ``true``.
+
+   * - ``maxTimeMS``
+     - non-negative integer
+     - Optional.
+
+       .. include:: /includes/maxTimeMS-description.rst
 
    * - ``writeConcern``
      - document
@@ -189,6 +198,11 @@ Each document contains the following fields:
      - Optional. If ``true``, updates all documents that meet the query criteria. If
        ``false``, limit the update to one document that meet the query
        criteria. Defaults to ``false``.
+
+       When updating multiple documents, if a single document fails
+       to update, further documents are not updated. See
+       :ref:`multi-update failures <multi-update-failures>` for more 
+       details on this behavior.
 
    * - ``collation``
 
@@ -327,6 +341,73 @@ with the update document. The :dbcommand:`update` command can only
 replace a *single* matching document; i.e. the ``multi`` field cannot
 be ``true``. The :dbcommand:`update` command *does not* replace the
 ``_id`` value.
+
+.. _multi-update-failures:
+
+Multi-Update Failures
+~~~~~~~~~~~~~~~~~~~~~
+
+If a single document fails to update in an update command with the 
+``multi`` parameter set to ``true``, no further documents
+update as part of that command. 
+
+For example, create a ``members`` collection with the following documents: 
+
+.. code-block:: javascript
+
+   db.members.insertMany( [
+      { "_id" : 1, "member" : "Taylor", "status" : "pending", "points" : 1},
+      { "_id" : 2, "member" : "Alexis", "status" : "enrolled", "points" : 59},
+      { "_id" : 3, "member" : "Elizabeth", "status" : "enrolled", "points" : 34}
+   ] )
+
+The following operation creates a document validator on the 
+``members`` collection with a rule that the ``points`` value
+can not equal ``60``. 
+
+.. code-block:: javascript
+
+   db.runCommand( { 
+      collMod: "members",
+      validator: { points: { $ne: 60 } } 
+   } )
+
+This update command increases the ``points`` field of every document
+by ``1``.
+
+.. code-block:: javascript
+
+   db.runCommand( 
+    { 
+       update: "members",
+       updates: [
+        {
+            q: {}, 
+            u: { $inc: { points: 1 } },
+            multi: true
+        }
+       ]
+    }
+   )
+
+After running the command, the collection contains the following 
+documents: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 1, member: 'Taylor', status: 'A', points: 2 }
+   { _id: 2, member: 'Alexis', status: 'D', points: 59 }
+   { _id: 3, member: 'Elizabeth', status: 'C', points: 34 }
+
+The update command updated the ``points`` value of the first document 
+but failed to update the second document because of the validator rule 
+that the ``points`` value can not equal ``60``. The third document did
+not update because no further documents update following a write error. 
+
+.. seealso::
+
+   :ref:`Schema Validation<schema-validation-overview>`
 
 .. _update-command-behaviors-aggregation-pipeline:
 
@@ -1092,7 +1173,13 @@ The returned document contains a subset of the following fields:
 
 .. data:: update.n
 
-   The number of documents selected for update. If the update operation
+   An ``update`` command accepts an array of document updates, some of
+   which can be :term:`upserts <upsert>`. For an update, ``n`` is the
+   number of documents selected for the update. For an upsert, ``n`` is
+   ``1`` for the inserted document. The server adds the ``n`` values for
+   all the updates and upserts and returns the total as ``update.n``.
+
+   If an update operation
    results in no change to the document, e.g. :update:`$set` expression
    updates the value to the current value, :data:`~update.n` can be
    greater than :data:`~update.nModified`.

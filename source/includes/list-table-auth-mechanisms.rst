@@ -18,10 +18,6 @@
        Salted Challenge Response Authentication Mechanism using the SHA-256
        hash function.
 
-       Requires featureCompatibilityVersion set to ``4.0``.
-
-       .. versionadded:: 4.0
-
    * - :ref:`MONGODB-X509 <security-auth-x509>`
 
      - MongoDB TLS/SSL certificate authentication.

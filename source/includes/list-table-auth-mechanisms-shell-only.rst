@@ -30,7 +30,7 @@
 
      - External authentication using AWS IAM credentials for use in
        connecting to a
-       `MongoDB Atlas <https://www.mongodb.com/cloud/atlas?tck=docs_server>`_
+       `MongoDB Atlas <https://www.mongodb.com/atlas/database?tck=docs_server>`_
        cluster. See :ref:`example-connect-mongo-using-aws-iam`.
 
        .. versionadded:: 4.4

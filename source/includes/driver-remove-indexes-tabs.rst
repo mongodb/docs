@@ -3,13 +3,13 @@
    tabs:
      - id: shell
        content: |
-         MongoDB provides two methods for removing indexes from a collection:
+         
+         When removing indexes in the MongoDB Shell, you can either:
 
-         - :method:`db.collection.dropIndex()` and
+         - Remove a specific index.
 
-         - :method:`db.collection.dropIndexes()`
+         - Remove all indexes from the collection.
 
- 
          Remove Specific Index
          ~~~~~~~~~~~~~~~~~~~~~
 
@@ -67,16 +67,15 @@
 
      - id: compass
        content: |
+
          To remove an index from a collection in |compass|:
 
-         1. Navigate to the collection on which the target
-            index exists.
+         1. Navigate to the collection containing the target index.
 
          2. Click the :guilabel:`Indexes` tab.
 
-         3. Click the :guilabel:`trash can` icon in the
-            :guilabel:`Drop` column for the index you wish to delete.
+         3. In the :guilabel:`Drop` column for the target index, click
+            the trash icon.
 
          .. figure:: /images/compass-delete-index.png
             :alt: Delete an index in Compass
-

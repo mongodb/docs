@@ -17,33 +17,39 @@ Definition
 
    The :dbcommand:`delete` command removes documents from a collection.
    A single :dbcommand:`delete` command can contain multiple delete
-   specifications. The command cannot operate on :doc:`capped
-   collections </core/capped-collections>`. The remove methods provided
-   by the MongoDB drivers use this command internally.
+   specifications. The delete methods provided by the MongoDB drivers
+   use this command internally.
 
    .. versionchanged:: 5.0
+
+   .. |method| replace:: :method:`~db.collection.deleteOne`,
+      :method:`~db.collection.deleteMany`, and
+      :method:`~db.collection.findOneAndDelete`
+      helper methods
+   .. include:: /includes/fact-dbcommand-tip
 
    .. _delete-syntax:
 
    The :dbcommand:`delete` command has the following syntax:
 
-   .. code-block:: javascript
+   .. code-block:: none
 
       {
-         delete: <collection>,
+         delete: <collection>, 
          deletes: [
             { 
               q : <query>, 
               limit : <integer>, 
               collation: <document>,
-              hint: <document|string>,
-              comment: <any>
+              hint: <document|string>
             },
             ...
          ],
+         comment: <any>,
+         let: <document>, // Added in MongoDB 5.0
          ordered: <boolean>,
          writeConcern: { <write concern> },
-         let: <document> // Added in MongoDB 5.0
+         maxTimeMS: <integer>
       }
 
    The command takes the following fields:
@@ -79,33 +85,6 @@ Definition
           collection.
           
           
-   
-      * - :ref:`ordered <delete-command-ordered>`
-   
-        - boolean
-   
-        - .. _delete-command-ordered:
-        
-          Optional. If ``true``, then when a delete statement fails, return without
-          performing the remaining delete statements. If ``false``, then when a
-          delete statement fails, continue with the remaining delete
-          statements, if any. Defaults to ``true``.
-          
-          
-   
-      * - :ref:`writeConcern <delete-command-wc>`
-   
-        - document
-   
-        - .. _delete-command-wc:
-        
-          Optional. A document expressing the :doc:`write concern </reference/write-concern>`
-          of the :dbcommand:`delete` command. Omit to use the default write
-          concern.
-          
-          .. include:: /includes/extracts/transactions-operations-write-concern.rst
-          
-          
       * - ``comment``
 
         - any
@@ -131,6 +110,40 @@ Definition
           see :ref:`delete-let-example`.
 
           .. versionadded:: 5.0
+
+      * - :ref:`ordered <delete-command-ordered>`
+   
+        - boolean
+   
+        - .. _delete-command-ordered:
+        
+          Optional. If ``true``, then when a delete statement fails, return without
+          performing the remaining delete statements. If ``false``, then when a
+          delete statement fails, continue with the remaining delete
+          statements, if any. Defaults to ``true``.
+          
+          
+   
+      * - :ref:`writeConcern <delete-command-wc>`
+   
+        - document
+   
+        - .. _delete-command-wc:
+        
+          Optional. A document expressing the :doc:`write concern </reference/write-concern>`
+          of the :dbcommand:`delete` command. Omit to use the default write
+          concern.
+          
+          .. include:: /includes/extracts/transactions-operations-write-concern.rst
+          
+
+      * - ``maxTimeMS``
+   
+        - non-negative integer
+      
+        - Optional.
+
+          .. include:: /includes/maxTimeMS-description.rst          
 
 
    .. |operation| replace:: delete
@@ -202,10 +215,6 @@ Definition
           For an example, see :ref:`ex-delete-command-hint`.
 
           .. versionadded:: 4.4
-          
-          
-   
-
 
    :returns:
 
@@ -527,18 +536,22 @@ The following is an example document returned for a successful
    { ok: 1, n: 1 }
 
 The following is an example document returned for a :dbcommand:`delete`
-command that encountered an error:
+command that encountered an error because it specified a non-existent
+index in the ``hint`` field:
 
 .. code-block:: javascript
 
    {
-      "ok" : 1,
-      "n" : 0,
-      "writeErrors" : [
-         {
-            "index" : 0,
-            "code" : 10101,
-            "errmsg" : "can't remove from a capped collection: test.cappedLog"
-         }
-      ]
+     n: 0,
+     writeErrors: [
+       {
+         index: 0,
+         code: 2,
+         errmsg: 'error processing query: ns=test.products: hat $eq "bowler"\n' +
+           'Sort: {}\n' +
+           'Proj: {}\n' +
+           ' planner returned error :: caused by :: hint provided does not correspond to an existing index'
+       }
+     ],
+     ok: 1
    }

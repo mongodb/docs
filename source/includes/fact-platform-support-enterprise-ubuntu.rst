@@ -30,4 +30,3 @@ See :ref:`prod-notes-supported-platforms` for more information.
 
 .. include:: /includes/admonition-power-ubuntu-restriction.rst
 
-.. include:: /includes/admonition-wsl.rst

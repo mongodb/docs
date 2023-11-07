@@ -18,7 +18,10 @@ ref: rename-the-replica-set
 content: |
   Perform the following steps for each replica set member:
   
-  a. Update the replica set name. 
+  a. Start the replica set member on a different port without the
+     :option:`--replSet <mongod --replSet>` option. 
+  
+  #. Update the replica set name. 
 
      - If using a :ref:`configuration file <conf-file>`, set 
        :setting:`replication.replSetName <replication.replSetName>` 
@@ -28,11 +31,8 @@ content: |
        the :option:`--replSet <mongod --replSet>` option, note down the 
        new replica set name for use in step f.
   
-  #. Start the replica set member on a different port without the
-     :option:`--replSet <mongod --replSet>` option. 
-  
   #. Connect to the replica set member. 
- 
+
   #. Update the replica set name in the :ref:`local database 
      <replica-set-local-database>` with the following commands:
 
@@ -44,11 +44,20 @@ content: |
         var doc = db.getSiblingDB("local").system.replset.findOne()
         var oldId = doc._id
         doc._id = newId
-        db.getSiblingDB("local").system.replset.save(doc)
-        db.getSiblingDB("local").system.replset.remove({_id: oldId})
+        db.getSiblingDB("local").system.replset.insertOne(doc)
+        db.getSiblingDB("local").system.replset.deleteOne({_id: oldId})
 
   #. :ref:`Shut down <terminate-mongod-processes>` the replica set 
      member.
+
+     .. note:: Ops Manager
+      
+         If you are using Ops Manager, you must stop Ops Manager
+         from managing the replica set before you shut down the 
+         replica set member. For more information on this procedure,
+         see :opsmgr:`Remove a Process from Ops Management
+         </tutorial/unmanage-deployment/#remove-a-process-from-management>`
+      
  
   #. Start the replica set member on its original port. 
   

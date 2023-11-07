@@ -13,58 +13,75 @@ db.collection.findOne()
 Definition
 ----------
 
-.. method:: db.collection.findOne(query, projection)
+.. method:: db.collection.findOne(query, projection, options)
 
 
-   .. include:: /includes/fact-mongosh-shell-method.rst
-
+   .. |dbcommand| replace:: :dbcommand:`find` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
 
    Returns one document that satisfies the specified query criteria on
-   the collection or :doc:`view </core/views>`. If multiple documents
-   satisfy the query, this method returns the first document according
-   to the :term:`natural order` which reflects the order of documents
-   on the disk. In :term:`capped collections <capped collection>`,
-   natural order is the same as insertion order. If no document
-   satisfies the query, the method returns null.
+   the collection or :ref:`view <views-landing-page>`. 
+   
+   If multiple documents satisfy the query, this method returns the first document 
+   according to the :term:`natural order` which reflects the order of 
+   documents on the disk. In :term:`capped collections 
+   <capped collection>`, natural order is the same as insertion order. 
+   If no document satisfies the query, the method returns ``null``.
 
+   If you specify a ``projection``
+   parameter, :method:`~db.collection.findOne()` returns a document
+   that only contains the ``projection`` fields. The ``_id``
+   field is always included unless you explicitly exclude it.
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Parameter
-   
-        - Type
-   
-        - Description
-   
-      * - ``query``
-   
-        - document
-   
-        - Optional. Specifies query selection criteria using :doc:`query operators </reference/operator>`.
-          
-          
-   
-      * - ``projection``
-   
-        - document
-   
-        - Optional. Specifies the fields to return using
-          :doc:`projection operators </reference/operator/projection>`.
-          Omit this parameter to return all fields in the matching
-          document. For details, see :ref:`findOne-projection`.
-
-   :returns:
-      One document that satisfies the criteria specified as the first
-      argument to this method. If you specify a ``projection``
-      parameter, :method:`~db.collection.findOne()` returns a document
-      that only contains the ``projection`` fields. The ``_id``
-      field is always included unless you explicitly exclude it.
+   .. note:: 
 
       Although similar to the :method:`~db.collection.find()` method,
       the :method:`~db.collection.findOne()` method returns a document
       rather than a cursor.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.findOne()``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :method:`~db.collection.findOne()` method has the following
+form:
+
+.. code-block:: javascript
+
+   db.collection.findOne( <query>, <projection>, <options> )
+
+The :method:`~db.collection.findOne()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``query``
+     - document
+     - Optional. Specifies query selection criteria using 
+       :ref:`query operators <query-projection-operators-top>`.
+         
+   * - ``projection``
+     - document
+     - Optional. Specifies the fields to return using
+       :ref:`projection operators <query-projection-operators-top>`.
+       Omit this parameter to return all fields in the matching
+       document. For details, see :ref:`findOne-projection`.
+
+   * - ``options``
+     - document
+     - .. include:: /includes/find-options-description.rst
 
 Behavior
 --------
@@ -215,3 +232,36 @@ returned. You have access to the document directly:
 
       print (tojson(myName));
    }
+
+Use Variables in ``let`` Option
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify query options to modify query behavior and indicate how
+results are returned.
+
+For example, to define variables that you can access elsewhere in the
+``findOne`` method, use the ``let`` option. To filter results using a
+variable, you must access the variable within the :query:`$expr`
+operator.
+
+.. include:: /includes/let-example-create-flavors.rst
+
+The following example defines a ``targetFlavor`` variable in ``let`` and
+uses the variable to retrieve the chocolate cake flavor:
+
+.. code-block:: javascript
+
+   db.cakeFlavors.findOne(
+      { $expr: { $eq: [ "$flavor", "$$targetFlavor" ] } },
+      { _id: 0 },
+      { let : { targetFlavor: "chocolate" }
+   } )
+
+Output:
+
+.. code-block:: javascript
+
+   { flavor: 'chocolate' }
+
+To see all available query options, see :node-api-4.0:`FindOptions
+</interfaces/findoptions.html>`.

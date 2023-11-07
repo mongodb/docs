@@ -10,4 +10,14 @@ with non-default :option:`--syncdelay <mongod --syncdelay>` settings may have mo
 checkpoints.
 
 Run :dbcommand:`validate` on each collection on the :binary:`~bin.mongod`
-to restore the correct statistics after an unclean shutdown.
+to restore statistics after an unclean shutdown.
+
+After an unclean shutdown:
+
+- :dbcommand:`validate` updates the :ref:`count statistic
+  <collstat-count>` in the :dbcommand:`collStats` :ref:`output
+  <collStats-output>` with the latest value.
+
+- Other statistics like the number of documents inserted or removed in
+  the :dbcommand:`collStats` :ref:`output <collStats-output>` are
+  estimates.

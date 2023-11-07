@@ -10,10 +10,6 @@
                { item: "canvas", qty: 100, tags: ["cotton"], size: { h: 28, w: 35.5, uom: "cm" } }
             )
 
-         .. include:: /includes/fact-mws-intro.rst
-
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. figure:: /images/compass-insert-document-inventory.png

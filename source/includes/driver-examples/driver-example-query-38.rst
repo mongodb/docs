@@ -11,19 +11,13 @@
                { _id: 2 }
             ])
 
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws-intro.rst
-         
-         .. include:: /includes/fact-mws.rst
-
      - id: compass
        content: |
          .. code-block:: javascript
 
             [
-               { _id: 1, item: null },
-               { _id: 2 }
+               { "_id": 1, "item": null },
+               { "_id": 2 }
             ]
 
          For instructions on inserting documents in MongoDB Compass, see

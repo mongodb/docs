@@ -1,46 +1,46 @@
-The following operation appends the :method:`~cursor.showRecordId()`
-method to the :method:`db.collection.find()` method in order to include
-storage engine record information in the matching documents:
+The example uses this ``pizzas`` collection:
 
 .. code-block:: javascript
 
-   db.collection.find( { a: 1 } ).showRecordId()
+   db.pizzas.insertMany( [
+      { type: "pepperoni", size: "small", price: 4 },
+      { type: "cheese", size: "medium", price: 7 },
+      { type: "vegan", size: "large", price: 8 }
+   ] )
 
-The operation returns the following documents, which include the ``$recordId``
-field:
-
-.. code-block:: javascript
-
-   {
-     "_id" : ObjectId("53908ccb18facd50a75bfbac"),
-     "a" : 1,
-     "b" : 1,
-     "$recordId" : NumberLong(168112)
-   }
-   {
-      "_id" : ObjectId("53908cd518facd50a75bfbad"),
-      "a" : 1,
-      "b" : 2,
-      "$recordId" : NumberLong(168176)
-   }
-
-You can :term:`project <projection>` the added field ``$recordId``, as in the
-following example:
+The following :method:`~db.collection.find()` example uses
+:method:`~cursor.showRecordId()` to append the ``$recordId`` to the
+``pizza`` document fields in the output:
 
 .. code-block:: javascript
 
-   db.collection.find( { a: 1 }, { $recordId: 1 } ).showRecordId()
+   db.pizzas.find().showRecordId()
 
-This query returns only the ``_id`` field and the ``$recordId``
-field in the matching documents:
+Example output:
 
 .. code-block:: javascript
+   :copyable: false
 
-   {
-     "_id" : ObjectId("53908ccb18facd50a75bfbac"),
-     "$recordId" : NumberLong(168112)
-   }
-   {
-      "_id" : ObjectId("53908cd518facd50a75bfbad"),
-      "$recordId" : NumberLong(168176)
-   }
+   [
+      {
+         _id: ObjectId("62ffc70660b33b68e8f30435"),
+         type: 'pepperoni',
+         size: 'small',
+         price: 4,
+         '$recordId': Long("1")
+      },
+      {
+         _id: ObjectId("62ffc70660b33b68e8f30436"),
+         type: 'cheese',
+         size: 'medium',
+         price: 7,
+         '$recordId': Long("2")
+      },
+      {
+         _id: ObjectId("62ffc70660b33b68e8f30437"),
+         type: 'vegan',
+         size: 'large',
+         price: 8,
+         '$recordId': Long("3")
+      }
+   ]

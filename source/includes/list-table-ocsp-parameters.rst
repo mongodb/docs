@@ -17,11 +17,11 @@
    * - :parameter:`tlsOCSPStaplingTimeoutSecs`
    
      - Specifies the maximum number of seconds the
-       :binary:`~bin.mongod`/:binary:`~bin.mongos` instance should
+       :binary:`mongod` / :binary:`mongos` instance should
        wait to receive the OCSP status response for its certificates.
 
    * - :parameter:`tlsOCSPVerifyTimeoutSecs`
    
      - Specifies the maximum number of seconds that the
-       :binary:`~bin.mongod`/:binary:`~bin.mongos` should wait for
+       :binary:`mongod` / :binary:`mongos` should wait for
        the OCSP response when verifying client certificates.

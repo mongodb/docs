@@ -15,11 +15,14 @@ Definition
 
 .. method:: db.collection.createIndexes( [ keyPatterns ], options, commitQuorum )
 
-
-   .. include:: /includes/fact-mongosh-shell-method.rst
-
+   .. |dbcommand| replace:: :dbcommand:`createIndexes` command
+   .. include:: /includes/fact-mongosh-shell-method-alt.rst
 
    Creates one or more indexes on a collection.
+
+   To minimize the impact of building an index on replica sets and sharded
+   clusters, use a rolling index build procedure
+   as described on :doc:`/tutorial/build-indexes-on-replica-sets`.
 
    :method:`db.collection.createIndexes()` takes the following
    parameters:
@@ -144,14 +147,6 @@ Definition
 
           .. versionadded:: 4.4
 
-
-   The :method:`db.collection.createIndexes()` is a wrapper around the
-   :dbcommand:`createIndexes` command.
-
-   To minimize the impact of building an index on replica sets and sharded
-   clusters, use a rolling index build procedure
-   as described on :doc:`/tutorial/build-indexes-on-replica-sets`.
-
 .. _createIndexes-method-options:
 
 Options
@@ -217,16 +212,6 @@ otherwise specified:
      - Type
 
      - Description
-
-   * - ``background``
-
-     - boolean
-
-     - Optional. *Deprecated in MongoDB 4.2.*
-       
-       .. include:: /includes/extracts/4.2-index-background.rst
-       
-       
 
    * - ``unique``
 
@@ -312,24 +297,22 @@ otherwise specified:
        along with keys of other types, only the ``2dsphere`` index
        fields determine whether the index references a document.
 
-       .. versionchanged:: 3.2 
+       .. tip::
        
-          Starting in MongoDB 3.2, MongoDB provides the option to create
-          :ref:`partial indexes <index-type-partial>`. Partial indexes
-          offer a superset of the functionality of sparse indexes. If you
-          are using MongoDB 3.2 or later, :ref:`partial indexes
-          <index-type-partial>` should be preferred over sparse indexes.
+          :ref:`Partial indexes <index-type-partial>` offer a superset of the 
+          functionality of sparse indexes.  Unless your application has a
+          specific requirement, use partial indexes instead of sparse indexes.
 
    * - ``expireAfterSeconds``
 
      - integer
 
-     - Optional. Specifies a value, in seconds, as a :term:`TTL` to control how long
-       MongoDB retains documents in this collection. See
-       :doc:`/tutorial/expire-data` for more information on this
-       functionality. This applies only to :term:`TTL` indexes.
-       
-       
+     - .. include:: /includes/indexes/expireAfterSeconds-config-option.rst
+
+       .. include:: /includes/indexes/expireAfterSeconds-warning.rst
+
+       .. include:: includes/expireAfterSeconds-range.rst
+
    * - :ref:`hidden <method-createIndexes-hidden>`
 
      - boolean
@@ -649,7 +632,8 @@ Concurrency
 
 .. versionchanged:: 4.2
 
-.. include:: /includes/extracts/createIndexes-method-resource-lock.rst
+.. |method| replace:: :method:`~db.collection.createIndexes`
+.. include:: /includes/fact-index-resource-lock
 
 Recreating an Existing Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -725,16 +709,6 @@ For example,
 .. seealso::
 
    :doc:`/core/index-hidden`
-
-Index Key Length Limit
-~~~~~~~~~~~~~~~~~~~~~~
-
-For MongoDB 2.6 through MongoDB versions with
-:ref:`featureCompatibilityVersion <view-fcv>` (fCV) set to ``"4.0"`` or
-earlier, MongoDB will **not** create an index on a collection if the
-index entry for an existing document exceeds the |limit|.
-
-.. |limit| replace:: :limit:`Maximum Index Key Length <Index Key Limit>`
 
 .. _createIndexes-method-wildcard-behavior:
 
@@ -1035,6 +1009,29 @@ The :term:`primary` marks index build as ready only after a simple
 majority of data-bearing voting members "vote" to commit the index
 build. For more information on index builds and the voting process, see
 :ref:`index-operations-replicated-build`.
+
+Create Multiple Indexes
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/cakeSales-example-collection.rst
+
+The following example creates multiple indexes on the ``cakeSales``
+collection:
+
+.. code-block:: javascript
+
+   db.cakeSales.createIndexes( [
+      { "type": 1 },
+      { "orderDate": 1 },
+      { "state": 1 },
+      { "orderDate": 1, "state": -1 }
+   ] )
+
+The first three indexes are on single fields and in ascending order
+(``1``).
+
+The last index is on ``orderDate`` in ascending order (``1``) and
+``state`` in descending order (``-1``).
 
 Additional Information
 ----------------------

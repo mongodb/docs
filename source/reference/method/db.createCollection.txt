@@ -28,372 +28,268 @@ Definition
    :method:`db.createCollection()` is a wrapper around the database
    command :dbcommand:`create`.
 
-   The :method:`db.createCollection()` method has the following prototype form:
+Compatibility
+-------------
 
-   .. note:: Starting in MongoDB 4.2
+.. |operator-method| replace:: ``db.createCollection()``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The ``db.createCollection()`` method has the following 
+prototype form:
+
+.. code-block:: javascript
+
+   db.createCollection( <name>,
+       {
+         capped: <boolean>,
+         timeseries: {                  // Added in MongoDB 5.0
+            timeField: <string>,        // required for time series collections
+            metaField: <string>,
+            granularity: <string>
+         },
+         expireAfterSeconds: <number>,
+         clusteredIndex: <document>,  // Added in MongoDB 5.3
+         changeStreamPreAndPostImages: <document>,  // Added in MongoDB 6.0
+         size: <number>,
+         max: <number>,
+         storageEngine: <document>,
+         validator: <document>,
+         validationLevel: <string>,
+         validationAction: <string>,
+         indexOptionDefaults: <document>,
+         viewOn: <string>,
+         pipeline: <pipeline>,
+         collation: <document>,
+         writeConcern: <document>
+       }
+     )
 
 
-      MongoDB removes the MMAPv1 storage engine and the MMAPv1 specific
-      options ``paddingFactor``, ``paddingBytes``, ``preservePadding``
-      for :method:`db.createCollection()`.
+.. _create_collection_parameters:
 
-   .. code-block:: javascript
+The ``db.createCollection()`` method has the following parameters:
 
-      db.createCollection( <name>,
-         {
-           capped: <boolean>,
-           timeseries: {                  // Added in MongoDB 5.0
-              timeField: <string>,        // required for time series collections
-              metaField: <string>,
-              granularity: <string>
-           },
-           expireAfterSeconds: <number>,
-           autoIndexId: <boolean>,
-           size: <number>,
-           max: <number>,
-           storageEngine: <document>,
-           validator: <document>,
-           validationLevel: <string>,
-           validationAction: <string>,
-           indexOptionDefaults: <document>,
-           viewOn: <string>,              // Added in MongoDB 3.4
-           pipeline: <pipeline>,          // Added in MongoDB 3.4
-           collation: <document>,         // Added in MongoDB 3.4
-           writeConcern: <document>
-         }
-      )
-
-
-   .. _create_collection_parameters:
-
-   The :method:`db.createCollection()` method has the following parameters:
-
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
    
-      * - Parameter
-   
-        - Type
-   
-        - Description
-   
-      * - ``name``
-   
-        - string
-   
-        - The name of the collection to create. See
-          :ref:`restrictions-on-db-names`.
+   * - Parameter
 
-      * - ``options``
+     - Type
    
-        - document
+     - Description
    
-        - Optional. Configuration options for creating a capped collection, for
-          preallocating space in a new collection, or for creating a view.
-          
-          
+   * - ``name``
    
+     - string
+   
+     - The name of the collection to create. See
+       :ref:`restrictions-on-db-names`.
 
-
-   The ``options`` document contains the following fields:
-
-
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
+   * - ``options``
    
-      * - Field
+     - document
    
-        - Type
-   
-        - Description
-   
-      * - ``capped``
-   
-        - boolean
-   
-        - Optional. To create a :term:`capped collection`,
-          specify ``true``. If you specify ``true``, you must also set a maximum
-          size in the ``size`` field.
+     - Optional. Configuration options for creating a:
+          
+       - Capped collection
+          
+       - Clustered collection
+          
+       - View
 
+The ``options`` document contains the following fields:
 
-
-      * - ``timeseries.timeField``
-
-        - string
-
-        - Required when creating a :term:`time series collection`. The
-          name of the field which contains the date in each time series
-          document. Documents in a time series collection must have a
-          valid BSON date as the value for the ``timeField``.
-
-
-
-      * - ``timeseries.metaField``
-
-        - string
-
-        - Optional. The name of the field which contains metadata in
-          each time series document. The metadata in the specified field
-          should be data that is used to label a unique series of
-          documents. The metadata should rarely, if ever, change.
-
-          The name of the specified field may not be ``_id`` or the same
-          as the ``timeseries.timeField``. The field can be of any type
-          except array.
-
-
-
-      * - ``timeseries.granularity``
-
-        - string
-
-        - Optional. Possible values are ``"seconds"`` (default),
-          ``"minutes"``, and ``"hours"``. Set the granularity to the
-          value that is the closest match to the time span between
-          consecutive incoming measurements. Setting the ``granularity``
-          parameter improves performance by optimizing how data in the
-          time series collection is stored internally.
-
-
-
-      * - ``expireAfterSeconds``
-
-        - number
-
-        - Optional. Enable the automatic deletion of documents in a
-          :term:`time series collection` by specifying the number of
-          seconds after which documents expire. MongoDB deletes expired
-          documents automatically.
-
-
-
-      * - ``autoIndexId``
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 75
    
-        - boolean
+   * - Field
+     - Type
+     - Description
    
-        - Optional. Specify ``false`` to disable the automatic creation of an index on the
-          ``_id`` field.
-          
-          .. important::
-          
-             Starting in MongoDB 4.0, you cannot set the option ``autoIndexId``
-             to ``false`` when creating collections in databases other than the
-             ``local`` database.
-          
-          .. deprecated:: 3.2
-          
-          
-   
-      * - ``size``
-   
-        - number
-   
-        - Optional. Specify a maximum size in bytes for a capped collection. Once a
-          capped collection reaches its maximum size, MongoDB removes the older
-          documents to make space for the new documents. The ``size`` field is
-          required for capped collections and ignored for other collections.
-          
-          
-   
-      * - ``max``
-   
-        - number
-   
-        - Optional. The maximum number of documents allowed in the capped collection. The
-          ``size`` limit takes precedence over this limit. If a capped
-          collection reaches the ``size`` limit before it reaches the maximum
-          number of documents, MongoDB removes old documents. If you prefer to
-          use the ``max`` limit, ensure that the ``size`` limit, which is
-          required for a capped collection, is sufficient to contain the
-          maximum number of documents.
-          
-          
-   
-      * - ``storageEngine``
+   * - ``capped``
+     - boolean
+     - Optional. To create a :term:`capped collection`,
+       specify ``true``. If you specify ``true``, you must also set a
+       maximum size in the ``size`` field.
 
-        - document
+   * - ``timeseries.timeField``
+     - string
+     - Required when creating a :term:`time series collection`. The
+       name of the field which contains the date in each time series
+       document. Documents in a time series collection must have a
+       valid BSON date as the value for the ``timeField``.
 
-        - Optional. Available for the WiredTiger storage engine only.
+   * - ``timeseries.metaField``
+     - string
+     - Optional. The name of the field which contains metadata in
+       each time series document. The metadata in the specified field
+       should be data that is used to label a unique series of
+       documents. The metadata should rarely, if ever, change.
 
-          Allows users to specify configuration to the storage engine on a
-          per-collection basis when creating a collection. The value of the
-          ``storageEngine`` option should take the following form:
+       The name of the specified field may not be ``_id`` or the same
+       as the ``timeseries.timeField``. The field can be of any type
+       except array.
 
-          .. code-block:: javascript
+   * - ``timeseries.granularity``
+ 
+     - string
+ 
+     - Optional, do not use if setting ``bucketRoundingSeconds`` and 
+       ``bucketMaxSpanSeconds``. Possible values are ``seconds`` 
+       (default), ``minutes``, and ``hours``.
+     
+       Set ``granularity`` to the value that most closely matches 
+       the time between consecutive incoming timestamps. This 
+       improves performance by optimizing how MongoDB internally 
+       stores data in the collection.
 
-             { <storage-engine-name>: <options> }
+       For more information on granularity and bucket intervals, see 
+       :ref:`timeseries-granularity`.
 
-          Storage engine configuration specified when creating collections are
-          validated and logged to the :term:`oplog` during replication to
-          support replica sets with members that use different storage
-          engines.
+   * - ``expireAfterSeconds``
 
-          .. seealso::
+     - number
+     - .. _db.createCollection.expireAfterSeconds:
+        
+       Optional. Specifies the seconds after which documents in a
+       :term:`time series collection`
+       expire. MongoDB deletes expired documents automatically.
 
-             :ref:`create-collection-storage-engine-options`
+   * - ``size``
+     - number
+     - Optional. Specify a maximum size in bytes for a capped
+       collection. Once a capped collection reaches its maximum size,
+       MongoDB removes the older documents to make space for the new
+       documents. The ``size`` field is required for capped collections
+       and ignored for other collections.
+          
+   * - ``max``
+     - number
+     - Optional. The maximum number of documents allowed in the capped
+       collection. The ``size`` limit takes precedence over this limit.
+       If a capped collection reaches the ``size`` limit before it
+       reaches the maximum number of documents, MongoDB removes old
+       documents. If you prefer to use the ``max`` limit, ensure that
+       the ``size`` limit, which is required for a capped collection,
+       is sufficient to contain the maximum number of documents.
+            
+   * - ``storageEngine``
+     - document
+     - Optional. Available for the WiredTiger storage engine only.
 
+       Allows users to specify configuration to the storage engine on a
+       per-collection basis when creating a collection. The value of the
+       ``storageEngine`` option should take the following form:
 
+       .. code-block:: javascript
 
-      * - ``validator``
-   
-        - document
-   
-        - Optional. Allows users to specify :doc:`validation rules or expressions
-          </core/schema-validation>` for the collection. For more information,
-          see :doc:`/core/schema-validation`.
-          
-          .. versionadded:: 3.2
-          
-          The ``validator`` option takes a document that specifies the
-          validation rules or expressions. You can specify the expressions using
-          the same operators as the :ref:`query operators <query-selectors>`
-          with the exception of :query:`$near`, :query:`$nearSphere`,
-          :query:`$text`, and :query:`$where`.
-          
-          .. note::
-          
-             - Validation occurs during updates and inserts. Existing
-               documents do not undergo validation checks until modification.
-          
-             - You cannot specify a validator for collections in the ``admin``,
-               ``local``, and ``config`` databases.
-          
-             - You cannot specify a validator for ``system.*`` collections.
-          
-          
-   
-      * - ``validationLevel``
-   
-        - string
-   
-        - Optional. Determines how strictly MongoDB applies the
-          validation rules to existing documents during an update.
-          
-          .. versionadded:: 3.2
-          
-          .. include:: /includes/extracts/table-validationLevel-values.rst
-          
-          
-   
-      * - ``validationAction``
-   
-        - string
-   
-        - Optional. Determines whether to ``error`` on invalid documents or just ``warn``
-          about the violations but allow invalid documents to be inserted.
-          
-          .. versionadded:: 3.2
-          
-          .. important::
-          
-             Validation of documents only applies to those documents as
-             determined by the ``validationLevel``.
-          
-          .. include:: /includes/extracts/table-validationAction-values.rst
-          
-          
-   
-      * - ``indexOptionDefaults``
-   
-        - document
-   
-        - Optional. Allows users to specify a default configuration for indexes when
-          creating a collection.
-          
-          The ``indexOptionDefaults`` option accepts a ``storageEngine``
-          document, which should take the following form:
-          
-          .. code-block:: javascript
-          
-             { <storage-engine-name>: <options> }
-          
-          Storage engine configuration specified when creating indexes are
-          validated and logged to the :term:`oplog` during replication to
-          support replica sets with members that use different storage
-          engines.
-          
-          .. versionadded:: 3.2
-          
-          
-   
-      * - ``viewOn``
-   
-        - string
-   
-        - The name of the source collection or view from which to create the
-          view. The name is not the full namespace of the collection or
-          view; i.e. does not include the database name and implies the same
-          database as the view to create. You must create views in the same
-          database as the source collection.
-          
-          
-          See also :method:`db.createView()`.
-          
-          .. versionadded:: 3.4
-          
-          
-          
-   
-      * - ``pipeline``
-   
-        - array
-   
-        - An array that consists of the :ref:`aggregation pipeline stage(s)
-          <aggregation-pipeline>`.  :method:`db.createView` creates the view by
-          applying the specified ``pipeline`` to the ``viewOn`` collection or view.
-          
-          .. include:: /includes/extracts/views-restriction-output-to-disk.rst
-                  
-          .. include:: /includes/extracts/views-public-definition.rst
-          
-          
-          See also :method:`db.createView()`.
-          
-          .. versionadded:: 3.4
-          
-          
-          
-   
-      * - ``collation``
-   
-        - document
-   
-        - Specifies the default :ref:`collation <collation>` for the collection.
-          
-          .. include:: /includes/extracts/collation-description.rst
-          
-          .. include:: /includes/extracts/collation-option-specification.rst
-          
-          .. include:: /includes/extracts/collation-collection-level.rst
-          
-          .. include:: /includes/extracts/collation-unspecified.rst
-          
-          For a collection, you can only specify the collation during the
-          collection creation. Once set, you cannot modify the collection's
-          default collation.
-          
-          For an example, see :ref:`createCollection-collation-example`.
-          
-          .. versionadded:: 3.4
-          
-          
-   
-      * - ``writeConcern``
-   
-        - document
-   
-        - Optional. A document that expresses the :doc:`write concern </reference/write-concern>`
-          for the operation. Omit to use the default write
-          concern.
-          
-          .. include:: /includes/extracts/mongos-operations-wc-create.rst
-          
-          
-   
+          { <storage-engine-name>: <options> }
 
+       Storage engine configuration specified when creating collections
+       are validated and logged to the :term:`oplog` during replication
+       to support replica sets with members that use different storage
+       engines.
+
+       .. seealso::
+
+          :ref:`create-collection-storage-engine-options`
+
+   * - ``validator``
+     - document
+   
+     - Optional. Allows users to specify :ref:`validation rules or
+       expressions <schema-validation-overview>` for the collection.
+          
+       The ``validator`` option takes a document that specifies the
+       validation rules or expressions. You can specify the expressions
+       using the same operators as the :ref:`query operators
+       <query-selectors>` with the exception of :query:`$near`,
+       :query:`$nearSphere`, :query:`$text`, and :query:`$where`.
+
+       To learn how to create a collection with schema validation,
+       see :ref:`schema-validation-json`.
+   
+   * - ``validationLevel``
+     - string
+     - Optional. Determines how strictly MongoDB applies the
+       validation rules to existing documents during an update.
+          
+       .. include:: /includes/extracts/table-validationLevel-values.rst
+
+   * - ``validationAction``
+     - string
+     - Optional. Determines whether to ``error`` on invalid documents
+       or just ``warn`` about the violations but allow invalid
+       documents to be inserted.
+          
+       .. important::
+          
+          Validation of documents only applies to those documents as
+          determined by the ``validationLevel``.
+   
+   * - ``indexOptionDefaults``
+     - document
+     - Optional. Allows users to specify a default configuration for
+       indexes when creating a collection.
+          
+       The ``indexOptionDefaults`` option accepts a ``storageEngine``
+       document, which should take the following form:
+          
+       .. code-block:: javascript
+          
+          { <storage-engine-name>: <options> }
+          
+       Storage engine configuration specified when creating indexes are
+       validated and logged to the :term:`oplog` during replication to
+       support replica sets with members that use different storage
+       engines.
+          
+   * - ``viewOn``
+     - string
+   
+     - The name of the source collection or view from which to create
+       a view. For details, see :method:`db.createView()`.
+          
+   * - ``pipeline``
+     - array
+     - An array that consists of the :ref:`aggregation pipeline stage(s)
+       <aggregation-pipeline>`.  :method:`db.createView` creates a
+       view by applying the specified ``pipeline`` to the ``viewOn``
+       collection or view. For details, see :method:`db.createView()`.    
+   
+   * - ``collation``
+     - document
+     - Specifies the default :ref:`collation <collation>` for the
+       collection.
+          
+       .. include:: /includes/extracts/collation-description.rst
+          
+       .. include:: /includes/extracts/collation-option-specification.rst
+          
+       .. include:: /includes/extracts/collation-collection-level.rst
+          
+       .. include:: /includes/extracts/collation-unspecified.rst
+          
+       For a collection, you can only specify the collation during the
+       collection creation. Once set, you cannot modify the collection's
+       default collation.
+          
+       For an example, see :ref:`createCollection-collation-example`.
+          
+   * - ``writeConcern``
+     - document
+   
+     - Optional. A document that expresses the :ref:`write concern
+       <write-concern>` for the operation. Omit to use the default write
+       concern.
+          
+       .. include:: /includes/extracts/mongos-operations-wc-create.rst
 
 Access Control
 --------------
@@ -551,7 +447,7 @@ Specify Collation
 .. include:: /includes/extracts/collation-versionadded.rst
 
 You can specify :ref:`collation <collation>` at the collection or
-:ref:`view <3.4-reference-views>` level. For example, the following
+:ref:`view <views-landing-page>` level. For example, the following
 operation creates a collection, specifying a collation for the
 collection (See :ref:`collation-document-fields` for descriptions of
 the collation fields):

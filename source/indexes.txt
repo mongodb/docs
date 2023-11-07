@@ -13,10 +13,93 @@ query statement. If an appropriate index exists for a query,
 MongoDB can use the index to limit the number of documents it must
 inspect.
 
-Indexes are special data structures [#b-tree]_ that store a small
-portion of the collection's data set in an easy to traverse form. The
-index stores the value of a specific field or set of fields, ordered by
-the value of the field. The ordering of the index entries supports
+Indexes support efficient execution of queries in MongoDB. Without
+indexes, MongoDB must scan every document in a collection to return
+query results. If an appropriate index exists for a query, MongoDB uses
+the index to limit the number of documents it must scan.
+
+Although indexes improve query performance, adding an index has negative
+performance impact for write operations. For collections with a high
+write-to-read ratio, indexes are expensive because each insert must also
+update any indexes.
+
+Use Cases
+---------
+
+If your application is repeatedly running queries on the same fields,
+you can create an index on those fields to improve performance. For
+example, consider the following scenarios:
+
+.. TODO: Add wildcard index scenario to the following table
+
+.. list-table::
+   :header-rows: 1 
+   :widths: 20 10
+
+   * - Scenario
+
+     - Index Type
+
+   * - A human resources department often needs to look up employees by
+       employee ID. You can create an index on the employee ID field to
+       improve query performance.
+
+     - :ref:`Single Field Index <indexes-single-field>`
+
+   * - A salesperson often needs to look up client information by
+       location. Location is stored in an embedded object with fields
+       like ``state``, ``city``, and ``zipcode``. You can create an
+       index on the entire ``location`` object to improve performance
+       for queries on any field in that object.
+
+     - :ref:`Single Field Index <indexes-single-field>` on an object
+
+   * - A grocery store manager often needs to look up inventory items by
+       name and quantity to determine which items are low stock. You can
+       create a single index on both the ``item`` and ``quantity``
+       fields to improve query performance.
+
+     - :ref:`Compound Index <index-type-compound>` 
+
+Get Started
+-----------
+
+You can create and manage indexes in `{+atlas+} 
+<https://www.mongodb.com/docs/atlas?tck=docs_server>`__, with a driver
+method, or with the MongoDB Shell. {+atlas+} is the fully
+managed service for MongoDB deployments in the cloud.
+
+Create and Manage Indexes in {+atlas+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For deployments hosted in {+atlas+}, you can create
+and manage indexes with the {+atlas+} UI or the Atlas CLI. {+atlas+}
+also includes a Performance Advisor that recommends indexes to improve
+slow queries, ranks suggested indexes by impact, and recommends which
+indexes to drop.
+
+To learn how to create and manage indexes the {+atlas+} UI or the Atlas
+CLI, see :atlas:`Create, View, Drop, and Hide Indexes 
+</atlas-ui/indexes>`.
+
+To learn more about the {+atlas+} Performance Advisor, see
+:atlas:`Monitor and Improve Slow Queries </performance-advisor>`.
+
+Create and Manage Indexes with a Driver Method or the MongoDB Shell
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create and manage indexes with a driver method or the MongoDB
+Shell. To learn more, see the resources on this page.
+
+Details
+-------
+
+Indexes are special data structures that store a small portion of the
+collection's data set in an easy-to-traverse form. MongoDB indexes use a
+:wikipedia:`B-tree <B-tree>` data structure.
+
+The index stores the value of a specific field or set of fields, ordered
+by the value of the field. The ordering of the index entries supports
 efficient equality matches and range-based query operations. In
 addition, MongoDB can return sorted results by using the ordering in
 the index.
@@ -142,8 +225,11 @@ index can support a sort operation. See
 :ref:`index-ascending-and-descending` for more information on the
 impact of index order on results in compound indexes.
 
-See :doc:`/core/index-compound` and :ref:`sort-on-multiple-fields` for
-more information on compound indexes.
+See also:
+
+- :ref:`index-type-compound`,
+- :ref:`sort-on-multiple-fields`, and
+- :ref:`esr-indexing-rule` 
 
 Multikey Index
 ~~~~~~~~~~~~~~
@@ -170,19 +256,17 @@ provides two special indexes: :doc:`2d indexes </core/2d>` that uses
 planar geometry when returning results and :doc:`2dsphere indexes
 </core/2dsphere>` that use spherical geometry to return results.
 
-See :doc:`/core/geospatial-indexes` for a high level introduction to
+.. include:: /includes/indexes/sparse-index-considerations.rst
+
+See :ref:`index-feature-geospatial` for a high level introduction to
 geospatial indexes.
 
-Text Indexes
-~~~~~~~~~~~~
+Text Search Indexes
+~~~~~~~~~~~~~~~~~~~
 
-MongoDB provides a ``text`` index type that supports searching
-for string content in a collection. These text indexes do not store
-language-specific *stop* words (e.g. "the", "a", "or") and *stem* the
-words in a collection to only store root words.
+.. include:: /includes/indexes/text-search-indexes-overview.rst
 
-See :doc:`/core/index-text` for more information on text indexes and
-search.
+.. include:: /includes/indexes/sparse-index-considerations.rst
 
 Hashed Indexes
 ~~~~~~~~~~~~~~
@@ -192,6 +276,22 @@ MongoDB provides a :doc:`hashed index </core/index-hashed>` type,
 which indexes the hash of the value of a field. These indexes have a
 more random distribution of values along their range, but *only*
 support equality matches and cannot support range-based queries.
+
+Wildcard Indexes
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 4.2, you can use wildcard indexes to support
+queries against multiple, arbitrary, or unknown fields. When you create
+a wildcard index, you specify ``$**`` to represent all fields or all
+values, allowing you to index any of the following with a single
+command:
+
+- All values of a field
+- All fields in a document
+- All fields in a document except specific field paths
+- Multiple specific fields in a document
+
+To learn more, see :ref:`wildcard-index-core`.
 
 Index Properties
 ----------------
@@ -278,13 +378,6 @@ Indexes and Collation
 ---------------------
 
 .. include:: /includes/extracts/collation-versionadded.rst
-
-----------
-
-|arrow| Use the **Select your language** drop-down menu in the
-upper-right to set the language of the examples on this page.
-
-----------
 
 .. include:: /includes/driver-examples/driver-example-indexes-2.rst
 

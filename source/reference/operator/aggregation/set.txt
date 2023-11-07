@@ -33,21 +33,31 @@ Definition
    explicitly specifies all existing fields in the input documents and
    adds the new fields.
 
-   :pipeline:`$set` has the following form:
+Compatibility
+-------------
 
-   .. code-block:: javascript
+.. |operator-method| replace:: ``$set``
 
-      { $set: { <newField>: <expression>, ... } }
+.. include:: /includes/fact-compatibility.rst
 
-   Specify the name of each field to add and set its value to an
-   :ref:`aggregation expression <aggregation-expressions>`. For more
-   information on expressions, see :ref:`aggregation-expressions`.
+Syntax
+------
+
+:pipeline:`$set` has the following form:
+
+.. code-block:: javascript
+
+   { $set: { <newField>: <expression>, ... } }
+
+Specify the name of each field to add and set its value to an
+:ref:`aggregation expression <aggregation-expressions>`. For more
+information on expressions, see :ref:`aggregation-expressions`.
    
-   .. important::
+.. important::
 
-      If the name of the new field is the same as an existing field name
-      (including ``_id``), ``$set`` overwrites the existing value
-      of that field with the value of the specified expression.
+   If the name of the new field is the same as an existing field name
+   (including ``_id``), ``$set`` overwrites the existing value
+   of that field with the value of the specified expression.
 
 Behavior
 --------
@@ -247,3 +257,52 @@ The operation returns the following:
    :copyable: false
 
    { "_id" : 1, "student" : "Maya", "homework" : [ 10, 5, 10, 7 ], "quiz" : [ 10, 8 ], "extraCredit" : 0 }
+
+Creating a New Field with Existing Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a sample ``scores`` collection with the following:
+
+.. code-block:: javascript
+
+   db.scores.insertMany([
+      { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
+      { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
+   ])
+
+The following aggregation operation adds a new field ``quizAverage`` 
+to each document that contains the average of the ``quiz`` array.
+
+.. code-block:: javascript
+
+   db.scores.aggregate( [
+      {
+         $set: {
+            quizAverage: { $avg: "$quiz" } 
+         }
+      }
+   ] )
+
+The operation returns the following documents:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         _id: 1,
+         student: 'Maya',
+         homework: [ 10, 5, 10 ],
+         quiz: [ 10, 8 ],
+         extraCredit: 0,
+         quizAverage: 9
+      },
+      {
+         _id: 2,
+         student: 'Ryan',
+         homework: [ 5, 6, 5 ],
+         quiz: [ 8, 8 ],
+         extraCredit: 8,
+         quizAverage: 8
+      }
+   ]

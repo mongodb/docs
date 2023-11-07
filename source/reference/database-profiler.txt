@@ -42,6 +42,8 @@ operation, including reads, on the :data:`system.profile
 <<database>.system.profile>` collection from within a
 :doc:`transaction </core/transactions>`.
 
+.. include:: /includes/database-profiler-note.rst
+
 Example ``system.profile`` Document
 -----------------------------------
 
@@ -517,6 +519,34 @@ operation.
    For more information on lock modes, see
    :ref:`faq-concurrency-locking`.
 
+.. data:: system.profile.authorization
+
+   .. versionadded:: 5.0.0
+
+   The number of times the user cache is accessed for each operation.
+   These metrics are only displayed when an operation has accessed the
+   user cache at least once. 
+
+   These metrics are only available when :ref:`slow operation logging
+   <log-message-slow-ops>` or :ref:`database profiling <profiler>` is
+   enabled.
+   
+   :data:`system.profile.authorization` is not included in
+   :method:`db.currentOp()` output.
+
+   .. data:: system.profile.authorization.startedUserCacheAcquisitionAttempts
+
+      The number of times the operation tried to access the user cache.
+
+   .. data:: system.profile.authorization.completedUserCacheAcquisitionAttempts
+   
+      The number of times the operation retrieved user data from the
+      user cache.
+
+   .. data:: system.profile.authorization.userCacheWaitTimeMicros
+   
+      The total time the operation spent waiting for user cache
+      responses.
 
 .. data:: system.profile.storage
 
@@ -535,6 +565,25 @@ operation.
 
       Number of bytes read by the operation from the disk to the cache.
 
+      Data read from disk into the cache includes everything needed
+      to execute the query.  If the data is already in the cache,
+      then the number of bytes read from disk could be ``0``.
+
+      The number of bytes read from disk includes more than the
+      queried documents:
+
+      * WiredTiger reads in units of pages and a page may contain one or
+        several documents.  If a document is in a page, all documents in that
+        page are read into the cache and included in the ``bytesRead`` value.
+
+      * If the cache requires page management (such as eviction or rereads),
+        the ``bytesRead`` value includes data read from disk
+        in these operations.
+
+      * If the index is not in the cache or the index in the cache is stale,
+        WiredTiger reads several internal and leaf pages from disk to
+        reconstruct the index in cache.
+
    .. data:: system.profile.storage.data.timeReadingMicros
 
       .. versionadded:: 4.2 (*Also available starting in 4.0.9*)
@@ -548,6 +597,17 @@ operation.
 
       Number of bytes written by the operation from the cache to the
       disk.
+
+      WiredTiger typically doesn't require the query to write to disk.
+      Data modified by the query is written to an in-memory cache that
+      WiredTiger flushes to disk as part an eviction or checkpoint
+      operation. In such cases, ``bytesWritten`` shows as 0.
+
+      If the thread running the query requires forced page management
+      (such as eviction), WiredTiger writes the page contents to disk.
+      This flush likely includes data unrelated to changes made by the
+      query itself, which can cause ``bytesWritten`` to show
+      a higher value than expected.
 
    .. data:: system.profile.storage.data.timeWritingMicros
 

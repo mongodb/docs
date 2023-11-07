@@ -9,61 +9,57 @@ Database References
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 For many use cases in MongoDB, the denormalized data model where
-related data is stored within a single :term:`document <document>` will
-be optimal. However, in some cases, it makes sense to store related
+related data is stored within a single :term:`document <document>` is optimal. 
+However, in some cases, it makes sense to store related
 information in separate documents, typically in different collections
 or databases.
 
 .. important::
 
-   MongoDB 3.2 introduces :pipeline:`$lookup` pipeline stage to perform
+   You can use the :pipeline:`$lookup` pipeline stage to perform
    a left outer join to an unsharded collection in the same database.
-   For more information and examples, see :pipeline:`$lookup`.
 
-   Starting in MongoDB 3.4, you can also use :pipeline:`$graphLookup`
-   pipeline stage to join an unsharded collection to perform recursive
-   search. For more information and examples, see
-   :pipeline:`$graphLookup`.
+   You can also use the :pipeline:`$graphLookup` pipeline stage to join an 
+   unsharded collection to perform recursive search.
 
 This page outlines alternative procedures that predate the
 :pipeline:`$lookup` and :pipeline:`$graphLookup` pipeline stages.
 
-MongoDB applications use one of two methods for relating documents:
+You can create a database reference for deployments hosted in the
+following environments:
 
-- :ref:`Manual references <document-references>` where you save the
+.. include:: /includes/fact-environments.rst
+
+MongoDB applications use one of two methods to relate documents:
+
+- :ref:`Manual references <document-references>` save the
   ``_id`` field of one document in another document as a reference.
-  Then your application can run a second query to return the related
+  Your application runs a second query to return the related
   data. These references are simple and sufficient for most use
   cases.
 
 - :ref:`DBRefs <dbref-explanation>` are references from one document to another
   using the value of the first document's ``_id`` field, collection name,
-  and, optionally, its database name. By including these names, DBRefs
-  allow documents located in multiple collections to be more easily linked
-  with documents from a single collection.
+  and, optionally, its database name, as well as any other fields. DBRefs allow
+  you to more easily reference documents stored in multiple collections or 
+  databases.
 
-  To resolve DBRefs, your application
-  must perform additional queries to return the referenced
-  documents. Many :driver:`Drivers </>` have helper
-  methods that form the query for the DBRef automatically. The
-  drivers [#official-driver]_ do not *automatically* resolve DBRefs
-  into documents.
+To resolve DBRefs, your application must perform additional queries to return
+the referenced documents. Some :driver:`MongoDB drivers </>` provide helper 
+methods to enable DBRefs to be resolved into documents, but it doesn't happen 
+automatically.
 
-  DBRefs provide a common format and type to represent relationships among
-  documents. The DBRef format also provides common semantics for representing
-  links between documents if your database must interact with
-  multiple frameworks and tools.
+DBRefs provide a common format and type to represent relationships among
+documents. The DBRef format also provides common semantics for representing
+links between documents if your database must interact with
+multiple frameworks and tools.
 
 Unless you have a compelling reason to use DBRefs, use manual
 references instead.
-
-.. [#official-driver] Some community supported drivers may have
-   alternate behavior and may resolve a DBRef into a document
-   automatically.
 
 .. _document-references:
 
@@ -73,13 +69,80 @@ Manual References
 Background
 ~~~~~~~~~~
 
-Using manual references is the practice of including one
+A manual reference is the practice of including one
 :term:`document's <document>` ``_id`` field in another document. The
 application can then issue a second query to resolve the referenced
 fields as needed.
 
-Process
-~~~~~~~
+Create a Manual Reference in the {+atlas+} UI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a manual reference in the {+atlas+} UI, follow these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the collection.
+
+      a. In the {+atlas+} UI, click :guilabel:`Database` in the sidebar.
+      #. For the database deployment where you want to add a database
+         reference, click :guilabel:`Browse Collections`.
+      #. In the left navigation pane, select the database.
+      #. In the left navigation pane, select the collection. This
+         example references a ``places`` collection.
+
+   .. step:: Add a document.
+
+      a. Click :guilabel:`Insert Document`.
+      #. Click the JSON view icon (:guilabel:`{{}}`).
+      #. Paste the following data into the document:
+
+         .. code-block::
+
+            {
+              "_id": {
+                "$oid": "651aea5870299b120736f442"
+              },
+              "name": "Broadway Center",
+              "url": "bc.example.net"
+            }
+
+      #. Click :guilabel:`Insert`.
+
+   .. step:: Add a document in the ``people`` collection that references the entry in ``places``.
+
+      a. In the left navigation pane, select a different
+         collection. This example references a ``people`` collection.
+      #. Click :guilabel:`Insert Document`.
+      #. Click the JSON view icon (:guilabel:`{{}}`).
+      #. Paste the following data into the document:
+
+         .. code-block::
+
+            {
+              "_id": {
+                "$oid": "651aebeb70299b120736f443"
+              },
+              "name": "Erin",
+              "places_id": "651aea5870299b120736f442"
+              "url": "bc.example.net/Erin"
+            }
+
+      #. Click :guilabel:`Insert`.
+
+         When a query returns the document from the ``people``
+         collection you can, if needed, filter the query results from
+         the ``places`` collection for the document referenced by the
+         ``places_id`` field.
+
+         To learn more about running queries in {+atlas+},
+         see :atlas:`View, Filter, and Sort Documents 
+         </atlas-ui/documents/#view--filter--and-sort-documents>` in
+         the {+atlas+} documentation.
+
+
+Create a Manual Reference in the Terminal
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider the following operation to insert two documents, using the
 ``_id`` field of the first document as a reference in the second
@@ -129,7 +192,11 @@ Background
 DBRefs are a convention for representing a :term:`document`, rather
 than a specific reference type. They include the name of the
 collection, and in some cases the database name, in addition to the
-value from the ``_id`` field.
+value from the ``_id`` field. 
+
+Optionally, DBRefs can include any number of other fields. Extra field names 
+must follow any :ref:`rules for field names <limit-restrictions-on-field-names>` 
+imposed by the server version.
 
 Format
 ~~~~~~
@@ -153,8 +220,6 @@ DBRefs have the following fields:
    Contains the name of the database where the referenced document
    resides.
 
-   Only some drivers support ``$db`` references.
-
 .. example::
 
    DBRef documents resemble the following document:
@@ -174,13 +239,15 @@ DBRefs have the following fields:
         "creator" : {
                         "$ref" : "creators",
                         "$id" : ObjectId("5126bc054aed4daf9e2ab772"),
-                        "$db" : "users"
+                        "$db" : "users",
+                        "extraField" : "anything"
                      }
       }
 
    The DBRef in this example points to a document in the ``creators``
    collection of the ``users`` database that has
-   ``ObjectId("5126bc054aed4daf9e2ab772")`` in its ``_id`` field.
+   ``ObjectId("5126bc054aed4daf9e2ab772")`` in its ``_id`` field. It also contains
+   an optional field.
 
 .. note::
 
@@ -268,7 +335,7 @@ Driver Support for DBRefs
 
      - Supported
 
-     - Please see the `Ruby driver page <https://docs.mongodb.com/ruby-driver/current/>`__
+     - Please see the :ruby:`Ruby driver page </>`
        for more information.
 
    * - Scala

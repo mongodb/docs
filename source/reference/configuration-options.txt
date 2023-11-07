@@ -16,6 +16,13 @@ The following page describes the configuration options available in
 MongoDB |version|. For configuration file options for other versions of
 MongoDB, see the appropriate version of the MongoDB Manual.
 
+.. note::
+
+   If you're using {+atlas+} to manage your MongoDB deployments in the
+   cloud, you don't need to create a configuration file. To learn how 
+   to configure settings for your {+atlas+} deployment, see 
+   :atlas:`Configure Additional Settings </cluster-additional-settings/>`.
+
 .. _conf-file:
 
 Configuration File
@@ -146,9 +153,9 @@ the :binary:`~bin.mongod` or :binary:`~bin.mongos`. For example:
    mongos --config /etc/mongos.conf  --configExpand "rest,exec"
 
 If the configuration file includes an expansion directive and you start
-the :binary:`~bin.mongod`/:binary:`~bin.mongos` without specifying
+the :binary:`mongod` / :binary:`mongos` without specifying
 that directive in the :option:`--configExpand <mongod --configExpand>`
-option, the :binary:`~bin.mongod`/:binary:`~bin.mongos` fails to start.
+option, the :binary:`mongod` / :binary:`mongos` fails to start.
 
 For complete documentation, see :ref:`externally-sourced-values`.
 
@@ -737,95 +744,6 @@ Core Options
 
    .. include::  /includes/warning-timeZoneInfo.rst
 
-
-.. _free-monitoring-configuration-options:
-
-``cloud`` Options
-~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 4.0
-
-.. code-block:: yaml
-
-   cloud:
-      monitoring:
-         free:
-            state: <string>
-            tags: <string>
-
-.. setting:: cloud.monitoring.free.state
-
-   *Type*: string
-
-   
-   .. versionadded:: 4.0
-   
-      Available for MongoDB Community Edition.
-   
-   Enables or disables :doc:`free MongoDB Cloud monitoring
-   </administration/free-monitoring>`. :setting:`cloud.monitoring.free.state` accepts the following
-   values:
-   
-   .. list-table::
-      :widths: 20 80
-   
-      * - ``runtime`` 
-   
-        - Default. You can enable or disable free monitoring during
-          runtime.
-   
-          To enable or disable free monitoring during runtime, see
-          :method:`db.enableFreeMonitoring()` and
-          :method:`db.disableFreeMonitoring()`.
-   
-          To enable or disable free monitoring during runtime when
-          running with access control, users must have required
-          privileges. See :method:`db.enableFreeMonitoring()` and
-          :method:`db.disableFreeMonitoring()` for details.
-   
-      * - ``on``
-   
-        - Enables free monitoring at startup; i.e. registers for free
-          monitoring. When enabled at startup, you cannot disable free
-          monitoring during runtime.
-   
-      * - ``off`` 
-   
-        - Disables free monitoring at startup, regardless of whether
-          you have previously registered for free monitoring.  When disabled at startup,
-          you cannot enable free monitoring during runtime.
-   
-   Once enabled, the free monitoring state remains enabled until
-   explicitly disabled. That is, you do not need to re-enable each time
-   you start the server.
-
-   
-   For the corresponding command-line option, see
-   :option:`--enableFreeMonitoring <mongod --enableFreeMonitoring>`.
-   
-
-
-.. setting:: cloud.monitoring.free.tags
-
-   *Type*: string
-
-   
-   .. versionadded:: 4.0
-   
-      Available for MongoDB Community Edition.
-   
-   Optional tag to describe environment context. The tag can be sent as
-   part of the :doc:`free MongoDB Cloud monitoring
-   </administration/free-monitoring>` registration at start up.
-   
-
-   
-   For the corresponding command-line option, see
-   :option:`--freeMonitoringTag <mongod --freeMonitoringTag>`.
-   
-
-
-
 ``net`` Options
 ~~~~~~~~~~~~~~~
 
@@ -889,6 +807,9 @@ Core Options
    
    The TCP port on which the MongoDB instance listens for
    client connections.
+
+   .. |port-option| replace:: ``net.port`` option
+   .. include:: /includes/ports
 
 .. setting:: net.bindIp
 
@@ -998,7 +919,9 @@ Core Options
 
    *Type*: integer
 
-   *Default*: 65536
+   | *Default (Windows):* 1,000,000
+   | *Default (Linux):* (`RLIMIT_NOFILE
+     <https://man7.org/linux/man-pages/man2/getrlimit.2.html>`__) * 0.8
 
    The maximum number of simultaneous connections that :binary:`~bin.mongos` or :binary:`~bin.mongod` will
    accept. This setting has no effect if it is higher than your operating
@@ -1515,8 +1438,7 @@ Core Options
 
    .. versionadded:: 4.2
    
-   For clients that do not present certificates, :binary:`~bin.mongos` or :binary:`~bin.mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
+   .. include:: /includes/TLS-SSL-certificates.rst
    
    For clients that present a certificate, however, :binary:`~bin.mongos` or :binary:`~bin.mongod` performs
    certificate validation using the root certificate chain specified by
@@ -1566,32 +1488,32 @@ Core Options
 .. setting:: net.tls.disabledProtocols
 
    *Type*: string
-
-   .. versionadded:: 4.2
    
    Prevents a MongoDB server running with TLS from accepting
    incoming connections that use a specific protocol or protocols. To
-   specify multiple protocols, use a comma separated list of protocols.
+   specify multiple protocols, use a comma separated list of protocols,
+   but do not use spaces after the commas. If you include a space before
+   a protocol name, the server interprets it as an unrecognized protocol
+   and doesn't start.
     
    :setting:`net.tls.disabledProtocols` recognizes the following protocols: ``TLS1_0``, ``TLS1_1``,
-   ``TLS1_2``, and starting in version 4.0.4 (and 3.6.9), ``TLS1_3``.
+   ``TLS1_2``, and ``TLS1_3``.
    
    - On macOS, you cannot disable ``TLS1_1`` and leave both ``TLS1_0`` and
      ``TLS1_2`` enabled. You must disable at least one of the other
      two, for example, ``TLS1_0,TLS1_1``.
    
    - To list multiple protocols, specify as a comma separated list of
-     protocols. For example ``TLS1_0,TLS1_1``.
+     protocols without spaces after the commas. For example ``TLS1_0,TLS1_1``.
    
-   - Specifying an unrecognized protocol will prevent the server from
-     starting.
+   - Specifying an unrecognized protocol or including a space after a
+     comma prevents the server from starting.
    
    - The specified disabled protocols overrides any default disabled
      protocols.
    
-   Starting in version 4.0, MongoDB disables the use of TLS 1.0 if TLS
-   1.1+ is available on the system. To enable the disabled TLS 1.0,
-   specify ``none`` to :setting:`net.tls.disabledProtocols`. See :ref:`4.0-disable-tls`.
+   MongoDB disables the use of TLS 1.0 if TLS 1.1+ is available on the
+   system. To enable TLS 1.0, specify ``none`` to :setting:`net.tls.disabledProtocols`. See :ref:`4.0-disable-tls`.
    
    Members of replica sets and sharded clusters must speak at least one
    protocol in common.
@@ -1839,7 +1761,7 @@ Core Options
    CA certificate, the secure certificate store must contain that root
    CA certificate. If the TLS/SSL certificate was signed with an
    intermediate CA certificate, the secure certificate store must
-   contain the intermedia CA certificate *and* the root CA certificate.
+   contain the intermediate CA certificate *and* the root CA certificate.
 
 .. setting:: net.ssl.clusterCertificateSelector
 
@@ -1882,7 +1804,7 @@ Core Options
    CA certificate, the secure certificate store must contain that root
    CA certificate. If the cluster certificate was signed with an
    intermediate CA certificate, the secure certificate store must
-   contain the intermedia CA certificate *and* the root CA certificate.
+   contain the intermediate CA certificate *and* the root CA certificate.
 
 .. setting:: net.ssl.clusterFile
 
@@ -2066,9 +1988,8 @@ Core Options
       Use :setting:`net.tls.allowConnectionsWithoutCertificates`
       instead.
    
-   For clients that do not present certificates, :binary:`~bin.mongos` or :binary:`~bin.mongod` bypasses
-   TLS/SSL certificate validation when establishing the connection.
-   
+   .. include:: /includes/TLS-SSL-certificates.rst
+
    For clients that present a certificate, however, :binary:`~bin.mongos` or :binary:`~bin.mongod` performs
    certificate validation using the root certificate chain specified by
    :setting:`~net.ssl.CAFile` and reject clients with invalid certificates.
@@ -2261,7 +2182,7 @@ Core Options
             method: <string>
             saslMechanisms: <string>
             queryUser: <string>
-            queryPassword: <string>
+            queryPassword: <string | array>
             useOSDefaults: <boolean>
          transportSecurity: <string>
          timeoutMS: <int>
@@ -2584,27 +2505,7 @@ Key Management Configuration Options
    
    The cipher mode to use for encryption at rest:
    
-   .. list-table::
-      :header-rows: 1
-      :widths: 35 65
-   
-      * - Mode
-        - Description
-   
-      * - ``AES256-CBC``
-        - 256-bit Advanced Encryption Standard in Cipher Block Chaining
-          Mode
-   
-      * - ``AES256-GCM``
-   
-        - 256-bit Advanced Encryption Standard in Galois/Counter Mode
-   
-          Available only on Linux.
-   
-          .. versionchanged:: 4.0
-   
-             .. include:: /includes/fact-aes.rst
-   
+   .. include:: /includes/in-use-encryption/table-in-use-encryption-cipher-modes.rst
    
    .. include:: /includes/fact-enterprise-only-admonition.rst
    
@@ -2729,12 +2630,12 @@ Key Management Configuration Options
 
    *Type*: string
 
+   Path to the ``.pem`` file used to authenticate MongoDB to the KMIP
+   server. The specified ``.pem`` file must contain both the TLS/SSL
+   certificate and key. 
    
-   .. versionadded:: 3.2
-   
-   String containing the path to the client certificate used for
-   authenticating MongoDB to the KMIP server. Requires that a
-   :setting:`security.kmip.serverName` be provided.
+   To use this setting, you must also specify the
+   :setting:`security.kmip.serverName` setting.
    
    .. note::
       
@@ -2913,7 +2814,7 @@ Key Management Configuration Options
             method: <string>
             saslMechanisms: <string>
             queryUser: <string>
-            queryPassword: <string>
+            queryPassword: <string | array>
             useOSDefaults: <boolean>
          transportSecurity: <string>
          timeoutMS: <int>
@@ -2978,24 +2879,9 @@ Key Management Configuration Options
 
 .. setting:: security.ldap.bind.queryPassword
 
-   *Type*: string
-
-   .. versionadded:: 3.4 Available in MongoDB Enterprise only.
-   
-   The password used to bind to an LDAP server when using
-   :setting:`~security.ldap.bind.queryUser`. You must use :setting:`~security.ldap.bind.queryPassword` with
-   :setting:`~security.ldap.bind.queryUser`.
-   
-   If unset, :binary:`~bin.mongod` or :binary:`~bin.mongos` will not attempt to bind to the LDAP server.
-   
-   This setting can be configured on a running :binary:`~bin.mongod` or :binary:`~bin.mongos` using
-   :dbcommand:`setParameter`.
-   
-   .. note::
-   
-      Windows MongoDB deployments can use :setting:`~security.ldap.bind.useOSDefaults`
-      instead of :setting:`~security.ldap.bind.queryPassword` and :setting:`~security.ldap.bind.queryPassword`. You cannot specify
-      both :setting:`~security.ldap.bind.queryPassword` and :setting:`~security.ldap.bind.useOSDefaults` at the same time.
+   .. include:: /includes/query-password.rst
+     :start-after: START-CONFIG-QUERYPASSWORD
+     :end-before: END-CONFIG-QUERYPASSWORD
 
 
 .. setting:: security.ldap.bind.useOSDefaults
@@ -3278,7 +3164,7 @@ Key Management Configuration Options
 
    Starting in MongoDB 5.0, :setting:`~security.ldap.userToDNMapping`
    accepts an empty string ``""`` or empty array ``[ ]`` in place of a
-   mapping documnent. If providing an empty string or empty array to
+   mapping document. If providing an empty string or empty array to
    :setting:`~security.ldap.userToDNMapping`, MongoDB will map the
    authenticated username as the LDAP DN. Previously, providing an
    empty mapping document would cause mapping to fail.
@@ -3287,9 +3173,9 @@ Key Management Configuration Options
    
      The following shows two transformation documents. The first
      document matches against any string ending in ``@ENGINEERING``, placing
-     anything preceeding the suffix into a regex capture group. The
+     anything preceding the suffix into a regex capture group. The
      second document matches against any string ending in ``@DBA``, placing
-     anything preceeding the suffix into a regex capture group.
+     anything preceding the suffix into a regex capture group.
    
      .. important::  You must pass the array to :setting:`~security.ldap.userToDNMapping` as a string.
    
@@ -3981,9 +3867,7 @@ LDAP Parameters
 
    *Default*: 50% of physical RAM less 1 GB
 
-   .. versionchanged:: 3.4
-   
-      Values can range from 256MB to 10TB and can be a float.
+   Values can range from 256MB to 10TB and can be a float.
    
    Maximum amount of memory to allocate for :doc:`in-memory storage
    engine </core/inmemory>` data, including indexes, oplog if the
@@ -4052,21 +3936,14 @@ LDAP Parameters
    
    .. include:: /includes/dbcommand-slowms-definition.rst
    
-
+   This setting is available for :binary:`~bin.mongod` and :binary:`~bin.mongos`.
    
-   .. versionchanged:: 4.0
+   - For :binary:`~bin.mongod` instances, the setting affects both
+     the diagnostic log and, if enabled, the profiler.
    
-      The :setting:`~operationProfiling.slowOpThresholdMs` setting is
-      available for :binary:`~bin.mongod` and :binary:`~bin.mongos`. In
-      earlier versions, :setting:`~operationProfiling.slowOpThresholdMs`
-      is available for :binary:`~bin.mongod` only.
-   
-      - For :binary:`~bin.mongod` instances, the setting affects both
-        the diagnostic log and, if enabled, the profiler.
-   
-      - For :binary:`~bin.mongos` instances, the setting affects the
-        diagnostic log only and not the profiler since profiling is not
-        available on :binary:`~bin.mongos`.
+   - For :binary:`~bin.mongos` instances, the setting affects the
+     diagnostic log only and not the profiler, since profiling is not
+     available on :binary:`~bin.mongos`.
    
 
 
@@ -4276,9 +4153,7 @@ LDAP Parameters
 
    *Type*: boolean
 
-   .. versionchanged:: 3.2
-
-      Starting in 3.2, MongoDB uses ``false`` as the default.
+   *Default*: false.
    
    During chunk migration, a shard does not save documents migrated from
    the shard.
@@ -4473,11 +4348,6 @@ LDAP Parameters
 ``mongos``\ -only Options
 -------------------------
 
-.. versionchanged:: 3.4
-
-   MongoDB 3.4 removes ``sharding.chunkSize`` and
-   ``sharding.autoSplit`` settings.
-
 .. code-block:: yaml
 
    replication:
@@ -4524,9 +4394,6 @@ LDAP Parameters
 .. setting:: sharding.configDB
 
    *Type*: string
-
-   
-   .. versionchanged:: 3.2
    
    The :ref:`configuration servers <sharding-config-server>` for the
    :term:`sharded cluster`.
@@ -4631,9 +4498,9 @@ engine and the MMAPv1-specific configuration options:
 For earlier versions of MongoDB, refer to the corresponding version of
 the manual. For example:
 
-- :v4.0:`https://docs.mongodb.com/v4.0 </reference/configuration-options>`
-- :v3.6:`https://docs.mongodb.com/v3.6 </reference/configuration-options>`
-- :v3.4:`https://docs.mongodb.com/v3.4 </reference/configuration-options>`
+- :v4.0:`https://www.mongodb.com/docs/v4.0 </reference/configuration-options>`
+- :v3.6:`https://www.mongodb.com/docs/v3.6 </reference/configuration-options>`
+- :v3.4:`https://www.mongodb.com/docs/v3.4 </reference/configuration-options>`
 
 .. toctree::
    :hidden:

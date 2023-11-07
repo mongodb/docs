@@ -20,51 +20,54 @@ Definition
    prevent a single logfile from consuming too much disk space.
 
    You must issue the :dbcommand:`logRotate` command against the
-   :term:`admin database` in the form:
+   :term:`admin database` using the following syntax:
 
    .. code-block:: javascript
+      :copyable: false
 
-      db.adminCommand({logRotate: <target>})
+      db.adminCommand(
+         {
+            logRotate: <integer or string>,
+            comment: <string>
+         }
+      )
 
-   The :dbcommand:`logRotate` command takes the following parameters:
+Command Fields
+--------------
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 20 20 80
-   
-      * - Parameter
-   
-        - Type
-   
-        - Description
+The command takes the following fields:
 
-      * - ``<target>``
-   
-        - string
-   
-        - The log or logs to rotate, according to the following:
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+ 
+   * - Field
+     - Type
+     - Description
+ 
+   * - ``logRotate``
+     - integer or string
+     - The log or logs to rotate, according to the following:
+ 
+       - ``1``  -- Rotates both the server and audit logs
+       - ``"server"`` -- Rotates only the server log
+       - ``"audit"``  -- Rotates only the audit log
+ 
+   * - ``comment``
+     - string
+     - *Optional.* A message logged by the server to the log file and
+       audit file at time of log rotation.
+ 
+You may also rotate the logs by sending a ``SIGUSR1`` signal to the
+:binary:`~bin.mongod` process.
 
-          - ``1``  -- Rotates both the server and audit logs
-          - ``server`` -- Rotates only the server log
-          - ``audit``  -- Rotates only the audit log
+For example, if a running :binary:`~bin.mongod` instance has a
+process ID (PID) of ``2200``, the following command rotates the log
+file for that instance on Linux:
 
-      * - ``comment``
-   
-        - any
-   
-        - *optional* A message logged by the server to the log file and
-          audit file at time of log rotation.
+.. code-block:: bash
 
-   You may also rotate the logs by sending a ``SIGUSR1`` signal to the
-   :binary:`~bin.mongod` process.
-
-   For example, if a running :binary:`~bin.mongod` instance has a
-   process ID (PID) of ``2200``, the following command rotates the log
-   file for that instance on Linux:
-
-   .. code-block:: bash
-
-      kill -SIGUSR1 2200
+   kill -SIGUSR1 2200
 
 Limitations
 -----------
@@ -111,11 +114,11 @@ The following example rotates both the server log and the audit log:
 
 .. code-block:: javascript
 
-   db.adminCommand({logRotate: 1})
+   db.adminCommand( { logRotate: 1 } )
 
 The following example rotates only the audit log, and provides a custom
 message to the log file at time of rotation:
 
 .. code-block:: javascript
 
-   db.adminCommand({logRotate: audit, comment: "Rotating audit log"})
+   db.adminCommand( { logRotate: "audit", comment: "Rotating audit log" } )

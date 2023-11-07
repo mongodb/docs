@@ -37,6 +37,11 @@ specify an explicit write concern inherit the global default
 write concern settings. See :dbcommand:`setDefaultRWConcern` for 
 more information.
 
+To learn more about setting the write concern for deployments
+hosted in {+atlas+}, see 
+:atlas:`Build a Resilient Application with {+atlas+} 
+</resilient-application/#write-concern>`
+
 .. _wc-specs:
 
 Write Concern Specification
@@ -79,8 +84,8 @@ available:
 
    * - .. writeconcern:: "majority"
 
-     - Requests acknowledgment that write operations have propagated to
-       the :ref:`calculated majority <calculating-majority-count>` of
+     - Requests acknowledgment that write operations have been durably committed 
+       to the :ref:`calculated majority <calculating-majority-count>` of
        the data-bearing voting members (i.e. primary and secondaries
        with :rsconf:`members[n].votes` greater than ``0``).
        ``{ w: "majority" }`` is the default write concern for *most* MongoDB
@@ -126,6 +131,8 @@ available:
          if the primary steps down before the write operations have
          replicated to any of the secondaries.
 
+         .. include:: /includes/w-1-rollback-warning.rst
+
        ``w: 0``
          Requests no acknowledgment of the write operation. However, ``w:
          0`` may return information about socket exceptions and
@@ -141,11 +148,13 @@ available:
 
        ``w`` greater than 1 requires acknowledgment from the primary
        and as many data-bearing secondaries as needed to meet the
-       specified write concern. For example, consider a 3-member
-       replica set with a primary and 2 secondaries. Specifying ``w:
-       2`` would require acknowledgment from the primary and one of the
-       secondaries. Specifying ``w: 3`` would require acknowledgment
-       from the primary and both secondaries.
+       specified write concern. The secondaries do not need to be 
+       voting members to meet the write concern threshold. 
+       
+       For example, consider a 3-member replica set with a primary and 2 
+       secondaries. Specifying ``w: 2`` would require acknowledgment from the 
+       primary and one of the secondaries. Specifying ``w: 3`` would require 
+       acknowledgment from the primary and both secondaries.
 
        .. note:: 
 
@@ -217,6 +226,9 @@ the write operation has been written to the :doc:`on-disk journal
      :rsconf:`writeConcernMajorityJournalDefault` replica set
      configuration setting determines the behavior. See
      :ref:`wc-ack-behavior` for details.
+
+   - A write concern that includes or implies ``j: true`` causes an
+     immediate journal synchronization. See :ref:`journal-process`.
 
 .. _wc-wtimeout:
 
@@ -396,7 +408,7 @@ For details, see :ref:`causal-consistency`.
   - Delayed secondaries can return write acknowledgment no earlier
     than the configured :rsconf:`~members[n].secondaryDelaySecs`. 
 
-- Starting in MongoDB 4.4, replica set members in the
+- Starting in MongoDB 5.0, replica set members in the
   :replstate:`STARTUP2` state do not participate in write majorities.
 
 Write Concern not Supported on ``local`` Database
