@@ -156,13 +156,13 @@ from. The following connection types are supported:
 	        "connectionName": "<registered-connection>",
 	        "topic" : "<source-topic>" | "db" : "<source-db>",
           "coll" : "<source-coll>"
-          "fullDocument" : "updateLookup|required|whenAvailable",
+          "fullDocument" : "updateLookup | required | whenAvailable",
           "config": { 
             <consumer-properties> 
           },
           "tsFieldOverride": "<timestamp>" 
           "timeField": { 
-            $toDate|$dateFromString: <expression>
+            $toDate | $dateFromString: <expression>
           }
           "allowedLateness": {
             size: <int> 
@@ -843,7 +843,7 @@ to. The connection must be an {+kafka+} broker.
       {
         "$emit": {
           "connectionName": "<registered-connection>",
-          "topic" : "<target-topic>",
+          "topic" : "<target-topic>" | <expression>,
           }
         }  
       }
@@ -870,7 +870,7 @@ The ``$emit`` stage takes a document with the following fields:
        connection to ingest data from.
 
    * - ``topic``
-     - string
+     - string | expression
      - Conditional 
      - The name of the {+kafka+} topic to emit messages to.
 
@@ -879,6 +879,71 @@ Behavior
 
 ``$emit`` must be the last stage of any pipeline it appears in. You can
 use only one ``$emit`` stage per pipeline.
+
+You can use a :manual:`dynamic expression <aggregation-expressions>`as 
+the value of the ``topic`` field to enable your stream processor to 
+write to different target {+kafka+} topics on a message-by-message 
+basis.
+
+.. example::
+
+   You have a stream of transaction events that generates messages of 
+   the following form:
+
+   .. code-block:: json
+
+      { 
+        "customer": "Very Important Industries",
+        "customerStatus": "VIP",
+        "tenantId": 1,
+        "transactionType": "subscription"
+      }
+
+      { 
+        "customer": "N. E. Buddy",
+        "customerStatus": "employee",
+        "tenantId": 5,
+        "transactionType": "requisition"
+      }
+
+      { 
+        "customer": "Khan Traktor",
+        "customerStatus": "contractor",
+        "tenantId": 11,
+        "transactionType": "billableHours"
+      }
+
+   To sort each of these into a distinct {+kafka+} topic, you can write
+   the following ``$emit`` stage:
+
+   .. code-block:: json
+
+      $emit: {
+        connectionName: "kafka1",
+        topic: "$customerStatus"
+      }
+
+   This ``$emit`` stage:
+
+   - Writes the ``Very Important Industries`` message to a topic named 
+     ``VIP``.
+   - Writes the ``N. E. Buddy`` message to a topic named ``employee``.
+   - Writes the ``Khan Traktor`` message to a topic named 
+     ``contractor``.
+
+You can only use dynamic expressions that evaluate to strings. For 
+more information on dynamic expressions, see 
+:manual:`aggregation-expressions`.
+
+If you specify a topic that doesn't already exist, {+kafka+}
+automatically creates the topic when it receives the first message
+that targets it.
+
+If you specify a topic with a dynamic expression, but 
+{+atlas-sp+} cannot evaluate the expression for a given message, 
+{+atlas-sp+} skips that message and continues processing subsequent 
+messages.
+
 
 .. _stream-agg-pipeline-merge:
 
@@ -900,12 +965,12 @@ A ``$merge`` pipeline stage has the following prototype form:
     "$merge": {
       "into": {
         "connectionName": "<registered-atlas-connection>",
-        "db": "<registered-database-name>",
-        "coll": "<atlas-collection-name>"
+        "db": "<registered-database-name>" | <expression>,
+        "coll": "<atlas-collection-name>" | <expression>
       },
-      "on": "<identifier field>"|[ "<identifier field1>", ...],
-      "whenMatched": "replace|keepExisting|merge",
-      "whenNotMatched": "insert|discard"
+      "on": "<identifier field>" | [ "<identifier field1>", ...],
+      "whenMatched": "replace | keepExisting | merge",
+      "whenNotMatched": "insert | discard"
     }  
   }
 
@@ -924,3 +989,70 @@ Behavior
 
 ``$merge`` must be the last stage of any pipeline it appears in. You can
 use only one ``$merge`` stage per pipeline.
+
+You can use a :manual:`dynamic expression <aggregation-expressions>` as 
+the value of the following fields: 
+
+- ``into.db``
+- ``into.coll``
+
+This enables your stream processor to write messages to different 
+target {+service+} collections on a message-by-message basis.
+
+.. example::
+
+   You have a stream of transaction events that generates messages of 
+   the following form:
+
+   .. code-block:: json
+
+      { 
+        "customer": "Very Important Industries",
+        "customerStatus": "VIP",
+        "tenantId": 1,
+        "transactionType": "subscription"
+      }
+
+      { 
+        "customer": "N. E. Buddy",
+        "customerStatus": "employee",
+        "tenantId": 5,
+        "transactionType": "requisition"
+      }
+
+      { 
+        "customer": "Khan Traktor",
+        "customerStatus": "contractor",
+        "tenantId": 11,
+        "transactionType": "billableHours"
+      }
+
+   To sort each of these into a distinct {+service+} database and 
+   collection, you can write the following ``$merge`` stage:
+
+   .. code-block:: json
+
+      $merge: {
+        into: {
+          connectionName: "db1",
+          db: "$customerStatus",
+          coll: "$transactionType"
+      }
+
+   This ``$merge`` stage:
+
+   - Writes the ``Very Important Industries`` message to a {+service+} 
+     collection named ``VIP.subscription``. 
+   - Writes the ``N. E. Buddy`` message to a {+service+} 
+     collection named ``employee.requisition``. 
+   - Writes the ``Khan Traktor`` message to a {+service+} 
+     collection named ``contractor.billableHours``. 
+
+You can only use dynamic expressions that evaluate to strings. For more 
+information on dynamic expressions, see 
+:manual:`aggregation-expressions`.
+
+If you specify a database or collection with a dynamic expression, but 
+{+atlas-sp+} cannot evaluate the expression for a given message, 
+{+atlas-sp+} skips that message and continues processing subsequent 
+messages.
