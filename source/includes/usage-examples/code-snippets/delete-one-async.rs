@@ -1,22 +1,12 @@
-use mongodb::{ 
-    bson::doc,
-    Client,
-    Collection 
-};
-use serde::{ Deserialize, Serialize };
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Restaurant {
-    name: String,
-    borough: String,
-}
+use mongodb::{ bson::doc, Client, Collection };
+use bson::Document;
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
     let client = Client::with_uri_str(uri).await?;
 
-    let my_coll: Collection<Restaurant> = client
+    let my_coll: Collection<Document> = client
         .database("sample_restaurants")
         .collection("restaurants");
 
@@ -30,7 +20,6 @@ async fn main() -> mongodb::error::Result<()> {
     let result = my_coll.delete_one(filter, None).await?;
 
     println!("Deleted documents: {}", result.deleted_count);
-        
+
     Ok(())
 }
-    

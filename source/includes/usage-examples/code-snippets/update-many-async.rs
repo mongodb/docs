@@ -11,10 +11,14 @@ async fn main() -> mongodb::error::Result<()> {
         .database("sample_restaurants")
         .collection("restaurants");
 
-    let filter = doc! { "name": "Spice Market" };
-    let update = doc! { "$set": doc! {"price": "$$$"} };
+    let filter =
+        doc! { 
+            "address.street": "Sullivan Street", 
+            "borough": "Manhattan" 
+        };
+    let update = doc! { "$set": doc! { "near_me": true } };
 
-    let res = my_coll.update_one(filter, update, None).await?;
+    let res = my_coll.update_many(filter, update, None).await?;
     println!("Updated documents: {}", res.modified_count);
 
     Ok(())
