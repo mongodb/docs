@@ -32,7 +32,7 @@ into tiers as follows:
   .. |angle| unicode:: U+276F
 
 The selected cluster tier dictates the 
-memory, storage, and IOPS specification for each data-bearing 
+memory, storage, vCPUs, and |iops| specification for each data-bearing 
 server [#data-bearing]_ in the cluster. 
 
 .. include:: /includes/fact-free-tier-paid-tier.rst
