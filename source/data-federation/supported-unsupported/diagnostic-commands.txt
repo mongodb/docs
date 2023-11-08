@@ -193,7 +193,7 @@ If the ``sync`` parameter is omitted, defaults to ``false``.
 
 .. example:: 
 
-   .. code-block:: shell 
+   .. code-block:: js 
              
       db.runCommand( {collStats: "<string>", sync: true|false} )
 
@@ -226,7 +226,7 @@ If the ``sync`` parameter is omitted, defaults to ``false``.
 
 .. example:: 
 
-   .. code-block:: shell 
+   .. code-block:: js 
              
       db.runCommand( {dbStats: 1, sync: true|false} )
 
@@ -265,10 +265,10 @@ these fields to determine whether the command returned stale data.
 ``explain`` 
 -----------
 
-For :manual:`explain </reference/command/explain>` command, the data 
-returned by ``explain`` documents the {+df+} query plan. The 
-``explain`` output differs from MongoDB in that it provides information 
-about the data partitions used to satisfy the query.
+The :manual:`explain </reference/command/explain>` command returns
+information that describes the {+df+} query plan. The ``explain`` output
+differs from MongoDB in that it provides information about the data
+partitions used to satisfy the query. 
 
 The following commands can be explained in {+df+}: 
 
@@ -276,15 +276,20 @@ The following commands can be explained in {+df+}:
 - ``count()``
 - ``find()``
 
+Usage 
+~~~~~
+
 {+adf+} supports the following ``verbosity`` modes: 
 
-- ``queryPlanner`` - provides information on the query plan.
-- ``queryPlannerExtended`` - provides detailed information on the query 
-  plan including information about the |s3| objects, such as the |s3| 
-  object names and sizes, that will be queried.
-      
-{+adf+} doesn't support ``executionStats`` and ``allPlansExecution`` 
-modes.
+- ``queryPlanner`` - provides information on the query plan. If the
+  verbosity is not specified, {+adf+} defaults to this mode.
+- ``queryPlannerExtended`` - provides detailed information on the query
+  plan including information about the object-storage objects, such as
+  the object-storage object names and sizes that will be queried.
+- ``executionStats`` - provides query execution statistics and
+  performance.
+
+{+adf+} doesn't support the ``allPlansExecution`` mode.
 
 .. example:: 
 
@@ -293,12 +298,26 @@ modes.
    </reference/command/aggregate>` command, including detailed 
    information on the query plan.
           
-   .. code-block:: sh 
+   .. code-block:: js 
       :copyable: false 
 
-      db.runCommand({ "explain": { "aggregate": "user", "verbosity": "queryPlannerExtended", "pipeline": [ ], "cursor": {} }})
+      db.runCommand({ "explain": { "aggregate": "user", "verbosity":
+      "queryPlannerExtended", "pipeline": [ ], "cursor": {} }})
+      
+   The following example shows how to append a method to the
+   ``explain`` method, such as the :method:`~db.collection.find()`
+   method, to get query execution statistics on the query.
 
-When you run ``explain``, {+adf+} returns the following fields:
+   .. code-block:: js 
+      :copyable: false 
+
+      db.users.explain("executionStats").find({"type": "admin"})
+
+Output 
+~~~~~~
+
+When you run ``explain``, {+adf+} returns the following additional
+fields for other partitions:  
 
 .. list-table:: 
    :header-rows: 1
@@ -317,6 +336,11 @@ When you run ``explain``, {+adf+} returns the following fields:
    * - ``stats.numberOfPartitions``
      - Number of partitions that {+adf+} might open for the query.
 
+   * - ``truncated``
+     - Boolean that indicates whether the ``explain`` output
+       is truncated. The ``explain`` total output document size is
+       limited to 16 MiB. 
+
    * - ``plan``
      - Document that contains the query execution plan for the query.  
        The document contains nested execution plan nodes, each of which 
@@ -328,79 +352,235 @@ When you run ``explain``, {+adf+} returns the following fields:
 
 .. tabs:: 
 
-   .. tab:: Basic Example 
-      :tabid: basiceg
+   .. tab:: queryPlanner (default)
+      :tabid: query-planner
 
-      .. io-code-block::
-         
-         .. input::
-            :language: shell
+      In the ``queryPlanner`` mode, the results returned by ``explain``
+      provide detailed information on the partitions in the {+fdi+}. 
 
-            db.runCommand({ "explain": { "aggregate": "user", "verbosity": "queryPlanner", "pipeline": [ ], "cursor": {} }})
+      .. code-block:: js
+         :copyable: false
+         :caption: Example Output
+         :linenos: 
+      
+         {
+           ok: 1,
+           stats: { size: '66 B', numberOfPartitions: 2 },
+           truncated: false,
+           plan: {
+             kind: 'region',
+             region: 'aws/us-east-1',
+             node: {
+               kind: 'data',
+               size: '66 B',
+               numberOfPartitions: 2,
+               partitionsTruncated: false,
+               partitions: [
+                 {
+                   source: 'projectID:cluster',
+                   provider: 'atlas',
+                   size: '4 B',
+                   database: 'locations',
+                   collection: 'nyc'
+                 },
+                 {
+                   source: 'dls:projectID',
+                   provider: 'dls:aws',
+                   size: '62 B',
+                   metadataLocation: { provider: 'aws', region: 'us-east-1' },
+                   dataSetName: 'v1$atlas$archive$etc',
+                   optimizationPlan: { kind: 'everything' }
+                 }
+               ]
+             }
+           }
+         }
 
-         .. output::
-            :linenos:
+      The ``explain`` command returns the following additional fields
+      for |service| partitions: 
 
-            {
-              ok: 1,
-              stats: { size: '42.06258487701416 MiB', numberOfPartitions: 1 },
-              plan: {
-                kind: 'region',
-                region: 'AWS/us-east-1',
-                node: {
-                  kind: 'data',
-                  size: '42.06258487701416 MiB',
-                  numberOfPartitions: 1,
-                  partitions: [ { source: 'sbx', provider: 'atlas', size: '42.06258487701416 MiB' } ]
-                }
-              }
-            }
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
 
-   .. tab:: find Example 
-      :tabid: findeg
+         * - Output 
+           - Description 
 
-      .. io-code-block::
-         
-         .. input::
-            :language: shell
+         * - ``database`` 
+           - Database that that {+adf+} queried. 
 
-            db.movies.explain().find({"type": "movie", "year": {$gt: 2010, $lt: 2015} }, {"title": 1, "year": 1 })
+         * - ``collection`` 
+           - Collection that that {+adf+} queried. 
 
-         .. output::
-            :linenos:
+         * - ``pipeline`` 
+           - Aggregation pipeline that {+adf+} executed. 
 
-            {
-              ok: 1,
-              stats: { size: '36.06258487701416 MiB', numberOfPartitions: 1 },
-              plan: {
-                kind: 'region',
-                region: 'AWS/us-east-1',
-                node: {
-                  kind: 'data',
-                  size: '36.06258487701416 MiB',
-                  numberOfPartitions: 1,
-                  partitions: [
-                    {
-                      source: 'sbx',
-                      provider: 'atlas',
-                      size: '36.06258487701416 MiB',
-                      pipeline: [
-                        {
-                          '$match': {
-                            '$and': [
-                              { year: { '$lt': 2015 } },
-                              { year: { '$gt': 2010 } },
-                              { type: { '$eq': 'movie' } }
-                            ]
-                          }
-                        },
-                        { '$project': { title: 1, year: 1 } }
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
+      The ``explain`` command returns the following additional field
+      for {+adl+} and {+Online-Archive+} partitions:  
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
+
+         * - Output Field Name
+           - Description 
+
+         * - ``optimizationPlan``
+           - Details on {+Online-Archive+} and {+adl+} execution optimizations. Queries will likely be optimized when they contain fields that match the configured partition keys for an  {+Online-Archive+} or {+adl+}.
+
+   .. tab:: queryPlannerExtended
+      :tabid: query-planner-extended
+
+      In the ``queryPlannerExtended`` mode, the results returned by
+      ``explain`` provide extended query planning information for
+      partition types. 
+
+      .. code-block:: js
+         :copyable: false
+         :caption: Example Output
+         :linenos: 
+         :emphasize-lines: 27-28
+
+         {
+           ok: 1,
+           stats: { size: '66 B', numberOfPartitions: 2 },
+           truncated: false,
+           plan: {
+             kind: 'region',
+             region: 'aws/us-east-1',
+             node: {
+               kind: 'data',
+               size: '66 B',
+               numberOfPartitions: 2,
+               partitionsTruncated: false,
+               partitions: [
+                 {
+                   source:'projectID:cluster',
+                   provider: 'atlas',
+                   size: '4 B',
+                   database: 'locations',
+                   collection: 'nyc'
+                 },
+                 {
+                   source: 'dls:projectID',
+                   provider: 'dls:aws',
+                   size: '62 B',
+                   metadataLocation: { provider: 'aws', region: 'us-east-1' },
+                   dataSetName: 'v1$atlas$archive$etc',
+                   scannedDataSetPartitionsCount: 1,
+                   percentOfTotalPartitions: 100,
+                   optimizationPlan: { kind: 'everything' }
+                 },
+               ]
+             }
+           }
+         }
+
+      The ``explain`` command returns all the information from
+      ``queryPlanner`` and the following additional fields for {+adl+}
+      and {+Online-Archive+} partitions:
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
+
+         * - Output Field Name
+           - Description 
+
+         * - ``scannedDataSetPartitionsCount``
+           -  Number of partitions scanned to complete the query.
+
+         * - ``percentOfTotalPartitions`` 
+           - Percentage of partitions scanned over the total number of
+             partitions. 
+
+   .. tab:: executionStats
+      :tabid: execution-stats
+
+      In the ``executionStats`` mode, the results returned by
+      ``explain`` provide information on query execution statistics and 
+      performance for only |service| partitions. These are obtained by
+      executing an ``executionStats`` explain command on the |service|
+      partition's underlying |service| collection. For non-|service|
+      partitions, ``explain`` returns the ``queryPlanner`` information.
+      The ``partitions`` field in the results include an additional
+      ``explainResults`` field, which is a document that might contain
+      the following fields:
+
+      .. list-table:: 
+         :header-rows: 1
+         :widths: 30 70 
+
+         * - Output Field Name
+           - Description 
+
+         * - ``executionStats``
+           -  Provides information about the execution of the |service| cluster's winning query plan, including the number of documents and
+              keys examined. 
+
+         * - ``queryPlanner``
+           -  Contains information about |service| cluster's query plan selection, including index selection.
+
+         * - ``stages``
+           -  Includes breakdown of pipeline stages and statistics on a
+              per stage basis.  
+
+      .. note:: 
+
+         To learn more about these fields, see :ref:`executionStats`.
+
+      .. code-block:: js
+         :copyable: false
+         :caption: Example Output
+         :linenos:
+         :emphasize-lines: 20-34
+
+         {
+           ok: 1,
+           stats: { size: '66 B', numberOfPartitions: 2 },
+           truncated: false,
+           plan: {
+             kind: 'region',
+             region: 'aws/us-east-1',
+             node: {
+               kind: 'data',
+               size: '66 B',
+               numberOfPartitions: 2,
+               partitionsTruncated: false,
+               partitions: [
+                 {
+                   source: 'projectID:cluster',
+                   provider: 'atlas',
+                   size: '4 B',
+                   database: 'locations',
+                   collection: 'nyc',
+                   explainResults: {
+                     queryPlanner: {
+                       ...
+                       winningPlan: {
+                         ...
+                       },
+                       rejectedPlans: []
+                     },
+                     executionStats: {
+                       ...
+                     },
+                     stages: {
+                         ...
+                     }
+                   }
+                 },
+                 {
+                   source: 'dls:projectID',
+                   provider: 'dls:aws',
+                   size: '62 B',
+                   metadataLocation: { provider: 'aws', region: 'us-east-1' },
+                   dataSetName: 'v1$atlas$archive$etc'
+                 },
+               ]
+             }
+           }
+         }
 
 ``getLog``
 ----------
