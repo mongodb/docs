@@ -49,6 +49,8 @@ The ``EJSON.stringify()`` method has these fields:
      -  Modifies output. If the value exists but it is not an array or a
         function, ``EJSON.stringify()`` returns all document fields. 
  
+        ``replacer`` can be an array or a function.
+
         .. list-table::
            :header-rows: 1
            :widths: 30 70
@@ -57,13 +59,19 @@ The ``EJSON.stringify()`` method has these fields:
              - Effect
 
            * - array
-             - An array of document fields to include in the output
+             - An array of document fields to include in the output. The
+               array elements must specify the field names to include in
+               the returned JSON string.
 
            * - function
              - A function that takes two parameters, ``key`` and
                ``value``. ``key`` provides the function's ``this``
-               context. EJSON returns the transformed ``value``. See
-               below for an :ref:`example <ex-ejson-function>`   
+               context. EJSON returns the transformed ``value``.
+               
+               The function is run for each object. The object
+               values are replaced with the function's return value.
+               
+               For an example, see :ref:`ex-ejson-function`.
 
    * - ``spacer``
      -  integer or string
@@ -209,7 +217,7 @@ Use a Function to Transform Output Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To transform field values, use a JavaScript function to set the
-``replace`` option.
+``replacer`` option. For example:
 
 .. code-block:: javascript
 
@@ -229,7 +237,10 @@ To transform field values, use a JavaScript function to set the
 
 The function runs recursively against the input object.
 
+Example output:
+
 .. code-block:: javascript
+   :copyable: false
 
    [
       {
@@ -272,6 +283,156 @@ The ``replacer`` function updates two fields, ``_id`` and ``quantity``.
 The function also modifies the ``quantity`` field in the output string.
 All of the ``quantity`` values are multiplied by two in the output
 string. ``EJSON.stringify()`` does not update the collection.
+
+Use a Function to Transform Output Fields in Nested Objects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the ``salesWithAddress`` collection with nested addresses:
+
+.. code-block:: javascript
+
+   db.salesWithAddress.insertMany( [ 
+      { custId: 345, purchaseDate: ISODate("2023-07-04"),
+        quantity: 4, cost: Decimal128("100.60"),
+        address: { number: 100, street: "Main Street", ZIP: 12345 } },
+      { custId: 346, purchaseDate: ISODate("2023-07-12"),
+        quantity: 3, cost: Decimal128("175.45"),
+        address: { number: 200, street: "East Street", ZIP: 12345 } }
+   ] )
+
+The following example uses a ``replacer`` function to change the ZIP
+codes for the addresses to ``55555``:
+
+.. code-block:: javascript
+
+   // Retrieve the salesWithAddress contents as an array and save
+   // in queryResults
+   let queryResults = db.salesWithAddress.find().toArray()
+
+   // Define a replacer function to change the ZIP codes
+   let replacer = function( key, value ) {
+      if (key === 'address') {
+         value.ZIP = 55555;
+      }
+      return value; 
+   }
+
+   // Run EJSON.stringify() to change the ZIP codes in queryResults
+   EJSON.stringify( queryResults, replacer, 3 )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         "_id": {
+            "$oid": "65498c6562f443aa1490070f"
+         },
+         "custId": 345,
+         "purchaseDate": {
+            "$date": "2023-07-04T00:00:00Z"
+         },
+         "quantity": 4,
+         "cost": {
+            "$numberDecimal": "100.60"
+         },
+         "address": {
+            "number": 100,
+            "street": "Main Street",
+            "ZIP": 55555
+         }
+      },
+      {
+         "_id": {
+            "$oid": "65498c6562f443aa14900710"
+         },
+         "custId": 346,
+         "purchaseDate": {
+            "$date": "2023-07-12T00:00:00Z"
+         },
+         "quantity": 3,
+         "cost": {
+            "$numberDecimal": "175.45"
+         },
+         "address": {
+            "number": 200,
+            "street": "East Street",
+            "ZIP": 55555
+         }
+      }
+   ]
+
+Use a Function to Replace BSON Strings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For a list of BSON data types and the corresponding numeric codes, see
+:manual:`BSON Types </reference/bson-types>`.
+
+The following example uses a ``replacer`` function to replace the BSON
+strings with the string ``"This is a string"``:
+
+.. code-block:: javascript
+
+   // Retrieve the salesWithAddress contents as an array and save
+   // in queryResults
+   let queryResults = db.salesWithAddress.find().toArray()
+
+   // Define a replacer function to replace the strings
+   let replacer = function( key, value ) {
+      if (typeof value === "string") {
+         return "This is a string";
+      }
+      return value; 
+   }
+ 
+   // Run EJSON.stringify() to replace the strings in queryResults
+   EJSON.stringify( queryResults, replacer, 3 )
+
+Example output:
+
+.. code-block:: javascript
+   :copyable: false
+
+   [
+      {
+         "_id": {
+            "$oid": "This is a string"
+         },
+         "custId": 345,
+         "purchaseDate": {
+            "$date": "This is a string"
+         },
+         "quantity": 4,
+         "cost": {
+            "$numberDecimal": "This is a string"
+         },
+         "address": {
+            "number": 100,
+            "street": "This is a string",
+            "ZIP": 12345
+         }
+      },
+      {
+         "_id": {
+            "$oid": "This is a string"
+         },
+         "custId": 346,
+         "purchaseDate": {
+            "$date": "This is a string"
+         },
+         "quantity": 3,
+         "cost": {
+            "$numberDecimal": "This is a string"
+         },
+         "address": {
+            "number": 200,
+            "street": "This is a string",
+            "ZIP": 12345
+         }
+      }
+   ]
 
 Write to a File from Inside mongosh
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
