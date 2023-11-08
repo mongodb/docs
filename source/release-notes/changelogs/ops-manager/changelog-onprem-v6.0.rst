@@ -42,6 +42,8 @@
 - Updates the {+mdbagent+} to :ref:`12.0.27.7746 <mongodb-12.0.27.7746>`.
 - Releases {+mongosh+} 2.0.0 to |onprem|. To learn more, see {+mongosh+}
   :mdb-shell:`Release Notes </changelog/#v2.0.0>`.
+- Compatible with :db-tools:`MongoDB Database Tools 100.8.0
+  </release-notes/database-tools-changelog/#100.8.0-changelog>`.
 
 .. _opsmgr-server-6.0.18:
 
