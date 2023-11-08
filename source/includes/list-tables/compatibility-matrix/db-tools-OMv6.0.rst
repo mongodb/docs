@@ -5,7 +5,22 @@
    * - Ops Manager Server Versions
      - Compatible MongoDB Database Tools Version
 
-   * - :ref:`6.0.12 <opsmgr-server-6.0.12>`
+   * - :ref:`6.0.20 <opsmgr-server-6.0.20>`
+     - :dl:`100.9.0 <database-tools>`
+
+   * - :ref:`6.0.18 <opsmgr-server-6.0.18>`, :ref:`6.0.19 
+       <opsmgr-server-6.0.19>`
+     - :dl:`100.8.0 <database-tools>`
+
+   * - :ref:`6.0.17 <opsmgr-server-6.0.17>`
+     - :dl:`100.7.4 <database-tools>`
+
+   * - :ref:`6.0.16 <opsmgr-server-6.0.16>`
+     - :dl:`100.7.3 <database-tools>`
+
+   * - :ref:`6.0.12 <opsmgr-server-6.0.12>`, :ref:`6.0.13 
+       <opsmgr-server-6.0.13>`, :ref:`6.0.14 <opsmgr-server-6.0.14>`, 
+       :ref:`6.0.15 <opsmgr-server-6.0.15>`
      - :dl:`100.7.0 <database-tools>` 
 
    * - :ref:`6.0.10 <opsmgr-server-6.0.10>`, :ref:`6.0.11
