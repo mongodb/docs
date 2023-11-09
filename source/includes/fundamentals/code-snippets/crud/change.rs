@@ -1,5 +1,11 @@
 use bson::Document;
-use mongodb::{bson::doc, options::UpdateOptions, Client, Collection};
+use mongodb::{
+    bson::{doc, oid::ObjectId},
+    options::UpdateOptions,
+    Client,
+    Collection
+};
+use std::str::FromStr;
 use std::env;
 
 #[tokio::main]
@@ -11,16 +17,30 @@ async fn main() -> mongodb::error::Result<()> {
 
     // begin-update
     let update_doc = doc! {
-            "$set": doc!{ "department": "Business Operations",
+            "$set": doc! { "department": "Business Operations",
                           "role": "Analytics Specialist" },
-            "$inc": doc!{ "bonus": 500 }
+            "$inc": doc! { "bonus": 500 }
     };
 
     let res = my_coll
         .update_many(doc! { "department": "Marketing" }, update_doc, None)
         .await?;
-    println!("Modified {} document(s)", res.modified_count);
+    println!("Modified documents: {}", res.modified_count);
     // end-update
+
+    // begin-update-by-id
+    let id = ObjectId::from_str("4274").expect("Could not convert to ObjectId");
+    let filter_doc = doc! { "_id": id };
+
+    let update_doc = doc! {
+            "$set": doc! { "name": "Jill Gillison" }
+    };
+
+    let res = my_coll
+        .update_one(filter_doc, update_doc, None)
+        .await?;
+    println!("Modified documents: {}", res.modified_count);
+    // end-update-by-id
 
     // begin-replace
     let replace_doc = doc! {
@@ -30,10 +50,10 @@ async fn main() -> mongodb::error::Result<()> {
     };
 
     let res = my_coll
-        .replace_one(doc! { "_id": 4501 }, replace_doc, None)
+        .replace_one(doc! { "name": "Matt DeGuy" }, replace_doc, None)
         .await?;
     println!(
-        "Matched {} document(s)\nModified {} document(s)",
+        "Matched documents: {}\nModified documents: {}",
         res.matched_count, res.modified_count
     );
     // end-replace
