@@ -11,4 +11,4 @@ Staging - <https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-x
 - [ ] Did you run a spell-check?
 - [ ] Did you run a grammar-check?
 - [ ] Are all the links working?
-- [ ] Did you add the label(s) for backporting?
+- [ ] Are the [facets and meta keywords](https://wiki.corp.mongodb.com/display/DE/Docs+Taxonomy) accurate?
