@@ -1,9 +1,9 @@
 # Pull Request Info
 
-[PR Reviewing Guidelines](https://github.com/mongodb/docs-java/blob/master/REVIEWING.md)
+[PR Reviewing Guidelines](https://github.com/mongodb/docs-kotlin/blob/master/REVIEWING.md)
 
-JIRA - https://jira.mongodb.org/browse/DOCSP-NNNNN
-Staging - https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-xlarge/NNNNN/
+JIRA - <https://jira.mongodb.org/browse/DOCSP-NNNNN>
+Staging - <https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-xlarge/NNNNN/>
 
 ## Self-Review Checklist
 
@@ -11,3 +11,4 @@ Staging - https://docs-mongodbcom-staging.corp.mongodb.com/drivers/docsworker-xl
 - [ ] Did you run a spell-check?
 - [ ] Did you run a grammar-check?
 - [ ] Are all the links working?
+- [ ] Are the [facets and meta keywords](https://wiki.corp.mongodb.com/display/DE/Docs+Taxonomy) accurate?
