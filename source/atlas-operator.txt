@@ -44,6 +44,108 @@ create in your |k8s| {+cluster+}.
 :ref:`advanced multi-cloud and multi-region clusters 
 <ak8so-advanced-clusters>`.
 
+.. _deletion-protection:
+
+New Default: Deletion Protection in |ak8so| 2.0
+-----------------------------------------------------------------
+
+With |ak8so| 2.0, custom resources you delete in |k8s| are no longer deleted in 
+|service|. Instead, |ak8so| simply stops managing those resources. 
+
+For example, if you delete an :ref:`atlasproject-custom-resource` 
+in |k8s|, |ak8so| no longer automatically deletes the corresponding project 
+from |service|, preventing accidental or unexpected deletions. This applies to 
+all :ref:`objects managed using custom resources <custom-resources>`. 
+
+You can :ref:`revert this behavior <revert-deletion-protection>` to the default 
+used prior to |ak8so| 2.0 for your entire deployment or for specific custom 
+resources or subobjects. 
+
+Use the following tables to determine 
+the correct behavior for your deployment:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Deletion Protection
+     - No Deletion Protection
+
+   * - New default as of |ak8so| 2.0
+     - Default prior to |ak8so| 2.0
+
+   * - If you delete a custom resource or objects from a custom resource,
+       the corresponding objects remain in |service| but |ak8so| no longer
+       manages them. You can manage objects decoupled from |ak8so| only
+       from another interface, such as the {+atlas-ui+}.
+     - If you delete a custom resource or objects from a custom resource,
+       |ak8so| deletes the corresponding objects in |service|, even objects 
+       deployed prior to using |ak8so|. Changes to a
+       custom resource overwrite changes in |service| made using another
+       interface, such as the {+atlas-ui+}.
+
+Subobjects are objects that you define within another custom resource instead of 
+their own dedicated custom resource, such as 
+:ref:`private endpoints <ak8so-private-endpoint>` or 
+:ref:`IP access lists <add-to-access-list>`, and behave as follows:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Deletion Protection for Subobjects
+     - No Deletion Protection for Subobjects
+
+   * - New default as of |ak8so| 2.0
+     - Default prior to |ak8so| 2.0
+
+   * - If you delete a subobject from a custom resource, |ak8so| deletes the 
+       corresponding subobject from |service| *only* if that subobject existed 
+       in the custom resource during the last reconciliation and matches exactly. 
+
+       For example, if you delete a private endpoint from the
+       :ref:`atlasproject-custom-resource`, |ak8so| checks if it existed in the 
+       custom resource during the last reconciliation and matches exactly, meaning it 
+       wasn't created or changed by another interface, such as the {+atlas-ui+}. 
+       If it doesn't match exactly, |ak8so| does *not* reconcile the 
+       :ref:`atlasproject-custom-resource`. 
+       For this reason, we recommend against using the {+atlas-ui+}
+       to administer |ak8so| projects and deployments. 
+       
+       :ref:`Alert <ak8so-alert-configurations>` subobjects are exceptions
+       with their own sync controls.
+
+     - If you delete a subobject from a custom resource, |ak8so| deletes the 
+       corresponding subobject from |service| *and all other subobjects of the same type*, 
+       even if they existed in |service| prior to using |ak8so| or were created 
+       or changed by another interface, such as the {+atlas-ui+}.
+
+       For example, if you delete a private endpoint from the
+       :ref:`atlasproject-custom-resource`, |ak8so| overwrites |service| with 
+       what you configured in the custom resource, including overwriting any private endpoints 
+       you added using the {+atlas-ui+}.
+       For this reason, we recommend against using the {+atlas-ui+}
+       to administer |ak8so| projects and deployments.
+
+       :ref:`Alert <ak8so-alert-configurations>` subobjects are exceptions
+       with their own sync controls.
+
+.. _revert-deletion-protection:
+
+Revert New Deletion Protection Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can control the new deletion protection behavior using the 
+``ObjectDeletionProtection`` and ``SubobjectDeletionProtection`` flags or the 
+``OBJECT_DELETION_PROTECTION`` and ``SUBOBJECT_DELETION_PROTECTION`` environment 
+variables in the |k8s| 
+:github:`Deployment resource <mongodb/mongodb-atlas-kubernetes/blob/main/deploy/all-in-one.yaml#L4028>` that you applied when installing |ak8so|. 
+These flags and environment variables all default to ``true``. 
+Set to ``false`` to revert to the behavior prior to |ak8so| 2.0. 
+
+You can also control which behavior to use for individual custom resources using 
+the ``atlas-resource-policy`` annotations described in :ref:`ak8so-annotations`. 
+
 Get Hands-On Experience with |ak8so|
 ------------------------------------
 

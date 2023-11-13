@@ -102,7 +102,14 @@ custom resources, the following workflow begins in |ak8so|:
 Delete Process
 ~~~~~~~~~~~~~~
 
-If you remove a custom resource from |k8s|, |ak8so| tries to clean the state in |service|, and the following workflow begins:
+As of |ak8so| 2.0, when you delete a custom resource from |k8s|, the object
+stays in |service| by default but |ak8so| 
+:ref:`no longer controls the object <deletion-protection>`. You can 
+:ref:`revert this default for your entire deployment <revert-deletion-protection>`, 
+or override this default for a specific custom resource with an 
+:ref:`annotation <ak8so-annotations>` to allow |ak8so| to delete the 
+corresponding object from |service|. If you override with an annotation,
+the following workflow begins:
 
 1. |ak8so| receives an event about the deleted custom resource.
 
@@ -133,37 +140,44 @@ If you remove a custom resource from |k8s|, |ak8so| tries to clean the state in 
 Use Annotations to Skip or Override Defaults
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use annotations to modify the default behaviour of |ak8so|. 
+You can use annotations to modify the :ref:`new default behaviour <deletion-protection>` 
+of |ak8so|. 
 
-If you add the ``mongodb.com/atlas-resource-policy: "keep"`` annotation 
-to a custom resource's ``metadata``, |ak8so| won't delete the 
-resource when you delete the |ak8so| resource.
+* If you add the ``mongodb.com/atlas-resource-policy: "delete"`` annotation 
+  to a custom resource's ``metadata``, |ak8so| deletes the corresponding object in |service|
+  when you delete the |ak8so| resource.
 
-**Example**
+  **Example**
 
-.. code-block:: yaml
+  .. code-block:: yaml
 
-   apiVersion: atlas.mongodb.com/v1
-   kind: AtlasProject
-   metadata:
-     name: my-project
-     annotations:
-       mongodb.com/atlas-resource-policy: "keep"
+     apiVersion: atlas.mongodb.com/v1
+     kind: AtlasProject
+     metadata:
+       name: my-project
+       annotations:
+         mongodb.com/atlas-resource-policy: "delete"
 
-If you add the ``mongodb.com/atlas-reconciliation-policy: "skip"`` 
-annotation to a custom resource's ``metadata``, |ak8so| doesn't start 
-the reconciliation for the resource. This annotation lets you pause the 
-sync with the spec until you remove the annotation. You can use this 
-annotation to make manual changes to a custom resource and avoid
-|ak8so| undoing them during a sync. When you remove this annotation, 
-|ak8so| should reconcile the resource and sync it with the spec.
+* If you have :ref:`reverted the new delete behavior <revert-deletion-protection>` 
+  to the default used prior to |ak8so| 2.0, you can add the 
+  ``mongodb.com/atlas-resource-policy: "keep"`` annotation 
+  to a custom resource's ``metadata`` so |ak8so| won't delete the 
+  resource when you delete the |ak8so| resource. 
 
-If you add the ``mongodb.com/atlas-resource-version-policy: "allow"``
-annotation to a custom resource's ``metadata``, |ak8so| lets you use a 
-resource even if its version label doesn't match the version of 
-|ak8so| that you are using. If your resource version is a major version 
-that is less than your |ak8so| version, the latest features might not work. Minor 
-version discrepancies are backward-compatible. 
+* If you add the ``mongodb.com/atlas-reconciliation-policy: "skip"`` 
+  annotation to a custom resource's ``metadata``, |ak8so| doesn't start 
+  the reconciliation for the resource. This annotation lets you pause the 
+  sync with the spec until you remove the annotation. You can use this 
+  annotation to make manual changes to a custom resource and avoid
+  |ak8so| undoing them during a sync. When you remove this annotation, 
+  |ak8so| reconciles the resource and syncs it with the spec.
+
+* If you add the ``mongodb.com/atlas-resource-version-policy: "allow"``
+  annotation to a custom resource's ``metadata``, |ak8so| lets you use a 
+  resource even if its version label doesn't match the version of 
+  |ak8so| that you are using. If your resource version is a major version 
+  behind your |ak8so| version, the latest features might not work. Minor 
+  version discrepancies are backward-compatible. 
 
 .. toctree::
    :titlesonly:
