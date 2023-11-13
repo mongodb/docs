@@ -17,14 +17,34 @@ The ``AtlasDeployment`` custom resource configures your MongoDB
 the ``AtlasDeployment`` custom resource, |ak8so| tries to create or 
 update a {+cluster+} or {+serverless-instance+} in |service|.
 
-.. include:: /includes/fact-ak8so-crds.rst
+.. important:: Action Required for Breaking Changes with |ak8so| 2.0
+
+   * With |ak8so| 2.0, ``deploymentSpec`` replaces ``advancedDeploymentSpec`` in 
+     the ``AtlasDeployment`` custom resource. You must update your ``AtlasDeployment`` 
+     custom resource as follows:
+
+     * If you use ``advancedDeploymentSpec``, rename to ``deploymentSpec``. 
+       You don't need to change any formatting.
+
+     * If you used ``deploymentSpec`` prior to |ak8so| 2.0, rewrite your 
+       ``AtlasDeployment`` custom resource to match the formatting used in 
+       :ref:`the examples <atlasdeployment-examples>`.
+
+   * |ak8so| uses :ref:`custom resource <custom-resources>` configuration
+     files to manage your |service| configuration, but as of |ak8so| 2.0,
+     custom resources you delete in |k8s| are no longer deleted in 
+     |service|. Instead, |ak8so| simply stops managing those resources.  
+     For example, if you delete an :ref:`atlasproject-custom-resource`
+     in |k8s|, |ak8so| no longer automatically deletes the corresponding project
+     from |service|, preventing accidental or unexpected deletions. To learn more, 
+     including how to :ref:`revert this behavior <revert-deletion-protection>` to 
+     the default used prior to |ak8so| 2.0, see :ref:`deletion-protection`.
 
 |ak8so| does one of the following actions depending on the 
 values you specify in the ``AtlasDeployment`` custom resource:
 
 - If you specify values for fields under ``spec.deploymentSpec``, 
   |ak8so| uses the |service| :oas-atlas-tag:`Clusters API Resource 
-  </Clusters>` and :oas-atlas-tag:`Advanced {+Clusters+} API Resource 
   </Clusters>` to create a new {+cluster+} or
   update an existing {+cluster+}.
 - If you specify values for fields under ``spec.serverlessSpec``,
@@ -56,6 +76,8 @@ provisioning:
 
 The ``ClusterReady`` status will change to ``True`` when the 
 {+cluster+} or {+serverless-instance+} is ready.
+
+.. _atlasdeployment-examples:
 
 Examples
 --------
@@ -108,7 +130,7 @@ Configuration Example
 ~~~~~~~~~~~~~~~~~~~~~
      
 The following example shows an ``AtlasDeployment`` custom resource 
-specification configured for auto-scaling multi-region {+clusters+}:
+specification configured for autoscaling multi-region {+clusters+}:
 
 .. code-block::
 
@@ -154,11 +176,11 @@ specification configured for auto-scaling multi-region {+clusters+}:
 
 .. _ak8so-advanced-options:
 
-Advanced Options Example
-~~~~~~~~~~~~~~~~~~~~~~~~
+Additional Options Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example shows an ``AtlasDeployment`` custom resource 
-specification configured with :oas-atlas-tag:`advanced options 
+specification configured with some of the :oas-atlas-tag:`additional options 
 </Clusters>`.
 
 .. code-block::
@@ -215,22 +237,21 @@ specification configured for a {+serverless-instance+}:
 
 .. _ak8so-advanced-clusters:
 
-Advanced {+Cluster+} Example
-~~~~~~~~~~~~~~~~~~~~~~~~
+Multi-Region {+Cluster+} Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Advanced {+clusters+} can span regions and cloud service providers. To 
-learn more, see the :ref:`Advanced {+Cluster+} Considerations 
-<create-new-cluster-considerations>`.
+{+Clusters+} can span regions and cloud service providers. To 
+learn more, see :ref:`create-new-cluster-considerations`.
 
 .. note::
 
-   While the |service| :oas-atlas-tag:`Advanced {+Clusters+} API 
-   Resource </Clusters>` send requests using the 
+   While the |service| :oas-atlas-tag:`{+Cluster+} API 
+   Resource </Clusters>` sends requests using the 
    ``v1.5`` |service| |api| versions, the |ak8so| ``apiVersion`` field 
    uses ``v1``. In this case, ``v1`` refers to the version of 
    the |k8s| |api|.
 
-The following example shows an advanced ``AtlasDeployment`` custom 
+The following example shows an ``AtlasDeployment`` custom 
 resource specification configured for multi-region {+clusters+}:
 
 .. code-block::
@@ -244,7 +265,7 @@ resource specification configured for multi-region {+clusters+}:
    spec:
      projectRef:
        name: my-project
-     advancedDeploymentSpec:
+     deploymentSpec:
        clusterType: REPLICASET
        name: tenantCluster
        tags: 
@@ -260,7 +281,7 @@ resource specification configured for multi-region {+clusters+}:
 Multiple Cloud Service Providers Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
      
-The following example shows an advanced ``AtlasDeployment`` custom 
+The following example shows an ``AtlasDeployment`` custom 
 resource specification configured to span multiple cloud service 
 providers:
 
@@ -275,7 +296,7 @@ providers:
    spec:
      projectRef:
        name: my-project
-     advancedDeploymentSpec:
+     deploymentSpec:
        clusterType: REPLICASET
        name: tenantCluster
        tags: 
@@ -310,353 +331,12 @@ Parameters
 This section describes some of the key ``AtlasDeployment`` custom 
 resource parameters available. For a full list of available parameters
 for {+clusters+}, see the |service| :oas-atlas-op:`{+Clusters+} API 
-</createOneCluster>` and |service| :oas-atlas-op:`Advanced {+Clusters+} 
-API </createOneCluster>`. For a full list of available parameters for 
+</createCluster>`. For a full list of available parameters for 
 {+serverless-instances+}, see the |service| 
 :oas-atlas-tag:`{+Serverless-Instances+} API </Serverless-Instances>`.
 
 Refer to these descriptions, the available examples, and the |api| 
 documentation to customize your specifications.
-
-.. setting:: spec.advancedDeploymentSpec
-
-   *Type*: array
-
-   *Conditional*
-
-   List that contains the advanced {+cluster+} parameters from the 
-   |api|. For a full list of available parameters, see the |service|
-   :oas-atlas-op:`Advanced {+Clusters+} API </createOneCluster>`.
-
-   .. important::
-
-      You must specify ``spec.deploymentSpec``,
-      ``spec.advancedDeploymentSpec``, or ``spec.serverlessSpec`` in 
-      your configuration.
-
-.. setting:: spec.advancedDeploymentSpec.customZoneMapping
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/custom-zone-mapping-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.customZoneMapping.location
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/custom-zone-mapping-location-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.customZoneMapping.zone
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/custom-zone-mapping-zone-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.diskSizeGB
-
-   *Type*: number
-
-   *Optional*
-
-   Capacity, in gigabytes, that indicates the host's root volume.
-   Increase this number to add capacity, up to a maximum possible value 
-   of ``4096`` (i.e., 4 TB). You must specify a positive number for 
-   this value.
-
-   You can't set this value with |nvme-clusters|.
-
-   .. note::
-
-      If you have autoscaling enabled for ``diskGB`` in any region, you 
-      can't edit this option. To learn more, see 
-      :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.diskGB.enabled`.
-
-   The minimum disk size for {+dedicated-clusters+} is 10 GB for |aws|
-   and |gcp|. If you specify this setting with a lower disk size,
-   |service| defaults to the minimum disk size value.
-
-   If your {+database-deployment+} includes |azure| nodes, this value 
-   must correspond to an existing |azure| disk type (8, 16, 32, 64, 
-   128, 256, 512, 1024, 2048, or 4096).
-
-   |service| calculates storage charges differently depending on
-   whether you choose the default value or a custom value.
-
-   .. include:: /includes/cluster-settings/extended-storage-limit.rst
-
-   If your {+database-deployment+} spans cloud service providers, this 
-   value defaults to the minimum default of the providers involved.
-
-   To learn more, see :ref:`storage-capacity`.
-
-.. setting:: spec.advancedDeploymentSpec.managedNamespaces
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.managedNamespaces.collection
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-collection-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.managedNamespaces.db
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-db-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.managedNamespaces.isCustomShardKeyHashed
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-is-custom-shard-key-hashed-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.managedNamespaces.isCustomShardKeyUnique
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-is-custom-shard-key-unique-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.managedNamespaces.numInitialChunks
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-num-initial-chunks-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.managedNamespaces.presplitHashedZones
-
-   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-presplit-hashed-zones-desc.rst
-
-.. setting:: spec.advancedDeploymentSpec.pitEnabled
-
-   *Type*: boolean
-
-   *Conditional*
-
-   Configuration that enables continuous cloud backup for advanced 
-   {+clusters+}. To enable continuous cloud backup, you must specify 
-   this setting with a value of ``true``. For standard {+clusters+}
-   see :setting:`spec.deploymentSpec.pitEnabled`.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs
-
-   *Type*: array
-
-   *Required*
-
-   Hardware specifications for nodes set for a given region. Each
-   ``regionConfigs`` object describes the region's priority in
-   elections and the number and type of MongoDB nodes that
-   |service| deploys to the region.
-
-   Each ``regionConfigs`` object must have either an
-   ``analyticsSpecs`` object, ``electableSpecs`` object, or
-   ``readOnlySpecs`` object.
-
-   - ``M0``, ``M2``, or ``M5` {+clusters+} require only 
-     ``electableSpecs``.
-
-   - {+Dedicated-clusters+} can specify any of these specifications,
-     but must have at least one ``electableSpecs`` object within a
-     ``replicationSpec``.
-
-   - Every hardware specification must use the same
-     ``instanceSize``.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.analyticsSpecs
-
-   *Type*: object
-
-   *Optional*
-
-   Hardware specifications for :ref:`analytics nodes 
-   <analytics-nodes-overview>` needed in the region. Analytics nodes 
-   handle analytic data such as reporting queries from |bic|. Analytics 
-   nodes are read-only and can never become the :term:`primary`.
-
-   If you don't specify this parameter, |service| deploys no analytics  
-   to this region.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.diskGB.enabled
-
-   *Type*: boolean
-
-   *Optional*
-
-   Flag that indicates whether this {+database-deployment+} enables 
-   disk auto-scaling. This parameter defaults to ``true``.
-
-   - Set to ``true`` to enable disk auto-scaling.
-   - Set to ``false`` to disable disk auto-scaling.
-
-   .. include:: /includes/cluster-settings/ram-to-storage-ratio.rst
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled
-
-   *Type*: boolean
-  
-   *Optional*
-
-   Flag that indicates whether instance size auto-scaling is
-   enabled. This parameter defaults to ``false``.
-
-   - Set to ``true`` to enable instance size auto-scaling. If
-     enabled, you must specify a value for :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
-
-   - Set to ``false`` to disable instance size auto-scaling.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize
-
-   *Type*: string
-     
-   *Conditional*
-
-   String that indicates the maximum instance size to which your 
-   {+database-deployment+} can automatically scale (such as ``M40``). 
-   You must specify this parameter if you set :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled` to ``true``.
-
-   .. note::
-
-      If you set a maximum instance size smaller than the
-      {+database-deployment+}\'s current instance size with autoscaling
-      enabled, |service| automatically scales the current instance
-      size to the maximum value you specify.
-
-      For example, if the {+database-deployment+}\'s current instance
-      size is ``M40`` and you set the maximum instance size to ``M30``,
-      |service| automatically scales the current instance size to
-      ``M30``.
-
-      If |service| changes the current instance size and you don't
-      change the 
-      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
-      in |ak8so| to match the new instance size, |ak8so| displays a
-      warning in the logs but doesn't prevent autoscaling.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize
-
-   *Type*: string
-     
-   *Conditional*
-
-   String that indicates the minimum instance size to which your 
-   {+database-deployment+} can automatically scale (such as ``M10``). 
-   You must specify this parameter if you set 
-   :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled` 
-   to ``true``.
-
-   .. note::
-
-      If you set a minimum instance size larger than the
-      {+database-deployment+}\'s current instance size with autoscaling
-      enabled, |service| automatically scales the current instance size
-      to the minimum value you specify.
-
-      For example, if the {+database-deployment+}\'s current instance
-      size is ``M10`` and you set the minimum instance size to ``M30``,
-      |service| automatically scales the current instance size to
-      ``M30``.
-
-      If |service| changes the current instance size and you don't
-      change the 
-      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
-      in |ak8so| to match the new instance size, |ak8so| displays a
-      warning in the logs but doesn't prevent autoscaling.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.electableSpecs
-
-   *Type*: object
-
-   *Optional*
-
-   Hardware specifications for electable nodes in the region.
-   Electable nodes can become the :term:`primary` and can enable
-   local reads.
-
-   If you don't specify this option, |service| deploys no electable 
-   nodes to the region.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.electableSpecs.instanceSize
-
-   *Type*: string
-
-   *Conditional*
-
-   Hardware specification for the instance sizes in this region. Each
-   instance size has a default storage and memory capacity. The instance
-   size you select applies to all the data-bearing hosts in your 
-   instance size. To learn more, see the :ref:`AWS <amazon-aws>`, 
-   :ref:`GCP <google-gcp>`, and :ref:`Azure <microsoft-azure>` custom 
-   storage sizes.
-
-   If you deploy a :term:`sharded cluster`, or :doc:`global {+cluster+} 
-   </global-clusters>`, you must choose an instance size of ``M30`` or 
-   greater.
-
-   .. note::
-
-      If you have autoscaling enabled for the compute field, you can't 
-      edit this option. To learn more, see :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled`.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.electableSpecs.nodeCount
-
-   *Type*: integer
-
-   *Conditional*
-
-   Number of electable nodes for |service| to deploy to the region.
-   Electable nodes can become the :term:`primary` and can enable
-   local reads.
-
-   The combined ``electableSpecs.nodeCount`` across all
-   ``replicationSpecs.regionConfigs`` objects must total
-   ``3``, ``5``, or ``7``.
-
-   You can't create electable nodes if :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.priority` is 
-   ``0``.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.priority
-
-   *Type*: integer
-
-   *Required*
-
-   Precedence is given to this region when a primary election
-   occurs.
-
-   If your ``regionConfigs`` has only ``readOnlySpecs``,
-   ``analyticsSpecs``, or both, set this value to ``0``.
-
-   If you have multiple ``regionConfigs`` objects (your {+cluster+} is
-   multi-region or multi-cloud), they must have priorities in
-   descending order. The highest priority is ``7``.
-
-   .. example::
-
-      Set your highest priority region to ``7``, your
-      second-highest priority to ``6``, and your third-priority
-      region to ``5``. If you have no electable nodes, set this
-      value to ``0``.
-
-   If your region has set ``electableSpecs.nodeCount`` to ``1`` or
-   higher, it must have a priority of exactly one less than
-   another region in the ``replicationSpecs.regionConfigs``
-   array unless it is the primary. The highest-priority region **must** 
-   have a priority of ``7``. The lowest possible priority is ``1``.
-
-   The priority ``7`` region identifies the **Preferred Region** of
-   the {+cluster+}. |service| places the :term:`primary` node in the
-   **Preferred Region**. Priorities ``1`` through ``7`` are
-   exclusive: you can't assign a given priority to more than one
-   region per {+cluster+}.
-
-   .. example::
-
-      If you have three regions, their priorities would be ``7``,
-      ``6``, and ``5`` respectively. If you added two more regions
-      for supporting electable nodes, the priorities of those
-      regions would be ``4`` and ``3`` respectively.
-
-.. setting:: spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.readOnlySpecs
-
-   *Type*: object
-
-   *Optional*
-
-   Hardware specifications for read-only nodes in the region.
-   Read-only nodes can never become the :term:`primary` member, but
-   can enable local reads.
-
-   If you don't specify this parameter, |service| deploys no read-only 
-   nodes to the region.
-
-.. setting:: spec.advancedDeploymentSpec.tags
-
-   .. include:: /includes/fact-ak8so-tags.rst
 
 .. setting:: spec.backupRef
 
@@ -700,12 +380,12 @@ documentation to customize your specifications.
 
    List that contains the {+cluster+} parameters from the |api|.
    For a full list of available parameters, see the |service|
-   :oas-atlas-op:`{+Clusters+} API </createOneCluster>`.
+   :oas-atlas-tag:`{+Clusters+} API </Clusters>`.
    
    .. important::
 
-      You must specify ``spec.deploymentSpec``,  
-      ``spec.advancedDeploymentSpec``, or ``spec.serverlessSpec`` in your configuration.
+      You must specify ``spec.deploymentSpec`` 
+      or ``spec.serverlessSpec`` in your configuration.
 
 .. setting:: spec.deploymentSpec.clusterType
 
@@ -761,6 +441,43 @@ documentation to customize your specifications.
 .. setting:: spec.deploymentSpec.customZoneMapping.zone
 
    .. include:: /includes/cluster-settings/global-cluster/extracts/custom-zone-mapping-zone-desc.rst
+
+.. setting:: spec.deploymentSpec.diskSizeGB
+
+   *Type*: number
+
+   *Optional*
+
+   Capacity, in gigabytes, that indicates the host's root volume.
+   Increase this number to add capacity, up to a maximum possible value 
+   of ``4096`` (4 TB). You must specify a positive number for 
+   this value.
+
+   You can't set this value for |nvme-clusters|.
+
+   .. note::
+
+      If you enable autoscaling for ``diskGB`` in any region, you 
+      can't edit this option. To learn more, see 
+      :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.diskGB.enabled`.
+
+   The minimum disk size for {+dedicated-clusters+} is 10 GB for |aws|
+   and |gcp|. If you specify this setting with a lower disk size,
+   |service| defaults to the minimum disk size value.
+
+   If your {+database-deployment+} includes |azure| nodes, this value 
+   must correspond to an existing |azure| disk type (8, 16, 32, 64, 
+   128, 256, 512, 1024, 2048, or 4096).
+
+   |service| calculates storage charges differently depending on
+   whether you choose the default value or a custom value.
+
+   .. include:: /includes/cluster-settings/extended-storage-limit.rst
+
+   If your {+database-deployment+} spans cloud service providers, this 
+   value defaults to the minimum default of the providers involved.
+
+   To learn more, see :ref:`storage-capacity`.
 
 .. setting:: spec.deploymentSpec.encryptionAtRestProvider
 
@@ -876,8 +593,7 @@ documentation to customize your specifications.
 
    Configuration that enables continuous cloud backup. To enable
    continuous cloud backup, you must specify this setting with a value
-   of ``true``. For advanced {+clusters+} see 
-   :setting:`spec.advancedDeploymentSpec.pitEnabled`.
+   of ``true``.
 
 .. setting:: spec.deploymentSpec.providerSettings
 
@@ -929,13 +645,13 @@ documentation to customize your specifications.
    {+cluster+}, |service| changes the {+database-deployment+} to the
    instance size you specify unless it falls outside the range you
    specify in 
-   :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
    and 
-   :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize` 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize` 
    with autoscaling enabled. To learn more, see 
-   :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
    and 
-   :setting:`spec.advancedDeploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
 
    .. note::
 
@@ -1036,6 +752,238 @@ documentation to customize your specifications.
         - :manual:`Sharding </sharding>`
         - :ref:`server-number-costs`
 
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs
+
+   *Type*: array
+
+   *Required*
+
+   Hardware specifications for nodes set for a given region. Each
+   ``regionConfigs`` object describes the region's priority in
+   elections and the number and type of MongoDB nodes that
+   |service| deploys to the region.
+
+   Each ``regionConfigs`` object must have either an
+   ``analyticsSpecs`` object, ``electableSpecs`` object, or
+   ``readOnlySpecs`` object.
+
+   - ``M0``, ``M2``, or ``M5`` {+clusters+} require only 
+     ``electableSpecs``.
+
+   - {+Dedicated-clusters+} can specify any of these specifications,
+     but must have at least one ``electableSpecs`` object within a
+     ``replicationSpec``.
+
+   - Every hardware specification must use the same
+     ``instanceSize``.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.analyticsSpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for :ref:`analytics nodes 
+   <analytics-nodes-overview>` needed in the region. Analytics nodes 
+   handle analytic data such as reporting queries from |bic|. Analytics 
+   nodes are read-only and can never become the :term:`primary`.
+
+   If you don't specify this parameter, |service| deploys no analytics  
+   to this region.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.diskGB.enabled
+
+   *Type*: boolean
+
+   *Optional*
+
+   Flag that indicates whether this {+database-deployment+} enables 
+   disk autoscaling. This parameter defaults to ``true``.
+
+   - Set to ``true`` to enable disk autoscaling.
+   - Set to ``false`` to disable disk autoscaling.
+
+   .. include:: /includes/cluster-settings/ram-to-storage-ratio.rst
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled
+
+   *Type*: boolean
+  
+   *Optional*
+
+   Flag that indicates whether instance size autoscaling is
+   enabled. This parameter defaults to ``false``.
+
+   - Set to ``true`` to enable instance size autoscaling. If
+     enabled, you must specify a value for :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
+
+   - Set to ``false`` to disable instance size autoscaling.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize
+
+   *Type*: string
+     
+   *Conditional*
+
+   String that indicates the maximum instance size to which your 
+   {+database-deployment+} can automatically scale (such as ``M40``). 
+   You must specify this parameter if you set :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled` to ``true``.
+
+   .. note::
+
+      If you set a maximum instance size smaller than the
+      {+database-deployment+}\'s current instance size with autoscaling
+      enabled, |service| automatically scales the current instance
+      size to the maximum value you specify.
+
+      For example, if the {+database-deployment+}\'s current instance
+      size is ``M40`` and you set the maximum instance size to ``M30``,
+      |service| automatically scales the current instance size to
+      ``M30``.
+
+      If |service| changes the current instance size and you don't
+      change the 
+      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
+      in |ak8so| to match the new instance size, |ak8so| displays a
+      warning in the logs but doesn't prevent autoscaling.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize
+
+   *Type*: string
+     
+   *Conditional*
+
+   String that indicates the minimum instance size to which your 
+   {+database-deployment+} can automatically scale (such as ``M10``). 
+   You must specify this parameter if you set 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled` 
+   to ``true``.
+
+   .. note::
+
+      If you set a minimum instance size larger than the
+      {+database-deployment+}\'s current instance size with autoscaling
+      enabled, |service| automatically scales the current instance size
+      to the minimum value you specify.
+
+      For example, if the {+database-deployment+}\'s current instance
+      size is ``M10`` and you set the minimum instance size to ``M30``,
+      |service| automatically scales the current instance size to
+      ``M30``.
+
+      If |service| changes the current instance size and you don't
+      change the 
+      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
+      in |ak8so| to match the new instance size, |ak8so| displays a
+      warning in the logs but doesn't prevent autoscaling.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for electable nodes in the region.
+   Electable nodes can become the :term:`primary` and can enable
+   local reads.
+
+   If you don't specify this option, |service| deploys no electable 
+   nodes to the region.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.instanceSize
+
+   *Type*: string
+
+   *Conditional*
+
+   Hardware specification for the instance sizes in this region. Each
+   instance size has a default storage and memory capacity. The instance
+   size you select applies to all the data-bearing hosts in your 
+   instance size. To learn more, see the :ref:`AWS <amazon-aws>`, 
+   :ref:`GCP <google-gcp>`, and :ref:`Azure <microsoft-azure>` custom 
+   storage sizes.
+
+   If you deploy a :term:`sharded cluster`, or :doc:`global {+cluster+} 
+   </global-clusters>`, you must choose an instance size of ``M30`` or 
+   greater.
+
+   .. note::
+
+      If you have autoscaling enabled for the compute field, you can't 
+      edit this option. To learn more, see :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled`.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.nodeCount
+
+   *Type*: integer
+
+   *Conditional*
+
+   Number of electable nodes for |service| to deploy to the region.
+   Electable nodes can become the :term:`primary` and can enable
+   local reads.
+
+   The combined ``electableSpecs.nodeCount`` across all
+   ``replicationSpecs.regionConfigs`` objects must total
+   ``3``, ``5``, or ``7``.
+
+   You can't create electable nodes if :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.priority` is 
+   ``0``.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.priority
+
+   *Type*: integer
+
+   *Required*
+
+   Precedence is given to this region when a primary election
+   occurs.
+
+   If your ``regionConfigs`` has only ``readOnlySpecs``,
+   ``analyticsSpecs``, or both, set this value to ``0``.
+
+   If you have multiple ``regionConfigs`` objects (your {+cluster+} is
+   multi-region or multi-cloud), they must have priorities in
+   descending order. The highest priority is ``7``.
+
+   .. example::
+
+      Set your highest priority region to ``7``, your
+      second-highest priority to ``6``, and your third-priority
+      region to ``5``. If you have no electable nodes, set this
+      value to ``0``.
+
+   If your region has set ``electableSpecs.nodeCount`` to ``1`` or
+   higher, it must have a priority of exactly one less than
+   another region in the ``replicationSpecs.regionConfigs``
+   array unless it is the primary. The highest-priority region **must** 
+   have a priority of ``7``. The lowest possible priority is ``1``.
+
+   The priority ``7`` region identifies the **Preferred Region** of
+   the {+cluster+}. |service| places the :term:`primary` node in the
+   **Preferred Region**. Priorities ``1`` through ``7`` are
+   exclusive: you can't assign a given priority to more than one
+   region per {+cluster+}.
+
+   .. example::
+
+      If you have three regions, their priorities would be ``7``,
+      ``6``, and ``5`` respectively. If you added two more regions
+      for supporting electable nodes, the priorities of those
+      regions would be ``4`` and ``3`` respectively.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.readOnlySpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for read-only nodes in the region.
+   Read-only nodes can never become the :term:`primary` member, but
+   can enable local reads.
+
+   If you don't specify this parameter, |service| deploys no read-only 
+   nodes to the region.
+
 .. setting:: spec.deploymentSpec.replicationSpecs.zoneName
 
    *Type*: string
@@ -1083,8 +1031,8 @@ documentation to customize your specifications.
 
    *Optional*
 
-   Object that contains the :oas-atlas-op:`advanced configuration 
-   options </returnOneAdvancedConfigurationOptionsForOneCluster>` for 
+   Object that contains the :oas-atlas-tag:`additional configuration 
+   options </Clusters>` for 
    your {+cluster+}.
 
 .. setting:: spec.processArgs.defaultReadConcern
@@ -1246,8 +1194,8 @@ documentation to customize your specifications.
 
    .. important::
 
-      You must specify ``spec.deploymentSpec``,
-      ``spec.advancedDeploymentSpec``, or ``spec.serverlessSpec`` in 
+      You must specify ``spec.deploymentSpec`` 
+      or ``spec.serverlessSpec`` in 
       your configuration.
 
 .. setting:: spec.serverlessSpec.privateEndpoints
@@ -1333,10 +1281,9 @@ documentation to customize your specifications.
 
       .. include:: /includes/fact-ak8so-connection-strings.rst
 
-For the configuration parameters available for a {+cluster+} and 
-advanced {+cluster+} from the |api|, see the |service| 
-:oas-atlas-op:`{+Clusters+} API </createOneCluster>`, and
-:oas-atlas-op:`Advanced {+Clusters+} API </createOneCluster>`.
+For the configuration parameters available for a {+cluster+} from the |api|, 
+see the |service| 
+:oas-atlas-tag:`{+Clusters+} API </Clusters>`.
 
 .. note::
    
