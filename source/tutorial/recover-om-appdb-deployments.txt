@@ -1,0 +1,106 @@
+.. _recover-om-appdb-deployments:
+
+===========================================================================
+Recover the |k8s-op-short| and |onprem| for Multi-Cluster AppDB Deployments
+===========================================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+If you host an |onprem| resource in the same |k8s| cluster as 
+the |k8s-op-short| and have the Application Database (AppDB)
+deployed on selected member clusters in your |multi-cluster|,
+you can manually recover the |k8s-op-short| and |onprem|
+in the event that the cluster fails.
+
+To learn more about deploying |onprem| on a central
+cluster and the Application Database across member clusters,
+see :ref:`om_with_multi-clusters`.
+
+Prerequisites
+-------------
+
+Before you can recover the |k8s-op-short| and |onprem|, ensure
+that you meet the following requirements:
+
+- Configure backups for your |onprem| and
+  Application Database resources, including any 
+  |k8s-configmaps| and |k8s-secrets| created by the |k8s-op-short|,
+  to indicate the previous running state of |onprem|.
+  To learn more, see :ref:`om-rsrc-backup`.
+
+- The Application Database must have at least three healthy 
+  nodes remaining after failure of the |k8s-op-short|'s cluster.
+
+- The healthy clusters in your |multi-cluster| must contain 
+  a sufficient number of members to elect a primary node. 
+  To learn more, see :ref:`appdb-architecture`.
+
+Considerations 
+--------------
+
+.. _appdb-architecture:
+
+Application Database Architecture
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Because the |k8s-op-short| doesn't support forcing a replica set 
+reconfiguration, the healthy |k8s| clusters 
+must contain a sufficient number of Application Database members to elect a primary node
+for this manual recovery process. A majority of the Application Database 
+members must be available to elect a primary. To learn more, see 
+:manual:`Replica Set Deployment Architectures </core/replica-set-architectures/>`.
+
+If possible, use an odd number of member |k8s| clusters. Proper distribution of your 
+Application Database members can help to maximize the likelihood that 
+the remaining replica set members can form a majority during an outage. 
+To learn more, see :manual:`Replica Sets Distributed Across Two or More Data Centers
+</core/replica-set-architecture-geographically-distributed/>`.
+
+Consider the following examples:
+
+.. tabs::
+
+   .. tab:: Five-member Application Database
+      :tabid: five-member
+
+      For a five-member Application Database, some possible distributions of members include:
+
+      - Two clusters: three members to Cluster 1 and two members to Cluster 2.
+
+        - If Cluster 2 fails, there are enough members on Cluster 1 to elect a primary node.
+        - If Cluster 1 fails, there are not enough members on Cluster 2 to elect a primary node.
+
+      - Three clusters: two members to Cluster 1, two members to Cluster 2, and one member to Cluster 3.
+
+        - If any single cluster fails, there are enough members on the remaining clusters to elect a primary node.
+        - If two clusters fail, there are not enough members on any remaining cluster to elect a primary node.
+
+   .. tab:: Seven-member Application Database
+      :tabid: seven-member
+
+      For a seven-member Application Database, consider the following distribution of members:
+
+      - Two clusters: four members to Cluster 1 and three members to Cluster 2.
+
+        - If Cluster 2 fails, there are enough members on Cluster 1 to elect a primary node.
+        - If Cluster 1 fails, there are not enough members on Cluster 2 to elect a primary node.
+        
+      Although Cluster 2 meets the three member minimum for the Application Database,
+      a majority of the Application Database's seven members must be available 
+      to elect a primary node.
+
+------------
+
+Procedure
+---------
+
+To recover the |k8s-op-short| and |onprem|,
+restore the |onprem| resource on a new |k8s| cluster:
+
+.. include:: /includes/steps/recover-k8s-om-multi-appdb-deployments.rst

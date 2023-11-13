@@ -1,0 +1,124 @@
+---
+title: "Configure the |k8s-op-short| in a new cluster."
+level: 4
+stepnum: 1
+ref: recover-om-new-cluster
+content: |
+
+  Follow the instructions to :ref:`install the Kubernetes Operator 
+  <install-k8s>` in a new |k8s| cluster.
+
+  .. note:: 
+
+     If you plan to re-use a member cluster, ensure that the 
+     appropriate service account and role exist. These values can overlap
+     and have different permissions between the central cluster and member
+     cluster.
+
+     To see the appropriate role required for the 
+     |k8s-op-short|, refer to the :github:`sample in the public repository
+     </mongodb/mongodb-enterprise-kubernetes/blob/master/samples/multi-cluster-cli-gitops/resources/rbac/namespace_scoped_central_cluster.yaml>`.
+
+---
+title: "Retrieve the backed-up resources from the failed |onprem| resource."
+level: 4
+stepnum: 2
+ref: recover-om-retrieve-backups
+content: |
+
+  Copy the |k8s-obj| specification for the failed |onprem| resource and
+  retrieve the following resources, replacing the placeholder text with 
+  your specific |onprem| resource name and namespace.
+
+  .. list-table::
+     :widths: 40 60
+     :header-rows: 1
+
+     * - Resource Type
+       - Values
+
+     * - Secrets
+       - - ``<om-name>-db-om-password``
+         - ``<om-name>-db-agent-password``
+         - ``<om-name>-db-keyfile``
+         - ``<om-name>-db-om-user-scram-credentials``
+         - ``<om-namespace>-<om-name>-admin-key``
+         - ``<om-name>-admin-secret``
+         - ``<om-name>-gen-key``
+         - |tls| certificate secrets (optional)
+
+     * - ConfigMaps
+       - - ``<om-name>-db-cluster-mapping``
+         - ``<om-name>-db-member-spec``
+         - Custom CA for |tls| certificates (optional)
+
+     * - OpsManager
+       - - ``<om-name>``
+
+  Then, paste the specification that you copied into a new file and 
+  configure the new resource by using the preceding values. To 
+  learn more, see :ref:`deploy-om-container`.
+ 
+---
+title: "Re-apply the |onprem| resource to the new cluster."
+level: 4
+stepnum: 3
+ref: recover-om-re-apply-resource
+content: |
+
+  Use the following command to apply the updated resource: 
+
+  .. code-block:: sh
+
+      kubectl apply \
+        --context "$MDB_CENTRAL_CLUSTER_FULL_NAME" \
+        --namespace "mongodb" 
+         -f https://raw.githubusercontent.com/mongodb/mongodb-enterprise-kubernetes/master/samples/ops-manager/ops-manager-external.yaml
+
+  To check the status of your |onprem| resource, use the following command:
+
+  .. code-block:: sh
+
+     kubectl get om -o yaml -w
+
+  Once the central cluster reaches a ``Running`` state, you can 
+  re-scale the Application Database to your desired 
+  distribution of member clusters.
+
+---
+title: "Re-apply the MongoDB resources to the new cluster."
+level: 4
+stepnum: 4
+ref: recover-om-apply-new-cluster
+content: |
+
+  To host your |k8s-mdbrsc| or |mongodb-multi| on the new 
+  |k8s-op-short| instance, apply the following resources to the 
+  new cluster:
+  
+  - The :ref:`ConfigMap <create-k8s-project>` used to create the initial project.
+
+  - The :ref:`secrets <create-k8s-credentials>` used in the previous |k8s-op-short| 
+    instance.
+
+  - The ``MongoDB`` or ``MongoDBMulticluster`` |k8s-custom-resource| at its last 
+    available state on the source cluster, including any :k8sdocs:`Annotations 
+    </concepts/overview/working-with-objects/annotations/>` added by the |k8s-op-short|
+    during its lifecycle.
+
+  .. note::
+
+     If you deployed a |k8s-mdbrsc| and not a |mongodb-multi|
+     and wish to migrate the failed |k8s| cluster's data
+     to the new cluster, you must complete the following additional steps:
+
+     1. Create a new |k8s-mdbrsc| on the new cluster.
+     #. Migrate the data to the new resource by 
+        :opsmgr:`Backing Up and Restoring </tutorial/nav/backup-use/>` 
+        the data in |onprem|.
+
+     If you deployed a |mongodb-multi|, you must re-scale the resource that you 
+     applied on the new healthy clusters if the failed cluster contained any 
+     Application Database nodes.
+
+...
