@@ -25,6 +25,10 @@
    * - Cross-region clusters
      - :icon-fa5:`check`
      - :icon-fa5:`check` [#cross-region]_
+  
+   * - Global Clusters
+     - :icon-fa5:`check` [#global-clusters]_
+     - 
 
    * - Private Link for GovCloud
      - 
@@ -94,6 +98,11 @@
    
    You cannot deploy clusters across government 
    and standard regions in the same project.
+
+.. [#global-clusters]
+   
+   You can enable Global Writes on an |service| cluster by 
+   :atlas:`creating a Global Cluster </tutorial/create-global-cluster/>`.
 
 .. [#fr-moderate-backup]
 
