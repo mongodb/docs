@@ -18,6 +18,10 @@ a. Add the :setting:`spec.encryptionAtRest.awsKms` object to
           ``false``. If you disable encryption at rest using |aws|
           |kms|, |ak8so| removes the configuration details.
 
+      * - ``spec.encryptionAtRest.awsKms.region``
+        -  Label that indicates the :ref:`AWS region 
+           <amazon-aws>` where the customer master key exists.
+
       * - ``spec.encryptionAtRest.awsKms.secretRef.name``
         - Name of the secret that contains your |aws| credentials.
                     
@@ -27,13 +31,9 @@ a. Add the :setting:`spec.encryptionAtRest.awsKms` object to
           ``AtlasProject`` custom resource.
 
 
-   We recommend that you use a |k8s-secret| that contains the values 
-   for ``customerMasterKeyID``, ``region``, and ``roleId`` instead of 
-   the following parameters:
-
-   - ``spec.encryptionAtRest.awsKms.customerMasterKeyID``
-   - ``spec.encryptionAtRest.awsKms.region``
-   - ``spec.encryptionAtRest.awsKms.roleId``
+   You must use a |k8s-secret| that contains the values 
+   for ``AccessKeyID``, ``SecretAccessKey``, ``CustomerMasterKeyID``, 
+   and ``RoleId``.
 
 #. Run the following command:
 
@@ -51,6 +51,7 @@ a. Add the :setting:`spec.encryptionAtRest.awsKms` object to
         encryptionAtRest:
           awsKms: 
             enabled: true
+            region: us-east-1
             secretRef:
               name: aws-ear-creds
               namespace: mongodb-atlas-system

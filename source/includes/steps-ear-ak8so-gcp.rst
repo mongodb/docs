@@ -26,12 +26,8 @@ a. Add the :setting:`spec.encryptionAtRest.googleCloudKms` object to
           unspecified, this parameter defaults to the namespace of the 
           ``AtlasProject`` custom resource.
 
-   We recommend that you use a |k8s-secret| that contains the values 
-   for ``keyVersionResourceID`` and ``serviceAccountKey`` instead of 
-   the following parameters:
-
-   - ``spec.encryptionAtRest.googleCloudKms.keyVersionResourceID``
-   - ``spec.encryptionAtRest.googleCloudKms.serviceAccountKey``
+   You must use a |k8s-secret| that contains the values 
+   for ``KeyVersionResourceID`` and ``ServiceAccountKey``.
 
 #. Run the following command:
 
