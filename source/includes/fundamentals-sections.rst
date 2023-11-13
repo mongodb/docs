@@ -1,8 +1,7 @@
 Learn how to perform the following tasks using the Go driver in the
 Fundamentals section:
 
-- :ref:`Connect to MongoDB <golang-connection-guide>`
-- :atlas:`Connect to MongoDB Atlas from AWS Lambda </manage-connections-aws-lambda/>`
+- :ref:`Connect to MongoDB <golang-connection>`
 - :ref:`Specify an API Version <golang-stable-api>`
 - :ref:`How the Driver Uses Context <golang-context>`
 - :ref:`Authenticate with MongoDB <golang-authentication-mechanisms>`
