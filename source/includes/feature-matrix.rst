@@ -78,6 +78,10 @@
      - :icon-fa5:`check`
      - :icon-fa5:`check`
 
+   * - |service| Stream Processing
+     - :icon-fa5:`check`
+     -
+
    * - |service| Triggers
      - :icon-fa5:`check`
      - 
