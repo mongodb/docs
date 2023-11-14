@@ -1,5 +1,5 @@
-Before running SQL queries on your dataset, you must register a
-temporary view for the dataset. 
+Before running SQL queries on your Dataset, you must register a
+temporary view for the Dataset. 
 
 The following operation registers a
 ``characters`` table and then queries it to find all characters that
