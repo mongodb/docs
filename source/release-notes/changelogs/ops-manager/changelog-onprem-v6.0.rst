@@ -6,6 +6,7 @@
 *Released 2023-11-03*
 
 - Updates JDK to ``jdk-11.0.21+9``.
+- Updates jetty to 10.0.17.
 - Updates the {+mdbagent+} to :ref:`12.0.28.7763 
   <mongodb-12.0.28.7763>`.
 - Compatible with :db-tools:`MongoDB Database Tools 100.9.0
