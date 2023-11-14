@@ -10,4 +10,4 @@ queries needed for sampling.
    wire.
    
 The following statement creates a ``Character`` |class| and then
-uses it to define the schema for the ``DataFrame``:
+uses it to define the schema for the DataFrame:

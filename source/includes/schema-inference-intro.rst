@@ -1,3 +1,8 @@
+When you load a Dataset or DataFrame without a schema, Spark samples 
+the records to infer the schema of the collection.
+
+Suppose that the MongoDB collection ``people.contacts`` contains the following documents:
+
 .. code-block:: javascript
 
    { "_id" : ObjectId("585024d558bef808ed84fc3e"), "name" : "Bilbo Baggins", "age" : 50 }
@@ -10,3 +15,7 @@
    { "_id" : ObjectId("585024d558bef808ed84fc45"), "name" : "Glóin", "age" : 158 }
    { "_id" : ObjectId("585024d558bef808ed84fc46"), "name" : "Fíli", "age" : 82 }
    { "_id" : ObjectId("585024d558bef808ed84fc47"), "name" : "Bombur" }
+
+The following operation loads data from ``people.contacts``
+and infers the schema of the DataFrame:
+
