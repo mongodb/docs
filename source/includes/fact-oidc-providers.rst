@@ -15,7 +15,16 @@
     - Required
 
     - The issuer URI of the IDP that the server should accept tokens from. This 
-      must match the ``iss`` field in any JWT used for authentication. 
+      must match the ``iss`` field in any JWT used for authentication.
+
+      If you specify an unreachable issuer URI, MongoDB:
+      
+      1. Logs a warning.
+      #. Continues server startup, which allows you to update the issuer
+         URI.
+      #. Reattempts issuer contact. If MongoDB reaches the issuer URI
+         and validates the access token, authentication succeeds. If
+         the issuer URI remains unreachable, authentication fails.
     
     - string
 
