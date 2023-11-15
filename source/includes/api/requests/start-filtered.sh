@@ -5,7 +5,7 @@ curl -X POST "http://localhost:27182/api/v1/start" --data '
       "includeNamespaces": [
          {
              "database": "sales",
-             "collectionRegex": {
+             "collectionsRegex": {
                 "pattern": "^accounts_.+$",
                 "options": "i"
              }
