@@ -1,1 +1,1 @@
-This tutorial installs {+c2c-full-product-name+} {+version+}.
+This tutorial installs the latest version of ``mongosync``.
