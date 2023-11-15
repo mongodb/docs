@@ -1,0 +1,363 @@
+.. _rust-collations:
+
+==========
+Collations
+==========
+
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: string ordering, code example, french language
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use **collations** to order your find or
+aggregation operation results by string values. A collation is a set of character
+ordering conventions that correspond to a specific language and locale.
+
+This guide includes the following sections:
+
+- :ref:`rust-mongodb-collations` describes how MongoDB sorts string values according
+  to the default collation and custom collations
+- :ref:`rust-specify-collation` describes how to create a ``Collation`` struct instance
+- :ref:`rust-collection-collation` describes how to set the collation for a
+  new collection
+- :ref:`rust-index-collation` describes how to set the collation for an index
+- :ref:`rust-op-collation` describes how to apply a collation to certain CRUD operations
+- :ref:`rust-collation-addtl-info` provides links to resources and API documentation
+  for types and methods mentioned in this guide
+
+.. _rust-mongodb-collations:
+
+MongoDB Collations
+------------------
+
+MongoDB sorts strings using *binary collation* by default. This collation method
+uses the ASCII standard character values to compare and order strings. Certain
+languages and locales have specific character ordering conventions that differ from
+the ASCII standard.
+
+.. tip::
+
+   To learn more about the ASCII standard, see the :wikipedia:`ASCII
+   <w/index.php?title=ASCII&oldid=1180396712>` Wikipedia page.
+
+For example, in Canadian French, the right-most accented character determines
+the ordering for strings when the other characters are the same. Consider the
+following Canadian French words: 
+
+- cote
+- coté
+- côte
+- côté
+
+When using the default binary collation, MongoDB sorts the words in the following order:
+
+.. code-block:: none
+   :copyable: false
+
+   cote
+   coté
+   côte
+   côté
+
+In this sort order, "coté" is placed before "côte" because the ASCII standard positions the
+character "o" before the character "ô".
+
+When using the Canadian French collation, MongoDB sorts the words in the following order:
+
+.. code-block:: none
+   :copyable: false
+
+   cote
+   côte
+   coté
+   côté
+
+In this sort order, "coté" is placed after "côte" because Canadian French collation rules position
+the character "e" before the character "é".
+
+.. _rust-specify-collation:
+
+Specify a Collation
+-------------------
+
+You can define a collation by specifying a collation locale and other options in a ``Collation``
+struct instance. To begin building a ``Collation`` instance, call the ``Collation::builder()``
+method.
+
+.. note:: Instantiating Options
+   
+   The {+driver-short+} implements the Builder design pattern for the
+   creation of many different types, including ``Collation``. You can
+   use the ``builder()`` method to construct an instance of each type
+   by chaining option builder methods.
+
+The following table describes the builder methods that you can use to set fields of a ``Collation``
+instance. You must use the ``locale()`` method to build a valid ``Collation`` struct, but all other
+builder methods are optional:
+
+.. list-table::
+   :widths: 1 1 2
+   :stub-columns: 1
+   :header-rows: 1
+
+   * - Method
+     - Possible Values 
+     - Description
+
+   * - | ``locale()`` *(Required)*
+     - | For a full list of supported locales, see
+       | :manual:`Supported Languages and Locales </reference/collation-locales-defaults/#supported-languages-and-locales>`
+       | in the Server manual.
+     - | Specifies the ICU locale
+       
+   * - ``strength()``
+     - ``CollationStrength::Primary``,
+       ``CollationStrength::Secondary``,
+       ``CollationStrength::Tertiary``,
+       ``CollationStrength::Quaternary``,
+       ``CollationStrength::Identical``
+     - Specifies the level of comparison to perform
+
+   * - | ``case_level()``
+     - | ``true``, ``false``
+     - | Specifies whether the driver performs case comparison
+
+   * - ``case_first()``
+     - ``CollationCaseFirst::Upper``,
+       ``CollationCaseFirst::Lower``,
+       ``CollationCaseFirst::Off``
+     - Specifies the sort order of case differences during tertiary level comparisons
+
+   * - | ``numeric_ordering()``
+     - | ``true``, ``false``
+     - | Specifies whether the driver compares numeric strings as numbers
+
+   * - ``alternate()``
+     - ``CollationAlternate::NonIgnorable``,
+       ``CollationAlternate::Shifted``
+     - Specifies whether the driver considers whitespace and punctuation as base characters
+       during string comparison
+
+   * - | ``max_variable()``
+     - | ``CollationMaxVariable::Punct``,
+       | ``CollationMaxVariable::Space``
+     - | Specifies which characters the driver ignores when ``alternate`` is set to
+       | ``CollationAlternate::Shifted``
+
+   * - ``normalization()``
+     - ``true``, ``false``
+     - Specifies whether the driver performs text normalization for string values
+
+   * - | ``backwards()``
+     - | ``true``, ``false``
+     - | Specifies whether the driver sorts strings containing diacritics in reverse character order
+
+Example
+~~~~~~~
+
+The following example specifies a ``Collation`` instance and sets the collation locale to ``"en_US"``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/collation.rs
+   :language: rust
+   :dedent:
+   :start-after: start-collation
+   :end-before: end-collation
+
+.. _rust-collection-collation:
+
+Set a Collation on a Collection
+-------------------------------
+
+When you create a new collection, you can define the collation for future operations
+called on that collection. Set the collation by using the ``collation()`` function
+when creating a ``CreateCollectionOptions`` instance. Then, call the ``create_collection()``
+method with your options instance as a parameter.
+
+.. _rust-create-collection:
+
+Create Collection with a Collation Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example specifies a collation according to the ``"fr"``, or French, locale conventions
+and applies the collation to a new collection called ``books``. The ``strength`` field is set to
+``CollationStrength::Primary`` to ignore differences in diacritics.
+
+.. literalinclude:: /includes/fundamentals/code-snippets/collation.rs
+   :language: rust
+   :dedent:
+   :start-after: start-create-collection
+   :end-before: end-create-collection
+
+Collation Ordering Demonstration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you run an operation that supports collations on the ``books`` collection, the operation
+uses the collation specified in the preceding :ref:`rust-create-collection`.
+
+Assume the ``books`` collection contains the following documents:
+
+.. code-block:: json
+
+   { "name" : "Emma", "length" : "474" }
+   { "name" : "Les Misérables", "length": "1462" }
+   { "name" : "Infinite Jest", "length" : "1104" }
+   { "name" : "Cryptonomicon", "length" : "918" }
+   { "name" : "Ça", "length" : "1138" }
+
+.. tip::
+
+   To learn how to insert documents into a collection, see the :ref:`rust-insert-guide`
+   guide.
+   
+The following example uses the ``find()`` method to return all documents in which the value
+of the ``name`` field alphabetically precedes ``"Infinite Jest"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/collation.rs
+      :language: rust
+      :dedent:
+      :start-after: start-default-query
+      :end-before: end-default-query
+
+   .. output::
+      :language: none
+      :visible: false
+
+      { "name": "Emma", "length": 474 }
+      { "name": "Cryptonomicon", "length": 918 }
+      { "name" : "Ça", "length" : "1138" }
+      
+
+If you don't specify a collation for the ``books`` collection, the ``find()`` method follows
+default binary collation rules to determine the ``name`` values that precede ``"Infinite Jest"``.
+These rules place words beginning with "Ç" after those beginning with "I". So, when the
+preceding find operation follows binary collation rules, the document in which the ``name`` value is
+``"Ça"`` does not match the filter criteria.
+
+.. _rust-index-collation:
+
+Set a Collation on an Index 
+---------------------------
+
+When you create a new index on a collection, you can define the collation for operations
+that are covered by the index. To run an operation that uses the index and its collation, your
+operation and index must specify the same collation.
+
+.. tip::
+
+   To learn more about indexes and covered queries, see the :ref:`rust-indexes` guide.
+
+Set the index collation by using the ``collation()`` function to build an ``IndexOptions`` instance.
+Then, pass your ``IndexOptions`` as an argument to an ``IndexModel`` builder function, and pass your
+``IndexModel`` as an argument to the ``create_index()`` method.
+
+Example
+~~~~~~~
+
+The following example uses the ``create_index()`` method to create an ascending index on the
+``name`` field and specifies a new collation corresponding to the ``"en_US"`` locale:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/collation.rs
+      :language: rust
+      :dedent:
+      :start-after: start-index
+      :end-before: end-index
+
+   .. output::
+      :language: none
+      :visible: false
+
+       Created index: name_1
+
+.. _rust-op-collation:
+
+Set a Collation on an Operation
+-------------------------------
+
+Operations that read, update, and delete documents from a collection can use collations.
+Applying a collation to an operation overrides any collation previously defined for a
+collection or index.
+
+If you apply a collation to an operation that differs from an index's collation, you
+cannot use that index. As a result, the operation may not perform as efficiently as one that
+is covered by an index. For more information on the disadvantages of sorting operations
+not covered by an index, see :manual:`Using Indexes to Sort Query Results </tutorial/sort-results-with-indexes/>`
+in the Server manual.
+
+Example
+~~~~~~~
+
+This example performs the following actions:
+
+- Sets the ``numeric_ordering`` collation option to ``true``, which ensures that values are sorted in
+  numerical order rather than alphabetical order
+- Specifies a collation in a ``FindOptions`` instance, which overrides the collection's collation
+- Uses the ``find()`` method to return documents in which the value of the ``length`` field is greater
+  than ``"1000"``
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/collation.rs
+      :language: rust
+      :dedent:
+      :start-after: start-op-collation
+      :end-before: end-op-collation
+
+   .. output::
+      :language: none
+      :visible: false
+
+      { "name" : "Les Misérables", "length": "1462" }
+      { "name" : "Infinite Jest", "length" : "1104" }
+      { "name" : "Ça", "length" : "1138" }
+   
+If you run the preceding find operation without setting the ``numeric_ordering`` option to ``true``,
+the driver compares ``length`` values as strings and orders the string value ``"1000"`` before the
+values ``"474"`` and ``"918"``. In this case, the preceding find operation returns all documents in
+the ``books`` collection.
+
+.. _rust-collation-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about the ``find()`` method, see the :ref:`rust-retrieve-guide` guide.
+
+To learn more about collations, see the following Server manual pages:
+
+- :manual:`Collation </reference/collation/>`
+- :manual:`Collation Locales and Default Parameters </reference/collation-locales-defaults/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types mentioned in this guide, see the
+following API documentation:
+
+- `Collation <{+api+}/options/struct.Collation.html>`__
+- `create_collection() <{+api+}/struct.Database.html#method.create_collection>`__
+- `CreateCollectionOptions <{+api+}/options/struct.CreateCollectionOptions.html>`__
+- `create_index() <{+api+}/struct.Collection.html#method.create_index>`__
+- `IndexOptions <{+api+}/options/struct.IndexOptions.html>`__
+- `IndexModel <{+api+}/struct.IndexModel.html>`__
+- `find() <{+api+}/struct.Collection.html#method.find>`__
+- `FindOptions <{+api+}/options/struct.FindOptions.html>`__
+
