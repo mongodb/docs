@@ -1,5 +1,5 @@
-If you need to run a MongoDB server on your local machine for development
-purposes, you need to complete the following:
+If you must run a MongoDB server on your local machine for development
+purposes, complete the following steps:
 
 1. Download the `Community <https://www.mongodb.com/try/download/community>`__
    or `Enterprise <https://www.mongodb.com/try/download/enterprise>`__ version
@@ -22,5 +22,5 @@ If your MongoDB Server is running locally, you can use the connection string
 ``"mongodb://localhost:<port>"`` where ``<port>`` is the port number you
 configured your server to listen for incoming connections.
 
-If you need to specify a different hostname or IP address, see our Server
+If you want to specify a different hostname or IP address, see our Server
 Manual entry on :manual:`Connection Strings </reference/connection-string/>`.
