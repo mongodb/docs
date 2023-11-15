@@ -47,7 +47,7 @@
 
                   .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
                         
-               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
+               .. tab:: RHEL/CentOS (7.x/8.x/9.x), SUSE12/15, Amazon Linux 2
                   :tabid: v7
 
                   Running RHEL / CentOS 7.x, SUSE12, SUSE15, or
@@ -101,7 +101,7 @@
             On zSeries architecture (managing MongoDB 4.0 or
             later deployments):
 
-            Running RHEL / CentOS 7.x/8x:
+            Running RHEL / CentOS 7.x/8.x:
 
             Running RHEL / CentOS 7.x/8.x using the ``rpm`` package
             manager:

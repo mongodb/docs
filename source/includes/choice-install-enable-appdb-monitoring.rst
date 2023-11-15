@@ -53,10 +53,10 @@
 
                   .. include:: /includes/steps/monitor-appdb-on-x86-64-rpm.rst
 
-               .. tab:: RHEL/CentOS (7.x/8.x), SUSE12/15, Amazon Linux 2
+               .. tab:: RHEL/CentOS (7.x/8.x/9.x), SUSE12/15, Amazon Linux 2
                   :tabid: v7
 
-                  RHEL / CentOS 7.x, SUSE12, SUSE15 or
+                  RHEL / CentOS 7.x/8.x/9.x, SUSE12, SUSE15 or
                   Amazon Linux 2:
 
                   .. tabs::

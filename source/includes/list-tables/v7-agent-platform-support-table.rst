@@ -29,6 +29,15 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
+    * - 
+      - RHEL/Centos/Rocky/Alma 9 :sup:`1`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - 
+      - 
+      - 
+      - 
     * -
       - Amazon Linux 2
       - :icon:`check-circle`
