@@ -1,0 +1,269 @@
+.. _rm-convert-views:
+
+=============
+Convert Views
+=============
+
+.. contents:: On this page
+  :local:
+  :backlinks: none
+  :depth: 1
+  :class: singlecol
+
+The query converter takes the :abbr:`SQL (Structured Query Language)` 
+to create the view and converts it to the equivalent 
+:abbr:`MQL (MongoDB Query Language)`. The query converter considers 
+the mapping rules and schema transformations defined in your project 
+when converting your SQL code. For details on the conversion process, 
+see :ref:`convert view examples <rm-convert-view-examples>`.
+
+About this Task
+---------------
+
+.. include:: /includes/fact-query-converter-generic.rst
+
+Before you Begin
+----------------
+
+.. include:: /includes/fact-query-converter-disclaimer.rst
+
+Steps
+-----
+.. procedure::
+  :style: normal
+
+  .. step:: Navigate to the query converter pane
+
+     From the :guilabel:`Code Generation` tab, click the
+     :guilabel:`Query Converter` pane.
+
+  .. step:: Open the query converter view
+
+     - If it is your first time using the query converter in your
+       project, click :guilabel:`Import From Database`.
+
+     - If your project already has converted SQL code, click the
+       :guilabel:`Manage Database Objects` button on the left-hand
+       pane.
+
+  .. step:: Connect to your relational database
+
+     a. Specify the connection details to your source database. 
+
+        For details, see :ref:`rm-relational-database-connection-strings`.
+
+     #. Click :guilabel:`Connect`.
+ 
+  .. step:: Select views
+
+     a. On the :guilabel:`Import Database Objects` modal, click
+        your database.
+     #. Click the :icon-fa5:`chevron-right` icon next to your schema.
+     #. Click the :icon-fa5:`chevron-right` icon next to
+        :guilabel:`Views`.
+     #. To select the views to convert, click the 
+        :icon-fa5:`check-square` icon next to a view's name. 
+        By default, all views are selected.
+     #. Click :guilabel:`Save`.
+
+  .. step:: Convert and test code
+
+     a. Click a view's name from the left-hand pane under
+        :guilabel:`Views`.
+        
+        The SQL code is displayed in the :guilabel:`Imported View`
+        pane.
+     #. Click the :guilabel:`Convert` button. Wait for the query 
+        converter to convert your code. 
+        
+        The converted MongoDB code 
+        is displayed in the :guilabel:`Converted MongoDB Query` pane.
+        
+     #. Click the :icon-fa5:`copy` icon to copy the MongoDB code
+        to your clipboard.
+     #. Test and validate the generated MongoDB code.
+
+     .. tip::
+
+        .. include:: /includes/fact-query-converter-filter.rst
+
+.. _rm-convert-view-examples:
+
+Examples
+--------
+
+The examples below show PostgreSQL views from the
+:ref:`example Northwind database<create-project-sample-schema>` 
+converted to MongoDB code.
+
+If you want to create a MongoDB view from the query:
+
+- Copy the aggregation pipeline syntax from the aggregate command.
+- Use the aggregation pipeline syntax with the 
+  :ref:`createView shell command <manual-views-create>`. 
+
+The following example shows an inner join view converted to MongoDB:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - SQL Syntax
+     - MongoDB Syntax
+
+   * - 
+       .. code-block:: sql
+          :copyable: false
+
+          SELECT 
+          O.ORDER_ID,
+          O.CUSTOMER_ID,
+          O.ORDER_DATE,
+          OD.UNIT_PRICE,
+          OD.DISCOUNT
+
+          FROM ORDERS AS O
+          INNER JOIN ORDER_DETAILS AS OD 
+             ON O.ORDER_ID = OD.ORDER_ID;
+     - 
+       .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 3-26
+
+          async function query(db) {
+            return await db.collection('orders').aggregate(
+            [
+             {
+                $lookup: 
+                {
+                   from: "orderDetails",
+                   localField: "orderId",
+                   foreignField: "orderId",
+                   as: "orderDetails"
+                },
+             },
+             {
+                $unwind: "$orderDetails",
+             },
+             {
+                $project: 
+                   {
+                      orderId: 1,
+                      customerId: 1,
+                      orderDate: 1,
+                      unitPrice: "$orderDetails.unitPrice",
+                      discount: "$orderDetails.discount"
+                   }
+             }
+            ]
+            ).toArray();
+           }
+
+The shell command to create this view in MongoDB is:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 2-25
+
+   db.createView("VW_OrderDetails", "orders", 
+      [
+       {
+         $lookup: 
+          {
+            from: "orderDetails",
+            localField: "orderId",
+            foreignField: "orderId",
+            as: "orderDetails"
+          },
+       },
+       {
+          $unwind: "$orderDetails",
+       },
+       {
+          $project: 
+             {
+               orderId: 1,
+               customerId: 1,
+               orderDate: 1,
+               unitPrice: "$orderDetails.unitPrice",
+               discount: "$orderDetails.discount"
+             }
+       }
+      ]
+    )
+
+The following example shows an aggregated group by view converted 
+to MongoDB:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - SQL Syntax
+     - MongoDB Syntax
+
+   * - 
+       .. code-block:: sql
+          :copyable: false
+
+          SELECT 
+          POSTAL_CODE, 
+          COUNT(*) AS CUSTOMERCOUNT
+
+          FROM CUSTOMERS
+          GROUP BY POSTAL_CODE
+          ORDER BY CUSTOMERCOUNT DESC;
+     - 
+       .. code-block:: javascript
+          :copyable: false
+          :emphasize-lines: 3-14
+
+          async function query(db) {
+             return db.collection('customers').aggregate(
+             [
+                {
+                   $group: 
+                   {
+                     _id: "$postal_code",
+                     customercount: { $sum: 1 }
+                   }
+                },
+                {
+                   $sort: { customercount: -1 }
+                }
+             ]
+            ).toArray();
+          }
+
+The shell command to create this view in MongoDB is:
+
+.. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 2-13
+
+   db.createView("VW_Customers", "customers",
+      [
+         {
+            $group: 
+            {
+               _id: "$postal_code",
+               customercount: { $sum: 1 }
+            }
+         },
+         {
+            $sort: { customercount: -1 }
+         }
+      ]
+   )
+
+Next Steps
+----------
+
+- :ref:`rm-convert-queries`
+- :ref:`rm-convert-stored-procedures`
+
+Learn More
+----------
+
+- :ref:`sql-to-mongodb-mapping`
+- :manual:`SQL to Aggregation Mapping Chart </reference/sql-aggregation-comparison>`

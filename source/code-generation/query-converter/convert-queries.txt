@@ -1,0 +1,175 @@
+.. _rm-convert-queries:
+
+===============
+Convert Queries
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can convert embedded application and reporting SQL queries to MongoDB 
+syntax using the query converter. Copy and paste your queries into the 
+query converter to update them to work with MongoDB and your migrated 
+schema.
+
+About this Task
+---------------
+
+.. include:: /includes/fact-query-converter-generic.rst
+
+- .. include:: /includes/fact-query-converter-disclaimer.rst
+
+Steps
+-----
+
+.. procedure::
+   :style:  normal
+
+   .. step:: Navigate to the query converter pane
+
+      From the :guilabel:`Code Generation` tab, click the 
+      :guilabel:`Query Converter` pane.
+
+   .. step:: Open the SQL query converter view
+
+      - If it is your first time using the query converter in your 
+        project, click :guilabel:`Paste SQL Query`.
+      - If you have previously converted SQL code in your project, click the
+        :guilabel:`+ ADD` button on the left-hand pane next to 
+        :guilabel:`Queries`.
+
+   .. step:: Enter your SQL query
+
+      a. Copy your SQL query to your clipboard.
+
+         .. note::
+            
+            Queries copied into the :guilabel:`SQL Query` text field 
+            must be a SELECT query. For example: 
+            ``SELECT ID,ITEMNAME,PRICE FROM inventory``.
+
+      #. Under the :guilabel:`SQL Query` header, paste your SQL query
+         into the text box.
+   
+   .. step:: Convert and test syntax
+
+      a. Click the :guilabel:`Convert` button. Wait for your SQL code to 
+         converted. The converted MongoDB syntax code displays 
+         in the :guilabel:`Converted MongoDB Query` text box.
+
+         .. tip:: 
+
+            You can rename or delete queries from your project 
+            by clicking the :icon-fa4:`ellipsis-h` 
+            button on the :guilabel:`SQL Query` pane and clicking the
+            :icon-fa5:`pencil-alt` or :icon-fa4:`trash` icon.
+
+      #. Click the :icon-fa5:`copy` icon to copy the MongoDB syntax 
+         to your clipboard.
+      #. Test and validate the generated MongoDB syntax.
+
+         .. tip:: 
+
+            .. include:: /includes/fact-query-converter-filter.rst
+
+Examples
+--------
+
+The following table shows examples of SQL queries converted to MongoDB 
+syntax using query converter. The syntax and structure of the converted 
+queries vary depending on the mapping rules used in the project:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - SQL Syntax
+     - MongoDB Syntax
+
+   * - 
+       .. code-block:: sql
+          :copyable: false
+
+          SELECT * 
+          FROM CUSTOMERS
+     - 
+       .. code-block:: 
+          :copyable: false
+
+          async function query(db) {
+            return await db.collection('Customers').find({
+            }).toArray();
+          }
+
+   * -
+      .. code-block:: sql
+         :copyable: false
+
+         SELECT CONTACTNAME, CITY 
+         FROM CUSTOMERS 
+         WHERE CONTACTNAME LIKE '%SMITH%'
+
+     - 
+      .. code-block:: node
+         :copyable: false
+
+         async function query(db) {
+         return await db.collection('Customers').find({
+               ContactName: { $regex: '.*SMITH.*' }
+            }, {
+               projection: { ContactName: 1, City: 1, _id: 0 }
+            }).toArray();
+         }
+
+   * -
+      .. code-block:: sql
+         :copyable: false
+
+         SELECT CUSTOMERID, CITY
+         FROM CUSTOMERS AS C
+         JOIN ORDERS AS O
+            ON C.CUSTOMERID = O.CUSTOMERID
+         WHERE CONTACTNAME IN('ABI','JIM')
+
+     -
+      .. code-block:: node
+         :copyable: false
+
+         const query = async (db) => {
+         return await db.collection('Customers').aggregate([
+            {
+               $lookup: {
+                  from: 'Orders',
+                  localField: 'CustomerId',
+                  foreignField: 'CustomerId',
+                  as: 'customer_orders'
+               }
+            },
+            {
+               $match: {
+               CONTACTNAME: { $in: ['ABI', 'JIM'] }
+               }
+            },
+            {
+               $project: {
+               CustomerId: 1,
+               City: 1
+               }
+            }
+            ]).toArray();
+         };
+
+Next Steps
+----------
+
+- :ref:`rm-convert-views`
+- :ref:`rm-convert-stored-procedures`
+
+Learn More
+----------
+
+- :ref:`sql-to-mongodb-mapping`
+- :manual:`SQL to Aggregation Mapping Chart </reference/sql-aggregation-comparison>`

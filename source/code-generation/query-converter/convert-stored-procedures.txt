@@ -1,0 +1,295 @@
+.. _rm-convert-stored-procedures:
+
+=========================
+Convert Stored Procedures
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can import and convert your SQL stored procedures to MongoDB code 
+with the query converter. The query converter considers the mapping 
+rules and schema transformations defined in your project when converting
+your SQL code.
+
+About this Task
+---------------
+
+.. include:: /includes/fact-query-converter-generic.rst
+
+Before you Begin
+----------------
+
+- MongoDB does not have an official synonym object type for the SQL 
+  stored procedure. Instead, MongoDB supports custom JavaScript and 
+  driver code that hosts the database logic. Part of your application 
+  modernization journey is to choose the programming language and hosting 
+  option that best serves your application needs. You can host your
+  converted stored procedure code in your application or with 
+  :ref:`MongoDB App Services Functions <functions>`.
+
+- .. include:: /includes/fact-query-converter-disclaimer.rst
+
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the query converter pane
+
+  	   From the :guilabel:`Code Generation` tab, click the :guilabel:`Query Converter` pane.
+
+   .. step:: Open the query converter view
+
+      -  If it is your first time using the query converter in your
+         project, click :guilabel:`Import From Database`.
+
+      -  If your project already has converted SQL code, click the
+         :guilabel:`Manage Database Objects` button on the left-hand
+         pane.
+
+   .. step:: Connect to your relational database
+
+      a. Specify the connection details to your source database. 
+         
+         For details, see :ref:`rm-relational-database-connection-strings`.
+      #. Click :guilabel:`Connect`.
+
+   .. step:: Select stored procedures
+
+      a. On the :guilabel:`Import Database Objects` modal, click
+         the :icon-fa5:`chevron-right` icon next to :guilabel:`Database`.
+
+      #. Click the :icon-fa5:`chevron-right` icon next to your schema.
+
+      #. Click the :icon-fa5:`chevron-right` icon next to
+         :guilabel:`Stored Procedures`.
+
+         .. tip::
+
+            You can toggle stored procedures for conversion by clicking
+            the :icon-fa5:`check-square` icon next to a stored procedure's
+            name. All stored procedures are selected by default.
+
+      #. Click :guilabel:`Save`.
+
+         The code for each stored procedure in your database 
+         schema is imported into your project and is visible in the 
+         :guilabel:`Query Converter` pane under 
+         :guilabel:`Stored Procedures`.
+
+   .. step:: Convert and test code
+
+      a. Click a stored procedure's name from the left-hand pane under
+         :guilabel:`Stored Procedures`.
+         
+         The code displays in the 
+         :guilabel:`Imported Stored Procedure` pane.
+
+      #. Select a :guilabel:`Target Language` from the drop-down.
+         
+         Query converter supports stored procedure conversions to
+         Javascript, C#, and Java.
+
+      #. Click the :guilabel:`Convert` button. Wait for the query 
+         converter to convert your code. 
+
+         The converted MongoDB code displays
+         on the :guilabel:`Converted MongoDB Query` pane.
+
+      #. Click the :icon-fa5:`copy` icon on the 
+         :guilabel:`Converted MongoDB Query` pane to copy the MongoDB 
+         code to your clipboard.
+
+      #. Test and validate the generated MongoDB code.
+
+         .. tip::
+
+            .. include:: /includes/fact-query-converter-filter.rst
+
+Examples
+--------
+
+The query converter can convert your stored procedures
+to Javascript, C#, or Java code. The examples below
+show conversions to each language.
+
+JavaScript
+~~~~~~~~~~
+
+The following example shows a MySQL stored procedure
+converted to JavaScript:
+
+.. tabs::
+
+   .. tab:: Relational Input
+      :tabid: sql-input-1
+
+      .. code-block:: sql
+         :copyable: false
+
+         BEGIN
+            DECLARE v_rentals INT;
+            DECLARE v_out 	INT;
+            SELECT COUNT(*) INTO v_rentals
+            FROM rental
+            WHERE inventory_id = p_inventory_id;
+            IF v_rentals = 0 THEN
+               RETURN TRUE;
+            END IF;
+            SELECT COUNT(rental_id) INTO v_out
+            FROM inventory LEFT JOIN rental USING(inventory_id)
+            WHERE inventory.inventory_id = p_inventory_id
+            AND rental.return_date IS NULL;
+            IF v_out > 0 THEN
+               RETURN FALSE;
+            ELSE
+               RETURN TRUE;
+            END IF;
+         END
+
+   .. tab:: MongoDB Output
+      :tabid: mongodb-output-1
+
+      .. code-block:: javascript
+         :copyable: false
+
+         async function query(db, p_inventory_id) {
+         const v_rentals = await db.collection('rental').countDocuments(
+            { inventoryId: p_inventory_id }
+         );
+         if (v_rentals === 0) {
+            return true;
+         }
+         const v_out = await db.collection('inventory').aggregate([
+            {
+               $lookup: {
+               from: 'rental',
+               localField: 'inventoryId',
+               foreignField: 'inventoryId',
+               as: 'rentalData'
+               }
+            },
+            {
+               $match: {
+               inventoryId: p_inventory_id,
+               'rentalData.returnDate': { $exists: false }
+               }
+            },
+            {
+               $count: 'rentalId'
+            }
+            ]).toArray();
+            if (v_out.length > 0 && v_out[0].rentalId > 0) {
+               return false;
+            } else {
+               return true;
+            }
+            }
+
+C#
+~~
+
+The following example shows a MySQL stored procedure
+converted to C#:
+
+.. tabs::
+
+   .. tab:: Relational Input
+      :tabid: sql-input-2
+
+      .. code-block:: sql
+         :copyable: false
+
+         BEGIN
+               DECLARE v_customer_id INT;
+               DECLARE EXIT HANDLER FOR NOT FOUND RETURN NULL;
+               SELECT customer_id INTO v_customer_id
+               FROM rental
+               WHERE return_date IS NULL
+               AND inventory_id = p_inventory_id;
+               RETURN v_customer_id;
+            END
+
+
+   .. tab:: MongoDB Output
+      :tabid: mongodb-output-2
+
+      .. code-block:: csharp
+         :copyable: false
+
+         async Task<int?> Query(IMongoDatabase db)
+         {
+            var rentalCollection = db.GetCollection<BsonDocument>("rental");
+            var filter = Builders<BsonDocument>.Filter.Eq("inventoryId", p_inventory_id) & Builders<BsonDocument>.Filter.Eq("returnDate", null);
+            var result = await rentalCollection.Find(filter).FirstOrDefaultAsync();
+            return result != null ? result["customerId"].AsInt32 : (int?)null;
+         }
+
+Java
+~~~~
+
+The following example shows a MySQL stored procedure
+converted to Java:
+
+.. tabs::
+
+   .. tab:: Relational Input
+      :tabid: sql-input-3
+
+      .. code-block:: sql
+         :copyable: false
+
+         BEGIN
+            SELECT inventory_id
+            FROM inventory
+            WHERE film_id = p_film_id
+            AND store_id = p_store_id
+            AND NOT inventory_in_stock(inventory_id);
+            SELECT COUNT(*)
+            FROM inventory
+            WHERE film_id = p_film_id
+            AND store_id = p_store_id
+            AND NOT inventory_in_stock(inventory_id)
+            INTO p_film_count;
+         END
+
+   .. tab:: MongoDB Output
+      :tabid: mongodb-output-3
+
+      .. code-block:: java
+         :copyable: false
+
+         void query(MongoDatabase db) {
+            int p_film_id = 0;
+            int p_store_id = 0;
+            int p_film_count = 0;
+
+            MongoCollection<Document> inventoryCollection = db.getCollection("inventory");
+
+            Bson filter = Filters.and(Filters.eq("filmId", p_film_id), Filters.eq("storeId", p_store_id), Filters.not(inventory_in_stock("inventoryId")));
+            FindIterable<Document> result = inventoryCollection.find(filter);
+
+            for (Document doc : result) {
+               System.out.println(doc.getInteger("inventoryId"));
+            }
+
+            p_film_count = (int) inventoryCollection.countDocuments(filter);
+         }
+
+Next Steps
+----------
+
+- :ref:`rm-convert-queries`
+- :ref:`rm-convert-views`
+
+Learn More
+----------
+
+- :ref:`sql-to-mongodb-mapping`
+- :manual:`SQL to Aggregation Mapping Chart </reference/sql-aggregation-comparison>`
