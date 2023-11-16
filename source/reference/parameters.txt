@@ -98,7 +98,7 @@ Authentication Parameters
    <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__ or `AWS IAM environment variables
    <https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__.
  
-   Maximim number of AWS IAM authentication retries after a connection 
+   Maximum number of AWS IAM authentication retries after a connection 
    failure.
 
    The following example sets :parameter:`awsSTSRetryCount` to ``15`` 
@@ -4756,6 +4756,47 @@ Sharding Parameters
       In all versions, the new value of :parameter:`orphanCleanupDelaySecs` is
       only applied to range deletions created after the value is changed. To
       apply the new value to existing range deletions, :ref:`force a step down <rs.stepDown-behavior>`.
+
+.. parameter:: persistedChunkCacheUpdateMaxBatchSize
+
+   .. versionadded:: 7.1.1 (and 7.0.4)
+
+   |mongod-only|
+
+   Type: Integer
+
+   Default: 1000
+
+   To route and serve operations, shards must know the routing and
+   ownership information associated with their collections. This
+   information propogates from a shard's primary node to its
+   secondary nodes through the replication of the internal cache
+   collections ``config.cache.collections`` and
+   ``config.cache.chunks.<collectionName>``.
+   
+   In previous versions, updates on the chunk cache collection were
+   performed individually (meaning that an entry was deleted and a new
+   entry was inserted). Starting in MongoDB 7.1.1, these updates are
+   performed as a batch of deletions followed by a batch of insertions.
+   The updated logic improves performance for collections that contain a
+   large number of chunks.
+
+   The ``persistedChunkCacheUpdateMaxBatchSize`` parameter specifies the
+   maximum batch size used for updating the persisted chunk cache.
+
+   The following example sets ``persistedChunkCacheUpdateMaxBatchSize``
+   to 700 at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter persistedChunkCacheUpdateMaxBatchSize=700
+
+   You can also set ``persistedChunkCacheUpdateMaxBatchSize`` during
+   runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, persistedChunkCacheUpdateMaxBatchSize: 700 } )
 
 .. parameter:: rangeDeleterBatchDelayMS
 
