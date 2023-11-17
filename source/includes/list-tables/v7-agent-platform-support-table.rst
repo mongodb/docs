@@ -182,6 +182,15 @@
       -
       -
       -
+    * - 
+      - Ubuntu 22.x
+      - :icon:`check-circle`
+      - 
+      - 
+      - 
+      -
+      -
+      -
     * - PowerPC/ ppc64le
       - RHEL/ Centos 7
       - :icon:`check-circle`
