@@ -1,3 +1,16 @@
+.. _13.7.0.8514:
+
+MongoDB Agent 13.7.0.8514
+=========================
+
+*Released* 2023-10-18
+
+- Fixes an issue where |mms| reported an invalid configuration when 
+  upgrading a managed deployment with multiple tags.
+- Upgrades the ``mongosh`` used by |mms| to version 
+  `2.0.2 <https://www.mongodb.com/docs/mongodb-shell/changelog/#v2.0.2>`__.
+- Adds support for automating deployments on Ubuntu 22.04 for both x86_64
+  and ARM64/aarch64 architectures.
 
 .. _13.6.0.8483-1:
 

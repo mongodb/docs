@@ -1,3 +1,10 @@
+.. _cloudmanager_20231018:
+
+18 October 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`13.7.0.8514`.
+
 .. _cloudmanager_20231004:
 
 04 October 2023 Release
@@ -21,6 +28,10 @@
 - Adds support for |bic-full| 2.14.11.
 - Updates the {+mdbagent+} to :ref:`13.5.0.8451-1 <13.5.0.8451-1>`.
 - Improves error message when importing a replica set.
+- Ensures that ``mongos`` always flushes its cache when you upgrade
+  from MongoDB 5.0 to MongoDB 6.0.
+- Ensures that the {+mdbagent+} always shuts down on request, even when
+  the process is unresponsive.
 
 .. _cloudmanager_20230823:
 
