@@ -191,32 +191,23 @@ chunks during balancing.
 Migration Thresholds
 ~~~~~~~~~~~~~~~~~~~~
 
-To minimize the impact of balancing on the cluster, the
-:term:`balancer` only begins balancing after the distribution of
-chunks for a sharded collection has reached certain thresholds. The
-thresholds apply to the difference in number of :term:`chunks <chunk>`
-between the shard with the most chunks for the collection and the shard
-with the fewest chunks for that collection. The balancer has the
-following thresholds:
+To minimize the impact of balancing on the cluster, the :term:`balancer`
+begins balancing only after the distribution of data for a sharded
+collection has reached the migration threshold that makes the cluster
+unbalanced. When the number of chunks on the most loaded shard exceeds
+the optimal number of chunks per shard by more than 1 chunk, the
+collection is unbalanced and the :term:`balancer` initiates chunk
+migrations. The optimal number of chunks per shard is the total number
+of chunks in a sharded collection divided by the number of shards,
+rounded up to the nearest integer. If :term:`zones <zone>` exist,
+MongoDB calculates the optimal number of chunks on a per-zone basis. 
 
-.. list-table::
-   :header-rows: 1
-
-   * - Number of Chunks
-     - Migration Threshold
-
-   * - Fewer than 20
-     - 2
-
-   * - 20-79
-     - 4
-
-   * - 80 and greater
-     - 8
-
-The balancer stops running on the target collection when the difference
-between the number of chunks on any two shards for that collection is *less
-than two*, or a chunk migration fails.
+For example, if a user adds a new shard to a collection of 10 shards
+with 20 chunks each, the :term:`balancer` does not migrate any data. The
+optimal number of chunks on each shard is 200 divided by 11, or 18.18,
+which MongoDB rounds up to 19. Because the difference between 19 and 20
+is 1, the cluster is balanced and the :term:`balancer` does not migrate
+any chunks to the new shard.
 
 .. seealso::
 
