@@ -5,8 +5,8 @@ deprecated:
   :ref:`aggregation pipeline <aggregation-pipeline>`. Aggregation
   pipelines provide better performance and usability than map-reduce.
 
-- You can rewrite map-reduce operations using :ref:`aggregation
-  pipeline stages <agg-pipeline-quick-ref>`, such as
+- You can rewrite map-reduce operations using :ref:`aggregation pipeline
+  stages <aggregation-pipeline-operator-reference>`, such as
   :pipeline:`$group`, :pipeline:`$merge`, and others. 
 
 - For map-reduce operations that require custom functionality, you can
