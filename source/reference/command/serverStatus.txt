@@ -280,8 +280,9 @@ changeStreamPreImages
          scannedCollections : <num>,
          scannedInternalCollections : <num>,
          maxStartWallTimeMillis : <num>,
-         timeElapsedMillis : <num>
-      }
+         timeElapsedMillis : <num>,
+      },
+      expireAfterSeconds : <num>
    }
 
 A document that reports metrics related to 
@@ -335,6 +336,15 @@ A document that reports metrics related to
       * - ``timeElapsedMillis``
         - Cumulative time in milliseconds of all deletion passes by the 
           purging job.
+
+.. serverstatus:: changeStreamPreImages.expireAfterSeconds
+
+   .. versionadded:: 7.1
+
+   Amount of time in seconds that MongoDB retains pre-images. If
+   :parameter:`~changeStreamOptions.preAndPostImages.expireAfterSeconds`
+   is not defined, this metric does not appear in the ``serverStatus``
+   output.
 
 .. _server-status-connections:
 
@@ -935,54 +945,6 @@ flowControl
 
    .. versionadded:: 4.2
 
-.. _server-status-freeMonitoring:
-
-freeMonitoring
-~~~~~~~~~~~~~~
-
-.. code-block:: javascript
-
-   freeMonitoring : {
-      state : <string>,
-      retryIntervalSecs : Long("<num>"),
-      lastRunTime : <string>,
-      registerErrors : Long("<num>"),
-      metricsErrors : Long("<num>")
-   },
-
-.. serverstatus:: freeMonitoring
-
-   A document that reports on the :doc:`free Cloud monitoring
-   </administration/free-monitoring>`.
-
-.. serverstatus:: freeMonitoring.state
-
-   The enablement state of free monitoring. The values can be one of
-   the following:
-
-   - 'enabled'
-
-   - 'disabled'
-
-   - 'pending' if enabling free monitoring encountered a registration error.
-
-.. serverstatus:: freeMonitoring.retryIntervalSecs
-
-   The frequency, in seconds, at which data is uploaded.
-
-.. serverstatus:: freeMonitoring.lastRunTime
-
-   The date and time of the last run of the metrics upload.
-   
-.. serverstatus:: freeMonitoring.registerErrors
-
-   The number of registration errors, incremented on unexpected HTTP
-   status or network errors.
-
-.. serverstatus:: freeMonitoring.metricsErrors
-
-   The number of errors encountered when uploading metrics.
-
 .. _globalLock:
 .. _globallock:
 .. _global-lock:
@@ -1553,6 +1515,9 @@ metrics
 .. code-block:: javascript
 
    metrics : {
+      abortExpiredTransactions: {
+         passes: <integer>
+      },
       apiVersions: {
          <appName1>: <string>, 
          <appName2>: <string>, 
@@ -1801,6 +1766,19 @@ metrics
 
    A document that returns various statistics that reflect the current
    use and state of a running :binary:`~bin.mongod` instance.
+
+.. serverstatus:: metrics.abortExpiredTransactions
+
+   Document that returns statistics on the current state of the
+   ``abortExpiredTransactions`` thread.
+
+.. serverstatus:: metrics.abortExpiredTransactions.passes
+
+   Indicates the number of successful passes aborting transactions
+   older than the :parameter:`transactionLifetimeLimitSeconds` parameter.
+
+   If the ``passes`` value stops incrementing, it indicates that the
+   ``abortExpiredTransactions`` thread may be stuck.
 
 .. serverstatus:: metrics.aggStageCounters
 
@@ -3916,6 +3894,55 @@ planCache
    Number of |sbe-short| plans which were not found 
    in the query cache and went through the query planning phase.
 
+.. _server-status-queryStats:
+
+queryStats
+~~~~~~~~~~
+
+.. versionadded:: 7.1
+
+.. code-block:: javascript
+
+   queryStats: {
+      numEvicted: Long("<num>"),
+      numRateLimitedRequests: Long("<num>"),
+      queryStatsStoreSizeEstimateBytes: Long("<num>"),
+      numQueryStatsStoreWriteErrors: Long("<num>"),
+      numHmacApplicationErrors: Long("<num>")
+   },
+
+.. serverstatus:: queryStats
+
+   A document that contains metrics for the :pipeline:`$queryStats`
+   aggregation stage.
+
+.. serverstatus:: queryStats.numEvicted
+
+   Number of queries that the ``$queryStats`` virtual collection has
+   evicted due to space contraints.
+
+.. serverstatus:: queryStats.numRateLimitedRequests
+
+   Number of times that query stats were not recorded for a query due to
+   rate limiting.
+
+.. serverstatus:: queryStats.queryStatsStoreSizeEstimateBytes
+
+   Current estimated size of objects in the ``$queryStats`` virtual
+   collection.
+
+.. serverstatus:: queryStats.numQueryStatsStoreWriteErrors
+
+   Number of times this MongoDB process failed to store a new query
+   stats key. Generally, these failures happen when the
+   ``$queryStats`` virtual collection runs out of space.
+
+.. serverstatus:: queryStats.numHmacApplicationErrors
+
+   Number of times this MongoDB process failed to compute a one-way
+   tokenized query stats key when ``$queryStats`` was called with the
+   ``transformIdentifiers`` option.
+
 .. _server-status-queryAnalyzers:                                       
                                                                         
 queryAnalyzers                                  
@@ -4816,18 +4843,18 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countDonorMoveChunkStarted
 
-   The total number of times that the :dbcommand:`moveChunk` command
-   or :dbcommand:`moveRange` have started on the shard, of which this 
-   node is a member, as part of a :ref:`range migration process 
-   <range-migration-procedure>`. This increasing number does not 
+   The total number of times that MongoDB starts the
+   :dbcommand:`moveChunk` command or :dbcommand:`moveRange` command on
+   the primary node of the shard as part of the :ref:`range migration
+   procedure <range-migration-procedure>`. This increasing number does not
    consider whether the chunk migrations succeed or not.
 
    *Only present when run on a shard.*
 
 .. serverstatus:: shardingStatistics.countDonorMoveChunkCommitted
 
-   Total number of chunk migrations committed on the shard, of which
-   the current node is a member.
+   The total number of chunk migrations that MongoDB commits on the
+   primary node of the shard.
 
    .. include:: /includes/chunk-migrations.rst
 
@@ -4835,8 +4862,8 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countDonorMoveChunkAborted
 
-   Total number of chunk migrations aborted on the shard, of which the
-   current node is a member.
+   The total number of chunk migrations that MongoDB aborts on the
+   primary node of the shard. 
 
    .. include:: /includes/chunk-migrations.rst
 
@@ -4856,32 +4883,30 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.totalDonorChunkCloneTimeMillis
 
-   The cumulative time, in milliseconds, taken by the :ref:`clone phase
-   of the range migrations <range-migration-procedure>` from this
-   shard, of which this node is a member. Specifically, for each
-   migration from this shard, the tracked time starts with the
-   :dbcommand:`moveRange` and :dbcommand:`moveChunk` commands and ends 
-   before the destination shard enters a ``catchup`` phase to apply 
-   changes that occurred during the :ref:`range migrations 
-   <range-migration-procedure>`.
+   The cumulative time, in milliseconds, that the :ref:`clone phase of
+   the range migration procedure <range-migration-procedure>` takes on
+   the primary node of the shard.  Specifically, for each migration on
+   this shard, the tracked time starts with the :dbcommand:`moveRange`
+   and :dbcommand:`moveChunk` commands and ends before the destination
+   shard enters a ``catchup`` phase to apply changes that occurred
+   during the :ref:`range migration procedure <range-migration-procedure>`.
 
    *Only present when run on a shard.*
 
 .. serverstatus:: shardingStatistics.totalCriticalSectionCommitTimeMillis
 
-   The cumulative time, in milliseconds, taken by the :ref:`update
-   metadata phase of the range migrations <range-migration-procedure>`
-   from this shard, of which this node is a member. During the update
-   metadata phase, all operations on the collection are blocked.
+   The cumulative time, in milliseconds, that the :ref:`update metadata
+   phase of the range migrations procedure <range-migration-procedure>`
+   takes on the primary node of the shard. During the update metadata
+   phase, MongoDB blocks all operations on the collection.
 
    *Only present when run on a shard.*
 
 .. serverstatus:: shardingStatistics.totalCriticalSectionTimeMillis
 
-   The cumulative time, in milliseconds, taken by the :ref:`catch-up
-   phase and the update metadata phase of the range migrations
-   <range-migration-procedure>` from this shard, of which this node is
-   a member.
+   The cumulative time, in milliseconds, that the :ref:`catch-up
+   phase and the update metadata phase of the range migration procedure
+   <range-migration-procedure>` takes on the primary node of the shard. 
 
    To calculate the duration of the catch-up phase, subtract
    :serverstatus:`~shardingStatistics.totalCriticalSectionCommitTimeMillis` from
@@ -4895,9 +4920,8 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countDocsClonedOnRecipient
 
-   Cumulative, always-increasing count of documents that have been
-   cloned on this member where it acted as the primary of the recipient
-   shard.
+   The cumulative, always-increasing count of documents that MongoDB
+   clones on the primary node of the recipient shard.
 
    *Only present when run on a shard.*
 
@@ -4905,10 +4929,9 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countBytesClonedOnRecipient
 
-   Cumulative number of bytes cloned on the current member node during a
-   :ref:`range migration procedure <range-migration-procedure>`, where
-   the current member node acted as the primary node for the recipient
-   shard.
+   The cumulative number of bytes that MongoDB clones on the primary
+   node of the recipient shard during the :ref:`range migration procedure
+   <range-migration-procedure>`. 
 
    .. include:: /includes/chunk-migrations-data-copy.rst
 
@@ -4918,10 +4941,9 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countDocsClonedOnCatchUpOnRecipient
 
-   Cumulative number of documents cloned on the current member node
-   during the catch-up phase of a :ref:`range migration procedure
-   <range-migration-procedure>`, where the current member node acted as
-   the primary node for the recipient shard.
+   The cumulative number of documents that MongoDB clones on the primary
+   node of the recipient shard during the catch-up phase of the
+   :ref:`range migration procedure <range-migration-procedure>`. 
 
    .. include:: /includes/chunk-migrations-data-copy.rst
 
@@ -4931,10 +4953,9 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countBytesClonedOnCatchUpOnRecipient
 
-   Cumulative number of bytes cloned on the current member node during
-   the catch-up phase of a :ref:`range migration procedure
-   <range-migration-procedure>`, where the current member node acted as
-   the primary node for the recipient shard.
+   The cumulative number of bytes that MongoDB clones on the primary
+   node of the recipient shard during the catch-up phase of the
+   :ref:`range migration procedure <range-migration-procedure>`. 
 
    .. include:: /includes/chunk-migrations-data-copy.rst
 
@@ -4944,9 +4965,8 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countDocsClonedOnDonor
 
-   Cumulative, always-increasing count of documents that haves been
-   cloned on this member where it acted as the primary of the donor
-   shard.
+   The cumulative, always-increasing count of documents that MongoDB
+   clones on the primary node of the donor shard. 
 
    *Only present when run on a shard.*
 
@@ -4964,9 +4984,9 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countDocsDeletedByRangeDeleter
 
-   Cumulative, always-increasing count of documents that have been
-   deleted on this member during chunk migration where the member acted
-   as the primary of the donor shard.
+   The cumulative, always-increasing count of documents that MongoDB
+   deletes on the primary node of the donor shard during chunk
+   migration. 
 
    *Only present when run on a shard.*
 
@@ -4976,9 +4996,9 @@ shardingStatistics
 
 .. serverstatus:: shardingStatistics.countDonorMoveChunkLockTimeout
 
-   Cumulative, always-increasing count of chunk migrations that were
-   aborted due to lock acquisition timeouts, where the member acted as
-   the primary of the donor shard.
+   The cumulative, always-increasing count of chunk migrations that MongoDB
+   aborts on the primary node of the donor shard due to lock acquisition
+   timeouts.
 
    *Only present when run on a shard.*
 
@@ -5055,7 +5075,7 @@ shardingStatistics
 
    The current total of the queued chunk range deletion tasks that are
    ready to run or are running as part of the :ref:`range migration
-   process <range-migration-procedure>`.
+   procedure <range-migration-procedure>`.
 
    Inspect the documents in the :data:`config.rangeDeletions` collection
    for information about the chunk ranges pending deletion from a shard

@@ -4,6 +4,10 @@ collMod
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -24,7 +28,7 @@ Definition
 
    .. note::
 
-      The view modified by this command does not refer to materialized
+      The view modified by ``collMod`` does not refer to materialized
       views. For discussion of on-demand materialized views, see
       :pipeline:`$merge` instead.
 
@@ -34,6 +38,7 @@ Syntax
 The command has the following syntax:
 
 .. code-block:: javascript
+   :copyable: false
 
    db.runCommand( 
       { 
@@ -147,11 +152,12 @@ Change Index Properties
    change:
 
    .. code-block:: javascript
+      :copyable: false
 
       db.runCommand( {
          collMod: <collection>,
          index: {
-            keyPattern: <index_spec> || name: <index_name>,
+            keyPattern: <index_spec> | name: <index_name>,
             expireAfterSeconds: <number>,  // Set the TTL expiration threshold
             hidden: <boolean>,             // Change index visibility in the query planner
             prepareUnique: <boolean>,      // Reject new duplicate index entries 
@@ -273,10 +279,11 @@ Modify Time Series Collections
    value:
 
    .. code-block:: javascript
+      :copyable: false
 
       db.runCommand( {
          collMod: <collection>,
-         expireAfterSeconds: <number> || "off"
+         expireAfterSeconds: <number> | "off"
       } )
 
    Set ``expireAfterSeconds`` to ``"off"`` to disable automatic removal,
@@ -293,34 +300,35 @@ Modify Time Series Collections
    series collection, you can increase ``timeseries.granularity`` from a shorter unit of time to a longer one:
 
    .. code-block:: javascript
+      :copyable: false
 
-      db.runCommand({
+      db.runCommand( {
          collMod: "weather24h",
-         timeseries: { granularity: "seconds" || "minutes" || "hours" }
-      })
+         timeseries: { granularity: "seconds" | "minutes" | "hours" }
+      } )
 
-   To update the custom bucketing parameters ``bucketRoundingSeconds``
+   To update the custom bucketing fields ``bucketRoundingSeconds``
    and ``bucketMaxSpanSeconds`` instead of ``granularity``, include both
-   custom parameters in the ``collMod`` command and set them to the 
+   custom fields in the ``collMod`` command and set them to the 
    same value:
    
    .. code-block:: javascript
 
-      db.runCommand({
+      db.runCommand( {
          collMod: "weather24h",
          timeseries: { 
-           bucketRoundingSeconds: "86400",
-           bucketMaxSpanSeconds: "86400" 
+            bucketRoundingSeconds: 86400,
+            bucketMaxSpanSeconds: 86400 
          }
-      })
-   
+      } )
+
    You cannot decrease the granularity interval or the custom bucketing
    values.
 
    .. important::
      
        You cannot downgrade below MongoDB 6.3 if any time series 
-       collections explicitly specify the custom bucketing parameters 
+       collections explicitly specify the custom bucketing fields 
        ``bucketMaxSpanSeconds`` and ``bucketRoundingSeconds``. If 
        possible, convert to the corresponding ``granularity``. If you 
        cannot, you must drop the collection before downgrading.
@@ -366,6 +374,7 @@ For example, the following command sets the maximum size of a capped collection
 to 100000 bytes and sets the maximum number of documents in the collection to 500:
 
 .. code-block:: javascript
+   :copyable: false
 
    db.runCommand( {
       collMod: <collection>,
@@ -456,19 +465,15 @@ the following privilege to run the ``collMod`` command:
    :header-rows: 1
 
    * - Task
-
      - Required Privileges
 
    * - Modify a non-capped collection
-
      - :authaction:`collMod` in the database
 
    * - Modify a view
-
      - :authaction:`collMod` in the database and either:
 
        - no :authaction:`find` on the view to modify, **or**
-
        - both :authaction:`find` on the view to modify and
          :authaction:`find` on the source collection/view.
 
@@ -530,13 +535,13 @@ planner.
 
 .. code-block:: javascript
 
-   db.runCommand({
+   db.runCommand( {
       collMod: "orders",
       index: {
          keyPattern: { shippedDate: 1 },
          hidden: true
       }
-   })
+   } )
 
 If successful, the operation returns a document that includes both the
 old and new value for the changed property:
@@ -548,7 +553,7 @@ old and new value for the changed property:
 .. note::
 
    If the operation is successful but the ``hidden`` value has not
-   changed (i.e. hiding an already hidden index or unhiding an already
+   changed (specifically, hiding an already hidden index or unhiding an already
    unhidden index), the command omits the ``hidden_old`` and
    ``hidden_new`` fields from the output.
 
@@ -560,7 +565,6 @@ To hide a text index, you must specify the index by ``name`` and not by
    - :ref:`index-type-hidden`
    - :method:`db.collection.hideIndex()`
    - :method:`db.collection.unhideIndex()`
-
 
 Convert an Existing Index to a Unique Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -620,7 +624,7 @@ converting the index:
           keyPattern: { type: 1 },
           unique: true
        }
-    } )
+   } )
 
 The response to this operation varies by driver. You will always
 receive an error message about the duplicate entries.

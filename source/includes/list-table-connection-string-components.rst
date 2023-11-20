@@ -10,13 +10,13 @@ A connection string includes the following components:
    * - Component
      - Description
 
-   * - ``mongodb://`` or ``mongodb://+srv``
+   * - ``mongodb://`` or ``mongodb+srv://``
 
      - A required prefix to identify that this is a string in the
        standard connection format (``mongodb://``) or SRV connection
-       format (``mongodb://+srv``). To learn more about each format,
-       see :ref:`connections-dns-seedlist` and
-       :ref:`connections-standard-connection-string-format`.
+       format (``mongodb+srv://``). To learn more about each format,
+       see :ref:`connections-standard-connection-string-format`
+       and :ref:`connections-dns-seedlist`.
 
    * - ``username:password@``
 
@@ -52,6 +52,11 @@ A connection string includes the following components:
        If the port number is not specified, the default port ``27017``
        is used.
 
+       .. note:: 
+          
+          If you use the SRV URI connection format, you can specify only one 
+          host and no port. Otherwise, the driver or :binary:`~bin.mongosh` 
+          raises a parse error and does not perform DNS resolution.
 
    * - ``/defaultauthdb``
      

@@ -90,3 +90,10 @@
       .. code-block:: bash
 
          mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/
+
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb+srv://myDatabaseUser:D1fficultP%40ssw0rd@cluster0.example.mongodb.net/

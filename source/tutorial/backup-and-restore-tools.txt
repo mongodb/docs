@@ -9,57 +9,47 @@ Back Up and Restore with MongoDB Tools
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 This tutorial describes the process for creating backups and restoring data
-using the utilities provided with MongoDB. 
+using the command-line utilities :binary:`~bin.mongorestore` and :binary:`~bin.mongodump`
+provided with MongoDB. 
 
-.. note:: MongoDB Atlas
+To restore a backup of your self-hosted deployment 
+to a managed `{+atlas+} deployment 
+<https://www.mongodb.com/docs/atlas?tck=docs_server>`__, 
+see :atlas:`Seed with mongorestore </import/mongorestore/>`.
 
-   MongoDB Atlas uses :atlas:`Cloud Backups </backup/cloud-backup/overview>`, 
-   which provide localized backup storage using the native snapshot 
-   functionality of the cluster's cloud service provider.
+For a fully-managed backup method, use :atlas:`Cloud Backups </backup/cloud-backup/overview>` 
+in MongoDB Atlas, which provide localized backup storage using the native snapshot 
+functionality of the cluster's cloud service provider. 
 
 Considerations
 --------------
 
+.. _binary-bson-dumps:
+
 Deployments
 ~~~~~~~~~~~
 
-The :binary:`~bin.mongodump` and :binary:`~bin.mongorestore` utilities
-work with :ref:`BSON <bson-types>` data dumps, and are
-useful for creating backups of small deployments. For resilient and
-non-disruptive backups, use a file system or block-level disk snapshot
-function, such as the methods described in the :doc:`/core/backups`
-document.
+The :binary:`~bin.mongorestore` and :binary:`~bin.mongodump` utilities 
+work with :ref:`BSON <bson-types>` data dumps, and are 
+useful for creating backups of small deployments. For resilient and 
+non-disruptive backups, use :doc:`file system snapshots </tutorial/backup-with-filesystem-snapshots>`
+or block-level disk snapshots with  
+:atlas:`Cloud Backups </backup/cloud-backup/overview>` from {+atlas+}.
 
-.. note::
+.. note:: Back Up Sharded Clusters with {+atlas+}
 
    .. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
 
-Performance Considerations
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Performance Impacts
+~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/extracts/tools-performance-considerations-dump-restore.rst
 
-.. _binary-bson-dumps:
 
-Binary BSON Dumps
------------------
-
-The :binary:`~bin.mongorestore` and :binary:`~bin.mongodump` utilities work with
-BSON data dumps, and are useful for creating backups of small deployments. 
-For resilient and non-disruptive backups, use a file system or 
-block-level disk snapshot function, such as the methods described in the 
-:doc:`/core/backups` document.
-
-Use these tools for backups if other backup methods, such as
-|mms-home| or
-:doc:`file system snapshots </tutorial/backup-with-filesystem-snapshots>`
-are unavailable.
-
-.. include:: /includes/replacement-mms.rst
 
 .. _backup-mongodump:
 .. _backup-and-restore-tools:
@@ -70,7 +60,7 @@ Procedures
 Back Up a Database with ``mongodump``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+.. note:: Back Up Sharded Clusters with {+atlas+}
 
    .. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
 
@@ -106,13 +96,30 @@ use the following command:
 
    mongodump
 
-You can also specify the :option:`--host <mongodump.--host>` and
-:option:`--port <mongodump.--port>` of the MongoDB instance that the
-:binary:`~bin.mongodump` should connect to. For example:
+To specify the host and port of the MongoDB instance, you can either:
 
-.. code-block:: bash
+- Specify the hostname and port in the ``--uri`` string, using either an 
+  :ref:`SRV <connections-dns-seedlist>` or 
+  :ref:`standard <connections-standard-connection-string-format>` connection string:
 
-   mongodump --host=mongodb.example.net --port=27017
+  .. code-block:: bash
+     :copyable: false
+     
+     mongodump --uri="mongodb+srv://username:password@cluster0.example.mongodb.net" <additional_options>
+
+- Specify the hostname and port in the ``--host`` string:
+
+  .. code-block:: bash
+     :copyable: false
+     
+     mongodump --host="mongodb0.example.com:27017" <additional_options>
+
+- Specify the hostname and port in the ``--host`` and ``--port``:
+
+  .. code-block:: bash
+     :copyable: false
+     
+     mongodump --host="mongodb0.example.com" --port=27017 <additional_options>
 
 :binary:`~bin.mongodump` will write :term:`BSON` files that hold a copy of
 data accessible via the :binary:`~bin.mongod` listening on port ``27017`` of
@@ -185,7 +192,7 @@ and password credentials to specify database authentication.
 Restore a Database with ``mongorestore``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. note::
+.. note:: Back Up Sharded Clusters with {+atlas+}
 
    .. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
 
@@ -222,7 +229,7 @@ To use :binary:`~bin.mongorestore` to connect to an active
 .. code-block:: bash
    :copyable: false
 
-   mongorestore --port=<port number> <path to the backup>
+   mongorestore --uri <connection string> <path to the backup>
 
 
 Consider the following example:

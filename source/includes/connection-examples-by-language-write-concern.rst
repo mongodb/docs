@@ -112,3 +112,10 @@
 
          mongodb://myDatabaseUser:D1fficultP%40ssw0rd@example1.com,example2.com,example3.com/?replicaSet=test&w=majority&wtimeoutMS=2000
 
+   .. tab::
+      :tabid: rust
+
+      .. code-block:: bash
+
+         mongodb://myDatabaseUser:D1fficultP%40ssw0rd@example1.com,example2.com,example3.com/?replicaSet=test&w=majority&wtimeoutMS=2000
+

@@ -19,16 +19,50 @@ Definition
    collection. The stage returns a document for each plan cache entry.
 
    The ``$planCacheStats`` stage must be the first stage in the
-   pipeline. The stage takes an empty document as a parameter and has
-   the following syntax:
+   pipeline. The stage  has the following syntax:
 
    .. code-block:: javascript
 
-      { $planCacheStats: { } }
+      { 
+         $planCacheStats: { 
+            allHosts: <boolean>
+         } 
+      }
+
+   The ``$planCacheStats`` aggregation stage has the following options: 
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 25 75
+
+      * - Option
+        - Description
+      * - ``allHosts``
+        - Configures how the ``$planCacheStats`` aggregation stage targets
+          nodes in a sharded cluster.
+
+          - If ``true``, :program:`mongos` broadcasts the ``$planCacheStats``
+            aggregation stage to all nodes (primary and secondaries) for each
+            affected shard that contains one or more chunks from the target
+            collection.
+
+          - If ``false``, the ``$planCacheStats`` aggregation stage follows the
+            :ref:`read-preference` and only retrieves the plan cache from the
+            targeted replica set primary.
+
+          .. note:: 
+
+             Replica sets and standalone servers return an error during pipeline
+             parsing if ``allHosts`` is set to ``true``. The option is only 
+             available to sharded clusters.
+
+          Default: ``false``
+
+          .. versionadded:: 7.1
 
 .. seealso::
 
-   :ref:`query-plans-query-optimization` 
+   :ref:`query-plans-query-optimization`
 
 Considerations
 --------------
@@ -36,8 +70,7 @@ Considerations
 Pipeline
 ~~~~~~~~
 
-``$planCacheStats`` must be the first stage in an aggregation
-pipeline.
+``$planCacheStats`` must be the first stage in an aggregation pipeline.
 
 Restrictions
 ~~~~~~~~~~~~
@@ -64,12 +97,14 @@ Redaction
 ~~~~~~~~~
 
 When using :ref:`Queryable Encryption <qe-manual-feature-qe>`, the
-``$planCacheStats`` stage omits operations against encrypted collections, even though the operations are cached as normal.
+``$planCacheStats`` stage omits operations against encrypted collections, even
+though the operations are cached as normal.
 
 Read Preference
 ~~~~~~~~~~~~~~~
 
-``$planCacheStats`` observes the :ref:`read preference
+When the ``allHosts`` option is set to ``false``,
+:pipeline:`$planCacheStats` follows the :ref:`read preference
 <read-preference>` in selecting the host(s) from which to return
 the plan cache information.
 

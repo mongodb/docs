@@ -23,5 +23,5 @@ The server logs an error and fails to start if:
 -  either :setting:`auditLog.filter` or :parameter:`auditAuthorizationSuccess` is set.
 
 To modify audit filters and the :parameter:`auditAuthorizationSuccess` parameter at
-runtime, see :dbcommand:`setAuditConfig`.
+runtime, see :parameter:`auditConfig`.
 

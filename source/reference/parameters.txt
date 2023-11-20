@@ -1322,6 +1322,21 @@ General Parameters
    cursor modifier to analyze the average query time and select an appropriate
    timeout period.
 
+   .. warning::
+
+      Starting in MongoDB 4.4.8, MongoDB cleans up 
+      :term:`orphaned cursors <orphaned cursor>` linked to sessions as 
+      part of session management. This means that orphaned cursors with 
+      session ids do not use ``cursorTimeoutMillis`` to control the 
+      timeout.
+
+      For operations that return a cursor and have an idle period 
+      longer than :parameter:`localLogicalSessionTimeoutMinutes`, 
+      use :method:`Mongo.startSession()` to perform the operation 
+      within an explicit session. To refresh the session, run 
+      the :dbcommand:`refreshSessions` command. For details, see 
+      :ref:`<refresh-session-cursor-example>`.
+
 .. parameter:: failIndexKeyTooLong
 
    *Removed in 4.4*
@@ -2610,6 +2625,31 @@ If you attempt to update ``disableSplitHorizonIPCheck`` at run time,
 
       mongod --setParameter oplogBatchDelayMillis=20
 
+.. parameter:: periodicNoopIntervalSecs
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 10
+
+   The duration in seconds between :term:`noop` writes on each individual node.
+
+   You can only set the parameter during startup, and cannot change
+   this setting using the :dbcommand:`setParameter` database command.
+
+   .. note:: 
+
+      To modify this value for a :atlas:`MongoDB Atlas </>` cluster, you
+      must contact :atlas:`Atlas Support </support>`.
+
+   The following example sets the ``periodicNoopIntervalSecs`` to 1 second at 
+   startup:
+
+   .. code-block:: javascript
+
+      mongod --setParameter periodicNoopIntervalSecs=1
+
 .. parameter:: storeFindAndModifyImagesInSideCollection
 
    .. versionadded:: 5.1
@@ -3319,19 +3359,19 @@ Sharding Parameters
 
    ``autoMergerIntervalSecs`` can only be set on config servers.
 
-   This example sets ``autoMergerIntervalSecs`` to 7200 milliseconds, 
+   This example sets ``autoMergerIntervalSecs`` to 7200 seconds, 
    or two hours, at startup:
 
    .. code-block:: bash
 
-      mongod --setParameter autoMergeInterval=7200
+      mongod --setParameter autoMergerIntervalSecs=7200
 
    During run time, you can set or modify the parameter with the
    :dbcommand:`setParameter` command:
 
    .. code-block:: javascript
 
-      db.adminCommand( { setParameter: 1, autoMergeInterval: 7200 } )
+      db.adminCommand( { setParameter: 1, autoMergerIntervalSecs: 7200 } )
 
 .. parameter:: autoMergerThrottlingMS
 
@@ -5253,6 +5293,10 @@ WiredTiger Parameters
 
    |mongod-only|
 
+   *Type*: integer 
+    
+   *Default*: 128
+
    Starting in MongoDB 7.0, this parameter is available for all storage 
    engines. In earlier versions, this parameter is available for the 
    WiredTiger storage engine only.
@@ -5260,11 +5304,13 @@ WiredTiger Parameters
    Specify the maximum number of concurrent read transactions (read tickets)
    allowed into the storage engine.
 
-   .. include:: /includes/fact-read-write-concurrency-algorithm.rst
+   .. |wtparam| replace:: ``wiredTigerConcurrentReadTransactions``
+
+   .. include:: /includes/fact-concurrent-read-write-dynamic-behavior.rst
 
    .. code-block:: javascript
 
-      db.adminCommand( { setParameter: 1, wiredTigerConcurrentReadTransactions: <num> } )
+      db.adminCommand( { setParameter: 1, wiredTigerConcurrentReadTransactions: <int> } )
 
    .. seealso::
 
@@ -5276,6 +5322,8 @@ WiredTiger Parameters
 
    |mongod-only|
 
+   *Type*: integer 
+
    Starting in MongoDB 7.0, this parameter is available for all storage 
    engines. In earlier versions, this parameter is available for the 
    WiredTiger storage engine only.
@@ -5283,11 +5331,19 @@ WiredTiger Parameters
    Specify the maximum number of concurrent write transactions allowed
    into the WiredTiger storage engine.
 
-   .. include:: /includes/fact-read-write-concurrency-algorithm.rst
+   By default, MongoDB sets ``wiredTigerConcurrentWriteTransactions`` to 
+   whichever value is higher: 
+   
+   - Number of cores on the machine running MongoDB
+   - 4
+
+   .. |wtparam| replace:: ``wiredTigerConcurrentWriteTransactions``
+
+   .. include:: /includes/fact-concurrent-read-write-dynamic-behavior.rst
 
    .. code-block:: javascript
 
-      db.adminCommand( { setParameter: 1, wiredTigerConcurrentWriteTransactions: <num> } )
+      db.adminCommand( { setParameter: 1, wiredTigerConcurrentWriteTransactions: <int> } )
 
    .. seealso::
 
@@ -5377,7 +5433,7 @@ Auditing Parameters
    .. note::
 
       Using the default value of 300 seconds, non-config nodes may lag up
-      to 5 minutes behind a setAuditConfig command.
+      to 5 minutes after you set the :parameter:`auditConfig` cluster parameter.
 
 .. parameter:: auditEncryptionHeaderMetadataFile
 

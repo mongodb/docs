@@ -68,9 +68,11 @@ Azure Key Vault:
     - Name of the master key
 
   * - keyVersion
-    - No
+    - No, but strongly recommended
     - Version of the master key
 
   * - keyVaultEndpoint
     - Yes
     - URL of the key vault. E.g. myVaultName.vault.azure.net
+
+.. include:: /includes/queryable-encryption/qe-csfle-warning-azure-keyversion.rst

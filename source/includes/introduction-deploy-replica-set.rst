@@ -1,15 +1,3 @@
-This tutorial describes how to create a three-member :term:`replica
-set` from three existing :binary:`~bin.mongod` instances running with
-:ref:`access control <authorization>` disabled.
-
-To deploy a replica set with enabled :doc:`access control
-</core/authorization>`, see
-:ref:`deploy-repl-set-with-auth`. If you wish to deploy a
-replica set from a single MongoDB instance, see
-:doc:`/tutorial/convert-standalone-to-replica-set`. For more
-information on replica set deployments, see the :doc:`/replication` and
-:doc:`/core/replica-set-architectures` documentation.
-
 Overview
 --------
 
