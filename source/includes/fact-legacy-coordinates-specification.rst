@@ -21,7 +21,7 @@ Specify via an embedded document:
      <field>: { <field1>: <x>, <field2>: <y> }
 
   If specifying latitude and longitude coordinates, the first field,
-  regardless of the field name, must contains the **longitude** value
+  regardless of the field name, must contain the **longitude** value
   and the second field, the **latitude** value ; i.e.
 
   .. code-block:: javascript
