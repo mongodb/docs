@@ -11,6 +11,7 @@ Fundamentals section:
 - :ref:`Implement Schema Validation <rust-schema-validation>`
 - :ref:`Perform Aggregations <rust-aggregation>`
 - :ref:`Create and Manage Indexes <rust-indexes>`
+- :ref:`Perform a Multi-Document Transaction <rust-transactions>`
 - :ref:`Create a Time Series Collection <rust-time-series>`
 - :ref:`Record Driver Events <rust-tracing-logging>`
 - :ref:`Run A Database Command <rust-run-command>`
