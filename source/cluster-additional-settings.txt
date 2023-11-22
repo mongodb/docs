@@ -498,54 +498,41 @@ To view and edit these settings:
 Set Minimum Oplog Window
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-*New in MongoDB 4.4*
-
 Modify the retention duration for oplog entries in the 
 :term:`oplog` of the {+cluster+}. By default, |service| retains entries 
-for 24 hours before they are allowed to be removed from the oplog.
+for 24 hours before the |mongod| removes them from the oplog.
 
 This option corresponds to modifying the
 :setting:`storage.oplogMinRetentionHours` configuration file option 
 for each |mongod| in the {+cluster+}.
 
+To set the minimum oplog window:
+
+1. Verify that storage auto-scaling is enabled and that you didn't opt
+   out of it. |service| enables auto-scaling by default.
+2. Set the minimum oplog window to the desired value. If you don't set
+   this value, |service| retains oplog entries for 24 hours before the
+   |mongod| removes them from the oplog.
+
 .. _set-oplog-size:
+.. _set-fixed-oplog-size:
 
 Set Oplog Size
 ~~~~~~~~~~~~~~
 
-.. note::
-   
-   You can see the :guilabel:`Set Oplog Size` configuration 
-   setting only if you previously configured it for your cluster. 
-   For all new clusters, set the 
-   :guilabel:`Minimum Oplog Window` instead.
+You might want to set a fixed oplog size. For example, this is helpful
+during live migration or during an intensive data load.
 
-Modify the :term:`oplog` size of the {+cluster+}.
+You can set the :guilabel:`Set Oplog Size` configuration setting only
+if you opt out of the {+cluster+}'s storage auto-scaling.
 
-For sharded {+cluster+} deployments, this option modifies the oplog 
-size of each shard in the {+cluster+}.
+For {+clusters+} that have storage auto-scaling enabled, you can set the
+:guilabel:`Minimum Oplog Window` instead. See :ref:`set-oplog-min-window`.
+|service| enables storage auto-scaling by default.
 
-This option corresponds to modifying the
-:setting:`replication.oplogSizeMB` configuration file option for each
-|mongod| in the {+cluster+}.
-
-Specify your desired :guilabel:`Oplog Size` in megabytes in the
-input box.
-
-.. warning::
-
-   Reducing the size of the oplog requires removing data from the
-   oplog. |service| can't access or restore any oplog entries removed
-   as a result of oplog reduction. Consider the ramifications of this
-   data loss before you reduce the oplog.
-
-.. important::
-
-   - You can't set the oplog to less than 990 megabytes.
-   - |service| places no upper limit in megabytes on the oplog.
-     However, |service| returns an error if the oplog size you choose 
-     leaves your {+cluster+}'s disk with less than 25 percent of its 
-     capacity free.
+The minimum oplog size you can set is 990 megabytes.
+|service| returns an error if the oplog size you choose leaves your
+{+cluster+}'s disk with less than 25 percent of its capacity free.
 
 To check the oplog size:
 
@@ -556,6 +543,27 @@ To check the oplog size:
 
 |service| displays the current oplog size and time.
 
+To set a fixed oplog size:
+
+1. Opt out of :ref:`storage autoscaling <opt-out-autoscaling>`.
+2. Set the :ref:`Minimum Oplog Window <set-oplog-min-window>` to ``0``.
+3. Specify your desired :guilabel:`Oplog Size` in megabytes in the
+   input box.
+
+   For sharded {+cluster+} deployments, this option modifies the oplog 
+   size of each shard in the {+cluster+}.
+
+   This option corresponds to modifying the
+   :setting:`replication.oplogSizeMB` configuration file option for each
+   |mongod| in the {+cluster+}.
+
+   .. warning::
+
+      Reducing the size of the oplog requires removing data from the
+      oplog. |service| can't access or restore any oplog entries removed
+      as a result of oplog reduction. Consider the ramifications of this
+      data loss before you reduce the oplog.
+
 Disk Space Considerations
 `````````````````````````
 
@@ -564,21 +572,7 @@ space. Only the oplog collection (``local.oplog.rs``)
 can reclaim the space that reducing the oplog size saves. Other
 collections don't benefit from reducing oplog storage.
 
-.. _set-fixed-oplog-size:
 
-Set a Fixed Oplog Size
-``````````````````````
-
-You might want to set a fixed oplog size. For example, during live migration 
-or during an intensive data load, you might not want the oplog to grow 
-unbounded.
-
-To set a fixed oplog size:
-
-1. Disable :ref:`storage autoscaling <opt-out-autoscaling>`.
-2. Set the :ref:`Minimum Oplog Window <set-oplog-min-window>` to ``0``.
-3. Specify your desired :guilabel:`Oplog Size` in megabytes in the
-   input box.
 
 Enforce Index Key Limit
 ~~~~~~~~~~~~~~~~~~~~~~~
