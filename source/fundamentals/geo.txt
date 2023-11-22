@@ -1,0 +1,341 @@
+.. _rust-geo-guide:
+
+===================
+Search Geospatially
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, geographic, map, distance
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to search **geospatial data** by using the
+{+driver-short+}. Geospatial data represents a geographic location on the surface
+of the Earth or on a Euclidean plane.
+
+Examples of geospatial data include:
+
+- Locations of movie theaters
+- Borders of countries
+- Routes of bicycle rides
+- Dog exercise areas in New York City
+- Points on a graph
+
+This guide includes the following sections:
+
+- :ref:`Store Geospatial Data <rust-store-geo>` describes the data formats you can use to
+  represent geospatial data
+
+- :ref:`Geospatial Indexes <rust-indexes-geo>` describes how to create an index on fields
+  storing geospatial data 
+
+- :ref:`Geospatial Queries <rust-query-geo>` describes how to query geospatial
+  data stored in indexed fields
+
+- :ref:`Additional Resources <rust-addtl-info-geo>` provides links to resources and
+  API documentation for types and methods mentioned in this guide
+
+.. _rust-store-geo:
+
+Store Geospatial Data
+---------------------
+
+All geospatial data in MongoDB is stored in one of the following formats:
+
+- GeoJSON, a format that represents geospatial data on an Earth-like
+  sphere
+
+- Legacy Coordinate Pair, a format that represents geospatial data
+  on a Euclidean plane
+
+GeoJSON
+~~~~~~~
+
+Use GeoJSON to store data that represents geospatial information on
+an Earth-like sphere. GeoJSON is composed of one or more **positions**
+and a **type**.
+
+Positions
+`````````
+
+A position represents a single place on Earth and exists in code as an array
+containing the following values:
+
+- Longitude in the first position
+- Latitude in the second position 
+
+The following code represents the **position** of the MongoDB Headquarters in
+New York City, NY:
+
+.. code-block:: rust
+   :copyable: false
+
+   let coords = vec! [-73.986805, 40.7620853];
+
+.. important:: Longitude then Latitude
+
+  GeoJSON orders coordinates as **longitude** first and **latitude** second.
+  This conflicts with geographic coordinate system conventions, which generally list
+  latitude first and longitude second. Ensure that you reformat your coordinates to
+  align with GeoJSON standards.
+
+Types
+`````
+
+Your GeoJSON object's type determines the geometric shape it represents. Geometric shapes are
+made up of positions.
+
+The following list describes common GeoJSON types and how to specify them with positions:
+
+- ``Point``: a single position. For example, the following ``Point`` represents the location of
+  the MongoDB Headquarters:
+
+  .. literalinclude:: /includes/fundamentals/code-snippets/crud/geo.rs
+     :start-after: start-point
+     :end-before: end-point
+     :language: rust
+     :dedent:
+
+- ``LineString``: an array of two or more positions that forms a series of line
+  segments. A ``LineString`` can represent a path, route, border, or any other linear
+  geospatial data. For example, the following ``LineString`` represents a segment of
+  `the Great Wall of China <https://commons.wikimedia.org/wiki/File:GreatWallChina4.png>`__:
+
+  .. literalinclude:: /includes/fundamentals/code-snippets/crud/geo.rs
+     :start-after: start-linestring
+     :end-before: end-linestring
+     :language: rust
+     :dedent:
+
+- ``Polygon``: an array of positions in which the first and last
+  position are the same and enclose some space. For example, the following
+  ``Polygon`` represents `the land within Vatican City
+  <https://commons.wikimedia.org/wiki/File:Vatican_City_map_EN.png>`__:
+
+  .. literalinclude:: /includes/fundamentals/code-snippets/crud/geo.rs
+     :start-after: start-polygon
+     :end-before: end-polygon
+     :language: rust
+     :dedent:
+
+To learn more about the GeoJSON types that you can use in MongoDB, see the
+:manual:`GeoJSON </reference/geojson/>` page in the Server manual.
+
+Legacy Coordinate Pairs
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use legacy coordinate pairs to represent geospatial data on a two-dimensional
+Euclidean plane.
+
+The following code specifies a legacy coordinate pair that represents the
+location of Washington, D.C.:
+
+.. code-block:: rust
+   :copyable: false
+
+   let capital = vec! [-77.0369, 38.9072];
+
+
+To learn more about legacy coordinate pairs, see
+:manual:`Legacy Coordinate Pairs </geospatial-queries/#legacy-coordinate-pairs>`
+in the Server manual.
+
+.. _rust-indexes-geo:
+
+Geospatial Indexes
+------------------
+
+Before querying geospatial data, you must create an index that corresponds
+to the data format. The following index types enable geospatial queries:
+
+- ``2dsphere`` for GeoJSON data
+- ``2d`` for legacy coordinate pairs
+
+The following sections on ``2dsphere`` and ``2d`` indexes include code examples
+that use the ``theaters`` collection in the ``sample_mflix`` database from the
+Atlas sample data.
+
+.. tip::
+   
+   To learn more about creating an index, see the :ref:`rust-indexes` guide.
+
+   For instructions on importing the Atlas sample data, see the :atlas:`Load Sample Data
+   </sample-data>` page.
+
+2dsphere
+~~~~~~~~
+
+To query data stored in the GeoJSON format, add the field containing
+both the ``type`` and ``coordinates`` fields to a ``2dsphere`` index. The
+following example creates a ``2dsphere`` index on the ``location.geo`` field:
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/geo.rs
+      :start-after: start-2dsphere
+      :end-before: end-2dsphere
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Created index:
+      location.geo_"2dsphere"
+
+2d
+~~
+
+To query data stored as legacy coordinate pairs, add the field containing
+legacy coordinate pairs to a ``2d`` index. The following example creates a
+``2d`` index on the ``location.geo.coordinates`` field:
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/geo.rs
+      :start-after: start-2d
+      :end-before: end-2d
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Created index:
+      location.geo.coordinates_"2d"
+
+.. _rust-query-geo:
+
+Geospatial Queries
+------------------
+
+After creating a ``2dsphere`` or ``2d`` index on fields containing geospatial data, you
+can perform geospatial queries that access those fields.
+
+To query geospatial data, create a query filter with a field name and a geospatial query
+operator. You can specify options for certain geospatial query operators to limit
+the documents returned.
+
+The following sections on geospatial queries include code examples that use the ``theaters``
+collection in the ``sample_mflix`` database from the Atlas sample data. Assume that
+the ``theaters`` collection has a ``2dsphere`` index on the ``location.geo`` field.
+
+.. tip:: 
+   
+   To learn more about querying data, see the :ref:`rust-query-guide` guide.
+
+   For instructions on importing the Atlas sample data, see the :atlas:`Load Sample Data
+   </sample-data>` page.
+
+Query Operators
+~~~~~~~~~~~~~~~
+
+To query your geospatial data, use one of the following query operators:
+
+- ``$near``
+- ``$geoWithin``
+- ``$nearSphere``
+- ``$geoIntersects`` *(requires a 2dsphere index)*
+
+When using the ``$near`` operator, you can specify the following distance operators:
+
+- ``$minDistance``
+- ``$maxDistance``
+
+When using the ``$geoWithin`` operator, you can specify the following shape operators:
+
+- ``$box``
+- ``$polygon``
+- ``$center``
+- ``$centerSphere``
+
+.. tip::
+   
+   To learn more about geospatial query operators, see :manual:`Geospatial Query Operators
+   </geospatial-queries/#geospatial-query-operators>` in the Server manual.
+
+.. _rust-query-proximity-geo:
+
+Query by Proximity Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example queries for documents in which the ``location.geo`` field
+stores a location within 1000 meters of the MongoDB Headquarters in New York City, NY.
+The code returns documents in ascending order of their distance from the MongoDB Headquarters.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/geo.rs
+      :start-after: start-proximity
+      :end-before: end-proximity
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      { "_id":{...},"theaterId":1908,"location":{"address":{...},"geo":{"type":"Point","coordinates":[-73.983487,40.76078] } } }
+      { "_id":{...},"theaterId":1448,"location":{"address":{...},"geo":{"type":"Point","coordinates":[-73.982094,40.769882] } } }
+
+.. _rust-query-range-geo:
+
+Query Within a Range Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example queries for documents in which the ``location.geo`` field
+stores a location within the Chicago area. The example creates a vector called ``chicago``
+that stores four coordinates representing the bounds of the geographic search area.
+
+.. io-code-block::
+
+   .. input:: /includes/fundamentals/code-snippets/crud/geo.rs
+      :start-after: start-range
+      :end-before: end-range
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      { "_id":{...},"theaterId":322,"location":{"address":{...},"geo":{ "type":"Point","coordinates":[-87.849403, 41.90707] } } }
+      { "_id":{...},"theaterId":2960,"location":{"address":{...},"geo":{ "type":"Point","coordinates":[-87.811262, 41.847938] } } }
+      { "_id":{...},"theaterId":323,"location":{"address":{...},"geo":{ "type":"Point","coordinates":[-87.653557, 41.912025] } } }
+      { "_id":{...},"theaterId":320,"location":{"address":{...},"geo":{ "type":"Point","coordinates":[-87.805817, 41.847572] } } }
+      { "_id":{...},"theaterId":814,"location":{"address":{...},"geo":{ "type":"Point","coordinates":[-87.670631, 41.919514] } } }
+
+.. _rust-addtl-info-geo:
+
+Additional Resources
+--------------------
+
+To learn more about find operations, see the :ref:`rust-retrieve-guide` guide.
+
+To learn more about working with geospatial data, see the following Server manual pages:
+
+- :ref:`geo-overview-location-data`
+- :manual:`GeoJSON </reference/geojson/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `create_index() <{+api+}/struct.Collection.html#method.create_index>`__
+- `IndexModel <{+api+}/struct.IndexModel.html>`__
+- `find() <{+api+}/struct.Collection.html#method.find>`__
