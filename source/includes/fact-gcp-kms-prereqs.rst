@@ -15,8 +15,8 @@
 
      The key, not the key version, handles decryption.
 
-- If your |gcp| |kms| configuration requires it, :gcp:`allow access
-  </iam/docs/conditions-attribute-reference#access-levels>`
+- If your |gcp| |kms| configuration requires it, use :gcp:`Accessible
+  Services from GCP </vpc-service-controls/docs/vpc-accessible-services>`
   from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` and the public 
   IP addresses or DNS hostnames of your cluster nodes so that |service| 
   can communicate with your |kms|. If the node IP addresses 
