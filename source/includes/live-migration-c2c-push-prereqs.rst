@@ -2,7 +2,6 @@
 - :ref:`Create an Atlas Account <create-atlas-account>`.
 - :ref:`Create an Atlas organization <create-organization>` and
   then :ref:`create a project <create-project>` in this organization.
-- Ensure that you have the |service| :authrole:`Organization Owner` role.
 - :ref:`Deploy your cluster <create-new-cluster>` in this project.
 - :ref:`Connect to your cluster <connect-mongo-shell>`
   from all client servers where your applications run.
