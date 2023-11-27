@@ -1,5 +1,7 @@
-use mongodb::{ bson::doc, sync::{ Client, Collection } };
-use bson::Document;
+use mongodb::{ 
+    bson::{ Document, doc }, 
+    sync::{ Client, Collection } 
+};
 
 fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";

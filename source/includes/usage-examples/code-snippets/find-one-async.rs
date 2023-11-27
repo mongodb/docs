@@ -3,7 +3,6 @@ use mongodb::{
     Client,
     Collection
 };
-use futures::TryStreamExt;
 use serde::{ Deserialize, Serialize };
 
 #[derive(Serialize, Deserialize, Debug)]

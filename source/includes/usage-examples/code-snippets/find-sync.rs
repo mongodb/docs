@@ -1,5 +1,5 @@
 use mongodb::{
-    bson::{doc, Document},
+    bson::doc,
     sync::{Client, Collection}
 };
 use serde::{ Deserialize, Serialize };
