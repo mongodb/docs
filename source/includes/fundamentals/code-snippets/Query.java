@@ -60,7 +60,7 @@ public class Query {
     }
 
     private void logicalFilter(){
-        // Creates a filter to match documents that have a "qty" value less than or equal to 7 and a "color" value of "pink"
+        // Creates a filter to match documents that have a "qty" value less than or equal to 5 and a "color" value of "pink"
         // begin logicalFilter
         Bson filter = Filters.and(Filters.lte("qty", 5), Filters.ne("color", "pink"));
 
