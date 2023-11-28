@@ -5,8 +5,7 @@
    *Default*: cluster.local
 
    
-   .. admonition:: ``spec.clusterName`` is Deprecated
-      :class: important
+   .. important:: ``spec.clusterName`` is Deprecated
    
       Use :setting:`spec.clusterDomain` instead.
    

@@ -6,6 +6,7 @@
    :binary:`~bin.mongos` for authentication to a LDAP Distinguished Name
    (DN).
    
-   .. seealso:: :manual:`security.ldap.userToDNMapping </reference/configuration-options/#security.ldap.userToDNMapping>` in the MongoDB Manual
+   .. seealso::
    
+      :manual:`security.ldap.userToDNMapping </reference/configuration-options/#security.ldap.userToDNMapping>` in the MongoDB Manual   
 

@@ -21,6 +21,7 @@
          authentication or LDAP transformation, into the LDAP query.
          (*Available starting in MongoDB version 4.2*)
    
-   .. seealso:: :manual:`LDAP Query Templates </core/security-ldap-external/#ldap-query-template>` in the MongoDB Manual
+   .. seealso::
    
+      :manual:`LDAP Query Templates </core/security-ldap-external/#ldap-query-template>` in the MongoDB Manual   
 

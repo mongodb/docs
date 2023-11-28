@@ -2,6 +2,6 @@
 
    *Type*: integer
 
-   *Required*. Number of shards in the :term:`sharded cluster`.
+   *Required*. Number of shards in the :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
    
 

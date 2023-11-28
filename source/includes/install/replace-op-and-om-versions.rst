@@ -5,4 +5,6 @@ Replace the following values:
 - ``<db-version>`` with the version of the {+mdb-ent-db+}
   image that you want to use.
 
-.. seealso:: :ref:`helm-database-version`
+.. seealso::
+
+   :ref:`helm-database-version`

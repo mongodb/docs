@@ -9,7 +9,7 @@
 
    * - :setting:`metadata.name`
      - string
-     - Label for this |k8s| :term:`replica set` |k8s-obj|.
+     - Label for this |k8s| :manual:`replica set </reference/glossary/#std-term-replica-set>` |k8s-obj|.
 
        .. include:: /includes/fact-resource-name-char-limit.rst
 
@@ -23,12 +23,12 @@
 
    * - :setting:`spec.members`
      - integer
-     - Number of members of the :term:`replica set`.
+     - Number of members of the :manual:`replica set </reference/glossary/#std-term-replica-set>`.
      - ``3``
 
    * - :setting:`spec.version`
      - string
-     - Version of MongoDB that this :term:`replica set` should run.
+     - Version of MongoDB that this :manual:`replica set </reference/glossary/#std-term-replica-set>` should run.
 
        The format should be ``X.Y.Z`` for the Community edition and
        ``X.Y.Z-ent`` for the Enterprise edition.

@@ -8,8 +8,7 @@
    over ``SCRAM-SHA-1``. If you specify ``SCRAM-SHA-1``, you must also 
    specify ``MONGODB-CR``.
    
-   .. admonition:: X.509 Internal Cluster Authentication
-      :class: note
+   .. note:: X.509 Internal Cluster Authentication
    
       To enable :ref:`X.509 internal cluster authentication
       <x509-internal-authentication>` for the |com| project, set this

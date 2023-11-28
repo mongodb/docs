@@ -5,7 +5,7 @@
    *Default*: 16Gi
 
    Minimum storage capacity that must be available on a |k8s|
-   |k8s-node| to host each :term:`sharded cluster` shard member. This value is
+   |k8s-node| to host each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member. This value is
    expressed as an integer followed by a unit of storage in |jedec|
    notation.
    

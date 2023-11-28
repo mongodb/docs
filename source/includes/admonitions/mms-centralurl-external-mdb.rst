@@ -7,4 +7,6 @@
    Set the value to the URL by which |onprem| is exposed outside of the 
    |k8s| cluster.
 
-   .. seealso:: :ref:`mdb-resource-deployment-locations`
+   .. seealso::
+
+      :ref:`mdb-resource-deployment-locations`

@@ -37,7 +37,7 @@
    
           .. example::
    
-             If :term:`replica set` in requires 60 gigabytes of
+             If :manual:`replica set </reference/glossary/#std-term-replica-set>` in requires 60 gigabytes of
              storage space, set this value to ``60Gi``.
    
       * - ``storageClass``

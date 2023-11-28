@@ -13,7 +13,7 @@
    
    - :setting:`net.tls.certificateKeyFile`
    - :setting:`net.tls.clusterFile`
-   - :setting:`net.tls.PEMKeyFile`
+   - ``net.tls.PEMKeyFile``
    - :setting:`replication.replSetName`
    - :setting:`security.clusterAuthMode`
    - :setting:`sharding.clusterRole`
