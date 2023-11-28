@@ -1,3 +1,4 @@
+// Creates filters and retrieves documents that match the filters
 package main
 
 import (
@@ -62,8 +63,10 @@ func main() {
 
 	fmt.Println("\nLiteral Value:\n")
 	{
+		// Creates a filter to match documents that have a "type" value of "Oolong"
 		filter := bson.D{{"type", "Oolong"}}
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
@@ -81,8 +84,10 @@ func main() {
 
 	fmt.Println("\nComparison:\n")
 	{
+		// Creates a filter to match documents that have a "rating" value below 7
 		filter := bson.D{{"rating", bson.D{{"$lt", 7}}}}
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
@@ -100,6 +105,7 @@ func main() {
 
 	fmt.Println("\nLogical:\n")
 	{
+		// Creates a filter to match documents that have a "rating" value less than or equal to 10 and greater than 7
 		filter := bson.D{
 			{"$and",
 				bson.A{
@@ -109,6 +115,7 @@ func main() {
 			},
 		}
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
@@ -126,8 +133,10 @@ func main() {
 
 	fmt.Println("\nElement:\n")
 	{
+		// Creates a filter to match documents that do not contain the "vendor" field
 		filter := bson.D{{"vendor", bson.D{{"$exists", false}}}}
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
@@ -145,8 +154,10 @@ func main() {
 
 	fmt.Println("\nEvaluation:\n")
 	{
+		// Creates a filter to match documents that have a "type" value starting with the letter "E"
 		filter := bson.D{{"type", bson.D{{"$regex", "^E"}}}}
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
@@ -164,8 +175,10 @@ func main() {
 
 	fmt.Println("\nArray:\n")
 	{
+		// Creates a filter to match documents where the "vendor" array contains "C"
 		filter := bson.D{{"vendor", bson.D{{"$all", bson.A{"C"}}}}}
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
@@ -183,8 +196,10 @@ func main() {
 
 	fmt.Println("\nBitwise:\n")
 	{
+		// Creates a filter to match documents where the "rating" value has the same bits set as 6
 		filter := bson.D{{"rating", bson.D{{"$bitsAllSet", 6}}}}
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter)
 		if err != nil {
 			panic(err)
