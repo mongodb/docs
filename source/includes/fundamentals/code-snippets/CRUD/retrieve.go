@@ -1,3 +1,4 @@
+// Retrieves documents that match specified filters
 package main
 
 import (
@@ -61,6 +62,7 @@ func main() {
 
 	fmt.Println("\nFind:\n")
 	{
+		//  Creates a filter to match documents that have a "rating" value between 5 and 9
 		// begin find docs
 		filter := bson.D{
 			{"$and",
@@ -72,6 +74,7 @@ func main() {
 		sort := bson.D{{"date_ordered", 1}}
 		opts := options.Find().SetSort(sort)
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 		if err != nil {
 			panic(err)
@@ -90,10 +93,14 @@ func main() {
 
 	fmt.Println("\nFind One:\n")
 	{
+		// Creates a filter to match documents that have a
+		// "date_ordered" value before December 2009
 		// begin find one docs
 		filter := bson.D{{"date_ordered", bson.D{{"$lte", time.Date(2009, 11, 30, 0, 0, 0, 0, time.Local)}}}}
 		opts := options.FindOne().SetSkip(2)
 
+		// Retrieves a document that matches the filter and prints it as
+		// a struct
 		var result Review
 		err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
 		if err != nil {
@@ -113,9 +120,13 @@ func main() {
 			panic(err)
 		}
 
+		//  Creates a filter to match a document that has the specified
+		//  "_id" value
 		filter := bson.D{{"_id", id}}
 		opts := options.FindOne().SetProjection(bson.D{{"item", 1}, {"rating", 1}})
 
+		// Retrieves a document that matches the filter and prints it as
+		// a struct
 		var result Review
 		err = coll.FindOne(context.TODO(), filter, opts).Decode(&result)
 		if err != nil {
@@ -129,6 +140,8 @@ func main() {
 
 	fmt.Println("\nAggregation:\n")
 	{
+		// Creates an aggregation to group documents by "item" and finds
+		// the average "rating" value
 		// begin aggregate docs
 		groupStage := bson.D{
 			{"$group", bson.D{
@@ -143,6 +156,7 @@ func main() {
 			panic(err)
 		}
 
+		// Prints the average "rating" for each item
 		var results []bson.M
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)

@@ -1,3 +1,4 @@
+// Specifies which document fields to return
 package main
 
 import (
@@ -54,10 +55,15 @@ func main() {
 
 	fmt.Println("\nExclude Projection:\n")
 	{
+		// Creates an empty filter to match all documents
 		//begin exclude projection
 		filter := bson.D{}
+
+		// Sets a projection to exclude the "course_id" and "enrollment" fields
 		opts := options.Find().SetProjection(bson.D{{"course_id", 0}, {"enrollment", 0}})
 
+		// Retrieves all documents and prints them as structs without
+		// the specified fields
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 		if err != nil {
 			panic(err)
@@ -76,10 +82,15 @@ func main() {
 
 	fmt.Println("\nInclude Projection:\n")
 	{
+		// Creates an empty filter to match all documents
 		//begin include projection
 		filter := bson.D{}
+
+		// Sets a projection to include the "title" and "enrollment" fields
 		opts := options.Find().SetProjection(bson.D{{"title", 1}, {"enrollment", 1}})
 
+		// Retrieves all documents and prints them as structs including
+		// only the specified fields
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 		if err != nil {
 			panic(err)
@@ -98,9 +109,13 @@ func main() {
 
 	fmt.Println("\nAggregation Projection:\n")
 	{
+		// Creates a projection stage to include only the "title" and
+		// "course_id" fields
 		// begin aggregate projection
 		projectStage := bson.D{{"$project", bson.D{{"title", 1}, {"course_id", 1}}}}
 
+		// Aggregates results and prints them as structs including
+		// only the specified fields
 		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{projectStage})
 		if err != nil {
 			panic(err)
