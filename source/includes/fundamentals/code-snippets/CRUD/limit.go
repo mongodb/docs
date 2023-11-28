@@ -1,3 +1,4 @@
+// Limits the number of documents returned by a query
 package main
 
 import (
@@ -56,10 +57,15 @@ func main() {
 
 	fmt.Println("\nLimit:\n")
 	{
+		// Creates a filter to match documents that have an
+		// "enrollment" value greater than 20
 		//begin limit
 		filter := bson.D{{"enrollment", bson.D{{"$gt", 20}}}}
+
+		// Sets a limit to return the first 2 matched documents
 		opts := options.Find().SetLimit(2)
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 
 		var results []Course
@@ -75,10 +81,15 @@ func main() {
 
 	fmt.Println("\nLimit, Skip, and Sort:\n")
 	{
+		// Creates an empty filter to match all documents
 		//begin multi options
 		filter := bson.D{}
+
+		// Sets options to sort by descending order on "enrollment",
+		// return only 2 documents, and skip the first matched document
 		opts := options.Find().SetSort(bson.D{{"enrollment", -1}}).SetLimit(2).SetSkip(1)
 
+		// Retrieves documents that match the filter and prints them as structs
 		cursor, err := coll.Find(context.TODO(), filter, opts)
 
 		var results []Course
@@ -94,9 +105,11 @@ func main() {
 
 	fmt.Println("\nAggregation Limit:\n")
 	{
+		// Creates a limit stage to return 3 documents
 		// begin aggregate limit
 		limitStage := bson.D{{"$limit", 3}}
 
+		// Aggregates results and prints them as structs
 		cursor, err := coll.Aggregate(context.TODO(), mongo.Pipeline{limitStage})
 		if err != nil {
 			panic(err)
