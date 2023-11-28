@@ -2,7 +2,7 @@
 
    *Type*: Struct
 
-   |k8s| |k8s-rule| to place |k8s-pods| for :term:`replica set` on a
+   |k8s| |k8s-rule| to place |k8s-pods| for :manual:`replica set </reference/glossary/#std-term-replica-set>` on a
    specific range of |k8s-nodes|.
    
    .. example::

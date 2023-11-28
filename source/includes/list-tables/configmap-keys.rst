@@ -29,8 +29,7 @@
      - Label for your |mms|
        :opsmgr:`Project </tutorial/manage-projects>`.
 
-       .. admonition:: Let |k8s-op-short| create the Project
-          :class: important
+       .. important:: Let |k8s-op-short| create the Project
 
           The |k8s-op-short| creates the |mms| Project if it does
           not exist. It is **strongly recommended** to use the
@@ -66,7 +65,7 @@
 
        .. important::
 
-          You must have the :authrole:`Organization Project Creator`
+          You must have the :opsmgr:`Organization Project Creator </current/reference/user-roles/#Organization Project Creator>`
           role to create a new project *within an existing organization*.
 
           .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst

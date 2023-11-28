@@ -1,7 +1,6 @@
 .. _install-k8s-operator-kubectl:
 
-.. admonition:: Use the same namespace throughout
-   :class: note
+.. note:: Use the same namespace throughout
 
    The following examples assume that you created a |k8s-ns|
    using the default |k8s-op-short| namespace of ``mongodb``.

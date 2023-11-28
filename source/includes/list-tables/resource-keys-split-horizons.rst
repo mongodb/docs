@@ -21,8 +21,7 @@
 
        You may add multiple external mappings per host.
 
-       .. admonition:: Split Horizon Requirements
-          :class: note
+       .. note:: Split Horizon Requirements
 
           - Make sure that each value in this array is unique.
 
@@ -36,7 +35,7 @@
      - :setting:`See Setting<spec.connectivity.replicaSetHorizons>`
 
    * - | ``spec.security``
-       | :setting:`.tls.certsSecretPrefix<spec.security.tls.certsSecretPrefix>`
+       | :setting:`certsSecretPrefix <spec.security.certsSecretPrefix>`
      - string
      - Required
      - Add the ``<prefix>`` of the secret 

@@ -59,14 +59,14 @@
 
        .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst
 
-       Specify an :ref:`existing Organization
-       <create-organization>`:
+       Specify an :opsmgr:`existing Organization
+       </current/tutorial/manage-organizations/#create-organization>`:
 
        .. include:: /includes/steps/find-org-id.rst
 
        .. note:: 
 
-          You must have the :authrole:`Organization Project Creator`
+          You must have the :opsmgr:`Organization Project Creator </current/reference/user-roles/#Organization Project Creator>`
           role to create a new project within an existing
           |com| organization.
 

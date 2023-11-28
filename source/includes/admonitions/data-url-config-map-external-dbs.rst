@@ -7,4 +7,6 @@
     :opsmgrkube:`spec.configuration.mms.centralUrl <spec.configuration>`
     setting in the |onprem| resource specification.
 
-    .. seealso:: :ref:`mdb-resource-deployment-locations`
+    .. seealso::
+
+       :ref:`mdb-resource-deployment-locations`

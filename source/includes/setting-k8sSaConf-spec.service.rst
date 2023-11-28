@@ -5,8 +5,7 @@
    *Default*: <resource_name>+"-svc" and <resource_name>+"-svc-external"
 
    
-   .. admonition:: ``spec.service`` is Deprecated
-      :class: important
+   .. important:: ``spec.service`` is Deprecated
    
       Use :setting:`spec.statefulSet.spec.serviceName` instead.
    

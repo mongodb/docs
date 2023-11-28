@@ -37,7 +37,7 @@
    
           .. example::
    
-             If each :term:`sharded cluster` shard member in requires 60 gigabytes of
+             If each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member in requires 60 gigabytes of
              storage space, set this value to ``60Gi``.
    
       * - ``storageClass``

@@ -3,7 +3,7 @@
    *Type*: collection
 
    
-   {+mdbagent+} settings with which you want to start each :term:`sharded cluster` shard member.
+   {+mdbagent+} settings with which you want to start each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member.
    
    You must provide MongoDB Agent settings as key-value pairs. The values
    must be strings.

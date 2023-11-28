@@ -3,5 +3,5 @@
    *Type*: collection
 
    
-   {+mdbagent+} configuration settings for each :term:`sharded cluster` shard member.
+   {+mdbagent+} configuration settings for each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member.
 

@@ -1,5 +1,4 @@
-.. admonition:: Highly Available Ops Manager Resources
-   :class: note
+.. note:: Highly Available Ops Manager Resources
 
    For high availability, set this value to more than ``1``.
    :opsmgr:`Multiple Ops Manager instances

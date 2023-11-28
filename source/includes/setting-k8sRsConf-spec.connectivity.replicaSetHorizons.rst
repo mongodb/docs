@@ -9,8 +9,7 @@
    
    You may add multiple external mappings per host.
    
-   .. admonition:: Split Horizon Requirements
-      :class: note
+   .. note:: Split Horizon Requirements
    
       - Make sure that each value in this array is unique.
    

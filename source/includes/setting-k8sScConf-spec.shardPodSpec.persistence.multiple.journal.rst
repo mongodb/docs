@@ -29,7 +29,7 @@
       * - ``storage``
         - string
         - Minimum storage capacity that must be available on a |k8s|
-          |k8s-node| to host each :term:`sharded cluster` shard member on |k8s|. This value is
+          |k8s-node| to host each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member on |k8s|. This value is
           expressed as an integer followed by a unit of storage in
           |jedec| notation.
    
@@ -42,7 +42,7 @@
    
       * - ``storageClass``
         - string
-        - Type of storage needed for each :term:`sharded cluster` shard member. You may create
+        - Type of storage needed for each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member. You may create
           this storage type as a |k8s-sc| object before using it in this
           |k8s-obj| specification.
    
