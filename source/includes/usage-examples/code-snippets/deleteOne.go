@@ -1,3 +1,4 @@
+// Deletes a document from a collection by using the Go driver
 package main
 
 import (
@@ -36,13 +37,18 @@ func main() {
 	coll := client.Database("sample_mflix").Collection("movies")
 	filter := bson.D{{"title", "Twilight"}}
 
+	// Deletes the first document that has a "title" value of "Twilight"
 	result, err := coll.DeleteOne(context.TODO(), filter)
+
+	// Prints a message if any errors occur during the operation
 	if err != nil {
 		panic(err)
 	}
 	// end deleteOne
 
+	// Prints the number of deleted documents
+	fmt.Printf("Documents deleted: %d\n", result.DeletedCount)
+
 	// When you run this file for the first time, it should print:
 	// Documents deleted: 1
-	fmt.Printf("Documents deleted: %d\n", result.DeletedCount)
 }

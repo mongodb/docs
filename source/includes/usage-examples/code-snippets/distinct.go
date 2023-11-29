@@ -1,3 +1,4 @@
+// Retrieves distinct values of a field by using the Go driver
 package main
 
 import (
@@ -36,16 +37,22 @@ func main() {
 	coll := client.Database("sample_mflix").Collection("movies")
 	filter := bson.D{{"directors", "Natalie Portman"}}
 
+	// Retrieves the distinct values of the "title" field in documents
+	// that match the filter
 	results, err := coll.Distinct(context.TODO(), "title", filter)
+
+	// Prints a message if any errors occur during the operation
 	if err != nil {
 		panic(err)
-	}	
+	}
 	// end distinct
+
+	// Prints the distinct "title" values
+	for _, result := range results {
+		fmt.Println(result)
+	}
 
 	// When you run this file, it should print:
 	// A Tale of Love and Darkness
 	// New York, I Love You
-	for _, result := range results {
-		fmt.Println(result)
-	}
 }
