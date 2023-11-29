@@ -8037,10 +8037,6 @@
      - ``:icon-lg:`CodeBlock``` 
      - :icon-lg:`CodeBlock`
                 
-   * - ``lg-Colon`` 
-     - ``:icon-lg:`Colon``` 
-     - :icon-lg:`Colon`
-                
    * - ``lg-Connect`` 
      - ``:icon-lg:`Connect``` 
      - :icon-lg:`Connect`
@@ -8349,14 +8345,6 @@
      - ``:icon-lg:`SortDescending``` 
      - :icon-lg:`SortDescending`
                 
-   * - ``lg-SortHorizontal`` 
-     - ``:icon-lg:`SortHorizontal``` 
-     - :icon-lg:`SortHorizontal`
-                
-   * - ``lg-SortVertical`` 
-     - ``:icon-lg:`SortVertical``` 
-     - :icon-lg:`SortVertical`
-                
    * - ``lg-Sparkle`` 
      - ``:icon-lg:`Sparkle``` 
      - :icon-lg:`Sparkle`
@@ -8400,10 +8388,6 @@
    * - ``lg-TimeSeries`` 
      - ``:icon-lg:`TimeSeries``` 
      - :icon-lg:`TimeSeries`
-                
-   * - ``lg-TimeSeriesCollection`` 
-     - ``:icon-lg:`TimeSeriesCollection``` 
-     - :icon-lg:`TimeSeriesCollection`
                 
    * - ``lg-Trash`` 
      - ``:icon-lg:`Trash``` 
