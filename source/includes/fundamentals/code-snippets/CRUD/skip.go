@@ -1,3 +1,5 @@
+// Skips a specified amount of documents when returning results by using
+// the Go driver
 package main
 
 import (
@@ -56,6 +58,8 @@ func main() {
 
 	fmt.Println("\nSkip:\n")
 	{
+		// Prints all remaining documents as structs after applying an
+		// ascending sort and omitting the first 2 documents
 		//begin skip
 		opts := options.Find().SetSort(bson.D{{"enrollment", 1}}).SetSkip(2)
 
@@ -74,6 +78,8 @@ func main() {
 
 	fmt.Println("Aggegation Skip:")
 	{
+		// Prints all remaining documents after using an aggregation
+		// pipeline to apply a sort and omit the first document
 		// begin aggregate skip
 		sortStage := bson.D{{"$sort", bson.D{{"enrollment", -1}}}}
 		skipStage := bson.D{{"$skip", 1}}
