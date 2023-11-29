@@ -1,3 +1,4 @@
+// Configures loggers by using the Go driver
 package main
 
 import (
@@ -31,12 +32,14 @@ func main() {
 }
 
 func standardLogging(uri string) {
+	// Sets options when configuring the standard logger
 	// start-standard-logger
 	loggerOptions := options.
 		Logger().
 		SetMaxDocumentLength(25).
 		SetComponentLevel(options.LogComponentCommand, options.LogLevelDebug)
 
+	// Creates options that include the logger specification
 	clientOptions := options.
 		Client().
 		ApplyURI(uri).
@@ -63,6 +66,7 @@ func standardLogging(uri string) {
 	}
 }
 
+// Creates a struct to model the logger
 // start-customlogger-struct
 type CustomLogger struct {
 	io.Writer
@@ -71,6 +75,7 @@ type CustomLogger struct {
 
 // end-customlogger-struct
 
+// Creates functions to specify how the logger generates messages
 // start-customlogger-funcs
 func (logger *CustomLogger) Info(level int, msg string, _ ...interface{}) {
 	logger.mu.Lock()
@@ -91,6 +96,7 @@ func (logger *CustomLogger) Error(err error, msg string, _ ...interface{}) {
 // end-customlogger-funcs
 
 func customLogging(uri string) {
+	// Sets options when configuring the custom logger
 	// start-set-customlogger
 	buf := bytes.NewBuffer(nil)
 	sink := &CustomLogger{Writer: buf}
@@ -101,11 +107,12 @@ func customLogging(uri string) {
 		SetComponentLevel(options.LogComponentCommand, options.LogLevelDebug).
 		SetComponentLevel(options.LogComponentConnection, options.LogLevelDebug)
 
+	// Creates options that include the logger specification
 	clientOptions := options.
 		Client().
 		ApplyURI(uri).
 		SetLoggerOptions(loggerOptions)
-		// end-set-customlogger
+	// end-set-customlogger
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		panic(err)
@@ -126,6 +133,7 @@ func customLogging(uri string) {
 }
 
 func thirdPartyLogging(uri string) {
+	// Creates a logrus logger
 	// start-make-logrus
 	myLogger := &logrus.Logger{
 		Out:   os.Stderr,
@@ -137,19 +145,22 @@ func thirdPartyLogging(uri string) {
 	}
 	// end-make-logrus
 
+	// Sets the sink for the logger
 	// start-set-thirdparty-logger
 	sink := logrusr.New(myLogger).GetSink()
 
+	// Sets options when configuring the logrus logger
 	loggerOptions := options.
 		Logger().
 		SetSink(sink).
 		SetComponentLevel(options.LogComponentCommand, options.LogLevelDebug)
 
+	// Creates options that include the logger specification
 	clientOptions := options.
 		Client().
 		ApplyURI(uri).
 		SetLoggerOptions(loggerOptions)
-		// end-set-thirdparty-logger
+	// end-set-thirdparty-logger
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		panic(err)
