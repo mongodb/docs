@@ -1,3 +1,9 @@
+.. list-table::
+   :header-rows: 1 
+
+   * - Icon
+     - Syntax
+     - Render
 
    * - ``fa-accessible-icon`` 
      - ``:icon-fa5:`accessible-icon``` 
