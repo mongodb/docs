@@ -24,3 +24,11 @@ connections still use the hostname with the external domain:
 
 - The {+mdbagent+} to connect to |mongod|.
 - |mongod| to connect to other |mongod| instances.
+
+.. warning::
+
+    Specifying this field changes how |onprem| registers |mongod| processes.
+    You can specify this field only for new replica set deployments starting in |k8s-op-short| 
+    version 1.19. You can't change the value of this field or any ``processes[n].hostname`` fields 
+    in the |onprem| :opsmgr:`automation configuration </reference/cluster-configuration>` for a running
+    replica set deployment.
