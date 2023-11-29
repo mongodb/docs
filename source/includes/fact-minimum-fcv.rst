@@ -1,2 +1,2 @@
-The minimum supported server :manual:`feature compatibility version <view-fcv>` 
+The minimum supported server :ref:`feature compatibility version <view-fcv>` 
 is 6.0.
