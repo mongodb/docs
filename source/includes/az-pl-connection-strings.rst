@@ -39,7 +39,6 @@
       {+az-pl+}-enabled single-region cluster, showing three unique
       ports defined for ``pl-0-eastus2.uzgh6.mongodb.net``:
 
-
       .. code-block:: sh
          :copyable: false
 
@@ -53,21 +52,21 @@
          _mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net service = 0 0 1025 pl-0-eastus2.uzgh6.mongodb.net.
          _mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net service = 0 0 1026 pl-0-eastus2.uzgh6.mongodb.net.
 
-      .. tip::
+      In the preceding example:
 
-         In the preceding example:
+      - ``_mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net`` is
+         the SRV record that the connection string references.
 
-         - ``_mongodb._tcp.cluster0-pl-0.uzgh6.mongodb.net`` is
-            the SRV record that the connection string references. 
-         - ``pl-0-eastus2.uzgh6.mongodb.net`` is the hostname for
-            each node in one |service| cluster in one region for which
-            you have configured {+az-pl+}.
-         - ``1024``, ``1025``, and ``1026`` are unique ports that 
-            |service| assigns on the load balancer for each |service|
-            replica set node in the region for which you enabled 
-            {+az-pl+}. All nodes in an |service| replica set are
-            accessible via the same hostname, with the load balancer
-            resolving individual nodes by their unique port.
+      - ``pl-0-eastus2.uzgh6.mongodb.net`` is the hostname for
+         each node in one |service| cluster in one region for which
+         you have configured {+az-pl+}.
+
+      - ``1024``, ``1025``, and ``1026`` are unique ports that 
+         |service| assigns on the load balancer for each |service|
+         replica set node in the region for which you enabled 
+         {+az-pl+}. All nodes in an |service| replica set are
+         accessible via the same hostname, with the load balancer
+         resolving individual nodes by their unique port.
 
       **Hostname DNS Resolution in Private Endpoint-Aware Connection Strings and SRV Records**
 

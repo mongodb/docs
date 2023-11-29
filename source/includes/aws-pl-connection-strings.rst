@@ -32,7 +32,7 @@
 
       .. code-block:: sh
          :copyable: false
-
+         
          $ nslookup -type=SRV _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net
 
          Server: 127.0.0.53
@@ -43,23 +43,23 @@
          _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1024 pl-0-us-east-1-k45tj.mongodb.net.
          _mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net service = 0 0 1025 pl-0-us-east-1-k45tj.mongodb.net.
 
-      .. tip::
+      In the preceding example:
 
-         In the preceding example:
+      - ``_mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net`` is the SRV
+        record that the
+        ``mongodb+srv://cluster0-pl-0-k45tj.mongodb.net``
+        connection string references.
 
-         - ``_mongodb._tcp.cluster0-pl-0-k45tj.mongodb.net`` is the SRV
-           record that the
-           ``mongodb+srv://cluster0-pl-0-k45tj.mongodb.net``
-           connection string references.
-         - ``pl-0-us-east-1-k45tj.mongodb.net`` is the hostname for each
-           node in one |service| {+cluster+} in one region for which 
-           you have configured {+aws-pl+}.
-         - ``1024``, ``1025``, and ``1026`` are unique ports that 
-           |service| assigns on the load balancer for each |service| 
-           replica set node in the region for which you enabled 
-           {+aws-pl+}. All nodes in an |service| replica set are 
-           accessible via the same hostname, with the load balancer 
-           resolving individual nodes by their unique port.
+      - ``pl-0-us-east-1-k45tj.mongodb.net`` is the hostname for each
+        node in one |service| {+cluster+} in one region for which 
+        you have configured {+aws-pl+}.
+
+      - ``1024``, ``1025``, and ``1026`` are unique ports that 
+        |service| assigns on the load balancer for each |service| 
+        replica set node in the region for which you enabled 
+        {+aws-pl+}. All nodes in an |service| replica set are 
+        accessible via the same hostname, with the load balancer 
+        resolving individual nodes by their unique port.
 
       **Hostname DNS Resolution in Private Endpoint-Aware Connection 
       Strings and SRV Records**
@@ -87,7 +87,7 @@
          Non-authoritative answer:
          pl-0-us-east-1-k45tj.mongodb.net
          canonical name = vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com.
-   
+    
          Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com
          Address: 10.0.30.194
          Name: vpce-024f5b57108c8d3ed-ypwbxwll.vpce-svc-02863655456245e5c.us-east-1.vpce.amazonaws.com

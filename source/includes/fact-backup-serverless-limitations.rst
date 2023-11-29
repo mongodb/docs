@@ -1,3 +1,5 @@
+- You can't disable backup of {+serverless-instances+}.
+
 - You can't download {+serverless-instance+} snapshots.
 
 - Custom policies are not supported for {+serverless-instance+}
