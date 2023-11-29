@@ -1,3 +1,4 @@
+// Perform a multi-document transaction by using the Go driver
 package main
 
 import (
@@ -32,12 +33,16 @@ func main() {
 	wc := writeconcern.Majority()
 	txnOptions := options.Transaction().SetWriteConcern(wc)
 
+	// Starts a session on the client
 	session, err := client.StartSession()
 	if err != nil {
 		panic(err)
 	}
+	// Defers ending the session after the transaction is committed or ended
 	defer session.EndSession(context.TODO())
 
+	// Inserts multiple documents into a collection within a transaction,
+	// then commits or ends the transaction
 	result, err := session.WithTransaction(context.TODO(), func(ctx mongo.SessionContext) (interface{}, error) {
 		result, err := coll.InsertMany(ctx, []interface{}{
 			bson.D{{"title", "The Bluest Eye"}, {"author", "Toni Morrison"}},

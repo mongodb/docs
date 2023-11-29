@@ -1,3 +1,4 @@
+// Connects to MongoDB and sets a Stable API version
 package main
 
 import (
