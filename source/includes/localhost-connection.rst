@@ -3,22 +3,22 @@ steps:
 
 1. Download the `Community <https://www.mongodb.com/try/download/community>`__
    or `Enterprise <https://www.mongodb.com/try/download/enterprise>`__ version
-   of MongoDB Server.
+   of {+mdb-server+}.
 
-#. :manual:`Install and configure </installation/>` MongoDB Server.
+#. :manual:`Install and configure </installation/>` {+mdb-server+}.
 
 #. Start the server.
 
 .. important::
 
-   Always secure your MongoDB server from malicious attacks. See our
+   Always secure your {+mdb-server+} from malicious attacks. See our
    :manual:`Security Checklist </administration/security-checklist/>` for a
    list of security recommendations.
 
-After you successfully start your MongoDB server, specify your connection
+After you successfully start your {+mdb-server+}, specify your connection
 string in your driver connection code.
 
-If your MongoDB Server is running locally, you can use the following
+If your {+mdb-server+} is running locally, you can use the following
 connection string:
 
 .. code-block:: none
