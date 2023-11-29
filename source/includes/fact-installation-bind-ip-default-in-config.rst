@@ -4,7 +4,7 @@ means that the |executable-name| can only accept connections from
 clients that are running on the same machine. Remote clients will not be
 able to connect to the |executable-name|, and the |executable-name| will
 not be able to initialize a :term:`replica set` unless this value is set
-to a valid network interface.
+to a valid network interface which is accessible from the remote clients.
 
 This value can be configured either:
 
