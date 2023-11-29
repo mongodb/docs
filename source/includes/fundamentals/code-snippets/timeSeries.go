@@ -1,3 +1,4 @@
+// Creates a time series collection to record temperature data
 package main
 
 import (
@@ -33,21 +34,26 @@ func main() {
 
 	// begin create ts coll
 	db := client.Database("spring_weather")
+
+	// Creates a time series collection that stores "temperature" values over time
 	tso := options.TimeSeries().SetTimeField("temperature")
 	opts := options.CreateCollection().SetTimeSeriesOptions(tso)
 
 	db.CreateCollection(context.TODO(), "march2022", opts)
 	// end create ts coll
 
+	// Runs a command to list information about collections in the
+	// database
 	// begin check ts coll
 	command := bson.D{{"listCollections", 1}}
 	var result bson.M
-	
+
 	commandErr := db.RunCommand(context.TODO(), command).Decode(&result)
 	if commandErr != nil {
 		panic(commandErr)
 	}
 
+	// Prints information about the database's collections and views
 	output, outputErr := json.MarshalIndent(result, "", "    ")
 	if outputErr != nil {
 		panic(outputErr)
