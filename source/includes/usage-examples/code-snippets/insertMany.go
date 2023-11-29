@@ -1,3 +1,4 @@
+// Inserts sample documents describing restaurants by using the Go driver
 package main
 
 import (
@@ -45,21 +46,26 @@ func main() {
 
 	// begin insertMany
 	coll := client.Database("sample_restaurants").Collection("restaurants")
+
+	// Creates two sample documents describing restaurants
 	newRestaurants := []interface{}{
 		Restaurant{Name: "Rule of Thirds", Cuisine: "Japanese"},
 		Restaurant{Name: "Madame Vo", Cuisine: "Vietnamese"},
 	}
 
+	// Inserts sample documents into the collection
 	result, err := coll.InsertMany(context.TODO(), newRestaurants)
 	if err != nil {
 		panic(err)
 	}
 	// end insertMany
 
-	// When you run this file, it should print:
-	// 2 documents inserted with IDs: ObjectID("..."), ObjectID("...")
+	// Prints the IDs of the inserted documents
 	fmt.Printf("%d documents inserted with IDs:\n", len(result.InsertedIDs))
 	for _, id := range result.InsertedIDs {
 		fmt.Printf("\t%s\n", id)
 	}
+
+	// When you run this file, it should print:
+	// 2 documents inserted with IDs: ObjectID("..."), ObjectID("...")
 }
