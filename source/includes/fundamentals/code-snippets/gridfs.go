@@ -1,3 +1,4 @@
+// Stores and retrieves large files by using the Go driver GridFS feature
 package main
 
 import (
@@ -20,6 +21,7 @@ func main() {
 	}
 	defer client.Disconnect(context.TODO())
 
+	// Creates a GridFS bucket
 	bucket, err := gridfs.NewBucket(client.Database("foo"))
 	if err != nil {
 		panic(err)
@@ -30,7 +32,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Defines options that specify configuration information for files
+	// uploaded to the bucket
 	uploadOpts := options.GridFSUpload().SetChunkSizeBytes(200000)
+
+	// Writes a file to an output stream
 	uploadStream, err := bucket.OpenUploadStream("file.txt", uploadOpts)
 	if err != nil {
 		panic(err)
