@@ -1,3 +1,4 @@
+// Runs a database command by using the Go driver
 package main
 
 import (
@@ -31,9 +32,13 @@ func main() {
 
 	// start-runcommand
 	db := client.Database("plants")
+
+	// Creates commands to count documents in a collection and explain
+	// how the count command runs
 	countCommand := bson.D{{"count", "flowers"}}
 	explainCommand := bson.D{{"explain", countCommand}, {"verbosity", "queryPlanner"}}
 
+	// Retrieves results of the explain command
 	var result bson.M
 	err = db.RunCommand(context.TODO(), explainCommand).Decode(&result)
 	// end-runcommand
@@ -41,6 +46,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	// Prints the results of the explain command
 	output, err := json.MarshalIndent(result, "", "    ")
 	if err != nil {
 		panic(err)

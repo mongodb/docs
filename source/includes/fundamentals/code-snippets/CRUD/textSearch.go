@@ -1,3 +1,4 @@
+// Performs text searches by using the Go driver
 package main
 
 import (
@@ -55,6 +56,7 @@ func main() {
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 
+	// Creates a text index on the "description" field
 	//begin text index
 	model := mongo.IndexModel{Keys: bson.D{{"description", "text"}}}
 	name, err := coll.Indexes().CreateOne(context.TODO(), model)
@@ -67,6 +69,8 @@ func main() {
 
 	fmt.Println("\nTerm Search:\n")
 	{
+		// Retrieves and prints documents containing the "herb" string
+		// in any fields associated with a text index
 		//begin term search
 		filter := bson.D{{"$text", bson.D{{"$search", "herb"}}}}
 
@@ -88,6 +92,8 @@ func main() {
 
 	fmt.Println("\nPhrase Search:\n")
 	{
+		// Retrieves and prints documents containing the "serves 2" phrase
+		// in any fields associated with a text index
 		//begin phrase search
 		filter := bson.D{{"$text", bson.D{{"$search", "\"serves 2\""}}}}
 
@@ -109,6 +115,9 @@ func main() {
 
 	fmt.Println("\nExcluded Term Search:\n")
 	{
+		// Retrieves and prints documents containing the "vegan" but
+		// not the "tofu" string in any fields associated with a text
+		// index
 		//begin exclude term search
 		filter := bson.D{{"$text", bson.D{{"$search", "vegan -tofu"}}}}
 
@@ -130,6 +139,9 @@ func main() {
 
 	fmt.Println("\nSort By Relevance:\n")
 	{
+		// Retrieves and prints documents containing the "vegetarian"
+		// string and sorts the results by relevance based on the
+		// "textScore" field
 		//begin text score
 		filter := bson.D{{"$text", bson.D{{"$search", "vegetarian"}}}}
 		sort := bson.D{{"score", bson.D{{"$meta", "textScore"}}}}
@@ -153,6 +165,8 @@ func main() {
 
 	fmt.Println("\nAggregation Text Search:\n")
 	{
+		// Uses an aggregation pipeline to retrieve documents containing
+		// the "herb" string in any fields associated with a text index
 		// begin aggregate text search
 		matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "herb"}}}}}}
 
@@ -174,6 +188,9 @@ func main() {
 
 	fmt.Println("\nAggregation Sort By Relevance:\n")
 	{
+		// Uses an aggregation pipeline to retrieve documents containing the "vegetarian"
+		// string and sorts the results by relevance based on the
+		// "textScore" field
 		// begin aggregate text score
 		matchStage := bson.D{{"$match", bson.D{{"$text", bson.D{{"$search", "vegetarian"}}}}}}
 		sortStage := bson.D{{"$sort", bson.D{{"score", bson.D{{"$meta", "textScore"}}}}}}

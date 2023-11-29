@@ -1,3 +1,5 @@
+// Retrieves documents that match the filter and applies a
+// sort to the results
 package main
 
 import (
@@ -56,6 +58,8 @@ func main() {
 
 	fmt.Println("\nAscending Sort:\n")
 	{
+		// Retrieves matching documents and sets an ascending sort on
+		// the "enrollment" field
 		//begin ascending sort
 		filter := bson.D{}
 		opts := options.Find().SetSort(bson.D{{"enrollment", 1}})
@@ -66,6 +70,8 @@ func main() {
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
+
+		// Prints matched documents as structs
 		for _, result := range results {
 			res, _ := json.Marshal(result)
 			fmt.Println(string(res))
@@ -75,6 +81,8 @@ func main() {
 
 	fmt.Println("\nDescending Sort:\n")
 	{
+		// Retrieves matching documents and sets a descending sort on
+		// the "enrollment" field
 		//begin descending sort
 		filter := bson.D{}
 		opts := options.Find().SetSort(bson.D{{"enrollment", -1}})
@@ -85,6 +93,8 @@ func main() {
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
+
+		// Prints matched documents as structs
 		for _, result := range results {
 			res, _ := json.Marshal(result)
 			fmt.Println(string(res))
@@ -94,6 +104,8 @@ func main() {
 
 	fmt.Println("\nMulti Sort:\n")
 	{
+		// Retrieves matching documents and sets a descending sort on
+		// the "enrollment" field and an ascending sort on the "title" field
 		//begin multi sort
 		filter := bson.D{}
 		opts := options.Find().SetSort(bson.D{{"enrollment", -1}, {"title", 1}})
@@ -104,6 +116,8 @@ func main() {
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
+
+		// Prints matched documents as structs
 		for _, result := range results {
 			res, _ := json.Marshal(result)
 			fmt.Println(string(res))
@@ -113,6 +127,8 @@ func main() {
 
 	fmt.Println("\nAggregation Sort:\n")
 	{
+		// Uses an aggregation pipeline to set a descending sort on
+		// the "enrollment" field and an ascending sort on the "title" field
 		// begin aggregate sort
 		sortStage := bson.D{{"$sort", bson.D{{"enrollment", -1}, {"title", 1}}}}
 
@@ -125,6 +141,8 @@ func main() {
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
+
+		// Prints matched documents as structs
 		for _, result := range results {
 			res, _ := json.Marshal(result)
 			fmt.Println(string(res))

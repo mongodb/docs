@@ -1,3 +1,4 @@
+// Updates array fields of documents by using the Go driver
 package main
 
 import (
@@ -54,12 +55,16 @@ func main() {
 
 	fmt.Println("\nPositional $ Operator:\n")
 	{
+		// Creates a filter and update document to match a "sizes" array
+		// value and decrease the value by 2
 		// begin positional
 		filter := bson.D{{"sizes", bson.D{{"$lte", 16}}}}
 		update := bson.D{{"$inc", bson.D{{"sizes.$", -2}}}}
 		opts := options.FindOneAndUpdate().
 			SetReturnDocument(options.After)
 
+		// Updates the first document that matches the filter and prints
+		// the updated document as a struct
 		var updatedDoc Drink
 		err := coll.FindOneAndUpdate(context.TODO(), filter, update, opts).Decode(&updatedDoc)
 		if err != nil {
@@ -86,6 +91,8 @@ func main() {
 
 	fmt.Println("\nPositional $[<identifier>] Operator:\n")
 	{
+		// Creates a filter and update document to match "sizes" array
+		// values and remove those values
 		// begin filtered positional
 		identifier := []interface{}{bson.D{{"hotOptions", bson.D{{"$regex", "hot"}}}}}
 		update := bson.D{{"$unset", bson.D{{"styles.$[hotOptions]", ""}}}}
@@ -93,6 +100,8 @@ func main() {
 			SetArrayFilters(options.ArrayFilters{Filters: identifier}).
 			SetReturnDocument(options.After)
 
+		// Updates the first document that matches the filter and prints
+		// the updated document as a struct
 		var updatedDoc Drink
 		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
 		if err != nil {
@@ -118,11 +127,15 @@ func main() {
 
 	fmt.Println("\nPositional $[] Operator:\n")
 	{
+		// Creates a filter and update document to match all "sizes" array
+		// values and multiply them by a value
 		// begin positional all
 		update := bson.D{{"$mul", bson.D{{"sizes.$[]", 29.57}}}}
 		opts := options.FindOneAndUpdate().
 			SetReturnDocument(options.After)
 
+		// Updates the first document that matches the filter and prints
+		// the updated document as a struct
 		var updatedDoc Drink
 		err := coll.FindOneAndUpdate(context.TODO(), bson.D{}, update, opts).Decode(&updatedDoc)
 		if err != nil {
