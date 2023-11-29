@@ -1,3 +1,4 @@
+// Updates or inserts a matching document by using the Go driver
 package main
 
 import (
@@ -56,11 +57,17 @@ func main() {
 
 	fmt.Println("\nUpsert:\n")
 	{
+		// Creates a filter to match documents with a specified
+		// "species" and "plant_id" and an update document to set new fields
 		// begin upsert
 		filter := bson.D{{"species", "Ledebouria socialis"}, {"plant_id", 3}}
 		update := bson.D{{"$set", bson.D{{"species", "Ledebouria socialis"}, {"plant_id", 3}, {"height", 8.3}}}}
+
+		// Sets the upsert option to true
 		opts := options.Update().SetUpsert(true)
 
+		// Updates a documents or inserts a document if no documents are
+		// matched and prints the results
 		result, err := coll.UpdateOne(context.TODO(), filter, update, opts)
 		if err != nil {
 			panic(err)
