@@ -1,3 +1,4 @@
+// Runs a database command by using the Go driver
 package main
 
 import (
@@ -36,10 +37,15 @@ func main() {
 	{
 		// begin runCommand
 		db := client.Database("sample_restaurants")
+
+		// Retrieves statistics about the specified database
 		command := bson.D{{"dbStats", 1}}
 
 		var result bson.M
+		// Runs the command and prints the database statistics
 		err := db.RunCommand(context.TODO(), command).Decode(&result)
+
+		// Prints a message if any errors occur during the command execution
 		if err != nil {
 			panic(err)
 		}
