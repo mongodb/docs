@@ -1,3 +1,4 @@
+// Runs bulk write operations on a collection by using the Go driver
 package main
 
 import (
@@ -46,14 +47,19 @@ func main() {
 
 	// begin bulk
 	coll := client.Database("sample_restaurants").Collection("restaurants")
+
+	// Creates write models that specify replace and update operations
 	models := []mongo.WriteModel{
 		mongo.NewReplaceOneModel().SetFilter(bson.D{{"name", "Cafe Tomato"}}).
 			SetReplacement(Restaurant{Name: "Cafe Zucchini", Cuisine: "French"}),
 		mongo.NewUpdateOneModel().SetFilter(bson.D{{"name", "Cafe Zucchini"}}).
 			SetUpdate(bson.D{{"$set", bson.D{{"name", "Zucchini Land"}}}}),
 	}
+
+	// Specifies that the bulk write is ordered
 	opts := options.BulkWrite().SetOrdered(true)
 
+	// Runs a bulk write operation for the specified write operations
 	results, err := coll.BulkWrite(context.TODO(), models, opts)
 	// end bulk
 

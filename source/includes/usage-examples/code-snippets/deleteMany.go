@@ -1,3 +1,4 @@
+// Deletes multiple documents from a collection by using the Go driver
 package main
 
 import (
@@ -36,13 +37,16 @@ func main() {
 	coll := client.Database("sample_mflix").Collection("movies")
 	filter := bson.D{{"runtime", bson.D{{"$gt", 800}}}}
 
+	// Deletes all documents that have a "runtime" value greater than 800
 	results, err := coll.DeleteMany(context.TODO(), filter)
 	if err != nil {
 		panic(err)
-	}	
+	}
 	// end deleteMany
+
+	// Prints the number of deleted documents
+	fmt.Printf("Documents deleted: %d\n", results.DeletedCount)
 
 	// When you run this file for the first time, it should print:
 	// Documents deleted: 4
-	fmt.Printf("Documents deleted: %d\n", results.DeletedCount)
 }

@@ -1,3 +1,4 @@
+// Performs a bulk write that performs write operations
 package main
 
 import (
@@ -52,6 +53,7 @@ func main() {
 
 	fmt.Println("\nInsertOneModel:\n")
 	{
+		// Creates instructions to insert documents describing books
 		// begin bulk insert model
 		models := []mongo.WriteModel{
 			mongo.NewInsertOneModel().SetDocument(Book{Title: "Beloved", Author: "Toni Morrison", Length: 324}),
@@ -59,6 +61,8 @@ func main() {
 		}
 		// end bulk insert model
 
+		// Runs the bulk write operation and prints the number of
+		// inserted documents
 		results, err := coll.BulkWrite(context.TODO(), models)
 		if err != nil {
 			panic(err)
@@ -87,6 +91,7 @@ func main() {
 
 	fmt.Println("\nReplaceOneModel:\n")
 	{
+		// Creates instructions to replace the first matching document
 		// begin bulk replace model
 		models := []mongo.WriteModel{
 			mongo.NewReplaceOneModel().SetFilter(bson.D{{"title", "Lucy"}}).
@@ -94,6 +99,8 @@ func main() {
 		}
 		// end bulk replace model
 
+		// Runs the bulk write operation and prints the number of
+		// replaced documents
 		results, err := coll.BulkWrite(context.TODO(), models)
 		if err != nil {
 			panic(err)
@@ -122,6 +129,7 @@ func main() {
 
 	fmt.Println("\nUpdateOneModel:\n")
 	{
+		// Creates instructions to update the first matching document
 		// begin bulk update model
 		models := []mongo.WriteModel{
 			mongo.NewUpdateOneModel().SetFilter(bson.D{{"author", "Elena Ferrante"}}).
@@ -129,6 +137,8 @@ func main() {
 		}
 		// end bulk update model
 
+		// Runs the bulk write operation and prints the number of
+		// updated documents
 		results, err := coll.BulkWrite(context.TODO(), models)
 		if err != nil {
 			panic(err)
@@ -157,12 +167,15 @@ func main() {
 
 	fmt.Println("\nDeleteManyModel:\n")
 	{
+		// Creates instructions to delete all documents that match the filter
 		// begin bulk delete model
 		models := []mongo.WriteModel{
 			mongo.NewDeleteManyModel().SetFilter(bson.D{{"length", bson.D{{"$gt", 300}}}}),
 		}
 		// end bulk delete model
 
+		// Runs the bulk write operation and prints the number of
+		// deleted documents
 		results, err := coll.BulkWrite(context.TODO(), models)
 		if err != nil {
 			panic(err)
@@ -208,6 +221,8 @@ func main() {
 
 	fmt.Println("\nBulkOperation Example:\n")
 	{
+		// Creates instructions to make changes to documents describing
+		// books
 		// begin unordered
 		models := []mongo.WriteModel{
 			mongo.NewInsertOneModel().SetDocument(Book{Title: "Middlemarch", Author: "George Eliot", Length: 904}),
@@ -218,8 +233,12 @@ func main() {
 				SetUpdate(bson.D{{"$inc", bson.D{{"length", 10}}}}),
 			mongo.NewDeleteManyModel().SetFilter(bson.D{{"author", bson.D{{"$regex", "Jam"}}}}),
 		}
+
+		// Specifies that the bulk write is unordered
 		opts := options.BulkWrite().SetOrdered(false)
 
+		// Runs the bulk write operation and prints a summary of the
+		// data changes
 		results, err := coll.BulkWrite(context.TODO(), models, opts)
 		if err != nil {
 			panic(err)

@@ -1,3 +1,4 @@
+// Counts documents in a collection by using the Go driver
 package main
 
 import (
@@ -34,16 +35,23 @@ func main() {
 
 	// begin countDocuments
 	coll := client.Database("sample_mflix").Collection("movies")
+
+	// Specifies a filter to match documents where the "countries" array
+	// includes a value of "China"
 	filter := bson.D{{"countries", "China"}}
 
+	// Retrieves and prints the estimated number of documents in the collection
 	estCount, estCountErr := coll.EstimatedDocumentCount(context.TODO())
 	if estCountErr != nil {
 		panic(estCountErr)
-	}	
+	}
+
+	// Retrieves and prints the number of documents in the collection
+	// that match the filter
 	count, err := coll.CountDocuments(context.TODO(), filter)
 	if err != nil {
 		panic(err)
-	}	
+	}
 	// end countDocuments
 
 	// When you run this file, it should print:
