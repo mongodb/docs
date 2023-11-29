@@ -10,4 +10,4 @@ python script.
      - Syntax
      - Render
 
-.. include:: /style-guide/includes/rendered-icon-table.rst
+.. include:: /style-guide/includes/rendered-icon-table-contents.rst
