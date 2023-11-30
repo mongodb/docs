@@ -1,3 +1,4 @@
+// Updates the first document that matches a query filter by using the Go driver
 package main
 
 import (
@@ -37,15 +38,20 @@ func main() {
 	coll := client.Database("sample_restaurants").Collection("restaurants")
 	id, _ := primitive.ObjectIDFromHex("5eb3d668b31de5d588f42a7a")
 	filter := bson.D{{"_id", id}}
+
+	// Creates instructions to add the "avg_rating" field to documents
 	update := bson.D{{"$set", bson.D{{"avg_rating", 4.4}}}}
 
+	// Updates the first document that has the specified "_id" value
 	result, err := coll.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
 		panic(err)
 	}
 	// end updateone
 
+	// Prints the number of updated documents
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
+
 	// When you run this file for the first time, it should print:
 	// Number of documents replaced: 1
-	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 }
