@@ -1,3 +1,4 @@
+// Demonstrates how to open a change stream by using the Go driver
 package main
 
 import (
@@ -35,7 +36,11 @@ func main() {
 
 	// begin watch
 	coll := client.Database("sample_restaurants").Collection("restaurants")
+
+	// Creates instructions to watch for insert operations
 	pipeline := mongo.Pipeline{bson.D{{"$match", bson.D{{"operationType", "insert"}}}}}
+
+	// Creates a change stream that receives change events
 	cs, err := coll.Watch(context.TODO(), pipeline)
 	if err != nil {
 		panic(err)
@@ -44,6 +49,7 @@ func main() {
 
 	fmt.Println("Waiting For Change Events. Insert something in MongoDB!")
 
+	// Prints a message each time the change stream receives an event
 	for cs.Next(context.TODO()) {
 		var event bson.M
 		if err := cs.Decode(&event); err != nil {
