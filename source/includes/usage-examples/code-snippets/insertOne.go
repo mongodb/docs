@@ -1,3 +1,4 @@
+// Inserts a single document describing a restaurant by using the Go driver
 package main
 
 import (
@@ -43,6 +44,7 @@ func main() {
 		}
 	}()
 
+	// Inserts a sample document describing a restaurant into the collection
 	// begin insertOne
 	coll := client.Database("sample_restaurants").Collection("restaurants")
 	newRestaurant := Restaurant{Name: "8282", Cuisine: "Korean"}
@@ -53,7 +55,9 @@ func main() {
 	}
 	// end insertOne
 
+	// Prints the ID of the inserted document
+	fmt.Printf("Document inserted with ID: %s\n", result.InsertedID)
+
 	// When you run this file, it should print:
 	// Document inserted with ID: ObjectID("...")
-	fmt.Printf("Document inserted with ID: %s\n", result.InsertedID)
 }

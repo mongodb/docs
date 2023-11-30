@@ -1,3 +1,4 @@
+// Specifies struct tags on a struct by using the Go driver
 package main
 
 import (
@@ -14,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+// Specifies a different name for the "WordCount" field when marshalling
 // begin struct
 type BlogPost struct {
 	Title       string
@@ -57,6 +59,7 @@ func main() {
 		Tags:        []string{"seasons", "gardening", "flower"},
 	}
 
+	// Inserts a document describing a blog post into the collection
 	_, err = coll.InsertOne(context.TODO(), post)
 	if err != nil {
 		panic(err)
@@ -65,6 +68,8 @@ func main() {
 
 	filter := bson.D{{"author", "Sam Lee"}}
 
+	// Retrieves the inserted document and prints it as bson.M to see the
+	// alternate field name for "WordCount"
 	var result bson.M
 	err = coll.FindOne(context.TODO(), filter).Decode(&result)
 	if err != nil {
