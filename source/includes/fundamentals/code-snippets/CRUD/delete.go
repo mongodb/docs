@@ -1,3 +1,4 @@
+// Deletes documents that match a filter by using the Go driver
 package main
 
 import (
@@ -57,10 +58,17 @@ func main() {
 
 	fmt.Println("\nDelete Many:\n")
 	{
+		// Creates a filter to match documents where the "length" value
+		// is greater than 300
 		// begin deleteMany
 		filter := bson.D{{"length", bson.D{{"$gt", 300}}}}
+
+		// Sets options for the delete operation to use the index on the
+		// "_id" field
 		opts := options.Delete().SetHint(bson.D{{"_id", 1}})
 
+		// Deletes matching documents and prints the number of deleted
+		// documents
 		result, err := coll.DeleteMany(context.TODO(), filter, opts)
 		if err != nil {
 			panic(err)

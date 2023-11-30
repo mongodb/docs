@@ -1,3 +1,4 @@
+// Counts documents in a collection by using the Go driver
 package main
 
 import (
@@ -58,6 +59,7 @@ func main() {
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 
 	{
+		// Counts documents that match a filter and prints the count
 		// begin count documents
 		filter := bson.D{{"rating", bson.D{{"$lt", 6}}}}
 
@@ -70,6 +72,8 @@ func main() {
 	}
 
 	{
+		// Estimates the total number of documents in a collection and
+		// prints the count
 		// begin est doc count
 		count, err := coll.EstimatedDocumentCount(context.TODO())
 		if err != nil {
@@ -80,6 +84,8 @@ func main() {
 	}
 
 	{
+		// Uses an aggregation pipeline to count the documents in a
+		// collection that match the criteria
 		// begin aggregate count
 		matchStage := bson.D{{"$match", bson.D{{"rating", bson.D{{"$gt", 5}}}}}}
 		countStage := bson.D{{"$count", "total_documents"}}

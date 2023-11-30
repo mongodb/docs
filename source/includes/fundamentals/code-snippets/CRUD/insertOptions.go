@@ -1,3 +1,4 @@
+// Sets options for insert operations by using the Go driver
 package main
 
 import (
@@ -15,6 +16,8 @@ type Book struct {
 // end-book-struct
 
 func insertManyOpts() {
+	// Sets options to bypass document validation and specify an
+	// unordered insert when inserting multiple documents
 	// begin insertManyOpts
 	opts := options.InsertMany().SetBypassDocumentValidation(true).SetOrdered(false)
 	// end insertManyOpts
@@ -22,6 +25,8 @@ func insertManyOpts() {
 }
 
 func insertOneOpts() {
+	// Sets options to bypass document validation when inserting a
+	// single document
 	// begin insertOneOpts
 	opts := options.InsertOne().SetBypassDocumentValidation(true)
 	// end insertOneOpts
