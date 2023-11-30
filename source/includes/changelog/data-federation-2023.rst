@@ -7,6 +7,15 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20231128:
+
+28 November 2023 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :abbr:`OIDC (OpenID Connect)` for Azure AD, Okta, and Ping
+  Identity as :abbr:`IdPs (Identity Providers)`. To learn more, see
+  :ref:`oidc-authentication-authorization`.
+
 .. _adf-v20231031:
 
 31 October 2023 Release 
