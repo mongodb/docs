@@ -1,3 +1,4 @@
+// Updates documents that match a query filter by using the Go driver
 package main
 
 import (
@@ -35,15 +36,21 @@ func main() {
 	// begin updatemany
 	coll := client.Database("sample_airbnb").Collection("listingsAndReviews")
 	filter := bson.D{{"address.market", "Sydney"}}
+
+	// Creates instructions to update the values of the "price" field
 	update := bson.D{{"$mul", bson.D{{"price", 1.15}}}}
 
+	// Updates documents in which the value of the "address.market"
+	// field is "Sydney"
 	result, err := coll.UpdateMany(context.TODO(), filter, update)
 	if err != nil {
 		panic(err)
 	}
 	// end updatemany
 
+	// Prints the number of updated documents
+	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
+
 	// When you run this file for the first time, it should print:
 	// Number of documents replaced: 609
-	fmt.Printf("Documents updated: %v\n", result.ModifiedCount)
 }
