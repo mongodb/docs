@@ -1,3 +1,4 @@
+// Finds distinct values of a document field by using the Go driver
 package main
 
 import (
@@ -53,6 +54,8 @@ func main() {
 	}
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 
+	// Retrieves and prints distinct values of the "department" field in
+	// documents that match the filter
 	// begin distinct
 	results, err := coll.Distinct(context.TODO(), "department", bson.D{{"enrollment", bson.D{{"$lt", 50}}}})
 	if err != nil {
