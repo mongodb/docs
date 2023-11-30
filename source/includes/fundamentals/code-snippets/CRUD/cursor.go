@@ -1,3 +1,4 @@
+// Retrieves documents referenced by a cursor by using the Go driver
 package main
 
 import (
@@ -79,6 +80,7 @@ func main() {
 
 	fmt.Println("Cursor.All():")
 	{
+		// Retrieves documents and references them in a cursor
 		// begin cursor def
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
@@ -88,6 +90,8 @@ func main() {
 
 		defer cursor.Close(context.TODO())
 
+		// Retrieves all documents from the cursor at once by unpacking
+		// the cursor into a slice and printing the slice
 		// begin cursor all
 		var results []MyStruct
 		if err = cursor.All(context.TODO(), &results); err != nil {
@@ -108,6 +112,8 @@ func main() {
 
 		defer cursor.Close(context.TODO())
 
+		// Retrieves documents from the cursor individually by iterating
+		// through the cursor and printing each document
 		// begin cursor next
 		for cursor.Next(context.TODO()) {
 			var result MyStruct
@@ -131,6 +137,8 @@ func main() {
 
 		defer cursor.Close(context.TODO())
 
+		// Retrieves documents from the tailable cursor individually by iterating
+		// through the cursor and printing each document
 		// begin cursor try next
 		for {
 			if cursor.TryNext(context.TODO()) {
