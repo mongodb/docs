@@ -1,0 +1,270 @@
+.. _csharp-polymorphism:
+
+===================
+Polymorphic Objects
+===================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: inheritance, child, parent, hierarchy, derived, base, serialize, deserialize, root
+
+Overview
+--------
+
+**Polymorphic** objects inherit properties and methods from one or more parent classes.
+These objects require special mapping to ensure that the {+driver-short+} correctly
+serializes them to and from BSON documents.
+
+This guide explains the following:
+
+- How to deserialize polymorphic types
+- The discriminator conventions included with the {+driver-short+}
+- How to create custom discriminator conventions
+
+The examples on this page use the following inheritance hierarchy:
+
+.. code-block:: csharp
+   
+   public class Animal 
+   {
+   }
+
+   public class Cat : Animal 
+   {
+   }
+
+   public class Dog : Animal 
+   {
+   }
+
+   public class Lion : Cat 
+   {
+   }
+
+   public class Tiger : Cat 
+   {
+   }
+
+Deserialize Polymorphic Objects
+-------------------------------
+
+Before the serializer can deserialize any polymorphic objects, you must document the
+relationship of all classes in the inheritance hierarchy.
+
+If you're using the automapper to map your classes, apply the ``[BsonKnownTypes]``
+attribute to each base class in the hierarchy. Pass each class that directly inherits
+from the base class as an argument.
+
+The following example shows how to apply the ``[BsonKnownTypes]`` attribute to
+classes in the example ``Animal`` hierarchy:
+
+.. code-block:: csharp
+   :emphasize-lines: 1,6
+   
+   [BsonKnownTypes(typeof(Cat), typeof(Dog))]
+   public class Animal 
+   {
+   }
+
+   [BsonKnownTypes(typeof(Lion), typeof(Tiger))]
+   public class Cat : Animal 
+   {
+   }
+
+   public class Dog : Animal 
+   {
+   }
+
+   public class Lion : Cat 
+   {
+   }
+
+   public class Tiger : Cat 
+   {
+   }
+
+.. note:: Using BsonKnownTypes
+
+   Apply the ``[BsonKnownTypes]`` attribute only to parent classes. Pass as arguments
+   only the types that *directly* inherit from the class, not all child classes in
+   the hierarchy.
+
+If you're creating a class map manually, call the
+``BsonClassMap.RegisterClassMap<T>()`` method for every class in the hierarchy, as shown
+in the following example:
+
+.. code-block:: csharp
+   
+   BsonClassMap.RegisterClassMap<Animal>();
+   BsonClassMap.RegisterClassMap<Cat>();
+   BsonClassMap.RegisterClassMap<Dog>();
+   BsonClassMap.RegisterClassMap<Lion>();
+   BsonClassMap.RegisterClassMap<Tiger>();
+
+.. tip:: Class Maps
+
+   To learn more about mapping classes, see the :ref:`csharp-class-mapping` documentation.
+
+Use Discriminators
+------------------
+
+In MongoDB, a **discriminator** is a field added to a document to identify the class
+to which the document deserializes. When a collection contains more than one type from a
+single inheritance hierarchy, discriminators ensure that each
+document deserializes to the right class. The {+driver-short+} stores the discriminator
+value in a field named ``_t`` in the BSON document. Generally, ``_t`` is the second
+field in the BSON document after ``_id``.
+
+**Discriminator conventions** define the value stored in the discriminator field.
+In this section, you can learn about the discriminator conventions included
+with the {+driver-short+} and how to create custom discriminator conventions.
+
+ScalarDiscriminatorConvention
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the {+driver-short+} uses the ``ScalarDiscriminatorConvention``. According
+to this convention, the {+driver-short+} sets the value of the ``_t`` field to the name of
+the class from which the document was serialized.
+
+Suppose you create an instance of the example ``Animal`` class and each of its 
+subclasses. If you serialize these objects to a single collection, the 
+{+driver-short+} applies the ``ScalarDiscriminatorConvention`` and the corresponding 
+BSON documents appear as follows:
+
+.. code-block:: json
+   :copyable: false
+   
+   { _id: ..., _t: "Animal", ... }
+   { _id: ..., _t: "Cat", ... }
+   { _id: ..., _t: "Dog", ... }
+   { _id: ..., _t: "Lion", ... }
+   { _id: ..., _t: "Tiger", ... }
+
+The ``ScalarDiscriminatorConvention`` uses concise discriminator values, but can be
+difficult to run a query on. For example, to find all documents of type or subtype ``Cat``,
+you must explicitly list each class you're looking for:
+
+.. code-block:: csharp
+   :copyable: true
+   
+   var query = coll.Aggregate().Match(a => a is Cat || a is Lion || a is Tiger);
+
+HierarchicalDiscriminatorConvention
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To simplify queries against your collection of polymorphic types, you can use the
+``HierarchicalDiscriminatorConvention``. According to this convention, the value of ``_t``
+is an array of all classes in the inheritance hierarchy of the document's type.
+
+To use the ``HierarchicalDiscriminatorConvention``, label the base class of your
+inheritance hierarchy as the root class. If you're using the automapper,
+label the root class by applying the
+``[BsonDiscriminatorAttribute]`` attribute to the class and passing ``RootClass = true``
+as an argument. The following code example labels the ``Animal`` class as the
+root of the example inheritance hierarchy:
+
+.. code-block:: csharp
+   :emphasize-lines: 1
+   
+   [BsonDiscriminator(RootClass = true)]
+   [BsonKnownTypes(typeof(Cat), typeof(Dog)]
+   public class Animal 
+   {
+   }
+
+If you're creating a class map manually, call the ``SetIsRootClass()`` method and pass
+``true`` as an argument when you register the class map for the root class. The following
+code example registers class maps for all five example classes but labels only the
+``Animal`` class as the root of the inheritance hierarchy:
+
+.. code-block:: csharp
+   :copyable: true
+   :emphasize-lines: 3 
+   
+   BsonClassMap.RegisterClassMap<Animal>(classMap => {
+       classMap.AutoMap();
+       classMap.SetIsRootClass(true);
+   });
+   BsonClassMap.RegisterClassMap<Cat>();
+   BsonClassMap.RegisterClassMap<Dog>();
+   BsonClassMap.RegisterClassMap<Lion>();
+   BsonClassMap.RegisterClassMap<Tiger>();
+
+Suppose you label the example ``Animal`` class as the root of the inheritance hierarchy,
+and then create an instance of the ``Animal`` class and each of its
+subclasses. If you serialize these objects to a single collection, the {+driver-short+}
+applies the ``HierarchicalDiscriminatorConvention`` and the corresponding
+BSON documents appear as follows:
+
+.. code-block:: javascript
+   
+   { _id: ..., _t: "Animal", ... }
+   { _id: ..., _t: ["Animal", "Cat"], ... }
+   { _id: ..., _t: ["Animal", "Dog"], ... }
+   { _id: ..., _t: ["Animal", "Cat", "Lion"], ... }
+   { _id: ..., _t: ["Animal", "Cat", "Tiger"], ... }
+
+.. important:: Root Class Discriminator
+
+   Any document mapped to the root class still uses a string value for the discriminator
+   field. 
+
+When using the ``HierarchicalDiscriminatorConvention``, you can search for all
+documents of type or subtype ``Cat`` by using a single boolean condition, as shown in
+the following example:
+
+.. code-block:: csharp
+   :copyable: true
+   
+   var query = coll.Aggregate().Match(a => a is Cat);
+
+Custom Discriminator Conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you're working with data that doesn't follow the conventions used by the
+{+driver-short+}--for example, data inserted into MongoDB by another driver or object
+mapper--you might need to use a different value for your discriminator field to
+ensure your classes align with those conventions.
+
+If you're using the automapper, you can specify a custom value for a class's discriminator
+field by applying the ``[BsonDiscriminator]`` attribute to the class and passing
+the custom discriminator value as a string argument. The following code example
+sets the value of the discriminator field for the ``Animal`` class to "myAnimalClass":
+
+.. code-block:: csharp
+   :emphasize-lines: 1
+
+   [BsonDiscriminator("myAnimalClass")]
+   public class Animal 
+   {
+   }
+
+If you're creating a class map manually, call the ``SetDiscriminator()`` method and pass
+the custom discriminator value as an argument when
+you register the class map. The following code example sets the value of the
+discriminator field for the ``Animal`` class to "myAnimalClass":
+
+.. code-block:: csharp
+   :emphasize-lines: 4
+
+   BsonClassMap.RegisterClassMap<Animal>(classMap => 
+   {
+       classMap.AutoMap();
+       classMap.SetDiscriminator("myAnimalClass");
+   });
+
+An instance of the previous ``Animal`` class appears as follows after serialization: 
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id": "...", "_t": "myAnimalClass"}
