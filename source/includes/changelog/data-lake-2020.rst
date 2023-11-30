@@ -148,8 +148,7 @@
   support for `MAP types
   <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#nested-types>`__.
 - Improves error messaging for :ref:`adf-out-stage` to |s3|.
-- Adds a command to :ref:`generate a storage configuration
-  <adf-storagegenconfig>`.
+- Adds a command to generate a storage configuration.
 
 .. _data-lake-v20200512:
 
@@ -166,8 +165,7 @@
 05 May 2020 Release
 ~~~~~~~~~~~~~~~~~~~
 
-- Generates :ref:`Storage Configs <adf-storagegenconfig>`
-  when |service| creates a {+fdi+}.
+- Generates Storage Configs when |service| creates a {+fdi+}.
 - Adds support for :pipeline:`$out` to |s3|.
 - Updates support for `Apache Parquet <https://parquet.apache.org/>`__
   `LIST <https://github.com/apache/parquet-format/blob/master/LogicalTypes.md#lists>`__
