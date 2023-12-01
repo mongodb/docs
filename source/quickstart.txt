@@ -180,22 +180,32 @@ Initialization Notes
 Synchronize Data Between Clusters
 ---------------------------------
 
-The command interface for ``mongosync`` is an HTTP server that
-publishes an HTTP API. To control ``mongosync``, use the API endpoints.
-
-The :ref:`start <c2c-api-start>` command initiates data synchronization.
+The :ref:`start <c2c-api-start>` endpoint initiates data synchronization.
 To start syncing, use ``curl`` or a similar program to issue the
-:ref:`start <c2c-api-start>` command:
+:ref:`start <c2c-api-start>` request:
 
 .. literalinclude:: /includes/api/requests/start.sh
    :language: shell
 
-Once started, ``mongosync`` will synchronize existing data on the
-source cluster with the destination cluster. After the initial sync has
-completed, new writes to the source cluster will be synced with the
-destination cluster.
+If the :ref:`start <c2c-api-start>` request is successful, ``mongosync``
+returns ``{ "success": true }`` and starts to synchronize existing data on
+the source cluster with the destination cluster. At this point,
+``mongosync`` enters the ``RUNNING`` state and applies subsequent source
+cluster writes to the destination cluster. 
 
-The API documentation provides details on using the following endpoints:
+To check the status of the sync, call the :ref:`progress
+<c2c-api-progress>` endpoint:
+
+.. literalinclude:: /includes/api/requests/progress.sh
+   :language: shell
+   
+If the ``progress`` response includes the
+field ``canCommit: true``, the clusters are in sync and the destination
+cluster continuously replicates data from the source cluster.
+
+The command interface for ``mongosync`` is an HTTP server that publishes
+an HTTP API. To control ``mongosync``, use the API endpoints. The API
+documentation provides details on using the following endpoints:
 
 .. list-table::
    :header-rows: 1
@@ -219,8 +229,37 @@ The API documentation provides details on using the following endpoints:
    * - :ref:`c2c-api-reverse`
      - Reverses the direction of a committed sync operation.
 
+One-Time Sync
+-------------
+
+After initializing data synchronization, call the :ref:`progress
+<c2c-api-progress>` endpoint to see the status of the synchronization
+process: 
+
+.. literalinclude:: /includes/api/requests/progress.sh
+   :language: shell
+
+For a one time sync, verify that the ``progress`` response includes the
+following field values:
+
+  - ``state: "RUNNING"``
+  - ``canCommit: true``
+  - ``lagTimeSeconds`` is near ``0`` (*Recommended, but not required*)
+
+Then, call the :ref:`commit <c2c-api-commit>` endpoint to commit the
+synchronization operation to the destination cluster and stop continuous
+replication:
+
+.. literalinclude:: /includes/api/requests/commit.sh
+   :language: shell
+
+If the ``commit`` request is successful, ``mongosync`` returns 
+``{ "success": true }`` and enters the ``COMMITTING`` state. After the sync
+is complete, ``mongosync`` enters the ``COMMITTED`` state and the
+clusters are no longer in continuous sync. 
+
 Synchronization Notes
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 - The default port for the HTTP API is ``27182``.  Use the ``--port``
   option with ``mongosync`` to :ref:`configure another port
