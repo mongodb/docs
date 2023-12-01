@@ -6,13 +6,16 @@
 
     - Necessity
 
+    - Type
+
     - Description
 
-    - Type
 
   * - ``issuer``
     
     - Required
+
+    - string
 
     - The issuer URI of the IDP that the server should accept tokens from. This 
       must match the ``iss`` field in any JWT used for authentication.
@@ -26,11 +29,12 @@
          and validates the access token, authentication succeeds. If
          the issuer URI remains unreachable, authentication fails.
     
-    - string
 
   * - ``authNamePrefix``
 
     - Required
+
+    - string
 
     - Unique prefix applied to each generated ``UserName`` and ``RoleName`` used 
       in authorization. ``authNamePrefix`` can only contain the
@@ -40,83 +44,119 @@
       - hyphens (``-``)
       - underscores (``_``) 
 
-    - string
-
-
 
   * - ``matchPattern``
 
     - Conditional
 
-    - Required when more than one IDP is defined.
+    - string
 
-      Regex pattern used to determine which IDP should be used. ``matchPattern`` 
+    - Regex pattern used to determine which IDP should be used. ``matchPattern`` 
       matches against usernames. Array order determines the priority and the 
       first IDP is always selected. 
+
+      ``matchPattern`` is required in some configurations, depending on 
+      how the user sets ``supportsHumanFlows``:
+
+      - When only one IdP has ``supportsHumanFlows`` set to ``true``
+        (the default), ``matchPatterns`` is optional.
+
+      - When multiple IdP's have ``supportsHumanFlows`` set to ``true``
+        (the default), each of these requires ``matchPatterns``.
+
+      - ``matchPatterns`` is optional for any IdP where ``supportsHumanFlows``
+        is set to ``false``.
 
       This is not a security mechanism. ``matchPattern`` serves only as an advisory 
       to clients. MongoDB accepts tokens issued by the IDP whose principal 
       names do not match this pattern.
 
-    - string
 
   * - ``clientId``
 
-    - Required 
+    - Conditional
      
-    - ID provided by the IDP to identify the client that receives the access tokens.
-    
     - string 
+
+    - ID provided by the IDP to identify the client that receives the access tokens.
+
+      Required when ``supportsHumanFlows`` is set to ``true`` (the default).
+    
 
   * - ``audience``
 
     - Required
 
+    - string 
+
     - Specifies the application or service that the access token is intended for.
     
-    - string 
 
   * - ``requestScopes``
 
     - Optional
      
+    - array[ string ] 
+
     - Permissions and access levels that MongoDB requests from the IDP.
 
-    - array[ string ] 
-    
+
   * - ``principalName``
     
     - Optional 
+
+    - string 
 
     - The claim to be extracted from the access token containing MongoDB user 
       identifiers. 
 
       The default value is ``sub`` (stands for ``subject``). 
 
-    - string 
 
   * - ``authorizationClaim`` 
 
-    - Required 
+    - Conditional
 
-    - Claim extracted from access token that contains MongoDB role names.
+    - string
 
-    - string  
+    - Required, unless ``useAuthorizationClaim`` is set to ``false``.
+    
+      Claim extracted from access token that contains MongoDB role names.
+
 
   * - ``logClaims``
 
     - Optional
 
+    - array[ string ]
+
     - List of access token claims to include in log and audit messages upon 
       authentication completion.
 
-    - array[ string ]
 
   * - ``JWKSPollSecs``
 
     - Optional
 
+    - integer
+
     - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the IDP. 
       A setting of 0 disables polling.
 
-    - integer
+
+  * - ``supportsHumanFlows``
+
+    - Optional
+
+    - bool
+
+    - Whether the OIDC provider supports human or machine workflows.  This
+      affects the ``clientId`` and ``matchPattern`` fields.
+
+      You may find it useful to set this field to ``false`` with machine workload
+      IdP's to allow them to omit the ``clientId`` when it's unneeded.
+
+      Default: ``true``.
+
+      .. versionadded:: 7.2
+
