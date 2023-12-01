@@ -26,17 +26,13 @@ else
 	USER=$(STAGING_USERNAME)
 endif
 
+OPS_MANAGER_MSG="Ops Manager docs are no longer part of this branch. To publish Ops Manager docs, check out the branch that corresponds to 'Upcoming' for Ops Manager."
+
 STAGING_URL_CLOUDMGR="https://docs-cloudmanager-staging.mongodb.com"
 STAGING_BUCKET_CLOUDMGR=docs-cloudmanager-prd-staging
 
 PRODUCTION_URL_CLOUDMGR="https://docs.cloudmanager.mongodb.com"
 PRODUCTION_BUCKET_CLOUDMGR=docs-cloudmanager-prd
-
-STAGING_URL_OPSMGR="https://docs-opsmanager-staging.mongodb.com"
-STAGING_BUCKET_OPSMGR=docs-opsmanager-prd-staging
-
-PRODUCTION_URL_OPSMGR="https://docs.opsmanager.mongodb.com"
-PRODUCTION_BUCKET_OPSMGR=docs-opsmanager-prd
 
 
 PREFIX=
@@ -70,7 +66,7 @@ help: ## Show this help message
 	@echo 'Variables'
 	@printf "  \033[36m%-18s\033[0m %s\n" 'ARGS' 'Arguments to pass to mut-publish'
 
-stage: stage-cloud stage-onprem ## Stage both Cloud and On-Prem
+stage: stage-cloud ## Stage Cloud
 
 ##########################################################
 ####                                                  ####
@@ -89,7 +85,7 @@ html:
 
 ## Build Ops Manager HTML files
 html-onprem:
-	giza make html-onprem
+	@echo ${OPS_MANAGER_MSG}
 
 ## Build Cloud Manager HTML files
 html-cloud:
@@ -107,8 +103,7 @@ clean-html:
 
 ## Build Ops Manager HTML files to a fresh build directory
 clean-html-onprem:
-	rm -rf build/${GIT_BRANCH}
-	giza make html-onprem
+	@echo ${OPS_MANAGER_MSG}
 
 ## Build Cloud Manager HTML files to a fresh build directory
 clean-html-cloud:
@@ -136,7 +131,6 @@ publish-onprem:
 	rm -rf build/${GIT_BRANCH}
 	giza make publish-onprem
 	if [ ${GIT_BRANCH} = master ]; then mut-redirects config/redirects-onprem -o build/public/onprem/.htaccess; fi
-
 
 ##########################################################
 ####                                                  ####
@@ -208,8 +202,7 @@ endif
 ## Deploy artifacts from the working branch of Ops Manager
 ## to the staging S3 bucket / EC2 for review
 stage-onprem:
-	mut-publish build/${GIT_BRANCH}/html-onprem ${STAGING_BUCKET_OPSMGR} --prefix=${PREFIX} --stage --all-subdirectories ${ARGS}
-	@echo "\n\nHosted at ${STAGING_URL_OPSMGR}/${USER}/${GIT_BRANCH}/index.html"
+	@echo ${OPS_MANAGER_MSG}
 	
 
 ## Create a fake deployment in the staging bucket
@@ -227,21 +220,9 @@ fake-deploy-onprem: build/public/onprem
 ########################################################
 
 ## Deploy Ops Manager to the production S3 bucket
-deploy-onprem: build/public/onprem
-	@echo "Copying over fullsize images "
-	cp source/figures/*fullsize.png build/public/onprem/${GIT_BRANCH}/_images/
-
-	mut-publish build/public/onprem/ ${DOTCOM_PRODUCTION_BUCKET_OPSMGR} --prefix=${DOTCOM_OPMPREFIX} --deploy  --redirects build/public/onprem/.htaccess ${ARGS}
-	@echo "\n\nHosted at ${DOTCOM_PRODUCTION_URL_OPSMGR}/${DOTCOM_OPMPREFIX}/${GIT_BRANCH}/index.html"
-	
-	$(MAKE) deploy-onprem-search-index
+deploy-onprem:
+	@echo ${OPS_MANAGER_MSG}
 
 ## Update the Ops Manager search index
 deploy-onprem-search-index:
-	if [ ${STABLE_BRANCH} = ${GIT_BRANCH} ]; then \
-		echo "Building search index"; \
-		mut-index upload build/public/onprem/${GIT_BRANCH} -o mms-onprem-${GIT_BRANCH}.json --aliases mms-onprem-current -u ${DOTCOM_PRODUCTION_URL_OPSMGR}/${DOTCOM_OPMPREFIX}/current -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -g -s --exclude build/public/onprem/${GIT_BRANCH}/reference/api/ssh-keys.html,build/public/onprem/${GIT_BRANCH}/reference/automation-agent.html,build/public/onprem/${GIT_BRANCH}/reference/backup-agent.html,build/public/onprem/${GIT_BRANCH}/reference/monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/reference/required-access-automation-agent.html,build/public/onprem/${GIT_BRANCH}/reference/required-access-backup-agent.html,build/public/onprem/${GIT_BRANCH}/reference/required-access-monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-cr.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-kerberos.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-ldap.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-ssl.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-x509.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-cr.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-kerberos.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-ldap.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-ssl.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-x509.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-cr.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-kerberos.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-ldap.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-ssl.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-x509.html,build/public/onprem/${GIT_BRANCH}/tutorial/delete-automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/delete-backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/delete-monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/configure-automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/configure-backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/configure-monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/legacy-agents.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/provision-aws-servers.html,build/public/onprem/${GIT_BRANCH}/tutorial/remove-group-from-automation.html,build/public/onprem/${GIT_BRANCH}/tutorial/start-or-stop-automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/start-or-stop-backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/start-or-stop-monitoring-agent.html; \
-	else \
-		echo "Building search index"; \
-		mut-index upload build/public/onprem/${GIT_BRANCH} -o mms-onprem-${GIT_BRANCH}.json -u ${DOTCOM_PRODUCTION_URL_OPSMGR}/${DOTCOM_OPMPREFIX}/${GIT_BRANCH} -b ${SEARCH_INDEX_BUCKET} -p search-indexes/prd -s --exclude build/public/onprem/${GIT_BRANCH}/reference/api/ssh-keys.html,build/public/onprem/${GIT_BRANCH}/reference/automation-agent.html,build/public/onprem/${GIT_BRANCH}/reference/backup-agent.html,build/public/onprem/${GIT_BRANCH}/reference/monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/reference/required-access-automation-agent.html,build/public/onprem/${GIT_BRANCH}/reference/required-access-backup-agent.html,build/public/onprem/${GIT_BRANCH}/reference/required-access-monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-cr.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-kerberos.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-ldap.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-ssl.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-automation-agent-for-x509.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-cr.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-kerberos.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-ldap.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-ssl.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-backup-agent-for-x509.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-cr.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-kerberos.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-ldap.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-ssl.html,build/public/onprem/${GIT_BRANCH}/tutorial/configure-monitoring-agent-for-x509.html,build/public/onprem/${GIT_BRANCH}/tutorial/delete-automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/delete-backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/delete-monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/configure-automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/configure-backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/configure-monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/legacy-agents.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/monitoring-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/nav/provision-aws-servers.html,build/public/onprem/${GIT_BRANCH}/tutorial/remove-group-from-automation.html,build/public/onprem/${GIT_BRANCH}/tutorial/start-or-stop-automation-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/start-or-stop-backup-agent.html,build/public/onprem/${GIT_BRANCH}/tutorial/start-or-stop-monitoring-agent.html; \
-	fi
+	@echo ${OPS_MANAGER_MSG}
