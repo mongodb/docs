@@ -7,5 +7,3 @@ role that includes the :authaction:`setUserWriteBlockMode` and
    When using ``enableUserWriteBlocking``, writes are only blocked for users
    that do not have the :authaction:`bypassWriteBlockingMode` ActionType. Users
    who have this ActionType are able to perform writes.
-
-
