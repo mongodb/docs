@@ -19,10 +19,10 @@ Overview
 --------
 
 You can perform semantic search on data in your |service| {+cluster+}
-running MongoDB v6.0.11 or later using {+avs+}. You can store vector
-embeddings for any kind of data along with other data in your collection
-on the |service| {+cluster+}. {+avs+} supports embeddings that are less
-than and equal to 2048 dimensions in width. 
+running MongoDB v6.0.11, v7.0.1, or later using {+avs+}. You can store
+vector embeddings for any kind of data along with other data in your
+collection on the |service| {+cluster+}. {+avs+} supports embeddings
+that are less than and equal to 2048 dimensions in width. 
 
 When you define an {+avs+} index on your collection, you can seamlessly
 index vector data along with your other data and then perform semantic
@@ -31,6 +31,44 @@ search against the indexed fields.
 {+avs+} uses the |hnsw| algorithm to perform the semantic search. You can
 use {+avs+} support for |ann| queries to search for results similar to a
 selected product, search for images, etc. 
+
+About {+avs+} Indexes 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must index the fields that contain vector embeddings of |bson|
+``double`` data type for performing semantic search against the vector
+data. To perform a vector search against your data, create an {+avs+}
+``vectorSearch`` type index for your data. In the {+avs+} index
+definition, you must index the field that contains the vector data as
+the ``vector`` type. 
+
+You can also optionally index fields for pre-filtering the data against
+which you want to run your {+avs+} query. You can pre-filter your data
+by boolean, numeric, and string values. To pre-filter the data, you must
+index your boolean, numeric, and string fields as the ``filter`` type in
+the {+avs+} index definition that indexes your vector data field. 
+
+To learn more about indexing your fields for {+avs+}, see
+:ref:`avs-types-vector-search`. 
+
+About {+avs+} Queries 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+avs+} queries take the shape of an :manual:`aggregation pipeline stage 
+</aggregation>`. The {+avs+} :pipeline:`$vectorSearch` stage must be the
+first stage in the pipeline. You can run {+avs+} queries only against
+fields indexed as the ``vector`` type in a ``vectorSearch`` type index. 
+
+You can pre-filter data against which you want to perform semantic
+search using an :abbr:`MQL (MongoDB Query Language)` match expression
+that compares an indexed field with boolean, number, or string values. 
+{+avs+} supports some :manual:`comparison query
+</reference/operator/query-comparison/>` and :manual:`aggregation  
+pipeline </reference/operator/aggregation/>` operators in the filter in
+your :pipeline:`$vectorSearch` query. 
+
+To learn more about pre-filtering and querying your data using {+avs+},
+see :ref:`return-vector-search-results`. 
 
 Procedure 
 ---------
@@ -43,9 +81,35 @@ an |service| {+cluster+} and run queries that search vector embeddings.
 
    .. step:: Define your {+avs+} index.
 
-      Use the :ref:`knnVector <fts-data-types-knn-vector>` field type to
-      index vector data in your collection. To learn more, see 
-      :ref:`fts-data-types-knn-vector`.
+      Index the field that contains vector data in your collection as
+      the :ref:`vector <avs-types-vector-search>` type in a
+      :ref:`vectorSearch <avs-types-vector-search>` type index
+      definition. You can optionally also index boolean, numeric, and
+      string fields that you want to pre-filter your data by as the
+      :ref:`filter <avs-types-vector-search>` type in the same index. 
+      
+      .. code-block:: json 
+         :copyable: true 
+
+         {
+           "name": "<index-name>",
+           "type": "vectorSearch",
+           "fields":[ 
+             {
+               "type": "vector",
+               "path": "<field-name>",
+               "numDimensions": <number-of-dimensions>,
+               "similarity": "euclidean | cosine | dotProduct"
+             },
+             {
+               "type": "filter",
+               "path": "<field-name>"
+             },
+             ...
+           ]
+         }
+      
+      To learn more, see :ref:`avs-types-vector-search`.
 
    .. step:: Construct your vector search query. 
 
@@ -78,7 +142,7 @@ an |service| {+cluster+} and run queries that search vector embeddings.
 .. toctree::
    :titlesonly:
 
-   Create a Vector Search Index </atlas-search/field-types/knn-vector>
+   Create a Vector Search Index </atlas-vector-search/vector-search-type>
    Run Vector Search Queries </atlas-vector-search/vector-search-stage>
    Tutorial: Run Semantic Search Queries </atlas-vector-search/vector-search-tutorial>
    Atlas Vector Search Changelog </atlas-vector-search/changelog>

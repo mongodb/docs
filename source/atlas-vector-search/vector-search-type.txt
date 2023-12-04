@@ -1,0 +1,263 @@
+.. _avs-types-vector-search:
+
+=====================================
+How to Index Fields for Vector Search 
+=====================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Use the Atlas Vector Search type to index vector embeddings for vector search using the vectorSearch type.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can use the ``vectorSearch`` type to index fields for running 
+:pipeline:`$vectorSearch` queries. You can define the index for the
+vector embeddings that you want to query and the boolean, numeric, or
+string values that you want to use to pre-filter your data. You can use
+the {+atlas-ui+} to create your {+avs+} index.
+
+.. _avs-types-vector-search-considerations:
+
+Considerations 
+--------------
+
+You can't index fields inside arrays of documents or fields inside 
+arrays of objects in a ``vectorSearch`` type index definition. You can
+index fields inside documents using the dot notation. 
+
+Syntax 
+------
+
+This is the syntax for the ``vectorSearch`` index type:
+
+.. code-block:: json
+   :copyable: true 
+   :linenos:
+
+   {
+     "name": "<index-name>",
+     "type": "vectorSearch",
+     "fields":[ 
+       {
+         "type": "vector",
+         "path": <field-to-index>,
+         "numDimensions": <number-of-dimensions>,
+         "similarity": "euclidean | cosine | dotProduct"
+       },
+       {
+         "type": "filter",
+         "path": "<field-to-index>"
+       },
+       ...
+     ]
+   }
+
+.. _avs-types-vector:
+
+About the ``vector`` Type 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The vector field must contain an array of numbers of the |bson|
+``double`` data type for querying using the :pipeline:`$vectorSearch`
+pipeline stage. You must index the vector field as the ``vector`` type
+inside the ``fields`` array.  
+
+The following syntax is for the ``vector`` type: 
+
+.. code-block:: json
+   :copyable: true 
+   :linenos:
+   :emphasize-lines: 5-10
+
+   {
+     "name": "<index-name>",
+     "type": "vectorSearch",
+     "fields":[ 
+       {
+         "type": "vector",
+         "path": <field-to-index>,
+         "numDimensions": <number-of-dimensions>,
+         "similarity": "euclidean | cosine | dotProduct"
+       },
+       ...
+     ]
+   }
+
+.. _avs-types-filter:
+
+About the ``filter`` Type 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can optionally index boolean, numeric, and string values to
+pre-filter your data. You must index your boolean, numeric, and
+string fields using the ``filter`` type inside the ``fields`` array. 
+
+The following syntax is for the ``filter`` type: 
+
+.. code-block:: json
+   :copyable: true 
+   :linenos:
+   :emphasize-lines: 9-12 
+
+   {
+     "name": "<index-name>",
+     "type": "vectorSearch",
+     "fields":[ 
+       {
+         "type": "vector",
+         ...
+       },
+       {
+         "type": "filter",
+         "path": "<field-to-index>"
+       },
+       ...
+     ]
+   }
+
+.. _avs-types-vector-search-options:
+
+{+avs+} Index Fields
+--------------------------------
+
+The {+avs+} index definition takes the following fields:
+
+.. list-table::
+   :widths: 25 10 15 50
+   :header-rows: 1
+
+   * - Option
+     - Type 
+     - Necessity
+     - Purpose
+
+   * - ``name``
+     - string 
+     - Required 
+     - Human-readable label that identifies the index. The search index name
+       in an |service| {+cluster+} must be unique within the namespace,
+       irrespective of the type of index.  
+
+   * - ``type``
+     - string
+     - Required
+     - Human-readable label that identifies the type of index. Value must 
+       be ``vectorSearch``.
+
+   * - ``fields``
+     - array of documents 
+     - Required 
+     - Vector and filter fields to index, one per document. At least one
+       document *must* contain the field definition for the vector
+       field. You can optionally also index number, boolean, and string
+       fields, one per document, for pre-filtering the data.
+
+   * - ``fields.type``
+     - string 
+     - Required 
+     - Field type to use to index fields for :pipeline:`$vectorSearch`.
+       You can specify one of the following values:  
+       
+       - ``vector`` - for fields that contain vector embeddings.
+       - ``filter`` - for fields that contain boolean, numeric, or
+         string values. 
+
+   * - ``fields.path``
+     - string 
+     - Required 
+     - Name of the field to index. For nested fields, use dot notation
+       to specify path to embedded fields. You can't index field names
+       with two consecutive dots (``.``) and field names ending with
+       dots (``.``). For example, {+avs+} doesn't support indexing the
+       following field names: 
+
+       .. list-table:: 
+          :stub-columns: 1
+
+          * - ``foo..bar`` 
+            - Field name has two consecutive dots.
+       
+          * - ``foo_bar.`` 
+            - Field name ends with a dot.
+
+   * - ``fields.numDimensions``
+     - int
+     - Required
+     - Number of vector dimensions, which {+avs+} enforces at index-time and
+       query-time. You must specify a value less than ``2049``. You can
+       set this field only for ``vector`` type fields.
+
+   * - ``fields.similarity``
+     - string
+     - Required
+     - Vector similarity function to use to search for top K-nearest 
+       neighbors. You can set this field only for ``vector`` type
+       fields. Values include: 
+
+       - ``euclidean`` - measures the distance between ends of vectors. 
+         This value allows you to measure similarity based on varying 
+         dimensions. To learn more, see :wikipedia:`Euclidean 
+         <Euclidean_distance>`.
+       - ``cosine`` - measures similarity based on the angle between 
+         vectors. This value allows you to measure similarity that isn't 
+         scaled by magnitude. You can't use zero magnitude vectors with 
+         ``cosine``. To measure cosine similarity, we recommend that 
+         you normalize your vectors and use ``dotProduct`` instead. To 
+         learn more, see :wikipedia:`Cosine <Cosine_similarity>`.
+       - ``dotProduct`` - measures similar to ``cosine``, but takes 
+         into account the magnitude of the vector. This value allows you to 
+         efficiently measure similarity based on both angle and 
+         magnitude. To use ``dotProduct``, you must normalize the 
+         vector to unit length at index-time and query-time. To learn more, 
+         see :wikipedia:`Dot Product <Dot_product>`.
+
+       .. note:: 
+
+          If you normalize the magnitude, ``cosine`` and 
+          ``dotProduct`` are identical in measuring similarity. 
+
+.. _avs-types-vector-search-atlas-ui:
+
+Define the Index for the ``vectorSearch`` Type  
+----------------------------------------------
+
+You can create an {+avs+} index using the {+atlas-ui+} and {+mongosh+}. 
+
+PLACEHOLDER for UI workflow and mongosh syntax for creating an index.
+
+.. _avs-types-vector-search-egs:
+
+Try an Example for the ``vectorSearch`` Type  
+--------------------------------------------
+
+The following index definition for the ``sample_mflix.embedded_movies`` collection
+indexes the ``plot_embedding`` field as the ``vector`` type in a
+``vectorSearch`` type index. The ``plot_embedding`` field contains embeddings
+created using OpenAI's ``text-embedding-ada-002`` embeddings model. The
+index definition specifies ``1536`` vector dimensions and measures
+similarity using ``euclidean``. 
+
+.. code-block:: json 
+   :linenos:
+
+   {
+     "name": "default",
+     "type": "vectorSearch",
+     "fields": [{
+       "type": "vector",
+       "path": "plot_embedding",
+       "numDimensions": 1536,
+       "similarity": "euclidean"
+     }]
+   }
+
+If you load the :ref:`sample data <mflix-embedded_movies>` on your 
+cluster and create the preceding |fts| index for this collection, 
+you can run :pipeline:`$vectorSearch` queries against this collection.
+To learn more about the sample queries that you can run, see 
+:ref:`$vectorSearch Examples <vectorSearch-agg-pipeline-egs>`.

@@ -12,9 +12,10 @@ Run Vector Search Queries
    :depth: 2
    :class: singlecol
 
-{+avs+} queries take the form of an :manual:`aggregation pipeline stage
-</aggregation>`. For the :pipeline:`$vectorSearch` queries, {+avs+}
-returns the results of your semantic search.  
+{+avs+} queries take the form of an 
+:manual:`aggregation pipeline stage </aggregation>`. For the
+:pipeline:`$vectorSearch` queries, {+avs+} returns the results of your
+semantic search.   
 
 .. _vectorSearch-agg-pipeline:
 
@@ -23,7 +24,8 @@ Definition
 
 The :pipeline:`$vectorSearch` stage performs an |ann| search on a vector
 in the specified field. The field that you want to search must be
-indexed as {+avs+} :ref:`knnVector <fts-data-types-knn-vector>` type. 
+indexed as {+avs+} :ref:`vector <avs-types-vector-search>` type inside a
+:ref:`vectorSearch` index type. 
 
 .. pipeline:: $vectorSearch
 
@@ -142,57 +144,71 @@ appears.
 {+avs+} Index
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You must index the fields to search in this stage as the :ref:`knnVector
-<fts-data-types-knn-vector>` type. To learn more about this {+avs+} field
-type, see :ref:`fts-data-types-knn-vector`. 
+You must index the fields to search in this stage as the :ref:`vector
+<avs-types-vector-search>` type inside a
+:ref:`vectorSearch <avs-types-vector-search>` index type. To learn more about these 
+{+avs+} field types, see :ref:`avs-types-vector-search`. 
 
 .. _vectorSearch-agg-pipeline-score:
 
 {+avs+} Score
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+avs+} scores the results for |ann| queries in a fixed range from ``0``
-to ``1`` only. For ``cosine`` and ``dotProduct`` :ref:`similarities
-<fts-knn-vector-type-options>`, {+avs+} normalizes the score using the
-following algorithm: 
+{+avs+} assigns a score, in a fixed range from ``0`` to ``1`` only, to
+every document that it returns. For ``cosine`` and ``dotProduct``
+:ref:`similarities <fts-knn-vector-type-options>`, {+avs+} normalizes
+the score using the following algorithm: 
 
 .. code-block:: shell 
    :copyable: false 
 
    score = (1 + cosine/dot_product(v1,v2)) / 2
 
-To retrieve the score of your |ann| query results, use
-``vectorSearchScore`` as the value in the :manual:`$meta
-</reference/operator/aggregation/meta/>` expression. After the
+The score assigned to a returned document is part of the document's
+metadata. To include each returned document's score along with the
+result set, use a :pipeline:`$project` stage in your aggregation
+pipeline. 
+
+To retrieve the score of your {+avs+} query results, use
+``vectorSearchScore`` as the value in the :manual:`$meta 
+</reference/operator/aggregation/meta/>` expression. That is, after the
 :pipeline:`$vectorSearch` stage, in the :pipeline:`$project` stage, the
 ``score`` field takes the :manual:`$meta
-</reference/operator/aggregation/meta/>` expression, which requires the 
-``vectorSearchScore`` value to return the score of documents for the
-vector search. To learn more about adding the ``score`` field to your
-results, see :ref:`scoring-ref`. 
+</reference/operator/aggregation/meta/>` expression. The expression
+requires the ``vectorSearchScore`` value to return the score of
+documents for the vector search.
+
+.. example:: 
+
+   .. code-block:: javascript
+      :copyable: false
+      :linenos:
+      :emphasize-lines: 11
+
+      db.<collection>.aggregate([
+        {
+          "$vectorSearch": {
+            <query-syntax>
+          }
+        },
+        {
+          "$project": {
+            "<field-to-include>": 1,
+            "<field-to-exclude>": 0,
+            "score": { "$meta": "vectorSearchScore" }
+          }
+        }
+      ]) 
 
 .. _vectorSearch-agg-pipeline-filter:
 
 {+avs+} Pre-Filter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :pipeline:`$vectorSearch` ``filter`` option matches only BSON boolean,
-string, and numeric values. You must index the fields as one of the
-following |fts| field types:
-
-- :ref:`boolean <boolean-ref>` for boolean values
-- :ref:`token <bson-data-types-token>` for string values
-- :ref:`number <bson-data-types-number>` for numeric values
-
-.. note:: 
-
-   If you enable :ref:`dynamic mappings <static-dynamic-mappings>`,
-   {+avs+} automatically indexes the |bson| boolean and numeric values for
-   filtering the data. {+avs+} doesn't automatically index BSON string
-   values as the |fts| :ref:`token <bson-data-types-token>` type for
-   filtering the data. You must index the string fields that you want to 
-   filter by as the ``token`` type using :ref:`static mappings
-   <static-dynamic-mappings>`. 
+The :pipeline:`$vectorSearch` ``filter`` option matches only |bson|
+boolean, string, and numeric values. You must index the fields as the 
+:ref:`filter <avs-types-vector-search>` type in a :ref:`vectorSearch
+<avs-types-vector-search>` type index definition. 
 
 The :pipeline:`$vectorSearch` ``filter`` option supports only the following
 :manual:`comparison query </reference/operator/query-comparison/>`
