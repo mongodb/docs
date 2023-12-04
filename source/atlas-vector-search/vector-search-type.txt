@@ -19,7 +19,7 @@ You can use the ``vectorSearch`` type to index fields for running
 :pipeline:`$vectorSearch` queries. You can define the index for the
 vector embeddings that you want to query and the boolean, numeric, or
 string values that you want to use to pre-filter your data. You can use
-the {+atlas-ui+} to create your {+avs+} index.
+the {+atlas-ui+} and {+atlas-admin-api+} to create your {+avs+} index.
 
 .. _avs-types-vector-search-considerations:
 
@@ -33,7 +33,7 @@ index fields inside documents using the dot notation.
 Syntax 
 ------
 
-This is the syntax for the ``vectorSearch`` index type:
+The following syntax defines the ``vectorSearch`` index type:
 
 .. code-block:: json
    :copyable: true 
@@ -45,7 +45,7 @@ This is the syntax for the ``vectorSearch`` index type:
      "fields":[ 
        {
          "type": "vector",
-         "path": <field-to-index>,
+         "path": "<field-to-index>",
          "numDimensions": <number-of-dimensions>,
          "similarity": "euclidean | cosine | dotProduct"
        },
@@ -67,7 +67,7 @@ The vector field must contain an array of numbers of the |bson|
 pipeline stage. You must index the vector field as the ``vector`` type
 inside the ``fields`` array.  
 
-The following syntax is for the ``vector`` type: 
+The following syntax defines the ``vector`` field type: 
 
 .. code-block:: json
    :copyable: true 
@@ -97,7 +97,7 @@ You can optionally index boolean, numeric, and string values to
 pre-filter your data. You must index your boolean, numeric, and
 string fields using the ``filter`` type inside the ``fields`` array. 
 
-The following syntax is for the ``filter`` type: 
+The following syntax defines the ``filter`` field type: 
 
 .. code-block:: json
    :copyable: true 
@@ -173,7 +173,7 @@ The {+avs+} index definition takes the following fields:
      - Name of the field to index. For nested fields, use dot notation
        to specify path to embedded fields. You can't index field names
        with two consecutive dots (``.``) and field names ending with
-       dots (``.``). For example, {+avs+} doesn't support indexing the
+       dots (``.``). For example, {+avs+} *doesn't* support indexing the 
        following field names: 
 
        .. list-table:: 
@@ -188,7 +188,7 @@ The {+avs+} index definition takes the following fields:
    * - ``fields.numDimensions``
      - int
      - Required
-     - Number of vector dimensions, which {+avs+} enforces at index-time and
+     - Number of vector dimensions that {+avs+} enforces at index-time and
        query-time. You must specify a value less than ``2049``. You can
        set this field only for ``vector`` type fields.
 
@@ -197,7 +197,7 @@ The {+avs+} index definition takes the following fields:
      - Required
      - Vector similarity function to use to search for top K-nearest 
        neighbors. You can set this field only for ``vector`` type
-       fields. Values include: 
+       fields. Value include: 
 
        - ``euclidean`` - measures the distance between ends of vectors. 
          This value allows you to measure similarity based on varying 
@@ -219,45 +219,95 @@ The {+avs+} index definition takes the following fields:
        .. note:: 
 
           If you normalize the magnitude, ``cosine`` and 
-          ``dotProduct`` are identical in measuring similarity. 
+          ``dotProduct`` are almost identical in measuring similarity. 
 
-.. _avs-types-vector-search-atlas-ui:
+.. 
+  .. _avs-types-vector-search-clients:
 
-Define the Index for the ``vectorSearch`` Type  
-----------------------------------------------
+  Supported Clients 
+  -----------------
 
-You can create an {+avs+} index using the {+atlas-ui+} and {+mongosh+}. 
+  You can create and manage {+avs+} indexes through the {+atlas-ui+},
+  {+mongosh+}, and the following MongoDB :driver:`drivers </>`: 
 
-PLACEHOLDER for UI workflow and mongosh syntax for creating an index.
+  - :driver:`C# </csharp/current/>`
+  - :driver:`Java </java-drivers/>`
+  - :driver:`Node </node/current/>`
+  - :driver:`Pymongo </pymongo/>`
 
-.. _avs-types-vector-search-egs:
+  You can also use {+avs+} with local |service| deployments that you
+  create with the {+atlas-cli+}. To learn more, see :atlascli:`Create a
+  Local Atlas Deployment </atlas-cli-deploy-local>`. 
 
-Try an Example for the ``vectorSearch`` Type  
---------------------------------------------
+.. _avs-types-vector-search-manage:
 
-The following index definition for the ``sample_mflix.embedded_movies`` collection
-indexes the ``plot_embedding`` field as the ``vector`` type in a
-``vectorSearch`` type index. The ``plot_embedding`` field contains embeddings
-created using OpenAI's ``text-embedding-ada-002`` embeddings model. The
-index definition specifies ``1536`` vector dimensions and measures
-similarity using ``euclidean``. 
+Create and Manage {+avs+} Indexes   
+---------------------------------------------
 
-.. code-block:: json 
-   :linenos:
+You can create and manage {+avs+} indexes from the {+atlas-ui+} and
+the {+atlas-admin-api+}. To learn more, see: 
 
-   {
-     "name": "default",
-     "type": "vectorSearch",
-     "fields": [{
-       "type": "vector",
-       "path": "plot_embedding",
-       "numDimensions": 1536,
-       "similarity": "euclidean"
-     }]
-   }
+- :ref:`avs-create-index`
+- :ref:`avs-view-index`
+- :ref:`avs-edit-index`
+- :ref:`avs-delete-index`
 
-If you load the :ref:`sample data <mflix-embedded_movies>` on your 
-cluster and create the preceding |fts| index for this collection, 
-you can run :pipeline:`$vectorSearch` queries against this collection.
-To learn more about the sample queries that you can run, see 
-:ref:`$vectorSearch Examples <vectorSearch-agg-pipeline-egs>`.
+.. _avs-node-status-ref:
+
+Node Status
+-----------
+
+When you create the {+avs+} index, the :guilabel:`Status` column shows 
+the current state of the index on the primary node of the cluster. 
+Click the :guilabel:`View status details` link below the status to view 
+the state of the index on all the nodes of the cluster.
+
+When the :guilabel:`Status` column reads :guilabel:`Active`, the index
+is ready to use. In other states, queries against the index may return
+incomplete results.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Status
+     - Description
+
+   * - Not Started 
+     - |service| has not yet started building the index.
+
+   * - Initial Sync 
+     - |service| is building the index or re-building the 
+       index after an edit. When the index is in this state:
+       
+       - For a new index, {+avs+} doesn't serve queries until the 
+         index build is complete. 
+       - For an existing index, you can continue to use the old index 
+         for existing and new queries until the index rebuild 
+         is complete.
+
+   * - Active
+     - Index is ready to use.
+
+   * - Recovering
+     - Replication encountered an error. This state commonly occurs 
+       when the current replication point is no longer available on the 
+       |mongod| oplog. You can still query the existing index until it 
+       updates and its status changes to :guilabel:`Active`. Use the 
+       error in the :guilabel:`View status details` modal window to 
+       troubleshoot the issue. To learn more, see 
+       :ref:`atlas-search-alerts`.
+
+   * - Failed 
+     - |service| could not build the index. Use the error  
+       in the :guilabel:`View status details` modal window to 
+       troubleshoot the issue. To learn more, see 
+       :ref:`atlas-search-alerts`.
+
+   * - Delete in Progress
+     - |service| is deleting the index from the cluster nodes.
+
+While |service| builds the index and after the build completes, the 
+:guilabel:`Documents` column shows the percentage and number of 
+documents indexed. The column also shows the total number of documents 
+in the collection.

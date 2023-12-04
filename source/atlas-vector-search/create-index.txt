@@ -1,0 +1,131 @@
+.. _avs-create-index:
+
+===================================
+Create an {+avs+} Index
+===================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas vector search, create an atlas vector search index, create an atlas vector search index, create an atlas vector search index using the atlas ui, create an atlas vector search index using the atlas vector search ui
+   :description: Create an Atlas Vector Search index using the Atlas UI, mongosh, or MongoDB driver.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/facts/fts-index-description.rst
+
+You can create an {+avs+} index for all collections that contain vector
+embeddings less than and equal to 2048 dimensions in width for any kind
+of data along with other data on your |service| {+cluster+} through the
+{+atlas-ui+} and {+atlas-admin-api+}.  
+
+.. _avs-create-index-prerequisites:
+
+Prerequisites
+-------------
+
+To create an {+avs+} index, you must have an |service| {+cluster+} with
+the following prerequisites: 
+
+- MongoDB version ``6.0.11``, ``7.0.1``, or higher
+- A collection for which create the {+avs+} index 
+
+.. _avs-create-index-access:
+
+Required Access
+---------------
+
+You need the :authrole:`Project Data Access Admin` or higher role to create
+and manage {+avs+} indexes.
+
+.. _avs-create-index-procedure:
+
+Procedure 
+---------
+
+.. tabs:: 
+
+   .. tab:: Atlas UI 
+      :tabid: ui 
+
+      .. include:: /includes/steps-avs-create-index-atlas-ui.txt
+
+   .. tab:: Atlas Administration API 
+      :tabid: api 
+
+      To create an {+avs+} index for a collection using the
+      {+atlas-admin-api+}, send a ``POST`` request to the |fts|
+      ``indexes`` endpoint with the required parameters. To learn more 
+      about the syntax and parameters for the endpoint, see
+      :oas-atlas-op:`Create One Atlas Search Index
+      <createAtlasSearchIndex>`.  
+
+.. _avs-types-vector-search-egs:
+
+Create an Example Index  
+--------------------------------
+
+The following index definition for the ``sample_mflix.embedded_movies``
+collection indexes the ``plot_embedding`` field as the ``vector`` type
+and the ``genres`` field as the ``filter`` type in a ``vectorSearch``
+type index from the {+atlas-ui+}. The ``plot_embedding`` field contains
+embeddings created using OpenAI's ``text-embedding-ada-002`` embeddings
+model. The index definition specifies ``1536`` vector dimensions and
+measures similarity using ``euclidean``. 
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Go the :guilabel:`Create Vector Search Index` page: 
+      
+      a. Go to the |fts| page.
+      #. Click :guilabel:`Create Index`.
+      #. Select :guilabel:`Atlas Vector Search Editor`.
+      #. Click :guilabel:`Next`.
+      
+      For detailed instructions, see :ref:`avs-create-index-procedure`.  
+
+   .. step:: Enter the :guilabel:`Index Name`, and set the :guilabel:`Database and Collection`.
+
+      a. In the :guilabel:`Index Name` field, enter **vector_index** as
+         the name for the index.  
+
+         Index name must be unique within the namespace,
+         regardless of the index type. If you already have an
+         index named *vector_index* on this collection, enter a
+         different name for the index.
+
+      #. In the :guilabel:`Database and Collection` section, find
+         the ``sample_mflix`` database, and select the
+         ``embedded_movies`` collection.  
+
+   .. step:: Replace the sample index definition with the following example.
+
+      .. code-block:: json 
+         :linenos:
+
+         {
+           "type": "vectorSearch",
+           "fields": [{
+             "type": "vector",
+             "path": "plot_embedding",
+             "numDimensions": 1536,
+             "similarity": "euclidean"
+           },
+           {
+             "type": "filter",
+             "path": "genres"
+           }]
+         }
+
+   .. step:: Click :guilabel:`Next` to review the index and then click :guilabel:`Create Search Index`. 
+
+If you load the :ref:`sample data <mflix-embedded_movies>` on your 
+{+cluster+} and create the preceding |fts| index for this collection, 
+you can run :pipeline:`$vectorSearch` queries against this collection.
+To learn more about the sample queries that you can run, see 
+:ref:`$vectorSearch Examples <vectorSearch-agg-pipeline-egs>`.
