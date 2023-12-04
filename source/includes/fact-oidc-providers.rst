@@ -1,6 +1,6 @@
 .. list-table::
   :header-rows: 1
-  :widths: 20 25 35 20
+  :widths: 20 18 42 20
 
   * - Field
 
@@ -113,9 +113,49 @@
       The default value is ``sub`` (stands for ``subject``). 
 
 
+  * - ``useAuthorizationClaim`` 
+
+    - Optional
+
+    - Determines if the ``authorizationClaim`` is required. The default value is 
+      ``true``.
+    
+      If the ``useAuthorizationClaim`` field is set to ``true``, the server requires 
+      an ``authorizationClaim`` for the identity provider's config. This is the 
+      default behavior.
+      
+      If the ``useAuthorizationClaim`` field is set to ``false``, the 
+      ``authorizationClaim`` field is optional (and ignored if provided). 
+      Instead, the server does the following:
+
+      - Searches the token for a claim whose name is listed in the 
+        ``principalNameClaim`` field. This is typically named ``sub``. For 
+        example:
+
+        ``sub: "spencer.jackson@example.com"``
+
+      - Constructs the internal username by concatenating the ``authNamePrefix``, 
+        a forward slash (``/``), and the contents of the claim identified by 
+        ``principalNameClaim`` within the access token. For example, with a 
+        ``authNamePrefix`` field value of "mdbinc", the internal username is:
+
+        ``mdbinc/spencer.jackson@example.com``
+
+      - Looks for the user with this username and authorizes the client with the 
+        roles: 
+
+        .. code-block:: javascript
+        
+            { user: "mdbinc/spencer.jackson@example.com", 
+              db: "$external" }
+        
+      .. versionadded:: 7.2
+
+    - boolean
+
   * - ``authorizationClaim`` 
 
-    - Conditional
+    - Conditional 
 
     - string
 
