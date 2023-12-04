@@ -23,9 +23,8 @@
    {+shared-clusters+}. You can't build indexes with a rolling build 
    for {+serverless-instances+}.
 
-Building indexes in a rolling fashion reduces the performance impact of
-building indexes on :term:`replica sets <replica set>` and
-:term:`sharded clusters <sharded cluster>`. 
+For workloads which cannot tolerate performance decrease due to index 
+builds, consider building indexes in a rolling fashion.
 
 To maintain {+cluster+} availability:
 
