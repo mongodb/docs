@@ -1,6 +1,6 @@
 .. note:: 
 
-   Online archive doesn't archive data below the size of 100 kB. This behavior 
-   begins 7 days after your last successful archival run. Archiving resumes 
-   after your data size reaches 100 kB.
-   
+   Online archive doesn't archive data below the size of 5 MiB after 7
+   days. For 7 days immediately after |service| creates an archive, 
+   |service| archives all data. After 7 days, |service| archives data
+   only when your data size reaches 5 MiB. 
