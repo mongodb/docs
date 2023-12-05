@@ -1,23 +1,24 @@
 ref: transactions-read-pref
 content: |
 
-   :ref:`Multi-document transactions <transactions>` that contain
+   :ref:`Distributed transactions <transactions>` that contain
    read operations must use read preference :readmode:`primary`. All
    operations in a given transaction must route to the same member.
 
 ---
 ref: transactions-usage
 content: |
+
    .. important::
 
-      In most cases, multi-document transaction incurs a greater
+      In most cases, a distributed transaction incurs a greater
       performance cost over single document writes, and the
-      availability of multi-document transactions should not be a
+      availability of distributed transactions should not be a
       replacement for effective schema design. For many scenarios, the
       :ref:`denormalized data model (embedded documents and arrays)
       <data-modeling-embedding>` will continue to be optimal for your
       data and use cases. That is, for many scenarios, modeling your data
-      appropriately will minimize the need for multi-document
+      appropriately will minimize the need for distributed
       transactions. 
       
       For additional transactions usage considerations
@@ -34,20 +35,9 @@ content: |
 ref: transactions-intro-blurb
 content: |
 
-   For situations that require atomicity of reads and writes to multiple
-   documents (in a single or multiple collections), MongoDB supports
-   multi-document transactions:
+   .. include:: /includes/transactions/distributed-transaction-repl-shard-support.rst
 
-   - **In version 4.0**, MongoDB supports multi-document transactions on
-     replica sets.
-
-   - **In version 4.2**, MongoDB introduces distributed transactions,
-     which adds support for multi-document transactions on sharded
-     clusters and incorporates the existing support for
-     multi-document transactions on replica sets.
-
-   For details regarding transactions in MongoDB, see the
-   :ref:`transactions <transactions>` page.
+   For more information, see :ref:`transactions <transactions>`
 
 ---
 ref: transactions-faq
@@ -62,20 +52,9 @@ content: |
    document is updated; any errors cause the operation to roll back so
    that clients receive a consistent view of the document.
 
-   However, for situations that require atomicity of reads and writes
-   to multiple documents (in a single or multiple collections), MongoDB
-   supports multi-document transactions:
+   .. include:: /includes/transactions/distributed-transaction-repl-shard-support.rst
 
-   - **In version 4.0**, MongoDB supports multi-document transactions on
-     replica sets.
-
-   - **In version 4.2**, MongoDB introduces distributed transactions,
-     which adds support for multi-document transactions on sharded
-     clusters and incorporates the existing support for
-     multi-document transactions on replica sets.
-
-     For details regarding transactions in MongoDB, see the
-     :ref:`transactions <transactions>` page.
+   For more information, see :ref:`transactions <transactions>`.
 
 ---
 ref: transactions-operations-restrictions
@@ -84,13 +63,6 @@ content: |
    .. versionchanged:: 4.4
  
    The following operations are not allowed in transactions:
-
-   - Operations that affect the database catalog, such as creating or
-     dropping a collection or an index when using MongoDB 4.2 or lower.
-     Starting in MongoDB 4.4, you can create collections and indexes
-     in transactions unless the transaction is a cross-shard write
-     transaction. For details, see
-     :ref:`transactions-create-collections-indexes`.
  
    - Creating new collections in cross-shard write transactions. For
      example, if you write to an existing collection in one shard and
@@ -124,13 +96,8 @@ content: |
 ref: transactions-operations-crud
 content: |
 
-   - You can specify read/write (CRUD) operations on **existing**
-     collections. For a list of CRUD operations, see
-     :ref:`transactions-operations-crud`.
-  
-   - Starting in MongoDB 4.4, you can create collections and
-     indexes in transactions. For details, see
-     :ref:`transactions-create-collections-indexes`
+   - You can create collections and indexes in transactions. For
+     details, see :ref:`transactions-create-collections-indexes`
    
    - The collections used in a transaction can be in different
      databases.
@@ -140,7 +107,7 @@ content: |
         .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
 
    - You cannot write to :ref:`capped <manual-capped-collection>`
-     collections. (Starting in MongoDB 4.2)
+     collections.
 
    - You cannot use read concern :readconcern:`"snapshot"` when reading
      from a :ref:`capped <manual-capped-collection>` collection.
@@ -151,7 +118,8 @@ content: |
 
    - You cannot write to ``system.*`` collections.
 
-   - You cannot return the supported operation's query plan (i.e. ``explain``).
+   - You cannot return the supported operation's query plan using 
+     ``explain`` or similar commands.
 
    .. include:: /includes/extracts/transactions-operations-getMore.rst
 
@@ -191,8 +159,7 @@ content: |
 ref: transactions-supported-operation
 content: |
 
-   |operation| can be used inside :ref:`multi-document transactions
-   <transactions>`.
+   |operation| can be used inside :ref:`distributed transactions <transactions>`.
 
 ---
 ref: transactions-distinct-support
@@ -288,7 +255,7 @@ content: |
    However, it does not affect :ref:`transactions <transactions>`
    on replica sets. For transactions on replica sets, you can specify
    read concern :readconcern:`"majority"` (or :readconcern:`"snapshot"`
-   or :readconcern:`"local"` ) for multi-document transactions even if
+   or :readconcern:`"local"` ) for distributed transactions even if
    read concern :readconcern:`"majority"` is disabled.
    
 # This is included in pages talking more about disabling rc majority and its effects.
@@ -298,15 +265,13 @@ content: |
 ref: transactions-read-concern-majority-replica-set
 content: |  
 
-   On replica set,
-      You can specify read concern :readconcern:`"local"` or
-      :readconcern:`"majority"` or :readconcern:`"snapshot"` even in
-      the replica set has :ref:`disabled read concern "majority"
-      <disable-read-concern-majority>`.
+   On a replica set, you can specify read concern :readconcern:`"local"`
+   or :readconcern:`"majority"` or :readconcern:`"snapshot"` even if the
+   replica set has :ref:`disabled read concern "majority"
+   <disable-read-concern-majority>`.
    
-      However, if you are planning to transition to a sharded cluster with
-      disabled read concern majority shards, you may wish to avoid using
-      read concern ``"snapshot"``.
+   However, if you are planning to transition to a sharded cluster with
+   disabled read concern majority shards, avoid using read concern ``"snapshot"``.
 
 ---
 ref: transactions-chunk-migration
@@ -339,14 +304,15 @@ content: |
    :pipeline:`$count` aggregation stage or the :pipeline:`$group` (with a
    :group:`$sum` expression) aggregation stage.
 
-   MongoDB drivers compatible with the 4.0 features provide a
-   collection-level API ``countDocuments(filter, options)`` as a helper
-   method that uses the :pipeline:`$group` with a :group:`$sum` expression
-   to perform a count. The 4.0 drivers have deprecated the ``count()`` API.
+   MongoDB drivers provide a collection-level API
+   ``countDocuments(filter, options)`` as a helper method that uses the
+   :pipeline:`$group` with a :group:`$sum` expression
+   to perform a count. The ``count()`` API is deprecated.
 
-   Starting in MongoDB 4.0.3, :binary:`~bin.mongosh` provides the
+   :binary:`~bin.mongosh` provides the
    :method:`db.collection.countDocuments()` helper method that uses the
-   :pipeline:`$group` with a :group:`$sum` expression to perform a count.
+   :pipeline:`$group` with a :group:`$sum` expression to perform a
+   count.
 
 ---
 ref: transactions-distinct
@@ -409,14 +375,14 @@ content: |
 ref: transactions-killop-change
 content: |
 
-   Starting in MongoDB 4.2, you cannot specify :dbcommand:`killCursors` as
+   You cannot specify :dbcommand:`killCursors` as
    the first operation in a :ref:`transaction <transactions>`.
 
 ---
 ref: transactions-capped-collection-change
 content: |
 
-   Starting in MongoDB 4.2, you cannot write to :ref:`capped 
+   You cannot write to :ref:`capped 
    <manual-capped-collection>` collections in :ref:`transactions
    <transactions>`.
 
@@ -458,22 +424,26 @@ content: |
    During the commit for a transaction, outside read operations may try
    to read the same documents that will be modified by the transaction.
    If the transaction writes to multiple shards, then during the commit
-   attempt across the shards
+   attempt across the shards:
    
    - Outside reads that use read concern :readconcern:`"snapshot"` or
-     :readconcern:`"linearizable"`, or are part of causally consistent
-     sessions (i.e. include :ref:`afterClusterTime <afterClusterTime>`)
-     wait for all writes of a transaction to be visible.
+     :readconcern:`"linearizable"` wait until all writes of a transaction 
+     are visible.
+     
+   - Outside reads that are part of causally consistent
+     sessions (those that include 
+     :ref:`afterClusterTime <afterClusterTime>`) wait until all writes
+     of a transaction are visible.
 
-   - Outside reads using other read concerns do not wait for all writes
-     of a transaction to be visible but instead read the
-     before-transaction version of the documents available.
+   - Outside reads using other read concerns do not wait until all writes
+     of a transaction are visible, but instead read the 
+     before-transaction version of the documents.
 
 ---
 ref: transactions-inmemory-txn-page
 content: |
 
-   Starting in MongoDB 4.2, :ref:`multi-document transactions
+   :ref:`distributed transactions
    <transactions>` are supported on replica sets and sharded
    clusters where:
 
@@ -481,9 +451,6 @@ content: |
 
    - the secondary members use either the WiredTiger storage engine or 
      the :ref:`in-memory <storage-inmemory>` storage engines.
-
-   In MongoDB 4.0, only replica sets using the WiredTiger storage
-   engine support transactions.
 
    .. note:: 
 
@@ -496,7 +463,7 @@ content: |
 ref: transactions-inmemory-storage-page
 content: |
    
-   Starting in MongoDB 4.2, transactions are supported on replica sets
+   Transactions are supported on replica sets
    and sharded clusters where:
 
    - the primary uses the :ref:`WiredTiger <storage-wiredtiger>` storage
@@ -504,9 +471,6 @@ content: |
 
    - the secondary members use either the WiredTiger storage engine or the
      :ref:`in-memory <storage-inmemory>` storage engines.
-
-   In MongoDB 4.0, only replica sets using the WiredTiger storage
-   engine supported transactions.
 
    .. note:: 
 
@@ -525,13 +489,12 @@ content: |
 ref: transactions-create-collections-read-concern
 content: |
 
-   Starting in MongoDB 4.4, you can
-   :ref:`create collections and indexes
+   You can :ref:`create collections and indexes
    <transactions-create-collections-indexes>` inside a transaction. If
    :ref:`explicitly <transactions-operations-ddl-explicit>` creating a
    collection or an index, the transaction must use read concern
-   :readconcern:`"local"`. :ref:`Implicit
-   <transactions-operations-ddl-implicit>` creation of a collection can
+   :readconcern:`"local"`. If you :ref:`implicitly
+   <transactions-operations-ddl-implicit>` create a collection, you can
    use any of the read concerns available for transactions.
    
 ---
@@ -540,14 +503,10 @@ content: |
    
    .. important::
 
-      - *Recommended*. Use the MongoDB driver updated for the version
-        of your MongoDB deployment. For transactions on MongoDB 4.2
-        deployments (replica sets and sharded clusters), clients
-        :red:`must` use MongoDB drivers updated for MongoDB 4.2.
+      - Use the MongoDB driver for your MongoDB version.
 
-      - When using the drivers, each operation in the
-        transaction :red:`must` be associated with the session (i.e.
-        pass in the session to each operation).
+      - When using drivers, each operation in the transaction must pass
+        the session to each operation.
 
       - Operations in a transaction use :ref:`transaction-level read
         concern <transactions-read-concern>`, :ref:`transaction-level
@@ -555,31 +514,18 @@ content: |
         :ref:`transaction-level read preference
         <transactions-read-preference>`.
 
-      - In MongoDB 4.2 and earlier, you cannot create collections in
-        transactions. Write operations that result in document inserts
-        (e.g. ``insert`` or update operations with ``upsert: true``)
-        must be on **existing** collections if run inside transactions.
-
-      - Starting in MongoDB 4.4, you can create collections in
-        transactions implicitly or explicitly. See
-        :ref:`transactions-create-collections-indexes`.
+      - You can create collections in transactions implicitly or 
+        explicitly. See :ref:`transactions-create-collections-indexes`.
 
 ---
 ref: transactions-upsert-availability
 content: |
 
-   Starting in MongoDB 4.4, you can create collections and indexes
-   inside a :ref:`multi-document transaction
-   <transactions-create-collections-indexes>` if the transaction is
-   :red:`not` a cross-shard write transaction.
+   .. include:: /includes/transactions/create-collections-indexes-in-transaction.rst
    
-   Specifically, in MongoDB 4.4 and greater, |operation| with
-   ``upsert: true`` can be run on an existing collection or a
-   non-existing collection. If run on a non-existing collection,
-   the operation creates the collection.
-
-   In MongoDB 4.2 and earlier, the operation must be run on an existing
-   collection.
+   |operation| with ``upsert: true`` can be run on an existing
+   collection or a non-existing collection. If run on a non-existing
+   collection, the operation creates the collection.
 
    .. seealso::
 
@@ -588,17 +534,10 @@ content: |
 ref: transactions-insert-implicit-collection-creation
 content: |
 
-   Starting in MongoDB 4.4, you can create collections and indexes
-   inside a :ref:`multi-document transaction
-   <transactions-create-collections-indexes>` if the transaction is
-   :red:`not` a cross-shard write transaction.
+   .. include:: /includes/transactions/create-collections-indexes-in-transaction.rst
 
-   Specifically, in MongoDB 4.4 and greater, if you specify an insert on a
-   non-existing collection in a transaction, the collection is
-   implicitly created.
-
-   In MongoDB 4.4 and earlier, the operation must be run on an existing
-   collection.
+   If you specify an insert on a non-existing collection
+   in a transaction, MongoDB creates the collection implicitly.
 
    .. seealso::
 
@@ -607,10 +546,7 @@ content: |
 ---
 ref: transactions-explicit-ddl
 content: |
-   Starting in MongoDB 4.4, you can create collections and indexes
-   inside a :ref:`multi-document transaction
-   <transactions-create-collections-indexes>` if the transaction is
-   :red:`not` a cross-shard write transaction.
+   .. include:: /includes/transactions/create-collections-indexes-in-transaction.rst
 
    To use |operation| in a transaction, the transaction must use read
    concern :readconcern:`"local"`. If you specify a read concern level
