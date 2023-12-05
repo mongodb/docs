@@ -8,9 +8,17 @@ import (
 
 	"crypto/rand"
 
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+func LoadEnv() {
+	err := godotenv.Load(".env") // This file should contain your KMS credentials
+	if err != nil {
+		panic("Error loading .env file")
+	}
+}
 
 func GetKmsProviderCredentials(kmsProviderName string) map[string]map[string]interface{} {
 
