@@ -1,0 +1,368 @@
+.. _rust-search-text-guide:
+
+===========
+Search Text
+===========
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, full text, string search
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to run a text search.
+A text search allows you to efficiently query fields with string values.
+
+.. important::
+
+   MongoDB text search differs from the more powerful Atlas Search
+   feature. To learn more, see the :atlas:`Atlas Search documentation
+   </atlas-search/>`.
+
+This guide includes the following sections:
+
+- :ref:`Sample Data for Examples <rust-text-sample-data>` presents
+  the sample data that is used by the text search examples
+
+- :ref:`Text Index <rust-text-index>` describes how to create a text
+  index on a string-valued field
+
+- :ref:`Text Search <rust-text-search>` describes how to perform text
+  searches with different search criteria
+
+- :ref:`Aggregation <rust-search-text-aggregation>` describes how to
+  perform text searches by using aggregation pipelines
+
+- :ref:`Additional Information <rust-crud-text-addtl-info>`
+  provides links to resources and API documentation for types
+  and methods mentioned in this guide
+
+.. _rust-text-sample-data:
+
+Sample Data for Examples
+------------------------
+
+The examples in this guide use the following ``Dish`` struct as a model
+for documents in the ``menu`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/text.rs
+   :start-after: start-dish-struct
+   :end-before: end-dish-struct
+   :language: rust
+   :dedent:
+
+The examples use the following sample documents that describe
+dishes you can order at a restaurant:
+
+.. code-block:: json
+   :copyable: false
+   
+   { "name": "Shepherd’s Pie", "description": "A vegetarian take on the classic dish that uses lentils as a base. Serves 2." },
+   { "name": "Green Curry", "description": "A flavorful Thai curry, made vegetarian with tofu. Vegetarian and vegan friendly." },
+   { "name": "Herbed Branzino", "description": "Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4." },
+   { "name": "Kale Tabbouleh", "description": "A bright, herb-based salad. A perfect starter for vegetarians and vegans." },
+   { "name": "Garlic Butter Trout", "description": "Baked trout seasoned with garlic, lemon, dill, and, of course, butter. Serves 2." }
+
+.. _rust-text-index:
+
+Text Index
+----------
+
+Before you perform a text search, you must create a **text index** on
+the collection. A text index specifies the string or string array field
+on which you can perform text searches.
+
+The examples in this guide perform text searches on the
+``description`` field of documents in the ``menu`` collection. To enable
+text searches on the ``description`` field, create a text index as shown
+in the following code:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/text.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-idx
+   :end-before: end-idx
+
+.. _rust-text-search:
+
+Text Search
+-----------
+
+A text search retrieves documents that contain a specified **term** or
+**phrase** in the value of the indexed field. A term is a sequence of
+characters that excludes whitespace characters. A phrase is a sequence
+of terms with any number of whitespace characters.
+
+To perform a text search, include the ``$text`` evaluation query operator,
+followed by the ``$search`` field in your query filter. The ``$text`` operator
+specifies that you are performing a text search on the text-indexed
+fields. The ``$search`` field specifies the term or phrase to search for
+in the text-indexed field or fields.
+
+Query filters for text searches use the following format:
+
+.. code-block:: rust
+
+   let filter = doc! { "$text": { "$search": "<search term or phrase>" } };
+
+.. _rust-text-term:
+
+Search for a Term
+~~~~~~~~~~~~~~~~~
+
+To search for a term, specify the term as a string in your query filter.
+To search for multiple terms, separate each term with a space.
+
+.. note::
+
+   When searching for multiple terms, the ``find()`` method returns any
+   document in which the text-indexed field or fields contain at least
+   one of the terms.
+   
+   For example, if your search terms are ``"one two
+   three"``, MongoDB returns documents in which the indexed field
+   contains ``"one"``, ``"two"``, ``"three"``, or more than one of these terms.
+
+Example
+```````
+
+The following example performs a search for documents in which the
+``description`` field contains the term ``"herb"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/text.rs
+      :start-after: begin-by-term
+      :end-before: end-by-term
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Dish { name: "Kale Tabbouleh", description: "A bright, herb-based salad. A perfect starter for vegetarians and vegans." }
+      Dish { name: "Herbed Branzino", description: "Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4." }
+
+.. tip::
+
+   Even though the search term is ``"herb"``, the text search also matches
+   documents in which the ``description`` field contains ``"herbs"``.
+   This is because a MongoDB text index uses suffix stemming to match
+   similar words. To learn more about how MongoDB matches terms, see
+   :manual:`Index Entries </core/index-text/#index-entries>` in the
+   Server manual.
+
+.. _rust-text-phrase:
+
+Search for a Phrase
+~~~~~~~~~~~~~~~~~~~
+
+To search for a phrase, specify the phrase with escaped quotes in your
+query filter:
+
+.. code-block:: rust
+
+   let filter = doc! { "$text": { "$search": "\"<some phrase>\"" } };
+
+If you don't add escaped quotes around the phrase, the
+search performs a :ref:`term search <rust-text-term>`.
+
+Example
+```````
+
+The following example performs a search for documents in which the
+``description`` field contains the phrase ``"serves 2"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/text.rs
+      :start-after: begin-by-phrase
+      :end-before: end-by-phrase
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Dish { name: "Shepherd’s Pie", description: "A vegetarian take on the classic dish that uses lentils as a base. Serves 2." }
+      Dish { name: "Garlic Butter Trout", description: "Baked trout seasoned with garlic, lemon, dill, and, of course, butter. Serves 2." }
+
+Exclude Terms from Search
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To specify a term or phrase you want to exclude from your text search,
+prefix it with a minus sign in your query filter:
+
+.. code-block:: rust
+
+   let filter = doc! { "$text": { "$search": "<term> -<excluded term>" } };
+
+.. important::
+
+   You must search for at least one term or phrase to exclude
+   other terms from your search. If you only exclude terms, the
+   search doesn't return any documents.
+
+Example
+```````
+
+The following example performs a search for documents in which the
+``description`` field contains the term ``"vegan"``, but does not
+contain the term ``"tofu"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/text.rs
+      :start-after: begin-exclude-term
+      :end-before: end-exclude-term
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Dish { name: "Kale Tabbouleh", description: "A bright, herb-based salad. A perfect starter for vegetarians and vegans." }
+
+Sort by Relevance
+~~~~~~~~~~~~~~~~~
+
+A text search assigns a numerical text score to indicate how closely
+each result matches the string in your query filter. A higher text score
+indicates that the result is more relevant to your query. To reveal the text
+score in your output, use a projection to retrieve the ``textScore``
+field from the metadata. You can sort the text score in descending order
+by specifying a sort on the ``textScore`` metadata field.
+
+Example
+```````
+
+This example performs the following actions:
+
+- Performs a search for documents in which the ``description`` field contains the term ``"vegetarian"``
+- Sorts the results in descending order on text score
+- Includes only the ``name`` and ``score`` fields in the output
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/text.rs
+      :start-after: begin-sort-relevance
+      :end-before: end-sort-relevance
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Document({"name": String("Green Curry"), "score": Double(0.9166666666666667)})
+      Document({"name": String("Kale Tabbouleh"), "score": Double(0.5625)})
+      Document({"name": String("Shepherd’s Pie"), "score": Double(0.5555555555555556)})
+
+.. _rust-search-text-aggregation:
+
+Aggregation
+-----------
+
+You can include the ``$text`` evaluation query operator in a
+:manual:`$match </reference/operator/aggregation/match/>` aggregation
+stage to perform a text search in an aggregation pipeline.
+
+The following sections demonstrate how to perform text searches by using
+aggregation pipelines instead of the ``find()`` method.
+
+Match a Search Term
+~~~~~~~~~~~~~~~~~~~
+
+The following example uses an aggregation to perform a search for
+documents in which the ``description`` field contains the term
+``"herb"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/text.rs
+      :start-after: begin-agg-term
+      :end-before: end-agg-term
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Document({"_id": ObjectId("..."), "name": String("Kale Tabbouleh"), "description": String("A bright, herb-based salad. A perfect starter for vegetarians and vegans.")})
+      Document({"_id": ObjectId("..."), "name": String("Herbed Branzino"), "description": String("Grilled whole fish stuffed with herbs and pomegranate seeds. Serves 3-4.")})
+
+Sort by Relevance
+~~~~~~~~~~~~~~~~~
+
+This example uses an aggregation to perform the following actions:
+
+- Performs a search for documents in which the ``description`` field contains the term ``"vegetarian"``
+- Sorts the results in descending order on text score
+- Includes only the ``name`` and ``score`` fields in the output
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/fundamentals/code-snippets/crud/text.rs
+      :start-after: begin-agg-relevance
+      :end-before: end-agg-relevance
+      :language: rust
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Document({"name": String("Green Curry"), "score": Double(0.9166666666666667)})
+      Document({"name": String("Kale Tabbouleh"), "score": Double(0.5625)})
+      Document({"name": String("Shepherd’s Pie"), "score": Double(0.5555555555555556)})
+
+.. _rust-crud-text-addtl-info:
+
+Additional Information
+----------------------
+
+For a runnable example that uses the ``find()`` method, see the
+:ref:`rust-find-usage` usage example.
+
+To learn more about the operations in this guide, see the
+following documentation:
+
+- :ref:`rust-query-guide`
+- :ref:`rust-retrieve-guide`
+- :ref:`rust-aggregation`
+- :ref:`rust-indexes`
+- :manual:`Text Indexes </core/index-text/>` in the Server manual
+- :manual:`$text </reference/operator/query/text/>` in the Server manual
+- :manual:`$meta </reference/operator/aggregation/meta/>` in the Server manual
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `find() <{+api+}/struct.Collection.html#method.find>`__
+- `FindOptions <{+api+}/options/struct.FindOptions.html>`__
+- `Cursor <{+api+}/struct.Cursor.html>`__
+- `clone_with_type() <{+api+}/struct.Collection.html#method.clone_with_type>`__
+- `aggregate() <{+api+}/struct.Collection.html#method.aggregate>`__

@@ -59,7 +59,7 @@ async fn main() -> mongodb::error::Result<()> {
         .build();
 
     let index = IndexModel::builder()
-        .keys(doc! { "body": 1 })
+        .keys(doc! { "body": "text" })
         .options(idx_opts)
         .build();
 
