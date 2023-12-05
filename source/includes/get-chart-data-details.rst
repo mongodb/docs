@@ -1,7 +1,7 @@
-.. important:: Data Table Differs from Chart Visualization
+.. important:: Table Differs from Chart Visualization
 
    Some configuration options you see reflected on a chart
-   visualization are not applied to the data table. The
+   visualization are not applied to the table. The
    :guilabel:`Chart Data` table displays underlying data retrieved
    with your full aggregation pipeline, and not all Chart Builder
    configuration options apply aggregation stages. Review your data to
