@@ -153,7 +153,7 @@ limitations and considerations:
      - {+Serverless-instances+} support the following
        authentication methods only:
       
-       - Password (SCRAM-SHA-256)
+       - Password (SCRAM-SHA-1)
        - X.509 Certificates
        - AWS IAM
 
