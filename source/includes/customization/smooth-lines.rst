@@ -2,7 +2,7 @@ You can change the way lines are drawn on your chart. To smooth lines:
 
 1. Open the :ref:`Customize <customize-charts>` pane for your chart.
 
-#. In the :guilabel:`General Customization` section, set
+#. In the :guilabel:`General` section, set
    :guilabel:`Line Smoothing` to the desired option.
 
 The following line smoothing options are available:
