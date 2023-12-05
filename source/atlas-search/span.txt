@@ -27,6 +27,12 @@ Definition
    computationally intensive than other operators, because queries must
    keep track of positional information.
 
+   ``span`` is a term-level operator, which means that the ``query``
+   field is not analyzed. Term-level operators work well with the
+   :ref:`Keyword Analyzer <ref-keyword-analyzer>` because the
+   ``query`` field is treated as a single term, with special characters
+   included.
+
    ``span`` queries aren't ranked by score.
 
 .. _span-syntax:
@@ -37,14 +43,14 @@ Syntax
 ``span`` has the following syntax:
 
 .. code-block:: javascript
-   :linenos:
+   :copyable: false
 
    {
       $search: {
         "index": <index name>, // optional, defaults to "default"
         "span": {
-          <clauses>: {
-            <search queries>
+          "term" | <positional-operator>": {
+            <operator-specification>
           }
         }
       }
@@ -55,204 +61,809 @@ Syntax
    ``span`` search queries can't use the :ref:`compound <compound-ref>` 
    operator.
 
-Examples
---------
+.. _span-term-ref:
 
-The examples on this page use a collection called ``fruit`` which
-contains the following documents:
+Term Operator 
+-------------
 
-.. code-block:: json
-   :linenos:
+You can use the ``term`` operator to specify the terms to search. The
+``term`` operator is required and when you use it with ``span``
+:ref:`positional <span-positional-operators-ref>` operators, it must be
+the innermost child of the positional operators.
 
-   {
-     "_id" : 1,
-     "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
-   },
-   {
-     "_id" : 2,
-     "type" : "banana",
-     "description" : "Bananas are usually sold in bunches of five or six."
-   },
-   {
-     "_id" : 3,
-     "type" : "grapes",
-     "description" : "Six bunches of grapes weigh about 3 pounds."
+Syntax 
+~~~~~~
+
+The ``term`` operator has the following syntax: 
+
+.. code-block:: json 
+   :copyable: false 
+
+   "term": {
+     "path": "<path-to-field>",
+     "query": "<terms-to-search>"
    }
 
-``first``
-~~~~~~~~~
+Fields 
+~~~~~~
 
-The following example uses a ``first`` clause to find documents
-in which the string ``bunches`` appears near the beginning of the
-``description`` field. The ``endPositionLte`` parameter has a
-value of ``2``, specifying that the search term must be the first
-or second word in the field.
+The ``term`` operator takes the following fields:  
 
-.. code-block:: javascript
-   :linenos:
+.. list-table:: 
+   :header-rows: 1 
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "span": {
-           "first": {
-             "operator": {
-               "term": {
-                 "path": "description",
-                 "query": "bunches"
-               }
-             },
-             "endPositionLte": 2
-           }
+   * - Option  
+     - Type 
+     - Required?
+     - Description
+
+   * - ``path``
+     - string 
+     - yes
+     - Indexed field to search.
+
+   * - ``query``
+     - string 
+     - yes
+     - Term or phrase to search.
+
+.. _span-positional-operators-ref:
+
+Positional Operators  
+--------------------
+
+You can use the positional operators to specify the position of the
+terms that you want to search with the :ref:`term <span-term-ref>`
+operator. The positional operators are of type ``document``. You must
+specify at least one positional operator in your ``span`` operator
+query. The positional operators can take other ``span`` positional
+operators, recursively. 
+
+.. note:: About the Examples 
+
+   The examples on this page use the ``sample_mflix.movies`` collection.
+   If you :ref:`load the sample data <sample-data>`
+   and :ref:`create <ref-create-index>` a :ref:`dynamic
+   <static-dynamic-mappings>` index named ``default`` on the
+   :ref:`movies collection <sample-mflix>` , you can run the following
+   :pipeline:`$search` sample queries against the collection. The sample
+   queries use the :pipeline:`$limit` stage to limit the results to
+   ``5`` documents and the :pipeline:`$project` stage to exclude all
+   fields except the ``title`` field in the results.  
+
+``span`` takes the following optional positional operators.
+
+.. _span-contains:
+
+``contains`` 
+~~~~~~~~~~~~
+   
+The ``contains`` positional operator matches terms that are contained
+within other terms. You can use :ref:`positional operators
+<span-positional-operators-ref>` recursively or just the :ref:`term
+<span-term-ref>` operator within ``contains`` to specify the search
+terms.  
+   
+Syntax 
+``````
+
+The ``contains`` positional operator has the following syntax:  
+
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 4-8
+
+   {
+     "$search": {
+       "span": {
+         "contains": {
+           "spanToReturn": "inner"|"outer",
+           "little": { <positional-or-term-operator-specification> },
+           "big": { <positional-or-term-operator-specification> }
          }
        }
      }
-   ])
+   } 
 
-The above query returns the document with ``_id: 3``, which has a
-``description`` field with ``bunches`` as the second word.
+Fields 
+``````
 
-.. code-block:: json
-   :copyable: false
+The ``contains`` positional operator takes the following fields: 
+
+.. list-table:: 
+   :header-rows: 1 
+
+   * - Fields  
+     - Type 
+     - Required?
+     - Description
+
+   * - ``big`` 
+     - document 
+     - yes
+     - One or more :ref:`positional operators
+       <span-positional-operators-ref>` specified recursively or 
+       just the :ref:`term <span-term-ref>` operator. The following table shows
+       the type of query that ``span`` executes for ``big`` based on the
+       value of ``spanToReturn``.
+       
+       .. list-table:: 
+          :stub-columns: 1
+
+          * - ``outer``
+            - ``span`` matches terms from ``big`` that *contain* at
+              least one term from ``little``. 
+
+          * - ``inner`` 
+            - ``span`` matches terms from ``little`` that are *within*
+              terms from ``big``.
+
+   * - ``little`` 
+     - document
+     - yes
+     - One or more :ref:`positional operators
+       <span-positional-operators-ref>` specified recursively or 
+       just the :ref:`term <span-term-ref>` operator. The following table shows
+       the type of query that ``span`` executes for ``little`` based on
+       the value of ``spanToReturn``.
+       
+       .. list-table:: 
+          :stub-columns: 1
+
+          * - ``inner`` 
+            - ``span`` matches terms from ``little`` that are *within* 
+              terms from ``big``.
+
+          * - ``outer``
+            - ``span`` matches terms from ``big`` that *contain* at
+              least one term from ``little``. 
+
+   * - ``score`` 
+     - document 
+     - no
+     - Score to apply to the results of this search.
+
+   * - ``spanToReturn`` 
+     - string 
+     - yes 
+     - Type of query to execute and matching results to return. Value
+       can be one of the following:  
+
+       - ``inner`` - to execute a *within* query that matches terms from
+         ``little`` that are inside of terms from ``big``
+       - ``outer`` - to execute a *contains* query that matches terms
+         from ``big`` that contain at least one term from ``little``
+
+Example 
+``````` 
+
+The following example query uses ``span.contains`` to find documents in
+which the term ``train`` appears with the terms ``great`` and
+``robbery``, where ``great`` and ``robbery`` can be up to 5 positions
+apart in the ``title`` field. 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: 
+      :language: javascript
+      :linenos: 
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "span": {
+              "contains": {
+                "spanToReturn": "outer",
+                "little": {
+                  "term": {
+                    "path": "title",
+                    "query": "train"
+                  }
+                },
+                "big": {
+                  "near": {
+                    "clauses": [
+                      {
+                        "term": {
+                          "path": "title",
+                          "query": "great"
+                        }
+                      },
+                      {
+                        "term": {
+                          "path": "title",
+                          "query": "robbery"
+                        }
+                      }
+                    ],
+                    "slop": 5
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: shell
+
+      [
+        { title: 'The Great Train Robbery' },
+        { title: 'The Great Train Robbery' },
+        { title: "The Great St. Trinian's Train Robbery" }
+      ]
+
+|fts| returns documents that *contain* the term ``train`` (specified
+using ``little``) inside the terms ``great`` and ``robbery`` (specified 
+using ``big``). If you set ``spanToReturn`` on line 6 to ``inner``, |fts|
+returns the same documents because the term ``train`` (specified using
+``little``) appears *within* the terms ``great`` and ``robbery``
+(specified using ``big``). 
+
+.. _span-first:
+
+``first`` 
+~~~~~~~~~
+
+The ``first`` positional operator identifies the position of the search
+term by using a specified number. You can specify the search terms using
+:ref:`positional operators <span-positional-operators-ref>` recursively,
+or just the :ref:`term <span-term-ref>` operator. ``span`` matches
+documents where the position of the search term is less than or equal to
+the specified number. 
+
+Syntax 
+``````
+
+The ``first`` positional operator has the following syntax: 
+
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 4-8
 
    {
-     "_id": 3,
-     "type": "grapes",
-     "description": "Six bunches of grapes weigh about 3 pounds."
-   }
+     "$search": {
+       "span": {
+         "first": {
+           "endPositionLte": <term-position>,
+           "operator": { <span-positional-or-term-operator-specification> },
+           "score": { <score-options> }
+         }
+       }
+     }
+   }  
+
+Fields 
+``````
+
+The ``first`` positional operator takes the following fields:
+
+.. list-table:: 
+   :header-rows: 1 
+
+   * - Option  
+     - Type 
+     - Required?
+     - Description
+
+   * - ``endPositionLte``
+     - int 
+     - no
+     - Number that specifies the position of the search term. If 
+       you specify a search for multiple terms, the last term should be
+       less than or equal to this value. If omitted, defaults to ``3``.
+
+   * - ``operator``
+     - document
+     - yes
+     - Document that contains the :ref:`positional operators
+       <span-positional-operators-ref>` or :ref:`term <span-term-ref>`
+       operator options.  
+
+   * - ``score``
+     - document
+     - no
+     - Score to apply to the results of this search.
+
+Example 
+```````
+
+The following example queries use ``span.first`` to find documents 
+in which the specified string appears in the ``title`` field. The
+``endPositionLte`` parameter has a value of ``2``, which means that the  
+search term specified using the ``term`` operator must be the first or
+second word in the field. 
+
+.. tabs:: 
+
+   .. tab:: term Example 
+      :tabid: term-eg
+
+      .. io-code-block:: 
+         :copyable: true
+   
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "span": {
+                    "first": {
+                      "endPositionLte": 2,
+                      "operator": {
+                        "term": {
+                          "path": "title",
+                          "query": "dance"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+
+            [
+              { title: 'Dance Program' },
+              { title: 'Slam Dance' },
+              { title: 'Last Dance' },
+              { title: 'War Dance' },
+              { title: 'Delhi Dance' }
+            ]
+
+      |fts| returns the documents that contain search word ``dance``
+      in the first or second position of the ``title`` field. 
+
+   .. tab:: or Example 
+      :tabid: or-eg
+
+      .. io-code-block:: 
+         :copyable: true
+   
+         .. input:: 
+            :language: javascript
+            :linenos:
+
+            db.movies.aggregate([
+              {
+                "$search": {
+                  "span": {
+                    "first": {
+                      "endPositionLte": 2,
+                      "operator": {
+                        "or": {
+                          "clauses": [
+                            { "term": { "path": "title", "query": "man" } },
+                            { "term": { "path": "title", "query": "woman" } }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1
+                }
+              }
+            ])
+
+         .. output:: 
+            :language: json
+
+            [
+              { title: "Everybody's Woman" },
+              { title: 'Marked Woman' },
+              { title: 'Wonder Man' },
+              { title: 'Designing Woman' },
+              { title: 'Watermelon Man' }
+            ]
+
+      |fts| returns documents that contain the search word ``man``
+      or ``woman`` in the first or second position of the ``title``
+      field. |fts| does not return both search terms in the same ``title`` 
+      because the example includes the ``or`` operator ``clauses``
+      to specify the search terms.
+
+.. _span-near:
 
 ``near``
 ~~~~~~~~
+   
+The ``near`` positional operator matches two or more clauses that
+contain the search term near each other. You can specify the search
+terms using a list of :ref:`positional operators
+<span-positional-operators-ref>` recursively or just the :ref:`term 
+<span-term-ref>` operator. 
 
-The following query looks for documents in which the strings
-``bunches`` and ``bananas`` are found near each other. The
-``inOrder`` parameter is set to ``false``, so the search terms can
-be in any order. The ``slop`` parameter is set to ``4``, so
-the search terms must be separated by no more than 4 words.
+Syntax 
+``````
 
-.. code-block:: javascript
-   :linenos:
+The ``near`` positional operator has the following syntax:  
+ 
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 4-11
 
-   db.fruit.aggregate([
-     {
-       $search : {
-         "span": {
-           "near": {
-             "clauses": [
-               { "term": { "path": "description", "query": "bunches" } },
-               { "term": { "path": "description", "query": "bananas" } }
-             ],
-             "slop": 4,
-             "inOrder": false
-           }
+   {
+     "$search": {
+       "span": {
+         "near": {
+           "clauses": [
+             { <span-positional-or-term-operator-specification> },
+             ...
+           ],
+           "slop": <distance-number>,
+           "inOrder": true|false
          }
        }
      }
-   ])
+   }  
 
-The above query finds the following result:
+Fields 
+``````
 
-.. code-block:: json
-   :copyable: false
+The ``near`` positional operator takes the following fields: 
 
-   {
-    "_id": 2,
-    "type": "banana",
-    "description": "Bananas are usually sold in bunches of five or six."
-   }
+.. list-table:: 
+   :header-rows: 1 
+
+   * - Field  
+     - Type 
+     - Required?
+     - Description
+
+   * - ``clauses`` 
+     - array of documents 
+     - yes
+     - Span clauses that must be near one another. Clauses can't 
+       be empty. Each document contains ``span`` :ref:`positional 
+       <span-positional-operators-ref>` or just the :ref:`term
+       <span-term-ref>` operator options. 
+
+   * - ``inOrder`` 
+     - boolean
+     - no
+     - Flag that specifies whether the search for terms in the
+       clauses must be in the order specified and must not be
+       overlapping. 
+
+       Value can be one of the following: 
+
+       - ``true`` - to search for terms in the clauses in the
+         specified order specified, without overlapping
+       - ``false`` - to search for terms in the clauses in any order 
+              
+       If omitted, defaults to ``false``.
+
+   * - ``score``
+     - document
+     - no
+     - Score to apply to the results of this search.
+
+   * - ``slop`` 
+     - integer
+     - no
+     - Allowable distance between terms in the clauses. Lower
+       values allow less positional distance between the terms
+       and greater values allow more distance between the words
+       to satisfy the query. The default is ``0``, which means that
+       words in the different clauses must be adjacent to be
+       considered a match.  
+
+Example 
+```````
+
+The following example query uses ``span.near`` to search for documents in
+which the strings ``prince`` and ``pauper`` are found near each other.
+The ``inOrder`` parameter is set to ``false``, so the search terms can
+be in any order. The ``slop`` parameter is set to ``4``, so the search
+terms can be separated by up to only 4 words.  
+
+.. io-code-block:: 
+   :copyable: true
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search" : {
+            "span": {
+              "near": {
+                "clauses": [
+                  { "term": { "path": "title", "query": "prince" } },
+                  { "term": { "path": "title", "query": "pauper" } }
+                ],
+                "slop": 4,
+                "inOrder": false
+              }
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
+
+      [ { title: 'The Prince and the Pauper' } ]
+
+|fts| returns a document that contain search words ``prince`` and
+``pauper``, separated by less than four words, in the ``title`` field.
+
+.. _span-or:
 
 ``or``
-~~~~~~
+~~~~~~ 
+   
+The ``or`` positional operator matches any of two or more clauses. You
+can specify the search terms using a list of :ref:`positional operators
+<span-positional-operators-ref>` recursively or just the :ref:`term
+<span-term-ref>` operator.  
 
-The following query uses two ``term`` clauses to look for documents
-in which the ``description`` field has either ``bananas`` or ``apples``
-as the first word.
+Syntax 
+``````
 
-.. code-block:: javascript
-   :linenos:
+The ``or`` positional operator has the following syntax:  
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "span": {
-           "first": {
-             "endPositionLte": 1,
-             "operator": {
-               "or": {
-                 "clauses": [
-                   { "term": { "path": "description", "query": "bananas" } },
-                   { "term": { "path": "description", "query": "apples" } }
-                 ]
-               }
-             }
-           }
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 4-10
+
+   {
+     "$search": {
+       "span": {
+         "or": {
+           "clauses": [
+             { <span-positional-or-term-operator-specification> },
+             ...
+           ],
+           "score": { <scoring-options> }
          }
        }
      }
-   ])
+   }  
 
-The above query finds the following results:
+Fields 
+``````
 
-.. code-block:: json
-   :copyable: false
+The ``or`` positional operator takes the following fields: 
 
-   {
-     "_id": 1,
-     "type": "apple",
-     "description": "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
-   }, {
-     "_id": 2,
-     "type": "banana",
-     "description": "Bananas are usually sold in bunches of five or six."
-   }
+.. list-table:: 
+   :header-rows: 1 
+
+   * - Option  
+     - Type 
+     - Required?
+     - Description
+
+   * - ``clauses`` 
+     -  array of documents
+     -  yes
+     -  Span clauses that specify the search terms. One of the clauses 
+        must match, and clauses can't be 
+        empty. Each document must contain ``span`` 
+        :ref:`positional operators <span-positional-operators-ref>` specified 
+        recursively or just the :ref:`term <span-term-ref>` operator options.
+
+   * - ``score``
+     - document
+     - no
+     - Score to apply to the results of this search.
+
+Example 
+```````
+
+The following example query uses ``span.or`` clauses to specify two
+:ref:`term <span-term-ref>` operator queries that search for documents
+in which the ``title`` field has either ``city`` or ``country``. 
+
+.. io-code-block:: 
+   :copyable: true
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search" : {
+            "span": {
+              "or": {
+                "clauses": [
+                  { "term": { "path": "title", "query": "city" } },
+                  { "term": { "path": "title", "query": "country" } }
+                ],
+              }
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
+
+      [
+        { title: 'Country' },
+        { title: 'City Lights' },
+        { title: 'King & Country' },
+        { title: 'Fat City' },
+        { title: 'Atlantic City' }
+      ]
+
+|fts| returns the documents that contain the search words ``city`` or 
+``country`` in the ``title`` field, but not both in the same ``title``. 
+
+.. _span-subtract:
 
 ``subtract``
 ~~~~~~~~~~~~
+   
+The ``subtract`` positional operator removes matches that overlap with
+another match. You can specify the search terms using a list of
+:ref:`positional operators <span-positional-operators-ref>` recursively
+or just the :ref:`term <span-term-ref>` operator. The ``subtract``
+clause can be used to exclude certain strings from your search results.
 
-The ``subtract`` clause is useful for excluding certain strings from
-your search results. The following query looks for documents in which
-the ``description`` field contains the words ``six`` and ``bunches``,
-in any order, within 3 words of each other. It excludes any document
-in which the word ``five`` occurs between ``six`` and ``bunches``.
+Syntax 
+``````
 
-.. code-block:: javascript
-   :linenos:
+The ``subtract`` positional operator has the following syntax:
 
-   db.fruit.aggregate([
-     {
-       $search : {
-         "span": {
-           "subtract": {
-             "include": {
-               "near": {
-                 "clauses": [
-                   { "term": { "path": "description", "query": "six" } },
-                   { "term": { "path": "description", "query": "bunches" } }
-                 ],
-                 "inOrder": false,
-                 "slop": 3
-               }
-             },
-             "exclude": { "term": { "path": "description", "query": "five" } }
-           }
+.. code-block:: json 
+   :copyable: false 
+   :emphasize-lines: 4-7
+
+   {
+     "$search": {
+       "span": {
+         "subtract": {
+           "include": { <span-positional-or-term-operator-specification> },
+           "exclude": { <span-positional-or-term-operator-specification> }
          }
        }
      }
-   ])
+   }  
 
-The above query finds the following result:
+Fields 
+``````
 
-.. code-block:: json
-   :copyable: false
+The ``subtract`` positional operator takes the following fields: 
 
-   {
-    "_id": 3,
-    "type": "grapes",
-    "description": "Six bunches of grapes weigh about 3 pounds."
-   }
+.. list-table:: 
+   :header-rows: 1 
 
-The document with ``_id: 2`` isn't included. Although its
-``description`` field includes the words ``six`` and ``bunches``, it
-also has ``five`` between them, and ``five`` is in the ``exclude``
-clause of the query.
+   * - Option  
+     - Type 
+     - Required?
+     - Description
+
+   * - ``exclude``
+     - document 
+     - yes
+     - Document that specifies the term or phrase matches to remove that
+       overlap with the term or phrase matches specified in the
+       ``include`` field. You can specify the term or phrase
+       using any span :ref:`positional operators
+       <span-positional-operators-ref>` and the :ref:`term
+       <span-term-ref>` operator.  
+
+   * - ``include``
+     - document 
+     - yes
+     - Document that specifies the term matches to include using 
+       any :ref:`positional operators <span-positional-operators-ref>`
+       or just the :ref:`term <span-term-ref>` operator.  
+
+   * - ``score``
+     - document
+     - no
+     - Score to apply to the results of this search.
+
+Example 
+```````
+
+The following example query uses ``span.subtract`` to search for documents
+in which the ``title`` field contains the words ``father`` and ``son``,
+in any order, within 3 words of each other. It excludes any document in 
+which the word ``like`` occurs between ``father`` and ``son``. 
+
+.. io-code-block:: 
+   :copyable: true
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search" : {
+            "span": {
+              "subtract": {
+                "include": {
+                  "near": {
+                    "clauses": [
+                      { "term": { "path": "title", "query": "father" } },
+                      { "term": { "path": "title", "query": "son" } }
+                    ],
+                    "inOrder": false,
+                    "slop": 3
+                  }
+                },
+                "exclude": { "term": { "path": "title", "query": "like" } }
+              }
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json
+
+      [
+        { title: 'Father, Son & Holy Cow' },
+        { title: 'My Father and My Son' },
+        { title: 'Jimmy Rosenberg: The Father, the Son & the Talent' }
+      ]
+
+|fts| doesn't return the document with the title ``Like Father Like
+Son`` because although the ``title`` field includes the words ``father``
+and ``son``, it also has ``like`` between them, which is in the
+``exclude`` criteria of the query. 
