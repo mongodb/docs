@@ -1,0 +1,175 @@
+.. _style-guide-sharedinclude:
+
+==============
+Shared Include
+==============
+
+The ``sharedinclude`` directive allows you to source content from a file
+located in the MongoDB internal `docs-shared <https://github.com/10gen/docs-shared>`__
+repository. Use this directive when you need to keep the same content in sync
+for multiple sets of documentation or multiple branches of a documentation set.
+
+This page uses the following terms to refer to the file types related to
+``sharedinclude`` directive usage:
+
+- **External file**: content committed to the ``docs-shared`` repository
+  that can be sourced by other documentation repositories.
+- **Sourcing file**: content in a documentation repository that uses a
+  ``sharedinclude`` directive to pull content from an external file.
+- **Placeholder**: a variable that indicates text that must be substituted for.
+  These are represented by the placeholder name surrounded by the ``|``
+  character and are located in external files.
+
+.. tip::
+
+   The ``sharedinclude`` directive is an extension of the ``include`` directive.
+   It is hardcoded to reference external files from the
+   `10gen/docs-shared <https://github.com/10gen/docs-shared/>`__
+   private GitHub repository.
+
+Syntax
+------
+
+To include content from an external file, add the ``sharedinclude`` directive
+to the sourcing file. Specify the path of external file relative to the
+``docs-shared`` base directory, omitting the leading slash.
+
+For example, if the file path from the root of the ``docs-shared`` repository
+is ``drivers/compatibility-tables/c.rst``, the rST in the sourcing file
+should include the following code:
+
+.. code-block:: rst
+
+   .. _sharedinclude:: drivers/compatibility-tables/c.rst
+
+The external file can include replacement variables in the form of
+``|variable-name|``. This enables the sourcing file to customize segments
+of the page.
+
+For example, suppose the ``docs-shared`` file ``language.rst`` contained the
+following content with a replacement variable called ``|driver-name|``:
+
+.. code-block:: rst
+
+   The following table shows the compatibility between different versions of
+   the |driver-name| driver and the |driver-language|:
+
+The sourcing file could resemble the following code:
+
+.. code-block:: rst
+
+  .. _sharedinclude:: drivers/compatibility-tables/language.rst
+
+     .. replacement:: driver-name
+
+        PyMongo
+
+     .. replacement:: driver-language
+
+        Python language
+
+The published page renders the following text:
+
+.. code-block:: rst
+
+   The following table shows the compatibility between different versions of
+   the PyMongo driver and the Python language:
+
+Snooty reports a warning or error if the sourcing file is missing any
+replacement variables present in the external file.
+
+Behaviors
+---------
+
+- You can include **source constants** in external files. Snooty uses the
+  one in the ``snooty.toml`` file in the sourcing file repository when
+  publishing the file.
+
+
+Placeholders in Inline Context
+``````````````````````````````
+
+An **inline context** describes the positioning of placeholders as adjacent to
+other paragraph text. You can only replace variable placeholders in an inline
+context with values that contain markup elements which includes any of the
+following types:
+
+- Unformatted text
+- Formatted text such as ``monospace``, **emphasis**, or *italic*
+- Links
+
+For example, suppose you want to source content from an external file, located
+at ``dbx/fundamentals/agg-operators.rst`` in the ``docs-shared`` repository,
+which contains the following content:
+
+.. code-block:: rst
+
+   To learn more about **aggregation operators**, see the
+   |learn-agg-operator-docs|.
+
+
+In the sourcing file, you can use the following placeholder replacement
+in the ``sharedinclude`` directive:
+
+.. code-block:: rst
+
+   .. sharedinclude:: dbx/fundamentals/agg-operators.rst
+
+      .. replacement::
+
+         Aggregation Operations page in the
+         :server:`MongoDB Server documentation </aggregation>`.
+
+You cannot replace variable placeholders in inline contexts with elements
+such as lists, codeblocks, includes, and headers. If you need to
+source these elements from a ``sharedinclude``,, make sure the placeholders
+are in a block context as described in the following section.
+
+Placeholders in Block Context
+`````````````````````````````
+
+A **block context** describes the positioning of placeholders as
+separated from paragraph text by linebreaks. You can replace variable
+placeholders in a block context with most inline or block rST elements
+including the following types:
+
+- Titles
+- Code blocks
+- Anchors
+- Admonitions
+
+For example, suppose you want to source content from an external file, located
+at ``dbx/fundamentals/agg-operators.rst`` in the ``docs-shared`` repository,
+which containsk the following content:
+
+.. code-block:: rst
+
+   The next section demonstrates how to use aggregation operators to build
+   an aggregation pipeline.
+
+   |aggregation-operators-example|
+
+   To learn more, see ...
+
+In the sourcing file, you can use the following placeholder replacement
+in the ``sharedinclude`` directive:
+
+.. code-block:: rst
+
+   .. sharedinclude:: dbx/fundamentals/agg-operators.rst
+
+      .. replacement:: aggregation-operators-example
+
+         .. _expression-operators-example:
+
+         Expression Operators Example
+         ````````````````````````````
+
+         Expression operators are similar to functions and can take an array
+         of arguments as shown in the following format:
+
+         .. code-block::
+
+            { <operator>: [ <argument1>, <argument2> ... ] }
+
+
