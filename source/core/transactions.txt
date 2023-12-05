@@ -24,18 +24,18 @@ Transactions
    :class: twocols
 
 .. meta::
-   :description: For situations that require atomicity of reads and writes to multiple documents (in a single or multiple collections), MongoDB supports multi-document transactions.
+   :description: For situations that require atomicity of reads and writes to multiple documents (in a single or multiple collections), MongoDB supports multi-document transactions, also called distributed transactions.
    :keywords: MongoDB, transactions, distributed transactions, MongoDB multi-document transactions, MongoDB multi-statement transactions, java transaction examples, python transaction examples, node transaction examples, php transaction examples, scala transaction examples, csharp transaction examples, perl transaction examples, ruby transaction examples
 
 In MongoDB, an operation on a single document is atomic. Because you can
 use embedded documents and arrays to capture relationships between data
 in a single document structure instead of normalizing across multiple
 documents and collections, this single-document atomicity obviates the
-need for multi-document transactions for many practical use cases.
+need for distributed transactions for many practical use cases.
 
 For situations that require atomicity of reads and writes to multiple
 documents (in a single or multiple collections), MongoDB supports
-multi-document transactions. With distributed transactions,
+distributed transactions. With distributed transactions,
 transactions can be used across multiple operations, collections,
 databases, documents, and shards.
 
@@ -288,32 +288,10 @@ upper-right to set the language of the following example.
 Transactions and Atomicity
 --------------------------
 
-.. note:: Distributed Transactions and Multi-Document Transactions
+.. include:: /includes/transactions/distributed-transaction-repl-shard-support.rst
 
-   Starting in MongoDB 4.2, the two terms are synonymous. Distributed
-   transactions refer to multi-document transactions on sharded
-   clusters and replica sets. Multi-document transactions (whether on
-   sharded clusters or replica sets) are also known as distributed
-   transactions starting in MongoDB 4.2.
-
-For situations that require atomicity of reads and writes to multiple
-documents (in a single or multiple collections), MongoDB supports
-multi-document transactions:
-
-- **In version 4.0**, MongoDB supports multi-document transactions on
-  replica sets.
-
-- **In version 4.2**, MongoDB introduces distributed transactions,
-  which adds support for multi-document transactions on sharded
-  clusters and incorporates the existing support for
-  multi-document transactions on replica sets.
-
-  To use transactions on MongoDB 4.2 deployments (replica sets and
-  sharded clusters), clients :red:`must` use MongoDB drivers updated for
-  MongoDB 4.2.
-
-Multi-document transactions are atomic (i.e. provide an
-"all-or-nothing" proposition):
+Distributed transactions are atomic. They provide an "all-or-nothing" 
+proposition:
 
 - When a transaction commits, all data changes made in the transaction
   are saved and visible outside the transaction. That is, a transaction
@@ -339,7 +317,7 @@ Transactions and Operations
 ---------------------------
 
 Distributed transactions can be used across multiple operations,
-collections, databases, documents, and, starting in MongoDB 4.2, shards.
+collections, databases, documents, and shards.
 
 For transactions:
 
@@ -359,18 +337,14 @@ For a list of operations not supported in transactions, see
 Create Collections and Indexes In a Transaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 4.4, you can perform the following operations inside
-of a :ref:`multi-document transaction <transactions>` as long as
-the transaction is not a cross-shard write transaction:
+You can perform the following operations inside of a :ref:`distributed
+transaction <transactions>` as long as the transaction is not a
+cross-shard write transaction:
 
 - Create collections.
 
 - Create indexes on new empty collections created earlier in the same
   transaction.
-
-In MongoDB 4.2 and earlier, operations that affect the database catalog,
-such as creating or dropping a collection or an index, are
-:red:`disallowed` in transactions.
 
 When creating a collection inside a transaction:
 
@@ -470,8 +444,7 @@ Restricted Operations
 Transactions and Sessions
 -------------------------
 
-- Transactions are associated with a session; i.e. you start a
-  transaction for a session.
+- Transactions are associated with a session
 
 - At any given time, you can have at most one open transaction for a
   session.
@@ -549,20 +522,17 @@ Transactions support the following read concern levels:
 ``"majority"``
 ``````````````
 
-- Read concern :readconcern:`"majority"` returns data that has been
-  acknowledged by a majority of the replica set members (i.e. data
-  cannot be rolled back) **if** the transaction commits with
-  :ref:`write concern "majority" <transactions-write-concern>`.
+- If the transaction commits with :ref:`write concern "majority"
+  <transactions-write-concern>`, read concern :readconcern:`"majority"`
+  returns data that has been acknowledged by a majority of the replica
+  set members and can't be rolled back. Otherwise, read concern
+  :readconcern:`"majority"` provides no guarantees that read operations
+  read majority-committed data.
 
-- If the transaction does not use :ref:`write concern "majority"
-  <transactions-write-concern>` for the commit, the
-  :readconcern:`"majority"` read concern provides **no** guarantees that
-  read operations read majority-committed data.
-
-- For transactions on sharded cluster, :readconcern:`"majority"` read
-  concern cannot guarantee that the data is from the same snapshot
-  view across the shards. If snapshot isolation is required, use
-  :ref:`transactions-read-concern-snapshot` read concern.
+- For transactions on sharded cluster, read concern
+  :readconcern:`"majority"` can't guarantee that the data is from the 
+  same snapshot view across the shards. If snapshot isolation is
+  required, use read concern :ref:`transactions-read-concern-snapshot`.
 
 .. _transactions-read-concern-snapshot:
 
@@ -616,7 +586,7 @@ You can set the transaction-level :doc:`write concern
     <replica-set-arbiter-configuration>`. See
     :ref:`wc-default-behavior`.
 
-  - :writeconcern:`w: 1 <\<number\>>` in MongoDB 4.4 and earlier.
+  - :writeconcern:`w: 1 <\<number\>>`
 
 .. seealso::
 
@@ -652,7 +622,7 @@ values, including:
 
 - Write concern :writeconcern:`w: "majority" <"majority">` returns
   acknowledgement after the commit has been applied to a majority
-  (M) of voting members; i.e. the commit has been applied to the
+  (M) of voting members, meaning the commit has been applied to the
   primary and (M-1) voting secondaries.
 
 - When you commit with :writeconcern:`w: "majority" <"majority">`
@@ -749,7 +719,7 @@ MongoDB provides various transactions metrics:
 
    * - :binary:`~bin.mongod` and :binary:`~bin.mongos` log messages
 
-     - Includes information on slow transactions (i.e. transactions
+     - Includes information on slow transactions, which are transactions
        that exceed the :setting:`operationProfiling.slowOpThresholdMs`
        threshold) under the :data:`TXN` log component.
 
