@@ -1,1 +1,1 @@
-Source files for Cloud Manager and Ops Manager documentation.
+Source files for Cloud Manager documentation (formerly housed with the Ops Manager documentation in 10gen/mms-docs)..
