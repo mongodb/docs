@@ -1,5 +1,4 @@
-.. admonition:: No Support for SCRAM-SHA-256 Auth for |onprem| Backing Databases
-   :class: important
+.. important:: No Support for SCRAM-SHA-256 Auth for |onprem| Backing Databases
 
    Although MongoDB 4.0 supports the
    :manual:`SCRAM-SHA-256 </core/security-scram>` authentication

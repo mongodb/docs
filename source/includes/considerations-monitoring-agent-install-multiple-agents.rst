@@ -17,12 +17,10 @@
    {+mdbagent+} is idle, except to log its status as a standby and
    periodically ask |mms| if it should begin monitoring.
 
-   .. cond:: onprem
-
-      To tune the frequency at which standby {+mdbagent+}s check to see
-      if they should begin monitoring and the interval |mms| uses to
-      determine if a standby agent should start monitoring, see
-      :ref:`standby-monitoring-agent`.
+   To tune the frequency at which standby {+mdbagent+}s check to see
+   if they should begin monitoring and the interval |mms| uses to
+   determine if a standby agent should start monitoring, see
+   :ref:`standby-monitoring-agent`.
 
    If you install multiple Monitoring Agents, ensure that *all* the
    {+mdbagent+}s with active Monitoring can reach all the |mongod|

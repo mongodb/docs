@@ -78,8 +78,9 @@ The ``roles`` array is optional and describes user-defined roles.
      - Conditional
      - Actions permitted on the resource.
 
-       .. seealso:: :manual:`Privilege Actions </reference/privilege-actions/>`
+       .. seealso::
 
+          :manual:`Privilege Actions </reference/privilege-actions/>`
    * - roles[n].roles
      - array of documents
      - Conditional

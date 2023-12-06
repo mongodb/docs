@@ -97,8 +97,7 @@ Automation Agent 4.5.12.2514
 - **Fix:** Automation Agent correctly resizes the :term:`oplog` for 
   MongoDB clusters that use X-509 for cluster authentication.
 
-.. admonition:: RELEASE ADVISORY
-   :class: note
+.. note:: RELEASE ADVISORY
 
    :ref:`Ops Manager 3.6.4 <opsmgr-server-3.6.4>` fixes an issue in 
    which setting a value for a ``setParameter`` field using Automation 

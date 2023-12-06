@@ -502,7 +502,6 @@
 - Requires :db-tools:`MongoDB Database Tools 100.0.2 
   </release-notes/database-tools-changelog#100.02-changelog>`.
 
-.. admonition:: Ops Manager Support Ends after 4.4 Series
-   :class: note
+.. note:: Ops Manager Support Ends after 4.4 Series
 
    .. include:: /includes/facts/opsmgr-windows-stops-4.4.rst

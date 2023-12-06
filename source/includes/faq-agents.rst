@@ -14,11 +14,6 @@ agents to distribute monitoring assignments and provide failover.
 Monitoring Agents. If you run more than 100 Monitoring Agents, the
 additional agents behave as "standby" agents.
 
-.. cond:: cloud
-
-   **Cloud Manager Premium** uses 10-second granularity for monitoring
-   metrics.
-
 Where should I run the Monitoring Agent?
 ++++++++++++++++++++++++++++++++++++++++
 

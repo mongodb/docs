@@ -19,8 +19,7 @@
   :term:`sharded clusters <sharded cluster>`.
 
 
-.. admonition:: Downgrading Limitations
-   :class: note
+.. note:: Downgrading Limitations
 
    You cannot downgrade a MongoDB deployment:
 

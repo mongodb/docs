@@ -1,5 +1,4 @@
-.. admonition:: Potential for Production Failure
-   :class: warning
+.. warning:: Potential for Production Failure
 
    Your |onprem| instance can fail in production if you fail to configure the following:
 

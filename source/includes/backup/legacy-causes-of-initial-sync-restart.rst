@@ -1,5 +1,4 @@
-.. admonition:: Conditions or Actions that Restart Initial Sync
-   :class: note
+.. note:: Conditions or Actions that Restart Initial Sync
 
    During the initial sync process, certain actions or conditions
    can restart the initial sync process. Avoid the following actions

@@ -1,10 +1,4 @@
-.. cond:: cloud
-
-   .. include:: /includes/extracts/cloud-rolling-index-procedure-warning-server-68925.rst
-
-.. cond:: onprem
-
-   .. include:: /includes/extracts/om6-rolling-index-procedure-warning-server-68925.rst
+.. include:: /includes/extracts/om6-rolling-index-procedure-warning-server-68925.rst
 
 .. important::
 

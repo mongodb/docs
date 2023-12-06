@@ -146,8 +146,7 @@
 - **Fix:** :doc:`Inconsistent Backup Configuration alert
   </reference/alerts/inconsistent-backup/>` runs for config servers.
 
-  .. admonition:: Special Advisory
-     :class: important
+  .. important:: Special Advisory
 
      After upgrading to |onprem| 3.4.8, the :guilabel:`Inconsistent
      Backup Configuration` alert may be triggered for config servers.

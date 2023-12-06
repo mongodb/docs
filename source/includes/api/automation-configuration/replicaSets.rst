@@ -74,8 +74,9 @@ This field is required for deployments with replica sets.
        configuration document: **_id**; **version**; and
        **members**.
 
-       .. seealso:: :manual:`replSetGetConfig </reference/command/replSetGetConfig>`
+       .. seealso::
 
+          :manual:`replSetGetConfig </reference/command/replSetGetConfig>`
    * - replicaSets[n]._id
      - string
      - Required
@@ -95,8 +96,9 @@ This field is required for deployments with replica sets.
        **processes.name**. The {+mdbagent+} expands the **host** field
        to create a valid replica set configuration.
 
-       .. seealso:: :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
+       .. seealso::
 
+          :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
    * - replicaSets[n].members[m]._id
      - integer
      - Optional

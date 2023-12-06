@@ -557,8 +557,10 @@ Upgrades Agent: :ref:`mongodb-10.2.11.5927`.
      - ``TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256``
      - ``TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384``
 
-  .. seealso:: :setting:`mms.disableCiphers`
+  .. seealso::
 
+     :setting:`mms.disableCiphers`
+     
 Platform Support
 ````````````````
 

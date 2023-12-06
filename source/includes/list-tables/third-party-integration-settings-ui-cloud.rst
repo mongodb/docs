@@ -56,8 +56,7 @@
        the integration will display your team name and |api| token, and
        allow you to change your channel name.
 
-       .. admonition:: Legacy Token Deprecation
-          :class: important
+       .. important:: Legacy Token Deprecation
 
           Legacy tokens are deprecated and will be removed in a future
           version of |mms|. You cannot edit a legacy token
@@ -93,22 +92,16 @@
 
    * - Datadog Settings
 
-     - .. cond:: onprem
+     - Configuration |mms| uses to send metric data about your
+       deployment to Datadog. You can view these metrics in your
+       Datadog dashboards.
 
-          Configuration |mms| uses to send metric data about your
-          deployment to Datadog. You can view these metrics in your
-          Datadog dashboards.
+       Enter the following information from your Datadog account to
+       have Datadog begin tracking your |mms| metric data. If you
+       do not have an existing Datadog account, you can sign up at
+       `DataDog <https://app.datadoghq.com/signup>`__.
 
-          Enter the following information from your Datadog account to
-          have Datadog begin tracking your |mms| metric data. If you
-          do not have an existing Datadog account, you can sign up at
-          `DataDog <https://app.datadoghq.com/signup>`__.
-
-          - Datadog API Key
-
-       .. cond:: cloud
-
-          Datadog is not supported with |mms|.
+       - Datadog API Key
 
    * - Webhook Settings
 
