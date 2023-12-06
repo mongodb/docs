@@ -69,6 +69,13 @@ export function getKMSProviderCredentials(kmsProviderName) {
         // start-get-local-key
         // WARNING: Do not use a local key file in a production application
         const localMasterKey = readFileSync("./customer-master-key.txt");
+
+        if (localMasterKey.length !== 96) {
+          throw new Error(
+            "Expected the customer master key file to be 96 bytes."
+          );
+        }
+
         kmsProviders = {
           local: {
             key: localMasterKey,
@@ -183,7 +190,10 @@ function getKmipTlsOptions() {
 
 export function getClientEncryption(encryptedClient, autoEncryptionOptions) {
   // start-client-encryption
-  const clientEncryption = new ClientEncryption(encryptedClient, autoEncryptionOptions);
+  const clientEncryption = new ClientEncryption(
+    encryptedClient,
+    autoEncryptionOptions
+  );
   // end-client-encryption
   return clientEncryption;
 }

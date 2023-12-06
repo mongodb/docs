@@ -84,6 +84,9 @@ func GetKmsProviderCredentials(kmsProviderName string) map[string]map[string]int
 		if err != nil {
 			panic(fmt.Sprintf("Could not read the Customer Master Key: %v", err))
 		}
+		if len(key) != 96 {
+			panic(fmt.Sprintf("Expected the customer master key file to be 96 bytes."))
+		}
 		kmsProviderCredentials := map[string]map[string]interface{}{"local": {"key": key}}
 		// end-get-local-key
 		return kmsProviderCredentials

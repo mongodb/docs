@@ -100,6 +100,11 @@ public class QueryableEncryptionHelpers
                 var localCustomerMasterKeyBase64 = File.ReadAllText("customer-master-key.txt");
                 var localCustomerMasterKeyBytes = Convert.FromBase64String(localCustomerMasterKeyBase64);
 
+                if (localCustomerMasterKeyBytes.Length != 96)
+                {
+                    throw new Exception("Expected the customer master key file to be 96 bytes.");
+                }
+
                 var localOptions = new Dictionary<string, object>
                 {
                     { "key", localCustomerMasterKeyBytes }

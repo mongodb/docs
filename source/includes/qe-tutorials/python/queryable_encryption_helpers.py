@@ -65,6 +65,8 @@ def get_kms_provider_credentials(kms_provider_string):
             path = "./customer-master-key.txt"
             with open(path, "rb") as f:
                 local_master_key = f.read()
+                if len(local_master_key) != 96:
+                    raise Exception("Expected the customer master key file to be 96 bytes.")
                 kms_provider_credentials = {
                     "local": {
                         "key": local_master_key

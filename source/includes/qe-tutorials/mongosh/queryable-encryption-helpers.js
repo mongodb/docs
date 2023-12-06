@@ -68,6 +68,13 @@ function getKMSProviderCredentials(kmsProviderName) {
         // start-get-local-key
         // WARNING: Do not use a local key file in a production application
         const localMasterKey = fs.readFileSync("./customer-master-key.txt");
+
+        if (localMasterKey.length !== 96) {
+          throw new Error(
+            "Expected the customer master key file to be 96 bytes."
+          );
+        }
+
         kmsProviderCredentials = {
           local: {
             key: localMasterKey,
