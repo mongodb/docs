@@ -1,0 +1,374 @@
+.. _rust-gridfs:
+
+======
+GridFS
+======
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: large files, storage, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to store and retrieve large files in
+MongoDB by using **GridFS**. GridFS is a specification that describes how
+to split files into chunks during storage and reassemble them during retrieval.
+The {+driver-short+} implementation of GridFS manages the operations and
+organization of the file storage.
+
+Use GridFS if the size of your file exceeds the BSON document size limit of
+16 MB. GridFS also helps you access files without loading the entire file into
+memory. For more detailed information about whether GridFS is suitable for your
+use case, see the :manual:`GridFS </core/gridfs>` page in the Server manual.
+
+To learn more about GridFS, navigate to the following sections in this guide:
+
+- :ref:`How GridFS Works <rust-gridfs-info>`
+
+- :ref:`Reference a GridFS Bucket <rust-gridfs-create>`
+
+- :ref:`Upload Files <rust-gridfs-upload>`
+  
+- :ref:`Download Files <rust-gridfs-download>`
+
+- :ref:`Retrieve File Information <rust-gridfs-retrieve>`
+
+- :ref:`Rename Files <rust-gridfs-rename>` 
+
+- :ref:`Delete Files <rust-gridfs-delete>` 
+
+- :ref:`Delete a GridFS Bucket <rust-gridfs-drop>` 
+
+- :ref:`Additional Information <rust-gridfs-addtl-info>`
+  
+.. _rust-gridfs-info:
+
+How GridFS Works
+----------------
+
+GridFS organizes files in a **bucket**, which is a group of MongoDB collections
+containing file chunks and descriptive information. Buckets contain the
+following collections, named according to the convention defined in the GridFS
+specification:
+
+- ``chunks``, which stores the binary file chunks
+- ``files``, which stores the file metadata
+
+When you create a new GridFS bucket, the {+driver-short+} performs the following
+actions:
+
+- Creates the ``chunks`` and ``files`` collections, prefixed with the default bucket
+  name ``fs``, unless you specify a different name
+
+- Creates an index on each collection to ensure efficient retrieval of files and related
+  metadata
+
+You can create a reference to a GridFS bucket by following the steps in the :ref:`rust-gridfs-create`
+section of this page. However, the driver does not create a new GridFS bucket and its
+indexes until the first write operation. For more information on GridFS indexes, see the
+:manual:`GridFS Indexes </core/gridfs/#gridfs-indexes>` page in the Server manual.
+
+When storing a file in a GridFS bucket, the {+driver-short+} creates the following documents:
+
+- One document in the ``files`` collection that stores a unique file ID, file name, and other
+  file metadata
+  
+- One or more documents in the ``chunks`` collection that store the content of the file, which
+  the driver splits into smaller pieces
+	 
+The following diagram describes how GridFS splits files when uploading to a bucket:
+
+.. figure:: /includes/figures/GridFS-upload.png
+   :alt: A diagram that shows how GridFS uploads a file to a bucket
+
+When retrieving files, GridFS fetches the metadata from the ``files`` collection in the
+specified bucket and uses the information to reconstruct the file from documents in the
+``chunks`` collection. You can read the file into memory or output it to a stream.
+
+.. _rust-gridfs-create:
+
+Reference a GridFS Bucket
+-------------------------
+
+Before storing files in a GridFS bucket, create a bucket reference or get a reference to
+an existing bucket. 
+
+The following example calls the ``gridfs_bucket()`` method on a database instance, which
+creates a reference to either a new or existing GridFS bucket:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-create
+   :end-before: end-create
+   :language: rust
+   :copyable:
+   :dedent:
+
+You can specify a custom bucket name and other options in a ``GridFsBucketOptions``
+struct instance. To begin building a ``GridFsBucketOptions`` instance, call the 
+``GridFsBucketOptions::builder()`` method.
+
+.. note:: Instantiating Options
+   
+   The {+driver-short+} implements the Builder design pattern for the
+   creation of many different types, including ``GridFsBucketOptions``. You
+   can use the ``builder()`` method to construct an instance of each type
+   by chaining option builder methods.
+
+The following table describes the builder methods that you can use to set fields of a
+``GridFsBucketOptions`` instance:
+
+.. list-table::
+   :widths: 1 1 2
+   :stub-columns: 1
+   :header-rows: 1
+
+   * - Method
+     - Possible Values 
+     - Description
+
+   * - | ``bucket_name()``
+     - | Any ``String`` value
+     - | Specifies a bucket name, which is set to ``fs`` by default
+       
+   * - ``chunk_size_bytes()``
+     - Any ``u32`` value
+     - Specifies the chunk size used to break the file into chunks, which is 255 KB by default
+
+   * - | ``write_concern()``
+     - | ``WriteConcern::w``,
+       | ``WriteConcern::w_timeout``,
+       | ``WriteConcern::journal``
+     - | Specifies the bucket's write concern, which is set to the database's write concern by default
+
+   * - ``read_concern()``
+     - ``ReadConcernLevel::Local``,
+       ``ReadConcernLevel::Majority``,
+       ``ReadConcernLevel::Linearizable``,
+       ``ReadConcernLevel::Available``,
+       ``ReadConcernLevel::Snapshot``
+     - Specifies the bucket's read concern, which is set to the database's read concern by default
+
+   * - | ``selection_criteria()``
+     - | ``SelectionCriteria::ReadPreference``,
+       | ``SelectionCriteria::Predicate``
+     - | Specifies which servers are suitable for a bucket operation, which is set to the database's selection
+       | criteria by default
+
+The following example specifies options in a ``GridFsBucketOptions`` instance to configure a custom
+bucket name and a five-second time limit for write operations:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-create-opts
+   :end-before: end-create-opts
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-gridfs-upload:
+
+Upload Files
+------------
+
+You can upload a file to a GridFS bucket by opening an upload stream and 
+writing your file to the stream. Call the ``open_upload_stream()`` method on
+your bucket instance to open the stream. This method returns an instance of
+``GridFsUploadStream`` to which you can write the file contents. To upload
+the file contents to the ``GridFsUploadStream``, call the ``write_all()`` method
+and pass your file bytes as a parameter.
+
+.. tip:: Import the Required Module
+   
+   The ``GridFsUploadStream`` struct implements the ``futures_io::AsyncWrite`` trait.
+   To use the ``AsyncWrite`` write methods, such as ``write_all()``, import the 
+   ``AsyncWriteExt`` module into your application file with the following use
+   declaration:
+
+   .. code-block:: rust
+
+      use futures_util::io::AsyncWriteExt;
+
+The following example uses an upload stream to upload a file called ``"example.txt"``
+to a GridFS bucket:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-upload
+   :end-before: end-upload
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-gridfs-download:
+
+Download Files
+--------------
+
+You can download a file from a GridFS bucket by opening a download stream and
+reading from the stream. Call the ``open_download_stream()`` method on
+your bucket instance, specifying the desired file's ``_id`` value as a parameter.
+This method returns an instance ``GridFsDownloadStream`` from which you can access
+the file. To read the file from the ``GridFsDownloadStream``, call the ``read_to_end()``
+method and pass a vector as a parameter.
+
+.. tip:: Import the Required Module
+   
+   The ``GridFsDownloadStream`` struct implements the ``futures_io::AsyncRead`` trait.
+   To use the ``AsyncRead`` read methods, such as ``read_to_end()``, import the 
+   ``AsyncReadExt`` module into your application file with the following use
+   declaration:
+
+   .. code-block:: rust
+
+      use futures_util::io::AsyncReadExt;
+
+The following example uses a download stream to download a file with an ``_id`` value
+of  ``3289`` from a GridFS bucket:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-download
+   :end-before: end-download
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. note::
+
+   The GridFS streaming API cannot load partial chunks. When a download
+   stream needs to pull a chunk from MongoDB, it pulls the entire chunk
+   into memory. The 255 KB default chunk size is usually sufficient, but
+   you can reduce the chunk size to reduce memory overhead.
+
+.. _rust-gridfs-retrieve:
+
+Retrieve File Information
+-------------------------
+
+You can retrieve information about the files stored in the ``files`` collection of
+the GridFS bucket. Each file is stored as an instance of the ``FilesCollectionDocument``
+type, which includes the following fields that represent file information:
+
+- ``_id``: the file ID
+- ``length``: the file size
+- ``chunk_size_bytes``: the size of the file's chunks
+- ``upload_date``: the file's upload date and time
+- ``filename``: the name of the file
+- ``metadata``: a document that stores user-specified metadata
+
+Call the ``find()`` method on a GridFS bucket instance to retrieve
+files from the bucket. The method returns a cursor instance
+from which you can access the results.
+
+The following example retrieves and prints the length of each file in a GridFS bucket:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-retrieve
+   :end-before: end-retrieve
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. tip::
+
+   To learn more about the ``find()`` method, see the :ref:`rust-retrieve-guide`
+   guide. To learn more about retrieving data from a cursor, see the :ref:`rust-cursor-guide`
+   guide.
+
+.. _rust-gridfs-rename:
+
+Rename Files
+------------
+
+You can update the name of a GridFS file in your bucket by calling the ``rename()`` method
+on a bucket instance. Pass the target file's ``_id`` value and the new file name as
+parameters to the ``rename()`` method.
+
+.. note::
+   The ``rename()`` method only supports updating the name of one file at
+   a time. To rename multiple files, retrieve a list of files matching the
+   file name from the bucket, extract the ``_id`` field from the files you
+   want to rename, and pass each value in separate calls to the ``rename()``
+   method.
+
+The following example updates the ``filename`` field of the file containing an ``_id`` value
+of ``3289`` to ``"new_file_name"``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-rename
+   :end-before: end-rename
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-gridfs-delete:
+
+Delete Files
+------------
+
+You can use the ``delete()`` method to remove a file from your bucket. To remove a
+file, call ``delete()`` on your bucket instance and pass the file's ``_id`` value
+as a parameter.
+
+.. note::
+
+   The ``delete()`` method only supports deleting one file at a time. To
+   delete multiple files, retrieve the files from the bucket, extract
+   the ``_id`` field from the files you want to delete, and pass each ``_id``
+   value in separate calls to the ``delete()`` method.
+
+The following example deletes the file in which the value of the ``_id`` field is
+``3289``:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-delete-file
+   :end-before: end-delete-file
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-gridfs-drop:
+
+Delete a GridFS Bucket
+----------------------
+
+You can use the ``drop()`` method to delete a bucket, which removes a bucket's
+``files`` and ``chunks`` collections. To delete the bucket, call ``drop()`` on
+your bucket instance.
+
+The following example deletes a GridFS bucket:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/gridfs.rs
+   :start-after: start-delete-bucket
+   :end-before: end-delete-bucket
+   :language: rust
+   :copyable:
+   :dedent:
+
+.. _rust-gridfs-addtl-info:
+
+Additional Information
+----------------------
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types mentioned in this
+guide, see the following API documentation:
+
+- `gridfs_bucket() <{+api+}/struct.Database.html#method.gridfs_bucket>`__
+- `GridFsBucketOptions <{+api+}/options/struct.GridFsBucketOptions.html>`__
+- `open_upload_stream() <{+api+}/gridfs/struct.GridFsBucket.html#method.open_upload_stream>`__
+- `open_download_stream() <{+api+}/gridfs/struct.GridFsBucket.html#method.open_download_stream>`__
+- `FilesCollectionDocument <{+api+}/gridfs/struct.FilesCollectionDocument.html>`__
+- `rename() <{+api+}/gridfs/struct.GridFsBucket.html#method.rename>`__
+- `delete() <{+api+}/gridfs/struct.GridFsBucket.html#method.delete>`__
+- `drop() <{+api+}/gridfs/struct.GridFsBucket.html#method.drop>`__
+
