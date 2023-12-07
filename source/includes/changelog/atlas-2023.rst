@@ -1,3 +1,11 @@
+.. _atlas_2023_05_12:
+
+05 December 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Increases the minimum threshold for archiving data after 7 days from 100 kB to 5 MiB. 
+  To learn more, see :ref:`config-online-archive-limitations`.
+
 .. _atlas_2023_08_23:
 
 23 August 2023 Release
