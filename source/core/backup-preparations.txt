@@ -25,37 +25,43 @@ consider before starting a backup.
 
       .. include:: /includes/facts/fcv-backup-considerations.rst
 
-.. cond:: onprem
+.. _backup-configuration-options:
 
-   .. _backup-configuration-options:
+Backup Configuration Options
+----------------------------
 
-   Backup Configuration Options
-   ----------------------------
+The backup and recovery requirements of a given system vary to meet
+the cost, performance and data protection standards the system's
+owner sets.
 
-   The backup and recovery requirements of a given system vary to meet
-   the cost, performance and data protection standards the system's
-   owner sets.
+|mms| Enterprise Backup and Recovery supports five backup
+architectures, each with its own strengths and trade-offs. Consider
+the architecture that meets the data protection requirements for
+your deployment before configuring and deploying your backup
+architecture.
 
-   |mms| Enterprise Backup and Recovery supports five backup
-   architectures, each with its own strengths and trade-offs. Consider
-   the architecture that meets the data protection requirements for
-   your deployment before configuring and deploying your backup
-   architecture.
+.. example::
 
-   .. example::
+  Consider a system whose requirements include low operational
+  costs. The system's owners may have strict limits on what they
+  can spend on storage for their backup and recovery configuration.
+  They may accept a longer recovery time as a result.
 
-      Consider a system whose requirements include low operational
-      costs. The system's owners may have strict limits on what they
-      can spend on storage for their backup and recovery configuration.
-      They may accept a longer recovery time as a result.
+  Conversely, consider a system whose requirements include a low
+  :term:`Recovery Time Objective`. The system's owners tolerate
+  greater storage costs if it results in a backup and recovery
+  configuration that fulfills the recovery requirements.
 
-      Conversely, consider a system whose requirements include a low
-      :term:`Recovery Time Objective`. The system's owners tolerate
-      greater storage costs if it results in a backup and recovery
-      configuration that fulfills the recovery requirements.
+|mms| Enterprise Backup and recovery supports the following backup
+architectures:
 
-   |mms| Enterprise Backup and recovery supports the following backup
-   architectures:
+- A file system on a |san| with advanced features for filesystem
+  backups, such as high availability, compression, or
+  :term:`deduplication`
+- A file system on one or more |nas| devices
+- An `AWS S3 <https://aws.amazon.com/s3>`_ :term:`blockstore`
+- MongoDB blockstore in a highly available configuration
+- MongoDB blockstore in a standalone configuration
 
    - A file system on a |san| with advanced features for filesystem
      backups, such as high availability, compression, or
@@ -65,120 +71,117 @@ consider before starting a backup.
    - MongoDB blockstore in a highly available configuration
    - MongoDB blockstore in a standalone configuration
 
-   .. important::
+We provide the backup architecture recommendations as
+guidance for developing your own data protection approaches.
+Our recommendations don't cover or represent each scenario
+or deployment.
 
-      We provide the backup architecture recommendations as
-      guidance for developing your own data protection approaches.
-      Our recommendations don't cover or represent each scenario
-      or deployment.
+Backup Method Features
+~~~~~~~~~~~~~~~~~~~~~~
 
-   Backup Method Features
-   ~~~~~~~~~~~~~~~~~~~~~~
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 15 15 15 15
+   :stub-columns: 1
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 25 15 15 15 15 15
-      :stub-columns: 1
+   * - Backup System Feature
+     - File System on |san|
+     - File System on |nas|
+     - AWS S3 Blockstore
+     - MongoDB :abbr:`HA (High Availability)` Blockstore
+     - MongoDB Blockstore
 
-      * - Backup System Feature
-        - File System on |san|
-        - File System on |nas|
-        - AWS S3 Blockstore
-        - MongoDB :abbr:`HA (High Availability)` Blockstore
-        - MongoDB Blockstore
+   * - Snapshot Types
+     - Complete [1]_
+     - Complete [1]_
+     - Many partial
+     - Many partial
+     - Many partial
 
-      * - Snapshot Types
-        - Complete [1]_
-        - Complete [1]_
-        - Many partial
-        - Many partial
-        - Many partial
+   * - Backup Data Deduplication
+     - If SAN supports
+     - No
+     - Yes
+     - Yes
+     - Yes
 
-      * - Backup Data Deduplication
-        - If SAN supports
-        - No
-        - Yes
-        - Yes
-        - Yes
+   * - Backup Data Compression
+     - Yes
+     - Depends [2]_
+     - Yes
+     - Yes
+     - Yes
 
-      * - Backup Data Compression
-        - Yes
-        - Depends [2]_
-        - Yes
-        - Yes
-        - Yes
+   * - Backup Data Replication
+     - If SAN supports
+     - No
+     - No
+     - Yes
+     - No
 
-      * - Backup Data Replication
-        - If SAN supports
-        - No
-        - No
-        - Yes
-        - No
+   * - Backup Storage Cost
+     - Higher
+     - Medium
+     - Lower
+     - Higher
+     - Lower
 
-      * - Backup Storage Cost
-        - Higher
-        - Medium
-        - Lower
-        - Higher
-        - Lower
+   * - Staff Time to Manage Backups
+     - Medium
+     - Medium
+     - Lower
+     - Higher
+     - Medium
 
-      * - Staff Time to Manage Backups
-        - Medium
-        - Medium
-        - Lower
-        - Higher
-        - Medium
+   * - Backup |rto|
+     - Lower
+     - Medium
+     - Lower
+     - Lower
+     - Medium
 
-      * - Backup |rto|
-        - Lower
-        - Medium
-        - Lower
-        - Lower
-        - Medium
+.. [1]
+       To perform an incremental backup to a
+       :term:`File System Store`, the {+mdbagent+}
+       slices each :manual:`storage engine </core/storage-engines/>`
+       file in the path specified for backup into block(s) of
+       data and transfers only changed block(s) to |onprem|.
+       |onprem| creates a new :term:`snapshot` from received
+       block(s) and copies the remaining unchanged block(s)
+       from the previous full backup snapshot. Each incremental
+       backup snapshot stored to a file system saves
+       network I/O. Each such backup snapshot contains a full
+       copy of all required files from a backed up MongoDB
+       deployment and does not :term:`de-duplicate <deduplication>`
+       records.
 
-   .. [1]
-          To perform an incremental backup to a
-          :term:`File System Store`, the {+mdbagent+}
-          slices each :manual:`storage engine </core/storage-engines/>`
-          file in the path specified for backup into block(s) of
-          data and transfers only changed block(s) to |onprem|.
-          |onprem| creates a new :term:`snapshot` from received
-          block(s) and copies the remaining unchanged block(s)
-          from the previous full backup snapshot. Each incremental
-          backup snapshot stored to a file system saves
-          network I/O. Each such backup snapshot contains a full
-          copy of all required files from a backed up MongoDB
-          deployment and does not :term:`de-duplicate <deduplication>`
-          records.
+.. [2]
+       |onprem| 4.4.5 and later ignores GZIP compression for File
+       System Store. Trying to create snapshots to File System
+       Stores using GZIP compression fails in previous |onprem|
+       versions.
 
-   .. [2]
-          |onprem| 4.4.5 and later ignores GZIP compression for File
-          System Store. Trying to create snapshots to File System
-          Stores using GZIP compression fails in previous |onprem|
-          versions.
+.. note:: **When Do You Use a Particular Backup Method?**
 
-   .. note:: **When Do You Use a Particular Backup Method?**
+   - To run backups frequently on large amounts of data and
+     restore from backups, consider backing up to a file
+     system on a |san|, an AWS |s3| snapshot store, or a MongoDB
+     blockstore configured as a replica set or a
+     :term:`sharded cluster`.
 
-      - To run backups frequently on large amounts of data and
-        restore from backups, consider backing up to a file
-        system on a |san|, an AWS |s3| snapshot store, or a MongoDB
-        blockstore configured as a replica set or a
-        :term:`sharded cluster`.
+   - To restore data without relying on MongoDB
+     database, consider backing up to an AWS |s3| snapshot store,
+     one or more |nas| devices, or a file system on a |san| with
+     advanced features for file system backups, such as high
+     availability, compression, or :term:`deduplication`.
 
-      - To restore data without relying on MongoDB
-        database, consider backing up to an AWS |s3| snapshot store,
-        one or more |nas| devices, or a file system on a |san| with
-        advanced features for file system backups, such as high
-        availability, compression, or :term:`deduplication`.
+   - To minimize internal storage and maintenance
+     costs, consider backing up to an AWS |s3| snapshot store or
+     a MongoDB standalone blockstore.
 
-      - To minimize internal storage and maintenance
-        costs, consider backing up to an AWS |s3| snapshot store or
-        a MongoDB standalone blockstore.
-
-        A MongoDB standalone blockstore offers limited resilience. If
-        the disk fills, this blockstore may go offline. You can
-        recover backup snapshots only after adding additional storage.
-
+     A MongoDB standalone blockstore offers limited resilience. If
+     the disk fills, this blockstore may go offline. You can
+     recover backup snapshots only after adding additional storage.
 
 .. _limits-of-backup:
 
@@ -204,13 +207,7 @@ your database increases beyond 2 TB of uncompressed data:
 Snapshot Frequency and Retention Policy
 ---------------------------------------
 
-.. cond:: onprem
-
-   By default, |mms| takes a base snapshot of your data every 24 hours.
-
-.. cond:: cloud
-
-   By default, |mms| takes a base snapshot of your data every 6 hours.
+By default, |mms| takes a base snapshot of your data every 24 hours.
 
 If desired, administrators can change the frequency of base snapshots
 to 6, 8, 12, or 24 hours. |mms| creates snapshots automatically on a
@@ -227,49 +224,25 @@ If you :ref:`stop a deployment's backup <stop-backup>`, |mms| stops
 taking new snapshots but retains existing snapshots until their listed
 expiration date.
 
-.. cond:: onprem
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
 
-   .. list-table::
-      :widths: 30 30 40
-      :header-rows: 1
-
-      * - Snapshot
-        - Default Retention Policy
-        - Maximum Retention Policy
-      * - Base snapshot
-        - 2 days
-        - 5 days (30 days if frequency is 24 hours)
-      * - Daily snapshot
-        - 0 days
-        - 1 year
-      * - Weekly snapshot
-        - 2 weeks
-        - 1 year
-      * - Monthly snapshot
-        - 1 month
-        - 7 years
-
-.. cond:: cloud
-
-   .. list-table::
-      :widths: 30 30 40
-      :header-rows: 1
-
-      * - Snapshot
-        - Default Retention Policy
-        - Maximum Retention Policy
-      * - Base snapshot
-        - 2 days
-        - 5 days (30 days if frequency is 24 hours)
-      * - Daily snapshot
-        - 7 days
-        - 1 year
-      * - Weekly snapshot
-        - 4 weeks
-        - 1 year
-      * - Monthly snapshot
-        - 13 months
-        - 7 years
+   * - Snapshot
+     - Default Retention Policy
+     - Maximum Retention Policy
+   * - Base snapshot
+     - 2 days
+     - 5 days (30 days if frequency is 24 hours)
+   * - Daily snapshot
+     - 0 days
+     - 1 year
+   * - Weekly snapshot
+     - 2 weeks
+     - 1 year
+   * - Monthly snapshot
+     - 1 month
+     - 7 years
 
 .. include:: /includes/extracts/backup-preparations-pricing.rst
 
@@ -281,102 +254,94 @@ and retention through the
 
 .. _changing-reference-time:
 
-.. cond:: onprem
+Changing the reference time changes the time of the next scheduled
+snapshot. You can't make the next scheduled snapshot happen sooner than
+the current next snapshot time. The current next snapshot time is the
+current reference time plus the interval between snapshots.
 
-   Changing the reference time changes the time of the next scheduled snapshot.
-   You can't make the next scheduled snapshot happen sooner than the current
-   next snapshot time. The current next snapshot time is the current reference
-   time plus the interval between snapshots.
+To determine the time of the next snapshot, compare the current next
+snapshot time to the new reference time:
 
-   To determine the time of the next snapshot, compare the current next snapshot
-   time to the new reference time:
+- If the new reference time is before the current next snapshot time,
+  the next snapshot still occurs after the current next snapshot time.
+  The snapshot occurs at the new reference time plus the number of
+  intervals needed to surpass the current next snapshot time. If this
+  time has already passed when you make the change, the |mms| takes the
+  next snapshot at the next occurrence of the new reference time. See
+  the first two rows of the following table for examples.
 
-   - If the new reference time is before the current next snapshot time, the next
-     snapshot still occurs after the current next snapshot time. The snapshot
-     occurs at the new reference time plus the number of intervals needed to
-     surpass the current next snapshot time. If this time has already passed
-     when you make the change, the |mms| takes the next snapshot at the
-     next occurrence of the new reference time. See the first two rows of
-     the following table for examples.
+- If the new reference time is after the current next snapshot time,
+  |mms| takes the next snapshot at the next occurrence of the new
+  reference time. See the third and fourth row of the following table
+  for examples.
 
-   - If the new reference time is after the current next snapshot time,
-     |mms| takes the next snapshot at the next occurrence of the new
-     reference time. See the third and fourth row of the following table
-     for examples.
+.. list-table::
+   :widths: 20 20 20 20 20 20
+   :header-rows: 1
 
-   .. list-table::
-      :widths: 20 20 20 20 20 20
-      :header-rows: 1
+   * - Time of Change
 
-      * - Time of Change
+     - Current Reference Time
 
-        - Current Reference Time
+     - Interval Between Snapshots
 
-        - Interval Between Snapshots
+     - Current Next Snapshot Time
 
-        - Current Next Snapshot Time
+     - New Reference Time
 
-        - New Reference Time
+     - Time of Next Snapshot
 
-        - Time of Next Snapshot
+   * - 08:00 UTC
 
-      * - 08:00 UTC
+     - 12:00 UTC
 
-        - 12:00 UTC
+     - 6 hours
 
-        - 6 hours
+     - 12:00 UTC
 
-        - 12:00 UTC
+     - 10:00 UTC
 
-        - 10:00 UTC
+     - 16:00 UTC today
 
-        - 16:00 UTC today
+   * - 23:00 UTC
 
-      * - 23:00 UTC
+     - 12:00 UTC
 
-        - 12:00 UTC
+     - 6 hours
 
-        - 6 hours
+     - 00:00 UTC
 
-        - 00:00 UTC
+     - 10:00 UTC
 
-        - 10:00 UTC
+     - 04:00 UTC tomorrow
 
-        - 04:00 UTC tomorrow
+   * - 08:00 UTC
 
-      * - 08:00 UTC
+     - 12:00 UTC
 
-        - 12:00 UTC
+     - 6 hours
 
-        - 6 hours
+     - 12:00 UTC
 
-        - 12:00 UTC
+     - 19:00 UTC
 
-        - 19:00 UTC
+     - 19:00 UTC today
 
-        - 19:00 UTC today
+   * - 20:00 UTC
 
-      * - 20:00 UTC
+     - 12:00 UTC
 
-        - 12:00 UTC
+     - 6 hours
 
-        - 6 hours
+     - 00:00 UTC
 
-        - 00:00 UTC
+     - 19:00 UTC
 
-        - 19:00 UTC
+     - 01:00 UTC tomorrow
 
-        - 01:00 UTC tomorrow
-
-   If you change the schedule to save fewer snapshots, |mms| does
-   **not** delete existing snapshots to conform to the new schedule. To
-   delete unneeded snapshots, see
-   :doc:`/tutorial/delete-backup-snapshots`.
-
-.. cond:: cloud
-
-   You can't change the reference time for a snapshot in |mms|.
-
+If you change the schedule to save fewer snapshots, |mms| does
+**not** delete existing snapshots to conform to the new schedule. To
+delete unneeded snapshots, see :doc:`/tutorial/delete-backup-snapshots`.
 
 Limits
 ~~~~~~
@@ -389,26 +354,17 @@ Limits
 Encryption
 ~~~~~~~~~~
 
-.. cond:: onprem
+|onprem| can encrypt any backup job stored in a
+:term:`head database` running
+:product:`MongoDB Enterprise <mongodb-enterprise-advanced>` between
+|fcv-link| 3.4 and 4.0 with the
+:ref:`WiredTiger <encrypted-storage-engine>` storage engine.
 
-   |onprem| can encrypt any backup job stored in a
-   :term:`head database` running
-   :product:`MongoDB Enterprise <mongodb-enterprise-advanced>` between
-   |fcv-link| 3.4 and 4.0 with the
-   :ref:`WiredTiger <encrypted-storage-engine>` storage engine.
+.. include:: /includes/head-database-backup-deprecated.rst
 
-   .. include:: /includes/head-database-backup-deprecated.rst
+.. seealso::
 
-   .. seealso::
-
-      :doc:`/tutorial/encrypt-snapshots`.
-
-.. cond:: cloud
-
-   You can't store backups using WiredTiger encryption.
-   You can store backups using the WiredTiger storage
-   engine if you don't enable encryption. If you restore
-   from a backup, you restore unencrypted files.
+   :doc:`/tutorial/encrypt-snapshots`.
 
 .. _4.2-backup-considerations:
 

@@ -8,11 +8,6 @@
        the deployment and the number of days |mms| retains base
        snapshots.
 
-       .. cond:: cloud
-
-          Changes to the snapshot schedule affect your
-          :ref:`snapshot storage costs <backup-pricing>`.
-
    * - Create cluster checkpoint every ... minutes
        (Sharded Clusters only)
 
@@ -44,47 +39,39 @@
      - Sets the day of the week when |mms| takes a full snapshot. This
        ensures a recent complete backup.
 
-       .. cond:: onprem
+       |onprem| sets the default value to :guilabel:`Sunday`.
 
-          |onprem| sets the default value to :guilabel:`Sunday`.
+.. list-table::
+   :widths: 35 65
+   :stub-columns: 1
 
-       .. cond:: cloud
+   * - Allow point-in-time restores going back
 
-          |mms| sets the default value to a random weekday.
+     - Sets the number of days that |mms| retains oplogs alongside
+       snapshots.
 
-.. cond:: onprem
+       .. seealso::
 
-   .. list-table::
-      :widths: 35 65
-      :stub-columns: 1
+          To learn how snapshots and point-in-time restores work,
+          see :doc:`/tutorial/nav/restore-overview`.
 
-      * - Allow point-in-time restores going back
+   * - Reference Time of Day (UTC)
 
-        - Sets the number of days that |mms| retains oplogs alongside
-          snapshots.
+     - Sets the time of day at
+       `UTC <https://www.timeanddate.com/time/aboututc.html>`_ from
+       which the snapshot schedule starts. When you change the
+       :guilabel:`Reference Time of Day`, snapshots that are in
+       progress remain unaffected. Only snapshots taken after you
+       change the reference time follow the updated schedule.
 
+       .. note::
+
+          Changing the reference time changes the time of the next scheduled snapshot.
+          You can't make the next scheduled snapshot happen sooner than the current
+          next snapshot time. The current next snapshot time is the current reference
+          time plus the interval between snapshots.
+          
           .. seealso::
 
-             To learn how snapshots and point-in-time restores work,
-             see :doc:`/tutorial/nav/restore-overview`.
-
-      * - Reference Time of Day (UTC)
-
-        - Sets the time of day at
-          `UTC <https://www.timeanddate.com/time/aboututc.html>`_ from
-          which the snapshot schedule starts. When you change the
-          :guilabel:`Reference Time of Day`, snapshots that are in
-          progress remain unaffected. Only snapshots taken after you
-          change the reference time follow the updated schedule.
-
-          .. note::
-
-             Changing the reference time changes the time of the next scheduled snapshot.
-             You can't make the next scheduled snapshot happen sooner than the current
-             next snapshot time. The current next snapshot time is the current reference
-             time plus the interval between snapshots.
-             
-             .. seealso::
-
-                To review more examples, see
-                :ref:`Snapshot Frequency and Retention <snapshot-frequency-and-retention>`.
+             To review more examples, see
+             :ref:`Snapshot Frequency and Retention <snapshot-frequency-and-retention>`.

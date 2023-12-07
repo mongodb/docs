@@ -1,5 +1,4 @@
-.. admonition:: Changed in |onprem| 3.6: Point-in-Time Restores
-   :class: important
+.. important:: Changed in |onprem| 3.6: Point-in-Time Restores
 
    Prior to 3.6, the :term:`Backup Daemon` created the complete point-
    in-time restore on its host. With 3.6, you download a client-side

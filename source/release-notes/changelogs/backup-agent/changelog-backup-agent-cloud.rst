@@ -525,25 +525,10 @@ Backup Agent 3.2.0.262
 
 *Released 2015-02-23*
 
-.. only:: cloud
-
-   Ability to monitor and back up deployments without managing them
-   through Automation. Specifically, you can 
-   :doc:`import an existing deployment into Monitoring </tutorial/add-existing-mongodb-processes>` 
-   and then use |mms| to back up the deployment.
-
-   - Support for x.509 certificate authentication.
-
-   - **Fix:** A race condition which could result in inconsistent
-     clustershots for MongoDB 3.0+ sharded clusters using the
-     :authrole:`backup` role no longer occurs.
-
-.. only:: classic
-
-   Ability to upgrade a project in Cloud |mms|, which provides 
-   Automation and the Metrics API. For information about new Cloud 
-   |mms| pricing, see 
-   `the pricing page <https://cloud.mongodb.com/pricing>`_.
+Ability to upgrade a project in Cloud |mms|, which provides 
+Automation and the Metrics API. For information about new Cloud 
+|mms| pricing, see 
+`the pricing page <https://cloud.mongodb.com/pricing>`_.
 
 .. _backup-3.1.0.250:
 

@@ -37,8 +37,7 @@
        - the number of times a Backup Daemon tried if the restore
          requires a Backup Daemon
 
-       .. admonition:: Legacy Value
-          :class: important
+       .. important:: Legacy Value
 
           No current restore delivery method retries a restore if it
           fails. This column applies to obsolete restore methods.

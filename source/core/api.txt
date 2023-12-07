@@ -57,12 +57,6 @@ User Access Control
 
   To learn more, see :ref:`access-list-for-api-operations`.
 
-.. cond:: cloud
-
-   |https| Only
-     You can access the |api| only via |https|, which ensures all
-     data sent over the network is fully encrypted using |tls|.
-
 .. COMMENT: For Ops Manager, the above sentence about |https| may not
    apply. It depends on their server configuration.
 
@@ -244,51 +238,27 @@ link relation.
 
    This is a portion of a ``host`` resource with a few links:
 
-   .. cond:: cloud
+   .. code-block:: json
+      :linenos:
 
-      .. code-block:: json
-         :linenos:
-
-         {
-           "id": "xxx",
-           "projectId": "yyy",
-           "hostname": "mongodb.example.com",
-           "port": 27017,
-           "links": [
-             {
-               "rel": "self",
-               "href": "https://cloud.mongodb.com/api/public/v1.0/projects/xxx/hosts/yyy"
-             },
-             {
-               "rel": "http://mms.mongodb.com/project",
-               "href": "https://cloud.mongodb.com/api/public/v1.0/projects/xxx"
-             }
-           ]
-         }
-
-   .. cond:: onprem
-
-      .. code-block:: json
-         :linenos:
-
-         {
-           "rel": "http://mms.mongodb.com/project",
-           "href": "https://cloud.mongodb.com/api/public/v1.0/projects/xxx"
-           "id": "xxx",
-           "projectId": "yyy",
-           "hostname": "mongodb.example.com",
-           "port": 27017,
-           "links": [
-             {
-               "rel": "self",
-               "href": "https://<ops-manager-host>/api/public/v1.0/projects/xxx/hosts/yyy"
-             },
-             {
-               "rel": "http://mms.mongodb.com/project",
-               "href": "https://<ops-manager-host>/api/public/v1.0/projects/xxx"
-             }
-           ]
-         }
+      {
+        "rel": "http://mms.mongodb.com/project",
+        "href": "https://cloud.mongodb.com/api/public/v1.0/projects/xxx"
+        "id": "xxx",
+        "projectId": "yyy",
+        "hostname": "mongodb.example.com",
+        "port": 27017,
+        "links": [
+          {
+            "rel": "self",
+            "href": "https://<ops-manager-host>/api/public/v1.0/projects/xxx/hosts/yyy"
+          },
+          {
+            "rel": "http://mms.mongodb.com/project",
+            "href": "https://<ops-manager-host>/api/public/v1.0/projects/xxx"
+          }
+        ]
+      }
 
 To learn more, see the `Web Linking Specification <http://tools.ietf.org/html/rfc5988>`_.
 
@@ -446,23 +416,12 @@ By default, extraneous whitespace is stripped from the |json| that
 |mms| returns. To ask for pretty-printed |json|, simply append the
 ``pretty=true`` query parameter to any request:
 
-.. cond:: cloud
+.. code-block:: shell
 
-   .. code-block:: shell
-
-      curl --user '{USERNAME}:{APIKEY}' --digest \
-       --header 'Accept: application/json' \
-       --include \
-       --request GET "https://cloud.mongodb.com/api/public/v1.0?pretty=true"
-
-.. cond:: onprem
-
-   .. code-block:: shell
-
-      curl --user '{USERNAME}:{APIKEY}' --digest \
-       --header 'Accept: application/json' \
-       --include \
-       --request GET "{opsManagerHost}:{Port}/api/public/v1.0?pretty=true"
+   curl --user '{USERNAME}:{APIKEY}' --digest \
+   --header 'Accept: application/json' \
+   --include \
+   --request GET "{opsManagerHost}:{Port}/api/public/v1.0?pretty=true"
 
 .. note::
 
@@ -620,12 +579,6 @@ Keep the following points in mind:
   prevent replay attacks, so you cannot cache a nonce and use it
   forever.
 
-.. cond:: cloud
-
-   - Using digest authentication in combination with |https| provides
-     an extra layer of security by ensuring that a password is never
-     transmitted back to the server.
-
 - Some resource methods require even more security and are additionally
   protected by :ref:`access lists <access-list-for-api-operations>`
   that allow access to the resource only from the |ipaddr| addresses
@@ -645,30 +598,17 @@ Keep the following points in mind:
      or :authrole:`Project Owner` in the project to which the host
      belongs.
 
-.. cond:: cloud
+- Many resources are tied to a project (former known as a *group*),
+  as evidenced by |url|\s of the following form:
 
-   - Many resources are tied to a project (former known as a *group*),
-     as evidenced by |url|\s of the following form:
+  .. code-block:: shell
 
-     .. code-block:: shell
+     /api/public/v1.0/groups/{PROJECT-ID}/
 
-        /api/public/v1.0/groups/{PROJECT-ID}/
-
-     For these resources, the user tied to the |api| key must be a member of the project. Otherwise |application| responds with an |http| 401 error.
-
-.. cond:: onprem
-
-   - Many resources are tied to a project (former known as a *group*),
-     as evidenced by |url|\s of the following form:
-
-     .. code-block:: shell
-
-        /api/public/v1.0/groups/{PROJECT-ID}/
-
-     For these resources, the user tied to the |api| key must be a
-     member of the project *or* must be assigned to one of the
-     ``GLOBAL`` roles. Otherwise |application| responds with an |http|
-     401 error.
+  For these resources, the user tied to the |api| key must be a
+  member of the project *or* must be assigned to one of the
+  ``GLOBAL`` roles. Otherwise |application| responds with an |http|
+  401 error.
 
 .. _api-automation:
 
@@ -693,44 +633,6 @@ current state of the system to match the goal state.
    configuration based on the current version, make their own
    modifications, and then submit their modifications, the later
    modification wins.
-
-.. cond:: cloud
-
-   .. _api-rate-limiting:
-
-   Rate Limiting
-   -------------
-
-   Certain resources are subject to rate limiting.
-
-   For resources that are rate limited, |mms| allows up to 100
-   requests per minute *per project*. Keep in mind that a Public |api|
-   Key is assigned to a |mms| user, but that user may access multiple
-   projects.
-
-   .. example::
-
-      Consider two users: A and B.
-
-      User A belongs to project X, and user B belongs to projects X
-      and Y.
-
-      1. At 1:00:00pm, User A makes 50 requests to a rate limited
-         resource in project X, all of which complete by 1:00:20pm.
-      #. At 1:00:30pm, User B attempts to make 60 requests to a rate
-         limited resource in project X.
-
-         Since User A has already used up 50 requests within the
-         1:00pm minute for project X, the last 10 requests User B
-         attempts to make are rejected. However, User B can make
-         requests to a rate limited resource in project Y, since each
-         project maintains a separate request counter.
-
-      #. At 1:01pm, requests to project X may proceed, because the
-         request counter used for rate limiting reset each minute.
-
-   If you exceed the rate limit, the |api| returns an |http|
-   ``429 Too Many Requests`` response code.
 
 Additional Information
 ----------------------

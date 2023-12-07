@@ -444,12 +444,10 @@
 - Improved the
   :doc:`Real-Time Performance Panel </tutorial/view-diagnostics>`.
 
-.. cond:: onprem
+- Added integrations for:
 
-   - Added integrations for:
-
-     - `Pivotal Cloud Foundry <https://pivotal.io/platform/services-marketplace/data-management/mongodb>`__
-     - :k8s:`Kubernetes </tutorial/install-k8s-operator>` (beta)
+  - `Pivotal Cloud Foundry <https://pivotal.io/platform/services-marketplace/data-management/mongodb>`__
+  - :k8s:`Kubernetes </tutorial/install-k8s-operator>` (beta)
 
 - Improved Monitoring
 

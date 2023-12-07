@@ -1,15 +1,8 @@
 The backup process takes a snapshot of the data directory at its
 :ref:`scheduled snapshot intervals <edit-snapshot-schedule>`.
 
-.. cond:: onprem
-
-   This process copies the data files in a MongoDB deployment, sending
-   them over the network via |mms| to your existing snapshot storage.
-
-.. cond:: cloud
-
-   This process copies the data files in a MongoDB deployment, sending
-   them over the network to backup storage for |mms|.
+This process copies the data files in a MongoDB deployment, sending
+them over the network via |mms| to your existing snapshot storage.
 
 Your deployment can still handle read and write operations during the
 copying process.

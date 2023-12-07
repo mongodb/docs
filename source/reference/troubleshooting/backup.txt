@@ -10,69 +10,56 @@ Backup
    :depth: 1
    :class: singlecol
 
-.. cond:: cloud
+Logs Display ``MongodVersionException``
+---------------------------------------
 
-   Run Backups with |fcv| 4.2 or Later with MongoDB Community
-   ----------------------------------------------------------
+The ``MongodVersionException`` can occur if the
+:ref:`Backup Daemon <backup-daemon>`\'s host cannot access the
+internet to download the version or versions of MongoDB required
+for the backed-up databases. Each database requires a version of
+MongoDB that matches the database's version. Specifically, for each
+instance you must run the latest stable release of that release
+series.
 
-   MongoDB has a special license to use MongoDB Enterprise for backups.
+If the Daemon runs without access to the internet, see
+:doc:`/tutorial/configure-local-mode` to install the appropriate
+binaries.
 
-   To learn more about this license, see
-   :doc:`/reference/legal/cloud-manager-backup-changes`
+.. _troubleshoot-insufficient-oplog-size-error:
 
+Insufficient Oplog Size Error
+-----------------------------
 
-.. cond:: onprem
+If you have set the :setting:`mms.backup.minimumOplogWindowHours`, |mms| checks to see if the cluster's oplogs can store a given number of hours of data. It bases on recent oplog usage patterns from the last 24 hours.
 
-   Logs Display ``MongodVersionException``
-   ---------------------------------------
+If the oplogs lack capacity, the oplogs may have turned over
+multiple times. This creates a gap between where a backup
+ends and an oplog starts.
 
-   The ``MongodVersionException`` can occur if the
-   :ref:`Backup Daemon <backup-daemon>`\'s host cannot access the
-   internet to download the version or versions of MongoDB required
-   for the backed-up databases. Each database requires a version of
-   MongoDB that matches the database's version. Specifically, for each
-   instance you must run the latest stable release of that release
-   series.
+If this oplog size check fails:
 
-   If the Daemon runs without access to the internet, see
-   :doc:`/tutorial/configure-local-mode` to install the appropriate
-   binaries.
+- You cannot enable backups
+- |mms| displays the following:
 
-   .. _troubleshoot-insufficient-oplog-size-error:
+  .. warning::
 
-   Insufficient Oplog Size Error
-   -----------------------------
+     Insufficient oplog size: The oplog window must be at least
+     <duration> hours over the last 24 hours for all members of
+     replica set <deploymentName>. Please increase the oplog.
 
-   If you have set the :setting:`mms.backup.minimumOplogWindowHours`, |mms| checks to see if the cluster's oplogs can store a given number of hours of data. It bases on recent oplog usage patterns from the last 24 hours.
+If possible, wait to start a backup until the oplog has had
+sufficient time to meet the size requirement.
 
-   If the oplogs lack capacity, the oplogs may have turned over
-   multiple times. This creates a gap between where a backup
-   ends and an oplog starts.
+.. warning::
+   Do not change the minimum oplog size unless you are certain
+   smaller backups still provide useful backups.
 
-   If this oplog size check fails:
+   MongoDB recommends only changing this value temporarily to permit
+   a test backup job to execute. The minimum oplog size value should
+   be reset to the default as soon as possible.
 
-   - You cannot enable backups
-   - |mms| displays the following:
-
-     .. warning::
-
-        Insufficient oplog size: The oplog window must be at least
-        <duration> hours over the last 24 hours for all members of
-        replica set <deploymentName>. Please increase the oplog.
-
-   If possible, wait to start a backup until the oplog has had
-   sufficient time to meet the size requirement.
-
-   .. warning::
-      Do not change the minimum oplog size unless you are certain
-      smaller backups still provide useful backups.
-
-      MongoDB recommends only changing this value temporarily to permit
-      a test backup job to execute. The minimum oplog size value should
-      be reset to the default as soon as possible.
-
-      Understanding the risks given, you can start backups using this
-      changed minimum value. Once you pass the 24 hour mark, you should
-      reset this minimum value to preserve the sanity check for the
-      global Ops Manager installation going forward.
+   Understanding the risks given, you can start backups using this
+   changed minimum value. Once you pass the 24 hour mark, you should
+   reset this minimum value to preserve the sanity check for the
+   global Ops Manager installation going forward.
 
