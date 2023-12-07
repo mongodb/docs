@@ -183,6 +183,15 @@ the ``sparse`` option.
 
 Shard key indexes cannot be partial indexes.
 
+.. _index-partial-equivalent-indexes:
+
+Equivalent Indexes
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/indexes/equivalent-indexes.rst
+
+For an example, see :ref:`index-partial-equivalent-indexes-example`.
+
 Examples
 --------
 
@@ -296,3 +305,70 @@ greater than or equal to 21.
       { username: "amanda" },
       { username: "rajiv", age: null }
    ] )
+
+.. _index-partial-equivalent-indexes-example:
+
+Equivalent Indexes Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/indexes/equivalent-indexes.rst
+
+In previous MongoDB versions, you can create two equivalent indexes. The
+following example creates a ``pizzas`` collection and two equivalent
+indexes named ``index0`` and ``index1``:
+
+.. code-block:: javascript
+
+   // Create the pizzas collection
+   db.pizzas.insertMany( [
+      { _id: 0, type: "pepperoni", size: "small", price: 4 },
+      { _id: 1, type: "cheese", size: "medium", price: 7 },
+      { _id: 2, type: "vegan", size: "large", price: 8 }
+   ] )
+
+   // Create two equivalent indexes with medium pizza sizes
+   db.pizzas.createIndex(
+      { type: 1 },
+      { name: "index0",
+        partialFilterExpression: { size: "medium" },
+        collation: { locale: "en_US", strength: 1 }
+      }
+   )
+
+   db.pizzas.createIndex(
+      { type: 1 },
+      { name: "index1",
+        partialFilterExpression: { size: "MEDIUM" },
+        collation: { locale: "en_US", strength: 1 }
+      }
+   )
+
+The indexes are equivalent because the two indexes specify the same
+pizza size and only differ in the text case in the partial filter
+expression. Only one index is used by queries: the index that was
+created first, which is ``index0`` in the previous example.
+
+Starting in MongoDB 7.3, you cannot create the second index (``index1``)
+and this error is returned:
+
+.. code-block:: none
+   :copyable: false
+
+   MongoServerError: Index already exists with a different name: index0
+
+In MongoDB versions earlier than 7.3, you can create the indexes but
+only the first index (``index0``) is used with these queries:
+
+.. code-block:: javascript
+
+   db.pizzas.find( { type: "cheese", size: "medium" } ).collation(
+      { locale: "en_US", strength: 1 }
+   )
+
+   db.pizzas.find( { type: "cheese", size: "MEDIUM" } ).collation(
+      { locale: "en_US", strength: 1 }
+   )
+   
+   db.pizzas.find( { type: "cheese", size: "Medium" } ).collation(
+      { locale: "en_US", strength: 1 }
+   )
