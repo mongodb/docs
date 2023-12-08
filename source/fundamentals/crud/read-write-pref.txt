@@ -1,0 +1,244 @@
+.. _node-crud-write-read-pref:
+
+===============================================
+Specify How CRUD Operations Run on Replica Sets
+===============================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: node.js, customize, preferences, replica set, consistency
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the **write concern**, **read concern**, and
+**read preference** configurations to modify the way that MongoDB runs
+create, read, update, and delete (CRUD) operations on replica sets.
+
+You can set write concern, read concern, and read preference options at the following
+levels:
+
+- Client, which sets the *default for all operation executions* unless overridden
+- Session
+- Transaction
+- Database
+- Collection
+
+This list also indicates the increasing order of precedence of the option settings. For
+example, if you set a read concern level for a transaction, it will override a read
+concern level set for the client.
+
+These options allow you to customize the causal consistency and availability of the data
+in your replica sets.
+
+Write Concern
+-------------
+
+The write concern specifies the level of acknowledgement requested from MongoDB for write
+operations, such as an insert or update, before the operation successfully returns.
+Operations that do not specify an explicit write concern inherit the global default write
+concern settings.
+
+For more information, see :manual:`Write Concern </reference/write-concern/>` in the
+Server manual. For detailed API documentation, see the `WriteConcern API documentation
+<{+api+}/classes/WriteConcern.html>`__.
+
+The following table describes the ``WriteConcern`` parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 25 50
+
+   * - Parameter
+     - Type
+     - Description
+  
+   * - ``w`` *(optional)*
+     - `W <{+api+}/types/W.html>`__
+     - Requests acknowledgment that the write operation has propagated to a specified
+       number of ``mongod`` instances or to ``mongod`` instances that are labelled specified tags
+
+   * - ``wtimeoutMS`` *(optional)*
+     - number
+     - Specifies a time limit to prevent write operations from blocking indefinitely
+
+   * - ``journal`` *(optional)*
+     - boolean
+     - Requests acknowledgment that the write operation has been written to the on-disk journal 
+
+Example: Set the Write Concern for a Single Write Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This code uses custom ``WriteConcern`` settings while creating new a document:
+
+.. code-block:: js
+
+   myDB.myCollection.insertOne( 
+      { name: "anotherDocumentName" }, 
+      { writeConcern: 
+        { w: 2, wtimeoutMS: 5000 } 
+      } 
+   );
+
+Example: Retrieve and Apply an Existing Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   
+This code uses the ``fromOptions()`` method to construct a ``WriteConcern`` from the
+options of an existing database reference, ``myDB``. Note that ``myDB`` could be replaced
+with a reference to any entity that accepts a write concern option. Then the new write
+concern is applied to a document, ``myDoc``.
+
+.. code-block:: js
+
+   const newWriteConcern = WriteConcern.fromOptions(myDB);
+   const myDoc = { name: "New Document" };
+   WriteConcern.apply(myDoc,newWriteConcern);
+
+Read Concern
+------------
+
+The read concern specifies the following behaviors:
+
+- Level of :manual:`causal consistency </core/causal-consistency-read-write-concerns/>` across replica sets
+
+- `Isolation guarantees
+  <https://www.mongodb.com/docs/current/core/read-isolation-consistency-recency/>`__ maintained during a query 
+
+You can specify the read concern setting by using the ``level`` parameter. The default
+read concern level is ``local``. This means that the client returns the data from the
+replica set member that the client is connected to, with no guarantee that the data has
+been written to all replica set members. Note that lower read concern level requirements
+may reduce latency. 
+
+For more information about read concerns or read concern levels, see 
+:manual:`Read Concern </reference/read-concern/>` in the Server manual. For more detail on
+the ``ReadConcern`` type and definitions of the read concern levels, see the `ReadConcern <{+api+}/classes/ReadConcern.html>`__ in
+the API documentation.
+
+Example: Set the Read Concern Level of an Aggregation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This code sets the read concern level of an an aggregation to ``"majority"``:
+
+.. code-block:: js
+
+   const pipeline = [
+      {"$match": {
+        category: "KITCHENWARE",
+      }},
+      {"$unset": [
+        "_id",
+        "category",
+      ]}
+    ]; 
+   
+   result = await myDB.collection("mycollection")
+      .aggregate(
+        pipeline, 
+        { readConcern: 
+          { level: "available" } 
+        } 
+      );
+
+For more information about aggregates, see the :ref:`nodejs-aggregation` page.
+   
+Example: Change the Read Concern of a Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This code changes the read concern level of a database to ``"local"``:
+
+.. code-block:: js
+
+   const options = { readConcern: { level: "local" } };
+   const myDB = client.db("mydb", options);
+
+Read Preference
+---------------
+
+The read preference determines which member of a replica set MongoDB reads when running a
+query. You can also customize how the server evaluates members. 
+
+For more detailed API documentation, see the `ReadPreference API
+documentation <{+api+}/classes/ReadPreference.html>`__.
+
+The following table describes the ``ReadPreference`` parameters:
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``mode``
+     - :manual:`ReadPreferenceMode </core/read-preference/#read-preference-modes-1>`
+     - Specifies a requirement or preference for which replica set
+       member the server reads from. The default mode, ``primary``, specifies that
+       operations read from the primary member of the replica set.
+
+   * - ``tags`` *(optional)*
+     - :manual:`TagSet List </core/read-preference-tags/#read-preference-tag-set-lists/>`
+     - Assigns tags to secondary replica set members to customize how the server evaluates
+       them. Tags cannot be used with the ``primary`` read preference mode setting.
+
+   * - ``options`` *(optional)*
+     - `ReadPreferenceOptions <{+api+}/interfaces/ReadPreferenceOptions.html>`__
+     - Sets various options, including :manual:`hedge </core/read-preference-hedge-option/>`
+       and :manual:`maxStalenessSeconds </core/read-preference-staleness/>` that can be
+       applied to your read preference.
+
+Example: Set Read Preference and Concerns for a Transaction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This code sets the read preference, read concern, and write concern for the operations in
+a transaction:
+
+.. code-block:: js
+
+   const transactionOptions = {
+      readPreference: "primary",
+      readConcern: { level: "local" },
+      writeConcern: { w: "majority" },
+   };
+
+   const session = client.startSession();
+   session.startTransaction(transactionOptions);
+   // ...
+   await session.commitTransaction();
+   await session.endSession();
+
+For more information about transactions, see :ref:`nodejs-transactions`.
+
+Example: Set the Read Preference of a Cluster in the Connection String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This code example creates a MongoClient that uses the "secondary" read preference mode
+when performing queries on a cluster:
+
+.. code-block:: js
+
+   const uri = "mongodb+srv://<user>:<password>@<cluster-url>?readPreference=secondary&maxStalenessSeconds=120";
+   const client = new MongoClient(uri);
+
+This example also sets the ``maxStalenessSeconds`` option. For more information about connection string options, see the :manual:`Connection String Options </reference/connection-string/#connection-string-options>`
+section in the manual.
+
+API Documentation
+-----------------
+
+To learn more about the methods and types mentioned in this guide, see the following API
+documentation:
+
+- `API WriteConcern <{+api+}/classes/WriteConcern.html>`__
+- `API ReadConcern <{+api+}/classes/ReadConcern.html>`__
+- `API ReadPreference <{+api+}/classes/ReadPreference.html>`__
