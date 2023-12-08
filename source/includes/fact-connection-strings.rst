@@ -24,3 +24,5 @@ hostnames of the :binary:`mongos` instances instead of the
 
    ``mongosync`` does not require the :urioption:`replicaSet` option.
 
+.. include:: /includes/read-preference-connection-string.rst
+
