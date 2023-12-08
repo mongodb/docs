@@ -1,24 +1,63 @@
 use std::env;
-use bson::Document;
 use futures::TryStreamExt;
-use mongodb::{ bson::doc, Client, Collection };
+use mongodb::{ bson::{doc, Document}, Client, Collection };
+
+use serde::{ Deserialize, Serialize };
+
+// begin-data-struct
+#[derive(Serialize, Deserialize, Debug)]
+struct Fruit {
+    _id: String,
+    name: String,
+    quantity: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    vendors: Option<Vec<String>>
+}
+// end-data-struct
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
     let client = Client::with_uri_str(uri).await?;
-    let my_coll: Collection<Document> = client.database("db").collection("fruits");
+    let my_coll: Collection<Fruit> = client.database("db").collection("fruits");
 
-    let docs = vec![
-        //begin-sample-docs
-        doc! { "_id": 1, "name": "orange", "quantity": 7 },
-        doc! { "_id": 2, "name": "apple", "quantity": 4, "description": "Granny Smith" },
-        doc! { "_id": 3, "name": "banana", "quantity": 36 },
-        doc! { "_id": 4, "name": "pear", "quantity": 28, "vendors": ["A", "C" ] }
-        //end-sample-docs
+    //begin-sample-docs
+    let docs = vec! [
+        Fruit { 
+            _id: 1.to_string(), 
+            name: "orange".to_string(), 
+            quantity: 7,
+            description: None,
+            vendors: None
+        },
+        Fruit { 
+            _id: 2.to_string(), 
+            name: "apple".to_string(), 
+            quantity: 4,
+            description: Some("Granny Smith".to_string()),
+            vendors: None
+        },
+        Fruit { 
+            _id: 3.to_string(), 
+            name: "banana".to_string(), 
+            quantity: 36,
+            description: None,
+            vendors: None
+        },
+        Fruit { 
+            _id: 4.to_string(), 
+            name: "pear".to_string(), 
+            quantity: 28,
+            description: None,
+            vendors: vec!["A".to_string(), "C".to_string() ].into()
+        },
     ];
+    //end-sample-docs
+
     // Inserts sample documents into the collection
-    my_coll.insert_many(docs, None).await?;
+    let insert_many_result = my_coll.insert_many(docs, None).await?;
 
     //begin-literal
     let query = doc! { "name": "pear" };
