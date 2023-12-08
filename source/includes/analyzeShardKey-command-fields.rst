@@ -41,6 +41,8 @@
 
        Defaults to ``true``.
 
+       .. include:: /includes/analyzeShardKey-read-and-write-distribution-metrics.rst
+
    * - ``sampleRate``
      - double
      - Optional

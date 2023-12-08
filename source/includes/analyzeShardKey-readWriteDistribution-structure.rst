@@ -41,3 +41,4 @@ returned when ``readWriteDistribution`` is set to ``true``:
       }
    }
 
+.. include:: /includes/analyzeShardKey-read-and-write-distribution-metrics.rst
