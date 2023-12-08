@@ -31,7 +31,7 @@ The command has the following syntax:
 
 .. code-block:: javascript
 
-   db.runCommand(
+   db.adminCommand(
       {
         reshardCollection: "<database>.<collection>",
         key: <shardkey>,
@@ -45,7 +45,8 @@ The command has the following syntax:
                 zone: <string> | null
             },
             ...
-        ]
+        ],
+        forceDistribution: <bool>
       }
    )
 
@@ -109,9 +110,15 @@ The command takes the following fields:
      - array
      - Optional. To maintain or add :ref:`zones <zone-sharding>`,
        specify the zones for your collection in an array.
- 
-The :binary:`~bin.mongosh` provides a wrapper method
-:method:`sh.reshardCollection()`.
+
+   * - ``forceRedistribution``
+     - boolean
+     - Optional.  When set to ``true``, the operation executes even if the new
+       shard key is the same as the old shard key.  Use with the 
+       ``zones`` option to move data to specific zones.
+
+       .. versionadded:: 7.2
+
 
 Resharding Process
 ------------------
@@ -217,3 +224,54 @@ MongoDB returns the following:
 .. seealso::
 
    :ref:`sharding-resharding`
+
+.. _reshardCollection-redistribute-data:
+
+Redistribute Data to New Shards
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.2, you can reshard a collection on the same key,
+which can be used to redistribute data onto new shards.
+
+After adding a shard to the cluster, you use the ``reshardCollection`` command
+with the ``forceRedistribution`` option to redistribute data across the
+cluster:
+
+.. code-block:: javascript
+
+   db.adminCommand({
+       reshardCollection: "accounts.invoices",
+       key: { store_id: "hashed" },
+       forceRedistribution: true
+   })
+
+
+Redistribute Data to Different Zones
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 7.2, you can use the ``reshardCollection`` command to
+move data into new zones without changing the shard key.
+
+The following command redistributes data for the ``accounts.sales`` collection
+using the same shard key, moving data from zones ``zone01`` and ``zone02`` to
+``zone03`` and ``zone04``:
+
+.. code-block:: javascript
+   
+   db.adminCommand({
+       reshardCollection: "accounts.sales",
+       key: { region_id: "hashed" },
+       forceRedistribution: true,
+       zones: [
+           {
+               zone: "zone04",
+               min: { region_id: MinKey() },
+               max: { region_id: 10 }
+           },
+           {
+               zone: "zone05",
+               min: { region_id: 10 },
+               max: { region_id: MaxKey() }
+           }
+       ]
+   })
