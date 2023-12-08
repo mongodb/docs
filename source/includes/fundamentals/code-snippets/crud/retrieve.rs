@@ -1,23 +1,49 @@
-use bson::Document;
-use chrono::{ TimeZone, Utc };
 use futures::TryStreamExt;
-use mongodb::{ bson::doc, Client, Collection, options::{ FindOptions, FindOneOptions } };
+use mongodb::{ bson::doc, bson::Document, Client, Collection, options::{ FindOptions, FindOneOptions } };
 use std::env;
+
+use serde::{ Deserialize, Serialize };
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Inventory {
+    item: String,
+    category: String,
+    unit_price: f32
+}
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
-    let uri = "<connection string>";
+    let uri = "connection string";
     let client = Client::with_uri_str(uri).await?;
-    let my_coll: Collection<Document> = client.database("db").collection("inventory");
+    let my_coll: Collection<Inventory> = client.database("db").collection("inventory");
 
-    let docs = vec![
-        doc! { "item": "candle", "category": "decor", "unit_price": 2.89 },
-        doc! { "item": "blender", "category": "kitchen", "unit_price": 38.49 },
-        doc! { "item": "placemat", "category": "kitchen", "unit_price": 3.19 },
-        doc! { "item": "watering can", "category": "garden", "unit_price": 11.99 }
+    // start-sample
+    let docs = vec! [
+        Inventory {
+            item: "candle".to_string(),
+            category: "decor".to_string(),
+            unit_price: 2.89,
+        },
+        Inventory {
+            item: "blender".to_string(),
+            category: "kitchen".to_string(),
+            unit_price: 38.49,
+        },
+        Inventory {
+            item: "placemat".to_string(),
+            category: "kitchen".to_string(),
+            unit_price: 3.19,
+        },
+        Inventory {
+            item: "watering can".to_string(),
+            category: "garden".to_string(),
+            unit_price: 11.99,
+        }
     ];
+    // end-sample
 
-    my_coll.insert_many(docs, None).await?;
+    // Inserts sample documents into the collection
+    let insert_many_result = my_coll.insert_many(docs, None).await?;
 
     // begin-find-many
     let opts = FindOptions::builder()
@@ -34,7 +60,7 @@ async fn main() -> mongodb::error::Result<()> {
     ).await?;
 
     while let Some(result) = cursor.try_next().await? {
-        println!("{}", result);
+        println!("{:?}", result);
     };
     
     // end-find-many
@@ -61,7 +87,7 @@ async fn main() -> mongodb::error::Result<()> {
 
     let mut cursor = my_coll.aggregate(pipeline, None).await?;
     while let Some(result) = cursor.try_next().await? {
-        println!("{}", result);
+        println!("{:?}", result);
     };
     // end-agg
 

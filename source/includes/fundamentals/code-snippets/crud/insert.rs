@@ -1,12 +1,21 @@
-use std::env;
-use bson::{ Document, bson };
+use futures::TryStreamExt;
 use mongodb::{
     bson::doc,
-    Client,
-    Collection,
+    Client, 
+    Collection, 
     results::{ InsertOneResult, InsertManyResult },
-    options::{ InsertOneOptions, InsertManyOptions },
+    options::{ InsertOneOptions, InsertManyOptions }, 
 };
+use std::env;
+
+use serde::{ Deserialize, Serialize };
+
+#[derive(Serialize, Deserialize, Debug)]
+struct Book {
+    _id: i32,
+    title: String,
+    author: String
+}
 
 #[tokio::main]
 async fn main() -> mongodb::error::Result<()> {
@@ -15,8 +24,8 @@ async fn main() -> mongodb::error::Result<()> {
     let client = Client::with_uri_str(uri).await?;
 
     // begin-insert-one
-    let my_coll: Collection<Document> = client.database("db").collection("books");
-    let doc = doc! { "title": "Atonement", "author": "Ian McEwan" };
+    let my_coll: Collection<Book> = client.database("db").collection("books");
+    let doc = Book { _id: 8, title: "Atonement".to_string(), author: "Ian McEwan".to_string() };
 
     let insert_one_result = my_coll.insert_one(doc, None).await?;
     println!("Inserted document with _id: {}", insert_one_result.inserted_id);
@@ -29,32 +38,43 @@ async fn main() -> mongodb::error::Result<()> {
     // end-one-options
 
     // begin-insert-many
-    let my_coll: Collection<Document> = client.database("db").collection("books");
     let docs = vec![
-        doc! { "title": "Cat's Cradle", "author": "Kurt Vonnegut Jr." },
-        doc! { "title": "In Memory of Memory", "author": "Maria Stepanova" },
-        doc! { "title": "Pride and Prejudice", "author": "Jane Austen" }
+        Book {
+            _id: 5,
+            title: "Cat's Cradle".to_string(),
+            author: "Kurt Vonnegut Jr.".to_string()
+        },
+        Book {
+            _id: 6,
+            title: "In Memory of Memory".to_string(),
+            author: "Maria Stepanova".to_string()
+        },
+        Book {
+            _id: 7,
+            title: "Pride and Prejudice".to_string(),
+            author: "Jane Austen".to_string()
+        }
     ];
 
     let insert_many_result = my_coll.insert_many(docs, None).await?;
     println!("Inserted documents with _ids:");
     for (_key, value) in &insert_many_result.inserted_ids {
-        println!("{}", value);
+        println!("{:?}", value);
     }
     // end-insert-many
 
     // begin-many-options
     let _opts = InsertManyOptions::builder()
-        .comment(bson!("hello world"))
+        .comment(Some("hello world".into()))
         .build();
     // end-many-options
 
     // begin-unordered
     let docs = vec![
-        doc! { "_id": 1, "title": "Where the Wild Things Are" },
-        doc! { "_id": 2, "title": "The Very Hungry Caterpillar" },
-        doc! { "_id": 1, "title": "Blueberries for Sal" },
-        doc! { "_id": 3, "title": "Goodnight Moon" }
+        Book { _id: 1, title: "Where the Wild Things Are".to_string(), author: "".to_string() },
+        Book { _id: 2, title: "The Very Hungry Caterpillar".to_string(), author: "".to_string() },
+        Book { _id: 4, title: "Blueberries for Sal".to_string(), author: "".to_string() },
+        Book { _id: 3, title: "Goodnight Moon".to_string(), author: "".to_string() }
     ];
 
     let opts = InsertManyOptions::builder().ordered(false).build();
