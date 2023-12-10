@@ -15,15 +15,7 @@
      - Your :ref:`private API Key <mms-prog-api-key>` for your |api|
        credentials.
 
-   * -
-       .. cond:: cloud
-
-          ``{+cloudmgr-url+}``
-
-       .. cond:: onprem
-
-          ``{+opsmgr-url+}``
-
+   * - ``{+cloudmgr-url+}``
      - string
      - |url| of your |mms| instance.
 

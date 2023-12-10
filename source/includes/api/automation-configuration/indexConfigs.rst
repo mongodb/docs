@@ -98,7 +98,9 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
        This parameter applies only if you set
        **indexConfigs.collation.strength** to **1** or **2**.
 
-       .. seealso:: :manual:`Collation </reference/collation>`
+       .. seealso::
+
+          :manual:`Collation </reference/collation>`
 
    * - indexConfigs.collation.caseFirst
      - string
@@ -140,7 +142,9 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
 
        The default is **false**.
 
-       .. seealso:: :manual:`Collation </reference/collation>`
+       .. seealso::
+
+          :manual:`Collation </reference/collation>`
 
    * - indexConfigs.collation.alternate
      - string
@@ -166,11 +170,15 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
        If you set this parameter to **true**, collation:
 
        - Checks if text requires `normalization <http://userguide.icu-project.org/collation/concepts#TOC-Normalization>`_.
-       - Performs normalization to compare text.
+       - Performs normalization 
 
-       The default is **false**.
+       .. seealso::
 
-       .. seealso:: :manual:`Collation </reference/collation>`
+          :manual:`Collation </reference/collation>`
+
+       .. seealso::
+
+          :manual:`Collation </reference/collation>`
 
    * - indexConfigs.collation.backwards
      - boolean
@@ -178,12 +186,18 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
      - Flag that indicates how the index should handle diacritic
        strings.
 
-       If you set this parameter to **true**, strings with diacritics
-       sort from the back to the front of the string.
 
-       The default is **false**.
+       .. seealso::
 
-       .. seealso:: :manual:`Collation </reference/collation>`
+          :manual:`Collation </r
+
+       .. seealso::
+
+          :manual:`Collation </reference/collation>`
+
+       .. seealso::
+
+          :manual:`Collation </reference/collation>`
 
    * - indexConfigs.options
      - document

@@ -15,8 +15,7 @@
        that represents the point in time to which your data will be
        restored.
 
-       .. admonition:: Conditions
-          :class: note
+       .. note:: Conditions
 
           - Set ``"delivery.methodName" : "AUTOMATED_RESTORE"``.
           - Run Sharded Clusters using |fcv-link| of 4.0 or earlier.

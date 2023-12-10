@@ -2,9 +2,7 @@
 
    To view the Performance Advisor, you must:
 
-   .. cond:: cloud
-
-      - Be a Cloud Premium user.
+   - Be a Cloud Premium user.
 
    - Run MongoDB version 3.2 or later on your cluster.
 

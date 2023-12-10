@@ -20,8 +20,7 @@
      - Conditional
      - |iso8601-time| after which the |url| is no longer available.
 
-       .. admonition:: Condition
-          :class: note
+       .. note:: Condition
 
           If you set ``delivery.expires``, you can't set
           ``delivery.expirationHours``.
@@ -33,8 +32,7 @@
      - Number of hours the download |url| is valid once the restore
        job is complete.
 
-       .. admonition:: Condition
-          :class: note
+       .. note:: Condition
 
           If you set ``delivery.expirationHours``, you can't set
           ``delivery.expires``.

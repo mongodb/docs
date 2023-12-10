@@ -7,16 +7,8 @@ You must :doc:`configure the network infrastructure
 - the Monitoring Agent can connect to all :program:`mongod` and
   :program:`mongos` instances that you want to monitor.
 
-.. only:: cloud
-
-   - the Monitoring Agent can connect to ``api-agents.mongodb.com`` on
-     port ``443`` (:abbr:`HTTPS (Hypertext Transfer Protocol Secure)`).
-
-.. only:: onprem
-
-   - the Monitoring Agent can connect to |mms| on port ``8080``
-     if it is using :abbr:`HTTP (Hypertext Transfer Protocol)` or
-     ``8443`` if :doc:`it is using HTTPS </tutorial/configure-mongodb-agent-for-tls>`.
+- the Monitoring Agent can connect to ``api-agents.mongodb.com`` on
+  port ``443`` (:abbr:`HTTPS (Hypertext Transfer Protocol Secure)`).
 
 |mms| does not make *any* outbound connections to the agents
 or to MongoDB instances. If :ref:`Exposed DB Host Check is enabled

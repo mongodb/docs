@@ -12,16 +12,7 @@ multiple agents to distribute assignments and to provide agent failover.
 
 .. include:: /includes/extracts/monitoring-agent-install-note.rst
 
-.. only:: onprem
-
-   This tutorial guides you through the steps necessary
-   to install or update the Monitoring Agent on your system. You must install
-   the |onprem| itself before installing the
-   Monitoring Agent.
-
-.. only:: cloud
-
-   This tutorial guides you through the steps necessary
-   to install or update the Monitoring Agent on your system.
+This tutorial guides you through the steps necessary to install or
+update the Monitoring Agent on your system. 
 
 See :ref:`faq-monitoring` for additional information.

@@ -376,22 +376,18 @@ Monitoring Agent 3.1.0.173
 
 *Released 2015-02-23*
 
-.. only:: cloud
+- Ability to monitor and back up deployments without managing them
+  through Automation. Specifically, you can import an existing
+  deployment into Monitoring, which allows you to use |mms| to 
+  monitor and optionally back up the deployment. See
+  :doc:`/tutorial/add-existing-mongodb-processes`.
 
-   - Ability to monitor and back up deployments without managing them
-     through Automation. Specifically, you can import an existing
-     deployment into Monitoring, which allows you to use |mms| to 
-     monitor and optionally back up the deployment. See
-     :doc:`/tutorial/add-existing-mongodb-processes`.
+- Support for x.509 certificate authentication.
 
-   - Support for x.509 certificate authentication.
+- Improved support for collecting database statistics from 
+  secondaries as well as primaries.
 
-   - Improved support for collecting database statistics from 
-     secondaries as well as primaries.
-
-.. only:: classic
-
-   - Ability to upgrade a project to Cloud |mms|, which provides Automation
+.. .. only:: classic - Ability to upgrade a project to Cloud |mms|, which provides Automation
      and the Metrics API. For information about Cloud |mms| pricing,
      please see `the pricing page <https://cloud.mongodb.com/pricing>`_.
 

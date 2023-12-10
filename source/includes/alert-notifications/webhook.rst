@@ -6,8 +6,5 @@ same format as the |mms| |api|
 To configure this option, configure the Webhook settings on the
 :ref:`Project Settings page <group-settings-page>`.
 
-.. cond:: cloud
-
-   To ensure your Webhooks work,
-   :ref:`configure your firewall <alerts-webhook-ips>` to permit the
-   Webhooks to access |mms|.
+To ensure your Webhooks work, :ref:`configure your firewall
+<alerts-webhook-ips>` to permit the Webhooks to access |mms|.

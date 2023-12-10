@@ -1,5 +1,4 @@
-.. admonition:: This Procedure is Irreversible
-   :class: warning
+.. warning:: This Procedure is Irreversible
 
    If you enable x.509 member certificate authentication for any 
    deployment in a project, you can't disable x.509 member certificate 

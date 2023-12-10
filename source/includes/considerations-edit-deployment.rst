@@ -24,13 +24,11 @@ Backup Considerations for MongoDB Versions
 To learn more about backup considerations, see
 :ref:`4.2-backup-considerations`.
 
-.. cond:: cloud
-
-   If you choose to upgrade to MongoDB 4.2 with
-   ``"featureCompatibilityVersion" : 4.2``, |mms| displays a modal that
-   asks you to agree to the
-   :doc:`special license </reference/legal/cloud-manager-backup-license>`
-   that MongoDB, Inc. grants to use MongoDB Enterprise for backups.
+If you choose to upgrade to MongoDB 4.2 with
+``"featureCompatibilityVersion" : 4.2``, |mms| displays a modal that
+asks you to agree to the :doc:`special license
+</reference/legal/cloud-manager-backup-license>` that MongoDB, Inc.
+grants to use MongoDB Enterprise for backups. 
 
 Storage Engine
 ~~~~~~~~~~~~~~
@@ -149,8 +147,12 @@ state in which a minority of its members are available.
 
 .. include:: /includes/admonitions/warning/force-reconfigure-rollback.rst
 
-.. seealso:: :manual:`Reconfigure a Replica Set with Unavailable Members </tutorial/reconfigure-replica-set-with-unavailable-members/>` in the MongoDB Manual.
+.. seealso::
 
+   :manual:`Reconfigure a Replica Set with Unavailable Members
+   </tutorial/reconfigure-replica-set-with-unavailable-members/>` in the
+   MongoDB Manual.
+   
 Removing a Shard
 ~~~~~~~~~~~~~~~~
 

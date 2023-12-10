@@ -66,8 +66,7 @@
 
        Default value is: ``<metadata.namespace>``.
 
-       .. admonition:: One Namespace or All Namespaces
-          :class: note
+       .. note:: One Namespace or All Namespaces
 
           If you need to watch more than one namespace, set the value
           of ``WATCH_NAMESPACE`` to ``*`` (all). This environment

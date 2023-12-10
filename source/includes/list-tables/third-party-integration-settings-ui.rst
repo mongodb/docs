@@ -61,8 +61,7 @@
        the integration will display your team name and |api| token, and
        allow you to change your channel name.
 
-       .. admonition:: Legacy Token Deprecation
-          :class: important
+       .. important:: Legacy Token Deprecation
 
           Legacy tokens are deprecated and will be removed in a future
           version of |mms|. You cannot edit a legacy token
@@ -98,42 +97,7 @@
 
    * - Datadog Settings
 
-     - .. cond:: onprem
-
-          Configuration |mms| uses to send metric data about your
-          deployment to Datadog. You can view these metrics in your
-          Datadog dashboards.
-
-          Enter the following information from your Datadog account to
-          have Datadog begin tracking your |mms| metric data. If you
-          do not have an existing Datadog account, you can sign up at
-          `DataDog <https://app.datadoghq.com/signup>`__.
-
-          - Datadog API Key
-
-          You might see an inaccurate health status in the following 
-          scenarios:
-
-          - If you have a network partition and the {+mdbagent+} lives 
-            on an isolated node in a replica set, only pings from the 
-            isolated node reach Datadog. The isolated node and 
-            |onprem| UI report the other nodes as down.
-          - If you have a network partition and the MongoDB Agent lives 
-            outside the impacted nodes, pings from all the nodes reach 
-            Datadog, but report different statuses.
-          - If all nodes are unresponsive or their state is hanging, no 
-            new pings come in. The |onprem| UI reports these nodes as 
-            down, but Datadog reports them as healthy and the status 
-            gets older.
-
-          .. important::
-
-             If the health status is ``1``, but no other metrics appear 
-             in Datadog, the replica set might be down.
-
-       .. cond:: cloud
-
-          The Datadog Metrics integration is not supported with |mms|.
+     - The Datadog Metrics integration is not supported with |mms|.
 
    * - Webhook Settings
 

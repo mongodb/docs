@@ -51,7 +51,9 @@ settings, use the :ref:`update-backup-logs` endpoint.
      - Required
      - Version of the Backup Agent.
 
-       .. seealso:: :doc:`/reference/mongodb-compatibility`
+       .. seealso::
+
+          :doc:`/reference/mongodb-compatibility`
 
        .. important::
 

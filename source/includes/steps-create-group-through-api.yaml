@@ -5,29 +5,15 @@ content: |
   Use the {+admin-api+} to send a :doc:`projects 
   </reference/api/groups>` document to create the new project.
 
-  .. cond:: cloud
+  .. code-block:: sh
 
-     .. code-block:: sh
-
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --header "Content-Type: application/json" \
-             --request POST "https://{+cloudmgr-url+}/api/public/v1.0/groups?pretty=true" \
-             --data '
-               {
-                 "name": "{GROUP-NAME}"
-               }'
-
-  .. cond:: onprem
-
-     .. code-block:: sh
-
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --header "Content-Type: application/json" \
-             --request POST "https://{+opsmgr-url+}/api/public/v1.0/groups?pretty=true" \
-             --data '
-               {
-                 "name": "{GROUP-NAME}"
-               }'
+     curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+          --header "Content-Type: application/json" \
+          --request POST "https://{+cloudmgr-url+}/api/public/v1.0/groups?pretty=true" \
+          --data '
+            {
+              "name": "{GROUP-NAME}"
+            }'
 
   The |api| returns a document that includes the project's
   ``agentApiKey`` and ``id``.
@@ -53,101 +39,23 @@ content: |
   Set the user's ``roles.roleName`` to ``GROUP_OWNER`` and the user's
   ``roles.groupId`` set to the new group's' ``id``.
 
-  .. cond:: cloud
+  .. code-block:: sh
 
-     .. code-block:: sh
+     curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+          --header 'Accept: application/json' \
+          --header "Content-Type: application/json" \
+          --request POST "https://{+cloudmgr-url+}/api/public/v1.0/users?pretty=true" \
+          --data '
+            {
+              "username": "<new_user@example.com>",
+              "emailAddress": "<new_user@example.com>",
+              "firstName": "<First>",
+              "lastName": "<Last>",
+              "password": "<password>",
+              "roles": [{
+                "groupId": "{PROJECT-ID}",
+                "roleName": "GROUP_OWNER"
+              }]
+            }'
 
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --header 'Accept: application/json' \
-             --header "Content-Type: application/json" \
-             --request POST "https://{+cloudmgr-url+}/api/public/v1.0/users?pretty=true" \
-             --data '
-               {
-                  "username": "<new_user@example.com>",
-                  "emailAddress": "<new_user@example.com>",
-                  "firstName": "<First>",
-                  "lastName": "<Last>",
-                  "password": "<password>",
-                  "roles": [{
-                    "groupId": "{PROJECT-ID}",
-                    "roleName": "GROUP_OWNER"
-                  }]
-               }'
-
-  .. cond:: onprem
-
-     .. code-block:: sh
-
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --header "Content-Type: application/json" \
-             --request POST "https://{+opsmgr-url+}/api/public/v1.0/users?pretty=true" \
-             --data '
-               {
-                  "username": "<new_user@example.com>",
-                  "emailAddress": "<new_user@example.com>",
-                  "firstName": "<First>",
-                  "lastName": "<Last>",
-                  "password": "<password>",
-                  "roles": [{
-                    "groupId": "{PROJECT-ID}",
-                    "roleName": "GROUP_OWNER"
-                  }]
-               }'
-
-
----
-title: "(Optional) If you used a global owner user to create the project, you can remove that user from the project."
-stepnum: 4
-ref: remove-global-owner
-edition: onprem
-content: |
-
-  The user you use to create the project is automatically added to the
-  project. If you used a user with the :authrole:`Global Owner` role,
-  you can remove the user from the project without losing the ability
-  to make changes to the project in the future. As long as you have the
-  project's ``agentApiKey`` and ``id``, you have full access to the
-  project when logged in as the global owner.
-
-  ``GET`` the global owner's ID. Issue the following command to
-  request the project's users, replacing the placeholders with the
-  `Variables for Cluster Creation API Resources`_:
-
-  .. cond:: cloud
-
-     .. code-block:: sh
-
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --request GET "https://{+cloudmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/users?pretty=true"
-
-  .. cond:: onprem
-
-     .. code-block:: sh
-
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/users?pretty=true"
-
-  The |api| returns a |json| document that lists all the project's
-  users. Locate the user with ``roles.roleName`` set to
-  ``GLOBAL_OWNER``. Copy the user's ``id`` value, and issue the
-  following to remove the user from the project, replacing
-  ``{USER-ID}`` with the user's ``id`` value and the other placeholders
-  with the `Variables for Cluster Creation API Resources`_:
-
-  .. cond:: cloud
-
-     .. code-block:: sh
-
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --request DELETE "https://{+cloudmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/users/{USER-ID}?pretty=true"
-
-  .. cond:: onprem
-
-     .. code-block:: sh
-
-        curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
-             --request GET "https://{+opsmgr-url+}/api/public/v1.0/groups/{PROJECT-ID}/users/{USER-ID}?pretty=true"
-
-  If |mms| removes the user successfully, the |api| returns the
-  |http| ``200 OK`` status code.
 ...

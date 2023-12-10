@@ -1,5 +1,4 @@
-.. admonition:: Recommend using One User for All Agents on Windows 
-   :class: important
+.. important:: Recommend using One User for All Agents on Windows 
 
    For deployments on Windows, MongoDB recommends using the same
    :manual:`MongoDB user </core/security-users/>` for the Automation Agent, Backup Agent, and Monitoring Agent. Grant this user the

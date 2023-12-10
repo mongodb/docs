@@ -49,14 +49,10 @@
      - string
      - Name of the assigned role. Accepted returned values are:
 
-       .. cond:: cloud
+       .. note::
 
-          .. note::
-
-             The ``users`` resource returns all the roles the new |mms|
-             user has in both |mms| and |service|.
-
-       .. include:: /includes/list-tables/api-user-roles-onprem.rst
+          The ``users`` resource returns all the roles the new |mms|
+          user has in both |mms| and |service|.
 
    * - ``user``
      - object
@@ -104,12 +100,6 @@
      - Unique identifier for the project in which the new |mms| user
        has the specified role.
 
-       .. cond:: onprem
-
-          For the :ref:`global roles <global-roles>`, no ``groupId``
-          exists as these roles are not tied to an organization or
-          project.
-
    * - | ``user``
        | ``.roles.orgId``
      - string
@@ -121,14 +111,11 @@
      - string
      - Name of the role. Values are:
 
-       .. cond:: cloud
+       .. note::
 
-          .. note::
+          The ``users`` resource returns all the roles the new |mms|
+          user has in both |mms| and |service|.
 
-             The ``users`` resource returns all the roles the new |mms|
-             user has in both |mms| and |service|.
-
-       .. include:: /includes/list-tables/api-user-roles-onprem.rst
 
    * - | ``user``
        | ``.teamIds``

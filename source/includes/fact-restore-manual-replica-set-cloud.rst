@@ -184,11 +184,6 @@
      - Provide the absolute path to the trusted |certauth| certificates
        in |pem| format for the |mms| host. If this flag is not
        provided, the system |certauth| is used.
-   
-       .. only:: onprem
-       
-          If |mms| is using a self-signed |ssl| certificate, this
-          setting is required.
      -
 
    * - ``--httpProxy``

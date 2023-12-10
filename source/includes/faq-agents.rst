@@ -15,10 +15,8 @@ agents. If you run more than 100 agents, the
 additional agents behave as "standby" agents.
 For details, see :ref:`Manage Monitoring Function <manage-monitoring>`.
 
-.. cond:: cloud
-
-   **Cloud Manager Premium** uses 10-second granularity for monitoring
-   metrics.
+**Cloud Manager Premium** uses 10-second granularity for monitoring
+metrics. 
 
 Where should I run the agent?
 +++++++++++++++++++++++++++++
