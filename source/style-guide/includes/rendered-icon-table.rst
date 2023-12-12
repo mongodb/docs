@@ -6,12 +6,12 @@
      - Render 
  
    * - ``fa-accessible-icon`` 
-     - ``:icon-fa5:`accessible-icon``` 
-     - :icon-fa5:`accessible-icon`
+     - ``:icon-fa5-brands:`accessible-icon``` 
+     - :icon-fa5-brands:`accessible-icon`
                 
    * - ``fa-accusoft`` 
-     - ``:icon-fa5:`accusoft``` 
-     - :icon-fa5:`accusoft`
+     - ``:icon-fa5-brands:`accusoft``` 
+     - :icon-fa5-brands:`accusoft`
                 
    * - ``fa-ad`` 
      - ``:icon-fa5:`ad``` 
@@ -30,24 +30,24 @@
      - :icon-fa5:`adjust`
                 
    * - ``fa-adn`` 
-     - ``:icon-fa5:`adn``` 
-     - :icon-fa5:`adn`
+     - ``:icon-fa5-brands:`adn``` 
+     - :icon-fa5-brands:`adn`
                 
    * - ``fa-adversal`` 
-     - ``:icon-fa5:`adversal``` 
-     - :icon-fa5:`adversal`
+     - ``:icon-fa5-brands:`adversal``` 
+     - :icon-fa5-brands:`adversal`
                 
    * - ``fa-affiliatetheme`` 
-     - ``:icon-fa5:`affiliatetheme``` 
-     - :icon-fa5:`affiliatetheme`
+     - ``:icon-fa5-brands:`affiliatetheme``` 
+     - :icon-fa5-brands:`affiliatetheme`
                 
    * - ``fa-air-freshener`` 
      - ``:icon-fa5:`air-freshener``` 
      - :icon-fa5:`air-freshener`
                 
    * - ``fa-algolia`` 
-     - ``:icon-fa5:`algolia``` 
-     - :icon-fa5:`algolia`
+     - ``:icon-fa5-brands:`algolia``` 
+     - :icon-fa5-brands:`algolia`
                 
    * - ``fa-align-center`` 
      - ``:icon-fa5:`align-center``` 
@@ -66,20 +66,20 @@
      - :icon-fa5:`align-right`
                 
    * - ``fa-alipay`` 
-     - ``:icon-fa5:`alipay``` 
-     - :icon-fa5:`alipay`
+     - ``:icon-fa5-brands:`alipay``` 
+     - :icon-fa5-brands:`alipay`
                 
    * - ``fa-allergies`` 
      - ``:icon-fa5:`allergies``` 
      - :icon-fa5:`allergies`
                 
    * - ``fa-amazon`` 
-     - ``:icon-fa5:`amazon``` 
-     - :icon-fa5:`amazon`
+     - ``:icon-fa5-brands:`amazon``` 
+     - :icon-fa5-brands:`amazon`
                 
    * - ``fa-amazon-pay`` 
-     - ``:icon-fa5:`amazon-pay``` 
-     - :icon-fa5:`amazon-pay`
+     - ``:icon-fa5-brands:`amazon-pay``` 
+     - :icon-fa5-brands:`amazon-pay`
                 
    * - ``fa-ambulance`` 
      - ``:icon-fa5:`ambulance``` 
@@ -90,20 +90,20 @@
      - :icon-fa5:`american-sign-language-interpreting`
                 
    * - ``fa-amilia`` 
-     - ``:icon-fa5:`amilia``` 
-     - :icon-fa5:`amilia`
+     - ``:icon-fa5-brands:`amilia``` 
+     - :icon-fa5-brands:`amilia`
                 
    * - ``fa-anchor`` 
      - ``:icon-fa5:`anchor``` 
      - :icon-fa5:`anchor`
                 
    * - ``fa-android`` 
-     - ``:icon-fa5:`android``` 
-     - :icon-fa5:`android`
+     - ``:icon-fa5-brands:`android``` 
+     - :icon-fa5-brands:`android`
                 
    * - ``fa-angellist`` 
-     - ``:icon-fa5:`angellist``` 
-     - :icon-fa5:`angellist`
+     - ``:icon-fa5-brands:`angellist``` 
+     - :icon-fa5-brands:`angellist`
                 
    * - ``fa-angle-double-down`` 
      - ``:icon-fa5:`angle-double-down``` 
@@ -142,40 +142,40 @@
      - :icon-fa5:`angry`
                 
    * - ``fa-angrycreative`` 
-     - ``:icon-fa5:`angrycreative``` 
-     - :icon-fa5:`angrycreative`
+     - ``:icon-fa5-brands:`angrycreative``` 
+     - :icon-fa5-brands:`angrycreative`
                 
    * - ``fa-angular`` 
-     - ``:icon-fa5:`angular``` 
-     - :icon-fa5:`angular`
+     - ``:icon-fa5-brands:`angular``` 
+     - :icon-fa5-brands:`angular`
                 
    * - ``fa-ankh`` 
      - ``:icon-fa5:`ankh``` 
      - :icon-fa5:`ankh`
                 
    * - ``fa-app-store`` 
-     - ``:icon-fa5:`app-store``` 
-     - :icon-fa5:`app-store`
+     - ``:icon-fa5-brands:`app-store``` 
+     - :icon-fa5-brands:`app-store`
                 
    * - ``fa-app-store-ios`` 
-     - ``:icon-fa5:`app-store-ios``` 
-     - :icon-fa5:`app-store-ios`
+     - ``:icon-fa5-brands:`app-store-ios``` 
+     - :icon-fa5-brands:`app-store-ios`
                 
    * - ``fa-apper`` 
-     - ``:icon-fa5:`apper``` 
-     - :icon-fa5:`apper`
+     - ``:icon-fa5-brands:`apper``` 
+     - :icon-fa5-brands:`apper`
                 
    * - ``fa-apple`` 
-     - ``:icon-fa5:`apple``` 
-     - :icon-fa5:`apple`
+     - ``:icon-fa5-brands:`apple``` 
+     - :icon-fa5-brands:`apple`
                 
    * - ``fa-apple-alt`` 
      - ``:icon-fa5:`apple-alt``` 
      - :icon-fa5:`apple-alt`
                 
    * - ``fa-apple-pay`` 
-     - ``:icon-fa5:`apple-pay``` 
-     - :icon-fa5:`apple-pay`
+     - ``:icon-fa5-brands:`apple-pay``` 
+     - :icon-fa5-brands:`apple-pay`
                 
    * - ``fa-archive`` 
      - ``:icon-fa5:`archive``` 
@@ -254,8 +254,8 @@
      - :icon-fa5:`asterisk`
                 
    * - ``fa-asymmetrik`` 
-     - ``:icon-fa5:`asymmetrik``` 
-     - :icon-fa5:`asymmetrik`
+     - ``:icon-fa5-brands:`asymmetrik``` 
+     - :icon-fa5-brands:`asymmetrik`
                 
    * - ``fa-at`` 
      - ``:icon-fa5:`at``` 
@@ -270,32 +270,32 @@
      - :icon-fa5:`atom`
                 
    * - ``fa-audible`` 
-     - ``:icon-fa5:`audible``` 
-     - :icon-fa5:`audible`
+     - ``:icon-fa5-brands:`audible``` 
+     - :icon-fa5-brands:`audible`
                 
    * - ``fa-audio-description`` 
      - ``:icon-fa5:`audio-description``` 
      - :icon-fa5:`audio-description`
                 
    * - ``fa-autoprefixer`` 
-     - ``:icon-fa5:`autoprefixer``` 
-     - :icon-fa5:`autoprefixer`
+     - ``:icon-fa5-brands:`autoprefixer``` 
+     - :icon-fa5-brands:`autoprefixer`
                 
    * - ``fa-avianex`` 
-     - ``:icon-fa5:`avianex``` 
-     - :icon-fa5:`avianex`
+     - ``:icon-fa5-brands:`avianex``` 
+     - :icon-fa5-brands:`avianex`
                 
    * - ``fa-aviato`` 
-     - ``:icon-fa5:`aviato``` 
-     - :icon-fa5:`aviato`
+     - ``:icon-fa5-brands:`aviato``` 
+     - :icon-fa5-brands:`aviato`
                 
    * - ``fa-award`` 
      - ``:icon-fa5:`award``` 
      - :icon-fa5:`award`
                 
    * - ``fa-aws`` 
-     - ``:icon-fa5:`aws``` 
-     - :icon-fa5:`aws`
+     - ``:icon-fa5-brands:`aws``` 
+     - :icon-fa5-brands:`aws`
                 
    * - ``fa-backspace`` 
      - ``:icon-fa5:`backspace``` 
@@ -318,8 +318,8 @@
      - :icon-fa5:`band-aid`
                 
    * - ``fa-bandcamp`` 
-     - ``:icon-fa5:`bandcamp``` 
-     - :icon-fa5:`bandcamp`
+     - ``:icon-fa5-brands:`bandcamp``` 
+     - :icon-fa5-brands:`bandcamp`
                 
    * - ``fa-barcode`` 
      - ``:icon-fa5:`barcode``` 
@@ -370,12 +370,12 @@
      - :icon-fa5:`beer`
                 
    * - ``fa-behance`` 
-     - ``:icon-fa5:`behance``` 
-     - :icon-fa5:`behance`
+     - ``:icon-fa5-brands:`behance``` 
+     - :icon-fa5-brands:`behance`
                 
    * - ``fa-behance-square`` 
-     - ``:icon-fa5:`behance-square``` 
-     - :icon-fa5:`behance-square`
+     - ``:icon-fa5-brands:`behance-square``` 
+     - :icon-fa5-brands:`behance-square`
                 
    * - ``fa-bell`` 
      - ``:icon-fa5:`bell``` 
@@ -398,8 +398,8 @@
      - :icon-fa5:`bicycle`
                 
    * - ``fa-bimobject`` 
-     - ``:icon-fa5:`bimobject``` 
-     - :icon-fa5:`bimobject`
+     - ``:icon-fa5-brands:`bimobject``` 
+     - :icon-fa5-brands:`bimobject`
                 
    * - ``fa-binoculars`` 
      - ``:icon-fa5:`binoculars``` 
@@ -410,24 +410,24 @@
      - :icon-fa5:`birthday-cake`
                 
    * - ``fa-bitbucket`` 
-     - ``:icon-fa5:`bitbucket``` 
-     - :icon-fa5:`bitbucket`
+     - ``:icon-fa5-brands:`bitbucket``` 
+     - :icon-fa5-brands:`bitbucket`
                 
    * - ``fa-bitcoin`` 
-     - ``:icon-fa5:`bitcoin``` 
-     - :icon-fa5:`bitcoin`
+     - ``:icon-fa5-brands:`bitcoin``` 
+     - :icon-fa5-brands:`bitcoin`
                 
    * - ``fa-bity`` 
-     - ``:icon-fa5:`bity``` 
-     - :icon-fa5:`bity`
+     - ``:icon-fa5-brands:`bity``` 
+     - :icon-fa5-brands:`bity`
                 
    * - ``fa-black-tie`` 
-     - ``:icon-fa5:`black-tie``` 
-     - :icon-fa5:`black-tie`
+     - ``:icon-fa5-brands:`black-tie``` 
+     - :icon-fa5-brands:`black-tie`
                 
    * - ``fa-blackberry`` 
-     - ``:icon-fa5:`blackberry``` 
-     - :icon-fa5:`blackberry`
+     - ``:icon-fa5-brands:`blackberry``` 
+     - :icon-fa5-brands:`blackberry`
                 
    * - ``fa-blender`` 
      - ``:icon-fa5:`blender``` 
@@ -438,20 +438,20 @@
      - :icon-fa5:`blind`
                 
    * - ``fa-blogger`` 
-     - ``:icon-fa5:`blogger``` 
-     - :icon-fa5:`blogger`
+     - ``:icon-fa5-brands:`blogger``` 
+     - :icon-fa5-brands:`blogger`
                 
    * - ``fa-blogger-b`` 
-     - ``:icon-fa5:`blogger-b``` 
-     - :icon-fa5:`blogger-b`
+     - ``:icon-fa5-brands:`blogger-b``` 
+     - :icon-fa5-brands:`blogger-b`
                 
    * - ``fa-bluetooth`` 
-     - ``:icon-fa5:`bluetooth``` 
-     - :icon-fa5:`bluetooth`
+     - ``:icon-fa5-brands:`bluetooth``` 
+     - :icon-fa5-brands:`bluetooth`
                 
    * - ``fa-bluetooth-b`` 
-     - ``:icon-fa5:`bluetooth-b``` 
-     - :icon-fa5:`bluetooth-b`
+     - ``:icon-fa5-brands:`bluetooth-b``` 
+     - :icon-fa5-brands:`bluetooth-b`
                 
    * - ``fa-bold`` 
      - ``:icon-fa5:`bold``` 
@@ -534,8 +534,8 @@
      - :icon-fa5:`brush`
                 
    * - ``fa-btc`` 
-     - ``:icon-fa5:`btc``` 
-     - :icon-fa5:`btc`
+     - ``:icon-fa5-brands:`btc``` 
+     - :icon-fa5-brands:`btc`
                 
    * - ``fa-bug`` 
      - ``:icon-fa5:`bug``` 
@@ -558,8 +558,8 @@
      - :icon-fa5:`burn`
                 
    * - ``fa-buromobelexperte`` 
-     - ``:icon-fa5:`buromobelexperte``` 
-     - :icon-fa5:`buromobelexperte`
+     - ``:icon-fa5-brands:`buromobelexperte``` 
+     - :icon-fa5-brands:`buromobelexperte`
                 
    * - ``fa-bus`` 
      - ``:icon-fa5:`bus``` 
@@ -574,8 +574,8 @@
      - :icon-fa5:`business-time`
                 
    * - ``fa-buysellads`` 
-     - ``:icon-fa5:`buysellads``` 
-     - :icon-fa5:`buysellads`
+     - ``:icon-fa5-brands:`buysellads``` 
+     - :icon-fa5-brands:`buysellads`
                 
    * - ``fa-calculator`` 
      - ``:icon-fa5:`calculator``` 
@@ -682,48 +682,48 @@
      - :icon-fa5:`cart-plus`
                 
    * - ``fa-cc-amazon-pay`` 
-     - ``:icon-fa5:`cc-amazon-pay``` 
-     - :icon-fa5:`cc-amazon-pay`
+     - ``:icon-fa5-brands:`cc-amazon-pay``` 
+     - :icon-fa5-brands:`cc-amazon-pay`
                 
    * - ``fa-cc-amex`` 
-     - ``:icon-fa5:`cc-amex``` 
-     - :icon-fa5:`cc-amex`
+     - ``:icon-fa5-brands:`cc-amex``` 
+     - :icon-fa5-brands:`cc-amex`
                 
    * - ``fa-cc-apple-pay`` 
-     - ``:icon-fa5:`cc-apple-pay``` 
-     - :icon-fa5:`cc-apple-pay`
+     - ``:icon-fa5-brands:`cc-apple-pay``` 
+     - :icon-fa5-brands:`cc-apple-pay`
                 
    * - ``fa-cc-diners-club`` 
-     - ``:icon-fa5:`cc-diners-club``` 
-     - :icon-fa5:`cc-diners-club`
+     - ``:icon-fa5-brands:`cc-diners-club``` 
+     - :icon-fa5-brands:`cc-diners-club`
                 
    * - ``fa-cc-discover`` 
-     - ``:icon-fa5:`cc-discover``` 
-     - :icon-fa5:`cc-discover`
+     - ``:icon-fa5-brands:`cc-discover``` 
+     - :icon-fa5-brands:`cc-discover`
                 
    * - ``fa-cc-jcb`` 
-     - ``:icon-fa5:`cc-jcb``` 
-     - :icon-fa5:`cc-jcb`
+     - ``:icon-fa5-brands:`cc-jcb``` 
+     - :icon-fa5-brands:`cc-jcb`
                 
    * - ``fa-cc-mastercard`` 
-     - ``:icon-fa5:`cc-mastercard``` 
-     - :icon-fa5:`cc-mastercard`
+     - ``:icon-fa5-brands:`cc-mastercard``` 
+     - :icon-fa5-brands:`cc-mastercard`
                 
    * - ``fa-cc-paypal`` 
-     - ``:icon-fa5:`cc-paypal``` 
-     - :icon-fa5:`cc-paypal`
+     - ``:icon-fa5-brands:`cc-paypal``` 
+     - :icon-fa5-brands:`cc-paypal`
                 
    * - ``fa-cc-stripe`` 
-     - ``:icon-fa5:`cc-stripe``` 
-     - :icon-fa5:`cc-stripe`
+     - ``:icon-fa5-brands:`cc-stripe``` 
+     - :icon-fa5-brands:`cc-stripe`
                 
    * - ``fa-cc-visa`` 
-     - ``:icon-fa5:`cc-visa``` 
-     - :icon-fa5:`cc-visa`
+     - ``:icon-fa5-brands:`cc-visa``` 
+     - :icon-fa5-brands:`cc-visa`
                 
    * - ``fa-centercode`` 
-     - ``:icon-fa5:`centercode``` 
-     - :icon-fa5:`centercode`
+     - ``:icon-fa5-brands:`centercode``` 
+     - :icon-fa5-brands:`centercode`
                 
    * - ``fa-certificate`` 
      - ``:icon-fa5:`certificate``` 
@@ -842,8 +842,8 @@
      - :icon-fa5:`child`
                 
    * - ``fa-chrome`` 
-     - ``:icon-fa5:`chrome``` 
-     - :icon-fa5:`chrome`
+     - ``:icon-fa5-brands:`chrome``` 
+     - :icon-fa5-brands:`chrome`
                 
    * - ``fa-church`` 
      - ``:icon-fa5:`church``` 
@@ -898,16 +898,16 @@
      - :icon-fa5:`cloud-upload-alt`
                 
    * - ``fa-cloudscale`` 
-     - ``:icon-fa5:`cloudscale``` 
-     - :icon-fa5:`cloudscale`
+     - ``:icon-fa5-brands:`cloudscale``` 
+     - :icon-fa5-brands:`cloudscale`
                 
    * - ``fa-cloudsmith`` 
-     - ``:icon-fa5:`cloudsmith``` 
-     - :icon-fa5:`cloudsmith`
+     - ``:icon-fa5-brands:`cloudsmith``` 
+     - :icon-fa5-brands:`cloudsmith`
                 
    * - ``fa-cloudversify`` 
-     - ``:icon-fa5:`cloudversify``` 
-     - :icon-fa5:`cloudversify`
+     - ``:icon-fa5-brands:`cloudversify``` 
+     - :icon-fa5-brands:`cloudversify`
                 
    * - ``fa-cocktail`` 
      - ``:icon-fa5:`cocktail``` 
@@ -922,12 +922,12 @@
      - :icon-fa5:`code-branch`
                 
    * - ``fa-codepen`` 
-     - ``:icon-fa5:`codepen``` 
-     - :icon-fa5:`codepen`
+     - ``:icon-fa5-brands:`codepen``` 
+     - :icon-fa5-brands:`codepen`
                 
    * - ``fa-codiepie`` 
-     - ``:icon-fa5:`codiepie``` 
-     - :icon-fa5:`codiepie`
+     - ``:icon-fa5-brands:`codiepie``` 
+     - :icon-fa5-brands:`codiepie`
                 
    * - ``fa-coffee`` 
      - ``:icon-fa5:`coffee``` 
@@ -994,12 +994,12 @@
      - :icon-fa5:`concierge-bell`
                 
    * - ``fa-connectdevelop`` 
-     - ``:icon-fa5:`connectdevelop``` 
-     - :icon-fa5:`connectdevelop`
+     - ``:icon-fa5-brands:`connectdevelop``` 
+     - :icon-fa5-brands:`connectdevelop`
                 
    * - ``fa-contao`` 
-     - ``:icon-fa5:`contao``` 
-     - :icon-fa5:`contao`
+     - ``:icon-fa5-brands:`contao``` 
+     - :icon-fa5-brands:`contao`
                 
    * - ``fa-cookie`` 
      - ``:icon-fa5:`cookie``` 
@@ -1022,60 +1022,60 @@
      - :icon-fa5:`couch`
                 
    * - ``fa-cpanel`` 
-     - ``:icon-fa5:`cpanel``` 
-     - :icon-fa5:`cpanel`
+     - ``:icon-fa5-brands:`cpanel``` 
+     - :icon-fa5-brands:`cpanel`
                 
    * - ``fa-creative-commons`` 
-     - ``:icon-fa5:`creative-commons``` 
-     - :icon-fa5:`creative-commons`
+     - ``:icon-fa5-brands:`creative-commons``` 
+     - :icon-fa5-brands:`creative-commons`
                 
    * - ``fa-creative-commons-by`` 
-     - ``:icon-fa5:`creative-commons-by``` 
-     - :icon-fa5:`creative-commons-by`
+     - ``:icon-fa5-brands:`creative-commons-by``` 
+     - :icon-fa5-brands:`creative-commons-by`
                 
    * - ``fa-creative-commons-nc`` 
-     - ``:icon-fa5:`creative-commons-nc``` 
-     - :icon-fa5:`creative-commons-nc`
+     - ``:icon-fa5-brands:`creative-commons-nc``` 
+     - :icon-fa5-brands:`creative-commons-nc`
                 
    * - ``fa-creative-commons-nc-eu`` 
-     - ``:icon-fa5:`creative-commons-nc-eu``` 
-     - :icon-fa5:`creative-commons-nc-eu`
+     - ``:icon-fa5-brands:`creative-commons-nc-eu``` 
+     - :icon-fa5-brands:`creative-commons-nc-eu`
                 
    * - ``fa-creative-commons-nc-jp`` 
-     - ``:icon-fa5:`creative-commons-nc-jp``` 
-     - :icon-fa5:`creative-commons-nc-jp`
+     - ``:icon-fa5-brands:`creative-commons-nc-jp``` 
+     - :icon-fa5-brands:`creative-commons-nc-jp`
                 
    * - ``fa-creative-commons-nd`` 
-     - ``:icon-fa5:`creative-commons-nd``` 
-     - :icon-fa5:`creative-commons-nd`
+     - ``:icon-fa5-brands:`creative-commons-nd``` 
+     - :icon-fa5-brands:`creative-commons-nd`
                 
    * - ``fa-creative-commons-pd`` 
-     - ``:icon-fa5:`creative-commons-pd``` 
-     - :icon-fa5:`creative-commons-pd`
+     - ``:icon-fa5-brands:`creative-commons-pd``` 
+     - :icon-fa5-brands:`creative-commons-pd`
                 
    * - ``fa-creative-commons-pd-alt`` 
-     - ``:icon-fa5:`creative-commons-pd-alt``` 
-     - :icon-fa5:`creative-commons-pd-alt`
+     - ``:icon-fa5-brands:`creative-commons-pd-alt``` 
+     - :icon-fa5-brands:`creative-commons-pd-alt`
                 
    * - ``fa-creative-commons-remix`` 
-     - ``:icon-fa5:`creative-commons-remix``` 
-     - :icon-fa5:`creative-commons-remix`
+     - ``:icon-fa5-brands:`creative-commons-remix``` 
+     - :icon-fa5-brands:`creative-commons-remix`
                 
    * - ``fa-creative-commons-sa`` 
-     - ``:icon-fa5:`creative-commons-sa``` 
-     - :icon-fa5:`creative-commons-sa`
+     - ``:icon-fa5-brands:`creative-commons-sa``` 
+     - :icon-fa5-brands:`creative-commons-sa`
                 
    * - ``fa-creative-commons-sampling`` 
-     - ``:icon-fa5:`creative-commons-sampling``` 
-     - :icon-fa5:`creative-commons-sampling`
+     - ``:icon-fa5-brands:`creative-commons-sampling``` 
+     - :icon-fa5-brands:`creative-commons-sampling`
                 
    * - ``fa-creative-commons-sampling-plus`` 
-     - ``:icon-fa5:`creative-commons-sampling-plus``` 
-     - :icon-fa5:`creative-commons-sampling-plus`
+     - ``:icon-fa5-brands:`creative-commons-sampling-plus``` 
+     - :icon-fa5-brands:`creative-commons-sampling-plus`
                 
    * - ``fa-creative-commons-share`` 
-     - ``:icon-fa5:`creative-commons-share``` 
-     - :icon-fa5:`creative-commons-share`
+     - ``:icon-fa5-brands:`creative-commons-share``` 
+     - :icon-fa5-brands:`creative-commons-share`
                 
    * - ``fa-credit-card`` 
      - ``:icon-fa5:`credit-card``` 
@@ -1106,12 +1106,12 @@
      - :icon-fa5:`crown`
                 
    * - ``fa-css3`` 
-     - ``:icon-fa5:`css3``` 
-     - :icon-fa5:`css3`
+     - ``:icon-fa5-brands:`css3``` 
+     - :icon-fa5-brands:`css3`
                 
    * - ``fa-css3-alt`` 
-     - ``:icon-fa5:`css3-alt``` 
-     - :icon-fa5:`css3-alt`
+     - ``:icon-fa5-brands:`css3-alt``` 
+     - :icon-fa5-brands:`css3-alt`
                 
    * - ``fa-cube`` 
      - ``:icon-fa5:`cube``` 
@@ -1126,16 +1126,16 @@
      - :icon-fa5:`cut`
                 
    * - ``fa-cuttlefish`` 
-     - ``:icon-fa5:`cuttlefish``` 
-     - :icon-fa5:`cuttlefish`
+     - ``:icon-fa5-brands:`cuttlefish``` 
+     - :icon-fa5-brands:`cuttlefish`
                 
    * - ``fa-d-and-d`` 
-     - ``:icon-fa5:`d-and-d``` 
-     - :icon-fa5:`d-and-d`
+     - ``:icon-fa5-brands:`d-and-d``` 
+     - :icon-fa5-brands:`d-and-d`
                 
    * - ``fa-dashcube`` 
-     - ``:icon-fa5:`dashcube``` 
-     - :icon-fa5:`dashcube`
+     - ``:icon-fa5-brands:`dashcube``` 
+     - :icon-fa5-brands:`dashcube`
                 
    * - ``fa-database`` 
      - ``:icon-fa5:`database``` 
@@ -1146,24 +1146,24 @@
      - :icon-fa5:`deaf`
                 
    * - ``fa-delicious`` 
-     - ``:icon-fa5:`delicious``` 
-     - :icon-fa5:`delicious`
+     - ``:icon-fa5-brands:`delicious``` 
+     - :icon-fa5-brands:`delicious`
                 
    * - ``fa-deploydog`` 
-     - ``:icon-fa5:`deploydog``` 
-     - :icon-fa5:`deploydog`
+     - ``:icon-fa5-brands:`deploydog``` 
+     - :icon-fa5-brands:`deploydog`
                 
    * - ``fa-deskpro`` 
-     - ``:icon-fa5:`deskpro``` 
-     - :icon-fa5:`deskpro`
+     - ``:icon-fa5-brands:`deskpro``` 
+     - :icon-fa5-brands:`deskpro`
                 
    * - ``fa-desktop`` 
      - ``:icon-fa5:`desktop``` 
      - :icon-fa5:`desktop`
                 
    * - ``fa-deviantart`` 
-     - ``:icon-fa5:`deviantart``` 
-     - :icon-fa5:`deviantart`
+     - ``:icon-fa5-brands:`deviantart``` 
+     - :icon-fa5-brands:`deviantart`
                 
    * - ``fa-dharmachakra`` 
      - ``:icon-fa5:`dharmachakra``` 
@@ -1202,12 +1202,12 @@
      - :icon-fa5:`dice-two`
                 
    * - ``fa-digg`` 
-     - ``:icon-fa5:`digg``` 
-     - :icon-fa5:`digg`
+     - ``:icon-fa5-brands:`digg``` 
+     - :icon-fa5-brands:`digg`
                 
    * - ``fa-digital-ocean`` 
-     - ``:icon-fa5:`digital-ocean``` 
-     - :icon-fa5:`digital-ocean`
+     - ``:icon-fa5-brands:`digital-ocean``` 
+     - :icon-fa5-brands:`digital-ocean`
                 
    * - ``fa-digital-tachograph`` 
      - ``:icon-fa5:`digital-tachograph``` 
@@ -1218,12 +1218,12 @@
      - :icon-fa5:`directions`
                 
    * - ``fa-discord`` 
-     - ``:icon-fa5:`discord``` 
-     - :icon-fa5:`discord`
+     - ``:icon-fa5-brands:`discord``` 
+     - :icon-fa5-brands:`discord`
                 
    * - ``fa-discourse`` 
-     - ``:icon-fa5:`discourse``` 
-     - :icon-fa5:`discourse`
+     - ``:icon-fa5-brands:`discourse``` 
+     - :icon-fa5-brands:`discourse`
                 
    * - ``fa-divide`` 
      - ``:icon-fa5:`divide``` 
@@ -1238,12 +1238,12 @@
      - :icon-fa5:`dna`
                 
    * - ``fa-dochub`` 
-     - ``:icon-fa5:`dochub``` 
-     - :icon-fa5:`dochub`
+     - ``:icon-fa5-brands:`dochub``` 
+     - :icon-fa5-brands:`dochub`
                 
    * - ``fa-docker`` 
-     - ``:icon-fa5:`docker``` 
-     - :icon-fa5:`docker`
+     - ``:icon-fa5-brands:`docker``` 
+     - :icon-fa5-brands:`docker`
                 
    * - ``fa-dollar-sign`` 
      - ``:icon-fa5:`dollar-sign``` 
@@ -1282,8 +1282,8 @@
      - :icon-fa5:`download`
                 
    * - ``fa-draft2digital`` 
-     - ``:icon-fa5:`draft2digital``` 
-     - :icon-fa5:`draft2digital`
+     - ``:icon-fa5-brands:`draft2digital``` 
+     - :icon-fa5-brands:`draft2digital`
                 
    * - ``fa-drafting-compass`` 
      - ``:icon-fa5:`drafting-compass``` 
@@ -1294,16 +1294,16 @@
      - :icon-fa5:`draw-polygon`
                 
    * - ``fa-dribbble`` 
-     - ``:icon-fa5:`dribbble``` 
-     - :icon-fa5:`dribbble`
+     - ``:icon-fa5-brands:`dribbble``` 
+     - :icon-fa5-brands:`dribbble`
                 
    * - ``fa-dribbble-square`` 
-     - ``:icon-fa5:`dribbble-square``` 
-     - :icon-fa5:`dribbble-square`
+     - ``:icon-fa5-brands:`dribbble-square``` 
+     - :icon-fa5-brands:`dribbble-square`
                 
    * - ``fa-dropbox`` 
-     - ``:icon-fa5:`dropbox``` 
-     - :icon-fa5:`dropbox`
+     - ``:icon-fa5-brands:`dropbox``` 
+     - :icon-fa5-brands:`dropbox`
                 
    * - ``fa-drum`` 
      - ``:icon-fa5:`drum``` 
@@ -1314,28 +1314,28 @@
      - :icon-fa5:`drum-steelpan`
                 
    * - ``fa-drupal`` 
-     - ``:icon-fa5:`drupal``` 
-     - :icon-fa5:`drupal`
+     - ``:icon-fa5-brands:`drupal``` 
+     - :icon-fa5-brands:`drupal`
                 
    * - ``fa-dumbbell`` 
      - ``:icon-fa5:`dumbbell``` 
      - :icon-fa5:`dumbbell`
                 
    * - ``fa-dyalog`` 
-     - ``:icon-fa5:`dyalog``` 
-     - :icon-fa5:`dyalog`
+     - ``:icon-fa5-brands:`dyalog``` 
+     - :icon-fa5-brands:`dyalog`
                 
    * - ``fa-earlybirds`` 
-     - ``:icon-fa5:`earlybirds``` 
-     - :icon-fa5:`earlybirds`
+     - ``:icon-fa5-brands:`earlybirds``` 
+     - :icon-fa5-brands:`earlybirds`
                 
    * - ``fa-ebay`` 
-     - ``:icon-fa5:`ebay``` 
-     - :icon-fa5:`ebay`
+     - ``:icon-fa5-brands:`ebay``` 
+     - :icon-fa5-brands:`ebay`
                 
    * - ``fa-edge`` 
-     - ``:icon-fa5:`edge``` 
-     - :icon-fa5:`edge`
+     - ``:icon-fa5-brands:`edge``` 
+     - :icon-fa5-brands:`edge`
                 
    * - ``fa-edit`` 
      - ``:icon-fa5:`edit``` 
@@ -1346,8 +1346,8 @@
      - :icon-fa5:`eject`
                 
    * - ``fa-elementor`` 
-     - ``:icon-fa5:`elementor``` 
-     - :icon-fa5:`elementor`
+     - ``:icon-fa5-brands:`elementor``` 
+     - :icon-fa5-brands:`elementor`
                 
    * - ``fa-ellipsis-h`` 
      - ``:icon-fa5:`ellipsis-h``` 
@@ -1358,16 +1358,16 @@
      - :icon-fa5:`ellipsis-v`
                 
    * - ``fa-ello`` 
-     - ``:icon-fa5:`ello``` 
-     - :icon-fa5:`ello`
+     - ``:icon-fa5-brands:`ello``` 
+     - :icon-fa5-brands:`ello`
                 
    * - ``fa-ember`` 
-     - ``:icon-fa5:`ember``` 
-     - :icon-fa5:`ember`
+     - ``:icon-fa5-brands:`ember``` 
+     - :icon-fa5-brands:`ember`
                 
    * - ``fa-empire`` 
-     - ``:icon-fa5:`empire``` 
-     - :icon-fa5:`empire`
+     - ``:icon-fa5-brands:`empire``` 
+     - :icon-fa5-brands:`empire`
                 
    * - ``fa-envelope`` 
      - ``:icon-fa5:`envelope``` 
@@ -1386,8 +1386,8 @@
      - :icon-fa5:`envelope-square`
                 
    * - ``fa-envira`` 
-     - ``:icon-fa5:`envira``` 
-     - :icon-fa5:`envira`
+     - ``:icon-fa5-brands:`envira``` 
+     - :icon-fa5-brands:`envira`
                 
    * - ``fa-equals`` 
      - ``:icon-fa5:`equals``` 
@@ -1398,16 +1398,16 @@
      - :icon-fa5:`eraser`
                 
    * - ``fa-erlang`` 
-     - ``:icon-fa5:`erlang``` 
-     - :icon-fa5:`erlang`
+     - ``:icon-fa5-brands:`erlang``` 
+     - :icon-fa5-brands:`erlang`
                 
    * - ``fa-ethereum`` 
-     - ``:icon-fa5:`ethereum``` 
-     - :icon-fa5:`ethereum`
+     - ``:icon-fa5-brands:`ethereum``` 
+     - :icon-fa5-brands:`ethereum`
                 
    * - ``fa-etsy`` 
-     - ``:icon-fa5:`etsy``` 
-     - :icon-fa5:`etsy`
+     - ``:icon-fa5-brands:`etsy``` 
+     - :icon-fa5-brands:`etsy`
                 
    * - ``fa-euro-sign`` 
      - ``:icon-fa5:`euro-sign``` 
@@ -1438,8 +1438,8 @@
      - :icon-fa5:`expand-arrows-alt`
                 
    * - ``fa-expeditedssl`` 
-     - ``:icon-fa5:`expeditedssl``` 
-     - :icon-fa5:`expeditedssl`
+     - ``:icon-fa5-brands:`expeditedssl``` 
+     - :icon-fa5-brands:`expeditedssl`
                 
    * - ``fa-external-link-alt`` 
      - ``:icon-fa5:`external-link-alt``` 
@@ -1462,20 +1462,20 @@
      - :icon-fa5:`eye-slash`
                 
    * - ``fa-facebook`` 
-     - ``:icon-fa5:`facebook``` 
-     - :icon-fa5:`facebook`
+     - ``:icon-fa5-brands:`facebook``` 
+     - :icon-fa5-brands:`facebook`
                 
    * - ``fa-facebook-f`` 
-     - ``:icon-fa5:`facebook-f``` 
-     - :icon-fa5:`facebook-f`
+     - ``:icon-fa5-brands:`facebook-f``` 
+     - :icon-fa5-brands:`facebook-f`
                 
    * - ``fa-facebook-messenger`` 
-     - ``:icon-fa5:`facebook-messenger``` 
-     - :icon-fa5:`facebook-messenger`
+     - ``:icon-fa5-brands:`facebook-messenger``` 
+     - :icon-fa5-brands:`facebook-messenger`
                 
    * - ``fa-facebook-square`` 
-     - ``:icon-fa5:`facebook-square``` 
-     - :icon-fa5:`facebook-square`
+     - ``:icon-fa5-brands:`facebook-square``` 
+     - :icon-fa5-brands:`facebook-square`
                 
    * - ``fa-fast-backward`` 
      - ``:icon-fa5:`fast-backward``` 
@@ -1622,24 +1622,24 @@
      - :icon-fa5:`fire-extinguisher`
                 
    * - ``fa-firefox`` 
-     - ``:icon-fa5:`firefox``` 
-     - :icon-fa5:`firefox`
+     - ``:icon-fa5-brands:`firefox``` 
+     - :icon-fa5-brands:`firefox`
                 
    * - ``fa-first-aid`` 
      - ``:icon-fa5:`first-aid``` 
      - :icon-fa5:`first-aid`
                 
    * - ``fa-first-order`` 
-     - ``:icon-fa5:`first-order``` 
-     - :icon-fa5:`first-order`
+     - ``:icon-fa5-brands:`first-order``` 
+     - :icon-fa5-brands:`first-order`
                 
    * - ``fa-first-order-alt`` 
-     - ``:icon-fa5:`first-order-alt``` 
-     - :icon-fa5:`first-order-alt`
+     - ``:icon-fa5-brands:`first-order-alt``` 
+     - :icon-fa5-brands:`first-order-alt`
                 
    * - ``fa-firstdraft`` 
-     - ``:icon-fa5:`firstdraft``` 
-     - :icon-fa5:`firstdraft`
+     - ``:icon-fa5-brands:`firstdraft``` 
+     - :icon-fa5-brands:`firstdraft`
                 
    * - ``fa-fish`` 
      - ``:icon-fa5:`fish``` 
@@ -1658,20 +1658,20 @@
      - :icon-fa5:`flask`
                 
    * - ``fa-flickr`` 
-     - ``:icon-fa5:`flickr``` 
-     - :icon-fa5:`flickr`
+     - ``:icon-fa5-brands:`flickr``` 
+     - :icon-fa5-brands:`flickr`
                 
    * - ``fa-flipboard`` 
-     - ``:icon-fa5:`flipboard``` 
-     - :icon-fa5:`flipboard`
+     - ``:icon-fa5-brands:`flipboard``` 
+     - :icon-fa5-brands:`flipboard`
                 
    * - ``fa-flushed`` 
      - ``:icon-fa5:`flushed``` 
      - :icon-fa5:`flushed`
                 
    * - ``fa-fly`` 
-     - ``:icon-fa5:`fly``` 
-     - :icon-fa5:`fly`
+     - ``:icon-fa5-brands:`fly``` 
+     - :icon-fa5-brands:`fly`
                 
    * - ``fa-folder`` 
      - ``:icon-fa5:`folder``` 
@@ -1694,60 +1694,56 @@
      - :icon-fa5:`font`
                 
    * - ``fa-font-awesome`` 
-     - ``:icon-fa5:`font-awesome``` 
-     - :icon-fa5:`font-awesome`
+     - ``:icon-fa5-brands:`font-awesome``` 
+     - :icon-fa5-brands:`font-awesome`
                 
    * - ``fa-font-awesome-alt`` 
-     - ``:icon-fa5:`font-awesome-alt``` 
-     - :icon-fa5:`font-awesome-alt`
+     - ``:icon-fa5-brands:`font-awesome-alt``` 
+     - :icon-fa5-brands:`font-awesome-alt`
                 
    * - ``fa-font-awesome-flag`` 
-     - ``:icon-fa5:`font-awesome-flag``` 
-     - :icon-fa5:`font-awesome-flag`
-                
-   * - ``fa-font-awesome-logo-full`` 
-     - ``:icon-fa5:`font-awesome-logo-full``` 
-     - :icon-fa5:`font-awesome-logo-full`
+     - ``:icon-fa5-brands:`font-awesome-flag``` 
+     - :icon-fa5-brands:`font-awesome-flag`
                 
    * - ``fa-fonticons`` 
-     - ``:icon-fa5:`fonticons``` 
-     - :icon-fa5:`fonticons`
+     - ``:icon-fa5-brands:`fonticons``` 
+     - :icon-fa5-brands:`fonticons`
                 
    * - ``fa-fonticons-fi`` 
-     - ``:icon-fa5:`fonticons-fi``` 
-     - :icon-fa5:`fonticons-fi`
+     - ``:icon-fa5-brands:`fonticons-fi``` 
+     - :icon-fa5-brands:`fonticons-fi`
                 
    * - ``fa-football-ball`` 
      - ``:icon-fa5:`football-ball``` 
      - :icon-fa5:`football-ball`
                 
    * - ``fa-fort-awesome`` 
-     - ``:icon-fa5:`fort-awesome``` 
-     - :icon-fa5:`fort-awesome`
+     - ``:icon-fa5-brands:`fort-awesome``` 
+     - :icon-fa5-brands:`fort-awesome`
                 
    * - ``fa-fort-awesome-alt`` 
-     - ``:icon-fa5:`fort-awesome-alt``` 
-     - :icon-fa5:`fort-awesome-alt`
+     - ``:icon-fa5-brands:`fort-awesome-alt``` 
+     - :icon-fa5-brands:`fort-awesome-alt`
                 
    * - ``fa-forumbee`` 
-     - ``:icon-fa5:`forumbee``` 
-     - :icon-fa5:`forumbee`
+     - ``:icon-fa5-brands:`forumbee``` 
+     - :icon-fa5-brands:`forumbee`
                 
    * - ``fa-forward`` 
      - ``:icon-fa5:`forward``` 
      - :icon-fa5:`forward`
                 
    * - ``fa-foursquare`` 
-     - ``:icon-fa5:`foursquare``` 
-     - :icon-fa5:`foursquare`
+     - ``:icon-fa5-brands:`foursquare``` 
+     - :icon-fa5-brands:`foursquare`
                 
    * - ``fa-free-code-camp`` 
-     - ``:icon-fa5:`free-code-camp``` 
-     - :icon-fa5:`free-code-camp`
+     - ``:icon-fa5-brands:`free-code-camp``` 
+     - :icon-fa5-brands:`free-code-camp`
                 
    * - ``fa-freebsd`` 
-     - ``:icon-fa5:`freebsd``` 
-     - :icon-fa5:`freebsd`
+     - ``:icon-fa5-brands:`freebsd``` 
+     - :icon-fa5-brands:`freebsd`
                 
    * - ``fa-frog`` 
      - ``:icon-fa5:`frog``` 
@@ -1762,8 +1758,8 @@
      - :icon-fa5:`frown-open`
                 
    * - ``fa-fulcrum`` 
-     - ``:icon-fa5:`fulcrum``` 
-     - :icon-fa5:`fulcrum`
+     - ``:icon-fa5-brands:`fulcrum``` 
+     - :icon-fa5-brands:`fulcrum`
                 
    * - ``fa-funnel-dollar`` 
      - ``:icon-fa5:`funnel-dollar``` 
@@ -1774,12 +1770,12 @@
      - :icon-fa5:`futbol`
                 
    * - ``fa-galactic-republic`` 
-     - ``:icon-fa5:`galactic-republic``` 
-     - :icon-fa5:`galactic-republic`
+     - ``:icon-fa5-brands:`galactic-republic``` 
+     - :icon-fa5-brands:`galactic-republic`
                 
    * - ``fa-galactic-senate`` 
-     - ``:icon-fa5:`galactic-senate``` 
-     - :icon-fa5:`galactic-senate`
+     - ``:icon-fa5-brands:`galactic-senate``` 
+     - :icon-fa5-brands:`galactic-senate`
                 
    * - ``fa-gamepad`` 
      - ``:icon-fa5:`gamepad``` 
@@ -1802,52 +1798,52 @@
      - :icon-fa5:`genderless`
                 
    * - ``fa-get-pocket`` 
-     - ``:icon-fa5:`get-pocket``` 
-     - :icon-fa5:`get-pocket`
+     - ``:icon-fa5-brands:`get-pocket``` 
+     - :icon-fa5-brands:`get-pocket`
                 
    * - ``fa-gg`` 
-     - ``:icon-fa5:`gg``` 
-     - :icon-fa5:`gg`
+     - ``:icon-fa5-brands:`gg``` 
+     - :icon-fa5-brands:`gg`
                 
    * - ``fa-gg-circle`` 
-     - ``:icon-fa5:`gg-circle``` 
-     - :icon-fa5:`gg-circle`
+     - ``:icon-fa5-brands:`gg-circle``` 
+     - :icon-fa5-brands:`gg-circle`
                 
    * - ``fa-gift`` 
      - ``:icon-fa5:`gift``` 
      - :icon-fa5:`gift`
                 
    * - ``fa-git`` 
-     - ``:icon-fa5:`git``` 
-     - :icon-fa5:`git`
+     - ``:icon-fa5-brands:`git``` 
+     - :icon-fa5-brands:`git`
                 
    * - ``fa-git-square`` 
-     - ``:icon-fa5:`git-square``` 
-     - :icon-fa5:`git-square`
+     - ``:icon-fa5-brands:`git-square``` 
+     - :icon-fa5-brands:`git-square`
                 
    * - ``fa-github`` 
-     - ``:icon-fa5:`github``` 
-     - :icon-fa5:`github`
+     - ``:icon-fa5-brands:`github``` 
+     - :icon-fa5-brands:`github`
                 
    * - ``fa-github-alt`` 
-     - ``:icon-fa5:`github-alt``` 
-     - :icon-fa5:`github-alt`
+     - ``:icon-fa5-brands:`github-alt``` 
+     - :icon-fa5-brands:`github-alt`
                 
    * - ``fa-github-square`` 
-     - ``:icon-fa5:`github-square``` 
-     - :icon-fa5:`github-square`
+     - ``:icon-fa5-brands:`github-square``` 
+     - :icon-fa5-brands:`github-square`
                 
    * - ``fa-gitkraken`` 
-     - ``:icon-fa5:`gitkraken``` 
-     - :icon-fa5:`gitkraken`
+     - ``:icon-fa5-brands:`gitkraken``` 
+     - :icon-fa5-brands:`gitkraken`
                 
    * - ``fa-gitlab`` 
-     - ``:icon-fa5:`gitlab``` 
-     - :icon-fa5:`gitlab`
+     - ``:icon-fa5-brands:`gitlab``` 
+     - :icon-fa5-brands:`gitlab`
                 
    * - ``fa-gitter`` 
-     - ``:icon-fa5:`gitter``` 
-     - :icon-fa5:`gitter`
+     - ``:icon-fa5-brands:`gitter``` 
+     - :icon-fa5-brands:`gitter`
                 
    * - ``fa-glass-martini`` 
      - ``:icon-fa5:`glass-martini``` 
@@ -1862,12 +1858,12 @@
      - :icon-fa5:`glasses`
                 
    * - ``fa-glide`` 
-     - ``:icon-fa5:`glide``` 
-     - :icon-fa5:`glide`
+     - ``:icon-fa5-brands:`glide``` 
+     - :icon-fa5-brands:`glide`
                 
    * - ``fa-glide-g`` 
-     - ``:icon-fa5:`glide-g``` 
-     - :icon-fa5:`glide-g`
+     - ``:icon-fa5-brands:`glide-g``` 
+     - :icon-fa5-brands:`glide-g`
                 
    * - ``fa-globe`` 
      - ``:icon-fa5:`globe``` 
@@ -1886,48 +1882,48 @@
      - :icon-fa5:`globe-asia`
                 
    * - ``fa-gofore`` 
-     - ``:icon-fa5:`gofore``` 
-     - :icon-fa5:`gofore`
+     - ``:icon-fa5-brands:`gofore``` 
+     - :icon-fa5-brands:`gofore`
                 
    * - ``fa-golf-ball`` 
      - ``:icon-fa5:`golf-ball``` 
      - :icon-fa5:`golf-ball`
                 
    * - ``fa-goodreads`` 
-     - ``:icon-fa5:`goodreads``` 
-     - :icon-fa5:`goodreads`
+     - ``:icon-fa5-brands:`goodreads``` 
+     - :icon-fa5-brands:`goodreads`
                 
    * - ``fa-goodreads-g`` 
-     - ``:icon-fa5:`goodreads-g``` 
-     - :icon-fa5:`goodreads-g`
+     - ``:icon-fa5-brands:`goodreads-g``` 
+     - :icon-fa5-brands:`goodreads-g`
                 
    * - ``fa-google`` 
-     - ``:icon-fa5:`google``` 
-     - :icon-fa5:`google`
+     - ``:icon-fa5-brands:`google``` 
+     - :icon-fa5-brands:`google`
                 
    * - ``fa-google-drive`` 
-     - ``:icon-fa5:`google-drive``` 
-     - :icon-fa5:`google-drive`
+     - ``:icon-fa5-brands:`google-drive``` 
+     - :icon-fa5-brands:`google-drive`
                 
    * - ``fa-google-play`` 
-     - ``:icon-fa5:`google-play``` 
-     - :icon-fa5:`google-play`
+     - ``:icon-fa5-brands:`google-play``` 
+     - :icon-fa5-brands:`google-play`
                 
    * - ``fa-google-plus`` 
-     - ``:icon-fa5:`google-plus``` 
-     - :icon-fa5:`google-plus`
+     - ``:icon-fa5-brands:`google-plus``` 
+     - :icon-fa5-brands:`google-plus`
                 
    * - ``fa-google-plus-g`` 
-     - ``:icon-fa5:`google-plus-g``` 
-     - :icon-fa5:`google-plus-g`
+     - ``:icon-fa5-brands:`google-plus-g``` 
+     - :icon-fa5-brands:`google-plus-g`
                 
    * - ``fa-google-plus-square`` 
-     - ``:icon-fa5:`google-plus-square``` 
-     - :icon-fa5:`google-plus-square`
+     - ``:icon-fa5-brands:`google-plus-square``` 
+     - :icon-fa5-brands:`google-plus-square`
                 
    * - ``fa-google-wallet`` 
-     - ``:icon-fa5:`google-wallet``` 
-     - :icon-fa5:`google-wallet`
+     - ``:icon-fa5-brands:`google-wallet``` 
+     - :icon-fa5-brands:`google-wallet`
                 
    * - ``fa-gopuram`` 
      - ``:icon-fa5:`gopuram``` 
@@ -1938,12 +1934,12 @@
      - :icon-fa5:`graduation-cap`
                 
    * - ``fa-gratipay`` 
-     - ``:icon-fa5:`gratipay``` 
-     - :icon-fa5:`gratipay`
+     - ``:icon-fa5-brands:`gratipay``` 
+     - :icon-fa5-brands:`gratipay`
                 
    * - ``fa-grav`` 
-     - ``:icon-fa5:`grav``` 
-     - :icon-fa5:`grav`
+     - ``:icon-fa5-brands:`grav``` 
+     - :icon-fa5-brands:`grav`
                 
    * - ``fa-greater-than`` 
      - ``:icon-fa5:`greater-than``` 
@@ -2018,32 +2014,32 @@
      - :icon-fa5:`grip-vertical`
                 
    * - ``fa-gripfire`` 
-     - ``:icon-fa5:`gripfire``` 
-     - :icon-fa5:`gripfire`
+     - ``:icon-fa5-brands:`gripfire``` 
+     - :icon-fa5-brands:`gripfire`
                 
    * - ``fa-grunt`` 
-     - ``:icon-fa5:`grunt``` 
-     - :icon-fa5:`grunt`
+     - ``:icon-fa5-brands:`grunt``` 
+     - :icon-fa5-brands:`grunt`
                 
    * - ``fa-gulp`` 
-     - ``:icon-fa5:`gulp``` 
-     - :icon-fa5:`gulp`
+     - ``:icon-fa5-brands:`gulp``` 
+     - :icon-fa5-brands:`gulp`
                 
    * - ``fa-h-square`` 
      - ``:icon-fa5:`h-square``` 
      - :icon-fa5:`h-square`
                 
    * - ``fa-hacker-news`` 
-     - ``:icon-fa5:`hacker-news``` 
-     - :icon-fa5:`hacker-news`
+     - ``:icon-fa5-brands:`hacker-news``` 
+     - :icon-fa5-brands:`hacker-news`
                 
    * - ``fa-hacker-news-square`` 
-     - ``:icon-fa5:`hacker-news-square``` 
-     - :icon-fa5:`hacker-news-square`
+     - ``:icon-fa5-brands:`hacker-news-square``` 
+     - :icon-fa5-brands:`hacker-news-square`
                 
    * - ``fa-hackerrank`` 
-     - ``:icon-fa5:`hackerrank``` 
-     - :icon-fa5:`hackerrank`
+     - ``:icon-fa5-brands:`hackerrank``` 
+     - :icon-fa5-brands:`hackerrank`
                 
    * - ``fa-hamsa`` 
      - ``:icon-fa5:`hamsa``` 
@@ -2162,12 +2158,12 @@
      - :icon-fa5:`highlighter`
                 
    * - ``fa-hips`` 
-     - ``:icon-fa5:`hips``` 
-     - :icon-fa5:`hips`
+     - ``:icon-fa5-brands:`hips``` 
+     - :icon-fa5-brands:`hips`
                 
    * - ``fa-hire-a-helper`` 
-     - ``:icon-fa5:`hire-a-helper``` 
-     - :icon-fa5:`hire-a-helper`
+     - ``:icon-fa5-brands:`hire-a-helper``` 
+     - :icon-fa5-brands:`hire-a-helper`
                 
    * - ``fa-history`` 
      - ``:icon-fa5:`history``` 
@@ -2182,12 +2178,12 @@
      - :icon-fa5:`home`
                 
    * - ``fa-hooli`` 
-     - ``:icon-fa5:`hooli``` 
-     - :icon-fa5:`hooli`
+     - ``:icon-fa5-brands:`hooli``` 
+     - :icon-fa5-brands:`hooli`
                 
    * - ``fa-hornbill`` 
-     - ``:icon-fa5:`hornbill``` 
-     - :icon-fa5:`hornbill`
+     - ``:icon-fa5-brands:`hornbill``` 
+     - :icon-fa5-brands:`hornbill`
                 
    * - ``fa-hospital`` 
      - ``:icon-fa5:`hospital``` 
@@ -2210,8 +2206,8 @@
      - :icon-fa5:`hotel`
                 
    * - ``fa-hotjar`` 
-     - ``:icon-fa5:`hotjar``` 
-     - :icon-fa5:`hotjar`
+     - ``:icon-fa5-brands:`hotjar``` 
+     - :icon-fa5-brands:`hotjar`
                 
    * - ``fa-hourglass`` 
      - ``:icon-fa5:`hourglass``` 
@@ -2230,16 +2226,16 @@
      - :icon-fa5:`hourglass-start`
                 
    * - ``fa-houzz`` 
-     - ``:icon-fa5:`houzz``` 
-     - :icon-fa5:`houzz`
+     - ``:icon-fa5-brands:`houzz``` 
+     - :icon-fa5-brands:`houzz`
                 
    * - ``fa-html5`` 
-     - ``:icon-fa5:`html5``` 
-     - :icon-fa5:`html5`
+     - ``:icon-fa5-brands:`html5``` 
+     - :icon-fa5-brands:`html5`
                 
    * - ``fa-hubspot`` 
-     - ``:icon-fa5:`hubspot``` 
-     - :icon-fa5:`hubspot`
+     - ``:icon-fa5-brands:`hubspot``` 
+     - :icon-fa5-brands:`hubspot`
                 
    * - ``fa-i-cursor`` 
      - ``:icon-fa5:`i-cursor``` 
@@ -2266,8 +2262,8 @@
      - :icon-fa5:`images`
                 
    * - ``fa-imdb`` 
-     - ``:icon-fa5:`imdb``` 
-     - :icon-fa5:`imdb`
+     - ``:icon-fa5-brands:`imdb``` 
+     - :icon-fa5-brands:`imdb`
                 
    * - ``fa-inbox`` 
      - ``:icon-fa5:`inbox``` 
@@ -2294,108 +2290,108 @@
      - :icon-fa5:`info-circle`
                 
    * - ``fa-instagram`` 
-     - ``:icon-fa5:`instagram``` 
-     - :icon-fa5:`instagram`
+     - ``:icon-fa5-brands:`instagram``` 
+     - :icon-fa5-brands:`instagram`
                 
    * - ``fa-internet-explorer`` 
-     - ``:icon-fa5:`internet-explorer``` 
-     - :icon-fa5:`internet-explorer`
+     - ``:icon-fa5-brands:`internet-explorer``` 
+     - :icon-fa5-brands:`internet-explorer`
                 
    * - ``fa-ioxhost`` 
-     - ``:icon-fa5:`ioxhost``` 
-     - :icon-fa5:`ioxhost`
+     - ``:icon-fa5-brands:`ioxhost``` 
+     - :icon-fa5-brands:`ioxhost`
                 
    * - ``fa-italic`` 
      - ``:icon-fa5:`italic``` 
      - :icon-fa5:`italic`
                 
    * - ``fa-itunes`` 
-     - ``:icon-fa5:`itunes``` 
-     - :icon-fa5:`itunes`
+     - ``:icon-fa5-brands:`itunes``` 
+     - :icon-fa5-brands:`itunes`
                 
    * - ``fa-itunes-note`` 
-     - ``:icon-fa5:`itunes-note``` 
-     - :icon-fa5:`itunes-note`
+     - ``:icon-fa5-brands:`itunes-note``` 
+     - :icon-fa5-brands:`itunes-note`
                 
    * - ``fa-java`` 
-     - ``:icon-fa5:`java``` 
-     - :icon-fa5:`java`
+     - ``:icon-fa5-brands:`java``` 
+     - :icon-fa5-brands:`java`
                 
    * - ``fa-jedi`` 
      - ``:icon-fa5:`jedi``` 
      - :icon-fa5:`jedi`
                 
    * - ``fa-jedi-order`` 
-     - ``:icon-fa5:`jedi-order``` 
-     - :icon-fa5:`jedi-order`
+     - ``:icon-fa5-brands:`jedi-order``` 
+     - :icon-fa5-brands:`jedi-order`
                 
    * - ``fa-jenkins`` 
-     - ``:icon-fa5:`jenkins``` 
-     - :icon-fa5:`jenkins`
+     - ``:icon-fa5-brands:`jenkins``` 
+     - :icon-fa5-brands:`jenkins`
                 
    * - ``fa-joget`` 
-     - ``:icon-fa5:`joget``` 
-     - :icon-fa5:`joget`
+     - ``:icon-fa5-brands:`joget``` 
+     - :icon-fa5-brands:`joget`
                 
    * - ``fa-joint`` 
      - ``:icon-fa5:`joint``` 
      - :icon-fa5:`joint`
                 
    * - ``fa-joomla`` 
-     - ``:icon-fa5:`joomla``` 
-     - :icon-fa5:`joomla`
+     - ``:icon-fa5-brands:`joomla``` 
+     - :icon-fa5-brands:`joomla`
                 
    * - ``fa-journal-whills`` 
      - ``:icon-fa5:`journal-whills``` 
      - :icon-fa5:`journal-whills`
                 
    * - ``fa-js`` 
-     - ``:icon-fa5:`js``` 
-     - :icon-fa5:`js`
+     - ``:icon-fa5-brands:`js``` 
+     - :icon-fa5-brands:`js`
                 
    * - ``fa-js-square`` 
-     - ``:icon-fa5:`js-square``` 
-     - :icon-fa5:`js-square`
+     - ``:icon-fa5-brands:`js-square``` 
+     - :icon-fa5-brands:`js-square`
                 
    * - ``fa-jsfiddle`` 
-     - ``:icon-fa5:`jsfiddle``` 
-     - :icon-fa5:`jsfiddle`
+     - ``:icon-fa5-brands:`jsfiddle``` 
+     - :icon-fa5-brands:`jsfiddle`
                 
    * - ``fa-kaaba`` 
      - ``:icon-fa5:`kaaba``` 
      - :icon-fa5:`kaaba`
                 
    * - ``fa-kaggle`` 
-     - ``:icon-fa5:`kaggle``` 
-     - :icon-fa5:`kaggle`
+     - ``:icon-fa5-brands:`kaggle``` 
+     - :icon-fa5-brands:`kaggle`
                 
    * - ``fa-key`` 
      - ``:icon-fa5:`key``` 
      - :icon-fa5:`key`
                 
    * - ``fa-keybase`` 
-     - ``:icon-fa5:`keybase``` 
-     - :icon-fa5:`keybase`
+     - ``:icon-fa5-brands:`keybase``` 
+     - :icon-fa5-brands:`keybase`
                 
    * - ``fa-keyboard`` 
      - ``:icon-fa5:`keyboard``` 
      - :icon-fa5:`keyboard`
                 
    * - ``fa-keycdn`` 
-     - ``:icon-fa5:`keycdn``` 
-     - :icon-fa5:`keycdn`
+     - ``:icon-fa5-brands:`keycdn``` 
+     - :icon-fa5-brands:`keycdn`
                 
    * - ``fa-khanda`` 
      - ``:icon-fa5:`khanda``` 
      - :icon-fa5:`khanda`
                 
    * - ``fa-kickstarter`` 
-     - ``:icon-fa5:`kickstarter``` 
-     - :icon-fa5:`kickstarter`
+     - ``:icon-fa5-brands:`kickstarter``` 
+     - :icon-fa5-brands:`kickstarter`
                 
    * - ``fa-kickstarter-k`` 
-     - ``:icon-fa5:`kickstarter-k``` 
-     - :icon-fa5:`kickstarter-k`
+     - ``:icon-fa5-brands:`kickstarter-k``` 
+     - :icon-fa5-brands:`kickstarter-k`
                 
    * - ``fa-kiss`` 
      - ``:icon-fa5:`kiss``` 
@@ -2414,8 +2410,8 @@
      - :icon-fa5:`kiwi-bird`
                 
    * - ``fa-korvue`` 
-     - ``:icon-fa5:`korvue``` 
-     - :icon-fa5:`korvue`
+     - ``:icon-fa5-brands:`korvue``` 
+     - :icon-fa5-brands:`korvue`
                 
    * - ``fa-landmark`` 
      - ``:icon-fa5:`landmark``` 
@@ -2434,16 +2430,16 @@
      - :icon-fa5:`laptop-code`
                 
    * - ``fa-laravel`` 
-     - ``:icon-fa5:`laravel``` 
-     - :icon-fa5:`laravel`
+     - ``:icon-fa5-brands:`laravel``` 
+     - :icon-fa5-brands:`laravel`
                 
    * - ``fa-lastfm`` 
-     - ``:icon-fa5:`lastfm``` 
-     - :icon-fa5:`lastfm`
+     - ``:icon-fa5-brands:`lastfm``` 
+     - :icon-fa5-brands:`lastfm`
                 
    * - ``fa-lastfm-square`` 
-     - ``:icon-fa5:`lastfm-square``` 
-     - :icon-fa5:`lastfm-square`
+     - ``:icon-fa5-brands:`lastfm-square``` 
+     - :icon-fa5-brands:`lastfm-square`
                 
    * - ``fa-laugh`` 
      - ``:icon-fa5:`laugh``` 
@@ -2470,16 +2466,16 @@
      - :icon-fa5:`leaf`
                 
    * - ``fa-leanpub`` 
-     - ``:icon-fa5:`leanpub``` 
-     - :icon-fa5:`leanpub`
+     - ``:icon-fa5-brands:`leanpub``` 
+     - :icon-fa5-brands:`leanpub`
                 
    * - ``fa-lemon`` 
      - ``:icon-fa5:`lemon``` 
      - :icon-fa5:`lemon`
                 
    * - ``fa-less`` 
-     - ``:icon-fa5:`less``` 
-     - :icon-fa5:`less`
+     - ``:icon-fa5-brands:`less``` 
+     - :icon-fa5-brands:`less`
                 
    * - ``fa-less-than`` 
      - ``:icon-fa5:`less-than``` 
@@ -2506,28 +2502,28 @@
      - :icon-fa5:`lightbulb`
                 
    * - ``fa-line`` 
-     - ``:icon-fa5:`line``` 
-     - :icon-fa5:`line`
+     - ``:icon-fa5-brands:`line``` 
+     - :icon-fa5-brands:`line`
                 
    * - ``fa-link`` 
      - ``:icon-fa5:`link``` 
      - :icon-fa5:`link`
                 
    * - ``fa-linkedin`` 
-     - ``:icon-fa5:`linkedin``` 
-     - :icon-fa5:`linkedin`
+     - ``:icon-fa5-brands:`linkedin``` 
+     - :icon-fa5-brands:`linkedin`
                 
    * - ``fa-linkedin-in`` 
-     - ``:icon-fa5:`linkedin-in``` 
-     - :icon-fa5:`linkedin-in`
+     - ``:icon-fa5-brands:`linkedin-in``` 
+     - :icon-fa5-brands:`linkedin-in`
                 
    * - ``fa-linode`` 
-     - ``:icon-fa5:`linode``` 
-     - :icon-fa5:`linode`
+     - ``:icon-fa5-brands:`linode``` 
+     - :icon-fa5-brands:`linode`
                 
    * - ``fa-linux`` 
-     - ``:icon-fa5:`linux``` 
-     - :icon-fa5:`linux`
+     - ``:icon-fa5-brands:`linux``` 
+     - :icon-fa5-brands:`linux`
                 
    * - ``fa-lira-sign`` 
      - ``:icon-fa5:`lira-sign``` 
@@ -2586,12 +2582,12 @@
      - :icon-fa5:`luggage-cart`
                 
    * - ``fa-lyft`` 
-     - ``:icon-fa5:`lyft``` 
-     - :icon-fa5:`lyft`
+     - ``:icon-fa5-brands:`lyft``` 
+     - :icon-fa5-brands:`lyft`
                 
    * - ``fa-magento`` 
-     - ``:icon-fa5:`magento``` 
-     - :icon-fa5:`magento`
+     - ``:icon-fa5-brands:`magento``` 
+     - :icon-fa5-brands:`magento`
                 
    * - ``fa-magic`` 
      - ``:icon-fa5:`magic``` 
@@ -2606,16 +2602,16 @@
      - :icon-fa5:`mail-bulk`
                 
    * - ``fa-mailchimp`` 
-     - ``:icon-fa5:`mailchimp``` 
-     - :icon-fa5:`mailchimp`
+     - ``:icon-fa5-brands:`mailchimp``` 
+     - :icon-fa5-brands:`mailchimp`
                 
    * - ``fa-male`` 
      - ``:icon-fa5:`male``` 
      - :icon-fa5:`male`
                 
    * - ``fa-mandalorian`` 
-     - ``:icon-fa5:`mandalorian``` 
-     - :icon-fa5:`mandalorian`
+     - ``:icon-fa5-brands:`mandalorian``` 
+     - :icon-fa5-brands:`mandalorian`
                 
    * - ``fa-map`` 
      - ``:icon-fa5:`map``` 
@@ -2646,8 +2642,8 @@
      - :icon-fa5:`map-signs`
                 
    * - ``fa-markdown`` 
-     - ``:icon-fa5:`markdown``` 
-     - :icon-fa5:`markdown`
+     - ``:icon-fa5-brands:`markdown``` 
+     - :icon-fa5-brands:`markdown`
                 
    * - ``fa-marker`` 
      - ``:icon-fa5:`marker``` 
@@ -2674,44 +2670,44 @@
      - :icon-fa5:`mars-stroke-v`
                 
    * - ``fa-mastodon`` 
-     - ``:icon-fa5:`mastodon``` 
-     - :icon-fa5:`mastodon`
+     - ``:icon-fa5-brands:`mastodon``` 
+     - :icon-fa5-brands:`mastodon`
                 
    * - ``fa-maxcdn`` 
-     - ``:icon-fa5:`maxcdn``` 
-     - :icon-fa5:`maxcdn`
+     - ``:icon-fa5-brands:`maxcdn``` 
+     - :icon-fa5-brands:`maxcdn`
                 
    * - ``fa-medal`` 
      - ``:icon-fa5:`medal``` 
      - :icon-fa5:`medal`
                 
    * - ``fa-medapps`` 
-     - ``:icon-fa5:`medapps``` 
-     - :icon-fa5:`medapps`
+     - ``:icon-fa5-brands:`medapps``` 
+     - :icon-fa5-brands:`medapps`
                 
    * - ``fa-medium`` 
-     - ``:icon-fa5:`medium``` 
-     - :icon-fa5:`medium`
+     - ``:icon-fa5-brands:`medium``` 
+     - :icon-fa5-brands:`medium`
                 
    * - ``fa-medium-m`` 
-     - ``:icon-fa5:`medium-m``` 
-     - :icon-fa5:`medium-m`
+     - ``:icon-fa5-brands:`medium-m``` 
+     - :icon-fa5-brands:`medium-m`
                 
    * - ``fa-medkit`` 
      - ``:icon-fa5:`medkit``` 
      - :icon-fa5:`medkit`
                 
    * - ``fa-medrt`` 
-     - ``:icon-fa5:`medrt``` 
-     - :icon-fa5:`medrt`
+     - ``:icon-fa5-brands:`medrt``` 
+     - :icon-fa5-brands:`medrt`
                 
    * - ``fa-meetup`` 
-     - ``:icon-fa5:`meetup``` 
-     - :icon-fa5:`meetup`
+     - ``:icon-fa5-brands:`meetup``` 
+     - :icon-fa5-brands:`meetup`
                 
    * - ``fa-megaport`` 
-     - ``:icon-fa5:`megaport``` 
-     - :icon-fa5:`megaport`
+     - ``:icon-fa5-brands:`megaport``` 
+     - :icon-fa5-brands:`megaport`
                 
    * - ``fa-meh`` 
      - ``:icon-fa5:`meh``` 
@@ -2762,8 +2758,8 @@
      - :icon-fa5:`microscope`
                 
    * - ``fa-microsoft`` 
-     - ``:icon-fa5:`microsoft``` 
-     - :icon-fa5:`microsoft`
+     - ``:icon-fa5-brands:`microsoft``` 
+     - :icon-fa5-brands:`microsoft`
                 
    * - ``fa-minus`` 
      - ``:icon-fa5:`minus``` 
@@ -2778,16 +2774,16 @@
      - :icon-fa5:`minus-square`
                 
    * - ``fa-mix`` 
-     - ``:icon-fa5:`mix``` 
-     - :icon-fa5:`mix`
+     - ``:icon-fa5-brands:`mix``` 
+     - :icon-fa5-brands:`mix`
                 
    * - ``fa-mixcloud`` 
-     - ``:icon-fa5:`mixcloud``` 
-     - :icon-fa5:`mixcloud`
+     - ``:icon-fa5-brands:`mixcloud``` 
+     - :icon-fa5-brands:`mixcloud`
                 
    * - ``fa-mizuni`` 
-     - ``:icon-fa5:`mizuni``` 
-     - :icon-fa5:`mizuni`
+     - ``:icon-fa5-brands:`mizuni``` 
+     - :icon-fa5-brands:`mizuni`
                 
    * - ``fa-mobile`` 
      - ``:icon-fa5:`mobile``` 
@@ -2798,12 +2794,12 @@
      - :icon-fa5:`mobile-alt`
                 
    * - ``fa-modx`` 
-     - ``:icon-fa5:`modx``` 
-     - :icon-fa5:`modx`
+     - ``:icon-fa5-brands:`modx``` 
+     - :icon-fa5-brands:`modx`
                 
    * - ``fa-monero`` 
-     - ``:icon-fa5:`monero``` 
-     - :icon-fa5:`monero`
+     - ``:icon-fa5-brands:`monero``` 
+     - :icon-fa5-brands:`monero`
                 
    * - ``fa-money-bill`` 
      - ``:icon-fa5:`money-bill``` 
@@ -2858,12 +2854,12 @@
      - :icon-fa5:`music`
                 
    * - ``fa-napster`` 
-     - ``:icon-fa5:`napster``` 
-     - :icon-fa5:`napster`
+     - ``:icon-fa5-brands:`napster``` 
+     - :icon-fa5-brands:`napster`
                 
    * - ``fa-neos`` 
-     - ``:icon-fa5:`neos``` 
-     - :icon-fa5:`neos`
+     - ``:icon-fa5-brands:`neos``` 
+     - :icon-fa5-brands:`neos`
                 
    * - ``fa-neuter`` 
      - ``:icon-fa5:`neuter``` 
@@ -2874,20 +2870,20 @@
      - :icon-fa5:`newspaper`
                 
    * - ``fa-nimblr`` 
-     - ``:icon-fa5:`nimblr``` 
-     - :icon-fa5:`nimblr`
+     - ``:icon-fa5-brands:`nimblr``` 
+     - :icon-fa5-brands:`nimblr`
                 
    * - ``fa-nintendo-switch`` 
-     - ``:icon-fa5:`nintendo-switch``` 
-     - :icon-fa5:`nintendo-switch`
+     - ``:icon-fa5-brands:`nintendo-switch``` 
+     - :icon-fa5-brands:`nintendo-switch`
                 
    * - ``fa-node`` 
-     - ``:icon-fa5:`node``` 
-     - :icon-fa5:`node`
+     - ``:icon-fa5-brands:`node``` 
+     - :icon-fa5-brands:`node`
                 
    * - ``fa-node-js`` 
-     - ``:icon-fa5:`node-js``` 
-     - :icon-fa5:`node-js`
+     - ``:icon-fa5-brands:`node-js``` 
+     - :icon-fa5-brands:`node-js`
                 
    * - ``fa-not-equal`` 
      - ``:icon-fa5:`not-equal``` 
@@ -2898,16 +2894,16 @@
      - :icon-fa5:`notes-medical`
                 
    * - ``fa-npm`` 
-     - ``:icon-fa5:`npm``` 
-     - :icon-fa5:`npm`
+     - ``:icon-fa5-brands:`npm``` 
+     - :icon-fa5-brands:`npm`
                 
    * - ``fa-ns8`` 
-     - ``:icon-fa5:`ns8``` 
-     - :icon-fa5:`ns8`
+     - ``:icon-fa5-brands:`ns8``` 
+     - :icon-fa5-brands:`ns8`
                 
    * - ``fa-nutritionix`` 
-     - ``:icon-fa5:`nutritionix``` 
-     - :icon-fa5:`nutritionix`
+     - ``:icon-fa5-brands:`nutritionix``` 
+     - :icon-fa5-brands:`nutritionix`
                 
    * - ``fa-object-group`` 
      - ``:icon-fa5:`object-group``` 
@@ -2918,56 +2914,56 @@
      - :icon-fa5:`object-ungroup`
                 
    * - ``fa-odnoklassniki`` 
-     - ``:icon-fa5:`odnoklassniki``` 
-     - :icon-fa5:`odnoklassniki`
+     - ``:icon-fa5-brands:`odnoklassniki``` 
+     - :icon-fa5-brands:`odnoklassniki`
                 
    * - ``fa-odnoklassniki-square`` 
-     - ``:icon-fa5:`odnoklassniki-square``` 
-     - :icon-fa5:`odnoklassniki-square`
+     - ``:icon-fa5-brands:`odnoklassniki-square``` 
+     - :icon-fa5-brands:`odnoklassniki-square`
                 
    * - ``fa-oil-can`` 
      - ``:icon-fa5:`oil-can``` 
      - :icon-fa5:`oil-can`
                 
    * - ``fa-old-republic`` 
-     - ``:icon-fa5:`old-republic``` 
-     - :icon-fa5:`old-republic`
+     - ``:icon-fa5-brands:`old-republic``` 
+     - :icon-fa5-brands:`old-republic`
                 
    * - ``fa-om`` 
      - ``:icon-fa5:`om``` 
      - :icon-fa5:`om`
                 
    * - ``fa-opencart`` 
-     - ``:icon-fa5:`opencart``` 
-     - :icon-fa5:`opencart`
+     - ``:icon-fa5-brands:`opencart``` 
+     - :icon-fa5-brands:`opencart`
                 
    * - ``fa-openid`` 
-     - ``:icon-fa5:`openid``` 
-     - :icon-fa5:`openid`
+     - ``:icon-fa5-brands:`openid``` 
+     - :icon-fa5-brands:`openid`
                 
    * - ``fa-opera`` 
-     - ``:icon-fa5:`opera``` 
-     - :icon-fa5:`opera`
+     - ``:icon-fa5-brands:`opera``` 
+     - :icon-fa5-brands:`opera`
                 
    * - ``fa-optin-monster`` 
-     - ``:icon-fa5:`optin-monster``` 
-     - :icon-fa5:`optin-monster`
+     - ``:icon-fa5-brands:`optin-monster``` 
+     - :icon-fa5-brands:`optin-monster`
                 
    * - ``fa-osi`` 
-     - ``:icon-fa5:`osi``` 
-     - :icon-fa5:`osi`
+     - ``:icon-fa5-brands:`osi``` 
+     - :icon-fa5-brands:`osi`
                 
    * - ``fa-outdent`` 
      - ``:icon-fa5:`outdent``` 
      - :icon-fa5:`outdent`
                 
    * - ``fa-page4`` 
-     - ``:icon-fa5:`page4``` 
-     - :icon-fa5:`page4`
+     - ``:icon-fa5-brands:`page4``` 
+     - :icon-fa5-brands:`page4`
                 
    * - ``fa-pagelines`` 
-     - ``:icon-fa5:`pagelines``` 
-     - :icon-fa5:`pagelines`
+     - ``:icon-fa5-brands:`pagelines``` 
+     - :icon-fa5-brands:`pagelines`
                 
    * - ``fa-paint-brush`` 
      - ``:icon-fa5:`paint-brush``` 
@@ -2982,8 +2978,8 @@
      - :icon-fa5:`palette`
                 
    * - ``fa-palfed`` 
-     - ``:icon-fa5:`palfed``` 
-     - :icon-fa5:`palfed`
+     - ``:icon-fa5-brands:`palfed``` 
+     - :icon-fa5-brands:`palfed`
                 
    * - ``fa-pallet`` 
      - ``:icon-fa5:`pallet``` 
@@ -3022,8 +3018,8 @@
      - :icon-fa5:`paste`
                 
    * - ``fa-patreon`` 
-     - ``:icon-fa5:`patreon``` 
-     - :icon-fa5:`patreon`
+     - ``:icon-fa5-brands:`patreon``` 
+     - :icon-fa5-brands:`patreon`
                 
    * - ``fa-pause`` 
      - ``:icon-fa5:`pause``` 
@@ -3038,8 +3034,8 @@
      - :icon-fa5:`paw`
                 
    * - ``fa-paypal`` 
-     - ``:icon-fa5:`paypal``` 
-     - :icon-fa5:`paypal`
+     - ``:icon-fa5-brands:`paypal``` 
+     - :icon-fa5-brands:`paypal`
                 
    * - ``fa-peace`` 
      - ``:icon-fa5:`peace``` 
@@ -3086,20 +3082,20 @@
      - :icon-fa5:`percentage`
                 
    * - ``fa-periscope`` 
-     - ``:icon-fa5:`periscope``` 
-     - :icon-fa5:`periscope`
+     - ``:icon-fa5-brands:`periscope``` 
+     - :icon-fa5-brands:`periscope`
                 
    * - ``fa-phabricator`` 
-     - ``:icon-fa5:`phabricator``` 
-     - :icon-fa5:`phabricator`
+     - ``:icon-fa5-brands:`phabricator``` 
+     - :icon-fa5-brands:`phabricator`
                 
    * - ``fa-phoenix-framework`` 
-     - ``:icon-fa5:`phoenix-framework``` 
-     - :icon-fa5:`phoenix-framework`
+     - ``:icon-fa5-brands:`phoenix-framework``` 
+     - :icon-fa5-brands:`phoenix-framework`
                 
    * - ``fa-phoenix-squadron`` 
-     - ``:icon-fa5:`phoenix-squadron``` 
-     - :icon-fa5:`phoenix-squadron`
+     - ``:icon-fa5-brands:`phoenix-squadron``` 
+     - :icon-fa5-brands:`phoenix-squadron`
                 
    * - ``fa-phone`` 
      - ``:icon-fa5:`phone``` 
@@ -3118,24 +3114,24 @@
      - :icon-fa5:`phone-volume`
                 
    * - ``fa-php`` 
-     - ``:icon-fa5:`php``` 
-     - :icon-fa5:`php`
+     - ``:icon-fa5-brands:`php``` 
+     - :icon-fa5-brands:`php`
                 
    * - ``fa-pied-piper`` 
-     - ``:icon-fa5:`pied-piper``` 
-     - :icon-fa5:`pied-piper`
+     - ``:icon-fa5-brands:`pied-piper``` 
+     - :icon-fa5-brands:`pied-piper`
                 
    * - ``fa-pied-piper-alt`` 
-     - ``:icon-fa5:`pied-piper-alt``` 
-     - :icon-fa5:`pied-piper-alt`
+     - ``:icon-fa5-brands:`pied-piper-alt``` 
+     - :icon-fa5-brands:`pied-piper-alt`
                 
    * - ``fa-pied-piper-hat`` 
-     - ``:icon-fa5:`pied-piper-hat``` 
-     - :icon-fa5:`pied-piper-hat`
+     - ``:icon-fa5-brands:`pied-piper-hat``` 
+     - :icon-fa5-brands:`pied-piper-hat`
                 
    * - ``fa-pied-piper-pp`` 
-     - ``:icon-fa5:`pied-piper-pp``` 
-     - :icon-fa5:`pied-piper-pp`
+     - ``:icon-fa5-brands:`pied-piper-pp``` 
+     - :icon-fa5-brands:`pied-piper-pp`
                 
    * - ``fa-piggy-bank`` 
      - ``:icon-fa5:`piggy-bank``` 
@@ -3146,16 +3142,16 @@
      - :icon-fa5:`pills`
                 
    * - ``fa-pinterest`` 
-     - ``:icon-fa5:`pinterest``` 
-     - :icon-fa5:`pinterest`
+     - ``:icon-fa5-brands:`pinterest``` 
+     - :icon-fa5-brands:`pinterest`
                 
    * - ``fa-pinterest-p`` 
-     - ``:icon-fa5:`pinterest-p``` 
-     - :icon-fa5:`pinterest-p`
+     - ``:icon-fa5-brands:`pinterest-p``` 
+     - :icon-fa5-brands:`pinterest-p`
                 
    * - ``fa-pinterest-square`` 
-     - ``:icon-fa5:`pinterest-square``` 
-     - :icon-fa5:`pinterest-square`
+     - ``:icon-fa5-brands:`pinterest-square``` 
+     - :icon-fa5-brands:`pinterest-square`
                 
    * - ``fa-place-of-worship`` 
      - ``:icon-fa5:`place-of-worship``` 
@@ -3182,8 +3178,8 @@
      - :icon-fa5:`play-circle`
                 
    * - ``fa-playstation`` 
-     - ``:icon-fa5:`playstation``` 
-     - :icon-fa5:`playstation`
+     - ``:icon-fa5-brands:`playstation``` 
+     - :icon-fa5-brands:`playstation`
                 
    * - ``fa-plug`` 
      - ``:icon-fa5:`plug``` 
@@ -3262,28 +3258,28 @@
      - :icon-fa5:`procedures`
                 
    * - ``fa-product-hunt`` 
-     - ``:icon-fa5:`product-hunt``` 
-     - :icon-fa5:`product-hunt`
+     - ``:icon-fa5-brands:`product-hunt``` 
+     - :icon-fa5-brands:`product-hunt`
                 
    * - ``fa-project-diagram`` 
      - ``:icon-fa5:`project-diagram``` 
      - :icon-fa5:`project-diagram`
                 
    * - ``fa-pushed`` 
-     - ``:icon-fa5:`pushed``` 
-     - :icon-fa5:`pushed`
+     - ``:icon-fa5-brands:`pushed``` 
+     - :icon-fa5-brands:`pushed`
                 
    * - ``fa-puzzle-piece`` 
      - ``:icon-fa5:`puzzle-piece``` 
      - :icon-fa5:`puzzle-piece`
                 
    * - ``fa-python`` 
-     - ``:icon-fa5:`python``` 
-     - :icon-fa5:`python`
+     - ``:icon-fa5-brands:`python``` 
+     - :icon-fa5-brands:`python`
                 
    * - ``fa-qq`` 
-     - ``:icon-fa5:`qq``` 
-     - :icon-fa5:`qq`
+     - ``:icon-fa5-brands:`qq``` 
+     - :icon-fa5-brands:`qq`
                 
    * - ``fa-qrcode`` 
      - ``:icon-fa5:`qrcode``` 
@@ -3302,12 +3298,12 @@
      - :icon-fa5:`quidditch`
                 
    * - ``fa-quinscape`` 
-     - ``:icon-fa5:`quinscape``` 
-     - :icon-fa5:`quinscape`
+     - ``:icon-fa5-brands:`quinscape``` 
+     - :icon-fa5-brands:`quinscape`
                 
    * - ``fa-quora`` 
-     - ``:icon-fa5:`quora``` 
-     - :icon-fa5:`quora`
+     - ``:icon-fa5-brands:`quora``` 
+     - :icon-fa5-brands:`quora`
                 
    * - ``fa-quote-left`` 
      - ``:icon-fa5:`quote-left``` 
@@ -3322,28 +3318,28 @@
      - :icon-fa5:`quran`
                 
    * - ``fa-r-project`` 
-     - ``:icon-fa5:`r-project``` 
-     - :icon-fa5:`r-project`
+     - ``:icon-fa5-brands:`r-project``` 
+     - :icon-fa5-brands:`r-project`
                 
    * - ``fa-random`` 
      - ``:icon-fa5:`random``` 
      - :icon-fa5:`random`
                 
    * - ``fa-ravelry`` 
-     - ``:icon-fa5:`ravelry``` 
-     - :icon-fa5:`ravelry`
+     - ``:icon-fa5-brands:`ravelry``` 
+     - :icon-fa5-brands:`ravelry`
                 
    * - ``fa-react`` 
-     - ``:icon-fa5:`react``` 
-     - :icon-fa5:`react`
+     - ``:icon-fa5-brands:`react``` 
+     - :icon-fa5-brands:`react`
                 
    * - ``fa-readme`` 
-     - ``:icon-fa5:`readme``` 
-     - :icon-fa5:`readme`
+     - ``:icon-fa5-brands:`readme``` 
+     - :icon-fa5-brands:`readme`
                 
    * - ``fa-rebel`` 
-     - ``:icon-fa5:`rebel``` 
-     - :icon-fa5:`rebel`
+     - ``:icon-fa5-brands:`rebel``` 
+     - :icon-fa5-brands:`rebel`
                 
    * - ``fa-receipt`` 
      - ``:icon-fa5:`receipt``` 
@@ -3354,20 +3350,20 @@
      - :icon-fa5:`recycle`
                 
    * - ``fa-red-river`` 
-     - ``:icon-fa5:`red-river``` 
-     - :icon-fa5:`red-river`
+     - ``:icon-fa5-brands:`red-river``` 
+     - :icon-fa5-brands:`red-river`
                 
    * - ``fa-reddit`` 
-     - ``:icon-fa5:`reddit``` 
-     - :icon-fa5:`reddit`
+     - ``:icon-fa5-brands:`reddit``` 
+     - :icon-fa5-brands:`reddit`
                 
    * - ``fa-reddit-alien`` 
-     - ``:icon-fa5:`reddit-alien``` 
-     - :icon-fa5:`reddit-alien`
+     - ``:icon-fa5-brands:`reddit-alien``` 
+     - :icon-fa5-brands:`reddit-alien`
                 
    * - ``fa-reddit-square`` 
-     - ``:icon-fa5:`reddit-square``` 
-     - :icon-fa5:`reddit-square`
+     - ``:icon-fa5-brands:`reddit-square``` 
+     - :icon-fa5-brands:`reddit-square`
                 
    * - ``fa-redo`` 
      - ``:icon-fa5:`redo``` 
@@ -3382,12 +3378,12 @@
      - :icon-fa5:`registered`
                 
    * - ``fa-rendact`` 
-     - ``:icon-fa5:`rendact``` 
-     - :icon-fa5:`rendact`
+     - ``:icon-fa5-brands:`rendact``` 
+     - :icon-fa5-brands:`rendact`
                 
    * - ``fa-renren`` 
-     - ``:icon-fa5:`renren``` 
-     - :icon-fa5:`renren`
+     - ``:icon-fa5-brands:`renren``` 
+     - :icon-fa5-brands:`renren`
                 
    * - ``fa-reply`` 
      - ``:icon-fa5:`reply``` 
@@ -3398,24 +3394,24 @@
      - :icon-fa5:`reply-all`
                 
    * - ``fa-replyd`` 
-     - ``:icon-fa5:`replyd``` 
-     - :icon-fa5:`replyd`
+     - ``:icon-fa5-brands:`replyd``` 
+     - :icon-fa5-brands:`replyd`
                 
    * - ``fa-researchgate`` 
-     - ``:icon-fa5:`researchgate``` 
-     - :icon-fa5:`researchgate`
+     - ``:icon-fa5-brands:`researchgate``` 
+     - :icon-fa5-brands:`researchgate`
                 
    * - ``fa-resolving`` 
-     - ``:icon-fa5:`resolving``` 
-     - :icon-fa5:`resolving`
+     - ``:icon-fa5-brands:`resolving``` 
+     - :icon-fa5-brands:`resolving`
                 
    * - ``fa-retweet`` 
      - ``:icon-fa5:`retweet``` 
      - :icon-fa5:`retweet`
                 
    * - ``fa-rev`` 
-     - ``:icon-fa5:`rev``` 
-     - :icon-fa5:`rev`
+     - ``:icon-fa5-brands:`rev``` 
+     - :icon-fa5-brands:`rev`
                 
    * - ``fa-ribbon`` 
      - ``:icon-fa5:`ribbon``` 
@@ -3434,12 +3430,12 @@
      - :icon-fa5:`rocket`
                 
    * - ``fa-rocketchat`` 
-     - ``:icon-fa5:`rocketchat``` 
-     - :icon-fa5:`rocketchat`
+     - ``:icon-fa5-brands:`rocketchat``` 
+     - :icon-fa5-brands:`rocketchat`
                 
    * - ``fa-rockrms`` 
-     - ``:icon-fa5:`rockrms``` 
-     - :icon-fa5:`rockrms`
+     - ``:icon-fa5-brands:`rockrms``` 
+     - :icon-fa5-brands:`rockrms`
                 
    * - ``fa-route`` 
      - ``:icon-fa5:`route``` 
@@ -3486,20 +3482,20 @@
      - :icon-fa5:`sad-tear`
                 
    * - ``fa-safari`` 
-     - ``:icon-fa5:`safari``` 
-     - :icon-fa5:`safari`
+     - ``:icon-fa5-brands:`safari``` 
+     - :icon-fa5-brands:`safari`
                 
    * - ``fa-sass`` 
-     - ``:icon-fa5:`sass``` 
-     - :icon-fa5:`sass`
+     - ``:icon-fa5-brands:`sass``` 
+     - :icon-fa5-brands:`sass`
                 
    * - ``fa-save`` 
      - ``:icon-fa5:`save``` 
      - :icon-fa5:`save`
                 
    * - ``fa-schlix`` 
-     - ``:icon-fa5:`schlix``` 
-     - :icon-fa5:`schlix`
+     - ``:icon-fa5-brands:`schlix``` 
+     - :icon-fa5-brands:`schlix`
                 
    * - ``fa-school`` 
      - ``:icon-fa5:`school``` 
@@ -3510,8 +3506,8 @@
      - :icon-fa5:`screwdriver`
                 
    * - ``fa-scribd`` 
-     - ``:icon-fa5:`scribd``` 
-     - :icon-fa5:`scribd`
+     - ``:icon-fa5-brands:`scribd``` 
+     - :icon-fa5-brands:`scribd`
                 
    * - ``fa-search`` 
      - ``:icon-fa5:`search``` 
@@ -3534,28 +3530,28 @@
      - :icon-fa5:`search-plus`
                 
    * - ``fa-searchengin`` 
-     - ``:icon-fa5:`searchengin``` 
-     - :icon-fa5:`searchengin`
+     - ``:icon-fa5-brands:`searchengin``` 
+     - :icon-fa5-brands:`searchengin`
                 
    * - ``fa-seedling`` 
      - ``:icon-fa5:`seedling``` 
      - :icon-fa5:`seedling`
                 
    * - ``fa-sellcast`` 
-     - ``:icon-fa5:`sellcast``` 
-     - :icon-fa5:`sellcast`
+     - ``:icon-fa5-brands:`sellcast``` 
+     - :icon-fa5-brands:`sellcast`
                 
    * - ``fa-sellsy`` 
-     - ``:icon-fa5:`sellsy``` 
-     - :icon-fa5:`sellsy`
+     - ``:icon-fa5-brands:`sellsy``` 
+     - :icon-fa5-brands:`sellsy`
                 
    * - ``fa-server`` 
      - ``:icon-fa5:`server``` 
      - :icon-fa5:`server`
                 
    * - ``fa-servicestack`` 
-     - ``:icon-fa5:`servicestack``` 
-     - :icon-fa5:`servicestack`
+     - ``:icon-fa5-brands:`servicestack``` 
+     - :icon-fa5-brands:`servicestack`
                 
    * - ``fa-shapes`` 
      - ``:icon-fa5:`shapes``` 
@@ -3594,8 +3590,8 @@
      - :icon-fa5:`shipping-fast`
                 
    * - ``fa-shirtsinbulk`` 
-     - ``:icon-fa5:`shirtsinbulk``` 
-     - :icon-fa5:`shirtsinbulk`
+     - ``:icon-fa5-brands:`shirtsinbulk``` 
+     - :icon-fa5-brands:`shirtsinbulk`
                 
    * - ``fa-shoe-prints`` 
      - ``:icon-fa5:`shoe-prints``` 
@@ -3614,8 +3610,8 @@
      - :icon-fa5:`shopping-cart`
                 
    * - ``fa-shopware`` 
-     - ``:icon-fa5:`shopware``` 
-     - :icon-fa5:`shopware`
+     - ``:icon-fa5-brands:`shopware``` 
+     - :icon-fa5-brands:`shopware`
                 
    * - ``fa-shower`` 
      - ``:icon-fa5:`shower``` 
@@ -3650,48 +3646,48 @@
      - :icon-fa5:`signature`
                 
    * - ``fa-simplybuilt`` 
-     - ``:icon-fa5:`simplybuilt``` 
-     - :icon-fa5:`simplybuilt`
+     - ``:icon-fa5-brands:`simplybuilt``` 
+     - :icon-fa5-brands:`simplybuilt`
                 
    * - ``fa-sistrix`` 
-     - ``:icon-fa5:`sistrix``` 
-     - :icon-fa5:`sistrix`
+     - ``:icon-fa5-brands:`sistrix``` 
+     - :icon-fa5-brands:`sistrix`
                 
    * - ``fa-sitemap`` 
      - ``:icon-fa5:`sitemap``` 
      - :icon-fa5:`sitemap`
                 
    * - ``fa-sith`` 
-     - ``:icon-fa5:`sith``` 
-     - :icon-fa5:`sith`
+     - ``:icon-fa5-brands:`sith``` 
+     - :icon-fa5-brands:`sith`
                 
    * - ``fa-skull`` 
      - ``:icon-fa5:`skull``` 
      - :icon-fa5:`skull`
                 
    * - ``fa-skyatlas`` 
-     - ``:icon-fa5:`skyatlas``` 
-     - :icon-fa5:`skyatlas`
+     - ``:icon-fa5-brands:`skyatlas``` 
+     - :icon-fa5-brands:`skyatlas`
                 
    * - ``fa-skype`` 
-     - ``:icon-fa5:`skype``` 
-     - :icon-fa5:`skype`
+     - ``:icon-fa5-brands:`skype``` 
+     - :icon-fa5-brands:`skype`
                 
    * - ``fa-slack`` 
-     - ``:icon-fa5:`slack``` 
-     - :icon-fa5:`slack`
+     - ``:icon-fa5-brands:`slack``` 
+     - :icon-fa5-brands:`slack`
                 
    * - ``fa-slack-hash`` 
-     - ``:icon-fa5:`slack-hash``` 
-     - :icon-fa5:`slack-hash`
+     - ``:icon-fa5-brands:`slack-hash``` 
+     - :icon-fa5-brands:`slack-hash`
                 
    * - ``fa-sliders-h`` 
      - ``:icon-fa5:`sliders-h``` 
      - :icon-fa5:`sliders-h`
                 
    * - ``fa-slideshare`` 
-     - ``:icon-fa5:`slideshare``` 
-     - :icon-fa5:`slideshare`
+     - ``:icon-fa5-brands:`slideshare``` 
+     - :icon-fa5-brands:`slideshare`
                 
    * - ``fa-smile`` 
      - ``:icon-fa5:`smile``` 
@@ -3714,16 +3710,16 @@
      - :icon-fa5:`smoking-ban`
                 
    * - ``fa-snapchat`` 
-     - ``:icon-fa5:`snapchat``` 
-     - :icon-fa5:`snapchat`
+     - ``:icon-fa5-brands:`snapchat``` 
+     - :icon-fa5-brands:`snapchat`
                 
    * - ``fa-snapchat-ghost`` 
-     - ``:icon-fa5:`snapchat-ghost``` 
-     - :icon-fa5:`snapchat-ghost`
+     - ``:icon-fa5-brands:`snapchat-ghost``` 
+     - :icon-fa5-brands:`snapchat-ghost`
                 
    * - ``fa-snapchat-square`` 
-     - ``:icon-fa5:`snapchat-square``` 
-     - :icon-fa5:`snapchat-square`
+     - ``:icon-fa5-brands:`snapchat-square``` 
+     - :icon-fa5-brands:`snapchat-square`
                 
    * - ``fa-snowflake`` 
      - ``:icon-fa5:`snowflake``` 
@@ -3774,8 +3770,8 @@
      - :icon-fa5:`sort-up`
                 
    * - ``fa-soundcloud`` 
-     - ``:icon-fa5:`soundcloud``` 
-     - :icon-fa5:`soundcloud`
+     - ``:icon-fa5-brands:`soundcloud``` 
+     - :icon-fa5-brands:`soundcloud`
                 
    * - ``fa-spa`` 
      - ``:icon-fa5:`spa``` 
@@ -3786,8 +3782,8 @@
      - :icon-fa5:`space-shuttle`
                 
    * - ``fa-speakap`` 
-     - ``:icon-fa5:`speakap``` 
-     - :icon-fa5:`speakap`
+     - ``:icon-fa5-brands:`speakap``` 
+     - :icon-fa5-brands:`speakap`
                 
    * - ``fa-spinner`` 
      - ``:icon-fa5:`spinner``` 
@@ -3798,8 +3794,8 @@
      - :icon-fa5:`splotch`
                 
    * - ``fa-spotify`` 
-     - ``:icon-fa5:`spotify``` 
-     - :icon-fa5:`spotify`
+     - ``:icon-fa5-brands:`spotify``` 
+     - :icon-fa5-brands:`spotify`
                 
    * - ``fa-spray-can`` 
      - ``:icon-fa5:`spray-can``` 
@@ -3818,16 +3814,16 @@
      - :icon-fa5:`square-root-alt`
                 
    * - ``fa-squarespace`` 
-     - ``:icon-fa5:`squarespace``` 
-     - :icon-fa5:`squarespace`
+     - ``:icon-fa5-brands:`squarespace``` 
+     - :icon-fa5-brands:`squarespace`
                 
    * - ``fa-stack-exchange`` 
-     - ``:icon-fa5:`stack-exchange``` 
-     - :icon-fa5:`stack-exchange`
+     - ``:icon-fa5-brands:`stack-exchange``` 
+     - :icon-fa5-brands:`stack-exchange`
                 
    * - ``fa-stack-overflow`` 
-     - ``:icon-fa5:`stack-overflow``` 
-     - :icon-fa5:`stack-overflow`
+     - ``:icon-fa5-brands:`stack-overflow``` 
+     - :icon-fa5-brands:`stack-overflow`
                 
    * - ``fa-stamp`` 
      - ``:icon-fa5:`stamp``` 
@@ -3858,20 +3854,20 @@
      - :icon-fa5:`star-of-life`
                 
    * - ``fa-staylinked`` 
-     - ``:icon-fa5:`staylinked``` 
-     - :icon-fa5:`staylinked`
+     - ``:icon-fa5-brands:`staylinked``` 
+     - :icon-fa5-brands:`staylinked`
                 
    * - ``fa-steam`` 
-     - ``:icon-fa5:`steam``` 
-     - :icon-fa5:`steam`
+     - ``:icon-fa5-brands:`steam``` 
+     - :icon-fa5-brands:`steam`
                 
    * - ``fa-steam-square`` 
-     - ``:icon-fa5:`steam-square``` 
-     - :icon-fa5:`steam-square`
+     - ``:icon-fa5-brands:`steam-square``` 
+     - :icon-fa5-brands:`steam-square`
                 
    * - ``fa-steam-symbol`` 
-     - ``:icon-fa5:`steam-symbol``` 
-     - :icon-fa5:`steam-symbol`
+     - ``:icon-fa5-brands:`steam-symbol``` 
+     - :icon-fa5-brands:`steam-symbol`
                 
    * - ``fa-step-backward`` 
      - ``:icon-fa5:`step-backward``` 
@@ -3886,8 +3882,8 @@
      - :icon-fa5:`stethoscope`
                 
    * - ``fa-sticker-mule`` 
-     - ``:icon-fa5:`sticker-mule``` 
-     - :icon-fa5:`sticker-mule`
+     - ``:icon-fa5-brands:`sticker-mule``` 
+     - :icon-fa5-brands:`sticker-mule`
                 
    * - ``fa-sticky-note`` 
      - ``:icon-fa5:`sticky-note``` 
@@ -3914,8 +3910,8 @@
      - :icon-fa5:`store-alt`
                 
    * - ``fa-strava`` 
-     - ``:icon-fa5:`strava``` 
-     - :icon-fa5:`strava`
+     - ``:icon-fa5-brands:`strava``` 
+     - :icon-fa5-brands:`strava`
                 
    * - ``fa-stream`` 
      - ``:icon-fa5:`stream``` 
@@ -3930,28 +3926,28 @@
      - :icon-fa5:`strikethrough`
                 
    * - ``fa-stripe`` 
-     - ``:icon-fa5:`stripe``` 
-     - :icon-fa5:`stripe`
+     - ``:icon-fa5-brands:`stripe``` 
+     - :icon-fa5-brands:`stripe`
                 
    * - ``fa-stripe-s`` 
-     - ``:icon-fa5:`stripe-s``` 
-     - :icon-fa5:`stripe-s`
+     - ``:icon-fa5-brands:`stripe-s``` 
+     - :icon-fa5-brands:`stripe-s`
                 
    * - ``fa-stroopwafel`` 
      - ``:icon-fa5:`stroopwafel``` 
      - :icon-fa5:`stroopwafel`
                 
    * - ``fa-studiovinari`` 
-     - ``:icon-fa5:`studiovinari``` 
-     - :icon-fa5:`studiovinari`
+     - ``:icon-fa5-brands:`studiovinari``` 
+     - :icon-fa5-brands:`studiovinari`
                 
    * - ``fa-stumbleupon`` 
-     - ``:icon-fa5:`stumbleupon``` 
-     - :icon-fa5:`stumbleupon`
+     - ``:icon-fa5-brands:`stumbleupon``` 
+     - :icon-fa5-brands:`stumbleupon`
                 
    * - ``fa-stumbleupon-circle`` 
-     - ``:icon-fa5:`stumbleupon-circle``` 
-     - :icon-fa5:`stumbleupon-circle`
+     - ``:icon-fa5-brands:`stumbleupon-circle``` 
+     - :icon-fa5-brands:`stumbleupon-circle`
                 
    * - ``fa-subscript`` 
      - ``:icon-fa5:`subscript``` 
@@ -3974,16 +3970,16 @@
      - :icon-fa5:`sun`
                 
    * - ``fa-superpowers`` 
-     - ``:icon-fa5:`superpowers``` 
-     - :icon-fa5:`superpowers`
+     - ``:icon-fa5-brands:`superpowers``` 
+     - :icon-fa5-brands:`superpowers`
                 
    * - ``fa-superscript`` 
      - ``:icon-fa5:`superscript``` 
      - :icon-fa5:`superscript`
                 
    * - ``fa-supple`` 
-     - ``:icon-fa5:`supple``` 
-     - :icon-fa5:`supple`
+     - ``:icon-fa5-brands:`supple``` 
+     - :icon-fa5-brands:`supple`
                 
    * - ``fa-surprise`` 
      - ``:icon-fa5:`surprise``` 
@@ -4062,8 +4058,8 @@
      - :icon-fa5:`taxi`
                 
    * - ``fa-teamspeak`` 
-     - ``:icon-fa5:`teamspeak``` 
-     - :icon-fa5:`teamspeak`
+     - ``:icon-fa5-brands:`teamspeak``` 
+     - :icon-fa5-brands:`teamspeak`
                 
    * - ``fa-teeth`` 
      - ``:icon-fa5:`teeth``` 
@@ -4074,16 +4070,16 @@
      - :icon-fa5:`teeth-open`
                 
    * - ``fa-telegram`` 
-     - ``:icon-fa5:`telegram``` 
-     - :icon-fa5:`telegram`
+     - ``:icon-fa5-brands:`telegram``` 
+     - :icon-fa5-brands:`telegram`
                 
    * - ``fa-telegram-plane`` 
-     - ``:icon-fa5:`telegram-plane``` 
-     - :icon-fa5:`telegram-plane`
+     - ``:icon-fa5-brands:`telegram-plane``` 
+     - :icon-fa5-brands:`telegram-plane`
                 
    * - ``fa-tencent-weibo`` 
-     - ``:icon-fa5:`tencent-weibo``` 
-     - :icon-fa5:`tencent-weibo`
+     - ``:icon-fa5-brands:`tencent-weibo``` 
+     - :icon-fa5-brands:`tencent-weibo`
                 
    * - ``fa-terminal`` 
      - ``:icon-fa5:`terminal``` 
@@ -4110,20 +4106,20 @@
      - :icon-fa5:`th-list`
                 
    * - ``fa-the-red-yeti`` 
-     - ``:icon-fa5:`the-red-yeti``` 
-     - :icon-fa5:`the-red-yeti`
+     - ``:icon-fa5-brands:`the-red-yeti``` 
+     - :icon-fa5-brands:`the-red-yeti`
                 
    * - ``fa-theater-masks`` 
      - ``:icon-fa5:`theater-masks``` 
      - :icon-fa5:`theater-masks`
                 
    * - ``fa-themeco`` 
-     - ``:icon-fa5:`themeco``` 
-     - :icon-fa5:`themeco`
+     - ``:icon-fa5-brands:`themeco``` 
+     - :icon-fa5-brands:`themeco`
                 
    * - ``fa-themeisle`` 
-     - ``:icon-fa5:`themeisle``` 
-     - :icon-fa5:`themeisle`
+     - ``:icon-fa5-brands:`themeisle``` 
+     - :icon-fa5-brands:`themeisle`
                 
    * - ``fa-thermometer`` 
      - ``:icon-fa5:`thermometer``` 
@@ -4210,8 +4206,8 @@
      - :icon-fa5:`torii-gate`
                 
    * - ``fa-trade-federation`` 
-     - ``:icon-fa5:`trade-federation``` 
-     - :icon-fa5:`trade-federation`
+     - ``:icon-fa5-brands:`trade-federation``` 
+     - :icon-fa5-brands:`trade-federation`
                 
    * - ``fa-trademark`` 
      - ``:icon-fa5:`trademark``` 
@@ -4246,12 +4242,12 @@
      - :icon-fa5:`tree`
                 
    * - ``fa-trello`` 
-     - ``:icon-fa5:`trello``` 
-     - :icon-fa5:`trello`
+     - ``:icon-fa5-brands:`trello``` 
+     - :icon-fa5-brands:`trello`
                 
    * - ``fa-tripadvisor`` 
-     - ``:icon-fa5:`tripadvisor``` 
-     - :icon-fa5:`tripadvisor`
+     - ``:icon-fa5-brands:`tripadvisor``` 
+     - :icon-fa5-brands:`tripadvisor`
                 
    * - ``fa-trophy`` 
      - ``:icon-fa5:`trophy``` 
@@ -4286,40 +4282,40 @@
      - :icon-fa5:`tty`
                 
    * - ``fa-tumblr`` 
-     - ``:icon-fa5:`tumblr``` 
-     - :icon-fa5:`tumblr`
+     - ``:icon-fa5-brands:`tumblr``` 
+     - :icon-fa5-brands:`tumblr`
                 
    * - ``fa-tumblr-square`` 
-     - ``:icon-fa5:`tumblr-square``` 
-     - :icon-fa5:`tumblr-square`
+     - ``:icon-fa5-brands:`tumblr-square``` 
+     - :icon-fa5-brands:`tumblr-square`
                 
    * - ``fa-tv`` 
      - ``:icon-fa5:`tv``` 
      - :icon-fa5:`tv`
                 
    * - ``fa-twitch`` 
-     - ``:icon-fa5:`twitch``` 
-     - :icon-fa5:`twitch`
+     - ``:icon-fa5-brands:`twitch``` 
+     - :icon-fa5-brands:`twitch`
                 
    * - ``fa-twitter`` 
-     - ``:icon-fa5:`twitter``` 
-     - :icon-fa5:`twitter`
+     - ``:icon-fa5-brands:`twitter``` 
+     - :icon-fa5-brands:`twitter`
                 
    * - ``fa-twitter-square`` 
-     - ``:icon-fa5:`twitter-square``` 
-     - :icon-fa5:`twitter-square`
+     - ``:icon-fa5-brands:`twitter-square``` 
+     - :icon-fa5-brands:`twitter-square`
                 
    * - ``fa-typo3`` 
-     - ``:icon-fa5:`typo3``` 
-     - :icon-fa5:`typo3`
+     - ``:icon-fa5-brands:`typo3``` 
+     - :icon-fa5-brands:`typo3`
                 
    * - ``fa-uber`` 
-     - ``:icon-fa5:`uber``` 
-     - :icon-fa5:`uber`
+     - ``:icon-fa5-brands:`uber``` 
+     - :icon-fa5-brands:`uber`
                 
    * - ``fa-uikit`` 
-     - ``:icon-fa5:`uikit``` 
-     - :icon-fa5:`uikit`
+     - ``:icon-fa5-brands:`uikit``` 
+     - :icon-fa5-brands:`uikit`
                 
    * - ``fa-umbrella`` 
      - ``:icon-fa5:`umbrella``` 
@@ -4342,8 +4338,8 @@
      - :icon-fa5:`undo-alt`
                 
    * - ``fa-uniregistry`` 
-     - ``:icon-fa5:`uniregistry``` 
-     - :icon-fa5:`uniregistry`
+     - ``:icon-fa5-brands:`uniregistry``` 
+     - :icon-fa5-brands:`uniregistry`
                 
    * - ``fa-universal-access`` 
      - ``:icon-fa5:`universal-access``` 
@@ -4366,16 +4362,16 @@
      - :icon-fa5:`unlock-alt`
                 
    * - ``fa-untappd`` 
-     - ``:icon-fa5:`untappd``` 
-     - :icon-fa5:`untappd`
+     - ``:icon-fa5-brands:`untappd``` 
+     - :icon-fa5-brands:`untappd`
                 
    * - ``fa-upload`` 
      - ``:icon-fa5:`upload``` 
      - :icon-fa5:`upload`
                 
    * - ``fa-usb`` 
-     - ``:icon-fa5:`usb``` 
-     - :icon-fa5:`usb`
+     - ``:icon-fa5-brands:`usb``` 
+     - :icon-fa5-brands:`usb`
                 
    * - ``fa-user`` 
      - ``:icon-fa5:`user``` 
@@ -4474,8 +4470,8 @@
      - :icon-fa5:`users-cog`
                 
    * - ``fa-ussunnah`` 
-     - ``:icon-fa5:`ussunnah``` 
-     - :icon-fa5:`ussunnah`
+     - ``:icon-fa5-brands:`ussunnah``` 
+     - :icon-fa5-brands:`ussunnah`
                 
    * - ``fa-utensil-spoon`` 
      - ``:icon-fa5:`utensil-spoon``` 
@@ -4486,8 +4482,8 @@
      - :icon-fa5:`utensils`
                 
    * - ``fa-vaadin`` 
-     - ``:icon-fa5:`vaadin``` 
-     - :icon-fa5:`vaadin`
+     - ``:icon-fa5-brands:`vaadin``` 
+     - :icon-fa5-brands:`vaadin`
                 
    * - ``fa-vector-square`` 
      - ``:icon-fa5:`vector-square``` 
@@ -4506,16 +4502,16 @@
      - :icon-fa5:`venus-mars`
                 
    * - ``fa-viacoin`` 
-     - ``:icon-fa5:`viacoin``` 
-     - :icon-fa5:`viacoin`
+     - ``:icon-fa5-brands:`viacoin``` 
+     - :icon-fa5-brands:`viacoin`
                 
    * - ``fa-viadeo`` 
-     - ``:icon-fa5:`viadeo``` 
-     - :icon-fa5:`viadeo`
+     - ``:icon-fa5-brands:`viadeo``` 
+     - :icon-fa5-brands:`viadeo`
                 
    * - ``fa-viadeo-square`` 
-     - ``:icon-fa5:`viadeo-square``` 
-     - :icon-fa5:`viadeo-square`
+     - ``:icon-fa5-brands:`viadeo-square``` 
+     - :icon-fa5-brands:`viadeo-square`
                 
    * - ``fa-vial`` 
      - ``:icon-fa5:`vial``` 
@@ -4526,8 +4522,8 @@
      - :icon-fa5:`vials`
                 
    * - ``fa-viber`` 
-     - ``:icon-fa5:`viber``` 
-     - :icon-fa5:`viber`
+     - ``:icon-fa5-brands:`viber``` 
+     - :icon-fa5-brands:`viber`
                 
    * - ``fa-video`` 
      - ``:icon-fa5:`video``` 
@@ -4542,28 +4538,28 @@
      - :icon-fa5:`vihara`
                 
    * - ``fa-vimeo`` 
-     - ``:icon-fa5:`vimeo``` 
-     - :icon-fa5:`vimeo`
+     - ``:icon-fa5-brands:`vimeo``` 
+     - :icon-fa5-brands:`vimeo`
                 
    * - ``fa-vimeo-square`` 
-     - ``:icon-fa5:`vimeo-square``` 
-     - :icon-fa5:`vimeo-square`
+     - ``:icon-fa5-brands:`vimeo-square``` 
+     - :icon-fa5-brands:`vimeo-square`
                 
    * - ``fa-vimeo-v`` 
-     - ``:icon-fa5:`vimeo-v``` 
-     - :icon-fa5:`vimeo-v`
+     - ``:icon-fa5-brands:`vimeo-v``` 
+     - :icon-fa5-brands:`vimeo-v`
                 
    * - ``fa-vine`` 
-     - ``:icon-fa5:`vine``` 
-     - :icon-fa5:`vine`
+     - ``:icon-fa5-brands:`vine``` 
+     - :icon-fa5-brands:`vine`
                 
    * - ``fa-vk`` 
-     - ``:icon-fa5:`vk``` 
-     - :icon-fa5:`vk`
+     - ``:icon-fa5-brands:`vk``` 
+     - :icon-fa5-brands:`vk`
                 
    * - ``fa-vnv`` 
-     - ``:icon-fa5:`vnv``` 
-     - :icon-fa5:`vnv`
+     - ``:icon-fa5-brands:`vnv``` 
+     - :icon-fa5-brands:`vnv`
                 
    * - ``fa-volleyball-ball`` 
      - ``:icon-fa5:`volleyball-ball``` 
@@ -4582,8 +4578,8 @@
      - :icon-fa5:`volume-up`
                 
    * - ``fa-vuejs`` 
-     - ``:icon-fa5:`vuejs``` 
-     - :icon-fa5:`vuejs`
+     - ``:icon-fa5-brands:`vuejs``` 
+     - :icon-fa5-brands:`vuejs`
                 
    * - ``fa-walking`` 
      - ``:icon-fa5:`walking``` 
@@ -4598,12 +4594,12 @@
      - :icon-fa5:`warehouse`
                 
    * - ``fa-weebly`` 
-     - ``:icon-fa5:`weebly``` 
-     - :icon-fa5:`weebly`
+     - ``:icon-fa5-brands:`weebly``` 
+     - :icon-fa5-brands:`weebly`
                 
    * - ``fa-weibo`` 
-     - ``:icon-fa5:`weibo``` 
-     - :icon-fa5:`weibo`
+     - ``:icon-fa5-brands:`weibo``` 
+     - :icon-fa5-brands:`weibo`
                 
    * - ``fa-weight`` 
      - ``:icon-fa5:`weight``` 
@@ -4614,32 +4610,32 @@
      - :icon-fa5:`weight-hanging`
                 
    * - ``fa-weixin`` 
-     - ``:icon-fa5:`weixin``` 
-     - :icon-fa5:`weixin`
+     - ``:icon-fa5-brands:`weixin``` 
+     - :icon-fa5-brands:`weixin`
                 
    * - ``fa-whatsapp`` 
-     - ``:icon-fa5:`whatsapp``` 
-     - :icon-fa5:`whatsapp`
+     - ``:icon-fa5-brands:`whatsapp``` 
+     - :icon-fa5-brands:`whatsapp`
                 
    * - ``fa-whatsapp-square`` 
-     - ``:icon-fa5:`whatsapp-square``` 
-     - :icon-fa5:`whatsapp-square`
+     - ``:icon-fa5-brands:`whatsapp-square``` 
+     - :icon-fa5-brands:`whatsapp-square`
                 
    * - ``fa-wheelchair`` 
      - ``:icon-fa5:`wheelchair``` 
      - :icon-fa5:`wheelchair`
                 
    * - ``fa-whmcs`` 
-     - ``:icon-fa5:`whmcs``` 
-     - :icon-fa5:`whmcs`
+     - ``:icon-fa5-brands:`whmcs``` 
+     - :icon-fa5-brands:`whmcs`
                 
    * - ``fa-wifi`` 
      - ``:icon-fa5:`wifi``` 
      - :icon-fa5:`wifi`
                 
    * - ``fa-wikipedia-w`` 
-     - ``:icon-fa5:`wikipedia-w``` 
-     - :icon-fa5:`wikipedia-w`
+     - ``:icon-fa5-brands:`wikipedia-w``` 
+     - :icon-fa5-brands:`wikipedia-w`
                 
    * - ``fa-window-close`` 
      - ``:icon-fa5:`window-close``` 
@@ -4658,8 +4654,8 @@
      - :icon-fa5:`window-restore`
                 
    * - ``fa-windows`` 
-     - ``:icon-fa5:`windows``` 
-     - :icon-fa5:`windows`
+     - ``:icon-fa5-brands:`windows``` 
+     - :icon-fa5-brands:`windows`
                 
    * - ``fa-wine-glass`` 
      - ``:icon-fa5:`wine-glass``` 
@@ -4670,36 +4666,36 @@
      - :icon-fa5:`wine-glass-alt`
                 
    * - ``fa-wix`` 
-     - ``:icon-fa5:`wix``` 
-     - :icon-fa5:`wix`
+     - ``:icon-fa5-brands:`wix``` 
+     - :icon-fa5-brands:`wix`
                 
    * - ``fa-wolf-pack-battalion`` 
-     - ``:icon-fa5:`wolf-pack-battalion``` 
-     - :icon-fa5:`wolf-pack-battalion`
+     - ``:icon-fa5-brands:`wolf-pack-battalion``` 
+     - :icon-fa5-brands:`wolf-pack-battalion`
                 
    * - ``fa-won-sign`` 
      - ``:icon-fa5:`won-sign``` 
      - :icon-fa5:`won-sign`
                 
    * - ``fa-wordpress`` 
-     - ``:icon-fa5:`wordpress``` 
-     - :icon-fa5:`wordpress`
+     - ``:icon-fa5-brands:`wordpress``` 
+     - :icon-fa5-brands:`wordpress`
                 
    * - ``fa-wordpress-simple`` 
-     - ``:icon-fa5:`wordpress-simple``` 
-     - :icon-fa5:`wordpress-simple`
+     - ``:icon-fa5-brands:`wordpress-simple``` 
+     - :icon-fa5-brands:`wordpress-simple`
                 
    * - ``fa-wpbeginner`` 
-     - ``:icon-fa5:`wpbeginner``` 
-     - :icon-fa5:`wpbeginner`
+     - ``:icon-fa5-brands:`wpbeginner``` 
+     - :icon-fa5-brands:`wpbeginner`
                 
    * - ``fa-wpexplorer`` 
-     - ``:icon-fa5:`wpexplorer``` 
-     - :icon-fa5:`wpexplorer`
+     - ``:icon-fa5-brands:`wpexplorer``` 
+     - :icon-fa5-brands:`wpexplorer`
                 
    * - ``fa-wpforms`` 
-     - ``:icon-fa5:`wpforms``` 
-     - :icon-fa5:`wpforms`
+     - ``:icon-fa5-brands:`wpforms``` 
+     - :icon-fa5-brands:`wpforms`
                 
    * - ``fa-wrench`` 
      - ``:icon-fa5:`wrench``` 
@@ -4710,36 +4706,36 @@
      - :icon-fa5:`x-ray`
                 
    * - ``fa-xbox`` 
-     - ``:icon-fa5:`xbox``` 
-     - :icon-fa5:`xbox`
+     - ``:icon-fa5-brands:`xbox``` 
+     - :icon-fa5-brands:`xbox`
                 
    * - ``fa-xing`` 
-     - ``:icon-fa5:`xing``` 
-     - :icon-fa5:`xing`
+     - ``:icon-fa5-brands:`xing``` 
+     - :icon-fa5-brands:`xing`
                 
    * - ``fa-xing-square`` 
-     - ``:icon-fa5:`xing-square``` 
-     - :icon-fa5:`xing-square`
+     - ``:icon-fa5-brands:`xing-square``` 
+     - :icon-fa5-brands:`xing-square`
                 
    * - ``fa-y-combinator`` 
-     - ``:icon-fa5:`y-combinator``` 
-     - :icon-fa5:`y-combinator`
+     - ``:icon-fa5-brands:`y-combinator``` 
+     - :icon-fa5-brands:`y-combinator`
                 
    * - ``fa-yahoo`` 
-     - ``:icon-fa5:`yahoo``` 
-     - :icon-fa5:`yahoo`
+     - ``:icon-fa5-brands:`yahoo``` 
+     - :icon-fa5-brands:`yahoo`
                 
    * - ``fa-yandex`` 
-     - ``:icon-fa5:`yandex``` 
-     - :icon-fa5:`yandex`
+     - ``:icon-fa5-brands:`yandex``` 
+     - :icon-fa5-brands:`yandex`
                 
    * - ``fa-yandex-international`` 
-     - ``:icon-fa5:`yandex-international``` 
-     - :icon-fa5:`yandex-international`
+     - ``:icon-fa5-brands:`yandex-international``` 
+     - :icon-fa5-brands:`yandex-international`
                 
    * - ``fa-yelp`` 
-     - ``:icon-fa5:`yelp``` 
-     - :icon-fa5:`yelp`
+     - ``:icon-fa5-brands:`yelp``` 
+     - :icon-fa5-brands:`yelp`
                 
    * - ``fa-yen-sign`` 
      - ``:icon-fa5:`yen-sign``` 
@@ -4750,20 +4746,20 @@
      - :icon-fa5:`yin-yang`
                 
    * - ``fa-yoast`` 
-     - ``:icon-fa5:`yoast``` 
-     - :icon-fa5:`yoast`
+     - ``:icon-fa5-brands:`yoast``` 
+     - :icon-fa5-brands:`yoast`
                 
    * - ``fa-youtube`` 
-     - ``:icon-fa5:`youtube``` 
-     - :icon-fa5:`youtube`
+     - ``:icon-fa5-brands:`youtube``` 
+     - :icon-fa5-brands:`youtube`
                 
    * - ``fa-youtube-square`` 
-     - ``:icon-fa5:`youtube-square``` 
-     - :icon-fa5:`youtube-square`
+     - ``:icon-fa5-brands:`youtube-square``` 
+     - :icon-fa5-brands:`youtube-square`
                 
    * - ``fa-zhihu`` 
-     - ``:icon-fa5:`zhihu``` 
-     - :icon-fa5:`zhihu`
+     - ``:icon-fa5-brands:`zhihu``` 
+     - :icon-fa5-brands:`zhihu`
                 
    * - ``fa4-address-book`` 
      - ``:icon-fa4:`address-book``` 
@@ -8565,9 +8561,9 @@
      - ``:icon-mms:`configsvr-startup2``` 
      - :icon-mms:`configsvr-startup2`
                 
-   * - ``mms-icon-configsvr-startup2:`` 
-     - ``:icon-mms:`configsvr-startup2:``` 
-     - :icon-mms:`configsvr-startup2:`
+   * - ``mms-icon-configsvr-startup2`` 
+     - ``:icon-mms:`configsvr-startup2``` 
+     - :icon-mms:`configsvr-startup2`
                 
    * - ``mms-icon-configsvr-unknown`` 
      - ``:icon-mms:`configsvr-unknown``` 
@@ -8701,9 +8697,9 @@
      - ``:icon-mms:`metrics``` 
      - :icon-mms:`metrics`
                 
-   * - ``mms-icon-modify:`` 
-     - ``:icon-mms:`modify:``` 
-     - :icon-mms:`modify:`
+   * - ``mms-icon-modify`` 
+     - ``:icon-mms:`modify``` 
+     - :icon-mms:`modify`
                 
    * - ``mms-icon-mongos`` 
      - ``:icon-mms:`mongos``` 
@@ -8818,8 +8814,8 @@
      - :icon-mms:`startup2`
                 
    * - ``mms-icon-startup2:`` 
-     - ``:icon-mms:`startup2:``` 
-     - :icon-mms:`startup2:`
+     - ``:icon-mms:`startup2``` 
+     - :icon-mms:`startup2`
                 
    * - ``mms-icon-support1`` 
      - ``:icon-mms:`support1``` 
@@ -8852,8 +8848,4 @@
    * - ``mms-icon-wrench`` 
      - ``:icon-mms:`wrench``` 
      - :icon-mms:`wrench`
-                
-   * - ``mms-icon-wrench-exclamation`` 
-     - ``:icon-mms:`wrench-exclamation``` 
-     - :icon-mms:`wrench-exclamation`
                 
