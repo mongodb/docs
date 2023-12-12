@@ -7,6 +7,13 @@
    included in these release notes. To identify which release version you
    are using, check the release version string for the release date.
 
+.. _adf-v20231205:
+
+05 December 2023 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Changes the error ``CommandNotSupported`` to ``CommandNotFound``.
+
 .. _adf-v20231128:
 
 28 November 2023 Release 
