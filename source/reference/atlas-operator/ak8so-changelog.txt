@@ -19,6 +19,90 @@
    You can find the full list of |ak8so| releases `here
    <https://github.com/mongodb/mongodb-atlas-kubernetes/releases>`_.
 
+
+.. _ak8so_201:
+
+|ak8so| 2.0.1
+-------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Custom resources you delete in |k8s| won't get deleted in 
+  |service|. Instead, |ak8so| stops managing those resources.  
+  For example, if you delete an :ref:`atlasproject-custom-resource`
+  in |k8s|, |ak8so| no longer automatically deletes the corresponding project
+  from |service|, preventing accidental or unexpected deletions. To learn more, 
+  including how to :ref:`revert this behavior <revert-deletion-protection>` to 
+  the default prior to |ak8so| 2.0.1, see :ref:`deletion-protection`.
+
+- ``deploymentSpec`` replaces ``advancedDeploymentSpec`` in 
+  the ``AtlasDeployment`` custom resource. You must update your ``AtlasDeployment`` 
+  custom resource as follows:
+
+  - If you use ``advancedDeploymentSpec``, rename to ``deploymentSpec``. 
+    You don't need to change any formatting.
+
+  - If you used ``deploymentSpec`` prior to |ak8so| 2.0.1, rewrite your 
+    ``AtlasDeployment`` custom resource to match the formatting used in 
+    :ref:`the examples <atlasdeployment-examples>`.
+
+- Improves snapshot distribution management by removing ``replicationSpecId`` from
+  the :ref:`atlasbackupschedule-custom-resource` so it can be reused by multiple 
+  deployments managed by |ak8so|. The ``replicationSpecId`` is now automatically 
+  set for every deployment that references it. As a result of this change, you 
+  can no longer configure ``replicationSpecId`` and should remove it from your 
+  ``AtlasBackupSchedule`` custom resource.
+
+- Forces the use of ``secretRef`` fields for ``encryptionAtRest`` and ``alertConfigurations`` 
+  features to promote security best practices. You should now store API 
+  secrets and credentials as |k8s-secrets| and reference 
+  them from the :ref:`atlasproject-custom-resource` using the following fields:
+
+  For :setting:`spec.alertConfigurations.notifications`:
+
+  -  Use ``APITokenRef`` instead of ``APIToken``
+  -  Use ``DatadogAPIKeyRef`` instead of ``DatadogAPIKey``
+  -  Use ``FlowdockTokenAPIRef`` instead of ``FlowdockTokenAPI``
+  -  Use ``OpsGenieAPIKeyRef`` instead of ``OpsGenieAPIKey``
+  -  Use ``VictorOpsSecretRef`` instead of ``VictorOpsAPIKey`` and ``VictorOpsRoutingKey``
+
+
+  To learn more, see :ref:`ak8so-tp-ac-example`. 
+
+  For :setting:`spec.encryptionAtRest`:
+
+  - **AWS** Use ``secretRef`` instead of ``AccessKeyID``, ``SecretAccessKey``, 
+    ``CustomerMasterKeyID``, and ``RoleID``. 
+
+  - **Azure** Use ``secretRef`` instead of ``SubscriptionID``, ``KeyVaultName``, 
+    ``KeyIdentifier``, and ``Secret``.
+
+  - **GCP** Use ``secretRef`` instead of ``ServiceAccountKey`` or ``KeyVersionResourceID``.
+
+  To learn more, see :ref:`<ak8so-ear>`.
+
+.. _ak8so_200:
+
+|ak8so| 2.0.0
+-------------
+
+.. warning::
+
+   This release contains an issue that prevents |ak8so| from reconciling the 
+   :ref:`atlasbackupschedule-custom-resource` when :ref:`deletion protection <deletion-protection>` is enabled.
+   Don't use this version (2.0.0), and instead use |ak8so| 2.0.1.
+
+.. _ak8so_191:
+
+|ak8so| 1.9.1
+-------------
+
+Fixes
+~~~~~
+
+- Fixes missing permissions for the :ref:`atlasfederatedauth-custom-resource`.
+
 .. _ak8so_190:
 
 |ak8so| 1.9.0
