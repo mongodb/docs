@@ -6,6 +6,23 @@
 - Increases the minimum threshold for archiving data after 7 days from 100 kB to 5 MiB. 
   To learn more, see :ref:`config-online-archive-limitations`.
 
+.. _atlas_2023_27_11:
+
+27 November 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Makes :ref:`MongoDB 7.1 <release-notes-7.1>` generally available for all deployments.
+
+.. _atlas_2023_15_11:
+
+15 November 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Provides preview of dark mode for the {+atlas-ui+}. To learn more, 
+  see `the MongoDB blog <https://www.mongodb.com/blog/post/dark-mode-for-atlas-now-available-public-preview>`__.
+- Supports node availability zones for replica set tags. To learn more,
+  see :ref:`replica-set-tags`.
+
 .. _atlas_2023_08_23:
 
 23 August 2023 Release
