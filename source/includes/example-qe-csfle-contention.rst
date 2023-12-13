@@ -1,6 +1,8 @@
-The example below sets ``contention`` to 0 for the low cardinality
-Social Security Number (SSN) and patient ID fields, since these are
-unique identifiers that shouldn't repeat in the data set:
+The Social Security Number (SSN) and patient identifier fields are high
+:term:`cardinality` fields that contain unique values in a data set. For
+high cardinality fields, you can set ``contention`` to a low value. The
+following example sets ``contention`` to ``0`` for the ``patientId`` and
+``patientInfo.ssn`` fields:
 
 .. code-block:: javascript
    :emphasize-lines: 7,13
