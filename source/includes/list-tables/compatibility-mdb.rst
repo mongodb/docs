@@ -16,6 +16,12 @@
    * - |k8s-op-short| Release Series
      - Base Image
 
+   * - 1.23.x
+     - Red Hat UBI 8 Base Image
+
+   * - 1.22.x
+     - Red Hat UBI 8 Base Image
+
    * - 1.21.x
      - Red Hat UBI 8 Base Image
 
@@ -24,7 +30,3 @@
 
    * - 1.19.x
      - Red Hat UBI 8 Base Image
-
-   * - 1.18.x
-     - Ubuntu 20.04 (deprecated), Red Hat UBI 8 Base Image
-
