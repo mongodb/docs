@@ -1,0 +1,341 @@
+.. _rust-change-streams-guide:
+
+===================
+Open Change Streams
+===================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: monitor, delta, code example 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use a **change stream** to monitor
+real-time changes to your data. A change stream is a MongoDB Server feature
+that allows your application to subscribe to data changes on a single
+collection, database, or deployment.
+
+You can open a change stream to help perform the following actions:
+
+- Enable devices to track and react to events, such as motion-detecting
+  cameras
+- Create an application that monitors changes in stock prices
+- Generate a log of employee activity for specific job positions
+
+You can specify a set of aggregation operators to filter and transform the data
+that your application receives. When connected to a MongoDB deployment v6.0 or later,
+you can also configure the events to include the document data before and after the
+change.
+
+To learn how to open and configure a change stream, navigate to the following
+sections:
+
+- :ref:`<rust-change-stream-data>`
+- :ref:`<rust-change-stream-open>`
+- :ref:`<rust-change-stream-aggregation>`
+- :ref:`<rust-change-stream-configure-pre-post>`
+- :ref:`<rust-change-stream-addtl-info>`
+
+.. _rust-change-stream-data:
+
+Sample Data
+-----------
+
+The examples in this guide monitor changes to the ``directors`` collection.
+Assume that this collection contains the following documents, which are modelled
+as structs:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/watch.rs
+   :language: rust
+   :dedent:
+   :start-after: start-docs
+   :end-before: end-docs
+
+.. tip::
+
+   To learn how to insert documents into a collection, see the :ref:`<rust-insert-guide>`
+   guide.
+
+.. _rust-change-stream-open:
+
+Open a Change Stream
+--------------------
+
+You can open a change stream to subscribe to specific types of data changes
+and produce change events in your application.
+
+To open a change stream, call the ``watch()`` method on a ``Collection``,
+``Database``, or ``Client`` instance.
+
+.. important::
+
+   Standalone MongoDB deployments don't support change streams because
+   the feature requires a replica set oplog. To learn more about the oplog,
+   see the :ref:`<replica-set-oplog>` page in the Server manual.
+
+The struct type on which you call the ``watch()`` method determines the scope of
+events that the change stream listens for. The following table describes the
+behavior of the ``watch()`` method based on its calling object:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :class: compatibility-large
+
+   * - Struct Type
+     - Behavior of ``watch()``
+
+   * - ``Collection``
+     - | Monitors changes to the individual collection
+
+   * - ``Database``
+     - | Monitors changes to all collections in the database
+
+   * - ``Client``
+     - | Monitors all changes in the connected MongoDB deployment
+
+Example
+~~~~~~~
+
+The following example opens a change stream on the ``directors`` collection.
+The code prints the operation type and modified document of each change event by
+accessing the ``operation_type`` and ``full_document`` fields of each ``ChangeStreamEvent``
+instance:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/watch.rs
+   :language: rust
+   :dedent:
+   :start-after: start-open
+   :end-before: end-open
+
+.. tip::
+
+   For a full list of ``ChangeStreamEvent`` struct fields, see `ChangeStreamEvent
+   <{+api+}/change_stream/event/struct.ChangeStreamEvent.html>`__ in the API documentation.
+
+If you insert a document into the ``directors`` collection in which the ``name`` value
+is ``"Wes Anderson"``, the preceding code produces the following output:
+
+.. code-block::
+   :copyable: false
+
+   Operation performed: Insert
+   Document: Some(Director { name: "Wes Anderson", movies: [...], oscar_noms: 7 })
+
+.. _rust-change-stream-aggregation:
+
+Apply Aggregation Operators to your Change Stream
+-------------------------------------------------
+
+You can pass an aggregation pipeline as a parameter to the ``watch()`` method
+to specify which change events the change stream receives.
+
+To learn which aggregation operators your MongoDB Server version supports, see
+:ref:`<change-stream-modify-output>` in the Server manual.
+
+Example
+~~~~~~~
+
+The following example creates an aggregation pipeline to filter for update
+operations. Then, the code passes the pipeline to the ``watch()`` method,
+configuring the change stream to only receive and print change events for
+update operations:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/watch.rs
+   :language: rust
+   :dedent:
+   :start-after: start-pipeline
+   :end-before: end-pipeline
+
+If you update the document in which the ``name`` value is ``"Todd Haynes"``
+by increasing the value of the ``oscar_noms`` field, the preceding code
+produces the following output:
+
+.. code-block::
+   :copyable: false
+
+   Update performed: Some(UpdateDescription { updated_fields: Document({
+   "oscar_noms": Int64(2)}), removed_fields: [], truncated_arrays: Some([]) })
+
+.. tip::
+
+   To learn how to perform update operations, see the :ref:`<rust-change-guide>`
+   guide.
+
+.. _rust-change-stream-configure-pre-post:
+
+Include Pre-Images and Post-Images
+----------------------------------
+
+You can configure the change event to contain or omit the following data:
+
+- **Pre-image**: a document that represents the version of the
+  document before the operation, if it exists
+- **Post-image**: a document that represents the version of the
+  document after the operation, if it exists
+
+.. important::
+
+   You can enable pre- and post-images on collections only if your
+   deployment uses MongoDB v6.0 or later.
+
+To receive change stream events that include a pre-image or post-image, you
+must perform the following actions:
+
+- Enable pre-images and post-images for the collection on your MongoDB
+  deployment.
+
+  .. tip::
+
+     To learn how to enable pre- and post-images on your deployment, see
+     :manual:`Change Streams with Document Pre- and Post-Images </changeStreams/#change-streams-with-document-pre--and-post-images>`
+     in the Server manual.
+
+     To learn how to instruct the driver to create a collection with pre-images
+     and post-images enabled, see the :ref:`<rust-change-stream-pre-post-collection>`
+     section of this page.
+
+- Configure your change stream to retrieve either or both the pre-images and
+  post-images. During this configuration, you can instruct the driver to require
+  pre- and post-images or to only include them when available.
+
+  .. tip::
+
+     To configure your change stream to record the pre-image in change
+     events, see the :ref:`<rust-pre-image-example>` on this page.
+
+     To configure your change stream to record the post-image in change
+     events, see the :ref:`<rust-post-image-example>` on this page.
+
+.. _rust-change-stream-pre-post-collection:
+
+Create a Collection with Pre-Image and Post-Images Enabled
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To create a collection with the pre-image and post-image documents enabled,
+configure this option in a ``CreateCollectionOptions`` struct instance. To begin
+building a ``CreateCollectionOptions`` instance, call the ``CreateCollectionOptions::builder()``
+method.
+
+.. note:: Instantiating Options
+   
+   The {+driver-short+} implements the Builder design pattern for the
+   creation of many different types, including ``CreateCollectionOptions``. You
+   can use the ``builder()`` method to construct an instance of each type
+   by chaining option builder methods.
+
+When configuring your ``CreateCollectionOptions`` instance, you must use the
+``change_stream_pre_and_post_images()`` builder method. The following example
+uses this builder method to specify collection options and creates a
+collection for which pre- and post-images are available:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/watch.rs
+   :language: rust
+   :dedent:
+   :start-after: start-create-coll
+   :end-before: end-create-coll
+
+You can change the pre-image and post-image option in an existing collection
+by running the ``collMod`` command from the MongoDB Shell or from your application.
+To learn how to perform this operation, see the :ref:`<rust-run-command>` guide
+and the entry on :manual:`collMod </reference/command/collMod/>` in the Server manual.
+
+.. warning::
+
+   If you enabled pre-images or post-images on a collection, modifying
+   these settings with ``collMod`` can cause existing change streams on
+   that collection to terminate.
+
+.. _rust-pre-image-example:
+
+Pre-Image Configuration Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure a change stream that returns change events containing the pre-image,
+specify a ``ChangeStreamOptions`` struct instance. To begin building a ``ChangeStreamOptions``
+instance, call the ``ChangeStreamOptions::builder()`` method.
+
+When configuring your ``ChangeStreamOptions`` instance to return the pre-image document,
+you must use the ``full_document_before_change()`` builder method. The following example
+specifies change stream options and creates a change stream that returns pre-image
+documents:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/watch.rs
+   :language: rust
+   :dedent:
+   :start-after: start-pre
+   :end-before: end-pre
+
+The preceding example passes a value of ``FullDocumentBeforeChangeType::Required``
+to the ``full_document_before_change()`` builder method. This option configures the change
+stream to require pre-images for replace, update, and delete change events. If the pre-image
+is not available, the driver raises an error.
+
+If you update a document in which the ``name`` value is ``"Jane Campion"``, the change event
+produces the following output:
+
+.. code-block::
+   :copyable: false
+
+   Operation performed: Update
+   Pre-image: Some(Director { name: "Jane Campion", movies: ["The Piano", 
+   "Bright Star"], oscar_noms: 5 })
+
+.. _rust-post-image-example:
+
+Post-Image Configuration Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To configure a change stream that returns change events containing the post-image,
+specify a ``ChangeStreamOptions`` struct instance. To begin building a ``ChangeStreamOptions``
+instance, call the ``ChangeStreamOptions::builder()`` method.
+
+When configuring your ``ChangeStreamOptions`` instance to return the post-image document,
+you must use the ``full_document()`` builder method. The following example specifies change
+stream options and creates a change stream that returns post-image documents:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/watch.rs
+   :language: rust
+   :dedent:
+   :start-after: start-post
+   :end-before: end-post
+
+The preceding example passes a value of ``FullDocument::WhenAvailable`` to the ``full_document()``
+builder method. This option configures the change stream to return post-images for replace, update,
+and delete change events if the post-image is available.
+
+If you delete the document in which the value of ``name`` is ``"Todd Haynes"``, the
+change event produces the following output:
+
+.. code-block::
+   :copyable: false
+
+   Operation performed: Delete
+   Post-image: None
+
+.. _rust-change-stream-addtl-info:
+
+Additional Information
+----------------------
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about any of the methods or types mentioned in this
+guide, see the following API documentation:
+
+- `watch() <{+api+}/struct.Collection.html#method.watch>`__
+- `CreateCollectionOptions <{+api+}/options/struct.CreateCollectionOptions.html>`__
+- `ChangeStreamOptions <{+api+}/options/struct.ChangeStreamOptions.html>`__
+- `FullDocumentBeforeChangeType <{+api+}/options/enum.FullDocumentBeforeChangeType.html>`__
+- `FullDocumentType <{+api+}/options/enum.FullDocumentType.html>`__
