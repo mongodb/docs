@@ -1,5 +1,5 @@
 .. list-table:: 
-   :header-rows: 1 
+   :header-rows: 1
 
    * - Icon 
      - Syntax 
