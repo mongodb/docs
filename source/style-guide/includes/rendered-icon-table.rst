@@ -8697,10 +8697,6 @@
      - ``:icon-mms:`metrics``` 
      - :icon-mms:`metrics`
                 
-   * - ``mms-icon-modify`` 
-     - ``:icon-mms:`modify``` 
-     - :icon-mms:`modify`
-                
    * - ``mms-icon-mongos`` 
      - ``:icon-mms:`mongos``` 
      - :icon-mms:`mongos`
