@@ -52,7 +52,7 @@ Previously, log entries were output as plaintext.
    .. code-block:: javascript
       :copyable: false
 
-      {"t":{"$date":"2020-05-01T15:16:17.180+00:00"},"s":"I", "c":"NETWORK", "id":12345, "ctx":"listener", "msg":"Listening on","attr":{"address":"127.0.0.1"}}
+      {"t":{"$date":"2020-05-01T15:16:17.180+00:00"},"s":"I", "c":"NETWORK", "id":12345, "ctx":"listener", "svc": "R", "msg":"Listening on", "attr":{"address":"127.0.0.1"}}
 
    JSON log entries can be :ref:`pretty-printed
    <log-message-pretty-printing>` for readability. Here is the same log
@@ -69,6 +69,7 @@ Previously, log entries were output as plaintext.
         "c": "NETWORK",
         "id": 12345,
         "ctx": "listener",
+        "svc": "R",
         "msg": "Listening on",
         "attr": {
           "address": "127.0.0.1"
@@ -123,10 +124,11 @@ specification, and has the following layout and field order:
      "c": <String>, // component
      "id": <Integer>, // unique identifier
      "ctx": <String>, // context
+     "svc": <String>, // service
      "msg": <String>, // message body
-     "attr": <Object> // additional attributes (optional)
-     "tags": <Array of strings> // tags (optional)
-     "truncated": <Object> // truncation info (if truncated)
+     "attr": <Object>, // additional attributes (optional)
+     "tags": <Array of strings>, // tags (optional)
+     "truncated": <Object>, // truncation info (if truncated)
      "size": <Object> // original size of entry (if truncated)
    }
 
@@ -164,6 +166,11 @@ Field descriptions:
      - String
      - Name of the thread that caused the log statement.
 
+   * - ``svc``
+     - String
+     - Name of the service in whose context the log statement was made. Will be 
+     ``S`` for "shard", ``R`` "router", or ``-`` for "unknown" or "none".
+
    * - ``msg``
      - String
      - Log output message passed from the server or driver. If
@@ -172,14 +179,14 @@ Field descriptions:
 
    * - ``attr``
      - Object
-     - One or more key-value pairs for additional log attributes. If a
-       log message does not include any additional attributes, the
-       ``attr`` object is omitted.
+     - | One or more key-value pairs for additional log attributes. If a
+       | log message does not include any additional attributes, the
+       | ``attr`` object is omitted.
        
-       Attribute values may be referenced by their key name in the
-       ``msg`` message body, depending on the message. If necessary, the
-       attributes are :ref:`escaped <log-message-json-escaping>`
-       according to the JSON specification.
+       | Attribute values may be referenced by their key name in the
+       | ``msg`` message body, depending on the message. If necessary, the
+       | attributes are :ref:`escaped <log-message-json-escaping>`
+       | according to the JSON specification.
 
    * - ``tags``
      - Array of strings
@@ -227,8 +234,8 @@ Here is an example of a log entry with a truncated attribute:
    :emphasize-lines: 10-12
    :copyable: false
 
-   {"t":{"$date":"2020-05-19T18:12:05.702+00:00"},"s":"I",  "c":"SHARDING", "id":22104,   "ctx":"conn33",
-   "msg":"Received splitChunk request","attr":{"request":{"splitChunk":"config.system.sessions",
+   {"t":{"$date":"2020-05-19T18:12:05.702+00:00"},"s":"I",  "c":"SHARDING", "id":22104, "ctx":"conn33",
+   "svc": "R", "msg":"Received splitChunk request", "attr":{"request":{"splitChunk":"config.system.sessions",
    "from":"production-shard1","keyPattern":{"_id":1},"epoch":{"$oid":"5ec42172996456771753a59e"},
    "shardVersion":[{"$timestamp":{"t":1,"i":0}},{"$oid":"5ec42172996456771753a59e"}],"min":{"_id":{"$minKey":1}},
    "max":{"_id":{"$maxKey":1}},"splitKeys":[{"_id":{"id":{"$uuid":"00400000-0000-0000-0000-000000000000"}}},
@@ -276,12 +283,12 @@ The following MongoDB log file excerpt demonstrates this padding:
 .. code-block:: javascript
    :copyable: false
 
-   {"t":{"$date":"2020-05-18T20:18:12.724+00:00"},"s":"I",  "c":"CONTROL",  "id":23285,   "ctx":"main","msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
-   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"W",  "c":"ASIO",     "id":22601,   "ctx":"main","msg":"No TransportLayer configured during NetworkInterface startup"}
-   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"I",  "c":"NETWORK",  "id":4648601, "ctx":"main","msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set tcpFastOpenServer, tcpFastOpenClient, and tcpFastOpenQueueSize."}
-   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"STORAGE",  "id":4615611, "ctx":"initandlisten","msg":"MongoDB starting","attr":{"pid":10111,"port":27001,"dbPath":"/var/lib/mongo","architecture":"64-bit","host":"centos8"}}
-   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"CONTROL",  "id":23403,   "ctx":"initandlisten","msg":"Build Info","attr":{"buildInfo":{"version":"4.4.0","gitVersion":"328c35e4b883540675fb4b626c53a08f74e43cf0","openSSLVersion":"OpenSSL 1.1.1c FIPS  28 May 2019","modules":[],"allocator":"tcmalloc","environment":{"distmod":"rhel80","distarch":"x86_64","target_arch":"x86_64"}}}}
-   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I",  "c":"CONTROL",  "id":51765,   "ctx":"initandlisten","msg":"Operating System","attr":{"os":{"name":"CentOS Linux release 8.0.1905 (Core) ","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}
+   {"t":{"$date":"2020-05-18T20:18:12.724+00:00"},"s":"I", "c":"CONTROL", "id":23285, "ctx":"main", "svc": "R", "msg":"Automatically disabling TLS 1.0, to force-enable TLS 1.0 specify --sslDisabledProtocols 'none'"}
+   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"W", "c":"ASIO", "id":22601, "ctx":"main", "svc": "R", "msg":"No TransportLayer configured during NetworkInterface startup"}
+   {"t":{"$date":"2020-05-18T20:18:12.734+00:00"},"s":"I", "c":"NETWORK", "id":4648601, "ctx":"main", "svc": "R", "msg":"Implicit TCP FastOpen unavailable. If TCP FastOpen is required, set tcpFastOpenServer, tcpFastOpenClient, and tcpFastOpenQueueSize."}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I", "c":"STORAGE", "id":4615611, "ctx":"initandlisten", "svc": "R", "msg":"MongoDB starting", "attr":{"pid":10111,"port":27001,"dbPath":"/var/lib/mongo","architecture":"64-bit","host":"centos8"}}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I", "c":"CONTROL", "id":23403, "ctx":"initandlisten", "svc": "R", "msg":"Build Info", "attr":{"buildInfo":{"version":"4.4.0","gitVersion":"328c35e4b883540675fb4b626c53a08f74e43cf0","openSSLVersion":"OpenSSL 1.1.1c FIPS  28 May 2019","modules":[],"allocator":"tcmalloc","environment":{"distmod":"rhel80","distarch":"x86_64","target_arch":"x86_64"}}}}
+   {"t":{"$date":"2020-05-18T20:18:12.814+00:00"},"s":"I", "c":"CONTROL", "id":51765, "ctx":"initandlisten", "svc": "R", "msg":"Operating System", "attr":{"os":{"name":"CentOS Linux release 8.0.1905 (Core) ","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}
 
 .. _log-message-pretty-printing:
 
@@ -379,6 +386,7 @@ the logged event occurred.
      "c": "NETWORK",
      "id": 12345,
      "ctx": "listener",
+     "svc": "R", 
      "msg": "Listening on",
      "attr": {
        "address": "127.0.0.1"
@@ -426,6 +434,7 @@ logged event.
      "c": "NETWORK",
      "id": 12345,
      "ctx": "listener",
+     "svc": "R", 
      "msg": "Listening on",
      "attr": {
        "address": "127.0.0.1"
@@ -491,6 +500,7 @@ member of, such as **NETWORK** or **COMMAND**.
      "c": "NETWORK",
      "id": 12345,
      "ctx": "listener",
+     "svc": "R", 
      "msg": "Listening on",
      "attr": {
        "address": "127.0.0.1"
@@ -823,7 +833,7 @@ data is contained in the ``doc`` object in the **attributes** field:
 .. code-block:: javascript
    :copyable: false
 
-   {"t":{"$date":"2020-05-20T16:21:31.561+00:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn202","msg":"client metadata","attr":{"remote":"127.0.0.1:37106","client":"conn202","doc":{"application":{"name":"MongoDB Shell"},"driver":{"name":"MongoDB Internal Client","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
+   {"t":{"$date":"2020-05-20T16:21:31.561+00:00"},"s":"I", "c":"NETWORK", "id":51800, "ctx":"conn202", "svc": "R", "msg":"client metadata", "attr":{"remote":"127.0.0.1:37106","client":"conn202","doc":{"application":{"name":"MongoDB Shell"},"driver":{"name":"MongoDB Internal Client","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
 
 When secondary members of a
 :ref:`replica set <replica-set-members>` initiate
@@ -835,7 +845,7 @@ field:
 .. code-block:: javascript
    :copyable: false
 
-   {"t":{"$date":"2020-05-20T16:33:40.595+00:00"},"s":"I",  "c":"NETWORK",  "id":51800,   "ctx":"conn214","msg":"client metadata","attr":{"remote":"127.0.0.1:37176","client":"conn214","doc":{"driver":{"name":"NetworkInterfaceTL","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
+   {"t":{"$date":"2020-05-20T16:33:40.595+00:00"},"s":"I", "c":"NETWORK", "id":51800, "ctx":"conn214", "svc": "R", "msg":"client metadata", "attr":{"remote":"127.0.0.1:37176","client":"conn214","doc":{"driver":{"name":"NetworkInterfaceTL","version":"4.4.0"},"os":{"type":"Linux","name":"CentOS Linux release 8.0.1905 (Core) ","architecture":"x86_64","version":"Kernel 4.18.0-80.11.2.el8_0.x86_64"}}}}
 
 See the :ref:`examples section <log-message-json-examples>` for a
 :ref:`pretty-printed <log-message-pretty-printing>` example showing
@@ -1247,8 +1257,8 @@ showing a client connection followed by a disconnection:
 
 .. code-block:: javascript
 
-   {"t":{"$date":"2020-06-01T13:06:59.027-0500"},"s":"I", "c":"NETWORK", "id":22943,"ctx":"listener","msg":"connection accepted from {session_remote} #{session_id} ({connectionCount}{word} now open)","attr":{"session_remote":"127.0.0.1:61298","session_id":164,"connectionCount":11,"word":" connections"}}
-   {"t":{"$date":"2020-06-01T13:07:03.490-0500"},"s":"I", "c":"NETWORK", "id":22944,"ctx":"conn157","msg":"end connection {remote} ({connectionCount}{word} now open)","attr":{"remote":"127.0.0.1:61298","connectionCount":10,"word":" connections"}}
+   {"t":{"$date":"2020-06-01T13:06:59.027-0500"},"s":"I", "c":"NETWORK", "id":22943, "ctx":"listener", "svc": "R", "msg":"connection accepted from {session_remote} #{session_id} ({connectionCount}{word} now open)", "attr":{"session_remote":"127.0.0.1:61298", "session_id":164,"connectionCount":11,"word":" connections"}}
+   {"t":{"$date":"2020-06-01T13:07:03.490-0500"},"s":"I", "c":"NETWORK", "id":22944, "ctx":"conn157", "svc": "R", "msg":"end connection {remote} ({connectionCount}{word} now open)", "attr":{"remote":"127.0.0.1:61298","connectionCount":10,"word":" connections"}}
 
 The log IDs for these two entries are ``22943`` and ``22944``
 respectively. You could then filter your log output to show only these
@@ -1337,6 +1347,7 @@ This example shows a startup warning:
      "c": "CONTROL",
      "id": 22120,
      "ctx": "initandlisten",
+     "svc": "R", 
      "msg": "Access control is not enabled for the database. Read and write access to data and configuration is unrestricted",
      "tags": [
        "startupWarnings"
@@ -1360,6 +1371,7 @@ This example shows a client connection that includes
      "c": "NETWORK",
      "id": 51800,
      "ctx": "conn281",
+     "svc": "R", 
      "msg": "client metadata",
      "attr": {
        "remote": "192.168.14.15:37666",
@@ -1401,6 +1413,7 @@ This example shows a :ref:`slow operation message
      "c": "COMMAND",
      "id": 51803,
      "ctx": "conn3",
+     "svc": "R", 
      "msg": "Slow query",
      "attr": {
        "type": "command",
@@ -1469,6 +1482,7 @@ attribute object:
      "c": "REPL",
      "id": 21752,
      "ctx": "ReplCoord-0",
+     "svc": "R",
      "msg": "Scheduling remote command request",
      "attr": {
        "context": "vote request",
@@ -1518,6 +1532,7 @@ The following example log message contains a ``resolvedViews`` field for
       "c": "COMMAND",
       "id": 51803,
       "ctx": "conn249",
+      "svc": "R",
       "msg": "Slow query",
       "attr": {
          "type": "command",
@@ -1604,6 +1619,7 @@ Example session workflow log message:
       "c": "EXECUTOR",
       "id": 6983000,
       "ctx": "conn1",
+      "svc": "R",
       "msg": "Slow network response send time",
       "attr": {
          "elapsed": {
@@ -1687,6 +1703,7 @@ Example log message:
       "c": "NETWORK",
       "id": 6496702,
       "ctx": "ReplicaSetMonitor-TaskExecutor",
+      "svc": "R",
       "msg": "Acquired connection for remote operation and completed writing to wire",
       "attr": {
          "durationMicros": 1683
@@ -1745,6 +1762,7 @@ The following example includes:
      "c": "COMMAND",
      "id": 51803,
      "ctx": "conn14",
+     "svc": "R",
      "msg": "Slow query",
      "attr": {
        "type": "command",
