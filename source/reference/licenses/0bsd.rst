@@ -6,11 +6,11 @@
    * - Package
      - Copyright
 
-   * - :npmjs:`pikaday</pikaday/v/1.8.2>`
+   * - `pikaday <https://www.npmjs.com/package/pikaday/v/1.8.2>`__
      - Copyright © 2013-2014 David Bushell
 
-   * - :npmjs:`tslib</tslib/v/1.14.1>`
+   * - `tslib <https://www.npmjs.com/package/tslib/v/1.14.1>`__
      - Copyright © Microsoft Corporation
 
-   * - :gh:`github.com/davecgh/go-spew</davecgh/go-spew>`
+   * - `github.com/davecgh/go-spew <https://github.com/davecgh/go-spew>`__
      - 

@@ -6,7 +6,7 @@
 
    
    This sets the maximum cumulative size of files, in Megabytes, that
-   are saved concurrently when taking a :term:`snapshot`.
+   are saved concurrently when taking a :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
    
    
 

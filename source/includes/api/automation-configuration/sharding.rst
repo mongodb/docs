@@ -69,7 +69,7 @@ clusters.
      - array of objects
      - Optional
      - Objects that define the configuration of each
-       :term:`sharded cluster`. Each object in the array contains the
+       :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`. Each object in the array contains the
        specifications for one cluster. The {+mdbagent+} regularly
        checks each cluster's state against the specifications. If the
        specification and cluster don't match, the agent will change the
@@ -114,7 +114,7 @@ clusters.
      - array of objects
      - Conditional
      - Objects that define the sharded :term:`collections <collection>`
-       and their :term:`shard keys <shard key>`.
+       and their :manual:`shard keys  </reference/glossary/#std-term-shard-key>`.
 
    * - sharding.collections._id
      - string
@@ -126,7 +126,7 @@ clusters.
    * - sharding.collections.key
      - array of arrays
      - Conditional
-     - Collection's :term:`shard keys <shard key>`. It contains:
+     - Collection's :manual:`shard keys  </reference/glossary/#std-term-shard-key>`. It contains:
 
        - One array if your cluster uses one shard key.
        - Multiple arrays if your cluster uses a compound shard key.
@@ -140,7 +140,7 @@ clusters.
    * - sharding.shards
      - array of objects
      - Conditional
-     - Cluster's :term:`shards <shard>`.
+     - Cluster's :manual:`shards  </reference/glossary/#std-term-shard>`.
 
    * - sharding.shards._id
      - string
@@ -172,7 +172,7 @@ clusters.
    * - sharding.tags.ns
      - string
      - Conditional
-     - :term:`Namespace <namespace>` of the collection that uses zoned
+     - :manual:`Namespace  </reference/glossary/#std-term-namespace>` of the collection that uses zoned
        sharding. The namespace combines the database name and the name
        of the collection.
 

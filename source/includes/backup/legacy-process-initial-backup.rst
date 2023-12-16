@@ -3,7 +3,7 @@
 #. The Backup-enabled {+mdbagent+} connects to, and authenticates with,
    the databases associated with the backup job.
 
-#. The :term:`initial sync` begins and enters its ``starting`` phase.
+#. The :opsmgr:`inital sync </reference/glossary/#term-initial-sync>` begins and enters its ``starting`` phase.
    Initial sync is a transition state between :guilabel:`Inactive` and
    :guilabel:`Active`. Initial Sync goes through a series of phases
    that are displayed on the :guilabel:`Backup` page to show progress.
@@ -14,15 +14,15 @@
    starts separately.
 
 #. The ``transferring`` phase begins as the slices are streamed and
-   stored in the :term:`Oplog Store <Oplog Store Database>` temporarily
+   stored in the :opsmgr:`Oplog Store  </reference/glossary/#term-Oplog-Store-Database>` temporarily
    on the Backup Daemon's behalf. The Backup Daemon service cannot
    dedicate itself to processing the large stream of initial sync
    slices at the expense of processing other backup jobs. The Oplog
    Store stores the slices until the Backup Daemon can fetch them. The
-   Oplog Store is created when the first :term:`Snapshot Store` is
+   Oplog Store is created when the first :opsmgr:`snapshot store </reference/glossary/#term-snapshot-store>` is
    created.
 
-#. While {+bagent+} is streaming the data, it tails the :term:`oplog`.
+#. While {+bagent+} is streaming the data, it tails the :manual:`oplog </reference/glossary/#std-term-oplog>`.
    This tailing collects any differences between the state of the
    deployment database when the backup began and the deployment
    database's current state. The oplog entries are sent in 10 MB
@@ -32,7 +32,7 @@
 
 #. The ``building`` phase begins once |onprem| receives the first batch
    of initial sync slices. In this phase, |onprem| creates a local
-   version of the backed up database called a :term:`head database` on
+   version of the backed up database called a :opsmgr:`head database </reference/glossary/#term-head-database>` on
    the host running the Backup Daemon service.
 
 #. |onprem| uses the Backup Daemon service to insert the documents
@@ -56,7 +56,7 @@
 
    a. Blocks to a :term:`blockstore <backup blockstore database>`.
 
-   #. Blocks to an :term:`AWS S3 bucket <S3 snapshot store>`. The
+   #. Blocks to an :opsmgr:`AWS S3 bucket  </reference/glossary/#term-S3-Snapshot-Store>`. The
       metadata for those blocks is written to a MongoDB database on the
       |onprem| host.
 

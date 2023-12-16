@@ -10,7 +10,7 @@
    
    If you authenticate using the ``MONGODB-X509`` authentication
    mechanism, you also enter this as the name of the user in the
-   :setting:`mongoUri` connection string.
+   ``mongoUri`` connection string.
    
    
 

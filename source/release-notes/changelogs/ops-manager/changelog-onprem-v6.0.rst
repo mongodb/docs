@@ -9,7 +9,7 @@
 - Updates jetty to 10.0.17.
 - Updates the {+mdbagent+} to :ref:`12.0.28.7763 
   <mongodb-12.0.28.7763>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.9.0
+- Compatible with :dbtools:`MongoDB Database Tools 100.9.0
   </release-notes/database-tools-changelog/#100.9.0-changelog>`.
 - Updates ``log4j-over-slf4j`` to 1.7.36.
 - Eliminates ``fileSystemStore`` alerts if you have no filesystem 
@@ -29,9 +29,9 @@
   Ubuntu 22.04 for x86_64 architectures.
 - Fixes the following |cve|\s:
 
-  - :cve-id:`CVE-2023-40167 </CVE-2023-40167>`
-  - :cve-id:`CVE-2023-36479 </CVE-2023-36479>`
-  - :cve-def:`CWE-611 </611>`
+  - `CVE-2023-40167 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-40167>`__
+  - `CVE-2023-36479 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-36479>`__
+  - `CWE-611 <https://cwe.mitre.org/data/definitions//611.html>`__
 
 .. _opsmgr-server-6.0.19:
 
@@ -43,7 +43,7 @@
 - Updates the {+mdbagent+} to :ref:`12.0.27.7746 <mongodb-12.0.27.7746>`.
 - Releases {+mongosh+} 2.0.0 to |onprem|. To learn more, see {+mongosh+}
   :mdb-shell:`Release Notes </changelog/#v2.0.0>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.8.0
+- Compatible with :dbtools:`MongoDB Database Tools 100.8.0
   </release-notes/database-tools-changelog/#100.8.0-changelog>`.
 
 .. _opsmgr-server-6.0.18:
@@ -59,7 +59,7 @@
 
 - Updates the {+mdbagent+} to :ref:`12.0.26.7740 <mongodb-12.0.26.7740>`.
 - Updates JDK to ``jdk-11.0.20.1+1``.
-- Compatible with :db-tools:`MongoDB Database Tools 100.8.0
+- Compatible with :dbtools:`MongoDB Database Tools 100.8.0
   </release-notes/database-tools-changelog/#100.8.0-changelog>`.
 - Includes |bic-full| 2.14.10.
 - Includes `MongoDB Shell <https://www.mongodb.com/docs/mongodb-shell/>`__ 1.10.4.
@@ -78,7 +78,7 @@
 - Updates the {+mdbagent+} to :ref:`12.0.25.7724
   <mongodb-12.0.25.7724>`.
 - Updates JDK to ``jdk-11.0.20+8``.
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.4
+- Compatible with :dbtools:`MongoDB Database Tools 100.7.4
   </release-notes/database-tools-changelog/#100.7.4-changelog>`.
 - Fixes CVE-2023-4009: Privilege Escalation for :authrole:`Project Owner`
   and :authrole:`Project User Admin` roles in |onprem|.
@@ -103,9 +103,9 @@
 
 - Updates the {+mdbagent+} to :ref:`12.0.24.7719
   <mongodb-12.0.24.7719>`.
-- Upgrades :mvn:`org.xerial.snappy:snappy-java
-  </org.xerial.snappy/snappy-java/1.1.10.1>` to version 1.1.10.1.
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.3
+- Upgrades `org.xerial.snappy:snappy-java
+  <https://mvnrepository.com/artifact/org.xerial.snappy/snappy-java/1.1.10.1>`__ to version 1.1.10.1.
+- Compatible with :dbtools:`MongoDB Database Tools 100.7.3
   </release-notes/database-tools-changelog/#100.7.3-changelog>`.
 
 .. _opsmgr-server-6.0.15:
@@ -123,11 +123,11 @@
 - Adds support for |bic-full| 2.14.7.
 - Updates Go to 1.19.9+ to address the following |cve|\s:
 
-  - :cve-id:`CVE-2023-29400 </CVE-2023-29400>`
-  - :cve-id:`CVE-2023-24539 </CVE-2023-24539>`
-  - :cve-id:`CVE-2023-24540 </CVE-2023-24540>`
+  - `CVE-2023-29400 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-29400>`__
+  - `CVE-2023-24539 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-24539>`__
+  - `CVE-2023-24540 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-24540>`__
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+- Compatible with :dbtools:`MongoDB Database Tools 100.7.0
   </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 
 .. _opsmgr-server-6.0.14:
@@ -152,7 +152,7 @@
 - Snapshots now include a flag that indicates whether or not they are incremental.
 - Adds the ability for |onprem| administrators to access performance and snapshot metrics.
   Administrators can now use Prometheus to query newly created collections and view metrics graphs.
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+- Compatible with :dbtools:`MongoDB Database Tools 100.7.0
   </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 
 .. _opsmgr-server-6.0.13:
@@ -177,7 +177,7 @@
   ``automation-agent-fatal.log`` file. 
   :ref:`Reinstall the MongoDB Agent <update-agent-fatal-log-rotation>` 
   to enable automatic fatal log file rotation.
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+- Compatible with :dbtools:`MongoDB Database Tools 100.7.0
   </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 
 .. _opsmgr-server-6.0.12:
@@ -193,7 +193,7 @@
 
 - Updates the {+mdbagent+} to :ref:`12.0.20.7686 
   <mongodb-12.0.20.7686>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.0
+- Compatible with :dbtools:`MongoDB Database Tools 100.7.0
   </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 - Adds support for managing MongoDB deployments on the Ubuntu 22.04 (x86) operating system.
   BI Connector is not currently supported on the Ubuntu 22.04 (x86) operating system.
@@ -243,7 +243,7 @@
 - Fixes an issue where sharded collections could be missing from the chunks dropdown for the backing cluster in the UI.
 - Fixes an issue where clicking the refresh button in the :guilabel:`Backup Job Timeline` UI resulted in a failure.
 - Includes the latest version of MongoDB Shell 1.6.2.
-- Compatible with :db-tools:`MongoDB Database Tools 100.6.1
+- Compatible with :dbtools:`MongoDB Database Tools 100.6.1
   </release-notes/database-tools-changelog/#100.6.1-changelog>`.
 
 .. _opsmgr-server-6.0.9:
@@ -329,7 +329,7 @@
    .. include:: /includes/bic-compatibility.rst
 
 - Updates ``commons-text`` to 1.10.0 to address 
-  :cve-id:`CVE-2022-42889 <CVE-2022-42889>`.
+  `CVE-2022-42889 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42889>`__.
 
 .. _opsmgr-server-6.0.4:
 
@@ -343,7 +343,7 @@
    .. include:: /includes/bic-compatibility.rst
 
 - Updates the {+mdbagent+} to :ref:`12.0.12.7624 <mongodb-12.0.12.7624>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.6.0 
+- Compatible with :dbtools:`MongoDB Database Tools 100.6.0 
   </release-notes/database-tools-changelog/#100.6.0-changelog>`.
 - Uses amazon2 packages instead of RHEL7 packages on amazon2 hosts for
   :dl:`MongoDB Database Tools <database-tools>`. If you run |onprem| in the :doc:`local mode

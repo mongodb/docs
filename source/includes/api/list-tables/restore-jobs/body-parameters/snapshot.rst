@@ -11,7 +11,7 @@
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :term:`snapshot` data
+     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
        is delivered.
 
    * - | ``delivery``
@@ -58,5 +58,5 @@
    * - ``snapshotId``
      - string
      - Required
-     - Unique identifier of the :term:`snapshot` to restore.
+     - Unique identifier of the :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
 

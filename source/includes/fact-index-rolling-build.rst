@@ -24,10 +24,10 @@
    for standalone deployments.
 
 Building indexes in a rolling fashion reduces the performance impact of
-building indexes on :term:`replica sets <replica set>` and
-:term:`sharded clusters <sharded cluster>`. To maintain cluster
+building indexes on :manual:`replica sets </reference/glossary/#std-term-replica-set>` and
+:manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`. To maintain cluster
 availability, |mms| removes one node from the cluster at a time
-starting with a :term:`secondary <secondary>`.
+starting with a :manual:`secondary </reference/glossary/#std-term-secondary>`.
 
 After you build an index in a rolling fashion, if your MongoDB database
 runs with an

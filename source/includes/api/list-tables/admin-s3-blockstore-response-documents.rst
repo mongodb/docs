@@ -62,7 +62,7 @@
      - array of strings
      - Array of tags to manage which
        :term:`backup jobs <backup job>` |onprem| can assign to which
-       :term:`S3 blockstores <S3 Snapshot Store>`.
+       :opsmgr:`S3 blockstores  </reference/glossary/#term-S3-Snapshot-Store>`.
 
    * - links
      - object array
@@ -71,7 +71,7 @@
    * - loadFactor
      - integer
      - Positive, non-zero integer that expresses how much backup work
-       this :term:`snapshot store` performs compared to another
+       this :opsmgr:`snapshot store </reference/glossary/#term-snapshot-store>` performs compared to another
        snapshot store. This option is needed only if more than one
        snapshot store is in use.
 

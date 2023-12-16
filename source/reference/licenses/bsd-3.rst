@@ -7,7 +7,7 @@
      - Copyright
 
 
-   * - :mvn:`com.github.jai-imageio:jai-imageio-core</com.github.jai-imageio/jai-imageio-core/1.4.0>`
+   * - `com.github.jai-imageio:jai-imageio-core <https://mvnrepository.com/artifact/com.github.jai-imageio/jai-imageio-core/1.4.0>`__
      - Copyright © 1990-1991 Wang Labs, Inc.,
        Copyright © 2005-2007 Sun Microsystems, Inc.,
        Copyright © 2010-2014 University of Manchester,
@@ -26,41 +26,41 @@
        Copyright © 2017 Sebastien Besson,
        Copyright © 2018 Peter Jodeleit
 
-   * - :mvn:`com.google.protobuf:protobuf-java</com.google.protobuf/protobuf-java/3.19.4>`
+   * - `com.google.protobuf:protobuf-java <https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java/3.19.4>`__
      - Copyright 2008 Google Inc.
 
-   * - :mvn:`com.google.protobuf:protobuf-java-util</com.google.protobuf/protobuf-java-util/3.19.4>`
+   * - `com.google.protobuf:protobuf-java-util <https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java-util/3.19.4>`__
      - Copyright 2008 Google Inc.
 
-   * - :mvn:`com.jcraft:jsch</com.jcraft/jsch/0.1.55>`
+   * - `com.jcraft:jsch <https://mvnrepository.com/artifact/com.jcraft/jsch/0.1.55>`__
      - Copyright © 2002-2018 ymnk, JCraft,Inc.
 
-   * - :mvn:`com.jcraft:jsch.agentproxy.connector-factory</com.jcraft/jsch.agentproxy.connector-factory/0.0.9>`
+   * - `com.jcraft:jsch.agentproxy.connector-factory <https://mvnrepository.com/artifact/com.jcraft/jsch.agentproxy.connector-factory/0.0.9>`__
      - Copyright © 2013
 
-   * - :mvn:`com.jcraft:jsch.agentproxy.core</com.jcraft/jsch.agentproxy.core/0.0.9>`
+   * - `com.jcraft:jsch.agentproxy.core <https://mvnrepository.com/artifact/com.jcraft/jsch.agentproxy.core/0.0.9>`__
      - Copyright © 2011-2012
 
-   * - :mvn:`com.jcraft:jsch.agentproxy.jsch</com.jcraft/jsch.agentproxy.jsch/0.0.9>`
+   * - `com.jcraft:jsch.agentproxy.jsch <https://mvnrepository.com/artifact/com.jcraft/jsch.agentproxy.jsch/0.0.9>`__
      - Copyright © 2011
 
-   * - :mvn:`com.jcraft:jsch.agentproxy.pageant</com.jcraft/jsch.agentproxy.pageant/0.0.9>`
+   * - `com.jcraft:jsch.agentproxy.pageant <https://mvnrepository.com/artifact/com.jcraft/jsch.agentproxy.pageant/0.0.9>`__
      - Copyright © 2011
 
-   * - :mvn:`com.jcraft:jsch.agentproxy.sshagent</com.jcraft/jsch.agentproxy.sshagent/0.0.9>`
+   * - `com.jcraft:jsch.agentproxy.sshagent <https://mvnrepository.com/artifact/com.jcraft/jsch.agentproxy.sshagent/0.0.9>`__
      - Copyright © 2011
 
-   * - :mvn:`com.jcraft:jsch.agentproxy.usocket-jna</com.jcraft/jsch.agentproxy.usocket-jna/0.0.9>`
+   * - `com.jcraft:jsch.agentproxy.usocket-jna <https://mvnrepository.com/artifact/com.jcraft/jsch.agentproxy.usocket-jna/0.0.9>`__
      - Copyright © 2011
 
-   * - :mvn:`com.jcraft:jsch.agentproxy.usocket-nc</com.jcraft/jsch.agentproxy.usocket-nc/0.0.9>`
+   * - `com.jcraft:jsch.agentproxy.usocket-nc <https://mvnrepository.com/artifact/com.jcraft/jsch.agentproxy.usocket-nc/0.0.9>`__
      - Copyright © 2013
 
-   * - :mvn:`com.sun.activation:jakarta.activation</com.sun.activation/jakarta.activation/1.2.2>`
+   * - `com.sun.activation:jakarta.activation <https://mvnrepository.com/artifact/com.sun.activation/jakarta.activation/1.2.2>`__
      - Copyright © 1997, 2018-2019 Oracle and/or its affiliates,
        Copyright © 2019 Eclipse Foundation
 
-   * - :mvn:`org.glassfish.jersey.core:jersey-server</org.glassfish.jersey.core/jersey-server/2.35>`
+   * - `org.glassfish.jersey.core:jersey-server <https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-server/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA et en Automatique, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -80,52 +80,52 @@
        Copyright © jQuery Foundation,
        Copyright © OSGi Alliance (2005, 2008)
 
-   * - :mvn:`org.hamcrest:hamcrest-all</org.hamcrest/hamcrest-all/1.3>`
+   * - `org.hamcrest:hamcrest-all <https://mvnrepository.com/artifact/org.hamcrest/hamcrest-all/1.3>`__
      - Copyright © 2000-2006, www.hamcrest.org
 
-   * - :mvn:`org.hamcrest:hamcrest-core</org.hamcrest/hamcrest-core/1.3>`
+   * - `org.hamcrest:hamcrest-core <https://mvnrepository.com/artifact/org.hamcrest/hamcrest-core/1.3>`__
      - Copyright © 2000-2006, www.hamcrest.org
 
-   * - :mvn:`org.hamcrest:hamcrest-library</org.hamcrest/hamcrest-library/1.3>`
+   * - `org.hamcrest:hamcrest-library <https://mvnrepository.com/artifact/org.hamcrest/hamcrest-library/1.3>`__
      - Copyright © 2000-2006, www.hamcrest.org
 
-   * - :mvn:`org.ow2.asm:asm-analysis</org.ow2.asm/asm-analysis/9.2>`
+   * - `org.ow2.asm:asm-analysis <https://mvnrepository.com/artifact/org.ow2.asm/asm-analysis/9.2>`__
      - Copyright © 2000-2011 INRIA, France Telecom
 
-   * - :mvn:`org.ow2.asm:asm-commons</org.ow2.asm/asm-commons/9.2>`
+   * - `org.ow2.asm:asm-commons <https://mvnrepository.com/artifact/org.ow2.asm/asm-commons/9.2>`__
      - Copyright © 2000-2011 INRIA, France Telecom
 
-   * - :mvn:`org.ow2.asm:asm-tree</org.ow2.asm/asm-tree/9.2>`
+   * - `org.ow2.asm:asm-tree <https://mvnrepository.com/artifact/org.ow2.asm/asm-tree/9.2>`__
      - Copyright © 2000-2011 INRIA, France Telecom
 
-   * - :mvn:`org.scala-lang:scala-library</org.scala-lang/scala-library/2.11.12>`
+   * - `org.scala-lang:scala-library <https://mvnrepository.com/artifact/org.scala-lang/scala-library/2.11.12>`__
      - © 2002-2013, © 2010-2013, © 2003-2013, © 2003-2015, © 2005-2013, © 2006-2013, © 2009-2013, © 2007-2013, © 2013, © 2006-2015,
        Copyright 2002-2017, © 2008-2013
 
-   * - :mvn:`org.threeten:threetenbp</org.threeten/threetenbp/1.5.0>`
+   * - `org.threeten:threetenbp <https://mvnrepository.com/artifact/org.threeten/threetenbp/1.5.0>`__
      - Copyright © 2007-present, Stephen Colebourne & Michael Nascimento Santos
 
-   * - :mvn:`org.threeten:threeten-extra</org.threeten/threeten-extra/1.7.0>`
+   * - `org.threeten:threeten-extra <https://mvnrepository.com/artifact/org.threeten/threeten-extra/1.7.0>`__
      - Copyright © 2007-present, Stephen Colebourne & Michael Nascimento Santos
 
-   * - :npmjs:`ace-builds</ace-builds/v/1.4.14>`
+   * - `ace-builds <https://www.npmjs.com/package/ace-builds/v/1.4.14>`__
      - Copyright © 2010, Ajax.org B.V., © Wl 13 Xl
 
-   * - :npmjs:`asn1js</asn1js/v/2.4.0>`
+   * - `asn1js <https://www.npmjs.com/package/asn1js/v/2.4.0>`__
      - Copyright © 2014, GMO GlobalSign (http://www.globalsign.com/),
        Copyright © 2015-2018, Peculiar Ventures, LLC (http://peculiarventures.com/),
 
 
-   * - :npmjs:`bcrypt-pbkdf</bcrypt-pbkdf/v/1.0.2>`
+   * - `bcrypt-pbkdf <https://www.npmjs.com/package/bcrypt-pbkdf/v/1.0.2>`__
      - Copyright © 1997 Niels Provos <provos\@physnet.uni-hamburg.de>,
        Copyright © 2013 Ted Unangst <tedu\@openbsd.org>,
        Copyright © 2016, Joyent Inc
 
-   * - :npmjs:`boom</boom/v/4.3.1>`
+   * - `boom <https://www.npmjs.com/package/boom/v/4.3.1>`__
      - Copyright © 2012-2017, Project contributors.,
        Copyright © 2012-2014, Walmart.
 
-   * - :npmjs:`d3</d3/v/3.5.17>`
+   * - `d3 <https://www.npmjs.com/package/d3/v/3.5.17>`__
      - Copyright © 2010-2016, Michael Bostock,
        Copyright © 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University.,
        Copyright © 2008-2012, Charles Karney,
@@ -135,83 +135,83 @@
        Copyright © 2010-2013 Raymond Hill https://github.com/gorhill/Javascript-Voronoi,
        Copyright © 2011, Jason Davies
 
-   * - :npmjs:`d3-ease</d3-ease/v/3.0.1>`
+   * - `d3-ease <https://www.npmjs.com/package/d3-ease/v/3.0.1>`__
      - Copyright © 2010-2021 Mike Bostock,
        Copyright © 2001 Robert Penner
 
-   * - :npmjs:`d3-timer</d3-timer/v/1.0.10>`
+   * - `d3-timer <https://www.npmjs.com/package/d3-timer/v/1.0.10>`__
      - Copyright © 2010-2016, 2019 Mike Bostock
 
-   * - :npmjs:`duplexer2</duplexer2/v/0.1.4>`
+   * - `duplexer2 <https://www.npmjs.com/package/duplexer2/v/0.1.4>`__
      - Copyright © 2013, Deoxxa Development
 
-   * - :npmjs:`highlight.js</highlight.js/v/11.5.1>`
+   * - `highlight.js <https://www.npmjs.com/package/highlight.js/v/11.5.1>`__
      - Copyright © 2006, Ivan Sagalaev, © Taufik Nurrohman <hi\@taufik-nurrohman.com>, © Gustavo Costa <gusbemacbe\@gmail.com>, © Ivan Sagalaev <maniac\@softwaremaniacs.org>, © 2021 Felipe Contreras <felipe.contreras\@gmail.com> Website https://github.com/felipec/vim-felipec, © 2020-2021 Jim Mason <jmason\@ibinx.com>, © Henri Vandersleyen <hvandersleyen\@gmail.com>
 
-   * - :npmjs:`hoek</hoek/v/4.2.1>`
+   * - `hoek <https://www.npmjs.com/package/hoek/v/4.2.1>`__
      - Copyright © 2011-2016, Project contributors,
        Copyright © 2011-2014, Walmart,
        Copyright © 2011, Yahoo Inc.,
        Copyright © 2013 Jake Luer, jake\@alogicalparadox.com, MIT Licensed, https://github.com/chaijs/deep-eql
 
-   * - :npmjs:`hoist-non-react-statics</hoist-non-react-statics/v/2.5.5>`
+   * - `hoist-non-react-statics <https://www.npmjs.com/package/hoist-non-react-statics/v/2.5.5>`__
      - Copyright © 2015, Yahoo! Inc.
 
-   * - :npmjs:`hoist-non-react-statics</hoist-non-react-statics/v/3.3.2>`
+   * - `hoist-non-react-statics <https://www.npmjs.com/package/hoist-non-react-statics/v/3.3.2>`__
      - Copyright © 2015, Yahoo! Inc.
 
-   * - :npmjs:`hyphenate-style-name</hyphenate-style-name/v/1.0.4>`
+   * - `hyphenate-style-name <https://www.npmjs.com/package/hyphenate-style-name/v/1.0.4>`__
      - Copyright © 2015, Espen Hovlandsdal
 
-   * - :npmjs:`ieee754</ieee754/v/1.2.1>`
+   * - `ieee754 <https://www.npmjs.com/package/ieee754/v/1.2.1>`__
      - Copyright © 2008, Fair Oaks Labs, Inc.
 
-   * - :npmjs:`json-schema</json-schema/v/0.4.0>`
+   * - `json-schema <https://www.npmjs.com/package/json-schema/v/0.4.0>`__
      - Copyright © 2005-2015, The Dojo Foundation,
        Copyright © 2003-2004 Lawrence E. Rosen
 
-   * - :npmjs:`qs</qs/v/6.10.3>`
+   * - `qs <https://www.npmjs.com/package/qs/v/6.10.3>`__
      - Copyright © 2014, Nathan LaFreniere and other contributors (https://github.com/ljharb/qs/graphs/contributors)
 
-   * - :npmjs:`react-transition-group</react-transition-group/v/2.9.0>`
+   * - `react-transition-group <https://www.npmjs.com/package/react-transition-group/v/2.9.0>`__
      - Copyright © 2018, React Community Forked from React (https://github.com/facebook/react),
        Copyright © 2013-present, Facebook, Inc.
 
-   * - :npmjs:`reflux</reflux/v/0.4.1>`
+   * - `reflux <https://www.npmjs.com/package/reflux/v/0.4.1>`__
      - Copyright © 2014, Mikael Brassman
 
-   * - :npmjs:`reflux-core</reflux-core/v/0.3.0>`
+   * - `reflux-core <https://www.npmjs.com/package/reflux-core/v/0.3.0>`__
      - Copyright © 2014, Mikael Brassman
 
-   * - :npmjs:`rw</rw/v/1.3.3>`
+   * - `rw <https://www.npmjs.com/package/rw/v/1.3.3>`__
      - Copyright © 2014-2016, Michael Bostock
 
-   * - :npmjs:`source-map</source-map/v/0.5.7>`
+   * - `source-map <https://www.npmjs.com/package/source-map/v/0.5.7>`__
      - Copyright © 2009-2012, 2014 Mozilla Foundation and contributors,
        Copyright © 2011 The Closure Compiler
 
-   * - :npmjs:`table</table/v/5.4.6>`
+   * - `table <https://www.npmjs.com/package/table/v/5.4.6>`__
      - Copyright © 2018, Gajus Kuizinas (http://gajus.com/)
 
-   * - :npmjs:`tough-cookie</tough-cookie/v/2.5.0>`
+   * - `tough-cookie <https://www.npmjs.com/package/tough-cookie/v/2.5.0>`__
      - Copyright © 2015, 2018, Salesforce.com, Inc.,
        © assert.equal c.domain, www.example.com, www.foonet.net
 
-   * - :npmjs:`vega</vega/v/5.22.0>`
+   * - `vega <https://www.npmjs.com/package/vega/v/5.22.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data Lab,
        Copyright 2018 Vladimir Agafonkin
 
-   * - :npmjs:`vega-canvas</vega-canvas/v/1.2.6>`
+   * - `vega-canvas <https://www.npmjs.com/package/vega-canvas/v/1.2.6>`__
      - Copyright © 2015-2018, University of Washington Interactive Data Lab
 
-   * - :npmjs:`vega-crossfilter</vega-crossfilter/v/4.1.0>`
+   * - `vega-crossfilter <https://www.npmjs.com/package/vega-crossfilter/v/4.1.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-dataflow</vega-dataflow/v/5.7.4>`
+   * - `vega-dataflow <https://www.npmjs.com/package/vega-dataflow/v/5.7.4>`__
      - Copyright © 2015-2018, University of Washington Interactive Data Lab
 
-   * - :npmjs:`vega-embed</vega-embed/v/6.20.8>`
+   * - `vega-embed <https://www.npmjs.com/package/vega-embed/v/6.20.8>`__
      - Copyright © 2015, University of Washington Interactive Data Lab,
        Copyright © 2017 Joachim Wester,
        Copyright © 2017 Evgeny Poberezkin,
@@ -220,15 +220,15 @@
        Copyright © 2014-present, Facebook, Inc.,
        Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`vega-encode</vega-encode/v/4.9.0>`
+   * - `vega-encode <https://www.npmjs.com/package/vega-encode/v/4.9.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-event-selector</vega-event-selector/v/3.0.0>`
+   * - `vega-event-selector <https://www.npmjs.com/package/vega-event-selector/v/3.0.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-expression</vega-expression/v/5.0.0>`
+   * - `vega-expression <https://www.npmjs.com/package/vega-expression/v/5.0.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab,
        Copyright © 2013 Thaddee Tyl <thaddee.tyl\@gmail.com>,
@@ -239,206 +239,206 @@
        Copyright © 2012 Yusuke Suzuki <utatane.tea\@gmail.com>,
        Copyright © 2012 Arpad Borsos <arpad.borsos\@googlemail.com>,
 
-   * - :npmjs:`vega-force</vega-force/v/4.1.0>`
+   * - `vega-force <https://www.npmjs.com/package/vega-force/v/4.1.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-format</vega-format/v/1.1.0>`
+   * - `vega-format <https://www.npmjs.com/package/vega-format/v/1.1.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-functions</vega-functions/v/5.13.0>`
+   * - `vega-functions <https://www.npmjs.com/package/vega-functions/v/5.13.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-geo</vega-geo/v/4.4.0>`
+   * - `vega-geo <https://www.npmjs.com/package/vega-geo/v/4.4.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-hierarchy</vega-hierarchy/v/4.1.0>`
+   * - `vega-hierarchy <https://www.npmjs.com/package/vega-hierarchy/v/4.1.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-interpreter</vega-interpreter/v/1.0.4>`
+   * - `vega-interpreter <https://www.npmjs.com/package/vega-interpreter/v/1.0.4>`__
      - Copyright © 2015-2018, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-label</vega-label/v/1.2.0>`
+   * - `vega-label <https://www.npmjs.com/package/vega-label/v/1.2.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-lite</vega-lite/v/5.2.0>`
+   * - `vega-lite <https://www.npmjs.com/package/vega-lite/v/5.2.0>`__
      - Copyright © 2015, University of Washington Interactive Data Lab
 
-   * - :npmjs:`vega-loader</vega-loader/v/4.5.0>`
+   * - `vega-loader <https://www.npmjs.com/package/vega-loader/v/4.5.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-parser</vega-parser/v/6.1.4>`
+   * - `vega-parser <https://www.npmjs.com/package/vega-parser/v/6.1.4>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-projection</vega-projection/v/1.5.0>`
+   * - `vega-projection <https://www.npmjs.com/package/vega-projection/v/1.5.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-regression</vega-regression/v/1.1.0>`
+   * - `vega-regression <https://www.npmjs.com/package/vega-regression/v/1.1.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-runtime</vega-runtime/v/6.1.3>`
+   * - `vega-runtime <https://www.npmjs.com/package/vega-runtime/v/6.1.3>`__
      - Copyright © 2015-2018, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-scale</vega-scale/v/7.2.0>`
+   * - `vega-scale <https://www.npmjs.com/package/vega-scale/v/7.2.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-scenegraph</vega-scenegraph/v/4.10.1>`
+   * - `vega-scenegraph <https://www.npmjs.com/package/vega-scenegraph/v/4.10.1>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-schema-url-parser</vega-schema-url-parser/v/2.2.0>`
+   * - `vega-schema-url-parser <https://www.npmjs.com/package/vega-schema-url-parser/v/2.2.0>`__
      - Copyright © 2017, Vega
 
-   * - :npmjs:`vega-selections</vega-selections/v/5.4.0>`
+   * - `vega-selections <https://www.npmjs.com/package/vega-selections/v/5.4.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-statistics</vega-statistics/v/1.8.0>`
+   * - `vega-statistics <https://www.npmjs.com/package/vega-statistics/v/1.8.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab,
        Copyright 2018 Vladimir Agafonkin
 
-   * - :npmjs:`vega-themes</vega-themes/v/2.10.0>`
+   * - `vega-themes <https://www.npmjs.com/package/vega-themes/v/2.10.0>`__
      - Copyright © 2016, University of Washington Interactive Data Lab,
        Copyright 2020 Google LLC.
 
-   * - :npmjs:`vega-time</vega-time/v/2.1.0>`
+   * - `vega-time <https://www.npmjs.com/package/vega-time/v/2.1.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-tooltip</vega-tooltip/v/0.28.0>`
+   * - `vega-tooltip <https://www.npmjs.com/package/vega-tooltip/v/0.28.0>`__
      - Copyright 2016 Interactive Data Lab and contributors,
        Copyright © Microsoft Corporation
 
-   * - :npmjs:`vega-transforms</vega-transforms/v/4.10.0>`
+   * - `vega-transforms <https://www.npmjs.com/package/vega-transforms/v/4.10.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab,
        Copyright 2018 Vladimir Agafonkin
 
-   * - :npmjs:`vega-typings</vega-typings/v/0.22.3>`
+   * - `vega-typings <https://www.npmjs.com/package/vega-typings/v/0.22.3>`__
      - 
 
-   * - :npmjs:`vega-util</vega-util/v/1.17.0>`
+   * - `vega-util <https://www.npmjs.com/package/vega-util/v/1.17.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-view</vega-view/v/5.11.0>`
+   * - `vega-view <https://www.npmjs.com/package/vega-view/v/5.11.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-view-transforms</vega-view-transforms/v/4.5.8>`
+   * - `vega-view-transforms <https://www.npmjs.com/package/vega-view-transforms/v/4.5.8>`__
      - Copyright © 2015-2018, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-voronoi</vega-voronoi/v/4.2.0>`
+   * - `vega-voronoi <https://www.npmjs.com/package/vega-voronoi/v/4.2.0>`__
      - Copyright © 2015-2021, University of Washington Interactive Data
        Lab
 
-   * - :npmjs:`vega-wordcloud</vega-wordcloud/v/4.1.3>`
+   * - `vega-wordcloud <https://www.npmjs.com/package/vega-wordcloud/v/4.1.3>`__
      - Copyright © 2015-2018, University of Washington Interactive Data
        Lab,
        Copyright © 2013, Jason Davies
 
-   * - :npmjs:`warning</warning/v/3.0.0>`
+   * - `warning <https://www.npmjs.com/package/warning/v/3.0.0>`__
      - Copyright © 2013-2015, Facebook, Inc.
 
-   * - :gh:`github.com/circonus-labs/circonus-gometrics</circonus-labs/circonus-gometrics>`
+   * - `github.com/circonus-labs/circonus-gometrics <https://github.com/circonus-labs/circonus-gometrics>`__
      - 
 
-   * - :gh:`github.com/circonus-labs/circonusllhist</circonus-labs/circonusllhist>`
+   * - `github.com/circonus-labs/circonusllhist <https://github.com/circonus-labs/circonusllhist>`__
      - 
 
-   * - :gh:`github.com/fortytw2/leaktest</fortytw2/leaktest>`
+   * - `github.com/fortytw2/leaktest <https://github.com/fortytw2/leaktest>`__
      - 
 
-   * - :gh:`github.com/fsnotify/fsnotify</fsnotify/fsnotify>`
+   * - `github.com/fsnotify/fsnotify <https://github.com/fsnotify/fsnotify>`__
      - 
 
-   * - :gh:`github.com/ghodss/yaml</ghodss/yaml>`
+   * - `github.com/ghodss/yaml <https://github.com/ghodss/yaml>`__
      - 
 
-   * - :gh:`github.com/gogo/protobuf</gogo/protobuf>`
+   * - `github.com/gogo/protobuf <https://github.com/gogo/protobuf>`__
      - 
 
-   * - :gh:`github.com/golang/protobuf</golang/protobuf>`
+   * - `github.com/golang/protobuf <https://github.com/golang/protobuf>`__
      - 
 
-   * - :gh:`github.com/golang/snappy</golang/snappy>`
+   * - `github.com/golang/snappy <https://github.com/golang/snappy>`__
      - 
 
-   * - :gh:`github.com/googleapis/gax-go</googleapis/gax-go>`
+   * - `github.com/googleapis/gax-go <https://github.com/googleapis/gax-go>`__
      - 
 
-   * - :gh:`github.com/google/go-cmp</google/go-cmp>`
+   * - `github.com/google/go-cmp <https://github.com/google/go-cmp>`__
      - 
 
-   * - :gh:`github.com/google/uuid</google/uuid>`
+   * - `github.com/google/uuid <https://github.com/google/uuid>`__
      - 
 
-   * - :gh:`github.com/gorilla/mux</gorilla/mux>`
+   * - `github.com/gorilla/mux <https://github.com/gorilla/mux>`__
      - 
 
-   * - :gh:`github.com/gorilla/securecookie</gorilla/securecookie>`
+   * - `github.com/gorilla/securecookie <https://github.com/gorilla/securecookie>`__
      - 
 
-   * - :gh:`github.com/gorilla/sessions</gorilla/sessions>`
+   * - `github.com/gorilla/sessions <https://github.com/gorilla/sessions>`__
      - 
 
-   * - :gh:`github.com/grpc-ecosystem/grpc-gateway</grpc-ecosystem/grpc-gateway>`
+   * - `github.com/grpc-ecosystem/grpc-gateway <https://github.com/grpc-ecosystem/grpc-gateway>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-msgpack</hashicorp/go-msgpack>`
+   * - `github.com/hashicorp/go-msgpack <https://github.com/hashicorp/go-msgpack>`__
      - 
 
-   * - :gh:`github.com/jcmturner/gofork</jcmturner/gofork>`
+   * - `github.com/jcmturner/gofork <https://github.com/jcmturner/gofork>`__
      - 
 
-   * - :gh:`github.com/jessevdk/go-flags</jessevdk/go-flags>`
+   * - `github.com/jessevdk/go-flags <https://github.com/jessevdk/go-flags>`__
      - 
 
-   * - :gh:`github.com/julienschmidt/httprouter</julienschmidt/httprouter>`
+   * - `github.com/julienschmidt/httprouter <https://github.com/julienschmidt/httprouter>`__
      - 
 
-   * - :gh:`github.com/kardianos/osext</kardianos/osext>`
+   * - `github.com/kardianos/osext <https://github.com/kardianos/osext>`__
      - 
 
-   * - :gh:`github.com/kisielk/gotool</kisielk/gotool>`
+   * - `github.com/kisielk/gotool <https://github.com/kisielk/gotool>`__
      - 
 
-   * - :gh:`github.com/klauspost/compress</klauspost/compress>`
+   * - `github.com/klauspost/compress <https://github.com/klauspost/compress>`__
      - 
 
-   * - :gh:`github.com/kr/fs</kr/fs>`
+   * - `github.com/kr/fs <https://github.com/kr/fs>`__
      - 
 
-   * - :gh:`github.com/miekg/dns</miekg/dns>`
+   * - `github.com/miekg/dns <https://github.com/miekg/dns>`__
      - 
 
-   * - :gh:`github.com/pierrec/lz4</pierrec/lz4>`
+   * - `github.com/pierrec/lz4 <https://github.com/pierrec/lz4>`__
      - 
 
-   * - :gh:`github.com/rogpeppe/fastuuid</rogpeppe/fastuuid>`
+   * - `github.com/rogpeppe/fastuuid <https://github.com/rogpeppe/fastuuid>`__
      - 
 
-   * - :gh:`github.com/rogpeppe/go-internal</rogpeppe/go-internal>`
+   * - `github.com/rogpeppe/go-internal <https://github.com/rogpeppe/go-internal>`__
      - 
 
-   * - :gh:`github.com/sean-/seed</sean-/seed>`
+   * - `github.com/sean-/seed <https://github.com/sean-/seed>`__
      - 
 
-   * - :gh:`github.com/spf13/pflag</spf13/pflag>`
+   * - `github.com/spf13/pflag <https://github.com/spf13/pflag>`__
      - 
 
    * - :gopkg:`golang.org/x/mod</golang.org/x/mod\@v0.1.0>`
@@ -477,31 +477,31 @@
    * - :gopkg:`rsc.io/sampler</rsc.io/sampler\@v1.3.0>`
      - 
 
-   * - :gh:`github.com/fsnotify/fsnotify</fsnotify/fsnotify>`
+   * - `github.com/fsnotify/fsnotify <https://github.com/fsnotify/fsnotify>`__
      - 
 
-   * - :gh:`github.com/golang/protobuf</golang/protobuf>`
+   * - `github.com/golang/protobuf <https://github.com/golang/protobuf>`__
      - 
 
-   * - :gh:`github.com/golang/snappy</golang/snappy>`
+   * - `github.com/golang/snappy <https://github.com/golang/snappy>`__
      - 
 
-   * - :gh:`github.com/google/go-cmp</google/go-cmp>`
+   * - `github.com/google/go-cmp <https://github.com/google/go-cmp>`__
      - 
 
-   * - :gh:`github.com/kardianos/osext</kardianos/osext>`
+   * - `github.com/kardianos/osext <https://github.com/kardianos/osext>`__
      - 
 
-   * - :gh:`github.com/klauspost/compress</klauspost/compress>`
+   * - `github.com/klauspost/compress <https://github.com/klauspost/compress>`__
      - 
 
-   * - :gh:`github.com/pmezard/go-difflib</pmezard/go-difflib>`
+   * - `github.com/pmezard/go-difflib <https://github.com/pmezard/go-difflib>`__
      - 
 
-   * - :gh:`github.com/rogpeppe/go-internal</rogpeppe/go-internal>`
+   * - `github.com/rogpeppe/go-internal <https://github.com/rogpeppe/go-internal>`__
      - 
 
-   * - :gh:`github.com/spf13/pflag</spf13/pflag>`
+   * - `github.com/spf13/pflag <https://github.com/spf13/pflag>`__
      - 
 
    * - :gopkg:`golang.org/x/crypto</golang.org/x/crypto>`
@@ -531,8 +531,8 @@
    * - :gopkg:`gopkg.in/inf.v0</gopkg.in/inf.v0\@v0.9.1>`
      - 
 
-   * - :mvn:`com.google.re2j:re2j</com.google.re2j/re2j/1.5>`
+   * - `com.google.re2j:re2j <https://mvnrepository.com/artifact/com.google.re2j/re2j/1.5>`__
      - Copyright © 2020 The Go Authors
 
-   * - :mvn:`com.thoughtworks.proxytoys:proxytoys</com.thoughtworks.proxytoys/proxytoys/1.0>`
+   * - `com.thoughtworks.proxytoys:proxytoys <https://mvnrepository.com/artifact/com.thoughtworks.proxytoys/proxytoys/1.0>`__
      - Copyright © 2003-2005, 2009, 2010 ThoughtWorks Ltd

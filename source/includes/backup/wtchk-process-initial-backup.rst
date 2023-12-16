@@ -28,7 +28,7 @@
    a. Blocks to a :term:`blockstore <backup blockstore database>`.
       Binary chunks written to a MongoDB database on the |mms| host.
 
-   #. Blocks to an :term:`AWS S3 bucket <S3 snapshot store>`. The
+   #. Blocks to an :opsmgr:`AWS S3 bucket  </reference/glossary/#term-S3-Snapshot-Store>`. The
       metadata for those blocks is written to a MongoDB database on the
       |onprem| host.
 

@@ -1,4 +1,4 @@
-.. admonition:: Necessary MongoDB Roles
+.. note:: Necessary MongoDB Roles
 
    The MongoDB user that authenticates to the backing databases must
    have the following roles:

@@ -11,7 +11,7 @@
       .. include:: /includes/fact-configure-connections-to-app-db.rst
 
       To learn more about configuring SCRAM authentication, see 
-      :ref:`SCRAM <authentication-scram>`.
+      :manual:`SCRAM </core/security-scram/#std-label-authentication-scram>`.
 
    .. tab:: X.509
       :tabid: x509

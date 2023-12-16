@@ -1,6 +1,6 @@
-The :data:`mongoDbVersions[n]` array defines specification objects for
-the MongoDB instances found in the :data:`processes` array. Each
-MongoDB instance in the :data:`processes` array must have a
+The ``mongoDbVersions[n]`` array defines specification objects for
+the MongoDB instances found in the ``processes`` array. Each
+MongoDB instance in the ``processes`` array must have a
 specification object in this array.
 
 .. code-block:: json

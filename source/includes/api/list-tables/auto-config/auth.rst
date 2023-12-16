@@ -219,7 +219,7 @@
    * - auth.usersWanted[n].roles
      - array
      - Conditional
-     - List of the :term:`roles <role>` to be assigned to the user
+     - List of the :manual:`roles </reference/glossary/#std-term-role>` to be assigned to the user
        from the user's database, which is specified in
        **auth.usersWanted[n].db**.
 

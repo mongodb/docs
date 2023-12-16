@@ -6,223 +6,223 @@
    * - Package
      - Copyright
 
-   * - :npmjs:`abbrev</abbrev/v/1.1.1>`
+   * - `abbrev <https://www.npmjs.com/package/abbrev/v/1.1.1>`__
      - Copyright © Isaac Z. Schlueter and Contributors, Copyright Isaac
        Z. Schlueter and Contributors
 
-   * - :npmjs:`aproba</aproba/v/1.2.0>`
+   * - `aproba <https://www.npmjs.com/package/aproba/v/1.2.0>`__
      - Copyright © 2015, Rebecca Turner <me\@re-becca.org>
 
-   * - :npmjs:`are-we-there-yet</are-we-there-yet/v/1.1.7>`
+   * - `are-we-there-yet <https://www.npmjs.com/package/are-we-there-yet/v/1.1.7>`__
      - Copyright npm, Inc.
 
-   * - :npmjs:`\@braintree/uuid</\@braintree/uuid/v/0.1.0>`
+   * - `\@braintree/uuid <https://www.npmjs.com/package/\@braintree/uuid/v/0.1.0>`__
      - Copyright © 2020 Braintree
 
-   * - :npmjs:`chownr</chownr/v/1.1.4>`
+   * - `chownr <https://www.npmjs.com/package/chownr/v/1.1.4>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`cliui</cliui/v/7.0.4>`
+   * - `cliui <https://www.npmjs.com/package/cliui/v/7.0.4>`__
      - Copyright © 2015, Copyright © npm, Inc. and Contributors
 
-   * - :npmjs:`cli-width</cli-width/v/2.2.1>`
+   * - `cli-width <https://www.npmjs.com/package/cli-width/v/2.2.1>`__
      - Copyright © 2015, Ilya Radchenko <ilya\@burstcreations.com>
 
-   * - :npmjs:`console-control-strings</console-control-strings/v/1.1.0>`
+   * - `console-control-strings <https://www.npmjs.com/package/console-control-strings/v/1.1.0>`__
      - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
 
-   * - :npmjs:`d3-array</d3-array/v/3.1.1>`
+   * - `d3-array <https://www.npmjs.com/package/d3-array/v/3.1.1>`__
      - Copyright 2010-2021 Mike Bostock, Copyright 2018 Vladimir
        Agafonkin
 
-   * - :npmjs:`d3-axis</d3-axis/v/3.0.0>`
+   * - `d3-axis <https://www.npmjs.com/package/d3-axis/v/3.0.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-color</d3-color/v/3.0.1>`
+   * - `d3-color <https://www.npmjs.com/package/d3-color/v/3.0.1>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-delaunay</d3-delaunay/v/6.0.2>`
+   * - `d3-delaunay <https://www.npmjs.com/package/d3-delaunay/v/6.0.2>`__
      - Copyright 2018-2021 Observable, Inc.,
        Copyright 2021 Mapbox,
        Copyright 2018-2021 Observable, Inc., 2021 Mapbox
 
-   * - :npmjs:`d3-dispatch</d3-dispatch/v/3.0.1>`
+   * - `d3-dispatch <https://www.npmjs.com/package/d3-dispatch/v/3.0.1>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-drag</d3-drag/v/3.0.0>`
+   * - `d3-drag <https://www.npmjs.com/package/d3-drag/v/3.0.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-dsv</d3-dsv/v/3.0.1>`
+   * - `d3-dsv <https://www.npmjs.com/package/d3-dsv/v/3.0.1>`__
      - Copyright 2013-2021 Mike Bostock
 
-   * - :npmjs:`d3-force</d3-force/v/3.0.0>`
+   * - `d3-force <https://www.npmjs.com/package/d3-force/v/3.0.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-format</d3-format/v/3.1.0>`
+   * - `d3-format <https://www.npmjs.com/package/d3-format/v/3.1.0>`__
      - 
 
-   * - :npmjs:`d3-geo</d3-geo/v/3.0.1>`
+   * - `d3-geo <https://www.npmjs.com/package/d3-geo/v/3.0.1>`__
      - Copyright 2010-2021 Mike Bostock,
        Copyright 2008-2012 Charles Karney,
        Copyright 2010-2021 Mike Bostock, 2008-2012 Charles Karney
 
-   * - :npmjs:`d3-geo-projection</d3-geo-projection/v/4.0.0>`
+   * - `d3-geo-projection <https://www.npmjs.com/package/d3-geo-projection/v/4.0.0>`__
      - Copyright 2013-2021 Mike Bostock,
        Copyright 2015 Ricky Reusser,
        Copyright 2013-2021 Mike Bostock, 2015 Ricky Reusser
 
-   * - :npmjs:`d3-hierarchy</d3-hierarchy/v/3.1.2>`
+   * - `d3-hierarchy <https://www.npmjs.com/package/d3-hierarchy/v/3.1.2>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-interpolate</d3-interpolate/v/3.0.1>`
+   * - `d3-interpolate <https://www.npmjs.com/package/d3-interpolate/v/3.0.1>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-path</d3-path/v/3.0.1>`
+   * - `d3-path <https://www.npmjs.com/package/d3-path/v/3.0.1>`__
      - Copyright 2015-2021 Mike Bostock
 
-   * - :npmjs:`d3-quadtree</d3-quadtree/v/3.0.1>`
+   * - `d3-quadtree <https://www.npmjs.com/package/d3-quadtree/v/3.0.1>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-scale</d3-scale/v/4.0.2>`
+   * - `d3-scale <https://www.npmjs.com/package/d3-scale/v/4.0.2>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-scale-chromatic</d3-scale-chromatic/v/3.0.0>`
+   * - `d3-scale-chromatic <https://www.npmjs.com/package/d3-scale-chromatic/v/3.0.0>`__
      - Copyright 2010-2021 Mike Bostock,
        Copyright 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University,
        Copyright 2010-2021 Mike Bostock 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania State University
 
-   * - :npmjs:`d3-selection</d3-selection/v/3.0.0>`
+   * - `d3-selection <https://www.npmjs.com/package/d3-selection/v/3.0.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-shape</d3-shape/v/3.1.0>`
+   * - `d3-shape <https://www.npmjs.com/package/d3-shape/v/3.1.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-time</d3-time/v/3.0.0>`
+   * - `d3-time <https://www.npmjs.com/package/d3-time/v/3.0.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-time-format</d3-time-format/v/4.1.0>`
+   * - `d3-time-format <https://www.npmjs.com/package/d3-time-format/v/4.1.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-timer</d3-timer/v/3.0.1>`
+   * - `d3-timer <https://www.npmjs.com/package/d3-timer/v/3.0.1>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-transition</d3-transition/v/3.0.1>`
+   * - `d3-transition <https://www.npmjs.com/package/d3-transition/v/3.0.1>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`d3-zoom</d3-zoom/v/3.0.0>`
+   * - `d3-zoom <https://www.npmjs.com/package/d3-zoom/v/3.0.0>`__
      - Copyright 2010-2021 Mike Bostock
 
-   * - :npmjs:`delaunator</delaunator/v/5.0.0>`
+   * - `delaunator <https://www.npmjs.com/package/delaunator/v/5.0.0>`__
      - Copyright © 2017, Mapbox
 
-   * - :npmjs:`fs.realpath</fs.realpath/v/1.0.0>`
+   * - `fs.realpath <https://www.npmjs.com/package/fs.realpath/v/1.0.0>`__
      - Copyright © Isaac Z. Schlueter and Contributors, Copyright
        Joyent, Inc. and other Node contributors.
 
-   * - :npmjs:`gauge</gauge/v/2.7.4>`
+   * - `gauge <https://www.npmjs.com/package/gauge/v/2.7.4>`__
      - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
 
-   * - :npmjs:`get-caller-file</get-caller-file/v/2.0.5>`
+   * - `get-caller-file <https://www.npmjs.com/package/get-caller-file/v/2.0.5>`__
      - Copyright 2018 Stefan Penner
 
-   * - :npmjs:`glob</glob/v/7.2.0>`
+   * - `glob <https://www.npmjs.com/package/glob/v/7.2.0>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`graceful-fs</graceful-fs/v/4.2.10>`
+   * - `graceful-fs <https://www.npmjs.com/package/graceful-fs/v/4.2.10>`__
      - Copyright © 2011-2022 Isaac Z. Schlueter, Ben Noordhuis, and
        Contributors
 
-   * - :npmjs:`har-schema</har-schema/v/2.0.0>`
+   * - `har-schema <https://www.npmjs.com/package/har-schema/v/2.0.0>`__
      - Copyright © 2015, Ahmad Nassri <ahmad\@ahmadnassri.com>,
        copyright ahmadnassri.com (https://www.ahmadnassri.com/)
 
-   * - :npmjs:`has-unicode</has-unicode/v/2.0.1>`
+   * - `has-unicode <https://www.npmjs.com/package/has-unicode/v/2.0.1>`__
      - Copyright © 2014, Rebecca Turner <me\@re-becca.org>
 
-   * - :npmjs:`inflight</inflight/v/1.0.6>`
+   * - `inflight <https://www.npmjs.com/package/inflight/v/1.0.6>`__
      - Copyright © Isaac Z. Schlueter
 
-   * - :npmjs:`inherits</inherits/v/2.0.4>`
+   * - `inherits <https://www.npmjs.com/package/inherits/v/2.0.4>`__
      - Copyright © Isaac Z. Schlueter
 
-   * - :npmjs:`ini</ini/v/1.3.8>`
+   * - `ini <https://www.npmjs.com/package/ini/v/1.3.8>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`internmap</internmap/v/2.0.3>`
+   * - `internmap <https://www.npmjs.com/package/internmap/v/2.0.3>`__
      - Copyright 2021 Mike Bostock
 
-   * - :npmjs:`is-json</is-json/v/2.0.1>`
+   * - `is-json <https://www.npmjs.com/package/is-json/v/2.0.1>`__
      - Copyright © Joaquim Jose F. Serafim
 
-   * - :npmjs:`json-stringify-safe</json-stringify-safe/v/5.0.1>`
+   * - `json-stringify-safe <https://www.npmjs.com/package/json-stringify-safe/v/5.0.1>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`lru-cache</lru-cache/v/4.1.5>`
+   * - `lru-cache <https://www.npmjs.com/package/lru-cache/v/4.1.5>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`minimatch</minimatch/v/3.1.2>`
+   * - `minimatch <https://www.npmjs.com/package/minimatch/v/3.1.2>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`mute-stream</mute-stream/v/0.0.7>`
+   * - `mute-stream <https://www.npmjs.com/package/mute-stream/v/0.0.7>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`nopt</nopt/v/5.0.0>`
+   * - `nopt <https://www.npmjs.com/package/nopt/v/5.0.0>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`npmlog</npmlog/v/4.1.2>`
+   * - `npmlog <https://www.npmjs.com/package/npmlog/v/4.1.2>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`once</once/v/1.4.0>`
+   * - `once <https://www.npmjs.com/package/once/v/1.4.0>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`proto-list</proto-list/v/1.2.4>`
+   * - `proto-list <https://www.npmjs.com/package/proto-list/v/1.2.4>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`pseudomap</pseudomap/v/1.0.2>`
+   * - `pseudomap <https://www.npmjs.com/package/pseudomap/v/1.0.2>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`reflux-state-mixin</reflux-state-mixin/v/0.8.0>`
+   * - `reflux-state-mixin <https://www.npmjs.com/package/reflux-state-mixin/v/0.8.0>`__
      - 
 
-   * - :npmjs:`rimraf</rimraf/v/3.0.2>`
+   * - `rimraf <https://www.npmjs.com/package/rimraf/v/3.0.2>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`semver</semver/v/5.7.1>`
+   * - `semver <https://www.npmjs.com/package/semver/v/5.7.1>`__
      - Copyright © Isaac Z. Schlueter and Contributors, Copyright Isaac
        Z. Schlueter, Copyright Isaac Z.
 
-   * - :npmjs:`set-blocking</set-blocking/v/2.0.0>`
+   * - `set-blocking <https://www.npmjs.com/package/set-blocking/v/2.0.0>`__
      - Copyright © 2016
 
-   * - :npmjs:`sigmund</sigmund/v/1.0.1>`
+   * - `sigmund <https://www.npmjs.com/package/sigmund/v/1.0.1>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`signal-exit</signal-exit/v/3.0.7>`
+   * - `signal-exit <https://www.npmjs.com/package/signal-exit/v/3.0.7>`__
      - Copyright © 2015
 
-   * - :npmjs:`topojson-client</topojson-client/v/3.1.0>`
+   * - `topojson-client <https://www.npmjs.com/package/topojson-client/v/3.1.0>`__
      - Copyright 2012-2019 Michael Bostock, Copyright 2019 Mike Bostock
 
-   * - :npmjs:`wide-align</wide-align/v/1.1.5>`
+   * - `wide-align <https://www.npmjs.com/package/wide-align/v/1.1.5>`__
      - Copyright © 2015, Rebecca Turner <me\@re-becca.org>
 
-   * - :npmjs:`wrappy</wrappy/v/1.0.2>`
+   * - `wrappy <https://www.npmjs.com/package/wrappy/v/1.0.2>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`write-file-atomic</write-file-atomic/v/3.0.3>`
+   * - `write-file-atomic <https://www.npmjs.com/package/write-file-atomic/v/3.0.3>`__
      - Copyright © 2015, Rebecca Turner
 
-   * - :npmjs:`y18n</y18n/v/5.0.8>`
+   * - `y18n <https://www.npmjs.com/package/y18n/v/5.0.8>`__
      - Copyright © 2015
 
-   * - :npmjs:`yallist</yallist/v/2.1.2>`
+   * - `yallist <https://www.npmjs.com/package/yallist/v/2.1.2>`__
      - Copyright © Isaac Z. Schlueter and Contributors
 
-   * - :npmjs:`yaml</yaml/v/1.10.2>`
+   * - `yaml <https://www.npmjs.com/package/yaml/v/1.10.2>`__
      - Copyright 2018 Eemeli Aro <eemeli\@gmail.com>
 
-   * - :npmjs:`yargs-parser</yargs-parser/v/20.2.9>`
+   * - `yargs-parser <https://www.npmjs.com/package/yargs-parser/v/20.2.9>`__
      - Copyright © 2016
 
-   * - :gh:`github.com/davecgh/go-spew</davecgh/go-spew>`
+   * - `github.com/davecgh/go-spew <https://github.com/davecgh/go-spew>`__
      - 

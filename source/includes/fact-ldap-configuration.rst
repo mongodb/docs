@@ -3,7 +3,7 @@ authentication. If you use LDAP authentication, users must belong to an
 LDAP group to log into |mms|. You must create LDAP groups for each
 |mms| :doc:`user role </reference/user-roles>`.
 
-*Settings that begin with* :setting:`mms.ldap.global.role` assign |mms|
+*Settings that begin with* ``mms.ldap.global.role`` assign |mms|
 :ref:`global roles <global-roles>` to the members of the specified LDAP
 groups. Specify groups using the format used by the LDAP attribute
 specified in the :setting:`LDAP User Group` setting. You can specify

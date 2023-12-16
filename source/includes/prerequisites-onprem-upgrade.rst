@@ -38,6 +38,6 @@ required software includes:
 
 - All versions of MongoDB :dl:`Community <community>` or
   :dl:`Enterprise <enterprise>` that you want to install
-- :db-tools:`MongoDB Tools </>`. The version of MongoDB Tools must
+- :dbtools:`MongoDB Tools </>`. The version of MongoDB Tools must
   match the version that the :ref:`Ops Manager release notes
   <mms-changelog>` list as compatible with your |onprem| version. 

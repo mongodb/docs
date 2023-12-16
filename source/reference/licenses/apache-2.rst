@@ -6,142 +6,142 @@
    * - Package
      - Copyright
 
-   * - :mvn:`cglib:cglib</cglib/cglib/3.3.0>`
+   * - `cglib:cglib <https://mvnrepository.com/artifact/cglib/cglib/3.3.0>`__
      - Copyright © 2000-2005 INRIA, France Telecom,
        Copyright © 2002, 2003, 2004, 2011 The Apache Software Foundation,
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-athena</com.amazonaws/aws-java-sdk-athena/1.12.196>`
+   * - `com.amazonaws:aws-java-sdk-athena <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-athena/1.12.196>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-cloudwatch</com.amazonaws/aws-java-sdk-cloudwatch/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-cloudwatch <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-cloudwatch/1.12.175>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-core</com.amazonaws/aws-java-sdk-core/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-core <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.12.175>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates,
        portions copyright 2006-2009 James Murty
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-ec2</com.amazonaws/aws-java-sdk-ec2/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-ec2 <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-ec2/1.12.175>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates,
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-elasticloadbalancingv2</com.amazonaws/aws-java-sdk-elasticloadbalancingv2/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-elasticloadbalancingv2 <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-elasticloadbalancingv2/1.12.175>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-iam</com.amazonaws/aws-java-sdk-iam/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-iam <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-iam/1.12.175>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-kinesis</com.amazonaws/aws-java-sdk-kinesis/1.12.210>`
+   * - `com.amazonaws:aws-java-sdk-kinesis <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-kinesis/1.12.210>`__
      - 
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-kms</com.amazonaws/aws-java-sdk-kms/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-kms <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-kms/1.12.175>`__
      - Copyright © 2011-2022 Amazon.com, Inc. or its affiliates,
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-marketplaceentitlement</com.amazonaws/aws-java-sdk-marketplaceentitlement/1.12.196>`
+   * - `com.amazonaws:aws-java-sdk-marketplaceentitlement <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-marketplaceentitlement/1.12.196>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-marketplacemeteringservice</com.amazonaws/aws-java-sdk-marketplacemeteringservice/1.12.196>`
+   * - `com.amazonaws:aws-java-sdk-marketplacemeteringservice <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-marketplacemeteringservice/1.12.196>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-route53</com.amazonaws/aws-java-sdk-route53/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-route53 <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-route53/1.12.175>`__
      - Copyright © 2012-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-route53resolver</com.amazonaws/aws-java-sdk-route53resolver/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-route53resolver <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-route53resolver/1.12.175>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-s3</com.amazonaws/aws-java-sdk-s3/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-s3 <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.12.175>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates,
        portions copyright 2006-2009 James Murty
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-secretsmanager</com.amazonaws/aws-java-sdk-secretsmanager/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-secretsmanager <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-secretsmanager/1.12.175>`__
      - Copyright © 2017-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-ses</com.amazonaws/aws-java-sdk-ses/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-ses <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-ses/1.12.175>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-sns</com.amazonaws/aws-java-sdk-sns/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-sns <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-sns/1.12.175>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-sqs</com.amazonaws/aws-java-sdk-sqs/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-sqs <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-sqs/1.12.175>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-stepfunctions</com.amazonaws/aws-java-sdk-stepfunctions/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-stepfunctions <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-stepfunctions/1.12.175>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:aws-java-sdk-sts</com.amazonaws/aws-java-sdk-sts/1.12.175>`
+   * - `com.amazonaws:aws-java-sdk-sts <https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-sts/1.12.175>`__
      - Copyright © 2011-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.amazonaws:jmespath-java</com.amazonaws/jmespath-java/1.12.196>`
+   * - `com.amazonaws:jmespath-java <https://mvnrepository.com/artifact/com.amazonaws/jmespath-java/1.12.196>`__
      - Copyright © 2010-2022 Amazon.com, Inc. or its affiliates
 
-   * - :mvn:`com.beust:jcommander</com.beust/jcommander/1.78>`
+   * - `com.beust:jcommander <https://mvnrepository.com/artifact/com.beust/jcommander/1.78>`__
      - Copyright © 2010-2011 the original author or authors
 
-   * - :mvn:`com.braintreepayments.gateway:braintree-java</com.braintreepayments.gateway/braintree-java/3.15.0>`
+   * - `com.braintreepayments.gateway:braintree-java <https://mvnrepository.com/artifact/com.braintreepayments.gateway/braintree-java/3.15.0>`__
      - Copyright © 2009-2017 Braintree,
        Copyright © 2002-2009 The Apache Software Foundation,
        Copyright © 2002 Kevin Atkinson (kevina\@gnu.org)
 
-   * - :mvn:`com.fasterxml:classmate</com.fasterxml/classmate/1.5.1>`
+   * - `com.fasterxml:classmate <https://mvnrepository.com/artifact/com.fasterxml/classmate/1.5.1>`__
      - 
 
-   * - :mvn:`com.fasterxml.jackson.core:jackson-annotations</com.fasterxml.jackson.core/jackson-annotations/2.13.2>`
+   * - `com.fasterxml.jackson.core:jackson-annotations <https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations/2.13.2>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.core:jackson-core</com.fasterxml.jackson.core/jackson-core/2.13.2>`
+   * - `com.fasterxml.jackson.core:jackson-core <https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core/2.13.2>`__
      - Copyright © 2007- Tatu Saloranta, tatu.saloranta\@iki.fi, © Override public ObjectCodec
 
-   * - :mvn:`com.fasterxml.jackson.core:jackson-databind</com.fasterxml.jackson.core/jackson-databind/2.13.2.2>`
+   * - `com.fasterxml.jackson.core:jackson-databind <https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind/2.13.2.2>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.dataformat:jackson-dataformat-cbor</com.fasterxml.jackson.dataformat/jackson-dataformat-cbor/2.13.2>`
+   * - `com.fasterxml.jackson.dataformat:jackson-dataformat-cbor <https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-cbor/2.13.2>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.dataformat:jackson-dataformat-xml</com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.12.5>`
+   * - `com.fasterxml.jackson.dataformat:jackson-dataformat-xml <https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-xml/2.12.5>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.dataformat:jackson-dataformat-yaml</com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.13.2>`
+   * - `com.fasterxml.jackson.dataformat:jackson-dataformat-yaml <https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.13.2>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.datatype:jackson-datatype-joda</com.fasterxml.jackson.datatype/jackson-datatype-joda/2.10.5>`
+   * - `com.fasterxml.jackson.datatype:jackson-datatype-joda <https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-joda/2.10.5>`__
      - 
 
-   * - :mvn:`com.fasterxml.jackson.datatype:jackson-datatype-json-org</com.fasterxml.jackson.datatype/jackson-datatype-json-org/2.13.2>`
+   * - `com.fasterxml.jackson.datatype:jackson-datatype-json-org <https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-json-org/2.13.2>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.datatype:jackson-datatype-jsr310</com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.13.2>`
+   * - `com.fasterxml.jackson.datatype:jackson-datatype-jsr310 <https://mvnrepository.com/artifact/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.13.2>`__
      - Copyright © 2013 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.jaxrs:jackson-jaxrs-base</com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/2.13.2>`
+   * - `com.fasterxml.jackson.jaxrs:jackson-jaxrs-base <https://mvnrepository.com/artifact/com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/2.13.2>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider</com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/2.13.2>`
+   * - `com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider <https://mvnrepository.com/artifact/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/2.13.2>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.jackson.jr:jackson-jr-objects</com.fasterxml.jackson.jr/jackson-jr-objects/2.11.0>`
+   * - `com.fasterxml.jackson.jr:jackson-jr-objects <https://mvnrepository.com/artifact/com.fasterxml.jackson.jr/jackson-jr-objects/2.11.0>`__
      - 
 
-   * - :mvn:`com.fasterxml.jackson.module:jackson-module-jaxb-annotations</com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.12.5>`
+   * - `com.fasterxml.jackson.module:jackson-module-jaxb-annotations <https://mvnrepository.com/artifact/com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.12.5>`__
      - Copyright © 2012 FasterXML.com
 
-   * - :mvn:`com.fasterxml.woodstox:woodstox-core</com.fasterxml.woodstox/woodstox-core/5.2.1>`
+   * - `com.fasterxml.woodstox:woodstox-core <https://mvnrepository.com/artifact/com.fasterxml.woodstox/woodstox-core/5.2.1>`__
      - Copyright © 2004-2005 Tatu Saloranta, tatu.saloranta\@iki.fi
 
-   * - :mvn:`com.github.ben-manes.caffeine:caffeine</com.github.ben-manes.caffeine/caffeine/2.8.0>`
+   * - `com.github.ben-manes.caffeine:caffeine <https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine/2.8.0>`__
      - Copyright © 2014-2019 Ben Manes
 
-   * - :mvn:`com.github.jknack:handlebars</com.github.jknack/handlebars/4.3.0>`
+   * - `com.github.jknack:handlebars <https://mvnrepository.com/artifact/com.github.jknack/handlebars/4.3.0>`__
      - Copyright © 2011-2019 by Yehuda Katz,
        Copyright © 2012-2015 Edgar Espina
 
-   * - :mvn:`com.github.seancfoley:ipaddress</com.github.seancfoley/ipaddress/5.3.3>`
+   * - `com.github.seancfoley:ipaddress <https://mvnrepository.com/artifact/com.github.seancfoley/ipaddress/5.3.3>`__
      - Copyright © 2016-2020 Sean C Foley
 
-   * - :mvn:`com.github.stephenc.jcip:jcip-annotations</com.github.stephenc.jcip/jcip-annotations/1.0-1>`
+   * - `com.github.stephenc.jcip:jcip-annotations <https://mvnrepository.com/artifact/com.github.stephenc.jcip/jcip-annotations/1.0-1>`__
      - Copyright © 2013 Stephen Connolly.
 
-   * - :mvn:`com.google.android:annotations</com.google.android/annotations/4.1.1.4>`
+   * - `com.google.android:annotations <https://mvnrepository.com/artifact/com.google.android/annotations/4.1.1.4>`__
      - Copyright © 2012 The Android Open Source Project
 
-   * - :mvn:`com.google.api-client:google-api-client</com.google.api-client/google-api-client/1.33.2>`
+   * - `com.google.api-client:google-api-client <https://mvnrepository.com/artifact/com.google.api-client/google-api-client/1.33.2>`__
      - Copyright © 1998-1999, 2006-2008 VeriSign, Inc.,
        Copyright © 1999 Entrust.net Limited1301 Entrust.net Certification, 
        Copyright © 1999 Entrust.net Limited1:08 1Entrust.net Secure Server Certification, 
@@ -150,561 +150,561 @@
        Copyright © 2007-2008 GeoTrust Inc., 
        Copyright © 2010-2015, 2020 Google LLC
 
-   * - :mvn:`com.google.api.grpc:proto-google-cloud-logging-v2</com.google.api.grpc/proto-google-cloud-logging-v2/0.96.1>`
+   * - `com.google.api.grpc:proto-google-cloud-logging-v2 <https://mvnrepository.com/artifact/com.google.api.grpc/proto-google-cloud-logging-v2/0.96.1>`__
      - Copyright © 2020-2022 Google LLC
 
-   * - :mvn:`com.google.api.grpc:proto-google-cloud-monitoring-v3</com.google.api.grpc/proto-google-cloud-monitoring-v3/3.0.6>`
+   * - `com.google.api.grpc:proto-google-cloud-monitoring-v3 <https://mvnrepository.com/artifact/com.google.api.grpc/proto-google-cloud-monitoring-v3/3.0.6>`__
      - Copyright © 2019-2021 Google LLC
 
-   * - :mvn:`com.google.api.grpc:proto-google-common-protos</com.google.api.grpc/proto-google-common-protos/2.5.1>`
+   * - `com.google.api.grpc:proto-google-common-protos <https://mvnrepository.com/artifact/com.google.api.grpc/proto-google-common-protos/2.5.1>`__
      - Copyright © 2015-2016, 2018-2021 Google LLC
 
-   * - :mvn:`com.google.api.grpc:proto-google-iam-v1</com.google.api.grpc/proto-google-iam-v1/1.3.1>`
+   * - `com.google.api.grpc:proto-google-iam-v1 <https://mvnrepository.com/artifact/com.google.api.grpc/proto-google-iam-v1/1.3.1>`__
      - Copyright © 2017, 2019-2020 Google LLC
 
-   * - :mvn:`com.google.apis:google-api-services-analytics</com.google.apis/google-api-services-analytics/v3-rev20190807-1.32.1>`
+   * - `com.google.apis:google-api-services-analytics <https://mvnrepository.com/artifact/com.google.apis/google-api-services-analytics/v3-rev20190807-1.32.1>`__
      - Copyright © 2011-2021 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-bigquery</com.google.apis/google-api-services-bigquery/v2-rev20220326-1.32.1>`
+   * - `com.google.apis:google-api-services-bigquery <https://mvnrepository.com/artifact/com.google.apis/google-api-services-bigquery/v2-rev20220326-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-cloudbilling</com.google.apis/google-api-services-cloudbilling/v1-rev20211211-1.32.1>`
+   * - `com.google.apis:google-api-services-cloudbilling <https://mvnrepository.com/artifact/com.google.apis/google-api-services-cloudbilling/v1-rev20211211-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-cloudkms</com.google.apis/google-api-services-cloudkms/v1-rev20220211-1.32.1>`
+   * - `com.google.apis:google-api-services-cloudkms <https://mvnrepository.com/artifact/com.google.apis/google-api-services-cloudkms/v1-rev20220211-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-cloudresourcemanager</com.google.apis/google-api-services-cloudresourcemanager/v3-rev20220306-1.32.1>`
+   * - `com.google.apis:google-api-services-cloudresourcemanager <https://mvnrepository.com/artifact/com.google.apis/google-api-services-cloudresourcemanager/v3-rev20220306-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-compute</com.google.apis/google-api-services-compute/v1-rev20220301-1.32.1>`
+   * - `com.google.apis:google-api-services-compute <https://mvnrepository.com/artifact/com.google.apis/google-api-services-compute/v1-rev20220301-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-servicemanagement</com.google.apis/google-api-services-servicemanagement/v1-rev20220218-1.32.1>`
+   * - `com.google.apis:google-api-services-servicemanagement <https://mvnrepository.com/artifact/com.google.apis/google-api-services-servicemanagement/v1-rev20220218-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-serviceusage</com.google.apis/google-api-services-serviceusage/v1-rev20220129-1.32.1>`
+   * - `com.google.apis:google-api-services-serviceusage <https://mvnrepository.com/artifact/com.google.apis/google-api-services-serviceusage/v1-rev20220129-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.apis:google-api-services-storage</com.google.apis/google-api-services-storage/v1-rev20220210-1.32.1>`
+   * - `com.google.apis:google-api-services-storage <https://mvnrepository.com/artifact/com.google.apis/google-api-services-storage/v1-rev20220210-1.32.1>`__
      - Copyright © 2011-2022 Google http://www.google.com
 
-   * - :mvn:`com.google.auto:auto-common</com.google.auto/auto-common/0.3>`
+   * - `com.google.auto:auto-common <https://mvnrepository.com/artifact/com.google.auto/auto-common/0.3>`__
      - Copyright © 2013-2014 Google, Inc.,
        Copyright © 2013 Square, Inc.,
 
-   * - :mvn:`com.google.auto.service:auto-service</com.google.auto.service/auto-service/1.0-rc3>`
+   * - `com.google.auto.service:auto-service <https://mvnrepository.com/artifact/com.google.auto.service/auto-service/1.0-rc3>`__
      - Copyright © 2008, 2013 Google, Inc.
 
-   * - :mvn:`com.google.auto.service:auto-service-annotations</com.google.auto.service/auto-service-annotations/1.0-rc6>`
+   * - `com.google.auto.service:auto-service-annotations <https://mvnrepository.com/artifact/com.google.auto.service/auto-service-annotations/1.0-rc6>`__
      - Copyright © 2008 Google LLC
 
-   * - :mvn:`com.google.auto.value:auto-value</com.google.auto.value/auto-value/1.5.3>`
+   * - `com.google.auto.value:auto-value <https://mvnrepository.com/artifact/com.google.auto.value/auto-value/1.5.3>`__
      - Copyright © 2012-2017 Google, Inc.,
        Copyright © 2000-2007 The Apache Software Foundation
 
-   * - :mvn:`com.google.auto.value:auto-value-annotations</com.google.auto.value/auto-value-annotations/1.8.2>`
+   * - `com.google.auto.value:auto-value-annotations <https://mvnrepository.com/artifact/com.google.auto.value/auto-value-annotations/1.8.2>`__
      - Copyright © 2012-2021 Google LLC
 
-   * - :mvn:`com.google.cloud:google-cloud-bigquery</com.google.cloud/google-cloud-bigquery/2.10.10>`
+   * - `com.google.cloud:google-cloud-bigquery <https://mvnrepository.com/artifact/com.google.cloud/google-cloud-bigquery/2.10.10>`__
      - 
 
-   * - :mvn:`com.google.cloud:google-cloud-core</com.google.cloud/google-cloud-core/2.6.1>`
+   * - `com.google.cloud:google-cloud-core <https://mvnrepository.com/artifact/com.google.cloud/google-cloud-core/2.6.1>`__
      - 
 
-   * - :mvn:`com.google.cloud:google-cloud-core-grpc</com.google.cloud/google-cloud-core-grpc/2.5.6>`
+   * - `com.google.cloud:google-cloud-core-grpc <https://mvnrepository.com/artifact/com.google.cloud/google-cloud-core-grpc/2.5.6>`__
      - Copyright © 2016-2017 Google LLC
 
-   * - :mvn:`com.google.cloud:google-cloud-core-http</com.google.cloud/google-cloud-core-http/2.6.0>`
+   * - `com.google.cloud:google-cloud-core-http <https://mvnrepository.com/artifact/com.google.cloud/google-cloud-core-http/2.6.0>`__
      - 
 
-   * - :mvn:`com.google.cloud:google-cloud-logging</com.google.cloud/google-cloud-logging/3.7.1>`
+   * - `com.google.cloud:google-cloud-logging <https://mvnrepository.com/artifact/com.google.cloud/google-cloud-logging/3.7.1>`__
      - Copyright © 2016-2017, 2020-2021 Google LLC
 
-   * - :mvn:`com.google.cloud:google-cloud-monitoring</com.google.cloud/google-cloud-monitoring/3.2.5>`
+   * - `com.google.cloud:google-cloud-monitoring <https://mvnrepository.com/artifact/com.google.cloud/google-cloud-monitoring/3.2.5>`__
      - Copyright © 2021 Google LLC
 
-   * - :mvn:`com.google.code.findbugs:jsr305</com.google.code.findbugs/jsr305/3.0.2>`
+   * - `com.google.code.findbugs:jsr305 <https://mvnrepository.com/artifact/com.google.code.findbugs/jsr305/3.0.2>`__
      - Copyright © 2005 Brian Goetz
 
-   * - :mvn:`com.google.code.gson:gson</com.google.code.gson/gson/2.9.0>`
+   * - `com.google.code.gson:gson <https://mvnrepository.com/artifact/com.google.code.gson/gson/2.9.0>`__
      - Copyright © 2010 The Android Open Source Project,
        Copyright © 2017-2018 The Gson authors,
        Copyright © 2008-2012, 2014, 2020-2021 Google Inc.
 
-   * - :mvn:`com.googlecode.java-diff-utils:diffutils</com.googlecode.java-diff-utils/diffutils/1.3.0>`
+   * - `com.googlecode.java-diff-utils:diffutils <https://mvnrepository.com/artifact/com.googlecode.java-diff-utils/diffutils/1.3.0>`__
      - Copyright © 2009-2010 Dmitry Naumenko (dm.naumenko\@gmail.com),
        Copyright © 2002 The Apache Software Foundation,
        Copyright © 1999-2003 The Apache Software Foundation,
        Copyright © 2002 </p> Company
 
-   * - :mvn:`com.google.errorprone:error_prone_annotation</com.google.errorprone/error_prone_annotation/2.4.0>`
+   * - `com.google.errorprone:error_prone_annotation <https://mvnrepository.com/artifact/com.google.errorprone/error_prone_annotation/2.4.0>`__
      - Copyright © 2011, 2013 The Error Prone
 
-   * - :mvn:`com.google.errorprone:error_prone_annotations</com.google.errorprone/error_prone_annotations/2.9.0>`
+   * - `com.google.errorprone:error_prone_annotations <https://mvnrepository.com/artifact/com.google.errorprone/error_prone_annotations/2.9.0>`__
      - Copyright © 2014-2017, 2021 The Error Prone,
 
-   * - :mvn:`com.google.errorprone:error_prone_check_api</com.google.errorprone/error_prone_check_api/2.4.0>`
+   * - `com.google.errorprone:error_prone_check_api <https://mvnrepository.com/artifact/com.google.errorprone/error_prone_check_api/2.4.0>`__
      - Copyright © 2009 The Guava Authors,
        Copyright © 2011-2020 The Error Prone
 
-   * - :mvn:`com.google.errorprone:error_prone_core</com.google.errorprone/error_prone_core/2.4.0>`
+   * - `com.google.errorprone:error_prone_core <https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core/2.4.0>`__
      - Copyright © 2015 Google Inc.,
        Copyright © 2011-2020 The Error Prone
 
-   * - :mvn:`com.google.errorprone:error_prone_test_helpers</com.google.errorprone/error_prone_test_helpers/2.4.0>`
+   * - `com.google.errorprone:error_prone_test_helpers <https://mvnrepository.com/artifact/com.google.errorprone/error_prone_test_helpers/2.4.0>`__
      - Copyright © 2012, 2014, 2016 The Error Prone
 
-   * - :mvn:`com.google.errorprone:error_prone_type_annotations</com.google.errorprone/error_prone_type_annotations/2.4.0>`
+   * - `com.google.errorprone:error_prone_type_annotations <https://mvnrepository.com/artifact/com.google.errorprone/error_prone_type_annotations/2.4.0>`__
      - Copyright © 2018 The Error Prone
 
-   * - :mvn:`com.google.googlejavaformat:google-java-format</com.google.googlejavaformat/google-java-format/1.15.0>`
+   * - `com.google.googlejavaformat:google-java-format <https://mvnrepository.com/artifact/com.google.googlejavaformat/google-java-format/1.15.0>`__
      - Copyright © 2014-2017, 2019-2021 Google Inc.
 
-   * - :mvn:`com.google.guava:failureaccess</com.google.guava/failureaccess/1.0.1>`
+   * - `com.google.guava:failureaccess <https://mvnrepository.com/artifact/com.google.guava/failureaccess/1.0.1>`__
      - Copyright © 2018 The Guava Authors
 
-   * - :mvn:`com.google.guava:guava</com.google.guava/guava/31.1-jre>`
+   * - `com.google.guava:guava <https://mvnrepository.com/artifact/com.google.guava/guava/31.1-jre>`__
      - Copyright © 2011 Google Inc.,
        Copyright © 2005-2021 The Guava Authors
 
-   * - :mvn:`com.google.guava:listenablefuture</com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava>`
+   * - `com.google.guava:listenablefuture <https://mvnrepository.com/artifact/com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava>`__
      - 
 
-   * - :mvn:`com.google.http-client:google-http-client</com.google.http-client/google-http-client/1.41.4>`
+   * - `com.google.http-client:google-http-client <https://mvnrepository.com/artifact/com.google.http-client/google-http-client/1.41.4>`__
      - Copyright © 2010-2014, 2018-2020 Google LLC
 
-   * - :mvn:`com.google.http-client:google-http-client-apache-v2</com.google.http-client/google-http-client-apache-v2/1.41.2>`
+   * - `com.google.http-client:google-http-client-apache-v2 <https://mvnrepository.com/artifact/com.google.http-client/google-http-client-apache-v2/1.41.2>`__
      - Copyright © 2019 Google LLC
 
-   * - :mvn:`com.google.http-client:google-http-client-appengine</com.google.http-client/google-http-client-appengine/1.41.7>`
+   * - `com.google.http-client:google-http-client-appengine <https://mvnrepository.com/artifact/com.google.http-client/google-http-client-appengine/1.41.7>`__
      - Copyright © 2012-2013 Google Inc.
 
-   * - :mvn:`com.google.http-client:google-http-client-gson</com.google.http-client/google-http-client-gson/1.41.2>`
+   * - `com.google.http-client:google-http-client-gson <https://mvnrepository.com/artifact/com.google.http-client/google-http-client-gson/1.41.2>`__
      - Copyright © 2011 Google Inc.
 
-   * - :mvn:`com.google.http-client:google-http-client-jackson2</com.google.http-client/google-http-client-jackson2/1.41.4>`
+   * - `com.google.http-client:google-http-client-jackson2 <https://mvnrepository.com/artifact/com.google.http-client/google-http-client-jackson2/1.41.4>`__
      - Copyright © 2012 Google Inc.
 
-   * - :mvn:`com.google.inject.extensions:guice-assistedinject</com.google.inject.extensions/guice-assistedinject/5.1.0>`
+   * - `com.google.inject.extensions:guice-assistedinject <https://mvnrepository.com/artifact/com.google.inject.extensions/guice-assistedinject/5.1.0>`__
      - Copyright © 2006-2022 Google, Inc.
 
-   * - :mvn:`com.google.inject.extensions:guice-servlet</com.google.inject.extensions/guice-servlet/5.1.0>`
+   * - `com.google.inject.extensions:guice-servlet <https://mvnrepository.com/artifact/com.google.inject.extensions/guice-servlet/5.1.0>`__
      - Copyright © 2006-2022 Google, Inc.
 
-   * - :mvn:`com.google.inject:guice</com.google.inject/guice/5.1.0>`
+   * - `com.google.inject:guice <https://mvnrepository.com/artifact/com.google.inject/guice/5.1.0>`__
      - Copyright © 2020 The Dagger,
        Copyright © 2006-2022 Google, Inc.
 
-   * - :mvn:`com.google.j2objc:j2objc-annotations</com.google.j2objc/j2objc-annotations/1.3>`
+   * - `com.google.j2objc:j2objc-annotations <https://mvnrepository.com/artifact/com.google.j2objc/j2objc-annotations/1.3>`__
      - Copyright © 2012 Google Inc.
 
-   * - :mvn:`com.google.jimfs:jimfs</com.google.jimfs/jimfs/1.1>`
+   * - `com.google.jimfs:jimfs <https://mvnrepository.com/artifact/com.google.jimfs/jimfs/1.1>`__
      - Copyright © 2013-2016 Google Inc.
 
-   * - :mvn:`com.google.oauth-client:google-oauth-client</com.google.oauth-client/google-oauth-client/1.33.0>`
+   * - `com.google.oauth-client:google-oauth-client <https://mvnrepository.com/artifact/com.google.oauth-client/google-oauth-client/1.33.0>`__
      - Copyright © 2010-2013 Google Inc.,
        Copyright © 2021 Google LLC
 
-   * - :mvn:`com.google.testing.compile:compile-testing</com.google.testing.compile/compile-testing/0.18>`
+   * - `com.google.testing.compile:compile-testing <https://mvnrepository.com/artifact/com.google.testing.compile/compile-testing/0.18>`__
      - Copyright © 2013-2014, 2016, 2018 Google, Inc.
 
-   * - :mvn:`com.google.truth:truth</com.google.truth/truth/1.0>`
+   * - `com.google.truth:truth <https://mvnrepository.com/artifact/com.google.truth/truth/1.0>`__
      - Copyright © 2017 The Bazel Authors.,
        Copyright © 2011, 2014-2018 Google, Inc.,
 
-   * - :mvn:`com.google.zxing:core</com.google.zxing/core/3.4.1>`
+   * - `com.google.zxing:core <https://mvnrepository.com/artifact/com.google.zxing/core/3.4.1>`__
      - Copyright © 2007-2015 ZXing,
        Copyright © 2006-2007 Jeremias Maerki,
 
-   * - :mvn:`com.google.zxing:javase</com.google.zxing/javase/3.4.1>`
+   * - `com.google.zxing:javase <https://mvnrepository.com/artifact/com.google.zxing/javase/3.4.1>`__
      - Copyright © 2007-2013, 2015 ZXing
 
-   * - :mvn:`com.microsoft.azure:azure-storage</com.microsoft.azure/azure-storage/6.1.0>`
+   * - `com.microsoft.azure:azure-storage <https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage/6.1.0>`__
      - Copyright © Microsoft Corporation, 
        Copyright © 2006, 2008 VeriSign, Inc.
 
-   * - :mvn:`commons-beanutils:commons-beanutils</commons-beanutils/commons-beanutils/1.9.4>`
+   * - `commons-beanutils:commons-beanutils <https://mvnrepository.com/artifact/commons-beanutils/commons-beanutils/1.9.4>`__
      - Copyright © 2000-2019 The Apache Software Foundation
 
-   * - :mvn:`commons-cli:commons-cli</commons-cli/commons-cli/1.5.0>`
+   * - `commons-cli:commons-cli <https://mvnrepository.com/artifact/commons-cli/commons-cli/1.5.0>`__
      - Copyright © 2002-2021 The Apache Software Foundation
 
-   * - :mvn:`commons-codec:commons-codec</commons-codec/commons-codec/1.15>`
+   * - `commons-codec:commons-codec <https://mvnrepository.com/artifact/commons-codec/commons-codec/1.15>`__
      - Copyright © 2002-2020 The Apache Software Foundation,
        Copyright © 2002 Kevin Atkinson (kevina\@gnu.org),
        Copyright © 2008 Alexander Beider & Stephen P. Morse,
        Copyright © 2004-2006 Intel Corportation
 
-   * - :mvn:`commons-collections:commons-collections</commons-collections/commons-collections/3.2.2>`
+   * - `commons-collections:commons-collections <https://mvnrepository.com/artifact/commons-collections/commons-collections/3.2.2>`__
      - Copyright © 2001-2015 The Apache Software Foundation
 
-   * - :mvn:`commons-discovery:commons-discovery</commons-discovery/commons-discovery/0.5>`
+   * - `commons-discovery:commons-discovery <https://mvnrepository.com/artifact/commons-discovery/commons-discovery/0.5>`__
      - Copyright © 2002-2011 The Apache Software Foundation
 
-   * - :mvn:`commons-fileupload:commons-fileupload</commons-fileupload/commons-fileupload/1.4>`
+   * - `commons-fileupload:commons-fileupload <https://mvnrepository.com/artifact/commons-fileupload/commons-fileupload/1.4>`__
      - Copyright © 2002-2018 The Apache Software Foundation
 
-   * - :mvn:`commons-io:commons-io</commons-io/commons-io/2.11.0>`
+   * - `commons-io:commons-io <https://mvnrepository.com/artifact/commons-io/commons-io/2.11.0>`__
      - Copyright © 2002-2021 The Apache Software Foundation
 
-   * - :mvn:`commons-lang:commons-lang</commons-lang/commons-lang/2.6>`
+   * - `commons-lang:commons-lang <https://mvnrepository.com/artifact/commons-lang/commons-lang/2.6>`__
      - Copyright © 2001-2011 The Apache Software Foundation
 
-   * - :mvn:`commons-logging:commons-logging</commons-logging/commons-logging/1.2>`
+   * - `commons-logging:commons-logging <https://mvnrepository.com/artifact/commons-logging/commons-logging/1.2>`__
      - Copyright © 2003-2014 The Apache Software Foundation
 
-   * - :mvn:`commons-net:commons-net</commons-net/commons-net/3.8.0>`
+   * - `commons-net:commons-net <https://mvnrepository.com/artifact/commons-net/commons-net/3.8.0>`__
      - Copyright © 2001-2021 The Apache Software Foundation
 
-   * - :mvn:`com.mycila.guice.extensions:mycila-guice-closeable</com.mycila.guice.extensions/mycila-guice-closeable/5.0>`
+   * - `com.mycila.guice.extensions:mycila-guice-closeable <https://mvnrepository.com/artifact/com.mycila.guice.extensions/mycila-guice-closeable/5.0>`__
      - Copyright © 2010 Mycila (mathieu.carbou\@gmail.com)
 
-   * - :mvn:`com.mycila.guice.extensions:mycila-guice-injection</com.mycila.guice.extensions/mycila-guice-injection/5.0>`
+   * - `com.mycila.guice.extensions:mycila-guice-injection <https://mvnrepository.com/artifact/com.mycila.guice.extensions/mycila-guice-injection/5.0>`__
      - Copyright © 2010 Mycila (mathieu.carbou\@gmail.com)
 
-   * - :mvn:`com.mycila.guice.extensions:mycila-guice-jsr250</com.mycila.guice.extensions/mycila-guice-jsr250/5.0>`
+   * - `com.mycila.guice.extensions:mycila-guice-jsr250 <https://mvnrepository.com/artifact/com.mycila.guice.extensions/mycila-guice-jsr250/5.0>`__
      - Copyright © 2010 Mycila (mathieu.carbou\@gmail.com)
 
-   * - :mvn:`com.nimbusds:content-type</com.nimbusds/content-type/2.1>`
+   * - `com.nimbusds:content-type <https://mvnrepository.com/artifact/com.nimbusds/content-type/2.1>`__
      - Copyright © 2020, Connect2id Ltd and contributors
 
-   * - :mvn:`com.nimbusds:lang-tag</com.nimbusds/lang-tag/1.5>`
+   * - `com.nimbusds:lang-tag <https://mvnrepository.com/artifact/com.nimbusds/lang-tag/1.5>`__
      - Copyright © 2012-2016, Connect2id Ltd.
 
-   * - :mvn:`com.nimbusds:nimbus-jose-jwt</com.nimbusds/nimbus-jose-jwt/9.21>`
+   * - `com.nimbusds:nimbus-jose-jwt <https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt/9.21>`__
      - Copyright © 2012-2021, Connect2id Ltd and contributors
 
-   * - :mvn:`com.nimbusds:oauth2-oidc-sdk</com.nimbusds/oauth2-oidc-sdk/9.4>`
+   * - `com.nimbusds:oauth2-oidc-sdk <https://mvnrepository.com/artifact/com.nimbusds/oauth2-oidc-sdk/9.4>`__
      - Copyright © 2012-2021, Connect2id Ltd and contributors
 
-   * - :mvn:`com.okta.commons:okta-commons-lang</com.okta.commons/okta-commons-lang/1.2.5>`
+   * - `com.okta.commons:okta-commons-lang <https://mvnrepository.com/artifact/com.okta.commons/okta-commons-lang/1.2.5>`__
      - Copyright © 2014 Stormpath, Inc.,
        Copyright © 2018-Present Okta, Inc.,
        Copyright © 2002-2018 the original author or authors,
 
-   * - :mvn:`com.okta.commons:okta-config-check</com.okta.commons/okta-config-check/1.2.5>`
+   * - `com.okta.commons:okta-config-check <https://mvnrepository.com/artifact/com.okta.commons/okta-config-check/1.2.5>`__
      - Copyright © 2018-Present Okta, Inc.
 
-   * - :mvn:`com.okta.commons:okta-http-api</com.okta.commons/okta-http-api/1.2.5>`
+   * - `com.okta.commons:okta-http-api <https://mvnrepository.com/artifact/com.okta.commons/okta-http-api/1.2.5>`__
      - Copyright © 2014 Stormpath, Inc.,
        Copyright © 2002-2017 the original author or authors,
        Copyright © 2017-Present Okta, Inc.
 
-   * - :mvn:`com.okta.commons:okta-http-httpclient</com.okta.commons/okta-http-httpclient/1.2.8>`
+   * - `com.okta.commons:okta-http-httpclient <https://mvnrepository.com/artifact/com.okta.commons/okta-http-httpclient/1.2.8>`__
      - Copyright © 2014 Stormpath, Inc.,
        Copyright © 2017-Present Okta, Inc.,
 
-   * - :mvn:`com.okta.commons:okta-http-okhttp</com.okta.commons/okta-http-okhttp/1.2.5>`
+   * - `com.okta.commons:okta-http-okhttp <https://mvnrepository.com/artifact/com.okta.commons/okta-http-okhttp/1.2.5>`__
      - Copyright © 2014 Stormpath, Inc.,
        Copyright © 2017-Present Okta, Inc.,
 
-   * - :mvn:`com.okta.jwt:okta-jwt-verifier</com.okta.jwt/okta-jwt-verifier/0.5.1>`
+   * - `com.okta.jwt:okta-jwt-verifier <https://mvnrepository.com/artifact/com.okta.jwt/okta-jwt-verifier/0.5.1>`__
      - Copyright © 2018-Present Okta, Inc.,
        Copyright © 2017 Okta, Inc.,
        Copyright © 2017-Present Okta, Inc.
 
-   * - :mvn:`com.okta.jwt:okta-jwt-verifier-impl</com.okta.jwt/okta-jwt-verifier-impl/0.5.1>`
+   * - `com.okta.jwt:okta-jwt-verifier-impl <https://mvnrepository.com/artifact/com.okta.jwt/okta-jwt-verifier-impl/0.5.1>`__
      - Copyright © 2017-Present Okta, Inc.
 
-   * - :mvn:`com.okta.sdk:okta-sdk-api</com.okta.sdk/okta-sdk-api/6.0.0>`
+   * - `com.okta.sdk:okta-sdk-api <https://mvnrepository.com/artifact/com.okta.sdk/okta-sdk-api/6.0.0>`__
      - Copyright © 2014 Stormpath, Inc.,
        Copyright © 2017-present Okta, Inc.
 
-   * - :mvn:`com.okta.sdk:okta-sdk-httpclient</com.okta.sdk/okta-sdk-httpclient/6.0.0>`
+   * - `com.okta.sdk:okta-sdk-httpclient <https://mvnrepository.com/artifact/com.okta.sdk/okta-sdk-httpclient/6.0.0>`__
      - Copyright © 2017 Okta
 
-   * - :mvn:`com.okta.sdk:okta-sdk-impl</com.okta.sdk/okta-sdk-impl/6.0.0>`
+   * - `com.okta.sdk:okta-sdk-impl <https://mvnrepository.com/artifact/com.okta.sdk/okta-sdk-impl/6.0.0>`__
      - Copyright © 2014 Stormpath, Inc.,
        Copyright © 2015-Present Okta, Inc.,
 
-   * - :mvn:`com.squareup.okhttp3:logging-interceptor</com.squareup.okhttp3/logging-interceptor/3.12.12>`
+   * - `com.squareup.okhttp3:logging-interceptor <https://mvnrepository.com/artifact/com.squareup.okhttp3/logging-interceptor/3.12.12>`__
      - Copyright © 2015, 2018 Square, Inc.
 
-   * - :mvn:`com.squareup.okhttp3:okhttp</com.squareup.okhttp3/okhttp/3.12.12>`
+   * - `com.squareup.okhttp3:okhttp <https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp/3.12.12>`__
      - Copyright © 2010-2012 The Android Open Source Project,
        Copyright © 2012-2018, 2020 Square, Inc.
        Copyright © 2013 Twitter, Inc.,
 
-   * - :mvn:`com.squareup.okhttp3:okhttp-urlconnection</com.squareup.okhttp3/okhttp-urlconnection/3.12.12>`
+   * - `com.squareup.okhttp3:okhttp-urlconnection <https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp-urlconnection/3.12.12>`__
      - Copyright © 2013-2016 Square, Inc.
        Copyright © 2012 The Android Open Source Project,
 
-   * - :mvn:`com.squareup.okio:okio</com.squareup.okio/okio/1.15.0>`
+   * - `com.squareup.okio:okio <https://mvnrepository.com/artifact/com.squareup.okio/okio/1.15.0>`__
      - Copyright © 2014-2017 Square, Inc.
 
-   * - :mvn:`com.squareup.retrofit2:adapter-rxjava</com.squareup.retrofit2/adapter-rxjava/2.6.4>`
+   * - `com.squareup.retrofit2:adapter-rxjava <https://mvnrepository.com/artifact/com.squareup.retrofit2/adapter-rxjava/2.6.4>`__
      - Copyright © 2016 Jake Wharton,
        Copyright © 2015 Square, Inc.
 
-   * - :mvn:`com.squareup.retrofit2:converter-jackson</com.squareup.retrofit2/converter-jackson/2.6.4>`
+   * - `com.squareup.retrofit2:converter-jackson <https://mvnrepository.com/artifact/com.squareup.retrofit2/converter-jackson/2.6.4>`__
      - Copyright © 2015 Square, Inc.
 
-   * - :mvn:`com.squareup.retrofit2:retrofit</com.squareup.retrofit2/retrofit/2.6.4>`
+   * - `com.squareup.retrofit2:retrofit <https://mvnrepository.com/artifact/com.squareup.retrofit2/retrofit/2.6.4>`__
      - Copyright © 2011-2019 Square, Inc.,
        Copyright © 2008 Google Inc.,
 
-   * - :mvn:`com.univocity:univocity-parsers</com.univocity/univocity-parsers/2.8.4>`
+   * - `com.univocity:univocity-parsers <https://mvnrepository.com/artifact/com.univocity/univocity-parsers/2.8.4>`__
      - Copyright © 2014-2019 Univocity Software Pty Ltd
 
-   * - :mvn:`com.vaadin.external.google:android-json</com.vaadin.external.google/android-json/0.0.20131108.vaadin1>`
+   * - `com.vaadin.external.google:android-json <https://mvnrepository.com/artifact/com.vaadin.external.google/android-json/0.0.20131108.vaadin1>`__
      - Copyright © 2010 The Android Open Source Project
 
-   * - :mvn:`com.zaxxer:HikariCP-java7</com.zaxxer/HikariCP-java7/2.4.13>`
+   * - `com.zaxxer:HikariCP-java7 <https://mvnrepository.com/artifact/com.zaxxer/HikariCP-java7/2.4.13>`__
      - Copyright © 2013-2015 Brett Wooldridge
 
-   * - :mvn:`io.envoyproxy.controlplane:api</io.envoyproxy.controlplane/api/0.1.30>`
+   * - `io.envoyproxy.controlplane:api <https://mvnrepository.com/artifact/io.envoyproxy.controlplane/api/0.1.30>`__
      - Copyright © 2013 Prometheus Team,
        Copyright © 2016-18 OpenCensus,
        Copyright © 2015, 2017, 2019 Google LLC,
        Copyright © 2019-2020 OpenTelemetry
 
-   * - :mvn:`io.envoyproxy.controlplane:cache</io.envoyproxy.controlplane/cache/0.1.30>`
+   * - `io.envoyproxy.controlplane:cache <https://mvnrepository.com/artifact/io.envoyproxy.controlplane/cache/0.1.30>`__
      - Copyright © 2004, 2006 The Linux Foundation and its contributors
 
-   * - :mvn:`io.envoyproxy.controlplane:server</io.envoyproxy.controlplane/server/0.1.30>`
+   * - `io.envoyproxy.controlplane:server <https://mvnrepository.com/artifact/io.envoyproxy.controlplane/server/0.1.30>`__
      - Copyright © 2004, 2006 The Linux Foundation and its contributors
 
-   * - :mvn:`io.grpc:grpc-alts</io.grpc/grpc-alts/1.44.1>`
+   * - `io.grpc:grpc-alts <https://mvnrepository.com/artifact/io.grpc/grpc-alts/1.44.1>`__
      - Copyright © 2018-2021
 
-   * - :mvn:`io.grpc:grpc-api</io.grpc/grpc-api/1.42.1>`
+   * - `io.grpc:grpc-api <https://mvnrepository.com/artifact/io.grpc/grpc-api/1.42.1>`__
      - Copyright © 2014-2021
 
-   * - :mvn:`io.grpc:grpc-auth</io.grpc/grpc-auth/1.44.1>`
+   * - `io.grpc:grpc-auth <https://mvnrepository.com/artifact/io.grpc/grpc-auth/1.44.1>`__
      - Copyright © 2014, 2016-2017
 
-   * - :mvn:`io.grpc:grpc-context</io.grpc/grpc-context/1.44.0>`
+   * - `io.grpc:grpc-context <https://mvnrepository.com/artifact/io.grpc/grpc-context/1.44.0>`__
      - Copyright © 2015-2017
 
-   * - :mvn:`io.grpc:grpc-core</io.grpc/grpc-core/1.42.1>`
+   * - `io.grpc:grpc-core <https://mvnrepository.com/artifact/io.grpc/grpc-core/1.42.1>`__
      - Copyright © 2014-2021
 
-   * - :mvn:`io.grpc:grpc-grpclb</io.grpc/grpc-grpclb/1.44.1>`
+   * - `io.grpc:grpc-grpclb <https://mvnrepository.com/artifact/io.grpc/grpc-grpclb/1.44.1>`__
      - Copyright © 2016-2020
 
-   * - :mvn:`io.grpc:grpc-netty</io.grpc/grpc-netty/1.45.0>`
+   * - `io.grpc:grpc-netty <https://mvnrepository.com/artifact/io.grpc/grpc-netty/1.45.0>`__
      - Copyright © 2014, 2019 The Netty Project,
        Copyright © 2014-2021
 
-   * - :mvn:`io.grpc:grpc-netty-shaded</io.grpc/grpc-netty-shaded/1.45.0>`
+   * - `io.grpc:grpc-netty-shaded <https://mvnrepository.com/artifact/io.grpc/grpc-netty-shaded/1.45.0>`__
      - Copyright © 2014-2021,
        Copyright © 2015 the original author or authors
 
-   * - :mvn:`io.grpc:grpc-protobuf</io.grpc/grpc-protobuf/1.45.0>`
+   * - `io.grpc:grpc-protobuf <https://mvnrepository.com/artifact/io.grpc/grpc-protobuf/1.45.0>`__
      - Copyright © 2014, 2016-2017
 
-   * - :mvn:`io.grpc:grpc-protobuf-lite</io.grpc/grpc-protobuf-lite/1.44.1>`
+   * - `io.grpc:grpc-protobuf-lite <https://mvnrepository.com/artifact/io.grpc/grpc-protobuf-lite/1.44.1>`__
      - Copyright © 2014-2017
 
-   * - :mvn:`io.grpc:grpc-services</io.grpc/grpc-services/1.42.1>`
+   * - `io.grpc:grpc-services <https://mvnrepository.com/artifact/io.grpc/grpc-services/1.42.1>`__
      - Copyright © 2016-2021
 
-   * - :mvn:`io.grpc:grpc-stub</io.grpc/grpc-stub/1.45.0>`
+   * - `io.grpc:grpc-stub <https://mvnrepository.com/artifact/io.grpc/grpc-stub/1.45.0>`__
      - Copyright © 2014-2019, 2021
 
-   * - :mvn:`io.grpc:grpc-xds</io.grpc/grpc-xds/1.44.1>`
+   * - `io.grpc:grpc-xds <https://mvnrepository.com/artifact/io.grpc/grpc-xds/1.44.1>`__
      - Copyright © 2019-2021,
        Copyright © 2021 Higher Frequency Trading http://www.higherfrequencytrading.com
 
-   * - :mvn:`io.intercom:intercom-java</io.intercom/intercom-java/2.8.2>`
+   * - `io.intercom:intercom-java <https://mvnrepository.com/artifact/io.intercom/intercom-java/2.8.2>`__
      - Copyright © 2014 Intercom, Inc.
 
-   * - :mvn:`io.jsonwebtoken:jjwt-api</io.jsonwebtoken/jjwt-api/0.11.2>`
+   * - `io.jsonwebtoken:jjwt-api <https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api/0.11.2>`__
      - Copyright © 2014-2015, 2019 jsonwebtoken.io,
        Copyright © 2018 JWTK
 
-   * - :mvn:`io.jsonwebtoken:jjwt-impl</io.jsonwebtoken/jjwt-impl/0.11.2>`
+   * - `io.jsonwebtoken:jjwt-impl <https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl/0.11.2>`__
      - Copyright © 2014-2015, 2019 jsonwebtoken.io,
        Copyright © 2018 JWTK
 
-   * - :mvn:`io.jsonwebtoken:jjwt-jackson</io.jsonwebtoken/jjwt-jackson/0.11.2>`
+   * - `io.jsonwebtoken:jjwt-jackson <https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson/0.11.2>`__
      - Copyright © 2014 jsonwebtoken.io,
        Copyright © 2018 JWTK
 
-   * - :mvn:`io.lettuce:lettuce-core</io.lettuce/lettuce-core/6.1.6.RELEASE>`
+   * - `io.lettuce:lettuce-core <https://mvnrepository.com/artifact/io.lettuce/lettuce-core/6.1.6.RELEASE>`__
      - Copyright © 2011-2022 the original author or authors,
        Copyright © 2011-2020 Mark Paluch
 
-   * - :mvn:`io.netty:netty-buffer</io.netty/netty-buffer/4.1.76.Final>`
+   * - `io.netty:netty-buffer <https://mvnrepository.com/artifact/io.netty/netty-buffer/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.netty:netty-codec</io.netty/netty-codec/4.1.76.Final>`
+   * - `io.netty:netty-codec <https://mvnrepository.com/artifact/io.netty/netty-codec/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.netty:netty-codec-http</io.netty/netty-codec-http/4.1.76.Final>`
+   * - `io.netty:netty-codec-http <https://mvnrepository.com/artifact/io.netty/netty-codec-http/4.1.76.Final>`__
      - Copyright © 2012-2017, 2019-2022 The Netty Project,
        Copyright © 2008-2009 Bjoern Hoehrmann <bjoern\@hoehrmann.de>,
        Copyright © 2011, Joe Walnes and contributors
 
-   * - :mvn:`io.netty:netty-codec-http2</io.netty/netty-codec-http2/4.1.76.Final>`
+   * - `io.netty:netty-codec-http2 <https://mvnrepository.com/artifact/io.netty/netty-codec-http2/4.1.76.Final>`__
      - Copyright © 2014-2017, 2019-2020, 2022 The Netty Project,
        Copyright © 2014 Twitter, Inc.
 
-   * - :mvn:`io.netty:netty-codec-socks</io.netty/netty-codec-socks/4.1.76.Final>`
+   * - `io.netty:netty-codec-socks <https://mvnrepository.com/artifact/io.netty/netty-codec-socks/4.1.76.Final>`__
      - Copyright © 2012-2015 The Netty Project
 
-   * - :mvn:`io.netty:netty-common</io.netty/netty-common/4.1.76.Final>`
+   * - `io.netty:netty-common <https://mvnrepository.com/artifact/io.netty/netty-common/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.netty:netty-handler</io.netty/netty-handler/4.1.76.Final>`
+   * - `io.netty:netty-handler <https://mvnrepository.com/artifact/io.netty/netty-handler/4.1.76.Final>`__
      - Copyright © 2011-2022 The Netty Project
 
-   * - :mvn:`io.netty:netty-handler-proxy</io.netty/netty-handler-proxy/4.1.76.Final>`
+   * - `io.netty:netty-handler-proxy <https://mvnrepository.com/artifact/io.netty/netty-handler-proxy/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.netty:netty-resolver</io.netty/netty-resolver/4.1.76.Final>`
+   * - `io.netty:netty-resolver <https://mvnrepository.com/artifact/io.netty/netty-resolver/4.1.76.Final>`__
      - Copyright © 2014-2017, 2021 The Netty Project
 
-   * - :mvn:`io.netty:netty-transport</io.netty/netty-transport/4.1.76.Final>`
+   * - `io.netty:netty-transport <https://mvnrepository.com/artifact/io.netty/netty-transport/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.netty:netty-transport-classes-epoll</io.netty/netty-transport-classes-epoll/4.1.76.Final>`
+   * - `io.netty:netty-transport-classes-epoll <https://mvnrepository.com/artifact/io.netty/netty-transport-classes-epoll/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.netty:netty-transport-classes-kqueue</io.netty/netty-transport-classes-kqueue/4.1.76.Final>`
+   * - `io.netty:netty-transport-classes-kqueue <https://mvnrepository.com/artifact/io.netty/netty-transport-classes-kqueue/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.netty:netty-transport-native-epoll</io.netty/netty-transport-native-epoll/4.1.76.Final>`
+   * - `io.netty:netty-transport-native-epoll <https://mvnrepository.com/artifact/io.netty/netty-transport-native-epoll/4.1.76.Final>`__
      - Copyright © 2013-2014, 2016 The Netty Project
 
-   * - :mvn:`io.netty:netty-transport-native-kqueue</io.netty/netty-transport-native-kqueue/4.1.76.Final>`
+   * - `io.netty:netty-transport-native-kqueue <https://mvnrepository.com/artifact/io.netty/netty-transport-native-kqueue/4.1.76.Final>`__
      - Copyright © 2016 The Netty Project
 
-   * - :mvn:`io.netty:netty-transport-native-unix-common</io.netty/netty-transport-native-unix-common/4.1.76.Final>`
+   * - `io.netty:netty-transport-native-unix-common <https://mvnrepository.com/artifact/io.netty/netty-transport-native-unix-common/4.1.76.Final>`__
      - 
 
-   * - :mvn:`io.opencensus:opencensus-api</io.opencensus/opencensus-api/0.28.0>`
+   * - `io.opencensus:opencensus-api <https://mvnrepository.com/artifact/io.opencensus/opencensus-api/0.28.0>`__
      - Copyright © 2016-2019 OpenCensus
 
-   * - :mvn:`io.opencensus:opencensus-contrib-http-util</io.opencensus/opencensus-contrib-http-util/0.31.0>`
+   * - `io.opencensus:opencensus-contrib-http-util <https://mvnrepository.com/artifact/io.opencensus/opencensus-contrib-http-util/0.31.0>`__
      - Copyright © 2017-2018 OpenCensus
 
-   * - :mvn:`io.opencensus:opencensus-proto</io.opencensus/opencensus-proto/0.2.0>`
+   * - `io.opencensus:opencensus-proto <https://mvnrepository.com/artifact/io.opencensus/opencensus-proto/0.2.0>`__
      - 
 
-   * - :mvn:`io.opentracing:opentracing-api</io.opentracing/opentracing-api/0.33.0>`
+   * - `io.opentracing:opentracing-api <https://mvnrepository.com/artifact/io.opentracing/opentracing-api/0.33.0>`__
      - Copyright © 2016-2019 The OpenTracing Authors
 
-   * - :mvn:`io.perfmark:perfmark-api</io.perfmark/perfmark-api/0.23.0>`
+   * - `io.perfmark:perfmark-api <https://mvnrepository.com/artifact/io.perfmark/perfmark-api/0.23.0>`__
      - Copyright © 2019-2020 Google LLC
 
-   * - :mvn:`io.projectreactor:reactor-core</io.projectreactor/reactor-core/3.3.22.RELEASE>`
+   * - `io.projectreactor:reactor-core <https://mvnrepository.com/artifact/io.projectreactor/reactor-core/3.3.22.RELEASE>`__
      - Copyright © 2002-2017 the original author or authors,
        Copyright © 2013 The Netty Project,
        Copyright © 2011-2021 VMware Inc. or its affiliates
 
-   * - :mvn:`io.prometheus.jmx:jmx_prometheus_javaagent</io.prometheus.jmx/jmx_prometheus_javaagent/0.16.1>`
+   * - `io.prometheus.jmx:jmx_prometheus_javaagent <https://mvnrepository.com/artifact/io.prometheus.jmx/jmx_prometheus_javaagent/0.16.1>`__
      - 
 
-   * - :mvn:`io.prometheus:simpleclient</io.prometheus/simpleclient/0.10.0>`
+   * - `io.prometheus:simpleclient <https://mvnrepository.com/artifact/io.prometheus/simpleclient/0.10.0>`__
      - Copyright © 2012 Andrew Wang (andrew\@umbrant.com)
 
-   * - :mvn:`io.prometheus:simpleclient_common</io.prometheus/simpleclient_common/0.10.0>`
+   * - `io.prometheus:simpleclient_common <https://mvnrepository.com/artifact/io.prometheus/simpleclient_common/0.10.0>`__
      - 
 
-   * - :mvn:`io.prometheus:simpleclient_hotspot</io.prometheus/simpleclient_hotspot/0.10.0>`
+   * - `io.prometheus:simpleclient_hotspot <https://mvnrepository.com/artifact/io.prometheus/simpleclient_hotspot/0.10.0>`__
      - 
 
-   * - :mvn:`io.prometheus:simpleclient_jetty</io.prometheus/simpleclient_jetty/0.10.0>`
+   * - `io.prometheus:simpleclient_jetty <https://mvnrepository.com/artifact/io.prometheus/simpleclient_jetty/0.10.0>`__
      - 
 
-   * - :mvn:`io.prometheus:simpleclient_jetty_jdk8</io.prometheus/simpleclient_jetty_jdk8/0.10.0>`
+   * - `io.prometheus:simpleclient_jetty_jdk8 <https://mvnrepository.com/artifact/io.prometheus/simpleclient_jetty_jdk8/0.10.0>`__
      - 
 
-   * - :mvn:`io.prometheus:simpleclient_logback</io.prometheus/simpleclient_logback/0.10.0>`
+   * - `io.prometheus:simpleclient_logback <https://mvnrepository.com/artifact/io.prometheus/simpleclient_logback/0.10.0>`__
      - 
 
-   * - :mvn:`io.prometheus:simpleclient_servlet</io.prometheus/simpleclient_servlet/0.10.0>`
+   * - `io.prometheus:simpleclient_servlet <https://mvnrepository.com/artifact/io.prometheus/simpleclient_servlet/0.10.0>`__
      - 
 
-   * - :mvn:`io.reactivex:rxjava</io.reactivex/rxjava/1.3.8>`
+   * - `io.reactivex:rxjava <https://mvnrepository.com/artifact/io.reactivex/rxjava/1.3.8>`__
      - Copyright © 2010 The Guava Authors,
        Copyright © 2014-2018 Netflix, Inc.
 
-   * - :mvn:`io.swagger.core.v3:swagger-annotations</io.swagger.core.v3/swagger-annotations/2.2.0>`
+   * - `io.swagger.core.v3:swagger-annotations <https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-annotations/2.2.0>`__
      - Copyright © 2015 SmartBear Software Inc.
 
-   * - :mvn:`io.swagger.core.v3:swagger-core</io.swagger.core.v3/swagger-core/2.2.0>`
+   * - `io.swagger.core.v3:swagger-core <https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-core/2.2.0>`__
      - Copyright © 2015 SmartBear Software Inc.
 
-   * - :mvn:`io.swagger.core.v3:swagger-integration</io.swagger.core.v3/swagger-integration/2.2.0>`
+   * - `io.swagger.core.v3:swagger-integration <https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-integration/2.2.0>`__
      - Copyright © 2015 SmartBear Software Inc.
 
-   * - :mvn:`io.swagger.core.v3:swagger-jaxrs2</io.swagger.core.v3/swagger-jaxrs2/2.2.0>`
+   * - `io.swagger.core.v3:swagger-jaxrs2 <https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-jaxrs2/2.2.0>`__
      - Copyright © 2015 SmartBear Software Inc.
 
-   * - :mvn:`io.swagger.core.v3:swagger-jaxrs2-servlet-initializer-v2</io.swagger.core.v3/swagger-jaxrs2-servlet-initializer-v2/2.2.0>`
+   * - `io.swagger.core.v3:swagger-jaxrs2-servlet-initializer-v2 <https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-jaxrs2-servlet-initializer-v2/2.2.0>`__
      - Copyright © 2015 SmartBear Software Inc.
 
-   * - :mvn:`io.swagger.core.v3:swagger-models</io.swagger.core.v3/swagger-models/2.2.0>`
+   * - `io.swagger.core.v3:swagger-models <https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-models/2.2.0>`__
      - Copyright © 2015 SmartBear Software Inc.
 
-   * - :mvn:`jakarta.inject:jakarta.inject-api</jakarta.inject/jakarta.inject-api/1.0.5>`
+   * - `jakarta.inject:jakarta.inject-api <https://mvnrepository.com/artifact/jakarta.inject/jakarta.inject-api/1.0.5>`__
      - Copyright © 2009 The JSR-330 Expert Group,
        Copyright © 2018, 2020 Eclipse Foundation
 
-   * - :mvn:`jakarta.validation:jakarta.validation-api</jakarta.validation/jakarta.validation-api/2.0.2>`
+   * - `jakarta.validation:jakarta.validation-api <https://mvnrepository.com/artifact/jakarta.validation/jakarta.validation-api/2.0.2>`__
      - Copyright © 2019 Eclipse Foundation.
 
-   * - :mvn:`javax.inject:javax.inject</javax.inject/javax.inject/1>`
+   * - `javax.inject:javax.inject <https://mvnrepository.com/artifact/javax.inject/javax.inject/1>`__
      - Copyright © 2009 The JSR-330 Expert Group
 
-   * - :mvn:`joda-time:joda-time</joda-time/joda-time/2.10.14>`
+   * - `joda-time:joda-time <https://mvnrepository.com/artifact/joda-time/joda-time/2.10.14>`__
      - Copyright © 2001-2016 Stephen Colebourne
 
-   * - :mvn:`net.avalara.avatax:avatax-rest-v2-api-java_2.11</net.avalara.avatax/avatax-rest-v2-api-java_2.11/22.3.0>`
+   * - `net.avalara.avatax:avatax-rest-v2-api-java_2.11 <https://mvnrepository.com/artifact/net.avalara.avatax/avatax-rest-v2-api-java_2.11/22.3.0>`__
      - Copyright © 2004-2018 Avalara, Inc.
 
-   * - :mvn:`net.bytebuddy:byte-buddy</net.bytebuddy/byte-buddy/1.9.10>`
+   * - `net.bytebuddy:byte-buddy <https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy/1.9.10>`__
      - Copyright © 2014 - 2019 Rafael Winterhalter,
        Copyright © 2000-2011 INRIA, France Telecom
 
-   * - :mvn:`net.bytebuddy:byte-buddy-agent</net.bytebuddy/byte-buddy-agent/1.9.10>`
+   * - `net.bytebuddy:byte-buddy-agent <https://mvnrepository.com/artifact/net.bytebuddy/byte-buddy-agent/1.9.10>`__
      - Copyright © 2014 - 2019 Rafael Winterhalter
 
-   * - :mvn:`net.java.dev.jna:jna</net.java.dev.jna/jna/4.1.0>`
+   * - `net.java.dev.jna:jna <https://mvnrepository.com/artifact/net.java.dev.jna/jna/4.1.0>`__
      - Copyright © 2008-2014 Timothy Wall
 
-   * - :mvn:`net.java.dev.jna:jna-platform</net.java.dev.jna/jna-platform/4.1.0>`
+   * - `net.java.dev.jna:jna-platform <https://mvnrepository.com/artifact/net.java.dev.jna/jna-platform/4.1.0>`__
      - Copyright © 2010-2011 Timothy Wall
 
-   * - :mvn:`net.jodah:typetools</net.jodah/typetools/0.6.3>`
+   * - `net.jodah:typetools <https://mvnrepository.com/artifact/net.jodah/typetools/0.6.3>`__
      - Copyright © 2002-2017 the original author or authors
 
-   * - :mvn:`net.logstash.logback:logstash-logback-encoder</net.logstash.logback/logstash-logback-encoder/6.6>`
+   * - `net.logstash.logback:logstash-logback-encoder <https://mvnrepository.com/artifact/net.logstash.logback/logstash-logback-encoder/6.6>`__
      - Copyright © 2004-2011 QOS.ch
 
-   * - :mvn:`net.minidev:accessors-smart</net.minidev/accessors-smart/2.4.2>`
+   * - `net.minidev:accessors-smart <https://mvnrepository.com/artifact/net.minidev/accessors-smart/2.4.2>`__
      - Copyright © 2011 JSON-SMART
 
-   * - :mvn:`net.minidev:json-smart</net.minidev/json-smart/2.4.2>`
+   * - `net.minidev:json-smart <https://mvnrepository.com/artifact/net.minidev/json-smart/2.4.2>`__
      - Copyright © 2011-2014 JSON-SMART
 
-   * - :mvn:`net.sf.supercsv:super-csv</net.sf.supercsv/super-csv/2.4.0>`
+   * - `net.sf.supercsv:super-csv <https://mvnrepository.com/artifact/net.sf.supercsv/super-csv/2.4.0>`__
      - Copyright © 2007 Kasper B. Graversen
 
-   * - :mvn:`org.apache.commons:commons-collections4</org.apache.commons/commons-collections4/4.4>`
+   * - `org.apache.commons:commons-collections4 <https://mvnrepository.com/artifact/org.apache.commons/commons-collections4/4.4>`__
      - Copyright © 2001-2019 The Apache Software Foundation
 
-   * - :mvn:`org.apache.commons:commons-compress</org.apache.commons/commons-compress/1.21>`
+   * - `org.apache.commons:commons-compress <https://mvnrepository.com/artifact/org.apache.commons/commons-compress/1.21>`__
      - Copyright © 1996-2019 Julian R Seward,
        Copyright © 2002-2021 The Apache Software Foundation, 
        Copyright © 2004-2006 Intel Corporation
 
-   * - :mvn:`org.apache.commons:commons-configuration2</org.apache.commons/commons-configuration2/2.7>`
+   * - `org.apache.commons:commons-configuration2 <https://mvnrepository.com/artifact/org.apache.commons/commons-configuration2/2.7>`__
      - Copyright © 2001-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.commons:commons-csv</org.apache.commons/commons-csv/1.8>`
+   * - `org.apache.commons:commons-csv <https://mvnrepository.com/artifact/org.apache.commons/commons-csv/1.8>`__
      - Copyright © 2005-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.commons:commons-exec</org.apache.commons/commons-exec/1.3>`
+   * - `org.apache.commons:commons-exec <https://mvnrepository.com/artifact/org.apache.commons/commons-exec/1.3>`__
      - Copyright © 2005-2014 The Apache Software Foundation
 
-   * - :mvn:`org.apache.commons:commons-lang3</org.apache.commons/commons-lang3/3.12.0>`
+   * - `org.apache.commons:commons-lang3 <https://mvnrepository.com/artifact/org.apache.commons/commons-lang3/3.12.0>`__
      - Copyright © 2001-2021 The Apache Software Foundation
 
-   * - :mvn:`org.apache.commons:commons-math3</org.apache.commons/commons-math3/3.6.1>`
+   * - `org.apache.commons:commons-math3 <https://mvnrepository.com/artifact/org.apache.commons/commons-math3/3.6.1>`__
      - Copyright © 1997-2002 Makoto Matsumoto and Takuji Nishimura,
        Copyright © 2001-2002 Enthought, Inc.,
        Copyright © 2001-2016 The Apache Software Foundation,
@@ -714,50 +714,50 @@
        Copyright © 2009 Google Inc.,
        Copyright © 2010-2012 CS Systemes d'Information
 
-   * - :mvn:`org.apache.commons:commons-pool2</org.apache.commons/commons-pool2/2.11.1>`
+   * - `org.apache.commons:commons-pool2 <https://mvnrepository.com/artifact/org.apache.commons/commons-pool2/2.11.1>`__
      - Copyright © 2001-2021 The Apache Software Foundation
 
-   * - :mvn:`org.apache.commons:commons-text</org.apache.commons/commons-text/1.9>`
+   * - `org.apache.commons:commons-text <https://mvnrepository.com/artifact/org.apache.commons/commons-text/1.9>`__
      - Copyright © 2014-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.directory.api:api-asn1-api</org.apache.directory.api/api-asn1-api/2.1.0>`
+   * - `org.apache.directory.api:api-asn1-api <https://mvnrepository.com/artifact/org.apache.directory.api/api-asn1-api/2.1.0>`__
      - Copyright © 2003-2020 The Apache Software Foundation,
        Copyright © 2004 The Apache Software Foundation
 
-   * - :mvn:`org.apache.directory.api:api-asn1-ber</org.apache.directory.api/api-asn1-ber/2.1.0>`
+   * - `org.apache.directory.api:api-asn1-ber <https://mvnrepository.com/artifact/org.apache.directory.api/api-asn1-ber/2.1.0>`__
      - Copyright © 2003-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.directory.api:api-i18n</org.apache.directory.api/api-i18n/2.1.0>`
+   * - `org.apache.directory.api:api-i18n <https://mvnrepository.com/artifact/org.apache.directory.api/api-i18n/2.1.0>`__
      - Copyright © 2003-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.directory.api:api-ldap-model</org.apache.directory.api/api-ldap-model/2.1.0>`
+   * - `org.apache.directory.api:api-ldap-model <https://mvnrepository.com/artifact/org.apache.directory.api/api-ldap-model/2.1.0>`__
      - Copyright © 2003-2020 The Apache Software Foundation,
        Copyright © 2006 Damien Miller <djm\@mindrot.org>
 
-   * - :mvn:`org.apache.directory.api:api-util</org.apache.directory.api/api-util/2.1.0>`
+   * - `org.apache.directory.api:api-util <https://mvnrepository.com/artifact/org.apache.directory.api/api-util/2.1.0>`__
      - Copyright © 2003-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.httpcomponents:httpclient</org.apache.httpcomponents/httpclient/4.5.13>`
+   * - `org.apache.httpcomponents:httpclient <https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.13>`__
      - Copyright © 1999-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.httpcomponents:httpcore</org.apache.httpcomponents/httpcore/4.4.15>`
+   * - `org.apache.httpcomponents:httpcore <https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.15>`__
      - Copyright © 2005-2021 The Apache Software Foundation
 
-   * - :mvn:`org.apache.httpcomponents:httpmime</org.apache.httpcomponents/httpmime/4.5.13>`
+   * - `org.apache.httpcomponents:httpmime <https://mvnrepository.com/artifact/org.apache.httpcomponents/httpmime/4.5.13>`__
      - Copyright © 1999-2020 The Apache Software Foundation
 
-   * - :mvn:`org.apache.mina:mina-core</org.apache.mina/mina-core/2.1.3>`
+   * - `org.apache.mina:mina-core <https://mvnrepository.com/artifact/org.apache.mina/mina-core/2.1.3>`__
      - Copyright © 2004-2019 Apache MINA Project,
        Copyright © 2003 Eric Glass
 
-   * - :mvn:`org.apache.pdfbox:fontbox</org.apache.pdfbox/fontbox/2.0.25>`
+   * - `org.apache.pdfbox:fontbox <https://mvnrepository.com/artifact/org.apache.pdfbox/fontbox/2.0.25>`__
      - Copyright © 2006-2007 www.fontbox.org,
        Copyright © 2011-2013 Lohit Fonts Project contributors <http://fedorahosted.org/lohit>,
        Copyright © 2017 Unicode, Inc.,
        Copyright © 1990-2019 Adobe Systems Incorporated,
        Copyright © 2008-2021 The Apache Software Foundation
 
-   * - :mvn:`org.apache.pdfbox:pdfbox</org.apache.pdfbox/pdfbox/2.0.25>`
+   * - `org.apache.pdfbox:pdfbox <https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox/2.0.25>`__
      - Copyright © 1985, 1987-2010 Adobe Systems Incorporated,
        Copyright © 1991-2015 Unicode, Inc.,
        Copyright © 2002-2007 www.pdfbox.org,
@@ -770,111 +770,111 @@
        Copyright © 2012 Red Hat, Inc.,
        Copyright © 2008-2016 Harald Kuhr
 
-   * - :mvn:`org.apache.santuario:xmlsec</org.apache.santuario/xmlsec/2.2.3>`
+   * - `org.apache.santuario:xmlsec <https://mvnrepository.com/artifact/org.apache.santuario/xmlsec/2.2.3>`__
      - Copyright © 2001-2002 The Internet Society and W3C (MIT, INRIA, Keio University),
        Copyright © 2011 World Wide Web Consortium (MIT, INRIA, Keio University),
        Copyright © 2000-2020 The Apache Software Foundation,
        Copyright © 2005, 2008 Sun Microsystems, Inc., 
        Copyright © 2003 IBM Corp.
 
-   * - :mvn:`org.apache.servicemix.bundles:org.apache.servicemix.bundles.antlr</org.apache.servicemix.bundles/org.apache.servicemix.bundles.antlr/2.7.7_5>`
+   * - `org.apache.servicemix.bundles:org.apache.servicemix.bundles.antlr <https://mvnrepository.com/artifact/org.apache.servicemix.bundles/org.apache.servicemix.bundles.antlr/2.7.7_5>`__
      - Copyright © 2005-2011 The Apache Software Foundation
 
-   * - :mvn:`org.apache.tomcat:annotations-api</org.apache.tomcat/annotations-api/6.0.53>`
+   * - `org.apache.tomcat:annotations-api <https://mvnrepository.com/artifact/org.apache.tomcat/annotations-api/6.0.53>`__
      - Copyright © 1999-2017 The Apache Software Foundation
 
-   * - :mvn:`org.apiguardian:apiguardian-api</org.apiguardian/apiguardian-api/1.1.2>`
+   * - `org.apiguardian:apiguardian-api <https://mvnrepository.com/artifact/org.apiguardian/apiguardian-api/1.1.2>`__
      - Copyright © 2002-2017 the original author or authors
 
-   * - :mvn:`org.bitbucket.b_c:jose4j</org.bitbucket.b_c/jose4j/0.7.10>`
+   * - `org.bitbucket.b_c:jose4j <https://mvnrepository.com/artifact/org.bitbucket.b_c/jose4j/0.7.10>`__
      - Copyright © 2012-2021 Brian Campbell
 
-   * - :mvn:`org.conscrypt:conscrypt-openjdk-uber</org.conscrypt/conscrypt-openjdk-uber/2.5.1>`
+   * - `org.conscrypt:conscrypt-openjdk-uber <https://mvnrepository.com/artifact/org.conscrypt/conscrypt-openjdk-uber/2.5.1>`__
      - Copyright © 2007-2020 The Android Open Source Project,
        Copyright © 2013-2014, 2016-2017 The Netty Project
 
-   * - :mvn:`org.eclipse.jetty.http2:http2-common</org.eclipse.jetty.http2/http2-common/10.0.8>`
+   * - `org.eclipse.jetty.http2:http2-common <https://mvnrepository.com/artifact/org.eclipse.jetty.http2/http2-common/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.http2:http2-hpack</org.eclipse.jetty.http2/http2-hpack/10.0.8>`
+   * - `org.eclipse.jetty.http2:http2-hpack <https://mvnrepository.com/artifact/org.eclipse.jetty.http2/http2-hpack/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.http2:http2-server</org.eclipse.jetty.http2/http2-server/10.0.8>`
+   * - `org.eclipse.jetty.http2:http2-server <https://mvnrepository.com/artifact/org.eclipse.jetty.http2/http2-server/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-alpn-client</org.eclipse.jetty/jetty-alpn-client/10.0.8>`
+   * - `org.eclipse.jetty:jetty-alpn-client <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-alpn-client/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-annotations</org.eclipse.jetty/jetty-annotations/10.0.8>`
+   * - `org.eclipse.jetty:jetty-annotations <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-annotations/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-client</org.eclipse.jetty/jetty-client/10.0.8>`
+   * - `org.eclipse.jetty:jetty-client <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-client/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-deploy</org.eclipse.jetty/jetty-deploy/10.0.8>`
+   * - `org.eclipse.jetty:jetty-deploy <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-deploy/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-http</org.eclipse.jetty/jetty-http/10.0.8>`
+   * - `org.eclipse.jetty:jetty-http <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-http/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-io</org.eclipse.jetty/jetty-io/10.0.8>`
+   * - `org.eclipse.jetty:jetty-io <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-io/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-jndi</org.eclipse.jetty/jetty-jndi/10.0.8>`
+   * - `org.eclipse.jetty:jetty-jndi <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-jndi/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-plus</org.eclipse.jetty/jetty-plus/10.0.8>`
+   * - `org.eclipse.jetty:jetty-plus <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-plus/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-rewrite</org.eclipse.jetty/jetty-rewrite/10.0.8>`
+   * - `org.eclipse.jetty:jetty-rewrite <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-rewrite/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-security</org.eclipse.jetty/jetty-security/10.0.8>`
+   * - `org.eclipse.jetty:jetty-security <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-security/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-server</org.eclipse.jetty/jetty-server/10.0.8>`
+   * - `org.eclipse.jetty:jetty-server <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-servlet</org.eclipse.jetty/jetty-servlet/10.0.8>`
+   * - `org.eclipse.jetty:jetty-servlet <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlet/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-servlets</org.eclipse.jetty/jetty-servlets/10.0.8>`
+   * - `org.eclipse.jetty:jetty-servlets <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-servlets/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-util</org.eclipse.jetty/jetty-util/10.0.8>`
+   * - `org.eclipse.jetty:jetty-util <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-util/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida,
        Copyright © 2008-2009 Bjoern Hoehrmann <bjoern\@hoehrmann.de>
 
-   * - :mvn:`org.eclipse.jetty:jetty-webapp</org.eclipse.jetty/jetty-webapp/10.0.8>`
+   * - `org.eclipse.jetty:jetty-webapp <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-webapp/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty:jetty-xml</org.eclipse.jetty/jetty-xml/10.0.8>`
+   * - `org.eclipse.jetty:jetty-xml <https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-xml/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.toolchain:jetty-javax-websocket-api</org.eclipse.jetty.toolchain/jetty-javax-websocket-api/1.1.2>`
+   * - `org.eclipse.jetty.toolchain:jetty-javax-websocket-api <https://mvnrepository.com/artifact/org.eclipse.jetty.toolchain/jetty-javax-websocket-api/1.1.2>`__
      - Copyright © 2018 Oracle and/or its affiliates and others,
        Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - :mvn:`org.eclipse.jetty.toolchain:jetty-servlet-api</org.eclipse.jetty.toolchain/jetty-servlet-api/4.0.6>`
+   * - `org.eclipse.jetty.toolchain:jetty-servlet-api <https://mvnrepository.com/artifact/org.eclipse.jetty.toolchain/jetty-servlet-api/4.0.6>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1995-2018 Mort Bay Consulting Pty Ltd.,
        Copyright © 1996 Aki Yoshida,
@@ -884,62 +884,62 @@
        Copyright © 2004 The Apache Software Foundation,
        Copyright © 2019 Eclipse Foundation,
 
-   * - :mvn:`org.eclipse.jetty.websocket:websocket-core-client</org.eclipse.jetty.websocket/websocket-core-client/10.0.8>`
+   * - `org.eclipse.jetty.websocket:websocket-core-client <https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-core-client/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.websocket:websocket-core-common</org.eclipse.jetty.websocket/websocket-core-common/10.0.8>`
+   * - `org.eclipse.jetty.websocket:websocket-core-common <https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-core-common/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.websocket:websocket-core-server</org.eclipse.jetty.websocket/websocket-core-server/10.0.8>`
+   * - `org.eclipse.jetty.websocket:websocket-core-server <https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-core-server/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.websocket:websocket-javax-client</org.eclipse.jetty.websocket/websocket-javax-client/10.0.8>`
+   * - `org.eclipse.jetty.websocket:websocket-javax-client <https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-javax-client/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.websocket:websocket-javax-common</org.eclipse.jetty.websocket/websocket-javax-common/10.0.8>`
+   * - `org.eclipse.jetty.websocket:websocket-javax-common <https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-javax-common/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.websocket:websocket-javax-server</org.eclipse.jetty.websocket/websocket-javax-server/10.0.8>`
+   * - `org.eclipse.jetty.websocket:websocket-javax-server <https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-javax-server/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.eclipse.jetty.websocket:websocket-servlet</org.eclipse.jetty.websocket/websocket-servlet/10.0.8>`
+   * - `org.eclipse.jetty.websocket:websocket-servlet <https://mvnrepository.com/artifact/org.eclipse.jetty.websocket/websocket-servlet/10.0.8>`__
      - Copyright © 1995-2022 Mort Bay Consulting Pty Ltd and others,
        Copyright © 1996 Aki Yoshida
 
-   * - :mvn:`org.ejml:ejml-cdense</org.ejml/ejml-cdense/0.41>`
+   * - `org.ejml:ejml-cdense <https://mvnrepository.com/artifact/org.ejml/ejml-cdense/0.41>`__
      - Copyright © 2009-2020 Peter Abeles
 
-   * - :mvn:`org.ejml:ejml-core</org.ejml/ejml-core/0.41>`
+   * - `org.ejml:ejml-core <https://mvnrepository.com/artifact/org.ejml/ejml-core/0.41>`__
      - Copyright © 2009-2021 Peter Abeles
 
-   * - :mvn:`org.ejml:ejml-ddense</org.ejml/ejml-ddense/0.41>`
+   * - `org.ejml:ejml-ddense <https://mvnrepository.com/artifact/org.ejml/ejml-ddense/0.41>`__
      - Copyright © 2009-2021 Peter Abeles
 
-   * - :mvn:`org.ejml:ejml-dsparse</org.ejml/ejml-dsparse/0.41>`
+   * - `org.ejml:ejml-dsparse <https://mvnrepository.com/artifact/org.ejml/ejml-dsparse/0.41>`__
      - Copyright © 2009-2021 Peter Abeles
 
-   * - :mvn:`org.ejml:ejml-fdense</org.ejml/ejml-fdense/0.41>`
+   * - `org.ejml:ejml-fdense <https://mvnrepository.com/artifact/org.ejml/ejml-fdense/0.41>`__
      - Copyright © 2009-2021 Peter Abeles
 
-   * - :mvn:`org.ejml:ejml-fsparse</org.ejml/ejml-fsparse/0.41>`
+   * - `org.ejml:ejml-fsparse <https://mvnrepository.com/artifact/org.ejml/ejml-fsparse/0.41>`__
      - Copyright © 2009-2021 Peter Abeles
 
-   * - :mvn:`org.ejml:ejml-simple</org.ejml/ejml-simple/0.41>`
+   * - `org.ejml:ejml-simple <https://mvnrepository.com/artifact/org.ejml/ejml-simple/0.41>`__
      - Copyright © 2009-2021 Peter Abeles
 
-   * - :mvn:`org.ejml:ejml-zdense</org.ejml/ejml-zdense/0.41>`
+   * - `org.ejml:ejml-zdense <https://mvnrepository.com/artifact/org.ejml/ejml-zdense/0.41>`__
      - Copyright © 2009-2020 Peter Abeles
 
-   * - :mvn:`org.freemarker:freemarker</org.freemarker/freemarker/2.3.31>`
+   * - `org.freemarker:freemarker <https://mvnrepository.com/artifact/org.freemarker/freemarker/2.3.31>`__
      - Copyright © 2015-2018 The Apache Software Foundation
 
-   * - :mvn:`org.glassfish.jersey.containers:jersey-container-servlet</org.glassfish.jersey.containers/jersey-container-servlet/2.35>`
+   * - `org.glassfish.jersey.containers:jersey-container-servlet <https://mvnrepository.com/artifact/org.glassfish.jersey.containers/jersey-container-servlet/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -959,7 +959,7 @@
        Copyright © Eric Rowell,
        Copyright © jQuery Foundation
 
-   * - :mvn:`org.glassfish.jersey.containers:jersey-container-servlet-core</org.glassfish.jersey.containers/jersey-container-servlet-core/2.35>`
+   * - `org.glassfish.jersey.containers:jersey-container-servlet-core <https://mvnrepository.com/artifact/org.glassfish.jersey.containers/jersey-container-servlet-core/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -979,7 +979,7 @@
        Copyright © Eric Rowell,
        Copyright © jQuery Foundation,
 
-   * - :mvn:`org.glassfish.jersey.core:jersey-client</org.glassfish.jersey.core/jersey-client/2.35>`
+   * - `org.glassfish.jersey.core:jersey-client <https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-client/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -1000,7 +1000,7 @@
        Copyright © Eric Rowell,
        Copyright © jQuery Foundation,
 
-   * - :mvn:`org.glassfish.jersey.ext:jersey-bean-validation</org.glassfish.jersey.ext/jersey-bean-validation/2.35>`
+   * - `org.glassfish.jersey.ext:jersey-bean-validation <https://mvnrepository.com/artifact/org.glassfish.jersey.ext/jersey-bean-validation/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -1021,7 +1021,7 @@
        Copyright © Eric Rowell,
        Copyright © jQuery Foundation,
 
-   * - :mvn:`org.glassfish.jersey.ext:jersey-mvc</org.glassfish.jersey.ext/jersey-mvc/2.35>`
+   * - `org.glassfish.jersey.ext:jersey-mvc <https://mvnrepository.com/artifact/org.glassfish.jersey.ext/jersey-mvc/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -1041,7 +1041,7 @@
        Copyright © Eric Rowell,
        Copyright © jQuery Foundation
 
-   * - :mvn:`org.glassfish.jersey.inject:jersey-hk2</org.glassfish.jersey.inject/jersey-hk2/2.35>`
+   * - `org.glassfish.jersey.inject:jersey-hk2 <https://mvnrepository.com/artifact/org.glassfish.jersey.inject/jersey-hk2/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -1062,7 +1062,7 @@
        Copyright © Eric Rowell,
        Copyright © jQuery Foundation
 
-   * - :mvn:`org.glassfish.jersey.media:jersey-media-multipart</org.glassfish.jersey.media/jersey-media-multipart/2.35>`
+   * - `org.glassfish.jersey.media:jersey-media-multipart <https://mvnrepository.com/artifact/org.glassfish.jersey.media/jersey-media-multipart/2.35>`__
      - Copyright © 1989, 1991 Free Software Foundation, Inc.,
        Copyright © 1994-2001 World Wide Web Consortium, (MIT, INRIA, Keio University),
        Copyright © 1999- Shigeru Chiba,
@@ -1082,337 +1082,337 @@
        Copyright © Eric Rowell,
        Copyright © jQuery Foundation
 
-   * - :mvn:`org.hibernate.validator:hibernate-validator</org.hibernate.validator/hibernate-validator/6.2.0.Final>`
+   * - `org.hibernate.validator:hibernate-validator <https://mvnrepository.com/artifact/org.hibernate.validator/hibernate-validator/6.2.0.Final>`__
      - Copyright © 2011-2012 SERLI,
        Copyright © 2009 IIZUKA Software Technologies Ltd
 
-   * - :mvn:`org.javassist:javassist</org.javassist/javassist/3.25.0-GA>`
+   * - `org.javassist:javassist <https://mvnrepository.com/artifact/org.javassist/javassist/3.25.0-GA>`__
      - Copyright © 1999-2019 Shigeru Chiba
 
-   * - :mvn:`org.jboss.logging:jboss-logging</org.jboss.logging/jboss-logging/3.4.1.Final>`
+   * - `org.jboss.logging:jboss-logging <https://mvnrepository.com/artifact/org.jboss.logging/jboss-logging/3.4.1.Final>`__
      - Copyright © 2010-2011, 2013, 2017, 2019 Red Hat, Inc., and individual contributors
 
-   * - :mvn:`org.knowm.xchart:xchart</org.knowm.xchart/xchart/3.8.1>`
+   * - `org.knowm.xchart:xchart <https://mvnrepository.com/artifact/org.knowm.xchart/xchart/3.8.1>`__
      - Copyright © 2015-2018 Knowm Inc. (http://knowm.org) and contributors,
        Copyright © 2011-2015 Xeiam LLC (http://xeiam.com) and contributors
 
-   * - :mvn:`org.mongodb:bson</org.mongodb/bson/4.4.1-388a33746>`
+   * - `org.mongodb:bson <https://mvnrepository.com/artifact/org.mongodb/bson/4.4.1-388a33746>`__
      - 
 
-   * - :mvn:`org.mongodb:mongodb-driver-core</org.mongodb/mongodb-driver-core/4.4.1-388a33746>`
+   * - `org.mongodb:mongodb-driver-core <https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-core/4.4.1-388a33746>`__
      - 
 
-   * - :mvn:`org.mongodb:mongodb-driver-legacy</org.mongodb/mongodb-driver-legacy/4.4.1-388a33746>`
+   * - `org.mongodb:mongodb-driver-legacy <https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-legacy/4.4.1-388a33746>`__
      - 
 
-   * - :mvn:`org.mongodb:mongodb-driver-sync</org.mongodb/mongodb-driver-sync/4.4.1-388a33746>`
+   * - `org.mongodb:mongodb-driver-sync <https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync/4.4.1-388a33746>`__
      - 
 
-   * - :mvn:`org.mongodb:mongosql-auth</org.mongodb/mongosql-auth/1.2.0>`
+   * - `org.mongodb:mongosql-auth <https://mvnrepository.com/artifact/org.mongodb/mongosql-auth/1.2.0>`__
      - Copyright © 1999,2005 The Apache Software Foundation.,
        Copyright © 2008-present MongoDB, Inc.,
        Copyright © 2017 Tom Bentley
 
-   * - :mvn:`org.mortbay.jasper:apache-el</org.mortbay.jasper/apache-el/9.0.52>`
+   * - `org.mortbay.jasper:apache-el <https://mvnrepository.com/artifact/org.mortbay.jasper/apache-el/9.0.52>`__
      - Copyright © 1999-2021 The Apache Software Foundation
 
-   * - :mvn:`org.objenesis:objenesis</org.objenesis/objenesis/2.6>`
+   * - `org.objenesis:objenesis <https://mvnrepository.com/artifact/org.objenesis/objenesis/2.6>`__
      - Copyright © 2006-2017 Joe Walnes, Henri Tremblay, Leonardo Mesquita
 
-   * - :mvn:`org.osgi:org.osgi.core</org.osgi/org.osgi.core/4.2.0>`
+   * - `org.osgi:org.osgi.core <https://mvnrepository.com/artifact/org.osgi/org.osgi.core/4.2.0>`__
      - Copyright © 2000-2002, 2004-2005, 2008-2009 OSGi Alliance
 
-   * - :mvn:`org.powermock:powermock-api-mockito2</org.powermock/powermock-api-mockito2/2.0.9>`
+   * - `org.powermock:powermock-api-mockito2 <https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito2/2.0.9>`__
      - Copyright © 2009, 2012, 2016, 2017 the original author or authors
 
-   * - :mvn:`org.powermock:powermock-api-support</org.powermock/powermock-api-support/2.0.9>`
+   * - `org.powermock:powermock-api-support <https://mvnrepository.com/artifact/org.powermock/powermock-api-support/2.0.9>`__
      - Copyright © 2008-2010 the original author or authors
 
-   * - :mvn:`org.powermock:powermock-core</org.powermock/powermock-core/2.0.9>`
+   * - `org.powermock:powermock-core <https://mvnrepository.com/artifact/org.powermock/powermock-core/2.0.9>`__
      - Copyright © 2013 Jonas Berlin,
        Copyright © 2011, 2013-2017 the original author or authors
 
-   * - :mvn:`org.powermock:powermock-module-junit4</org.powermock/powermock-module-junit4/2.0.9>`
+   * - `org.powermock:powermock-module-junit4 <https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4/2.0.9>`__
      - Copyright © 2008-2009, 2013 the original author or authors
 
-   * - :mvn:`org.powermock:powermock-module-junit4-common</org.powermock/powermock-module-junit4-common/2.0.9>`
+   * - `org.powermock:powermock-module-junit4-common <https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4-common/2.0.9>`__
      - Copyright © 2008, 2012, 2016 the original author or authors
 
-   * - :mvn:`org.powermock:powermock-reflect</org.powermock/powermock-reflect/2.0.9>`
+   * - `org.powermock:powermock-reflect <https://mvnrepository.com/artifact/org.powermock/powermock-reflect/2.0.9>`__
      - Copyright © 2008-2010, 2014, 2016 the original author or authors
 
-   * - :mvn:`org.quartz-scheduler:quartz</org.quartz-scheduler/quartz/2.3.2>`
+   * - `org.quartz-scheduler:quartz <https://mvnrepository.com/artifact/org.quartz-scheduler/quartz/2.3.2>`__
      - Copyright Terracotta, Inc.
 
-   * - :mvn:`org.reflections:reflections</org.reflections/reflections/0.10.2>`
+   * - `org.reflections:reflections <https://mvnrepository.com/artifact/org.reflections/reflections/0.10.2>`__
      - Copyright © 2004 Sam Hocevar <sam\@hocevar.net>
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-api</org.seleniumhq.selenium/selenium-api/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-api <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-api/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-chrome-driver</org.seleniumhq.selenium/selenium-chrome-driver/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-chrome-driver <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-chrome-driver/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-chromium-driver</org.seleniumhq.selenium/selenium-chromium-driver/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-chromium-driver <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-chromium-driver/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-devtools</org.seleniumhq.selenium/selenium-devtools/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-devtools <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-devtools/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-firefox-driver</org.seleniumhq.selenium/selenium-firefox-driver/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-firefox-driver <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-firefox-driver/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-http</org.seleniumhq.selenium/selenium-http/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-http <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-http/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-json</org.seleniumhq.selenium/selenium-json/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-json <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-json/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-remote-driver</org.seleniumhq.selenium/selenium-remote-driver/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-remote-driver <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-remote-driver/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.seleniumhq.selenium:selenium-support</org.seleniumhq.selenium/selenium-support/4.0.0-alpha-3>`
+   * - `org.seleniumhq.selenium:selenium-support <https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-support/4.0.0-alpha-3>`__
      - 
 
-   * - :mvn:`org.shredzone.acme4j:acme4j-client</org.shredzone.acme4j/acme4j-client/2.12>`
+   * - `org.shredzone.acme4j:acme4j-client <https://mvnrepository.com/artifact/org.shredzone.acme4j/acme4j-client/2.12>`__
      - Copyright © 2015-2021 Richard Shred Korber http://acme4j.shredzone.org
 
-   * - :mvn:`org.shredzone.acme4j:acme4j-utils</org.shredzone.acme4j/acme4j-utils/2.12>`
+   * - `org.shredzone.acme4j:acme4j-utils <https://mvnrepository.com/artifact/org.shredzone.acme4j/acme4j-utils/2.12>`__
      - Copyright © 2020 Richard Shred Korber http://acme4j.shredzone.org,
        Copyright © 2015 Richard Shred Korber http://acme4j.shredzone.org
 
-   * - :mvn:`org.skyscreamer:jsonassert</org.skyscreamer/jsonassert/1.5.0>`
+   * - `org.skyscreamer:jsonassert <https://mvnrepository.com/artifact/org.skyscreamer/jsonassert/1.5.0>`__
      - 
 
-   * - :mvn:`org.slf4j:jcl-over-slf4j</org.slf4j/jcl-over-slf4j/1.7.32>`
+   * - `org.slf4j:jcl-over-slf4j <https://mvnrepository.com/artifact/org.slf4j/jcl-over-slf4j/1.7.32>`__
      - Copyright © 2001-2004 The Apache Software Foundation
 
-   * - :mvn:`org.slf4j:log4j-over-slf4j</org.slf4j/log4j-over-slf4j/1.7.32>`
+   * - `org.slf4j:log4j-over-slf4j <https://mvnrepository.com/artifact/org.slf4j/log4j-over-slf4j/1.7.32>`__
      - Copyright © 2001-2004 The Apache Software Foundation
 
-   * - :mvn:`org.xerial.snappy:snappy-java</org.xerial.snappy/snappy-java/1.1.8.4>`
+   * - `org.xerial.snappy:snappy-java <https://mvnrepository.com/artifact/org.xerial.snappy/snappy-java/1.1.8.4>`__
      - Copyright © 2008, 2011 Taro L. Saito,
        Copyright © 2004-2006 Intel Corportation
 
-   * - :mvn:`org.yaml:snakeyaml</org.yaml/snakeyaml/1.30>`
+   * - `org.yaml:snakeyaml <https://mvnrepository.com/artifact/org.yaml/snakeyaml/1.30>`__
      - Copyright © 2008, SnakeYAML,
        Copyright © 2003-2010 Christian d'Heureuse, Inventec Informatik AG, Zurich, Switzerland,
        Copyright © 2008 Google Inc.
 
-   * - :mvn:`software.amazon.ion:ion-java</software.amazon.ion/ion-java/1.0.2>`
+   * - `software.amazon.ion:ion-java <https://mvnrepository.com/artifact/software.amazon.ion/ion-java/1.0.2>`__
      - Copyright © 2007- Amazon.com
 
-   * - :npmjs:`atob</atob/v/2.1.2>`
+   * - `atob <https://www.npmjs.com/package/atob/v/2.1.2>`__
      - Copyright © 2012-2018 AJ ONeal
 
-   * - :npmjs:`aws-sign2</aws-sign2/v/0.7.0>`
+   * - `aws-sign2 <https://www.npmjs.com/package/aws-sign2/v/0.7.0>`__
      - Copyright © 2010 LearnBoost <dev\@learnboost.com>
 
-   * - :npmjs:`backbone-parentmodel</backbone-parentmodel/v/1.1.0>`
+   * - `backbone-parentmodel <https://www.npmjs.com/package/backbone-parentmodel/v/1.1.0>`__
      - 
 
-   * - :npmjs:`Base64</Base64/v/1.1.0>`
+   * - `Base64 <https://www.npmjs.com/package/Base64/v/1.1.0>`__
      - Copyright © 2011-2019 David Chambers <dc\@davidchambers.me>
 
-   * - :npmjs:`\@bazel/runfiles</\@bazel/runfiles/v/4.6.2>`
+   * - `\@bazel/runfiles <https://www.npmjs.com/package/\@bazel/runfiles/v/4.6.2>`__
      - 
 
-   * - :npmjs:`bson</bson/v/1.1.6>`
+   * - `bson <https://www.npmjs.com/package/bson/v/1.1.6>`__
      - Copyright Joyent, Inc. and other Node contributors,
        Copyright © 2008 Fair Oaks Labs, Inc.,
        Copyright © 2009 Google Inc.,
        Copyright © 2014 Facebook, Inc.,
        Copyright © 2019 Denis Pushkarev
 
-   * - :npmjs:`btoa</btoa/v/1.2.1>`
+   * - `btoa <https://www.npmjs.com/package/btoa/v/1.2.1>`__
      - copyright 2012-2018 AJ ONeal
 
-   * - :npmjs:`caseless</caseless/v/0.12.0>`
+   * - `caseless <https://www.npmjs.com/package/caseless/v/0.12.0>`__
      - 
 
-   * - :npmjs:`connect-backbone-to-react</connect-backbone-to-react/v/3.0.0>`
+   * - `connect-backbone-to-react <https://www.npmjs.com/package/connect-backbone-to-react/v/3.0.0>`__
      - Copyright © 2017 MongoDB Inc.
 
-   * - :npmjs:`crc-32</crc-32/v/1.2.2>`
+   * - `crc-32 <https://www.npmjs.com/package/crc-32/v/1.2.2>`__
      - Copyright © 2014-present SheetJS LLC http://sheetjs.com
 
-   * - :npmjs:`detect-libc</detect-libc/v/1.0.3>`
+   * - `detect-libc <https://www.npmjs.com/package/detect-libc/v/1.0.3>`__
      - Copyright © 2017 Lovell Fuller
 
-   * - :npmjs:`diff-match-patch</diff-match-patch/v/1.0.5>`
+   * - `diff-match-patch <https://www.npmjs.com/package/diff-match-patch/v/1.0.5>`__
      - Copyright © 2018
 
-   * - :npmjs:`forever-agent</forever-agent/v/0.6.1>`
+   * - `forever-agent <https://www.npmjs.com/package/forever-agent/v/0.6.1>`__
      - 
 
-   * - :npmjs:`hadron-ipc</hadron-ipc/v/1.2.1>`
+   * - `hadron-ipc <https://www.npmjs.com/package/hadron-ipc/v/1.2.1>`__
      - Copyright © 2016 MongoDB Inc.
 
-   * - :npmjs:`JSONStream</JSONStream/v/1.3.5>`
+   * - `JSONStream <https://www.npmjs.com/package/JSONStream/v/1.3.5>`__
      - Copyright © 2011 Dominic Tarr
 
-   * - :npmjs:`\@leafygreen-ui/a11y</\@leafygreen-ui/a11y/v/1.2.2>`
+   * - `\@leafygreen-ui/a11y <https://www.npmjs.com/package/\@leafygreen-ui/a11y/v/1.2.2>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/badge</\@leafygreen-ui/badge/v/4.0.5>`
+   * - `\@leafygreen-ui/badge <https://www.npmjs.com/package/\@leafygreen-ui/badge/v/4.0.5>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/banner</\@leafygreen-ui/banner/v/4.0.0>`
+   * - `\@leafygreen-ui/banner <https://www.npmjs.com/package/\@leafygreen-ui/banner/v/4.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/box</\@leafygreen-ui/box/v/3.0.6>`
+   * - `\@leafygreen-ui/box <https://www.npmjs.com/package/\@leafygreen-ui/box/v/3.0.6>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/button</\@leafygreen-ui/button/v/12.0.5>`
+   * - `\@leafygreen-ui/button <https://www.npmjs.com/package/\@leafygreen-ui/button/v/12.0.5>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/callout</\@leafygreen-ui/callout/v/4.0.0>`
+   * - `\@leafygreen-ui/callout <https://www.npmjs.com/package/\@leafygreen-ui/callout/v/4.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/card</\@leafygreen-ui/card/v/6.0.0>`
+   * - `\@leafygreen-ui/card <https://www.npmjs.com/package/\@leafygreen-ui/card/v/6.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/checkbox</\@leafygreen-ui/checkbox/v/6.0.6>`
+   * - `\@leafygreen-ui/checkbox <https://www.npmjs.com/package/\@leafygreen-ui/checkbox/v/6.0.6>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/code</\@leafygreen-ui/code/v/10.0.0>`
+   * - `\@leafygreen-ui/code <https://www.npmjs.com/package/\@leafygreen-ui/code/v/10.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/combobox</\@leafygreen-ui/combobox/v/1.0.0>`
+   * - `\@leafygreen-ui/combobox <https://www.npmjs.com/package/\@leafygreen-ui/combobox/v/1.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/confirmation-modal</\@leafygreen-ui/confirmation-modal/v/2.2.3>`
+   * - `\@leafygreen-ui/confirmation-modal <https://www.npmjs.com/package/\@leafygreen-ui/confirmation-modal/v/2.2.3>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/copyable</\@leafygreen-ui/copyable/v/3.0.0>`
+   * - `\@leafygreen-ui/copyable <https://www.npmjs.com/package/\@leafygreen-ui/copyable/v/3.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/emotion</\@leafygreen-ui/emotion/v/3.0.1>`
+   * - `\@leafygreen-ui/emotion <https://www.npmjs.com/package/\@leafygreen-ui/emotion/v/3.0.1>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/hooks</\@leafygreen-ui/hooks/v/6.0.1>`
+   * - `\@leafygreen-ui/hooks <https://www.npmjs.com/package/\@leafygreen-ui/hooks/v/6.0.1>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/icon</\@leafygreen-ui/icon/v/11.8.0>`
+   * - `\@leafygreen-ui/icon <https://www.npmjs.com/package/\@leafygreen-ui/icon/v/11.8.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/icon-button</\@leafygreen-ui/icon-button/v/10.0.0>`
+   * - `\@leafygreen-ui/icon-button <https://www.npmjs.com/package/\@leafygreen-ui/icon-button/v/10.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/inline-definition</\@leafygreen-ui/inline-definition/v/2.0.6>`
+   * - `\@leafygreen-ui/inline-definition <https://www.npmjs.com/package/\@leafygreen-ui/inline-definition/v/2.0.6>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/interaction-ring</\@leafygreen-ui/interaction-ring/v/1.1.1>`
+   * - `\@leafygreen-ui/interaction-ring <https://www.npmjs.com/package/\@leafygreen-ui/interaction-ring/v/1.1.1>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/leafygreen-provider</\@leafygreen-ui/leafygreen-provider/v/2.1.3>`
+   * - `\@leafygreen-ui/leafygreen-provider <https://www.npmjs.com/package/\@leafygreen-ui/leafygreen-provider/v/2.1.3>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/lib</\@leafygreen-ui/lib/v/6.3.0>`
+   * - `\@leafygreen-ui/lib <https://www.npmjs.com/package/\@leafygreen-ui/lib/v/6.3.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/logo</\@leafygreen-ui/logo/v/6.1.0>`
+   * - `\@leafygreen-ui/logo <https://www.npmjs.com/package/\@leafygreen-ui/logo/v/6.1.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/marketing-modal</\@leafygreen-ui/marketing-modal/v/2.1.3>`
+   * - `\@leafygreen-ui/marketing-modal <https://www.npmjs.com/package/\@leafygreen-ui/marketing-modal/v/2.1.3>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/menu</\@leafygreen-ui/menu/v/11.0.1>`
+   * - `\@leafygreen-ui/menu <https://www.npmjs.com/package/\@leafygreen-ui/menu/v/11.0.1>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/modal</\@leafygreen-ui/modal/v/5.1.2>`
+   * - `\@leafygreen-ui/modal <https://www.npmjs.com/package/\@leafygreen-ui/modal/v/5.1.2>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/mongo-nav</\@leafygreen-ui/mongo-nav/v/8.1.0>`
+   * - `\@leafygreen-ui/mongo-nav <https://www.npmjs.com/package/\@leafygreen-ui/mongo-nav/v/8.1.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/palette</\@leafygreen-ui/palette/v/3.3.2>`
+   * - `\@leafygreen-ui/palette <https://www.npmjs.com/package/\@leafygreen-ui/palette/v/3.3.2>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/popover</\@leafygreen-ui/popover/v/7.2.2>`
+   * - `\@leafygreen-ui/popover <https://www.npmjs.com/package/\@leafygreen-ui/popover/v/7.2.2>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/portal</\@leafygreen-ui/portal/v/3.1.3>`
+   * - `\@leafygreen-ui/portal <https://www.npmjs.com/package/\@leafygreen-ui/portal/v/3.1.3>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/radio-box-group</\@leafygreen-ui/radio-box-group/v/7.0.0>`
+   * - `\@leafygreen-ui/radio-box-group <https://www.npmjs.com/package/\@leafygreen-ui/radio-box-group/v/7.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/radio-group</\@leafygreen-ui/radio-group/v/8.0.0>`
+   * - `\@leafygreen-ui/radio-group <https://www.npmjs.com/package/\@leafygreen-ui/radio-group/v/8.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/ripple</\@leafygreen-ui/ripple/v/1.1.2>`
+   * - `\@leafygreen-ui/ripple <https://www.npmjs.com/package/\@leafygreen-ui/ripple/v/1.1.2>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/select</\@leafygreen-ui/select/v/3.1.0>`
+   * - `\@leafygreen-ui/select <https://www.npmjs.com/package/\@leafygreen-ui/select/v/3.1.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/side-nav</\@leafygreen-ui/side-nav/v/7.2.1>`
+   * - `\@leafygreen-ui/side-nav <https://www.npmjs.com/package/\@leafygreen-ui/side-nav/v/7.2.1>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/stepper</\@leafygreen-ui/stepper/v/3.0.0>`
+   * - `\@leafygreen-ui/stepper <https://www.npmjs.com/package/\@leafygreen-ui/stepper/v/3.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/table</\@leafygreen-ui/table/v/3.0.2>`
+   * - `\@leafygreen-ui/table <https://www.npmjs.com/package/\@leafygreen-ui/table/v/3.0.2>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/tabs</\@leafygreen-ui/tabs/v/5.1.5>`
+   * - `\@leafygreen-ui/tabs <https://www.npmjs.com/package/\@leafygreen-ui/tabs/v/5.1.5>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/text-area</\@leafygreen-ui/text-area/v/5.0.0>`
+   * - `\@leafygreen-ui/text-area <https://www.npmjs.com/package/\@leafygreen-ui/text-area/v/5.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/text-input</\@leafygreen-ui/text-input/v/6.2.1>`
+   * - `\@leafygreen-ui/text-input <https://www.npmjs.com/package/\@leafygreen-ui/text-input/v/6.2.1>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/toast</\@leafygreen-ui/toast/v/1.0.0>`
+   * - `\@leafygreen-ui/toast <https://www.npmjs.com/package/\@leafygreen-ui/toast/v/1.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/toggle</\@leafygreen-ui/toggle/v/8.0.0>`
+   * - `\@leafygreen-ui/toggle <https://www.npmjs.com/package/\@leafygreen-ui/toggle/v/8.0.0>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/tokens</\@leafygreen-ui/tokens/v/0.5.3>`
+   * - `\@leafygreen-ui/tokens <https://www.npmjs.com/package/\@leafygreen-ui/tokens/v/0.5.3>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/tooltip</\@leafygreen-ui/tooltip/v/6.3.1>`
+   * - `\@leafygreen-ui/tooltip <https://www.npmjs.com/package/\@leafygreen-ui/tooltip/v/6.3.1>`__
      - 
 
-   * - :npmjs:`\@leafygreen-ui/typography</\@leafygreen-ui/typography/v/10.0.0>`
+   * - `\@leafygreen-ui/typography <https://www.npmjs.com/package/\@leafygreen-ui/typography/v/10.0.0>`__
      - 
 
-   * - :npmjs:`localforage</localforage/v/1.10.0>`
+   * - `localforage <https://www.npmjs.com/package/localforage/v/1.10.0>`__
      - Copyright © 2013-2017 Mozilla (https://mozilla.org),
        Copyright © 2012 Niklas von Hertzen, 
        Copyright © 2013-2017 Apache
 
-   * - :npmjs:`media-type</media-type/v/0.3.0>`
+   * - `media-type <https://www.npmjs.com/package/media-type/v/0.3.0>`__
      - Copyright © 2013-2015 Lovell Fuller and contributors
 
-   * - :npmjs:`mongodb-extended-json</mongodb-extended-json/v/1.11.1>`
+   * - `mongodb-extended-json <https://www.npmjs.com/package/mongodb-extended-json/v/1.11.1>`__
      - Copyright © 2015 MongoDB Inc.
 
-   * - :npmjs:`\@mongodb-js/compass-aggregations</\@mongodb-js/compass-aggregations/v/7.1.6>`
+   * - `\@mongodb-js/compass-aggregations <https://www.npmjs.com/package/\@mongodb-js/compass-aggregations/v/7.1.6>`__
      - Copyright © 2017 Jed Watson
 
-   * - :npmjs:`mongodb-js-errors</mongodb-js-errors/v/0.3.3>`
+   * - `mongodb-js-errors <https://www.npmjs.com/package/mongodb-js-errors/v/0.3.3>`__
      - Copyright © 2015 MongoDB Inc.
 
-   * - :npmjs:`mongodb-language-model</mongodb-language-model/v/1.7.1>`
+   * - `mongodb-language-model <https://www.npmjs.com/package/mongodb-language-model/v/1.7.1>`__
      - 
 
-   * - :npmjs:`mongodb-log-writer</mongodb-log-writer/v/1.1.4>`
+   * - `mongodb-log-writer <https://www.npmjs.com/package/mongodb-log-writer/v/1.1.4>`__
      - Copyright © 2020 MongoDB Inc.
 
-   * - :npmjs:`mongodb-query-parser</mongodb-query-parser/v/2.4.3>`
+   * - `mongodb-query-parser <https://www.npmjs.com/package/mongodb-query-parser/v/2.4.3>`__
      - Copyright © 2017 MongoDB Inc.
 
-   * - :npmjs:`mongodb-query-util</mongodb-query-util/v/0.2.1>`
+   * - `mongodb-query-util <https://www.npmjs.com/package/mongodb-query-util/v/0.2.1>`__
      - 
 
-   * - :npmjs:`mongodb-redux-common</mongodb-redux-common/v/0.0.2>`
+   * - `mongodb-redux-common <https://www.npmjs.com/package/mongodb-redux-common/v/0.0.2>`__
      - 
 
-   * - :npmjs:`mongodb-stitch</mongodb-stitch/v/3.18.0>`
+   * - `mongodb-stitch <https://www.npmjs.com/package/mongodb-stitch/v/3.18.0>`__
      - Copyright © 2006 VeriSign, Inc.,
        Copyright © 2010, 2012 Adobe Systems Incorporated (http://www.adobe.com/), 
        Copyright © 2014 TJ Holowaychuk <tj\@vision-media.ca>
@@ -1420,10 +1420,10 @@
        Copyright © 2017 Nathan Cahill,
        Copyright © Vasily Polovnyov <vast\@whiteants.net>,
 
-   * - :npmjs:`oauth-sign</oauth-sign/v/0.9.0>`
+   * - `oauth-sign <https://www.npmjs.com/package/oauth-sign/v/0.9.0>`__
      - 
 
-   * - :npmjs:`\@okta/okta-auth-js</\@okta/okta-auth-js/v/5.9.1>`
+   * - `\@okta/okta-auth-js <https://www.npmjs.com/package/\@okta/okta-auth-js/v/5.9.1>`__
      - Copyright © 2006, 2015 Klaus Hartl & Fagner Brack,
        Copyright © 2021 Denis Pushkarev,
        Copyright © 2011-2012, 2015 David Chambers <dc\@hashify.me>,
@@ -1431,39 +1431,39 @@
        Copyright © 2015-present, Okta, Inc. and/or its affiliates,
        Copyright © Microsoft Corporation
 
-   * - :npmjs:`\@okta/okta-idx-js</\@okta/okta-idx-js/v/0.22.0>`
+   * - `\@okta/okta-idx-js <https://www.npmjs.com/package/\@okta/okta-idx-js/v/0.22.0>`__
      - Copyright © 2020-Present, Okta, Inc. and/or its affiliates
 
-   * - :npmjs:`pause-stream</pause-stream/v/0.0.11>`
+   * - `pause-stream <https://www.npmjs.com/package/pause-stream/v/0.0.11>`__
      - Copyright © 2013 Dominic Tarr
 
-   * - :npmjs:`rc</rc/v/1.2.8>`
+   * - `rc <https://www.npmjs.com/package/rc/v/1.2.8>`__
      - Copyright © 2011, 2013 Dominic Tarr
 
-   * - :npmjs:`react-beautiful-dnd</react-beautiful-dnd/v/13.1.0>`
+   * - `react-beautiful-dnd <https://www.npmjs.com/package/react-beautiful-dnd/v/13.1.0>`__
      - Copyright © 2019 Atlassian Pty Ltd, © Sindre Sorhus,
        Copyright © 2013-present, Facebook, Inc.,
        Copyright © 2015, Yahoo! Inc.
 
-   * - :npmjs:`react-vega</react-vega/v/7.4.4>`
+   * - `react-vega <https://www.npmjs.com/package/react-vega/v/7.4.4>`__
      - Copyright © 2016 Krist Wongsuphasawat <krist.wongz\@gmail.com> (http://kristw.yellowpigz.com)
 
-   * - :npmjs:`readdir-glob</readdir-glob/v/1.1.1>`
+   * - `readdir-glob <https://www.npmjs.com/package/readdir-glob/v/1.1.1>`__
      - Copyright © 2020 Yann Armelin
 
-   * - :npmjs:`request</request/v/2.88.2>`
+   * - `request <https://www.npmjs.com/package/request/v/2.88.2>`__
      - Copyright © 2010-2012 Mikeal Rogers
 
-   * - :npmjs:`rxjs</rxjs/v/6.6.7>`
+   * - `rxjs <https://www.npmjs.com/package/rxjs/v/6.6.7>`__
      - Copyright © 2015-2018 Google, Inc., Netflix, Inc., Microsoft Corp. and contributors,
 
-   * - :npmjs:`storage-mixin</storage-mixin/v/3.4.1>`
+   * - `storage-mixin <https://www.npmjs.com/package/storage-mixin/v/3.4.1>`__
      - 
 
-   * - :npmjs:`text-encoding</text-encoding/v/0.7.0>`
+   * - `text-encoding <https://www.npmjs.com/package/text-encoding/v/0.7.0>`__
      - 
 
-   * - :npmjs:`tunnel-agent</tunnel-agent/v/0.6.0>`
+   * - `tunnel-agent <https://www.npmjs.com/package/tunnel-agent/v/0.6.0>`__
      - 
 
    * - :gopkg:`cloud.google.com/go</cloud.google.com/go\@v0.100.1>`
@@ -1493,166 +1493,166 @@
    * - :gopkg:`cloud.google.com/go/storage</cloud.google.com/go/storage\@v1.0.0>`
      - 
 
-   * - :gh:`github.com/apache/thrift</apache/thrift\@v0.13.0>`
+   * - `github.com/apache/thrift <https://github.com/apache/thrift\@v0.13.0>`__
      - 
 
-   * - :gh:`github.com/aws/aws-sdk-go</aws/aws-sdk-go\@v1.22.1>`
+   * - `github.com/aws/aws-sdk-go <https://github.com/aws/aws-sdk-go\@v1.22.1>`__
      - 
 
-   * - :gh:`github.com/Azure/azure-sdk-for-go</Azure/azure-sdk-for-go\@v63.3.0+incompatible>`
+   * - `github.com/Azure/azure-sdk-for-go <https://github.com/Azure/azure-sdk-for-go\@v63.3.0+incompatible>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest</Azure/go-autorest\@v14.2.0+incompatible>`
+   * - `github.com/Azure/go-autorest <https://github.com/Azure/go-autorest\@v14.2.0+incompatible>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/autorest</Azure/go-autorest/autorest\@v0.11.25>`
+   * - `github.com/Azure/go-autorest/autorest <https://github.com/Azure/go-autorest/autorest\@v0.11.25>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/autorest/adal</Azure/go-autorest/autorest/adal\@v0.9.18>`
+   * - `github.com/Azure/go-autorest/autorest/adal <https://github.com/Azure/go-autorest/autorest/adal\@v0.9.18>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/autorest/date</Azure/go-autorest/autorest/date\@v0.3.0>`
+   * - `github.com/Azure/go-autorest/autorest/date <https://github.com/Azure/go-autorest/autorest/date\@v0.3.0>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/autorest/mocks</Azure/go-autorest/autorest/mocks\@v0.4.1>`
+   * - `github.com/Azure/go-autorest/autorest/mocks <https://github.com/Azure/go-autorest/autorest/mocks\@v0.4.1>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/autorest/to</Azure/go-autorest/autorest/to\@v0.4.0>`
+   * - `github.com/Azure/go-autorest/autorest/to <https://github.com/Azure/go-autorest/autorest/to\@v0.4.0>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/autorest/validation</Azure/go-autorest/autorest/validation\@v0.3.1>`
+   * - `github.com/Azure/go-autorest/autorest/validation <https://github.com/Azure/go-autorest/autorest/validation\@v0.3.1>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/logger</Azure/go-autorest/logger\@v0.2.1>`
+   * - `github.com/Azure/go-autorest/logger <https://github.com/Azure/go-autorest/logger\@v0.2.1>`__
      - 
 
-   * - :gh:`github.com/Azure/go-autorest/tracing</Azure/go-autorest/tracing\@v0.6.0>`
+   * - `github.com/Azure/go-autorest/tracing <https://github.com/Azure/go-autorest/tracing\@v0.6.0>`__
      - 
 
-   * - :gh:`github.com/bgentry/speakeasy</bgentry/speakeasy\@v0.1.0>`
+   * - `github.com/bgentry/speakeasy <https://github.com/bgentry/speakeasy\@v0.1.0>`__
      - 
 
-   * - :gh:`github.com/census-instrumentation/opencensus-proto</census-instrumentation/opencensus-proto\@v0.2.1>`
+   * - `github.com/census-instrumentation/opencensus-proto <https://github.com/census-instrumentation/opencensus-proto\@v0.2.1>`__
      - 
 
-   * - :gh:`github.com/cockroachdb/apd</cockroachdb/apd\@v1.1.0>`
+   * - `github.com/cockroachdb/apd <https://github.com/cockroachdb/apd\@v1.1.0>`__
      - 
 
-   * - :gh:`github.com/coreos/etcd</coreos/etcd\@v3.3.10+incompatible>`
+   * - `github.com/coreos/etcd <https://github.com/coreos/etcd\@v3.3.10+incompatible>`__
      - 
 
-   * - :gh:`github.com/coreos/go-etcd</coreos/go-etcd\@v2.0.0+incompatible>`
+   * - `github.com/coreos/go-etcd <https://github.com/coreos/go-etcd\@v2.0.0+incompatible>`__
      - 
 
-   * - :gh:`github.com/coreos/go-semver</coreos/go-semver\@v0.2.0>`
+   * - `github.com/coreos/go-semver <https://github.com/coreos/go-semver\@v0.2.0>`__
      - 
 
-   * - :gh:`github.com/coreos/go-systemd</coreos/go-systemd\@v22.3.2>`
+   * - `github.com/coreos/go-systemd <https://github.com/coreos/go-systemd\@v22.3.2>`__
      - 
 
-   * - :gh:`github.com/dimchansky/utfbom</dimchansky/utfbom\@v1.1.1>`
+   * - `github.com/dimchansky/utfbom <https://github.com/dimchansky/utfbom\@v1.1.1>`__
      - 
 
-   * - :gh:`github.com/elastic/beats</elastic/beats\@v7.6.2+incompatible>`
+   * - `github.com/elastic/beats <https://github.com/elastic/beats\@v7.6.2+incompatible>`__
      - 
 
-   * - :gh:`github.com/elastic/go-structform</elastic/go-structform\@v0.0.9>`
+   * - `github.com/elastic/go-structform <https://github.com/elastic/go-structform\@v0.0.9>`__
      - 
 
-   * - :gh:`github.com/elastic/go-sysinfo</elastic/go-sysinfo\@v1.7.1>`
+   * - `github.com/elastic/go-sysinfo <https://github.com/elastic/go-sysinfo\@v1.7.1>`__
      - 
 
-   * - :gh:`github.com/elastic/go-ucfg</elastic/go-ucfg\@v0.8.4>`
+   * - `github.com/elastic/go-ucfg <https://github.com/elastic/go-ucfg\@v0.8.4>`__
      - 
 
-   * - :gh:`github.com/elastic/go-windows</elastic/go-windows\@v1.0.0>`
+   * - `github.com/elastic/go-windows <https://github.com/elastic/go-windows\@v1.0.0>`__
      - 
 
-   * - :gh:`github.com/envoyproxy/go-control-plane</envoyproxy/go-control-plane\@v0.10.1>`
+   * - `github.com/envoyproxy/go-control-plane <https://github.com/envoyproxy/go-control-plane\@v0.10.1>`__
      - 
 
-   * - :gh:`github.com/envoyproxy/protoc-gen-validate</envoyproxy/protoc-gen-validate\@v0.1.0>`
+   * - `github.com/envoyproxy/protoc-gen-validate <https://github.com/envoyproxy/protoc-gen-validate\@v0.1.0>`__
      - 
 
-   * - :gh:`github.com/fraugster/parquet-go</fraugster/parquet-go\@v0.3.0>`
+   * - `github.com/fraugster/parquet-go <https://github.com/fraugster/parquet-go\@v0.3.0>`__
      - 
 
-   * - :gh:`github.com/golang/mock</golang/mock\@v1.1.1>`
+   * - `github.com/golang/mock <https://github.com/golang/mock\@v1.1.1>`__
      - 
 
-   * - :gh:`github.com/google/btree</google/btree\@v1.0.0>`
+   * - `github.com/google/btree <https://github.com/google/btree\@v1.0.0>`__
      - 
 
-   * - :gh:`github.com/google/gofuzz</google/gofuzz\@v1.0.0>`
+   * - `github.com/google/gofuzz <https://github.com/google/gofuzz\@v1.0.0>`__
      - 
 
-   * - :gh:`github.com/google/martian</google/martian\@v2.1.0+incompatible>`
+   * - `github.com/google/martian <https://github.com/google/martian\@v2.1.0+incompatible>`__
      - 
 
-   * - :gh:`github.com/google/renameio</google/renameio\@v0.1.0>`
+   * - `github.com/google/renameio <https://github.com/google/renameio\@v0.1.0>`__
      - 
 
-   * - :gh:`github.com/inconshreveable/mousetrap</inconshreveable/mousetrap\@v1.0.0>`
+   * - `github.com/inconshreveable/mousetrap <https://github.com/inconshreveable/mousetrap\@v1.0.0>`__
      - 
 
-   * - :gh:`github.com/jcmturner/aescts</jcmturner/aescts\@v2.0.0>`
+   * - `github.com/jcmturner/aescts <https://github.com/jcmturner/aescts\@v2.0.0>`__
      - 
 
-   * - :gh:`github.com/jcmturner/dnsutils</jcmturner/dnsutils\@v2.0.0>`
+   * - `github.com/jcmturner/dnsutils <https://github.com/jcmturner/dnsutils\@v2.0.0>`__
      - 
 
-   * - :gh:`github.com/jcmturner/goidentity</jcmturner/goidentity\@v6.0.1>`
+   * - `github.com/jcmturner/goidentity <https://github.com/jcmturner/goidentity\@v6.0.1>`__
      - 
 
-   * - :gh:`github.com/jcmturner/gokrb5</jcmturner/gokrb5\@v8.4.2>`
+   * - `github.com/jcmturner/gokrb5 <https://github.com/jcmturner/gokrb5\@v8.4.2>`__
      - 
 
-   * - :gh:`github.com/jcmturner/rpc</jcmturner/rpc\@v2.0.3>`
+   * - `github.com/jcmturner/rpc <https://github.com/jcmturner/rpc\@v2.0.3>`__
      - 
 
-   * - :gh:`github.com/jmespath/go-jmespath</jmespath/go-jmespath\@v0.4.0>`
+   * - `github.com/jmespath/go-jmespath <https://github.com/jmespath/go-jmespath\@v0.4.0>`__
      - 
 
-   * - :gh:`github.com/linkedin/goavro</linkedin/goavro\@v2.1.0+incompatible>`
+   * - `github.com/linkedin/goavro <https://github.com/linkedin/goavro\@v2.1.0+incompatible>`__
      - 
 
-   * - :gh:`github.com/lyft/protoc-gen-star</lyft/protoc-gen-star\@v0.5.3>`
+   * - `github.com/lyft/protoc-gen-star <https://github.com/lyft/protoc-gen-star\@v0.5.3>`__
      - 
 
-   * - :gh:`github.com/matttproud/golang_protobuf_extensions</matttproud/golang_protobuf_extensions\@v1.0.1>`
+   * - `github.com/matttproud/golang_protobuf_extensions <https://github.com/matttproud/golang_protobuf_extensions\@v1.0.1>`__
      - 
 
-   * - :gh:`github.com/modern-go/reflect2</modern-go/reflect2\@v1.0.1>`
+   * - `github.com/modern-go/reflect2 <https://github.com/modern-go/reflect2\@v1.0.1>`__
      - 
 
-   * - :gh:`github.com/OneOfOne/xxhash</OneOfOne/xxhash\@v1.2.2>`
+   * - `github.com/OneOfOne/xxhash <https://github.com/OneOfOne/xxhash\@v1.2.2>`__
      - 
 
-   * - :gh:`github.com/prometheus/client_golang</prometheus/client_golang\@v0.9.1>`
+   * - `github.com/prometheus/client_golang <https://github.com/prometheus/client_golang\@v0.9.1>`__
      - 
 
-   * - :gh:`github.com/prometheus/client_model</prometheus/client_model\@v0.2.0>`
+   * - `github.com/prometheus/client_model <https://github.com/prometheus/client_model\@v0.2.0>`__
      - 
 
-   * - :gh:`github.com/prometheus/common</prometheus/common\@v0.10.0>`
+   * - `github.com/prometheus/common <https://github.com/prometheus/common\@v0.10.0>`__
      - 
 
-   * - :gh:`github.com/prometheus/procfs</prometheus/procfs\@v0.0.2>`
+   * - `github.com/prometheus/procfs <https://github.com/prometheus/procfs\@v0.0.2>`__
      - 
 
-   * - :gh:`github.com/spf13/afero</spf13/afero\@v1.1.2>`
+   * - `github.com/spf13/afero <https://github.com/spf13/afero\@v1.1.2>`__
      - 
 
-   * - :gh:`github.com/spf13/cobra</spf13/cobra\@v0.0.3>`
+   * - `github.com/spf13/cobra <https://github.com/spf13/cobra\@v0.0.3>`__
      - 
 
-   * - :gh:`github.com/xdg-go/jibby</xdg-go/jibby\@v0.1.9>`
+   * - `github.com/xdg-go/jibby <https://github.com/xdg-go/jibby\@v0.1.9>`__
      - 
 
-   * - :gh:`github.com/xdg/stringprep</xdg/stringprep\@v1.0.3>`
+   * - `github.com/xdg/stringprep <https://github.com/xdg/stringprep\@v1.0.3>`__
      - 
 
-   * - :gh:`github.com/xeipuuv/gojsonschema</xeipuuv/gojsonschema\@v1.2.0>`
+   * - `github.com/xeipuuv/gojsonschema <https://github.com/xeipuuv/gojsonschema\@v1.2.0>`__
      - 
 
    * - :gopkg:`go.mongodb.org/mongo-driver</go.mongodb.org/mongo-driver\@v1.5.1>`
@@ -1706,28 +1706,28 @@
    * - :gopkg:`gopkg.in/yaml.v2</gopkg.in/yaml.v2\@v2.4.0>`
      - 
 
-   * - :gh:`github.com/aws/aws-sdk-go</aws/aws-sdk-go\@v1.22.1>`
+   * - `github.com/aws/aws-sdk-go <https://github.com/aws/aws-sdk-go\@v1.22.1>`__
      - 
 
-   * - :gh:`github.com/cockroachdb/apd</cockroachdb/apd\@v1.1.0>`
+   * - `github.com/cockroachdb/apd <https://github.com/cockroachdb/apd\@v1.1.0>`__
      - 
 
-   * - :gh:`github.com/inconshreveable/mousetrap</inconshreveable/mousetrap\@v1.0.0>`
+   * - `github.com/inconshreveable/mousetrap <https://github.com/inconshreveable/mousetrap\@v1.0.0>`__
      - 
 
-   * - :gh:`github.com/jmespath/go-jmespath</jmespath/go-jmespath\@v0.4.0>`
+   * - `github.com/jmespath/go-jmespath <https://github.com/jmespath/go-jmespath\@v0.4.0>`__
      - 
 
-   * - :gh:`github.com/mongodb/mongo-tools</mongodb/mongo-tools\@v0.0.0-20210318165052-4b84777b8f84>`
+   * - `github.com/mongodb/mongo-tools <https://github.com/mongodb/mongo-tools\@v0.0.0-20210318165052-4b84777b8f84>`__
      - 
 
-   * - :gh:`github.com/spf13/cobra</spf13/cobra\@v0.0.3>`
+   * - `github.com/spf13/cobra <https://github.com/spf13/cobra\@v0.0.3>`__
      - 
 
-   * - :gh:`github.com/xdg/scram</xdg/scram\@v0.0.0-20180814205039-7eeb5667e42c>`
+   * - `github.com/xdg/scram <https://github.com/xdg/scram\@v0.0.0-20180814205039-7eeb5667e42c>`__
      - 
 
-   * - :gh:`github.com/xdg/stringprep</xdg/stringprep\@v0.0.0-20180714160509-73f8eece6fdc>`
+   * - `github.com/xdg/stringprep <https://github.com/xdg/stringprep\@v0.0.0-20180714160509-73f8eece6fdc>`__
      - 
 
    * - :gopkg:`go.mongodb.org/mongo-driver</go.mongodb.org/mongo-driver\@v1.4.2>`
@@ -1739,16 +1739,16 @@
    * - :gopkg:`gopkg.in/yaml.v2</gopkg.in/yaml.v2\@v2.2.1>`
      - 
 
-   * - :gh:`github.com/garyburd/redigo</garyburd/redigo\@v1.6.3>`
+   * - `github.com/garyburd/redigo <https://github.com/garyburd/redigo\@v1.6.3>`__
      - 
 
-   * - :gh:`github.com/xdg-go/pbkdf2</xdg-go/pbkdf2\@v1.0.0>`
+   * - `github.com/xdg-go/pbkdf2 <https://github.com/xdg-go/pbkdf2\@v1.0.0>`__
      - 
 
-   * - :gh:`github.com/xdg-go/scram</xdg-go/scram\@v1.0.2>`
+   * - `github.com/xdg-go/scram <https://github.com/xdg-go/scram\@v1.0.2>`__
      - 
 
-   * - :gh:`github.com/xdg-go/stringprep</xdg-go/stringprep\@v1.0.2>`
+   * - `github.com/xdg-go/stringprep <https://github.com/xdg-go/stringprep\@v1.0.2>`__
      - 
 
    * - mongo-java-distributed-lock.jar

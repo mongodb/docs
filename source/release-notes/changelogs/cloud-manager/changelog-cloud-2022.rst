@@ -51,7 +51,7 @@
   :guilabel:`Data Explorer`.
 - Adds the ability to enable and run the sharded cluster balancer 
   through the |mms-full| UI using Automation.
-- Compatible with :db-tools:`MongoDB Database Tools 100.5.3 
+- Compatible with :dbtools:`MongoDB Database Tools 100.5.3 
   </release-notes/database-tools-changelog#100.5.3-changelog>`.
 - Updates {+mdbagent+} to :ref:`12.1.0.7593 <12.1.0.7593>`.
   

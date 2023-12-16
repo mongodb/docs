@@ -157,8 +157,8 @@
         menu [ :icon:`ellipsis-h` ].
      #. Click :guilabel:`Resync`.
 
-     Do not resync the entire :term:`sharded cluster` if a
-     :term:`config server` triggers this alert. Resync the config
+     Do not resync the entire :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` if a
+     :manual:`config server </reference/glossary/#std-term-config-server>` triggers this alert. Resync the config
      server in question only.
 
 - **Fix:** Changes to the storage engine for a config server backup are
@@ -262,10 +262,10 @@
 
 - Agent Upgrades: :ref:`automation-3.2.11.2025`, :ref:`backup-5.0.6.486`
 
-- Fix for premature forceful shutdown of the HEAD :program:`mongod`
+- Fix for premature forceful shutdown of the HEAD :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`
   instances for |onprem| Backup Daemons running on Windows.
 
-- Fix problem with shutdown of :program:`mongod` processes during an
+- Fix problem with shutdown of :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` processes during an
   automated restores on Windows.
 
 - Fix for issues using Automation in multi-server deployments using SSL

@@ -15,6 +15,6 @@
    This setting requires a
    `reCaptcha account <https://www.google.com/recaptcha/admin>`_.
    
-   Corresponds to :setting:`ReCaptcha Enabled`.
+   Corresponds to ``ReCaptcha Enabled``.
    
 

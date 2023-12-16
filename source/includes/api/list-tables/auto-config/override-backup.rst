@@ -32,7 +32,7 @@
    * - :bsetting:`krb5ConfigLocation`
      - string
 
-   * - :bsetting:`gsappiServiceName`
+   * - :bsetting:`gsapiServiceName`
      - string
 
    * - :bsetting:`sslClientCertificate`

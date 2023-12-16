@@ -1,7 +1,7 @@
 .. important:: Changed in |onprem| 3.6: Point-in-Time Restores
 
-   Prior to 3.6, the :term:`Backup Daemon` created the complete point-
+   Prior to 3.6, the :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` created the complete point-
    in-time restore on its host. With 3.6, you download a client-side
-   tool along with your :term:`snapshot`. This tool downloads and
-   applies the :term:`oplog` to a snapshot on your client system. This
+   tool along with your :manual:`snapshot </reference/glossary/#std-term-snapshot>`. This tool downloads and
+   applies the :manual:`oplog </reference/glossary/#std-term-oplog>` to a snapshot on your client system. This
    reduces network and storage needs for your |onprem| deployment.

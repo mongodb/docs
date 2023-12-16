@@ -13,6 +13,6 @@
    ``12``, ``16``, ``20``, ``24``, and ``52``
    
    
-   Corresponds to :setting:`Weekly Retention of Snapshots (in Weeks) <.Weekly Retention of Snapshots>`
+   Corresponds to ``.Weekly Retention of Snapshots``
    
 

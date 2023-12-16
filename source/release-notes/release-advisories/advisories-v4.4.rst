@@ -22,7 +22,7 @@ If you run |onprem| 4.4.0 in
 .. include:: /includes/list-tables/compatibility-matrix/db-tools-OMv4.4.rst
 
 To access older versions of the MongoDB Tools, click
-:dlarch:`Archived releases <database-tools>` on the Download page.
+`Archived releases <https://www.mongodb.com/download-center/database-tools/releases/archive>`__ on the Download page.
 
 Personal API Keys
 ~~~~~~~~~~~~~~~~~
@@ -36,7 +36,7 @@ Encryption Using ``gen.key`` File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |onprem| 4.4 requires an identical ``gen.key`` file on each server
-hosting an |application| or :term:`Backup Daemon <Backup Daemon>`.
+hosting an |application| or :opsmgr:`Backup Daemon </reference/glossary/#term-Backup-Daemon>`.
 |onprem| uses the file to encrypt and decrypt |onprem|\'s backing
 databases and user credentials. Back up the ``gen.key`` file to a
 secure location.
@@ -60,10 +60,10 @@ MongoDB Platform Support Changes
 |onprem| 4.4 removes support for managing MongoDB deployments with the
 MongoDB Agent that run on:
 
-  - Amazon Linux 1 on the x86_64 architecture
-  - RHEL 7.x, Ubuntu 16.x on the PowerPC (``ppc64le``) architecture
-  - RHEL 6.x/7.x, Ubuntu 18.x, and SUSE 12.x on zSeries (``s390x``)
-    architecture
+- Amazon Linux 1 on the x86_64 architecture
+- RHEL 7.x, Ubuntu 16.x on the PowerPC (``ppc64le``) architecture
+- RHEL 6.x/7.x, Ubuntu 18.x, and SUSE 12.x on zSeries (``s390x``)
+  architecture
 
 Server Pools
 ~~~~~~~~~~~~

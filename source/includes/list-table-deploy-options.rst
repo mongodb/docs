@@ -33,7 +33,7 @@
    * - :guilabel:`Index Configuration`
 
      - Creates a MongoDB index. For details, see
-       :doc:`/tutorial/create-indexes`.
+       :doc:`/data-explorer/indexes`.
 
    * - :guilabel:`Advanced Configuration Options`
 

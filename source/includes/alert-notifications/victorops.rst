@@ -3,9 +3,9 @@ Sends the alert to a
 
 - In |mms|, enter the following VictorOps setting information:
 
-  - :vo-docs:`API key </knowledge-base/rest-endpoint-integration-guide/>`.
+  - `API key <https://help.victorops.com/knowledge-base/rest-endpoint-integration-guide/>`__.
     This integrates the VictorOps endpoint for alerts.
-  - :vo-docs:`Routing key </knowledge-base/routing-keys/>`.
+  - `Routing key <https://help.victorops.com/knowledge-base/routing-keys/>`__.
     This optional setting routes alerts to a specific VictorOps group.
 
 - Click :guilabel:`Post Test Alert` to test VictorOps configuration.

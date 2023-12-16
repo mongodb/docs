@@ -1,4 +1,5 @@
 .. important::
+
    A full description of Public Key Infrastructure (PKI), including
    certificates and Certificate Authorities, is beyond the scope of this
    tutorial. This tutorial assumes prior knowledge of SSL and PKI as well as
@@ -24,15 +25,19 @@ To enable x.509 Authentication for |mms|, you must:
 
   .. example::
 
-     For OpenSSL, the command to generate the LDAPv3 DN from a PEM Key File called ``automation.pem`` is::
+     For OpenSSL, the command to generate the LDAPv3 DN from a PEM Key File called ``automation.pem`` is:
 
-      openssl x509 -in automation.pem -inform PEM -subject -nameopt RFC2253
+     .. code-block::
+
+        openssl x509 -in automation.pem -inform PEM -subject -nameopt RFC2253
 
 .. note::
+
    See :manual:`Client x.509 Certificate </tutorial/configure-x509-client-authentication>` 
    in the MongoDB Manual for certificate requirements.
 
 .. important::
+
    If at any point you wish to reset the authentication settings for your
    project and start again, see :doc:`/tutorial/clear-security-settings` for
    more information.

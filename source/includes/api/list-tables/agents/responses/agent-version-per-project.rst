@@ -77,7 +77,7 @@
        | ``.isPrimary``
      - boolean
      - Flag that indicates if the host on which this Agent runs is the
-       :term:`primary`.
+       :manual:`primary </reference/glossary/#std-term-primary>`.
 
    * - | ``entries``
        | ``.isManaged``

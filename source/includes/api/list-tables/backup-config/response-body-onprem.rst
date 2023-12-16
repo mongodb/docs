@@ -24,7 +24,7 @@
        configuration. You must include the **syncSource** field when
        enabling encryption for a backup configuration. For existing
        backups in a project, enabling encryption requires an 
-       :term:`initial sync` to recreate the backups’ head databases.
+       :opsmgr:`inital sync </reference/glossary/#term-initial-sync>` to recreate the backups’ head databases.
 
        .. include:: /includes/head-database-deprecated-encrypt.rst
 

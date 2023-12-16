@@ -29,7 +29,7 @@
    
       * OpenSSL version 1.0.1+
    
-   To set :setting:`minimum.TLSVersion`, follow the `Modify a Custom
+   To set ``minimum.TLSVersion``, follow the :ref:`Modify a Custom
    Setting <opsmgr-config-add-custom>` procedure with the following
    values:
    

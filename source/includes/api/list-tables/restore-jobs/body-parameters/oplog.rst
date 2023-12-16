@@ -11,7 +11,7 @@
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :term:`snapshot` data
+     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
        is delivered.
 
    * - | ``delivery``
@@ -62,8 +62,8 @@
        |epoch-time|. When paired with ``oplogInc``, they represent the
        point in time to which your data will be restored.
 
-       Run a query against :data:`local.oplog.rs` on your
-       :term:`replica set` to find the desired timestamp.
+       Run a query against ``local.oplog.rs`` on your
+       :manual:`replica set </reference/glossary/#std-term-replica-set>` to find the desired timestamp.
 
        If you provide this setting, this endpoint restores all data up
        to *and including* this Oplog timestamp to the database you

@@ -8,7 +8,7 @@
 - Updates JDK to ``jdk-11.0.20+8``.
 - Updates the {+mdbagent+} to :ref:`11.0.27.7162
   <mongodb-11.0.27.7162>`.
-- Includes :db-tools:`MongoDB Database Tools 100.7.1
+- Includes :dbtools:`MongoDB Database Tools 100.7.1
   </release-notes/database-tools-changelog/#100.7.1-changelog>`.
 - Fixes CVE-2023-4009: Privilege Escalation for :authrole:`Project Owner`
   and :authrole:`Project User Admin` roles in |onprem|.
@@ -31,7 +31,7 @@
 - Updates the {+mdbagent+} to :ref:`11.0.26.7158
   <mongodb-11.0.26.7158>`.
 - Includes BI Connector 2.14.6.
-- Includes :db-tools:`MongoDB Database Tools 100.7.0
+- Includes :dbtools:`MongoDB Database Tools 100.7.0
   </release-notes/database-tools-changelog/#100.7.0-changelog>`.
 - Defaults the :guilabel:`Multiple Workers` option for a single file 
   during backup to :guilabel:`On`.
@@ -69,7 +69,7 @@
   `CWE-611 <https://cwe.mitre.org/data/definitions/611.html>`_.
 - Updates the {+mdbagent+} to :ref:`11.0.24.7131
   <mongodb-11.0.24.7131>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.6.1
+- Compatible with :dbtools:`MongoDB Database Tools 100.6.1
   </release-notes/database-tools-changelog/#100.6.1-changelog>`.
 
 .. _opsmgr-server-5.0.18:
@@ -102,8 +102,8 @@
 *Released 2022-10-20*
 
 - Updates ``commons-text`` to 1.10.0 to address 
-  :cve-id:`CVE-2022-42889 <CVE-2022-42889>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.6.0 
+  `CVE-2022-42889 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42889>`__.
+- Compatible with :dbtools:`MongoDB Database Tools 100.6.0 
   </release-notes/database-tools-changelog/#100.6.0-changelog>`.
 - Uses amazon2 packages instead of RHEL7 packages on amazon2 hosts for
   :dl:`MongoDB Database Tools <database-tools>`. If you run |onprem| in the :doc:`local mode
@@ -159,10 +159,10 @@
 *Released 2022-06-30*
 
 - Updates ``log4j-over-slf4j`` to 1.7.36 to address
-  :cve-id:`CVE-2020-9493 <CVE-2020-9493>`.
+  `CVE-2020-9493 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-9493>`__.
 - Fixes an issue where editing an Oplog Store's name that contains dots 
   (``.``) might have resulted in errors.
-- Compatible with :db-tools:`MongoDB Database Tools 100.5.3 
+- Compatible with :dbtools:`MongoDB Database Tools 100.5.3 
   </release-notes/database-tools-changelog#100.5.3-changelog>`.
 - Updates the {+mdbagent+} to :ref:`11.0.17.7086
   <mongodb-11.0.17.7086>`.
@@ -218,7 +218,7 @@
   :manual:`dbStats <//reference/command/dbStats/#dbstats>`.
 - Fixes an issue when creating LDAP group mappings through the API.
 - Updates the {+mdbagent+} to :ref:`11.0.14.7064 <mongodb-11.0.14.7064>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.5.2 
+- Compatible with :dbtools:`MongoDB Database Tools 100.5.2 
   </release-notes/database-tools-changelog#100.5.2-changelog>`.
 
 .. _opsmgr-server-5.0.8:
@@ -234,7 +234,7 @@
 
 - Updates the {+mdbagent+} to :ref:`11.0.13.7055 <mongodb-11.0.13.7055>`.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.5.2 
+- Compatible with :dbtools:`MongoDB Database Tools 100.5.2 
   </release-notes/database-tools-changelog#100.5.2-changelog>`.
 
 .. _opsmgr-server-5.0.7:
@@ -260,7 +260,7 @@
   configuration when making ``automationConfig`` API and UI updates.
 - Removes workaround to use an X.509 CommonName instead of a |san-dns|.
 - Updates the {+mdbagent+} to :ref:`11.0.12.7051 <mongodb-11.0.12.7051>`
-- Compatible with :db-tools:`MongoDB Database Tools 100.5.2 
+- Compatible with :dbtools:`MongoDB Database Tools 100.5.2 
   </release-notes/database-tools-changelog#100.5.2-changelog>`.
 
 .. _opsmgr-server-5.0.6:
@@ -291,7 +291,7 @@
      To use this feature, you must upgrade to 
      :ref:`the latest version of the {+mdbagent+} <mongodb-11.0.11.7036>`.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.5.1 
+- Compatible with :dbtools:`MongoDB Database Tools 100.5.1 
   </release-notes/database-tools-changelog#100.5.1-changelog>`.
 
 .. _opsmgr-server-5.0.5:
@@ -348,7 +348,7 @@
   insecure TLS versions 1.0 and 1.1. To learn more, see the
   `JDK release notes <https://www.oracle.com/java/technologies/javase/11-0-11-relnotes.html#JDK-8202343>`__.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.4.0 
+- Compatible with :dbtools:`MongoDB Database Tools 100.4.0 
   </release-notes/database-tools-changelog#100.4.0-changelog>`.
 
 
@@ -372,7 +372,7 @@
 - Updates the {+mdbagent+} to :ref:`11.0.6.6981
   <mongodb-11.0.6.6981>`.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.4.0 
+- Compatible with :dbtools:`MongoDB Database Tools 100.4.0 
   </release-notes/database-tools-changelog#100.4.0-changelog>`.
 
 .. _opsmgr-server-5.0.0:

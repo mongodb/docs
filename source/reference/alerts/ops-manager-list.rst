@@ -12,51 +12,51 @@ Agent
      - Alert Message
      - Scopes
 
-   * - :alert-type:`AUTOMATION_AGENT_DOWN`
+   * - .. alert:: AUTOMATION_AGENT_DOWN 
      - {+aagent+} is down
      - Project, Global
 
-   * - :alert-type:`AUTOMATION_AGENT_UP`
+   * - .. alert:: AUTOMATION_AGENT_UP 
      - {+aagent+} is up
      - Project, Global
 
-   * - :alert-type:`BACKUP_AGENT_CONF_CALL_FAILURE`
+   * - .. alert:: BACKUP_AGENT_CONF_CALL_FAILURE 
      - {+bagent+} has too many conf call failures
      - Project, Global
 
-   * - :alert-type:`BACKUP_AGENT_DOWN`
+   * - .. alert:: BACKUP_AGENT_DOWN 
      - {+bagent+} is down
      - Project, Global
 
-   * - :alert-type:`BACKUP_AGENT_UP`
+   * - .. alert:: BACKUP_AGENT_UP 
      - {+bagent+} is up
      - Project, Global
 
-   * - :alert-type:`BACKUP_AGENT_VERSION_BEHIND`
+   * - .. alert:: BACKUP_AGENT_VERSION_BEHIND 
      - {+bagent+} does not have the latest version
      - Project, Global
 
-   * - :alert-type:`BACKUP_AGENT_VERSION_CURRENT`
+   * - .. alert:: BACKUP_AGENT_VERSION_CURRENT 
      - {+bagent+} has the latest version
      - Project, Global
 
-   * - :alert-type:`MONITORING_AGENT_DOWN`
+   * - .. alert:: MONITORING_AGENT_DOWN 
      - {+magent+} is down
      - Project, Global
 
-   * - :alert-type:`MONITORING_AGENT_UP`
+   * - .. alert:: MONITORING_AGENT_UP 
      - {+magent+} is up
      - Project, Global
 
-   * - :alert-type:`MONITORING_AGENT_VERSION_BEHIND`
+   * - .. alert:: MONITORING_AGENT_VERSION_BEHIND 
      - {+magent+} does not have the latest version
      - Project, Global
 
-   * - :alert-type:`MONITORING_AGENT_VERSION_CURRENT`
+   * - .. alert:: MONITORING_AGENT_VERSION_CURRENT 
      - {+magent+} has the latest version
      - Project, Global
 
-   * - :alert-type:`NEW_AGENT`
+   * - .. alert:: NEW_AGENT 
      - New agent
      - Project, Global
 
@@ -73,7 +73,7 @@ Automation Configuration
      - Alert Message
      - Scopes
 
-   * - :alert-type:`AUTOMATION_CONFIG_PUBLISHED_AUDIT`
+   * - .. alert:: AUTOMATION_CONFIG_PUBLISHED_AUDIT 
      - Deployment configuration published
      - Project, Global
 
@@ -90,119 +90,119 @@ Backup
      - Alert Message
      - Scopes
 
-   * - :alert-type:`BAD_CLUSTERSHOTS`
+   * - .. alert:: BAD_CLUSTERSHOTS 
      - Backup has possibly inconsistent cluster snapshots
      - Project, Global
 
-   * - :alert-type:`CLUSTER_BLACKLIST_UPDATED_AUDIT`
+   * - .. alert:: CLUSTER_BLACKLIST_UPDATED_AUDIT 
      - Excluded namespaces were modified for cluster
      - Project, Global
 
-   * - :alert-type:`CLUSTER_CHECKKPOINT_UPDATED_AUDIT`
+   * - .. alert:: CLUSTER_CHECKKPOINT_UPDATED_AUDIT 
      - Checkpoint interval updated for cluster
      - Project, Global
 
-   * - :alert-type:`CLUSTER_CREDENTIAL_UPDATED_AUDIT`
+   * - .. alert:: CLUSTER_CREDENTIAL_UPDATED_AUDIT 
      - Backup authentication credentials updated for cluster
      - Project, Global
 
-   * - :alert-type:`CLUSTER_SNAPSHOT_SCHEDULE_UPDATED_AUDIT`
+   * - .. alert:: CLUSTER_SNAPSHOT_SCHEDULE_UPDATED_AUDIT 
      - Snapshot schedule updated for cluster
      - Project, Global
 
-   * - :alert-type:`CLUSTER_STATE_CHANGED_AUDIT`
+   * - .. alert:: CLUSTER_STATE_CHANGED_AUDIT 
      - Cluster backup state is now 
      - Project, Global
 
-   * - :alert-type:`CLUSTER_STORAGE_ENGINE_UPDATED_AUDIT`
+   * - .. alert:: CLUSTER_STORAGE_ENGINE_UPDATED_AUDIT 
      - Cluster storage engine has been updated
      - Project, Global
 
-   * - :alert-type:`CLUSTERSHOT_DELETED_AUDIT`
+   * - .. alert:: CLUSTERSHOT_DELETED_AUDIT 
      - Cluster snapshot has been deleted
      - Project, Global
 
-   * - :alert-type:`CLUSTERSHOT_EXPIRY_UPDATED_AUDIT`
+   * - .. alert:: CLUSTERSHOT_EXPIRY_UPDATED_AUDIT 
      - Clustershot expiry has been updated.
      - Project, Global
 
-   * - :alert-type:`CONSISTENT_BACKUP_CONFIGURATION`
+   * - .. alert:: CONSISTENT_BACKUP_CONFIGURATION 
      - Backup configuration is consistent
      - Project, Global
 
-   * - :alert-type:`GOOD_CLUSTERSHOT`
+   * - .. alert:: GOOD_CLUSTERSHOT 
      - Backup has a good clustershot
      - Project, Global
 
-   * - :alert-type:`INCONSISTENT_BACKUP_CONFIGURATION`
+   * - .. alert:: INCONSISTENT_BACKUP_CONFIGURATION 
      - Inconsistent backup configuration has been detected
      - Project, Global
 
-   * - :alert-type:`INITIAL_SYNC_FINISHED_AUDIT`
+   * - .. alert:: INITIAL_SYNC_FINISHED_AUDIT 
      - Backup initial sync finished
      - Project, Global
 
-   * - :alert-type:`INITIAL_SYNC_STARTED_AUDIT`
+   * - .. alert:: INITIAL_SYNC_STARTED_AUDIT 
      - Backup initial sync started
      - Project, Global
 
-   * - :alert-type:`OPLOG_BEHIND`
+   * - .. alert:: OPLOG_BEHIND 
      - Backup oplog is behind
      - Project, Global
 
-   * - :alert-type:`OPLOG_CURRENT`
+   * - .. alert:: OPLOG_CURRENT 
      - Backup oplog is current
      - Project, Global
 
-   * - :alert-type:`RESTORE_REQUESTED_AUDIT`
+   * - .. alert:: RESTORE_REQUESTED_AUDIT 
      - A restore has been requested
      - Project, Global
 
-   * - :alert-type:`RESYNC_PERFORMED`
+   * - .. alert:: RESYNC_PERFORMED 
      - Backup has been resynced
      - Project, Global
 
-   * - :alert-type:`RESYNC_REQUIRED`
+   * - .. alert:: RESYNC_REQUIRED 
      - Backup requires a resync
      - Project, Global
 
-   * - :alert-type:`RS_BLACKLIST_UPDATED_AUDIT`
+   * - .. alert:: RS_BLACKLIST_UPDATED_AUDIT 
      - Excluded namespaces were modified for replica set
      - Project, Global
 
-   * - :alert-type:`RS_CREDENTIAL_UPDATED_AUDIT`
+   * - .. alert:: RS_CREDENTIAL_UPDATED_AUDIT 
      - Backup authentication credentials updated for replica set
      - Project, Global
 
-   * - :alert-type:`RS_ROTATE_MASTER_KEY_AUDIT`
+   * - .. alert:: RS_ROTATE_MASTER_KEY_AUDIT 
      - A master key rotation has been requested for a replica set.
      - Project, Global
 
-   * - :alert-type:`RS_SNAPSHOT_SCHEDULE_UPDATED_AUDIT`
+   * - .. alert:: RS_SNAPSHOT_SCHEDULE_UPDATED_AUDIT 
      - Snapshot schedule updated for replica set
      - Project, Global
 
-   * - :alert-type:`RS_STATE_CHANGED_AUDIT`
+   * - .. alert:: RS_STATE_CHANGED_AUDIT 
      - Replica set backup state is now 
      - Project, Global
 
-   * - :alert-type:`RS_STORAGE_ENGINE_UPDATED_AUDIT`
+   * - .. alert:: RS_STORAGE_ENGINE_UPDATED_AUDIT 
      - Replica set storage engine has been updated
      - Project, Global
 
-   * - :alert-type:`SNAPSHOT_DELETED_AUDIT`
+   * - .. alert:: SNAPSHOT_DELETED_AUDIT 
      - Snapshot has been deleted
      - Project, Global
 
-   * - :alert-type:`SNAPSHOT_EXPIRY_UPDATED_AUDIT`
+   * - .. alert:: SNAPSHOT_EXPIRY_UPDATED_AUDIT 
      - Snapshot expiry has been updated.
      - Project, Global
 
-   * - :alert-type:`SYNC_PENDING_AUDIT`
+   * - .. alert:: SYNC_PENDING_AUDIT 
      - Backup sync is pending
      - Project, Global
 
-   * - :alert-type:`SYNC_REQUIRED_AUDIT`
+   * - .. alert:: SYNC_REQUIRED_AUDIT 
      - Backup sync has been initiated
      - Project, Global
 
@@ -219,11 +219,11 @@ BI Connector
      - Alert Message
      - Scopes
 
-   * - :alert-type:`BI_CONNECTOR_DOWN`
+   * - .. alert:: BI_CONNECTOR_DOWN 
      - BI Connector is down
      - Project, Global
 
-   * - :alert-type:`BI_CONNECTOR_UP`
+   * - .. alert:: BI_CONNECTOR_UP 
      - BI Connector is up
      - Project, Global
 
@@ -236,23 +236,23 @@ Cluster
    :widths: 40 40 20
    :header-rows: 1
 
-   * - Alert Type
+   * - .. alert:: Alert Type
      - Alert Message
      - Scopes
 
-   * - :alert-type:`CLUSTER_MONGOS_IS_MISSING`
+   * - .. alert:: CLUSTER_MONGOS_IS_MISSING 
      - Cluster is missing an active mongos
      - Project, Global
 
-   * - :alert-type:`CLUSTER_MONGOS_IS_PRESENT`
+   * - .. alert:: CLUSTER_MONGOS_IS_PRESENT 
      - Cluster has an active mongos
      - Project, Global
 
-   * - :alert-type:`SHARD_ADDED`
+   * - .. alert:: SHARD_ADDED 
      - Shard added
      - Project, Global
 
-   * - :alert-type:`SHARD_REMOVED`
+   * - .. alert:: SHARD_REMOVED 
      - Shard removed
      - Project, Global
 
@@ -269,11 +269,11 @@ Data Explorer Accessed
      - Alert Message
      - Scopes
 
-   * - :alert-type:`DATA_EXPLORER`
+   * - .. alert:: DATA_EXPLORER 
      - User performed a Data Explorer read-only operation
      - Project, Global
 
-   * - :alert-type:`DATA_EXPLORER_CRUD`
+   * - .. alert:: DATA_EXPLORER_CRUD 
      - User performed a Data Explorer CRUD operation, which modifies
        data
      - Project, Global
@@ -291,143 +291,143 @@ Host
      - Alert Message
      - Scopes
 
-   * - :alert-type:`ADD_HOST_AUDIT`
+   * - .. alert:: ADD_HOST_AUDIT 
      - Host added
      - Project, Global
 
-   * - :alert-type:`ADD_HOST_TO_REPLICA_SET_AUDIT`
+   * - .. alert:: ADD_HOST_TO_REPLICA_SET_AUDIT 
      - Host added to replica set
      - Project, Global
 
-   * - :alert-type:`ATTEMPT_KILLOP_AUDIT`
+   * - .. alert:: ATTEMPT_KILLOP_AUDIT 
      - Attempted to kill operation
      - Project, Global
 
-   * - :alert-type:`ATTEMPT_KILLSESSION_AUDIT`
+   * - .. alert:: ATTEMPT_KILLSESSION_AUDIT 
      - Attempted to kill session
      - Project, Global
 
-   * - :alert-type:`DB_PROFILER_DISABLE_AUDIT`
+   * - .. alert:: DB_PROFILER_DISABLE_AUDIT 
      - Database profiling disabled
      - Project, Global
 
-   * - :alert-type:`DB_PROFILER_ENABLE_AUDIT`
+   * - .. alert:: DB_PROFILER_ENABLE_AUDIT 
      - Database profiling enabled
      - Project, Global
 
-   * - :alert-type:`DELETE_HOST_AUDIT`
+   * - .. alert:: DELETE_HOST_AUDIT 
      - Host removed
      - Project, Global
 
-   * - :alert-type:`DISABLE_HOST_AUDIT`
+   * - .. alert:: DISABLE_HOST_AUDIT 
      - Host disabled
      - Project, Global
 
-   * - :alert-type:`HIDE_AND_DISABLE_HOST_AUDIT`
+   * - .. alert:: HIDE_AND_DISABLE_HOST_AUDIT 
      - Host disabled and hidden
      - Project, Global
 
-   * - :alert-type:`HIDE_HOST_AUDIT`
+   * - .. alert:: HIDE_HOST_AUDIT 
      - Host hidden
      - Project, Global
 
-   * - :alert-type:`HOST_DOWN`
+   * - .. alert:: HOST_DOWN 
      - Host is down
      - Project, Global
 
-   * - :alert-type:`HOST_DOWNGRADED`
+   * - .. alert:: HOST_DOWNGRADED 
      - Host has been downgraded
      - Project, Global
 
-   * - :alert-type:`HOST_IP_CHANGED_AUDIT`
+   * - .. alert:: HOST_IP_CHANGED_AUDIT 
      - Host IP address changed
      - Project, Global
 
-   * - :alert-type:`HOST_NOW_PRIMARY`
+   * - .. alert:: HOST_NOW_PRIMARY 
      - Host is now primary
      - Project, Global
 
-   * - :alert-type:`HOST_NOW_SECONDARY`
+   * - .. alert:: HOST_NOW_SECONDARY 
      - Host is now secondary
      - Project, Global
 
-   * - :alert-type:`HOST_NOW_STANDALONE`
+   * - .. alert:: HOST_NOW_STANDALONE 
      - Host is now a standalone
      - Project, Global
 
-   * - :alert-type:`HOST_RECOVERED`
+   * - .. alert:: HOST_RECOVERED 
      - Host has recovered
      - Project, Global
 
-   * - :alert-type:`HOST_RECOVERING`
+   * - .. alert:: HOST_RECOVERING 
      - Host is recovering
      - Project, Global
 
-   * - :alert-type:`HOST_RESTARTED`
+   * - .. alert:: HOST_RESTARTED 
      - Host has restarted
      - Project, Global
 
-   * - :alert-type:`HOST_ROLLBACK`
+   * - .. alert:: HOST_ROLLBACK 
      - Host experienced a rollback
      - Project, Global
 
-   * - :alert-type:`HOST_SECURITY_CHECKUP_NOT_MET``
+   * - .. alert:: HOST_SECURITY_CHECKUP_NOT_MET` 
      -  Authentication or |tls| is disabled.
      -  Project, Global
 
-   * - :alert-type:`HOST_SSL_CERTIFICATE_CURRENT`
+   * - .. alert:: HOST_SSL_CERTIFICATE_CURRENT 
      - Host's SSL certificate is current
      - Project, Global
 
-   * - :alert-type:`HOST_SSL_CERTIFICATE_STALE`
+   * - .. alert:: HOST_SSL_CERTIFICATE_STALE 
      - Host's SSL certificate will expire within 30 days
      - Project, Global
 
-   * - :alert-type:`HOST_UP`
+   * - .. alert:: HOST_UP 
      - Host is up
      - Project, Global
 
-   * - :alert-type:`HOST_UPGRADED`
+   * - .. alert:: HOST_UPGRADED 
      - Host has been upgraded
      - Project, Global
 
-   * - :alert-type:`INSIDE_METRIC_THRESHOLD`
+   * - .. alert:: INSIDE_METRIC_THRESHOLD 
      - Inside metric threshold
      - Project, Global
 
-   * - :alert-type:`NEW_HOST`
+   * - .. alert:: NEW_HOST 
      - Host is new
      - Project, Global
 
-   * - :alert-type:`OUTSIDE_METRIC_THRESHOLD`
+   * - .. alert:: OUTSIDE_METRIC_THRESHOLD 
      - Outside metric threshold
      - Project, Global
 
-   * - :alert-type:`PAUSE_HOST_AUDIT`
+   * - .. alert:: PAUSE_HOST_AUDIT 
      - Host paused
      - Project, Global
 
-   * - :alert-type:`REMOVE_HOST_FROM_REPLICA_SET_AUDIT`
+   * - .. alert:: REMOVE_HOST_FROM_REPLICA_SET_AUDIT 
      - Host removed from replica set
      - Project, Global
 
-   * - :alert-type:`RESUME_HOST_AUDIT`
+   * - .. alert:: RESUME_HOST_AUDIT 
      - Host resumed
      - Project, Global
 
-   * - :alert-type:`UNDELETE_HOST_AUDIT`
+   * - .. alert:: UNDELETE_HOST_AUDIT 
      - Host undeleted
      - Project, Global
 
-   * - :alert-type:`VERSION_BEHIND`
+   * - .. alert:: VERSION_BEHIND 
      - Host does not have the latest version
      - Project, Global
 
-   * - :alert-type:`VERSION_CHANGED`
+   * - .. alert:: VERSION_CHANGED 
      - Host version changed
      - Project, Global
 
-   * - :alert-type:`VERSION_CURRENT`
+   * - .. alert:: VERSION_CURRENT 
      - Host has the latest version
      - Project, Global
 
@@ -444,52 +444,52 @@ Organization
      - Alert Message
      - Scopes
 
-   * - :alert-type:`ALL_ORG_USERS_HAVE_MFA`
+   * - .. alert:: ALL_ORG_USERS_HAVE_MFA 
      - Organization users have two-factor authentication enabled
      - Organization, Global
 
-   * - :alert-type:`ORG_API_KEY_ADDED`
+   * - .. alert:: ORG_API_KEY_ADDED 
      - API key has been added
      - Organization
 
-   * - :alert-type:`ORG_API_KEY_DELETED`
+   * - .. alert:: ORG_API_KEY_DELETED 
      - API key has been deleted
      - Organization
 
-   * - :alert-type:`ORG_EMPLOYEE_ACCESS_RESTRICTED`
+   * - .. alert:: ORG_EMPLOYEE_ACCESS_RESTRICTED 
      - MongoDB Production Support Employees restricted from accessing
        Atlas backend infrastructure for any Atlas cluster in this
        organization (You may grant a 24 hour bypass to the access
        restriction at the Atlas cluster level)
      - Organization, Global
 
-   * - :alert-type:`ORG_EMPLOYEE_ACCESS_UNRESTRICTED`
+   * - .. alert:: ORG_EMPLOYEE_ACCESS_UNRESTRICTED 
      - MongoDB Production Support Employees unrestricted from accessing
        Atlas backend infrastructure for any Atlas cluster in this
        organization
      - Organization, Global
 
-   * - :alert-type:`ORG_PUBLIC_API_ACCESS_LIST_NOT_REQUIRED`
+   * - .. alert:: ORG_PUBLIC_API_ACCESS_LIST_NOT_REQUIRED 
      - IP Access List for Public API Not Required
      - Organization, Global
 
-   * - :alert-type:`ORG_PUBLIC_API_ACCESS_LIST_REQUIRED`
+   * - .. alert:: ORG_PUBLIC_API_ACCESS_LIST_REQUIRED 
      - Require IP Access List for Public API Enabled
      - Organization, Global
 
-   * - :alert-type:`ORG_RENAMED`
+   * - .. alert:: ORG_RENAMED 
      - Organization has been renamed
      - Organization, Global
 
-   * - :alert-type:`ORG_TWO_FACTOR_AUTH_OPTIONAL`
+   * - .. alert:: ORG_TWO_FACTOR_AUTH_OPTIONAL 
      - Two-factor Authentication Optional
      - Organization, Global
 
-   * - :alert-type:`ORG_TWO_FACTOR_AUTH_REQUIRED`
+   * - .. alert:: ORG_TWO_FACTOR_AUTH_REQUIRED 
      - Two-factor Authentication Required
      - Organization, Global
 
-   * - :alert-type:`ORG_USERS_WITHOUT_MFA`
+   * - .. alert:: ORG_USERS_WITHOUT_MFA 
      - Organization users do not have two-factor authentication enabled
      - Organization, Global
 
@@ -506,11 +506,11 @@ Project
      - Alert Message
      - Scopes
 
-   * - :alert-type:`ALL_USERS_HAVE_MULTI_FACTOR_AUTH`
+   * - .. alert:: ALL_USERS_HAVE_MULTI_FACTOR_AUTH 
      - Users have two-factor authentication enabled
      - Project, Global
 
-   * - :alert-type:`USERS_WITHOUT_MULTI_FACTOR_AUTH`
+   * - .. alert:: USERS_WITHOUT_MULTI_FACTOR_AUTH 
      - Users do not have two-factor authentication enabled
      - Project, Global
 
@@ -523,51 +523,51 @@ Replica Set
    :widths: 40 40 20
    :header-rows: 1
 
-   * - Alert Type
+   * - .. alert:: Alert Type
      - Alert Message
      - Scopes
 
-   * - :alert-type:`CONFIGURATION_CHANGED`
+   * - .. alert:: CONFIGURATION_CHANGED 
      - Replica set has an updated configuration
      - Project, Global
 
-   * - :alert-type:`ENOUGH_HEALTHY_MEMBERS`
+   * - .. alert:: ENOUGH_HEALTHY_MEMBERS 
      - Replica set has enough healthy members
      - Project, Global
 
-   * - :alert-type:`MEMBER_ADDED`
+   * - .. alert:: MEMBER_ADDED 
      - Replica set member added
      - Project, Global
 
-   * - :alert-type:`MEMBER_REMOVED`
+   * - .. alert:: MEMBER_REMOVED 
      - Replica set member removed
      - Project, Global
 
-   * - :alert-type:`MULTIPLE_PRIMARIES`
+   * - .. alert:: MULTIPLE_PRIMARIES 
      - Replica set elected multiple primaries
      - Project, Global
 
-   * - :alert-type:`NO_PRIMARY`
+   * - .. alert:: NO_PRIMARY 
      - Replica set has no primary
      - Project, Global
 
-   * - :alert-type:`ONE_PRIMARY`
+   * - .. alert:: ONE_PRIMARY 
      - Replica set elected one primary
      - Project, Global
 
-   * - :alert-type:`PRIMARY_ELECTED`
+   * - .. alert:: PRIMARY_ELECTED 
      - Replica set elected a new primary
      - Project, Global
 
-   * - :alert-type:`TOO_FEW_HEALTHY_MEMBERS`
+   * - .. alert:: TOO_FEW_HEALTHY_MEMBERS 
      - Replica set has too few healthy members
      - Project, Global
 
-   * - :alert-type:`TOO_MANY_ELECTIONS`
+   * - .. alert:: TOO_MANY_ELECTIONS 
      - Replica set has too many election events
      - Project, Global
 
-   * - :alert-type:`TOO_MANY_UNHEALTHY_MEMBERS`
+   * - .. alert:: TOO_MANY_UNHEALTHY_MEMBERS 
      - Replica set has too many unhealthy members
      - Project, Global
 
@@ -584,35 +584,35 @@ Team
      - Alert Message
      - Scopes
 
-   * - :alert-type:`TEAM_ADDED_TO_GROUP`
+   * - .. alert:: TEAM_ADDED_TO_GROUP 
      - Team added to project
      - Organization, Project, Global
 
-   * - :alert-type:`TEAM_CREATED`
+   * - .. alert:: TEAM_CREATED 
      - Team created
      - Organization, Global
 
-   * - :alert-type:`TEAM_DELETED`
+   * - .. alert:: TEAM_DELETED 
      - Team deleted
      - Organization, Global
 
-   * - :alert-type:`TEAM_NAME_CHANGED`
+   * - .. alert:: TEAM_NAME_CHANGED 
      - Team name changed
      - Organization, Global
 
-   * - :alert-type:`TEAM_REMOVED_FROM_GROUP`
+   * - .. alert:: TEAM_REMOVED_FROM_GROUP 
      - Team removed from project
      - Organization, Project, Global
 
-   * - :alert-type:`TEAM_ROLES_MODIFIED`
+   * - .. alert:: TEAM_ROLES_MODIFIED 
      - Team roles modified in project
      - Organization, Project, Global
 
-   * - :alert-type:`TEAM_UPDATED`
+   * - .. alert:: TEAM_UPDATED 
      - Team updated
      - Organization, Global
 
-   * - :alert-type:`USER_ADDED_TO_TEAM`
+   * - .. alert:: USER_ADDED_TO_TEAM 
      - User added to team
      - Organization, Global
 
@@ -629,50 +629,50 @@ User
      - Alert Message
      - Scopes
 
-   * - :alert-type:`INVITED_TO_GROUP`
+   * - .. alert:: INVITED_TO_GROUP 
      - User was invited to project
      - Project, Global
 
-   * - :alert-type:`INVITED_TO_ORG`
+   * - .. alert:: INVITED_TO_ORG 
      - User was invited to organization
      - Organization, Global
 
-   * - :alert-type:`JOIN_GROUP_REQUEST_APPROVED_AUDIT`
+   * - .. alert:: JOIN_GROUP_REQUEST_APPROVED_AUDIT 
      - Request to join project was approved
      - Project, Global
 
-   * - :alert-type:`JOIN_GROUP_REQUEST_DENIED_AUDIT`
+   * - .. alert:: JOIN_GROUP_REQUEST_DENIED_AUDIT 
      - Request to join project was denied
      - Project, Global
 
-   * - :alert-type:`JOINED_GROUP`
+   * - .. alert:: JOINED_GROUP 
      - User joined the project
      - Project, Global
 
-   * - :alert-type:`JOINED_ORG`
+   * - .. alert:: JOINED_ORG 
      - User joined the organization
      - Organization, Global
 
-   * - :alert-type:`JOINED_TEAM`
+   * - .. alert:: JOINED_TEAM 
      - User joined the team
      - Organization, Global
 
-   * - :alert-type:`REMOVED_FROM_GROUP`
+   * - .. alert:: REMOVED_FROM_GROUP 
      - User left the project
      - Project, Global
 
-   * - :alert-type:`REMOVED_FROM_ORG`
+   * - .. alert:: REMOVED_FROM_ORG 
      - User left the organization
      - Organization, Global
 
-   * - :alert-type:`REMOVED_FROM_TEAM`
+   * - .. alert:: REMOVED_FROM_TEAM 
      - User left the team
      - Organization, Global
 
-   * - :alert-type:`REQUESTED_TO_JOIN_GROUP`
+   * - .. alert:: REQUESTED_TO_JOIN_GROUP 
      - User requested to join project
      - Project, Global
 
-   * - :alert-type:`USER_ROLES_CHANGED_AUDIT`
+   * - .. alert:: USER_ROLES_CHANGED_AUDIT 
      - User had their role changed
      - Project, Organization, Global

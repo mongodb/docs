@@ -36,7 +36,7 @@
 
    * - groupId
      - string
-     - Unique identifier of the :term:`group` that owns this host.
+     - Unique identifier of the :opsmgr:`group </reference/glossary/#term-group>` that owns this host.
 
    * - hasStartupWarnings
      - boolean
@@ -146,8 +146,8 @@
 
    * - secondaryDelaySecs
      - number
-     - Number of seconds this :term:`replica set` member's data 
-       trails the :term:`primary`. If this value is set to ``0``, 
+     - Number of seconds this :manual:`replica set </reference/glossary/#std-term-replica-set>` member's data 
+       trails the :manual:`primary </reference/glossary/#std-term-primary>`. If this value is set to ``0``, 
        the member is not configured as a delayed member. 
        For additional details on secondary delays, see 
        :manual:`Delayed Replica Set Members </core/replica-set-delayed-member>`
