@@ -28,7 +28,7 @@ the following tabs or create your own script in another language.
 
          If you need to install the ``requests`` library,
          see their
-         :prom-docs:`Installation Guide <https://docs.python-requests.org/en/latest/user/install/>`.
+         `Installation Guide <https://prometheus.io/docs/prometheus/latest/installation>`__.
 
       .. code-block:: python
 

@@ -84,16 +84,10 @@
 
        Accepted values are: 
 
-       .. cond:: cloud
+       .. include:: /includes/api/alert-eventTypeNames-om.rst
 
-          .. include:: /includes/api/alert-eventTypeNames-cm.rst
-
-       .. cond:: onprem
-
-          .. include:: /includes/api/alert-eventTypeNames-om.rst
-
-          For a complete list of events included in the |mms| audit 
-          log, see :doc:`Audit Events </reference/audit-events>`.
+       For a complete list of events included in the |mms| audit 
+       log, see :doc:`Audit Events </reference/audit-events>`.
 
    * - ``groupId``
      - string

@@ -20,7 +20,7 @@
             - W2
 
    * - Journaled
-     - A :term:`primary` or :term:`standalone` MongoDB instance
+     - A :manual:`primary </reference/glossary/#std-term-primary>` or :term:`standalone` MongoDB instance
        acknowledged the write and wrote that write to their on-disk
        :term:`journals <journal>`.
 

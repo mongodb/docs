@@ -86,10 +86,21 @@ using :manual:`LDAP authorization </core/security-ldap-external>`.
 
       Use the following commands to create the users from {+mongosh+}:
 
-      .. literalinclude:: /includes/code-examples/create-user.js
-         :language: javascript
-         :lines: 1,3,5,8-17
-         :linenos:
+      .. code-block:: javascript
+
+         db.getSiblingDB("$external").createUser(
+           {
+             user : "<x.509 subject>",
+             roles : [ 
+               { role : "clusterAdmin", db : "admin" },
+               { role : "readWriteAnyDatabase", db : "admin" },
+               { role : "userAdminAnyDatabase", db : "admin" },
+               { role : "dbAdminAnyDatabase", db : "admin" },
+               { role : "backup", db : "admin" },
+               { role : "restore", db : "admin" }
+             ]
+           }
+         )
 
       To learn what access is required, see
       :doc:`/reference/required-access-mongodb-agent`.

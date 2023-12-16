@@ -6,8 +6,8 @@
    * - Package
      - Copyright
 
-   * - :npmjs:`robust-predicates</robust-predicates/v/3.0.1>`
+   * - `robust-predicates <https://www.npmjs.com/package/robust-predicates/v/3.0.1>`__
      - 
 
-   * - :npmjs:`tweetnacl</tweetnacl/v/0.14.5>`
+   * - `tweetnacl <https://www.npmjs.com/package/tweetnacl/v/0.14.5>`__
      - 

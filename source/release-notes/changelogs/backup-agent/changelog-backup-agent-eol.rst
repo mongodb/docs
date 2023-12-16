@@ -148,8 +148,8 @@ Backup Agent 1.5.1.83-1
 - Critical update for users running the MongoDB 2.6 series that use
   authorization.
 
-- Backup Agent now includes :data:`system.version` and 
-  :data:`system.role` collections from the admin database in the
+- Backup Agent now includes ``system.version`` and 
+  ``system.role`` collections from the admin database in the
   initial sync.
 
 .. _backup-1.5.0.57-1:

@@ -10,8 +10,8 @@
    * - ``--host``
      - Required
      - Provide the hostname, |fqdn|, |ipv4| address, or |ipv6| address
-       for the host that serves the :program:`mongod` to which the
-       :term:`oplog <Oplog Store Database>` should be applied. If you
+       for the host that serves the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` to which the
+       :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` should be applied. If you
        copied the ``mongodb-backup-restore-util`` command provided in
        the |application|, this field is pre-configured.
      - :icon:`check-circle`
@@ -19,14 +19,14 @@
    * - ``--port``
      - Required
      - Provide the port for the host that serves the |mongod| to which
-       the :term:`oplog <Oplog Store Database>` should be applied.
+       the :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` should be applied.
      - :icon:`check-circle`
 
    * - ``--opStart``
      - Required
      - Provide the
        :ref:`BSON timestamp <document-bson-type-timestamp>`
-       for the first :term:`oplog <Oplog Store Database>` entry
+       for the first :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` entry
        you want to include in the restore. This information appears in
        the "Last Oplog Applied" entry in the ``restoreInfo.txt`` file
        provided with the downloaded snapshot.
@@ -42,7 +42,7 @@
      - Required
      - Provide the
        :ref:`BSON timestamp <document-bson-type-timestamp>`
-       for the last :term:`oplog <Oplog Store Database>` entry
+       for the last :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` entry
        you want to include in the restore.
 
        .. note:: This value cannot be greater than the end of the oplog.
@@ -69,12 +69,12 @@
 
    * - ``--groupId``
      - Required
-     - Provide the :term:`group` ID.
+     - Provide the :opsmgr:`group </reference/glossary/#term-group>` ID.
      - :icon:`check-circle`
 
    * - ``--rsId``
      - Required
-     - Provide the :term:`replica set` ID.
+     - Provide the :manual:`replica set </reference/glossary/#std-term-replica-set>` ID.
      - :icon:`check-circle`
 
    * - ``--whitelist``
@@ -92,7 +92,7 @@
    * - ``--seedReplSetMember``
      - Optional
      - Use if you need a replica set member to re-create the
-       :term:`oplog <Oplog Store Database>` collection and seed
+       :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` collection and seed
        it with the correct timestamp.
 
        Requires ``--oplogSizeMB`` and ``--seedTargetPort``.
@@ -100,15 +100,15 @@
 
    * - ``--oplogSizeMB``
      - Conditional
-     - Provide the :term:`oplog <Oplog Store Database>` size in MB.
+     - Provide the :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` size in MB.
 
        Required if ``--seedReplSetMember`` is set.
      -
 
    * - ``--seedTargetPort``
      - Conditional
-     - Provide the port for the :term:`replica set`'s
-       :term:`primary`. This may be different from the `ephemeral
+     - Provide the port for the :manual:`replica set </reference/glossary/#std-term-replica-set>`'s
+       :manual:`primary </reference/glossary/#std-term-primary>`. This may be different from the `ephemeral
        port <https://en.wikipedia.org/wiki/Ephemeral_port?oldid=797306581>`_
        used.
 
@@ -118,7 +118,7 @@
    * - ``--ssl``
      - Optional
      - Use if you need |tls-ssl| to apply the
-       :term:`oplog <Oplog Store Database>` to the |mongod|.
+       :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` to the |mongod|.
 
        Requires ``--sslCAFile`` and ``--sslPEMKeyFile``.
      -

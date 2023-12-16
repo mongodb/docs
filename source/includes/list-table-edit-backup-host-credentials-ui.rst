@@ -10,7 +10,7 @@
 
        - :doc:`Username/Password </tutorial/configure-mongodb-agent-for-scram>`
 
-       - :doc:`X.509 Client Certificate <configure-mongodb-agent-for-x509>`
+       - X.509 Client Certificate
 
        MongoDB Enterprise options also include:
 

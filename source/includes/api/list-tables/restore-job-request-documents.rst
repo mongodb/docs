@@ -11,7 +11,7 @@
    * - ``checkpointId``
      - string
      - Conditional
-     - Unique identifier for the :term:`sharded cluster` checkpoint
+     - Unique identifier for the :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` checkpoint
        that represents the point in time to which your data will be
        restored.
 
@@ -23,13 +23,13 @@
             ``pointInTimeUTCMillis``.
 
        If you provide this setting, this endpoint restores all data up
-       to this :term:`checkpoint <checkpoint>` to the database you
+       to this :opsmgr:`checkpoint  </reference/glossary/#term-checkpoint>` to the database you
        specified in the ``delivery`` object.
 
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :term:`snapshot` data
+     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
        is delivered.
 
    * - | ``delivery``
@@ -118,8 +118,8 @@
        |epoch-time|. When paired with ``oplogInc``, they represent the
        point in time to which your data will be restored.
 
-       Run a query against :data:`local.oplog.rs` on your
-       :term:`replica set` to find the desired timestamp.
+       Run a query against ``local.oplog.rs`` on your
+       :manual:`replica set </reference/glossary/#std-term-replica-set>` to find the desired timestamp.
 
        ``"delivery.methodName" : "AUTOMATED_RESTORE"``
        *for Replica Sets Only.*
@@ -165,7 +165,7 @@
        hours of the current time.
 
        If you provide this setting, this endpoint restores all data up
-       to this :term:`Point in Time <point-in-time restore>`  to the
+       to this :opsmgr:`Point in Time </reference/glossary/#term-point-in-time-restore>  to the
        database you specified in the ``delivery`` object.
 
        ``"delivery.methodName" : "AUTOMATED_RESTORE"``
@@ -179,5 +179,5 @@
    * - ``snapshotId``
      - string
      - Conditional
-     - Unique identifier of the :term:`snapshot` to restore.
+     - Unique identifier of the :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
 

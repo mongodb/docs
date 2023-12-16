@@ -1,6 +1,6 @@
-===================================
-|index-page-title| |release-string|
-===================================
+==========================
+{+onprem-full+}
+==========================
 
 .. default-domain:: mongodb
 
@@ -10,13 +10,247 @@
    :depth: 1
    :class: singlecol
 
-.. include:: /includes/extracts/admonition-whats-new.rst
+|mms-full| can automate, monitor, and back up your MongoDB
+infrastructure.
 
-|mms| allows you to manage, monitor, and back up MongoDB
-deployments.
+Automation
+----------
+
+|mms| Automation enables you to configure and maintain MongoDB nodes
+and clusters.
+
+.. image:: /images/how-it-works-ops.png
+   :alt: "Automation coordinates MongoDB instances running in a public cloud, in your private data center, or on your local system."
+   :width: 700px
+   :align: center
+
+MongoDB Agents using Automation on each MongoDB host can maintain your
+MongoDB deployments. You can
+:doc:`install </tutorial/nav/install-mongodb-agent>` the
+:doc:`MongoDB Agent </tutorial/nav/mongodb-agent>`. Automation can
+:doc:`add hosts </tutorial/nav/add-servers>` and
+:doc:`deploy and upgrade new or existing clusters </tutorial/nav/manage-hosts>`.
+
+Monitoring
+----------
+
+|mms| Monitoring provides real-time reporting, visualization, and
+alerting on key database and hardware indicators.
+
+How Monitoring Works
+~~~~~~~~~~~~~~~~~~~~
+
+When you activate Monitoring on a MongoDB host, Monitoring collects
+statistics from the nodes in your MongoDB deployment. The Agent
+transmits database statistics back to |mms| to report deployment status
+in real time. You can :doc:`set alerts </tutorial/nav/alerts>` on
+indicators you choose.
+
+Backup
+------
+
+|mms| Backup provides scheduled
+:doc:`snapshots </tutorial/nav/backup-use-operations>` and
+point-in-time
+:doc:`recovery </tutorial/nav/backup-restore-deployments>`
+of your MongoDB :manual:`replica sets </reference/glossary/#std-term-replica-set>` and
+:manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`.
+
+How Backup Works
+~~~~~~~~~~~~~~~~
+
+When you activate Backup for a MongoDB deployment, Backup takes
+snapshots of data from the MongoDB processes you have specified.
+
+.. note::
+
+   .. include:: /includes/fact-backup-standalone-restriction.rst
+
+Backup Workflow
+~~~~~~~~~~~~~~~
+
+Backups rely upon the
+:manual:`MongoDB version compatibility</reference/command/setFeatureCompatibilityVersion>`
+of your database.
+This Feature Compatibility Version ranges from the current version to
+one version earlier. For MongoDB 4.2, the FCV can be ``4.0`` or
+``4.2``.
+
+.. tabs::
+
+   .. tab:: FCV 4.2 or later
+      :tabid: fcv42
+
+      .. include:: /includes/backup/wtchk-process-overview-main-om.rst
+
+      The {+mdbagent+} uses WiredTiger's incremental backup cursor to
+      capture the incremental changes.
+
+   .. tab:: FCV 4.0 or earlier
+      :tabid: fcv40
+
+      Once backup has started, |mms| backs up the data as an ongoing
+      and continuous process. This process continues creating snapshots
+      as long as the head database remains synchronized with the
+      database.
+
+      .. include:: /includes/backup/legacy-process-overview-main-om.rst
+
+      The {+mdbagent+} then tails each replica set's :manual:`oplog </reference/glossary/#std-term-oplog>`
+      to maintain on disk a standalone database, called a
+      :opsmgr:`head database </reference/glossary/#term-head-database>`. |mms| maintains one
+      head database for each backed-up replica set. The head
+      database stays consistent with the original :manual:`primary </reference/glossary/#std-term-primary>` up
+      to the last oplog that the {+mdbagent+} supplies.
+
+The backup process works in this manner regardless of how snapshots are
+stored.
+
+Backup uses a MongoDB instance version equal to or greater than the
+version of the replica set it backs up.
+
+Backup takes and stores snapshots based on a user-defined
+:ref:`snapshot retention policy <snapshot-frequency-and-retention>`.
+Sharded cluster snapshots temporarily stop the balancer. The snapshots
+then can insert a marker token into all shards and config servers in
+the cluster. |mms| takes a :manual:`snapshot </reference/glossary/#std-term-snapshot>` when the marker tokens
+appear in the snapshot data.
+
+.. tabs::
+   :hidden:
+
+   .. tab:: FCV 4.2 or later
+      :tabid: fcv42
+
+      |mms| can back up data as a full or incremental backup. |mms|
+      requires a full backup:
+
+      - For your first backup.
+      - After a snapshot has been deleted.
+      - If the blockstore block size has been changed.
+
+      Incremental backups reduce network transfer and storage costs.
+
+   .. tab:: FCV 4.0 or earlier
+      :tabid: fcv40
+
+      How much storage capacity you need depends on both the number
+      of snapshots and the type of snapshot storage you choose. The
+      following table outlines the differences in snapshot stores:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 75
+
+         * - Snapshot Store
+           - Description
+
+         * - MongoDB blockstore
+           - Only the differences between each successive
+             :manual:`snapshot </reference/glossary/#std-term-snapshot>` are stored. Compression and
+             block-level :term:`deduplication` reduce the size of
+             snapshot data.
+
+         * - |aws| |s3| bucket
+           - Only the differences between each successive
+             :manual:`snapshot </reference/glossary/#std-term-snapshot>` are stored. Compression and
+             block-level :term:`deduplication` reduce the size of
+             snapshot data.
+
+         * - File system store
+           - Depending on the configuration, compression reduces the
+             size of the :manual:`snapshot </reference/glossary/#std-term-snapshot>` data.
+
+      All snapshots represent a full backup.
+
+To learn more about how to configure backups, see
+:doc:`Backup Configuration Options </core/backup-preparations>`.
+
+Restore Data
+~~~~~~~~~~~~
+
+Backup can restore data from a complete scheduled snapshot or from
+a selected point between snapshots.
+
+.. tabs::
+   :hidden:
+
+   .. tab:: FCV 4.2 or later
+      :tabid: fcv42
+
+      You can restore :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>` and
+      :manual:`replica sets </reference/glossary/#std-term-replica-set>` from selected points in time.
+
+   .. tab:: FCV 4.0 or earlier
+      :tabid: fcv40
+
+      - For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, you can restore
+        from :ref:`checkpoints <checkpoint>` between snapshots.
+
+      - For :manual:`replica sets </reference/glossary/#std-term-replica-set>`, you can restore from
+        selected points in time.
+
+When you restore from a :manual:`snapshot </reference/glossary/#std-term-snapshot>`, |mms| reads directly from
+the snapshot storage. You can restore the snapshot:
+
+- To another cluster.
+- To download the snapshot files from an |https| link.
+
+.. tabs::
+   :hidden:
+
+   .. tab:: FCV 4.2 or later
+      :tabid: fcv42
+
+      When you restore from a point in time, |mms| does the following:
+      
+      1. Restores a full snapshot from the snapshot storage.
+      #. Applies stored :manual:`oplogs </reference/glossary/#std-term-oplog>` until it reaches the 
+         specified point.
+      #. Delivers the snapshot and oplog updates using the same
+         |https| mechanisms.
+
+      You can configure how much of the oplog you want to keep per
+      backup. This affects the amount of time a point-in-time restore
+      can cover.
+
+   .. tab:: FCV 4.0 or earlier
+      :tabid: fcv40
+
+      When you restore from a checkpoint or point in time, |mms| does the following:
+
+      1. Restores a full snapshot from the snapshot storage. 
+      #. Applies stored :manual:`oplogs </reference/glossary/#std-term-oplog>` until it reaches the
+         specified point. 
+      #. Delivers the snapshot and oplog updates using the same |https| mechanisms. 
+         To enable checkpoints, see :ref:`enable-cluster-checkpoints`.
+
+      You can configure how much of the oplog you want to keep per
+      backup. This affects how much time a checkpoint and
+      point-in-time restore can cover.
 
 .. include:: /includes/feedback/uservoice-block.rst
 
-.. include:: /includes/toc/dfn-list-mms-landing.rst
+.. toctree::
+   :titlesonly:
 
-.. include:: /includes/toc/mms-landing.rst
+   </application>
+   </installation>
+   Create Deployments </tutorial/nav/manage-hosts>
+   </tutorial/nav/monitor-and-manage>
+   </migration>
+   </tutorial/nav/alerts-and-monitoring>
+   Backup and Restore </tutorial/nav/backup-use>
+   </tutorial/nav/security>
+   </tutorial/nav/mongodb-agent>
+   </organizations-projects>
+   </tutorial/nav/account-management>
+   </administration>
+   </api>
+   </troubleshooting>
+   </faq>
+   </reference>
+   </release-notes>
+   </reference/legal/live-migration-atlas-licensing>
+   </reference/third-party-licenses>
+

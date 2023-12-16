@@ -1013,7 +1013,7 @@ Automation Agent 2.5.14.1514
   :term:`arbiters <arbiter>` running with authentication.
 
 - Fixed issue with rolling storage engine conversion for
-  :term:`replica sets <replica set>` to ensure a super majority is 
+  :manual:`replica sets </reference/glossary/#std-term-replica-set>` to ensure a super majority is 
   always up.
 
 - Fixed issue with creating custom roles on :term:`sharded clusters
@@ -1223,13 +1223,13 @@ Automation Agent 2.0.9.1201
 *Released 2015-06-24*
 
 - **Fix:** Rolling upgrades when one or more 
-  :term:`secondaries <secondary>` has significant replication lag to 
+  :manual:`secondaries </reference/glossary/#std-term-secondary>` has significant replication lag to 
   ensure that a secondary has always fully caught up before upgrading 
-  the :term:`primary`.
+  the :manual:`primary </reference/glossary/#std-term-primary>`.
 
 - **Fix:** Creation of ``SCRAM-SHA-1`` users imported from one
-  deployment item (:term:`standalone`, :term:`replica set`, or
-  :term:`sharded cluster`) and then applied to a new sharded cluster.
+  deployment item (:term:`standalone`, :manual:`replica set </reference/glossary/#std-term-replica-set>`, or
+  :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`) and then applied to a new sharded cluster.
 
 - Added a small sleep time during the auto-upgrade process.
 
@@ -1396,7 +1396,7 @@ Automation Agent 1.8.0.1034
 
 - Added support to 
   :doc:`import an existing </tutorial/add-existing-mongodb-processes>` 
-  :program:`mongos` running with a config file.
+  :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` running with a config file.
 
 - Fixed issue where the Automation Agent interfered with
   manually-created replica set tags.
@@ -1418,7 +1418,7 @@ Automation Agent 1.7.0.992
 
 *Released: 2015-03-16*
 
-- Improves algorithm for balancing :program:`mongod` processes across 
+- Improves algorithm for balancing :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` processes across 
   cores.
 
 - Fixed issue with configuring oplog sizes greater than 1 TB.

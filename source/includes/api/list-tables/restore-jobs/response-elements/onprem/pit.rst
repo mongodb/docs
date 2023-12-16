@@ -14,9 +14,9 @@
 
    * - ``clusterId``
      - string
-     - Unique identifier of the :term:`cluster` that the restore job
+     - Unique identifier of the :manual:`cluster </reference/glossary/#std-term-cluster>` that the restore job
        represents. Returned if snapshot was from a replica set or
-       :term:`sharded cluster`.
+       :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
 
    * - ``created``
      - string
@@ -24,7 +24,7 @@
 
    * - ``delivery``
      - object
-     - Method and details of how the restored :term:`snapshot` data
+     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
        is delivered.
 
    * - | ``delivery``
@@ -46,13 +46,13 @@
 
    * - ``groupId``
      - string
-     - Unique identifier of the :term:`group` that owns the restore
+     - Unique identifier of the :opsmgr:`group </reference/glossary/#term-group>` that owns the restore
        job.
 
    * - ``hostId``
      - string
-     - Unique identifier of the :term:`config server` to which this
-       restore job belongs. Returned if  :term:`config server` was a
+     - Unique identifier of the :manual:`config server </reference/glossary/#std-term-config-server>` to which this
+       restore job belongs. Returned if :manual:`config server </reference/glossary/#std-term-config-server>` was a
        |sccc|.
 
    * - ``id``
@@ -69,7 +69,7 @@
 
    * - ``snapshotId``
      - string
-     - Unique identifier of the :term:`snapshot` to restore.
+     - Unique identifier of the :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
 
    * - ``statusName``
      - string

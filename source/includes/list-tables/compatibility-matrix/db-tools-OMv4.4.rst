@@ -29,9 +29,9 @@
    * - :ref:`4.4.2 <opsmgr-server-4.4.2>`,
        :ref:`4.4.3 <opsmgr-server-4.4.3>`,
        :ref:`4.4.4 <opsmgr-server-4.4.4>`
-     - :dlarch:`100.1.0 <database-tools>`
+     - `100.1.0 <https://www.mongodb.com/download-center/database-tools/releases/archive>`__
 
    * - :ref:`4.4.0 <opsmgr-server-4.4.0>`,
        :ref:`4.4.1 <opsmgr-server-4.4.1>`
-     - :dlarch:`100.0.2 <database-tools>`
+     - `100.0.2 <https://www.mongodb.com/download-center/database-tools/releases/archive>`__
  

@@ -9,18 +9,18 @@
 
    * - daemonFilter
      - object array
-     - An array of pairs of :term:`Backup Daemon` hosts and 
+     - An array of pairs of :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` hosts and 
        their :term:`head directories <head directory>` that to which  
        this project's backup jobs are limited.
 
    * - daemonFilter.headRootDirectory
      - string
      - The root-relative path of the :term:`head directory` on this 
-       :term:`Backup Daemon` host.
+       :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` host.
 
    * - daemonFilter.machine
      - string
-     - The host address for one :term:`Backup Daemon` host.
+     - The host address for one :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` host.
 
    * - id
      - string
@@ -35,7 +35,7 @@
 
    * - kmipClientCertPath
      - string
-     - The path to the directory on the :term:`Backup Daemon` host that 
+     - The path to the directory on the :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` host that 
        stores the :abbr:`KMIP (Key Management Interoperability Protocol)` 
        client certificate.
 
@@ -46,38 +46,38 @@
    * - labelFilter
      - array of strings
      - An array of tags that limits which 
-       :term:`Backup Daemons <Backup Daemon>` and 
-       :term:`snapshot stores <snapshot store>` can process 
+       :opsmgr:`Backup Daemons </reference/glossary/#term-Backup-Daemon>` and 
+       :opsmgr:`snapshot stores </reference/glossary/#term-snapshot-store>` can process 
        :term:`backup jobs <backup job>` for this project.
 
    * - oplogStoreFilter
      - array of objects
      - An array of unique identifiers representing 
-       :term:`Oplog stores <Oplog Store Database>` that may be used 
+       :opsmgr:`Oplog stores  </reference/glossary/#term-Oplog-Store-Database>` that may be used 
        with this project's backup jobs.
 
    * - oplogStoreFilter.id
      - string
      - Unique identifier representing an
-       :term:`oplog store <Oplog Store Database>` that may be used 
+       :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>` that may be used 
        with this project's backup jobs.
 
    * - oplogStoreFilter.type
      - string
-     - Type of :term:`oplog store <Oplog Store Database>` to use. This 
+     - Type of :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>` to use. This 
        value is always ``oplogStore``.
 
    * - snapshotStoreFilter
      - array of objects
      - Array of unique identifiers representing specific 
-       :term:`snapshot stores <snapshot store>` and their types that can 
+       :opsmgr:`snapshot stores </reference/glossary/#term-snapshot-store>` and their types that can 
        be used with this project's backup jobs. If omitted, all 
        available snapshot stores are used.
 
    * - snapshotStoreFilter.id
      - string
      - The unique identifier representing specific 
-       :term:`snapshot stores <snapshot store>` that can be 
+       :opsmgr:`snapshot stores </reference/glossary/#term-snapshot-store>` that can be 
        used with this project's backup jobs.
 
    * - snapshotStoreFilter.type

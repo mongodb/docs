@@ -62,7 +62,7 @@ Monitoring Agent 2.9.2.184
 - Added an explicit timeout for SSL connections to MongoDB instances.
 
 - Upgraded the MongoDB Go driver (mgo) version, which fixed a rare
-  deadlock issue that could occur when monitoring :program:`mongos`
+  deadlock issue that could occur when monitoring :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>`
   instances.
 
 .. _monitoring-2.9.1.176:
@@ -145,7 +145,7 @@ Monitoring Agent 2.1.4.51-1
 
 :ref:`Released with OnPrem 1.4.2 <opsmgr-server-1.4.2>`
 
-Prevent high CPU use when monitoring unreachable :program:`mongod`.
+Prevent high CPU use when monitoring unreachable :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`.
 
 .. _monitoring-2.1.3.48-1:
 

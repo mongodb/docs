@@ -1,4 +1,4 @@
-.. admonition:: Modify Kerberos Settings
+.. note:: Modify Kerberos Settings
 
    To enable Kerberos, modify the following settings:
 

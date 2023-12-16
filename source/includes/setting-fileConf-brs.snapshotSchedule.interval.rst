@@ -12,6 +12,6 @@
    ``6``, ``8``, ``12``, or ``24``
    
    
-   Corresponds to :setting:`Snapshot Interval (Hours) <Snapshot .Interval>`
+   Corresponds to :setting:`Snapshot Interval (Hours) <Snapshot Interval>`
    
 

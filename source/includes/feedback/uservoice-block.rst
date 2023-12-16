@@ -1,3 +1,3 @@
 MongoDB welcomes your feedback. Let us know how we can
-:uservoice:`improve Ops Manager <924355-ops-tools>`.
+`improve Ops Manager <https://feedback.mongodb.com/forums/924355-ops-tools?jmp=docs>`__.
 

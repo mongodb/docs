@@ -123,7 +123,7 @@ To learn more, see
    Specifies whether or not to encrypt **all** connections to MongoDB
    deployments using |tls|.
 
-   .. caution::
+   .. important::
 
       Setting this to ``true`` overrides any
       per-host |tls| settings configured in the |mms| interface.

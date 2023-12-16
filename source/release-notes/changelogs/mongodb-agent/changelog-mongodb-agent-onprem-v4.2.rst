@@ -57,7 +57,7 @@ MongoDB Agent 10.2.19.5989
 
 - Reduces number of connections per second.
 
-- Improves the Backup Module :term:`oplog` tail performance.
+- Improves the Backup Module :manual:`oplog </reference/glossary/#std-term-oplog>` tail performance.
 
 .. _mongodb-10.2.18.5978:
 
@@ -243,7 +243,7 @@ MongoDB Agent 10.2.7.5898
   validation |tls| certificates.
 - MongoDB Agent is now built using Go 1.12.
 - Adds support for the
-  :xml:`<mono><ref target="index-type-partial">partialFilterExpression</ref></mono>`
+  ``partialFilterExpression``
   index option when creating an index using
   :doc:`Data Explorer </data-explorer>`.
 - **Backup:** Adds support for the ``businessCategory`` field in

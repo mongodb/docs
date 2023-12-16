@@ -117,7 +117,7 @@
   insecure TLS versions 1.0 and 1.1. To learn more, see the
   `JDK release notes <https://www.oracle.com/java/technologies/javase/11-0-11-relnotes.html#JDK-8202343>`__.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.5.0 
+- Compatible with :dbtools:`MongoDB Database Tools 100.5.0 
   </release-notes/database-tools-changelog#100.5.0-changelog>`.
 
 
@@ -140,7 +140,7 @@
 - Updates the MongoDB Agent to :ref:`10.14.27.6524
   <mongodb-10.14.27.6524>`.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.3.1 
+- Compatible with :dbtools:`MongoDB Database Tools 100.3.1 
   </release-notes/database-tools-changelog#100.3.1-changelog>`.
 
 .. _opsmgr-server-4.4.15:
@@ -152,7 +152,7 @@
 
 - When creating a global owner, the generated |api| keys now also
   include the selected IP access list
-- Compatible with :db-tools:`MongoDB Database Tools 100.3.1 
+- Compatible with :dbtools:`MongoDB Database Tools 100.3.1 
   </release-notes/database-tools-changelog#100.3.1-changelog>`.
 
 .. _opsmgr-server-4.4.14:
@@ -164,7 +164,7 @@
 
 - Fixes a bug that caused restore to fail due to an invalid tar header 
   for filesystem stores.
-- Compatible with :db-tools:`MongoDB Database Tools 100.3.1 
+- Compatible with :dbtools:`MongoDB Database Tools 100.3.1 
   </release-notes/database-tools-changelog#100.3.1-changelog>`.
 
 .. _opsmgr-server-4.4.13:
@@ -186,7 +186,7 @@
   :doc:`Local Mode </tutorial/configure-local-mode>`.
 - Updates the MongoDB Agent to :ref:`10.14.24.6508
   <mongodb-10.14.24.6508>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.3.1 
+- Compatible with :dbtools:`MongoDB Database Tools 100.3.1 
   </release-notes/database-tools-changelog#100.3.1-changelog>`.
 
 .. _opsmgr-server-4.4.12:
@@ -206,7 +206,7 @@
 - Updates the MongoDB Agent to
   :ref:`10.14.23.6498 <mongodb-10.14.23.6498>`.
 
-- Compatible with :db-tools:`MongoDB Database Tools 100.3.1 
+- Compatible with :dbtools:`MongoDB Database Tools 100.3.1 
   </release-notes/database-tools-changelog#100.3.1-changelog>`.
 
 .. _opsmgr-server-4.4.11:
@@ -248,7 +248,7 @@
 - Fixes a bug that disallows configuring |ldap| group names longer
   than 100 characters.
 - Updates the {+mdbagent+} to :ref:`10.14.22.6489 <mongodb-10.14.22.6489>`.
-- Requires :db-tools:`MongoDB Database Tools 100.3.1 </release-notes/database-tools-changelog#100.3.1-changelog>`.
+- Requires `MongoDB Database Tools 100.3.1 <https://www.mongodb.com/docs/database-tools//release-notes/database-tools-changelog#100.3.1-changelog>`__.
 - Changes the :ref:`protocolVersion <autoconfig-mongodb-replicasets>` 
   API parameter from an integer to a string. For example, previously, 
   you could specify  ``1`` for this parameter. Now, you must specify 
@@ -266,7 +266,7 @@
   |onprem| redacts before it generates the report for download.
 - Updates the MongoDB Agent to
   :ref:`10.14.21.6476 <mongodb-10.14.21.6476>`.
-- Requires :db-tools:`MongoDB Database Tools 100.3.0
+- Requires :dbtools:`MongoDB Database Tools 100.3.0
   </release-notes/database-tools-changelog#100.3.0-changelog>`.
 
 .. _opsmgr-server-4.4.9:
@@ -280,7 +280,7 @@
   Version Manifest from being updated.
 - Updates the MongoDB Agent to
   :ref:`10.14.20.6466 <mongodb-10.14.20.6466>`.
-- Requires :db-tools:`MongoDB Database Tools 100.2.0
+- Requires :dbtools:`MongoDB Database Tools 100.2.0
   </release-notes/database-tools-changelog#100.2.0-changelog>`.
 
 .. _opsmgr-server-4.4.8:
@@ -291,7 +291,7 @@
 *Released 2021-02-05*
 
 - Improves backup snapshot performance.
-- Requires :db-tools:`MongoDB Database Tools 100.2.0 
+- Requires :dbtools:`MongoDB Database Tools 100.2.0 
   </release-notes/database-tools-changelog#100.2.0-changelog>`.
 
 .. _opsmgr-server-4.4.7:
@@ -314,7 +314,7 @@
   :doc:`diagnostic archives </reference/api/diagnostics/get-project-diagnostic-archive/>`.
 - Updates the MongoDB Agent to
   :ref:`10.14.18.6453 <mongodb-10.14.18.6453>`.
-- Requires :db-tools:`MongoDB Database Tools 100.2.0
+- Requires :dbtools:`MongoDB Database Tools 100.2.0
   </release-notes/database-tools-changelog#100.2.0-changelog>`.
 
 .. _opsmgr-server-4.4.6:
@@ -331,7 +331,7 @@
   the configuration and run the jobs.
 - Updates the MongoDB Agent to
   :ref:`10.14.17.6445 <mongodb-10.14.17.6445>`
-- Requires :db-tools:`MongoDB Database Tools 100.2.0 
+- Requires :dbtools:`MongoDB Database Tools 100.2.0 
   </release-notes/database-tools-changelog#100.2.0-changelog>`.
 
 .. _opsmgr-server-4.4.5:
@@ -349,7 +349,7 @@
 - Updates the MongoDB Agent to
   :ref:`10.14.16.6437 <mongodb-10.14.16.6437>`.
 
-- Requires :db-tools:`MongoDB Database Tools 100.2.0 
+- Requires :dbtools:`MongoDB Database Tools 100.2.0 
   </release-notes/database-tools-changelog#100.2.0-changelog>`.
 
 .. _opsmgr-server-4.4.4:
@@ -372,7 +372,7 @@
 
 - Adds support for Ubuntu 20.04.
 
-- Requires :db-tools:`MongoDB Database Tools 100.1.0 
+- Requires :dbtools:`MongoDB Database Tools 100.1.0 
   </release-notes/database-tools-changelog#100.1.0-changelog>`.
 
 .. _opsmgr-server-4.4.3:
@@ -394,7 +394,7 @@
 - Updates the MongoDB Agent to
   :ref:`10.14.14.6427 <mongodb-10.14.14.6427>`.
 
-- Requires :db-tools:`MongoDB Database Tools 100.1.0 
+- Requires :dbtools:`MongoDB Database Tools 100.1.0 
   </release-notes/database-tools-changelog#100.1.0-changelog>`.
 
 .. _opsmgr-server-4.4.2:
@@ -420,7 +420,7 @@
 - Updates the MongoDB Agent to
   :ref:`10.14.13.6423 <mongodb-10.14.13.6423>`.
 
-- Requires :db-tools:`MongoDB Database Tools 100.1.0 
+- Requires :dbtools:`MongoDB Database Tools 100.1.0 
   </release-notes/database-tools-changelog#100.1.0-changelog>`.
 
 .. _opsmgr-server-4.4.1:
@@ -440,7 +440,7 @@
 
 - Updates MongoDB Agent to :ref:`10.14.12.6411 <mongodb-10.14.12.6411>`.
 
-- Requires :db-tools:`MongoDB Database Tools 100.0.2 
+- Requires :dbtools:`MongoDB Database Tools 100.0.2 
   </release-notes/database-tools-changelog#100.02-changelog>`.
 
 .. _opsmgr-server-4.4.0:
@@ -499,7 +499,7 @@
 
 - Upgrades OpenJDK to 11.0.8+10.
 
-- Requires :db-tools:`MongoDB Database Tools 100.0.2 
+- Requires :dbtools:`MongoDB Database Tools 100.0.2 
   </release-notes/database-tools-changelog#100.02-changelog>`.
 
 .. note:: Ops Manager Support Ends after 4.4 Series

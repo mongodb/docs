@@ -10,6 +10,6 @@
 
      - The |onprem| Application Database,
      - Each blockstore.
-     - Each |onprem| Backup Daemon :term:`head database`. This only
+     - Each |onprem| Backup Daemon :opsmgr:`head database </reference/glossary/#term-head-database>`. This only
        applies to FCV 4.0 and earlier. FCV 4.2 and later do not use
-       :term:`head databases <head database>` for backups.
+       :opsmgr:`head databases </reference/glossary/#term-head-database>` for backups.

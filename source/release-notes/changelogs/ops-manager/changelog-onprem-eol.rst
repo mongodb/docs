@@ -173,7 +173,7 @@
 - Allow specifying a temporary port for use during conversion to config
   server replica sets.
 
-- Added Automation support for `net.ssl.disabledProtocols`.
+- Added Automation support for ``net.ssl.disabledProtocols``.
 
 - Allow control over the compression level of the File System Snapshot
   Store.
@@ -301,7 +301,7 @@ Automation
 
 - Improved handling of adding members to replica sets: to avoid
   disrupting majority writes, new members are now added to
-  :term:`replica sets <replica set>` as ``priority=0``, ``votes=0``
+  :manual:`replica sets </reference/glossary/#std-term-replica-set>` as ``priority=0``, ``votes=0``
   until they reach secondary state, after which |mms| automatically
   updates the configuration to match the :manual:`priority
   </reference/replica-configuration/#rsconf.members[n].priority>` and
@@ -344,10 +344,10 @@ Backup
 - Sync store no longer required: a dedicated sync store is no longer
   required: Backup :term:`initial syncs <initial sync>` are "streamed"
   to the Backup Daemon and only use a small amount of temporary space
-  in the :term:`oplog store <Oplog Store Database>`.
+  in the :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
 
 - Automated restores: added a new option to automatically restore a
-  backup to a running :term:`replica set` or :term:`sharded cluster`.
+  backup to a running :manual:`replica set </reference/glossary/#std-term-replica-set>` or :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
 
 - Added support for namespace whitelisting, which allows you to back up
   only a subset of your data.
@@ -444,7 +444,7 @@ for your operating system.
   processing is behind.
 
 - Fixed case where monitoring classified a Config Server as a
-  Standalone when there were no :program:`mongos` services.
+  Standalone when there were no :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` services.
 
 .. _opsmgr-server-1.8.0:
 
@@ -633,7 +633,7 @@ Considerations for Upgrade (v1.8)
 - LDAP users are now periodically synced with the LDAP server to
   prevent communications after a user is removed from a group.
 
-- Fixed an issue with backups of MongoDB 3.0 :program:`mongod`
+- Fixed an issue with backups of MongoDB 3.0 :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`
   instances running with the ``--setParameter failIndexKeyTooLong=0``
   option.
 
@@ -654,7 +654,7 @@ Considerations for Upgrade (v1.8)
 - Selecting wildcards in the Version Manager is no longer supported
   when ``automation.versions.source`` is set to ``local``.
 
-- Added a 1 hour timeout to kill a Backup :term:`head database` if
+- Added a 1 hour timeout to kill a Backup :opsmgr:`head database </reference/glossary/#term-head-database>` if
   it does not shutdown cleanly.
   You must perform a resync following a hard kill.
 
@@ -666,7 +666,7 @@ Considerations for Upgrade (v1.8)
   format in which a single collection grows from under 8 GB to over
   8 GB in size.
 
-- The time before an unreachable :program:`mongos` process is
+- The time before an unreachable :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` process is
   deactivated is now configurable on a per group basis. See
   :ref:`admin-only-group-settings`.
 
@@ -804,12 +804,12 @@ MMS Onprem Server 1.5.4
 *Released 2015-03-18*
 
 - Fixed race condition that could cause the Backup Daemon to hang when
-  the MongoDB process for a :term:`head database` fails to start.
+  the MongoDB process for a :opsmgr:`head database </reference/glossary/#term-head-database>` fails to start.
 
 - Fixed an issue where a rollback occurring shortly after a terminate
   could step on the terminate.
 
-- The time before an unreachable :program:`mongos` process is
+- The time before an unreachable :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` process is
   deactivated is now configurable on a per group basis. See
   :ref:`admin-only-group-settings`.
 
@@ -860,9 +860,9 @@ MMS OnPrem Server 1.5.1
 - Fix cases where replica set member alerts (e.g. no primary, number
   of healthy members) could send false positives.
 
-- Skip ``backup-daemon`` :setting:`rootDirectory` and
-  :setting:`mongo.backupdb.mongoUri` overlap check when the
-  :setting:`mongo.backupdb.mongoUri` is on a different
+- Skip ``backup-daemon`` ``rootDirectory`` and
+  ``mongo.backupdb.mongoUri`` overlap check when the
+  ``mongo.backupdb.mongoUri`` is on a different
   host.
 
 - ``mms-gen-key`` script handles user's effective group being
@@ -904,7 +904,7 @@ Considerations for Upgrade
   ``conf-mms.properties`` file  if clients access the MMS OnPrem
   Application via a load balancer.
 
-- :setting:`mongo.backupdb.mongoUri` is no longer in
+- ``mongo.backupdb.mongoUri`` is no longer in
   ``conf-mms.properties``. This was previously a required field in this
   file. It remains in the backup daemons's ``conf-daemon.properties``.
 
@@ -979,10 +979,10 @@ MMS OnPrem Server 1.4.2
 - Critical bug fix for backing up MongoDB 2.6 deployments that include
   user or custom role definitions:
 
-  - The :data:`system.version` collection in the admin database will
+  - The ``system.version`` collection in the admin database will
     be included in all future snapshots.
 
-  - The :data:`system.roles` collection in the admin database will be
+  - The ``system.roles`` collection in the admin database will be
     included after a new initial sync is performed.
 
   Users capturing backups of MongoDB 2.6 replica sets or clusters with
@@ -990,7 +990,7 @@ MMS OnPrem Server 1.4.2
   initial sync. Taking a new initial sync will ensure that the role
   definitions are included in the backup.
 
-- Disable MongoDB :collflag:`usePowerOf2Sizes` for insert-only MMS
+- Disable MongoDB ``usePowerOf2Sizes`` for insert-only MMS
   OnPrem Backup collections.
 
 - Speed optimization for MMS OnPrem Backup HTTP pull restores.

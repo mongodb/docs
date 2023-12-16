@@ -8,6 +8,6 @@
    Number of seconds to wait for the Queryable Snapshot to prepare
    before timing out.
    
-   Corresponds to :setting:`Queryable Startup Timeout (Seconds) <.Queryable Startup Timeout>`
+   Corresponds to ``.Queryable Startup Timeout``
    
 

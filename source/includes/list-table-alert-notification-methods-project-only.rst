@@ -23,18 +23,8 @@
        standard port ``162``. The |snmp-mib| file for |snmp| is
        `available for download <http://downloads.mongodb.com/on-prem-monitoring/MMS-10GEN-MIB.txt>`__.
 
-<<<<<<< HEAD
-      * - Email
-        - Sends the alert to a specified email address.
-=======
-       .. include:: /includes/fact-snmp-alerts-deprecated.rst
-
    * - Email
      - Sends the alert to a specified email address.
-
-   * - |sms|
-     - .. include:: /includes/alert-notifications/sms-onprem.rst
->>>>>>> d6f5d05ca (More cond/only onprem fixes)
 
    * - `HipChat <https://www.atlassian.com/software/hipchat/enterprise/data-center>`_
      - Sends the alert to a HipChat room message stream. Enter the

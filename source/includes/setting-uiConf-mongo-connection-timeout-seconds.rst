@@ -4,7 +4,7 @@
 
    
    Number of seconds to wait for a connection to the Queryable Snapshot
-   :program:`mongod` instance before timing out.
+   :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instance before timing out.
    
    Corresponds to :setting:`brs.queryable.connecttimeout`.
    

@@ -94,7 +94,7 @@ Automation Agent 4.5.12.2514
   ``wiredTiger.directoryForIndexes``. (The ``storage.engine`` parameter 
   has always had this treatment.)
 
-- **Fix:** Automation Agent correctly resizes the :term:`oplog` for 
+- **Fix:** Automation Agent correctly resizes the :manual:`oplog </reference/glossary/#std-term-oplog>` for 
   MongoDB clusters that use X-509 for cluster authentication.
 
 .. note:: RELEASE ADVISORY

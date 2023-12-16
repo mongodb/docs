@@ -34,14 +34,14 @@ Storage Engine
 If you run or upgrade to MongoDB 3.0 or later and modify the MongoDB
 storage engine, |mms| shuts down and restarts the MongoDB process. For
 a multi-member replica set, |mms| performs a rolling
-:term:`initial sync` of each member.
+:opsmgr:`inital sync </reference/glossary/#term-initial-sync>` of each member.
 
 |mms| creates backup directories during the migration from one storage
 engine to the other if the host has adequate disk space. If disk space
 is insufficient, no backups are taken. |mms| *does not* delete the
 backup directories once the migration is complete. You can keep or
 delete the previous backup directories. The backup directories are
-located in  the :program:`mongod`'s data directory.
+located in  the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`'s data directory.
 
 .. example::
 
@@ -49,17 +49,17 @@ located in  the :program:`mongod`'s data directory.
    ``/data/process.bak.UNIQUENAME``. The ``UNIQUENAME`` is a random
    string that |mms| generates.
 
-Before you can change the :term:`storage engine` for a standalone
+Before you can change the :manual:`storage engine </reference/glossary/#std-term-storage-engine>` for a standalone
 instance or replica set, you must give the {+aagent+} write access to
 the MongoDB :term:`data directory`'s *parent* directory. The agent
 creates a temporary backup of the data in the parent directory when
 updating the storage engine. Storage engine changes on standalone 
-instances also require adequate disk space to perform a full :db-tools:`/mongodump` 
-and :db-tools:`/mongorestore`. This disk space is then restored to the 
+instances also require adequate disk space to perform a full :dbtools:`/mongodump` 
+and :dbtools:`/mongorestore`. This disk space is then restored to the 
 instance after the storage engine configuration change. |mms| *does not* 
 delete the backup directories. 
 
-You cannot change the storage engine on a :term:`config server`. For
+You cannot change the storage engine on a :manual:`config server </reference/glossary/#std-term-config-server>`. For
 more information on storage engines and the available options, see
 :manual:`Storage </core/storage>` in the MongoDB manual.
 

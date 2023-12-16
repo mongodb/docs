@@ -19,7 +19,7 @@
 
    You should not upgrade more than one |onprem| host at a time.
 
-   When |onprem| enters upgrade mode, the :term:`Backup Daemons <Backup Daemon>`
+   When |onprem| enters upgrade mode, the :opsmgr:`Backup Daemons </reference/glossary/#term-Backup-Daemon>`
    attempt to stop themselves. This process can fail if the Daemons are in the 
    middle of a long backup job. In this case, do one of the following:
 

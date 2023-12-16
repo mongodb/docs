@@ -43,7 +43,7 @@ Automation Agent 5.4.21.5544
 .. note::
 
    ``sslTrustedMMSServerCertificate`` has been deprecated. Use 
-   :asetting:`httpsCAFile` instead.
+   :msetting:`httpsCAFile` instead.
 
 .. _automation-5.4.20.5541:
 
@@ -74,7 +74,7 @@ Automation Agent 5.4.19.5537
   load balancers moving nodes out of a pool.
 
 - **Fix:** When restoring a sharded cluster, remove all sharding
-  metadata from the :data:`config.system.sessions` collection. If you
+  metadata from the ``config.system.sessions`` collection. If you
   do not remove the sharding metadata, MongoDB cannot to re-create this
   collection after the restore is complete.
 
@@ -102,7 +102,7 @@ Automation Agent 5.4.15.5513
 - Add support for the net.ssl.certificateSelector configuration option.
 
 - **Fix:** Allow the successful change in the storageEngine for
-  standalone binary: :binary:`~bin.mongod` with |tls-ssl| enabled.
+  standalone binary: :manual:`~bin.mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` with |tls-ssl| enabled.
 
 - **Fix:** Automation Agent no longer attempts to authenticate to
   arbiters that are configured to use X.509 for ``clusterAuthMode``.

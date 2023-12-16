@@ -7,8 +7,8 @@
    
    If the {+bagent+} experiences more than this number of consecutive
    failed conf calls, |onprem| triggers the following :doc:`global alert
-   </tutorial/manage-global-alerts>`: :alert:`{+bagent+} has too many
-   conf call failures`
+   </tutorial/manage-global-alerts>`: ``{+bagent+} has too many
+   conf call failures``.
    
    
 

@@ -30,7 +30,7 @@
 
 - Upgrade from `urllib3 <https://urllib3.readthedocs.io/en/latest/>`__
   1.15.8 to 1.25.2 due to a
-  :snyk-vuln:`Denial of Service (DoS) vulnerability <SNYK-PYTHON-URLLIB3-559452>`.
+  `Denial of Service (DoS) vulnerability <https://snyk.io/vuln/SNYK-PYTHON-URLLIB3-559452>`__.
 
 - Resolves issue when toggling the authentication mechanism for a
   MongoDB User in the :guilabel:`Deployment` :icon-fa5:`arrow-right`
@@ -154,15 +154,15 @@
 .. important::
 
    Fixes important security fixes, including a
-   :cvss:`CVSSv3.1 score </specification-document>`
-   of :cvss-score:`5.8 (Medium Severity) <CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N>`.
+   `CVSSv3.1 score <https://www.first.org/cvss/specification-document>`__
+   of `5.8 (Medium Severity) <https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N>`__.
 
    .. list-table::
       :widths: 20 80
       :stub-columns: 1
 
       * - ID
-        - :cve-id:`CVE-2019-2388 <2019-2388>`
+        - `CVE-2019-2388 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=2019-2388>`__
 
       * - Title
         - Potential exposure of log information in |onprem|
@@ -173,10 +173,10 @@
           exposed |onprem| instance.
 
       * - |cve|
-        - :cve-def:`CVE-425: Direct Request ('Forced Browsing') (4.0) <425>`
+        - `CVE-425: Direct Request ('Forced Browsing') (4.0) <https://cwe.mitre.org/data/definitions/425.html>`__
 
       * - |cvss| score
-        - 5.8 (Medium): :cvss-score:`CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N`
+        - 5.8 (Medium): `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N <https://www.first.org/cvss/calculator/3.1#CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N>`__
 
       * - Affected versions
         -

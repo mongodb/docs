@@ -15,8 +15,8 @@
   that may result in downtime for your production deployment.
 
 - Follow the :manual:`MongoDB release notes </release-notes>` when 
-  performing manual upgrades of :term:`replica sets <replica set>` and
-  :term:`sharded clusters <sharded cluster>`.
+  performing manual upgrades of :manual:`replica sets </reference/glossary/#std-term-replica-set>` and
+  :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`.
 
 
 .. note:: Downgrading Limitations

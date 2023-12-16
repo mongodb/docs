@@ -31,7 +31,7 @@ install a compatible version of the MongoDB Tools TGZ package
 .. include:: /includes/list-tables/compatibility-matrix/db-tools-OMv6.0.rst
 
 To access older versions of the MongoDB Tools, click
-:dlarch:`Archived releases <database-tools>` on the Download page.
+`Archived releases <https://www.mongodb.com/download-center/database-tools/releases/archive>`__ on the Download page.
 
 |onprem| Platform Support
 ~~~~~~~~~~~~~~~~~~~~~~~~~

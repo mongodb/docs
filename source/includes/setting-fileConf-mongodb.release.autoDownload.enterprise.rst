@@ -17,6 +17,6 @@
    
       See :doc:`/tutorial/configure-local-mode`.
    
-   Corresponds to :setting:`Backup Versions Auto Download Enterprise .Builds`
+   Corresponds to :setting:`Backup Versions Auto Download Enterprise Builds`
    
 

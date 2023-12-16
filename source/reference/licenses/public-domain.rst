@@ -6,10 +6,10 @@
    * - Package
      - Copyright
 
-   * - :mvn:`aopalliance:aopalliance</aopalliance/aopalliance/1.0>`
+   * - `aopalliance:aopalliance <https://mvnrepository.com/artifact/aopalliance/aopalliance/1.0>`__
      - 
 
-   * - :mvn:`org.glassfish.jersey.core:jersey-common</org.glassfish.jersey.core/jersey-common/2.35>`
+   * - `org.glassfish.jersey.core:jersey-common <https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common/2.35>`__
      - Copyright © 2009, Red Hat, Inc.,
        copyright Bean Validation API,
        Copyright Eric Rowell,

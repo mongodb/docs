@@ -9,7 +9,7 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this :term:`blockstore` can be assigned
+     - Flag indicating whether this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>` can be assigned
        backup jobs.
    
    * - encryptedCredentials
@@ -20,13 +20,13 @@
    
    * - id
      - string
-     - The unique name that labels this :term:`blockstore`.
+     - The unique name that labels this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
    
    * - labels
      - array of strings
      - Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`blockstores <blockstore>`. 
+       :opsmgr:`blockstores </reference/glossary/#term-backup-blockstore-database>`. 
 
    * - links
      - object array
@@ -35,7 +35,7 @@
    * - loadFactor
      - number
      - A positive, non-zero integer that expresses how much backup work
-       this :term:`snapshot store` should perform compared to another
+       this :opsmgr:`snapshot store </reference/glossary/#term-snapshot-store>` should perform compared to another
        snapshot store. This option is needed only if more than one 
        snapshot store is in use.
 
@@ -46,13 +46,13 @@
    
    * - maxCapacityGB
      - number
-     - The maximum amount of data in GB this :term:`blockstore` can 
+     - The maximum amount of data in GB this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>` can 
        store.
    
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>``
-       format that can be used to access this :term:`blockstore`.
+       format that can be used to access this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
    
    * - ssl
      - boolean
@@ -67,7 +67,7 @@
    
    * - writeConcern
      - string
-     - The write concern used for this :term:`blockstore`.
+     - The write concern used for this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
 
        The accepted values for this option are:
        

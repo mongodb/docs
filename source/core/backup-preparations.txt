@@ -59,17 +59,9 @@ architectures:
   backups, such as high availability, compression, or
   :term:`deduplication`
 - A file system on one or more |nas| devices
-- An `AWS S3 <https://aws.amazon.com/s3>`_ :term:`blockstore`
+- An `S3-compatible <https://aws.amazon.com/s3>`_ :term:`blockstore`
 - MongoDB blockstore in a highly available configuration
 - MongoDB blockstore in a standalone configuration
-
-   - A file system on a |san| with advanced features for filesystem
-     backups, such as high availability, compression, or
-     :term:`deduplication`
-   - A file system on one or more |nas| devices
-   - An `S3-compatible <https://aws.amazon.com/s3>`_ :term:`blockstore`
-   - MongoDB blockstore in a highly available configuration
-   - MongoDB blockstore in a standalone configuration
 
 We provide the backup architecture recommendations as
 guidance for developing your own data protection approaches.
@@ -146,7 +138,7 @@ Backup Method Features
        slices each :manual:`storage engine </core/storage-engines/>`
        file in the path specified for backup into block(s) of
        data and transfers only changed block(s) to |onprem|.
-       |onprem| creates a new :term:`snapshot` from received
+       |onprem| creates a new :manual:`snapshot </reference/glossary/#std-term-snapshot>` from received
        block(s) and copies the remaining unchanged block(s)
        from the previous full backup snapshot. Each incremental
        backup snapshot stored to a file system saves
@@ -167,7 +159,7 @@ Backup Method Features
      restore from backups, consider backing up to a file
      system on a |san|, an AWS |s3| snapshot store, or a MongoDB
      blockstore configured as a replica set or a
-     :term:`sharded cluster`.
+     :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
 
    - To restore data without relying on MongoDB
      database, consider backing up to an AWS |s3| snapshot store,
@@ -188,7 +180,7 @@ Backup Method Features
 Backup Sizing Recommendation
 ----------------------------
 
-When sizing the backup of your data, keep the :term:`replica set` 
+When sizing the backup of your data, keep the :manual:`replica set </reference/glossary/#std-term-replica-set>` 
 size to 2 TB or less of :manual:`uncompressed data 
 </reference/command/dbStats/#mongodb-data-dbStats.dataSize>`. If 
 your database increases beyond 2 TB of uncompressed data:
@@ -355,7 +347,7 @@ Encryption
 ~~~~~~~~~~
 
 |onprem| can encrypt any backup job stored in a
-:term:`head database` running
+:opsmgr:`head database </reference/glossary/#term-head-database>` running
 :product:`MongoDB Enterprise <mongodb-enterprise-advanced>` between
 |fcv-link| 3.4 and 4.0 with the
 :ref:`WiredTiger <encrypted-storage-engine>` storage engine.
@@ -500,7 +492,7 @@ You may also want to resync your backup if you:
 - :manual:`Drop a collection </reference/method/db.collection.drop>`
   (MMAPv1 only).
 
-- Run a :term:`sharded cluster <sharded cluster>`, and move chunks
+- Run a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>``, and move chunks
   from a particular shard.
 
 - Switch storage engines, if you want |mms| to provide snapshots
@@ -516,20 +508,20 @@ Checkpoints
 
 .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
 
-For :term:`sharded clusters <sharded cluster>`, checkpoints provide
+For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, checkpoints provide
 additional restore points between snapshots. With checkpoints enabled,
 |mms| creates restoration points at configurable intervals of every 15,
 30 or 60 minutes between snapshots. To enable checkpoints, see
 :ref:`enable checkpoints <enable-cluster-checkpoints>`.
 
 To create a checkpoint, |mms| stops the :term:`balancer` and inserts a
-token into the :term:`oplog` of each :term:`shard` and :term:`config
+token into the :manual:`oplog </reference/glossary/#std-term-oplog>` of each :manual:`shard </reference/glossary/#std-term-shard>` and :term:`config
 server` in the cluster. These checkpoint tokens are lightweight and don't
 affect performance or disk use.
 
 Backup doesn't require checkpoints, and they are disabled by default.
 
-Restoring from a checkpoint requires |mms| to apply the :term:`oplog`
+Restoring from a checkpoint requires |mms| to apply the :manual:`oplog </reference/glossary/#std-term-oplog>`
 of each shard and config server to the last snapshot captured before
 the checkpoint. Restoration from a checkpoint takes longer than
 restoration from a snapshot.
@@ -539,10 +531,10 @@ restoration from a snapshot.
 Snapshots when Agent Can't Stop Balancer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For :term:`sharded clusters <sharded cluster>` running with FCV 4.0 or
+For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>` running with FCV 4.0 or
 earlier, |mms| disables the :term:`balancer` before taking a cluster
 snapshot. In certain situations, such as a long migration or no running
-:program:`mongos`, |mms| tries to disable the balancer but cannot. In
+:manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>`, |mms| tries to disable the balancer but cannot. In
 such cases, |mms| continues to take cluster snapshots but flags the
 snapshots that may have incomplete or inconsistent data. Cluster
 snapshots taken during an active balancing operation run the risk of
@@ -551,7 +543,7 @@ data loss or orphaned data.
 Snapshots when Agent Can't Contact a ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For :term:`sharded clusters <sharded cluster>`, if the {+bagent+} can't
-reach a :program:`mongod` process, whether a shard or config server, then
-the agent can't insert a synchronization :term:`oplog` token. In these
+For :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, if the {+bagent+} can't
+reach a :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` process, whether a shard or config server, then
+the agent can't insert a synchronization :manual:`oplog </reference/glossary/#std-term-oplog>` token. In these
 cases, |mms| doesn't create the snapshot and displays a warning message.

@@ -6,50 +6,50 @@
    * - Package
      - Copyright
 
-   * - :gh:`github.com/hashicorp/consul/api</hashicorp/consul/api>`
+   * - `github.com/hashicorp/consul/api <https://github.com/hashicorp/consul/api>`__
      - 
 
-   * - :gh:`github.com/hashicorp/consul/sdk</hashicorp/consul/sdk>`
+   * - `github.com/hashicorp/consul/sdk <https://github.com/hashicorp/consul/sdk>`__
      - 
 
-   * - :gh:`github.com/hashicorp/errwrap</hashicorp/errwrap>`
+   * - `github.com/hashicorp/errwrap <https://github.com/hashicorp/errwrap>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-cleanhttp</hashicorp/go-cleanhttp>`
+   * - `github.com/hashicorp/go-cleanhttp <https://github.com/hashicorp/go-cleanhttp>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-immutable-radix</hashicorp/go-immutable-radix>`
+   * - `github.com/hashicorp/go-immutable-radix <https://github.com/hashicorp/go-immutable-radix>`__
      - 
 
-   * - :gh:`github.com/hashicorp/golang-lru</hashicorp/golang-lru>`
+   * - `github.com/hashicorp/golang-lru <https://github.com/hashicorp/golang-lru>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-multierror</hashicorp/go-multierror>`
+   * - `github.com/hashicorp/go-multierror <https://github.com/hashicorp/go-multierror>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-retryablehttp</hashicorp/go-retryablehttp>`
+   * - `github.com/hashicorp/go-retryablehttp <https://github.com/hashicorp/go-retryablehttp>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-rootcerts</hashicorp/go-rootcerts>`
+   * - `github.com/hashicorp/go-rootcerts <https://github.com/hashicorp/go-rootcerts>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-sockaddr</hashicorp/go-sockaddr>`
+   * - `github.com/hashicorp/go-sockaddr <https://github.com/hashicorp/go-sockaddr>`__
      - 
 
-   * - :gh:`github.com/hashicorp/go-uuid</hashicorp/go-uuid>`
+   * - `github.com/hashicorp/go-uuid <https://github.com/hashicorp/go-uuid>`__
      - 
 
-   * - :gh:`github.com/hashicorp/hcl</hashicorp/hcl>`
+   * - `github.com/hashicorp/hcl <https://github.com/hashicorp/hcl>`__
      - 
 
-   * - :gh:`github.com/hashicorp/logutils</hashicorp/logutils>`
+   * - `github.com/hashicorp/logutils <https://github.com/hashicorp/logutils>`__
      - 
 
-   * - :gh:`github.com/hashicorp/memberlist</hashicorp/memberlist>`
+   * - `github.com/hashicorp/memberlist <https://github.com/hashicorp/memberlist>`__
      - 
 
-   * - :gh:`github.com/hashicorp/serf</hashicorp/serf>`
+   * - `github.com/hashicorp/serf <https://github.com/hashicorp/serf>`__
      - 
 
-   * - :gh:`github.com/go-sql-driver/mysql</go-sql-driver/mysql>`
+   * - `github.com/go-sql-driver/mysql <https://github.com/go-sql-driver/mysql>`__
      - 

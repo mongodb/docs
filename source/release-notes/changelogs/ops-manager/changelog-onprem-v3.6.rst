@@ -380,7 +380,7 @@ Backup
   
      On Windows, :doc:`queryable restores </tutorial/query-backup/>`
      work on MongoDB 3.2, 3.4, and 3.6 snapshots once the |onprem|
-     :term:`Backup Daemon` can access
+     :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` can access
      :ref:`MongoDB 3.4.11 <3.4.11-changelog>` or later.
 
 - Added support for IBM Cloud Object Storage and DellEMC Elastic Cloud

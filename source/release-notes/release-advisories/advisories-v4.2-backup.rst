@@ -107,7 +107,7 @@ with |fcv-link| 4.2 or later, you:
   your replica set configuration. 
 
 - Can use namespace filter lists to define the
-  :term:`namespaces <namespace>` included in a backup only if you are
+  :manual:`namespaces  </reference/glossary/#std-term-namespace>` included in a backup only if you are
   running MongoDB 6.0 or later. Snapshots taken on versions MongoDB 4.2
   through 5.0 always include all namespaces.
 

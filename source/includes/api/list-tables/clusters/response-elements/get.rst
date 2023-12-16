@@ -51,7 +51,7 @@
             - Description
 
           * - ``REPLICA_SET`` 
-            - :term:`A replica set <replica set>`.
+            - :manual:`A replica set </reference/glossary/#std-term-replica-set>`.
 
           * - ``SHARDED`` 
             - A sharded cluster where each shard is a :term:`standalone`

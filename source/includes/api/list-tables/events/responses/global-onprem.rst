@@ -95,7 +95,7 @@
    * - isGlobalAdmin
      - boolean
      - Flag indicating whether the user who triggered this event has
-       the :authrole:`Global Monitoring Administrator` role.
+       the ``Global Monitoring Administrator`` role.
 
    * - links
      - object array
