@@ -24,8 +24,12 @@ class UpdatesBuildersTest {
         @BsonId val id: Int,
         val color: String,
         val qty: Int?,
-        val vendor: List<String>?,
+        val vendor: List<Vendor>?,
         val lastModified: LocalDateTime?
+    )
+
+    data class Vendor (
+        val name: String,
     )
     // :snippet-end:
 
@@ -51,7 +55,7 @@ class UpdatesBuildersTest {
     fun beforeEach() {
         runBlocking {
             val date = LocalDateTime.of(2000, 1, 1,7,0,0) // Jan 1, 2000, 7:00:00
-            val redPaint = PaintOrder(1, "red", 5, listOf("A", "D", "M"), date)
+            val redPaint = PaintOrder(1, "red", 5, listOf(Vendor("A"), Vendor("D"), Vendor("M")), date)
             collection.insertOne(redPaint)
         }
     }
@@ -193,10 +197,10 @@ class UpdatesBuildersTest {
     fun addToSetUpdateTest() = runBlocking {
         // :snippet-start: add-to-set-update
         val filter = Filters.eq("_id", 1)
-        val update = Updates.addToSet(PaintOrder::vendor.name, "C")
+        val update = Updates.addToSet(PaintOrder::vendor.name, Vendor("C"))
         collection.updateOne(filter, update)
         // :snippet-end:
-        assertEquals(listOf("A", "D", "M", "C"), getDocument().vendor)
+        assertEquals(listOf(Vendor("A"), Vendor("D"), Vendor("M"), Vendor("C")), getDocument().vendor)
     }
 
     @Test
@@ -206,37 +210,37 @@ class UpdatesBuildersTest {
         val update = Updates.popFirst(PaintOrder::vendor.name)
         collection.updateOne(filter, update)
         // :snippet-end:
-        assertEquals(listOf("D", "M"), getDocument().vendor)
+        assertEquals(listOf(Vendor("D"), Vendor("M")), getDocument().vendor)
     }
 
     @Test
     fun pullAllUpdateTest() = runBlocking {
         // :snippet-start: pull-all-update
         val filter = Filters.eq("_id", 1)
-        val update = Updates.pullAll(PaintOrder::vendor.name, listOf("A", "M"))
+        val update = Updates.pullAll(PaintOrder::vendor.name, listOf(Vendor("A"), Vendor("M")))
         collection.updateOne(filter, update)
         // :snippet-end:
-        assertEquals(listOf("D"), getDocument().vendor)
+        assertEquals(listOf(Vendor("D")), getDocument().vendor)
     }
 
     @Test
     fun pullUpdateTest() = runBlocking {
         // :snippet-start: pull-update
         val filter = Filters.eq("_id", 1)
-        val update = Updates.pull(PaintOrder::vendor.name, "D")
+        val update = Updates.pull(PaintOrder::vendor.name, Vendor("D"))
         collection.updateOne(filter, update)
         // :snippet-end:
-        assertEquals(listOf("A", "M"), getDocument().vendor)
+        assertEquals(listOf(Vendor("A"), Vendor("M")), getDocument().vendor)
     }
 
     @Test
     fun pushUpdateTest() = runBlocking {
         // :snippet-start: push-update
         val filter = Filters.eq("_id", 1)
-        val update = Updates.push(PaintOrder::vendor.name, "Q")
+        val update = Updates.push(PaintOrder::vendor.name, Vendor("Q"))
         collection.updateOne(filter, update)
         // :snippet-end:
-        assertEquals(listOf("A", "D", "M", "Q"), getDocument().vendor)
+        assertEquals(listOf(Vendor("A"), Vendor("D"), Vendor("M"), Vendor("Q")), getDocument().vendor)
     }
 
     @Test
@@ -246,13 +250,13 @@ class UpdatesBuildersTest {
         val update = Updates.combine(
             Updates.set(PaintOrder::color.name, "purple"),
             Updates.inc(PaintOrder::qty.name, 6),
-            Updates.push(PaintOrder::vendor.name, "R")
+            Updates.push(PaintOrder::vendor.name, Vendor("R"))
         )
         collection.updateOne(filter, update)
         // :snippet-end:
         val doc = getDocument()
         assertEquals("purple", doc.color)
         assertEquals(11, doc.qty)
-        assertEquals(listOf("A", "D", "M", "R"), doc.vendor)
+        assertEquals(listOf(Vendor("A"), Vendor("D"), Vendor("M"), Vendor("R")), doc.vendor)
     }
 }
