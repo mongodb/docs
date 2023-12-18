@@ -169,7 +169,7 @@ Field descriptions:
    * - ``svc``
      - String
      - Name of the service in whose context the log statement was made. Will be 
-     ``S`` for "shard", ``R`` "router", or ``-`` for "unknown" or "none".
+       ``S`` for "shard", ``R`` "router", or ``-`` for "unknown" or "none".
 
    * - ``msg``
      - String
@@ -223,53 +223,115 @@ An example of message escaping is provided in the
 
 Truncation
 ``````````
+
+.. versionchanged:: 7.3
+
 Any **attributes** that exceed the maximum size defined with
 :parameter:`maxLogSizeKB` (default: 10 KB) are truncated. Truncated
 attributes omit log data beyond the configured limit, but retain the
 JSON formatting of the entry to ensure that the entry remains parsable.
 
-Here is an example of a log entry with a truncated attribute:
+For example, the following JSON object represents a ``command`` attribute
+that contains 5000 elements in the ``$in`` field without truncation.
 
-.. code-block:: javascript
-   :emphasize-lines: 10-12
-   :copyable: false
+.. note:: 
 
-   {"t":{"$date":"2020-05-19T18:12:05.702+00:00"},"s":"I",  "c":"SHARDING", "id":22104, "ctx":"conn33",
-   "svc": "R", "msg":"Received splitChunk request", "attr":{"request":{"splitChunk":"config.system.sessions",
-   "from":"production-shard1","keyPattern":{"_id":1},"epoch":{"$oid":"5ec42172996456771753a59e"},
-   "shardVersion":[{"$timestamp":{"t":1,"i":0}},{"$oid":"5ec42172996456771753a59e"}],"min":{"_id":{"$minKey":1}},
-   "max":{"_id":{"$maxKey":1}},"splitKeys":[{"_id":{"id":{"$uuid":"00400000-0000-0000-0000-000000000000"}}},
-   {"_id":{"id":{"$uuid":"00800000-0000-0000-0000-000000000000"}}},
+   The example log entries are reformatted for readability.
 
-   ...
+.. code-block:: javascript 
+   :emphasize-lines: 6
+   :copyable: false 
    
-   {"_id":{"id":{"$uuid":"26c00000-0000-0000-0000-000000000000"}}},{"_id":{}}]}},
-   "truncated":{"request":{"splitKeys":{"155":{"_id":{"id":{"type":"binData","size":21}}}}}},
-   "size":{"request":46328}}
+   { 
+     "command": { 
+       "find": "mycoll", 
+       "filter": { 
+         "value1": {
+           "$in": [0, 1, 2, 3, ... 4999]
+         },
+         "value2": "foo"
+		 },
+		 "sort": { "value1": 1 },
+		 "lsid":{"id":{"$uuid":"80a99e49-a850-467b-a26d-aeb2d8b9f42b"}},
+		 "$db": "testdb"
+	   }
+   }
 
-In this case, the ``request`` attribute has been truncated and the
-specific instance of its subfield ``_id`` that triggered truncation
-(i.e. caused the attribute to overrun :parameter:`maxLogSizeKB`) is
-printed without data as ``{"_id":{}}``. The remainder of the ``request``
-attribute is then omitted.
+In this example, the ``$in`` array is truncated at the 376th element because the  
+size of the ``command`` attribute would exceed :parameter:`maxLogSizeKB` if 
+it included the subsequent elements. The remainder of the ``command`` 
+attribute is omitted. The truncated log entry resembles the following output: 
 
-Log entries containing one or more truncated attributes include a
-``truncated`` object which provides the following information for each
+.. code-block:: javascript 
+   :copyable: false 
+   
+   {
+     "t": { "$date": "2021-03-17T20:30:07.212+01:00" },
+     "s": "I",
+     "c": "COMMAND",
+     "id": 51803,
+     "ctx": "conn9",
+     "msg": "Slow query",
+     "attr": {
+       "command": {
+         "find": "mycoll",
+         "filter": {
+           "value1": {
+             "$in": [ 0, 1, ..., 376 ] // Values in array omitted for brevity
+           }
+         }
+       },
+       ... // Other attr fields omitted for brevity
+     },
+     "truncated": {
+       "command": {
+         "truncated": {
+           "filter": {
+             "truncated": {
+               "value1": {
+                 "truncated": {
+                   "$in": {
+                     "truncated": {
+                       "377": {
+                         "type": "double",
+                         "size": 8
+                       }
+                     },
+                     "omitted": 4623
+                   }
+                 }
+               }
+             },
+             "omitted": 1
+           }
+         },
+         "omitted": 3
+       }
+     },
+     "size": {
+       "command": 21692
+     }
+   }
+
+Log entries containing one or more truncated attributes include nested
+``truncated`` objects, which provide the following information for each
 truncated attribute in the log entry:
 
-- the attribute that was truncated
-- the specific subobject of that attribute that triggered truncation, if
-  applicable.
-- the data ``type`` of the truncated field
-- the ``size`` of the truncated field
+- The attribute that was truncated
+- The specific sub-object of that attribute that triggered truncation, if
+  applicable
+- The data ``type`` of the truncated field
+- The ``size``, in bytes, of the element that triggers truncation
+- The number of elements that were ``omitted`` under each sub-object due to 
+  truncation
 
 Log entries with truncated attributes may also include an additional
 ``size`` field at the end of the entry which indicates the original
-size of the attribute before truncation, in this case ``46328`` or about
-46KB. This final ``size`` field is only shown if it is different from
+size of the attribute before truncation, in this case ``21692`` or about
+22KB. This final ``size`` field is only shown if it is different from
 the ``size`` field in the ``truncated`` object, i.e. if the total object
 size of the attribute is different from the size of the truncated
-subobject, as is the case in the example above.
+sub-object, as is the case in the example above.
 
 Padding
 ```````
