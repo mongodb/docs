@@ -37,7 +37,7 @@
 
 .. important::
 
-   You may receive a :alert:`Backup requires a resync` alert for your
+   You may receive a ``Backup requires a resync`` alert for your
    backup jobs. This may require you to :doc:`/tutorial/resync-backup`.
    This is not a different state, but a triggering of a new
    :ref:`Backup Process Flow <backup-initial-sync>`. Once ``Initial

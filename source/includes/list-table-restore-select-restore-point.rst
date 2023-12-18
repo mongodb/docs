@@ -10,9 +10,9 @@
 
    * - :guilabel:`Snapshot`
 
-     - Allows you to choose one :term:`stored snapshot <snapshot>`.
+     - Allows you to choose one :manual:`stored snapshot </reference/glossary/#std-term-snapshot>`.
 
-     - Select an existing :term:`snapshot <snapshot>` to restore.
+     - Select an existing :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
 
    * - :guilabel:`Point In Time`
 
@@ -29,7 +29,7 @@
    * - :guilabel:`Oplog Timestamp`
 
      - Creates a custom snapshot based on the timestamp of an 
-       :term:`oplog` entry (its ``ts`` field). |mms| includes all 
+       :manual:`oplog </reference/glossary/#std-term-oplog>` entry (its ``ts`` field). |mms| includes all 
        operations up to *and including* the time of the timestamp.
 
        The oplog entry's ``ts`` field is a 

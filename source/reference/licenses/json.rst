@@ -6,7 +6,7 @@
    * - Package
      - Copyright
 
-   * - :mvn:`org.json:json</org.json/json/20211205>`
+   * - `org.json:json <https://mvnrepository.com/artifact/org.json/json/20211205>`__
      - Copyright © 2002 JSON.org,
        Copyright © 2006 JSON.org,
        Copyright © 2008 JSON.org,

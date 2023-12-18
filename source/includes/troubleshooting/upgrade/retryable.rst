@@ -5,6 +5,6 @@ default, this driver enables retryable reads and retryable writes. If you
 set custom logic to retry reads and writes, the attempts may take too long.
 To disable these default values, add the following to your connection string:
 
-  .. example::
+.. example::
 
-     mongodb://SERVER:PORT/?maxPoolSize=150&retryWrites=false&retryReads=false
+   mongodb://SERVER:PORT/?maxPoolSize=150&retryWrites=false&retryReads=false

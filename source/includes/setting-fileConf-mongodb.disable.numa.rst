@@ -3,7 +3,7 @@
    *Type*: boolean
 
    
-   To disable NUMA for the :term:`head databases <head database>`,
+   To disable NUMA for the :cloudmgr:`head databases </reference/glossary/#term-head-database>`,
    follow the :ref:`Modify a Custom Setting <opsmgr-config-add-custom>`
    procedure using the following values:
    

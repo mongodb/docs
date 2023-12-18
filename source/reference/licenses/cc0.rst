@@ -6,8 +6,8 @@
    * - Package
      - Copyright
 
-   * - :mvn:`org.reactivestreams:reactive-streams</org.reactivestreams/reactive-streams/1.0.3>`
+   * - `org.reactivestreams:reactive-streams <https://mvnrepository.com/artifact/org.reactivestreams/reactive-streams/1.0.3>`__
      - 
 
-   * - :npmjs:`array-flat-polyfill</array-flat-polyfill/v/1.0.1>`
+   * - `array-flat-polyfill <https://www.npmjs.com/package/array-flat-polyfill/v/1.0.1>`__
      - 

@@ -109,7 +109,7 @@ procedures and requirements apply, only use a different |upn| for
 
    *Type*: string
 
-    Specifies the *absolute* path to Kerberos principal's keytab file.
+   Specifies the *absolute* path to Kerberos principal's keytab file.
 
    .. code-block:: ini
 
@@ -126,11 +126,11 @@ procedures and requirements apply, only use a different |upn| for
 
       krb5ConfigLocation=/path/to/krb_custom.conf
 
-.. bsetting:: gsappiServiceName
+.. bsetting:: gsapiServiceName
 
    *Type*: string
 
-   Specifies the service name with the :bsetting:`gssapiServiceName`
+   Specifies the service name with the :bsetting:`gsapiServiceName`
    setting.
 
    *By default, MongoDB uses* ``mongodb`` *as its service name.*

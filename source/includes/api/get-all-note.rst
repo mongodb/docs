@@ -17,7 +17,7 @@ number of :guilabel:`result` objects retrieved.
    * - ``results``
      - array
      - Array includes one object for each item detailed in the
-       `results Embedded Document`_ section.
+       :ref:`results-embedded-document-get-all` section.
    * - ``links``
      - array
      - Array includes one or more links to sub-resources
@@ -29,5 +29,7 @@ number of :guilabel:`result` objects retrieved.
        may be greater than the number of objects in the
        :guilabel:`results` array if the entire result set is paginated.
 
-`results` Embedded Document
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _results-embedded-document-get-all:
+
+``results`` Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

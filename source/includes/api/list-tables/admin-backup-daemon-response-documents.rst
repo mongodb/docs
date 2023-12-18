@@ -9,22 +9,22 @@
 
    * - ``assignmentEnabled``
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` can be
+     - Flag indicating whether this :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` can be
        assigned backup jobs.
 
    * - ``backupJobsEnabled``
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` can be used
+     - Flag indicating whether this :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` can be used
        to backup databases.
 
    * - ``configured``
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` is ready to
+     - Flag indicating whether this :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` is ready to
        use.
 
    * - ``garbageCollectionEnabled``
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` has garbage
+     - Flag indicating whether this :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` has garbage
        collection set.
 
    * - ``headDiskType``
@@ -38,13 +38,13 @@
 
    * - ``id``
      - string
-     - Unique identifier of this :term:`Backup Daemon`.
+     - Unique identifier of this :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>`.
 
    * - ``labels``
      - array of strings
      - Array of tags to manage which :term:`backup jobs <backup job>`
        |onprem| can assign to which
-       :term:`Backup Daemons <Backup Daemon>`.
+       :cloudmgr:`Backup Daemons </reference/glossary/#term-Backup-Daemon>`.
 
    * - ``links``
      - object array
@@ -52,29 +52,29 @@
 
    * - ``machine``
      - object
-     - :term:`Backup Daemon` host and its
+     - :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` host and its
        :term:`head directories <head directory>`.
 
    * - ``machine.headRootDirectory``
      - string
      - Root-relative path of the :term:`head directory` on this
-       :term:`Backup Daemon` host.
+       :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` host.
 
    * - ``machine.machine``
      - string
-     - Hostname or IP address of the :term:`Backup Daemon` host.
+     - Hostname or IP address of the :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` host.
 
    * - ``numWorkers``
      - number
      - Number of worker processes that can perform tasks (i.e.
-       backup, restore, or groom) for the :term:`Backup Daemon`.
+       backup, restore, or groom) for the :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>`.
 
    * - ``resourceUsageEnabled``
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` has its
+     - Flag indicating whether this :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` has its
        resource usage monitored.
 
    * - ``restoreQueryableJobsEnabled``
      - boolean
-     - Flag indicating whether this :term:`Backup Daemon` can perform
+     - Flag indicating whether this :cloudmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` can perform
        :doc:`queryable restores </tutorial/query-backup>`.

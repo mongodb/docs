@@ -40,8 +40,8 @@
 
 - Updates the {+mdbagent+} to :ref:`13.4.01.8413-1 <13.4.01.8413-1>`.
 - Adds support for |bic-full| 2.14.10.
-- Compatible with :db-tools:`MongoDB Database Tools 100.8.0 
-  </release-notes/database-tools-changelog#100.8.0-changelog>`.
+- Compatible with `MongoDB Database Tools 100.8.0 
+  <https://www.mongodb.com/docs/database-tools/release-notes/database-tools-changelog#100.8.0-changelog?tck=docs>`__.
 
 .. _cloudmanager_20230802:
 
@@ -49,8 +49,8 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Updates the {+mdbagent+} to :ref:`13.3.1.8376-1 <13.3.1.8376-1>`.
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.4 
-  </release-notes/database-tools-changelog#100.7.4-changelog>`.
+- Compatible with `MongoDB Database Tools 100.7.4 
+  <https://www.mongodb.com/docs/database-tools/release-notes/database-tools-changelog#100.7.4-changelog?tck=docs>`__.
 - Adds support for |bic-full| 2.14.9.
 - Improves validations for custom privileges when you edit a role in the UI.
 - Fixes `CVE-2023-4009 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-4009>`__: Privilege Escalation for :authrole:`Project Owner`
@@ -72,8 +72,8 @@
 - Improves the groom job logs. 
 - Fixes an issue with the :guilabel:`Modify` button for projects with multiple instances 
   of |bic-full|. 
-- Compatible with :db-tools:`MongoDB Database Tools 100.7.3 
-  </release-notes/database-tools-changelog#100.7.3-changelog>`. 
+- Compatible with `MongoDB Database Tools 100.7.3 
+  <https://www.mongodb.com/docs/database-tools/release-notes/database-tools-changelog#100.7.3-changelog?tck=docs>`__. 
 - Adds cluster removal, shutdown, startup, and restart ability to the :ref:`managedSharding <autoconfig-sharded-clusters>` API parameter. 
 
 .. _cloudmanager_20230614:
@@ -85,9 +85,9 @@
 - Adds support for |bic-full| 2.14.7.
 - Updates Go to 1.19.9+ to address the following |cve|\s:
 
-  - :cve-id:`CVE-2023-29400 </CVE-2023-29400>`
-  - :cve-id:`CVE-2023-24539 </CVE-2023-24539>`
-  - :cve-id:`CVE-2023-24540 </CVE-2023-24540>`
+  - `CVE-2023-29400 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-29400>`__
+  - `CVE-2023-24539 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-24539>`__
+  - `CVE-2023-24540 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-24540>`__
 
 .. _cloudmanager_20230525:
 

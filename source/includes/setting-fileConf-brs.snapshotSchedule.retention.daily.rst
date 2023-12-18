@@ -13,6 +13,6 @@
    ``90``, ``120``, ``180`` or ``360``
    
    
-   Corresponds to :setting:`Daily Retention of Snapshots (in Days) <.Daily Retention of Snapshots>`
+   Corresponds to ``.Daily Retention of Snapshots``
    
 

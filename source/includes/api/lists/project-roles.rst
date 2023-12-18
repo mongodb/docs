@@ -9,7 +9,7 @@
    * - ``GROUP_BACKUP_ADMIN``
      - :authrole:`Project Backup Admin`
    * - ``GROUP_BILLING_ADMIN``
-     - :authrole:`Project Billing Admin`
+     - Project Billing Admin
    * - ``GROUP_DATA_ACCESS_ADMIN``
      - :authrole:`Project Data Access Admin`
    * - ``GROUP_DATA_ACCESS_READ_ONLY``

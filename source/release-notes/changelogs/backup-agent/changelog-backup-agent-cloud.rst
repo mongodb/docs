@@ -426,7 +426,7 @@ Backup Agent 4.0.0.343
 
 - Added support to tune the number of concurrent initial syncs.
 
-- Added support to adjust the size of the :term:`oplog` and sync slice
+- Added support to adjust the size of the :manual:`oplog </reference/glossary/#std-term-oplog>` and sync slice
   channels according to the size of the documents: this can lower memory
   consumption.
 
@@ -501,7 +501,7 @@ Backup Agent 3.4.0.273
 
 *Released 2015-04-22*
 
-- Added an explicit timeout for SSL connections to :program:`mongod` 
+- Added an explicit timeout for SSL connections to :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` 
   instances.
 
 - Added an optimization for syncs of collections with lots of small 
@@ -577,7 +577,7 @@ Backup Agent 2.9.0.223
 *Released 2014-12-04*
 
 Can now explicitly pass collections options for the WiredTiger storage
-engine from the backed up :program:`mongod` to |mms|.
+engine from the backed up :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` to |mms|.
 
 .. _backup-2.8.0.204:
 
@@ -720,8 +720,8 @@ Backup Agent 1.6.1.87-1
 - Critical update for users running the MongoDB 2.6 series that use
   authorization.
 
-- The Backup Agent now includes :data:`system.version` and 
-  :data:`system.role` collections from the ``admin`` database in the 
+- The Backup Agent now includes ``system.version`` and 
+  ``system.role`` collections from the ``admin`` database in the 
   initial sync.
 
 .. _backup-1.6.0.55-1:
@@ -789,7 +789,7 @@ Schedule* link and interface.
 This version marks a change in the numbering scheme of Backup Agents
 to support improved packaging options for the Backup Agent.
 
- .. _backup-v20131216.1:
+.. _backup-v20131216.1:
 
 Backup Agent v20131216.1
 ------------------------

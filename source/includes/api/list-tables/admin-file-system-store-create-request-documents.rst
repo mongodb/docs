@@ -35,7 +35,7 @@
      - number
      - Optional
      - Positive, non-zero integer that expresses how much backup work
-       this :term:`snapshot store` should perform compared to another
+       this :cloudmgr:`snapshot store </reference/glossary/#term-snapshot-store>` should perform compared to another
        snapshot store. Set this option only if you're using more than
        one snapshot store.
 

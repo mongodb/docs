@@ -15,7 +15,7 @@ Host Measurements
        - ``ASSERT_USER``
 
      - Rate of asserts for a MongoDB process found in the 
-       :serverstatus:`asserts` document that the
+       ``asserts`` document that the
        :manual:`serverStatus </reference/command/serverStatus>`
        command generates.
 
@@ -32,8 +32,8 @@ Host Measurements
 
      - Amount of bytes in the :manual:`WiredTiger </core/wiredtiger>`
        storage engine cache and tickets found in the
-       :serverstatus:`wiredTiger.cache` and
-       :serverstatus:`wiredTiger.concurrentTransactions` documents
+       ``wiredTiger.cache`` and
+       ``wiredTiger.concurrentTransactions`` documents
        that the
        :manual:`serverStatus </reference/command/serverStatus>`
        command generates.
@@ -41,7 +41,7 @@ Host Measurements
    * - - ``CONNECTIONS``
 
      - Number of connections to a MongoDB process found in the
-       :serverstatus:`connections` document that the
+       ``connections`` document that the
        :manual:`serverStatus </reference/command/serverStatus>`
        command generates.
 
@@ -49,7 +49,7 @@ Host Measurements
        - ``CURSORS_TOTAL_TIMED_OUT``
 
      - Number of :manual:`cursors </core/cursors>` for a MongoDB
-       process found in the :serverstatus:`metrics.cursor` document 
+       process found in the ``metrics.cursor`` document 
        that the 
        :manual:`serverStatus </reference/command/serverStatus>`
        command generates.
@@ -90,7 +90,7 @@ Host Measurements
        - ``COMPUTED_MEMORY``
 
      - Amount of memory for a MongoDB process found in the
-       :serverstatus:`mem` document that the
+       ``mem`` document that the
        :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
    * - - ``NETWORK_BYTES_IN``
@@ -98,7 +98,7 @@ Host Measurements
        - ``NETWORK_NUM_REQUESTS``
 
      - Amount of throughput for MongoDB process found in the
-       :serverstatus:`network` document that the 
+       ``network`` document that the 
        :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
    * - - ``OPLOG_RATE_GB_PER_HOUR``
@@ -123,7 +123,7 @@ Host Measurements
        - ``OPCOUNTER_INSERT``
 
      - Rate of database operations on a MongoDB process since the
-       process last started found in the :serverstatus:`opcounters` document that the 
+       process last started found in the ``opcounters`` document that the 
        :manual:`serverStatus </reference/command/serverStatus>` command collects.
 
    * - - ``OPCOUNTER_REPL_CMD``
@@ -132,8 +132,8 @@ Host Measurements
        - ``OPCOUNTER_REPL_INSERT``
 
      - Rate of database operations on MongoDB
-       :term:`secondaries <secondary>` found in the
-       :serverstatus:`opcountersRepl` document that the
+       :manual:`secondaries </reference/glossary/#std-term-secondary>` found in the
+       ``opcountersRepl`` document that the
        :manual:`serverStatus </reference/command/serverStatus>`
        command collects.
 

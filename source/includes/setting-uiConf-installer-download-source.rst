@@ -39,8 +39,7 @@
           from the :dl:`MongoDB Download Center <ops-manager>` and upload them
           into the :setting:`Versions Directory`. |onprem| serves
           the installers to Agent hosts. The Version Manifest
-          must be 
-          :doc:`updated manually </tutorial/update-version-manifest>`.
+          must be updated manually.
           No hosts in the deployment require an internet connection.
    
    Corresponds to :setting:`automation.versions.source`.

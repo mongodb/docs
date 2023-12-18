@@ -355,7 +355,7 @@ Monitoring Agent 3.3.0.183
 *Released 2015-04-22*
 
 - Added an explicit timeout for |tls-ssl| connections to
-  :program:`mongod` instances.
+  :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instances.
 
 - The Kerberos credentials cache now uses a fixed name.
 
@@ -367,7 +367,7 @@ Monitoring Agent 3.2.0.177
 *Released 2015-03-31*
 
 Upgraded the version of the MongoDB Go driver (mgo), which fixes a rare
-deadlock while monitoring :program:`mongos` processes.
+deadlock while monitoring :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` processes.
 
 .. _monitoring-3.1.0.173:
 
@@ -525,10 +525,10 @@ Monitoring Agent 2.1.4.51-1
 
 *Released 2014-05-09*
 
-- Reduce log spam when a :program:`mongod` connection attempt fails, or
-  the when connecting to a 2.0 :program:`mongod`.
+- Reduce log spam when a :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` connection attempt fails, or
+  the when connecting to a 2.0 :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`.
 
-- Prevent high CPU use when monitoring unreachable :program:`mongod`.
+- Prevent high CPU use when monitoring unreachable :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`.
 
 .. _monitoring-2.1.2.43-1:
 
@@ -648,7 +648,7 @@ Monitoring Agent 1.6.2
 *Released 2013-11-05*
 
 - Fixed bug that led to high CPU service with log collection
-  and the agent's connection to a :program:`mongod` instance failed.
+  and the agent's connection to a :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instance failed.
 
 .. _monitoring-1.6.1:
 
@@ -670,7 +670,7 @@ Monitoring Agent 1.6.0
 *Released 2013-10-07*
 
 For monitored instances on MongoDB 2.4.x series, fixed
-a bug that reported monitored :program:`mongod` instances as down
+a bug that reported monitored :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instances as down
 during foreground index builds.
 
 .. _monitoring-1.5.9:

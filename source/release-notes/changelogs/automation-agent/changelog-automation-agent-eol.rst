@@ -169,7 +169,7 @@ Automation Agent 2.0.9.1201
 - Added support for managing deployment using Kerberos, LDAP, and
   x.509 Client Certificate authentication.
 
-- Added support to import an existing :program:`mongos` with a config 
+- Added support to import an existing :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` with a config 
   file.
 
 - Added support for importing an existing deployment that contains
@@ -200,7 +200,7 @@ Automation Agent 2.0.9.1201
 - Added optimization where |mms| assumes success when starting a forked
   MongoDB process, rather than waiting for EOF.
 
-- Improved algorithm for balancing :program:`mongod` processes across
+- Improved algorithm for balancing :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` processes across
   cores.
 
 - When deleting directories, symlinks are no longer deleted.
@@ -213,7 +213,7 @@ Automation Agent 2.0.9.1201
   started with the :option:`--configsvr <mongod.--configsvr>` option but
   with no port specified. See: :issue:`MMS-2489`.
 
-- **Fix:** Can configure :term:`oplog` sizes greater than 1TB.
+- **Fix:** Can configure :manual:`oplog </reference/glossary/#std-term-oplog>` sizes greater than 1TB.
 
 - **Fix:** Automation Agent does not interfere with
   manually-created replica set tags.
@@ -247,7 +247,7 @@ Automation Agent 1.4.16.1075
 
 - **Fix:** Can update users created on MongoDB 2.4.
 
-- **Fix:** No longer have :term:`config server` repair occur if the
+- **Fix:** No longer have :manual:`config server </reference/glossary/#std-term-config-server>` repair occur if the
   third config server was out of sync.
 
 .. _automation-1.4.15.999:

@@ -64,7 +64,7 @@ This field is required for deployments with replica sets.
      - array
      - Optional
      - Configuration of each
-       :term:`replica set`. The {+mdbagent+} uses the values in this
+       :manual:`replica set </reference/glossary/#std-term-replica-set>`. The {+mdbagent+} uses the values in this
        array to create valid :manual:`replica set configuration
        documents </reference/replica-configuration>`. The agent
        regularly checks that replica sets are configured correctly.

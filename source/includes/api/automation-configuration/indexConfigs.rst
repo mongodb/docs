@@ -186,15 +186,6 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
      - Flag that indicates how the index should handle diacritic
        strings.
 
-
-       .. seealso::
-
-          :manual:`Collation </r
-
-       .. seealso::
-
-          :manual:`Collation </reference/collation>`
-
        .. seealso::
 
           :manual:`Collation </reference/collation>`

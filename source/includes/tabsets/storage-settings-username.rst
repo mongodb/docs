@@ -9,7 +9,7 @@
       Type the name of the user authorized to access the this database.
 
       To learn more about configuring SCRAM authentication, see 
-      :ref:`SCRAM <authentication-scram>`.
+      :manual:`SCRAM </core/security-scram/#std-label-authentication-scram>`.
 
    .. tab:: X.509
       :tabid: x509

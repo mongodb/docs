@@ -1,19 +1,19 @@
-- If :binary:`mongod <bin.mongod>` is enabled as a service on the deployment, 
+- If :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` is enabled as a service on the deployment, 
   a race condition might result where ``systemd`` starts ``mongod`` on reboot, 
   rather than the Automation. To prevent this issue, ensure the ``mongod`` 
   service is disabled before you add your deployment to Automation:
 
-  1. Verify whether the `mongod` service is enabled:
+  1. Verify whether the ``mongod`` service is enabled:
 
-  .. code-block:: sh
+     .. code-block:: sh
      
-     sudo systemctl is-enabled mongod.service
+        sudo systemctl is-enabled mongod.service
 
   2. If the service is enabled, disable it:
 
-  .. code-block:: sh
+     .. code-block:: sh
 
-     sudo systemctl disable mongod.service
+        sudo systemctl disable mongod.service
 
 - If the |mms| project doesn't have authentication settings enabled but
   the MongoDB process requires authentication, add the {+mdbagent+} user

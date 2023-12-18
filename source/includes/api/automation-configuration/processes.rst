@@ -167,8 +167,8 @@ instances. Using this array, you can:
        earlier or later than the **featureCompatibilityVersion** you
        choose.
 
-       - |mms| accepts **3.2**, **3.6**, **{+fcv-previous+}** and
-         **{+fcv-current+}** as parameter values. If you have an
+       - |mms| accepts **3.2**, **3.6**, **4.0** and
+         **4.2** as parameter values. If you have an
          existing deployment, |mms| only accepts a
          **featureCompatibilityVersion** equal to or one release older
          than the MongoDB version you deployed. To learn which of
@@ -241,7 +241,7 @@ instances. Using this array, you can:
           Use this parameter with caution. During
           :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`,
           Automation removes the entire contents of the node's
-          :setting:`dbPath` directory.
+          ``dbPath`` directory.
 
        If you set this parameter:
 

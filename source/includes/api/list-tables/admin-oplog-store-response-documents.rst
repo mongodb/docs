@@ -9,7 +9,7 @@
 
    * - assignmentEnabled
      - boolean
-     - Flag indicating whether this :term:`oplog store <Oplog Store Database>` can be assigned
+     - Flag indicating whether this :cloudmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>` can be assigned
        backup jobs.
    
    * - encryptedCredentials
@@ -20,13 +20,13 @@
    
    * - id
      - string
-     - The unique name that labels this :term:`oplog store <Oplog Store Database>`.
+     - The unique name that labels this :cloudmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
    
    * - labels
      - array of strings
      - Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`oplog stores <Oplog Store Database>`. 
+       :cloudmgr:`oplog stores  </reference/glossary/#term-Oplog-Store-Database>`. 
    
    * - links
      - object array
@@ -34,13 +34,13 @@
  
    * - maxCapacityGB
      - number
-     - The maximum amount of data in GB this :term:`oplog store <Oplog Store Database>` can 
+     - The maximum amount of data in GB this :cloudmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>` can 
        store.
    
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>``
-       format that can be used to access this :term:`oplog store <Oplog Store Database>`.
+       format that can be used to access this :cloudmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
    
    * - ssl
      - boolean
@@ -55,7 +55,7 @@
 
    * - writeConcern
      - string
-     - The write concern used for this :term:`oplog store <Oplog Store Database>`.
+     - The write concern used for this :cloudmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
 
        The accepted values for this option are:
        

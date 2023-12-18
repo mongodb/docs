@@ -22,4 +22,4 @@
    * - ``GROUP-ID``
      - string
      - Unique identifier of your project from your
-       :doc:`Project Settings <manage-project-settings>`.
+       project settings.

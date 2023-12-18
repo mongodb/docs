@@ -9,7 +9,7 @@
 
    * - assignmentEnabled
      - boolean
-     - *Optional.* Flag indicating whether this :term:`blockstore` can 
+     - *Optional.* Flag indicating whether this :cloudmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>` can 
        be assigned backup jobs.
    
    * - encryptedCredentials
@@ -20,13 +20,13 @@
    
    * - id
      - string
-     - The unique name that labels this :term:`blockstore`.
+     - The unique name that labels this :cloudmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
    
    * - labels
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`blockstores <blockstore>`. 
+       :cloudmgr:`blockstores </reference/glossary/#term-backup-blockstore-database>`. 
 
        Setting these tags limits which backup jobs this blockstore 
        can process. If omitted, this blockstore can only process 
@@ -36,7 +36,7 @@
    * - loadFactor
      - number
      - *Optional.* A positive, non-zero integer that expresses how much 
-       backup work this :term:`snapshot store` should perform compared 
+       backup work this :cloudmgr:`snapshot store </reference/glossary/#term-snapshot-store>` should perform compared 
        to another snapshot store. This option is needed only if more 
        than one snapshot store is in use.
 
@@ -48,12 +48,12 @@
    * - maxCapacityGB
      - number
      - *Optional.* The maximum amount of data in GB this 
-       :term:`blockstore` can store.
+       :cloudmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>` can store.
    
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>``
-       format that can be used to access this :term:`blockstore`.
+       format that can be used to access this :cloudmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
    
    * - ssl
      - boolean
@@ -63,7 +63,7 @@
    
    * - writeConcern
      - string
-     - *Optional.* The write concern used for this :term:`blockstore`.
+     - *Optional.* The write concern used for this :cloudmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
 
        The accepted values for this option are:
        

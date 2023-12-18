@@ -11,18 +11,18 @@
    * - ``checkpointId``
      - string
      - Required
-     - Unique identifier for the :term:`sharded cluster` checkpoint
+     - Unique identifier for the :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` checkpoint
        that represents the point in time to which your data will be
        restored.
 
        If you provide this setting, this endpoint restores all data up
-       to this :term:`checkpoint <checkpoint>` to the database you
+       to this :cloudmgr:`checkpoint  </reference/glossary/#term-checkpoint>` to the database you
        specified in the ``delivery`` object.
 
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :term:`snapshot` data
+     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
        is delivered.
 
    * - | ``delivery``

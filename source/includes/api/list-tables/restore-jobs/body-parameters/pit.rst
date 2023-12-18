@@ -11,7 +11,7 @@
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :term:`snapshot` data
+     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
        is delivered.
 
    * - | ``delivery``
@@ -63,7 +63,7 @@
        hours of the current time.
 
        If you provide this setting, this endpoint restores all data up
-       to this :term:`Point in Time <point-in-time restore>`  to the
+       to this :cloudmgr:`Point in Time </reference/glossary/#term-point-in-time-restore>  to the
        database you specified in the ``delivery`` object.
 
 

@@ -8,7 +8,7 @@
    using the format used by the |ldap| attribute specified in the
    :setting:`LDAP User Group` setting. You can specify multiple projects
    using the ``;;`` delimiter. To change the default delimiter, use the
-   :setting:`mms.ldap.project.separator` setting.
+   ``mms.ldap.project.separator`` setting.
    
    .. code-block:: ini
    

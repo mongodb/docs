@@ -9,9 +9,6 @@
    This file must be in YAML format and must be stored under 
    ``/mongodb-ops-manager/`` directory. 
    
-   
-   .. include:: /includes/code-examples/k8s-project-file-path.yaml
-   
    Corresponds to :setting:`Kubernetes ConfigMap Setup`.
    
 

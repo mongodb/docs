@@ -41,7 +41,7 @@
       format of the entries and list of enabled ciphers.
       [*unrecognized_cipher_name*]
    
-   To change :setting:`mms.disableCiphers`, follow the `Modify a Custom
+   To change :setting:`mms.disableCiphers`, follow the :ref:`Modify a Custom
    Setting <opsmgr-config-add-custom>` procedure with the following
    values:
    

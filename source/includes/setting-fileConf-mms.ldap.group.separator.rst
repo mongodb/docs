@@ -5,7 +5,7 @@
    *Default*: ``;;``
 
    
-   To set the |ldap| separator, follow the `Modify a Custom Setting
+   To set the |ldap| separator, follow the :ref:`Modify a Custom Setting
    <opsmgr-config-add-custom>` procedure using the following values:
    
    .. list-table::

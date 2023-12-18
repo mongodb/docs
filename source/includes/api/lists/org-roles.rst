@@ -11,6 +11,6 @@
    * - ``ORG_GROUP_CREATOR``
      - :authrole:`Organization Project Creator`
    * - ``ORG_BILLING_ADMIN``
-     - :authrole:`Organization Billing Administrator`
+     - :authrole:`Organization Billing Admin`
    * - ``ORG_READ_ONLY``
      - :authrole:`Organization Read Only`

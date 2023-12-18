@@ -44,6 +44,6 @@
    * - :msetting:`sslRequireValidServerCertificates`
      - boolean
 
-   * - :msetting:`enableMunin`
+   * - ``enableMunin``
      - boolean
 

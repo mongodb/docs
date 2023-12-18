@@ -9,7 +9,7 @@
    * - ``ORG_READ_ONLY``
      - :authrole:`Organization Read Only`
    * - ``ORG_BILLING_ADMIN``
-     - :authrole:`Organization Billing Admin`
+     - ``Organization Billing Admin``
    * - ``ORG_GROUP_CREATOR``
      - :authrole:`Organization Project Creator`
    * - ``ORG_OWNER``

@@ -36,7 +36,7 @@
 
    * - groupId 
      - string
-     - Unique identifier of the :term:`project` that was included in 
+     - Unique identifier of the :cloudmgr:`project </reference/glossary/#term-project>` that was included in 
        this invoice.
 
    * - links
@@ -128,5 +128,5 @@
      - Timestamp in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format in :abbr:`UTC (Coordinated Universal Time)` of
-       the latest :term:`oplog <Oplog Store Database>` entry in the
-       restored :term:`snapshot`.
+       the latest :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` entry in the
+       restored :manual:`snapshot </reference/glossary/#std-term-snapshot>`.

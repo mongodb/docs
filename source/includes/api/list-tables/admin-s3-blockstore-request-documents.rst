@@ -80,7 +80,7 @@
      - Optional
      - Array of tags to manage which
        :term:`backup jobs <backup job>` |onprem| can assign to which
-       :term:`S3 blockstores <S3 Snapshot Store>`.
+       :cloudmgr:`S3 blockstores  </reference/glossary/#term-S3-Snapshot-Store>`.
 
        Setting these tags limits which backup jobs this |s3| blockstore
        can process. If omitted, this |s3| blockstore can only process
@@ -91,7 +91,7 @@
      - number
      - Optional
      - Positive, non-zero integer that expresses how much backup work
-       this :term:`snapshot store` performs compared to another
+       this :cloudmgr:`snapshot store </reference/glossary/#term-snapshot-store>` performs compared to another
        snapshot store. This option is needed only if more than one
        snapshot store is in use.
 
