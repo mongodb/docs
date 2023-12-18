@@ -55,8 +55,9 @@
   all clusters in a project for which Encryption at Rest is enabled.
 
 - If your |aws| |kms| configuration requires it, :aws:`allow
-  access </kms/latest/developerguide/policy-conditions.html#conditions-aws-ip-address>` 
+  access </kms/latest/developerguide/conditions-aws.html#conditions-aws-ip-address>` 
   from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` and the public IP addresses or DNS hostnames of your cluster nodes so that |service| 
-  can communicate with your |kms|. If the node IP addresses 
-  :ref:`change <faq-public-ip-changes>`, you must update your 
+  can communicate with your |kms|. You must include the IP addresses in your :aws:`managed IAM role policy </IAM/latest/UserGuide/access_policies_manage-edit.html>` by 
+  configuring :aws:`IP address condition operators </IAM/latest/UserGuide/reference_policies_elements_condition_operators.html#Conditions_IPAddress>` in your policy document. 
+  If the node IP addresses :ref:`change <faq-public-ip-changes>`, you must update your 
   configuration to avoid connectivity interruptions.

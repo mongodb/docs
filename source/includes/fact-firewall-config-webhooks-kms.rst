@@ -12,8 +12,66 @@ add |service| IP addresses to your network's IP access list:
      Sets) <replset-config-servers>` if you are using :term:`sharded
      clusters <sharded cluster>`.
 
+.. _atlas-fetch-control-plane-ips:
+
+Fetch |service| Control Plane IP Addresses
+-------------------------------------------
+
+Send a GET request to the ``controlPlaneIPAddresses`` endpoint 
+to fetch the current |service| control plane IP addresses. The :oas-atlas-op:`API endpoint </controlPlaneIPAddresses>` 
+returns a list of inbound and outbound |service| control plane IP addresses in |cidr| notation 
+categorized by cloud provider and region, similar to the following:
+
+.. code-block:: json
+
+   {
+     "controlPlane": {
+       "inbound": {
+         "aws": { // cloud provider
+           "us-east-1": [ // region
+             "3.92.113.229/32",
+             "3.208.110.31/32",
+             "107.22.44.69/32"
+             ...,
+           ],
+           ...
+          }
+        },
+        "outbound": {
+          "aws": { // cloud provider
+            "us-east-1": [ // region
+              "3.92.113.229/32",
+              "3.208.110.31/32",
+              "107.22.44.69/32"
+              ...,
+            ],
+            ...
+           }
+         }
+     },
+     "data_federation": {
+       "inbound": {},
+       "outbound" {}
+     },
+     "app_services": {
+       "inbound": {},
+       "outbound" {}
+     },
+     ...
+   }
+
+To add the returned IP addresses to your cloud provider's KMS IP access list, 
+see the prerequisites for managing customer keys with :ref:`AWS <aws-ksm-prereqs>`, 
+:ref:`Azure <azure-kms-prereqs>`, and :ref:`GCP <gcp-kms-prereqs>`.
+
 Required Outbound Access
 ------------------------
+
+.. note::
+
+   The following IP addresses are subject to change. We recommend that you 
+   :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>` 
+   to fetch the current inbound and outbound |service| control plane IP addresses.
 
 If your network allows outbound HTTP requests only to specific IP
 addresses, you must allow access to the following IP addresses so that
@@ -53,6 +111,12 @@ your API requests can reach the |service| control plane:
 
 Required Inbound Access
 -----------------------
+
+.. note::
+
+   The following IP addresses are subject to change. We recommend that you 
+   :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>` 
+   to fetch the current inbound and outbound |service| control plane IP addresses.
 
 If your network allows inbound HTTP requests only from specific IP
 addresses, you must allow access from the following IP addresses so that
