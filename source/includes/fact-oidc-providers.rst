@@ -1,6 +1,6 @@
 .. list-table::
   :header-rows: 1
-  :widths: 20 25 35 20
+  :widths: 20 18 42 20
 
   * - Field
 
@@ -86,11 +86,10 @@
   * - ``requestScopes``
 
     - Optional
-     
+    
     - array[ string ] 
-
+    
     - Permissions and access levels that MongoDB requests from the IDP.
-
 
   * - ``principalName``
     
@@ -103,17 +102,55 @@
 
       The default value is ``sub`` (stands for ``subject``). 
 
-
   * - ``authorizationClaim`` 
 
     - Conditional
-
+    
     - string
-
+    
     - Required, unless ``useAuthorizationClaim`` is set to ``false``.
     
       Claim extracted from access token that contains MongoDB role names.
 
+  * - ``useAuthorizationClaim`` 
+
+    - Optional
+
+    - Boolean
+
+    - Determines if the ``authorizationClaim`` field is required. The default 
+      value is ``true``.
+    
+      If the ``useAuthorizationClaim`` field is set to ``true``, the server requires 
+      an ``authorizationClaim`` for the identity provider's config. This is the 
+      default behavior.
+      
+      If the ``useAuthorizationClaim`` field is set to ``false``, the 
+      ``authorizationClaim`` field is optional (and ignored if provided). 
+      Instead, the server does the following:
+
+      - Searches the token for a claim whose name is listed in the 
+        ``principalNameClaim`` field. This is typically named ``sub``. For 
+        example:
+
+        ``sub: "spencer.jackson@example.com"``
+
+      - Constructs the internal username by concatenating the ``authNamePrefix``, 
+        a forward slash (``/``), and the contents of the claim identified by 
+        ``principalNameClaim`` within the access token. For example, with a 
+        ``authNamePrefix`` field value of "mdbinc", the internal username is:
+
+        ``mdbinc/spencer.jackson@example.com``
+
+      - Looks for the user with this username and authorize the client with the 
+        roles:
+
+        .. code-block:: javascript
+        
+           { user: "mdbinc/spencer.jackson@example.com", 
+             db: "$external" }
+
+      .. versionadded:: 7.2 (*Also available in 7.0.5*)
 
   * - ``logClaims``
 
@@ -124,22 +161,20 @@
     - List of access token claims to include in log and audit messages upon 
       authentication completion.
 
-
   * - ``JWKSPollSecs``
 
     - Optional
 
-    - integer
+    - Integer
 
     - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the IDP. 
       A setting of 0 disables polling.
-
 
   * - ``supportsHumanFlows``
 
     - Optional
 
-    - bool
+    - Boolean
 
     - Whether the OIDC provider supports human or machine workflows.  This
       affects the ``clientId`` and ``matchPattern`` fields.
@@ -149,5 +184,5 @@
 
       Default: ``true``.
 
-      .. versionadded:: 7.2
+      .. versionadded:: 7.2 (*Also available in 7.0.5*)
 

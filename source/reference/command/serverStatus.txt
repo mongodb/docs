@@ -1657,6 +1657,8 @@ metrics
          totalTimeToFirstNonAuthCommandMillis : Long("<num>")
       },
       operation : {
+         killedDueToClientDisconnect : Long("<num>"),  // Added in MongoDB 7.1 (*Also available in 7.0.5*)
+         killedDueToMaxTimeMSExpired : Long("<num>"),  // Added in MongoDB 7.2 (*Also available in 7.0.5*)
          numConnectionNetworkTimeouts : Long("<num>"),  // Added in MongoDB 6.3
          totalTimeWaitingBeforeConnectionTimeoutMillis : Long("<num>"),  // Added in MongoDB 6.3
          scanAndOrder : Long("<num>"),
@@ -1672,7 +1674,6 @@ metrics
       },
       query: {
          allowDiskUseFalse: Long("<num>"),
-         planCacheTotalSizeEstimateBytes: Long("<num>"),
          updateOneOpStyleBroadcastWithExactIDCount: Long("<num>"),
          lookup: {
             hashLookup: Long("<num>"),
@@ -2147,6 +2148,19 @@ metrics
 
    A document that holds counters for several types of update and query
    operations that MongoDB handles using special operation types.
+
+.. serverstatus:: metrics.operation.killedDueToClientDisconnect
+
+   .. versionadded:: 7.1 (*Also available in 7.0.5*)
+
+   Total number of operations cancelled before completion 
+   because the client disconnected.
+
+.. serverstatus:: metrics.operation.killedDueToMaxTimeMSExpired
+
+   .. versionadded:: 7.2 (*Also available in 7.0.5*)
+
+   Total number of operations that timed out before completion.
 
 .. serverstatus:: metrics.operation.numConnectionNetworkTimeouts
 
@@ -3853,14 +3867,40 @@ planCache
 
 .. code-block:: javascript
 
-   planCache: {
-      classic: { hits: Long("<num>"), misses: Long("<num>") },
-      sbe: { hits: Long("<num>"), misses: Long("<num>") }
+   planCache : {
+      totalQueryShapes : Long("<num>"),
+      totalSizeEstimateBytes : Long("<num>"),
+      classic : { 
+         hits : Long("<num>"), 
+         misses : Long("<num>") 
+      },
+      sbe : { 
+         hits : Long("<num>"), 
+         misses: Long("<num>") 
+      }
    }
 
 .. serverstatus:: planCache
 
    A document that reports query plan cache statistics.
+
+.. serverstatus:: planCache.totalQueryShapes
+      
+   Approximate number of :term:`query shapes <query shape>`. 
+
+   Prior to version 7.2, information on the number of query shapes was stored in 
+   the ``query.planCacheTotalQueryShapes`` field.
+
+   .. versionadded:: 7.2 (*Also available in 7.0.5*)
+
+.. serverstatus:: planCache.totalSizeEstimateBytes
+
+   Total size of the plan cache in bytes.
+
+   Prior to version 7.2, information on the plan cache size was stored in the  
+   ``query.planCacheTotalSizeEstimateBytes`` field.
+
+   .. versionadded:: 7.2 (*Also available in 7.0.5*)
 
 .. serverstatus:: planCache.classic.hits
 
@@ -3874,12 +3914,12 @@ planCache
 
 .. serverstatus:: planCache.sbe.hits
 
-   Number of slot-based execution engine query plans found in the query 
+   Number of |sbe-short| query plans found in the query 
    cache and reused to avoid the query planning phase.
 
 .. serverstatus:: planCache.sbe.misses
 
-   Number of slot-based execution engine query plans which were not found 
+   Number of |sbe-short| plans which were not found 
    in the query cache and went through the query planning phase.
 
 .. _server-status-queryAnalyzers:                                       
@@ -6733,7 +6773,7 @@ wiredTiger
 
    .. serverstatus:: wiredTiger.cache.bytes currently in the cache
 
-      Size in byte of the data currently in cache. This value should
+      Size in bytes of the data currently in cache. This value should
       not be greater than the ``maximum bytes configured`` value.
 
    .. serverstatus:: wiredTiger.cache.unmodified pages evicted
