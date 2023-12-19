@@ -37,7 +37,6 @@
   </core/index-unique/#std-label-sharded-clusters-unique-indexes>`.
 - You can't use the :manual:`movePrimary </reference/command/movePrimary/#mongodb-dbcommand-dbcmd.movePrimary>`
   command to reassign the primary shard while running this live migration process.
-- You can't add or remove shards while running this live migration process.
 - This live migration process only migrates indexes that exist on all shards
   and that have consistent specs on all shards.
 - You can't :manual:`refine </core/sharding-refine-a-shard-key/#std-label-shard-key-refine>`

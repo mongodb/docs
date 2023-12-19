@@ -21,9 +21,3 @@
   deployment hosted on the source cluster. Ideally, your application's
   servers should be running in the cloud in the same region as the destination
   |service| cluster's primary region. To learn more, see :ref:`cloud-providers-list`.
-
-- Due to network latency, the live migration process may not be able to
-  keep up with a source cluster that has an extremely heavy write load.
-  In this situation, you can still migrate directly from the source
-  cluster by pointing the :ref:`mongomirror` tool to the destination
-  |service| cluster.
