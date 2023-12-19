@@ -16,7 +16,7 @@ async function run() {
     const orders = database.collection("orders");
     // start find crud example
     // Search for orders by name and within a specific date range
-    const findResult = await orders.find({
+    const findResult = orders.find({
       name: "Lemony Snicket",
       date: {
         $gte: new Date(new Date().setHours(00, 00, 00)),
@@ -27,7 +27,7 @@ async function run() {
     console.log(await findResult.toArray());
     // start aggregate crud example
     // Group orders by status within the last week
-    const aggregateResult = await orders.aggregate([
+    const aggregateResult = orders.aggregate([
       {
         $match: {
           date: {
