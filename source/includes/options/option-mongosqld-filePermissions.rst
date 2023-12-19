@@ -1,6 +1,6 @@
 .. option:: --filePermissions <mode>
 
-   *Default*: 448
+   *Default*: 0700
 
    Specify the permissions for the Unix domain socket file.
 
