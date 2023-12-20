@@ -46,6 +46,8 @@ These errors often occur when you use data types in an incorrect or invalid way.
      - The collection in the specified database could not be found.
    * - `Error 1017 <#error-1017>`__
      - Extended JSON detected in comparison operation. MongoSQL does not support direct comparisons with extended JSON. Use casting instead (look at "Resolution Steps" for an example).
+   * - `Error 1018 <#error-1018>`__
+     - A field has an unsupported BSON type.
 
 
 Error Codes Beginning With "2" Overview
@@ -92,6 +94,8 @@ The following errors occur when something goes wrong while converting the SQL qu
      - A field exists in multiple data sources and is ambiguous.
    * - `Error 3010 <#error-3010>`__
      - The * argument is only valid in the COUNT aggregate function.
+   * - `Error 3011 <#error-3011>`__
+     - An aggregation function was used in a scalar position.
    * - `Error 3012 <#error-3012>`__
      - A scalar function was used in an aggregation position.
    * - `Error 3013 <#error-3013>`__
@@ -114,14 +118,32 @@ The following errors occur when something goes wrong while converting the SQL qu
      - The same FLATTEN option is defined more than once.
    * - `Error 3025 <#error-3025>`__
      - Schema information is insufficient to allow for flattening the data source.
+   * - `Error 3026 <#error-3026>`__
+     - A field within the schema is a polymorphic object type (e.g., consider a field that could either be a ``document`` or ``int``\ ), so it can't be flattened.
    * - `Error 3027 <#error-3027>`__
      - The same UNWIND option is defined more than once.
    * - `Error 3028 <#error-3028>`__
      - UNWIND is missing the path option. UNWIND must specify a PATH option.
+   * - `Error 3029 <#error-3029>`__
+     - The UNWIND PATH option is not an identifier; however, it must be one.
    * - `Error 3030 <#error-3030>`__
      - The target type of the CAST is an invalid type (i.e., it's either an unknown type or a type that MongoSQL does not support casting for).
    * - `Error 3034 <#error-3034>`__
      - A sort key is invalid because it uses complex expressions (i.e., ``ORDER BY {'a': b}.a`` is invalid).
+
+
+Error Codes Beginning With "4" Overview
+---------------------------------------
+
+The following errors occur when something goes wrong while using the excludeNamespaces option when using the $sql aggregation.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Error Code
+     - Error Description
+   * - `Error 4000 <#error-4000>`__
+     - The non-namespaced result set cannot be returned due to field name conflict(s).
 
 
 Error 1001
@@ -247,6 +269,16 @@ Error 1017
 * **Resolution Steps:** Don't use Extended JSON format and always explicitly CAST. The error message tries to recommend what you should do (casting).
   Corrected example query: ``select _id from customers where _id = CAST('5ca4bbcea2dd94ee58162a6a' as ObjectID)``. This query explicitly casts to an ``ObjectID``.
 
+Error 1018
+~~~~~~~~~~
+
+
+* **Description:** A field has an unsupported BSON type.
+* **Common Causes:** A field has a BSON type that is not supported by MongoSQL. For example, if collection ``foo`` has a field ``b`` of type ``undefined``\ , then the
+  query ``SELECT * FROM foo`` would cause this error.
+* **Resolution Steps:** Change the BSON type to something that is supported by MongoSQL. The error message suggests what `BSON types are supported <https://dochub.mongodb.org/core/atlas-sql-data-types>`__.
+  Corrected example query: ``SELECT * FROM foo`` where ``foo`` exists in the current database and ``b`` is not of type ``undefined``.
+
 Error 2000
 ~~~~~~~~~~
 
@@ -335,6 +367,15 @@ Error 3010
 * **Common Causes:** You can only do ``COUNT(*)``\ , so doing something like ``SUM(*)`` causes this error. For example, the query ``SELECT * FROM foo AS arr GROUP BY a AS a AGGREGATE SUM(*) AS gsum``
   causes this error.
 * **Resolution Steps:** Only use ``*`` as an argument to ``COUNT``.
+
+Error 3011
+~~~~~~~~~~
+
+
+* **Description:** An aggregation function was used in a scalar position.
+* **Common Causes:** Using an aggregation function where only a scalar function can be used. For example, the query ``SELECT VALUE {'suma': SUM(a)} FROM db.bar AS bar GROUP BY a AS a``
+  causes this error because ``SUM(a)`` is an aggregation function.
+* **Resolution Steps:** Remove aggregation functions in places where you can only have scalar functions.
 
 Error 3012
 ~~~~~~~~~~
@@ -435,6 +476,18 @@ Error 3025
 * **Resolution Steps:** Define all fields in the schema to ensure that the schema is sufficiently defined. Additionally, try to avoid setting ``additional_properties`` to true.
   Instead, choose to fully define the schema.
 
+Error 3026
+~~~~~~~~~~
+
+
+* **Description:** A field within the schema is a polymorphic object type (e.g., consider a field that could either be a ``document`` or ``int``\ ), so it can't be flattened.
+  Flattening only works on object (AKA document) types, so if there is a possibility that some field may not be a document, then it can't be flattened. 
+* **Common Causes:** Trying to flatten a collection that has a schema containing a field that is a polymorphic object type. For example, assuming that a collection 
+  named ``coll`` has a field that is a polymorphic object type, then the query ``SELECT * FROM FLATTEN(coll)`` will cause this error
+* **Resolution Steps:** You can only flatten object types, so if you want a field to have the possibility of being flattened, the schema for that field MUST be an object type.
+  To fix this error, you must either stop trying to flatten collections that have fields with polymorphic object types, or you must change the schema for those fields to be
+  an object type only. 
+
 Error 3027
 ~~~~~~~~~~
 
@@ -450,6 +503,14 @@ Error 3028
 * **Description:** UNWIND is missing the PATH option. UNWIND must specify a PATH option.
 * **Common Causes:** UNWIND is missing the PATH option as shown by the erroneous query ``SELECT * FROM UNWIND(foo)``.
 * **Resolution Steps:** Add the PATH option to the UNWIND. Corrected example query: ``SELECT * FROM UNWIND(foo WITH PATH => a)``.
+
+Error 3029
+~~~~~~~~~~
+
+
+* **Description:** The UNWIND PATH option is not an identifier; however, it must be one. 
+* **Common Causes:** The UNWIND PATH option is not an identifier as shown by the erroneous query ``SELECT * FROM UNWIND(foo WITH PATH => {'a': []}.a)``.
+* **Resolution Steps:** Change the UNWIND PATH option into an identifier. Corrected example query: ``SELECT * FROM UNWIND(foo WITH PATH => a)``.
 
 Error 3030
 ~~~~~~~~~~
@@ -471,3 +532,13 @@ Error 3034
     causes this error because ``CAST(d AS DOCUMENT)`` is a complex expression.
 * **Resolution Steps:** Make sure you only sort by "pure" field path. A "pure" field path consists only of
     identifiers, such as ``foo.d.a`` or ``a``.
+
+Error 4000
+~~~~~~~~~~
+
+
+* **Description:** The non-namespaced result set cannot be returned due to field name conflict(s).
+* **Common Causes:** Setting the ``$sql`` aggregation ``excludeNamespaces`` field to true and querying multiple collections with the same field names. Since this option removes collection namespaces,
+  fields with the same name that belong to different collections are no longer unique. For example, consider collections ``foo`` and ``bar`` each with a field ``a``\ , and a query such as ``SELECT foo.*, bar.a FROM foo, bar``. 
+  With collection namespaces in the result set, the two ``a`` fields can be differentiated between ``foo`` and ``bar``\ ; however, without collection namespaces, they cannot be distinguished from one another.
+* **Resolution Steps:** The best way to fix this error is to use aliasing to make conflicting fields unique. Corrected example query: ``SELECT foo.*, bar.a AS a_unique_alias from foo, bar``. 
