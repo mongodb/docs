@@ -1,0 +1,1296 @@
+.. _atlasdeployment-custom-resource:
+
+===================================
+``AtlasDeployment`` Custom Resource
+===================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasDeployment`` custom resource configures your MongoDB 
+{+cluster+} or {+serverless-instance+} in |service|. When you create
+the ``AtlasDeployment`` custom resource, |ak8so| tries to create or 
+update a {+cluster+} or {+serverless-instance+} in |service|.
+
+.. important:: Action Required for Breaking Changes with |ak8so| 2.0
+
+   * With |ak8so| 2.0, ``deploymentSpec`` replaces ``advancedDeploymentSpec`` in 
+     the ``AtlasDeployment`` custom resource. You must update your ``AtlasDeployment`` 
+     custom resource as follows:
+
+     * If you use ``advancedDeploymentSpec``, rename to ``deploymentSpec``. 
+       You don't need to change any formatting.
+
+     * If you used ``deploymentSpec`` prior to |ak8so| 2.0, rewrite your 
+       ``AtlasDeployment`` custom resource to match the formatting used in 
+       :ref:`the examples <atlasdeployment-examples>`.
+
+   * |ak8so| uses :ref:`custom resource <custom-resources>` configuration
+     files to manage your |service| configuration, but as of |ak8so| 2.0,
+     custom resources you delete in |k8s| are no longer deleted in 
+     |service|. Instead, |ak8so| simply stops managing those resources.  
+     For example, if you delete an :ref:`atlasproject-custom-resource`
+     in |k8s|, |ak8so| no longer automatically deletes the corresponding project
+     from |service|, preventing accidental or unexpected deletions. To learn more, 
+     including how to :ref:`revert this behavior <revert-deletion-protection>` to 
+     the default used prior to |ak8so| 2.0, see :ref:`deletion-protection`.
+
+|ak8so| does one of the following actions depending on the 
+values you specify in the ``AtlasDeployment`` custom resource:
+
+- If you specify values for fields under ``spec.deploymentSpec``, 
+  |ak8so| uses the |service| :oas-atlas-tag:`Clusters API Resource 
+  </Clusters>` to create a new {+cluster+} or
+  update an existing {+cluster+}.
+- If you specify values for fields under ``spec.serverlessSpec``,
+  |ak8so| uses the |service| :oas-atlas-tag:`Serverless Instance API 
+  Resource </Serverless-Instances>` to create a new 
+  {+serverless-instance+} or update an existing {+serverless-instance+}.
+
+Creating or updating a {+cluster+} or {+serverless-instance+} can take
+up to 10 minutes. |ak8so| monitors the update process.
+
+You can run the following command to check on the status:
+
+.. code-block:: sh
+
+   kubectl get atlasdeployment -o yaml
+
+The following example shows the status section of a {+cluster+} that is
+provisioning:
+
+.. code-block:: sh
+
+   status:
+     conditions:
+     - lastTransitionTime: "2021-03-18T16:32:43Z"
+       status: "False"
+       type: ClusterReady
+       reason: ClusterCreating 
+       message: Cluster is provisioning
+
+The ``ClusterReady`` status will change to ``True`` when the 
+{+cluster+} or {+serverless-instance+} is ready.
+
+.. _atlasdeployment-examples:
+
+Examples
+--------
+
+Status Example
+~~~~~~~~~~~~~~
+
+The following example shows the ``AtlasDeployment`` resource with a  
+``ClusterReady`` status of ``True``:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     namespace: default
+     labels:
+       app.kubernetes.io/version: 1.6.0
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       name: test-cluster
+       tags: 
+       - key: "environment",
+         value: "production"
+       providerSettings:
+         instanceSizeName: M10
+         providerName: AWS
+         regionName: US_EAST_1
+       mongoDBMajorVersion: "4.4"
+   status:
+     conditions:
+     - lastTransitionTime: "2021-03-18T16:32:43Z"
+       status: "True"
+       type: Ready
+     - lastTransitionTime: "2021-03-18T16:32:43Z"
+       status: "True"
+       type: ClusterReady
+     connectionStrings:
+       standard: mongodb://test-cluster-shard-00-00.kpc8f.mongodb.net:27017,test-cluster-shard-00-01.kpc8f.mongodb.net:27017,test-cluster-shard-00-02.kpc8f.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-1gm1pv-shard-0
+       standardSrv: mongodb+srv://test-cluster.kpc8f.mongodb.net
+     mongoDBVersion: 4.4.4
+     mongoURIUpdated: "2021-03-12T12:21:41Z"
+     observedGeneration: 1
+     stateName: IDLE
+
+Configuration Example
+~~~~~~~~~~~~~~~~~~~~~
+     
+The following example shows an ``AtlasDeployment`` custom resource 
+specification configured for autoscaling multi-region {+clusters+}:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+     name: test-cluster-name
+     namespace: mongodb-atlas-system
+   spec:
+     projectRef:
+       name: development
+     deploymentSpec:
+       autoScaling:
+         compute:
+           enabled: true
+           scaleDownEnabled: true
+       clusterType: REPLICASET
+       name: service-name
+       tags: 
+       - key: "environment",
+         value: "production"
+       providerBackupEnabled: true
+       providerSettings:
+         autoScaling:
+           compute:
+             maxInstanceSize: M40
+             minInstanceSize: M30
+         instanceSizeName: M30
+         providerName: GCP
+       replicationSpecs:
+         - numShards: 1
+           regionsConfig:
+             EASTERN_US:
+               analyticsNodes: 0
+               electableNodes: 1
+               priority: 6
+               readOnlyNodes: 0
+             SOUTH_AMERICA_EAST_1:
+               analyticsNodes: 0
+               electableNodes: 2
+               priority: 7
+               readOnlyNodes: 0
+           zoneName: Zone 1
+
+.. _ak8so-advanced-options:
+
+Additional Options Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasDeployment`` custom resource 
+specification configured with some of the :oas-atlas-tag:`additional options 
+</Clusters>`.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     labels:
+       app.kubernetes.io/version: 1.6.0
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       name: Test-cluster
+       tags: 
+       - key: "environment",
+         value: "production"
+       providerSettings:
+         instanceSizeName: M10
+         providerName: AWS
+         regionName: US_EAST_1
+     processArgs:
+       javascriptEnabled: false
+
+.. _ak8so-serverless-instance:
+
+{+Serverless-Instance+} Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     
+The following example shows an ``AtlasDeployment`` custom resource 
+specification configured for a {+serverless-instance+}:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: test-cluster-name
+     namespace: mongodb-atlas-system
+     labels:
+       app.kubernetes.io/version: 1.6.0
+   spec:
+     projectRef:
+       name: development
+     serverlessSpec:
+       name: serverless-instance
+       tags: 
+       - key: "environment",
+         value: "production"
+       providerSettings:
+         providerName: AWS
+         regionName: US_EAST_1
+
+.. _ak8so-advanced-clusters:
+
+Multi-Region {+Cluster+} Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+Clusters+} can span regions and cloud service providers. To 
+learn more, see :ref:`create-new-cluster-considerations`.
+
+.. note::
+
+   While the |service| :oas-atlas-tag:`{+Cluster+} API 
+   Resource </Clusters>` sends requests using the 
+   ``v1.5`` |service| |api| versions, the |ak8so| ``apiVersion`` field 
+   uses ``v1``. In this case, ``v1`` refers to the version of 
+   the |k8s| |api|.
+
+The following example shows an ``AtlasDeployment`` custom 
+resource specification configured for multi-region {+clusters+}:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     labels:
+       app.kubernetes.io/version: 1.6.0
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       clusterType: REPLICASET
+       name: tenantCluster
+       tags: 
+       - key: "environment",
+         value: "production"
+       replicationSpecs:
+         - regionConfigs:
+           - electableSpecs:
+               instanceSize: M5
+             providerName: AWS
+             regionName: US_EAST_1
+
+Multiple Cloud Service Providers Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     
+The following example shows an ``AtlasDeployment`` custom 
+resource specification configured to span multiple cloud service 
+providers:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDeployment
+   metadata:
+     name: my-atlas-cluster
+     labels:
+       app.kubernetes.io/version: 1.6.0
+   spec:
+     projectRef:
+       name: my-project
+     deploymentSpec:
+       clusterType: REPLICASET
+       name: tenantCluster
+       tags: 
+       - key: "environment",
+         value: "production"
+       replicationSpecs:
+         - regionConfigs:
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 3
+             providerName: AWS
+             regionName: US_EAST_1
+             priority: 7
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 2
+             providerName: AZURE
+             regionName: US_EAST_2
+             priority: 6
+           - electableSpecs:
+               instanceSize: M10
+               nodeCount: 2
+             providerName: GCP
+             regionName: CENTRAL_US
+             priority: 5
+
+.. _atlasdeployment-crd-params:
+
+Parameters
+----------
+
+This section describes some of the key ``AtlasDeployment`` custom 
+resource parameters available. For a full list of available parameters
+for {+clusters+}, see the |service| :oas-atlas-op:`{+Clusters+} API 
+</createCluster>`. For a full list of available parameters for 
+{+serverless-instances+}, see the |service| 
+:oas-atlas-tag:`{+Serverless-Instances+} API </Serverless-Instances>`.
+
+Refer to these descriptions, the available examples, and the |api| 
+documentation to customize your specifications.
+
+.. setting:: spec.backupRef
+
+   *Type*: object
+
+   *Optional*
+
+   List that contains the details for the 
+   :ref:`atlasbackupschedule-custom-resource` that you want to apply. You can specify one backup schedule per {+cluster+}.
+
+.. setting:: spec.backupRef.name
+
+   *Type*: string
+
+   *Optional*
+
+   ``metadata.name`` value within the 
+   :ref:`atlasbackupschedule-custom-resource` for the backup schedule
+   that you want to apply. You can specify only one backup schedule per 
+   {+cluster+}, but you can use the same backup schedule for multiple 
+   {+clusters+}.
+
+   If you don't specify this parameter, |service| doesn't apply your
+   backup configuration to this {+cluster+}.
+
+.. setting:: spec.backupRef.namespace
+
+   *Type*: string
+
+   *Optional*
+
+   String that indicates the namespace that contains the 
+   :ref:`atlasbackupschedule-custom-resource` for the backup schedule
+   that you want to apply.
+
+.. setting:: spec.deploymentSpec
+
+   *Type*: array
+
+   *Conditional*
+
+   List that contains the {+cluster+} parameters from the |api|.
+   For a full list of available parameters, see the |service|
+   :oas-atlas-tag:`{+Clusters+} API </Clusters>`.
+   
+   .. important::
+
+      You must specify ``spec.deploymentSpec`` 
+      or ``spec.serverlessSpec`` in your configuration.
+
+.. setting:: spec.deploymentSpec.clusterType
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies {+cluster+} type to create.
+
+   **When should you use this parameter?**
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 78 22
+
+      * - Condition
+        - Necessity
+
+      * - You set :setting:`spec.deploymentSpec.replicationSpecs`.
+        - Required
+
+      * - You are deploying
+          :doc:`Global {+Clusters+} </global-clusters>`.
+        - Required
+
+      * - You are deploying non-Global replica sets and sharded
+          {+clusters+}.
+        - Optional
+
+   |service| accepts:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 60 40
+
+      * - Value
+        - {+Cluster+} Type
+      * - REPLICASET
+        - :term:`replica set`
+      * - SHARDED
+        - :term:`sharded cluster`
+      * - GEOSHARDED
+        - :doc:`global {+cluster+} </global-clusters>`
+
+.. setting:: spec.deploymentSpec.customZoneMapping
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/custom-zone-mapping-desc.rst
+
+.. setting:: spec.deploymentSpec.customZoneMapping.location
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/custom-zone-mapping-location-desc.rst
+
+.. setting:: spec.deploymentSpec.customZoneMapping.zone
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/custom-zone-mapping-zone-desc.rst
+
+.. setting:: spec.deploymentSpec.diskSizeGB
+
+   *Type*: number
+
+   *Optional*
+
+   Capacity, in gigabytes, that indicates the host's root volume.
+   Increase this number to add capacity, up to a maximum possible value 
+   of ``4096`` (4 TB). You must specify a positive number for 
+   this value.
+
+   You can't set this value for |nvme-clusters|.
+
+   .. note::
+
+      If you enable autoscaling for ``diskGB`` in any region, you 
+      can't edit this option. To learn more, see 
+      :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.diskGB.enabled`.
+
+   The minimum disk size for {+dedicated-clusters+} is 10 GB for |aws|
+   and |gcp|. If you specify this setting with a lower disk size,
+   |service| defaults to the minimum disk size value.
+
+   If your {+database-deployment+} includes |azure| nodes, this value 
+   must correspond to an existing |azure| disk type (8, 16, 32, 64, 
+   128, 256, 512, 1024, 2048, or 4096).
+
+   |service| calculates storage charges differently depending on
+   whether you choose the default value or a custom value.
+
+   .. include:: /includes/cluster-settings/extended-storage-limit.rst
+
+   If your {+database-deployment+} spans cloud service providers, this 
+   value defaults to the minimum default of the providers involved.
+
+   To learn more, see :ref:`storage-capacity`.
+
+.. setting:: spec.deploymentSpec.encryptionAtRestProvider
+
+   *Type*: string
+
+   *Optional*
+
+   Cloud service provider that manages the customer key for this 
+   {+cluster+}. You must set this value to enable encryption at rest
+   using customer-managed keys for this {+cluster+}, which provides an
+   additional layer of encryption.
+   
+   To learn more, see :ref:`ak8so-ear`.
+
+   |service| accepts the following values:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 80
+      :stub-columns: 1
+
+      * - Value
+        - Cloud Provider
+      * - AWS
+        - Amazon AWS
+      * - GCP
+        - Google Cloud
+      * - AZURE
+        - Microsoft Azure
+      * - NONE
+        - No provider; the {+cluster+} doesn't encrypt data using
+          customer-managed keys.
+
+.. setting:: spec.deploymentSpec.managedNamespaces
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-desc.rst
+
+.. setting:: spec.deploymentSpec.managedNamespaces.collection
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-collection-desc.rst
+
+.. setting:: spec.deploymentSpec.managedNamespaces.db
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-db-desc.rst
+
+.. setting:: spec.deploymentSpec.managedNamespaces.isCustomShardKeyHashed
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-is-custom-shard-key-hashed-desc.rst
+
+.. setting:: spec.deploymentSpec.managedNamespaces.isCustomShardKeyUnique
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-is-custom-shard-key-unique-desc.rst
+
+.. setting:: spec.deploymentSpec.managedNamespaces.numInitialChunks
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-num-initial-chunks-desc.rst
+
+.. setting:: spec.deploymentSpec.managedNamespaces.presplitHashedZones
+
+   .. include:: /includes/cluster-settings/global-cluster/extracts/managed-namespaces-presplit-hashed-zones-desc.rst
+
+.. setting:: spec.deploymentSpec.mongoDBMajorVersion
+
+   *Type*: string
+
+   *Optional*
+
+   Version of the {+cluster+} to deploy. |service| supports the
+   following MongoDB versions for ``M10+`` {+clusters+}:
+
+   - 4.4
+   - 5.0
+   - 6.0
+   - 7.0
+
+   The following conditions produce the following results:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 78 22
+
+      * - Condition
+        - Result
+
+      * - You omit this parameter and you omit the 
+          :setting:`spec.deploymentSpec.versionReleaseSystem` parameter.
+        - |service| deploys a {+cluster+} that runs MongoDB 6.0.
+
+      * - You omit this parameter and you set the
+          :setting:`spec.deploymentSpec.versionReleaseSystem` parameter to 
+          ``LTS``.
+        - |service| deploys a {+cluster+} that runs MongoDB 6.0.
+
+      * - You set the 
+          :setting:`spec.deploymentSpec.providerSettings.instanceSizeName` 
+          parameter to ``M0``, ``M2``, or ``M5``.
+        - You must deploy MongoDB 6.0.
+
+      * - You specify this parameter.
+        - |service| always deploys the {+cluster+} with the latest 
+          stable patch release of the specified version.
+
+      * - You set the 
+          :setting:`spec.deploymentSpec.versionReleaseSystem` 
+          parameter to ``CONTINUOUS``.
+        - You must omit this parameter.
+
+.. setting:: spec.deploymentSpec.pitEnabled
+
+   *Type*: boolean
+
+   *Conditional*
+
+   Configuration that enables continuous cloud backup. To enable
+   continuous cloud backup, you must specify this setting with a value
+   of ``true``.
+
+.. setting:: spec.deploymentSpec.providerSettings
+
+   *Type*: Object
+
+   *Conditional*
+
+   Configuration that specifies the settings for the provisioned hosts 
+   on which MongoDB runs. The available options are specific to the 
+   cloud service provider. To learn more, see the :ref:`AWS 
+   <amazon-aws>`, :ref:`GCP <google-gcp>`, and :ref:`Azure 
+   <microsoft-azure>` {+cluster+} configuration options.
+
+   If you want to create or update a {+cluster+}, you must
+   specify this setting.
+
+.. setting:: spec.deploymentSpec.providerSettings.providerName
+
+   *Type*: string
+
+   *Conditional*
+
+   Cloud service provider on which |service| provisions the hosts.
+
+   .. list-table::
+      :widths: 20 80
+      :stub-columns: 1
+
+      * - AWS
+        - Amazon AWS
+      * - GCP
+        - Google Cloud Platform
+      * - AZURE
+        - Microsoft Azure
+
+.. setting:: spec.deploymentSpec.providerSettings.instanceSizeName
+
+   *Type*: string
+
+   *Required*
+
+   |service| provides different {+cluster+} tiers, each with a default
+   storage capacity and RAM size. The {+cluster+} you select is
+   used for all the data-bearing servers in your {+cluster+}. To learn 
+   more, see the :ref:`AWS <amazon-aws>`, :ref:`GCP <google-gcp>`, and 
+   :ref:`Azure <microsoft-azure>` custom storage sizes.
+
+   If you change the instance size name after you deploy your 
+   {+cluster+}, |service| changes the {+database-deployment+} to the
+   instance size you specify unless it falls outside the range you
+   specify in 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
+   and 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize` 
+   with autoscaling enabled. To learn more, see 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
+   and 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
+
+   .. note::
+
+      You can change this setting to upgrade an ``M0``, ``M2``, or 
+      ``M5`` {+cluster+} to an ``M10+`` {+cluster+}. However, you can't 
+      upgrade an ``M0``, ``M2``, or ``M5`` {+cluster+} to another free 
+      or shared {+cluster+}. For example, you can't upgrade an ``M0``
+      {+cluster+} to an ``M5`` {+cluster+}.
+
+.. setting:: spec.deploymentSpec.providerSettings.regionName
+
+   *Type*: string
+
+   *Conditional*
+
+   Physical location of your MongoDB {+cluster+}. The region you
+   choose can affect network latency for clients accessing your
+   databases.
+
+   For a complete list of region name values, refer to the
+   cloud provider reference pages:
+
+   - :ref:`AWS <amazon-aws>`
+
+   - :ref:`GCP <google-gcp>`
+
+   - :ref:`Azure <microsoft-azure>`
+
+   For multi-region {+clusters+}, see
+   :setting:`spec.deploymentSpec.replicationSpecs`. You must set either 
+   :setting:`spec.deploymentSpec.providerSettings.regionName` or 
+   :setting:`spec.deploymentSpec.replicationSpecs`.
+
+.. setting:: spec.deploymentSpec.replicationSpecs
+
+   *Type*: array of objects
+
+   *Conditional*
+
+   List that contains the configurations for your {+cluster+} regions. 
+   Use this parameter for multi-region {+clusters+}. You must set 
+   either :setting:`spec.deploymentSpec.providerSettings.regionName` or 
+   :setting:`spec.deploymentSpec.replicationSpecs`.
+
+   **When should you use this parameter?**
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 40 20 40
+
+      * - Condition
+        - Necessity
+        - Values
+
+      * - You are deploying
+          :doc:`Global {+Clusters+} </global-clusters>`.
+        - Required
+        - Each object in the array represents a zone where
+          |service| deploys your {+cluster+}'s nodes.
+
+      * - You are deploying non-Global replica sets and sharded
+          {+clusters+}.
+        - Optional
+        - This array has one object representing where
+          |service| deploys your {+cluster+}'s nodes.
+
+   If you specify this parameter, you must also specify
+   :setting:`spec.deploymentSpec.clusterType` and 
+   :setting:`spec.deploymentSpec.replicationSpecs.numShards`.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.numShards
+
+   *Type*: integer
+
+   *Conditional*
+
+   Positive integer that specifies the number of shards to deploy
+   for a sharded {+cluster+}.
+
+   If you use the :setting:`spec.deploymentSpec.replicationSpecs` 
+   parameter, you must set this parameter.
+
+   |service| accepts ``1`` through ``50``, inclusive. The default
+   value is ``1``.
+
+   - If you specify a value of ``1`` and you set 
+     :setting:`spec.deploymentSpec.clusterType` to ``SHARDED``, 
+     |service| deploys a single-shard :term:`sharded cluster`.
+
+   - If you specify ``1`` and you set 
+     :setting:`spec.deploymentSpec.clusterType` to ``REPLICASET``, 
+     |service| deploys a :term:`replica set`.
+
+     .. include:: /includes/cluster-settings/single-shard-cluster-warning.rst
+
+     .. seealso::
+
+        - :manual:`Sharding </sharding>`
+        - :ref:`server-number-costs`
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs
+
+   *Type*: array
+
+   *Required*
+
+   Hardware specifications for nodes set for a given region. Each
+   ``regionConfigs`` object describes the region's priority in
+   elections and the number and type of MongoDB nodes that
+   |service| deploys to the region.
+
+   Each ``regionConfigs`` object must have either an
+   ``analyticsSpecs`` object, ``electableSpecs`` object, or
+   ``readOnlySpecs`` object.
+
+   - ``M0``, ``M2``, or ``M5`` {+clusters+} require only 
+     ``electableSpecs``.
+
+   - {+Dedicated-clusters+} can specify any of these specifications,
+     but must have at least one ``electableSpecs`` object within a
+     ``replicationSpec``.
+
+   - Every hardware specification must use the same
+     ``instanceSize``.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.analyticsSpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for :ref:`analytics nodes 
+   <analytics-nodes-overview>` needed in the region. Analytics nodes 
+   handle analytic data such as reporting queries from |bic|. Analytics 
+   nodes are read-only and can never become the :term:`primary`.
+
+   If you don't specify this parameter, |service| deploys no analytics  
+   to this region.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.diskGB.enabled
+
+   *Type*: boolean
+
+   *Optional*
+
+   Flag that indicates whether this {+database-deployment+} enables 
+   disk autoscaling. This parameter defaults to ``true``.
+
+   - Set to ``true`` to enable disk autoscaling.
+   - Set to ``false`` to disable disk autoscaling.
+
+   .. include:: /includes/cluster-settings/ram-to-storage-ratio.rst
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled
+
+   *Type*: boolean
+  
+   *Optional*
+
+   Flag that indicates whether instance size autoscaling is
+   enabled. This parameter defaults to ``false``.
+
+   - Set to ``true`` to enable instance size autoscaling. If
+     enabled, you must specify a value for :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
+
+   - Set to ``false`` to disable instance size autoscaling.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize
+
+   *Type*: string
+     
+   *Conditional*
+
+   String that indicates the maximum instance size to which your 
+   {+database-deployment+} can automatically scale (such as ``M40``). 
+   You must specify this parameter if you set :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled` to ``true``.
+
+   .. note::
+
+      If you set a maximum instance size smaller than the
+      {+database-deployment+}\'s current instance size with autoscaling
+      enabled, |service| automatically scales the current instance
+      size to the maximum value you specify.
+
+      For example, if the {+database-deployment+}\'s current instance
+      size is ``M40`` and you set the maximum instance size to ``M30``,
+      |service| automatically scales the current instance size to
+      ``M30``.
+
+      If |service| changes the current instance size and you don't
+      change the 
+      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
+      in |ak8so| to match the new instance size, |ak8so| displays a
+      warning in the logs but doesn't prevent autoscaling.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize
+
+   *Type*: string
+     
+   *Conditional*
+
+   String that indicates the minimum instance size to which your 
+   {+database-deployment+} can automatically scale (such as ``M10``). 
+   You must specify this parameter if you set 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled` 
+   to ``true``.
+
+   .. note::
+
+      If you set a minimum instance size larger than the
+      {+database-deployment+}\'s current instance size with autoscaling
+      enabled, |service| automatically scales the current instance size
+      to the minimum value you specify.
+
+      For example, if the {+database-deployment+}\'s current instance
+      size is ``M10`` and you set the minimum instance size to ``M30``,
+      |service| automatically scales the current instance size to
+      ``M30``.
+
+      If |service| changes the current instance size and you don't
+      change the 
+      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
+      in |ak8so| to match the new instance size, |ak8so| displays a
+      warning in the logs but doesn't prevent autoscaling.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for electable nodes in the region.
+   Electable nodes can become the :term:`primary` and can enable
+   local reads.
+
+   If you don't specify this option, |service| deploys no electable 
+   nodes to the region.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.instanceSize
+
+   *Type*: string
+
+   *Conditional*
+
+   Hardware specification for the instance sizes in this region. Each
+   instance size has a default storage and memory capacity. The instance
+   size you select applies to all the data-bearing hosts in your 
+   instance size. To learn more, see the :ref:`AWS <amazon-aws>`, 
+   :ref:`GCP <google-gcp>`, and :ref:`Azure <microsoft-azure>` custom 
+   storage sizes.
+
+   If you deploy a :term:`sharded cluster`, or :doc:`global {+cluster+} 
+   </global-clusters>`, you must choose an instance size of ``M30`` or 
+   greater.
+
+   .. note::
+
+      If you have autoscaling enabled for the compute field, you can't 
+      edit this option. To learn more, see :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled`.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.nodeCount
+
+   *Type*: integer
+
+   *Conditional*
+
+   Number of electable nodes for |service| to deploy to the region.
+   Electable nodes can become the :term:`primary` and can enable
+   local reads.
+
+   The combined ``electableSpecs.nodeCount`` across all
+   ``replicationSpecs.regionConfigs`` objects must total
+   ``3``, ``5``, or ``7``.
+
+   You can't create electable nodes if :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.priority` is 
+   ``0``.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.priority
+
+   *Type*: integer
+
+   *Required*
+
+   Precedence is given to this region when a primary election
+   occurs.
+
+   If your ``regionConfigs`` has only ``readOnlySpecs``,
+   ``analyticsSpecs``, or both, set this value to ``0``.
+
+   If you have multiple ``regionConfigs`` objects (your {+cluster+} is
+   multi-region or multi-cloud), they must have priorities in
+   descending order. The highest priority is ``7``.
+
+   .. example::
+
+      Set your highest priority region to ``7``, your
+      second-highest priority to ``6``, and your third-priority
+      region to ``5``. If you have no electable nodes, set this
+      value to ``0``.
+
+   If your region has set ``electableSpecs.nodeCount`` to ``1`` or
+   higher, it must have a priority of exactly one less than
+   another region in the ``replicationSpecs.regionConfigs``
+   array unless it is the primary. The highest-priority region **must** 
+   have a priority of ``7``. The lowest possible priority is ``1``.
+
+   The priority ``7`` region identifies the **Preferred Region** of
+   the {+cluster+}. |service| places the :term:`primary` node in the
+   **Preferred Region**. Priorities ``1`` through ``7`` are
+   exclusive: you can't assign a given priority to more than one
+   region per {+cluster+}.
+
+   .. example::
+
+      If you have three regions, their priorities would be ``7``,
+      ``6``, and ``5`` respectively. If you added two more regions
+      for supporting electable nodes, the priorities of those
+      regions would be ``4`` and ``3`` respectively.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.readOnlySpecs
+
+   *Type*: object
+
+   *Optional*
+
+   Hardware specifications for read-only nodes in the region.
+   Read-only nodes can never become the :term:`primary` member, but
+   can enable local reads.
+
+   If you don't specify this parameter, |service| deploys no read-only 
+   nodes to the region.
+
+.. setting:: spec.deploymentSpec.replicationSpecs.zoneName
+
+   *Type*: string
+
+   *Optional*
+
+   Human-readable label that identifies the zone in a 
+   :doc:`Global {+Cluster+} </global-clusters>`. Provide this value 
+   only if you set :setting:`spec.deploymentSpec.clusterType` to 
+   ``GEOSHARDED``.
+
+.. setting:: spec.deploymentSpec.tags
+
+   .. include:: /includes/fact-ak8so-tags.rst
+
+.. setting:: spec.deploymentSpec.versionReleaseSystem
+
+   *Type*: string
+
+   *Conditional*
+
+   Release cadence that |service| uses for this {+cluster+}.
+   |service| accepts:
+
+   - ``CONTINUOUS``: |service| creates your {+cluster+} using the 
+     most recent MongoDB release. |service| automatically updates 
+     your {+cluster+} to the latest major and rapid MongoDB releases
+     as they become available.
+   - ``LTS``: |service| creates your {+cluster+} using the latest
+     patch release of the MongoDB version that you specify in the 
+     :setting:`spec.deploymentSpec.mongoDBMajorVersion` parameter.
+     |service| automatically updates your {+cluster+} to subsequent 
+     patch releases of this MongoDB version. |service| doesn't update 
+     your {+cluster+} to newer rapid or major MongoDB releases as they 
+     become available.
+
+     If omitted, defaults to ``LTS``.
+
+     If you set this parameter to ``CONTINUOUS``, you must omit the 
+     :setting:`spec.deploymentSpec.mongoDBMajorVersion` parameter.
+
+.. setting:: spec.processArgs
+
+   *Type*: object
+
+   *Optional*
+
+   Object that contains the :oas-atlas-tag:`additional configuration 
+   options </Clusters>` for 
+   your {+cluster+}.
+
+.. setting:: spec.processArgs.defaultReadConcern
+
+   *Type*: string
+
+   *Optional*
+
+   String that indicates the :manual:`default level of acknowledgment 
+   requested from MongoDB for read operations
+   </reference/read-concern/>` set for this {+cluster+}.
+
+   MongoDB 4.4 {+clusters+} default to 
+   :manual:`available </reference/read-concern-available>`.
+
+   MongoDB 5.0 {+clusters+} default to 
+   :manual:`local </reference/read-concern-local>`.
+
+.. setting:: spec.processArgs.defaultWriteConcern
+
+   *Type*: string
+
+   *Optional*
+
+   String that indicates the :manual:`default level of acknowledgment 
+   requested from MongoDB for write operations
+   </reference/write-concern/>` set for this {+cluster+}.
+
+   MongoDB 4.4 {+clusters+} default to :manual:`1 
+   </reference/write-concern>`.
+
+   MongoDB versions 5.0 and later {+clusters+} default to 
+   :manual:`majority
+   </reference/write-concern>`.
+
+.. setting:: spec.processArgs.failIndexKeyTooLong
+
+   *Type*: boolean
+
+   *Optional*
+
+   Flag that indicates whether to fail the operation and return an 
+   error when you insert or update documents where all indexed entries 
+   exceed 1024 bytes. If you set this to ``false``, |mongod| writes 
+   documents that exceed this limit, but *doesn't* index them.
+
+   This option corresponds to the
+   :parameter:`failIndexKeyTooLong <param.failIndexKeyTooLong>`
+   |mongod| parameter.
+
+.. setting:: spec.processArgs.javascriptEnabled
+
+   *Type*: boolean
+
+   *Optional*
+
+   Flag that indicates whether the {+cluster+} allows execution of
+   operations that perform server-side executions of JavaScript.
+
+   - If your {+cluster+} runs a MongoDB version less than 4.4, this
+     option corresponds to modifying the
+     :setting:`security.javascriptEnabled` configuration file
+     option for each |mongod| in the {+cluster+}.
+
+   - If your {+cluster+} runs MongoDB version 4.4 or greater, this
+     option corresponds to modifying the
+     :setting:`security.javascriptEnabled` configuration file
+     option for each |mongod| and |mongos| in the {+cluster+}.
+
+.. setting:: spec.processArgs.minimumEnabledTlsProtocol
+
+   *Type*: integer
+
+   *Optional*
+
+   String that indicates the minimum |tls| version that the {+cluster+}
+   accepts for incoming connections. {+Clusters+} using |tls| 1.0 or
+   1.1 should consider setting |tls| 1.2 as the minimum |tls|
+   protocol version.
+
+   To learn more, see :ref:`faq-tls-1.0-deprecation`.
+
+   This option corresponds to the
+   :setting:`net.ssl.disabledProtocols` |mongod|
+   configuration file option.
+
+.. setting:: spec.processArgs.noTableScan
+
+   *Type*: boolean
+
+   *Optional*
+
+   Flag that indicates whether the {+cluster+} disables executing any
+   query that requires a collection scan to return results.
+
+   This option corresponds to the
+   :parameter:`notablescan <param.notablescan>` |mongod| parameter.
+
+.. setting:: spec.processArgs.oplogSizeMB
+
+   *Type*: integer
+
+   *Optional*
+
+   Number that indicates the storage limit of a {+cluster+}\'s oplog 
+   expressed in megabytes. A value of ``null`` indicates that the 
+   {+cluster+} uses the default oplog size that |service| calculates.
+
+   This option corresponds to the
+   :setting:`replication.oplogSizeMB <replication.oplogSizeMB>`
+   |mongod| configuration file option.
+
+.. setting:: spec.processArgs.sampleRefreshIntervalBIConnector
+
+   *Type*: integer
+
+   *Optional*
+
+   Number that indicates the documents per database to sample when 
+   gathering schema information.
+
+   This parameter corresponds to the :bic:`sampleSize 
+   </reference/mongosqld/#cmdoption-mongosqld-sampleSize>` 
+   :bic:`mongosqld </reference/mongosqld>` option.
+
+.. setting:: spec.processArgs.sampleSizeBIConnector
+
+   *Type*: integer
+
+   *Optional*
+
+   Number that indicates the interval in seconds at which the
+   :bic:`mongosqld process </reference/mongosqld/>` re-samples data
+   to create its relational schema.
+
+   This parameter corresponds to the :bic:`sampleRefreshIntervalSecs 
+   </reference/mongosqld/#cmdoption-mongosqld-sampleRefreshIntervalSecs>`
+   :bic:`mongosqld </reference/mongosqld>` option.
+
+.. setting:: spec.projectRef.name
+
+   *Type*: string
+
+   *Required*
+
+   Name of the project where the {+cluster+} belongs. You must specify 
+   an existing :ref:`atlasproject-custom-resource`.
+
+.. setting:: spec.serverlessSpec
+
+   *Type*: array
+
+   *Conditional*
+
+   List that contains the {+serverless-instance+} parameters from the 
+   |api|. For a full list of available parameters, see the |service|
+   :oas-atlas-tag:`{+Serverless-Instances+} API 
+   </Serverless-Instances>`.
+
+   .. important::
+
+      You must specify ``spec.deploymentSpec`` 
+      or ``spec.serverlessSpec`` in 
+      your configuration.
+
+.. setting:: spec.serverlessSpec.privateEndpoints
+
+   *Type*: array
+
+   *Optional*
+
+   List that contains the :ref:`private endpoint 
+   <ak8so-private-endpoint>` configurations for the 
+   {+serverless-instance+}.
+
+.. setting:: spec.serverlessSpec.providerSettings
+
+   *Type*: Object
+
+   *Conditional*
+
+   Configuration that specifies the settings for the provisioned hosts 
+   on which MongoDB runs. The available options are specific to the 
+   cloud service provider. To learn more, see the :ref:`AWS 
+   <amazon-aws>`, :ref:`GCP <google-gcp>`, and :ref:`Azure 
+   <microsoft-azure>` {+serverless-instance+} configuration options.
+
+   If you want to create or update a {+serverless-instance+}, you must
+   specify this setting.
+
+.. setting:: spec.serverlessSpec.providerSettings.providerName
+
+   *Type*: string
+
+   *Conditional*
+
+   Cloud service provider on which |service| provisions the host for a 
+   {+serverless-instance+}.
+
+   |service| accepts the following values:
+
+   .. list-table::
+      :widths: 20 80
+      :stub-columns: 1
+
+      * - AWS
+        - Amazon AWS
+      * - GCP
+        - Google Cloud Platform
+      * - AZURE
+        - Microsoft Azure
+
+.. setting:: spec.serverlessSpec.providerSettings.regionName
+
+   **Type**: string
+
+   **Conditional**
+
+   Physical location of your MongoDB {+serverless-instance+}. The
+   region you choose can affect network latency for clients accessing
+   your databases.
+
+   For a complete list of region name values, refer to the
+   cloud provider reference pages:
+
+   - :ref:`AWS <amazon-aws>`
+
+   - :ref:`GCP <google-gcp>`
+
+   - :ref:`Azure <microsoft-azure>`
+  
+.. setting:: spec.serverlessSpec.tags
+
+   .. include:: /includes/fact-ak8so-tags.rst
+
+.. setting:: status.connectionStrings
+
+   *Type*: array
+
+   *Required*
+
+   List that contains the connection URLs for accessing the {+cluster+}.
+   This parameter appears after you create or update a {+cluster+}.
+   
+   .. note::
+
+      .. include:: /includes/fact-ak8so-connection-strings.rst
+
+For the configuration parameters available for a {+cluster+} from the |api|, 
+see the |service| 
+:oas-atlas-tag:`{+Clusters+} API </Clusters>`.
+
+.. note::
+   
+   The following parameters are deprecated in the |service| 
+   :oas-atlas-op:`API </createOneCluster>` and |ak8so| does not support 
+   them:
+   
+   - ``replicationSpec``
+
+   - ``replicationFactor``

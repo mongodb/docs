@@ -1,0 +1,156 @@
+.. _ak8so-access-to-atlas-ref:
+
+=============================
+Configure Access to |service|
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+To connect to the {+atlas-admin-api+}, |ak8so| reads the organization 
+ID and :ref:`API keys <about-org-api-keys>` from |ak8so| 
+|k8s-secrets|. You can also configure the following features:
+ 
+- :ref:`private endpoints <ak8so-private-endpoint>`
+- :ref:`x509 authentication <ak8so-x509>`
+- :ref:`Unified Cloud Provider Access <ak8so-unified-access>`
+- :ref:`federated authentication <ak8so-federated-auth>`
+
+To learn more about creating an |service| account, see 
+:ref:`atlas-register-account`.
+
+.. _ak8so-secrets:
+
+|ak8so| Secrets
+---------------
+
+Depending on your configuration, |ak8so| reads from one of the 
+following |ak8so| |k8s-secrets|:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 40 50
+
+   * - Scope
+     - Location
+     - Description
+  
+   * - Global
+     - |ak8so| |k8s-secret| ``<operator-deployment-name>-api-key`` 
+       created in the same |k8s-ns| where you installed |ak8so|.
+       
+     - |ak8so| uses this secret data to connect to the 
+       {+atlas-admin-api+} unless the 
+       :ref:`atlasproject-custom-resource` specifies 
+       :setting:`spec.connectionSecretRef.name`.
+       
+       ``global`` |ak8so| |k8s-secrets| let you use one |api| key for 
+       all the projects in an organization. Any new 
+       :ref:`atlasproject-custom-resource` uses the same |api| key for 
+       reduced overhead.
+
+       The default name of the |ak8so| deployment is 
+       ``mongodb-atlas-operator``. So, the |k8s-secret| should be 
+       named ``mongodb-atlas-operator-api-key``.
+
+   * - Project
+     - |ak8so| |k8s-secret| referenced with 
+       :setting:`spec.connectionSecretRef.name` in the 
+       :ref:`atlasproject-custom-resource`.
+       
+       .. include:: /includes/fact-ak8so-connection-secret-namespace.rst
+
+     - |ak8so| uses this |k8s-secret| data to connect to 
+       the {+atlas-admin-api+} for any 
+       :ref:`atlasdeployment-custom-resource` 
+       and ``AtlasDatabaseUser`` custom resource that references the 
+       project. 
+       
+       If you do not specify 
+       :setting:`spec.connectionSecretRef.name`, |ak8so| uses the 
+       ``global`` |ak8so| secret.
+      
+       |ak8so| |k8s-secrets| per project allow for more granular 
+       access. You may want a single |api| key to have access to a 
+       single |service| project.
+
+Parameters
+----------
+
+Both ``global`` and ``project`` |k8s-secrets| require the following 
+information:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Parameter
+     - Description
+
+   * - ``orgId``
+     - Unique 24-digit hexadecimal string used to identify 
+       your |service| :term:`organization`.
+
+   * - ``publicAPIKey``
+     - Public part of the :ref:`API key <about-org-api-keys>`.
+  
+   * - ``privateAPIKey``
+     - Private part of the :ref:`API key <about-org-api-keys>`.
+
+Prerequisites
+-------------
+
+.. include:: /includes/fact-ak8so-api-key-permission.rst
+
+.. _ak8so-access-to-atlas-procedure:
+
+Procedure
+---------
+
+To configure |ak8so| access to |service|, do one of the following 
+steps.
+
+- For a ``global`` |ak8so| |k8s-secret|, run the following commands:
+  
+  .. note::
+
+     The name of the ``global`` |ak8so| secret must conform to 
+     the predefined format. The default name of the |ak8so| deployment 
+     is ``mongodb-atlas-operator``. So, the |k8s-secret| should be 
+     named ``mongodb-atlas-operator-api-key``.
+  
+  .. code-block:: sh
+
+     kubectl create secret generic mongodb-atlas-operator-api-key \
+        --from-literal="orgId=<the_atlas_organization_id>" \
+        --from-literal="publicApiKey=<the_atlas_api_public_key>" \
+        --from-literal="privateApiKey=<the_atlas_api_private_key>" \
+        -n <operator_namespace>
+
+     kubectl label secret mongodb-atlas-operator-api-key atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+
+- For a ``project`` |ak8so| |k8s-secret|, run the following commands:
+
+  .. code-block:: sh
+
+     kubectl create secret generic my-project-connection \
+        --from-literal="orgId=<the_atlas_organization_id>" \
+        --from-literal="publicApiKey=<the_atlas_api_public_key>" \
+        --from-literal="privateApiKey=<the_atlas_api_private_key>" \
+        -n <atlas_project_namespace>
+
+     kubectl label secret mongodb-atlas-operator-api-key atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+
+.. toctree::
+   :titlesonly:
+
+   Private Endpoints </ak8so-private-link>
+   X.509 </ak8so-x509>
+   Network Peering </ak8so-network-peering>
+   Cloud Provider Access </ak8so-unified-access>
+   Federated Authentication </ak8so-configure-federated-authentication>

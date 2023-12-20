@@ -1,0 +1,630 @@
+.. _ak8so-private-endpoint-dedicated:
+
+===================================================
+Manage Private Endpoints for {+Dedicated-Clusters+}
+===================================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/fact-atlas-free-tier-limits.rst
+
+|ak8so| supports managing private endpoints for {+dedicated-clusters+} 
+on the following platforms: 
+
+- |aws| using the `{+aws-pl+} <https://aws.amazon.com/privatelink/>`__
+  feature.
+
+- |azure| using the `{+az-pl+}
+  <https://azure.microsoft.com/en-us/services/private-link/>`__ 
+  feature.
+
+- |gcp| using the `{+gcp-psc+} 
+  <https://cloud.google.com/vpc/docs/private-service-connect>`__ 
+  feature.
+
+Before you begin, see :ref:`ak8so-private-endpoint`.
+
+Procedure
+---------
+
+To enable clients to connect to |service| {+dedicated-clusters+} using 
+private endpoints:
+
+.. tabs::
+
+   .. tab:: {+aws-pl+}
+      :tabid: {+aws-pl+}
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Specify the ``spec.privateEndpoints`` parameter.
+            
+            Specify the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. In the 
+            ``spec.privateEndpoints.provider`` field, specify 
+            ``AWS``. Replace the placeholder ``{aws-region}`` with the 
+            :ref:`AWS region <amazon-aws>` information for 
+            your private endpoints and run the following command:
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+                 labels:
+                   app.kubernetes.io/version: 1.6.0
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "AWS"
+                   region: "{aws-region}"
+               EOF
+
+            |service| creates the |vpc| resources in the region you 
+            selected. This might take several minutes to 
+            complete.
+
+         .. step:: Find the service names for your private endpoints.
+
+            a. Run the following command:
+
+               .. code-block:: sh
+
+                  kubectl get atlasproject my-project -o yaml
+
+            #. Note the service name string for each private endpoint 
+               within the ``status.privateEndpoints.serviceName`` 
+               field of the :ref:`atlasproject-custom-resource`.
+
+         .. step:: Use the AWS CLI to configure each private endpoint.
+
+            To create your application |vpc| :term:`interface endpoint`:
+
+            a. Copy the following command:
+
+               .. code-block:: sh
+
+                  aws ec2 create-vpc-endpoint --vpc-id {your-application-vpc-id} --region {aws-region} --service-name {service-name-string} --vpc-endpoint-type Interface --subnet-ids {your-application-subnet-ids}
+             
+            #. Replace the following placeholders with the details 
+               about your |aws| |vpc|:
+
+               .. list-table::
+                  :widths: 20 80
+
+                  * - ``your-application-vpc-id``
+                    - Unique string that identifies the peer |aws| 
+                      |vpc|. Find this value on the |vpc| dashboard in 
+                      your |aws| account.
+
+                  * - ``aws-region``
+                    - Label that identifies the :ref:`AWS region 
+                      <amazon-aws>` of the private endpoint.
+
+                  * - ``service-name-string``
+                    - Unique string that identifies the service name 
+                      for your private endpoint. Find this value within 
+                      the ``status.privateEndpoints.serviceName`` 
+                      field of the :ref:`atlasproject-custom-resource`.
+
+                  * - ``your-application-subnet-ids``
+                    - Unique strings that identify the subnets your 
+                      |aws| |vpc| uses. Separate each subnet with a 
+                      space. Find these values on the 
+                      :guilabel:`Subnet`  dashboard in your |aws| 
+                      account.
+
+                      .. important::
+
+                         You must specify at least one subnet. If you 
+                         don't, |aws| won't provision a 
+                         :term:`interface endpoint` in your |vpc|. An 
+                         interface endpoint is required for clients 
+                         in your |vpc| to send traffic to the private 
+                         endpoint.
+
+            #. Run the command with the :aws:`AWS CLI 
+               </cli/latest/userguide/cli-chap-install.html>`.
+
+
+            #. Note the ``VpcEndpointId`` value in the output.
+
+               **Example**
+
+               .. code-block:: sh
+
+                  "VpcEndpoint": {
+                           "VpcEndpointId": "vpce-XXXXXX",
+                           "VpcEndpointType": "Interface",
+                           "VpcId": "vpc-XXXXX",
+                           "ServiceName": "com.amazonaws.vpce.{aws-region}.vpce-svc-XXXX",
+                           "State": "pendingAcceptance", 
+
+            To learn more, see :aws:`Creating an Interface Endpoint 
+            </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` in the |aws| 
+            documentation.
+
+         .. step:: Update the ``spec.privateEndpoints`` parameter.
+
+            Update the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. Specify the
+            :ref:`AWS region <amazon-aws>` and replace ``vpce-id`` with 
+            the ``VpcEndpointId`` values for your private endpoints and 
+            run the following command:
+
+            .. note::
+             
+               You can find the unique identifier of the peer 
+               |aws| |vpc| on the |vpc| dashboard in your |aws| account.
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+                 labels:
+                   app.kubernetes.io/version: 1.6.0
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "AWS"
+                   region: "{aws-region}"
+                   id: "{vpce-id}"
+               EOF
+        
+         .. step:: Check the status of your private endpoints using |ak8so|.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+               kubectl get atlasproject my-project -o yaml
+
+         .. step:: Retrieve the secret that |ak8so| created to connect to the cluster.
+
+            .. include:: /includes/fact-ak8so-pe-connection-strings.rst
+
+   .. tab:: {+az-pl+}
+      :tabid: {+az-pl+}
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Specify the ``spec.privateEndpoints`` parameter.
+            
+            Specify the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. In the 
+            ``spec.privateEndpoints.provider`` field, specify 
+            ``AZURE``. Replace the placeholder ``{azure-region}`` with 
+            the :ref:`Azure region <microsoft-azure>` 
+            information for your private endpoints and run the 
+            following command:
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+                 labels:
+                   app.kubernetes.io/version: 1.6.0
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "AZURE"
+                   region: "{azure-region}"
+               EOF
+
+            |service| creates the VNET resources in the region you 
+            selected. This might take several minutes to 
+            complete.
+
+         .. step:: Disable private endpoint network policies.
+
+            |service| doesn't support network policies for private 
+            endpoints.
+
+            a. Copy the following command:
+
+               .. code-block:: sh
+                
+                  az network vnet subnet update --resource-group {resource-group-name} --vnet-name {vnet-name} --name {subnet-name} --disable-private-endpoint-network-policies true
+
+            #. Replace the following placeholders with the details 
+               about your |azure| VNet:
+
+               .. list-table::
+                  :widths: 20 80
+
+                  * - ``resource-group-name``
+                    - Human-readable label for the resource group that 
+                      contains the VNet that you want to use to connect 
+                      to |service|. Find this value on the 
+                      :guilabel:`Resource Group Properties` page on your
+                      |azure| dashboard.
+
+                  * - ``vnet-name``
+                    - Human-readable label that identifies the VNet 
+                      that you want to use to connect to |service|. 
+                      Find this value on the :guilabel:`Virtual
+                      Network` page on your |azure| dashboard.
+
+                  * - ``subnet-name``
+                    - Human-readable label that identifies the subnet 
+                      in your |azure| VNet. Find this value on the 
+                      :guilabel:`Virtual Network Subnets` page on your 
+                      |azure| dashboard.
+
+            #. Run the command with the :azure:`Azure CLI
+               <install-azure-cli>`.
+
+            To learn more, see the 
+            :azure:`Manage network policies for private endpoints 
+            </private-link/disable-private-endpoint-network-policy>` 
+            in the |azure| documentation.
+         
+         .. step:: Find the service IDs and names for your private endpoints.
+
+            a. Run the following command:
+
+               .. code-block:: sh
+
+                  kubectl get atlasproject my-project -o yaml
+
+            #. Note the service resouce ID and service name for each 
+               private endpoint within the 
+               ``status.privateEndpoints.serviceResourceId`` 
+               and ``status.privateEndpoints.serviceName`` 
+               fields of the :ref:`atlasproject-custom-resource`.
+
+         .. step:: Use the Azure CLI to configure each private endpoint.
+
+            To create your private endpoint:
+
+            a. Copy the following command:
+
+               .. code-block:: sh
+
+                  az network private-endpoint create --resource-group {resource-group-name} --name {endpoint-name} --vnet-name {vnet-name} --subnet {subnet-name} --private-connection-resource-id {serviceResourceId} --connection-name {serviceName} --manual-request true
+            
+            #. Replace the following placeholders with the details 
+               about your |azure| VNet:
+
+               .. list-table::
+                  :widths: 20 80
+
+                  * - ``resource-group-name``
+                    - Human-readable label for the resource group that 
+                      contains the VNet that you want to use to connect 
+                      to |service|. Find this value on the 
+                      :guilabel:`Resource Group Properties` page on your
+                      |azure| dashboard.
+
+                  * - ``endpoint-name``
+                    - Human-readable label that identifies your private 
+                      endpoint. Specify this now.
+
+                  * - ``vnet-name``
+                    - Human-readable label that identifies the VNet 
+                      that you want to use to connect to |service|. 
+                      Find this value on the :guilabel:`Virtual
+                      Network` page on your |azure| dashboard.
+
+                  * - ``subnet-name``
+                    - Human-readable label that identifies the subnet 
+                      in your |azure| VNet. Find this value on the 
+                      :guilabel:`Virtual Network Subnets` page on your 
+                      |azure| dashboard.
+
+                  * - ``serviceResourceId``
+                    - Unique string that identifies the service 
+                      resource for your private endpoint. Find this 
+                      value within the 
+                      ``status.privateEndpoints.serviceResourceId`` 
+                      field of the :ref:`atlasproject-custom-resource`.
+
+                  * - ``serviceName``
+                    - Unique string that identifies the service name 
+                      for your private endpoint. Find this 
+                      value within the 
+                      ``status.privateEndpoints.serviceName`` 
+                      field of the :ref:`atlasproject-custom-resource`.
+
+            #. Run the command with the :azure:`Azure CLI
+               <install-azure-cli>`.
+
+         .. step:: Update the ``spec.privateEndpoints`` parameter.
+
+            Update the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. Specify the 
+            the :ref:`Azure region <microsoft-azure>`, Resource ID, and 
+            IP address information for your private endpoints and run 
+            the following command:
+
+            .. note::
+               
+               The :guilabel:`Properties` page on your |azure| 
+               dashboard displays the unique identifier for the 
+               private endpoint that you created in the 
+               :guilabel:`Resource ID` field.
+
+               The :guilabel:`Overview` page on your |azure| 
+               dashboard displays the private IP address of the private 
+               endpoint network interface that you created in the 
+               :guilabel:`Private IP` field.
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+                 labels:
+                   app.kubernetes.io/version: 1.6.0
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "Azure"
+                   region: "{azure-region}"
+                   id: "{resource-id}" 
+                   ip: "{private-ip}"
+               EOF
+        
+         .. step:: Check the status of your private endpoints using |ak8so|.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+               kubectl get atlasproject my-project -o yaml
+
+         .. step:: Retrieve the secret that |ak8so| created to connect to the cluster.
+
+            .. include:: /includes/fact-ak8so-pe-connection-strings.rst
+
+   .. tab:: {+gcp-psc+}
+      :tabid: {+gcp-psc+}
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Specify the ``spec.privateEndpoints`` parameter.
+            
+            Specify the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. In the 
+            ``spec.privateEndpoints.provider`` field, specify 
+            ``GCP``. Replace the placeholder ``{gcp-region}`` 
+            with the :ref:`Google Cloud Platform region <google-gcp>` 
+            information for your private endpoints and run the 
+            following command:
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+                 labels:
+                   app.kubernetes.io/version: 1.6.0
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "GCP"
+                   region: "{gcp-region}"
+               EOF
+            
+            |service| creates the |vpc| resources in the region you 
+            selected. This might take several minutes to complete.
+
+         .. step:: Find the ``{unique-ID}`` for your private endpoints.
+
+            a. Run the following command:
+
+               .. code-block:: sh
+
+                  kubectl get atlasproject my-project -o yaml
+
+            b. Note the ``{unique-id}`` that follows ``projects/`` 
+               in each service attachment name. The ``{unique-id}`` in 
+               the following example is ``p-ogyvk1plka2anycnzl6znr9p``.
+
+               **Example**
+
+               .. code-block:: sh
+
+                  "serviceAttachmentNames": [
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-0",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-1",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-2",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-3",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-4",
+                    "projects/p-ogyvk1plka2anycnzl6znr9p/regions/us-east1/serviceAttachments/sa-us-east1-6274f45bcce0e51662a29b05-5"
+                  ]
+
+         .. step:: Configure your private endpoints.
+
+            To edit the private endpoints and generate the necessary 
+            script with the {+atlas-ui+}, see 
+            :ref:`atlas-configure-private-endpoint`.
+
+            To configure your private endpoints manually:
+
+            a. Copy the following shell script:
+
+               .. code-block:: sh
+
+                  #!/bin/bash
+                  gcloud config set project {google-cloud-project-id}
+
+                  for i in {0..5}
+                  do
+                    gcloud compute addresses create {private-service-connect-endpoint-prefix}-ip-$i --region={gcp-region} --subnet={subnet-name}
+                  done
+
+                  for i in {0..5}
+                  do
+                    if [ $(gcloud compute addresses describe {private-service-connect-endpoint-prefix}-ip-$i --region={gcp-region} --format="value(status)") != "RESERVED" ]; then
+                      echo "{private-service-connect-endpoint-prefix}-ip-$i is not RESERVED";
+                    exit 1;
+                    fi
+                  done
+
+                  for i in {0..5}
+                  do
+                    gcloud compute forwarding-rules create {private-service-connect-endpoint-prefix}-$i --region={gcp-region} --network={vpc-name} --address={private-service-connect-endpoint-prefix}-ip-$i --target-service-attachment=projects/{unique-ID}/regions/{gcp-region}/serviceAttachments/sa-{gcp-region}-{org-id}-$i
+                  done
+
+                  if [ $(gcloud compute forwarding-rules list --regions={gcp-region} --format="csv[no-heading](name)" --filter="name:{private-service-connect-endpoint-prefix}" | wc -l) -gt 50 ]; then
+                    echo "Project has too many forwarding rules that match prefix {endpoint-name}. Either delete the competing resources or choose another endpoint prefix."
+                    exit 2;
+                  fi
+
+                  gcloud compute forwarding-rules list --regions={gcp-region} --format="json(IPAddress,name)" --filter="name:{private-service-connect-endpoint-prefix}" > atlasEndpoints-{endpoint-name}.json
+        
+            b. Replace the following placeholders with the details 
+               about your |gcp| |vpc|:
+
+               .. list-table::
+                  :widths: 20 80
+
+                  * - ``google-cloud-project-id``
+                    - Unique ID that identifies your |gcp| project. 
+                      Find this value on the :guilabel:`Dashboard` 
+                      page on your |gcp| platform.
+
+                  * - ``private-service-connect-endpoint-prefix``
+                    - Human-readable label that prefixes all endpoints 
+                      created and identifies the endpoint group.
+
+                  * - ``gcp-region``
+                    - Label that identifies the 
+                      :ref:`Google Cloud Platform region 
+                      <google-gcp>` of the private endpoint.
+
+                  * - ``subnet-name``
+                    - Human-readable label that identifies the subnet 
+                      in your |gcp| |vpc|. Find this value on the 
+                      :guilabel:`VPC Networks` page on your |gcp|
+                      dashboard.
+
+                  * - ``vpc-name``
+                    - Human-readablle label that identifies the |vpc| 
+                      that you want to use to connect to |service|. 
+                      Find this value on the :guilabel:`VPC Networks` 
+                      page on your |gcp| dashboard.
+
+                  * - ``unique-id``
+                    - Unique string that you noted when you returned 
+                      the project status.
+
+                  * - ``org-id``
+                    - Unique 24-digit hexadecimal string that 
+                      identifies the |service| :ref:`organization 
+                      <organizations>`.
+
+            c. Save the shell file as ``setup_psc.sh`` and run the 
+               script from the directory where you saved the file with 
+               the following command:
+
+               .. code-block:: sh
+
+                  sh setup_psc.sh
+
+               The script creates an 
+               ``atlasEndpoints-{endpoint-name}.json`` output file that 
+               contains a list of IP addresses and forwarding rule 
+               names.
+
+            d. Run the following commands to format the output for 
+               |ak8so|:
+          
+               .. code-block:: sh
+
+                  yq e -P atlasEndpoints-{endpoint-name}.json > atlasEndpoints-user-private-endpoint.yaml
+
+               .. code-block:: sh
+
+                  awk 'sub("name","endpointName")sub("IPAddress","ipAddress")' atlasEndpoints-user-private-endpoint.yaml
+
+               The output shoud resemble the following example:
+
+               .. code-block:: sh
+                  :copyable: false
+
+                  - ipAddress: 10.0.0.00
+                    endpointName: {endpoint-name}-0
+                  - ipAddress: 10.0.0.01
+                    endpointName: {endpoint-name}-1
+                  - ipAddress: 10.0.0.02
+                    endpointName: {endpoint-name}-2
+                  - ipAddress: 10.0.0.03
+                    endpointName: {endpoint-name}-3
+                  - ipAddress: 10.0.0.04
+                    endpointName: {endpoint-name}-4
+                  - ipAddress: 10.0.0.05
+                    endpointName: {endpoint-name}-5
+
+         .. step:: Update the ``spec.privateEndpoints`` parameter.
+
+            Update the :setting:`spec.privateEndpoints` parameter for 
+            the :ref:`atlasproject-custom-resource`. Specify the 
+            :ref:`Google Cloud Platform region <google-gcp>`, :guilabel:`Google Cloud Project ID`,
+            :guilabel:`Private Service Endpoint Prefix`, your output 
+            information, and run the following command:
+
+            .. code-block:: sh
+
+               cat <<EOF | kubectl apply -f -
+               apiVersion: atlas.mongodb.com/v1
+               kind: AtlasProject
+               metadata:
+                 name: my-project
+                 labels:
+                   app.kubernetes.io/version: 1.6.0
+               spec:
+                 name: Test Atlas Operator Project
+                 privateEndpoints:
+                 - provider: "GCP"
+                   region: "{gcp-region}"
+                   gcpProjectId: "{project-id}"
+                   endpointGroupName: "{endpoint-name}"
+                   endpoints:
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-0
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-1
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-2
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-3
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-4
+                   - ipAddress: {ip-address}
+                     endpointName: {endpoint-name}-5
+               EOF
+        
+         .. step:: Check the status of your private endpoints using |ak8so|.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+               kubectl get atlasproject my-project -o yaml
+
+         .. step:: Retrieve the secret that |ak8so| created to connect to the cluster.
+
+            .. include:: /includes/fact-ak8so-pe-connection-strings.rst

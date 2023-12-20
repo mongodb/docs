@@ -1,0 +1,264 @@
+.. _atlas-operator-top-ref:
+
+=======
+|ak8so|
+=======
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+What is |ak8so|?
+----------------
+
+|ak8so| is a new service that integrates |service| resources with your
+|k8s| {+cluster+}. You can now deploy and manage the lifecycle of your 
+cloud-native applications that need data services in a single control 
+plane with secure enterprise platform integration.
+
+To learn more, see :ref:`ak8so-quick-start-ref`.
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+What Can You Do?
+----------------
+
+You can use |ak8so| to manage resources in |service| without leaving
+|k8s|. You deploy |ak8so| into |k8s| {+clusters+}. |ak8so| 
+manages resources in |service| based on |k8s| :ref:`custom resources 
+<custom-resources>`. It ensures that the state of the projects, 
+{+database-deployments+}, and database users in |service| matches the 
+configurations in each :ref:`atlasproject-custom-resource`,
+:ref:`atlasdeployment-custom-resource`, and 
+:ref:`atlasdatabaseuser-custom-resource` that you 
+create in your |k8s| {+cluster+}.
+
+|ak8so| supports many advanced features within the 
+:ref:`custom-resources`, such as :ref:`X509 authentication 
+<ak8so-x509>`, :ref:`private endpoints in Azure and AWS 
+<ak8so-private-endpoint>`, and 
+:ref:`advanced multi-cloud and multi-region clusters 
+<ak8so-advanced-clusters>`.
+
+.. _deletion-protection:
+
+New Default: Deletion Protection in |ak8so| 2.0
+-----------------------------------------------------------------
+
+With |ak8so| 2.0, custom resources you delete in |k8s| are no longer deleted in 
+|service|. Instead, |ak8so| simply stops managing those resources. 
+
+For example, if you delete an :ref:`atlasproject-custom-resource` 
+in |k8s|, |ak8so| no longer automatically deletes the corresponding project 
+from |service|, preventing accidental or unexpected deletions. This applies to 
+all :ref:`objects managed using custom resources <custom-resources>`. 
+
+You can :ref:`revert this behavior <revert-deletion-protection>` to the default 
+used prior to |ak8so| 2.0 for your entire deployment or for specific custom 
+resources or subobjects. 
+
+Use the following tables to determine 
+the correct behavior for your deployment:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Deletion Protection
+     - No Deletion Protection
+
+   * - New default as of |ak8so| 2.0
+     - Default prior to |ak8so| 2.0
+
+   * - If you delete a custom resource or objects from a custom resource,
+       the corresponding objects remain in |service| but |ak8so| no longer
+       manages them. You can manage objects decoupled from |ak8so| only
+       from another interface, such as the {+atlas-ui+}.
+     - If you delete a custom resource or objects from a custom resource,
+       |ak8so| deletes the corresponding objects in |service|, even objects 
+       deployed prior to using |ak8so|. Changes to a
+       custom resource overwrite changes in |service| made using another
+       interface, such as the {+atlas-ui+}.
+
+Subobjects are objects that you define within another custom resource instead of 
+their own dedicated custom resource, such as 
+:ref:`private endpoints <ak8so-private-endpoint>` or 
+:ref:`IP access lists <add-to-access-list>`, and behave as follows:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Deletion Protection for Subobjects
+     - No Deletion Protection for Subobjects
+
+   * - New default as of |ak8so| 2.0
+     - Default prior to |ak8so| 2.0
+
+   * - If you delete a subobject from a custom resource, |ak8so| deletes the 
+       corresponding subobject from |service| *only* if that subobject existed 
+       in the custom resource during the last reconciliation and matches exactly. 
+
+       For example, if you delete a private endpoint from the
+       :ref:`atlasproject-custom-resource`, |ak8so| checks if it existed in the 
+       custom resource during the last reconciliation and matches exactly, meaning it 
+       wasn't created or changed by another interface, such as the {+atlas-ui+}. 
+       If it doesn't match exactly, |ak8so| does *not* reconcile the 
+       :ref:`atlasproject-custom-resource`. 
+       For this reason, we recommend against using the {+atlas-ui+}
+       to administer |ak8so| projects and deployments. 
+       
+       :ref:`Alert <ak8so-alert-configurations>` subobjects are exceptions
+       with their own sync controls.
+
+     - If you delete a subobject from a custom resource, |ak8so| deletes the 
+       corresponding subobject from |service| *and all other subobjects of the same type*, 
+       even if they existed in |service| prior to using |ak8so| or were created 
+       or changed by another interface, such as the {+atlas-ui+}.
+
+       For example, if you delete a private endpoint from the
+       :ref:`atlasproject-custom-resource`, |ak8so| overwrites |service| with 
+       what you configured in the custom resource, including overwriting any private endpoints 
+       you added using the {+atlas-ui+}.
+       For this reason, we recommend against using the {+atlas-ui+}
+       to administer |ak8so| projects and deployments.
+
+       :ref:`Alert <ak8so-alert-configurations>` subobjects are exceptions
+       with their own sync controls.
+
+.. _revert-deletion-protection:
+
+Revert New Deletion Protection Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can control the new deletion protection behavior using the 
+``ObjectDeletionProtection`` and ``SubobjectDeletionProtection`` flags or the 
+``OBJECT_DELETION_PROTECTION`` and ``SUBOBJECT_DELETION_PROTECTION`` environment 
+variables in the |k8s| 
+:github:`Deployment resource <mongodb/mongodb-atlas-kubernetes/blob/main/deploy/all-in-one.yaml#L4028>` that you applied when installing |ak8so|. 
+These flags and environment variables all default to ``true``. 
+Set to ``false`` to revert to the behavior prior to |ak8so| 2.0. 
+
+You can also control which behavior to use for individual custom resources using 
+the ``atlas-resource-policy`` annotations described in :ref:`ak8so-annotations`. 
+
+Get Hands-On Experience with |ak8so|
+------------------------------------
+
+.. list-table::
+   :widths: 50 80
+   :header-rows: 1
+
+   * - Goal
+     - Action
+
+   * - Create your first {+cluster+} in |service| with |ak8so|.
+     - See one of the following tutorials:
+
+       - :ref:`ak8so-quick-start-ref`
+       - :ref:`ak8so-quick-start-helm-ref`
+
+   * - Configure |ak8so| access to |service|.
+     - See :ref:`ak8so-access-to-atlas-ref`.
+
+   * - Manage resources.
+     - See :ref:`custom-resources`.
+
+   * - :ref:`Create and configure a {+fdi+} <ak8so-data-federation>`,
+       including :ref:`private endpoints for a {+fdi+}
+       <ak8so-private-endpoint-datafederation>`.
+     - Configure the :ref:`atlasdatafederation-custom-resource`.
+
+   * - Set up :ref:`X509 authentication <ak8so-x509>`.
+     - Configure the :ref:`atlasproject-custom-resource` and 
+       :ref:`atlasdatabaseuser-custom-resource`.
+
+   * - Manage :ref:`private endpoints <ak8so-private-endpoint>`.
+       
+     - - For {+dedicated-clusters+}, specify the 
+         :setting:`spec.privateEndpoints` parameter for the 
+         :ref:`atlasproject-custom-resource`.
+
+       - For {+serverless-instances+}, specify the 
+         :setting:`spec.serverlessSpec.privateEndpoints` parameter for 
+         the :ref:`atlasdeployment-custom-resource`.
+
+       - For {+fdi+}s, specify the 
+         :ref:`spec.privateEndpoints 
+         <fdi-setting-spec.privateEndpoints>`
+         parameter for the :ref:`atlasdatafederation-custom-resource`.
+
+   * - Set up :ref:`network peering <ak8so-network-peering>`.
+
+     - Configure the :ref:`atlasproject-custom-resource`.
+
+   * - Set up unified access for an |aws| |iam| role.
+   
+     - Configure the :ref:`atlasproject-custom-resource`.
+
+   * - :ref:`Configure federated authentication for your Atlas 
+       organization <ak8so-federated-auth>`.
+   
+     - Configure the :ref:`atlasfederatedauth-custom-resource`.
+
+   * - Create or update :ref:`custom database roles 
+       <ak8so-configure-custom-database-roles>`.
+
+     - Configure the :ref:`atlasproject-custom-resource`.
+
+   * - :ref:`Encrypt data at rest using a key management service
+       <ak8so-ear>`.
+   
+     - Configure the :ref:`atlasproject-custom-resource`
+       and the :ref:`atlasdeployment-custom-resource`.
+
+   * - Set up :ref:`database auditing <ak8so-configure-audit-logs>`.
+
+     - Configure the :ref:`atlasproject-custom-resource`.
+
+   * - Set up :ref:`{+cloud-backup+} <ak8so-backup>`.
+       
+     - Configure the :ref:`atlasbackuppolicy-custom-resource`,
+       :ref:`atlasbackupschedule-custom-resource`, and
+       :ref:`atlasdeployment-custom-resource`.
+
+   * - Set up :ref:`teams <ak8so-team>`.
+     
+     - Configure the :ref:`atlasteam-custom-resource` and
+       :ref:`atlasproject-custom-resource`.
+
+   * - Configure the maintenance window during which |service| starts
+       weekly maintenance on your {+database-deployments+}.
+
+     - Configure the :ref:`atlasproject-custom-resource`.
+
+   * - Integrate with :ref:`third-party services 
+       <ak8so-integrate-third-party>`.
+
+     - Configure the :ref:`atlasproject-custom-resource`.
+
+.. toctree::
+   :titlesonly:
+
+   Quick Start </ak8so-quick-start>
+   Helm Charts Quick Start </ak8so-quick-start-helm>
+   Atlas for Government </ak8so-for-gov>
+   Compatibility </ak8so-compatibility>
+   Import Projects </ak8so-import-projects>
+   Atlas Access </configure-ak8so-access-to-atlas>
+   Secret Storage </ak8so-secret-storage>
+   Teams </ak8so-configure-teams>
+   Custom Database Roles </ak8so-configure-custom-database-roles>
+   Encrypt Data </ak8so-encryption-at-rest-customer-keys>
+   Audit Logs </ak8so-configure-audit-logs>
+   Data Federation </ak8so-set-up-data-federation>
+   Atlas Cluster Backup </ak8so-back-up-deployment>
+   Third-Party Services </ak8so-integrate-third-party>
+   Project Alerts </ak8so-alert-configurations>
+   Custom Resources </custom-resources>
+   Production Notes </production-notes>
+   Changelog </ak8so-changelog>

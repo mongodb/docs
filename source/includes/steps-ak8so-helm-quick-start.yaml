@@ -1,0 +1,177 @@
+stepnum: 1
+ref: register-or-log-in-helm
+source:
+  file: steps-ak8so-quick-start.yaml
+  ref: register-or-log-in-ak8so
+
+---
+
+stepnum: 2
+ref: create-api-keys-helm
+source:
+  file: steps-ak8so-quick-start.yaml
+  ref: create-api-keys-ak8so
+
+---
+
+stepnum: 3
+title: "Deploy |ak8so|."
+ref: deploy-ak8so-helm
+content: |
+
+  Run one of the following sets of commands:
+  
+  - If you want |ak8so| to watch all |k8s-nss| in the |k8s| 
+    cluster, run the following commands:
+
+    .. code-block:: sh
+
+       helm repo add mongodb https://mongodb.github.io/helm-charts
+       helm install atlas-operator --namespace=atlas-operator --create-namespace mongodb/mongodb-atlas-operator
+  
+  - If you want |ak8so| to watch only its own |k8s-ns|, set the 
+    ``--watchNamespaces`` flag to its own |k8s-ns|, and run the 
+    following command:
+
+    .. note::
+
+       You can set the ``--watchNamespaces`` flag only to its 
+       own |k8s-ns|. Setting the ``--watchNamespaces`` flag to any 
+       other |k8s-ns| is currently unsupported. 
+
+    .. code-block:: sh
+
+       helm install atlas-operator --namespace=atlas-operator --set watchNamespaces=atlas-operator --create-namespace mongodb/mongodb-atlas-operator
+
+---
+
+stepnum: 4
+title: "Deploy the |service| {+database-deployment+}."
+ref: deploy-cluster-helm
+content: |
+
+  a. Customize the |service| project and its database users.
+
+     Create a file named ``install-values.yaml`` and paste the 
+     following example code, which does the following:
+
+     - Sets the project name to ``My Project``.
+     - Allows all IP addresses (0.0.0.0) to access the project.
+     - Creates a database user named ``dbadmin`` that has 
+       the :authrole:`dbAdmin` role.
+     - Creates a database user named ``dbuser`` that has
+       the :authrole:`readWrite` role.
+
+     .. code-block:: yaml
+
+        project: # Project custom values
+          atlasProjectName: "My Project"
+          projectIpAccessList:
+            - ipAddress: "0.0.0.0"
+
+        users: # Custom database users
+          - username: dbadmin
+            databaseName: admin
+            roles:
+              - databaseName: admin-role
+                roleName: dbAdmin
+          - username: dbuser
+            databaseName: admin
+            roles:
+              - databaseName: user-role
+                roleName: readWrite
+
+  #. Run the following command.
+
+     The ``--set`` and ``--values`` flags in the following command 
+     override the ``Values.yaml`` file values and default Helm Charts 
+     values with your organization ID, API keys, and |service| 
+     project configuration.
+
+     .. note::
+
+        ``mongodb/atlas-deployment`` references the name of a chart in the
+        repository.
+
+     .. code-block:: sh
+
+        helm install atlas-deployment \
+        mongodb/atlas-deployment \
+        --namespace=my-cluster \
+        --create-namespace \
+        --set atlas.secret.orgId='<orgid>' \
+        --set atlas.secret.publicApiKey='<publicKey>' \
+        --set atlas.secret.privateApiKey='<privateApiKey>' \
+        --values install-values.yaml
+     
+     To learn more about the available parameters, see 
+     :ref:`atlasdeployment-custom-resource`.
+
+     To create a {+serverless-instance+}, see the
+     :ref:`{+serverless-instance+} example <ak8so-serverless-instance>`.
+
+---
+stepnum: 5
+title: "Check the status of your database user."
+ref: check-database-user-status-helm
+content: |
+
+  Run the following command to wait for the ``dbadmin``
+  database user to become ready:
+  
+  .. code-block:: sh
+
+     kubectl wait --for=condition=ready  --timeout=10m -n my-cluster atlasdatabaseusers/atlas-deployment-dbadmin
+
+  .. note::
+
+     The :ref:`atlasdatabaseuser-custom-resource` waits until the 
+     {+database-deployment+} is ready. Creating a new 
+     {+database-deployment+} can take up to 10 minutes.
+
+---
+stepnum: 6
+title: "Retrieve the secret that |ak8so| created to connect to the {+database-deployment+}."
+ref: retrieve-ak8so-secret-helm
+content: |
+
+  .. important::
+     
+     The following command requires ``jq`` 1.6 or higher.
+  
+  Run the following command to retrieve the connection string 
+  and password for the ``dbadmin`` database user. Your connection 
+  strings will differ from the example output.
+  
+  .. io-code-block::
+     :copyable: true 
+
+     .. input:: 
+        :language: sh
+
+        kubectl get secret -n my-cluster my-project-cluster-name-dbadmin  -ojson | jq -r '.data | with_entries(.value |= @base64d)';
+
+     .. output:: 
+        :language: json
+
+        {
+           "connectionStringStandard": "mongodb://admin-user:%25SomeLong%25password$foradmin@atlas-cluster-shard-00-00.nlrvs.mongodb.net:27017,atlas-cluster-shard-00-01.nlrvs.mongodb.net:27017,atlas-cluster-shard-00-02.nlrvs.mongodb.net:27017/?ssl=true&authSource=admin&replicaSet=atlas-11q9bn-shard-0",
+           "connectionStringStandardSrv": "mongodb+srv://admin-user:%25SomeLong%25password$foradmin@atlas-cluster.nlrvs.mongodb.net",
+           "password": "%SomeLong%password$foradmin",
+           "username": "dbadmin"
+        }
+
+  You can use the following |k8s-secret| in your application:
+
+  .. code-block:: sh
+
+     containers:
+      - name: test-app
+        env:
+          - name: "CONNECTION_STRING"
+            valueFrom:
+              secretKeyRef:
+                name: my-project-cluster-name-dbadmin
+                key: connectionStringStandardSrv
+
+...
