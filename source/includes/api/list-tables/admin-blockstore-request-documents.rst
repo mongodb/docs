@@ -9,7 +9,7 @@
 
    * - assignmentEnabled
      - boolean
-     - *Optional.* Flag indicating whether this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>` can 
+     - *Optional.* Flag indicating whether this :opsmgr:`blockstore </reference/glossary/#std-term-backup-blockstore-database>` can 
        be assigned backup jobs.
    
    * - encryptedCredentials
@@ -22,7 +22,7 @@
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :opsmgr:`blockstores </reference/glossary/#term-backup-blockstore-database>`. 
+       :opsmgr:`blockstores </reference/glossary/#std-term-backup-blockstore-database>`. 
 
        Setting these tags limits which backup jobs this blockstore 
        can process. If omitted, this blockstore can only process 
@@ -32,7 +32,7 @@
    * - loadFactor
      - number
      - *Optional.* A positive, non-zero integer that expresses how much 
-       backup work this :opsmgr:`snapshot store </reference/glossary/#term-snapshot-store>` should perform compared 
+       backup work this :opsmgr:`snapshot store </reference/glossary/#std-term-snapshot-store>` should perform compared 
        to another snapshot store. This option is needed only if more 
        than one snapshot store is in use.
 
@@ -44,12 +44,12 @@
    * - maxCapacityGB
      - number
      - *Optional.* The maximum amount of data in GB this 
-       :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>` can store.
+       :opsmgr:`blockstore </reference/glossary/#std-term-backup-blockstore-database>` can store.
    
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>``
-       format that can be used to access this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
+       format that can be used to access this :opsmgr:`blockstore </reference/glossary/#std-term-backup-blockstore-database>`.
    
    * - ssl
      - boolean
@@ -59,7 +59,7 @@
    
    * - writeConcern
      - string
-     - *Optional.* The write concern used for this :opsmgr:`blockstore </reference/glossary/#term-backup-blockstore-database>`.
+     - *Optional.* The write concern used for this :opsmgr:`blockstore </reference/glossary/#std-term-backup-blockstore-database>`.
 
        The accepted values for this option are:
        

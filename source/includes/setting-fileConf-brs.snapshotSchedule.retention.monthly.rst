@@ -15,6 +15,6 @@
    ``48``, ``60``, ``72``,  and ``84``
    
    
-   Corresponds to :setting:`Monthly Retention of Snapshots (in .Months) <Monthly Retention of Snapshots>`
+   Corresponds to :setting:`Monthly Retention of Snapshots (in Months) <Monthly Retention of Snapshots (in Months)>`
    
 

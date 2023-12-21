@@ -507,7 +507,7 @@ Upgrades Agent: :ref:`mongodb-10.2.11.5927`.
 
 - Begins support for MongoDB 4.2 with ``"featureCompatibilityVersion" :
   4.2``. Backup of MongoDB 4.2 instances with FCV: 4.2 no longer
-  require :opsmgr:`head databases </reference/glossary/#term-head-database>` within the |onprem|
+  require :opsmgr:`head databases </reference/glossary/#std-term-head-database>` within the |onprem|
   installation.
 
   .. note:: Support is incomplete; see release advisories.

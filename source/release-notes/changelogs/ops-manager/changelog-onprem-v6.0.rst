@@ -217,7 +217,7 @@
   address `CVE-2023-24998 
   <https://nvd.nist.gov/vuln/detail/CVE-2023-24998>`_.
 - Adds an option to support using multiple workers for a single file 
-  during backups for :term:`backup blockstore database` and :term:`S3 Snapshot Store` 
+  during backups for :term:`backup blockstore database` and :opsmgr:`S3 Snapshot Store </reference/glossary/#std-term-S3-Snapshot-Store>` 
   storage. This feature does not support :term:`File System Store` snapshot storage. 
   You can enable this beta feature by doing the following: 
 

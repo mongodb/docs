@@ -344,7 +344,7 @@ Backup
 - Sync store no longer required: a dedicated sync store is no longer
   required: Backup :term:`initial syncs <initial sync>` are "streamed"
   to the Backup Daemon and only use a small amount of temporary space
-  in the :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
+  in the :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>`.
 
 - Automated restores: added a new option to automatically restore a
   backup to a running :manual:`replica set </reference/glossary/#std-term-replica-set>` or :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
@@ -654,7 +654,7 @@ Considerations for Upgrade (v1.8)
 - Selecting wildcards in the Version Manager is no longer supported
   when ``automation.versions.source`` is set to ``local``.
 
-- Added a 1 hour timeout to kill a Backup :opsmgr:`head database </reference/glossary/#term-head-database>` if
+- Added a 1 hour timeout to kill a Backup :opsmgr:`head database </reference/glossary/#std-term-head-database>` if
   it does not shutdown cleanly.
   You must perform a resync following a hard kill.
 
@@ -804,7 +804,7 @@ MMS Onprem Server 1.5.4
 *Released 2015-03-18*
 
 - Fixed race condition that could cause the Backup Daemon to hang when
-  the MongoDB process for a :opsmgr:`head database </reference/glossary/#term-head-database>` fails to start.
+  the MongoDB process for a :opsmgr:`head database </reference/glossary/#std-term-head-database>` fails to start.
 
 - Fixed an issue where a rollback occurring shortly after a terminate
   could step on the terminate.

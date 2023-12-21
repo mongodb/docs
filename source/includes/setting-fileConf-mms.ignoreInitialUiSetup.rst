@@ -57,19 +57,19 @@
       * - :setting:`User Authentication Method`
         - :setting:`mms.userSvcClass`
         - Optional
-      * - :setting:`Snapshot Interval`
+      * - :setting:`Snapshot Interval (Hours)`
         - :setting:`brs.snapshotSchedule.interval`
         - Optional
-      * - :setting:`Base Retention of Snapshots`
+      * - :setting:`Base Retention of Snapshots (in Days)`
         - :setting:`brs.snapshotSchedule.retention.base`
         - Optional
-      * - :setting:`Daily Retention of Snapshots`
+      * - :setting:`Daily Retention of Snapshots (in Days)`
         - :setting:`brs.snapshotSchedule.retention.daily`
         - Optional
-      * - :setting:`Weekly Retention of Snapshots`
+      * - :setting:`Weekly Retention of Snapshots (in Weeks)`
         - :setting:`brs.snapshotSchedule.retention.weekly`
         - Optional
-      * - :setting:`Monthly Retention of Snapshots`
+      * - :setting:`Monthly Retention of Snapshots (in Months)`
         - :setting:`brs.snapshotSchedule.retention.monthly`
         - Optional
       * - :setting:`Versions Directory`

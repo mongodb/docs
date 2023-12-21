@@ -9,6 +9,6 @@
      provides details to encrypt and decrypt |onprem|\s
      backing databases and user credentials. |onprem| might delete 
      these files as part of the upgrade process.
-   - :term:`Application Database`. If the upgrade fails, you need a
+   - :opsmgr:`Application Database </reference/glossary/#std-term-application-database>`. If the upgrade fails, you need a
      current backup to restore your |onprem| instance. Use |mongodump| to back up
-     your :term:`Application Database`.
+     your :opsmgr:`Application Database </reference/glossary/#std-term-application-database>`.

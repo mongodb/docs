@@ -14,7 +14,7 @@
    - be able to receive email at the address associated with the user
      account.
    - know the user account's password.
-   - know the :opsmgr:`agent API key </reference/glossary/#term-agent-api-key>` for each |mms| project the user
+   - know the :opsmgr:`agent API key </reference/glossary/#std-term-agent-api-key>` for each |mms| project the user
      belongs to.
    
    Corresponds to :setting:`Multi-factor Auth Allow Reset`.

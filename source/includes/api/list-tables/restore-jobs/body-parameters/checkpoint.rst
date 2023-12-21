@@ -16,7 +16,7 @@
        restored.
 
        If you provide this setting, this endpoint restores all data up
-       to this :opsmgr:`checkpoint  </reference/glossary/#term-checkpoint>` to the database you
+       to this :opsmgr:`checkpoint  </reference/glossary/#std-term-checkpoint>` to the database you
        specified in the ``delivery`` object.
 
    * - ``delivery``
