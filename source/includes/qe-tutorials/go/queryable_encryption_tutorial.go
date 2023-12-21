@@ -109,7 +109,7 @@ func main() {
 
 	// start-insert-document
 	patientDocument := &PatientDocument{
-		PatientName: "John Doe",
+		PatientName: "Jon Doe",
 		PatientID:   12345678,
 		PatientRecord: PatientRecord{
 			SSN: "987-65-4320",

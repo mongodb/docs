@@ -26,7 +26,7 @@ see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryab
 
 1. Copy the contents of `envrc_template` into the `.env` file.
 
-1. Replace the placeholder values in the ``.env`` file with your own credentials.
+1. Replace the placeholder values in the `.env` file with your own credentials.
    For more information on setting credentials, see
    [Queryable Encryption Tutorials](https://www.mongodb.com/docs/manual/core/queryable-encryption/tutorials/)
    for KMS credentials or the
@@ -57,6 +57,6 @@ see [Installation Requirements](https://www.mongodb.com/docs/manual/core/queryab
 1. In `queryable-encryption-tutorial.py`, replace the placeholder `<Your KMS
    Provider Name>` with a valid KMS provider name.
 
-1. Run `python3 queryable-encryption-tutorial.py` to run the application.
+1. Run `python3 queryable_encryption_tutorial.py` to run the application.
 
 1. If successful, the application will print the sample document to the console.

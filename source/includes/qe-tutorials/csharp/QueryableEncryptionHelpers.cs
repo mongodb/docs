@@ -121,7 +121,7 @@ public class QueryableEncryptionHelpers
 
         }
 
-        throw new Exception("Unrecognized value for KMS provider name \"" + kmsProvider + "\"  encountered while retrieving KMS credentials.");
+        throw new Exception("Unrecognized value for KMS provider name \"" + kmsProviderName + "\"  encountered while retrieving KMS credentials.");
     }
 
     public BsonDocument GetCustomerMasterKeyCredentials(string kmsProvider)

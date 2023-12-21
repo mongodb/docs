@@ -52,14 +52,14 @@ public static class QueryableEncryptionTutorial
                     new BsonDocument
                     {
                         { "keyId", BsonNull.Value },
-                        { "path", "record.ssn" },
+                        { "path", "patientRecord.ssn" },
                         { "bsonType", "string" },
                         { "queries", new BsonDocument("queryType", "equality") }
                     },
                     new BsonDocument
                     {
                         { "keyId", BsonNull.Value },
-                        { "path", "record.billing" },
+                        { "path", "patientRecord.billing" },
                         { "bsonType", "object" }
                     }
                 }
@@ -99,9 +99,9 @@ public static class QueryableEncryptionTutorial
         // start-insert-document
         var patient = new Patient
         {
-            Name = "Jon Doe",
+            PatientName = "Jon Doe",
             Id = new ObjectId(),
-            Record = new PatientRecord
+            PatientRecord = new PatientRecord
             {
                 Ssn = "987-65-4320",
                 Billing = new PatientBilling
@@ -119,7 +119,7 @@ public static class QueryableEncryptionTutorial
         // end-insert-document
 
         // start-find-document
-        var ssnFilter = Builders<Patient>.Filter.Eq("record.ssn", patient.Record.Ssn);
+        var ssnFilter = Builders<Patient>.Filter.Eq("patientRecord.ssn", patient.PatientRecord.Ssn);
         var findResult = await encryptedCollection.Find(ssnFilter).ToCursorAsync();
 
         Console.WriteLine(findResult.FirstOrDefault().ToJson());

@@ -4,17 +4,33 @@ import com.mongodb.AutoEncryptionSettings;
 import com.mongodb.ClientEncryptionSettings;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.client.*;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.CreateCollectionOptions;
 import com.mongodb.client.model.CreateEncryptedCollectionParams;
 import com.mongodb.client.result.InsertOneResult;
 import com.mongodb.client.vault.ClientEncryption;
 import com.mongodb.client.vault.ClientEncryptions;
+import com.mongodb.queryableencryption.models.Patient;
+import com.mongodb.queryableencryption.models.PatientBilling;
+import com.mongodb.queryableencryption.models.PatientRecord;
 import com.mongodb.tutorials.qe.util.QueryableEncryptionHelpers;
-import org.bson.*;
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonNull;
+import org.bson.BsonString;
+import org.bson.codecs.configuration.CodecProvider;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.codecs.pojo.PojoCodecProvider;
 
 import java.util.Arrays;
 import java.util.Map;
+
+import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
+import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
+import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
 public class QueryableEncryptionTutorial {
     public static void main(String[] args) throws Exception {
