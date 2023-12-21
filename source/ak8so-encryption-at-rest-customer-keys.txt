@@ -1,0 +1,416 @@
+.. _ak8so-ear:
+
+===========================================
+Encrypt Data Using a Key Management Service
+===========================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/serverless-dont-use.rst
+
+.. include:: /includes/fact-encryption-at-rest.rst
+
+You can use one or more of the following customer |kms|
+providers for encryption at rest in |service|:
+
+- :aws:`AWS KMS </kms/>`
+- :azure:`Azure Key Vault </key-vault>`
+- :gcp:`{+gcp+} KMS </security-key-management/>`
+
+.. note::
+
+   The key management provider doesn't need to match the {+cluster+}
+   cloud service provider.
+
+To learn more about using your |kms| with |service|, see:
+
+- :ref:`security-kms-encryption`.
+- :ref:`Manage Customer Keys with AWS KMS <security-aws-kms>`.
+- :ref:`Manage Customer Keys with Azure Key Vault
+  <security-azure-kms>`.
+- :ref:`Manage Customer Keys with Google Cloud KMS
+  <security-gcp-kms>`.
+
+To manage your |kms| encryption with |ak8so|, you can
+specify and update the :setting:`spec.encryptionAtRest` parameter for
+the :ref:`atlasproject-custom-resource`. Each time you change the
+``spec`` field in any of the supported custom resources, |ak8so|
+:ref:`creates or updates <ak8so-create-update-process>` the 
+corresponding |service| configuration.
+
+Prerequisites
+-------------
+
+.. tabs::
+
+   .. tab:: AWS KMS
+      :tabid: aws-kms
+
+      To configure encryption at rest using |aws| |kms| in |ak8so|, you require:
+
+      - A running |k8s| cluster with |ak8so| :ref:`deployed
+        <ak8so-quick-start-ref>`.
+
+      - The :authrole:`Project Owner` or :authrole:`Organization Owner`
+        role in |service|.
+
+      - Valid key management credentials and an encryption key for 
+        :aws:`AWS KMS </kms/>`. To learn more, see 
+        :ref:`Prerequisites to Enable Customer-Managed Keys with AWS
+        <aws-ksm-prereqs>`.
+
+      - An assumed |iam| role for your |service| account. To set up an
+        assumed |iam| role with the |ak8so|, see
+        :ref:`ak8so-unified-access`. To learn more about role-based
+        access for an |aws| encryption key, see 
+        :ref:`Manage Customer Keys with AWS KMS <security-aws-kms>`.
+
+      .. include:: /includes/fact-switching-access-to-encryption-keys.rst
+
+   .. tab:: Azure Key Vault
+      :tabid: azure-key-vault
+
+      To configure encryption at rest using |azure| Key Vault in 
+      |ak8so|, you require:
+
+      - A running |k8s| cluster with |ak8so| :ref:`deployed
+        <ak8so-quick-start-ref>`.
+
+      - The :authrole:`Project Owner` or :authrole:`Organization Owner`
+        role in |service|.
+
+      - Valid key management credentials and an encryption key for 
+        :azure:`Azure Key Vault </key-vault>`. To learn more, see 
+        :ref:`Prerequisites to Enable Customer-Managed Keys with Azure
+        <azure-kms-prereqs>`.
+
+   .. tab:: {+gcp+} KMS
+      :tabid: gcp-kms
+
+      To configure encryption at rest using a {+gcp+} |kms| in |ak8so|, you require:
+
+      - A running |k8s| cluster with |ak8so| :ref:`deployed
+        <ak8so-quick-start-ref>`.
+
+      - The :authrole:`Project Owner` or :authrole:`Organization Owner`
+        role in |service|.
+
+      - Valid key management credentials and an encryption key for 
+        :gcp:`{+gcp+} KMS </security-key-management/>`. To learn more, see :ref:`Prerequisites to Enable Customer-Managed Keys with {+gcp+}
+        <gcp-kms-prereqs>`.
+
+Procedure
+---------
+
+.. _ak8so-configure-ear:
+
+Encypt your |service| data using a customer-managed key with the
+following procedure:
+
+.. tabs::
+   :hidden:
+
+   .. tab:: AWS KMS
+      :tabid: aws-kms
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create a |k8s-secret| with your |aws| credentials.
+
+            Create a secret with the values for the following 
+            parameters:
+
+            .. list-table::
+               :widths: 25 75
+               :header-rows: 1
+
+               * - Parameter
+                 - Description
+
+               * - ``customerMasterKeyID``
+                 - Unique alphanumeric string that identifies the |aws| 
+                   customer master key that you use to encrypt and 
+                   decrypt the MongoDB master keys.
+
+               * - ``region``
+                 - Label that indicates the :ref:`AWS region 
+                   <amazon-aws>` where the customer master key exists.
+                    
+               * - ``roleId``
+                 - Unique |aws| |arn| that identifies the |aws| |iam| 
+                   role with permission to manage your |aws| customer 
+                   master key. To find this value: 
+                   
+                   1. Go to the :guilabel:`Roles` section of the |aws| 
+                      Management Console.
+                      
+                   #. Click the |iam| role that you edited or created 
+                      for |service| access.
+                      
+                   |aws| displays the |arn| in the :guilabel:`Summary` 
+                   section.
+
+            To create and label a secret, run the following 
+            commands with your |aws| credentials:
+  
+            .. code-block:: sh
+
+               kubectl create secret generic aws-ear-creds \
+                 --from-literal="customerMasterKeyID=<customer-master-key>" \
+                 --from-literal="region=<aws-region>" \
+                 --from-literal="roleId=<aws-arn>" \
+                 -n mongodb-atlas-system
+
+            .. code-block:: sh
+
+               kubectl label secret aws-ear-creds atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+
+         .. step:: Specify the ``spec.encryptionAtRest.awsKms`` parameter.
+
+            .. include:: /includes/steps-ear-ak8so-aws.rst
+
+         .. step:: Check for successful enablement of encryption at rest on your project.
+
+            Run the following command to check whether |ak8so| detects
+            the |aws| |kms| configuration for your project.
+
+            .. io-code-block::
+
+               .. input::
+                  :language: sh
+
+                  kubectl get atlasprojects my-project -o=jsonpath='{.status.conditions[?(@.type=="EncryptionAtRestReadyType")].status}
+
+               .. output::
+                  :language: json
+                  :visible: true
+
+                  true
+
+         .. step:: Enable encryption at rest using customer-managed keys for your {+cluster+}.
+
+            After you enable encryption at rest using customer-managed
+            keys for your project, you must enable it at the 
+            {+cluster+} level to encrypt data.
+
+            Run the following command to add the 
+            :setting:`spec.deploymentSpec.encryptionAtRestProvider` to your
+            :ref:`atlasdeployment-custom-resource`, which enables encryption at rest using your |aws| key for this 
+            {+cluster+}:
+
+            .. literalinclude:: /includes/enable-ear-cluster-aws.sh
+               :language: sh
+               :emphasize-lines: 9
+
+   .. tab:: Azure Key Vault
+      :tabid: azure-key-vault
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create a |k8s-secret| with your |azure| credentials.
+
+            Create a secret with the values for the following 
+            parameters:
+
+            .. list-table::
+               :widths: 25 75
+               :header-rows: 1
+
+               * - Parameter
+                 - Description
+
+               * - ``azureEnvironment``
+                 - |azure| deployment location where the |azure| account
+                   credentials reside. Valid values include ``AZURE``,
+                   ``AZURE_CHINA``, and ``AZURE_GERMANY``.
+
+               * - ``clientID``
+                 - Unique 36-hexadecimal character string that 
+                   identifies your |azure| application.
+
+               * - ``keyIdentifier``
+                 - Web address with a unique key that identifies your 
+                   |azure| Key Vault.
+                    
+               * - ``keyVaultName``
+                 - Unique string that identifies the |azure| Key Vault 
+                   that contains your key.
+
+               * - ``resourceGroupName``
+                 - Label that identifies the |azure| resource group 
+                   that contains your |azure| Key Vault. |azure| 
+                   displays the resource group name on the resource 
+                   group's details page.
+      
+               * - ``subscriptionID``
+                 - Unique 36-hexadecimal character string that 
+                   identifies your |azure| subscription. |azure| 
+                   displays the subscription ID on the subscription's 
+                   details page.
+
+            To create and label a secret, run the following 
+            commands with your |azure| credentials:
+  
+            .. code-block:: sh
+
+               kubectl create secret generic azure-ear-creds \
+                 --from-literal="azureEnvironment=<deployment-locationy>" \
+                 --from-literal="clientID=<azure-app>" \
+                 --from-literal="keyIdentifier=<web-address>" \
+                 --from-literal="keyVaultName=<key-vault>" \
+                 --from-literal="resourceGroupName=<resource-group>" \
+                 --from-literal="subscriptionID=<subscription>" \
+                 -n mongodb-atlas-system
+
+            .. code-block:: sh
+
+               kubectl label secret azure-ear-creds atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+
+         .. step:: Specify the ``spec.encryptionAtRest.azureKeyVault`` parameter.
+
+            .. include:: /includes/steps-ear-ak8so-azure.rst
+
+         .. step:: Check for successful enablement of encryption at rest on your project.
+
+            Run the following command to check whether |ak8so| detects
+            the |azure| Key Vault configuration for your project.
+
+            .. io-code-block::
+
+               .. input::
+                  :language: sh
+
+                  kubectl get atlasprojects my-project -o=jsonpath='{.status.conditions[?(@.type=="EncryptionAtRestReadyType")].status}
+
+               .. output::
+                  :language: json
+                  :visible: true
+
+                  true
+
+         .. step:: Enable encryption at rest using customer-managed keys for your {+cluster+}.
+
+            After you enable encryption at rest using customer-managed
+            keys for your project, you must enable it at the 
+            {+cluster+} level to encrypt data.
+
+            Run the following command to add the 
+            :setting:`spec.deploymentSpec.encryptionAtRestProvider` to
+            your
+            :ref:`atlasdeployment-custom-resource`, which enables encryption at rest using your |azure| key for this 
+            {+cluster+}:
+
+            .. literalinclude:: /includes/enable-ear-cluster-azure.sh
+               :language: sh
+               :emphasize-lines: 9
+
+   .. tab:: {+gcp+} KMS
+      :tabid: gcp-kms
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create a |k8s-secret| with your |gcp| credentials.
+
+            Create a secret with the values for the following 
+            parameters:
+
+            .. list-table::
+               :widths: 25 75
+               :header-rows: 1
+
+               * - Parameter
+                 - Description
+
+               * - ``keyVersionResourceID``
+                 - Unique resource path that displays the key version 
+                   resource ID for your {+gcp+} |kms|.
+                    
+               * - ``serviceAccountKey``
+                 - |json| file that contains the {+gcp+} |kms|
+                   credentials from your {+gcp+} account.
+
+                   .. important::
+            
+                      You must format the |json| object properly. 
+                      Ensure you properly indent the credential fields 
+                      within the file.
+
+            The following example shows the contents of a 
+            ``serviceAccountKey`` |json| file:
+            
+            .. code-block:: json
+
+               {
+                 "type": "service_account",
+                 "project_id": "my-project-common-0",
+                 "private_key_id": "e120598ea4f88249469fcdd75a9a785c1bb3\",
+                 "private_key": "-----BEGIN PRIVATE KEY-----\\nMIIEuwIBA(truncated)SfecnS0mT94D9\\n-----END PRIVATE KEY-----\\n\",
+                 "client_email": "my-email-kms-0@my-project-common-0.iam.gserviceaccount.com\",
+                 "client_id": "10180967717292066",
+                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                 "token_uri": "https://accounts.google.com/o/oauth2/token",
+                 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+                 "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/my-email-kms-0%40my-project-common-0.iam.gserviceaccount.com"
+                 "universe_domain": "googleapis.com"
+               }
+
+            To create and label a secret, run the following 
+            commands with your |gcp| credentials:
+  
+            .. code-block:: sh
+
+               kubectl create secret generic azure-ear-creds \
+                 --from-literal="keyVersionResourceID=<resource-id>" \
+                 --from-file="serviceAccountKey=<your-service-account-key-files.json>" \
+                 -n mongodb-atlas-system
+
+            .. code-block:: sh
+
+               kubectl label secret gcp-ear-creds atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+
+         .. step:: Specify the ``spec.encryptionAtRest.googleCloudKms`` parameter.
+
+            .. include:: /includes/steps-ear-ak8so-gcp.rst
+
+         .. step:: Check for successful enablement of encryption at rest on your project.
+
+            Run the following command to check whether |ak8so| detects
+            the {+gcp+} |kms| configuration for your project.
+
+            .. io-code-block::
+
+               .. input::
+                  :language: sh
+
+                  kubectl get atlasprojects my-project -o=jsonpath='{.status.conditions[?(@.type=="EncryptionAtRestReadyType")].status}
+
+               .. output::
+                  :language: json
+                  :visible: true
+
+                  true
+
+         .. step:: Enable encryption at rest using customer-managed keys for your {+cluster+}.
+
+            After you enable encryption at rest using customer-managed
+            keys for your project, you must enable it at the 
+            {+cluster+} level to encrypt data.
+
+            Run the following command to add the 
+            :setting:`spec.deploymentSpec.encryptionAtRestProvider` to
+            your
+            :ref:`atlasdeployment-custom-resource`, which enables encryption at rest using your {+gcp+} key for this 
+            {+cluster+}:
+
+            .. literalinclude:: /includes/enable-ear-cluster-gcp.sh
+               :language: sh
+               :emphasize-lines: 9
