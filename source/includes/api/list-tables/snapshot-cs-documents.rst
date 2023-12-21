@@ -53,7 +53,7 @@
 
    * - groupId
      - objectId
-     - ID of the :opsmgr:`project </reference/glossary/#term-project>` that owns the :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+     - ID of the :opsmgr:`project </reference/glossary/#std-term-project>` that owns the :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
 
    * - id
      - objectId

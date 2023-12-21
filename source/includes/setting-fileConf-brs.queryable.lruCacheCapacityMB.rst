@@ -15,6 +15,6 @@
       MongoDB does not advise changing this value unless MongoDB support
       directs you to change it.
    
-   Corresponds to :setting:`Read Cache Size (MB) <Read Cache Size>`.
+   Corresponds to :setting:`Read Cache Size (MB) <Read Cache Size (MB)>`.
    
 

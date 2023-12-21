@@ -11,7 +11,7 @@
      - Required
      - Provide the hostname, |fqdn|, |ipv4| address, or |ipv6| address
        for the host that serves the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` to which the
-       :opsmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` should be applied. If you
+       :opsmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` should be applied. If you
        copied the ``mongodb-backup-restore-util`` command provided in
        the |application|, this field is pre-configured.
      - :icon:`check-circle`
@@ -69,7 +69,7 @@
  
    * - ``--groupId``
      - Required
-     - Provide the :opsmgr:`group </reference/glossary/#term-group>` ID.
+     - Provide the :opsmgr:`group </reference/glossary/#std-term-group>` ID.
      - :icon:`check-circle`
  
    * - ``--rsId``

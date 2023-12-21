@@ -23,8 +23,7 @@
      - array of strings
      - Optional
      - Tags to manage which :term:`backup jobs <backup job>` |onprem|
-       can assign to which :term:`file system stores <file system
-       store>`.
+       can assign to which :opsmgr:`file system stores <reference/glossary/#std-term-File-System-Store>`.
 
        Setting these tags limits which backup jobs this file system
        store can process. If omitted, this file system store can only
@@ -35,7 +34,7 @@
      - number
      - Optional
      - Positive, non-zero integer that expresses how much backup work
-       this :opsmgr:`snapshot store </reference/glossary/#term-snapshot-store>` should perform compared to another
+       this :opsmgr:`snapshot store </reference/glossary/#std-term-snapshot-store>` should perform compared to another
        snapshot store. Set this option only if you're using more than
        one snapshot store.
 

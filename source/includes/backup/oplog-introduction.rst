@@ -3,7 +3,7 @@ Throughout the lifecycle of a backup, {+mdbagent+} tails the
 to |onprem|. The Agent sends the oplog entries in compressed bundles of
 approximately 10 MB in size called :term:`oplog slices <oplog slice>`.
 These oplog slices are stored in one or more MongoDB databases called
-:opsmgr:`oplog stores  </reference/glossary/#term-Oplog-Store-Database>`. Every |onprem| deployment
+:opsmgr:`oplog stores  </reference/glossary/#std-term-Oplog-Store-Database>`. Every |onprem| deployment
 needs at least one oplog store.
 
 When you enable backups, |mms| prompts you to create your first oplog

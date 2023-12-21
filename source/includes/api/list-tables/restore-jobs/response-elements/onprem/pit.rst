@@ -46,7 +46,7 @@
 
    * - ``groupId``
      - string
-     - Unique identifier of the :opsmgr:`group </reference/glossary/#term-group>` that owns the restore
+     - Unique identifier of the :opsmgr:`group </reference/glossary/#std-term-group>` that owns the restore
        job.
 
    * - ``hostId``

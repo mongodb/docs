@@ -60,7 +60,7 @@ Kubernetes
 When you use the |k8s-op-short| and upgrade |onprem|, upgrade to
 |onprem| 4.2.1. If you must remain on 4.2.0, change to your Kubernetes
 |k8s-statefulset| to restart your MongoDB Agents and trigger a
-:term:`rolling restart` of all the database pods. This issue doesn't
+:opsmgr:`rolling restart </reference/glossary/#std-term-rolling-restart>` of all the database pods. This issue doesn't
 exist in |onprem| 4.2.1 or later.
 
 
