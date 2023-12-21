@@ -1,3 +1,5 @@
+// Deletes a document from a collection by using the C# driver
+
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
@@ -17,7 +19,7 @@ public class DeleteOne
 
         var doc = _restaurantsCollection.Find(filter).First();
 
-        // Delete a document using builders
+        // Deletes a document by using builders
         Console.WriteLine("Deleting a document with builders...");
         var result = DeleteARestaurantBuilder();
 
@@ -29,9 +31,11 @@ public class DeleteOne
     private static DeleteResult DeleteARestaurantBuilder()
     {
         // start-delete-one-builders
+        // Creates a filter for all documents that have a "name" value of "Ready Penny Inn"
         var filter = Builders<Restaurant>.Filter
             .Eq(r => r.Name, "Ready Penny Inn");
 
+        // Deletes the first document that matches the filter
         return _restaurantsCollection.DeleteOne(filter);
         // end-delete-one-builders
     }
@@ -43,11 +47,11 @@ public class DeleteOne
 
     private static void Setup()
     {
-        // This allows automapping of the camelCase database fields to our models. 
+        // Allows automapping of the camelCase database fields to models 
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-        // Establish the connection to MongoDB and get the restaurants database
+        // Establishes the connection to MongoDB and accesses the "restaurants" collection
         var mongoClient = new MongoClient(MongoConnectionString);
         var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
         _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");

@@ -1,3 +1,5 @@
+// Asynchronously retrieves documents that match a query filter by using the C# driver
+
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
@@ -13,22 +15,22 @@ public class FindManyAsync
     {
         Setup();
 
-        // Find multiple documents using builders
+        // Finds multiple documents by using builders
         Console.WriteLine("Finding documents with builders...:");
         var restaurantsBuilders = await FindMultipleRestaurantsBuilderAsync();
         Console.WriteLine($"Number of documents found: {restaurantsBuilders.Count}");
 
-        // Extra space for console readability 
+        // Prints extra space for console readability 
         Console.WriteLine();
 
-        // Find multiple documents using LINQ
+        // Retrieves multiple documents by using LINQ
         Console.WriteLine("Finding documents with LINQ...:");
         var restaurantsLinq = await FindMultipleRestaurantsLinqAsync();
         Console.WriteLine($"Number of documents found: {restaurantsLinq.Count}");
 
         Console.WriteLine();
 
-        // Find all documents
+        // Retrieves all documents in the "restaurants" collection
         Console.WriteLine("Finding all documents...:");
         var allRestaurants = await FindAllRestaurantsAsync();
         Console.WriteLine($"Number of documents found: {allRestaurants.Count}");
@@ -37,15 +39,18 @@ public class FindManyAsync
     private static async Task<List<Restaurant>> FindMultipleRestaurantsBuilderAsync()
     {
         // start-find-builders-async
+        // Creates a filter for all documents that have a "cuisine" value of "Pizza"
         var filter = Builders<Restaurant>.Filter
             .Eq(r => r.Cuisine, "Pizza");
 
+        // Asynchronously retrieves all documents that match the filter
         return await _restaurantsCollection.Find(filter).ToListAsync();
         // end-find-builders-async
     }
 
     private static async Task<List<Restaurant>> FindMultipleRestaurantsLinqAsync()
     {
+        // Asynchronously retrieves all documents with a "cuisine" value of "Pizza" by using a LINQ query
         // start-find-linq-async
         return await _restaurantsCollection.AsQueryable()
             .Where(r => r.Cuisine == "Pizza").ToListAsync();
@@ -64,11 +69,11 @@ public class FindManyAsync
 
     private static void Setup()
     {
-        // This allows automapping of the camelCase database fields to our models. 
+        // Allows automapping of the camelCase database fields to models 
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-        // Establish the connection to MongoDB and get the restaurants database
+        // Establishes the connection to MongoDB and accesses the "restaurants" collection
         var mongoClient = new MongoClient(MongoConnectionString);
         var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
         _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");

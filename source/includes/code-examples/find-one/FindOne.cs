@@ -1,3 +1,5 @@
+// Retrieves a document that match a query filter by using the C# driver
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
@@ -13,14 +15,14 @@ public class FindOne
     {
         Setup();
 
-        // Find one document using builders
+        // Finds one document by using builders
         Console.WriteLine("Finding a document with builders...");
         FindOneRestaurantBuilder();
 
-        // Extra space for console readability 
+        // Prints extra space for console readability 
         Console.WriteLine();
 
-        // Find one document using LINQ
+        // Finds one document by using LINQ
         Console.WriteLine("Finding a document with LINQ...");
         FindOneRestaurantLinq();
     }
@@ -28,9 +30,11 @@ public class FindOne
     private static void FindOneRestaurantBuilder()
     {
         // start-find-builders
+        // Creates a filter for all documents that have a "name" value of "Bagels N Buns"
         var filter = Builders<Restaurant>.Filter
             .Eq(r => r.Name, "Bagels N Buns");
 
+        // Retrieves the first document that matches the filter
         var restaurant = _restaurantsCollection.Find(filter).FirstOrDefault();
         // end-find-builders
 
@@ -49,11 +53,11 @@ public class FindOne
 
     private static void Setup()
     {
-        // This allows automapping of the camelCase database fields to our models. 
+        // Allows automapping of the camelCase database fields to models 
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-        // Establish the connection to MongoDB and get the restaurants database
+        // Establishes the connection to MongoDB and accesses the "restaurants" collection
         var mongoClient = new MongoClient(MongoConnectionString);
         var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
         _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");

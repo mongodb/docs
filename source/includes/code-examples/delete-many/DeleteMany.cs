@@ -1,3 +1,5 @@
+// Deletes multiple documents from a collection by using the C# driver
+
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
@@ -17,7 +19,7 @@ public class DeleteMany
 
         var docs = _restaurantsCollection.Find(filter).ToList();
 
-        // Deleting documents using builders
+        // Deletes documents by using builders
         Console.WriteLine("Deleting documents...");
         var result = DeleteMultipleRestaurantsBuilder();
 
@@ -26,12 +28,16 @@ public class DeleteMany
         Restore(docs);
     }
 
+    // Deletes all documents that have a Borough value of "Brooklyn"
     private static DeleteResult DeleteMultipleRestaurantsBuilder()
     {
-        // start-delete-many-builders
+        // start-delete-many-builders 
+        // Creates a filter for all documents that have a
+        // "borough" value of "Brooklyn"
         var filter = Builders<Restaurant>.Filter
             .Eq(r => r.Borough, "Brooklyn");
 
+        // Deletes all documents that match the filter
         return _restaurantsCollection.DeleteMany(filter);
         // end-delete-many-builders
     }
@@ -44,11 +50,11 @@ public class DeleteMany
 
     private static void Setup()
     {
-        // This allows automapping of the camelCase database fields to our models. 
+        // Allows automapping of the camelCase database fields to models 
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-        // Establish the connection to MongoDB and get the restaurants database
+        // Establishes the connection to MongoDB and accesses the "restaurants" collection
         var mongoClient = new MongoClient(MongoConnectionString);
         var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
         _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
