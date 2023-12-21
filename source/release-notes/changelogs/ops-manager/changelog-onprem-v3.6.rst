@@ -24,7 +24,7 @@
 - Updated |jdk| to `AdoptOpenJDK 8u202 <https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/tag/jdk8u202-b08>`__.
 
 - **Fix:** For queryable restores, the configurable expiration value
-  (:setting:`brs.queryable.expiration <Expiration>`) now also applies to
+  (:setting:`brs.queryable.expiration <Expiration (Hours)>`) now also applies to
   MongoDB authentication requests.
 
 - **Fix:** Resolve transient inability to restore a snapshot if a
@@ -380,7 +380,7 @@ Backup
   
      On Windows, :doc:`queryable restores </tutorial/query-backup/>`
      work on MongoDB 3.2, 3.4, and 3.6 snapshots once the |onprem|
-     :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>` can access
+     :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>` can access
      :ref:`MongoDB 3.4.11 <3.4.11-changelog>` or later.
 
 - Added support for IBM Cloud Object Storage and DellEMC Elastic Cloud

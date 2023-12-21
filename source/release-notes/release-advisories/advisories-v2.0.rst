@@ -9,7 +9,7 @@ Backup Database
   upgrading.
 
 Backup Daemon
-  The |onprem| package installs the :opsmgr:`Backup Daemon </reference/glossary/#term-backup-daemon>`.
+  The |onprem| package installs the :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>`.
   When started, the |onprem| package automatically starts two
   services: the |application| and the Backup Daemon. You choose on
   which hosts to "activate" the Backup Daemon. The daemon always

@@ -26,7 +26,7 @@
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`sync stores <sync store>`. 
+       :opsmgr:`sync stores </reference/glossary/#std-term-sync-store>`. 
 
        Setting these tags limits which backup jobs this sync
        store can process. If omitted, this sync store can only

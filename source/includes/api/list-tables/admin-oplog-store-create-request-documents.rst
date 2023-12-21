@@ -9,7 +9,7 @@
 
    * - assignmentEnabled
      - boolean
-     - *Optional.* Flag indicating whether this :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>` can 
+     - *Optional.* Flag indicating whether this :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>` can 
        be assigned backup jobs.
    
    * - encryptedCredentials
@@ -20,13 +20,13 @@
 
    * - id
      - string
-     - The unique name that labels this :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
+     - The unique name that labels this :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>`.
 
    * - labels
      - array of strings
      - *Optional.* Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :opsmgr:`oplog stores  </reference/glossary/#term-Oplog-Store-Database>`. 
+       :opsmgr:`oplog stores  </reference/glossary/#std-term-Oplog-Store-Database>`. 
 
        Setting these tags limits which backup jobs this oplog
        store can process. If omitted, this oplog store can only
@@ -36,12 +36,12 @@
    * - maxCapacityGB
      - number
      - *Optional.* The maximum amount of data in GB this 
-       :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>` can store.
+       :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>` can store.
    
    * - uri
      - string
      - A comma-separated list of hosts in the ``<hostname:port>``
-       format that can be used to access this :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
+       format that can be used to access this :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>`.
    
    * - ssl
      - boolean
@@ -51,7 +51,7 @@
    
    * - writeConcern
      - string
-     - *Optional.* The write concern used for this :opsmgr:`oplog store  </reference/glossary/#term-Oplog-Store-Database>`.
+     - *Optional.* The write concern used for this :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>`.
 
        The accepted values for this option are:
        

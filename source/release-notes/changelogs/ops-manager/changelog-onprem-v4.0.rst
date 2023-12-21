@@ -250,7 +250,7 @@
 - Updated |jdk| to `AdoptOpenJDK 8u202 <https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/tag/jdk8u202-b08>`__.
 
 - **Fix:** For queryable restores, the configurable expiration value
-  (:setting:`brs.queryable.expiration <Expiration>`) now also applies to
+  (:setting:`brs.queryable.expiration <Expiration (Hours)>`) now also applies to
   MongoDB authentication requests.
 
 - **Fix:** Improve password verification for sensitive actions within

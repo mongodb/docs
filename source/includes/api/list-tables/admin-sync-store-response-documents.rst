@@ -26,7 +26,7 @@
      - array of strings
      - Array of tags to manage which 
        :term:`backup jobs <backup job>` |onprem| can assign to which 
-       :term:`sync stores <sync store>`. 
+       :opsmgr:`sync stores </reference/glossary/#std-term-sync-store>`. 
    
    * - links
      - object array

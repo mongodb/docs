@@ -91,7 +91,7 @@
    * - groupId
      - string
      - Unique 24-hexadecimal digit string that identifies the
-       :opsmgr:`project </reference/glossary/#term-project>` associated with log collection request.
+       :opsmgr:`project </reference/glossary/#std-term-project>` associated with log collection request.
 
    * - id
      - string

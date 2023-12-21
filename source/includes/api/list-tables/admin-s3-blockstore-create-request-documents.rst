@@ -78,14 +78,14 @@
    * - id
      - string
      - Required
-     - Name that uniquely identifies this :term:`S3 Snapshot Store`.
+     - Name that uniquely identifies this :opsmgr:`S3 Snapshot Store </reference/glossary/#std-term-S3-Snapshot-Store>`.
 
    * - labels
      - array of strings
      - Optional
      - Array of tags to manage which
        :term:`backup jobs <backup job>` |onprem| can assign to which
-       :opsmgr:`S3 blockstores  </reference/glossary/#term-S3-Snapshot-Store>`.
+       :opsmgr:`S3 blockstores  </reference/glossary/#std-term-S3-Snapshot-Store>`.
 
        Setting these tags limits which backup jobs this |s3| blockstore
        can process. If omitted, this |s3| blockstore can only process
@@ -96,7 +96,7 @@
      - number
      - Optional
      - Positive, non-zero integer that expresses how much backup work
-       this :opsmgr:`snapshot store </reference/glossary/#term-snapshot-store>` performs compared to another
+       this :opsmgr:`snapshot store </reference/glossary/#std-term-snapshot-store>` performs compared to another
        snapshot store. This option is needed only if more than one
        snapshot store is in use.
 

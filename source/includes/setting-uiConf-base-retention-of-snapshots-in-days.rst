@@ -6,12 +6,12 @@
 
    
    Specifies how many days an interval snapshot is stored. The accepted
-   values vary depending upon the value of :setting:`Snapshot Interval`:
+   values vary depending upon the value of :setting:`Snapshot Interval (Hours)`:
    
    .. list-table::
       :widths: 40 60
    
-      * - :setting:`Snapshot Interval`
+      * - :setting:`Snapshot Interval (Hours)`
         - Accepted Values
       * - < ``24``
         - **2**, **3**, **4**, or **5**.
