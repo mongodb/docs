@@ -7,7 +7,8 @@ in
 .. default-domain:: mongodb
 
 .. meta::
-   :description: Perform a search for a single or array of numeric, date, boolean, or objectID values. 
+   :keywords: atlas search, in operator, in, search in operator, Atlas search in operator, query Boolean values, query arrays, query object id, query Int32, query Int64, query Double, Boolean queries, array queries, object id queries, numeric queries, search operators, search operators for arrays, search array operators, query string values, string array search
+   :description: Perform a search for a single or array of numeric, date, boolean, objectID, or string values. 
 
 .. contents:: On this page
    :local:
@@ -18,12 +19,13 @@ in
 Definition
 ----------
 
-The ``in`` operator performs a search for an array of ``number``,
-``date``, ``boolean``, or ``objectId`` values at the given path and
-returns documents where the value of the field equals any value in the
-specified array. If the specified field holds an array, then the ``in``
-operator selects the documents whose field holds an array that contains
-at least one element that matches any value in the specified array.
+The ``in`` operator performs a search for an array of |bson| ``number``,
+``date``, ``boolean``, ``objectId``, or ``string`` values at the given
+path and returns documents where the value of the field equals any value
+in the specified array. If the field holds an array, then the
+``in`` operator selects the documents whose field holds an array that
+contains at least one element that matches any value in the specified
+array. 
 
 .. _in-ref-syntax:
 
@@ -65,6 +67,13 @@ Fields
      - Indexed field to search. You can also specify a :ref:`wildcard
        path <ref-path-usage>` to search. See :ref:`path construction
        <ref-path>` for more information. 
+
+       .. note:: 
+
+          To search :manual:`string </reference/bson-types/#string>`
+          values in a field, you must index the field as the |fts| :ref:`token
+          <bson-data-types-token>` type.
+
      - Required
 
    * - ``score``
@@ -81,11 +90,19 @@ Fields
 
    * - ``value`` 
      - :ref:`boolean <boolean-ref>`, :ref:`objectId <objectId-ref>`, 
-       :ref:`number <bson-data-types-number>`, or :ref:`date
-       <bson-data-types-date>` 
+       :ref:`number <bson-data-types-number>`, :ref:`date
+       <bson-data-types-date>`, or :ref:`string
+       <bson-data-types-string>`
      - Value or values to search. Value can be either a single value or
        an array of values of only one of the supported |bson| types and
-       can't be a mix of different types.  
+       can't be a mix of different types. 
+
+       .. note:: 
+
+          To search for :manual:`string </reference/bson-types/#string>`
+          values in a field, you must index the field as the |fts| :ref:`token
+          <bson-data-types-token>` type.
+
      - Required
 
 .. _in-ref-egs:
@@ -97,8 +114,44 @@ The following examples use the ``in`` operator to query collections in
 the :ref:`sample_analytics.customers <sample-analytics>` collection. If
 you load the sample data on your |service| cluster and :ref:`create
 <ref-create-index>` an |fts| index named ``default`` that uses
-:ref:`dynamic mappings <static-dynamic-mappings>` on the collection, you 
+:ref:`static mappings <static-dynamic-mappings>` on the collection, you 
 can run the following queries against the collections. 
+
+.. _in-ref-ee-index:
+
+Sample Index 
+~~~~~~~~~~~~
+
+The sample index definition specifies the following actions to support
+``in`` operator queries against the indexed fields in the collection:
+
+- Automatically index all the dynamically indexable fields in the collection.
+- Statically index the ``name`` field as the :ref:`token
+  <bson-data-types-token>` type and converts the text in the field to
+  lowercase.
+
+.. code-block:: json 
+   :copyable: true 
+
+   {
+     "mappings": {
+       "index": "default",
+       "dynamic": true,
+       "fields": {
+         "name": {
+           "normalizer": "lowercase",
+           "type": "token"
+         }
+       }
+     }
+   }
+
+To learn how to create an |fts| index, see :ref:`ref-create-index`.
+
+.. _in-ref-eg-queries:
+
+Sample Queries
+~~~~~~~~~~~~~~
 
 .. tabs:: 
 
@@ -232,10 +285,10 @@ can run the following queries against the collections.
                 "$search": {
                   "compound": {
                     "must": [{
-                      "text": {
+                      "in": {
                         "path": "name",
-                        "query": "James"
-                      },
+                        "value": ["james sanchez", "jennifer lawrence"]
+                      }
                     }],
                     "should": [{
                       "in": {
@@ -265,28 +318,17 @@ can run the following queries against the collections.
             [
               {
                 _id: ObjectId("5ca4bbcea2dd94ee58162a72"),
-                title: 'James Sanchez',
-                score: 2.6952457427978516
+                name: 'James Sanchez',
+                score: 2
               },
               {
-                _id: ObjectId("5ca4bbcea2dd94ee58162a91"),
-                name: 'James Moore',
-                score: 2.6952457427978516
-              },
-              {
-                _id: ObjectId("5ca4bbcea2dd94ee58162aa5"),
-                name: 'James Smith',
-                score: 1.6952458620071411
-              },
-              {
-                _id: ObjectId("5ca4bbcea2dd94ee58162b0b"),
-                name: 'James Lopez',
-                score: 1.6952458620071411
-              },
-              {
-                _id: ObjectId("5ca4bbcea2dd94ee58162b2e"),
-                name: 'James Jones',
-                score: 1.6952458620071411
+                _id: ObjectId("5ca4bbcea2dd94ee58162a71"),
+                name: 'Jennifer Lawrence',
+                score: 1
               }
             ]
 
+      |fts| returns documents that contain ``James Sanchez`` and
+      ``Jennifer Lawrence`` in the ``name`` field. |fts| scores the
+      document that contains ``name: 'James Sanchez'`` higher because it
+      matches the ``ObjectId`` specified in the ``should`` clause.

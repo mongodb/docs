@@ -7,14 +7,14 @@ equals
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas search, equals operator, equals, search equals operator, Atlas search equals operator, query Boolean values, query arrays, query object id, query Int32, query Int64, query Double, query DateTime, Boolean queries, array queries, object id queries, numeric queries, search operators, search operators for arrays, search array operators
+   :keywords: atlas search, equals operator, equals, search equals operator, Atlas search equals operator, query Boolean values, query arrays, query object id, query Int32, query Int64, query Double, query DateTime, Boolean queries, array queries, object id queries, numeric queries, search operators, search operators for arrays, search array operators, query string values, string array search
    :description: Learn how to find fields whose values match a specific value so that Atlas Search can add those documents to the result set.
 
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -30,11 +30,13 @@ Definition
    - :ref:`number <bson-data-types-number>`, including ``int32``,
      ``int64``, and ``double``
    - :ref:`date <bson-data-types-date>`
+   - :ref:`string <bson-data-types-string>`, indexed as |fts|
+     :ref:`token <bson-data-types-token>` type 
      
    You can use the ``equals`` operator to query booleans, objectIds,
-   numbers, and dates in arrays. If at least one element in the array
-   matches the "value" field in the ``equals`` operator, |fts| adds the
-   document to the result set.
+   numbers, dates, and strings (indexed as ``token`` type) in arrays. If
+   at least one element in the array matches the "value" field in the
+   ``equals`` operator, |fts| adds the document to the result set.
 
    .. note::
 
@@ -57,11 +59,13 @@ Syntax
          "index": <index name>, // optional, defaults to "default"
          "equals": {
             "path": "<field-to-search>",
-            "value": <boolean-value>|<objectId>|<number>|<date>,
+            "value": <boolean-value>|<objectId>|<number>|<date>|<string>,
             "score": <score-options>
          }
       }
    }
+
+.. _equals-options:
 
 Options
 -------
@@ -84,7 +88,8 @@ Options
 
    * - ``value``
      - :ref:`boolean <boolean-ref>`, :ref:`objectId <objectId-ref>`, 
-       :ref:`number <bson-data-types-number>`, or :ref:`date <bson-data-types-date>`
+       :ref:`number <bson-data-types-number>`, :ref:`date
+       <bson-data-types-date>`, or :ref:`string <bson-data-types-date>` 
      - Value to query for.
      - yes
 
@@ -118,62 +123,139 @@ See the :ref:`equals-query-examples` section for scoring examples.
 Examples
 --------
 
+.. _equals-eg-collection:
+
+Sample Collection 
+~~~~~~~~~~~~~~~~~
+
 The examples on this page use a collection named ``users`` containing 
 the following three documents:
 
 .. include:: /includes/atlas-search-op-insert-syntax.rst
-             
-.. code-block:: json
-   :copyable: false
 
-   {
-     "_id" : ObjectId("5ed698faa1199b471010d70c"),
-     "name" : "Jim Hall",
-     "verified_user" : true,
-     "account" : {
-      "new_user" : true,
-      "active_user" : true
-     },
-     "teammates" : [
-      ObjectId("5ed6990aa1199b471010d70d"),
-      ObjectId("59b99dbdcfa9a34dcd7885c8")
-     ],
-     "region" : "East",
-     "account_created" : 2021-12-12T10:18:27.000+00:00,
-     "employee_number" : 257
-   }
-   {
-     "_id" : ObjectId("5ed6990aa1199b471010d70d"),
-     "name" : "Ellen Smith",
-     "verified_user" : true,
-     "account" : {
-      "new_user" : false,
-      "active_user" : true
-     },
-     "teammates" : [
-      ObjectId("5a9427648b0beebeb69537a5"),
-      ObjectId("59b99dbdcfa9a34dcd7881d1")
-     ],
-     "region" : "Southwest",
-     "account_created" : 2022-05-04T05:01:08.000+00:00,
-     "employee_number" : 258
-   }
-   {
-     "_id" : ObjectId("5ed6994fa1199b471010d70e"),
-     "name" : "Fred Osgood",
-     "verified_user" : false,
-     "account" : {
-      "new_user" : false,
-      "active_user" : false
-     },
-     "teammates" : [
-      ObjectId("5a9427648b0beebeb69589a1"),
-      ObjectId("59b99dbdcfa9a34dcd7897d3")
-     ],
-     "region" : "Northwest",
-     "account_created" : 2022-01-19T08:22:15.000+00:00
-     "employee_number" : 259
-   }
+.. tabs:: 
+
+   .. tab:: MongoDB Shell 
+      :tabid: mongosh
+             
+      .. code-block:: json
+         :copyable: true
+
+         db.users.insertMany([
+          {
+            "_id" : ObjectId("5ed698faa1199b471010d70c"),
+            "name" : "Jim Hall",
+            "verified_user" : true,
+            "account" : {
+              "new_user" : true,
+              "active_user" : true
+            },
+            "teammates" : [
+              ObjectId("5ed6990aa1199b471010d70d"),
+              ObjectId("59b99dbdcfa9a34dcd7885c8")
+            ],
+            "region" : "East",
+            "account_created" : ISODate("2021-12-12T10:18:27.000+00:00"),
+            "employee_number" : 257
+          },
+          {
+            "_id" : ObjectId("5ed6990aa1199b471010d70d"),
+            "name" : "Ellen Smith",
+            "verified_user" : true,
+            "account" : {
+              "new_user" : false,
+              "active_user" : true
+            },
+            "teammates" : [
+              ObjectId("5a9427648b0beebeb69537a5"),
+              ObjectId("59b99dbdcfa9a34dcd7881d1")
+            ],
+            "region" : "Southwest",
+            "account_created" : ISODate("2022-05-04T05:01:08.000+00:00"),
+            "employee_number" : 258
+          },
+          {
+            "_id" : ObjectId("5ed6994fa1199b471010d70e"),
+            "name" : "Fred Osgood",
+            "verified_user" : false,
+            "account" : {
+              "new_user" : false,
+              "active_user" : false
+            },
+            "teammates" : [
+              ObjectId("5a9427648b0beebeb69589a1"),
+              ObjectId("59b99dbdcfa9a34dcd7897d3")
+            ],
+            "region" : "Northwest",
+            "account_created" : ISODate("2022-01-19T08:22:15.000+00:00"),
+            "employee_number" : 259
+          }
+        ])
+
+   .. tab:: Atlas UI 
+      :tabid: json
+
+      .. code-block:: json 
+
+         {
+            "_id" : ObjectId("5ed698faa1199b471010d70c"),
+            "name" : "Jim Hall",
+            "verified_user" : true,
+            "account" : {
+              "new_user" : true,
+              "active_user" : true
+            },
+            "teammates" : [
+              ObjectId("5ed6990aa1199b471010d70d"),
+              ObjectId("59b99dbdcfa9a34dcd7885c8")
+            ],
+            "region" : "East",
+            "account_created" : ISODate("2021-12-12T10:18:27.000+00:00"),
+            "employee_number" : 257
+         }
+
+      .. code-block:: json 
+
+         {
+            "_id" : ObjectId("5ed6990aa1199b471010d70d"),
+            "name" : "Ellen Smith",
+            "verified_user" : true,
+            "account" : {
+              "new_user" : false,
+              "active_user" : true
+            },
+            "teammates" : [
+              ObjectId("5a9427648b0beebeb69537a5"),
+              ObjectId("59b99dbdcfa9a34dcd7881d1")
+            ],
+            "region" : "Southwest",
+            "account_created" : ISODate("2022-05-04T05:01:08.000+00:00"),
+            "employee_number" : 258
+         }
+
+      .. code-block:: json 
+
+         {
+            "_id" : ObjectId("5ed6994fa1199b471010d70e"),
+            "name" : "Fred Osgood",
+            "verified_user" : false,
+            "account" : {
+              "new_user" : false,
+              "active_user" : false
+            },
+            "teammates" : [
+              ObjectId("5a9427648b0beebeb69589a1"),
+              ObjectId("59b99dbdcfa9a34dcd7897d3")
+            ],
+            "region" : "Northwest",
+            "account_created" : ISODate("2022-01-19T08:22:15.000+00:00"),
+            "employee_number" : 259
+         }
+
+.. _equals-eg-index-definition:
+
+Sample Index 
+~~~~~~~~~~~~
 
 The ``users`` collection is indexed with the following 
 :ref:`index definition <ref-index-definitions>`:
@@ -182,33 +264,26 @@ The ``users`` collection is indexed with the following
 
    {
      "mappings": {
-       "dynamic": false,
+       "dynamic": true,
        "fields": {
-         "account": {
-           "dynamic": true,
-           "type": "document"
-         },
-         "teammates": {
-           "type": "objectId"
-         },
-         "verified_user": {
-           "type": "boolean"
-         },
-         "region": {
-           "type": "string"
-         },
-         "account_created" : {
-           "type": "date"
-         },
-         "employee_number" : {
-           "type": "number"
-         }      
+         "name": {
+           "type": "token",
+           "normalizer": "lowercase"
+         }
        }
      }
    }
 
-Basic Examples
-~~~~~~~~~~~~~~
+The index definition specifies the following: 
+
+- Automatically index all dynamically indexable fields. 
+- Index the ``name`` field as type ``token`` to support string search
+  using the ``equals`` operator.
+
+To learn how to create an |fts| index, see :ref:`ref-create-index`.
+
+Basic Example Queries
+~~~~~~~~~~~~~~~~~~~~~
 
 .. _equals-boolean-example:
 
@@ -266,8 +341,9 @@ field contains the boolean value ``true``.
      }
    ])
 
-The above query returns the document for "Jim Hall", because that 
-document contains ``"new_user": true`` in the ``account`` object.
+The preceding query returns the :ref:`document <equals-eg-collection>` for
+"Jim Hall" because that document contains ``"new_user": true`` in the
+``account`` object. 
 
 .. _equals-objectid-example:
 
@@ -291,8 +367,9 @@ collection for documents in which the ``teammates`` field contains the value
      }
    ])
 
-The above query returns the document for "Fred Osgood", because that document
-contains ``ObjectId("5a9427648b0beebeb69589a1")`` in the ``teammates`` array.
+The preceding query returns the :ref:`document <equals-eg-collection>` for
+"Fred Osgood" because that document contains
+``ObjectId("5a9427648b0beebeb69589a1")`` in the ``teammates`` array.
 
 Date Example
 ````````````
@@ -314,8 +391,9 @@ field contains the value that matches ``ISODate("2022-05-04T05:01:08.000+00:00")
      }
    ])
 
-The above query returns the document for "Ellen Smith", because that 
-document contains ``"account_created": 2022-05-04T05:01:08.000+00:00``.
+The preceding query returns the :ref:`document <equals-eg-collection>` for
+"Ellen Smith" because that document contains ``"account_created":
+2022-05-04T05:01:08.000+00:00``. 
 
 .. _equals-number-example:
 
@@ -339,13 +417,43 @@ field contains the value that matches ``259``.
      }
    ])
 
-The above query returns the document for "Fred Osgood", because that 
-document contains ``"employee_number": 259``.
+The preceding query returns the :ref:`document <equals-eg-collection>` for
+"Fred Osgood" because that document contains ``"employee_number":
+259``. 
+
+.. _equals-string-query-example:
+
+String Example
+``````````````
+
+The following example uses the ``equals`` operator to search the 
+``users`` collection for documents in which the ``name`` 
+field contains the value that matches ``Jim Hall``.
+
+.. code-block:: javascript
+
+   db.users.aggregate([
+     {
+       "$search": {
+         "equals": {
+           "path": "name",
+           "value": "jim hall"
+         }
+       }
+     }
+   ])
+
+The preceding query returns the :ref:`document <equals-eg-collection>` for
+"Jim Hall" because that document contains ``Jim Hall`` in the ``name``
+field. |fts| matches the lowercase query to the uppercase value in the
+document because it normalizes the term to lowercase as specified in the
+:ref:`index definition <equals-eg-index-definition>` for the ``name``
+field. 
 
 .. _equals-compound-query-example:
 
-Compound Examples
-~~~~~~~~~~~~~~~~~
+Compound Example Queries
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example uses the :ref:`compound <compound-ref>` operator 
 in conjunction with ``must``, ``mustNot``, and ``equals`` to search for 

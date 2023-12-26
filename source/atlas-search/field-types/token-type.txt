@@ -1,15 +1,14 @@
 .. _bson-data-types-token:
 
 ==============================================================
-How to Index String Fields for Efficient Filtering and Sorting  
+How to Index String Fields for Efficient Filtering and Sorting 
 ==============================================================
 
 .. default-domain:: mongodb
 
 .. meta::
-   :description: Use the token field type to index string values in fields for sorting.
-
-.. :keywords: token, token field type, atlas search field type, sort atlas search results, field type for sorting results by string values 
+   :keywords: token, token field type, atlas search field type, sort atlas search results, field type for sorting results by string values, field type for querying string values using in operator, field type for querying string values using equals operator, field type for querying string values using range operator, index string for filtering, index string for sorting
+   :description: Use the token field type to index string values in fields for sorting and querying using equals, in, and range operators.
 
 .. contents:: On this page
    :local:
@@ -30,15 +29,25 @@ to sort the results by the indexed field. To learn more, see
 pre-filtering the data that the :pipeline:`$vectorSearch`
 queries analyze. To learn more, see :ref:`fts-vector-search`.
 
+To run queries against :manual:`string </reference/bson-types/#string>`
+fields using the following operators, you must index the field as the
+|fts| ``token`` type: 
+
+- :ref:`equals <equals-ref>`
+- :ref:`in <in-ref>`
+- :ref:`range <range-ref>`
+
+To learn more, see the documentation for each respective :ref:`operator <operators-ref>`.
+
 Review the Behavior of the |fts-field-type| Type  
 ------------------------------------------------
 
 When you index a field as ``token`` type, |fts| indexes the terms in
 the string as a single token (searchable term) and stores them in a
-columnar storage format for efficient filtering or sort operations. You
+columnar storage for efficient filtering or sort operations. You
 can use a :ref:`normalizer <ref-built-in-normalizers>` to transform the
 token. By default, the normalizer is set to ``none`` and so |fts|
-indexes strings in their original form.  
+indexes strings in their original form. 
 
 The major difference between the |fts| ``string`` and ``token`` types is
 that |fts| creates one or more tokens for fields indexed as ``string``
@@ -53,14 +62,19 @@ characters, |fts| truncates it to 8181 characters before indexing.
 Review ``token`` Type Limitations 
 ---------------------------------
 
-When you index a field as the ``token`` type, you can only *sort* by
-that field. To also *query* that field, you must index that field as
-``string`` type also. You can't query a field indexed only as the
-``token`` type.
+When you index a field as the ``token`` type, you must index that field
+as ``string`` type also to query the text value using operators such as
+:ref:`text-ref`, :ref:`phrase-ref`, etc. For the following operators,
+you don't need to index the field as ``string`` type also to query the
+text value in the field:  
+
+- :ref:`equals <equals-ref>`
+- :ref:`in <in-ref>`
+- :ref:`range <range-ref>`
 
 You can't index children of fields indexed as the :ref:`embeddedDocuments 
-<bson-data-types-embedded-documents>` type as the ``token`` type.  
- 
+<bson-data-types-embedded-documents>` type as the ``token`` type. 
+
 .. _fts-field-types-string-vib-jsonib:
 
 Define the Index for the |fts-field-type| Type 
@@ -152,13 +166,22 @@ Try an Example for the |fts-field-type| Type
 
 .. tabs::  
 
-   .. tab:: Index for Sort Only  
+   .. tab:: Index as token Type Only  
       :tabid: basic 
 
       The following index definition indexes string values in the  
       ``title`` field as |fts| |fts-field-type| type and converts the
-      field value to ``lowercase``, which allows you to perform
-      case-insensitive sort, as specified by the ``normalizer``. 
+      field value to ``lowercase``, which allows you to do the
+      following: 
+      
+      - Perform case-insensitive sort, as specified by the
+        ``normalizer``, on the ``title`` field.
+      - Run exact match queries on the ``title`` field using the
+        following operators:  
+
+        - :ref:`equals <equals-ref>`
+        - :ref:`in <in-ref>`
+        - :ref:`range <range-ref>`
 
       .. tabs::
 
@@ -195,7 +218,7 @@ Try an Example for the |fts-field-type| Type
                  }
                }
 
-   .. tab:: Index for Sort and Query
+   .. tab:: Index as Multiple Types
       :tabid: multi
 
       The following index definition indexes the ``genres`` field as  
@@ -206,6 +229,8 @@ Try an Example for the |fts-field-type| Type
         perform text search on the ``genres`` field. 
       - Sorted results for queries using the :pipeline:`$search`
         :ref:`sort <sort-ref>` option on the ``genres`` field.
+      - Exact matches for queries using |fts| operators like
+        :ref:`equals-ref`, :ref:`in-ref`, and :ref:`range-ref`.  
 
       .. tabs::
 

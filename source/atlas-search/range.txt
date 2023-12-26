@@ -7,13 +7,13 @@ range
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: atlas search, range operator, query numeric fields, query date fields, range operator syntax, range operator fields, range operator examples, numeric range query example, date range query example
-   :description: Learn how to query values within a specific numeric or date range.
+   :keywords: atlas search, range operator, query numeric fields, query date fields, query string fields, range operator syntax, range operator fields, range operator examples, numeric range query example, date range query example, string range query example
+   :description: Learn how to query values within a specific numeric, date, or string range.
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Definition
@@ -21,16 +21,18 @@ Definition
 
 .. expression:: range
 
-   The ``range`` operator supports querying and scoring numeric and
-   date values. This operator can be used to perform a search over:
+   The ``range`` operator supports querying and scoring numeric, date,
+   and string values. This operator can be used to perform a search
+   over: 
 
    - Number fields of BSON ``int32``, ``int64``, and ``double`` data
      types.
-   - Date fields of BSON ``date`` data type in
-     :term:`ISODate` format.
+   - Date fields of BSON ``date`` data type in :term:`ISODate` format. 
+   - String fields of BSON ``string`` data type indexed as |fts|
+     :ref:`token <bson-data-types-token>` type. 
 
    You can use the ``range`` operator to find results that are within a
-   given numeric or date range.
+   given numeric, date, or letter (from the English alphabet) range.
 
 .. _range-syntax:
 
@@ -79,6 +81,8 @@ Options
          or ``double`` data type.
        - For date fields, the value must be an 
          :term:`ISODate` formatted date. 
+       - For string fields, the value must be indexed as |fts| ``token``
+         type. 
 
      - no
 
@@ -91,6 +95,8 @@ Options
          or ``double`` data type.
        - For date fields, the value must be an
          :term:`ISODate` formatted date.
+       - For string fields, the value must be indexed as |fts| ``token``
+         type. 
 
      - no
 
@@ -141,64 +147,88 @@ The following examples use indexes on numeric fields in the
    .. tab:: Example 1
       :tabid: eg1
 
-      The following example indexes and searches the numeric field 
-      ``runtime`` in the ``sample_mflix.movies collection``. The query 
-      uses ``gte`` and ``lte`` fields to define the numeric range to 
-      search.
+      For this example, you can use either static or dynamic mappings to
+      index the ``runtime`` field in the ``sample_mflix.movies``
+      collection. The query uses ``gte`` and ``lte`` fields to define
+      the numeric range to search.
 
-      .. example::
+      Sample Index 
+      ````````````
 
-         The following index definition named ``default`` indexes the
-         ``runtime`` field in the ``movies`` collection.
+      The following index definition named ``default`` indexes the
+      ``runtime`` field only in the ``movies`` collection.
 
-         .. code-block:: javascript
+      .. tabs:: 
 
-            {
-               "mappings": {
-                  "dynamic": false,
-                  "fields": {
-                     "runtime": {
-                        "type": "number"
-                     }
-                  }
+         .. tab:: Dynamic Mapping Example 
+            :tabid: dynamic
+
+            .. code-block:: javascript
+               :linenos:
+               
+               {
+                 "mappings": {
+                   "dynamic": true
+                 }
                }
-            }
 
-         The following query searches for movies with a runtime greater 
-         than or equal to ``2`` and less than equal to ``3``. It 
-         includes a :pipeline:`$limit` stage to limit the output to 
-         ``5`` results and a :pipeline:`$project` stage to exclude all 
-         fields except ``title`` and ``runtime``.
+         .. tab:: Static Mapping Example 
+            :tabid: static
 
-         .. code-block:: javascript
+            .. code-block:: javascript
+               :linenos:
+
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "runtime": {
+                       "type": "number"
+                     }
+                   }
+                 }
+               }
+
+      Sample Query 
+      ````````````
+         
+      The following query searches for movies with a runtime greater 
+      than or equal to ``2`` and less than equal to ``3``. It 
+      includes a :pipeline:`$limit` stage to limit the output to 
+      ``5`` results and a :pipeline:`$project` stage to exclude all 
+      fields except ``title`` and ``runtime``.
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json 
             :linenos:
 
             db.movies.aggregate([
-               {
-                  $search: {
-                     "range": {
-                        "path": "runtime",
-                        "gte": 2,
-                        "lte": 3
-                     }
+              {
+                "$search": {
+                  "range": {
+                    "path": "runtime",
+                    "gte": 2,
+                    "lte": 3
                   }
-               },
-               {
-                  $limit: 5
-               },
-               {
-                  $project: {
-                     "_id": 0,
-                     "title": 1,
-                     "runtime": 1
-                  }
-               }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "runtime": 1
+                }
+              }
             ])
 
-         The above query returns the following search results:
-
-         .. code-block:: json
-            :copyable: false
+         .. output:: 
+            :language: json
 
             { "runtime" : 3, "title" : "Dots" }
             { "runtime" : 3, "title" : "Sisyphus" }
@@ -209,67 +239,90 @@ The following examples use indexes on numeric fields in the
    .. tab:: Example 2
       :tabid: eg2
 
-      The following example indexes and searches the numeric field 
-      ``runtime`` in the ``sample_mflix.movies collection``.  The 
-      query uses the ``lte`` field to search for all values less than 
-      or equal to the given value.
+      For this example, you can use either static or dynamic mappings to
+      index the ``runtime`` field in the ``sample_mflix.movies``
+      collection. The  query uses the ``lte`` field to search for all
+      values less than or equal to the given value.
 
-      .. example::
+      Sample Index 
+      ````````````
 
-         The following index definition named ``default`` indexes the
-         ``runtime`` field in the ``movies`` collection.
+      The following index definition named ``default`` indexes the
+      ``runtime`` field in the ``movies`` collection.
 
-         .. code-block:: javascript
-            :linenos:
+      .. tabs:: 
 
-            {
-               "mappings": {
-                  "dynamic": false,
-                  "fields": {
-                     "runtime": {
-                        "type": "number"
-                     }
-                  }
+         .. tab:: Dynamic Mapping Example 
+            :tabid: dynamic
+
+            .. code-block:: javascript
+               :linenos:
+               
+               {
+                 "mappings": {
+                   "dynamic": true
+                 }
                }
-            }
 
-         The following query searches for all movies with a runtime 
-         less than or equal to ``2``. It includes a :pipeline:`$limit` 
-         stage to limit the output to ``5`` results and 
-         :pipeline:`$project` stage to:
+         .. tab:: Static Mapping Example 
+            :tabid: static
 
-         - Exclude all fields except ``title`` and ``runtime``
-         - Add a field named ``score``
+            .. code-block:: javascript
+               :linenos:
 
-         .. code-block:: javascript
+               {
+                 "mappings": {
+                   "dynamic": false,
+                   "fields": {
+                     "runtime": {
+                       "type": "number"
+                     }
+                   }
+                 }
+               }
+
+      Sample Query 
+      ````````````
+         
+      The following query searches for all movies with a runtime 
+      less than or equal to ``2``. It includes a :pipeline:`$limit` 
+      stage to limit the output to ``5`` results and 
+      :pipeline:`$project` stage to:
+
+      - Exclude all fields except ``title`` and ``runtime``
+      - Add a field named ``score``
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: 
+            :language: json 
             :linenos:
 
             db.movies.aggregate([
-               {
-                  $search: {
-                     "range": {
-                        "path": "runtime",
-                        "lte": 2
-                     }
+              {
+                "$search": {
+                  "range": {
+                    "path": "runtime",
+                    "lte": 2
                   }
-               },
-               {
-                  $limit: 5
-               },
-               {
-                  $project: {
-                     "_id": 0,
-                     "title": 1,
-                     "runtime": 1,
-                     score: { $meta: "searchScore" }
-                  }
-               }
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "title": 1,
+                  "runtime": 1,
+                  score: { $meta: "searchScore" }
+                }
+              }
             ])
 
-         The above query returns the following search results:
-
-         .. code-block:: json
-            :copyable: false
+         .. output:: 
+            :language: json
 
             { "runtime" : 1, "title" : "Blacksmith Scene", "score" : 1 }
             { "runtime" : 2, "title" : "Andrè and Wally B.", "score" : 1 }
@@ -286,78 +339,82 @@ The following examples use indexes on numeric fields in the
       query uses the ``gte`` and ``lte`` fields to search for all 
       values between the given values in an array of numeric values.
 
-      .. example:: 
+      Sample Index 
+      ```````````` 
 
-         The following index definition named ``default`` dynamically 
-         indexes all fields, including the ``accounts`` field, which is 
-         an array of numeric values.
+      The following index definition named ``default`` dynamically 
+      indexes all fields, including the ``accounts`` field, which is 
+      an array of numeric values.
 
-         .. code-block:: javascript
+      .. code-block:: javascript
 
-            {
-              "mappings": {
-                "dynamic": true
-              }
-            }
+         {
+           "mappings": {
+             "dynamic": true
+           }
+         }
 
-         The following query searches for customer accounts between 
-         ``250000`` and ``300000``. It includes a :pipeline:`$limit`
-         stage to limit the output to ``5`` results and a
-         :pipeline:`$project` stage to exclude all fields except
-         ``accounts`` and ``name``.
+      Sample Query 
+      ````````````
+         
+      The following query searches for customer accounts between 
+      ``250000`` and ``300000``. It includes a :pipeline:`$limit`
+      stage to limit the output to ``5`` results and a
+      :pipeline:`$project` stage to exclude all fields except
+      ``accounts`` and ``name``.
 
-         .. io-code-block:: 
-            :copyable: true
+      .. io-code-block:: 
+         :copyable: true
             
-            .. input:: 
-               :language: javascript
-               :linenos:
+         .. input:: 
+            :language: javascript
+            :linenos:
 
-               db.customers.aggregate([
-                  {
-                     $search: {
-                        "range": {
-                           "path": "accounts",
-                           "gt": 250000,
-                           "lt": 400000
-                              }
-                     }
-                  },
-                  {
-                     $limit: 5
-                  },
-                  {
-                     $project: {
-                        "_id": 0,
-                        "accounts": 1,
-                        "name": 1
-                     }
+            db.customers.aggregate([
+              {
+                "$search": {
+                  "range": {
+                    "path": "accounts",
+                    "gt": 250000,
+                    "lt": 400000
                   }
-               ])
+                }
+              },
+              {
+                "$limit": 5
+              },
+              {
+                "$project": {
+                  "_id": 0,
+                  "accounts": 1,
+                  "name": 1
+                }
+              }
+            ])
 
-            .. output:: 
-               :language: javascript
-               :linenos:
+         .. output:: 
+            :language: javascript
+            :linenos:
 
-               [
-                 {
-                   name: 'Elizabeth Ray',
-                   accounts: [ 371138, 324287, 276528, 332179, 422649, 387979 ]
-                 },
-                 {
-                   name: 'Katherine David',
-                   accounts: [ 462501, 228290, 968786, 515844, 377292 ]
-                 },
-                 {
-                   name: 'Brad Cardenas',
-                   accounts: [ 721914, 817222, 973067, 260799, 87389 ]
-                 },
-                 {
-                   name: 'Gary Nichols',
-                   accounts: [ 385397, 337979, 325377, 440243, 586395, 86702 ]
-                 },
-                 { name: 'Jennifer Lawrence', accounts: [ 344885, 839927, 853542 ] }
-               ]
+            [
+              {
+                name: 'Elizabeth Ray',
+                accounts: [ 371138, 324287, 276528, 332179, 422649, 387979 ]
+              },
+              {
+                name: 'Katherine David',
+                accounts: [ 462501, 228290, 968786, 515844, 377292 ]
+              },
+              {
+                name: 'Brad Cardenas',
+                accounts: [ 721914, 817222, 973067, 260799, 87389 ]
+              },
+              {
+                name: 'Gary Nichols',
+                accounts: [ 385397, 337979, 325377, 440243, 586395, 86702 ]
+              },
+              { name: 'Jennifer Lawrence', accounts: [ 344885, 839927, 853542 ] }
+            ]
 
 Date Example
 ~~~~~~~~~~~~
@@ -366,6 +423,9 @@ The following example uses the ``range`` operator to query a date
 field in the ``sample_mflix.movies`` collection. For this example, you 
 can use either static or dynamic mappings to index the ``date`` type 
 field named ``released`` in the collection.
+
+Sample Index 
+````````````
 
 .. tabs:: 
    
@@ -402,6 +462,9 @@ field named ``released`` in the collection.
                }
             }
          }
+
+Sample Query 
+````````````
 
 The following query searches for movies released between January 1, 
 2010 and January 1, 2015. It includes a :pipeline:`$limit` stage to 
@@ -444,3 +507,78 @@ The above query returns the following search results:
    { "title" : "Too Much Johnson", "released" : ISODate("2014-08-30T00:00:00Z") }
    { "title" : "Stolen Desire", "released" : ISODate("2012-07-01T00:00:00Z") }
    { "title" : "The Monkey King", "released" : ISODate("2012-01-12T00:00:00Z") }
+
+String Example
+~~~~~~~~~~~~~~
+
+The following example uses the ``range`` operator to query a string
+field in the ``sample_mflix.movies`` collection. For this example, you 
+must use static mappings to index the field named ``title`` in the
+collection as |fts| ``token`` type. 
+
+Sample Index 
+````````````
+
+The following index definition named ``default`` indexes the ``title``
+field in the ``movies``  collection as |fts| ``token`` type:
+
+.. code-block:: javascript
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "title": {
+           "type": "token",
+           "normalizer": "lowercase"
+         }
+       }
+     }
+   }
+
+Sample Query 
+````````````
+
+The following query searches for movie titles that contain characters
+between ``city`` and ``country``. It includes a :pipeline:`$limit` stage
+to limit the output to 5 results and a :pipeline:`$project` stage to 
+exclude all fields except ``title``.
+
+.. io-code-block:: 
+   :copyable: true
+
+   .. input:: 
+      :language: json 
+      :linenos:
+
+      db.movies.aggregate([
+        {
+          "$search": {
+            "range": {
+              "path": "title",
+              "gt": "city",
+              "lt": "country"
+            }
+          }
+        },
+        {
+          "$limit": 5
+        },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+
+      [
+        { title: 'Civilization' },
+        { title: 'Clash of the Wolves' },
+        { title: 'City Lights' },
+        { title: 'Comradeship' },
+        { title: 'Come and Get It' }
+      ]
