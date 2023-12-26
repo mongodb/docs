@@ -1,5 +1,5 @@
 **clusterWideConfigurations** specifies the parameters to set across a
-replica set or sharded cluster without requiring a :term:`rolling restart`.
+replica set or sharded cluster without requiring a :cloudmgr:`rolling restart </reference/glossary/#std-term-rolling-restart>`.
 
 .. code-block:: json
    :linenos:

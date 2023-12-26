@@ -53,7 +53,7 @@
 
    * - groupId
      - objectId
-     - ID of the :cloudmgr:`project </reference/glossary/#term-project>` that owns the :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+     - ID of the :cloudmgr:`project </reference/glossary/#term-project>` that owns the :manual:`snapshot </reference/glossary/#std-std-term-snapshot>`.
 
    * - id
      - objectId

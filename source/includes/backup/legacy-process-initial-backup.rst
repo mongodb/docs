@@ -3,7 +3,7 @@
 #. The Backup-enabled {+mdbagent+} connects to, and authenticates with,
    the databases associated with the backup job.
 
-#. The :cloudmgr:`inital sync </reference/glossary/#term-initial-sync>` begins and enters its ``starting`` phase.
+#. The :cloudmgr:`inital sync </reference/glossary/#std-term-initial-sync>` begins and enters its ``starting`` phase.
    Initial sync is a transition state between :guilabel:`Inactive` and
    :guilabel:`Active`. Initial Sync goes through a series of phases
    that are displayed on the :guilabel:`Backup` page to show progress.
@@ -14,12 +14,12 @@
    starts separately.
 
 #. The ``transferring`` phase begins as the slices are streamed and
-   stored in the :cloudmgr:`Oplog Store  </reference/glossary/#term-Oplog-Store-Database>` temporarily
+   stored in the :cloudmgr:`Oplog Store  </reference/glossary/#std-term-Oplog-Store-Database>` temporarily
    on the Backup Daemon's behalf. The Backup Daemon service cannot
    dedicate itself to processing the large stream of initial sync
    slices at the expense of processing other backup jobs. The Oplog
    Store stores the slices until the Backup Daemon can fetch them. The
-   Oplog Store is created when the first :cloudmgr:`snapshot store </reference/glossary/#term-snapshot-store>` is
+   Oplog Store is created when the first :cloudmgr:`snapshot store </reference/glossary/#std-term-snapshot-store>` is
    created.
 
 #. While {+bagent+} is streaming the data, it tails the :manual:`oplog </reference/glossary/#std-term-oplog>`.
@@ -32,7 +32,7 @@
 
 #. The ``building`` phase begins once |onprem| receives the first batch
    of initial sync slices. In this phase, |onprem| creates a local
-   version of the backed up database called a :cloudmgr:`head database </reference/glossary/#term-head-database>` on
+   version of the backed up database called a :cloudmgr:`head database </reference/glossary/#std-term-head-database>` on
    the host running the Backup Daemon service.
 
 #. |onprem| uses the Backup Daemon service to insert the documents
@@ -56,7 +56,7 @@
 
    a. Blocks to a :term:`blockstore <backup blockstore database>`.
 
-   #. Blocks to an :cloudmgr:`AWS S3 bucket  </reference/glossary/#term-S3-Snapshot-Store>`. The
+   #. Blocks to an :cloudmgr:`AWS S3 bucket  </reference/glossary/#std-term-S3-Snapshot-Store>`. The
       metadata for those blocks is written to a MongoDB database on the
       |onprem| host.
 

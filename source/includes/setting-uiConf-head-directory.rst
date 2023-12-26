@@ -6,7 +6,7 @@
    :guilabel:`Server` column.
    
    The dedicated disk partition on the Backup Daemon's server where the
-   daemon stores the :cloudmgr:`head databases </reference/glossary/#term-head-database>`. The daemon
+   daemon stores the :cloudmgr:`head databases </reference/glossary/#std-term-head-database>`. The daemon
    maintains a head database for each shard or replica set it backs up.
    This directory must be writable by the mongodb-mms user and must end
    in a trailing slash. It is critical that this partition is sized

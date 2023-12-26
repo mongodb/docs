@@ -86,7 +86,7 @@ Backup Features Supported at Present
 
 .. [#] Backups to a |fcv-link| 4.2 or later database to a File
        System Store ignore
-       :setting:`File System Store Gzip Compression Level`.
+       ``File System Store Gzip Compression Level``.
 
 Requirements and Limitations
 ````````````````````````````

@@ -50,7 +50,7 @@
 
    * - ``groupId``
      - string
-     - Unique identifier of the :cloudmgr:`project </reference/glossary/#term-project>` that owns the
+     - Unique identifier of the :cloudmgr:`project </reference/glossary/#std-term-project>` that owns the
        :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
 
    * - ``id``

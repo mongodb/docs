@@ -11,7 +11,7 @@
      - Required
      - Provide the hostname, |fqdn|, |ipv4| address, or |ipv6| address
        for the host that serves the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` to which the
-       :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` should be applied. If you
+       :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` should be applied. If you
        copied the ``mongodb-backup-restore-util`` command provided in
        the |application|, this field is pre-configured.
      - :icon:`check-circle`
@@ -19,14 +19,14 @@
    * - ``--port``
      - Required
      - Provide the port for the host that serves the |mongod| to which
-       the :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` should be applied.
+       the :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` should be applied.
      - :icon:`check-circle`
 
    * - ``--opStart``
      - Required
      - Provide the
        :ref:`BSON timestamp <document-bson-type-timestamp>`
-       for the first :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` entry
+       for the first :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` entry
        you want to include in the restore. This information appears in
        the "Last Oplog Applied" entry in the ``restoreInfo.txt`` file
        provided with the downloaded snapshot.
@@ -42,7 +42,7 @@
      - Required
      - Provide the
        :ref:`BSON timestamp <document-bson-type-timestamp>`
-       for the last :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` entry
+       for the last :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` entry
        you want to include in the restore.
 
        .. note:: This value cannot be greater than the end of the oplog.
@@ -69,7 +69,7 @@
 
    * - ``--groupId``
      - Required
-     - Provide the :cloudmgr:`group </reference/glossary/#term-group>` ID.
+     - Provide the :cloudmgr:`group </reference/glossary/#std-term-group>` ID.
      - :icon:`check-circle`
 
    * - ``--rsId``
@@ -92,7 +92,7 @@
    * - ``--seedReplSetMember``
      - Optional
      - Use if you need a replica set member to re-create the
-       :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` collection and seed
+       :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` collection and seed
        it with the correct timestamp.
 
        Requires ``--oplogSizeMB`` and ``--seedTargetPort``.
@@ -100,7 +100,7 @@
 
    * - ``--oplogSizeMB``
      - Conditional
-     - Provide the :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` size in MB.
+     - Provide the :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` size in MB.
 
        Required if ``--seedReplSetMember`` is set.
      -
@@ -118,7 +118,7 @@
    * - ``--ssl``
      - Optional
      - Use if you need |tls-ssl| to apply the
-       :cloudmgr:`oplog  </reference/glossary/#term-Oplog-Store-Database>` to the |mongod|.
+       :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` to the |mongod|.
 
        Requires ``--sslCAFile`` and ``--sslPEMKeyFile``.
      -

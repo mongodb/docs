@@ -36,7 +36,7 @@
 
    * - groupId
      - string
-     - Unique identifier of the :cloudmgr:`group </reference/glossary/#term-group>` that owns this host.
+     - Unique identifier of the :cloudmgr:`group </reference/glossary/#std-term-group>` that owns this host.
 
    * - hasStartupWarnings
      - boolean

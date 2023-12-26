@@ -14,7 +14,7 @@
    - be able to receive email at the address associated with the user
      account.
    - know the user account's password.
-   - know the :cloudmgr:`agent API key </reference/glossary/#term-agent-api-key>` for each |mms| project the user
+   - know the :cloudmgr:`agent API key </reference/glossary/#std-term-agent-api-key>` for each |mms| project the user
      belongs to.
    
    Corresponds to :setting:`mms.multiFactorAuth.allowReset`.

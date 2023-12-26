@@ -40,7 +40,7 @@ Storage Engine
 If you run or upgrade to MongoDB 3.0 or later and modify the MongoDB
 storage engine, |mms| shuts down and restarts the MongoDB process. For
 a multi-member replica set, |mms| performs a rolling
-:cloudmgr:`inital sync </reference/glossary/#term-initial-sync>` of each member.
+:cloudmgr:`inital sync </reference/glossary/#std-term-initial-sync>` of each member.
 
 |mms| creates backup directories during the migration from one storage
 engine to the other if the host has adequate disk space. If disk space

@@ -91,7 +91,7 @@
    * - groupId
      - string
      - Unique 24-hexadecimal digit string that identifies the
-       :cloudmgr:`project </reference/glossary/#term-project>` associated with log collection request.
+       :cloudmgr:`project </reference/glossary/#std-term-project>` associated with log collection request.
 
    * - id
      - string

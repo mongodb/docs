@@ -3,7 +3,7 @@ This process works like
 
 The backup process:
 
-1. Performs an :cloudmgr:`inital sync </reference/glossary/#term-initial-sync>` to back up all of your existing
+1. Performs an :cloudmgr:`inital sync </reference/glossary/#std-term-initial-sync>` to back up all of your existing
    data in its current state.
    In :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, this occurs on each
    shard and on the config servers.
