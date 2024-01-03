@@ -20,4 +20,4 @@ Multi-Region Clusters
   resides in the same region as the nodes to communicate with the
   peered |vpc|.
 
-To learn more, see :doc:`/security-vpc-peering`.
+To learn more, see :atlas:`/security-vpc-peering`.
