@@ -5,5 +5,5 @@
      see :ref:`atlas-free-tier`.
    - This feature is not supported on {+Serverless-instances+} at this time. 
      To learn more, see 
-     :doc:`{+Serverless-Instance+} Limitations 
+     :atlas:`{+Serverless-Instance+} Limitations 
      </reference/serverless-instance-limitations/>`.

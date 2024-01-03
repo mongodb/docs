@@ -5,7 +5,7 @@ size.
 
 **See Also:** :ref:`server-number-costs`.
 
-If you deploy a :doc:`Global Cluster </global-clusters>`, you must
+If you deploy a :atlas:`Global Cluster </global-clusters>`, you must
 choose a instance size of **M30** or greater.
 
 .. tabs-cloud-providers::

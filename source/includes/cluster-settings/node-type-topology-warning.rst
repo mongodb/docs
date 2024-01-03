@@ -7,5 +7,5 @@ respect to node types during topology changes.
    node ``foo123-shard-00-03-a1b2c.mongodb.net:27017``, |service| does
    not guarantee that specific host name will continue to refer to an
    analytics node after a topology change, such as
-   :doc:`scaling a cluster </scale-cluster>` to modify its
+   :atlas:`scaling a cluster </scale-cluster>` to modify its
    number of nodes or regions.
