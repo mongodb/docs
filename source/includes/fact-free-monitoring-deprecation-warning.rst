@@ -1,6 +1,6 @@
 .. warning:: Free monitoring is decommissioned.  
 
-   Free monitoring was decommmissioned in August 2023. 
+   Free monitoring was decommissioned in August 2023. 
 
    Beginning in April 2023, you cannot enable free monitoring on MongoDB
    Community instances.
@@ -8,7 +8,7 @@
    The following list shows monitoring options for your deployment:
 
    - **Deploy a MongoDB Atlas dedicated cluster**. :ref:`Migrate your
-     data <live-migration>` to a :ref:`MongoDB Atlas
+     data <live-migration-pre60>` to a :ref:`MongoDB Atlas
      <atlas-getting-started>` dedicated cluster sized M10 or greater,
      which includes several advanced monitoring and alerting features:
 
