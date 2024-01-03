@@ -1,3 +1,17 @@
+.. _atlas_2023_13_12:
+
+13 December 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Support for auto-index creation for |service| 
+  {+serverless-instances+}. To learn more, see
+  :ref:`auto-index-serverless`.
+- Support for migrations between sharded {+clusters+} with a different
+  number of shards for MongoDB 6.0+ with Atlas Live Migration. To learn
+  more, see :ref:`c2c-pull-live-migration`.
+- Support for push-based logging integration with |aws| |s3|. To
+  learn more, see :ref:`mongodb-logs-push`.
+
 .. _atlas_2023_05_12:
 
 05 December 2023 Release
