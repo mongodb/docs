@@ -1,3 +1,36 @@
+.. _opsmgr-server-6.0.21:
+
+|onprem| Server 6.0.21:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-12-14*
+
+- Updates the {+mdbagent+} to :ref:`12.0.29.7785 
+  <mongodb-12.0.29.7785>`.
+
+- Compatible with :dbtools:`MongoDB Database Tools 100.9.4
+  </release-notes/database-tools-changelog/#100.9.4-changelog>`.
+- Adds support for |bic-full| 2.14.12.
+- Adds the ``backupJobsEnabledOnly`` |api| parameter to indicate whether to 
+  exclude :opsmgr:`daemons </reference/glossary/#term-backup-daemon>` not enabled for backing up 
+  databases from the |api| response. 
+- Disallows setting your ``logRotate`` configuration to ``reopen``
+  if you've already configured :ref:`log rotation <configure-mms-log-rotation>`
+  by the {+mdbagent+} in the UI.
+- Fixes a bug where users in :doc:`local mode </tutorial/configure-local-mode>` 
+  could not use the :guilabel:`Validate LDAP Connection` button when 
+  configuring |ldap| in the UI.
+- Fixes a bug where a backup with :ref:`namespace filtering <namespaces-filter>` 
+  fails due to a file list error.
+- Fixes a bug where a backup successfully restarts before an :term:`oplog store 
+  <Oplog Store Database>` could be assigned.
+- Fixes a bug where the :guilabel:`Blockstore Minimum Block Size` dropdown displays 
+  incorrectly in the Admin UI.
+- Fixes the following |cve|\s:
+
+  - `CVE-2023-45285 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-45285>`__
+  - `CVE-2023-39326 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-39326>`__
+
 .. _opsmgr-server-6.0.20:
 
 |onprem| Server 6.0.20:

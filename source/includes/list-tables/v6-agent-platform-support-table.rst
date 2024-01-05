@@ -1,6 +1,6 @@
 .. list-table::
     :header-rows: 1
-    :widths: 20 20 10 10 10 10 10 10
+    :widths: 15 25 10 10 10 10 10 10
 
     * - Architecture
       - Distro/OS
@@ -11,7 +11,7 @@
       - 4.0
       - 3.6
     * - x86_64
-      - RHEL/Centos 7
+      - RHEL/CentOS/Oracle Linux 7 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -19,7 +19,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Centos/Rocky/Alma 8 :sup:`1`
+      - RHEL/Rocky/Alma Linux/Oracle Linux 8 :sup:`1` :sup:`2`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -27,7 +27,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - 
-      - RHEL/Centos/Rocky/Alma 9 :sup:`1`
+      - RHEL/Rocky/Alma Linux/Oracle Linux 9 :sup:`1` :sup:`2`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - 
@@ -59,7 +59,7 @@
       -
       -
     * - 
-      - Debian 8 :sup:`2`
+      - Debian 8 :sup:`3`
       - 
       -
       -
@@ -67,7 +67,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 9 :sup:`2`
+      - Debian 9 :sup:`3`
       -
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -75,7 +75,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 10 :sup:`2`
+      - Debian 10 :sup:`3`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -83,7 +83,7 @@
       -
       -
     * -
-      - Debian 11 :sup:`2`
+      - Debian 11 :sup:`3`
       - :icon:`check-circle`
       - :icon:`check-circle`
       -
@@ -115,7 +115,7 @@
       -
       -
     * - 
-      - Ubuntu 22.x :sup:`3`
+      - Ubuntu 22.x :sup:`4`
       - :icon:`check-circle`
       - 
       - 
@@ -179,11 +179,16 @@
       -
       -
 
-:sup:`1` Your Rocky and Alma Linux :abbr:`OS (Operating System)`
+:sup:`1` MongoDB supports Oracle Linux running
+:abbr:`RHCK (Red Hat Compatible Kernel)` only. 
+MongoDB doesn't support Oracle Linux running
+:abbr:`UEK (Unbreakable Enterprise Kernel)`.
+
+:sup:`2` Your Rocky and Alma Linux :abbr:`OS (Operating System)`
 must include the ``redhat-lsb-core`` package. 
 
-:sup:`2` Your Debian installation must include the
+:sup:`3` Your Debian installation must include the
 ``lsb-release`` package. To learn more, see `lsb-release
 <https://packages.debian.org/sid/lsb-release>`__. 
 
-:sup:`3` |bic-full| isn't supported on Ubuntu 22.04. 
+:sup:`4` |bic-full| isn't supported on Ubuntu 22.04.
