@@ -2,9 +2,9 @@
    :widths: 50 50
    :header-rows: 1
    :class: licenses
-   
+
    * - Package
      - Copyright
      
-   * - `type-fest <https://www.npmjs.com/package/type-fest/v/2.19.0>`__
-     - 
+   * - `through2 <https://www.npmjs.com/package/through2/v/0.6.5>`__
+     - Copyright © 2013 Rod Vagg

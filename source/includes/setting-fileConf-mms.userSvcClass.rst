@@ -24,14 +24,14 @@
           .. important::
    
              If you use the old accepted value,
-             ``com.xgen.svc.mms.svc.user.UserSvcDb``, your |mms|
+             ``UserSvcDb``, your |mms|
              instance will not start during preflight checks.
    
       * - |ldap|
-        - ``com.xgen.svc.mms.svc.user.UserSvcLdap``
+        - ``UserSvcLdap``
    
       * - |saml|
-        - ``com.xgen.svc.mms.svc.user.UserSvcSaml``
+        - ``UserSvcSaml``
    
    
    Corresponds to :setting:`User Authentication Method`.

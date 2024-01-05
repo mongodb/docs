@@ -6,5 +6,6 @@
    * - Package
      - Copyright
 
-   * - opendmk-1.0-b02
-     - Copyright © 1998-2007 Sun Microsystems, Inc. 
+   * - `OpenJDK <https://mvnrepository.com/artifact/OpenJDK/17.0.9_9>`__
+     - 
+ 

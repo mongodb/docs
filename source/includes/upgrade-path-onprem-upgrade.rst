@@ -28,6 +28,8 @@ upgrade path you must take to upgrade to |onprem| 4.4 or later.
    table has additional information related to the upgrade procedure 
    for a given version, review it first.
 
+.. include:: /includes/note-push-pull-migration-deprecation-for-om.rst
+
 The following table lists upgrade paths for all versions:
 
 .. list-table::
@@ -38,10 +40,20 @@ The following table lists upgrade paths for all versions:
 
      - Upgrade Path
 
+   * - 7.0.x
+     - Upgrade from |onprem| 7.0.x to the latest available patch 
+       version of 7.0 using 
+       :ref:`this procedure <upgrade-om-procedure>`.
+
+       .. seealso
+
+          :ref:`Ops Manager 7.0 releases <opsmgr-server-7.0>`
+
    * - 6.0.x
      - Upgrade from |onprem| 6.0.x to the latest available patch 
-       version of 6.0 using 
-       :ref:`this procedure <upgrade-om-procedure>`.
+       version of 6.0. Then upgrade to the latest available version of 
+       7.0. Use :ref:`this procedure <upgrade-om-procedure>` for both
+       upgrades.
 
        .. seealso
 

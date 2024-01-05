@@ -6,7 +6,8 @@
 
    
    Select whether to store authentication credentials in the |onprem|
-   Application Database or in an |ldap| directory.
+   Application Database, a |saml| |idp|, or in an |ldap|
+   directory.
    
    Accepted values are:
    
