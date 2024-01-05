@@ -60,31 +60,6 @@ that |service| implements.
      - Description
      - Example
 
-   * - Provider
-     - Cloud provider on which the node is provisioned.
-
-       Possible values are:
-
-       - ``AWS``
-       - ``GCP``
-       - ``AZURE``
-
-     - ``{"provider" : "AWS"}``
-
-   * - Region
-     - Cloud region in which the node resides.
-
-       For a complete list of possible ``region`` values for each cloud
-       provider, see the cloud provider's reference page:
-
-       - :ref:`AWS <amazon-aws>`
-
-       - :ref:`GCP <google-gcp>`
-
-       - :ref:`Azure <microsoft-azure>`
-
-     - ``{"region" : "US_EAST_2"}``
-
    * - Availability Zone
      - |aws| availability zone ID, |gcp| fully-qualified name for a 
        zone, or |azure| zone number.
@@ -115,14 +90,35 @@ that |service| implements.
        Possible values are:
 
        - ``ELECTABLE``
-
        - ``READ_ONLY``
-
        - ``ANALYTICS``
 
        For more information, see :ref:`repl-set-node-types`.
 
      - ``{"nodeType" : "ANALYTICS"}``
+
+   * - Provider
+     - Cloud provider on which the node is provisioned.
+
+       Possible values are:
+
+       - ``AWS``
+       - ``GCP``
+       - ``AZURE``
+
+     - ``{"provider" : "AWS"}``
+
+   * - Region
+     - Cloud region in which the node resides.
+
+       For a complete list of possible ``region`` values,
+       see the reference page for your cloud provider:
+
+       - :ref:`AWS <amazon-aws>`
+       - :ref:`GCP <google-gcp>`
+       - :ref:`Azure <microsoft-azure>`
+
+     - ``{"region" : "US_EAST_2"}``
    
    * - Workload Type
      - Pre-defined replica set tag to distribute your workload evenly 
@@ -133,6 +129,40 @@ that |service| implements.
        - ``OPERATIONAL``
 
      - ``{"workloadType" : "OPERATIONAL"}``    
+
+   * - Disk State
+     - State of your disk. 
+
+       Possible value: ``READY``
+
+       For more information, see :ref:`repl-set-disk-states`.
+
+     - ``{"diskState" : "READY"}``
+
+.. _repl-set-disk-states:
+
+Disk States
+~~~~~~~~~~~
+
+The following table describes the possible ``diskState`` values in your
+pre-defined replica set tags.
+
+.. list-table::
+   :widths: 10 40
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Disk State
+     - Description
+
+   * - ``READY``
+     -  Only target warm nodes.
+      
+        You can run queries without experiencing increased or
+        unpredictable latency.
+
+For an example of this replica set tag, see
+:ref:`reduce-secondary-disk-warming-example`.
 
 .. _repl-set-node-types:
 
@@ -296,6 +326,34 @@ geographic region for reduced latency and improved performance.
    preferences, refer to the
    :manual:`Read Preference page in the MongoDB Manual
    </reference/read-preference/#use-cases>`.
+
+.. _reduce-secondary-disk-warming-example:
+
+Reduce Secondary Disk Warming Impact
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use a node while :aws:`disk pre-warming occurs
+</AWSEC2/latest/UserGuide/ebs-initialize.html>`. Disk pre-warming occurs
+when |service| adds or replaces a node to your cluster. It uses most of the
+|iops| available for a volume, which slows down operations such as
+secondary reads on the pre-warming node.
+
+Consider the following connection string:
+
+.. code-block:: none
+   
+   mongodb+srv://<USERNAME>:<PASSWORD>@foo-q8x1v.mycluster.com/test?readPreference=secondary&readPreferenceTags=diskState:READY&readConcernLevel=local
+
+The connection string options appear in the following order:
+
+- ``readPreference=secondary``
+- ``readPreferenceTags=diskState:READY``
+- ``readConcernLevel=local``
+
+The :manual:`readPreference </reference/read-preference>` option of
+``secondary`` and :manual:`readPreferenceTag
+</core/read-preference/#tag-sets>` option of ``{ diskState : READY }``
+tells |service| to only target warm nodes.
 
 .. _built-in-custom-wc:
 
