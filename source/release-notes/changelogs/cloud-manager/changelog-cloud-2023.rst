@@ -1,3 +1,15 @@
+.. _cloudmanager_20231115:
+
+15 November 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`13.8.1.8557-1`. 
+- Improves upgrading {+mongosh+} when multiple versions are present.
+- Improves validations of invalid MongoDB database paths.
+- Improves visibility into processes that may prevent the {+mdbagent+} from 
+  reaching the desired goal state.
+- Fixes PagerDuty notification validation in alerts.
+
 .. _cloudmanager_20231018:
 
 18 October 2023 Release

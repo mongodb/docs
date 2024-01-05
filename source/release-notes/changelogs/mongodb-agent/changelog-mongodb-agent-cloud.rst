@@ -1,3 +1,15 @@
+.. _13.8.1.8557-1:
+
+MongoDB Agent 13.8.1.8557-1
+===========================
+
+*Released* 2023-11-15
+
+- Improves upgrading {+mongosh+} when multiple versions are present.
+- Improves validations of invalid MongoDB database paths.
+- Improves visibility into processes that may prevent the {+mdbagent+} from 
+  reaching the desired goal state.
+
 .. _13.7.0.8514:
 
 MongoDB Agent 13.7.0.8514
