@@ -4,12 +4,16 @@
    :widths: 34 33 33
 
    * - MongoDB Version
+     - |onprem| 7.0
      - |onprem| 6.0
-     - |onprem| 5.0
+
+   * - MongoDB 7.0
+     - :icon-fa5:`check-circle`
+     - 
 
    * - MongoDB 6.0
      - :icon-fa5:`check-circle`
-     - 
+     - :icon-fa5:`check-circle`
 
    * - MongoDB 5.0
      - :icon-fa5:`check-circle`
@@ -20,21 +24,16 @@
      - :icon-fa5:`check-circle`
 
    * - MongoDB 4.2
-     - :icon-fa5:`check-circle`
+     - :icon-fa5:`check-square`
      - :icon-fa5:`check-circle`
 
    * - MongoDB 4.0
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - 
+     - :icon-fa5:`check-square`
 
    * - MongoDB 3.6
      - 
-     - :icon-fa5:`check-circle`
-
-   * - MongoDB 3.4
-     - 
      - 
 
-   * - MongoDB 3.2
-     - 
-     -
+:icon-fa5:`check-circle` Supported
+:icon-fa5:`check-square` Deprecated

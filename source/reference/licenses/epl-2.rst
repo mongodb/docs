@@ -6,107 +6,107 @@
    * - Package
      - Copyright
 
-   * - `com.sun.mail:jakarta.mail <https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail/1.6.7>`__
-     - Copyright © 2021 Oracle and/or its affiliates, 
-       Copyright © 1997, 2019 Oracle and/or its affiliates, 
-       Copyright © 2005, 2019 Oracle and/or its affiliates, 
-       Copyright © 2014, 2019 Oracle and/or its affiliates, 
-       Copyright © 1997, 2018 Oracle and/or its affiliates, 
-       Copyright © 1997, 2021 Oracle and/or its affiliates, 
-       Copyright © 2014, 2018 Oracle and/or its affiliates, 
-       Copyright © 2010, 2018 Oracle and/or its affiliates, 
-       Copyright © 1997, 2020 Oracle and/or its affiliates, 
-       Copyright © 2019 Oracle and/or its affiliates, 
-       Copyright © 2008, 2018 Oracle and/or its affiliates, 
-       Copyright © 2012, 2019 Oracle and/or its affiliates, 
-       Copyright © 2012, 2018 Oracle and/or its affiliates, 
-       Copyright © 2013, 2021 Oracle and/or its affiliates, 
-       Copyright © 2013, 2019 Oracle and/or its affiliates, 
-       Copyright © 2013, 2019 Jason Mehrens, 
-       Copyright © 2013, 2021 Jason Mehrens, 
-       Copyright © 2015, 2019 Oracle and/or its affiliates, 
-       Copyright © 2015, 2018 Jason Mehrens, 
-       Copyright © 2009, 2021 Oracle and/or its affiliates, 
-       Copyright © 2009, 2021 Jason Mehrens, 
-       Copyright © 2009, 2020 Oracle and/or its affiliates, 
-       Copyright © 2009, 2020 Jason Mehrens, 
-       Copyright © 2009, 2019 Oracle and/or its affiliates, 
-       Copyright © 2009, 2018 Jason Mehrens, 
-       Copyright © 2013, 2018 Oracle and/or its affiliates, 
-       Copyright © 2013, 2018 Jason Mehrens, 
-       Copyright © Eclipse Foundation, Inc., 
-       Copyright © 2018 Eclipse Foundation, COPYRIGHT HOLDERS AND THE ECLIPSE FOUNDATION, 
-       Copyright © 2010, 2019 Oracle and/or its affiliates, 
-       Copyright © 1989, 1991 Free Software Foundation, Inc.
+   * - `jakarta.annotation:jakarta.annotation-api <https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api/2.1.1>`__
+     - | Copyright © 2005, 2009, 2012, 2018, 2020-2022 Oracle and/or its affiliates
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
+       | Copyright © 2019, 2021 Eclipse Foundation
 
-   * - `jakarta.annotation:jakarta.annotation-api <https://mvnrepository.com/artifact/jakarta.annotation/jakarta.annotation-api/1.3.5>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 2012, 2018 Oracle and/or its affiliates, 
-       Copyright 2019 Eclipse Foundation.
+   * - `jakarta.el:jakarta.el-api <https://mvnrepository.com/artifact/jakarta.el/jakarta.el-api/5.0.1>`__
+     - | Copyright © 2021 Contributors
+       | Copyright © 1997, 2010, 2012-2013, 2019-2022 Oracle and/or its affiliates and others
+       | Copyright © 2018, 2022 Eclipse Foundation
+       | Copyright © 2004 The Apache Software Foundation
+       | Copyright © 1997, 2019, 2021 Oracle and/or its affiliates
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - `jakarta.el:jakarta.el-api <https://mvnrepository.com/artifact/jakarta.el/jakarta.el-api/3.0.3>`__
-     - Copyright © 1997-2018 Oracle and/or its affiliates, 
-       Copyright 2004 The Apache Software Foundation, 
-       Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 1997, 2018 Oracle and/or its affiliates and others., 
-       Copyright 2019 Eclipse Foundation.
+   * - `jakarta.servlet:jakarta.servlet-api <https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api/5.0.0>`__
+     - | Copyright © 1997, 2008-2009, 2017, 2019-2020 Oracle and/or its affiliates and others
+       | Copyright © 2019-2020 Eclipse Foundation
+       | Copyright © 2004 The Apache Software Foundation
+       | Copyright © 1999-2000, 2009, 2018, 2020 Oracle and/or its affiliates,
+       | Copyright © 2002 International Business Machines Corporation
 
-   * - `jakarta.mail:jakarta.mail-api <https://mvnrepository.com/artifact/jakarta.mail/jakarta.mail-api/1.6.7>`__
-     - Copyright © 2021 Oracle and/or its affiliates, 
-       Copyright © 1997, 2019 Oracle and/or its affiliates, 
-       Copyright © Eclipse Foundation, Inc., 
-       Copyright © 2018 Eclipse Foundation, COPYRIGHT HOLDERS AND THE ECLIPSE FOUNDATION, 
-       Copyright © 1997, 2018 Oracle and/or its affiliates, 
-       Copyright © 2012, 2019 Oracle and/or its affiliates, 
-       Copyright © 2012, 2018 Oracle and/or its affiliates, 
-       Copyright © 1997, 2021 Oracle and/or its affiliates, 
-       Copyright © 1989, 1991 Free Software Foundation, Inc.
+   * - `jakarta.transaction:jakarta.transaction-api <https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api/2.0.0>`__
+     - | Copyright © 1997, 2010, 2012-2013, 2020 Oracle and/or its affiliates
+       | Copyright © 2018, 2020 Eclipse Foundation
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - `jakarta.transaction:jakarta.transaction-api <https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api/1.3.3>`__
-     - Copyright © 2010, 2018 Oracle and/or its affiliates, 
-       Copyright © 2012, 2018 Oracle and/or its affiliates, 
-       Copyright 2019 Eclipse Foundation.
+   * - `jakarta.websocket:jakarta.websocket-api <https://mvnrepository.com/artifact/jakarta.websocket/jakarta.websocket-api/2.1.0>`__
+     - | Copyright © 2021 Contributors
+       | Copyright © 2018-2022 Oracle and/or its affiliates and others
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - `jakarta.ws.rs:jakarta.ws.rs-api <https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api/2.1.6>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 2011, 2019 Oracle and/or its affiliates, 
-       Copyright 1996-2017, http://www.oracle.com' Oracle and/or its affiliates, 
-       Copyright © 2019 Eclipse Foundation.
+   * - `jakarta.websocket:jakarta.websocket-client-api <https://mvnrepository.com/artifact/jakarta.websocket/jakarta.websocket-client-api/2.1.0>`__
+     - | Copyright © 2021 Contributors
+       | Copyright © 2018-2022 Oracle and/or its affiliates and others
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - `jakarta.xml.rpc:jakarta.xml.rpc-api <https://mvnrepository.com/artifact/jakarta.xml.rpc/jakarta.xml.rpc-api/1.1.4>`__
-     - Copyright © 2012, 2019 Oracle and/or its affiliates, 
-       Copyright © 2019 Eclipse Foundation, 
-       Copyright © 2003, 2018 Oracle and/or its affiliates, 
-       Copyright © 2018 Oracle and/or its affiliates
+   * - `jakarta.ws.rs:jakarta.ws.rs-api <https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api/3.1.0>`__
+     - | Copyright © 2010-2013, 2015, 2017, 2019-2021 Oracle and/or its affiliates
+       | Copyright © 2018 Markus KARG.
+       | Copyright © 2018, 2020-2021 Eclipse Foundation
+       | Copyright © 2006 Google Inc.
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - `org.glassfish.hk2.external:aopalliance-repackaged <https://mvnrepository.com/artifact/org.glassfish.hk2.external/aopalliance-repackaged/2.6.1>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 2013, 2018 Oracle and/or its affiliates.
+   * - `org.aspectj:aspectjrt <https://mvnrepository.com/artifact/org.aspectj/aspectjrt/1.9.7>`__
+     - | Copyright © 2005-2006, 2009, 2013-2014 
+       | Copyright © 1999-2018 Xerox Corporation, Palo Alto Research Center, Incorporated
+       | Copyright © 2006 IBM Corporation and others
+       | Copyright © 2004 IBM Corporation
 
-   * - `org.glassfish.hk2.external:jakarta.inject <https://mvnrepository.com/artifact/org.glassfish.hk2.external/jakarta.inject/2.6.1>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 2010, 2018 Oracle and/or its affiliates.
+   * - `org.glassfish.hk2.external:aopalliance-repackaged <https://mvnrepository.com/artifact/org.glassfish.hk2.external/aopalliance-repackaged/3.0.3>`__
+     - | Copyright © 2013, 2018 Oracle and/or its affiliates
+       | Copyright © 2019 Payara Services Ltd.
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - `org.glassfish.hk2:guice-bridge <https://mvnrepository.com/artifact/org.glassfish.hk2/guice-bridge/2.6.1>`__
-     - Copyright © 2013, 2018 Oracle and/or its affiliates, 
-       Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation
+   * - `org.glassfish.hk2:guice-bridge <https://mvnrepository.com/artifact/org.glassfish.hk2/guice-bridge/3.0.3>`__
+     - | Copyright © 2013, 2018 Oracle and/or its affiliates
+       | Copyright © 2019-2020 Payara Services Ltd.
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
-   * - `org.glassfish.hk2:hk2-api <https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-api/2.6.1>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 2010, 2018 Oracle and/or its affiliates.
+   * - `org.glassfish.hk2:hk2-api <https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-api/3.0.3>`__
+     - | Copyright © 2007, 2010-2019 Oracle and/or its affiliates
+       | Copyright © 2019-2020 Payara Services Ltd.
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
+       | Copyright © 2019 Payara Services and/or its affiliates
 
-   * - `org.glassfish.hk2:hk2-locator <https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-locator/2.6.1>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 2010, 2018 Oracle and/or its affiliates.
+   * - `org.glassfish.hk2:hk2-locator <https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-locator/3.0.3>`__
+     - | Copyright © 2010, 2012-2016, 2018-2019 Oracle and/or its affiliates
+       | Copyright © 2019-2021 Payara Services Ltd.
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
+       | Copyright © 2019 Payara Service Ltd. and/or its affiliates
 
-   * - `org.glassfish.hk2:hk2-utils <https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-utils/2.6.1>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc., copyrighted by the Free Software Foundation, 
-       Copyright © 2010, 2018 Oracle and/or its affiliates.
+   * - `org.glassfish.hk2:hk2-utils <https://mvnrepository.com/artifact/org.glassfish.hk2/hk2-utils/3.0.3>`__
+     - | Copyright © 2007, 2010, 2012-2016, 2018-2019 Oracle and/or its affiliates
+       | Copyright © 2019-2020 Payara Services Ltd.
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
 
    * - `org.glassfish.hk2:osgi-resource-locator <https://mvnrepository.com/artifact/org.glassfish.hk2/osgi-resource-locator/1.0.3>`__
-     - Copyright © 2010, 2018 Oracle and/or its affiliates.
+     - | Copyright © 2010, 2018 Oracle and/or its affiliates.
 
-   * - `org.glassfish:jakarta.el <https://mvnrepository.com/artifact/org.glassfish/jakarta.el/3.0.4>`__
-     - Copyright © 1989, 1991 Free Software Foundation, Inc.,
-       Copyright © 1997-2018, 2021 Oracle and/or its affiliates and others, 
-       Copyright © 2004 The Apache Software Foundation
+   * - `org.glassfish:jakarta.el <https://mvnrepository.com/artifact/org.glassfish/jakarta.el/4.0.2>`__
+     - | Copyright © 1997, 2012, 2018, 2020-2021 Oracle and/or its affiliates
+       | Copyright © 1997, 2012, 2020 Oracle and/or its affiliates and others
+       | Copyright © 1989, 1991 Free Software Foundation, Inc.
+       | Copyright © 2018, 2020 Eclipse Foundation
+
+   * - `org.glassfish.jersey.core:jersey-common <https://mvnrepository.com/artifact/org.glassfish.jersey.core/jersey-common/3.1.0>`__
+     - | Copyright © 1989, 1991 Free Software Foundation, Inc.
+       | Copyright © 2006-2014 The Guava Authors
+       | Copyright © Written by Doug Lea,
+       | Copyright © 2010-2017 Google, Inc.
+       | Copyright © Bean Validation API
+       | Copyright © 2009 Red Hat, Inc.
+       | Copyright © 2011-2016 Twitter, Inc
+       | Copyright © 2009 The JSR-330 Expert Group
+       | Copyright © 1999 Shigeru Chiba
+       | Copyright © 2009-2022 FasterXML, LLC.
+       | Copyright © jQuery Foundation
+       | Copyright © 2009 Antonello Pasella
+       | Copyright © Eric Rowell
+       | Copyright © 2000-2011 INRIA, France Telecom
+       | Copyright © 2005, 2008 OSGi Alliance ()
+       | Copyright © 2007, 2009-2022 Oracle and/or its affiliates
+       | Copyright © 2010-2013 Coda Hale and Yammer, Inc.
+       | Copyright © 1994-2001 World Wide Web Consortium
+       | Copyright © 2018, 2022 Payara Foundation and/or its affiliates

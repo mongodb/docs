@@ -1,6 +1,6 @@
 .. list-table::
     :header-rows: 1
-    :widths: 20 20 10 10 10 10 10 10 10
+    :widths: 15 25 10 10 10 10 10 10 10
 
     * - Architecture
       - Distro/OS
@@ -12,7 +12,7 @@
       - 4.0
       - 3.6
     * - x86_64
-      - RHEL/Centos 7
+      - RHEL/CentOS/Oracle Linux 7
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -21,7 +21,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - RHEL/Centos/Rocky/Alma 8 :sup:`1`
+      - RHEL/Rocky/Alma Linux/Oracle Linux 8 :sup:`1`
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -29,6 +29,15 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
+    * - 
+      - RHEL/Rocky/Alma Linux/Oracle Linux 9 :sup:`1`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      - 
+      - 
+      - 
+      - 
     * -
       - Amazon Linux 2
       - :icon:`check-circle`
@@ -57,7 +66,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - 
-      - SUSE15 
+      - SUSE15
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
