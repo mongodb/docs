@@ -98,7 +98,7 @@
       mms.fromEmailAddr=example@example.com
       mms.replyToEmailAddr=example@example.com
       mms.adminEmailAddr=example@example.com
-      mms.mail.transport=smtps
+      mms.mail.transport=smtp
       mms.mail.hostname=mail.example.com
       mms.mail.port=465
    
