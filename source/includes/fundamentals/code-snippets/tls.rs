@@ -5,7 +5,7 @@ use mongodb::{ options::{ ClientOptions, TlsOptions, Tls }, Client };
 async fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
 
-    let mut client_options = ClientOptions::parse(uri).await?;
+    let mut client_options = ClientOptions::parse_async(uri).await?;
 
     let ca_file = PathBuf::from(r"<path to CA certificate>");
     let key_file = PathBuf::from(r"<path to client certificate>");

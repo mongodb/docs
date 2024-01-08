@@ -4,7 +4,7 @@ use mongodb::{ bson::doc, options::{ ClientOptions, ServerApi, ServerApiVersion 
 async fn main() -> mongodb::error::Result<()> {
     // Replace the placeholder with your Atlas connection string
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse(uri).await?;
+    let mut client_options = ClientOptions::parse_async(uri).await?;
 
     // Set the server_api field of the client_options object to Stable API version 1
     let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
