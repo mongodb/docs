@@ -9,7 +9,7 @@ use mongodb::{
 async fn main() -> mongodb::error::Result<()> {
     // begin-clientoptions
     let uri = "<connection string>";
-    let mut client_options = ClientOptions::parse(uri).await?;
+    let mut client_options = ClientOptions::parse_async(uri).await?;
 
     let compressors = vec![
         Compressor::Snappy,

@@ -11,7 +11,7 @@ use mongodb::{
 fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
 
-    let mut client_options = ClientOptions::parse(uri).await?;
+    let mut client_options = ClientOptions::parse_async(uri).await?;
 
     // begin-command
     struct CommandStartHandler;
