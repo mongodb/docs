@@ -18,12 +18,6 @@
     score: 0.7416020035743713
   },
   {
-    plot: 'A boy raised by wolves tries to adapt to human village life.',
-    title: 'Jungle Book',
-    year: 1942,
-    score: 0.7387760877609253
-  },
-  {
     plot: 'A pilot, stranded in the desert, meets a little boy who is a prince on a planet.',
     title: 'The Little Prince',
     year: 1974,
@@ -48,15 +42,21 @@
     score: 0.7339356541633606
   },
   {
-    plot: 'Arriving home to find his native land under the yoke of corrupt merchants, an adventurer named Sadko sets sail in search of a mythical bird of happiness.',
-    title: 'Sadko',
-    year: 1953,
-    score: 0.7339220643043518
-  },
-  {
     plot: "A young boys' coming of age tale set in a strange, carnivalesque village becomes the recreation of a memory that the director has twenty years later.",
     title: 'Pastoral Hide and Seek',
     year: 1974,
     score: 0.733299970626831
+  },
+  {
+    plot: 'A young swordsman comes to Paris and faces villains, romance, adventure and intrigue with three Musketeer friends.',
+    title: 'The Three Musketeers',
+    year: 1973,
+    score: 0.7331198453903198
+  },
+  {
+    plot: 'A fairy-tale about a conceited young man and a young woman with a tyrannical step-mother, who must overcome magical trials in order to be together.',
+    title: 'Frosty',
+    year: 1964,
+    score: 0.7318308353424072
   }
 ]
