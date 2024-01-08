@@ -1,3 +1,5 @@
+// Updates the first document that matches a query filter by using the C# driver
+
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
@@ -12,10 +14,10 @@ public class UpdateOne
     {
         Setup();
 
-        // Extra space for console readability 
+        // Prints extra space for console readability 
         Console.WriteLine();
 
-        // Update one document synchronously
+        // Updates one document by using a helper method
         var syncResult = UpdateOneRestaurant();
         Console.WriteLine($"Updated documents: {syncResult.ModifiedCount}");
         ResetSampleData();
@@ -27,23 +29,27 @@ public class UpdateOne
         const string oldValue = "Bagels N Buns";
         const string newValue = "2 Bagels 2 Buns";
 
+        // Creates a filter for all documents with a "name" of "Bagels N Buns"
         var filter = Builders<Restaurant>.Filter
             .Eq(restaurant => restaurant.Name, oldValue);
 
+        // Creates instructions to update the "name" field of the first document
+        // that matches the filter
         var update = Builders<Restaurant>.Update
             .Set(restaurant => restaurant.Name, newValue);
 
+        // Updates the first document that has a "name" value of "Bagels N Buns"
         return _restaurantsCollection.UpdateOne(filter, update);
         // end-update-one
     }
 
     private static void Setup()
     {
-        // This allows automapping of the camelCase database fields to our models. 
+        // Allows automapping of the camelCase database fields to models 
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
 
-        // Establish the connection to MongoDB and get the restaurants database
+        // Establishes the connection to MongoDB and accesses the "sample_restaurants" collection
         var mongoClient = new MongoClient(MongoConnectionString);
         var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
         _restaurantsCollection = restaurantsDatabase.GetCollection<Restaurant>("restaurants");
