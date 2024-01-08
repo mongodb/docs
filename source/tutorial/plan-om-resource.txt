@@ -6,6 +6,10 @@ Plan Your Ops Manager Resource
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -277,7 +281,7 @@ To disable backup after you enabled it:
    To learn about reclaiming |k8s-pvs|, see the
    :k8sdocs:`Kubernetes documentation </concepts/storage/persistent-volumes/#reclaiming>`.
 
-.. _kmip-workaround:
+.. _kmip-manual-procedure:
 
 Manually Configure KMIP Backup Encryption
 +++++++++++++++++++++++++++++++++++++++++
@@ -289,16 +293,43 @@ you must manually configure |kmip| backup encryption client settings in |onprem|
 using the following procedure. If the |k8s-op-short| *is* managing both resources, 
 see :ref:`configure-kmip-backup-encryption` instead.
 
-1. Get the absolute path to the |kmip| client certificate for each MongoDB 
-   :ref:`project <projects-page-admin-ui>` in your deployment. All deployments 
-   in the project use the same |kmip| client certificate file to authenticate 
-   to the |kmip| server.
+Prerequisites
+#############
 
-2. Mount the |kmip| client certificates to |onprem| by overriding the 
-   |k8s-statefulset|.
+- A running |kmip| server.
+- A running |onprem| instance, `configured to use KMIP <https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/configure-kmip-backup-encryption/#configure-the-onprem-custom-resource-to-use-kmip-backup-encryption>`__.
+- A |tls| secret that :ref:`concatenates the private key and the KMIP client certificate in PEM format <client-cert-kmip>`.
+
+Procedure
+#########
+
+1. Mount the |tls| secret to the :ref:`MongoDBOpsManager <k8s-om-specification>` custom resource. For example:
+
+   .. code-block:: yaml
+ 
+      apiVersion: mongodb.com/v1
+      kind: MongoDBOpsManager
+      metadata:
+        name: ops-manager-pod-spec
+      spec:
+        < ... omitted ... >
+        statefulSet:
+          spec:
+            template:
+              spec:
+                volumes:
+                - name: kmip-client-test-prefix-mdb-latest-kmip-client
+                  secretName: test-prefix-mdb-latest-kmip-client
+                containers:
+                  - name: mongodb-ops-manager
+                    volumeMounts:
+                    - mountPath: /mongodb-ops-manager/kmip/client/test-prefix-mdb-latest-kmip-client
+                      name: kmip-client-test-prefix-mdb-latest-kmip-client
+                      readOnly: true
+        ...
    
-3. Configure the |kmip| settings for your project in |onprem|. To learn more, 
-   see :ref:`configure-group-kmip`.
+2. Configure the |kmip| settings for your project in |onprem| following the procedure 
+   in :ref:`configure-group-kmip`.
 
 .. _config-https:
 
