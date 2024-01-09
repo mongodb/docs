@@ -1,18 +1,23 @@
-# docs-laravel
+=============================
+Laravel MongoDB Documentation
+=============================
 
-[Your words here].
+This repository contains documentation for the Laravel MongoDBODM.
 
-## Report Issues
+File JIRA Tickets
+-----------------
 
-To file issues or requests regarding the documentation, go to the
-`Documentation Jira Project <https://jira.mongodb.org/browse/DOCS>`_.
+Please file issue reports or requests at the `Documentation Jira Project
+<https://jira.mongodb.org/browse/DOCS>`_.
 
-## License
+Licenses
+--------
 
 All documentation is available under the terms of a `Creative Commons
 License <https://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
 
-If you have any questions, please contact `docs@mongodb.com
-<mailto:docs@mongodb.com>`_.
+The MongoDB Documentation Project is governed by the terms of the
+`MongoDB Contributor Agreement
+<https://www.mongodb.com/legal/contributor-agreement>`_.
 
--- The MongoDB Documentation Team
+-- The MongoDB Documentations Team
