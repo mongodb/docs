@@ -4,7 +4,12 @@
 Indexes
 =======
 
-.. default-domain:: mongodb
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example
 
 .. contents:: On this page
    :local:
@@ -55,7 +60,7 @@ A query in MongoDB can contain the following elements:
 
    * - Projection
      - **Optional**
-     - Specify the fields that MongoDB should return.
+     - Specify the fields that MongoDB returns.
 
    * - Sort
      - **Optional**
@@ -81,7 +86,7 @@ results directly from the index, also called a **covered query**.
    - ``name`` descending, ``age`` ascending
 
    Specifying a sort order of ``name`` and :guilabel:`age` ascending or :guilabel:`name` and ``age``
-   descending would require an in-memory sort.
+   descending requires an in-memory sort.
 
    To learn how to ensure your index covers your query criteria and
    projection, see :manual:`Query Coverage
@@ -91,14 +96,14 @@ Operational Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To improve your query performance, create indexes on fields that appear
-often in your queries and operations that return sorted results. You
-should track index memory and disk usage for capacity planning since
+often in your queries and operations that return sorted results. Track
+index memory and disk usage for capacity planning since
 each index that you add consumes disk space and memory. In addition,
-when  a write operation updates an indexed field, MongoDB
-also has to update the related index.
+when a write operation updates an indexed field, MongoDB
+also must update the related index.
 
 Since MongoDB supports dynamic schemas, your application can query
-against fields with currently unknown or arbitrary names. MongoDB 4.2
+against fields with unknown or arbitrary names. MongoDB 4.2
 introduced :manual:`wildcard indexes </core/index-wildcard/>` to help
 support these queries. Wildcard indexes are not designed to replace
 workload-based index planning.
@@ -121,10 +126,10 @@ Single Field Indexes
 ~~~~~~~~~~~~~~~~~~~~
 
 Single field indexes holds a reference to a field within a
-collection's documents. 
+collection's documents.
 
-This index improves single field queries and sort performance, and 
-supports TLS indexes that automatically remove documents from a
+This index improves single field queries and sort performance, and
+supports TTL indexes that automatically remove documents from a
 collection after a certain amount of time.
 
 .. note::
@@ -145,21 +150,21 @@ The following example creates an index in ascending order on the
    .. input::
       :language: go
 
+      coll := client.Database("sample_mflix").Collection("movies")
       indexModel := mongo.IndexModel{
-          Keys: bson.D{{"title", 1}}
+          Keys: bson.D{{"title", 1}},
       }
       name, err := coll.Indexes().CreateOne(context.TODO(), indexModel)
       if err != nil {
           panic(err)
       }
-
       fmt.Println("Name of Index Created: " + name)
 
    .. output::
       :language: none
       :visible: false
 
-      title_1
+      Name of Index Created: title_1
 
 .. _golang-compound-index:
 
@@ -181,9 +186,10 @@ The following example creates a compound index on the ``fullplot`` and
    .. input::
       :language: go
 
+      coll := client.Database("sample_mflix").Collection("movies")
       indexModel := mongo.IndexModel{
           Keys: bson.D{
-              {"fullplot", -1}, 
+              {"fullplot", -1},
               {"title", 1}
           }
       }
@@ -198,7 +204,7 @@ The following example creates a compound index on the ``fullplot`` and
       :language: none
       :visible: false
 
-      fullplot_-1_title_1
+      Name of Index Created: fullplot_-1_title_1
 
 Multikey Indexes (Indexes on Array Fields)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,6 +226,7 @@ field in the ``sample_mflix.movies`` collection:
    .. input::
       :language: go
 
+      coll := client.Database("sample_mflix").Collection("movies")
       indexModel := mongo.IndexModel{
           Keys: bson.D{{"cast", -1}}
       }
@@ -234,7 +241,7 @@ field in the ``sample_mflix.movies`` collection:
       :language: none
       :visible: false
 
-      cast_-1
+      Name of Index Created: cast_-1
 
 .. _golang-clustered-indexes:
 
@@ -283,7 +290,7 @@ within the compound index.
 
    Text indexes differ from the more powerful
    :atlas:`Atlas full text search indexes </atlas-search>`.
-   Atlas users should use Atlas search.
+   We recommend Atlas search for Atlas users.
 
 Example
 ```````
@@ -297,7 +304,8 @@ collection:
 
    .. input::
       :language: go
-      
+
+      coll := client.Database("sample_mflix").Collection("movies")
       indexModel := mongo.IndexModel{Keys: bson.D{{"title", 1}}}
       name, err := coll.Indexes().CreateOne(context.TODO(), indexModel)
       if err != nil {
@@ -310,7 +318,7 @@ collection:
       :language: none
       :visible: false
 
-      plot_text
+      Name of Index Created: plot_text
 
 .. _golang-geo-indexes:
 
@@ -319,7 +327,7 @@ Geospatial Indexes
 
 MongoDB supports queries containing geospatial coordinate data by using
 **2dsphere indexes**. A ``2dsphere`` index must be in a GeoJSON objects
-field. 
+field.
 
 This index allows you to perform the following:
 
@@ -368,7 +376,7 @@ The following example creates a ``2dsphere`` index on the ``location.geo`` field
    :copyable: true
 
    .. input::
-      :language: go      
+      :language: go
 
       indexModel := mongo.IndexModel{
           Keys: bson.D{{"location.geo", "2dsphere"}}
@@ -393,7 +401,7 @@ Unique Indexes
 
 Unique indexes ensure that the indexed fields do not store duplicate
 values. By default, MongoDB creates a unique index on the ``_id`` field
-during the creation of a collection. 
+during the creation of a collection.
 
 To create a unique index, specify the field or combination of fields
 that you want to prevent duplication on and set the ``unique`` option to
@@ -411,7 +419,7 @@ The following example creates a unique, descending index on the ``theaterId`` fi
       :language: go
 
       indexModel := mongo.IndexModel{
-          Keys: bson.D{{"theaterId", -1}}, 
+          Keys: bson.D{{"theaterId", -1}},
           Options: options.Index().SetUnique(true),
       }
       name, err := coll.Indexes().CreateOne(context.TODO(), indexModel)
@@ -425,7 +433,7 @@ The following example creates a unique, descending index on the ``theaterId`` fi
       :language: none
       :visible: false
 
-      theaterId_-1
+      Name of Index Created: theaterId_-1
 
 .. _golang-remove-index:
 
@@ -445,6 +453,7 @@ in the ``sample_mflix.movies`` collection:
    .. input::
       :language: go
 
+      coll := client.Database("sample_mflix").Collection("movies")
       res, err := coll.Indexes().DropOne(context.TODO(), "title_1")
       if err != nil {
           panic(err)
