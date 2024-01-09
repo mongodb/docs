@@ -1,6 +1,6 @@
 .. list-table::
    :header-rows: 1
-   :widths: 50 25 25
+   :widths: 40 20 20 20
 
    * - {+provider-long+}
      - {+framework-core+} Version
