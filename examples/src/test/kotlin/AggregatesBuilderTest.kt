@@ -28,6 +28,7 @@ import com.mongodb.client.model.geojson.Position
 import com.mongodb.client.model.search.SearchOperator
 import com.mongodb.client.model.search.SearchOptions
 import com.mongodb.client.model.search.SearchPath
+import com.mongodb.client.model.search.VectorSearchOptions.vectorSearchOptions
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.firstOrNull
@@ -77,6 +78,15 @@ class AggregatesBuilderTest {
         val screenSize: Int,
         val manufacturer: String,
         val price: Double
+    )
+    // :snippet-end:
+
+    // :snippet-start: vector-search-data-class
+    data class MovieAlt(
+        val title: String,
+        val year: Int,
+        val plot: String,
+        val plotEmbedding: List<Double>
     )
     // :snippet-end:
 
@@ -674,7 +684,15 @@ class AggregatesBuilderTest {
             // :snippet-end:
             Aggregates.sort(Sorts.descending(Results::count.name, "_id"))))
         val results = resultsFlow.toList()
-        val actual = listOf(Results("Drama", 8), Results("Crime", 3), Results("Action", 2), Results("Thriller", 1), Results("Sci-Fi", 1), Results("Romance", 1), Results("Mystery", 1),)
+        val actual = listOf(
+            Results("Drama", 8),
+            Results("Crime", 3),
+            Results("Action", 2),
+            Results("Thriller", 1),
+            Results("Sci-Fi", 1),
+            Results("Romance", 1),
+            Results("Mystery", 1)
+        )
         assertEquals(results, actual)
     }
 
@@ -943,6 +961,29 @@ class AggregatesBuilderTest {
                 Aggregates.searchMeta(
                     SearchOperator.near(1985, 2, SearchPath.fieldPath(Movie::year.name)),
                     SearchOptions.searchOptions().index("year")
+                )
+                // :snippet-end:
+            )
+        )
+        val results = resultsFlow.toList()
+        assertEquals(1, resultsFlow.toList().size)
+        assertEquals(1, results.first().get("count", Document::class.java).get("lowerBound", java.lang.Long::class.java)?.toInt())
+    }
+
+    /* NOTE: Test is not run by default. Vector search requires the creation of a vector search index on the collection before running.
+    */
+    @Ignore
+    fun vectorSearchTest() = runBlocking {
+        val resultsFlow = movieCollection.aggregate<Document>(
+            listOf(
+                // :snippet-start: vector-search
+                Aggregates.vectorSearch(
+                    SearchPath.fieldPath(MovieAlt::plotEmbedding.name),
+                    listOf(-0.0072121937, -0.030757688, -0.012945653),
+                    "mflix_movies_embedding_index",
+                    2.toLong(),
+                    1.toLong(),
+                    vectorSearchOptions().filter(Filters.gte(MovieAlt::year.name, 2016))
                 )
                 // :snippet-end:
             )
