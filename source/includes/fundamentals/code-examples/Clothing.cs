@@ -9,6 +9,7 @@ public class Clothing
     public ObjectId Id { get; set; }
 
     [BsonElement("name")]
+    [BsonDefaultValue("Generic item")]
     public string Name { get; set; }
 
     [BsonElement("inStock")]
