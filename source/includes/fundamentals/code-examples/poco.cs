@@ -13,6 +13,7 @@ public class Poco
         Setup();
 
         // start-insert
+        // Creates a new clothing document using the predefined Clothing class
         var doc = new Clothing
         {
             Name = "Denim Jacket",
@@ -21,17 +22,20 @@ public class Poco
             ColorSelection = new List<string> { "dark wash", "light wash" }
         };
 
+        // Inserts the new document into the clothing collection
         _myColl.InsertOne(doc);
         // end-insert
     }
     private static void Setup()
     {
+        
+        // Allows automapping of the camelCase database fields to models 
         // start-conventionpack
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
         // end-conventionpack
 
-        // Establish the connection to MongoDB and get the restaurants database
+        // Establishes the connection to MongoDB and get the sample_db database
         var mongoClient = new MongoClient(_mongoConnectionString);
         var myDatabase = mongoClient.GetDatabase("sample_db");
         _myColl = myDatabase.GetCollection<Clothing>("sample_coll");
