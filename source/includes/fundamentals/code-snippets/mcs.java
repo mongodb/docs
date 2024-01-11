@@ -91,8 +91,8 @@ public class MCSettings {
             MongoClient mongoClient = MongoClients.create(
                 MongoClientSettings.builder().applyConnectionString(new ConnectionString("<your connection string>"))
                 .applyToSocketSettings(builder ->
-                    builder.connectTimeout(10, SECONDS)
-                    .readTimeout(15, SECONDS))
+                    builder.connectTimeout(10L, SECONDS)
+                    .readTimeout(15L, SECONDS))
                 .build());
             //end SocketSettings
             mongoClient.listDatabaseNames().forEach(n -> System.out.println(n));
