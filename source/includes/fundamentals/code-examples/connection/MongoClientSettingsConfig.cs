@@ -1,6 +1,9 @@
+// Defines a MongoClientSettings object to pass configuration settings to the client
+
+// start mongo client settings config
 //const string connectionUri = "mongodb+srv://sample.host:27017/?connectTimeoutMS=60000&tls=true";
 
-// Create a MongoClientSettings object
+// Creates a MongoClientSettings object
 var settings = new MongoClientSettings()
 {
     Scheme = ConnectionStringScheme.MongoDBPlusSrv,
@@ -9,5 +12,6 @@ var settings = new MongoClientSettings()
     UseTls = true
 };
 
-// Create a new client and connect to the server
+// Creates a new client and connects to the server
 var client = new MongoClient(settings);
+// end mongo client settings config

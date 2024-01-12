@@ -1,3 +1,6 @@
+// Counts the number of documents in a collection and after
+// applying a filter by using the C# driver
+
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 namespace TestRun.Fundamentals;
@@ -10,17 +13,20 @@ public class CountDocuments
         Setup();
         InsertSampleData();
         
+        // Finds and counts all documents with a "finalGrade" value less than 80
         // start-accurate-ct
         var filter = Builders<Student>.Filter.Lt(s => s.FinalGrade, 80.0);
         var count1 = _myColl.CountDocuments(filter);
         Console.WriteLine("Number of documents with a final grade less than 80: " + count1);
         // end-accurate-ct
 
-        // start-est-count
+        // Finds the total number of documents in the collection
+        //  start-est-count
         var count2 = _myColl.EstimatedDocumentCount();
         Console.WriteLine("Estimated number of documents in the students collection: " + count2);
         // end-est-count
 
+        // Finds the number of documents with a "finalGrade" value greater than 80
         // start-agg-count
         var matchStage = Builders<Student>
             .Filter.Gt(s => s.FinalGrade, 80);

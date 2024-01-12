@@ -1,3 +1,5 @@
+// Performs Atlas Search queries by using the C# driver 
+
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
@@ -14,7 +16,6 @@ public class AtlasSearchExamples
     {
         Setup();
 
-        // Call method here to test
         var results = AutocompleteSearch();
 
         foreach (var g in results)
@@ -25,6 +26,7 @@ public class AtlasSearchExamples
 
     public static List<Guitar> AutocompleteSearch()
     {
+        // Finds documents with a "make" value that contains the string fragment "Gib"
         // start-autocomplete-search
         var result = guitarsCollection.Aggregate()
             .Search(Builders<Guitar>.Search.Autocomplete(g => g.Make, "Gib"))
@@ -36,6 +38,8 @@ public class AtlasSearchExamples
 
     public static List<Guitar> CompoundSearch()
     {
+        // Find documents that meet multiple search criteria by using the
+        // Compound() search function
         // start-compound-search
         var result = guitarsCollection.Aggregate()
             .Search(Builders<Guitar>.Search.Compound()
