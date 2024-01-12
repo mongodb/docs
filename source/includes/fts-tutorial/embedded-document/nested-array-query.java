@@ -3,7 +3,6 @@ import java.util.List;
 
 import static com.mongodb.client.model.Aggregates.limit;
 import static com.mongodb.client.model.Aggregates.project;
-import static com.mongodb.client.model.Projections.*;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
@@ -46,9 +45,8 @@ public class NestedEmbeddedDocumentsSearch {
             	        .append("operator", 
             	    new Document("compound",
                     new Document("must", mustClause)
-                    .append("should", shouldClause)))
-            )
-        );
+                    .append("should", shouldClause))))
+                .append("highlight", new Document("path", "teachers.classes.subject")));
 
     // specify connection
     String uri = "<connection-string>";
@@ -61,7 +59,7 @@ public class NestedEmbeddedDocumentsSearch {
       // run query and print results
       collection.aggregate(Arrays.asList(agg,
         limit(5),
-        project(fields(excludeId(), include("teachers"), computed("score", new Document("$meta", "searchScore"))))))
+        project(Document.parse("{score: {$meta: 'searchScore'}, _id: 0, teachers: 1, highlights: {$meta: 'searchHighlights'}}"))))
         .forEach(doc -> System.out.println(doc.toJson()));
     }
   }

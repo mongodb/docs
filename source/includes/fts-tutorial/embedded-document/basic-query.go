@@ -22,32 +22,33 @@ func main() {
 
 	// define pipeline stages
 	searchStage := bson.D{{"$search", bson.M{
-		"index": "embedded-documents-tutorial",
-		"embeddedDocument": bson.M{
-			"path": "teachers", "operator": bson.M{
-				"compound": bson.M{
-					"must": bson.A{
-						bson.M{
-							"text": bson.D{
-								{"path", "teachers.first"},
-								{"query", "John"},
-							},
-						},
-					},
-					"should": bson.A{
-						bson.M{
-							"text": bson.D{
-								{"path", "teachers.last"},
-								{"query", "Smith"},
-							},
-						},
-					},
+	  "index": "embedded-documents-tutorial",
+	  "embeddedDocument": bson.M{
+		"path": "teachers", "operator": bson.M{
+		  "compound": bson.M{
+			"must": bson.A{
+			  bson.M{
+				"text": bson.D{
+				  {"path", "teachers.first"},
+				  {"query", "John"},
 				},
+			  },
 			},
+			"should": bson.A{
+			  bson.M{
+				"text": bson.D{
+				  {"path", "teachers.last"},
+				  {"query", "Smith"},
+				},
+			  },
+			},
+		  },
 		},
+	  },
+	  "highlight": bson.D{{"path", "teachers.last"}},
 	}}}
 
-	projectStage := bson.D{{"$project", bson.D{{"teachers", 1}, {"score", bson.D{{"$meta", "searchScore"}}}}}}
+	projectStage := bson.D{{"$project", bson.D{{"teachers", 1}, {"score", bson.D{{"$meta", "searchScore"}}}, {"highlights", bson.D{{"$meta", "searchHighlights"}}}}}}
 
 	// run pipeline
 	cursor, err := collection.Aggregate(context.TODO(), mongo.Pipeline{searchStage, projectStage})

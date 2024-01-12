@@ -28,15 +28,14 @@ public class BasicEmbeddedDocumentsSearch {
 
     // define query
     Document agg =
-        new Document(
-            "$search",
-            new Document("index", "embedded-documents-tutorial")
+        new Document("$search", new Document("index", "embedded-documents-tutorial")
                 .append("embeddedDocument", 
             	    new Document("path", "teachers")
             	        .append("operator", 
             	    new Document("compound",
                     new Document("must", mustClause)
-                    .append("should", shouldClause)))));
+                    .append("should", shouldClause))))
+                .append("highlight", new Document("path", "teachers.last")));
 
     // specify connection
     String uri = "<connection-string>";
@@ -49,7 +48,7 @@ public class BasicEmbeddedDocumentsSearch {
       // run query and print results
       collection.aggregate(Arrays.asList(agg,
         limit(5),
-        project(fields(excludeId(), include("teachers"), computed("score", new Document("$meta", "searchScore"))))))
+        project(Document.parse("{score: {$meta: 'searchScore'}, _id: 0, teachers: 1, highlights: {$meta: 'searchHighlights'}}"))))
         .forEach(doc -> System.out.println(doc.toJson()));
     }
   }

@@ -1,46 +1,52 @@
 import pymongo
 
 # connect to your Atlas cluster
-client = pymongo.MongoClient('<connection-string>')
+client = pymongo.MongoClient('<connection-string')
 
 # define pipeline
 pipeline = [
-    {
-        '$search': {
-            'index': 'embedded-documents-tutorial',
-            'embeddedDocument': {
-                'path': 'teachers',
-                'operator': {
-                    'compound': {
-                        'must': [
-                            {
-                                'text': {
-                                    'path': 'teachers.first',
-                                    'query': 'John'
-                                }
-                            }
-                        ],
-                        'should': [
-                            {
-                                'text': {
-                                    'path': 'teachers.last',
-                                    'query': 'Smith'
-                                }
-                            }
-                        ]
-                    }
+  {
+    '$search': {
+      'index': 'embedded-documents-tutorial',
+      'embeddedDocument': {
+        'path': 'teachers',
+        'operator': {
+          'compound': {
+            'must': [
+              {
+                'text': {
+                  'path': 'teachers.first',
+                  'query': 'John'
                 }
-            }
+              }
+            ],
+            'should': [
+              {
+                'text': {
+                  'path': 'teachers.last',
+                  'query': 'Smith'
+                }
+              }
+            ]
+          }
         }
-    }, {
-        '$project': {
-            '_id': 1,
-            'teachers': 1,
-            'score': {
-                '$meta': 'searchScore'
-            }
+      }, 
+      'highlight': {
+        'path': 'teachers.last'
+      }
+    }
+  }, {
+      '$project': {
+        '_id': 1,
+        'teachers': 1,
+        'score': {
+          '$meta': 'searchScore'
+        }, 
+        'highlights': {
+          '$meta': 'searchHighlights'
         }
     }
+  }
 ]
 
 # run pipeline

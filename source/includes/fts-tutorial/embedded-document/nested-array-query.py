@@ -7,53 +7,59 @@ client = pymongo.MongoClient('<connection-string>')
 pipeline = [
   {
     '$search': {
-      'index': 'embedded-documents-tutorial',
+      'index': 'embedded-documents-tutorial', 
       'embeddedDocument': {
-        'path': 'teachers',
-          'operator': {
-            'compound': {
-              'must': [
-                {
-                  'embeddedDocument': {
-                    'path': 'teachers.classes',
-                    'operator': {
-                      'compound': {
-                        'must': [
-                          {
-                            'text': {
-                              'path': 'teachers.classes.grade',
-                              'query': '12th'
-                            }
-                          }, {
-                            'text': {
-                              'path': 'teachers.classes.subject',
-                              'query': 'science'
-                            }
+        'path': 'teachers', 
+        'operator': {
+          'compound': {
+            'must': [
+              {
+                'embeddedDocument': {
+                  'path': 'teachers.classes', 
+                  'operator': {
+                    'compound': {
+                      'must': [
+                        {
+                          'text': {
+                            'path': 'teachers.classes.grade', 
+                            'query': '12th'
                           }
-                        ]
-                      }
+                        }, {
+                          'text': {
+                            'path': 'teachers.classes.subject', 
+                            'query': 'science'
+                          }
+                        }
+                      ]
                     }
                   }
                 }
-              ],
-              'should': [
-                {
-                  'text': {
-                    'path': 'teachers.last',
-                    'query': 'smith'
-                  }
+              }
+            ], 
+            'should': [
+              {
+                'text': {
+                  'path': 'teachers.last', 
+                  'query': 'smith'
                 }
-              ]
-            }
+              }
+            ]
           }
         }
+      }, 
+      'highlight': {
+        'path': 'teachers.classes.subject'
       }
-    }, {
-      '$project': {
-        '_id': 1,
-        'teachers': 1,
-        'score': {
+    }
+  }, {
+    '$project': {
+      '_id': 1, 
+      'teachers': 1, 
+      'score': {
         '$meta': 'searchScore'
+      }, 
+      'highlights': {
+        '$meta': 'searchHighlights'
       }
     }
   }

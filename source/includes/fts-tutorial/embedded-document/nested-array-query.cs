@@ -23,18 +23,20 @@ public class NestedArrayExample
         var compoundQuery = Builders<TeacherDocument>.Search.Compound()
             .Must(Builders<TeacherDocument>.Search.Text(teacher => teacher.First, "John"))
             .Should(Builders<TeacherDocument>.Search.Text(teacher => teacher.Last, "Smith"));
+        var opts = new SearchHighlightOptions<SchoolDocument>(school => school.Teachers.Select(teacher => teacher.Last));;
 
         // define and run pipeline
         var results = schoolsCollection.Aggregate()
             .Search(Builders<SchoolDocument>.Search.EmbeddedDocument(
-                school => school.Teachers, compoundQuery),
+                school => school.Teachers, compoundQuery), opts,
                 indexName: "embedded-documents-tutorial"
             )
             .Project<SchoolDocument>(Builders<SchoolDocument>.Projection
                 .Include(school => school.Name)
                 .Include(school => school.Mascot)
                 .Include(school => school.Teachers)
-                .MetaSearchScore("score"))
+                .MetaSearchScore("score")
+                .MetaSearchHighlights("highlights"))
             .ToList();
 
         // print results
@@ -52,6 +54,8 @@ public class SchoolDocument
     public string Name { get; set; }
     public string Mascot { get; set; }
     public TeacherDocument[] Teachers { get; set; }
+    [BsonElement("highlights")]
+    public List<SearchHighlight> Highlights { get; set; }
     public double Score { get; set; }
 }
 
