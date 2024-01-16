@@ -23,10 +23,11 @@
           
           .. important::
    
-             If you use the old accepted value,
-             ``UserSvcDb``, your |mms|
+             In |onprem| 6.0, the accepted value is 
+             ``com.xgen.svc.mms.svc.user.UserSvcDb``. 
+             If you use this old accepted value, your |mms|
              instance will not start during preflight checks.
-   
+              
       * - |ldap|
         - ``UserSvcLdap``
    

@@ -66,3 +66,16 @@ User Interface
 ~~~~~~~~~~~~~~
 
 - Removes support for Internet Explorer 11.
+
+Configuration Setting Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the accepted value that represents the Application 
+  Database authentication method for the :setting:`mms.userSvcClass` 
+  setting from ``com.xgen.svc.mms.svc.user.UserSvcDb`` to 
+  ``com.xgen.cloud.user._private.svc.UserSvcDb``. 
+
+  .. important:: 
+
+     If you use the old accepted value, ``com.xgen.svc.mms.svc.user.UserSvcDb``, 
+     your |mms| instance will not start during preflight checks.
