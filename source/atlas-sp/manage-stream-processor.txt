@@ -417,11 +417,30 @@ current {+spi+}. It has the following syntax:
 
 .. code-block:: sh
 
-   sp.<streamprocessor>.stats(<scale>)
+   sp.<streamprocessor>.stats({options: {<options>}})
 
-``scale`` is an integer that sets the unit of size to use for the size
-of items in the output. By default, item size is displayed in bytes. To
-display in KB, specify a ``scale`` of ``1024``. 
+Where ``options`` is an optional document with the following fields:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``scale``
+     - integer
+     - Unit to use for the size of items in the output. By default, 
+       {+atlas-sp+} displays item size in bytes. To display in KB, 
+       specify a ``scale`` of ``1024``.
+
+   * - ``verbose``
+     - boolean
+     - Flag that specifies the verbosity level of the output document. 
+       If set to ``true``, the output document contains a subdocument 
+       that reports the statistics of each individual operator in your 
+       pipeline. Defaults to ``false``.
 
 The output document has the following fields:
 
@@ -437,79 +456,129 @@ The output document has the following fields:
      - string
      - The namespace the stream processor is defined in.
 
-   * - ``name``
+   * - ``stats``
+     - object
+     - A document describing the operational state of the stream 
+       processor.
+
+   * - ``stats.name``
      - string
      - The name of the stream processor.
 
-   * - ``status``
-     - integer
-     - The error status of the stream processor. ``0`` indicates a
-       correct run state, ``1`` indicates an error state.
+   * - ``stats.status``
+     - string
+     - The status of the stream processor. This field can have the
+       following values:
 
-   * - ``scaleFactor``
+       - ``starting``
+       - ``running``
+       - ``error``
+       - ``stopping``
+
+   * - ``stats.scaleFactor``
      - integer
      - The scale in which the size field displays. If set to ``1``,
        sizes display in bytes. If set to ``1024``, sizes display in
        kilobytes.
 
-   * - ``inputDocs``
+   * - ``stats.inputMessageCount``
      - integer
      - The number of documents published to the stream. A document
        is considered 'published' to the stream once it passes
        through the :pipeline:`$source` stage, not when it passes 
        through the entire pipeline.
 
-   * - ``inputBytes``
+   * - ``stats.inputMessageSize``
      - integer
-     - Total number of bytes or kilobytes published to the stream. 
+     - The number of bytes or kilobytes published to the stream. 
        Bytes are considered 'published' to the stream once they pass
        through the :pipeline:`$source` stage, not when it passes
        through the entire pipeline.
 
-   * - ``kafkaPartitions``
-     - array
-     - Offset information for an {+kafka+} broker's partitions. 
-       ``kafkaPartitions`` is limited to connections using an {+kafka+}
-       source.
-       
-       ``kafkaPartitions`` fields include:
-
-       .. list-table::
-          :widths: 20 20 60
-          :header-rows: 1
-
-          * - Field
-            - Type
-            - Description
-
-          * - ``partition``
-            - integer
-            - {+kafka+} topic partition number.
-
-          * - ``currentOffset``
-            - integer
-            - Offset that the stream processor is on for the
-              specified partition. This value equals the previous offset
-              that the stream processor processed plus ``1``.
-
-          * - ``checkpointOffset``
-            - integer
-            - Offset that the stream processor last committed to the
-              {+kafka+} broker and the checkpoint for the specified
-              partition. All messages through this offset are 
-              recorded in the last checkpoint.
-
-   * - ``outputDocs``
+   * - ``stats.outputMessageCount``
      - integer
      - The number of documents processed by the stream. A document is
        considered 'processed' by the stream once it passes through the
        entire pipeline.
 
-   * - ``outputBytes``
+   * - ``stats.outputMessageSize``
      - integer
-     - The number of bytes or kilobytes published to the stream. Bytes
+     - The number of bytes or kilobytes processed by the stream. Bytes
        are considered 'processed' by the stream once they pass through
        the entire pipeline.
+
+   * - ``stats.dlqMessageCount``
+     - integer
+     - The number of documents sent to the :ref:`atlas-sp-dlq`.
+
+   * - ``stats.dlqMessageSize``
+     - integer
+     - The number of bytes or kilobytes sent to the 
+       :ref:`atlas-sp-dlq`.
+
+   * - ``stats.stateSize``
+     - integer
+     - The number of bytes used by windows to store processor state.
+
+   * - ``stats.watermark``
+     - integer
+     - The timestamp of the current watermark.
+
+   * - ``stats.operatorStats``
+     - array
+     - The statistics for each operator in the processor pipeline. 
+       {+atlas-sp+} returns this field only if you pass in the 
+       ``verbose`` option.
+       
+       ``stats.operatorStats`` provides per-operator versions of many
+       core ``stats`` fields:
+
+       - ``stats.operatorStats.name``
+       - ``stats.operatorStats.inputMessageCount``
+       - ``stats.operatorStats.inputMessageSize``
+       - ``stats.operatorStats.outputMessageCount``
+       - ``stats.operatorStats.outputMessageSize``
+       - ``stats.operatorStats.dlqMessageCount``
+       - ``stats.operatorStats.dlqMessageSize``
+       - ``stats.operatorStats.stateSize``
+        
+       Additionally, ``stats.operatorStats`` includes the following
+       unique fields:
+
+       - ``stats.operatorStats.maxMemoryUsage``
+       - ``stats.operatorStats.executionTime``
+
+   * - ``stats.operatorStats.maxMemoryUsage``
+     - integer
+     - The maximum memory usage of the operator in bytes or kilobytes.
+
+   * - ``stats.operatorStats.executionTime``
+     - integer
+     - The total execution time of the operator in seconds.
+
+   * - ``stats.kafkaPartitions``
+     - array
+     - Offset information for an {+kafka+} broker's partitions. 
+       ``kafkaPartitions`` applies only to connections using an 
+       {+kafka+} source.
+       
+
+   * - ``stats.kafkaPartitions.partition``
+     - integer
+     - The {+kafka+} topic partition number.
+
+   * - ``stats.kafkaPartitions.currentOffset``
+     - integer
+     - The offset that the stream processor is on for the
+       specified partition. This value equals the previous offset
+       that the stream processor processed plus ``1``.
+
+   * - ``stats.kafkaPartitions.checkpointOffset``
+     - integer
+     - The offset that the stream processor last committed to the
+       {+kafka+} broker and the checkpoint for the specified
+       partition. All messages through this offset are 
+       recorded in the last checkpoint.
 
 For example, the following shows the status of a stream processor named 
 ``proc01`` on a {+spi+} named ``inst01`` with item sizes displayed in 
@@ -520,12 +589,20 @@ KB:
    sp.proc01.stats(1024)
 
    {
+     ok: 1,
      ns: 'inst01',
-     name: 'proc01',
-     status: 0,
-     scaleFactor: 1024, 
-     inputDocs: 12,
-     inputBytes: 1333,
-     outputDocs: 5,
-     outputBytes: 607,
+     stats: {
+       name: 'proc01',
+       status: 'running',
+       scaleFactor: Long("1"), 
+       inputMessageCount: Long("706028"),
+       inputMessageSize: 958685236,
+       outputMessageCount: Long("46322"),
+       outputMessageSize: 85666332,
+       dlqMessageCount: Long("0"),
+       dlqMessageSize: Long("0"),
+       stateSize: Long("2747968"),
+       watermark: ISODate("2023-12-14T14:35:32.417Z"),
+       ok: 1
+     },
    }
