@@ -190,7 +190,7 @@ limitations and considerations:
 
    * - Namespaces and Database Names
      - |service| limits {+serverless-instance+} database names to 38 characters.
-       In addition, namespace names (i.e., ``<database>.<collection>``) cannot 
+       In addition, namespace names (``<database>.<collection>``) cannot 
        exceed 95 characters.
 
    * - Database and Collections
