@@ -4,6 +4,13 @@
 Indexes
 =======
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, optimization, atlas search
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -13,25 +20,30 @@ Indexes
 Overview
 --------
 
-In this guide, you can learn how to use **indexes** with the MongoDB Kotlin driver.
+In this guide, you can learn how to create and manage **indexes** by
+using the {+driver-long+}.
 
-Indexes support the efficient execution of queries in MongoDB. Without indexes, MongoDB must scan *every* document in a
-collection (a **collection scan**) to find the documents that match each query. These collection scans are slow and can
-negatively affect the performance of your application. If an appropriate index exists for a query, MongoDB can use the
-index to limit the number of documents it must inspect.
+Indexes support the efficient execution of queries in MongoDB. Without
+indexes, MongoDB must scan *every* document in a collection (a
+**collection scan**) to find the documents that match each query. These
+collection scans are slow and can negatively affect the performance of
+your application. If an appropriate index exists for a query, MongoDB
+can use the index to limit the documents that the query must inspect.
 
-Indexes also:
+Indexes also have the following benefits:
 
-- Allow efficient sorting
-- Enable special capabilities like :ref:`geospatial <geo-indexes>` search
-- Allow adding constraints to ensure a field value is :ref:`unique <unique-indexes>`
-- And :manual:`more </indexes/>`
+- Indexes allow efficient sorting.
+- Indexes enable special capabilities such as :ref:`geospatial queries <geo-indexes>`.
+- Indexes allow the creation of constraints to ensure a field value is :ref:`unique <unique-indexes>`.
+
+To learn more, see :manual:`Indexes </indexes/>` in the Server manual.
 
 .. tip::
 
-   Indexes are also used by update operations when finding the documents to update, delete operations when finding the
-   documents to delete, and by :manual:`certain stages </core/aggregation-pipeline/#pipeline-operators-and-indexes>` in
-   the aggregation pipeline.
+   Update operations use indexes when finding documents to update, and
+   delete operations use indexes when finding documents to delete.
+   :manual:`Certain stages </core/aggregation-pipeline/#pipeline-operators-and-indexes>` in
+   the aggregation pipeline also use indexes to improve performance.
 
 Query Coverage and Performance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -39,9 +51,9 @@ Query Coverage and Performance
 When you execute a query against MongoDB, your command can include various elements:
 
 - Query criteria that specify fields and values you are looking for
-- Options that affect the query's execution (e.g. read concern)
-- Projection criteria to specify the fields MongoDB should return (optional)
-- Sort criteria to specify the order documents will be returned from MongoDB (optional)
+- Options that affect the query's execution, such as the read concern
+- Projection criteria to specify the fields MongoDB returns (optional)
+- Sort criteria to specify the order of documents returned from MongoDB (optional)
 
 When all the fields specified in the query, projection, and sort are in the same index, MongoDB returns results directly
 from the index, also called a **covered query**.
@@ -57,24 +69,32 @@ from the index, also called a **covered query**.
 
       name_1_age_-1
 
-   MongoDB would use this index when you sort your data by either:
+   MongoDB uses this index when you sort your data in either of the
+   following ways:
 
    - ``name`` ascending, ``age`` descending
    - ``name`` descending, ``age`` ascending
 
    Specifying a sort order of ``name`` and :guilabel:`age` ascending or :guilabel:`name` and ``age``
-   descending would require an in-memory sort.
+   descending requires an in-memory sort.
 
-For additional information on how to ensure your index covers your query criteria and projection, see the MongoDB manual
+For more information on how to ensure your index covers your query criteria and projection, see the Server manual
 articles on :manual:`query coverage </core/query-optimization/#covered-query>`.
 
 Operational Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To improve query performance, build indexes on fields that appear often in your application's queries and operations
-that return sorted results. Each index that you add consumes disk space and memory when active so you should track index
-memory and disk usage for capacity planning. In addition, when a write operation updates an indexed field, MongoDB also
-has to update the related index.
+The following guidelines describe how you can optimize the way
+your application uses indexes:
+
+- To improve query performance, build indexes on fields that appear often in
+  your application's queries and operations that return sorted results.
+
+- Track index memory and disk usage for capacity planning, because each
+  index that you add consumes disk space and memory when active.
+  
+- Avoid adding indexes that you infrequently use. Note that when a write
+  operation updates an indexed field, MongoDB updates the related index.
 
 Since MongoDB supports dynamic schemas, applications can query against fields whose names cannot be known in advance or
 are arbitrary. MongoDB 4.2 introduced :manual:`wildcard indexes </core/index-wildcard/>` to help support these queries.
@@ -87,14 +107,17 @@ server documentation on :manual:`Indexing Strategies </applications/indexes>` an
 Index Types
 -----------
 
-MongoDB supports a number of different index types to support querying your data. The following sections describe the
+MongoDB supports several different index types to support querying your data. The following sections describe the
 most common index types and provide sample code for creating each index type. For a full list of index types, see
-:manual:`Indexes </indexes/>`.
+:manual:`Indexes </indexes/>` in the Server manual.
 
 .. tip::
 
-   The MongoDB Kotlin driver provides the `Indexes <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Indexes.html>`__ class that
-   includes static factory methods to create index specification documents for different MongoDB Index key types.
+   The {+driver-short+} provides the `Indexes
+   <{+api+}/apidocs/mongodb-driver-core/com/mongodb/client/model/Indexes.html>`__
+   class to create and manage indexes. This class includes static
+   factory methods to create index specification documents for different
+   MongoDB index key types.
 
 The following examples use the
 `createIndex() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/create-index.html>`__
@@ -131,7 +154,8 @@ The following example creates an index in ascending order on the ``title`` field
 
       Index created: title_1
 
-The following is an example of a query that would be covered by the index created in the preceding code snippet:
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
 
 .. literalinclude:: /examples/generated/IndexesTest.snippet.single-index-query.kt
    :language: kotlin
@@ -160,7 +184,8 @@ The following example creates a compound index on the ``type`` and ``rated`` fie
 
       Index created: type_1_rated_1
 
-The following is an example of a query that would be covered by the index created in the preceding code snippet:
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
 
 .. literalinclude:: /examples/generated/IndexesTest.snippet.compound-index-query.kt
    :language: kotlin
@@ -186,14 +211,101 @@ Strings), and ``title`` fields:
 
       Index created: rated_1_genres_1_title_1
 
-The following is an example of a query that would be covered by the index created in the preceding code snippet:
+The following is an example of a query that is covered by the index
+created in the preceding code snippet:
 
 .. literalinclude:: /examples/generated/IndexesTest.snippet.multikey-index-query.kt
    :language: kotlin
 
-Multikey indexes behave differently from non-multikey indexes in terms of query coverage, index bound computation, and
-sort behavior. For a full explanation of multikey indexes, including a discussion of their behavior and limitations,
-refer to the :manual:`Multikey Indexes page </core/index-multikey>` in the MongoDB manual.
+Multikey indexes behave differently from other indexes in terms of query coverage, index-bound computation, and
+sort behavior. To learn more about multikey indexes, including a discussion of their behavior and limitations,
+see :manual:`Multikey Indexes </core/index-multikey>` in the Server manual.
+
+.. _kotlin-search-indexes:
+
+Atlas Search Indexes
+~~~~~~~~~~~~~~~~~~~~
+
+The Atlas Search feature enables you to perform full-text searches on
+collections hosted on MongoDB Atlas. The indexes specify how you can
+perform full-text searches on specific fields.
+
+To learn more about MongoDB Atlas Search, see the
+:atlas:`Atlas Search Indexes </atlas-search/atlas-search-overview/#fts-indexes>`
+documentation.
+
+You can call the following methods on a collection to manage your Atlas Search
+indexes:
+
+- ``createSearchIndex()``
+- ``createSearchIndexes()``
+- ``listSearchIndexes()``
+- ``updateSearchIndex()``
+- ``dropSearchIndex()``
+
+.. note::
+
+   The Atlas Search index-management methods run asynchronously. The
+   driver methods can return before confirming that they ran
+   successfully. To determine the current status of the indexes, call the
+   ``listSearchIndexes()`` method.
+
+The following sections provide code examples that demonstrate how to use
+each of the preceding methods.
+
+Create a Search Index
++++++++++++++++++++++
+
+You can use the `createSearchIndex() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/create-search-index.html>`__
+and `createSearchIndexes() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/create-search-indexes.html>`__
+methods to create Atlas Search indexes on a collection.
+
+The following code example shows how to create a single index:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.single-search-index-create.kt
+   :language: kotlin
+
+The following code example shows how to create multiple indexes:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.multi-search-index-create.kt
+   :language: kotlin
+
+List Search Indexes
++++++++++++++++++++
+
+You can use the
+`listSearchIndexes() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/list-search-indexes.html>`__
+method to return a list of the Atlas Search indexes on a collection.
+
+The following code example shows how to print a list of the search indexes on
+a collection:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.list-search-indexes.kt
+   :language: kotlin
+
+Update a Search Index
++++++++++++++++++++++
+
+You can use the
+`updateSearchIndex() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/update-search-index.html>`__
+method to update an Atlas Search index.
+
+The following code shows how to update a search index:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.update-search-indexes.kt
+   :language: kotlin
+
+Drop a Search Index
++++++++++++++++++++
+
+You can use the
+`dropSearchIndex() <{+api+}/apidocs/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/drop-search-index.html>`__
+method to remove an Atlas Search index.
+
+The following code shows how to delete a search index from a collection:
+
+.. literalinclude:: /examples/generated/SearchIndexesTest.snippet.drop-search-index.kt
+   :language: kotlin
 
 .. _text-indexes:
 
@@ -206,9 +318,10 @@ language as an option when creating the index.
 
 .. tip::
 
-   Text indexes differ from the more powerful
-   :atlas:`Atlas full text search indexes </atlas-search/?jmp=docs_driver_kotlin>`.
-   Atlas users should use Atlas Search.
+   MongoDB offers an improved full-text search solution,
+   :atlas:`Atlas Search </atlas-search/>`. To learn more about Atlas Search
+   indexes and how to use them, see the :ref:`kotlin-search-indexes` section of this
+   guide.
 
 Single Field
 ++++++++++++
@@ -225,7 +338,8 @@ The following example creates a text index on the ``plot`` field:
 
       Index created: plot_text
 
-The following is an example of a query that would use the index created in the preceding code snippet. Note that the ``sort`` is
+The following is an example of a query that is covered by the index
+created in the preceding code snippet. Note that the ``sort`` is
 omitted because text indexes do not contain sort order.
 
 .. literalinclude:: /examples/generated/IndexesTest.snippet.text-index-query.kt
@@ -235,7 +349,7 @@ Multiple Fields
 +++++++++++++++
 
 A collection can only contain one text index. If you want to create a
-text index for multiple text fields, you need to create a compound
+text index for multiple text fields, you must create a compound
 index. A text search runs on all the text fields within the compound
 index.
 
@@ -264,10 +378,11 @@ Geospatial Indexes
 
 MongoDB supports queries of geospatial coordinate data using **2dsphere indexes**. With a ``2dsphere`` index, you can query
 the geospatial data for inclusion, intersection, and proximity. For more information on querying geospatial data, see
-:manual:`Geospatial Queries </geospatial-queries/>`.
+:manual:`Geospatial Queries </geospatial-queries/>` in the Server manual.
 
-To create a ``2dsphere`` index, you must specify a field that contains only **GeoJSON objects**. For more details on this
-type, see the MongoDB server manual page on :manual:`GeoJSON objects </reference/geojson>`.
+To create a ``2dsphere`` index, you must specify a field that contains
+only **GeoJSON objects**. To learn more about this type, see
+:manual:`GeoJSON objects </reference/geojson>` in the Server manual.
 
 The ``location.geo`` field in the following sample document from the ``theaters`` collection in the ``sample_mflix``
 database is a GeoJSON Point object that describes the coordinates of the theater:
@@ -307,15 +422,21 @@ The following example creates a ``2dsphere`` index on the ``location.geo`` field
 
       Index created: location.geo_2dsphere
 
-The following is an example of a geospatial query using the index created
-in the preceding code snippet:
+.. important::
+
+   Attempting to create a geospatial index on a field that is already
+   covered by a geospatial index results in an error.
+
+The following is an example of a geospatial query that is covered by the index
+created in the preceding code snippet:
 
 .. literalinclude:: /examples/generated/IndexesTest.snippet.geospatial-index-query.kt
    :language: kotlin
 
-MongoDB also supports ``2d`` indexes for calculating distances on a Euclidean plane and for working with the "legacy
-coordinate pairs" syntax used in MongoDB 2.2 and earlier. See the :manual:`Geospatial Queries page </geospatial-queries>`
-in the MongoDB server manual for more information.
+MongoDB also supports ``2d`` indexes for calculating distances on a
+Euclidean plane and for working with the "legacy coordinate pairs"
+syntax used in MongoDB 2.2 and earlier. To learn more, see
+:manual:`Geospatial Queries </geospatial-queries>` in the Server manual.
 
 Unique Indexes
 ~~~~~~~~~~~~~~
@@ -340,8 +461,9 @@ The following example creates a unique, descending index on the ``theaterId`` fi
 
 .. important::
 
-   If you perform a write operation that stores a duplicate value that violates the unique index, the MongoDB
-   Kotlin driver will raise a ``DuplicateKeyException``, and MongoDB will throw an error resembling the following:
+   If you perform a write operation that stores a duplicate value that
+   violates the unique index, the driver raises a ``DuplicateKeyException``,
+   and MongoDB throws an error resembling the following:
 
    .. code-block:: none
       :copyable: false
@@ -411,7 +533,7 @@ Remove an Index Using a Name Field
 Pass the ``name`` field of the index to the ``dropIndex()`` method to
 remove an index from a collection.
 
-If you need to find the name of your index, use the ``listIndexes()``
+If you must find the name of your index, use the ``listIndexes()``
 method to see the value of the ``name`` fields in your indexes.
 
 The following snippet retrieves and prints all the indexes in a
