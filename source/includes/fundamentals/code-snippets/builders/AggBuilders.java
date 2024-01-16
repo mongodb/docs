@@ -82,8 +82,7 @@ public class AggBuilders {
         page.bucketAutoOptionsStage();
         page.facetStage();
         page.vectorSearchPipeline();
-// Fix required: https://jira.mongodb.org/browse/DOCSP-33327
-//        page.setWindowFieldsStage();
+        page.setWindowFieldsStage();
         page.aggregationExample();
     }
 
@@ -95,16 +94,14 @@ public class AggBuilders {
         // end aggregationSample
     }
 
-    /* Fix required: https://jira.mongodb.org/browse/DOCSP-33327
     private void setWindowFieldsStage() {
         // begin setWindowFields
         Window pastMonth = Windows.timeRange(-1, MongoTimeUnit.MONTH, Windows.Bound.CURRENT);
         setWindowFields("$localityId", Sorts.ascending("measurementDateTime"),
-                WindowedComputations.sum("monthlyRainfall", "$rainfall", pastMonth),
-                WindowedComputations.avg("monthlyAvgTemp", "$temperature", pastMonth));
+                WindowOutputFields.sum("monthlyRainfall", "$rainfall", pastMonth),
+                WindowOutputFields.avg("monthlyAvgTemp", "$temperature", pastMonth));
         // end setWindowFields
     }
-     */
 
     private void facetStage() {
         // begin facet
@@ -258,10 +255,11 @@ public class AggBuilders {
         Bson innerJoinLookup = lookup("warehouses", variables, pipeline, "stockdata");
         // end advanced lookup
         // Missing advancedLookup assignment
-//        MongoCursor<Document> cursor = collection.aggregate(asList(advancedLookup)).cursor();
-//        cursor.forEachRemaining(doc -> System.out.println(doc.toJson()));
-//        database = mongoClient.getDatabase("sample_mflix");
-//        collection = database.getCollection("movies");
+        // MongoCursor<Document> cursor =
+        // collection.aggregate(asList(advancedLookup)).cursor();
+        // cursor.forEachRemaining(doc -> System.out.println(doc.toJson()));
+        // database = mongoClient.getDatabase("sample_mflix");
+        // collection = database.getCollection("movies");
     }
 
     private void basicLookupStage() {
@@ -332,7 +330,7 @@ public class AggBuilders {
                         limit,
                         options),
                 project(
-                    metaVectorSearchScore("vectorSearchScore")));
+                        metaVectorSearchScore("vectorSearchScore")));
         // end vectorSearch
 
         // begin vectorSearch-output
@@ -344,7 +342,6 @@ public class AggBuilders {
 
         // Example output: "vectorSearch score: 0.887437105178833"
     }
-
 
     private void documentsStage() {
         // begin documents
