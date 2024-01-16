@@ -5,6 +5,13 @@
 Open Change Streams
 ===================
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, monitoring, aggregation
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -18,15 +25,16 @@ In this guide, you can learn how to use a **change stream** to monitor
 real-time changes to your database. A change stream is a {+mdb-server+}
 feature that allows your application to subscribe to data changes on a single
 collection, database, or deployment. You can specify a set of aggregation
-operators to filter and transform the data your application receives. When
-connecting to a MongoDB deployment v6.0 or later, you can configure the
-events to include the document data before and after the change.
+operators to filter and transform the data your application receives.
+When connecting to MongoDB v6.0 or later, you can configure the events
+to include the document data before and after the change.
 
 Learn how to open and configure your change streams in the following
 sections:
 
 - :ref:`<kotlin-change-stream-open>`
 - :ref:`<kotlin-change-stream-aggregation>`
+- :ref:`<kotlin-change-stream-split-large-event>`
 - :ref:`<kotlin-change-stream-configure-pre-post>`
 
 .. _kotlin-change-stream-open:
@@ -107,9 +115,8 @@ The following code example shows how you can apply an aggregation pipeline to
 configure your change stream to receive change events for only insert and
 update operations:
 
-
 .. literalinclude:: /examples/generated/ChangeStreamsTest.snippet.apply-aggregation-operations-to-change-stream.kt
-   :language: java
+   :language: kotlin
 
 When the change stream receives an update change event, the preceding code
 example outputs the following text:
@@ -121,6 +128,55 @@ example outputs the following text:
    operationType=update,
    resumeToken={...},
    ...
+
+.. _kotlin-change-stream-split-large-event:
+
+Split Large Change Stream Events
+--------------------------------
+
+When connecting to MongoDB v7.0 or later,
+you can use the ``$changeStreamSplitLargeEvent`` aggregation operator to
+split event documents that exceed 16 MB into smaller fragments.
+
+Use the ``$changeStreamSplitLargeEvent`` operator only when you expect
+the change stream events to exceed the document size limit. For
+example, you might use this feature if your application requires full
+document pre-images or post-images.
+
+A ``$changeStreamSplitLargeEvent`` aggregation stage returns
+fragments sequentially. You can access the fragments by using a change
+stream cursor. Each fragment document includes a ``splitEvent`` object that
+contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Field
+     - Description
+
+   * - ``fragment``
+     - The index of the fragment, starting at ``1``
+
+   * - ``of``
+     - The total number of fragments that compose the split event
+
+The following example opens a change stream that includes an aggregation
+pipeline with an ``$changeStreamSplitLargeEvent`` aggregation stage to
+split large events:
+
+.. literalinclude:: /examples/generated/ChangeStreamsTest.snippet.split-large-change-stream.kt
+   :language: kotlin
+
+.. note::
+
+   You can have only one ``$changeStreamSplitLargeEvent`` stage in your
+   aggregation pipeline, and it must be the last stage in the pipeline.
+
+To learn more about the ``$changeStreamSplitLargeEvent`` aggregation operator,
+see :manual:`$changeStreamSplitLargeEvent (aggregation)
+</reference/operator/aggregation/changeStreamSplitLargeEvent/>` in the
+Server manual.
 
 .. _kotlin-change-stream-configure-pre-post:
 

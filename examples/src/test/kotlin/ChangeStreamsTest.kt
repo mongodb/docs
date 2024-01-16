@@ -13,6 +13,7 @@ import config.getConfig
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.bson.BsonDocument
 import org.bson.Document
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
@@ -134,6 +135,37 @@ internal class ChangeStreamsTest {
         assertEquals(OperationType.INSERT, changeEvents[0].operationType)
         assertEquals(testData, changeEvents[0].fullDocument)
 
+    }
+
+    // Ignore annotation added because this test requires a MongoDB 7.0 deployment
+    @Ignore
+    fun splitLargeChangeStreamTest() = runBlocking {
+        val changeEvents = mutableListOf<ChangeStreamDocument<Document>>()
+        // :snippet-start: split-large-change-stream
+        val pipeline = listOf(BsonDocument().append("\$changeStreamSplitLargeEvent", BsonDocument()))
+
+        val job = launch {
+            val changeStream = collection.watch(pipeline)
+            changeStream.collect {
+                println("Received a change event: $it")
+                changeEvents.add(it) // :remove:
+            }
+        }
+        // :snippet-end:
+
+        // Perform MongoDB operations that trigger change events...
+        delay(1)
+        val testData = Document("city", "Rio de Janeiro")
+        collection.insertOne(testData)
+
+        // Wait for change events
+        delay(1000)
+
+        // Cancel the change stream when you're done listening for events.
+        job.cancel()
+
+        // Change stream only captures the insert event, not the delete event.
+        assertEquals(1, changeEvents.size)
     }
 
     // NOTE: Test is being ignored because it will not work with a shared M0 cluster.
