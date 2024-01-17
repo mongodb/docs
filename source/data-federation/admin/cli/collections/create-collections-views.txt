@@ -114,7 +114,7 @@ Syntax
             .. code-block:: sh 
                :copyable: true
 
-               db.runCommand({ "create" : "<collection-name>", "dataSources" : [{ "storeName" : "<store-name>", "datasetName" : <data-lake-dataset-name>, "datasetPrefix" : <prefix-name>, "trimLevel" :  <trim-number> }]})
+               db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "datasetName" : "<data-lake-dataset-name>", "datasetPrefix": "<prefix-name>", "trimLevel" :  <trim-number>, "maxDatasets": <maximum-number-of-datasets> }]})
 
    .. tab:: Views 
       :tabid: views
@@ -332,7 +332,7 @@ Parameters
                    
                    - Set the value of the ``<collection-name>`` field to ``*``.
                    - Provide values for the ``datasetPrefix`` and ``trimLevel``
-                      fields.
+                     fields.
                    - Omit the ``datasetName`` field.
                  - Required
 
@@ -361,24 +361,47 @@ Parameters
                       <version>$<type>$<subtype>$<clusterName>$<dbName>$<collectionName>$<snapshotId>
 
                    You can't specify the ``datasetName`` for wildcard 
-                   collections.
+                   collections. You can't specify the ``datasetName`` for
+                   non-wildcard collections if you specify
+                   ``datasetPrefix``. 
 
                  - Conditional
 
                * - ``datasetPrefix``
                  - string
-                 - *Required for wildcard collections only.*
+                 - *Required for wildcard collections only. Optional for
+                   non-wildcard collection.*
                  
                    Dataset name prefix to match against {+adl+} dataset 
-                   names. You can set this setting for wildcard 
-                   collections only. If specified, {+adf+} maps 
-                   collections to only the dataset names whose prefix 
-                   match the value specified here.
+                   names. 
+                   
+                   If you specify this parameter for wildcard
+                   collections, {+adf+} maps collections to only the 
+                   dataset names whose prefix match the ``datasetPrefix`` that you specify. 
+
+                   If you specify this parameter for non-wildcard collections,
+                   {+adf+} maps the latest dataset (for the most
+                   recently captured snapshot) to the collection. You
+                   must omit ``datasetName`` to specify this parameter
+                   for non-wildcard collections.
+
                  - Conditional
                  
+               * - ``maxDatasets``
+                 - int
+                 - *For wildcard collections only.*
+                   
+                   Maximum number of datasets from which to dynamically
+                   generate collections for the data source. Value must
+                   be greater than ``0``. {+adf+} returns datasets in
+                   reverse alphabetical order. 
+                 - Optional
+               
                * - ``trimLevel``
                  - int
-                 - Number of characters to trim from the left of the 
+                 - *For wildcard collections only.* 
+                   
+                   Number of characters to trim from the left of the 
                    dataset name before mapping the remaining fields to 
                    a wildcard collection name. Value must be greater 
                    than ``0``. If omitted, defaults to ``0``. 

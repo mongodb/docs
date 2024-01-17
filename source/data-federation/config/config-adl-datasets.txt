@@ -7,6 +7,13 @@
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:: 
+   :keywords: Atlas Data Lake datasets, Online Archive, configure federated database for Atlas Data Lake datasets, configure federated database for Online Archives, federated database configuration settings for Atlas Data Lake datasets, federated database configuration settings for Online Archives
+
 .. contents:: On this page
    :local:
    :backlinks: none
@@ -212,7 +219,7 @@ archive has the following format:
 ``databases``
 ~~~~~~~~~~~~~
 
-.. literalinclude:: /includes/data-federation/adl-databases-config-format.json 
+.. literalinclude:: /includes/data-federation/adl-databases-config-format.json
    :language: json
    :linenos:
 
@@ -296,12 +303,65 @@ archive has the following format:
       - ``snapshotId`` is the unique identifier of the snapshot of the 
         data in the collection
 
+   .. note:: 
+
+      For a non-wildcard collection, you can't specify this option if you
+      specify the
+      :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].datasetPrefix` 
+      option because {+adf+} automatically generates collections for the
+      latest dataset using the name specified through
+      :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].datasetPrefix`
+      option.
+
 .. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].datasetPrefix 
 
-   Dataset name prefix to match against the {+adl+} dataset name or online archive dataset name. You can 
-   set this setting for wildcard collections only. If specified, 
-   {+adf+} maps collections to only the {+adl+} dataset names or online
-   archive dataset names whose prefix match the value specified here.
+   Required for wildcard collections.
+   
+   Dataset name prefix to match against the {+adl+} dataset name or 
+   online archive dataset name. When you set this for wildcard
+   collections, {+adf+} maps collections to only the {+adl+} dataset
+   names or online archive dataset names whose prefix match the value
+   specified here.
+
+   .. example:: 
+
+      .. code-block:: sh 
+         :copyable: false 
+
+         {
+           ...,
+           "name": "*",
+           "dataSources": [
+             {
+               "storeName": "aws-dl-store",
+               "datasetPrefix":
+               "v1$atlas$snapshot$MyCluster$MyDB$MyCollection",
+               "trimLevel": 3
+             }
+           ]
+         }
+
+   If you specify this setting for a non-wildcard collection, {+adf+} maps only
+   the latest dataset (for the most recently captured snapshot) to the
+   collection. You can't specify the
+   :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].datasetName`
+   also if you specify this option for a non-wildcard collection.
+
+   .. example:: 
+
+      .. code-block:: sh 
+         :copyable: false 
+
+         {
+           ...,
+           "name": "myFederatedDbCollection",
+           "dataSources": [
+             {
+               "storeName": "aws-dl-store",
+               "datasetPrefix": "v1$atlas$snapshot$MyCluster$MyDB$MyCollection"
+             }
+           ]
+         }
 
 .. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].trimLevel
 
@@ -390,8 +450,24 @@ archive has the following format:
    You can't configure this setting using the Visual Editor in the 
    |service| UI. 
 
+.. datalakeconf-adl:: databases.[n].collections.[n].dataSources.[n].maxDatasets
+
+   Unsigned integer that specifies the maximum number of datasets from
+   which to dynamically generate collections for the data source. You must
+   provide a value greater than ``0``. You can set this setting for wildcard
+   collections only. {+adf+} returns datasets in reverse lexicographical
+   order. 
+
+   .. note:: 
+
+      You can't configure this setting using the Visual Editor in the 
+      |service| UI. Therefore, {+adf+} configuration doesn't include a
+      limit on the number of datasets for configurations using the Visual
+      Editor. 
+
 .. toctree::
    :titlesonly:
    :hidden:
 
    Create from the UI </data-federation/deployment/deploy-adl>
+   /data-federation/config/adl-gen-wildcard-collections
