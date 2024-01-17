@@ -1,3 +1,16 @@
+.. _opsmgr-server-6.0.22:
+
+|onprem| Server 6.0.22:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2023-01-04*
+
+- Updates the {+mdbagent+} to :ref:`12.0.30.7791 
+  <mongodb-12.0.30.7791>`.
+- Fixes a bug where backups might default to the wrong storage engine.
+- Fixes a bug where the {+mdbagent+} might download the wrong binaries for certain 
+  operating systems.
+
 .. _opsmgr-server-6.0.21:
 
 |onprem| Server 6.0.21:
