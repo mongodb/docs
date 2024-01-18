@@ -4,7 +4,10 @@ F
 .. glossary::
 
    fail to
-     :icon-fa4:`times-circle` Use *unable to* instead.
+     :icon-fa4:`times-circle` Use *unable to* when you when refer to an individual or
+     company. 
+     
+     You may use *fail* to describe system performance.
 
    FAQ
      Use the acronym *FAQ* to refer to an article or section that
