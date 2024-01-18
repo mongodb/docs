@@ -110,7 +110,7 @@ D
 
    disabled
      :icon-fa4:`exclamation-triangle` Use *inactive* to describe
-     commands, toggled options, or buttons on the interface. Use
+     commands, options, toggles, or buttons in the interface. Use
      *dimmed* to describe the appearance of an inactive command,
      option, or button; use *unavailable* to refer to its state. Don't
      use *disabled* to refer to individuals with disabilities.
