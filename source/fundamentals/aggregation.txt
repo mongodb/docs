@@ -1,6 +1,15 @@
+.. _java-aggregation:
+
 ===========
 Aggregation
 ===========
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: code example, transform, computed
 
 .. contents:: On this page
    :local:
@@ -11,39 +20,41 @@ Aggregation
 Overview
 --------
 
-.. _java-aggregation:
-
-In this guide, you can learn how to use **aggregation operations** in the MongoDB Java driver.
+In this guide, you can learn how to use the {+driver-short+} to perform
+**aggregation operations**.
 
 Aggregation operations process data in your MongoDB collections and
-return computed results. The MongoDB Aggregation framework, part of the
-Query API, is modeled on the concept of data processing pipelines.
-Documents enter a pipeline comprised of one or more stages that
-transforms the documents into an aggregated result.
+return computed results. The MongoDB Aggregation framework, which is
+part of the Query API, is modeled on the concept of data processing
+pipelines. Documents enter a pipeline comprised of one or more stages,
+and this pipeline transforms the documents into an aggregated result.
 
-Another way to think of aggregation is like a car factory. Within the car factory is an assembly line, along which
-are assembly stations with specialized tools to do a specific job, like drills and welders. Raw parts enter the factory,
-which are then transformed and assembled into a finished product.
+An aggregation operation is similar to a car factory. A car factory has
+an assembly line, which contains assembly stations with specialized
+tools to do specific jobs, like drills and welders. Raw parts enter the
+factory, and then the assembly line transforms and assembles them into a
+finished product.
 
-The **aggregation pipeline** is the assembly line, **aggregation stages** are the assembly stations, and
-**operator expressions** are the specialized tools.
+The **aggregation pipeline** is the assembly line, **aggregation
+stages** are the assembly stations, and **operator expressions** are the
+specialized tools.
 
-Aggregation and Find Operations Compared
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Compare Aggregation and Find Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using ``find`` operations, you can:
+You can use find operations to perform the following actions:
 
-- select *what* documents to return
-- select *what* fields to return
-- sort the results
+- Select *what* documents to return
+- Select *what* fields to return
+- Sort the results
 
-Using ``aggregation`` operations, you can:
+You can use aggregation operations to perform the following actions:
 
-- perform all ``find`` operations
-- rename fields
-- calculate fields
-- summarize data
-- group values
+- Perform find operations
+- Rename fields
+- Calculate fields
+- Summarize data
+- Group values
 
 Aggregation operations have some :manual:`limitations </core/aggregation-pipeline-limits/>` you must keep in mind:
 
@@ -70,8 +81,8 @@ Useful References
 Runnable Examples
 -----------------
 
-Base Setup
-~~~~~~~~~~
+Import Classes
+~~~~~~~~~~~~~~
 
 Create a new Java file called ``AggTour.java`` and include the following import statements:
 
@@ -80,7 +91,6 @@ Create a new Java file called ``AggTour.java`` and include the following import 
    :dedent:
    :start-after: begin imports
    :end-before: end imports
-
 
 Connect to a MongoDB Deployment
 +++++++++++++++++++++++++++++++
@@ -91,22 +101,23 @@ Connect to a MongoDB Deployment
 
        public static void main(String[] args) {
            // Replace the uri string with your MongoDB deployment's connection string
-           String uri = "<connection string uri>";
+           String uri = "<connection string>";
 
            MongoClient mongoClient = MongoClients.create(uri);
            MongoDatabase database = mongoClient.getDatabase("aggregation");
            MongoCollection<Document> collection = database.getCollection("restaurants");
 
-           // aggregation here
+           // Paste the aggregation code here
        }
    }
 
-.. seealso::
+.. tip::
 
-   For information on connecting to MongoDB, see the :ref:`Connection Guide <mongoclient>`
+   To learn more about connecting to MongoDB, see the :ref:`Connection
+   Guide <connect-to-mongodb>`.
 
-Insert the Data
-+++++++++++++++
+Insert Sample Data
+++++++++++++++++++
 
 .. literalinclude:: /includes/fundamentals/code-snippets/AggTour.java
    :language: java
@@ -133,15 +144,15 @@ In the following example, the aggregation pipeline:
 - Uses a :manual:`$group </reference/operator/aggregation/group/>` stage to group the matching documents by the ``stars``
   field, accumulating a count of documents for each distinct value of ``stars``.
 
-.. seealso::
+.. note::
 
    You can build the expressions used in this example using the :ref:`aggregation builders <aggregates-builders>`.
 
 .. literalinclude:: /includes/fundamentals/code-snippets/AggTour.java
    :language: java
    :dedent:
-   :start-after: begin aggregation one
-   :end-before: end aggregation one
+   :start-after: begin aggregation basic
+   :end-before: end aggregation basic
 
 The preceding aggregation should produce the following results:
 
@@ -164,32 +175,45 @@ To view information about how MongoDB executes your operation, use the
 ``explain()`` method of the ``AggregateIterable`` class. The ``explain()``
 method returns **execution plans** and performance statistics. An execution
 plan is a potential way MongoDB can complete an operation.
-The ``explain()`` method provides both the winning plan (the plan MongoDB
-executed) and rejected plans.
+The ``explain()`` method provides both the winning plan, which is the plan MongoDB
+executed, and any rejected plans.
+
+.. tip::
+   
+   To learn more about query plans and execution statistics, see
+   :manual:`Explain Results </reference/explain-results/>` in the Server manual.
 
 .. include:: /includes/fundamentals/explain-verbosity.rst
 
-In the following example, we print the JSON representation of the
-winning plans for aggregation stages that produce execution plans:
+The following example prints the JSON representation of the
+winning plans for any aggregation stages that produce execution plans:
 
 .. literalinclude:: /includes/fundamentals/code-snippets/AggTour.java
    :language: java
    :dedent:
-   :start-after: begin aggregation three
-   :end-before: end aggregation three
+   :start-after: begin aggregation explain
+   :end-before: end aggregation explain
 
-The preceding code snippet should produce the following output:
+The example produces the following output as the ``$group`` stage
+is the only stage that produces an execution plan:
 
 .. code-block:: none
    :copyable: false
 
-   { "stage": "PROJECTION_SIMPLE",
-     "transformBy": {"stars": 1, "_id": 0},
+   {
+     "stage": "GROUP",
+     "planNodeId": 2,
      "inputStage": {
-      "stage": "COLLSCAN",
-      "filter": {
-         "categories": {"$eq":"bakery"}},
-     "direction": "forward"}}
+       "stage": "COLLSCAN",
+       "planNodeId": 1,
+       "filter": {
+         "categories": {
+           "$eq": "Bakery"
+         }
+       },
+       "direction": "forward"
+     }
+   }
 
 For more information about the topics mentioned in this section, see the
 following resources:
@@ -203,7 +227,7 @@ following resources:
 Aggregation Expression Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Java driver provides builders for accumulator expressions for use with
+The {+driver-short+} provides builders for accumulator expressions for use with
 ``$group``. You must declare all other expressions in JSON format or
 compatible document format.
 
@@ -213,7 +237,7 @@ compatible document format.
    expression.
 
    The ``$`` in front of "categories" tells MongoDB that this is a :manual:`field path </meta/aggregation-quick-reference/#expressions>`,
-   using the "categories" field from the input document.
+   using the ``categories`` field from the input document.
 
    .. code-block:: java
       :copyable: false
@@ -225,6 +249,10 @@ compatible document format.
 
       Document.parse("{ $arrayElemAt: ['$categories', 0] }")
 
+   Alternatively, you can construct expressions by using the Aggregation
+   Expression Operations API. To learn more, see
+   :ref:`java-aggregation-expression-operations`.
+
 In the following example, the aggregation pipeline uses a
 ``$project`` stage and various ``Projections`` to return the ``name``
 field and the calculated field ``firstCategory`` whose value is the
@@ -233,8 +261,8 @@ first element in the ``categories`` field.
 .. literalinclude:: /includes/fundamentals/code-snippets/AggTour.java
    :language: java
    :dedent:
-   :start-after: begin aggregation two
-   :end-before: end aggregation two
+   :start-after: begin aggregation expression
+   :end-before: end aggregation expression
 
 The preceding aggregation should produce the following results:
 
