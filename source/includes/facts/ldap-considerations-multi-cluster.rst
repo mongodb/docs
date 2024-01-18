@@ -11,5 +11,5 @@
   as plain text. This means that username and password are exposed to
   network threats. Many modern directory services, such as Microsoft
   Active Directory, require encrypted connections. Consider using
-  |ldap| over |tls-ssl| to encrypt vauthentication requests in your
+  |ldap| over |tls-ssl| to encrypt authentication requests in your
   |k8s-op-short| MongoDB deployments.
