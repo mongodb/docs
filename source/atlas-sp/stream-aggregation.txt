@@ -29,7 +29,8 @@ to the default :manual:`mongod </mongod>` process, enabling you to
 perform many of the same operations on continuous data as you can 
 perform on data-at-rest.
 
-The following table lists the {+atlas-sp+} aggregation pipeline stages.
+The following table lists the aggregation pipeline stages unique to
+{+atlas-sp+} and those which exist in modified form in {+atlas-sp+}.
 
 .. list-table::
    :header-rows: 1
@@ -638,6 +639,12 @@ The ``$lookup`` stage takes a document with the following fields:
      - Required
      - Field from documents in the ``from`` collection to join on.
 
+   * - pipeline
+     - document
+     - Optional
+     - Specifies the ``pipeline`` to run on the joined collection. To
+       learn more, see :ref:`pipeline <lookup-join-pipeline>`.
+
    * - as
      - string
      - Required
@@ -658,10 +665,35 @@ MongoDB database. However, this version requires that you specify an
 :ref:`Connection Registry <manage-spi-connection-add>` as the value for
 the ``from`` field.
 
-The {+atlas-sp+} version of ``$lookup`` does **not** support:
+The {+atlas-sp+} version of ``$lookup`` does **not** support the
+:ref:`let <lookup-join-let>` optional field.
 
-- :ref:`let <lookup-join-let>`
-- :ref:`pipeline <lookup-join-pipeline>`
+The :ref:`pipeline <lookup-join-pipeline>` can contain a nested 
+:pipeline:`$lookup` stage. If you include a nested :pipeline:`$lookup` 
+stage in your pipeline, you must use the standard ``from`` syntax to
+specify a collection in the same remote {+service+} connection as the
+outer :pipeline:`$lookup` stage.
+
+.. example::
+
+   .. code-block:: json
+
+      $lookup : {
+        from: {connectionName: "dbsrv1", db: "db1", coll: "coll1"},
+          …,
+        pipeline: [
+          …,
+          {
+            $lookup: {
+              from: "coll2",
+              …,
+            }
+          },
+          …,
+        ]
+      }
+
+For more information, see :pipeline:`$lookup`.
 
 .. warning::
 
@@ -973,8 +1005,8 @@ Behavior
 ``$emit`` must be the last stage of any pipeline it appears in. You can
 use only one ``$emit`` stage per pipeline.
 
-You can use a :manual:`dynamic expression <aggregation-expressions>`as 
-the value of the ``topic`` field to enable your stream processor to 
+You can use a :manual:`dynamic expression </reference/operator/aggregation/#aggregation-expressions>`
+as the value of the ``topic`` field to enable your stream processor to 
 write to different target {+kafka+} topics on a message-by-message 
 basis.
 
@@ -1026,7 +1058,7 @@ basis.
 
 You can only use dynamic expressions that evaluate to strings. For 
 more information on dynamic expressions, see 
-:manual:`aggregation-expressions`.
+:ref:`aggregation-expressions`.
 
 If you specify a topic that doesn't already exist, {+kafka+}
 automatically creates the topic when it receives the first message
