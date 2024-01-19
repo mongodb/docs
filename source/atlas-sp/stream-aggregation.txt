@@ -584,7 +584,20 @@ The :ref:`$lookup <stream-agg-pipeline-lookup>` performs a left outer
 join of the stream of messages from your :pipeline:`$source` to an
 {+service+} collection in your :ref:`Connection Registry <manage-spi-connection-add>`.
 
-A ``$lookup`` pipeline stage has the following prototype form:
+Depending on your use case, a ``$lookup`` pipeline stage uses one of 
+the following three syntaxes:
+
+- :manual:`Equality Match with a Single Join Collection 
+  </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
+- :manual:`Join Conditions and Subqueries on a Joined Collection
+  </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
+- :manual:`Correlated Subqueries Using Concise Syntax
+  </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+
+To learn more, see :manual:`$lookup Syntax 
+</reference/operator/aggregation/lookup/#syntax>` .
+
+The following prototype form illustrates all available fields:
 
 .. code-block:: json
 
@@ -597,6 +610,15 @@ A ``$lookup`` pipeline stage has the following prototype form:
       },
       "localField": "<field-in-source-messages>",
       "foreignField": "<field-in-from-collection>",
+      "let": { 
+        <var_1>: <expression>, 
+        <var_2>: <expression>, 
+        …, 
+        <var_n>: <expression> 
+      },
+      "pipeline": [ 
+        <pipeline to run> 
+      ],
       "as": "<output-array-field>"
     }  
   } 
@@ -608,7 +630,7 @@ The ``$lookup`` stage takes a document with the following fields:
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 10 15 15 70
+   :widths: 15 15 15 65
 
    * - Field 
      - Type 
@@ -631,19 +653,54 @@ The ``$lookup`` stage takes a document with the following fields:
 
    * - localField
      - string
-     - Required 
+     - Conditional
      - Field from your ``$source`` messages to join on.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Equality Match with a Single Join Collection 
+         </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
 
    * - foreignField
      - string
-     - Required
+     - Conditional
      - Field from documents in the ``from`` collection to join on.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Equality Match with a Single Join Collection 
+         </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+
+   * - let
+     - document
+     - Conditional
+     - Specifies the variables to use in the 
+       :ref:`pipeline <lookup-join-pipeline>` stages. To learn more,
+       see :ref:`let <lookup-join-let>`.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Join Conditions and Subqueries on a Joined Collection
+         </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
 
    * - pipeline
      - document
-     - Optional
+     - Conditional
      - Specifies the ``pipeline`` to run on the joined collection. To
        learn more, see :ref:`pipeline <lookup-join-pipeline>`.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Join Conditions and Subqueries on a Joined Collection
+         </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
 
    * - as
      - string
@@ -664,9 +721,6 @@ MongoDB database. However, this version requires that you specify an
 {+service+} collection from your 
 :ref:`Connection Registry <manage-spi-connection-add>` as the value for
 the ``from`` field.
-
-The {+atlas-sp+} version of ``$lookup`` does **not** support the
-:ref:`let <lookup-join-let>` optional field.
 
 The :ref:`pipeline <lookup-join-pipeline>` can contain a nested 
 :pipeline:`$lookup` stage. If you include a nested :pipeline:`$lookup` 
