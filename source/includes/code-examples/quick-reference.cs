@@ -20,7 +20,7 @@ void FindOne()
 void FindMultiple()
 {
     // start-find-many
-    var planets = db.Planets.Where(p => p.hasRings).ToList();
+    var planets = db.Planets.Where(p => p.hasRings);
 
     foreach (var p in planets)
     {
@@ -99,7 +99,7 @@ void DeleteMany()
 void OrderByExample()
 {
     // start-order-by
-    var planetList = db.Planets.OrderBy(p => p.orderFromSun).ToList();
+    var planetList = db.Planets.OrderBy(p => p.orderFromSun);
 
     foreach (var p in planetList)
     {
@@ -111,7 +111,7 @@ void OrderByExample()
 void DoubleOrderBy()
 {
     // start-order-by-then-by
-    var planetList = db.Planets.OrderBy(o => o.hasRings).ThenBy(o => o.name).ToList();
+    var planetList = db.Planets.OrderBy(o => o.hasRings).ThenBy(o => o.name);
 
     foreach (var p in planetList)
     {
@@ -123,7 +123,7 @@ void DoubleOrderBy()
 void TakeExample()
 {
     // start-take
-    var planetList = db.Planets.Take(3).ToList();
+    var planetList = db.Planets.Take(3);
 
     foreach (var p in planetList)
     {
@@ -135,7 +135,7 @@ void TakeExample()
 void SkipExample()
 {
     // start-skip
-    var planetList = db.Planets.OrderBy(p => p.orderFromSun).Skip(5).ToList();
+    var planetList = db.Planets.OrderBy(p => p.orderFromSun).Skip(5);
 
     foreach (var p in planetList)
     {
