@@ -26,6 +26,10 @@
      - :doc:`/orgs/{ORG-ID}/users </reference/api/organizations/organization-get-all-users>`
      - Return all users in the specified organization.
 
+   * - DELETE
+     - :doc:`/orgs/{ORG-ID}/users/{USER-ID} </reference/api/organizations/organization-delete-one-user>`
+     - Remove the user associated with ``{USER-ID}`` in the organization associated with ``{ORG-ID}``.
+
    * - PUT
      - :doc:`/orgs/{ORG-ID}/users/{USER-ID}/roles 
        </reference/api/organizations/update-org-roles-for-one-user>`
