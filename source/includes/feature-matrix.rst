@@ -98,6 +98,10 @@
      - :icon-fa5:`check`
      - 
 
+   * - Prometheus Integration
+     - :icon-fa5:`check`
+     -
+
 .. [#cross-region]
    
    You cannot deploy clusters across government 
