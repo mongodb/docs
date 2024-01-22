@@ -1,6 +1,7 @@
 Sends the alert by email or text message to a specified |mms| team.
 
 .. note::
+   
    This option appears only after at least
    :ref:`one team has been created <create-team>`.
 

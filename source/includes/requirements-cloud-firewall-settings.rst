@@ -69,6 +69,7 @@ ports must be open to every server that hosts an Automation,
 Monitoring or {+bagent+}. 
 
 .. example::
+  
    If you are running MongoDB processes on ``27000``, ``27017`` and
    ``27020``, then those three ports must be open from all servers
    that are hosting an Agent.

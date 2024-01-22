@@ -7,6 +7,7 @@ application code expects ``BinData`` subtype 2, you must update your
 application code to work with ``BinData`` subtype 0.
 
 .. seealso::
+   
    The notes on the `BSON specification
    <http://bsonspec.org/spec.html>`_ explain the particular specifics
    of this change.

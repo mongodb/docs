@@ -137,6 +137,7 @@
        master key ID used to encrypt the snapshot data.
 
        .. note::
+        
           This parameter appears only if this snapshot has
           ``parts.encryptionEnabled : true``.
 

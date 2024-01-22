@@ -63,5 +63,6 @@
    #. Snapshot files to a :term:`file system store`.
 
 .. note::
+   
    The characteristics of each storage method is covered in
    :ref:`backup-configuration-options`.
