@@ -63,5 +63,6 @@
    #. Snapshot files to a :opsmgr:`file system store </reference/glossary/#std-term-File-System-Store>`.
 
 .. note::
+   
    The characteristics of each storage method is covered in
    :ref:`backup-configuration-options`.

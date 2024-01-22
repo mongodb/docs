@@ -23,6 +23,7 @@
           the :setting:`Versions Directory` on the |onprem| hosts.
    
    .. warning::
+    
       Set to ``false`` when |onprem| is running in
       :doc:`Local Mode </tutorial/configure-local-mode>`.
    

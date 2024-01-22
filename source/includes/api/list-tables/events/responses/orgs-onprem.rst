@@ -57,6 +57,7 @@
      - Relevant units for the value.
 
        .. example::
+        
           A metric that measures memory consumption would have a byte measurement, while a metric that measures time would have a time unit.
 
        Accepted values are:

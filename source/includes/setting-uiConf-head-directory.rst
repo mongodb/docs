@@ -13,6 +13,7 @@
    appropriately.
    
    .. important::
+      
       Data in this directory is dynamically created, maintained and
       destroyed by the Backup Daemon. This partition should not be used
       for any other purpose. This partition should *not* overlap with

@@ -43,6 +43,7 @@
        .. include:: /includes/option-in-memory-storage.rst
 
        .. important::
+        
           All members of a replica set do not need to use the same storage
           engine. You can deploy a replica set with members that use a mix of
           storage engines, including the 
