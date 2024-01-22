@@ -7,6 +7,7 @@ as a single :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongo
 failover), run the shard as a single-member replica set.
 
 .. note::
+   
    You may not upgrade a sharded MongoDB deployment to version 3.4 if 
    the deployment uses mirrored :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instances as config 
    servers. To allow the sharded deployment to be upgraded, see 

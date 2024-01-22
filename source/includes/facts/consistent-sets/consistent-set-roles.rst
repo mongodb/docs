@@ -10,6 +10,7 @@ their :guilabel:`Synced` value set to ``No`` and exist only in their
 respective MongoDB deployments.
 
 .. note::
+   
    If you toggle :guilabel:`Synced` to ``OFF`` after import, any users
    or roles you create are deleted.
 

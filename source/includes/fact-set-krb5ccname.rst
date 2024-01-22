@@ -1,4 +1,5 @@
 .. note::
+   
    |mms| creates a Kerberos Credential (Ticket) Cache for each agent
    automatically when Kerberos is enabled. If you want to override the
    location of the 
