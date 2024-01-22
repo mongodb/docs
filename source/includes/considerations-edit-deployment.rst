@@ -113,6 +113,7 @@ Multiple Modifications
 You can combine multiple modifications into one deployment.
 
 .. example::
+  
    You could make all the following modifications before clicking the
    :guilabel:`Review Changes` button:
 

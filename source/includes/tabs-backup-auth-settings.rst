@@ -77,6 +77,7 @@
                    privileges.
 
                    .. note::
+
                       You only need to provide the LDAP Group DN if
                       you use LDAP Authorization.
 
@@ -129,5 +130,6 @@
              Group.
 
              .. note::
+              
                 You only need to provide Backup's |ldap| Group DN if
                 you use |ldap| Authorization.

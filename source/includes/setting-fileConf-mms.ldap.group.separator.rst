@@ -26,6 +26,7 @@
    to another value.
    
    .. example::
+      
       If you have the group value ``"CN\=foo,DN\=bar"`` and the
       delimiter is ``,`` then |mms| parses ``"CN\=foo,DN\=bar"`` as two
       elements rather than as the description for a single group.

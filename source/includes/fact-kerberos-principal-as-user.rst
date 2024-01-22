@@ -75,5 +75,6 @@ deployment. Without |ldap| authorization, MongoDB uses the
 source such as Kerberos.
 
 .. note::
+  
    To discover the appropriate roles for the agents, see 
    :doc:`/reference/required-access-mongodb-agent`.

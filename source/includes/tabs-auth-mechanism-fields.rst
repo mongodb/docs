@@ -180,6 +180,7 @@
          :guilabel:`Auth Mechanism` menu.
 
          .. note::
+          
             If you choose :guilabel:`X.509 Client Certificate (MONGODB-X509)`, you *must* enable |tls|.
 
          .. list-table::

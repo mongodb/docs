@@ -77,6 +77,7 @@
                    privileges.
 
                    .. note::
+
                       You only need to provide the LDAP Group DN if
                       you use LDAP Authorization.
 
@@ -139,5 +140,6 @@
              |ldap| Group.
 
              .. note::
+              
                 You only need to provide MongoDB Agent's |ldap| Group
                 DN if you use |ldap| Authorization.

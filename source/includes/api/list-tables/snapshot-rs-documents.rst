@@ -63,6 +63,7 @@
      - Flag that indicates the consistency of this :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
 
        .. note::
+
           This appears for :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` snapshots only.
 
        To take a snapshot of a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` in a consistent
@@ -133,6 +134,7 @@
      - List of shards that the :manual:`snapshot </reference/glossary/#std-term-snapshot>` is missing.
 
        .. note::
+
           This appears for :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` snapshots only.
 
        In steady state, this array is empty. If the {+bagent+} cannot
@@ -222,6 +224,7 @@
      - |kmip| master key ID used to encrypt the :manual:`snapshot </reference/glossary/#std-term-snapshot>` data.
 
        .. note::
+        
           This appears only if this snapshot has
           ``parts.encryptionEnabled : true``.
 
