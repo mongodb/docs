@@ -11,8 +11,7 @@
 
   - If you manage the source {+cluster+} in |onprem|,
     :opsmgr:`disable sharded collection management
-    </tutorial/manage-data-sharding/>`
-    in |onprem|.
+    </tutorial/unmanage-deployment/>` in |onprem|.
 
   - If you manage the source {+cluster+} in |mms|, :cloudmgr:`disable
     sharded collection management
