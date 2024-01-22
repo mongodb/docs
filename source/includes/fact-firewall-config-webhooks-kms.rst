@@ -17,8 +17,8 @@ add |service| IP addresses to your network's IP access list:
 Fetch |service| Control Plane IP Addresses
 -------------------------------------------
 
-Send a GET request to the ``controlPlaneIPAddresses`` endpoint 
-to fetch the current |service| control plane IP addresses. The :oas-atlas-op:`API endpoint </controlPlaneIPAddresses>` 
+Send a GET request to the ``returnAllControlPlaneIPAddresses`` endpoint 
+to fetch the current |service| control plane IP addresses. The :oas-atlas-op:`API endpoint </returnAllControlPlaneIPAddresses>` 
 returns a list of inbound and outbound |service| control plane IP addresses in |cidr| notation 
 categorized by cloud provider and region, similar to the following:
 
