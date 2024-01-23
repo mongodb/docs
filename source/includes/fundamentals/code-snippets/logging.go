@@ -45,7 +45,7 @@ func standardLogging(uri string) {
 		ApplyURI(uri).
 		SetLoggerOptions(loggerOptions)
 	// end-standard-logger
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(clientOptions)
 	if err != nil {
 		panic(err)
 	}
@@ -113,7 +113,7 @@ func customLogging(uri string) {
 		ApplyURI(uri).
 		SetLoggerOptions(loggerOptions)
 	// end-set-customlogger
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(clientOptions)
 	if err != nil {
 		panic(err)
 	}
@@ -161,7 +161,7 @@ func thirdPartyLogging(uri string) {
 		ApplyURI(uri).
 		SetLoggerOptions(loggerOptions)
 	// end-set-thirdparty-logger
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(clientOptions)
 	if err != nil {
 		panic(err)
 	}

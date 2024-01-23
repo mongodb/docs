@@ -14,7 +14,7 @@ import (
 
 func main() {
 	// Create a new client and connect to the server
-	client, err := mongo.Connect(context.TODO())
+	client, err := mongo.Connect()
 
 	if err != nil {
 		panic(err)

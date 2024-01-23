@@ -45,7 +45,7 @@ func main() {
 	opts := options.Client().ApplyURI(uri).SetTLSConfig(tlsConfig)
 
 	// Connects to MongoDB with TLS enabled
-	client, err := mongo.Connect(context.TODO(), opts)
+	client, err := mongo.Connect(opts)
 	if err != nil {
 		panic(err)
 	}

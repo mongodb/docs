@@ -20,7 +20,7 @@ func main() {
 	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
 
 	// Create a new client and connect to the server
-	client, err := mongo.Connect(context.TODO(), opts)
+	client, err := mongo.Connect(opts)
 
 	if err != nil {
 		panic(err)
