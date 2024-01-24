@@ -1,7 +1,8 @@
-In MongoDB 4.2+, you cannot use :doc:`file system snapshots
-</tutorial/backup-with-filesystem-snapshots>` for backups that involve
-transactions across shards because those backups do not maintain
-atomicity. Instead, use one of the following to perform the backups:
+To take a backup with a file system snapshot, you must first stop the balancer,
+stop writes, and stop any schema transformation operations on the cluster.
+
+MongoDB provides backup and restore operations that can run with the balancer
+and running transactions through the following services:
 
 - `MongoDB Atlas <https://docs.atlas.mongodb.com/>`_
 
