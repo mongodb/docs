@@ -7,6 +7,6 @@ To view and edit query syntax in the :guilabel:`Search Tester`:
 #. Click the :guilabel:`Query` button to the right of the index 
    to query.
 
-#. Click :guilabel:`Edit $search Query` to view a default query 
+#. Click :guilabel:`Edit Query` to view a default query 
    syntax sample in |json| format.
    

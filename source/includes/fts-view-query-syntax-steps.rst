@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Click :guilabel:`Edit $search Query` to view your query syntax 
+   .. step:: Click :guilabel:`Edit Query` to view your query syntax 
       in |json| format.
 
    .. step:: Edit or copy your query syntax.
