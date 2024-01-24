@@ -13,25 +13,25 @@
       
          .. step:: Edit Query Syntax 
          
-            You can update the :pipeline:`$search` query in the Search
-            Editor and test it by clicking the :guilabel:`Search`
-            button.
+            You can modify or replace the displayed query in the Query
+            Editor and test your query by clicking the
+            :guilabel:`Search` button. 
 
             .. important::
             
                When you finish editing your query, be sure to copy it. Once
-               you click :guilabel:`Close Search Editor`, the {+atlas-ui+}
+               you click :guilabel:`Exit Query Editor`, the {+atlas-ui+}
                discards your changes.
       
          .. step:: Copy Query Syntax 
             
             Click :icon-fa4:`files-o` to copy the query syntax in |json| 
-            format to your clipboard. You can run the copied query in your 
-            {+mongosh+} or |compass| after :doc:`connecting </connect-to-database-deployment/>` to 
-            your |service| cluster.
+            format to your clipboard. You can run the copied query in 
+            {+mongosh+} or |compass| after :doc:`connecting </connect-to-database-deployment/>` 
+            to your |service| {+cluster+}.
 
-   .. step:: Click :guilabel:`Close Search Editor` to exit the :guilabel:`Edit $search Query` modal.
+   .. step:: Click :guilabel:`Exit Query Editor` to exit the :guilabel:`Query Editor` modal.
 
              .. note::
                 
-                The {+atlas-ui+} discards your changes when you exit the Search Tester Editor.
+                The {+atlas-ui+} discards your changes when you exit the Query Editor.
