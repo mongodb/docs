@@ -8,7 +8,7 @@
    
    .. step:: Click :guilabel:`Connect` to open the {+fdi+} connection modal.
 
-   .. step:: Select :guilabel:`Connect using the {+asql+} Interface`.
+   .. step:: Select :guilabel:`{+asql+}`.
 
    .. step:: Select :guilabel:`JDBC Driver`.
 
