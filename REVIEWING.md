@@ -1,4 +1,4 @@
-# Pull Request Reviewing Guidelines for Rust Driver Documentation
+# Pull Request Reviewing Guidelines for the Rust Driver Documentation
 
 Contributions to the set of documents in this repository can receive reviews from one or both of the following types of reviews:
 
@@ -22,9 +22,8 @@ Review the structure, wording, and flow of the information in the PR, and correc
 ### What Not to Review
 
 Nothing is completely off-limits to a copy review of a PR -- if you notice a technical issue, it's best to call it out early.
-Copy reviewers should constrain their reviews to content within the
-scope of the JIRA ticket, or otherwise create tickets to address
-anything unrelated.
+Copy reviewers should constrain their reviews to content within the scope of the JIRA ticket, or otherwise create PRs to address anything unrelated.
+
 
 ## Technical Review
 
@@ -42,3 +41,4 @@ While we welcome any recommendations on wording and structure, avoid blocking ap
 - Wording of sentences, although corrections to technical claims are welcome
 - Structure of the page
 - Any unchanged lines outside the PR unless relevant to the ticket acceptance criteria.
+
