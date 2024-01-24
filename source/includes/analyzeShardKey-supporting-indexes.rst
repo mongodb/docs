@@ -34,3 +34,6 @@ index requirements:
 - Index is not :ref:`multi-key <index-type-multikey>`
 - Index is not :ref:`sparse <index-type-sparse>`
 - Index is not :ref:`partial <index-type-partial>`
+
+To create supporting indexes, use the
+:method:`db.collection.createIndex()` method.
