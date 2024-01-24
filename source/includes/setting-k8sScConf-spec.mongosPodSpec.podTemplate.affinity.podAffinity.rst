@@ -1,4 +1,4 @@
-.. setting:: spec.mongosPodSpec.podAffinity
+.. setting:: spec.mongosPodSpec.podTemplate.affinity.podAffinity
 
    *Type*: collection
 
