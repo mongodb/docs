@@ -1,0 +1,320 @@
+.. _golang-connection-monitoring:
+
+=====================
+Connection Monitoring
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, performance, monitor
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+Overview
+--------
+
+This guide shows you how to use the {+driver-short+} to monitor the
+driver's connection pool. A connection pool is a set of open
+Transmission Control Protocol (TCP) connections that your driver
+maintains with a MongoDB instance. Connection pools help reduce the
+number of new connections your application needs to create,
+which might make your application run faster.
+
+You might use information about connection pool events in your
+application to optimize performance or understand the client lifecycle.
+
+Subscribe to Events
+-------------------
+
+You can access details about connection pool events by subscribing to them
+in your application. The following example demonstrates how to subscribe
+to the ``PoolEvent`` event by instantiating a
+``PoolMonitor`` and connecting to a deployment:
+
+.. code-block:: go
+
+   var eventArray []*event.PoolEvent
+   cxnMonitor := &event.PoolMonitor{
+       Started: func(e *event.PoolEvent) {
+           eventArray = append(eventArray, e)
+       },
+   }
+   clientOpts := options.Client().ApplyURI(uri).SetPoolMonitor(cxnMonitor)
+   client, err := mongo.Connect(clientOpts)
+
+Event Descriptions
+------------------
+
+The following table describes the types of pool events that the driver
+emits:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Pool Event Type
+     - Description
+
+   * - ``ConnectionPoolCreated``
+     - Created when a connection pool is created.
+
+   * - ``ConnectionPoolReady``
+     - Created when a connection pool is ready.
+
+   * - ``ConnectionPoolCleared``
+     - Created when all the connections in the pool are closed.
+
+   * - ``ConnectionPoolClosed``
+     - Created when a connection pool is closed, before the destruction of
+       the server instance.
+
+   * - ``ConnectionCreated``
+     - Created when a connection is created, but not necessarily
+       when it is used for an operation.
+
+   * - ``ConnectionReady``
+     - Created after a connection completes a
+       handshake and is ready to be used for operations.
+
+   * - ``ConnectionClosed``
+     - Created when a connection is closed.
+
+   * - ``ConnectionCheckOutStarted``
+     - Created when an operation attempts to acquire a connection for
+       execution.
+
+   * - ``ConnectionCheckOutFailed``
+     - Created when an operation cannot acquire a connection for
+       execution.
+
+   * - ``ConnectionCheckedOut``
+     - Created when an operation successfully acquires a connection for
+       execution.
+
+   * - ``ConnectionCheckedIn``
+     - Created when a connection is checked back into the pool after an operation
+       is executed.
+
+Example Event Documents
+-----------------------
+
+The following sections show sample output for each type of connection
+pool monitoring event.
+
+ConnectionPoolCreated
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolCreated",
+       "address": "...",
+       "connectionId": 0,
+       "options": {
+           "maxPoolSize": 100,
+           "minPoolSize": 0,
+           "maxIdleTimeMS": 0
+       },
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionPoolReady
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolReady",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionPoolCleared
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolCleared",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionPoolClosed
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionPoolClosed",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCreated
+~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCreated",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionReady
+~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionReady",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionClosed
+~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionClosed",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckOutStarted
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckOutStarted",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckOutFailed
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckOutFailed",
+       "address": "...",
+       "connectionId": 0,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckedOut
+~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckedOut",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+ConnectionCheckedIn
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.PoolEvent
+   {
+       "type": "ConnectionCheckedIn",
+       "address": "...",
+       "connectionId": 1,
+       "options": null,
+       "reason": "",
+       "serviceId": null,
+       "error": null
+   }
+
+Additional Information
+----------------------
+
+To learn more about monitoring a MongoDB deployment, see the :website:`How
+to Monitor MongoDB
+</basics/how-to-monitor-mongodb-and-what-metrics-to-monitor>` article.
+
+To learn more about connecting to MongoDB, see the
+:ref:`golang-connection-guide`.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `PoolMonitor <{+api+}/event#PoolMonitor>`__ type
+- `PoolEvent <{+api+}/event#PoolEvent>`__ type
+- `SetPoolMonitor() <{+api+}/mongo/options#ClientOptions.SetPoolMonitor>`__ method

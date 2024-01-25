@@ -1,0 +1,151 @@
+.. _golang-command-monitoring:
+
+==================
+Command Monitoring
+==================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, operation
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+Overview
+--------
+
+This guide shows you how to use the {+driver-short+} to monitor the
+outcome of commands that the driver sends to your MongoDB deployment.
+
+You might use information about command events in your
+application to understand changes in query performance or resolve bottlenecks.
+
+Subscribe to Events
+-------------------
+
+You can access details about command events by subscribing to them
+in your application. The following example demonstrates how to subscribe
+to the ``CommandStartedEvent`` event by instantiating a
+``CommandMonitor`` and connecting to a deployment:
+
+.. code-block:: go
+
+   var eventArray []*event.CommandStartedEvent
+   cmdMonitor := &event.CommandMonitor{
+       Started: func(ctx context.Context, e *event.CommandStartedEvent) {
+           eventArray = append(eventArray, e)
+       },
+   }
+   clientOpts := options.Client().ApplyURI(uri).SetMonitor(cmdMonitor)
+   client, err := mongo.Connect(clientOpts)
+
+Event Descriptions
+------------------
+
+You can subscribe to one or more of the following command monitoring
+events:
+
+.. list-table::
+   :widths: 33 67
+   :header-rows: 1
+
+   * - Event Name
+     - Description
+
+   * - ``CommandStartedEvent``
+     - Created when a command starts.
+
+   * - ``CommandSucceededEvent``
+     - Created when a command succeeds.
+
+   * - ``CommandFailedEvent``
+     - Created when a command does not succeed.
+
+Example Event Documents
+-----------------------
+
+The following sections show sample output for each type of command monitoring event.
+
+CommandStartedEvent
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.CommandStartedEvent
+   {
+       "Command": "...",
+       "DatabaseName": "...",
+       "CommandName": "...",
+       "RequestID": ...,
+       "ConnectionID": "...",
+       "ServerConnectionID": ...,
+       "ServerConnectionID64": ...,
+       "ServiceID": "..."
+   }
+
+CommandSucceededEvent
+~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.CommandSucceededEvent
+   {
+       "DurationNanos": 38717583,
+       "Duration": 38717583,
+       "CommandName": "insert",
+       "RequestID": 13,
+       "ConnectionID": "...",
+       "ServerConnectionID": ...,
+       "ServerConnectionID64": ...,
+       "ServiceID": null,
+       "Reply": "..."
+   }
+
+CommandFailedEvent
+~~~~~~~~~~~~~~~~~~
+
+.. code-block:: none
+   :copyable: false
+
+   *event.CommandFailedEvent
+   {
+       "DurationNanos": 38717583,
+       "Duration": 38717583,
+       "CommandName": "insert",
+       "RequestID": 13,
+       "ConnectionID": "...",
+       "ServerConnectionID": ...,
+       "ServerConnectionID64": ...,
+       "ServiceID": null,
+       "Failure": "..."
+   }
+
+Additional Information
+----------------------
+
+To learn more about monitoring a MongoDB deployment, see the :website:`How
+to Monitor MongoDB
+</basics/how-to-monitor-mongodb-and-what-metrics-to-monitor>` article.
+
+To learn more about performing MongoDB operations, see the
+:ref:`golang-crud` guides.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `CommandMonitor <{+api+}/event#CommandMonitor>`__ type
+- `SetMonitor() <{+api+}/mongo/options#ClientOptions.SetMonitor>`__ method
+- `CommandStartedEvent <{+api+}/event#CommandStartedEvent>`__ type
+- `CommandSucceededEvent <{+api+}/event#CommandSucceededEvent>`__ type
+- `CommandFailedEvent <{+api+}/event#CommandFailedEvent>`__ type
