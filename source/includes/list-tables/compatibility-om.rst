@@ -1,6 +1,6 @@
 .. list-table::
    :header-rows: 1
-   :widths: 30 30 30
+   :widths: 50 50
 
    * - |k8s-op-short| Release Series
      - |onprem| Version
