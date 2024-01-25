@@ -11,6 +11,9 @@
   more, see :ref:`c2c-pull-live-migration`.
 - Support for push-based logging integration with |aws| |s3|. To
   learn more, see :ref:`mongodb-logs-push`.
+- Support for programmatic IP access list to secure |service|
+  customer-managed encryption keys. To learn more, see
+  :ref:`atlas-add-nodes-to-encrypted-cluster`.
 
 .. _atlas_2023_05_12:
 
