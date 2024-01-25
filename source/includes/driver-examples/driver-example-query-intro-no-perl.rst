@@ -75,7 +75,7 @@
        content: |
         
          This page provides examples of |query_operations| using the
-         :phpmethod:`MongoDB\\Collection::find() <phpmethod.MongoDB\\Collection::find>`
+         :phpmethod:`MongoDB\\Collection::find() <phpmethod.MongoDB\\Collection::find()>`
          method in the
          `MongoDB PHP Library <https://www.mongodb.com/docs/drivers/php-libraries/>`_.
 
