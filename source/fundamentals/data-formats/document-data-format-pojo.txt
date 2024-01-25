@@ -4,7 +4,12 @@
 Document Data Format: POJOs
 ===========================
 
-.. default-domain:: mongodb
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: java sync, code example, custom class, data model
 
 .. contents:: On this page
    :local:
@@ -15,98 +20,44 @@ Document Data Format: POJOs
 Overview
 --------
 
-In this guide, you can learn how to store and retrieve data in the
-MongoDB Java driver using plain old Java objects (`POJOs <https://en.wikipedia.org/wiki/Plain_old_Java_object>`__).
-POJOs are often used for data encapsulation, separating business logic from
+In this guide, you can learn how to store and retrieve data modeled by
+plain old Java objects, or POJOs. POJOs are often used for data
+encapsulation, which is the practice of separating business logic from
 data representation.
 
-The example in this guide shows how to perform the following:
+.. tip::
+   
+   To learn more about POJOs, see the :wikipedia:`Plain old Java object
+   <w/index.php?title=Plain_old_Java_object&oldid=1143317019>` Wikipedia article.
+
+The example in this guide demonstrates how to perform the following
+tasks:
 
 - Configure the driver to serialize and deserialize POJOs
-- How to read and write to documents using POJOs
+- Perform CRUD operations that use data modeled by POJOs
 
 .. _fundamentals-example-pojo:
 
 Example POJO
 ------------
 
-To follow the steps in this guide, use the following sample POJO class
-which describes characteristics of a flower:
+The sections in this guide use the following sample POJO class,
+which describes the characteristics of flowers:
 
-.. code-block:: java
+.. literalinclude:: /includes/fundamentals/code-snippets/POJO-class-example.java
+   :language: java
+   :dedent:
+   :start-after: start-flower-class
+   :end-before: end-flower-class
 
-   public class Flower {
+When defining a POJO to store and retrieve data within MongoDB,
+use the following guidelines:
 
-       private ObjectId id;
-       private String name;
-       private List<String> colors;
-       private Boolean isBlooming;
-       private Float height;
-
-       // public empty constructor needed for retrieving the POJO
-       public Flower() {}
-
-       public Flower(String name, Boolean isBlooming, Float height, List<String> colors) {
-           this.name = name;
-           this.isBlooming = isBlooming;
-           this.height = height;
-           this.colors = colors;
-       }
-
-       public ObjectId getId() {
-           return id;
-       }
-
-       public void setId(ObjectId id) {
-           this.id = id;
-       }
-
-       public String getName() {
-           return name;
-       }
-
-       public void setName(String name) {
-           this.name = name;
-       }
-
-       public Boolean getIsBlooming() {
-           return isBlooming;
-       }
-
-       public void setIsBlooming(Boolean isBlooming) {
-           this.isBlooming = isBlooming;
-       }
-
-       public Float getHeight() {
-           return height;
-       }
-
-       public void setHeight(Float height) {
-           this.height = height;
-       }
-
-       public List<String> getColors() {
-           return colors;
-       }
-
-       public void setColors(List<String> colors) {
-           this.colors = colors;
-       }
-
-       @Override
-       public String toString() {
-           return "Flower [id=" + id + ", name=" + name + ", colors=" + colors + ", isBlooming=" + isBlooming + ", height=" + height + "]";
-       }
-   }
-
-If you are creating your own POJO for storing and retrieving data in MongoDB,
-make sure to follow these guidelines:
-
-- The POJO class should not implement interfaces or extend classes from a
+- The POJO class cannot implement interfaces or extend classes from a
   framework.
-- Include all the fields for which you want to store and retrieve data;
-  make sure they are not ``static`` or ``transient``.
-- If you include public getter or setter methods using the
+- Include all the fields for which you want to store and retrieve data, and
+  make sure they are not marked as ``static`` or ``transient``.
+- If you include public getter or setter methods by using the
   `JavaBean naming conventions <https://docs.oracle.com/javase/tutorial/javabeans/writing/properties.html>`__
   in your POJO, the driver calls them when serializing or deserializing data.
   If you omit the getter or setter methods for a public property field, the
@@ -115,113 +66,133 @@ make sure to follow these guidelines:
 Configure the Driver for POJOs
 ------------------------------
 
-To set up the driver to store and retrieve POJOs, we need to specify:
+To configure the driver to use POJOs, you must specify the following
+components:
 
-- The ``PojoCodecProvider``, a codec provider that includes
-  :doc:`Codecs </fundamentals/data-formats/codecs>` that define how to
-  encode/decode the data between the POJO and MongoDB document, and which
-  POJO classes or packages that the codecs should apply to.
-- A ``CodecRegistry`` instance that contains the codecs and other related information.
-- A ``MongoDatabase`` or ``MongoCollection`` instance configured to use the
+- ``PojoCodecProvider`` instance that has
+  :ref:`codecs <fundamentals-codecs>` that define how to
+  encode and decode the data between the POJO format and BSON. The
+  provider also specifies which POJO classes or packages that the codecs
+  apply to.
+- ``CodecRegistry`` instance that contains the codecs and other related information.
+- ``MongoDatabase`` or ``MongoCollection`` instance that is configured to use the
   ``CodecRegistry``.
-- A ``MongoCollection`` instance created with the POJO document class
+- ``MongoCollection`` instance that is created with the POJO document class
   bound to the ``TDocument`` generic type.
 
-Consult the following steps to see how to perform each of the configuration
-requirements:
+Perform the following steps to meet the configuration requirements
+defined in the preceding section:
 
 1. Configure the ``PojoCodecProvider``. In this example, we use the ``automatic(true)``
-   setting of the ``PojoCodecProvider.Builder`` to apply the Codecs to
+   setting of the ``PojoCodecProvider.Builder`` to apply the codecs to
    any class and its properties.
 
-   .. code-block:: java
-
-      CodecProvider pojoCodecProvider = PojoCodecProvider.builder().automatic(true).build();
+   .. literalinclude:: /includes/fundamentals/code-snippets/POJO-crud.java
+      :language: java
+      :dedent:
+      :start-after: start-codec-provider
+      :end-before: end-codec-provider
 
    .. note::
 
       Codec providers also contain other objects such as ``ClassModel`` and
       ``Convention`` instances that further define serialization behavior.
       For more information on codec providers and customization, see the guide
-      on :doc:`POJO Customization </fundamentals/data-formats/pojo-customization>`.
+      on :ref:`POJO Customization <fundamentals-pojo-customization>`.
 
 #. Add the ``PojoCodecProvider`` instance to a ``CodecRegistry``. The
    ``CodecRegistry`` allows you to specify one or more codec providers to
    encode the POJO data. In this example, we call the following methods:
 
-   - ``fromRegistries()`` to combine multiple ``CodecRegistry`` instances into a single one
+   - ``fromRegistries()`` to combine multiple ``CodecRegistry``
+     instances into one instance
    - ``getDefaultCodecRegistry()`` to retrieve a ``CodecRegistry`` instance from a list of codec providers
    - ``fromProviders()`` to create a ``CodecRegistry`` instance from the ``PojoCodecProvider``
 
    .. _get-default-codec-registry-example:
 
-   See the following code to see how to instantiate the ``CodecRegistry``:
+   The following code shows how to instantiate the ``CodecRegistry``:
 
    .. code-block:: java
 
-      // ensure you use the following static imports before your class definition
+      // Include the following static imports before your class definition
       import static com.mongodb.MongoClientSettings.getDefaultCodecRegistry;
       import static org.bson.codecs.configuration.CodecRegistries.fromProviders;
       import static org.bson.codecs.configuration.CodecRegistries.fromRegistries;
 
-      // ...
+      ...
 
       CodecRegistry pojoCodecRegistry = fromRegistries(getDefaultCodecRegistry(), fromProviders(pojoCodecProvider));
 
 #. Configure the ``MongoDatabase`` or ``MongoCollection`` instance to use the
-   Codecs in the ``CodecRegistry``. You only need to configure one of these.
+   codecs in the ``CodecRegistry``. You can configure either a database
+   or collection to specify the codecs.
+
    In this example, we set the ``CodecRegistry`` on a ``MongoDatabase`` called
-   ``sample_pojos`` using the ``withCodecRegistry()`` method.
+   ``sample_pojos`` by using the ``withCodecRegistry()`` method:
 
-   .. code-block:: java
-
-      try (MongoClient mongoClient = MongoClients.create(uri)) {
-          MongoDatabase database = mongoClient.getDatabase("sample_pojos").withCodecRegistry(pojoCodecRegistry);
-          // ...
-      }
+   .. literalinclude:: /includes/fundamentals/code-snippets/POJO-crud.java
+      :language: java
+      :dedent:
+      :start-after: start-connect-db
+      :end-before: end-connect-db
 
 #. Pass your POJO class to your call to ``getCollection()`` as the
    document class parameter and specify it as the type argument of your
-   ``MongoCollection`` instance as follows:
+   ``MongoCollection`` instance, as shown in the following code:
 
-   .. code-block:: java
+   .. literalinclude:: /includes/fundamentals/code-snippets/POJO-crud.java
+      :language: java
+      :dedent:
+      :start-after: start-get-coll
+      :end-before: end-get-coll
 
-      MongoCollection<Flower> collection = database.getCollection("flowers", Flower.class);
+Perform CRUD Operations
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Once you have configured the preceding ``MongoCollection`` instance, you
-can perform the following :ref:`CRUD operations <java-crud-operations>`
-with the POJOs:
+Once you have configured the ``MongoCollection`` instance to use the
+``Flower`` POJO, you can perform CRUD operations on data modeled by the POJO.
 
-- Create a document from a POJO
-- Retrieve data in a POJO instance
+This example demonstrates how to perform the following operations by
+using the ``Flower`` POJO:
 
-The following code snippet shows how you can insert an instance of ``Flower`` into
-the collection and then retrieve it as a ``List`` of your POJO class objects:
+- Insert instances of ``Flower`` into the ``flowers`` collection
+- Update a document in the collection
+- Delete a document in the collection
+- Find and print all documents in the collection
 
-.. code-block:: java
+.. literalinclude:: /includes/fundamentals/code-snippets/POJO-crud.java
+   :language: java
+   :dedent:
+   :start-after: start-crud-ops
+   :end-before: end-crud-ops
 
-   Flower flower = new Flower("rose", false, 25.4f, Arrays.asList(new String[] {"red", "green"}));
-
-   // insert the instance
-   collection.insertOne(flower);
-
-   // return all documents in the collection
-   List<Flower> flowers = new ArrayList<>();
-   collection.find().into(flowers);
-   System.out.println(flowers);
-
-When you run this code, your output should look something like this:
+The example prints the following output:
 
 .. code-block:: none
    :copyable: false
 
-   [Flower [id=5f7f87659ed5b07cf3480a06, name=rose, colors=[green, red], isBlooming=false, height=25.4]]
+   [
+   Flower {
+       id: 65b178ffa38ac42044ca1573
+       name: daisy
+       colors: [purple, white, pink]
+       isBlooming: true
+       height: 21.1
+   }, 
+   Flower {
+       id: 65b178ffa38ac42044ca1574
+       name: peony
+       colors: [red, green]
+       isBlooming: false
+       height: 19.2
+   }]
 
 .. note::
 
    By default, the ``PojoCodecProvider`` omits fields in your POJO that are
    set to ``null``. For more information on how to specify this behavior, see
-   the guide on :doc:`POJO Customization </fundamentals/data-formats/pojo-customization>`.
+   the :ref:`POJO Customization <fundamentals-pojo-customization>` guide.
 
 For more information about the methods and classes mentioned in this section,
 see the following API documentation:
@@ -238,12 +209,13 @@ see the following API documentation:
 Summary
 -------
 
-In this guide, we explained how to convert data between BSON and POJO fields
-by performing the following:
+This guide describes how to convert data between BSON and the POJO format
+by performing the following tasks:
 
-- Instantiate a ``PojoCodecProvider`` which contains codecs which define how to
-  encode/decode data between BSON and the POJO fields.
+- Instantiate a ``PojoCodecProvider`` which contains codecs that define how to
+  encode and decode data between BSON and the POJO fields.
 - Specify the **automatic** conversion behavior for the ``PojoCodecProvider``
   to apply the ``Codecs`` to any class and its properties.
 - Add the ``PojoCodecProvider`` to a ``CodecRegistry``, and specify the
   registry on an instance of a ``MongoDatabase`` or ``MongoCollection``.
+- Perform CRUD operations that use the sample POJO class.
