@@ -32,7 +32,13 @@ void FindMultiple()
 void InsertOne()
 {
     // start-insert-one
-    db.Planets.Add(new Planet() { name = "Pluto", hasRings = false, orderFromSun = 9 });
+    db.Planets.Add(new Planet()
+    {
+        name = "Pluto",
+        hasRings = false,
+        orderFromSun = 9
+    });
+
     db.SaveChanges();
     // end-insert-one
 }
@@ -42,8 +48,20 @@ void InsertMany()
     // start-insert-many
     var planets = new[]
     {
-        new Planet() { _id = ObjectId.GenerateNewId(), name = "Pluto", hasRings = false, orderFromSun = 9 },
-        new Planet() { _id = ObjectId.GenerateNewId(), name = "Scadrial", hasRings = false, orderFromSun = 10 }
+        new Planet()
+        {
+            _id = ObjectId.GenerateNewId(),
+            name = "Pluto",
+            hasRings = false,
+            orderFromSun = 9
+        },
+        new Planet()
+        {
+            _id = ObjectId.GenerateNewId(),
+            name = "Scadrial",
+            hasRings = false,
+            orderFromSun = 10
+        }
     };
 
     db.Planets.AddRange(planets);
