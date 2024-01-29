@@ -71,10 +71,7 @@
 
       .. note:: {+key-vault-long-title+} Namespace Permissions
 
-         The {+key-vault-long+} is in the ``encryption.__keyVault``
-         namespace. Ensure that the database user your application uses to connect
-         to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
-         permissions on this namespace.
+         .. include:: /includes/note-key-vault-permissions
 
       .. tabs-drivers::
 
