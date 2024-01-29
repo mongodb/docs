@@ -77,7 +77,9 @@ Version 5.0 Breaking Changes
     ``long`` instead of type ``int``. Because this change breaks both binary and source
     compatibility, update any source code that uses these methods and rebuild your binary.
 
-- This driver version removes the following record annotations:
+- The following record annotations from the
+  ``org.bson.codecs.record.annotations`` package are replaced with
+  annotations of the same name from the ``org.bson.codecs.pojo.annotations`` package:
   
   - ``BsonId``
   - ``BsonProperty``
@@ -90,31 +92,65 @@ Version 5.0 Breaking Changes
   - ``readTimeout()``
 
   In earlier versions, this parameter is of type ``int`` for both methods. To view an example
-  that shows how to instantiate a ``SocketSettings`` instance by using
-  these methods, see the :ref:`SocketSettings Example
+  that shows how to call ``SocketSettings`` methods, see the :ref:`SocketSettings Example
   <java-socketsettings-example>` in the Specify MongoClient Settings
   guide.
 
-- This driver version removes the ``Filters.eqFull()`` method, which allowed you
+  This change breaks binary compatibility (requires recompiling) but does not
+  require code changes.
+
+- This driver version removes the ``Filters.eqFull()`` method, released
+  exclusively in ``Beta``, which allowed you
   to construct an equality filter when performing a vector search.
   You can use the ``Filters.eq()`` method when instantiating a
   ``VectorSearchOptions`` type, as shown in the following code:
 
   .. code-block:: java
-     
-     VectorSearchOptions opts = vectorSearchOptions().filter(eq("x", 8));
+    
+    VectorSearchOptions opts = vectorSearchOptions().filter(eq("x", 8));
 
 .. _java-breaking-changes-v5.0-observables:
 
 - This driver version removes the
   ``org.mongodb.scala.ObservableImplicits.ToSingleObservableVoid`` implicit
   class. This means the ``org.reactivestreams.Publisher[Void]`` type no longer
-  converts automatically to ``org.mongodb.scala.SingleObservable[Void]``. The also
-  API exposes ``org.mongodb.scala.Observable[Unit]`` instead of
+  converts automatically to ``org.mongodb.scala.SingleObservable[Void]``. The
+  API also exposes ``org.mongodb.scala.Observable[Unit]`` instead of
   ``org.mongodb.scala.Observable[Void]``. 
   
   .. After the 5.0 Scala API docs are released, this line will be uncommented. 
     For more information, see the `Observable trait documentation <https://mongodb.github.io/mongo-java-driver/5.0/apidocs/mongo-scala-driver/org/mongodb/scala/Observable.html>`__.
+
+- This driver changes how ``ClusterSettings`` computes
+  ``ClusterConnectionMode``, making it more consistent by using the specified
+  replica set name, regardless of how it is configured. Previously, replica set
+  name was only considered if it was set by the connection string.
+
+  For example, the following two code samples both return the value
+  ``ClusterConnectionMode.MULTIPLE``, while previously the second one returned
+  ``ClusterConnectionMode.SINGLE``.
+
+  .. code-block:: java
+
+    ClusterSettings.builder()
+        .applyConnectionString(new ConnectionString("mongodb://127.0.0.1:27017/?replicaSet=replset"))
+        .build()
+        .getMode()
+
+  .. code-block:: java
+
+    ClusterSettings.builder()
+        .hosts(Collections.singletonList(
+                new ServerAddress("127.0.0.1", 27017)
+        ))
+        .requiredReplicaSetName("replset")
+        .build()
+        .getMode()
+
+- This driver changes how ``BsonDecimal128`` values respond to method calls, by
+  responding in the same way as ``Decimal128`` values. In particular,
+  ``BsonDecimal128.isNumber()`` now returns ``true``, and
+  ``BsonDecimal128.asNumber()`` returns the equivalent ``BsonNumber``.
 
 .. _java-breaking-changes-v4.8:
 
