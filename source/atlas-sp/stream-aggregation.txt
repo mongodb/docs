@@ -747,6 +747,49 @@ outer :pipeline:`$lookup` stage.
         ]
       }
 
+If your pipeline has both :pipeline:`$lookup` and :pipeline:`$merge`
+on the same collection, {+atlas-sp+} results might vary if you
+try to maintain an incremental view. {+atlas-sp+} processes
+multiple source messages simultaneously and then merges them all
+together. If multiple messages have the same ID, which both
+:pipeline:`$lookup` and :pipeline:`$merge` use, {+atlas-sp+} might 
+return results that haven't yet materialized. 
+
+.. example:: 
+
+   Consider the following input stream:
+
+   .. code-block:: shell
+      :copyable: false 
+
+      { _id: 1, count: 2 }
+      { _id: 1, count: 3 }
+
+   Suppose your query contains the following inside the pipeline: 
+
+   .. code-block:: js
+      :copyable: false 
+
+      {
+        ...,
+        pipeline: [
+          { $lookup on _id == foreignDoc._id from collection A }
+          { $project: { _id: 1, count: $count + $foreignDoc.count } }
+          { $merge: { into collection A } }
+        ]
+      }
+
+   If you are trying to maintain an incremental view, you might expect a
+   result similar to the following:
+
+   .. code-block:: shell
+      :copyable: false 
+
+      { _id: 1, count: 5 } 
+
+   However, {+atlas-sp+} might return a count of ``5`` or ``3``
+   depending on whether {+atlas-sp+} has processed the documents.
+
 For more information, see :pipeline:`$lookup`.
 
 .. warning::
