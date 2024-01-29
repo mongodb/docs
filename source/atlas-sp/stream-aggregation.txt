@@ -165,9 +165,13 @@ from. The following connection types are supported:
 	        "connectionName": "<registered-connection>",
 	        "topic" : "<source-topic>" | "db" : "<source-db>",
           "coll" : ["<source-coll>",...],
-          "fullDocument" : "updateLookup | required | whenAvailable",
           "config": { 
-            <consumer-properties> 
+            "autoOffsetReset": "<start-event>",
+            "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
+            "fullDocument": "<full-doc-condition>",
+            "fullDocumentOnly": <boolean>
+            "fullDocumentBeforeChange": "<before-change-condition>",
+            
           },
           "tsFieldOverride": "<timestamp>" 
           "timeField": { 
@@ -183,7 +187,7 @@ The ``$source`` stage takes a document with the following fields:
 
 .. list-table:: 
    :header-rows: 1
-   :widths: 10 15 15 70
+   :widths: 16 17 17 60
 
    * - Field 
      - Type 
@@ -201,16 +205,14 @@ The ``$source`` stage takes a document with the following fields:
    * - ``config``
      - document 
      - Optional
-     - Document that overrides default configuration. ``$source``
-       supports the ``auto_offset_reset`` (previously referred to as
-       ``startAt``) and ``group_id`` configuration fields.   
+     - Document containing fields that override various default 
+       values.  
 
    * - ``config.auto_offset_reset`` 
      - string 
-     - Optional 
+     - Conditional
      - Specifies which event in the {+kafka+} source topic to begin 
-       ingestion with. This was previously referred to as ``startAt``.
-       ``auto_offset_reset`` takes the following values: 
+       ingestion with. ``auto_offset_reset`` takes the following values: 
        
        - ``end``, ``latest``, or ``largest`` - to begin ingestion from
          the latest event in the topic at the time the aggregation is
@@ -218,11 +220,13 @@ The ``$source`` stage takes a document with the following fields:
        - ``earliest``, ``beginning``, or ``smallest`` - to begin
          ingestion from the earliest event in the topic. 
          
+       This field only applies to {+kafka+} sources.
+
        Defaults to ``latest``.
 
    * - ``config.group_id`` 
      - string
-     - Optional 
+     - Conditional 
      - ID of the kafka consumer group to associate with the stream
        processor. If omitted, {+atlas-sp+} associates the {+spi+} with
        an auto-generated ID in the following format:  
@@ -239,23 +243,24 @@ The ``$source`` stage takes a document with the following fields:
        and progress of the stream processor directly from the Kafka
        broker consumer group metadata. 
 
-   * - ``connectionName`` 
-     - string
-     - Required 
-     - Human-readable label, that identifies the connection in the
-       :ref:`Connection Registry <manage-spi-connection-add>`, to 
-       ingest data from.
+       This field applies only to {+kafka+} sources.
 
-   * - ``db``
-     - string
+   * - ``config.startAfter`` 
+     - resumeToken
      - Conditional
-     - Name of a MongoDB database hosted on the Atlas instance
-       specified by ``connectionName``. The change stream of this 
-       database acts as the streaming data source. This field is
-       necessary for and limited to connections to MongoDB databases or
-       collections.
+     - The change event after which the source begins reporting.
+       This takes the form of a :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
 
-   * - ``fullDocument``
+       You can use only one of either ``config.startAfter`` or ``config.StartAtOperationTime``.
+
+   * - ``config.startAtOperationTime`` 
+     - timestamp
+     - Conditional
+     - The operation time after which the source should begin reporting.
+
+       You can use only one of either ``config.startAfter`` or ``config.StartAtOperationTime``.
+
+   * - ``config.fullDocument``
      - string
      - Conditional
      - Setting that controls whether a change stream source should 
@@ -271,7 +276,25 @@ The ``$source`` stage takes a document with the following fields:
        If you do not specify a value for fullDocument, it defaults to
        ``updateLookup``.
 
-       This field is limited to connections to MongoDB change streams.
+       This field applies only to connections to MongoDB change streams.
+       
+       To use this field with a collection change stream, you must
+       enable change stream :ref:`Pre- and Post-Images <collMod-change-stream-pre-and-post-images>`
+       on that collection.
+
+       To use this field with a database change stream, you must 
+       enable change stream pre- and post-images on every collection 
+       in that database.
+
+   * - ``config.fullDocumentOnly``
+     - boolean
+     - Conditional
+     - Setting that controls whether a change stream source returns 
+       the entire change event document including all metadata, or 
+       only the contents of ``fullDocument``. If set to ``true``, the 
+       source returns only the contents of ``fullDocument``.
+
+       This field applies only to connections to MongoDB change streams.
        
        To use this field with a collection change stream, you must
        enable change stream :ref:`Pre- and Post-Images <collMod-change-stream-pre-and-post-images>`
@@ -281,7 +304,7 @@ The ``$source`` stage takes a document with the following fields:
        enable change stream Pre- and Post-Images on every collection 
        in that database.
 
-   * - ``fullDocumentBeforeChange``
+   * - ``config.fullDocumentBeforeChange``
      - string
      - Optional
      - Specifies whether a change stream source should include the
@@ -308,6 +331,22 @@ The ``$source`` stage takes a document with the following fields:
        To use this field with a database change stream, you must 
        enable change stream Pre- and Post-Images on every collection 
        in that database.
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - Label, that identifies the connection in the
+       :ref:`Connection Registry <manage-spi-connection-add>`, to 
+       ingest data from.
+
+   * - ``db``
+     - string
+     - Conditional
+     - Name of a MongoDB database hosted on the |service| instance
+       specified by ``connectionName``. The change stream of this 
+       database acts as the streaming data source. This field is
+       necessary for and limited to connections to MongoDB databases or
+       collections.
   
    * - ``partitionIdleTimeout``
      - document
@@ -357,7 +396,7 @@ Behavior
 ~~~~~~~~
 
 :pipeline:`$source` must be the first stage of any pipeline it appears 
-in. You can only use one :pipeline:`$source` stage per pipeline.
+in. You can use only one :pipeline:`$source` stage per pipeline.
 
 .. _stream-agg-pipeline-validate:
 
@@ -507,7 +546,7 @@ The following table describes the log entry fields:
      - Document containing information about the truncation of the
        message.
 
-{+atlas-sp+} only supports 
+{+atlas-sp+} supports only 
 `JSON Schema Draft 4 <https://json-schema.org/specification-links.html#draft-4>`__
 or earlier.
 
@@ -1153,7 +1192,7 @@ basis.
    - Writes the ``Khan Traktor`` message to a topic named 
      ``contractor``.
 
-You can only use dynamic expressions that evaluate to strings. For 
+You can use only dynamic expressions that evaluate to strings. For 
 more information on dynamic expressions, see 
 :ref:`expression operators
 </reference/operator/aggregation/#expression-operators>`. 
