@@ -173,6 +173,15 @@
       - :icon:`check-circle`
       -
       -
+    * -
+      - Amazon Linux 2023
+      - :icon:`check-circle`
+      - 
+      - 
+      - 
+      - 
+      - 
+      - 
     * - 
       - Ubuntu 20.x
       - :icon:`check-circle`
