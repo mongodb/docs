@@ -3,7 +3,7 @@
 |onprem| Server 6.0.22:
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-*Released 2023-01-04*
+*Released 2024-01-04*
 
 - Updates the {+mdbagent+} to :ref:`12.0.30.7791 
   <mongodb-12.0.30.7791>`.
