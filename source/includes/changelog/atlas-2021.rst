@@ -256,7 +256,7 @@
 - Adds more IOPS and more consistent throughput to standard storage for 
   |service| clusters on |aws| at no extra cost.
 - Introduces trial version of the :ref:`MongoDB Atlas Kubernetes 
-  Operator <ak8so-quick-start-ref>`.
+  Operator <atlas-programmatic-access-ak8so-overview>`.
 - Adds an easy `MongoDB CLI quickstart command
   <https://www.mongodb.com/docs/mongocli/stable/quick-start/#configure-an-service-cluster>`__ 
   to get started with |service|.
