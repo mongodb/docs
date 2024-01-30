@@ -31,7 +31,7 @@ func main() {
 	}()
 
 	// start-runcommand
-	db := client.Database("plants")
+	db := client.Database("db")
 
 	// Creates commands to count documents in a collection and explain
 	// how the count command runs

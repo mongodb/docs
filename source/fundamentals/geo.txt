@@ -296,16 +296,17 @@ from nearest to farthest.
       if err = output.All(context.TODO(), &places); err != nil {
           panic(err)
       }
-      fmt.Println(places)
+    
+      for _, place := range places {
+		  res, _ := bson.MarshalExtJSON(place, false, false)
+		  fmt.Println(string(res))
+	  }
 
    .. output::
       :language: json
 
-      [
-        [{_id ObjectID(...)} {theaterId 1908} {location [{address [...]} {geo [{type Point} {coordinates [-73.983487 40.76078]}]}]}]
-        [{_id ObjectID(...)} {theaterId 1448} {location [{address [...]} {geo [{type Point} {coordinates [-73.982094 40.76988]}]}]}]
-      ]
-
+      {"_id":{...},"theaterId":1908,"location":{"address":{...},"geo":{"type":"Point","coordinates":[-73.983487,40.76078]}}}
+      {"_id":{...},"theaterId":1448,"location":{"address":{...},"geo":{"type":"Point","coordinates":[-73.982094,40.769882]}}}
 
 Query Within a Range
 ~~~~~~~~~~~~~~~~~~~~
@@ -321,27 +322,31 @@ Headquarters in New York City, NY. It returns documents from nearest to farthest
 
       mongoDBHQ := bson.D{{"type", "Point"}, {"coordinates", []float64{-73.986805, 40.7620853}}}
 
-      filter := bson.D{
-          {"location.geo",
-               bson.D{
-                   {"$nearSphere", bson.D{
-                       {"$geometry", MongoDBHQ},
-                       {"$minDistance", 2000},
-                       {"$maxDistance", 3000},
-                }},
-          }},
-      }
-      var places bson.D
-      err := coll.Find(context.TODO(), filter).Decode(&places)
-      if err != nil {
-          panic(err)
-      }
-      fmt.Println(places)
+	  filter := bson.D{
+		  {"location.geo",
+			  bson.D{
+				  {"$nearSphere", bson.D{
+					  {"$geometry", mongoDBHQ},
+					  {"$minDistance", 2000},
+					  {"$maxDistance", 3000},
+				  }},
+			  }},
+	  }
+	  var places []bson.D
+	  output, err := coll.Find(context.TODO(), filter)
+	  if err = output.All(context.TODO(), &places); err != nil {
+		  panic(err)
+	  }
+
+	  for _, place := range places {
+		  res, _ := bson.MarshalExtJSON(place, false, false)
+		  fmt.Println(string(res))
+	  }
 
    .. output::
       :language: json
 
-      [[{_id ObjectID(...)} {theaterId 482} {location [...]} {geo [{type Point} {coordinates [-73.99295 40.74194]}]}]}]]
+      {"_id":{...},"theaterId":482,"location":{...},"geo":{"type":"Point","coordinates":[-73.99295,40.74194]}}}
 
 Additional Resources
 --------------------

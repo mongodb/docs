@@ -37,7 +37,7 @@ func main() {
 	}()
 
 	// begin insert docs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("tea")
 	docs := []interface{}{
 		Tea{Type: "Masala", Rating: 10},
 		Tea{Type: "Matcha", Rating: 7},
@@ -79,7 +79,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Estimated number of documents in the ratings collection: %d\n", count)
+		fmt.Printf("Estimated number of documents in the tea collection: %d\n", count)
 		// end est doc count
 	}
 

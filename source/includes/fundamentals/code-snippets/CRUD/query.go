@@ -40,7 +40,7 @@ func main() {
 	}()
 
 	// begin insert docs
-	coll := client.Database("tea").Collection("ratings")
+	coll := client.Database("db").Collection("tea")
 	docs := []interface{}{
 		Tea{Type: "Masala", Rating: 10, Vendor: []string{"A", "C"}},
 		Tea{Type: "English Breakfast", Rating: 6},
@@ -77,7 +77,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			res, _ := json.Marshal(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
 			fmt.Println(string(res))
 		}
 	}
@@ -98,7 +98,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			res, _ := json.Marshal(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
 			fmt.Println(string(res))
 		}
 	}
@@ -126,7 +126,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			res, _ := json.Marshal(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
 			fmt.Println(string(res))
 		}
 	}
@@ -147,7 +147,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			res, _ := json.Marshal(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
 			fmt.Println(string(res))
 		}
 	}
@@ -168,7 +168,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			res, _ := json.Marshal(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
 			fmt.Println(string(res))
 		}
 	}
@@ -189,7 +189,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			res, _ := json.Marshal(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
 			fmt.Println(string(res))
 		}
 	}
@@ -210,7 +210,7 @@ func main() {
 			panic(err)
 		}
 		for _, result := range results {
-			res, _ := json.Marshal(result)
+			res, _ := bson.MarshalExtJSON(result, false, false)
 			fmt.Println(string(res))
 		}
 	}
