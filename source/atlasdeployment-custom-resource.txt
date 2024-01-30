@@ -105,11 +105,17 @@ The following example shows the ``AtlasDeployment`` resource with a
        tags: 
        - key: "environment",
          value: "production"
-       providerSettings:
-         instanceSizeName: M10
-         providerName: AWS
-         regionName: US_EAST_1
-       mongoDBMajorVersion: "4.4"
+       replicationSpecs:
+         - zoneName: US-Zone
+           numShards: 3
+           regionsConfig:
+             - regionName: US_CENTRAL
+               providerName: GCP
+               backingProviderName: GCP
+               priority: 7
+               electableSpecs:
+                 instanceSize: M10
+                 nodeCount: 3
    status:
      conditions:
      - lastTransitionTime: "2021-03-18T16:32:43Z"
@@ -151,28 +157,30 @@ specification configured for autoscaling multi-region {+clusters+}:
        tags: 
        - key: "environment",
          value: "production"
-       providerBackupEnabled: true
-       providerSettings:
-         autoScaling:
-           compute:
-             maxInstanceSize: M40
-             minInstanceSize: M30
-         instanceSizeName: M30
-         providerName: GCP
+       backupEnabled: true
        replicationSpecs:
          - numShards: 1
            regionsConfig:
-             EASTERN_US:
-               analyticsNodes: 0
-               electableNodes: 1
-               priority: 6
-               readOnlyNodes: 0
-             SOUTH_AMERICA_EAST_1:
-               analyticsNodes: 0
-               electableNodes: 2
-               priority: 7
-               readOnlyNodes: 0
-           zoneName: Zone 1
+            - regionName: EASTERN_US
+              providerName: GCP
+              autoscaling:
+                disk:
+                  enabled: true
+                compute:
+                  enabled: true
+                  scaleDownEnabled: true
+                  minInstanceSize: M30
+                  maxInstanceSize: M40
+              analyticsSpecs:
+                instanceSize: M30
+                nodeCount: 1
+              electableSpecs:
+                instanceSize: M30
+                nodeCount: 3
+              priority: 7
+              readOnlySpecs:
+                instanceSize: M30
+                nodeCount: 1
 
 .. _ak8so-advanced-options:
 
