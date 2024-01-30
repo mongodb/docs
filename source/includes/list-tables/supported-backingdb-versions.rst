@@ -10,17 +10,15 @@
      - MongoDB 6.0
 
    * - |onprem| 5.0
-     - :icon-fa5:`check-square`
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - Deprecated
+     - Supported
+     - Supported
      -
 
    * - |onprem| 6.0
      - 
-     - :icon-fa5:`check-square`
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - Deprecated
+     - Supported
+     - Supported
 
-
-:icon-fa5:`check-circle` Supported
-:icon-fa5:`check-square` Deprecated
+.. include:: /includes/deprecated-definition.rst

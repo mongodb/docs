@@ -8,28 +8,28 @@
      - |onprem| 5.0
 
    * - MongoDB 6.0
-     - :icon-fa5:`check-circle`
+     - Supported
      - 
 
    * - MongoDB 5.0
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - Supported
+     - Supported
 
    * - MongoDB 4.4
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - Supported
+     - Supported
 
    * - MongoDB 4.2
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - Supported
+     - Supported
 
    * - MongoDB 4.0
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - Supported
+     - Supported
 
    * - MongoDB 3.6
-     - :icon-fa5:`check-circle`
-     - :icon-fa5:`check-circle`
+     - Supported
+     - Supported
 
    * - MongoDB 3.4
      - 
@@ -38,3 +38,5 @@
    * - MongoDB 3.2
      - 
      -
+
+.. include:: /includes/deprecated-definition.rst
