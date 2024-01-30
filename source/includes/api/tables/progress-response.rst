@@ -24,9 +24,9 @@
      - If ``true``, indicates that writes are permitted on the
        destination cluster. Do not write to the destination cluster
        while ``canWrite`` is ``false``.
-       
+  
        Index validation continues until the :ref:`commit
-       <c2c-api-commit>` is complete. 
+       <c2c-api-commit>` is complete.
 
    * - ``info``
      - string
@@ -43,6 +43,12 @@
      - Time in seconds between the last applied event and time of the
        current latest event for this instance of ``mongosync``.
 
+       .. note::
+
+          ``mongosync`` performs periodic no-op writes on the source cluster,
+          which may prevent the value of the ``lagTimeSeconds`` field from
+          reaching zero.
+
    * - ``collectionCopy``
      - object
      - Describes the total amount of data being copied and the
@@ -58,8 +64,8 @@
        ``.estimatedCopiedBytes``
      - integer
      - Estimated number of bytes which have been copied to the
-       destination cluster by this ``mongosync`` instance. 
-       
+       destination cluster by this ``mongosync`` instance.
+
        To calculate the total estimated progress as a percentage, add the value
        of the ``estimatedCopiedBytes`` field for each ``mongosync`` instance
        and divide the result by the value of the ``estimatedTotalBytes`` field
@@ -88,7 +94,7 @@
 
    * - ``coordinatorID``
      - string
-     - The identifier string for the coordinator instance.  
+     - The identifier string for the coordinator instance.
 
        - When ``mongosync`` is coordinated by another instance, this field shows
          the identifier string for the coordinator instance.
