@@ -6,5 +6,7 @@ title, but |fts| omitted the duplicate titles and returned only one
 matching document.
 
 If you want to see the duplicate titles as shown in the results below, 
-run the preceding :ref:`autocomplete-ref` operator query using 
-:pipeline:`$search` without :ref:`fts-facet-ref`. 
+run the preceding :ref:`autocomplete-ref` operator query 
+without :ref:`facets <fts-facet-ref>` and use 
+the :pipeline:`$search` stage instead. You must also use the 
+:pipeline:`$project` stage to exclude all fields except ``title``.
