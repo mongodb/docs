@@ -37,6 +37,8 @@ The ``schemas`` object contains the following fields.
        - ``bsonType`` 
        - ``properties`` 
        - ``items``
+       - ``additionalProperties``
+       - ``required``
 
        To learn more about these fields, see :manual:`JSON Schema 
        Keywords </reference/operator/query/jsonSchema/#jsonschema-keywords>`.
