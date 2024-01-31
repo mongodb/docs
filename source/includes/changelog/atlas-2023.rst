@@ -40,6 +40,13 @@
 - Supports node availability zones for replica set tags. To learn more,
   see :ref:`replica-set-tags`.
 
+.. _atlas_2023_10_18:
+
+18 October 2023 Release 
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds new regions for |azure| |nvme| {+clusters+}. 
+
 .. _atlas_2023_08_23:
 
 23 August 2023 Release
