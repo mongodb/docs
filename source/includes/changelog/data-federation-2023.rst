@@ -1,12 +1,3 @@
-.. note:: Release notes mention only releases with feature changes
-
-   MongoDB releases {+adf+} every week, continuously improving
-   {+adf+} performance and stability. These release notes capture only
-   those releases that contain feature changes. If a particular {+adf+}
-   release contains only performance and stability improvements, it is not
-   included in these release notes. To identify which release version you
-   are using, check the release version string for the release date.
-
 .. _adf-v20231205:
 
 05 December 2023 Release 
