@@ -1,4 +1,4 @@
-MongoDB Charts executes within a single Docker container managed by
+|charts| executes within a single Docker container managed by
 Docker Swarm.
 
 To start Charts, deploy the stack using the supplied Docker Compose
