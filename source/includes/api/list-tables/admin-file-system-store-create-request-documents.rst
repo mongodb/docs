@@ -23,7 +23,7 @@
      - array of strings
      - Optional
      - Tags to manage which :term:`backup jobs <backup job>` |onprem|
-       can assign to which :opsmgr:`file system stores <reference/glossary/#std-term-File-System-Store>`.
+       can assign to which :opsmgr:`file system stores </reference/glossary/#std-term-File-System-Store>`.
 
        Setting these tags limits which backup jobs this file system
        store can process. If omitted, this file system store can only
