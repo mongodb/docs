@@ -17,7 +17,7 @@ add |service| IP addresses to your network's IP access list:
 Fetch |service| Control Plane IP Addresses
 -------------------------------------------
 
-Send a GET request to the ``returnAllControlPlaneIPAddresses`` endpoint 
+Send a GET request to the ``controlPlaneIPAddresses`` endpoint 
 to fetch the current |service| control plane IP addresses. The :oas-atlas-op:`API endpoint </returnAllControlPlaneIPAddresses>` 
 returns a list of inbound and outbound |service| control plane IP addresses in |cidr| notation 
 categorized by cloud provider and region, similar to the following:
@@ -64,6 +64,8 @@ To add the returned IP addresses to your cloud provider's KMS IP access list,
 see the prerequisites for managing customer keys with :ref:`AWS <aws-ksm-prereqs>`, 
 :ref:`Azure <azure-kms-prereqs>`, and :ref:`GCP <gcp-kms-prereqs>`.
 
+.. _atlas-required-outbound-access:
+
 Required Outbound Access
 ------------------------
 
@@ -108,6 +110,8 @@ your API requests can reach the |service| control plane:
    76.223.77.37
    76.223.84.31
    99.83.223.45
+
+.. _atlas-required-inbound-access:
 
 Required Inbound Access
 -----------------------
