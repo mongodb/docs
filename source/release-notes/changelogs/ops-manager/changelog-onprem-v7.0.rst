@@ -6,6 +6,21 @@
 - Updates the {+mdbagent+} to :ref:`107.0.2.8531
   <mongodb-107.0.2.8531>`.
 - Updates :abbr:`JDK (Java Development Kit)` to ``jdk-17.0.10+7``. 
+- Adds MongoDB Agent support for Debian 12.
+- Adds support for deploying |onprem| on Debian 12.
+- Adds ability to configure the ``net.tls.clusterCAFile`` parameter. 
+- Adds additional snapshot metrics to the snapshot summary table.
+- Adds ability to track restore block download performance.
+- Improves MongoDB and S3-compatible blockstore snapshot performance for
+  large files through enhanced memory utilization.
+- Improves the agent's ability to retry for more blockstore errors.
+- Fixes the following bugs:
+
+  - DBUsage API endpoint issue that affected totalCount, pageNum,
+    filtering and pagination in the UI.
+  - ``Oplog Behind`` warning could be displayed for non-active shards.
+  - ``LOW_APP_DB_FREE_SPACE_PERCENT`` alert was not working correctly.
+  - Servers might display stale statuses in the |onprem| UI.
 
 .. _opsmgr-server-7.0.1:
 
