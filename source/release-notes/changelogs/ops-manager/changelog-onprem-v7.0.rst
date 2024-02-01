@@ -1,3 +1,12 @@
+.. _opsmgr-server-7.0.2:
+
+|onprem| Server 7.0.2
+~~~~~~~~~~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.2.8531
+  <mongodb-107.0.2.8531>`.
+- Updates :abbr:`JDK (Java Development Kit)` to ``jdk-17.0.10+7``. 
+
 .. _opsmgr-server-7.0.1:
 
 |onprem| Server 7.0.1
