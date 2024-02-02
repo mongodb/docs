@@ -1,50 +1,52 @@
 ..
-   Comment: The nested lists need blank lines before and after each list
-            plus extra indents 
+   Comment: The nested lists need extra indents.  Keep roles in alphabetic
+            order.
 
 .. list-table::
    :header-rows: 1
+   :stub-columns: 1
+   :widths: 20 40 40
 
    * - Sync Type
-     - Target
-     - Required Permissions
+     - Required Source Permissions
+     - Required Destination Permissions
 
-   * - default
-     - source cluster
-     -
+   * - Default
+     - - :authrole:`backup`
+       - :authrole:`clusterMonitor`
+       - :authrole:`readAnyDatabase`
 
-         - readAnyDatabase
-         - backup
-         - clusterMonitor
+     - - :authrole:`clusterManager`
+       - :authrole:`clusterMonitor`
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`restore`
 
-   * - default
-     - destination cluster
-     -
+   * - Write-blocking
+     - - :authrole:`backup`
+        - :authrole:`clusterManager`
+        - :authrole:`clusterMonitor`
+        - :authrole:`readWriteAnyDatabase`
+        - :authrole:`restore`
 
-         - readWriteAnyDatabase
-         - restore
-         - clusterMonitor
-         - clusterManager
+     - - :authrole:`backup`
+       - :authrole:`clusterManager`
+       - :authrole:`clusterMonitor`
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`restore`
 
-   * - write-blocking or reversing
-     - source cluster
-     -  
+   * - Reversing
+     - - :authrole:`backup`
+        - :authrole:`clusterManager`
+        - :authrole:`clusterMonitor`
+        - :authrole:`readWriteAnyDatabase`
+        - :authrole:`restore`
 
-         - readWriteAnyDatabase
-         - backup
-         - restore
-         - clusterMonitor
-         - clusterManager
-
-   * - write-blocking or reversing
-     - destination cluster
-     -
-
-         - readWriteAnyDatabase
-         - backup
-         - restore
-         - clusterMonitor
-         - clusterManager
+     - - :authrole:`backup`
+       - :authrole:`clusterManager`
+       - :authrole:`clusterMonitor`
+       - :authrole:`dbAdmin`
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`restore`
 
 For details on server roles, see: :ref:`authorization`.
 
