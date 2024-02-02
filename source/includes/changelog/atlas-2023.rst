@@ -47,6 +47,15 @@
 
 - Adds new regions for |azure| |nvme| {+clusters+}. 
 
+.. _atlas_2023_10_04:
+
+04 October 2023 Release
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :term:`Push Live migration <Live Migration>` through
+  PrivateLink for MongoDB 6.0+ sharded |service| {+clusters+}. 
+- Decomissions :manual:`free monitoring </administration/free-monitoring/>`.
+
 .. _atlas_2023_08_23:
 
 23 August 2023 Release
