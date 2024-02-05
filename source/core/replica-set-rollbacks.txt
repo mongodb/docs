@@ -207,7 +207,26 @@ Index Operations When :readconcern:`"majority"` Read Concern is Disabled
 Size Limitations
 ~~~~~~~~~~~~~~~~
 
-MongoDB does not limit the amount of data you can roll back.
+MongoDB supports the following rollback algorithms, which have different size limitations:
+
+- **Recover to a Timestamp**, where a former primary reverts to a consistent point in time and
+  applies operations until it catches up to the sync source's branch of history. This is the
+  default rollback algorithm.
+
+  When using this algorithm, MongoDB does not limit the amount of data you can roll back.
+
+- **Rollback via Refetch**, where a former primary finds the common point between its :term:`oplog`
+  and the sync source's oplog. Then, the member examines and reverts all operations in its oplog until
+  it reaches this common point. Rollback via Refetch occurs only when the
+  :setting:`~replication.enableMajorityReadConcern` setting in your configuration file is set to
+  ``false``.
+
+  When using this algorithm, MongoDB can only roll back up to 300 MB of data.
+
+  .. note::
+
+     Starting in MongoDB 5.0, :setting:`~replication.enableMajorityReadConcern` is set to
+     ``true`` and cannot be changed.
 
 .. _rollback-time-limit:
 
