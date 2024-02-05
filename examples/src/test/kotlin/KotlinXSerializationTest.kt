@@ -1,4 +1,5 @@
 
+import com.mongodb.client.model.Filters.eq
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
 import kotlinx.coroutines.flow.first
@@ -8,11 +9,22 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.datetime.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
+import org.bson.BsonDateTime
 import org.bson.Document
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.kotlinx.BsonConfiguration
+import org.bson.codecs.kotlinx.BsonDecoder
+import org.bson.codecs.kotlinx.BsonEncoder
 import org.bson.codecs.kotlinx.KotlinSerializerCodec
 import org.bson.codecs.kotlinx.ObjectIdSerializer
 import org.bson.types.ObjectId
@@ -22,6 +34,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import java.util.Date
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class KotlinXSerializationTest {
@@ -115,6 +128,53 @@ internal class KotlinXSerializationTest {
         assertEquals(paint.id, insertOneResult.insertedId?.asObjectId()?.value)
         val result = collection.withDocumentClass<Document>().find().first().toJson()
         assertFalse(result.contains("manufacturer"))
+        collection.drop()
+    }
+
+    // :snippet-start: kserializer
+    object InstantAsBsonDateTime : KSerializer<Instant> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("InstantAsBsonDateTime", PrimitiveKind.LONG)
+
+        override fun serialize(encoder: Encoder, value: Instant) {
+            when (encoder) {
+                is BsonEncoder -> encoder.encodeBsonValue(BsonDateTime(value.toEpochMilliseconds()))
+                else -> throw SerializationException("Instant is not supported by ${encoder::class}")
+            }
+        }
+
+        override fun deserialize(decoder: Decoder): Instant {
+            return when (decoder) {
+                is BsonDecoder -> Instant.fromEpochMilliseconds(decoder.decodeBsonValue().asDateTime().value)
+                else -> throw SerializationException("Instant is not supported by ${decoder::class}")
+            }
+        }
+    }
+    // :snippet-end:
+
+    @Test
+    fun customKSerializerTest() = runBlocking {
+        // :snippet-start: kserializer-dataclass
+        @Serializable
+        data class PaintOrder(
+            val color: String,
+            val qty: Int,
+            @Serializable(with = InstantAsBsonDateTime::class)
+            val orderDate: Instant,
+        )
+        // :snippet-end:
+
+        val collection = database.getCollection<PaintOrder>("orders")
+        val paintOrder = PaintOrder("magenta", 5, Instant.parse("2024-01-15T00:00:00Z"))
+        val insertOneResult = collection.insertOne(paintOrder)
+
+        val resultsFlow = collection.withDocumentClass<Document>()
+            .find(eq(PaintOrder::color.name, "magenta"))
+            .firstOrNull()
+
+        if (resultsFlow != null) {
+            assertEquals(resultsFlow["orderDate"], Date.from(java.time.Instant.parse("2024-01-15T00:00:00Z")))
+        }
+
         collection.drop()
     }
 
