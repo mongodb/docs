@@ -23,10 +23,10 @@
 
    * - Write-blocking
      - - :authrole:`backup`
-        - :authrole:`clusterManager`
-        - :authrole:`clusterMonitor`
-        - :authrole:`readWriteAnyDatabase`
-        - :authrole:`restore`
+       - :authrole:`clusterManager`
+       - :authrole:`clusterMonitor`
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`restore`
 
      - - :authrole:`backup`
        - :authrole:`clusterManager`
@@ -36,10 +36,10 @@
 
    * - Reversing
      - - :authrole:`backup`
-        - :authrole:`clusterManager`
-        - :authrole:`clusterMonitor`
-        - :authrole:`readWriteAnyDatabase`
-        - :authrole:`restore`
+       - :authrole:`clusterManager`
+       - :authrole:`clusterMonitor`
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`restore`
 
      - - :authrole:`backup`
        - :authrole:`clusterManager`
