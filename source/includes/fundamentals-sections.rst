@@ -15,7 +15,7 @@ Fundamentals section:
 - :ref:`Run A Database Command <golang-run-command>`
 - :ref:`Specify Collations to Order Results <golang-collations>`
 - :ref:`Use Driver Events in Your Code <golang-monitoring>`
-- :ref:`Store and Retrieve Files in MongoDB <golang-gridfs>`
+- :ref:`Store and Retrieve Large Files <golang-gridfs>`
 - :ref:`Use a Time Series Collection <golang-time-series>`
 - :ref:`Encrypt Fields <golang-fle>`
 - :ref:`Work with Geospatial Data <golang-geo>`
