@@ -1,5 +1,3 @@
-
-
 import com.mongodb.MongoBulkWriteException
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import config.getConfig
