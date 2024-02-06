@@ -12,31 +12,33 @@ Use |fts| for Full-Text Regex Queries
    :depth: 1
    :class: singlecol
 
-If your queries rely on inefficient regex matching, 
-:ref:`Atlas Search queries <searching-ref>` that use the :ref:`$search 
-<query-syntax-ref>` aggregation pipeline stage can significantly 
-improve the performance of text queries and offer more options for 
-customizing query parameters.
+If your queries rely on inefficient regex matching, create and run an
+:ref:`Atlas Search query <searching-ref>` with the :ref:`$search 
+<query-syntax-ref>` aggregation pipeline stage to improve the
+performance of text queries which have more options for customizing your
+query parameters.
 
 .. _case-insensitive-regex-anti-pattern:
 
 Avoid Inefficient Regex Matching
 --------------------------------
 
-If you frequently run case-insensitive regex queries (utilizing the 
-``i`` option), we recommend :ref:`Atlas Search queries <searching-ref>` 
-that use the :ref:`$search <query-syntax-ref>` aggregation pipeline 
-stage. Alternatively, you can create a :manual:`case-insensitive index 
-</core/index-case-insensitive/>` to support your queries. You can 
-also specify a :manual:`collation </reference/collation/>` on an index 
-to define language-specific rules for string comparison, such as rules 
-for lettercase and accent marks. However, :manual:`collation 
-</reference/collation/>` can cause some functionality loss compared to 
-:ref:`Atlas Search queries <searching-ref>`. While a case-insensitive 
-index improves performance for case-insensitive queries, 
-:ref:`Atlas Search queries <searching-ref>` more significantly improve 
-the performance of text queries and offer more options for customizing 
-query parameters.
+If you frequently run case-insensitive regex queries (utilizing the
+``i`` option), we recommend using :ref:`Atlas Search queries
+<searching-ref>` that use the :ref:`$search <query-syntax-ref>`
+aggregation pipeline stage. 
+
+You can specify :manual:`collation </reference/collation/>` on an
+index to define language-specific rules for string comparison, such as
+rules for lettercase and accent marks. However, :manual:`collation
+</reference/collation/>` can cause some functionality loss compared to
+:ref:`Atlas Search queries <searching-ref>`. In non-Atlas Search
+environments, case-insensitive indexes do not improve performance for
+regex queries. The :query:`$regex` query operator is not
+collation-aware, and cannot use case-insensitive indexes effectively.
+:ref:`Atlas Search indexes <ref-index-management>` significantly improve
+the performance of case-sensitive queries and offer more options for
+customizing query parameters.
 
 Example
 -------
@@ -99,36 +101,16 @@ case-insensitive. The query returns the following documents:
    { "_id" : 4, "first_name" : "MICHAEL", "last_name" : "FLORES", "dept" : "Sales" }
 
 Although this query does return the expected documents, case-insensitive
-regex queries with no index support are not very performant.
+regex queries with no index support are not very performant. To improve
+performance, :ref:`create an Atlas Search index <ref-create-index>`:
 
-To improve performance, :ref:`create an 
-Atlas Search index <ref-create-index>`. While you can create a
-:manual:`case-insensitive index </core/index-case-insensitive/>` on the
-``first_name`` field, :ref:`Atlas Search queries <searching-ref>` more 
-significantly improve the performance of text queries and offer more 
-options for customizing query parameters.
-
-.. list-table::
-   :widths: 50 50
-   :header-rows: 1
-
-   * - Regex Index
-     - |fts| Index
-   
-   * - .. code-block:: javascript
-
-          db.employees.createIndex(
-            { first_name: 1 }, 
-            { collation: { locale: 'en', strength: 2 } }
-          )
-
-     - .. code-block:: json
-      
-          {
-            "mappings": {
-              "dynamic": true
-            }
-          }
+.. code-block:: json
+  
+   {
+     "mappings": {
+       "dynamic": true
+     }
+   }
 
 :manual:`Collation </reference/collation/>` can cause some 
 functionality loss. When the ``strength`` field of an index's 
@@ -149,7 +131,7 @@ aggregation pipeline stage.
    :widths: 50 50
    :header-rows: 1
 
-   * - Regex Query
+   * - Case-insensitive Query
      - |fts| Query
    
    * - .. code-block:: javascript
