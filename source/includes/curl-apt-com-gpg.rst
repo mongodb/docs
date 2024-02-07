@@ -6,9 +6,7 @@ available:
 
      sudo apt-get install gnupg curl
 
-To import the MongoDB public GPG key from
-`<https://pgp.mongodb.com/server-{+version+}.asc>`__, run the
-following command:
+To import the MongoDB public GPG key, run the following command:
 
 .. code-block:: bash
 
