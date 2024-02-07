@@ -2,7 +2,7 @@ The following sample application:
 
 - Imports ``mongodb`` packages and dependencies.
 - Establishes a connection to your Atlas cluster.
-- Inserts a document to a collection called ``people`` 
+- Inserts documents into a collection called ``people`` 
   in the ``gettingStarted`` database.
 - Searches the ``people`` collection for documents that have a 
   ``name.last`` value of ``Turing`` and returns the document.
@@ -17,7 +17,7 @@ file:
    string.
 
 .. literalinclude:: /includes/insert-data.cs
-   :language: go
+   :language: csharp
    :linenos:
    :emphasize-lines: 9
 
@@ -35,7 +35,7 @@ To run the sample application, use the following command:
       :language: json
 
       Document found:
-      { "_id" : ObjectId("64d3f6b2170489fece4bef97"), "Name" : { "First" : "Alan", "Last" : "Turing" }, "Birth" : ISODate("1912-05-23T06:00:00Z"), "Death" : ISODate("1954-05-07T05:00:00Z"), "Contribs" : ["Turing machine", "Turing test", "Turingery"], "Views" : 1250000 }
+      { "_id" : ObjectId("65c28fcf87156efe024c4558"), "Name" : { "First" : "Alan", "Last" : "Turing" }, "Birth" : ISODate("1912-05-23T06:00:00Z"), "Death" : ISODate("1954-05-07T05:00:00Z"), "Contribs" : ["Turing machine", "Turing test", "Turingery"], "Views" : 1250000 }
 
 .. note::
 

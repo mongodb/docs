@@ -9,14 +9,14 @@
 
    .. step:: Create a ``people`` collection in the ``gettingStarted`` database.
 
-      a. From the :guilabel:`Databases` tab, 
-         click the :guilabel:`Create database` button. 
+      a. From the :guilabel:`Databases` section in the left navigation, 
+         click :icon-fa4:`plus`. 
       #. For the :guilabel:`Database Name` enter ``gettingStarted``.
       #. For the :guilabel:`Collection Name`,  enter ``people``.
       #. Click :guilabel:`Create Database` to create the 
          database and its first collection.
 
-   .. step:: Insert a document into the collection.
+   .. step:: Insert documents into the collection.
 
       a. In the left navigation, click the ``gettingStarted`` database.
       #. Select the ``people`` collection.
@@ -42,6 +42,28 @@
             }
 
       #. Click :guilabel:`Insert` to add the document.
+      #. In the :guilabel:`Documents` tab for the collection, 
+         click :guilabel:`Add Data`.
+      #. Click :guilabel:`Insert Document` and paste the following code:
+
+         .. code-block:: 
+
+            {
+                "name": {
+                    "first": "Grace",
+                    "last": "Hopper"
+            },
+                "birth": { "$date": "1906-12-09" }, 
+                "death": { "$date": "1992-01-01" }, 
+                "contribs": [
+                    "Mark I",
+                    "UNIVAC",
+                    "COBOL"
+                ],
+                "views": 3860000
+            }
+
+      #. Click :guilabel:`Insert` to add the document.
 
    .. step:: Create a document filter.
 
@@ -62,7 +84,7 @@
 
       .. code-block::
 
-         _id: ObjectId('64d52c3c3db2144fc00791b9'},
+         _id: ObjectId('65c28c938dfecbc5fb1bd220'},
          name: Object
              first: "Alan"
              last: "Turing"

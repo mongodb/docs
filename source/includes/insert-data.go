@@ -39,27 +39,37 @@ func main() {
 	// Reference the database and collection to use
 	collection := client.Database("gettingStarted").Collection("people")
 
-	// Create a new document
-	newPerson := Person{
-		Name:     Name{First: "Alan", Last: "Turing"},
-		Birth:    time.Date(1912, 5, 23, 0, 0, 0, 0, time.UTC), // May 23, 1912
-		Death:    time.Date(1954, 5, 7, 0, 0, 0, 0, time.UTC),  // May 7, 1954
-		Contribs: []string{"Turing machine", "Turing test", "Turingery"},
-		Views:    1250000,
+	// Create new documents
+	newPeople := []interface{}{
+		Person{
+			Name:     Name{First: "Alan", Last: "Turing"},
+			Birth:    time.Date(1912, 5, 23, 0, 0, 0, 0, time.UTC), // May 23, 1912
+			Death:    time.Date(1954, 5, 7, 0, 0, 0, 0, time.UTC),  // May 7, 1954
+			Contribs: []string{"Turing machine", "Turing test", "Turingery"},
+			Views:    1250000,
+		},
+		Person{
+			Name:     Name{First: "Grace", Last: "Hopper"},
+			Birth:    time.Date(1906, 12, 9, 0, 0, 0, 0, time.UTC), // Dec 9, 1906
+			Death:    time.Date(1992, 1, 1, 0, 0, 0, 0, time.UTC),  // Jan 1, 1992
+			Contribs: []string{"Mark I", "UNIVAC", "COBOL"},
+			Views:    3860000,
+		},
 	}
 
 	// Insert the document into the specified collection
-	collection.InsertOne(context.TODO(), newPerson)
+	collection.InsertMany(context.TODO(), newPeople)
 
-	// Find and return the document
+	// Find the document
 	collection = client.Database("gettingStarted").Collection("people")
 	filter := bson.D{{"name.last", "Turing"}}
 
 	var result Person
 	err = collection.FindOne(context.TODO(), filter).Decode(&result)
-
 	if err != nil {
 		panic(err)
 	}
+
+	// Print results
 	fmt.Printf("Document Found:\n%+v\n", result)
 }

@@ -20,7 +20,7 @@ to interact with data in your cluster.
       #. Click :guilabel:`Create` to create the 
          database and its first collection.
 
-   .. step:: Insert a document into the collection.
+   .. step:: Insert documents into the collection.
 
       a. Select the ``people`` collection if it's not selected.
       #. Click :guilabel:`Insert Document`.
@@ -43,6 +43,29 @@ to interact with data in your cluster.
                     "Turingery"
                 ],
                 "views": 1250000
+            }
+
+      #. Click :guilabel:`Insert` to add the document.
+      #. Click :guilabel:`Insert Document`.
+      #. Click the |json| view (:guilabel:`{}`) to replace the default 
+         document.
+      #. Paste the following code:
+
+         .. code-block:: 
+
+            {
+                "name": {
+                    "first": "Grace",
+                    "last": "Hopper"
+            },
+                "birth": { "$date": "1906-12-09" }, 
+                "death": { "$date": "1992-01-01" }, 
+                "contribs": [
+                    "Mark I",
+                    "UNIVAC",
+                    "COBOL"
+                ],
+                "views": 3860000
             }
 
       #. Click :guilabel:`Insert` to add the document.

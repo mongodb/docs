@@ -1,7 +1,7 @@
 The following sample application:
 
 - Establishes a connection to your Atlas cluster.
-- Inserts a document to a collection called ``people`` 
+- Inserts documents into a collection called ``people`` 
   in the ``gettingStarted`` database.
 - Searches the ``people`` collection for documents that have a 
   ``name.last`` value of ``Turing`` and returns the document.

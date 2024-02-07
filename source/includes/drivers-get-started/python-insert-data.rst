@@ -1,13 +1,26 @@
-   
-.. include:: /includes/steps/gswa-driver-insert.rst
+The following sample application:
 
-Once you've successfully inserted a document into
-your |service| cluster through the PyMongo driver, 
-read the data by using the PyMongo ``find_one()`` method.
-   
-The following command returns one document from the 
-``people`` collection that has a ``name.last`` value 
-of ``Turing``:
+- Establishes a connection to your Atlas cluster.
+- Inserts documents into a collection called ``people`` 
+  in the ``gettingStarted`` database.
+- Searches the ``people`` collection for documents that have a 
+  ``name.last`` value of ``Turing`` and returns the document.
+
+In your Python project with the driver and dependencies 
+installed, create a file called ``insert-data.py`` and copy 
+the following code into the file:
+
+.. note::
+
+   Replace the placeholder with your |service| connection
+   string.
+
+.. literalinclude:: /includes/insert-data.py
+   :language: python
+   :linenos:
+   :emphasize-lines: 5
+
+To run the sample application, use the following command:
 
 .. io-code-block:: 
    :copyable: true 
@@ -16,13 +29,14 @@ of ``Turing``:
       :language: shell
       :linenos: 
 
-      people.find_one({ "name.last": "Turing" })
+      python insert-data.py
          
    .. output::
       :language: json 
 
+      Document found:
       { 
-         '_id': ObjectId('5ecd43aa2600f51da704b35f'), 
+         '_id': ObjectId('65c2a8188388383b00a85b1f'), 
          'name': { 
             'first': 'Alan', 
             'last': 'Turing' 
