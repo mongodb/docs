@@ -11,6 +11,7 @@
 - Adds ability to configure the ``net.tls.clusterCAFile`` parameter. 
 - Adds additional snapshot metrics to the snapshot summary table.
 - Adds ability to track restore block download performance.
+- Adds ability to specify a cluster CA file.
 - Improves MongoDB and S3-compatible blockstore snapshot performance for
   large files through enhanced memory utilization.
 - Improves the agent's ability to retry for more blockstore errors.
