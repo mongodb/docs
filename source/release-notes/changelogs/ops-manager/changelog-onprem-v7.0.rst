@@ -21,6 +21,8 @@
   - ``Oplog Behind`` warning could be displayed for non-active shards.
   - ``LOW_APP_DB_FREE_SPACE_PERCENT`` alert was not working correctly.
   - Servers might display stale statuses in the |onprem| UI.
+- Removes ability to :ref:`delete a project <delete-project>` that has 
+  managed deployments.
 
 .. _opsmgr-server-7.0.1:
 
