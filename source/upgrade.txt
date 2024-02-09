@@ -61,8 +61,10 @@ the version after v4.0 including any listed under v4.5.
 Version 5.0 Breaking Changes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- This driver version introduces the following changes to the ``ConnectionId`` class:
+This driver version introduces the following breaking changes:
 
+- Introduces the following changes to the ``ConnectionId`` class:
+  
   - The ``ConnectionId`` constructor now accepts a value of type ``long`` as its second
     parameter instead of type ``int``. Similarly, the constructor now accepts a value of
     type ``Long`` as its third parameter instead of type ``Integer``. Because this change breaks
@@ -85,21 +87,18 @@ Version 5.0 Breaking Changes
   - ``BsonProperty``
   - ``BsonRepresentation``
 
-- You must pass a timeout duration, which is the first parameter, to the
-  following ``SocketSettings`` builder methods as a ``long`` type:
+- Changes the data type of the timeout duration parameter in the
+  ``SocketSettings.Builder.connectTimeout()`` and
+  ``SocketSettings.Builder.readTimeout()`` methods. The data type of this
+  parameter is now ``long`` instead of ``int``.
+  
+  In earlier versions, this parameter is of type ``int`` for both methods. This
+  change breaks binary compatibility and requires recompiling, but does not
+  require code changes. To view an example that shows how to call
+  ``SocketSettings`` methods, see the :ref:`SocketSettings Example
+  <java-socketsettings-example>` in the Specify MongoClient Settings guide.
 
-  - ``connectTimeout()``
-  - ``readTimeout()``
-
-  In earlier versions, this parameter is of type ``int`` for both methods. To view an example
-  that shows how to call ``SocketSettings`` methods, see the :ref:`SocketSettings Example
-  <java-socketsettings-example>` in the Specify MongoClient Settings
-  guide.
-
-  This change breaks binary compatibility (requires recompiling) but does not
-  require code changes.
-
-- This driver version removes the ``Filters.eqFull()`` method, released
+- Removes the ``Filters.eqFull()`` method, released
   exclusively in ``Beta``, which allowed you
   to construct an equality filter when performing a vector search.
   You can use the ``Filters.eq()`` method when instantiating a
@@ -111,7 +110,7 @@ Version 5.0 Breaking Changes
 
 .. _java-breaking-changes-v5.0-observables:
 
-- This driver version removes the
+- Removes the
   ``org.mongodb.scala.ObservableImplicits.ToSingleObservableVoid`` implicit
   class. This means the ``org.reactivestreams.Publisher[Void]`` type no longer
   converts automatically to ``org.mongodb.scala.SingleObservable[Void]``. The
@@ -121,7 +120,7 @@ Version 5.0 Breaking Changes
   .. After the 5.0 Scala API docs are released, this line will be uncommented.
     For more information, see the `Observable trait documentation <https://mongodb.github.io/mongo-java-driver/5.0/apidocs/mongo-scala-driver/org/mongodb/scala/Observable.html>`__.
 
-- This driver changes how ``ClusterSettings`` computes
+- Changes how ``ClusterSettings`` computes
   ``ClusterConnectionMode``, making it more consistent by using the specified
   replica set name, regardless of how it is configured. Previously, replica set
   name was only considered if it was set by the connection string.
@@ -147,10 +146,100 @@ Version 5.0 Breaking Changes
          .build()
          .getMode()
 
-- This driver changes how ``BsonDecimal128`` values respond to method calls, by
+- Changes how ``BsonDecimal128`` values respond to method calls, by
   responding in the same way as ``Decimal128`` values. In particular,
   ``BsonDecimal128.isNumber()`` now returns ``true``, and
   ``BsonDecimal128.asNumber()`` returns the equivalent ``BsonNumber``.
+
+- Removes the ``Parameterizable`` interface. Instead of
+  implementing this interface on a custom ``Codec`` type,
+  override the ``CodecProvider.get()`` method on the
+  codec's ``CodecProvider`` if the codec is intended for a parameterized
+  type.
+
+- Removes the ``isSlaveOk()`` method from the
+  ``ReadPreference`` and ``TaggableReadPreference`` classes. To check whether a read preference allows
+  reading from a secondary member of a replica set, use the ``isSecondaryOk()`` methods from
+  these classes instead.
+
+- Removes the ``DBCollection.getStats()`` and ``DBCollection.isCapped()``
+  helper methods for the ``collStats`` command. Instead of these methods, you can use the
+  ``$collStats`` aggregation pipeline stage. For an example of how to use this pipeline
+  stage, see :manual:`What's New <java-deprecations-4.11>` for v4.11 of the {+driver-short+}.
+
+- Removes the ``MapCodec`` and ``IterableCodec`` classes.
+  Instead of ``MapCodec``, use ``MapCodecProvider``. Instead of ``IterableCodec``,
+  use ``CollectionCodecProvider``, or ``IterableCodecProvider`` for ``Iterable``
+  types that aren't ``Collection`` types.  
+
+- Removes the ``sharded()`` and ``nonAtomic()`` methods from the
+  ``MapReducePublisher`` and ``MapReduceIterable`` classes.
+
+- Removes the following methods for use with ``geoHaystack`` indexes:
+
+  - ``Indexes.geoHaystack()``
+  - ``IndexOptions.getBucketSize()``
+  - ``IndexOptions.bucketSize()``
+  
+  Instead, you can use the ``$geoNear`` aggregation pipeline stage or a geospatial
+  query operator on a 2d index. For more information, see the
+  :manual:`Geospatial Queries page </geospatial-queries>` in the {+mdb-server+} manual.
+
+- Removes the ``oplogReplay`` option from find operations. This
+  includes the following methods:
+
+  - ``DBCursor.oplogReplay()``
+  - ``DBCollectionFindOptions.isOplogReplay()``
+  - ``DBCollectionFindOptions.oplogReplay()``
+  - ``FindPublisher.oplogReplay()``
+  - ``FindIterable.oplogReplay()``
+
+- Removes the following ``Exception`` constructors:
+
+  - ``MongoBulkWriteException(BulkWriteResult, List<BulkWriteError>, WriteConcernError, ServerAddress)``
+  - ``MongoCursorNotFoundException(long, ServerAddress)``
+  - ``MongoQueryException(ServerAddress, int, String)``
+  - ``MongoQueryException(ServerAddress, int, String, String)``
+  - ``MongoQueryException(MongoCommandException)``
+
+- Removes the following overloads for the ``BulkWriteResult.acknowledged()`` method:
+
+  - ``acknowledged(Type, int, List<BulkWriteUpsert>)``
+  - ``acknowledged(Type, int, Integer, List<BulkWriteUpsert>)``
+  - ``acknowledged(int, int, int, Integer, List<BulkWriteUpsert>)``
+
+- Removes the following ``ChangeStreamDocument`` constructors:
+
+  - ``ChangeStreamDocument(String, BsonDocument, BsonDocument, BsonDocument, TDocument, TDocument, BsonDocument, ...)``
+  - ``ChangeStreamDocument(String, BsonDocument, BsonDocument, BsonDocument, TDocument, BsonDocument, BsonTimestamp, ...)``
+  - ``ChangeStreamDocument(OperationType, BsonDocument, BsonDocument, BsonDocument, TDocument, BsonDocument, BsonTimestamp, ...)``
+
+- Removes the following constructors for events:
+
+  - ``CommandEvent(RequestContext, int, ConnectionDescription, String)``
+  - ``CommandEvent(int, ConnectionDescription, String)``
+  - ``CommandEvent(RequestContext, long, int, ConnectionDescription, String)``
+  - ``CommandFailedEvent(RequestContext, int, ConnectionDescription, String, long, Throwable)``
+  - ``CommandFailedEvent(int, ConnectionDescription, String, long, Throwable)``
+  - ``CommandStartedEvent(RequestContext, int, ConnectionDescription, String, String, BsonDocument)``
+  - ``CommandStartedEvent(int, ConnectionDescription, String, String, BsonDocument)``
+  - ``CommandSucceededEvent(RequestContext, int, ConnectionDescription, String, BsonDocument, long)``
+  - ``CommandSucceededEvent(int, ConnectionDescription, String, BsonDocument, long)``
+  - ``ConnectionCheckedInEvent(ConnectionId)``
+  - ``ConnectionCheckedOutEvent(ConnectionId, long)``
+  - ``ConnectionCheckedOutEvent(ConnectionId)``
+  - ``ConnectionCheckOutFailedEvent(ServerId, long, Reason)``
+  - ``ConnectionCheckOutFailedEvent(ServerId, Reason)``
+  - ``ConnectionCheckOutStartedEvent(ServerId)``
+  - ``ConnectionReadyEvent(ConnectionId)``
+  - ``ServerHeartbeatFailedEvent(ConnectionId, long, Throwable)``
+  - ``ServerHeartbeatSucceededEvent(ConnectionId, BsonDocument, long)``
+
+- Removes the ``errorLabels`` option from the ``WriteConcernError``
+  class. This includes the ``addLabel()`` and ``getErrorLabels()`` methods and the
+  constructor that includes an ``errorLabels`` parameter. Instead, you can use
+  the error labels included in the ``MongoException`` object that contains the
+  ``WriteConcernError``.
 
 .. _java-breaking-changes-v4.8:
 
