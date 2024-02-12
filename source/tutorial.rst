@@ -14,7 +14,7 @@ This tutorial is intended as an introduction to working with
 Prerequisites
 -------------
 Before we start, make sure that you have the **PyMongo** distribution
-:doc:`installed <installation>`. In the Python shell, the following
+installed. In the Python shell, the following
 should run without raising an exception:
 
 .. code-block:: python
@@ -149,7 +149,7 @@ of the collections in our database:
   ['posts']
 
 Getting a Single Document With :py:meth:`~pymongo.collection.Collection.find_one`
-------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 The most basic type of query that can be performed in MongoDB is
 :py:meth:`~pymongo.collection.Collection.find_one`. This method returns a
 single document matching a query (or ``None`` if there are no
@@ -265,13 +265,13 @@ command to the server:
 
 There are a couple of interesting things to note about this example:
 
-  - The result from :py:meth:`~pymongo.collection.Collection.insert_many` now
-    returns two :py:class`~bson.objectid.ObjectId` instances, one for
-    each inserted document.
-  - ``new_posts[1]`` has a different "shape" than the other posts -
-    there is no ``"tags"`` field and we've added a new field,
-    ``"title"``. This is what we mean when we say that MongoDB is
-    *schema-free*.
+- The result from :py:meth:`~pymongo.collection.Collection.insert_many` now
+  returns two :py:class`~bson.objectid.ObjectId` instances, one for
+  each inserted document.
+- ``new_posts[1]`` has a different "shape" than the other posts -
+  there is no ``"tags"`` field and we've added a new field,
+  ``"title"``. This is what we mean when we say that MongoDB is
+  *schema-free*.
 
 Querying for More Than One Document
 -----------------------------------
@@ -403,7 +403,6 @@ The index prevents us from inserting a document whose ``user_id`` is already in
 the collection:
 
 .. code-block:: python
-   :options: +IGNORE_EXCEPTION_DETAIL
 
    >>> new_profile = {"user_id": 213, "name": "Drew"}
    >>> duplicate_profile = {"user_id": 212, "name": "Tommy"}
