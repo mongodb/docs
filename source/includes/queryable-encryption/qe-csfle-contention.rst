@@ -11,7 +11,8 @@ at index 0. ``contention = 4`` creates an array with 5 elements at
 indexes 0-4. MongoDB increments a random array element during insert. If
 unset, ``contention`` defaults to 8.
 
-High contention improves the performance of insert and update operations on low cardinality fields, but decreases find performance.
+High contention improves the performance of insert and update operations
+on low cardinality fields, but decreases find performance.
 
 Consider increasing ``contention`` above the default value of 8 only if:
 
