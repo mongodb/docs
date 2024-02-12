@@ -1,4 +1,4 @@
-:mod:`objectid` -- Tools for working with MongoDB ObjectIds
+:py:mod:`objectid` -- Tools for working with MongoDB ObjectIds
 ===========================================================
 
 .. automodule:: bson.objectid

@@ -1,4 +1,4 @@
-:mod:`operations` -- Operation class definitions
+:py:mod:`operations` -- Operation class definitions
 ================================================
 
 .. automodule:: pymongo.operations

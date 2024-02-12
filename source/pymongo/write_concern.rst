@@ -1,4 +1,4 @@
-:mod:`write_concern` -- Tools for specifying write concern
+:py:mod:`write_concern` -- Tools for specifying write concern
 ==========================================================
 
 .. automodule:: pymongo.write_concern

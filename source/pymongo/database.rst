@@ -1,4 +1,4 @@
-:mod:`database` -- Database level operations
+:py:mod:`database` -- Database level operations
 ============================================
 
 .. automodule:: pymongo.database

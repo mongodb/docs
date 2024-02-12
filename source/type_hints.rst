@@ -241,7 +241,7 @@ For :py:py:class`~typing.TypedDict`, use the form: ``options: CodecOptions[MyTyp
 
 Typed BSON Decoding
 -------------------
-You can specify the document type returned by :mod:`bson` decoding functions by providing :py:class`~bson.codec_options.CodecOptions`:
+You can specify the document type returned by :py:mod:`bson` decoding functions by providing :py:class`~bson.codec_options.CodecOptions`:
 
 .. code-block:: python
 

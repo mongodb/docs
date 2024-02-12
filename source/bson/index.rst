@@ -1,4 +1,4 @@
-:mod:`bson` -- BSON (Binary JSON) Encoding and Decoding
+:py:mod:`bson` -- BSON (Binary JSON) Encoding and Decoding
 =======================================================
 
 .. automodule:: bson

@@ -1,4 +1,4 @@
-:mod:`driver_info`
+:py:mod:`driver_info`
 ==================
 
 .. automodule:: pymongo.driver_info

@@ -1,4 +1,4 @@
-:mod:`mongo_client` -- Tools for connecting to MongoDB
+:py:mod:`mongo_client` -- Tools for connecting to MongoDB
 ======================================================
 
 .. automodule:: pymongo.mongo_client

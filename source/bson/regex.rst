@@ -1,4 +1,4 @@
-:mod:`regex` -- Tools for representing MongoDB regular expressions
+:py:mod:`regex` -- Tools for representing MongoDB regular expressions
 ==================================================================
 .. versionadded:: 2.7
 

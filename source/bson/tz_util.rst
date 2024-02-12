@@ -1,4 +1,4 @@
-:mod:`tz_util` -- Utilities for dealing with timezones in Python
+:py:mod:`tz_util` -- Utilities for dealing with timezones in Python
 ================================================================
 
 .. automodule:: bson.tz_util

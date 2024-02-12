@@ -51,7 +51,7 @@ The :py:class`~bson.codec_options.TypeCodec` Class
 
 In order to encode a custom type, we must first define a **type codec** for
 that type. A type codec describes how an instance of a custom type can be
-*transformed* to and/or from one of the types :mod:`~bson` already understands.
+*transformed* to and/or from one of the types :py:mod:`~bson` already understands.
 Depending on the desired functionality, users must choose from the following
 base classes when defining type codecs:
 
@@ -232,7 +232,7 @@ Decoding :py:class`~bson.binary.Binary` Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The decoding treatment of :py:class`~bson.binary.Binary` types having
-``subtype = 0`` by the :mod:`bson` module varies slightly depending on the
+``subtype = 0`` by the :py:mod:`bson` module varies slightly depending on the
 version of the Python runtime in use. This must be taken into account while
 writing a ``TypeDecoder`` that modifies how this datatype is decoded.
 
@@ -337,7 +337,7 @@ Encoding Unknown Types
 
 In this example, we demonstrate how a fallback encoder can be used to save
 arbitrary objects to the database. We will use the the standard library's
-:py:mod:`pickle` module to serialize the unknown types and so naturally, this
+:py:py:mod:`pickle` module to serialize the unknown types and so naturally, this
 approach only works for types that are picklable.
 
 We start by defining some arbitrary custom types:
@@ -432,5 +432,5 @@ limitations:
    *cannot* be transformed a second time by a different type codec.
 #. The :py:meth:`~pymongo.database.Database.command` method does not apply the
    user's TypeDecoders while decoding the command response document.
-#. :mod:`gridfs` does not apply custom type encoding or decoding to any
+#. :py:mod:`gridfs` does not apply custom type encoding or decoding to any
    documents received from or to returned to the user.

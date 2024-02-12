@@ -1,4 +1,4 @@
-:mod:`binary` -- Tools for representing binary data to be stored in MongoDB
+:py:mod:`binary` -- Tools for representing binary data to be stored in MongoDB
 ===========================================================================
 
 .. automodule:: bson.binary

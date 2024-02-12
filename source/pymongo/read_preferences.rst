@@ -1,4 +1,4 @@
-:mod:`read_preferences` -- Utilities for choosing which member of a replica set to read from.
+:py:mod:`read_preferences` -- Utilities for choosing which member of a replica set to read from.
 =============================================================================================
 
 .. automodule:: pymongo.read_preferences

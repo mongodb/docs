@@ -1,4 +1,4 @@
-:mod:`event_loggers` -- Example loggers
+:py:mod:`event_loggers` -- Example loggers
 ===========================================
 
 

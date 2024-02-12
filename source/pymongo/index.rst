@@ -1,4 +1,4 @@
-:mod:`pymongo` -- Python driver for MongoDB
+:py:mod:`pymongo` -- Python driver for MongoDB
 ===========================================
 
 .. automodule:: pymongo

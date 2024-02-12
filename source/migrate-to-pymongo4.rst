@@ -900,7 +900,7 @@ Can be changed to this:
 SONManipulator is removed
 -------------------------
 
-Removed :mod:`pymongo.son_manipulator`,
+Removed :py:mod:`pymongo.son_manipulator`,
 :py:class`pymongo.son_manipulator.SONManipulator`,
 :py:class`pymongo.son_manipulator.ObjectIdInjector`,
 :py:class`pymongo.son_manipulator.ObjectIdShuffler`,
@@ -1032,7 +1032,7 @@ cursor_manager support is removed
 .................................
 
 Removed :py:class`pymongo.cursor_manager.CursorManager`,
-:mod:`pymongo.cursor_manager`, and
+:py:mod:`pymongo.cursor_manager`, and
 :py:meth:`pymongo.mongo_client.MongoClient.set_cursor_manager`.
 
 MongoClient.close_cursor is removed

@@ -259,7 +259,7 @@ and **local threshold**.
 **Read preference**:
 
 Read preference is configured using one of the classes from
-:mod:`~pymongo.read_preferences` (:py:class`~pymongo.read_preferences.Primary`,
+:py:mod:`~pymongo.read_preferences` (:py:class`~pymongo.read_preferences.Primary`,
 :py:class`~pymongo.read_preferences.PrimaryPreferred`,
 :py:class`~pymongo.read_preferences.Secondary`,
 :py:class`~pymongo.read_preferences.SecondaryPreferred`, or
@@ -309,7 +309,7 @@ and raises :py:class`~pymongo.errors.AutoReconnect` if none are available. As an
 additional fallback, specify a final, empty tag set, ``{}``, which means "read
 from any member that matches the mode, ignoring tags."
 
-See :mod:`~pymongo.read_preferences` for more information.
+See :py:mod:`~pymongo.read_preferences` for more information.
 
 .. _distributes reads to secondaries:
 

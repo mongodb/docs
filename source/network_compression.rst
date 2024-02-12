@@ -11,7 +11,7 @@ over the network. By default no compression is used.
 The driver supports the following algorithms:
 
 - `snappy <https://pypi.org/project/python-snappy>`_ available in MongoDB 3.4 and later.
-- :mod:`zlib` available in MongoDB 3.6 and later.
+- :py:mod:`zlib` available in MongoDB 3.6 and later.
 - `zstandard <https://pypi.org/project/zstandard/>`_ available in MongoDB 4.2 and later.
 
 .. note:: snappy and zstandard compression require additional dependencies. See :ref:`optional-deps`.
@@ -42,6 +42,6 @@ Additionally, zlib compression allows specifying a compression level with suppor
 
   >>> client = MongoClient(compressors='zlib', zlibCompressionLevel=-1)
 
-The ``zlibCompressionLevel`` is passed as the ``level`` argument to :func:`zlib.compress`.
+The ``zlibCompressionLevel`` is passed as the ``level`` argument to :py:func:`zlib.compress`.
 
 .. seealso:: The MongoDB documentation on `network compression URI options <https://dochub.mongodb.org/core/compression-options>`_.

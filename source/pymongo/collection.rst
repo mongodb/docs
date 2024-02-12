@@ -1,4 +1,4 @@
-:mod:`collection` -- Collection level operations
+:py:mod:`collection` -- Collection level operations
 ================================================
 
 .. automodule:: pymongo.collection

@@ -34,7 +34,7 @@ within 10 seconds total, or raise a timeout error:
       coll.insert_one({"name": "Nunu"})
       coll.find_one({"name": "Nunu"})
 
-When nesting :func:`~pymongo.timeout`, the nested deadline is capped by the outer
+When nesting :py:func:`~pymongo.timeout`, the nested deadline is capped by the outer
 deadline. The deadline can only be shortened, not extended.
 When exiting the block, the previous deadline is restored:
 

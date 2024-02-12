@@ -1,4 +1,4 @@
-:mod:`server_api` -- Support for MongoDB Stable API
+:py:mod:`server_api` -- Support for MongoDB Stable API
 ======================================================
 
 .. automodule:: pymongo.server_api

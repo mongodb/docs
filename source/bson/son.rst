@@ -1,4 +1,4 @@
-:mod:`son` -- Tools for working with SON, an ordered mapping
+:py:mod:`son` -- Tools for working with SON, an ordered mapping
 ============================================================
 
 .. automodule:: bson.son

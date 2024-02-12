@@ -1,4 +1,4 @@
-:mod:`cursor` -- Tools for iterating over MongoDB query results
+:py:mod:`cursor` -- Tools for iterating over MongoDB query results
 ===============================================================
 
 .. automodule:: pymongo.cursor

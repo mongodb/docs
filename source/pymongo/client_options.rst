@@ -1,4 +1,4 @@
-:mod:`client_options` -- Read only configuration options for a MongoClient.
+:py:mod:`client_options` -- Read only configuration options for a MongoClient.
 ===========================================================================
 
 .. automodule:: pymongo.client_options

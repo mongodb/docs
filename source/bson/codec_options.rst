@@ -1,4 +1,4 @@
-:mod:`codec_options` -- Tools for specifying BSON codec options
+:py:mod:`codec_options` -- Tools for specifying BSON codec options
 ===============================================================
 
 .. automodule:: bson.codec_options

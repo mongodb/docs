@@ -1,4 +1,4 @@
-:mod:`errors` -- Exceptions raised by the :mod:`pymongo` package
+:py:mod:`errors` -- Exceptions raised by the :py:mod:`pymongo` package
 ================================================================
 
 .. automodule:: pymongo.errors

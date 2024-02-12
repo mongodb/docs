@@ -8,10 +8,10 @@ GridFS Example
   client = MongoClient()
   client.drop_database("gridfs_example")
 
-This example shows how to use :mod:`gridfs` to store large binary
+This example shows how to use :py:mod:`gridfs` to store large binary
 objects (e.g. files) in MongoDB.
 
-.. seealso:: The API docs for :mod:`gridfs`.
+.. seealso:: The API docs for :py:mod:`gridfs`.
 
 .. seealso:: `This blog post
    <http://dirolf.com/2010/03/29/new-gridfs-implementation-for-pymongo.html>`_
@@ -36,7 +36,7 @@ operate on a specific :py:class`~pymongo.database.Database` instance.
 Saving and Retrieving Data
 --------------------------
 
-The simplest way to work with :mod:`gridfs` is to use its key/value
+The simplest way to work with :py:mod:`gridfs` is to use its key/value
 interface (the :py:meth:`~gridfs.GridFS.put` and
 :py:meth:`~gridfs.GridFS.get` methods). To write data to GridFS, use
 :py:meth:`~gridfs.GridFS.put`:
