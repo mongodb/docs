@@ -59,10 +59,10 @@ Warnings can also be changed to errors:
 MongoReplicaSetClient
 ---------------------
 
-Removed :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`.
+Removed :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`.
 Since PyMongo 3.0, ``MongoReplicaSetClient`` has been identical to
-:py:class`pymongo.mongo_client.MongoClient`. Applications can simply replace
-``MongoReplicaSetClient`` with :py:class`pymongo.mongo_client.MongoClient` and
+:py:class:`pymongo.mongo_client.MongoClient`. Applications can simply replace
+``MongoReplicaSetClient`` with :py:class:`pymongo.mongo_client.MongoClient` and
 get the same behavior.
 
 MongoClient
@@ -111,7 +111,7 @@ The waitQueueMultiple parameter is removed
 ..........................................
 
 Removed the ``waitQueueMultiple`` keyword argument to
-:py:class`~pymongo.mongo_client.MongoClient` and removed
+:py:class:`~pymongo.mongo_client.MongoClient` and removed
 :exc:`pymongo.errors.ExceededMaxWaiters`. Instead of using
 ``waitQueueMultiple`` to bound queuing, limit the size of the thread
 pool in your application.
@@ -120,7 +120,7 @@ The socketKeepAlive parameter is removed
 ..........................................
 
 Removed the ``socketKeepAlive`` keyword argument to
-:py:class`~pymongo.mongo_client.MongoClient`. PyMongo now always enables TCP
+:py:class:`~pymongo.mongo_client.MongoClient`. PyMongo now always enables TCP
 keepalive. For more information see the `documentation <https://mongodb.com/docs/manual/faq/diagnostics/#does-tcp-keepalive-time-affect-mongodb-deployments->`_.
 
 Renamed URI options
@@ -285,7 +285,7 @@ can be changed to this:
 ``tz_aware`` defaults to ``False``
 ..................................
 
-The ``tz_aware`` argument to :py:class`~bson.json_util.JSONOptions`
+The ``tz_aware`` argument to :py:class:`~bson.json_util.JSONOptions`
 now defaults to ``False`` instead of ``True``. :py:meth:`bson.json_util.loads`
 now decodes datetime as naive by default:
 
@@ -307,25 +307,25 @@ To retain the PyMongo 3 behavior set ``tz_aware=True``, for example:
     {'dt': datetime.datetime(2022, 5, 9, 17, 54, tzinfo=<bson.tz_util.FixedOffset object at 0x7fd1ebc1add0>)}
 
 This change was made to match the default behavior of
-:py:class`~bson.codec_options.CodecOptions` and :py:class`bson.decode`.
+:py:class:`~bson.codec_options.CodecOptions` and :py:class:`bson.decode`.
 
 MongoClient cannot execute operations after ``close()``
 .......................................................
 
-:py:class`~pymongo.mongo_client.MongoClient` cannot execute any operations
+:py:class:`~pymongo.mongo_client.MongoClient` cannot execute any operations
 after being closed. The previous behavior would simply reconnect. However,
 now you must create a new instance.
 
 MongoClient raises exception when given more than one URI
 .........................................................
 
-:py:class`~pymongo.mongo_client.MongoClient` now raises a :exc:`~pymongo.errors.ConfigurationError`
+:py:class:`~pymongo.mongo_client.MongoClient` now raises a :exc:`~pymongo.errors.ConfigurationError`
 when more than one URI is passed into the ``hosts`` argument.
 
 MongoClient raises exception when given unescaped percent sign in login info
 ............................................................................
 
-:py:class`~pymongo.mongo_client.MongoClient` now raises an
+:py:class:`~pymongo.mongo_client.MongoClient` now raises an
 :exc:`~pymongo.errors.InvalidURI` exception
 when it encounters unescaped percent signs in username and password.
 
@@ -339,7 +339,7 @@ Removed :py:meth:`pymongo.database.Database.authenticate` and
 :py:meth:`pymongo.database.Database.logout`. Authenticating multiple users
 on the same client conflicts with support for logical sessions in MongoDB 3.6+.
 To authenticate as multiple users, create multiple instances of
-:py:class`~pymongo.mongo_client.MongoClient`. Code like this:
+:py:class:`~pymongo.mongo_client.MongoClient`. Code like this:
 
 .. code-block:: python
 
@@ -495,7 +495,7 @@ Can be changed to this:
 
 Database.__bool__ raises NotImplementedError
 ............................................
-:py:class`~pymongo.database.Database` now raises an error upon evaluating as a
+:py:class:`~pymongo.database.Database` now raises an error upon evaluating as a
 Boolean. Code like this:
 
 .. code-block:: python
@@ -688,7 +688,7 @@ Collection.initialize_ordered_bulk_op and initialize_unordered_bulk_op is remove
 .................................................................................
 
 Removed :py:meth:`pymongo.collection.Collection.initialize_ordered_bulk_op`
-and :py:class`pymongo.bulk.BulkOperationBuilder`. Use
+and :py:class:`pymongo.bulk.BulkOperationBuilder`. Use
 :py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this:
 
 .. code-block:: python
@@ -862,7 +862,7 @@ can be changed to this:
 
 Collection.__bool__ raises NotImplementedError
 ..............................................
-:py:class`~pymongo.collection.Collection` now raises an error upon evaluating
+:py:class:`~pymongo.collection.Collection` now raises an error upon evaluating
 as a Boolean. Code like this:
 
 .. code-block:: python
@@ -900,12 +900,12 @@ Can be changed to this:
 SONManipulator is removed
 -------------------------
 
-Removed :py:mod:`pymongo.son_manipulator`,
-:py:class`pymongo.son_manipulator.SONManipulator`,
-:py:class`pymongo.son_manipulator.ObjectIdInjector`,
-:py:class`pymongo.son_manipulator.ObjectIdShuffler`,
-:py:class`pymongo.son_manipulator.AutoReference`,
-:py:class`pymongo.son_manipulator.NamespaceInjector`,
+Removed ``pymongo.son_manipulator``,
+:py:class:`pymongo.son_manipulator.SONManipulator`,
+:py:class:`pymongo.son_manipulator.ObjectIdInjector`,
+:py:class:`pymongo.son_manipulator.ObjectIdShuffler`,
+:py:class:`pymongo.son_manipulator.AutoReference`,
+:py:class:`pymongo.son_manipulator.NamespaceInjector`,
 :py:meth:`pymongo.database.Database.add_son_manipulator`,
 :attr:`pymongo.database.Database.outgoing_copying_manipulators`,
 :attr:`pymongo.database.Database.outgoing_manipulators`,
@@ -917,15 +917,15 @@ Removed the ``manipulate`` parameter from
 :py:meth:`~pymongo.collection.Collection.find_one`, and
 :py:meth:`~pymongo.cursor.Cursor`.
 
-The :py:class`pymongo.son_manipulator.SONManipulator` API has limitations as a
+The :py:class:`pymongo.son_manipulator.SONManipulator` API has limitations as a
 technique for transforming your data and was deprecated in PyMongo 3.0.
 Instead, it is more flexible and straightforward to transform outgoing
 documents in your own code before passing them to PyMongo, and transform
 incoming documents after receiving them from PyMongo.
 
 Alternatively, if your application uses the ``SONManipulator`` API to convert
-custom types to BSON, the :py:class`~bson.codec_options.TypeCodec` and
-:py:class`~bson.codec_options.TypeRegistry` APIs may be a suitable alternative.
+custom types to BSON, the :py:class:`~bson.codec_options.TypeCodec` and
+:py:class:`~bson.codec_options.TypeRegistry` APIs may be a suitable alternative.
 For more information, see the
 :doc:`custom type example <examples/custom_type>`.
 
@@ -951,8 +951,8 @@ Can now be replaced by code that looks like:
 IsMaster is removed
 -------------------
 
-Removed :py:class`pymongo.ismaster.IsMaster`.
-Use :py:class`pymongo.hello.Hello` instead.
+Removed :py:class:`pymongo.ismaster.IsMaster`.
+Use :py:class:`pymongo.hello.Hello` instead.
 
 NotMasterError is removed
 -------------------------
@@ -976,7 +976,7 @@ See https://dochub.mongodb.org/core/4.4-deprecate-geoHaystack.
 UUIDLegacy is removed
 ---------------------
 
-Removed :py:class`bson.binary.UUIDLegacy`. Use
+Removed :py:class:`bson.binary.UUIDLegacy`. Use
 :py:meth:`bson.binary.Binary.from_uuid` instead.  Code like this:
 
 .. code-block:: python
@@ -1006,8 +1006,8 @@ GridFS changes
 disable_md5 parameter is removed
 ................................
 
-Removed the ``disable_md5`` option for :py:class`~gridfs.GridFSBucket` and
-:py:class`~gridfs.GridFS`. GridFS no longer generates checksums.
+Removed the ``disable_md5`` option for :py:class:`~gridfs.GridFSBucket` and
+:py:class:`~gridfs.GridFS`. GridFS no longer generates checksums.
 Applications that desire a file digest should implement it outside GridFS
 and store it with other file metadata. For example:
 
@@ -1031,8 +1031,8 @@ Removed features with no migration path
 cursor_manager support is removed
 .................................
 
-Removed :py:class`pymongo.cursor_manager.CursorManager`,
-:py:mod:`pymongo.cursor_manager`, and
+Removed :py:class:`pymongo.cursor_manager.CursorManager`,
+``pymongo.cursor_manager``, and
 :py:meth:`pymongo.mongo_client.MongoClient.set_cursor_manager`.
 
 MongoClient.close_cursor is removed
@@ -1050,7 +1050,7 @@ Database.eval, Database.system_js, and SystemJS are removed
 
 Removed :py:meth:`~pymongo.database.Database.eval`,
 :data:`~pymongo.database.Database.system_js` and
-:py:class`~pymongo.database.SystemJS`. The eval command was deprecated in
+:py:class:`~pymongo.database.SystemJS`. The eval command was deprecated in
 MongoDB 3.0 and removed in MongoDB 4.2. There is no replacement for eval with
 MongoDB 4.2+.
 
@@ -1097,35 +1097,35 @@ Removed :py:meth:`pymongo.message.delete`, :py:meth:`pymongo.message.get_more`,
 Name is a required argument for pymongo.driver_info.DriverInfo
 ..............................................................
 
-``name`` is now a required argument for the :py:class`pymongo.driver_info.DriverInfo` class.
+``name`` is now a required argument for the :py:class:`pymongo.driver_info.DriverInfo` class.
 
 DBRef BSON/JSON decoding behavior
 .................................
 
-Changed the BSON and JSON decoding behavior of :py:class`~bson.dbref.DBRef`
+Changed the BSON and JSON decoding behavior of :py:class:`~bson.dbref.DBRef`
 to match the behavior outlined in the `DBRef specification`_ version 1.0.
 Specifically, PyMongo now only decodes a subdocument into a
-:py:class`~bson.dbref.DBRef` if and only if, it contains both ``$ref`` and
+:py:class:`~bson.dbref.DBRef` if and only if, it contains both ``$ref`` and
 ``$id`` fields and the ``$ref``, ``$id``, and ``$db`` fields are of the
 correct type. Otherwise the document is returned as normal. Previously, any
 subdocument containing a ``$ref`` field would be decoded as a
-:py:class`~bson.dbref.DBRef`.
+:py:class:`~bson.dbref.DBRef`.
 
 .. _DBRef specification: https://github.com/mongodb/specifications/blob/5a8c8d7/source/dbref.rst
 
 Encoding a UUID raises an error by default
 ..........................................
 
-The default ``uuid_representation`` for :py:class`~bson.codec_options.CodecOptions`,
-:py:class`~bson.json_util.JSONOptions`, and
-:py:class`~pymongo.mongo_client.MongoClient` has been changed from
+The default ``uuid_representation`` for :py:class:`~bson.codec_options.CodecOptions`,
+:py:class:`~bson.json_util.JSONOptions`, and
+:py:class:`~pymongo.mongo_client.MongoClient` has been changed from
 :data:`bson.binary.UuidRepresentation.PYTHON_LEGACY` to
 :data:`bson.binary.UuidRepresentation.UNSPECIFIED`. Attempting to encode a
-:py:class`uuid.UUID` instance to BSON or JSON now produces an error by default.
+:py:class:`uuid.UUID` instance to BSON or JSON now produces an error by default.
 If you were using UUIDs previously, you will need to set your ``uuid_representation`` to
 :data:`bson.binary.UuidRepresentation.PYTHON_LEGACY` to avoid data corruption. If you do not have UUIDs,
 then you should set :data:`bson.binary.UuidRepresentation.STANDARD`. If you do not explicitly set a value,
-you will receive an error like this when attempting to encode a :py:class`uuid.UUID`:
+you will receive an error like this when attempting to encode a :py:class:`uuid.UUID`:
 
 .. code-block:: python
 
@@ -1136,8 +1136,8 @@ See :ref:`handling-uuid-data-example` for details.
 Additional BSON classes implement ``__slots__``
 ...............................................
 
-:py:class`~bson.int64.Int64`, :py:class`~bson.min_key.MinKey`,
-:py:class`~bson.max_key.MaxKey`, :py:class`~bson.timestamp.Timestamp`,
-:py:class`~bson.regex.Regex`, and :py:class`~bson.dbref.DBRef` now implement
+:py:class:`~bson.int64.Int64`, :py:class:`~bson.min_key.MinKey`,
+:py:class:`~bson.max_key.MaxKey`, :py:class:`~bson.timestamp.Timestamp`,
+:py:class:`~bson.regex.Regex`, and :py:class:`~bson.dbref.DBRef` now implement
 ``__slots__`` to reduce memory usage. This means that their attributes are fixed, and new
 attributes cannot be added to the object at runtime.

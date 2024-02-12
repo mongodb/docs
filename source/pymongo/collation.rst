@@ -1,4 +1,4 @@
-:py:mod:`collation` -- Tools for working with collations.
+``collation`` -- Tools for working with collations.
 ======================================================
 
 .. automodule:: pymongo.collation

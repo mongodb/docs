@@ -1,4 +1,4 @@
-:py:mod:`monitoring` -- Tools for monitoring driver events.
+``monitoring`` -- Tools for monitoring driver events.
 ========================================================
 
 .. automodule:: pymongo.monitoring

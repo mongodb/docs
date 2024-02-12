@@ -1,4 +1,4 @@
-:py:mod:`errors` -- Exceptions raised by the :py:mod:`bson` package
+``errors`` -- Exceptions raised by the ``bson`` package
 =============================================================
 
 .. automodule:: bson.errors

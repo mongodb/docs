@@ -13,7 +13,7 @@ Is PyMongo fork-safe?
 ---------------------
 
 PyMongo is not fork-safe. Care must be taken when using instances of
-:py:class`~pymongo.mongo_client.MongoClient` with ``fork()``. Specifically,
+:py:class:`~pymongo.mongo_client.MongoClient` with ``fork()``. Specifically,
 instances of MongoClient must not be copied from a parent process to
 a child process. Instead, the parent process and each child process must
 create their own instances of MongoClient. Instances of MongoClient copied from
@@ -26,9 +26,9 @@ issue a warning if there is a chance of this deadlock occurring.
 
 MongoClient spawns multiple threads to run background tasks such as monitoring
 connected servers. These threads share state that is protected by instances of
-:py:class`~threading.Lock`, which are themselves `not fork-safe`_. The
+:py:class:`~threading.Lock`, which are themselves `not fork-safe`_. The
 driver is therefore subject to the same limitations as any other multithreaded
-code that uses :py:class`~threading.Lock` (and mutexes in general). One of these
+code that uses :py:class:`~threading.Lock` (and mutexes in general). One of these
 limitations is that the locks become useless after ``fork()``. During the fork,
 all locks are copied over to the child process in the same state as they were
 in the parent: if they were locked, the copied locks are also locked. The child
@@ -80,7 +80,7 @@ is a companion library to PyMongo that makes it easy to load MongoDB query resul
 How does connection pooling work in PyMongo?
 --------------------------------------------
 
-Every :py:class`~pymongo.mongo_client.MongoClient` instance has a built-in
+Every :py:class:`~pymongo.mongo_client.MongoClient` instance has a built-in
 connection pool per server in your MongoDB topology. These pools open sockets
 on demand to support the number of concurrent MongoDB operations that your
 multi-threaded application requires. There is no thread-affinity for sockets.
@@ -99,7 +99,7 @@ application's concurrent operations on each server, up to ``maxPoolSize``. With
 a ``maxPoolSize`` of 100, if the application only uses the primary (the
 default), then only the primary connection pool grows and the total connections
 is at most 106. If the application uses a
-:py:class`~pymongo.read_preferences.ReadPreference` to query the secondaries,
+:py:class:`~pymongo.read_preferences.ReadPreference` to query the secondaries,
 their pools also grow and the total connections can reach 306.
 
 Additionally, the pools are rate limited such that each connection pool can
@@ -127,7 +127,7 @@ The maximum number of milliseconds that a connection can remain idle in the
 pool before being removed and replaced can be set with ``maxIdleTimeMS``, which
 defaults to ``None`` (no limit).
 
-The default configuration for a :py:class`~pymongo.mongo_client.MongoClient`
+The default configuration for a :py:class:`~pymongo.mongo_client.MongoClient`
 works for most applications:
 
 .. code-block:: python
@@ -199,7 +199,7 @@ When a document is inserted to MongoDB using
 :py:meth:`~pymongo.collection.Collection.insert_many`, or
 :py:meth:`~pymongo.collection.Collection.bulk_write`, and that document does not
 include an ``_id`` field, PyMongo automatically adds one for you, set to an
-instance of :py:class`~bson.objectid.ObjectId`. For example:
+instance of :py:class:`~bson.objectid.ObjectId`. For example:
 
 .. code-block:: python
 
@@ -286,9 +286,9 @@ stored in BSON. Here, "a" is shown before "b":
   >>> print(collection.find_one())
   {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
 
-To preserve order when reading BSON, use the :py:class`~bson.son.SON` class,
+To preserve order when reading BSON, use the :py:class:`~bson.son.SON` class,
 which is a dict that remembers its key order. First, get a handle to the
-collection, configured to use :py:class`~bson.son.SON` instead of dict:
+collection, configured to use :py:class:`~bson.son.SON` instead of dict:
 
 .. code-block:: python key-order
   :options: +NORMALIZE_WHITESPACE
@@ -300,7 +300,7 @@ collection, configured to use :py:class`~bson.son.SON` instead of dict:
   >>> collection_son = collection.with_options(codec_options=opts)
 
 Now, documents and subdocuments in query results are represented with
-:py:class`~bson.son.SON` objects:
+:py:class:`~bson.son.SON` objects:
 
 .. code-block:: python key-order
 
@@ -335,13 +335,13 @@ regardless of the order you specify them in Python or the order they are stored
 in BSON. Additionally, this query now matches subdocuments with additional
 keys besides "a" and "b", whereas the previous query required an exact match.
 
-The second solution is to use a :py:class`~bson.son.SON` to specify the key order:
+The second solution is to use a :py:class:`~bson.son.SON` to specify the key order:
 
   >>> query = {'subdocument': SON([('b', 1.0), ('a', 1.0)])}
   >>> collection.find_one(query)
   {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
 
-The key order you use when you create a :py:class`~bson.son.SON` is preserved
+The key order you use when you create a :py:class:`~bson.son.SON` is preserved
 when it is serialized to BSON and used as a query. Thus you can create a
 subdocument that exactly matches the subdocument in the collection.
 
@@ -352,7 +352,7 @@ What does *CursorNotFound* cursor id not valid at server mean?
 --------------------------------------------------------------
 Cursors in MongoDB can timeout on the server if they've been open for
 a long time without any operations being performed on them. This can
-lead to an :py:class`~pymongo.errors.CursorNotFound` exception being
+lead to an :py:class:`~pymongo.errors.CursorNotFound` exception being
 raised when attempting to iterate the cursor.
 
 How do I change the timeout value for cursors?
@@ -361,11 +361,11 @@ MongoDB doesn't support custom timeouts for cursors, but cursor
 timeouts can be turned off entirely. Pass ``no_cursor_timeout=True`` to
 :py:meth:`~pymongo.collection.Collection.find`.
 
-How can I store :py:mod:`decimal.Decimal` instances?
+How can I store ``decimal.Decimal`` instances?
 -------------------------------------------------
 
 PyMongo >= 3.4 supports the Decimal128 BSON type introduced in MongoDB 3.4.
-See :py:mod:`~bson.decimal128` for more information.
+See ``~bson.decimal128`` for more information.
 
 MongoDB <= 3.2 only supports IEEE 754 floating points - the same as the
 Python float type. The only way PyMongo could store Decimal instances to
@@ -416,14 +416,14 @@ What is the correct way to handle time zones with PyMongo?
 ----------------------------------------------------------
 
 See :doc:`examples/datetimes` for examples on how to handle
-:py:class`~datetime.datetime` objects correctly.
+:py:class:`~datetime.datetime` objects correctly.
 
-How can I save a :py:mod:`datetime.date` instance?
+How can I save a ``datetime.date`` instance?
 -----------------------------------------------
-PyMongo doesn't support saving :py:mod:`datetime.date` instances, since
+PyMongo doesn't support saving ``datetime.date`` instances, since
 there is no BSON type for dates without times. Rather than having the
-driver enforce a convention for converting :py:mod:`datetime.date`
-instances to :py:mod:`datetime.datetime` instances for you, any
+driver enforce a convention for converting ``datetime.date``
+instances to ``datetime.datetime`` instances for you, any
 conversion should be performed in your client code.
 
 .. _web-application-querying-by-objectid:
@@ -437,7 +437,7 @@ It's common in web applications to encode documents' ObjectIds in URLs, like:
   "/posts/50b3bda58a02fb9a84d8991e"
 
 Your web framework will pass the ObjectId portion of the URL to your request
-handler as a string, so it must be converted to :py:class`~bson.objectid.ObjectId`
+handler as a string, so it must be converted to :py:class:`~bson.objectid.ObjectId`
 before it is passed to :py:meth:`~pymongo.collection.Collection.find_one`. It is a
 common mistake to forget to do this conversion. Here's how to do it correctly
 in Flask_ (other web frameworks are similar):
@@ -468,7 +468,7 @@ in Flask_ (other web frameworks are similar):
 How can I use PyMongo from Django?
 ----------------------------------
 `Django <http://www.djangoproject.com/>`_ is a popular Python web
-framework. Django includes an ORM, :py:mod:`django.db`. Currently,
+framework. Django includes an ORM, ``django.db``. Currently,
 there's no official MongoDB backend for Django.
 
 `django-mongodb-engine <https://django-mongodb-engine.readthedocs.io/>`_
@@ -479,14 +479,14 @@ and session frameworks and caching.
 
 However, it's easy to use MongoDB (and PyMongo) from Django
 without using a Django backend. Certain features of Django that require
-:py:mod:`django.db` (admin, authentication and sessions) will not work
+``django.db`` (admin, authentication and sessions) will not work
 using just MongoDB, but most of what Django provides can still be
 used.
 
 One project which should make working with MongoDB and Django easier
 is `mango <http://github.com/vpulim/mango>`_. Mango is a set of
 MongoDB backends for Django sessions and authentication (bypassing
-:py:mod:`django.db` entirely).
+``django.db`` entirely).
 
 .. _using-with-mod-wsgi:
 
@@ -502,41 +502,41 @@ information see `PYTHON-1495 <https://jira.mongodb.org/browse/PYTHON-1495>`_.
 
 How can I use something like Python's ``json`` module to encode my documents to JSON?
 -------------------------------------------------------------------------------------
-:py:mod:`~bson.json_util` is PyMongo's built in, flexible tool for using
-Python's :py:mod:`json` module with BSON documents and `MongoDB Extended JSON
+``~bson.json_util`` is PyMongo's built in, flexible tool for using
+Python's ``json`` module with BSON documents and `MongoDB Extended JSON
 <https://mongodb.com/docs/manual/reference/mongodb-extended-json/>`_. The
-:py:mod:`json` module won't work out of the box with all documents from PyMongo
-as PyMongo supports some special types (like :py:class`~bson.objectid.ObjectId`
-and :py:class`~bson.dbref.DBRef`) that are not supported in JSON.
+``json`` module won't work out of the box with all documents from PyMongo
+as PyMongo supports some special types (like :py:class:`~bson.objectid.ObjectId`
+and :py:class:`~bson.dbref.DBRef`) that are not supported in JSON.
 
 `python-bsonjs <https://pypi.python.org/pypi/python-bsonjs>`_ is a fast
 BSON to MongoDB Extended JSON converter built on top of
 `libbson <https://github.com/mongodb/libbson>`_. ``python-bsonjs`` does not
 depend on PyMongo and can offer a nice performance improvement over
-:py:mod:`~bson.json_util`. ``python-bsonjs`` works best with PyMongo when using
-:py:class`~bson.raw_bson.RawBSONDocument`.
+``~bson.json_util``. ``python-bsonjs`` works best with PyMongo when using
+:py:class:`~bson.raw_bson.RawBSONDocument`.
 
 Why do I get OverflowError decoding dates stored by another language's driver?
 ------------------------------------------------------------------------------
 PyMongo decodes BSON datetime values to instances of Python's
-:py:class`datetime.datetime`. Instances of :py:class`datetime.datetime` are
+:py:class:`datetime.datetime`. Instances of :py:class:`datetime.datetime` are
 limited to years between :data:`datetime.MINYEAR` (usually 1) and
 :data:`datetime.MAXYEAR` (usually 9999). Some MongoDB drivers (e.g. the PHP
 driver) can store BSON datetimes with year values far outside those supported
-by :py:class`datetime.datetime`.
+by :py:class:`datetime.datetime`.
 
 There are a few ways to work around this issue. Starting with PyMongo 4.3,
 :func:`bson.decode` can decode BSON datetimes in one of four ways, and can
 be specified using the ``datetime_conversion`` parameter of
-:py:class`~bson.codec_options.CodecOptions`.
+:py:class:`~bson.codec_options.CodecOptions`.
 
 The default option is
 :attr:`~bson.codec_options.DatetimeConversion.DATETIME`, which will
-attempt to decode as a :py:class`datetime.datetime`, allowing
-:py:class`~builtin.OverflowError` to occur upon out-of-range dates.
+attempt to decode as a :py:class:`datetime.datetime`, allowing
+:py:class:`~builtin.OverflowError` to occur upon out-of-range dates.
 :attr:`~bson.codec_options.DatetimeConversion.DATETIME_AUTO` alters
-this behavior to instead return :py:class`~bson.datetime_ms.DatetimeMS` when
-representations are out-of-range, while returning :py:class`~datetime.datetime`
+this behavior to instead return :py:class:`~bson.datetime_ms.DatetimeMS` when
+representations are out-of-range, while returning :py:class:`~datetime.datetime`
 objects as before:
 
 .. code-block:: python
@@ -557,11 +557,11 @@ objects as before:
     {'_id': ObjectId('...'), 'x': DatetimeMS(4611686018427387904)}
 
 For other options, please refer to
-:py:class`~bson.codec_options.DatetimeConversion`.
+:py:class:`~bson.codec_options.DatetimeConversion`.
 
 Another option that does not involve setting ``datetime_conversion`` is to to
 filter out documents values outside of the range supported by
-:py:class`~datetime.datetime`:
+:py:class:`~datetime.datetime`:
 
   >>> from datetime import datetime
   >>> coll = client.test.dates
@@ -581,7 +581,7 @@ Using PyMongo with Multiprocessing
 
 On Unix systems the multiprocessing module spawns processes using ``fork()``.
 Care must be taken when using instances of
-:py:class`~pymongo.mongo_client.MongoClient` with ``fork()``. Specifically,
+:py:class:`~pymongo.mongo_client.MongoClient` with ``fork()``. Specifically,
 instances of MongoClient must not be copied from a parent process to a child
 process. Instead, the parent process and each child process must create their
 own instances of MongoClient. For example:

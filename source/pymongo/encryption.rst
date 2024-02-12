@@ -1,4 +1,4 @@
-:py:mod:`encryption` -- Client-Side Field Level Encryption
+``encryption`` -- Client-Side Field Level Encryption
 =======================================================
 
 .. automodule:: pymongo.encryption

@@ -1,6 +1,6 @@
 :orphan:
 
-:py:mod:`topology_description` -- An object representation of a deployment of MongoDB servers.
+``topology_description`` -- An object representation of a deployment of MongoDB servers.
 ===========================================================================================
 
 .. automodule:: pymongo.topology_description

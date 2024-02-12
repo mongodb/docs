@@ -1,4 +1,4 @@
-:py:mod:`objectid` -- Tools for working with MongoDB ObjectIds
+``objectid`` -- Tools for working with MongoDB ObjectIds
 ===========================================================
 
 .. automodule:: bson.objectid
@@ -9,7 +9,7 @@
 
       .. describe:: str(o)
 
-         Get a hex encoded version of :py:class`ObjectId` `o`.
+         Get a hex encoded version of :py:class:`ObjectId` `o`.
 
          The following property always holds:
 

@@ -1,4 +1,4 @@
-:py:mod:`code` -- Tools for representing JavaScript code
+``code`` -- Tools for representing JavaScript code
 =====================================================
 
 .. automodule:: bson.code

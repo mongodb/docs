@@ -49,7 +49,7 @@ Ordered Bulk Write Operations
 
 Ordered bulk write operations are batched and sent to the server in the
 order provided for serial execution. The return value is an instance of
-:py:class`~pymongo.results.BulkWriteResult` describing the type and count
+:py:class:`~pymongo.results.BulkWriteResult` describing the type and count
 of operations performed.
 
 .. code-block:: python
@@ -80,7 +80,7 @@ of operations performed.
 
 The first write failure that occurs (e.g. duplicate key error) aborts the
 remaining operations, and PyMongo raises
-:py:class`~pymongo.errors.BulkWriteError`. The :attr:`details` attribute of
+:py:class:`~pymongo.errors.BulkWriteError`. The :attr:`details` attribute of
 the exception instance provides the execution results up until the failure
 occurred and details about the failure - including the operation that caused
 the failure.

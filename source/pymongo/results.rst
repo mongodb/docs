@@ -1,4 +1,4 @@
-:py:mod:`results` -- Result class definitions
+``results`` -- Result class definitions
 ==========================================
 
 .. automodule:: pymongo.results

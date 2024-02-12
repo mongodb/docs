@@ -1,4 +1,4 @@
-:py:mod:`grid_file` -- Tools for representing files stored in GridFS
+``grid_file`` -- Tools for representing files stored in GridFS
 =================================================================
 
 .. automodule:: gridfs.grid_file

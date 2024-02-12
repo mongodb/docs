@@ -6,22 +6,22 @@ Changes in Version 4.7
 
 PyMongo 4.7 brings a number of improvements including:
 
-- Added the :py:class`~pymongo.hello.Hello.server_connection_id`,
+- Added the :py:class:`~pymongo.hello.Hello.server_connection_id`,
   :attr:`pymongo.monitoring.CommandStartedEvent.server_connection_id`,
   :attr:`pymongo.monitoring.CommandSucceededEvent.server_connection_id`, and
   :attr:`pymongo.monitoring.CommandFailedEvent.server_connection_id` properties.
-- Fixed a bug where inflating a :py:class`~bson.raw_bson.RawBSONDocument` containing a :py:class`~bson.code.Code` would cause an error.
+- Fixed a bug where inflating a :py:class:`~bson.raw_bson.RawBSONDocument` containing a :py:class:`~bson.code.Code` would cause an error.
 - Significantly improved the performance of encoding BSON documents to JSON.
 - Support for named KMS providers for client side field level encryption.
   Previously supported KMS providers were only: aws, azure, gcp, kmip, and local.
   The KMS provider is now expanded to support name suffixes (e.g. local:myname).
   Named KMS providers enables more than one of each KMS provider type to be configured.
-  See the docstring for :py:class`~pymongo.encryption_options.AutoEncryptionOpts`.
+  See the docstring for :py:class:`~pymongo.encryption_options.AutoEncryptionOpts`.
   Note that named KMS providers requires pymongocrypt >=1.9 and libmongocrypt >=1.9.
 - :py:meth:`~pymongo.encryption.ClientEncryption.encrypt` and
   :py:meth:`~pymongo.encryption.ClientEncryption.encrypt_expression` now allow ``key_id``
-  to be passed in as a :py:class`uuid.UUID`.
-- Fixed a bug where :py:class`~bson.int64.Int64` instances could not always be encoded by `orjson`_. The following now
+  to be passed in as a :py:class:`uuid.UUID`.
+- Fixed a bug where :py:class:`~bson.int64.Int64` instances could not always be encoded by `orjson`_. The following now
   works:
 
 .. code-block:: python
@@ -38,9 +38,9 @@ PyMongo 4.7 brings a number of improvements including:
 Unavoidable breaking changes
 ............................
 
-- Replaced usage of :py:class`bson.son.SON` on all internal classes and commands to dict,
-  :attr:`options.pool_options.metadata` is now of type ``dict`` as opposed to :py:class`bson.son.SON`.
-  Here's some examples of how this changes expected output as well as how to convert from :py:class`dict` to :py:class`bson.son.SON`:
+- Replaced usage of :py:class:`bson.son.SON` on all internal classes and commands to dict,
+  :attr:`options.pool_options.metadata` is now of type ``dict`` as opposed to :py:class:`bson.son.SON`.
+  Here's some examples of how this changes expected output as well as how to convert from :py:class:`dict` to :py:class:`bson.son.SON`:
 
 .. code-block:: python
 
@@ -82,19 +82,19 @@ Changes in Version 4.6
 
 PyMongo 4.6 brings a number of improvements including:
 
-- Added the ``serverMonitoringMode`` URI and keyword argument to :py:class`~pymongo.mongo_client.MongoClient`.
+- Added the ``serverMonitoringMode`` URI and keyword argument to :py:class:`~pymongo.mongo_client.MongoClient`.
 - Improved client performance and reduced connection requirements in Function-as-a-service (FaaS)
   environments like AWS Lambda, Google Cloud Functions, and Microsoft Azure Functions.
 - Added the :attr:`pymongo.monitoring.CommandSucceededEvent.database_name` property.
 - Added the :attr:`pymongo.monitoring.CommandFailedEvent.database_name` property.
 - Allow passing a ``dict`` to sort/create_index/hint.
 - Added :py:func:`repr` support to the write result classes:
-  :py:class`~pymongo.results.BulkWriteResult`,
-  :py:class`~pymongo.results.DeleteResult`,
-  :py:class`~pymongo.results.InsertManyResult`,
-  :py:class`~pymongo.results.InsertOneResult`,
-  :py:class`~pymongo.results.UpdateResult`, and
-  :py:class`~pymongo.encryption.RewrapManyDataKeyResult`. For example:
+  :py:class:`~pymongo.results.BulkWriteResult`,
+  :py:class:`~pymongo.results.DeleteResult`,
+  :py:class:`~pymongo.results.InsertManyResult`,
+  :py:class:`~pymongo.results.InsertOneResult`,
+  :py:class:`~pymongo.results.UpdateResult`, and
+  :py:class:`~pymongo.encryption.RewrapManyDataKeyResult`. For example:
 
     >>> client.t.t.insert_one({})
     InsertOneResult(ObjectId('65319acdd55bb3a27ab5502b'), acknowledged=True)
@@ -179,9 +179,9 @@ PyMongo 4.4 brings a number of improvements including:
   or Visual Studio.
 - Improved support for type-checking with MyPy "strict" mode (`--strict`).
 - Added :py:meth:`~pymongo.encryption.ClientEncryption.create_encrypted_collection`,
-  :py:class`~pymongo.errors.EncryptedCollectionError`,
+  :py:class:`~pymongo.errors.EncryptedCollectionError`,
   :py:meth:`~pymongo.encryption.ClientEncryption.encrypt_expression`,
-  :py:class`~pymongo.encryption_options.RangeOpts`,
+  :py:class:`~pymongo.encryption_options.RangeOpts`,
   and :attr:`~pymongo.encryption.Algorithm.RANGEPREVIEW` as part of the experimental
   Queryable Encryption beta.
 - pymongocrypt 1.6.0 or later is now required for :ref:`In-Use Encryption` support. MongoDB
@@ -248,18 +248,18 @@ connection strings and `MongoDB Atlas <https://www.mongodb.com/cloud>`_.
 PyMongo 4.3 brings a number of improvements including:
 
 - Added support for decoding BSON datetimes outside of the range supported
-  by Python's :py:class`~datetime.datetime` builtin. See
+  by Python's :py:class:`~datetime.datetime` builtin. See
   :ref:`handling-out-of-range-datetimes` for examples, as well as
-  :py:class`bson.datetime_ms.DatetimeMS`,
-  :py:class`bson.codec_options.DatetimeConversion`, and
-  :py:class`bson.codec_options.CodecOptions`'s ``datetime_conversion``
+  :py:class:`bson.datetime_ms.DatetimeMS`,
+  :py:class:`bson.codec_options.DatetimeConversion`, and
+  :py:class:`bson.codec_options.CodecOptions`'s ``datetime_conversion``
   parameter for more details (`PYTHON-1824`_).
 - PyMongo now resets its locks and other shared state in the child process
   after a :py:func:`os.fork` to reduce the frequency of deadlocks. Note that
   deadlocks are still possible because libraries that PyMongo depends like
   OpenSSL cannot be made fork() safe in multithreaded applications.
   (`PYTHON-2484`_). For more info see :ref:`pymongo-fork-safe`.
-- When used with MongoDB 6.0+, :py:class`~pymongo.change_stream.ChangeStream` s
+- When used with MongoDB 6.0+, :py:class:`~pymongo.change_stream.ChangeStream` s
   now allow for new types of events (such as DDL and C2C replication events)
   to be recorded with the new parameter ``show_expanded_events``
   that can be passed to methods such as :py:meth:`~pymongo.collection.Collection.watch`.
@@ -274,7 +274,7 @@ PyMongo 4.3 brings a number of improvements including:
 Bug fixes
 .........
 
-- Fixed a bug where  :py:class`~pymongo.change_stream.ChangeStream`
+- Fixed a bug where  :py:class:`~pymongo.change_stream.ChangeStream`
   would allow an app to retry calling ``next()`` or ``try_next()`` even
   after non-resumable errors (`PYTHON-3389`_).
 - Fixed a bug where the client could be unable to discover the new primary
@@ -304,13 +304,13 @@ PyMongo 4.2 brings a number of improvements including:
   changes may be made before the final release.  See :ref:`automatic-queryable-client-side-encryption` for example usage.
 - Provisional (beta) support for :py:func:`pymongo.timeout` to apply a single timeout
   to an entire block of pymongo operations. See :ref:`timeout-example` for examples.
-- Added the ``timeoutMS`` URI and keyword argument to :py:class`~pymongo.mongo_client.MongoClient`.
+- Added the ``timeoutMS`` URI and keyword argument to :py:class:`~pymongo.mongo_client.MongoClient`.
 - Added the :attr:`pymongo.errors.PyMongoError.timeout` property which is ``True`` when
   the error was caused by a timeout.
 - Added the ``check_exists`` argument to :py:meth:`~pymongo.database.Database.create_collection`
   that when True (the default)  runs an additional ``listCollections`` command to verify that the
   collection does not exist already.
-- Added the following key management APIs to :py:class`~pymongo.encryption.ClientEncryption`:
+- Added the following key management APIs to :py:class:`~pymongo.encryption.ClientEncryption`:
 
   - :py:meth:`~pymongo.encryption.ClientEncryption.get_key`
   - :py:meth:`~pymongo.encryption.ClientEncryption.get_keys`
@@ -319,19 +319,19 @@ PyMongo 4.2 brings a number of improvements including:
   - :py:meth:`~pymongo.encryption.ClientEncryption.get_key_by_alt_name`
   - :py:meth:`~pymongo.encryption.ClientEncryption.remove_key_alt_name`
   - :py:meth:`~pymongo.encryption.ClientEncryption.rewrap_many_data_key`
-  - :py:class`~pymongo.encryption.RewrapManyDataKeyResult`
+  - :py:class:`~pymongo.encryption.RewrapManyDataKeyResult`
 
 - Support for the ``crypt_shared`` library to replace ``mongocryptd`` using the new
   ``crypt_shared_lib_path`` and ``crypt_shared_lib_required`` arguments to
-  :py:class`~pymongo.encryption_options.AutoEncryptionOpts`.
+  :py:class:`~pymongo.encryption_options.AutoEncryptionOpts`.
 
 Bug fixes
 .........
 
 - Fixed a bug where :py:meth:`~pymongo.collection.Collection.estimated_document_count`
   would fail with a "CommandNotSupportedOnView" error on views (`PYTHON-2885`_).
-- Fixed a bug where invalid UTF-8 strings could be passed as patterns for :py:class`~bson.regex.Regex`
-  objects. :py:func:`bson.encode` now correctly raises :py:class`bson.errors.InvalidStringData` (`PYTHON-3048`_).
+- Fixed a bug where invalid UTF-8 strings could be passed as patterns for :py:class:`~bson.regex.Regex`
+  objects. :py:func:`bson.encode` now correctly raises :py:class:`bson.errors.InvalidStringData` (`PYTHON-3048`_).
 - Fixed a bug that caused ``AutoReconnect("connection pool paused")`` errors in the child
   process after fork (`PYTHON-3257`_).
 - Fixed a bug where  :py:meth:`~pymongo.collection.Collection.count_documents` and
@@ -339,7 +339,7 @@ Bug fixes
   ``directConnection=True`` (`PYTHON-3333`_).
 - GridFS no longer uploads an incomplete files collection document after encountering an
   error in the middle of an upload fork. This results in fewer
-  :py:class`~gridfs.errors.CorruptGridFile` errors (`PYTHON-1552`_).
+  :py:class:`~gridfs.errors.CorruptGridFile` errors (`PYTHON-1552`_).
 - Renamed PyMongo's internal C extension methods to avoid crashing due to name conflicts
   with mpi4py and other shared libraries (`PYTHON-2110`_).
 - Fixed tight CPU loop for network I/O when using PyOpenSSL (`PYTHON-3187`_).
@@ -355,7 +355,7 @@ Unavoidable breaking changes
   Users of the Stable API with estimated_document_count are recommended to upgrade
   their server version to 5.0.9+ or set :attr:`pymongo.server_api.ServerApi.strict`
   to ``False`` to avoid encountering errors (`PYTHON-3167`_).
-- Removed generic typing from :py:class`~pymongo.client_session.ClientSession` to improve
+- Removed generic typing from :py:class:`~pymongo.client_session.ClientSession` to improve
   support for Pyright (`PYTHON-3283`_).
 - Added ``__all__`` to the bson, pymongo, and gridfs packages. This could be a breaking
   change for apps that relied on ``from bson import *`` to import APIs not present in
@@ -446,9 +446,9 @@ Bug fixes
 
 - Fixed bug that would cause SDAM heartbeat timeouts and connection churn on
   AWS Lambda and other FaaS environments (`PYTHON-3186`_).
-- Fixed bug where :py:class`~pymongo.mongo_client.MongoClient`,
-  :py:class`~pymongo.database.Database`, and :py:class`~pymongo.collection.Collection`
-  mistakenly implemented :py:class`typing.Iterable` (`PYTHON-3084`_).
+- Fixed bug where :py:class:`~pymongo.mongo_client.MongoClient`,
+  :py:class:`~pymongo.database.Database`, and :py:class:`~pymongo.collection.Collection`
+  mistakenly implemented :py:class:`typing.Iterable` (`PYTHON-3084`_).
 
 Issues Resolved
 ...............
@@ -470,7 +470,7 @@ Changes in Version 4.0
 .. warning:: PyMongo 4.0 drops support for MongoDB 2.6, 3.0, 3.2, and 3.4.
 
 .. warning:: PyMongo 4.0 changes the default value of the ``directConnection`` URI option and
-  keyword argument to :py:class`~pymongo.mongo_client.MongoClient`
+  keyword argument to :py:class:`~pymongo.mongo_client.MongoClient`
   to ``False`` instead of ``None``, allowing for the automatic
   discovery of replica sets. This means that if you
   want a direct connection to a single server you must pass
@@ -487,18 +487,18 @@ Breaking Changes in 4.0
 .......................
 
 - Removed support for Python 2.7, 3.4, and 3.5. Python 3.6.2+ is now required.
-- The default uuid_representation for :py:class`~bson.codec_options.CodecOptions`,
-  :py:class`~bson.json_util.JSONOptions`, and
-  :py:class`~pymongo.mongo_client.MongoClient` has been changed from
+- The default uuid_representation for :py:class:`~bson.codec_options.CodecOptions`,
+  :py:class:`~bson.json_util.JSONOptions`, and
+  :py:class:`~pymongo.mongo_client.MongoClient` has been changed from
   :data:`bson.binary.UuidRepresentation.PYTHON_LEGACY` to
   :data:`bson.binary.UuidRepresentation.UNSPECIFIED`. Attempting to encode a
-  :py:class`uuid.UUID` instance to BSON or JSON now produces an error by default.
+  :py:class:`uuid.UUID` instance to BSON or JSON now produces an error by default.
   See :ref:`handling-uuid-data-example` for details.
 - Removed the ``waitQueueMultiple`` keyword argument to
-  :py:class`~pymongo.mongo_client.MongoClient` and removed
+  :py:class:`~pymongo.mongo_client.MongoClient` and removed
   :exc:`pymongo.errors.ExceededMaxWaiters`.
 - Removed the ``socketKeepAlive`` keyword argument to
-  :py:class`~pymongo.mongo_client.MongoClient`.
+  :py:class:`~pymongo.mongo_client.MongoClient`.
 - Removed :py:meth:`pymongo.mongo_client.MongoClient.fsync`,
   :py:meth:`pymongo.mongo_client.MongoClient.unlock`, and
   :attr:`pymongo.mongo_client.MongoClient.is_locked`.
@@ -515,7 +515,7 @@ Breaking Changes in 4.0
 - Removed :attr:`pymongo.mongo_client.MongoClient.retry_reads`.
 - Removed :py:meth:`pymongo.database.Database.eval`,
   :data:`pymongo.database.Database.system_js` and
-  :py:class`pymongo.database.SystemJS`.
+  :py:class:`pymongo.database.SystemJS`.
 - Removed :py:meth:`pymongo.database.Database.collection_names`.
 - Removed :py:meth:`pymongo.database.Database.current_op`.
 - Removed :py:meth:`pymongo.database.Database.authenticate` and
@@ -545,7 +545,7 @@ Breaking Changes in 4.0
 - Removed :py:meth:`pymongo.collection.Collection.count`.
 - Removed :py:meth:`pymongo.collection.Collection.initialize_ordered_bulk_op`,
   :py:meth:`pymongo.collection.Collection.initialize_unordered_bulk_op`, and
-  :py:class`pymongo.bulk.BulkOperationBuilder`. Use
+  :py:class:`pymongo.bulk.BulkOperationBuilder`. Use
   :py:meth:`pymongo.collection.Collection.bulk_write` instead.
 - Removed :py:meth:`pymongo.collection.Collection.group`.
 - Removed :py:meth:`pymongo.collection.Collection.map_reduce` and
@@ -555,20 +555,20 @@ Breaking Changes in 4.0
 - Removed :py:meth:`pymongo.mongo_client.MongoClient.close_cursor`. Use
   :py:meth:`pymongo.cursor.Cursor.close` instead.
 - Removed :py:meth:`pymongo.mongo_client.MongoClient.kill_cursors`.
-- Removed :py:class`pymongo.cursor_manager.CursorManager` and
-  :py:mod:`pymongo.cursor_manager`.
+- Removed :py:class:`pymongo.cursor_manager.CursorManager` and
+  ``pymongo.cursor_manager``.
 - Removed :py:meth:`pymongo.mongo_client.MongoClient.set_cursor_manager`.
 - Removed :py:meth:`pymongo.cursor.Cursor.count`.
-- Removed :py:mod:`pymongo.thread_util`.
-- Removed :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`.
-- Removed :py:class`~pymongo.ismaster.IsMaster`.
-  Use :py:class`~pymongo.hello.Hello` instead.
-- Removed :py:mod:`pymongo.son_manipulator`,
-  :py:class`pymongo.son_manipulator.SONManipulator`,
-  :py:class`pymongo.son_manipulator.ObjectIdInjector`,
-  :py:class`pymongo.son_manipulator.ObjectIdShuffler`,
-  :py:class`pymongo.son_manipulator.AutoReference`,
-  :py:class`pymongo.son_manipulator.NamespaceInjector`,
+- Removed ``pymongo.thread_util``.
+- Removed :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`.
+- Removed :py:class:`~pymongo.ismaster.IsMaster`.
+  Use :py:class:`~pymongo.hello.Hello` instead.
+- Removed ``pymongo.son_manipulator``,
+  :py:class:`pymongo.son_manipulator.SONManipulator`,
+  :py:class:`pymongo.son_manipulator.ObjectIdInjector`,
+  :py:class:`pymongo.son_manipulator.ObjectIdShuffler`,
+  :py:class:`pymongo.son_manipulator.AutoReference`,
+  :py:class:`pymongo.son_manipulator.NamespaceInjector`,
   :py:meth:`pymongo.database.Database.add_son_manipulator`,
   :attr:`pymongo.database.Database.outgoing_copying_manipulators`,
   :attr:`pymongo.database.Database.outgoing_manipulators`,
@@ -586,52 +586,52 @@ Breaking Changes in 4.0
   Use :exc:`pymongo.errors.NotPrimaryError` instead.
 - Removed :exc:`pymongo.errors.CertificateError`.
 - Removed :attr:`pymongo.GEOHAYSTACK`.
-- Removed :py:class`bson.binary.UUIDLegacy`.
+- Removed :py:class:`bson.binary.UUIDLegacy`.
 - Removed :const:`bson.json_util.STRICT_JSON_OPTIONS`. Use
   :const:`~bson.json_util.RELAXED_JSON_OPTIONS` or
   :const:`~bson.json_util.CANONICAL_JSON_OPTIONS` instead.
 - Changed the default JSON encoding representation from legacy to relaxed.
   The json_mode parameter for :const:`bson.json_util.dumps` now defaults to
   :const:`~bson.json_util.RELAXED_JSON_OPTIONS`.
-- Changed the BSON and JSON decoding behavior of :py:class`~bson.dbref.DBRef`
+- Changed the BSON and JSON decoding behavior of :py:class:`~bson.dbref.DBRef`
   to match the behavior outlined in the `DBRef specification`_ version 1.0.
   Specifically, PyMongo now only decodes a subdocument into a
-  :py:class`~bson.dbref.DBRef` if and only if, it contains both ``$ref`` and
+  :py:class:`~bson.dbref.DBRef` if and only if, it contains both ``$ref`` and
   ``$id`` fields and the ``$ref``, ``$id``, and ``$db`` fields are of the
   correct type. Otherwise the document is returned as normal. Previously, any
   subdocument containing a ``$ref`` field would be decoded as a
-  :py:class`~bson.dbref.DBRef`.
+  :py:class:`~bson.dbref.DBRef`.
 - The "tls" install extra is no longer necessary or supported and will be
   ignored by pip.
-- The ``tz_aware`` argument to :py:class`~bson.json_util.JSONOptions`
+- The ``tz_aware`` argument to :py:class:`~bson.json_util.JSONOptions`
   now defaults to ``False`` instead of ``True``. :py:meth:`bson.json_util.loads` now
   decodes datetime as naive by default. See :ref:`tz_aware_default_change` for more info.
-- ``directConnection`` URI option and keyword argument to :py:class`~pymongo.mongo_client.MongoClient`
+- ``directConnection`` URI option and keyword argument to :py:class:`~pymongo.mongo_client.MongoClient`
   defaults to ``False`` instead of ``None``, allowing for the automatic
   discovery of replica sets. This means that if you
   want a direct connection to a single server you must pass
   ``directConnection=True`` as a URI option or keyword argument.
 - The ``hint`` option is now required when using ``min`` or ``max`` queries
   with :py:meth:`~pymongo.collection.Collection.find`.
-- ``name`` is now a required argument for the :py:class`pymongo.driver_info.DriverInfo` class.
+- ``name`` is now a required argument for the :py:class:`pymongo.driver_info.DriverInfo` class.
 - When providing a "mongodb+srv://" URI to
-  :py:class`~pymongo.mongo_client.MongoClient` constructor you can now use the
+  :py:class:`~pymongo.mongo_client.MongoClient` constructor you can now use the
   ``srvServiceName`` URI option to specify your own SRV service name.
 - :py:meth:`~bson.son.SON.items` now returns a ``dict_items`` object rather
   than a list.
 - Removed :py:meth:`bson.son.SON.iteritems`.
-- :py:class`~pymongo.collection.Collection` and :py:class`~pymongo.database.Database`
+- :py:class:`~pymongo.collection.Collection` and :py:class:`~pymongo.database.Database`
   now raises an error upon evaluating as a Boolean, please use the
   syntax ``if collection is not None:`` or ``if database is not None:`` as
   opposed to
   the previous syntax which was simply ``if collection:`` or ``if database:``.
   You must now explicitly compare with None.
-- :py:class`~pymongo.mongo_client.MongoClient` cannot execute any operations
+- :py:class:`~pymongo.mongo_client.MongoClient` cannot execute any operations
   after being closed. The previous behavior would simply reconnect. However,
   now you must create a new instance.
-- Classes :py:class`~bson.int64.Int64`, :py:class`~bson.min_key.MinKey`,
-  :py:class`~bson.max_key.MaxKey`, :py:class`~bson.timestamp.Timestamp`,
-  :py:class`~bson.regex.Regex`, and :py:class`~bson.dbref.DBRef` all implement
+- Classes :py:class:`~bson.int64.Int64`, :py:class:`~bson.min_key.MinKey`,
+  :py:class:`~bson.max_key.MaxKey`, :py:class:`~bson.timestamp.Timestamp`,
+  :py:class:`~bson.regex.Regex`, and :py:class:`~bson.dbref.DBRef` all implement
   ``__slots__`` now. This means that their attributes are fixed, and new
   attributes cannot be added to them at runtime.
 - Empty projections (eg {} or []) for
@@ -640,18 +640,18 @@ Breaking Changes in 4.0
   are passed to the server as-is rather than the previous behavior which
   substituted in a projection of ``{"_id": 1}``. This means that an empty
   projection will now return the entire document, not just the ``"_id"`` field.
-- :py:class`~pymongo.mongo_client.MongoClient` now raises a
+- :py:class:`~pymongo.mongo_client.MongoClient` now raises a
   :exc:`~pymongo.errors.ConfigurationError` when more than one URI is passed
   into the ``hosts`` argument.
-- :py:class`~pymongo.mongo_client.MongoClient`` now raises an
+- :py:class:`~pymongo.mongo_client.MongoClient`` now raises an
   :exc:`~pymongo.errors.InvalidURI` exception
   when it encounters unescaped percent signs in username and password when
   parsing MongoDB URIs.
-- Comparing two :py:class`~pymongo.mongo_client.MongoClient` instances now
+- Comparing two :py:class:`~pymongo.mongo_client.MongoClient` instances now
   uses a set of immutable properties rather than
   :attr:`~pymongo.mongo_client.MongoClient.address` which can change.
-- Removed the ``disable_md5`` parameter for :py:class`~gridfs.GridFSBucket` and
-  :py:class`~gridfs.GridFS`. See :ref:`removed-gridfs-checksum` for details.
+- Removed the ``disable_md5`` parameter for :py:class:`~gridfs.GridFSBucket` and
+  :py:class:`~gridfs.GridFS`. See :ref:`removed-gridfs-checksum` for details.
 - pymongocrypt 1.2.0 or later is now required for client side field level
   encryption support.
 
@@ -661,8 +661,8 @@ Notable improvements
 - Enhanced connection pooling to create connections more efficiently and
   avoid connection storms.
 - Added the ``maxConnecting`` URI and
-  :py:class`~pymongo.mongo_client.MongoClient` keyword argument.
-- :py:class`~pymongo.mongo_client.MongoClient` now accepts a URI and keyword
+  :py:class:`~pymongo.mongo_client.MongoClient` keyword argument.
+- :py:class:`~pymongo.mongo_client.MongoClient` now accepts a URI and keyword
   argument ``srvMaxHosts`` that limits the number of mongos-like hosts a client
   will connect to. More specifically, when a mongodb+srv:// connection string
   resolves to more than ``srvMaxHosts`` number of hosts, the client will randomly
@@ -670,8 +670,8 @@ Notable improvements
 - Added :attr:`pymongo.mongo_client.MongoClient.options` for read-only access
   to a client's configuration options.
 - Support for the "kmip" KMS provider for client side field level encryption.
-  See the docstring for :py:class`~pymongo.encryption_options.AutoEncryptionOpts`
-  and :py:mod:`~pymongo.encryption`.
+  See the docstring for :py:class:`~pymongo.encryption_options.AutoEncryptionOpts`
+  and ``~pymongo.encryption``.
 
 Issues Resolved
 ...............
@@ -826,7 +826,7 @@ Changes in Version 3.12.0
 
 - pymongocrypt 1.1.0 or later is now required for client side field level
   encryption support.
-- Iterating over :py:class`gridfs.grid_file.GridOut` now moves through
+- Iterating over :py:class:`gridfs.grid_file.GridOut` now moves through
   the file line by line instead of chunk by chunk, and does not
   restart at the top for subsequent iterations on the same object.
   Call ``seek(0)`` to reset the iterator.
@@ -835,12 +835,12 @@ Notable improvements
 ....................
 
 - Added support for MongoDB 5.0.
-- Support for MongoDB Stable API, see :py:class`~pymongo.server_api.ServerApi`.
+- Support for MongoDB Stable API, see :py:class:`~pymongo.server_api.ServerApi`.
 - Support for snapshot reads on secondaries (see :ref:`snapshot-reads-ref`).
 - Support for Azure and GCP KMS providers for client side field level
-  encryption. See the docstring for :py:class`~pymongo.mongo_client.MongoClient`,
-  :py:class`~pymongo.encryption_options.AutoEncryptionOpts`,
-  and :py:mod:`~pymongo.encryption`.
+  encryption. See the docstring for :py:class:`~pymongo.mongo_client.MongoClient`,
+  :py:class:`~pymongo.encryption_options.AutoEncryptionOpts`,
+  and ``~pymongo.encryption``.
 - Support AWS authentication with temporary credentials when connecting to KMS
   in client side field level encryption.
 - Support for connecting to load balanced MongoDB clusters via the new
@@ -849,9 +849,9 @@ Notable improvements
   ``expireAfterSeconds`` arguments to
   :py:meth:`~pymongo.database.Database.create_collection`.
 - Added :attr:`pymongo.mongo_client.MongoClient.topology_description`.
-- Added hash support to :py:class`~pymongo.mongo_client.MongoClient`,
-  :py:class`~pymongo.database.Database` and
-  :py:class`~pymongo.collection.Collection` (`PYTHON-2466`_).
+- Added hash support to :py:class:`~pymongo.mongo_client.MongoClient`,
+  :py:class:`~pymongo.database.Database` and
+  :py:class:`~pymongo.collection.Collection` (`PYTHON-2466`_).
 - Improved the error message returned by
   :py:meth:`~pymongo.collection.Collection.insert_many` when supplied with an
   argument of incorrect type (`PYTHON-1690`_).
@@ -865,13 +865,13 @@ Bug fixes
 - Fixed a bug that could cause the driver to deadlock during automatic
   client side field level encryption (`PYTHON-2472`_).
 - Fixed a potential deadlock when garbage collecting an unclosed exhaust
-  :py:class`~pymongo.cursor.Cursor`.
+  :py:class:`~pymongo.cursor.Cursor`.
 - Fixed an bug where using gevent.Timeout to timeout an operation could
   lead to a deadlock.
 - Fixed the following bug with Atlas Data Lake. When closing cursors,
   pymongo now sends killCursors with the namespace returned the cursor's
   initial command response.
-- Fixed a bug in :py:class`~pymongo.cursor.RawBatchCursor` that caused it to
+- Fixed a bug in :py:class:`~pymongo.cursor.RawBatchCursor` that caused it to
   return an empty bytestring when the cursor contained no results. It now
   raises :exc:`StopIteration` instead.
 
@@ -887,11 +887,11 @@ Deprecations
   :py:meth:`~pymongo.database.Database.command` helper directly.
 - Deprecated :exc:`~pymongo.errors.NotMasterError`. Users should
   use :exc:`~pymongo.errors.NotPrimaryError` instead.
-- Deprecated :py:class`~pymongo.ismaster.IsMaster` and :py:mod:`~pymongo.ismaster`
+- Deprecated :py:class:`~pymongo.ismaster.IsMaster` and ``~pymongo.ismaster``
   which will be removed in PyMongo 4.0 and are replaced by
-  :py:class`~pymongo.hello.Hello` and :py:mod:`~pymongo.hello` which provide the
+  :py:class:`~pymongo.hello.Hello` and ``~pymongo.hello`` which provide the
   same API.
-- Deprecated the :py:mod:`pymongo.messeage` module.
+- Deprecated the ``pymongo.messeage`` module.
 - Deprecated the ``ssl_keyfile`` and ``ssl_certfile`` URI options in favor
   of ``tlsCertificateKeyFile`` (see :doc:`examples/tls`).
 
@@ -960,22 +960,22 @@ Highlights include:
 - Support for Python 3.9.
 - Initial support for Azure and GCP KMS providers for client side field level
   encryption is in beta. See the docstring for
-  :py:class`~pymongo.mongo_client.MongoClient`,
-  :py:class`~pymongo.encryption_options.AutoEncryptionOpts`,
-  and :py:mod:`~pymongo.encryption`. **Note: Backwards-breaking changes may be
+  :py:class:`~pymongo.mongo_client.MongoClient`,
+  :py:class:`~pymongo.encryption_options.AutoEncryptionOpts`,
+  and ``~pymongo.encryption``. **Note: Backwards-breaking changes may be
   made before the final release.**
-- Fixed a bug where the :py:class`bson.json_util.JSONOptions` API did not match
-  the :py:class`bson.codec_options.CodecOptions` API due to the absence of
+- Fixed a bug where the :py:class:`bson.json_util.JSONOptions` API did not match
+  the :py:class:`bson.codec_options.CodecOptions` API due to the absence of
   a :py:meth:`bson.json_util.JSONOptions.with_options` method. This method has now
   been added.
 - Fixed a bug which made it impossible to serialize
-  :py:class`~pymongo.errors.BulkWriteError` instances using :py:mod:`pickle`.
+  :py:class:`~pymongo.errors.BulkWriteError` instances using ``pickle``.
 - Fixed a bug wherein PyMongo did not always discard an implicit session after
   encountering a network error.
 - Fixed a bug where connections created in the background were not
   authenticated.
-- Fixed a memory leak in the :py:mod:`bson` module when using a
-  :py:class`~bson.codec_options.TypeRegistry`.
+- Fixed a memory leak in the ``bson`` module when using a
+  :py:class:`~bson.codec_options.TypeRegistry`.
 
 Issues Resolved
 ...............
@@ -998,7 +998,7 @@ Highlights include:
   version of Python in use is older than 2.7.9.
 - Support for the :ref:`MONGODB-AWS` authentication mechanism.
 - Support for the ``directConnection`` URI option and kwarg to
-  :py:class`~pymongo.mongo_client.MongoClient`.
+  :py:class:`~pymongo.mongo_client.MongoClient`.
 - Support for speculative authentication attempts in connection handshakes
   which reduces the number of network roundtrips needed to authenticate new
   connections on MongoDB 4.4+.
@@ -1014,11 +1014,11 @@ Highlights include:
   :py:meth:`~pymongo.collection.Collection.delete_many`, and
   :py:meth:`~pymongo.collection.Collection.find_one_and_delete` commands.
 - Added index hinting support to the
-  :py:class`~pymongo.operations.ReplaceOne`,
-  :py:class`~pymongo.operations.UpdateOne`,
-  :py:class`~pymongo.operations.UpdateMany`,
-  :py:class`~pymongo.operations.DeleteOne`, and
-  :py:class`~pymongo.operations.DeleteMany` bulk operations.
+  :py:class:`~pymongo.operations.ReplaceOne`,
+  :py:class:`~pymongo.operations.UpdateOne`,
+  :py:class:`~pymongo.operations.UpdateMany`,
+  :py:class:`~pymongo.operations.DeleteOne`, and
+  :py:class:`~pymongo.operations.DeleteMany` bulk operations.
 - Added support for :data:`bson.binary.UuidRepresentation.UNSPECIFIED` and
   ``MongoClient(uuidRepresentation='unspecified')`` which will become the
   default UUID representation starting in PyMongo 4.0. See
@@ -1031,10 +1031,10 @@ Highlights include:
 - Added the ``allow_disk_use`` parameters to
   :py:meth:`pymongo.collection.Collection.find`.
 - Added the ``hedge`` parameter to
-  :py:class`~pymongo.read_preferences.PrimaryPreferred`,
-  :py:class`~pymongo.read_preferences.Secondary`,
-  :py:class`~pymongo.read_preferences.SecondaryPreferred`,
-  :py:class`~pymongo.read_preferences.Nearest` to support disabling
+  :py:class:`~pymongo.read_preferences.PrimaryPreferred`,
+  :py:class:`~pymongo.read_preferences.Secondary`,
+  :py:class:`~pymongo.read_preferences.SecondaryPreferred`,
+  :py:class:`~pymongo.read_preferences.Nearest` to support disabling
   (or explicitly enabling) hedged reads in MongoDB 4.4+.
 - Fixed a bug in change streams that could cause PyMongo to miss some change
   documents when resuming a stream that was started without a resume token and
@@ -1060,12 +1060,12 @@ Deprecations:
 - Deprecated :attr:`pymongo.mongo_client.MongoClient.is_locked`. Use
   :py:meth:`~pymongo.database.Database.command` to run the ``currentOp`` command
   instead. See the documentation for more information.
-- Deprecated :py:class`bson.binary.UUIDLegacy`. Use
+- Deprecated :py:class:`bson.binary.UUIDLegacy`. Use
   :py:meth:`bson.binary.Binary.from_uuid` instead.
 
 Unavoidable breaking changes:
 
-- :py:class`~gridfs.GridFSBucket` and :py:class`~gridfs.GridFS` do not support
+- :py:class:`~gridfs.GridFSBucket` and :py:class:`~gridfs.GridFS` do not support
   multi-document transactions. Running a GridFS operation in a transaction
   now always raises the following error:
   ``InvalidOperation: GridFS does not support multi-document transactions``
@@ -1137,9 +1137,9 @@ Version 3.9 adds support for MongoDB 4.2. Highlights include:
   support conveniently running a transaction in a session with automatic
   retries and at-most-once semantics.
 - Initial support for client side field level encryption. See the docstring for
-  :py:class`~pymongo.mongo_client.MongoClient`,
-  :py:class`~pymongo.encryption_options.AutoEncryptionOpts`,
-  and :py:mod:`~pymongo.encryption` for details. **Note: Support for client side
+  :py:class:`~pymongo.mongo_client.MongoClient`,
+  :py:class:`~pymongo.encryption_options.AutoEncryptionOpts`,
+  and ``~pymongo.encryption`` for details. **Note: Support for client side
   encryption is in beta. Backwards-breaking changes may be made before the
   final release.**
 - Added the ``max_commit_time_ms`` parameter to
@@ -1170,7 +1170,7 @@ Version 3.9 adds support for MongoDB 4.2. Highlights include:
   operations that fail with a retryable error will automatically be retried one
   time, with at-most-once semantics.
 - Support for retryable reads and the ``retryReads`` URI option which is
-  enabled by default. See the :py:class`~pymongo.mongo_client.MongoClient`
+  enabled by default. See the :py:class:`~pymongo.mongo_client.MongoClient`
   documentation for details. Now that supported operations are retried
   automatically and transparently, users should consider adjusting any custom
   retry logic to prevent an application from inadvertently retrying for too
@@ -1181,8 +1181,8 @@ Version 3.9 adds support for MongoDB 4.2. Highlights include:
 - New method :py:meth:`pymongo.database.Database.aggregate` to support running
   database level aggregations.
 - Support for publishing Connection Monitoring and Pooling events via the new
-  :py:class`~pymongo.monitoring.ConnectionPoolListener` class. See
-  :py:mod:`~pymongo.monitoring` for an example.
+  :py:class:`~pymongo.monitoring.ConnectionPoolListener` class. See
+  ``~pymongo.monitoring`` for an example.
 - :py:meth:`pymongo.collection.Collection.aggregate` and
   :py:meth:`pymongo.database.Database.aggregate` now support the ``$merge`` pipeline
   stage and use read preference
@@ -1195,7 +1195,7 @@ Version 3.9 adds support for MongoDB 4.2. Highlights include:
   :py:meth:`~pymongo.operations.UpdateOne`, and
   :py:meth:`~pymongo.operations.UpdateMany`.
 - New BSON utility functions :py:func:`~bson.encode` and :py:func:`~bson.decode`
-- :py:class`~bson.binary.Binary` now supports any bytes-like type that implements
+- :py:class:`~bson.binary.Binary` now supports any bytes-like type that implements
   the buffer protocol.
 - Resume tokens can now be accessed from a ``ChangeStream`` cursor using the
   :attr:`~pymongo.change_stream.ChangeStream.resume_token` attribute.
@@ -1208,9 +1208,9 @@ Unavoidable breaking changes:
 - Applications that use MongoDB with the MMAPv1 storage engine must now
   explicitly disable retryable writes via the connection string
   (e.g. ``MongoClient("mongodb://my.mongodb.cluster/db?retryWrites=false")``) or
-  the :py:class`~pymongo.mongo_client.MongoClient` constructor's keyword argument
+  the :py:class:`~pymongo.mongo_client.MongoClient` constructor's keyword argument
   (e.g. ``MongoClient("mongodb://my.mongodb.cluster/db", retryWrites=False)``)
-  to avoid running into :py:class`~pymongo.errors.OperationFailure` exceptions
+  to avoid running into :py:class:`~pymongo.errors.OperationFailure` exceptions
   during write operations. The MMAPv1 storage engine is deprecated and does
   not support retryable writes which are now turned on by default.
 - In order to ensure that the ``connectTimeoutMS`` URI option is honored when
@@ -1242,10 +1242,10 @@ Changes in Version 3.8.0
 .. warning:: PyMongo no longer supports PyPy3 versions older than 3.5. Users
   must upgrade to PyPy3.5+.
 
-- :py:class`~bson.objectid.ObjectId` now implements the `ObjectID specification
+- :py:class:`~bson.objectid.ObjectId` now implements the `ObjectID specification
   version 0.2 <https://github.com/mongodb/specifications/blob/master/source/objectid.rst>`_.
 - For better performance and to better follow the GridFS spec,
-  :py:class`~gridfs.grid_file.GridOut` now uses a single cursor to read all the
+  :py:class:`~gridfs.grid_file.GridOut` now uses a single cursor to read all the
   chunks in the file. Previously, each chunk in the file was queried
   individually using :py:meth:`~pymongo.collection.Collection.find_one`.
 - :py:meth:`gridfs.grid_file.GridOut.read` now only checks for extra chunks after
@@ -1259,8 +1259,8 @@ Changes in Version 3.8.0
   and added the ``default`` parameter.
 - TLS Renegotiation is now disabled when possible.
 - Custom types can now be directly encoded to, and decoded from MongoDB using
-  the :py:class`~bson.codec_options.TypeCodec` and
-  :py:class`~bson.codec_options.TypeRegistry` APIs. For more information, see
+  the :py:class:`~bson.codec_options.TypeCodec` and
+  :py:class:`~bson.codec_options.TypeRegistry` APIs. For more information, see
   the :doc:`custom type example <examples/custom_type>`.
 - Attempting a multi-document transaction on a sharded cluster now raises a
   :exc:`~pymongo.errors.ConfigurationError`.
@@ -1285,10 +1285,10 @@ Changes in Version 3.8.0
   supported since PyMongo 2.7. Valid values are ``pythonLegacy`` (the default),
   ``javaLegacy``, ``csharpLegacy`` and ``standard``. New applications should consider
   setting this to ``standard`` for cross language compatibility.
-- :py:class`~bson.raw_bson.RawBSONDocument` now validates that the ``bson_bytes``
+- :py:class:`~bson.raw_bson.RawBSONDocument` now validates that the ``bson_bytes``
   passed in represent a single bson document. Earlier versions would mistakenly
   accept multiple bson documents.
-- Iterating over a :py:class`~bson.raw_bson.RawBSONDocument` now maintains the
+- Iterating over a :py:class:`~bson.raw_bson.RawBSONDocument` now maintains the
   same field order of the underlying raw BSON document.
 - Applications can now register a custom server selector. For more information
   see the :doc:`server selector example <examples/server_selection>`.
@@ -1388,8 +1388,8 @@ Version 3.7 adds support for MongoDB 4.0. Highlights include:
     mechanisms can also be used to avoid issues with OpenSSL in FIPS
     environments.
   - MD5 checksums are now optional in GridFS. See the ``disable_md5`` option
-    of :py:class`~gridfs.GridFS` and :py:class`~gridfs.GridFSBucket`.
-  - :py:class`~bson.objectid.ObjectId` machine bytes are now hashed using
+    of :py:class:`~gridfs.GridFS` and :py:class:`~gridfs.GridFSBucket`.
+  - :py:class:`~bson.objectid.ObjectId` machine bytes are now hashed using
     `FNV-1a
     <https://en.wikipedia.org/wiki/Fowler-Noll-Vo_hash_function>`_
     instead of MD5.
@@ -1398,8 +1398,8 @@ Version 3.7 adds support for MongoDB 4.0. Highlights include:
   :py:meth:`~pymongo.database.Database.collection_names` methods use
   the nameOnly option when supported by MongoDB.
 - The :py:meth:`pymongo.collection.Collection.watch` method now returns an
-  instance of the :py:class`~pymongo.change_stream.CollectionChangeStream`
-  class which is a subclass of :py:class`~pymongo.change_stream.ChangeStream`.
+  instance of the :py:class:`~pymongo.change_stream.CollectionChangeStream`
+  class which is a subclass of :py:class:`~pymongo.change_stream.ChangeStream`.
 - SCRAM client and server keys are cached for improved performance, following
   `RFC 5802 <https://tools.ietf.org/html/rfc5802>`_.
 - If not specified, the authSource for the :ref:`PLAIN <sasl_plain>`
@@ -1442,8 +1442,8 @@ Unavoidable breaking changes:
   11602, 189, 91 (NotMaster, NotMasterNoSlaveOk, NotMasterOrSecondary,
   InterruptedAtShutdown, InterruptedDueToReplStateChange,
   PrimarySteppedDown, ShutdownInProgress respectively) now always raise
-  :py:class`~pymongo.errors.NotMasterError` instead of
-  :py:class`~pymongo.errors.OperationFailure`.
+  :py:class:`~pymongo.errors.NotMasterError` instead of
+  :py:class:`~pymongo.errors.OperationFailure`.
 - :py:meth:`~pymongo.collection.Collection.parallel_scan` no longer uses an
   implicit session. Explicit sessions are still supported.
 - Unacknowledged writes (``w=0``) with an explicit ``session`` parameter now
@@ -1516,7 +1516,7 @@ Highlights include:
 - New methods :py:meth:`~pymongo.database.Database.list_collections` and
   :py:meth:`~pymongo.database.Database.list_collection_names`.
 - Support for mongodb+srv:// URIs. See
-  :py:class`~pymongo.mongo_client.MongoClient` for details.
+  :py:class:`~pymongo.mongo_client.MongoClient` for details.
 - Index management helpers
   (:py:meth:`~pymongo.collection.Collection.create_index`,
   :py:meth:`~pymongo.collection.Collection.create_indexes`,
@@ -1524,7 +1524,7 @@ Highlights include:
   :py:meth:`~pymongo.collection.Collection.drop_indexes`,
   :py:meth:`~pymongo.collection.Collection.reindex`) now support maxTimeMS.
 - Support for retryable writes and the ``retryWrites`` URI option.  See
-  :py:class`~pymongo.mongo_client.MongoClient` for details.
+  :py:class:`~pymongo.mongo_client.MongoClient` for details.
 
 Deprecations:
 
@@ -1541,7 +1541,7 @@ Unavoidable breaking changes:
   :py:meth:`~pymongo.database.Database.authenticate` and
   :py:meth:`~pymongo.database.Database.logout` now invalidate all cursors created
   prior. Instead of using these methods to change credentials, pass credentials
-  for one user to the :py:class`~pymongo.mongo_client.MongoClient` at construction
+  for one user to the :py:class:`~pymongo.mongo_client.MongoClient` at construction
   time, and either grant access to several databases to one user account, or use
   a distinct client object for each user.
 - BSON binary subtype 4 is decoded using RFC-4122 byte order regardless
@@ -1588,26 +1588,26 @@ Version 3.5 implements a number of improvements and bug fixes:
 Highlights include:
 
 - Username and password can be passed to
-  :py:class`~pymongo.mongo_client.MongoClient` as keyword arguments. Before, the
+  :py:class:`~pymongo.mongo_client.MongoClient` as keyword arguments. Before, the
   only way to pass them was in the URI.
-- Increased the performance of using :py:class`~bson.raw_bson.RawBSONDocument`.
+- Increased the performance of using :py:class:`~bson.raw_bson.RawBSONDocument`.
 - Increased the performance of
   :py:meth:`~pymongo.mongo_client.MongoClient.database_names` by using the
   ``nameOnly`` option for listDatabases when available.
 - Increased the performance of
   :py:meth:`~pymongo.collection.Collection.bulk_write` by reducing the memory
-  overhead of :py:class`~pymongo.operations.InsertOne`,
-  :py:class`~pymongo.operations.DeleteOne`, and
-  :py:class`~pymongo.operations.DeleteMany`.
-- Added the ``collation`` option to :py:class`~pymongo.operations.DeleteOne`,
-  :py:class`~pymongo.operations.DeleteMany`,
-  :py:class`~pymongo.operations.ReplaceOne`,
-  :py:class`~pymongo.operations.UpdateOne`, and
-  :py:class`~pymongo.operations.UpdateMany`.
+  overhead of :py:class:`~pymongo.operations.InsertOne`,
+  :py:class:`~pymongo.operations.DeleteOne`, and
+  :py:class:`~pymongo.operations.DeleteMany`.
+- Added the ``collation`` option to :py:class:`~pymongo.operations.DeleteOne`,
+  :py:class:`~pymongo.operations.DeleteMany`,
+  :py:class:`~pymongo.operations.ReplaceOne`,
+  :py:class:`~pymongo.operations.UpdateOne`, and
+  :py:class:`~pymongo.operations.UpdateMany`.
 - Implemented the `MongoDB Extended JSON
   <https://github.com/mongodb/specifications/blob/master/source/extended-json.rst>`_
   specification.
-- :py:class`~bson.decimal128.Decimal128` now works when cdecimal is installed.
+- :py:class:`~bson.decimal128.Decimal128` now works when cdecimal is installed.
 - PyMongo is now tested against a wider array of operating systems and CPU
   architectures (including s390x, ARM64, and POWER8).
 
@@ -1623,10 +1623,10 @@ Changes and Deprecations:
 - Deprecated :py:meth:`~pymongo.database.Database.authenticate`. Authenticating
   multiple users conflicts with support for logical sessions in MongoDB 3.6.
   To authenticate as multiple users, create multiple instances of
-  :py:class`~pymongo.mongo_client.MongoClient`.
+  :py:class:`~pymongo.mongo_client.MongoClient`.
 - Deprecated :py:meth:`~pymongo.database.Database.eval`. The eval command
   was deprecated in MongoDB 3.0 and will be removed in a future server version.
-- Deprecated :py:class`~pymongo.database.SystemJS`.
+- Deprecated :py:class:`~pymongo.database.SystemJS`.
 - Deprecated :py:meth:`~pymongo.mongo_client.MongoClient.get_default_database`.
   Applications should use
   :py:meth:`~pymongo.mongo_client.MongoClient.get_database` without the ```name```
@@ -1637,22 +1637,22 @@ Changes and Deprecations:
   <https://mongodb.com/docs/manual/faq/diagnostics/#does-tcp-keepalive-time-affect-mongodb-deployments->`_
 - Deprecated :py:meth:`~pymongo.collection.Collection.initialize_ordered_bulk_op`,
   :py:meth:`~pymongo.collection.Collection.initialize_unordered_bulk_op`, and
-  :py:class`~pymongo.bulk.BulkOperationBuilder`. Use
+  :py:class:`~pymongo.bulk.BulkOperationBuilder`. Use
   :py:meth:`~pymongo.collection.Collection.bulk_write` instead.
 - Deprecated :const:`~bson.json_util.STRICT_JSON_OPTIONS`. Use
   :const:`~bson.json_util.RELAXED_JSON_OPTIONS` or
   :const:`~bson.json_util.CANONICAL_JSON_OPTIONS` instead.
-- If a custom :py:class`~bson.codec_options.CodecOptions` is passed to
-  :py:class`RawBSONDocument`, its ``document_class``` must be
-  :py:class`RawBSONDocument`.
+- If a custom :py:class:`~bson.codec_options.CodecOptions` is passed to
+  :py:class:`RawBSONDocument`, its ``document_class``` must be
+  :py:class:`RawBSONDocument`.
 - :py:meth:`~pymongo.collection.Collection.list_indexes` no longer raises
   OperationFailure when the collection (or database) does not exist on
   MongoDB >= 3.0. Instead, it returns an empty
-  :py:class`~pymongo.command_cursor.CommandCursor` to make the behavior
+  :py:class:`~pymongo.command_cursor.CommandCursor` to make the behavior
   consistent across all MongoDB versions.
 - In Python 3, :py:meth:`~bson.json_util.loads` now automatically decodes JSON
-  $binary with a subtype of 0 into :py:class`bytes` instead of
-  :py:class`~bson.binary.Binary`. See the :doc:`/python3` for more details.
+  $binary with a subtype of 0 into :py:class:`bytes` instead of
+  :py:class:`~bson.binary.Binary`. See the :doc:`/python3` for more details.
 - :py:meth:`~bson.json_util.loads` now raises ``TypeError`` or ``ValueError``
   when parsing JSON type wrappers with values of the wrong type or any
   extra keys.
@@ -1682,7 +1682,7 @@ Highlights include:
 - Complete support for MongoDB 3.4:
 
   - Unicode aware string comparison using :doc:`examples/collations`.
-  - Support for the new :py:class`~bson.decimal128.Decimal128` BSON type.
+  - Support for the new :py:class:`~bson.decimal128.Decimal128` BSON type.
   - A new maxStalenessSeconds read preference option.
   - A username is no longer required for the MONGODB-X509 authentication
     mechanism when connected to MongoDB >= 3.4.
@@ -1706,14 +1706,14 @@ Highlights include:
     - :py:meth:`~pymongo.collection.Collection.rename`
 
 - Improved support for logging server discovery and monitoring events. See
-  :py:mod:`~pymongo.monitoring` for examples.
+  ``~pymongo.monitoring`` for examples.
 - Support for matching iPAddress subjectAltName values for TLS certificate
   verification.
 - TLS compression is now explicitly disabled when possible.
 - The Server Name Indication (SNI) TLS extension is used when possible.
 - Finer control over JSON encoding/decoding with
-  :py:class`~bson.json_util.JSONOptions`.
-- Allow :py:class`~bson.code.Code` objects to have a scope of ``None``,
+  :py:class:`~bson.json_util.JSONOptions`.
+- Allow :py:class:`~bson.code.Code` objects to have a scope of ``None``,
   signifying no scope. Also allow encoding Code objects with an empty scope
   (i.e. ``{}``).
 
@@ -1747,7 +1747,7 @@ Changes in Version 3.3.1
 ------------------------
 
 Version 3.3.1 fixes a memory leak when decoding elements inside of a
-:py:class`~bson.raw_bson.RawBSONDocument`.
+:py:class:`~bson.raw_bson.RawBSONDocument`.
 
 Issues Resolved
 ...............
@@ -1768,7 +1768,7 @@ Version 3.3 adds the following major new features:
 - A new ``ssl_clrfile`` option to support certificate revocation lists.
 - A new ``ssl_pem_passphrase`` option to support encrypted key files.
 - Support for publishing server discovery and monitoring events. See
-  :py:mod:`~pymongo.monitoring` for details.
+  ``~pymongo.monitoring`` for details.
 - New connection pool options ``minPoolSize`` and ``maxIdleTimeMS``.
 - New ``heartbeatFrequencyMS`` option controls the rate at which background
   monitoring threads re-check servers. Default is once every 10 seconds.
@@ -1827,8 +1827,8 @@ Highlights include:
 
 - Full support for MongoDB 3.2 including:
 
-  - Support for :py:class`~pymongo.read_concern.ReadConcern`
-  - :py:class`~pymongo.write_concern.WriteConcern` is now applied to
+  - Support for :py:class:`~pymongo.read_concern.ReadConcern`
+  - :py:class:`~pymongo.write_concern.WriteConcern` is now applied to
     :py:meth:`~pymongo.collection.Collection.find_one_and_replace`,
     :py:meth:`~pymongo.collection.Collection.find_one_and_update`, and
     :py:meth:`~pymongo.collection.Collection.find_one_and_delete`.
@@ -1836,12 +1836,12 @@ Highlights include:
     helpers.
 
 - Support for reading and writing raw BSON with
-  :py:class`~bson.raw_bson.RawBSONDocument`
+  :py:class:`~bson.raw_bson.RawBSONDocument`
 
-.. note:: Certain :py:class`~pymongo.mongo_client.MongoClient` properties now
+.. note:: Certain :py:class:`~pymongo.mongo_client.MongoClient` properties now
   block until a connection is established or raise
   :exc:`~pymongo.errors.ServerSelectionTimeoutError` if no server is available.
-  See :py:class`~pymongo.mongo_client.MongoClient` for details.
+  See :py:class:`~pymongo.mongo_client.MongoClient` for details.
 
 Issues Resolved
 ...............
@@ -1874,13 +1874,13 @@ of 3.0.3.
 
 Highlights include:
 
-- Command monitoring support. See :py:mod:`~pymongo.monitoring` for details.
+- Command monitoring support. See ``~pymongo.monitoring`` for details.
 - Configurable error handling for :exc:`UnicodeDecodeError`. See the
   ``unicode_decode_error_handler`` option of
-  :py:class`~bson.codec_options.CodecOptions`.
+  :py:class:`~bson.codec_options.CodecOptions`.
 - Optional automatic timezone conversion when decoding BSON datetime. See the
-  ``tzinfo`` option of :py:class`~bson.codec_options.CodecOptions`.
-- An implementation of :py:class`~gridfs.GridFSBucket` from the new GridFS spec.
+  ``tzinfo`` option of :py:class:`~bson.codec_options.CodecOptions`.
+- An implementation of :py:class:`~gridfs.GridFSBucket` from the new GridFS spec.
 - Compliance with the new Connection String spec.
 - Reduced idle CPU usage in Python 2.
 
@@ -1918,8 +1918,8 @@ Changes in Version 3.0.2
 Version 3.0.2 fixes issues reported since the release of 3.0.1, most
 importantly a bug that could route operations to replica set members
 that are not in primary or secondary state when using
-:py:class`~pymongo.read_preferences.PrimaryPreferred` or
-:py:class`~pymongo.read_preferences.Nearest`. It is a recommended upgrade for
+:py:class:`~pymongo.read_preferences.PrimaryPreferred` or
+:py:class:`~pymongo.read_preferences.Nearest`. It is a recommended upgrade for
 all users of PyMongo 3.0.x.
 
 Issues Resolved
@@ -1981,7 +1981,7 @@ listed below before upgrading from PyMongo 2.x.
 SONManipulator changes
 ......................
 
-The :py:class`~pymongo.son_manipulator.SONManipulator` API has limitations as a
+The :py:class:`~pymongo.son_manipulator.SONManipulator` API has limitations as a
 technique for transforming your data. Instead, it is more flexible and
 straightforward to transform outgoing documents in your own code before passing
 them to PyMongo, and transform incoming documents after receiving them from
@@ -2012,7 +2012,7 @@ Gevent Support
 
 In previous versions, PyMongo supported Gevent in two modes: you could call
 ``gevent.monkey.patch_socket()`` and pass ``use_greenlets=True`` to
-:py:class`~pymongo.mongo_client.MongoClient`, or you could simply call
+:py:class:`~pymongo.mongo_client.MongoClient`, or you could simply call
 ``gevent.monkey.patch_all()`` and omit the ``use_greenlets`` argument.
 
 In PyMongo 3.0, the ``use_greenlets`` option is gone. To use PyMongo with
@@ -2021,24 +2021,24 @@ Gevent simply call ``gevent.monkey.patch_all()``.
 For more information,
 see :doc:`PyMongo's Gevent documentation <examples/gevent>`.
 
-:py:class`~pymongo.mongo_client.MongoClient` changes
+:py:class:`~pymongo.mongo_client.MongoClient` changes
 ..................................................
 
-:py:class`~pymongo.mongo_client.MongoClient` is now the one and only
+:py:class:`~pymongo.mongo_client.MongoClient` is now the one and only
 client class for a standalone server, mongos, or replica set.
 It includes the functionality that had been split into
 ``MongoReplicaSetClient``: it can connect to a replica set, discover all its
 members, and monitor the set for stepdowns, elections, and reconfigs.
-:py:class`~pymongo.mongo_client.MongoClient` now also supports the full
-:py:class`~pymongo.read_preferences.ReadPreference` API.
+:py:class:`~pymongo.mongo_client.MongoClient` now also supports the full
+:py:class:`~pymongo.read_preferences.ReadPreference` API.
 
 The obsolete classes ``MasterSlaveConnection``, ``Connection``, and
 ``ReplicaSetConnection`` are removed.
 
-The :py:class`~pymongo.mongo_client.MongoClient` constructor no
+The :py:class:`~pymongo.mongo_client.MongoClient` constructor no
 longer blocks while connecting to the server or servers, and it no
-longer raises :py:class`~pymongo.errors.ConnectionFailure` if they
-are unavailable, nor :py:class`~pymongo.errors.ConfigurationError`
+longer raises :py:class:`~pymongo.errors.ConnectionFailure` if they
+are unavailable, nor :py:class:`~pymongo.errors.ConfigurationError`
 if the user's credentials are wrong. Instead, the constructor
 returns immediately and launches the connection process on
 background threads. The ``connect`` option is added to control whether
@@ -2048,7 +2048,7 @@ Therefore the ``alive`` method is removed since it no longer provides meaningful
 information; even if the client is disconnected, it may discover a server in
 time to fulfill the next operation.
 
-In PyMongo 2.x, :py:class`~pymongo.mongo_client.MongoClient` accepted a list of
+In PyMongo 2.x, :py:class:`~pymongo.mongo_client.MongoClient` accepted a list of
 standalone MongoDB servers and used the first it could connect to:
 
 .. code-block:: python
@@ -2098,7 +2098,7 @@ The ``get_document_class`` method is removed. Use
 
 The ``get_lasterror_options``, ``set_lasterror_options``, and
 ``unset_lasterror_options`` methods are removed. Write concern options
-can be passed to :py:class`~pymongo.mongo_client.MongoClient` as keyword
+can be passed to :py:class:`~pymongo.mongo_client.MongoClient` as keyword
 arguments or MongoDB URI options.
 
 The :py:meth:`~pymongo.mongo_client.MongoClient.get_database` method is added for
@@ -2139,7 +2139,7 @@ The following attributes have been renamed:
   now :attr:`~pymongo.mongo_client.MongoClient.local_threshold_ms` and is now
   read-only.
 
-:py:class`~pymongo.cursor.Cursor` changes
+:py:class:`~pymongo.cursor.Cursor` changes
 .......................................
 
 The ``conn_id`` property is renamed to :attr:`~pymongo.cursor.Cursor.address`.
@@ -2147,9 +2147,9 @@ The ``conn_id`` property is renamed to :attr:`~pymongo.cursor.Cursor.address`.
 Cursor management changes
 .........................
 
-:py:class`~pymongo.cursor_manager.CursorManager` and
+:py:class:`~pymongo.cursor_manager.CursorManager` and
 :py:meth:`~pymongo.mongo_client.MongoClient.set_cursor_manager` are no longer
-deprecated. If you subclass :py:class`~pymongo.cursor_manager.CursorManager`
+deprecated. If you subclass :py:class:`~pymongo.cursor_manager.CursorManager`
 your implementation of :py:meth:`~pymongo.cursor_manager.CursorManager.close`
 must now take a second parameter, ``address``. The ``BatchCursorManager`` class
 is removed.
@@ -2159,7 +2159,7 @@ is renamed from ``_conn_id`` to ``address``.
 :py:meth:`~pymongo.mongo_client.MongoClient.kill_cursors` now accepts an ``address``
 parameter.
 
-:py:class`~pymongo.database.Database` changes
+:py:class:`~pymongo.database.Database` changes
 ...........................................
 
 The ``connection`` property is renamed to
@@ -2194,11 +2194,11 @@ The following methods have been changed:
 - :py:meth:`~pymongo.database.Database.command`. Support for ``as_class``,
   ``uuid_subtype``, ``tag_sets``, and ``secondary_acceptable_latency_ms`` have been
   removed. You can instead pass an instance of
-  :py:class`~bson.codec_options.CodecOptions` as ``codec_options`` and an instance
-  of a read preference class from :py:mod:`~pymongo.read_preferences` as
+  :py:class:`~bson.codec_options.CodecOptions` as ``codec_options`` and an instance
+  of a read preference class from ``~pymongo.read_preferences`` as
   ``read_preference``. The ``fields`` and ``compile_re`` options are also removed.
   The ``fields`` options was undocumented and never really worked. Regular
-  expressions are always decoded to :py:class`~bson.regex.Regex`.
+  expressions are always decoded to :py:class:`~bson.regex.Regex`.
 
 The following methods have been deprecated:
 
@@ -2208,10 +2208,10 @@ The following methods have been removed:
 
 The ``get_lasterror_options``, ``set_lasterror_options``, and
 ``unset_lasterror_options`` methods have been removed. Use
-:py:class`~pymongo.write_concern.WriteConcern` with
+:py:class:`~pymongo.write_concern.WriteConcern` with
 :py:meth:`~pymongo.mongo_client.MongoClient.get_database` instead.
 
-:py:class`~pymongo.collection.Collection` changes
+:py:class:`~pymongo.collection.Collection` changes
 ...............................................
 
 The following read-only attributes have been added:
@@ -2254,7 +2254,7 @@ The following methods have been added:
 The following methods have changed:
 
 - :py:meth:`~pymongo.collection.Collection.aggregate` now **always** returns an
-  instance of :py:class`~pymongo.command_cursor.CommandCursor`. See the
+  instance of :py:class:`~pymongo.command_cursor.CommandCursor`. See the
   documentation for all options.
 - :py:meth:`~pymongo.collection.Collection.count` now optionally takes a filter
   argument, as well as other options supported by the count command.
@@ -2278,7 +2278,7 @@ The following methods have been removed:
 
 The ``get_lasterror_options``, ``set_lasterror_options``, and
 ``unset_lasterror_options`` methods have been removed. Use
-:py:class`~pymongo.write_concern.WriteConcern` with
+:py:class:`~pymongo.write_concern.WriteConcern` with
 :py:meth:`~pymongo.collection.Collection.with_options` instead.
 
 Changes to :py:meth:`~pymongo.collection.Collection.find` and :py:meth:`~pymongo.collection.Collection.find_one`
@@ -2296,7 +2296,7 @@ changes are not significant for your application.
 
 The following find/find_one options have been added:
 
-- cursor_type (see :py:class`~pymongo.cursor.CursorType` for values)
+- cursor_type (see :py:class:`~pymongo.cursor.CursorType` for values)
 - oplog_replay
 - modifiers
 
@@ -2304,12 +2304,12 @@ The following find/find_one options have been removed:
 
 - network_timeout (use :py:meth:`~pymongo.cursor.Cursor.max_time_ms` instead)
 - slave_okay (use one of the read preference classes from
-  :py:mod:`~pymongo.read_preferences` and
+  ``~pymongo.read_preferences`` and
   :py:meth:`~pymongo.collection.Collection.with_options` instead)
 - read_preference (use :py:meth:`~pymongo.collection.Collection.with_options`
   instead)
 - tag_sets (use one of the read preference classes from
-  :py:mod:`~pymongo.read_preferences` and
+  ``~pymongo.read_preferences`` and
   :py:meth:`~pymongo.collection.Collection.with_options` instead)
 - secondary_acceptable_latency_ms (use the ``localThresholdMS`` URI option
   instead)
@@ -2319,9 +2319,9 @@ The following find/find_one options have been removed:
 - await_data (use the new ``cursor_type`` option instead)
 - exhaust (use the new ``cursor_type`` option instead)
 - as_class (use :py:meth:`~pymongo.collection.Collection.with_options` with
-  :py:class`~bson.codec_options.CodecOptions` instead)
+  :py:class:`~bson.codec_options.CodecOptions` instead)
 - compile_re (BSON regular expressions are always decoded to
-  :py:class`~bson.regex.Regex`)
+  :py:class:`~bson.regex.Regex`)
 
 The following find/find_one options are deprecated:
 
@@ -2334,42 +2334,42 @@ The following renames need special handling.
   False. If you were previously passing False for ``t`imeout`` you must pass
   **True** for ``no_cursor_timeout`` to keep the previous behavior.
 
-:py:mod:`~pymongo.errors` changes
+``~pymongo.errors`` changes
 ..............................
 
 The exception classes ``UnsupportedOption`` and ``TimeoutError`` are deleted.
 
-:py:mod:`~gridfs` changes
+``~gridfs`` changes
 ......................
 
-Since PyMongo 1.6, methods ``open`` and ``close`` of :py:class`~gridfs.GridFS`
+Since PyMongo 1.6, methods ``open`` and ``close`` of :py:class:`~gridfs.GridFS`
 raised an ``UnsupportedAPI`` exception, as did the entire ``GridFile`` class.
 The unsupported methods, the class, and the exception are all deleted.
 
-:py:mod:`~bson` changes
+``~bson`` changes
 ....................
 
 The ``compile_re`` option is removed from all methods
-that accepted it in :py:mod:`~bson` and :py:mod:`~bson.json_util`. Additionally, it
+that accepted it in ``~bson`` and ``~bson.json_util``. Additionally, it
 is removed from :py:meth:`~pymongo.collection.Collection.find`,
 :py:meth:`~pymongo.collection.Collection.find_one`,
 :py:meth:`~pymongo.collection.Collection.aggregate`,
 :py:meth:`~pymongo.database.Database.command`, and so on.
 PyMongo now always represents BSON regular expressions as
-:py:class`~bson.regex.Regex` objects. This prevents errors for incompatible
+:py:class:`~bson.regex.Regex` objects. This prevents errors for incompatible
 patterns, see `PYTHON-500`_. Use :py:meth:`~bson.regex.Regex.try_compile` to
 attempt to convert from a BSON regular expression to a Python regular
 expression object.
 
-PyMongo now decodes the int64 BSON type to :py:class`~bson.int64.Int64`, a
+PyMongo now decodes the int64 BSON type to :py:class:`~bson.int64.Int64`, a
 trivial wrapper around long (in python 2.x) or int (in python 3.x). This
 allows BSON int64 to be round tripped without losing type information in
 python 3. Note that if you store a python long (or a python int larger than
-4 bytes) it will be returned from PyMongo as :py:class`~bson.int64.Int64`.
+4 bytes) it will be returned from PyMongo as :py:class:`~bson.int64.Int64`.
 
 The ``as_class``, ``tz_aware``, and ``uuid_subtype`` options are removed from all
 BSON encoding and decoding methods. Use
-:py:class`~bson.codec_options.CodecOptions` to configure these options. The
+:py:class:`~bson.codec_options.CodecOptions` to configure these options. The
 APIs affected are:
 
 - :py:func:`~bson.decode_all`
@@ -2421,8 +2421,8 @@ Changes in Version 2.9.4
 
 Version 2.9.4 fixes issues reported since the release of 2.9.3.
 
-- Fixed __repr__ for closed instances of :py:class`~pymongo.mongo_client.MongoClient`.
-- Fixed :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` handling of
+- Fixed __repr__ for closed instances of :py:class:`~pymongo.mongo_client.MongoClient`.
+- Fixed :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` handling of
   uuidRepresentation.
 - Fixed building and testing the documentation with python 3.x.
 - New documentation for :doc:`examples/tls` and :doc:`atlas`.
@@ -2496,7 +2496,7 @@ detailed examples.
 .. note:: There are a number of new deprecations in this release for features
   that were removed in PyMongo 3.0.
 
-  :py:class`~pymongo.mongo_client.MongoClient`:
+  :py:class:`~pymongo.mongo_client.MongoClient`:
     - :attr:`~pymongo.mongo_client.MongoClient.host`
     - :attr:`~pymongo.mongo_client.MongoClient.port`
     - :attr:`~pymongo.mongo_client.MongoClient.use_greenlets`
@@ -2508,7 +2508,7 @@ detailed examples.
     - :py:meth:`~pymongo.mongo_client.MongoClient.disconnect`
     - :py:meth:`~pymongo.mongo_client.MongoClient.alive`
 
-  :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`:
+  :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`:
     - :attr:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient.use_greenlets`
     - :attr:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient.document_class`
     - :attr:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient.tz_aware`
@@ -2517,12 +2517,12 @@ detailed examples.
     - :attr:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient.uuid_subtype`
     - :py:meth:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient.alive`
 
-  :py:class`~pymongo.database.Database`:
+  :py:class:`~pymongo.database.Database`:
     - :attr:`~pymongo.database.Database.secondary_acceptable_latency_ms`
     - :attr:`~pymongo.database.Database.tag_sets`
     - :attr:`~pymongo.database.Database.uuid_subtype`
 
-  :py:class`~pymongo.collection.Collection`:
+  :py:class:`~pymongo.collection.Collection`:
     - :attr:`~pymongo.collection.Collection.secondary_acceptable_latency_ms`
     - :attr:`~pymongo.collection.Collection.tag_sets`
     - :attr:`~pymongo.collection.Collection.uuid_subtype`
@@ -2531,7 +2531,7 @@ detailed examples.
   In previous versions of PyMongo, changing the value of
   :attr:`~pymongo.mongo_client.MongoClient.document_class` changed
   the behavior of all existing instances of
-  :py:class`~pymongo.collection.Collection`:
+  :py:class:`~pymongo.collection.Collection`:
 
 .. code-block:: python
 
@@ -2612,12 +2612,12 @@ Highlights include:
   - :py:meth:`~pymongo.database.Database.last_status`
   - :py:meth:`~pymongo.database.Database.previous_error`
   - :py:meth:`~pymongo.database.Database.reset_error_history`
-  - :py:class`~pymongo.master_slave_connection.MasterSlaveConnection`
+  - :py:class:`~pymongo.master_slave_connection.MasterSlaveConnection`
 
-  The JSON format for :py:class`~bson.timestamp.Timestamp` has changed from
+  The JSON format for :py:class:`~bson.timestamp.Timestamp` has changed from
   '{"t": <int>, "i": <int>}' to '{"$timestamp": {"t": <int>, "i": <int>}}'.
   This new format will be decoded to an instance of
-  :py:class`~bson.timestamp.Timestamp`. The old format will continue to be
+  :py:class:`~bson.timestamp.Timestamp`. The old format will continue to be
   decoded to a python dict as before. Encoding to the old format is no
   longer supported as it was never correct and loses type information.
 
@@ -2674,11 +2674,11 @@ fixes. Highlights include:
 - Support for writing :py:meth:`~pymongo.collection.Collection.aggregate`
   output to a collection.
 - A new :py:meth:`~pymongo.collection.Collection.parallel_scan` helper.
-- :py:class`~pymongo.errors.OperationFailure` and its subclasses now include
+- :py:class:`~pymongo.errors.OperationFailure` and its subclasses now include
   a :attr:`~pymongo.errors.OperationFailure.details` attribute with complete
   error details from the server.
 - A new GridFS :py:meth:`~gridfs.GridFS.find` method that returns a
-  :py:class`~gridfs.grid_file.GridOutCursor`.
+  :py:class:`~gridfs.grid_file.GridOutCursor`.
 - Greatly improved :doc:`support for mod_wsgi </examples/mod_wsgi>` when using
   PyMongo's C extensions. Read `Jesse's blog post
   <http://emptysqua.re/blog/python-c-extensions-and-mod-wsgi/>`_ for details.
@@ -2751,8 +2751,8 @@ in this release.
 
 Important new features:
 
-- The ``max_pool_size`` option for :py:class`~pymongo.mongo_client.MongoClient`
-  and :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` now
+- The ``max_pool_size`` option for :py:class:`~pymongo.mongo_client.MongoClient`
+  and :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` now
   actually caps the number of sockets the pool will open concurrently.
   Once the pool has reaches max_pool_size
   operations will block waiting for a socket to become available. If
@@ -2768,7 +2768,7 @@ Important new features:
 - Support for the PLAIN and MONGODB-X509 authentication mechanisms.
   See :doc:`the authentication docs </examples/authentication>` for more
   information.
-- Support aggregation output as a :py:class`~pymongo.cursor.Cursor`. See
+- Support aggregation output as a :py:class:`~pymongo.cursor.Cursor`. See
   :py:meth:`~pymongo.collection.Collection.aggregate` for details.
 
 .. warning:: SIGNIFICANT BEHAVIOR CHANGE in 2.6. Previously, ``max_pool_size``
@@ -2793,7 +2793,7 @@ Changes in Version 2.5.2
 ------------------------
 
 Version 2.5.2 fixes a NULL pointer dereference issue when decoding
-an invalid :py:class`~bson.dbref.DBRef`.
+an invalid :py:class:`~bson.dbref.DBRef`.
 
 Issues Resolved
 ...............
@@ -2831,7 +2831,7 @@ Important new features:
 - New GEOSPHERE (2dsphere) and HASHED index constants.
 
 .. note:: :py:meth:`~pymongo.database.Database.authenticate` now raises a
-    subclass of :py:class`~pymongo.errors.PyMongoError` if authentication
+    subclass of :py:class:`~pymongo.errors.PyMongoError` if authentication
     fails due to invalid credentials or configuration issues.
 
 Issues Resolved
@@ -2881,25 +2881,25 @@ fixes.
 
 Important new features:
 
-- New :py:class`~pymongo.mongo_client.MongoClient` and
-  :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` classes -
+- New :py:class:`~pymongo.mongo_client.MongoClient` and
+  :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` classes -
   these connection classes do acknowledged write operations (previously referred
-  to as 'safe' writes) by default. :py:class`~pymongo.connection.Connection` and
-  :py:class`~pymongo.replica_set_connection.ReplicaSetConnection` are deprecated
+  to as 'safe' writes) by default. :py:class:`~pymongo.connection.Connection` and
+  :py:class:`~pymongo.replica_set_connection.ReplicaSetConnection` are deprecated
   but still support the old default fire-and-forget behavior.
 - A new write concern API implemented as a
   :attr:`~pymongo.collection.Collection.write_concern` attribute on the connection,
-  :py:class`~pymongo.database.Database`, or :py:class`~pymongo.collection.Collection`
+  :py:class:`~pymongo.database.Database`, or :py:class:`~pymongo.collection.Collection`
   classes.
-- :py:class`~pymongo.mongo_client.MongoClient` (and :py:class`~pymongo.connection.Connection`)
+- :py:class:`~pymongo.mongo_client.MongoClient` (and :py:class:`~pymongo.connection.Connection`)
   now support Unix Domain Sockets.
-- :py:class`~pymongo.cursor.Cursor` can be copied with functions from the :py:mod:`copy`
+- :py:class:`~pymongo.cursor.Cursor` can be copied with functions from the ``copy``
   module.
 - The :py:meth:`~pymongo.database.Database.set_profiling_level` method now supports
   a ``slow_ms`` option.
 - The replica set monitor task (used by
-  :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` and
-  :py:class`~pymongo.replica_set_connection.ReplicaSetConnection`) is a daemon thread
+  :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient` and
+  :py:class:`~pymongo.replica_set_connection.ReplicaSetConnection`) is a daemon thread
   once again, meaning you won't have to call
   :py:meth:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient.close` before
   exiting the python interactive shell.
@@ -2908,10 +2908,10 @@ Important new features:
 
 .. code-block:: python
 
-    The constructors for :py:class`~pymongo.mongo_client.MongoClient`,
-    :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`,
-    :py:class`~pymongo.connection.Connection`, and
-    :py:class`~pymongo.replica_set_connection.ReplicaSetConnection` now raise
+    The constructors for :py:class:`~pymongo.mongo_client.MongoClient`,
+    :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`,
+    :py:class:`~pymongo.connection.Connection`, and
+    :py:class:`~pymongo.replica_set_connection.ReplicaSetConnection` now raise
     :exc:`~pymongo.errors.ConnectionFailure` instead of its subclass
     :exc:`~pymongo.errors.AutoReconnect` if the server is unavailable. Applications
     that expect to catch :exc:`~pymongo.errors.AutoReconnect` should now catch
@@ -3029,7 +3029,7 @@ Changes in Version 2.1.1
 
 Version 2.1.1 is a minor release that fixes a few issues
 discovered after the release of 2.1. You can now use
-:py:class`~pymongo.replica_set_connection.ReplicaSetConnection`
+:py:class:`~pymongo.replica_set_connection.ReplicaSetConnection`
 to run inline map reduce commands on secondaries. See
 :py:meth:`~pymongo.collection.Collection.inline_map_reduce` for details.
 
@@ -3057,12 +3057,12 @@ to this release.
 Important New Features:
 
 - ReplicaSetConnection -
-  :py:class`~pymongo.replica_set_connection.ReplicaSetConnection`
+  :py:class:`~pymongo.replica_set_connection.ReplicaSetConnection`
   can be used to distribute reads to secondaries in a replica set. It supports
   automatic failover handling and periodically checks the state of the
   replica set to handle issues like primary stepdown or secondaries
   being removed for backup operations. Read preferences are defined through
-  :py:class`~pymongo.read_preferences.ReadPreference`.
+  :py:class:`~pymongo.read_preferences.ReadPreference`.
 - PyMongo supports the new BSON binary subtype 4 for UUIDs. The default
   subtype to use can be set through
   :attr:`~pymongo.collection.Collection.uuid_subtype`
@@ -3076,9 +3076,9 @@ Important New Features:
 - Added basic support for Jython.
 - Secondaries can be used for :py:meth:`~pymongo.cursor.Cursor.count`,
   :py:meth:`~pymongo.cursor.Cursor.distinct`, :py:meth:`~pymongo.collection.Collection.group`,
-  and querying :py:class`~gridfs.GridFS`.
+  and querying :py:class:`~gridfs.GridFS`.
 - Added document_class and tz_aware options to
-  :py:class`~pymongo.master_slave_connection.MasterSlaveConnection`
+  :py:class:`~pymongo.master_slave_connection.MasterSlaveConnection`
 
 Issues Resolved
 ...............
@@ -3090,7 +3090,7 @@ See the `PyMongo 2.1 release notes in JIRA`_ for the list of resolved issues in 
 Changes in Version 2.0.1
 ------------------------
 
-Version 2.0.1 fixes a regression in :py:class`~gridfs.grid_file.GridIn` when
+Version 2.0.1 fixes a regression in :py:class:`~gridfs.grid_file.GridIn` when
 writing pre-chunked strings. Thanks go to Alexey Borzenkov for reporting the
 issue and submitting a patch.
 
@@ -3127,7 +3127,7 @@ Important New Features:
   some extra time waiting for more data to return. The ``partial`` flag tells
   a mongos to return partial data for a query if not all shards are available.
 - :py:meth:`~pymongo.collection.Collection.map_reduce` will accept a ``dict`` or
-  instance of :py:class`~bson.son.SON` as the ``out`` parameter.
+  instance of :py:class:`~bson.son.SON` as the ``out`` parameter.
 - The URI parser has been moved into its own module and can be used directly
   by application code.
 - AutoReconnect exception now provides information about the error that
@@ -3138,7 +3138,7 @@ Important New Features:
 
 API changes:
 
-- If only one host:port pair is specified :py:class`~pymongo.connection.Connection`
+- If only one host:port pair is specified :py:class:`~pymongo.connection.Connection`
   will make a direct connection to only that host. Please note that ``slave_okay``
   must be ``True`` in order to query from a secondary.
 - If more than one host:port pair is specified or the ``replicaset`` option is
@@ -3149,7 +3149,7 @@ API changes:
 
 .. code-block:: python
 
-    The default subtype for :py:class`~bson.binary.Binary` has changed
+    The default subtype for :py:class:`~bson.binary.Binary` has changed
     from :const:`~bson.binary.OLD_BINARY_SUBTYPE` (2) to
     :const:`~bson.binary.BINARY_SUBTYPE` (0).
 
@@ -3172,7 +3172,7 @@ New Features:
   MongoDB URI provided it is enclosed in '[' and ']'.
 - max_pool_size option: previously pymongo had a hard coded pool size
   of 10 connections. With this change you can specify a different pool
-  size as a parameter to :py:class`~pymongo.connection.Connection`
+  size as a parameter to :py:class:`~pymongo.connection.Connection`
   (max_pool_size=<integer>) or in the MongoDB URI (maxPoolSize=<integer>).
 - Find by metadata in GridFS: You can know specify query fields as
   keyword parameters for :py:meth:`~gridfs.GridFS.get_version` and
@@ -3190,7 +3190,7 @@ API changes:
   details.
 
 .. warning::  The ``pool_size``, ``auto_start_request```, and ``timeout`` parameters
-              for :py:class`~pymongo.connection.Connection` have been completely
+              for :py:class:`~pymongo.connection.Connection` have been completely
               removed in this release. They were deprecated in pymongo-1.4 and
               have had no effect since then. Please make sure that your code
               doesn't currently pass these parameters when creating a
@@ -3223,13 +3223,13 @@ have been fixed as well.
 
 There are two behavior changes to be aware of:
 
-- If a read slave raises :py:class`~pymongo.errors.AutoReconnect`
-  :py:class`~pymongo.master_slave_connection.MasterSlaveConnection` will now
+- If a read slave raises :py:class:`~pymongo.errors.AutoReconnect`
+  :py:class:`~pymongo.master_slave_connection.MasterSlaveConnection` will now
   retry the query on each slave until it is successful or all slaves have
-  raised :py:class`~pymongo.errors.AutoReconnect`. Any other exception will
+  raised :py:class:`~pymongo.errors.AutoReconnect`. Any other exception will
   immediately be raised. The order that the slaves are tried is random.
   Previously the read would be sent to one randomly chosen slave and
-  :py:class`~pymongo.errors.AutoReconnect` was immediately raised in case
+  :py:class:`~pymongo.errors.AutoReconnect` was immediately raised in case
   of a connection failure.
 - A Python ``long`` is now always BSON encoded as an int64. Previously the
   encoding was based only on the value of the field and a ``long`` with a
@@ -3283,17 +3283,17 @@ server for the maximum BSON document size it supports.
 Issues resolved
 ...............
 
-- PYTHON-225: :py:class`~pymongo.objectid.ObjectId` class definition should use __slots__.
+- PYTHON-225: :py:class:`~pymongo.objectid.ObjectId` class definition should use __slots__.
 - PYTHON-223: Documentation fix.
 - PYTHON-220: Documentation fix.
 - PYTHON-219: KeyError in :py:meth:`~pymongo.collection.Collection.find_and_modify`
 - PYTHON-213: Query server for maximum BSON document size.
-- PYTHON-208: Fix :py:class`~pymongo.connection.Connection` __repr__.
+- PYTHON-208: Fix :py:class:`~pymongo.connection.Connection` __repr__.
 - PYTHON-207: Changes to Map/Reduce API.
 - PYTHON-205: Accept slaveOk in the URI to match the URI docs.
 - PYTHON-203: When slave_okay=True and we only specify one host don't autodetect other set members.
 - PYTHON-194: Show size when whining about a document being too large.
-- PYTHON-184: Raise :py:class`~pymongo.errors.DuplicateKeyError` for duplicate keys in capped collections.
+- PYTHON-184: Raise :py:class:`~pymongo.errors.DuplicateKeyError` for duplicate keys in capped collections.
 - PYTHON-178: Don't segfault when trying to encode a recursive data structure.
 - PYTHON-177: Don't segfault when decoding dicts with broken iterators.
 - PYTHON-172: Fix a typo.
@@ -3307,38 +3307,38 @@ Changes in Version 1.9
 ----------------------
 
 Version 1.9 adds a new package to the PyMongo distribution,
-:py:mod:`bson`. :py:mod:`bson` contains all of the `BSON
+``bson``. ``bson`` contains all of the `BSON
 <http://bsonspec.org>`_ encoding and decoding logic, and the BSON
-types that were formerly in the :py:mod:`pymongo` package. The following
+types that were formerly in the ``pymongo`` package. The following
 modules have been renamed:
 
-  - :py:mod:`pymongo.bson` -> :py:mod:`bson`
-  - :py:mod:`pymongo._cbson` -> :py:mod:`bson._cbson` and
-    :py:mod:`pymongo._cmessage`
-  - :py:mod:`pymongo.binary` -> :py:mod:`bson.binary`
-  - :py:mod:`pymongo.code` -> :py:mod:`bson.code`
-  - :py:mod:`pymongo.dbref` -> :py:mod:`bson.dbref`
-  - :py:mod:`pymongo.json_util` -> :py:mod:`bson.json_util`
-  - :py:mod:`pymongo.max_key` -> :py:mod:`bson.max_key`
-  - :py:mod:`pymongo.min_key` -> :py:mod:`bson.min_key`
-  - :py:mod:`pymongo.objectid` -> :py:mod:`bson.objectid`
-  - :py:mod:`pymongo.son` -> :py:mod:`bson.son`
-  - :py:mod:`pymongo.timestamp` -> :py:mod:`bson.timestamp`
-  - :py:mod:`pymongo.tz_util` -> :py:mod:`bson.tz_util`
+  - ``pymongo.bson`` -> ``bson``
+  - ``pymongo._cbson`` -> ``bson._cbson`` and
+    ``pymongo._cmessage``
+  - ``pymongo.binary`` -> ``bson.binary``
+  - ``pymongo.code`` -> ``bson.code``
+  - ``pymongo.dbref`` -> ``bson.dbref``
+  - ``pymongo.json_util`` -> ``bson.json_util``
+  - ``pymongo.max_key`` -> ``bson.max_key``
+  - ``pymongo.min_key`` -> ``bson.min_key``
+  - ``pymongo.objectid`` -> ``bson.objectid``
+  - ``pymongo.son`` -> ``bson.son``
+  - ``pymongo.timestamp`` -> ``bson.timestamp``
+  - ``pymongo.tz_util`` -> ``bson.tz_util``
 
 In addition, the following exception classes have been renamed:
 
-  - :py:class`pymongo.errors.InvalidBSON` ->
-    :py:class`bson.errors.InvalidBSON`
-  - :py:class`pymongo.errors.InvalidStringData` ->
-    :py:class`bson.errors.InvalidStringData`
-  - :py:class`pymongo.errors.InvalidDocument` ->
-    :py:class`bson.errors.InvalidDocument`
-  - :py:class`pymongo.errors.InvalidId` ->
-    :py:class`bson.errors.InvalidId`
+  - :py:class:`pymongo.errors.InvalidBSON` ->
+    :py:class:`bson.errors.InvalidBSON`
+  - :py:class:`pymongo.errors.InvalidStringData` ->
+    :py:class:`bson.errors.InvalidStringData`
+  - :py:class:`pymongo.errors.InvalidDocument` ->
+    :py:class:`bson.errors.InvalidDocument`
+  - :py:class:`pymongo.errors.InvalidId` ->
+    :py:class:`bson.errors.InvalidId`
 
-The above exceptions now inherit from :py:class`bson.errors.BSONError`
-rather than :py:class`pymongo.errors.PyMongoError`.
+The above exceptions now inherit from :py:class:`bson.errors.BSONError`
+rather than :py:class:`pymongo.errors.PyMongoError`.
 
 .. note::  All of the renamed modules and exceptions above have aliases
            created with the old names, so these changes should not break
@@ -3351,47 +3351,47 @@ rather than :py:class`pymongo.errors.PyMongoError`.
 
   The change to the exception hierarchy mentioned above is
   possibly breaking. If your code is catching
-  :py:class`~pymongo.errors.PyMongoError`, then the exceptions raised
-  by :py:mod:`bson` will not be caught, even though they would have been
+  :py:class:`~pymongo.errors.PyMongoError`, then the exceptions raised
+  by ``bson`` will not be caught, even though they would have been
   caught previously. Before upgrading, it is recommended that users
   check for any cases like this.
 
 - the C extension now shares buffer.c/h with the Ruby driver
-- :py:mod:`bson` no longer raises :py:class`~pymongo.errors.InvalidName`,
+- ``bson`` no longer raises :py:class:`~pymongo.errors.InvalidName`,
   all occurrences have been replaced with
-  :py:class`~bson.errors.InvalidDocument`.
+  :py:class:`~bson.errors.InvalidDocument`.
 - renamed :py:meth:`bson._to_dicts` to :py:meth:`~bson.decode_all`.
 - renamed :py:meth:`~bson.BSON.from_dict` to :py:meth:`~bson.BSON.encode`
   and :py:meth:`~bson.BSON.to_dict` to :py:meth:`~bson.BSON.decode`.
 - added :py:meth:`~pymongo.cursor.Cursor.batch_size`.
 - allow updating (some) file metadata after a
-  :py:class`~gridfs.grid_file.GridIn` instance has been closed.
+  :py:class:`~gridfs.grid_file.GridIn` instance has been closed.
 - performance improvements for reading from GridFS.
 - special cased slice with the same start and stop to return an empty
   cursor.
-- allow writing :py:class`unicode` to GridFS if an :attr:`encoding`
+- allow writing :py:class:`unicode` to GridFS if an :attr:`encoding`
   attribute has been specified for the file.
 - added :py:meth:`gridfs.GridFS.get_version`.
-- scope variables for :py:class`~bson.code.Code` can now be specified as
+- scope variables for :py:class:`~bson.code.Code` can now be specified as
   keyword arguments.
 - added :py:meth:`~gridfs.grid_file.GridOut.readline` to
-  :py:class`~gridfs.grid_file.GridOut`.
+  :py:class:`~gridfs.grid_file.GridOut`.
 - make a best effort to transparently auto-reconnect if a
-  :py:class`~pymongo.connection.Connection` has been idle for a while.
+  :py:class:`~pymongo.connection.Connection` has been idle for a while.
 - added :py:meth:`~pymongo.database.SystemJS.list` to
-  :py:class`~pymongo.database.SystemJS`.
+  :py:class:`~pymongo.database.SystemJS`.
 - added ``file_document`` argument to :py:meth:`~gridfs.grid_file.GridOut`
   to allow initializing from an existing file document.
-- raise :py:class`~pymongo.errors.TimeoutError` even if the
+- raise :py:class:`~pymongo.errors.TimeoutError` even if the
   ``getLastError`` command was run manually and not through "safe"
   mode.
-- added :py:class`uuid` support to :py:mod:`~bson.json_util`.
+- added :py:class:`uuid` support to ``~bson.json_util``.
 
 Changes in Version 1.8.1
 ------------------------
 
 - fixed a typo in the C extension that could cause safe-mode
-  operations to report a failure (:py:class`SystemError`) even when none
+  operations to report a failure (:py:class:`SystemError`) even when none
   occurred.
 - added a :py:meth:`__ne__` implementation to any class where we define
   :py:meth:`__eq__`.
@@ -3404,7 +3404,7 @@ per-operation values for ``w`` and ``wtimeout``, and decoding to
 timezone-aware datetimes.
 
 - fixed a reference leak in the C extension when decoding a
-  :py:class`~bson.dbref.DBRef`.
+  :py:class:`~bson.dbref.DBRef`.
 - added support for ``w``, ``wtimeout``, and ``fsync`` (and any other
   options for ``getLastError``) to "safe mode" operations.
 - added :attr:`~pymongo.connection.Connection.nodes` property.
@@ -3414,15 +3414,15 @@ timezone-aware datetimes.
   :py:meth:`~pymongo.connection.Connection.paired`, both are supplanted
   by extended functionality in :py:meth:`~pymongo.connection.Connection`.
 - added tz aware support for datetimes in
-  :py:class`~bson.objectid.ObjectId`,
-  :py:class`~bson.timestamp.Timestamp` and :py:mod:`~bson.json_util`
+  :py:class:`~bson.objectid.ObjectId`,
+  :py:class:`~bson.timestamp.Timestamp` and ``~bson.json_util``
   methods.
 - added :py:meth:`~pymongo.collection.Collection.drop` helper.
 - reuse the socket used for finding the master when a
-  :py:class`~pymongo.connection.Connection` is first created.
-- added support for :py:class`~bson.min_key.MinKey`,
-  :py:class`~bson.max_key.MaxKey` and
-  :py:class`~bson.timestamp.Timestamp` to :py:mod:`~bson.json_util`.
+  :py:class:`~pymongo.connection.Connection` is first created.
+- added support for :py:class:`~bson.min_key.MinKey`,
+  :py:class:`~bson.max_key.MaxKey` and
+  :py:class:`~bson.timestamp.Timestamp` to ``~bson.json_util``.
 - added support for decoding datetimes as aware (UTC) - it is highly
   recommended to enable this by setting the ``tz_aware`` parameter to
   :py:meth:`~pymongo.connection.Connection` to ``True``.
@@ -3431,10 +3431,10 @@ timezone-aware datetimes.
   :py:meth:`~pymongo.collection.Collection.find_one`.
 - added :py:meth:`~gridfs.GridFS.exists` to check if a file exists in
   GridFS.
-- added support for additional keys in :py:class`~bson.dbref.DBRef`
+- added support for additional keys in :py:class:`~bson.dbref.DBRef`
   instances.
 - added :attr:`~pymongo.errors.OperationFailure.code` attribute to
-  :py:class`~pymongo.errors.OperationFailure` exceptions.
+  :py:class:`~pymongo.errors.OperationFailure` exceptions.
 - fixed serialization of int and float subclasses in the C extension.
 
 Changes in Version 1.7
@@ -3446,9 +3446,9 @@ highlights is `here
 <http://dirolf.com/2010/06/17/pymongo-1.7-released.html>`_.
 
 - no longer attempt to build the C extension on big-endian systems.
-- added :py:class`~bson.min_key.MinKey` and
-  :py:class`~bson.max_key.MaxKey`.
-- use unsigned for :py:class`~bson.timestamp.Timestamp` in BSON
+- added :py:class:`~bson.min_key.MinKey` and
+  :py:class:`~bson.max_key.MaxKey`.
+- use unsigned for :py:class:`~bson.timestamp.Timestamp` in BSON
   encoder/decoder.
 - support ``True`` as ``"ok"`` in command responses, in addition to
   ``1.0`` - necessary for server versions **>= 1.5.X**
@@ -3459,14 +3459,14 @@ highlights is `here
   specify class for returned documents.
 - added ``as_class`` argument for
   :py:meth:`~pymongo.collection.Collection.find`, and in the BSON decoder.
-- added support for creating :py:class`~bson.timestamp.Timestamp`
-  instances using a :py:class`~datetime.datetime`.
+- added support for creating :py:class:`~bson.timestamp.Timestamp`
+  instances using a :py:class:`~datetime.datetime`.
 - allow ``dropTarget`` argument for
-  :py:class`~pymongo.collection.Collection.rename`.
-- handle aware :py:class`~datetime.datetime` instances, by converting to
+  :py:class:`~pymongo.collection.Collection.rename`.
+- handle aware :py:class:`~datetime.datetime` instances, by converting to
   UTC.
-- added support for :py:class`~pymongo.cursor.Cursor.max_scan`.
-- raise :py:class`~gridfs.errors.FileExists` exception when creating a
+- added support for :py:class:`~pymongo.cursor.Cursor.max_scan`.
+- raise :py:class:`~gridfs.errors.FileExists` exception when creating a
   duplicate GridFS file.
 - use `y2038 <https://github.com/evalEmpire/y2038/>`_ for time handling in
   the C extension - eliminates 2038 problems when extension is
@@ -3474,16 +3474,16 @@ highlights is `here
 - added ``sort`` parameter to
   :py:meth:`~pymongo.collection.Collection.find`
 - finalized deprecation of changes from versions **<= 1.4**
-- take any non-:py:class`dict` as an ``"_id"`` query for
+- take any non-:py:class:`dict` as an ``"_id"`` query for
   :py:meth:`~pymongo.collection.Collection.find_one` or
   :py:meth:`~pymongo.collection.Collection.remove`
-- added ability to pass a :py:class`dict` for ``fields`` argument to
+- added ability to pass a :py:class:`dict` for ``fields`` argument to
   :py:meth:`~pymongo.collection.Collection.find` (supports ``"$slice"``
   and field negation)
 - simplified code to find master, since paired setups don't always have
   a remote
 - fixed bug in C encoder for certain invalid types (like
-  :py:class`~pymongo.collection.Collection` instances).
+  :py:class:`~pymongo.collection.Collection` instances).
 - don't transparently map ``"filename"`` key to :attr:`name` attribute
   for GridFS.
 
@@ -3491,7 +3491,7 @@ Changes in Version 1.6
 ----------------------
 
 The biggest change in version 1.6 is a complete re-implementation of
-:py:mod:`gridfs` with a lot of improvements over the old
+``gridfs`` with a lot of improvements over the old
 implementation. There are many details and examples of using the new
 API in `this blog post
 <http://dirolf.com/2010/03/29/new-gridfs-implementation-for-pymongo.html>`_. The
@@ -3499,11 +3499,11 @@ old API has been removed in this version, so existing code will need
 to be modified before upgrading to 1.6.
 
 - fixed issue where connection pool was being shared across
-  :py:class`~pymongo.connection.Connection` instances.
+  :py:class:`~pymongo.connection.Connection` instances.
 - more improvements to Python code caching in C extension - should
   improve behavior on mod_wsgi.
 - added :py:meth:`~bson.objectid.ObjectId.from_datetime`.
-- complete rewrite of :py:mod:`gridfs` support.
+- complete rewrite of ``gridfs`` support.
 - improvements to the :py:meth:`~pymongo.database.Database.command` API.
 - fixed :py:meth:`~pymongo.collection.Collection.drop_indexes` behavior
   on non-existent collections.
@@ -3517,8 +3517,8 @@ Changes in Version 1.5.2
 Changes in Version 1.5.1
 ------------------------
 - added :data:`~gridfs.grid_file.GridFile._id` property for
-  :py:class`~gridfs.grid_file.GridFile` instances.
-- fix for making a :py:class`~pymongo.connection.Connection` (with
+  :py:class:`~gridfs.grid_file.GridFile` instances.
+- fix for making a :py:class:`~pymongo.connection.Connection` (with
   ``slave_okay`` set) directly to a slave in a replica pair.
 - accept kwargs for
   :py:meth:`~pymongo.collection.Collection.create_index` and
@@ -3530,7 +3530,7 @@ Changes in Version 1.5.1
 
 Changes in Version 1.5
 ----------------------
-- added subtype constants to :py:mod:`~bson.binary` module.
+- added subtype constants to ``~bson.binary`` module.
 - DEPRECATED ``options`` argument to
   :py:meth:`~pymongo.collection.Collection` and
   :py:meth:`~pymongo.database.Database.create_collection` in favor of
@@ -3539,7 +3539,7 @@ Changes in Version 1.5
 - added :py:meth:`~pymongo.connection.Connection.copy_database`.
 - added :data:`~pymongo.cursor.Cursor.alive` to tell when a cursor
   might have more data to return (useful for tailable cursors).
-- added :py:class`~bson.timestamp.Timestamp` to better support
+- added :py:class:`~bson.timestamp.Timestamp` to better support
   dealing with internal MongoDB timestamps.
 - added ``name`` argument for
   :py:meth:`~pymongo.collection.Collection.create_index` and
@@ -3549,19 +3549,19 @@ Changes in Version 1.5
   are allowed for :py:meth:`~pymongo.connection.Connection`.
 - :py:meth:`~pymongo.collection.Collection.insert` returns list for bulk
   inserts of size one.
-- fixed handling of :py:class`datetime.datetime` instances in
-  :py:mod:`~bson.json_util`.
+- fixed handling of :py:class:`datetime.datetime` instances in
+  ``~bson.json_util``.
 - added :py:meth:`~pymongo.connection.Connection.from_uri` to support
   MongoDB connection uri scheme.
-- fixed chunk number calculation when unaligned in :py:mod:`gridfs`.
+- fixed chunk number calculation when unaligned in ``gridfs``.
 - :py:meth:`~pymongo.database.Database.command` takes a string for simple
   commands.
 - added :data:`~pymongo.database.Database.system_js` helper for
   dealing with server-side JS.
 - don't wrap queries containing ``"$query"`` (support manual use of
   ``"$min"``, etc.).
-- added :py:class`~gridfs.errors.GridFSError` as base class for
-  :py:mod:`gridfs` exceptions.
+- added :py:class:`~gridfs.errors.GridFSError` as base class for
+  ``gridfs`` exceptions.
 
 Changes in Version 1.4
 ----------------------
@@ -3585,34 +3585,34 @@ Other changes:
   earlier.
 - enforce that collection names do not contain the NULL byte.
 - fix to allow using UTF-8 collection names with the C extension.
-- added :py:class`~pymongo.errors.PyMongoError` as base exception class
-  for all :py:mod:`~pymongo.errors`. this changes the exception hierarchy
+- added :py:class:`~pymongo.errors.PyMongoError` as base exception class
+  for all ``~pymongo.errors``. this changes the exception hierarchy
   somewhat, and is a BREAKING change if you depend on
-  :py:class`~pymongo.errors.ConnectionFailure` being a :py:class`IOError`
-  or :py:class`~bson.errors.InvalidBSON` being a :py:class`ValueError`,
+  :py:class:`~pymongo.errors.ConnectionFailure` being a :py:class:`IOError`
+  or :py:class:`~bson.errors.InvalidBSON` being a :py:class:`ValueError`,
   for example.
-- added :py:class`~pymongo.errors.DuplicateKeyError` for calls to
+- added :py:class:`~pymongo.errors.DuplicateKeyError` for calls to
   :py:meth:`~pymongo.collection.Collection.insert` or
   :py:meth:`~pymongo.collection.Collection.update` with ``safe`` set to
   ``True``.
-- removed :py:mod:`~pymongo.thread_util`.
+- removed ``~pymongo.thread_util``.
 - added :py:meth:`~pymongo.database.Database.add_user` and
   :py:meth:`~pymongo.database.Database.remove_user` helpers.
 - fix for :py:meth:`~pymongo.database.Database.authenticate` when using
   non-UTF-8 names or passwords.
 - minor fixes for
-  :py:class`~pymongo.master_slave_connection.MasterSlaveConnection`.
-- clean up all cases where :py:class`~pymongo.errors.ConnectionFailure`
+  :py:class:`~pymongo.master_slave_connection.MasterSlaveConnection`.
+- clean up all cases where :py:class:`~pymongo.errors.ConnectionFailure`
   is raised.
 - simplification of connection pooling - makes driver ~2x faster for
   simple benchmarks. see :ref:`connection-pooling` for more information.
 - DEPRECATED ``pool_size``, ``auto_start_request`` and ``timeout``
-  parameters to :py:class`~pymongo.connection.Connection`. DEPRECATED
+  parameters to :py:class:`~pymongo.connection.Connection`. DEPRECATED
   :py:meth:`~pymongo.connection.Connection.start_request`.
 - use :py:meth:`socket.sendall`.
 - removed :py:meth:`~bson.son.SON.from_xml` as it was only being used
   for some internal testing - also eliminates dependency on
-  :py:mod:`elementtree`.
+  ``elementtree``.
 - implementation of :py:meth:`~pymongo.message.update` in C.
 - deprecate :py:meth:`~pymongo.database.Database._command` in favor of
   :py:meth:`~pymongo.database.Database.command`.
@@ -3620,7 +3620,7 @@ Other changes:
 - support string as ``key`` argument to
   :py:meth:`~pymongo.collection.Collection.group` (keyf) and run all
   groups as commands.
-- support for equality testing for :py:class`~bson.code.Code`
+- support for equality testing for :py:class:`~bson.code.Code`
   instances.
 - allow the NULL byte in strings and disallow it in key names or regex
   patterns
@@ -3657,45 +3657,45 @@ Changes in Version 1.2.1
 - added ``setup.py doc --test`` to run doctests for tutorial, examples
 - moved most examples to Sphinx docs (and remove from *examples/*
   directory)
-- raise :py:class`~bson.errors.InvalidId` instead of
-  :py:class`TypeError` when passing a 24 character string to
-  :py:class`~bson.objectid.ObjectId` that contains non-hexadecimal
+- raise :py:class:`~bson.errors.InvalidId` instead of
+  :py:class:`TypeError` when passing a 24 character string to
+  :py:class:`~bson.objectid.ObjectId` that contains non-hexadecimal
   characters
-- allow :py:class`unicode` instances for :py:class`~bson.objectid.ObjectId` init
+- allow :py:class:`unicode` instances for :py:class:`~bson.objectid.ObjectId` init
 
 Changes in Version 1.2
 ----------------------
 - ``spec`` parameter for :py:meth:`~pymongo.collection.Collection.remove` is
   now optional to allow for deleting all documents in a
-  :py:class`~pymongo.collection.Collection`
+  :py:class:`~pymongo.collection.Collection`
 - always wrap queries with ``{query: ...}`` even when no special options -
   get around some issues with queries on fields named ``query``
 - enforce 4MB document limit on the client side
 - added :py:meth:`~pymongo.collection.Collection.map_reduce` helper - see
   :doc:`example <examples/aggregation>`
 - added :py:meth:`~pymongo.cursor.Cursor.distinct` method on
-  :py:class`~pymongo.cursor.Cursor` instances to allow distinct with
+  :py:class:`~pymongo.cursor.Cursor` instances to allow distinct with
   queries
 - fix for :py:meth:`~pymongo.cursor.Cursor.__getitem__` after
   :py:meth:`~pymongo.cursor.Cursor.skip`
-- allow any UTF-8 string in :py:class`~bson.BSON` encoder, not
+- allow any UTF-8 string in :py:class:`~bson.BSON` encoder, not
   just ASCII subset
 - added :attr:`~bson.objectid.ObjectId.generation_time`
-- removed support for legacy :py:class`~bson.objectid.ObjectId`
+- removed support for legacy :py:class:`~bson.objectid.ObjectId`
   format - pretty sure this was never used, and is just confusing
 - DEPRECATED :py:meth:`~bson.objectid.ObjectId.url_encode` and
   :py:meth:`~bson.objectid.ObjectId.url_decode` in favor of :py:meth:`str`
   and :py:meth:`~bson.objectid.ObjectId`, respectively
 - allow *oplog.$main* as a valid collection name
 - some minor fixes for installation process
-- added support for datetime and regex in :py:mod:`~bson.json_util`
+- added support for datetime and regex in ``~bson.json_util``
 
 Changes in Version 1.1.2
 ------------------------
 - improvements to :py:meth:`~pymongo.collection.Collection.insert` speed
   (using C for insert message creation)
 - use random number for request_id
-- fix some race conditions with :py:class`~pymongo.errors.AutoReconnect`
+- fix some race conditions with :py:class:`~pymongo.errors.AutoReconnect`
 
 Changes in Version 1.1.1
 ------------------------
@@ -3703,8 +3703,8 @@ Changes in Version 1.1.1
   :py:meth:`~pymongo.collection.Collection.update`
 - fix unicode regex patterns with C extension
 - added :py:meth:`~pymongo.collection.Collection.distinct`
-- added ``database`` support for :py:class`~bson.dbref.DBRef`
-- added :py:mod:`~bson.json_util` with helpers for encoding / decoding
+- added ``database`` support for :py:class:`~bson.dbref.DBRef`
+- added ``~bson.json_util`` with helpers for encoding / decoding
   special types to JSON
 - DEPRECATED :py:meth:`pymongo.cursor.Cursor.__len__` in favor of
   :py:meth:`~pymongo.cursor.Cursor.count` with ``with_limit_and_skip`` set
@@ -3713,12 +3713,12 @@ Changes in Version 1.1.1
 
 Changes in Version 1.1
 ----------------------
-- added :py:meth:`__hash__` for :py:class`~bson.dbref.DBRef` and
-  :py:class`~bson.objectid.ObjectId`
+- added :py:meth:`__hash__` for :py:class:`~bson.dbref.DBRef` and
+  :py:class:`~bson.objectid.ObjectId`
 - bulk :py:meth:`~pymongo.collection.Collection.insert` works with any
   iterable
-- fix :py:class`~bson.objectid.ObjectId` generation when using
-  :py:mod:`multiprocessing`
+- fix :py:class:`~bson.objectid.ObjectId` generation when using
+  ``multiprocessing``
 - added :attr:`~pymongo.cursor.Cursor.collection`
 - added ``network_timeout`` parameter for
   :py:meth:`~pymongo.connection.Connection`
@@ -3730,17 +3730,17 @@ Changes in Version 1.1
 Changes in Version 1.0
 ----------------------
 - fixes for
-  :py:class`~pymongo.master_slave_connection.MasterSlaveConnection`
+  :py:class:`~pymongo.master_slave_connection.MasterSlaveConnection`
 - added ``finalize`` parameter for :py:meth:`~pymongo.collection.Collection.group`
 - improvements to :py:meth:`~pymongo.collection.Collection.insert` speed
-- improvements to :py:mod:`gridfs` speed
+- improvements to ``gridfs`` speed
 - added :py:meth:`~pymongo.cursor.Cursor.__getitem__` and
   :py:meth:`~pymongo.cursor.Cursor.__len__` for
-  :py:class`~pymongo.cursor.Cursor` instances
+  :py:class:`~pymongo.cursor.Cursor` instances
 
 Changes in Version 0.16
 -----------------------
-- support for encoding/decoding :py:class`uuid.UUID` instances
+- support for encoding/decoding :py:class:`uuid.UUID` instances
 - fix for :py:meth:`~pymongo.cursor.Cursor.explain` with limits
 
 Changes in Version 0.15.2
@@ -3754,12 +3754,12 @@ Changes in Version 0.15.1
   :py:meth:`~pymongo.collection.Collection.create_index` and
   :py:meth:`~pymongo.collection.Collection.ensure_index` when indexing a
   single key
-- support for encoding :py:class`tuple` instances as :py:class`list`
+- support for encoding :py:class:`tuple` instances as :py:class:`list`
   instances
 
 Changes in Version 0.15
 -----------------------
-- fix string representation of :py:class`~bson.objectid.ObjectId`
+- fix string representation of :py:class:`~bson.objectid.ObjectId`
   instances
 - added ``timeout`` parameter for
   :py:meth:`~pymongo.collection.Collection.find`
@@ -3774,11 +3774,11 @@ Changes in Version 0.14.1
 -------------------------
 - :py:meth:`~gridfs.grid_file.GridFile.seek` and
   :py:meth:`~gridfs.grid_file.GridFile.tell` for (read mode)
-  :py:class`~gridfs.grid_file.GridFile` instances
+  :py:class:`~gridfs.grid_file.GridFile` instances
 
 Changes in Version 0.14
 -----------------------
-- support for long in :py:class`~bson.BSON`
+- support for long in :py:class:`~bson.BSON`
 - added :py:meth:`~pymongo.collection.Collection.rename`
 - added ``snapshot`` parameter for
   :py:meth:`~pymongo.collection.Collection.find`
@@ -3786,7 +3786,7 @@ Changes in Version 0.14
 Changes in Version 0.13
 -----------------------
 - better
-  :py:class`~pymongo.master_slave_connection.MasterSlaveConnection`
+  :py:class:`~pymongo.master_slave_connection.MasterSlaveConnection`
   support
 - API CHANGE :py:meth:`~pymongo.collection.Collection.insert` and
   :py:meth:`~pymongo.collection.Collection.save` both return inserted
@@ -3796,11 +3796,11 @@ Changes in Version 0.13
 
 Changes in Version 0.12
 -----------------------
-- improved :py:class`~bson.objectid.ObjectId` generation
-- added :py:class`~pymongo.errors.AutoReconnect` exception for when
+- improved :py:class:`~bson.objectid.ObjectId` generation
+- added :py:class:`~pymongo.errors.AutoReconnect` exception for when
   reconnection is possible
-- make :py:mod:`gridfs` thread-safe
-- fix for :py:mod:`gridfs` with non :py:class`~bson.objectid.ObjectId` ``_id``
+- make ``gridfs`` thread-safe
+- fix for ``gridfs`` with non :py:class:`~bson.objectid.ObjectId` ``_id``
 
 Changes in Version 0.11.3
 -------------------------
@@ -3830,16 +3830,16 @@ Changes in Version 0.10.3
 - better exception when modules get reloaded out from underneath the C
   extension
 - better exception messages when calling a
-  :py:class`~pymongo.collection.Collection` or
-  :py:class`~pymongo.database.Database` instance
+  :py:class:`~pymongo.collection.Collection` or
+  :py:class:`~pymongo.database.Database` instance
 
 Changes in Version 0.10.2
 -------------------------
-- support subclasses of :py:class`dict` in C encoder
+- support subclasses of :py:class:`dict` in C encoder
 
 Changes in Version 0.10.1
 -------------------------
-- alias :py:class`~pymongo.connection.Connection` as
+- alias :py:class:`~pymongo.connection.Connection` as
   :attr:`pymongo.Connection`
 - raise an exception rather than silently overflowing in encoder
 
@@ -3850,6 +3850,6 @@ Changes in Version 0.10
 Changes in Version 0.9.7
 ------------------------
 - allow sub-collections of *$cmd* as valid
-  :py:class`~pymongo.collection.Collection` names
+  :py:class:`~pymongo.collection.Collection` names
 - add version as :attr:`pymongo.version`
 - add ``--no_ext`` command line option to *setup.py*

@@ -1,4 +1,4 @@
-:py:mod:`errors` -- Exceptions raised by the :py:mod:`gridfs` package
+``errors`` -- Exceptions raised by the ``gridfs`` package
 =================================================================
 
 .. automodule:: gridfs.errors

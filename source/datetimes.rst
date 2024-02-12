@@ -11,13 +11,13 @@ Datetimes and Timezones
    client.drop_database("dt_example")
    db = client.dt_example
 
-These examples show how to handle Python :py:class`datetime.datetime` objects
+These examples show how to handle Python :py:class:`datetime.datetime` objects
 correctly in PyMongo.
 
 Basic Usage
 -----------
 
-PyMongo uses :py:class`datetime.datetime` objects for representing dates and times
+PyMongo uses :py:class:`datetime.datetime` objects for representing dates and times
 in MongoDB documents. Because MongoDB assumes that dates and times are in UTC,
 care should be taken to ensure that dates and times written to the database
 reflect UTC. For example, the following code stores the current UTC date and
@@ -47,8 +47,8 @@ confusing to the application that reads them:
    [datetime.datetime(2015, 7, 8, 18, 17, 28, 324000),
     datetime.datetime(2015, 7, 8, 11, 17, 42, 911000)]
 
-:py:class`bson.codec_options.CodecOptions` has a ``tz_aware`` option that enables
-"aware" :py:class`datetime.datetime` objects, i.e., datetimes that know what
+:py:class:`bson.codec_options.CodecOptions` has a ``tz_aware`` option that enables
+"aware" :py:class:`datetime.datetime` objects, i.e., datetimes that know what
 timezone they're in. By default, PyMongo retrieves naive datetimes:
 
 .. code-block:: python
@@ -64,7 +64,7 @@ timezone they're in. By default, PyMongo retrieves naive datetimes:
 Saving Datetimes with Timezones
 -------------------------------
 
-When storing :py:class`datetime.datetime` objects that specify a timezone
+When storing :py:class:`datetime.datetime` objects that specify a timezone
 (i.e. they have a ``tzinfo`` property that isn't ``None``), PyMongo will convert
 those datetimes to UTC automatically:
 
@@ -80,15 +80,15 @@ those datetimes to UTC automatically:
 Reading Time
 ------------
 
-As previously mentioned, by default all :py:class`datetime.datetime` objects
+As previously mentioned, by default all :py:class:`datetime.datetime` objects
 returned by PyMongo will be naive but reflect UTC (i.e. the time as stored in
 MongoDB). By setting the ``tz_aware`` option on
-:py:class`~bson.codec_options.CodecOptions`, :py:class`datetime.datetime` objects
+:py:class:`~bson.codec_options.CodecOptions`, :py:class:`datetime.datetime` objects
 will be timezone-aware and have a ``tzinfo`` property that reflects the UTC
 timezone.
 
 PyMongo 3.1 introduced a ``tzinfo`` property that can be set on
-:py:class`~bson.codec_options.CodecOptions` to convert :py:class`datetime.datetime`
+:py:class:`~bson.codec_options.CodecOptions` to convert :py:class:`datetime.datetime`
 objects to local time automatically. For example, if we wanted to read all times
 out of MongoDB in US/Pacific time:
 
@@ -107,27 +107,27 @@ out of MongoDB in US/Pacific time:
 Handling out of range datetimes
 -------------------------------
 
-Python's :py:class`~datetime.datetime` can only represent datetimes within the
+Python's :py:class:`~datetime.datetime` can only represent datetimes within the
 range allowed by
 :attr:`~datetime.datetime.min` and :attr:`~datetime.datetime.max`, whereas
 the range of datetimes allowed in BSON can represent any 64-bit number
 of milliseconds from the Unix epoch. To deal with this, we can use the
-:py:class`bson.datetime_ms.DatetimeMS` object, which is a wrapper for the
-:py:class`int` built-in.
+:py:class:`bson.datetime_ms.DatetimeMS` object, which is a wrapper for the
+:py:class:`int` built-in.
 
-To decode UTC datetime values as :py:class`~bson.datetime_ms.DatetimeMS`,
-:py:class`~bson.codec_options.CodecOptions` should have its
+To decode UTC datetime values as :py:class:`~bson.datetime_ms.DatetimeMS`,
+:py:class:`~bson.codec_options.CodecOptions` should have its
 ``datetime_conversion`` parameter set to one of the options available in
-:py:class`bson.datetime_ms.DatetimeConversion`. These include
+:py:class:`bson.datetime_ms.DatetimeConversion`. These include
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME`,
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME_MS`,
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME_AUTO`,
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME_CLAMP`.
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME` is the default
-option and has the behavior of raising an :py:class`~builtin.OverflowError` upon
+option and has the behavior of raising an :py:class:`~builtin.OverflowError` upon
 attempting to decode an out-of-range date.
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME_MS` will only return
-:py:class`~bson.datetime_ms.DatetimeMS` objects, regardless of whether the
+:py:class:`~bson.datetime_ms.DatetimeMS` objects, regardless of whether the
 represented datetime is in- or out-of-range:
 
 .. code-block:: python
@@ -142,9 +142,9 @@ represented datetime is in- or out-of-range:
     {'x': DatetimeMS(0)}
 
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME_AUTO` will return
-:py:class`~datetime.datetime` if the underlying UTC datetime is within range,
-or :py:class`~bson.datetime_ms.DatetimeMS` if the underlying datetime
-cannot be represented using the builtin Python :py:class`~datetime.datetime`:
+:py:class:`~datetime.datetime` if the underlying UTC datetime is within range,
+or :py:class:`~bson.datetime_ms.DatetimeMS` if the underlying datetime
+cannot be represented using the builtin Python :py:class:`~datetime.datetime`:
 
 .. code-block:: python
 
@@ -157,7 +157,7 @@ cannot be represented using the builtin Python :py:class`~datetime.datetime`:
     {'x': DatetimeMS(-4611686018427387904)}
 
 :attr:`~bson.datetime_ms.DatetimeConversion.DATETIME_CLAMP` will clamp
-resulting :py:class`~datetime.datetime` objects to be within
+resulting :py:class:`~datetime.datetime` objects to be within
 :attr:`~datetime.datetime.min` and :attr:`~datetime.datetime.max`
 (trimmed to ``999000`` microseconds):
 
@@ -171,7 +171,7 @@ resulting :py:class`~datetime.datetime` objects to be within
     >>> decode(y, codec_options=codec_clamp)
     {'x': datetime.datetime(1, 1, 1, 0, 0)}
 
-:py:class`~bson.datetime_ms.DatetimeMS` objects have support for rich comparison
-methods against other instances of :py:class`~bson.datetime_ms.DatetimeMS`.
-They can also be converted to :py:class`~datetime.datetime` objects with
+:py:class:`~bson.datetime_ms.DatetimeMS` objects have support for rich comparison
+methods against other instances of :py:class:`~bson.datetime_ms.DatetimeMS`.
+They can also be converted to :py:class:`~datetime.datetime` objects with
 :py:meth:`~bson.datetime_ms.DatetimeMS.to_datetime()`.

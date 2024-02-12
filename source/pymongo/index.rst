@@ -1,4 +1,4 @@
-:py:mod:`pymongo` -- Python driver for MongoDB
+``pymongo`` -- Python driver for MongoDB
 ===========================================
 
 .. automodule:: pymongo
@@ -7,11 +7,11 @@
    .. autodata:: version
    .. data:: MongoClient
 
-      Alias for :py:class`pymongo.mongo_client.MongoClient`.
+      Alias for :py:class:`pymongo.mongo_client.MongoClient`.
 
    .. data:: ReadPreference
 
-      Alias for :py:class`pymongo.read_preferences.ReadPreference`.
+      Alias for :py:class:`pymongo.read_preferences.ReadPreference`.
 
    .. autofunction:: has_c
    .. data:: MIN_SUPPORTED_WIRE_VERSION

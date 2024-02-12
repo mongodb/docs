@@ -1,7 +1,7 @@
 Collations
 ==========
 
-.. seealso:: The API docs for :py:mod:`~pymongo.collation`.
+.. seealso:: The API docs for ``~pymongo.collation``.
 
 Collations are a new feature in MongoDB version 3.4. They provide a set of rules
 to use when comparing strings that comply with the conventions of a particular
@@ -31,7 +31,7 @@ Users can specify a collation for a
 Collation Parameters:
 ~~~~~~~~~~~~~~~~~~~~~
 
-Collations can be specified with the :py:class`~pymongo.collation.Collation` model
+Collations can be specified with the :py:class:`~pymongo.collation.Collation` model
 or with plain Python dictionaries. The structure is the same:
 
 .. code-block:: python

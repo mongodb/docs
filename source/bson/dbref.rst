@@ -1,4 +1,4 @@
-:py:mod:`dbref` -- Tools for manipulating DBRefs (references to documents stored in MongoDB)
+``dbref`` -- Tools for manipulating DBRefs (references to documents stored in MongoDB)
 =========================================================================================
 
 .. automodule:: bson.dbref

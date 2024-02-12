@@ -3,7 +3,7 @@ Using PyMongo with MongoDB Atlas
 
 `Atlas <https://www.mongodb.com/cloud>`_ is MongoDB, Inc.'s hosted MongoDB as a
 service offering. To connect to Atlas, pass the connection string provided by
-Atlas to :py:class`~pymongo.mongo_client.MongoClient`:
+Atlas to :py:class:`~pymongo.mongo_client.MongoClient`:
 
 .. code-block:: python
 

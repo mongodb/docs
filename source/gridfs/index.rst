@@ -1,4 +1,4 @@
-:py:mod:`gridfs` -- Tools for working with GridFS
+``gridfs`` -- Tools for working with GridFS
 ==============================================
 
 .. automodule:: gridfs

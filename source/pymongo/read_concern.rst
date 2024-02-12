@@ -1,4 +1,4 @@
-:py:mod:`read_concern` -- Tools for working with read concern.
+``read_concern`` -- Tools for working with read concern.
 ===========================================================
 
 .. automodule:: pymongo.read_concern

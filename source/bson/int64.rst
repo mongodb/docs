@@ -1,4 +1,4 @@
-:py:mod:`int64` -- Tools for representing BSON int64
+``int64`` -- Tools for representing BSON int64
 =================================================
 .. versionadded:: 3.0
 

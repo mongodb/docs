@@ -1,4 +1,4 @@
-:py:mod:`raw_bson` -- Tools for representing raw BSON documents.
+``raw_bson`` -- Tools for representing raw BSON documents.
 =============================================================
 .. automodule:: bson.raw_bson
    :synopsis: Tools for representing raw BSON documents.

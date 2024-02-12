@@ -1,4 +1,4 @@
-:py:mod:`pool` -- Pool module for use with a MongoDB client.
+``pool`` -- Pool module for use with a MongoDB client.
 ==============================================================
 
 .. automodule:: pymongo.pool

@@ -37,7 +37,7 @@ configured for authentication with MongoDB 4.0 or later. Authentication
 requires a username, a password, and a database name. The default database
 name is "admin", this can be overridden with the ``authSource`` option.
 Credentials can be specified as arguments to
-:py:class`~pymongo.mongo_client.MongoClient`:
+:py:class:`~pymongo.mongo_client.MongoClient`:
 
 .. code-block:: python
 
@@ -64,7 +64,7 @@ configured for authentication with MongoDB 3.0 or later. Authentication
 requires a username, a password, and a database name. The default database
 name is "admin", this can be overridden with the ``authSource`` option.
 Credentials can be specified as arguments to
-:py:class`~pymongo.mongo_client.MongoClient`:
+:py:class:`~pymongo.mongo_client.MongoClient`:
 
 .. code-block:: python
 
