@@ -243,19 +243,17 @@ PyMongo adds an ``_id`` field in this manner for a few reasons:
 If you don't want PyMongo to add an ``_id`` to your documents, insert only
 documents that already have an ``_id`` field, added by your application.
 
-Key order in subdocuments -- why does my query work in the shell but not PyMongo?
----------------------------------------------------------------------------------
-
-.. Note: We should rework this section now that Python 3.6+ has ordered dict.
+Why Does My Query Work in the Shell But Not in PyMongo?
+-------------------------------------------------------
 
 .. code-block:: python
 
-  from bson.son import SON
-  from pymongo.mongo_client import MongoClient
+   from bson.son import SON
+   from pymongo.mongo_client import MongoClient
 
-  collection = MongoClient().test.collection
-  collection.drop()
-  collection.insert_one({"_id": 1.0, "subdocument": SON([("b", 1.0), ("a", 1.0)])})
+   collection = MongoClient().test.collection
+   collection.drop()
+   collection.insert_one({"_id": 1.0, "subdocument": SON([("b", 1.0), ("a", 1.0)])})
 
 The key-value pairs in a BSON document can have any order (except that ``_id``
 is always first). The mongo shell preserves key order when reading and writing
