@@ -17,20 +17,28 @@ The driver supports the following algorithms:
 .. note:: snappy and zstandard compression require additional dependencies. See :ref:`optional-deps`.
 
 Applications can enable wire protocol compression via the ``compressors`` URI and
-keyword argument to :py:meth:`~pymongo.mongo_client.MongoClient`. For example::
+keyword argument to :py:meth:`~pymongo.mongo_client.MongoClient`. For example:
+
+.. code-block:: python
 
   >>> client = MongoClient(compressors='zlib')
 
 When multiple compression algorithms are given, the driver selects the first one in the
-list supported by the MongoDB instance to which it is connected. For example::
+list supported by the MongoDB instance to which it is connected. For example:
+
+.. code-block:: python
 
   >>> client = MongoClient(compressors='snappy,zstandard,zlib')
 
-The ``compressors`` option can also be set via the URI::
+The ``compressors`` option can also be set via the URI:
+
+.. code-block:: python
 
   >>> client = MongoClient('mongodb://example.com/?compressors=snappy,zstandard,zlib')
 
-Additionally, zlib compression allows specifying a compression level with supported values from -1 to 9::
+Additionally, zlib compression allows specifying a compression level with supported values from -1 to 9:
+
+.. code-block:: python
 
   >>> client = MongoClient(compressors='zlib', zlibCompressionLevel=-1)
 

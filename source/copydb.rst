@@ -11,12 +11,16 @@ options ``--nsFrom`` and ``--nsTo``).
 For example, to copy the ``test`` database from a local instance running on the
 default port 27017 to the ``examples`` database on the same instance, you can:
 
-#. Use ``mongodump`` to dump the test database to an archive ``mongodump-test-db``::
+#. Use ``mongodump`` to dump the test database to an archive ``mongodump-test-db``:
+
+.. code-block:: python
 
     mongodump --archive="mongodump-test-db" --db=test
 
 #. Use ``mongorestore`` with ``--nsFrom`` and ``--nsTo`` to restore (with database name change)
-   from the archive::
+   from the archive:
+
+.. code-block:: python
 
     mongorestore --archive="mongodump-test-db" --nsFrom='test.*' --nsTo='examples.*'
 
@@ -32,7 +36,9 @@ MongoDB <= 4.0
 When using MongoDB <= 4.0, it is possible to use the deprecated ``copydb`` command
 to copy a database. To copy a database within a single ``mongod`` process, or
 between ``mongod`` servers, connect to the target ``mongod`` and use the
-:py:meth:`~pymongo.database.Database.command` method::
+:py:meth:`~pymongo.database.Database.command` method:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient('target.example.com')
@@ -40,7 +46,9 @@ between ``mongod`` servers, connect to the target ``mongod`` and use the
                            fromdb='source_db_name',
                            todb='target_db_name')
 
-To copy from a different mongod server that is not password-protected::
+To copy from a different mongod server that is not password-protected:
+
+.. code-block:: python
 
   >>> client.admin.command('copydb',
                            fromdb='source_db_name',
@@ -48,7 +56,9 @@ To copy from a different mongod server that is not password-protected::
                            fromhost='source.example.com')
 
 If the target server is password-protected, authenticate to the "admin"
-database::
+database:
+
+.. code-block:: python
 
   >>> client = MongoClient('target.example.com',
   ...                      username='administrator',

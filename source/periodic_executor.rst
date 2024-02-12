@@ -12,7 +12,9 @@ Killing Cursors
 
 An incompletely iterated :py:class`~cursor.Cursor` on the client represents an
 open cursor object on the server. In code like this, we lose a reference to
-the cursor before finishing iteration::
+the cursor before finishing iteration:
+
+.. code-block:: python
 
     for doc in collection.find():
         raise Exception()

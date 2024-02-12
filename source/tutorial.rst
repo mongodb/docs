@@ -1,7 +1,7 @@
 Tutorial
 ========
 
-.. testsetup::
+.. code-block:: python
 
   from pymongo import MongoClient
 
@@ -221,7 +221,9 @@ Note that an ObjectId is not the same as its string representation:
 A common task in web applications is to get an ObjectId from the
 request URL and find the matching document. It's necessary in this
 case to **convert the ObjectId from a string** before passing it to
-``find_one``::
+``find_one``:
+
+.. code-block:: python
 
   from bson.objectid import ObjectId
 

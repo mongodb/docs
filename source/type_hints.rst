@@ -23,7 +23,9 @@ values for generic document types are not yet provided (they will eventually be 
 For a larger set of examples that use types, see the PyMongo `test_typing module`_.
 
 If you would like to opt out of using the provided types, add the following to
-your `mypy config`_: ::
+your `mypy config`_: :
+
+.. code-block:: python
 
     [mypy-pymongo]
     follow_imports = False
@@ -264,7 +266,9 @@ Troubleshooting
 
 Client Type Annotation
 ~~~~~~~~~~~~~~~~~~~~~~
-If you forget to add a type annotation for a :py:class`~pymongo.mongo_client.MongoClient` object you may get the following ``mypy`` error::
+If you forget to add a type annotation for a :py:class`~pymongo.mongo_client.MongoClient` object you may get the following ``mypy`` error:
+
+.. code-block:: python
 
   from pymongo import MongoClient
   client = MongoClient()  # error: Need type annotation for "client"
@@ -274,7 +278,9 @@ The solution is to annotate the type as ``client: MongoClient`` or ``client: Mon
 Incompatible Types
 ~~~~~~~~~~~~~~~~~~
 If you use the generic form of :py:class`~pymongo.mongo_client.MongoClient` you
-may encounter a ``mypy`` error like::
+may encounter a ``mypy`` error like:
+
+.. code-block:: python
 
   from pymongo import MongoClient
 
@@ -291,7 +297,9 @@ The solution is to use ``client: MongoClient[Dict[str, Any]]`` as used in
 Actual Type Errors
 ~~~~~~~~~~~~~~~~~~
 
-Other times ``mypy`` will catch an actual error, like the following code::
+Other times ``mypy`` will catch an actual error, like the following code:
+
+.. code-block:: python
 
     from pymongo import MongoClient
     from typing import Mapping
@@ -304,7 +312,9 @@ Other times ``mypy`` will catch an actual error, like the following code::
 
 In this case the solution is to use ``insert_one({})``, passing a document instead of a list.
 
-Another example is trying to set a value on a :py:class`~bson.raw_bson.RawBSONDocument`, which is read-only.::
+Another example is trying to set a value on a :py:class`~bson.raw_bson.RawBSONDocument`, which is read-only.:
+
+.. code-block:: python
 
     from bson.raw_bson import RawBSONDocument
     from pymongo import MongoClient

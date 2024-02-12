@@ -13,15 +13,21 @@ Installing with pip
 -------------------
 
 We recommend using `pip <http://pypi.python.org/pypi/pip>`_
-to install pymongo on all platforms::
+to install pymongo on all platforms:
+
+.. code-block:: python
 
   $ python3 -m pip install pymongo
 
-To get a specific version of pymongo::
+To get a specific version of pymongo:
+
+.. code-block:: python
 
   $ python3 -m pip install pymongo==3.5.1
 
-To upgrade using pip::
+To upgrade using pip:
+
+.. code-block:: python
 
   $ python3 -m pip install --upgrade pymongo
 
@@ -44,12 +50,16 @@ Optional dependencies
 GSSAPI authentication requires `pykerberos
 <https://pypi.python.org/pypi/pykerberos>`_ on Unix or `WinKerberos
 <https://pypi.python.org/pypi/winkerberos>`_ on Windows. The correct
-dependency can be installed automatically along with PyMongo::
+dependency can be installed automatically along with PyMongo:
+
+.. code-block:: python
 
   $ python3 -m pip install "pymongo[gssapi]"
 
 :ref:`MONGODB-AWS` authentication requires `pymongo-auth-aws
-<https://pypi.org/project/pymongo-auth-aws/>`_::
+<https://pypi.org/project/pymongo-auth-aws/>`_:
+
+.. code-block:: python
 
   $ python3 -m pip install "pymongo[aws]"
 
@@ -58,28 +68,38 @@ dependency can be installed automatically along with PyMongo::
 :ref:`OCSP` requires `PyOpenSSL
 <https://pypi.org/project/pyOpenSSL/>`_, `requests
 <https://pypi.org/project/requests/>`_ and `service_identity
-<https://pypi.org/project/service_identity/>`_::
+<https://pypi.org/project/service_identity/>`_:
+
+.. code-block:: python
 
   $ python3 -m pip install "pymongo[ocsp]"
 
 Wire protocol compression with snappy requires `python-snappy
-<https://pypi.org/project/python-snappy>`_::
+<https://pypi.org/project/python-snappy>`_:
+
+.. code-block:: python
 
   $ python3 -m pip install "pymongo[snappy]"
 
 Wire protocol compression with zstandard requires `zstandard
-<https://pypi.org/project/zstandard>`_::
+<https://pypi.org/project/zstandard>`_:
+
+.. code-block:: python
 
   $ python3 -m pip install "pymongo[zstd]"
 
 :ref:`Client-Side Field Level Encryption` requires `pymongocrypt
 <https://pypi.org/project/pymongocrypt/>`_ and
-`pymongo-auth-aws <https://pypi.org/project/pymongo-auth-aws/>`_::
+`pymongo-auth-aws <https://pypi.org/project/pymongo-auth-aws/>`_:
+
+.. code-block:: python
 
   $ python3 -m pip install "pymongo[encryption]"
 
 You can install all dependencies automatically with the following
-command::
+command:
+
+.. code-block:: python
 
   $ python3 -m pip install "pymongo[gssapi,aws,ocsp,snappy,zstd,encryption]"
 
@@ -88,7 +108,9 @@ Installing from source
 
 If you'd rather install directly from the source (i.e. to stay on the
 bleeding edge), install the C extension dependencies then check out the
-latest source from GitHub and install the driver from the resulting tree::
+latest source from GitHub and install the driver from the resulting tree:
+
+.. code-block:: python
 
   $ git clone https://github.com/mongodb/mongo-python-driver.git pymongo
   $ cd pymongo/
@@ -103,12 +125,16 @@ have the GNU C compiler (gcc) installed. Depending on your flavor of Unix
 provides the necessary header files for your version of Python. The package
 name may vary from distro to distro.
 
-Debian and Ubuntu users should issue the following command::
+Debian and Ubuntu users should issue the following command:
+
+.. code-block:: python
 
   $ sudo apt-get install build-essential python-dev
 
 Users of Red Hat based distributions (RHEL, CentOS, Amazon Linux, Oracle Linux,
-Fedora, etc.) should issue the following command::
+Fedora, etc.) should issue the following command:
+
+.. code-block:: python
 
   $ sudo yum install gcc python-devel
 
@@ -118,7 +144,9 @@ Installing from source on macOS / OSX
 If you want to install PyMongo with C extensions from source you will need
 the command line developer tools. On modern versions of macOS they can be
 installed by running the following in Terminal (found in
-/Applications/Utilities/)::
+/Applications/Utilities/):
+
+.. code-block:: python
 
   xcode-select --install
 
@@ -131,7 +159,9 @@ OSX and Xcode versions.
 are universal binaries. They support i386, PPC, and x86_64. Xcode 4 removed
 support for PPC, causing the distutils version shipped with Apple's builds of
 Python to fail to build the C extensions if you have Xcode 4 installed. There
-is a workaround::
+is a workaround:
+
+.. code-block:: python
 
   # For some Python builds from python.org
   $ env ARCHFLAGS='-arch i386 -arch x86_64' python -m easy_install pymongo
@@ -145,11 +175,15 @@ installed with 'UNIX Development Support'.
 
 **Xcode 5.1**: Starting with version 5.1 the version of clang that ships with
 Xcode throws an error when it encounters compiler flags it doesn't recognize.
-This may cause C extension builds to fail with an error similar to::
+This may cause C extension builds to fail with an error similar to:
+
+.. code-block:: python
 
   clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
 
-There are workarounds::
+There are workarounds:
+
+.. code-block:: python
 
   # Apple specified workaround for Xcode 5.1
   # easy_install
@@ -187,7 +221,9 @@ warning will be printed.
 
 If you wish to install PyMongo without the C extensions, even if the
 extensions build properly, it can be done using a command line option to
-*pip install*::
+*pip install*:
+
+.. code-block:: python
 
   $ NO_EXT=1 python -m pip install .
 
@@ -198,6 +234,8 @@ MongoDB, Inc. may occasionally tag a beta or release candidate for testing by
 the community before final release. These releases will not be uploaded to pypi
 but can be found on the
 `GitHub tags page <https://github.com/mongodb/mongo-python-driver/tags>`_.
-They can be installed by passing the full URL for the tag to pip::
+They can be installed by passing the full URL for the tag to pip:
+
+.. code-block:: python
 
   $ python3 -m pip install https://github.com/mongodb/mongo-python-driver/archive/4.4.0b0.tar.gz

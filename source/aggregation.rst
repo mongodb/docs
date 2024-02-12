@@ -5,7 +5,7 @@ There are several methods of performing aggregations in MongoDB.  These
 examples cover the new aggregation framework, using map reduce and using the
 group method.
 
-.. testsetup::
+.. code-block:: python
 
   from pymongo import MongoClient
 
@@ -49,7 +49,9 @@ As python dictionaries don't maintain order you should use :py:class`~bson.son.S
 or :py:class`collections.OrderedDict` where explicit ordering is required
 eg "$sort":
 
-.. note::
+.. note:
+
+.. code-block:: python
 
     aggregate requires server version **>= 2.1.0**.
 
@@ -70,13 +72,17 @@ eg "$sort":
 To run an explain plan for this aggregation use
 `PyMongoExplain <https://pypi.org/project/pymongoexplain/>`_,
 a companion library for PyMongo. It allows you to explain any CRUD operation
-by providing a few convenience classes::
+by providing a few convenience classes:
+
+.. code-block:: python
 
   >>> from pymongoexplain import ExplainableCollection
   >>> ExplainableCollection(collection).aggregate(pipeline)
   {'ok': 1.0, 'queryPlanner': [...]}
 
-Or, use the :py:meth:`~pymongo.database.Database.command` method::
+Or, use the :py:meth:`~pymongo.database.Database.command` method:
+
+.. code-block:: python
 
   >>> db.command('aggregate', 'things', pipeline=pipeline, explain=True)
   {'ok': 1.0, 'stages': [...]}

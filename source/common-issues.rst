@@ -6,7 +6,9 @@ Also see the :ref:`TLSErrors` section.
 Server reports wire version X, PyMongo requires Y
 -------------------------------------------------
 
-When one attempts to connect to a <=3.4 version server, PyMongo will throw the following error::
+When one attempts to connect to a <=3.4 version server, PyMongo will throw the following error:
+
+.. code-block:: python
 
   >>> client.admin.command('ping')
   ...
@@ -21,7 +23,9 @@ To resolve this issue either upgrade your database to version >= 3.6 or downgrad
 
 On versions of PyMongo <3.9, when supplying invalid arguments the constructor of Cursor,
 there will be a TypeError raised, and an AttributeError printed to ``stderr``. The AttributeError is not relevant,
-instead look at the TypeError for debugging information::
+instead look at the TypeError for debugging information:
+
+.. code-block:: python
 
   >>> coll.find(wrong=1)
   Exception ignored in: <function Cursor.__del__ at 0x1048129d8>
@@ -50,7 +54,9 @@ DeprecationWarning: count is deprecated
 ---------------------------------------
 
 PyMongo no longer supports :py:meth:`pymongo.cursor.count`.
-Instead, use :py:meth:`pymongo.collection.count_documents`::
+Instead, use :py:meth:`pymongo.collection.count_documents`:
+
+.. code-block:: python
 
   >>> client = MongoClient()
   >>> d = datetime.datetime(2009, 11, 12, 12)
@@ -61,7 +67,9 @@ Instead, use :py:meth:`pymongo.collection.count_documents`::
 
 Note that this is NOT the same as ``Cursor.count_documents`` (which does not exist),
 this is a method of the Collection class, so you must call it on a collection object
-or you will receive the following error::
+or you will receive the following error:
+
+.. code-block:: python
 
   >>> Cursor(MongoClient().db.coll).count()
   Traceback (most recent call last):
@@ -73,7 +81,9 @@ Timeout when accessing MongoDB from PyMongo with tunneling
 ----------------------------------------------------------
 
 When attempting to connect to a replica set MongoDB instance over an SSH tunnel you
-will receive the following error::
+will receive the following error:
+
+.. code-block:: python
 
   File "/Library/Python/2.7/site-packages/pymongo/collection.py", line 1560, in count
     return self._count(cmd, collation, session)

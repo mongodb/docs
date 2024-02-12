@@ -1,7 +1,7 @@
 Bulk Write Operations
 =====================
 
-.. testsetup::
+.. code-block:: python
 
   from pymongo import MongoClient
 

@@ -53,7 +53,9 @@ to be initialized. Until the set is initialized no node will become
 the primary, and things are essentially "offline".
 
 To initialize the set we need to connect directly to a single node and run the
-initiate command using the ``directConnection`` option::
+initiate command using the ``directConnection`` option:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> c = MongoClient('localhost', 27017, directConnection=True)
@@ -62,7 +64,9 @@ initiate command using the ``directConnection`` option::
    but only the node we initiate from is allowed to contain any
    initial data.
 
-After connecting, we run the initiate command to get things started::
+After connecting, we run the initiate command to get things started:
+
+.. code-block:: python
 
   >>> config = {'_id': 'foo', 'members': [
   ...     {'_id': 0, 'host': 'localhost:27017'},
@@ -82,7 +86,9 @@ uninitialized replica set. Normally we'll want to connect
 differently. A connection to a replica set can be made using the
 :py:meth:`~pymongo.mongo_client.MongoClient` constructor, specifying
 one or more members of the set and optionally the replica set name.
-Any of the following connects to the replica set we just created::
+Any of the following connects to the replica set we just created:
+
+.. code-block:: python
 
   >>> MongoClient('localhost')
   MongoClient(host=['localhost:27017'], ...)
@@ -110,7 +116,9 @@ set using background threads. Note how, if you create a client and immediately
 print the string representation of its
 :attr:`~pymongo.mongo_client.MongoClient.nodes` attribute, the list may be
 empty initially. If you wait a moment, MongoClient discovers the whole replica
-set::
+set:
+
+.. code-block:: python
 
   >>> from time import sleep
   >>> c = MongoClient(replicaset='foo'); print(c.nodes); sleep(0.1); print(c.nodes)
@@ -130,7 +138,9 @@ When a failover occurs, PyMongo will automatically attempt to find the
 new primary node and perform subsequent operations on that node. This
 can't happen completely transparently, however. Here we'll perform an
 example failover to illustrate how everything behaves. First, we'll
-connect to the replica set and perform a couple of basic operations::
+connect to the replica set and perform a couple of basic operations:
+
+.. code-block:: python
 
   >>> db = MongoClient("localhost", replicaSet='foo').test
   >>> db.test.insert_one({"x": 1}).inserted_id
@@ -139,13 +149,17 @@ connect to the replica set and perform a couple of basic operations::
   {'x': 1, '_id': ObjectId('...')}
 
 By checking the host and port, we can see that we're connected to
-*localhost:27017*, which is the current primary::
+*localhost:27017*, which is the current primary:
+
+.. code-block:: python
 
   >>> db.client.address
   ('localhost', 27017)
 
 Now let's bring down that node and see what happens when we run our
-query again::
+query again:
+
+.. code-block:: python
 
   >>> db.test.find_one()
   Traceback (most recent call last):
@@ -163,7 +177,9 @@ On subsequent attempts to run the query we might continue to see this
 exception. Eventually, however, the replica set will failover and
 elect a new primary (this should take no more than a couple of seconds in
 general). At that point the driver will connect to the new primary and
-the operation will succeed::
+the operation will succeed:
+
+.. code-block:: python
 
   >>> db.test.find_one()
   {'x': 1, '_id': ObjectId('...')}
@@ -180,7 +196,9 @@ Secondary Reads
 
 By default an instance of MongoClient sends queries to
 the primary member of the replica set. To use secondaries for queries
-we have to change the read preference::
+we have to change the read preference:
+
+.. code-block:: python
 
   >>> client = MongoClient(
   ...     'localhost:27017',
@@ -199,7 +217,9 @@ inherited from its MongoClient, and the read preference of a
 :py:class`~pymongo.collection.Collection` is inherited from its Database. To use
 a different read preference use the
 :py:meth:`~pymongo.mongo_client.MongoClient.get_database` method, or the
-:py:meth:`~pymongo.database.Database.get_collection` method::
+:py:meth:`~pymongo.database.Database.get_collection` method:
+
+.. code-block:: python
 
   >>> from pymongo import ReadPreference
   >>> client.read_preference
@@ -213,7 +233,9 @@ a different read preference use the
 
 You can also change the read preference of an existing
 :py:class`~pymongo.collection.Collection` with the
-:py:meth:`~pymongo.collection.Collection.with_options` method::
+:py:meth:`~pymongo.collection.Collection.with_options` method:
+
+.. code-block:: python
 
   >>> coll2 = coll.with_options(read_preference=ReadPreference.NEAREST)
   >>> coll.read_preference
@@ -224,7 +246,9 @@ You can also change the read preference of an existing
 Note that since most database commands can only be sent to the primary of a
 replica set, the :py:meth:`~pymongo.database.Database.command` method does not obey
 the Database's :attr:`~pymongo.database.Database.read_preference`, but you can
-pass an explicit read preference to the method::
+pass an explicit read preference to the method:
+
+.. code-block:: python
 
   >>> db.command('dbstats', read_preference=ReadPreference.NEAREST)
   {...}
@@ -270,7 +294,9 @@ PyMongo tries each set of tags in turn until it finds a set of
 tags with at least one matching member. For example, to prefer reads from the
 New York data center, but fall back to the San Francisco data center, tag your
 replica set members according to their location and create a
-MongoClient like so::
+MongoClient like so:
+
+.. code-block:: python
 
   >>> from pymongo.read_preferences import Secondary
   >>> db = client.get_database(
@@ -294,7 +320,9 @@ from among the nearest members, chosen according to ping time. By default,
 only members whose ping times are within 15 milliseconds of the nearest
 are used for queries. You can choose to distribute reads among members with
 higher latencies by setting ``localThresholdMS`` to a larger
-number::
+number:
+
+.. code-block:: python
 
   >>> client = pymongo.MongoClient(
   ...     replicaSet='repl0',

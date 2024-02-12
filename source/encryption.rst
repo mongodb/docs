@@ -31,7 +31,9 @@ you will need to install the
 `pymongocrypt <https://pypi.org/project/pymongocrypt/>`_ and
 `pymongo-auth-aws <https://pypi.org/project/pymongo-auth-aws/>`_ libraries
 as well as the driver itself. Install both the driver and a compatible
-version of the dependencies like this::
+version of the dependencies like this:
+
+.. code-block:: python
 
   $ python -m pip install 'pymongo[encryption]'
 
@@ -87,21 +89,27 @@ For detailed installation instructions see
 A MongoClient configured with auto encryption will automatically spawn the
 ``mongocryptd`` process from the application's ``PATH``. Applications can
 control the spawning behavior as part of the automatic encryption options.
-For example to set the path to the ``mongocryptd`` process::
+For example to set the path to the ``mongocryptd`` process:
+
+.. code-block:: python
 
   auto_encryption_opts = AutoEncryptionOpts(
           ...,
           mongocryptd_spawn_path='/path/to/mongocryptd')
 
 To control the logging output of ``mongocryptd`` pass options using
-``mongocryptd_spawn_args``::
+``mongocryptd_spawn_args``:
+
+.. code-block:: python
 
   auto_encryption_opts = AutoEncryptionOpts(
           ...,
           mongocryptd_spawn_args=['--logpath=/path/to/mongocryptd.log', '--logappend'])
 
 If your application wishes to manage the ``mongocryptd`` process manually,
-it is possible to disable spawning ``mongocryptd``::
+it is possible to disable spawning ``mongocryptd``:
+
+.. code-block:: python
 
   auto_encryption_opts = AutoEncryptionOpts(
           ...,

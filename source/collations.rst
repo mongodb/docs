@@ -11,7 +11,9 @@ ordering rules, and collations allow users to build applications that adhere to
 language-specific comparison rules.
 
 In French, for example, the last accent in a given word determines the sorting
-order. The correct sorting order for the following four words in French is::
+order. The correct sorting order for the following four words in French is:
+
+.. code-block:: python
 
   cote < côte < coté < côté
 
@@ -30,7 +32,9 @@ Collation Parameters:
 ~~~~~~~~~~~~~~~~~~~~~
 
 Collations can be specified with the :py:class`~pymongo.collation.Collation` model
-or with plain Python dictionaries. The structure is the same::
+or with plain Python dictionaries. The structure is the same:
+
+.. code-block:: python
 
    Collation(locale=<string>,
              caseLevel=<bool>,
@@ -60,7 +64,9 @@ The following example demonstrates how to create a new collection called
 ``contacts`` and assign a default collation with the ``fr_CA`` locale. This
 operation ensures that all queries that are run against the ``contacts``
 collection use the ``fr_CA`` collation unless another collation is explicitly
-specified::
+specified:
+
+.. code-block:: python
 
   from pymongo import MongoClient
   from pymongo.collation import Collation
@@ -78,7 +84,9 @@ When creating a new index, you can specify a default collation.
 
 The following example shows how to create an index on the ``name``
 field of the ``contacts`` collection, with the ``unique`` parameter
-enabled and a default collation with ``locale`` set to ``fr_CA``::
+enabled and a default collation with ``locale`` set to ``fr_CA``:
+
+.. code-block:: python
 
   from pymongo import MongoClient
   from pymongo.collation import Collation
@@ -97,7 +105,9 @@ Individual queries can specify a collation to use when sorting
 results. The following example demonstrates a query that runs on the
 ``contacts`` collection in database ``test``. It matches on
 documents that contain ``New York`` in the ``city`` field,
-and sorts on the ``name`` field with the ``fr_CA`` collation::
+and sorts on the ``name`` field with the ``fr_CA`` collation:
+
+.. code-block:: python
 
   from pymongo import MongoClient
   from pymongo.collation import Collation
@@ -121,7 +131,9 @@ The following example uses a collation with ``strength`` set to
 :const:`~pymongo.collation.CollationStrength.SECONDARY`, which considers only
 the base character and character accents in string comparisons, but not case
 sensitivity, for example. All documents in the ``contacts`` collection with
-``jürgen`` (case-insensitive) in the ``first_name`` field are updated::
+``jürgen`` (case-insensitive) in the ``first_name`` field are updated:
+
+.. code-block:: python
 
   from pymongo import MongoClient
   from pymongo.collation import Collation, CollationStrength

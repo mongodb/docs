@@ -3,7 +3,9 @@ Using PyMongo with MongoDB Atlas
 
 `Atlas <https://www.mongodb.com/cloud>`_ is MongoDB, Inc.'s hosted MongoDB as a
 service offering. To connect to Atlas, pass the connection string provided by
-Atlas to :py:class`~pymongo.mongo_client.MongoClient`::
+Atlas to :py:class`~pymongo.mongo_client.MongoClient`:
+
+.. code-block:: python
 
   client = pymongo.MongoClient(<Atlas connection string>)
 
@@ -18,7 +20,9 @@ Connections to Atlas require TLS/SSL.
   from `python.org`_, `homebrew`_, `macports`_, or another similar source.
 
   Users of Linux or other non-macOS Unix can check their OpenSSL version like
-  this::
+  this:
+
+.. code-block:: python
 
     $ openssl version
 
@@ -27,7 +31,9 @@ Connections to Atlas require TLS/SSL.
   a newer distribution.
 
   You can check your Python interpreter by installing the `requests`_ module
-  and executing the following command::
+  and executing the following command:
+
+.. code-block:: python
 
     python -c "import requests; print(requests.get('https://www.howsmyssl.com/a/check', verify=False).json()['tls_version'])"
 

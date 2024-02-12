@@ -13,7 +13,7 @@
 
          The following property always holds:
 
-         .. testsetup::
+         .. code-block:: python
 
            from bson.objectid import ObjectId
 

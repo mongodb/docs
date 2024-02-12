@@ -7,14 +7,16 @@ to an appropriate callable. This example shows how to use this functionality
 to prefer servers running on ``localhost``.
 
 
-.. warning::
+.. warning:
+
+.. code-block:: python
 
    Use of custom server selector functions is a power user feature. Misusing
    custom server selectors can have unintended consequences such as degraded
    read/write performance.
 
 
-.. testsetup::
+.. code-block:: python
 
    from pymongo import MongoClient
 

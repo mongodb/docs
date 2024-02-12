@@ -128,7 +128,9 @@ pool before being removed and replaced can be set with ``maxIdleTimeMS``, which
 defaults to ``None`` (no limit).
 
 The default configuration for a :py:class`~pymongo.mongo_client.MongoClient`
-works for most applications::
+works for most applications:
+
+.. code-block:: python
 
     client = MongoClient(host, port)
 
@@ -137,11 +139,15 @@ operations. It is a common mistake to create a new client for each request,
 which is very inefficient.
 
 To support extremely high numbers of concurrent MongoDB operations within one
-process, increase ``maxPoolSize``::
+process, increase ``maxPoolSize``:
+
+.. code-block:: python
 
     client = MongoClient(host, port, maxPoolSize=200)
 
-... or make it unbounded::
+... or make it unbounded:
+
+.. code-block:: python
 
     client = MongoClient(host, port, maxPoolSize=None)
 
@@ -150,7 +156,9 @@ sockets to become available. PyMongo does not limit the number of threads
 that can wait for sockets to become available and it is the application's
 responsibility to limit the size of its thread pool to bound queuing during a
 load spike. Threads are allowed to wait for any length of time unless
-``waitQueueTimeoutMS`` is defined::
+``waitQueueTimeoutMS`` is defined:
+
+.. code-block:: python
 
     client = MongoClient(host, port, waitQueueTimeoutMS=100)
 
@@ -191,7 +199,9 @@ When a document is inserted to MongoDB using
 :py:meth:`~pymongo.collection.Collection.insert_many`, or
 :py:meth:`~pymongo.collection.Collection.bulk_write`, and that document does not
 include an ``_id`` field, PyMongo automatically adds one for you, set to an
-instance of :py:class`~bson.objectid.ObjectId`. For example::
+instance of :py:class`~bson.objectid.ObjectId`. For example:
+
+.. code-block:: python
 
   >>> my_doc = {'x': 1}
   >>> collection.insert_one(my_doc)
@@ -202,7 +212,9 @@ instance of :py:class`~bson.objectid.ObjectId`. For example::
 Users often discover this behavior when calling
 :py:meth:`~pymongo.collection.Collection.insert_many` with a list of references
 to a single document raises :exc:`~pymongo.errors.BulkWriteError`. Several
-Python idioms lead to this pitfall::
+Python idioms lead to this pitfall:
+
+.. code-block:: python
 
   >>> doc = {}
   >>> collection.insert_many(doc for _ in range(10))
@@ -237,7 +249,7 @@ Key order in subdocuments -- why does my query work in the shell but not PyMongo
 ..
   Note: We should rework this section now that Python 3.6+ has ordered dict.
 
-.. testsetup:: key-order
+.. code-block:: python key-order
 
   from bson.son import SON
   from pymongo.mongo_client import MongoClient
@@ -418,7 +430,9 @@ conversion should be performed in your client code.
 
 When I query for a document by ObjectId in my web application I get no result
 -----------------------------------------------------------------------------
-It's common in web applications to encode documents' ObjectIds in URLs, like::
+It's common in web applications to encode documents' ObjectIds in URLs, like:
+
+.. code-block:: python
 
   "/posts/50b3bda58a02fb9a84d8991e"
 
@@ -426,7 +440,9 @@ Your web framework will pass the ObjectId portion of the URL to your request
 handler as a string, so it must be converted to :py:class`~bson.objectid.ObjectId`
 before it is passed to :py:meth:`~pymongo.collection.Collection.find_one`. It is a
 common mistake to forget to do this conversion. Here's how to do it correctly
-in Flask_ (other web frameworks are similar)::
+in Flask_ (other web frameworks are similar):
+
+.. code-block:: python
 
   from pymongo import MongoClient
   from bson.objectid import ObjectId
@@ -552,7 +568,9 @@ filter out documents values outside of the range supported by
   >>> cur = coll.find({'dt': {'$gte': datetime.min, '$lte': datetime.max}})
 
 Another option, assuming you don't need the datetime field, is to filter out
-just that field::
+just that field:
+
+.. code-block:: python
 
   >>> cur = coll.find({}, projection={'dt': False})
 
@@ -566,7 +584,9 @@ Care must be taken when using instances of
 :py:class`~pymongo.mongo_client.MongoClient` with ``fork()``. Specifically,
 instances of MongoClient must not be copied from a parent process to a child
 process. Instead, the parent process and each child process must create their
-own instances of MongoClient. For example::
+own instances of MongoClient. For example:
+
+.. code-block:: python
 
   # Each process creates its own instance of MongoClient.
   def func():
@@ -576,7 +596,9 @@ own instances of MongoClient. For example::
   proc = multiprocessing.Process(target=func)
   proc.start()
 
-**Never do this**::
+**Never do this**:
+
+.. code-block:: python
 
   client = pymongo.MongoClient()
 

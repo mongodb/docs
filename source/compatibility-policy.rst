@@ -30,13 +30,17 @@ warning:
     client = MongoClient()
     client.test.test.insert({})
 
-To print deprecation warnings to stderr, run python with "-Wd"::
+To print deprecation warnings to stderr, run python with "-Wd":
+
+.. code-block:: python
 
   $ python3 -Wd insert.py
   insert.py:4: DeprecationWarning: insert is deprecated. Use insert_one or insert_many instead.
     client.test.test.insert({})
 
-You can turn warnings into exceptions with "python -We"::
+You can turn warnings into exceptions with "python -We":
+
+.. code-block:: python
 
   $ python3 -We insert.py
   Traceback (most recent call last):

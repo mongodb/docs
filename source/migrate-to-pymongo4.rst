@@ -3,7 +3,7 @@
 PyMongo 4 Migration Guide
 =========================
 
-.. testsetup::
+.. code-block:: python
 
   from pymongo import MongoClient, ReadPreference
 
@@ -41,11 +41,15 @@ Enable Deprecation Warnings
 
 :exc:`DeprecationWarning` is raised by most methods removed in PyMongo 4.0.
 Make sure you enable runtime warnings to see where deprecated functions and
-methods are being used in your application::
+methods are being used in your application:
+
+.. code-block:: python
 
   python -Wd <your application>
 
-Warnings can also be changed to errors::
+Warnings can also be changed to errors:
+
+.. code-block:: python
 
   python -Wd -Werror <your application>
 
@@ -79,19 +83,25 @@ If you see any :exc:`~pymongo.errors.ServerSelectionTimeoutError`'s after upgrad
 need to add ``directConnection=True`` when creating the client.
 Here are some example errors:
 
-.. code-block::
+.. code-block:
+
+.. code-block:: python
 
         pymongo.errors.ServerSelectionTimeoutError: mongo_node2: [Errno 8] nodename nor servname
         provided, or not known,mongo_node1:27017
 
-.. code-block::
+.. code-block:
+
+.. code-block:: python
 
         ServerSelectionTimeoutError: No servers match selector "Primary()", Timeout: 30s,
         Topology Description: ...
 
 
 Additionally, the "isWritablePrimary" attribute of a hello command sent back by the server will
-always be True if ``directConnection=False``::
+always be True if ``directConnection=False``:
+
+.. code-block:: python
 
    >>> client.admin.command('hello')['isWritablePrimary']
    True
@@ -157,7 +167,9 @@ MongoClient.fsync is removed
 
 Removed :py:meth:`pymongo.mongo_client.MongoClient.fsync`. Run the
 `fsync command`_ directly with :py:meth:`~pymongo.database.Database.command`
-instead. For example::
+instead. For example:
+
+.. code-block:: python
 
     client.admin.command('fsync', lock=True)
 
@@ -168,7 +180,9 @@ MongoClient.unlock is removed
 
 Removed :py:meth:`pymongo.mongo_client.MongoClient.unlock`. Run the
 `fsyncUnlock command`_ directly with
-:py:meth:`~pymongo.database.Database.command` instead. For example::
+:py:meth:`~pymongo.database.Database.command` instead. For example:
+
+.. code-block:: python
 
      client.admin.command('fsyncUnlock')
 
@@ -179,7 +193,9 @@ MongoClient.is_locked is removed
 
 Removed :attr:`pymongo.mongo_client.MongoClient.is_locked`. Run the
 `currentOp command`_ directly with
-:py:meth:`~pymongo.database.Database.command` instead. For example::
+:py:meth:`~pymongo.database.Database.command` instead. For example:
+
+.. code-block:: python
 
     is_locked = client.admin.command('currentOp').get('fsyncLock')
 
@@ -190,11 +206,15 @@ MongoClient.database_names is removed
 
 Removed :py:meth:`pymongo.mongo_client.MongoClient.database_names`. Use
 :py:meth:`~pymongo.mongo_client.MongoClient.list_database_names` instead. Code like
-this::
+this:
+
+.. code-block:: python
 
     names = client.database_names()
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
     names = client.list_database_names()
 
@@ -206,13 +226,17 @@ Removed :attr:`pymongo.mongo_client.MongoClient.max_bson_size`,
 :attr:`pymongo.mongo_client.MongoClient.max_write_batch_size`. These helpers
 were incorrect when in ``loadBalanced=true mode`` and ambiguous in clusters
 with mixed versions. Use the `hello command`_ to get the authoritative
-value from the remote server instead. Code like this::
+value from the remote server instead. Code like this:
+
+.. code-block:: python
 
     max_bson_size = client.max_bson_size
     max_message_size = client.max_message_size
     max_write_batch_size = client.max_write_batch_size
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
     doc = client.admin.command('hello')
     max_bson_size = doc['maxBsonObjectSize']
@@ -234,7 +258,9 @@ The following client configuration option helpers are removed:
 - :attr:`pymongo.mongo_client.MongoClient.retry_reads`.
 
 These helpers have been replaced by
-:attr:`pymongo.mongo_client.MongoClient.options`. Code like this::
+:attr:`pymongo.mongo_client.MongoClient.options`. Code like this:
+
+.. code-block:: python
 
     client.event_listeners
     client.local_threshold_ms
@@ -243,7 +269,9 @@ These helpers have been replaced by
     client.min_pool_size
     client.max_idle_time_ms
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
     client.options.event_listeners
     client.options.local_threshold_ms
@@ -259,14 +287,18 @@ can be changed to this::
 
 The ``tz_aware`` argument to :py:class`~bson.json_util.JSONOptions`
 now defaults to ``False`` instead of ``True``. :py:meth:`bson.json_util.loads`
-now decodes datetime as naive by default::
+now decodes datetime as naive by default:
+
+.. code-block:: python
 
     >>> from bson import json_util
     >>> s = '{"dt": {"$date": "2022-05-09T17:54:00Z"}}'
     >>> json_util.loads(s)
     {'dt': datetime.datetime(2022, 5, 9, 17, 54)}
 
-To retain the PyMongo 3 behavior set ``tz_aware=True``, for example::
+To retain the PyMongo 3 behavior set ``tz_aware=True``, for example:
+
+.. code-block:: python
 
     >>> from bson import json_util
     >>> opts = json_util.JSONOptions(tz_aware=True)
@@ -307,13 +339,17 @@ Removed :py:meth:`pymongo.database.Database.authenticate` and
 :py:meth:`pymongo.database.Database.logout`. Authenticating multiple users
 on the same client conflicts with support for logical sessions in MongoDB 3.6+.
 To authenticate as multiple users, create multiple instances of
-:py:class`~pymongo.mongo_client.MongoClient`. Code like this::
+:py:class`~pymongo.mongo_client.MongoClient`. Code like this:
+
+.. code-block:: python
 
     client = MongoClient()
     client.admin.authenticate('user1', 'pass1')
     client.admin.authenticate('user2', 'pass2')
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
     client1 = MongoClient(username='user1', password='pass1')
     client2 = MongoClient(username='user2', password='pass2')
@@ -326,12 +362,16 @@ Database.collection_names is removed
 
 Removed :py:meth:`pymongo.database.Database.collection_names`. Use
 :py:meth:`~pymongo.database.Database.list_collection_names` instead. Code like
-this::
+this:
+
+.. code-block:: python
 
     names = client.collection_names()
     non_system_names = client.collection_names(include_system_collections=False)
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
     names = client.list_collection_names()
     non_system_names = client.list_collection_names(filter={"name": {"$regex": r"^(?!system\\.)"}})
@@ -342,11 +382,15 @@ Database.current_op is removed
 Removed :py:meth:`pymongo.database.Database.current_op`. Use
 :py:meth:`~pymongo.database.Database.aggregate` instead with the
 `$currentOp aggregation pipeline stage`_. Code like
-this::
+this:
+
+.. code-block:: python
 
     ops = client.admin.current_op()['inprog']
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
     ops = list(client.admin.aggregate([{'$currentOp': {}}]))
 
@@ -357,19 +401,27 @@ Database.add_user is removed
 
 Removed :py:meth:`pymongo.database.Database.add_user`  which was deprecated in
 PyMongo 3.6. Use the `createUser command`_ or `updateUser command`_ instead.
-To create a user::
+To create a user:
+
+.. code-block:: python
 
   db.command("createUser", "admin", pwd="password", roles=["dbAdmin"])
 
-To create a read-only user::
+To create a read-only user:
+
+.. code-block:: python
 
   db.command("createUser", "user", pwd="password", roles=["read"])
 
-To change a password::
+To change a password:
+
+.. code-block:: python
 
   db.command("updateUser", "user", pwd="newpassword")
 
-Or change roles::
+Or change roles:
+
+.. code-block:: python
 
   db.command("updateUser", "user", roles=["readWrite"])
 
@@ -380,7 +432,9 @@ Database.remove_user is removed
 ...............................
 
 Removed :py:meth:`pymongo.database.Database.remove_user` which was deprecated in
-PyMongo 3.6. Use the `dropUser command`_ instead::
+PyMongo 3.6. Use the `dropUser command`_ instead:
+
+.. code-block:: python
 
   db.command("dropUser", "user")
 
@@ -390,11 +444,15 @@ Database.profiling_level is removed
 ...................................
 
 Removed :py:meth:`pymongo.database.Database.profiling_level` which was deprecated in
-PyMongo 3.12. Use the `profile command`_ instead. Code like this::
+PyMongo 3.12. Use the `profile command`_ instead. Code like this:
+
+.. code-block:: python
 
   level = db.profiling_level()
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   profile = db.command('profile', -1)
   level = profile['was']
@@ -405,11 +463,15 @@ Database.set_profiling_level is removed
 .......................................
 
 Removed :py:meth:`pymongo.database.Database.set_profiling_level` which was deprecated in
-PyMongo 3.12. Use the `profile command`_ instead. Code like this::
+PyMongo 3.12. Use the `profile command`_ instead. Code like this:
+
+.. code-block:: python
 
   db.set_profiling_level(pymongo.ALL, filter={'op': 'query'})
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   res = db.command('profile', 2, filter={'op': 'query'})
 
@@ -417,11 +479,15 @@ Database.profiling_info is removed
 ..................................
 
 Removed :py:meth:`pymongo.database.Database.profiling_info` which was deprecated in
-PyMongo 3.12. Query the `'system.profile' collection`_ instead. Code like this::
+PyMongo 3.12. Query the `'system.profile' collection`_ instead. Code like this:
+
+.. code-block:: python
 
   profiling_info = db.profiling_info()
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   profiling_info = list(db['system.profile'].find())
 
@@ -430,11 +496,15 @@ Can be changed to this::
 Database.__bool__ raises NotImplementedError
 ............................................
 :py:class`~pymongo.database.Database` now raises an error upon evaluating as a
-Boolean. Code like this::
+Boolean. Code like this:
+
+.. code-block:: python
 
   if database:
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   if database is not None:
 
@@ -458,12 +528,16 @@ Removed :py:meth:`pymongo.collection.Collection.insert`. Use
 :py:meth:`~pymongo.collection.Collection.insert_one` or
 :py:meth:`~pymongo.collection.Collection.insert_many` instead.
 
-Code like this::
+Code like this:
+
+.. code-block:: python
 
   collection.insert({'doc': 1})
   collection.insert([{'doc': 2}, {'doc': 3}])
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   collection.insert_one({'my': 'document'})
   collection.insert_many([{'doc': 2}, {'doc': 3}])
@@ -474,18 +548,24 @@ Collection.save is removed
 Removed :py:meth:`pymongo.collection.Collection.save`. Applications will
 get better performance using :py:meth:`~pymongo.collection.Collection.insert_one`
 to insert a new document and :py:meth:`~pymongo.collection.Collection.update_one`
-to update an existing document. Code like this::
+to update an existing document. Code like this:
+
+.. code-block:: python
 
   doc = collection.find_one({"_id": "some id"})
   doc["some field"] = <some value>
   db.collection.save(doc)
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   result = collection.update_one({"_id": "some id"}, {"$set": {"some field": <some value>}})
 
 If performance is not a concern and refactoring is untenable, ``save`` can be
-implemented like so::
+implemented like so:
+
+.. code-block:: python
 
   def save(doc):
       if '_id' in doc:
@@ -502,12 +582,16 @@ Removed :py:meth:`pymongo.collection.Collection.update`. Use
 :py:meth:`~pymongo.collection.Collection.update_one`
 to update a single document or
 :py:meth:`~pymongo.collection.Collection.update_many` to update multiple
-documents. Code like this::
+documents. Code like this:
+
+.. code-block:: python
 
   collection.update({}, {'$set': {'a': 1}})
   collection.update({}, {'$set': {'b': 1}}, multi=True)
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   collection.update_one({}, {'$set': {'a': 1}})
   collection.update_many({}, {'$set': {'b': 1}})
@@ -519,12 +603,16 @@ Removed :py:meth:`pymongo.collection.Collection.remove`. Use
 :py:meth:`~pymongo.collection.Collection.delete_one`
 to delete a single document or
 :py:meth:`~pymongo.collection.Collection.delete_many` to delete multiple
-documents. Code like this::
+documents. Code like this:
+
+.. code-block:: python
 
   collection.remove({'a': 1}, multi=False)
   collection.remove({'b': 1})
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   collection.delete_one({'a': 1})
   collection.delete_many({'b': 1})
@@ -536,13 +624,17 @@ Removed :py:meth:`pymongo.collection.Collection.find_and_modify`. Use
 :py:meth:`~pymongo.collection.Collection.find_one_and_update`,
 :py:meth:`~pymongo.collection.Collection.find_one_and_replace`, or
 :py:meth:`~pymongo.collection.Collection.find_one_and_delete` instead.
-Code like this::
+Code like this:
+
+.. code-block:: python
 
   updated_doc = collection.find_and_modify({'a': 1}, {'$set': {'b': 1}})
   replaced_doc = collection.find_and_modify({'b': 1}, {'c': 1})
   deleted_doc = collection.find_and_modify({'c': 1}, remove=True)
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   updated_doc = collection.find_one_and_update({'a': 1}, {'$set': {'b': 1}})
   replaced_doc = collection.find_one_and_replace({'b': 1}, {'c': 1})
@@ -555,7 +647,9 @@ Removed :py:meth:`pymongo.collection.Collection.count` and
 :py:meth:`pymongo.cursor.Cursor.count`. Use
 :py:meth:`~pymongo.collection.Collection.count_documents` or
 :py:meth:`~pymongo.collection.Collection.estimated_document_count` instead.
-Code like this::
+Code like this:
+
+.. code-block:: python
 
   ntotal = collection.count({})
   nmatched = collection.count({'price': {'$gte': 10}})
@@ -563,7 +657,9 @@ Code like this::
   ntotal = collection.find({}).count()
   nmatched = collection.find({'price': {'$gte': 10}}).count()
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   ntotal = collection.estimated_document_count()
   nmatched = collection.count_documents({'price': {'$gte': 10}})
@@ -593,7 +689,9 @@ Collection.initialize_ordered_bulk_op and initialize_unordered_bulk_op is remove
 
 Removed :py:meth:`pymongo.collection.Collection.initialize_ordered_bulk_op`
 and :py:class`pymongo.bulk.BulkOperationBuilder`. Use
-:py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this::
+:py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this:
+
+.. code-block:: python
 
   batch = coll.initialize_ordered_bulk_op()
   batch.insert({'a': 1})
@@ -602,7 +700,9 @@ and :py:class`pymongo.bulk.BulkOperationBuilder`. Use
   batch.find({'a': 3}).remove()
   result = batch.execute()
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   coll.bulk_write([
       InsertOne({'a': 1}),
@@ -615,7 +715,9 @@ Collection.initialize_unordered_bulk_op is removed
 ..................................................
 
 Removed :py:meth:`pymongo.collection.Collection.initialize_unordered_bulk_op`.
-Use :py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this::
+Use :py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this:
+
+.. code-block:: python
 
   batch = coll.initialize_unordered_bulk_op()
   batch.insert({'a': 1})
@@ -624,7 +726,9 @@ Use :py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this:
   batch.find({'a': 3}).remove()
   result = batch.execute()
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   coll.bulk_write([
       InsertOne({'a': 1}),
@@ -666,13 +770,17 @@ Removed :py:meth:`pymongo.collection.Collection.ensure_index`. Use
 ``ensure_index`` maintained an in memory cache of recently created indexes
 whereas the newer methods do not. Applications should avoid frequent calls
 to :py:meth:`~pymongo.collection.Collection.create_index` or
-:py:meth:`~pymongo.collection.Collection.create_indexes`. Code like this::
+:py:meth:`~pymongo.collection.Collection.create_indexes`. Code like this:
+
+.. code-block:: python
 
   def persist(self, document):
       collection.ensure_index('a', unique=True)
       collection.insert_one(document)
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   def persist(self, document):
       if not self.created_index:
@@ -684,11 +792,15 @@ Collection.reindex is removed
 .............................
 
 Removed :py:meth:`pymongo.collection.Collection.reindex`. Run the
-`reIndex command`_ directly instead. Code like this::
+`reIndex command`_ directly instead. Code like this:
+
+.. code-block:: python
 
   >>> result = database.my_collection.reindex()
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
   >>> result = database.command('reIndex', 'my_collection')
 
@@ -702,7 +814,9 @@ Removed the ``modifiers`` parameter from
 :py:meth:`~pymongo.collection.Collection.find_one`,
 :py:meth:`~pymongo.collection.Collection.find_raw_batches`, and
 :py:meth:`~pymongo.cursor.Cursor`. Pass the options directly to the method
-instead. Code like this::
+instead. Code like this:
+
+.. code-block:: python
 
   cursor = coll.find({}, modifiers={
       "$comment": "comment",
@@ -714,7 +828,9 @@ instead. Code like this::
       "$showDiskLoc": False,
   })
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
   cursor = coll.find(
       {},
@@ -732,22 +848,30 @@ The hint parameter is required with min/max
 
 The ``hint`` option is now required when using ``min`` or ``max`` queries
 with :py:meth:`~pymongo.collection.Collection.find` to ensure the query utilizes
-the correct index. For example, code like this::
+the correct index. For example, code like this:
+
+.. code-block:: python
 
   cursor = coll.find({}, min={'x', min_value})
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
   cursor = coll.find({}, min={'x', min_value}, hint=[('x', ASCENDING)])
 
 Collection.__bool__ raises NotImplementedError
 ..............................................
 :py:class`~pymongo.collection.Collection` now raises an error upon evaluating
-as a Boolean. Code like this::
+as a Boolean. Code like this:
+
+.. code-block:: python
 
   if collection:
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   if collection is not None:
 
@@ -761,11 +885,15 @@ Empty projections (eg {} or []) for
 are passed to the server as-is rather than the previous behavior which
 substituted in a projection of ``{"_id": 1}``. This means that an empty
 projection will now return the entire document, not just the ``"_id"`` field.
-To ensure that behavior remains consistent, code like this::
+To ensure that behavior remains consistent, code like this:
+
+.. code-block:: python
 
   coll.find({}, projection={})
 
-Can be changed to this::
+Can be changed to this:
+
+.. code-block:: python
 
   coll.find({}, projection={"_id":1})
 
@@ -808,11 +936,15 @@ a list.
 
 ``SON().iteritems()`` removed.
 ------------------------------
-``SON.iteritems()`` now removed. Code that looks like this::
+``SON.iteritems()`` now removed. Code that looks like this:
+
+.. code-block:: python
 
     for k, v in son.iteritems():
 
-Can now be replaced by code that looks like::
+Can now be replaced by code that looks like:
+
+.. code-block:: python
 
     for k, v in son.items():
 
@@ -845,12 +977,16 @@ UUIDLegacy is removed
 ---------------------
 
 Removed :py:class`bson.binary.UUIDLegacy`. Use
-:py:meth:`bson.binary.Binary.from_uuid` instead.  Code like this::
+:py:meth:`bson.binary.Binary.from_uuid` instead.  Code like this:
+
+.. code-block:: python
 
   uu = uuid.uuid4()
   uuid_legacy = UUIDLegacy(uu)
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
   uu = uuid.uuid4()
   uuid_legacy = Binary.from_uuid(uu, PYTHON_LEGACY)
@@ -873,7 +1009,9 @@ disable_md5 parameter is removed
 Removed the ``disable_md5`` option for :py:class`~gridfs.GridFSBucket` and
 :py:class`~gridfs.GridFS`. GridFS no longer generates checksums.
 Applications that desire a file digest should implement it outside GridFS
-and store it with other file metadata. For example::
+and store it with other file metadata. For example:
+
+.. code-block:: python
 
   import hashlib
   my_db = MongoClient().test
@@ -916,11 +1054,15 @@ Removed :py:meth:`~pymongo.database.Database.eval`,
 MongoDB 3.0 and removed in MongoDB 4.2. There is no replacement for eval with
 MongoDB 4.2+.
 
-However, on MongoDB <= 4.0, code like this::
+However, on MongoDB <= 4.0, code like this:
+
+.. code-block:: python
 
   >>> result = database.eval('function (x) {return x;}', 3)
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
   >>> from bson.code import Code
   >>> result = database.command('eval', Code('function (x) {return x;}'), args=[3]).get('retval')
@@ -983,7 +1125,9 @@ The default ``uuid_representation`` for :py:class`~bson.codec_options.CodecOptio
 If you were using UUIDs previously, you will need to set your ``uuid_representation`` to
 :data:`bson.binary.UuidRepresentation.PYTHON_LEGACY` to avoid data corruption. If you do not have UUIDs,
 then you should set :data:`bson.binary.UuidRepresentation.STANDARD`. If you do not explicitly set a value,
-you will receive an error like this when attempting to encode a :py:class`uuid.UUID`::
+you will receive an error like this when attempting to encode a :py:class`uuid.UUID`:
+
+.. code-block:: python
 
     ValueError: cannot encode native uuid.UUID with UuidRepresentation.UNSPECIFIED. UUIDs can be manually converted...
 

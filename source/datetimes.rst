@@ -1,7 +1,7 @@
 Datetimes and Timezones
 =======================
 
-.. testsetup::
+.. code-block:: python
 
    import datetime
    from pymongo import MongoClient

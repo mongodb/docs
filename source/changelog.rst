@@ -22,7 +22,9 @@ PyMongo 4.7 brings a number of improvements including:
   :py:meth:`~pymongo.encryption.ClientEncryption.encrypt_expression` now allow ``key_id``
   to be passed in as a :py:class`uuid.UUID`.
 - Fixed a bug where :py:class`~bson.int64.Int64` instances could not always be encoded by `orjson`_. The following now
-  works::
+  works:
+
+.. code-block:: python
 
     >>> import orjson
     >>> from bson import json_util
@@ -38,7 +40,9 @@ Unavoidable breaking changes
 
 - Replaced usage of :py:class`bson.son.SON` on all internal classes and commands to dict,
   :attr:`options.pool_options.metadata` is now of type ``dict`` as opposed to :py:class`bson.son.SON`.
-  Here's some examples of how this changes expected output as well as how to convert from :py:class`dict` to :py:class`bson.son.SON`::
+  Here's some examples of how this changes expected output as well as how to convert from :py:class`dict` to :py:class`bson.son.SON`:
+
+.. code-block:: python
 
     # Before
     >>> from pymongo import MongoClient
@@ -729,13 +733,17 @@ Deprecations
   :attr:`pymongo.mongo_client.MongoClient.max_write_batch_size`. These helpers
   were incorrect when in ``loadBalanced=true mode`` and ambiguous in clusters
   with mixed versions. Use the `hello command`_ to get the authoritative
-  value from the remote server instead. Code like this::
+  value from the remote server instead. Code like this:
+
+.. code-block:: python
 
     max_bson_size = client.max_bson_size
     max_message_size = client.max_message_size
     max_write_batch_size = client.max_write_batch_size
 
-can be changed to this::
+can be changed to this:
+
+.. code-block:: python
 
     doc = client.admin.command('hello')
     max_bson_size = doc['maxBsonObjectSize']
@@ -2041,7 +2049,9 @@ information; even if the client is disconnected, it may discover a server in
 time to fulfill the next operation.
 
 In PyMongo 2.x, :py:class`~pymongo.mongo_client.MongoClient` accepted a list of
-standalone MongoDB servers and used the first it could connect to::
+standalone MongoDB servers and used the first it could connect to:
+
+.. code-block:: python
 
     MongoClient(['host1.com:27017', 'host2.com:27017'])
 
@@ -2521,7 +2531,9 @@ detailed examples.
   In previous versions of PyMongo, changing the value of
   :attr:`~pymongo.mongo_client.MongoClient.document_class` changed
   the behavior of all existing instances of
-  :py:class`~pymongo.collection.Collection`::
+  :py:class`~pymongo.collection.Collection`:
+
+.. code-block:: python
 
     >>> coll = client.test.test
     >>> coll.find_one()
@@ -2535,7 +2547,9 @@ detailed examples.
   database, collection, and per-operation level. This required breaking
   the existing behavior. To change the document class per operation in a
   forward compatible way use
-  :py:meth:`~pymongo.collection.Collection.with_options`::
+  :py:meth:`~pymongo.collection.Collection.with_options`:
+
+.. code-block:: python
 
     >>> coll.find_one()
     {u'_id': ObjectId('5579dc7cfba5220cc14d9a18')}
@@ -2890,7 +2904,9 @@ Important new features:
   :py:meth:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient.close` before
   exiting the python interactive shell.
 
-.. warning::
+.. warning:
+
+.. code-block:: python
 
     The constructors for :py:class`~pymongo.mongo_client.MongoClient`,
     :py:class`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`,
@@ -2926,7 +2942,9 @@ Important New Features:
 - Support for legacy Java and C# byte order when encoding and decoding UUIDs.
 - Support for connecting directly to an arbiter.
 
-.. warning::
+.. warning:
+
+.. code-block:: python
 
     Starting with MongoDB 2.2 the getLastError command requires authentication
     when the server's `authentication features
@@ -2979,7 +2997,9 @@ Important New Features:
 - Improved connection pooling.
   See `PYTHON-287 <https://jira.mongodb.org/browse/PYTHON-287>`_.
 
-.. warning::
+.. warning:
+
+.. code-block:: python
 
     A number of methods and method parameters that were deprecated in
     PyMongo 1.9 or older versions have been removed in this release.
@@ -3125,7 +3145,9 @@ API changes:
   used PyMongo will treat the specified host:port pair(s) as a seed list and
   connect using replica set behavior.
 
-.. warning::
+.. warning:
+
+.. code-block:: python
 
     The default subtype for :py:class`~bson.binary.Binary` has changed
     from :const:`~bson.binary.OLD_BINARY_SUBTYPE` (2) to
@@ -3323,7 +3345,9 @@ rather than :py:class`pymongo.errors.PyMongoError`.
            existing code. The old names will eventually be deprecated and then
            removed, so users should begin migrating towards the new names now.
 
-.. warning::
+.. warning:
+
+.. code-block:: python
 
   The change to the exception hierarchy mentioned above is
   possibly breaking. If your code is catching

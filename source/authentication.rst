@@ -11,7 +11,9 @@ Percent-Escaping Username and Password
 --------------------------------------
 
 Username and password must be percent-escaped with
-:py:func:`urllib.parse.quote_plus`, to be used in a MongoDB URI. For example::
+:py:func:`urllib.parse.quote_plus`, to be used in a MongoDB URI. For example:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> import urllib.parse
@@ -35,7 +37,9 @@ configured for authentication with MongoDB 4.0 or later. Authentication
 requires a username, a password, and a database name. The default database
 name is "admin", this can be overridden with the ``authSource`` option.
 Credentials can be specified as arguments to
-:py:class`~pymongo.mongo_client.MongoClient`::
+:py:class`~pymongo.mongo_client.MongoClient`:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient('example.com',
@@ -44,7 +48,9 @@ Credentials can be specified as arguments to
   ...                      authSource='the_database',
   ...                      authMechanism='SCRAM-SHA-256')
 
-Or through the MongoDB URI::
+Or through the MongoDB URI:
+
+.. code-block:: python
 
   >>> uri = "mongodb://user:password@example.com/?authSource=the_database&authMechanism=SCRAM-SHA-256"
   >>> client = MongoClient(uri)
@@ -58,7 +64,9 @@ configured for authentication with MongoDB 3.0 or later. Authentication
 requires a username, a password, and a database name. The default database
 name is "admin", this can be overridden with the ``authSource`` option.
 Credentials can be specified as arguments to
-:py:class`~pymongo.mongo_client.MongoClient`::
+:py:class`~pymongo.mongo_client.MongoClient`:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient('example.com',
@@ -67,7 +75,9 @@ Credentials can be specified as arguments to
   ...                      authSource='the_database',
   ...                      authMechanism='SCRAM-SHA-1')
 
-Or through the MongoDB URI::
+Or through the MongoDB URI:
+
+.. code-block:: python
 
   >>> uri = "mongodb://user:password@example.com/?authSource=the_database&authMechanism=SCRAM-SHA-1"
   >>> client = MongoClient(uri)
@@ -83,7 +93,9 @@ MONGODB-CR
   is no longer supported by MongoDB 4.0.
 
 Before MongoDB 3.0 the default authentication mechanism was MONGODB-CR,
-the "MongoDB Challenge-Response" protocol::
+the "MongoDB Challenge-Response" protocol:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient('example.com',
@@ -105,13 +117,17 @@ Default Database and "authSource"
 ---------------------------------
 
 You can specify both a default database and the authentication database in the
-URI::
+URI:
+
+.. code-block:: python
 
     >>> uri = "mongodb://user:password@example.com/default_db?authSource=admin"
     >>> client = MongoClient(uri)
 
 PyMongo will authenticate on the "admin" database, but the default database
-will be "default_db"::
+will be "default_db":
+
+.. code-block:: python
 
     >>> # get_database with no "name" argument chooses the DB from the URI
     >>> db = MongoClient(uri).get_database()
@@ -126,7 +142,9 @@ MONGODB-X509
 
 The MONGODB-X509 mechanism authenticates via the X.509 certificate presented
 by the driver during TLS/SSL negotiation. This authentication method requires
-the use of TLS/SSL connections with certificate validation::
+the use of TLS/SSL connections with certificate validation:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient('example.com',
@@ -136,7 +154,9 @@ the use of TLS/SSL connections with certificate validation::
   ...                      tlsCAFile='/path/to/ca.pem')
 
 MONGODB-X509 authenticates against the $external virtual database, so you
-do not have to specify a database in the URI::
+do not have to specify a database in the URI:
+
+.. code-block:: python
 
   >>> uri = "mongodb://example.com/?authMechanism=MONGODB-X509"
   >>> client = MongoClient(uri,
@@ -159,7 +179,9 @@ Unix
 
 To authenticate using GSSAPI you must first install the python `kerberos`_ or
 `pykerberos`_ module using easy_install or pip. Make sure you run kinit before
-using the following authentication methods::
+using the following authentication methods:
+
+.. code-block:: python
 
   $ kinit mongodbuser@EXAMPLE.COM
   mongodbuser@EXAMPLE.COM's Password:
@@ -172,7 +194,9 @@ using the following authentication methods::
 
 Now authenticate using the MongoDB URI. GSSAPI authenticates against the
 $external virtual database so you do not have to specify a database in the
-URI::
+URI:
+
+.. code-block:: python
 
   >>> # Note: the kerberos principal must be url encoded.
   >>> from pymongo import MongoClient
@@ -181,7 +205,9 @@ URI::
   >>>
 
 The default service name used by MongoDB and PyMongo is ``mongodb``. You can
-specify a custom service name with the ``authMechanismProperties`` option::
+specify a custom service name with the ``authMechanismProperties`` option:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> uri = "mongodb://mongodbuser%40EXAMPLE.COM@mongo-server.example.com/?authMechanism=GSSAPI&authMechanismProperties=SERVICE_NAME:myservicename"
@@ -193,7 +219,9 @@ Windows (SSPI)
 
 First install the `winkerberos`_ module. Unlike authentication on Unix kinit is
 not used. If the user to authenticate is different from the user that owns the
-application process provide a password to authenticate::
+application process provide a password to authenticate:
+
+.. code-block:: python
 
   >>> uri = "mongodb://mongodbuser%40EXAMPLE.COM:mongodbuserpassword@example.com/?authMechanism=GSSAPI"
 
@@ -201,11 +229,15 @@ Two extra ``authMechanismProperties`` are supported on Windows platforms:
 
 - CANONICALIZE_HOST_NAME - Uses the fully qualified domain name (FQDN) of the
   MongoDB host for the server principal (GSSAPI libraries on Unix do this by
-  default)::
+  default):
+
+.. code-block:: python
 
     >>> uri = "mongodb://mongodbuser%40EXAMPLE.COM@example.com/?authMechanism=GSSAPI&authMechanismProperties=CANONICALIZE_HOST_NAME:true"
 
-- SERVICE_REALM - This is used when the user's realm is different from the service's realm::
+- SERVICE_REALM - This is used when the user's realm is different from the service's realm:
+
+.. code-block:: python
 
     >>> uri = "mongodb://mongodbuser%40EXAMPLE.COM@example.com/?authMechanism=GSSAPI&authMechanismProperties=SERVICE_REALM:otherrealm"
 
@@ -223,7 +255,9 @@ SASL PLAIN (RFC 4616)
 MongoDB Enterprise Edition version 2.6 and newer support the SASL PLAIN
 authentication mechanism, initially intended for delegating authentication
 to an LDAP server. Using the PLAIN mechanism is very similar to MONGODB-CR.
-These examples use the $external virtual database for LDAP support::
+These examples use the $external virtual database for LDAP support:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> uri = "mongodb://user:password@example.com/?authMechanism=PLAIN"
@@ -232,7 +266,9 @@ These examples use the $external virtual database for LDAP support::
 
 SASL PLAIN is a clear-text authentication mechanism. We **strongly** recommend
 that you connect to MongoDB using TLS/SSL with certificate validation when
-using the SASL PLAIN mechanism::
+using the SASL PLAIN mechanism:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> uri = "mongodb://user:password@example.com/?authMechanism=PLAIN"
@@ -250,7 +286,9 @@ MONGODB-AWS
 
 The MONGODB-AWS authentication mechanism is available in MongoDB 4.4+ and
 requires extra pymongo dependencies. To use it, install pymongo with the
-``aws`` extra::
+``aws`` extra:
+
+.. code-block:: python
 
   $ python -m pip install 'pymongo[aws]'
 
@@ -287,7 +325,9 @@ AWS IAM credentials
 
 Applications can authenticate using AWS IAM credentials by providing a valid
 access key id and secret access key pair as the username and password,
-respectively, in the MongoDB URI. A sample URI would be::
+respectively, in the MongoDB URI. A sample URI would be:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> uri = "mongodb+srv://<access_key_id>:<secret_access_key>@example.mongodb.net/?authMechanism=MONGODB-AWS"
@@ -302,7 +342,9 @@ AssumeRole
 Applications can authenticate using temporary credentials returned from an
 assume role request. These temporary credentials consist of an access key
 ID, a secret access key, and a security token passed into the URI.
-A sample URI would be::
+A sample URI would be:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> uri = "mongodb+srv://<access_key_id>:<secret_access_key>@example.mongodb.net/?authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<session_token>"
@@ -318,7 +360,9 @@ AWS Lambda (Environment Variables)
 When the username and password are not provided and the MONGODB-AWS mechanism
 is set, the client will fallback to using the `environment variables`_
 ``AWS_ACCESS_KEY_ID``, ``AWS_SECRET_ACCESS_KEY``, and ``AWS_SESSION_TOKEN``
-for the access key ID, secret access key, and session token, respectively::
+for the access key ID, secret access key, and session token, respectively:
+
+.. code-block:: python
 
   $ export AWS_ACCESS_KEY_ID=<access_key_id>
   $ export AWS_SECRET_ACCESS_KEY=<secret_access_key>
@@ -354,7 +398,9 @@ ECS Container
 
 Applications can authenticate from an ECS container via temporary
 credentials assigned to the machine. A sample URI on an ECS container
-would be::
+would be:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> uri = "mongodb+srv://example.mongodb.com/?authMechanism=MONGODB-AWS"
@@ -369,7 +415,9 @@ EC2 Instance
 
 Applications can authenticate from an EC2 instance via temporary
 credentials assigned to the machine. A sample URI on an EC2 machine
-would be::
+would be:
+
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> uri = "mongodb+srv://example.mongodb.com/?authMechanism=MONGODB-AWS"

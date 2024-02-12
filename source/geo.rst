@@ -1,7 +1,7 @@
 Geospatial Indexing Example
 ===========================
 
-.. testsetup::
+.. code-block:: python
 
   from pymongo import MongoClient
 
@@ -96,7 +96,9 @@ Or circle (specified by center point and radius):
   {'_id': ObjectId('...'), 'loc': [1, 2]}
   {'_id': ObjectId('...'), 'loc': [4, 4]}
 
-geoNear queries are also supported using :py:class`~bson.son.SON`::
+geoNear queries are also supported using :py:class`~bson.son.SON`:
+
+.. code-block:: python
 
   >>> from bson.son import SON
   >>> db.command(SON([('geoNear', 'places'), ('near', [1, 2])]))

@@ -16,7 +16,9 @@ Python 2 they are decoded to :py:class`~bson.binary.Binary`
 with subtype 0.
 
 For example, let's insert a :py:class`bytes` instance using Python 3 then
-read it back. Notice the byte string is decoded back to :py:class`bytes`::
+read it back. Notice the byte string is decoded back to :py:class`bytes`:
+
+.. code-block:: python
 
   Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
   [Clang 6.0 (clang-600.0.57)] on darwin
@@ -29,7 +31,9 @@ read it back. Notice the byte string is decoded back to :py:class`bytes`::
   {'binary': b'this is a byte string', '_id': ObjectId('4f9086b1fba5222021000000')}
 
 Now retrieve the same document in Python 2. Notice the byte string is decoded
-to :py:class`~bson.binary.Binary`::
+to :py:class`~bson.binary.Binary`:
+
+.. code-block:: python
 
   Python 2.7.6 (default, Feb 26 2014, 10:36:22)
   [GCC 4.7.3] on linux2
@@ -45,7 +49,9 @@ In Python 3 they are decoded into :py:class`bytes`. In Python 2 they are
 decoded to :py:class`~bson.binary.Binary` with subtype 0.
 
 For example, let's decode a JSON binary subtype 0 using Python 3. Notice the
-byte string is decoded to :py:class`bytes`::
+byte string is decoded to :py:class`bytes`:
+
+.. code-block:: python
 
   Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
   [Clang 6.0 (clang-600.0.57)] on darwin
@@ -55,7 +61,9 @@ byte string is decoded to :py:class`bytes`::
   {'b': b'this is a byte string'}
 
 Now decode the same JSON in Python 2 . Notice the byte string is decoded
-to :py:class`~bson.binary.Binary`::
+to :py:class`~bson.binary.Binary`:
+
+.. code-block:: python
 
   Python 2.7.10 (default, Feb  7 2017, 00:08:15)
   [GCC 4.2.1 Compatible Apple LLVM 8.0.0 (clang-800.0.34)] on darwin
@@ -71,7 +79,9 @@ Instances of :py:class`~bson.objectid.ObjectId` pickled using Python 2
 can always be unpickled using Python 3.
 
 If you pickled an ObjectId using Python 2 and want to unpickle it using
-Python 3 you must pass ``encoding='latin-1'`` to pickle.loads::
+Python 3 you must pass ``encoding='latin-1'`` to pickle.loads:
+
+.. code-block:: python
 
   Python 2.7.6 (default, Feb 26 2014, 10:36:22)
   [GCC 4.7.3] on linux2
@@ -93,7 +103,9 @@ Python 3 you must pass ``encoding='latin-1'`` to pickle.loads::
 
 
 If you need to pickle ObjectIds using Python 3 and unpickle them using Python 2
-you must use ``protocol <= 2``::
+you must use ``protocol <= 2``:
+
+.. code-block:: python
 
   Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
   [Clang 6.0 (clang-600.0.57)] on darwin

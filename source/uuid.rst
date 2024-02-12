@@ -6,7 +6,9 @@ Handling UUID Data
 
 PyMongo ships with built-in support for dealing with UUID types.
 It is straightforward to store native :py:class`uuid.UUID` objects
-to MongoDB and retrieve them as native :py:class`uuid.UUID` objects::
+to MongoDB and retrieve them as native :py:class`uuid.UUID` objects:
+
+.. code-block:: python
 
   from pymongo import MongoClient
   from bson.binary import UuidRepresentation
@@ -32,7 +34,9 @@ to MongoDB and retrieve them as native :py:class`uuid.UUID` objects::
   assert document['uuid'] == uuid_obj
 
 Native :py:class`uuid.UUID` objects can also be used as part of MongoDB
-queries::
+queries:
+
+.. code-block:: python
 
   document = collection.find({'uuid': uuid_obj})
   assert document['uuid'] == uuid_obj
@@ -65,19 +69,27 @@ Legacy Handling of UUID Data
 Historically, MongoDB Drivers have used different byte-ordering
 while serializing UUID types to :py:class`~bson.binary.Binary`.
 Consider, for instance, a UUID with the following canonical textual
-representation::
+representation:
+
+.. code-block:: python
 
   00112233-4455-6677-8899-aabbccddeeff
 
-This UUID would historically be serialized by the Python driver as::
+This UUID would historically be serialized by the Python driver as:
+
+.. code-block:: python
 
   00112233-4455-6677-8899-aabbccddeeff
 
-The same UUID would historically be serialized by the C# driver as::
+The same UUID would historically be serialized by the C# driver as:
+
+.. code-block:: python
 
   33221100-5544-7766-8899-aabbccddeeff
 
-Finally, the same UUID would historically be serialized by the Java driver as::
+Finally, the same UUID would historically be serialized by the Java driver as:
+
+.. code-block:: python
 
   77665544-3322-1100-ffee-ddccbbaa9988
 
@@ -98,12 +110,16 @@ Consider the following situation:
 * Application ``C`` written in C# generates a UUID and uses it as the ``_id``
   of a document that it proceeds to insert into the ``uuid_test`` collection of
   the ``example_db`` database. Let's assume that the canonical textual
-  representation of the generated UUID is::
+  representation of the generated UUID is:
+
+.. code-block:: python
 
     00112233-4455-6677-8899-aabbccddeeff
 
 * Application ``P`` written in Python attempts to ``find`` the document
-  written by application ``C`` in the following manner::
+  written by application ``C`` in the following manner:
+
+.. code-block:: python
 
     from uuid import UUID
     collection = client.example_db.uuid_test
@@ -113,7 +129,9 @@ Consider the following situation:
   was inserted by application ``C`` in the previous step. This is because of
   the different byte-order used by the C# driver for representing UUIDs as
   BSON Binary. The following query, on the other hand, will successfully find
-  this document::
+  this document:
+
+.. code-block:: python
 
     result = collection.find_one({'_id': UUID('33221100-5544-7766-8899-aabbccddeeff')})
 
@@ -135,7 +153,9 @@ to inadvertently change the :py:class`~bson.binary.Binary` subtype, and in some
 cases, the bytes of the :py:class`~bson.binary.Binary` field itself when
 round-tripping documents containing UUIDs.
 
-Consider the following situation::
+Consider the following situation:
+
+.. code-block:: python
 
   from bson.codec_options import CodecOptions, DEFAULT_CODEC_OPTIONS
   from bson.binary import Binary, UuidRepresentation
@@ -169,7 +189,9 @@ and then round-tripped using the ``PYTHON_LEGACY`` representation.**
 
 In the next example, we see the consequences of incorrectly using a
 representation that modifies byte-order (``CSHARP_LEGACY`` or ``JAVA_LEGACY``)
-when round-tripping documents::
+when round-tripping documents:
+
+.. code-block:: python
 
   from bson.codec_options import CodecOptions, DEFAULT_CODEC_OPTIONS
   from bson.binary import Binary, UuidRepresentation
@@ -228,7 +250,9 @@ Binary subtype 3 and 4 fields from BSON.
 Applications can set the UUID representation in one of the following ways:
 
 #. At the ``MongoClient`` level using the ``uuidRepresentation`` URI option,
-   e.g.::
+   e.g.:
+
+.. code-block:: python
 
      client = MongoClient("mongodb://a:27107/?uuidRepresentation=standard")
 
@@ -256,13 +280,17 @@ Applications can set the UUID representation in one of the following ways:
         - :ref:`csharp-legacy-representation-details`
 
 #. At the ``MongoClient`` level using the ``uuidRepresentation`` kwarg
-   option, e.g.::
+   option, e.g.:
+
+.. code-block:: python
 
      from bson.binary import UuidRepresentation
      client = MongoClient(uuidRepresentation=UuidRepresentation.STANDARD)
 
 #. At the ``Database`` or ``Collection`` level by supplying a suitable
-   :py:class`~bson.codec_options.CodecOptions` instance, e.g.::
+   :py:class`~bson.codec_options.CodecOptions` instance, e.g.:
+
+.. code-block:: python
 
      from bson.codec_options import CodecOptions
      csharp_opts = CodecOptions(uuid_representation=UuidRepresentation.CSHARP_LEGACY)
@@ -338,7 +366,9 @@ object instead. If required, users can coerce the decoded
 :py:class`~bson.binary.Binary` objects into native UUIDs using the
 :py:meth:`~bson.binary.Binary.as_uuid` method and specifying the appropriate
 representation format. The following example shows
-what this might look like for a UUID stored by the C# driver::
+what this might look like for a UUID stored by the C# driver:
+
+.. code-block:: python
 
   from bson.codec_options import CodecOptions, DEFAULT_CODEC_OPTIONS
   from bson.binary import Binary, UuidRepresentation
@@ -367,7 +397,9 @@ what this might look like for a UUID stored by the C# driver::
 
 Native :py:class`uuid.UUID` objects cannot directly be encoded to
 :py:class`~bson.binary.Binary` when the UUID representation is ``UNSPECIFIED``
-and attempting to do so will result in an exception::
+and attempting to do so will result in an exception:
+
+.. code-block:: python
 
   unspec_collection.insert_one({'_id': 'bar', 'uuid': uuid4()})
   Traceback (most recent call last):
@@ -376,7 +408,9 @@ and attempting to do so will result in an exception::
 
 Instead, applications using :data:`~bson.binary.UuidRepresentation.UNSPECIFIED`
 must explicitly coerce a native UUID using the
-:py:meth:`~bson.binary.Binary.from_uuid` method::
+:py:meth:`~bson.binary.Binary.from_uuid` method:
+
+.. code-block:: python
 
   explicit_binary = Binary.from_uuid(uuid4(), UuidRepresentation.STANDARD)
   unspec_collection.insert_one({'_id': 'bar', 'uuid': explicit_binary})
@@ -416,7 +450,9 @@ corresponds to the legacy representation of UUIDs used by PyMongo. This
 representation conforms with
 `RFC 4122 Section 4.1.2 <https://tools.ietf.org/html/rfc4122#section-4.1.2>`_.
 
-The following example illustrates the use of this representation::
+The following example illustrates the use of this representation:
+
+.. code-block:: python
 
   from bson.codec_options import CodecOptions, DEFAULT_CODEC_OPTIONS
   from bson.binary import Binary, UuidRepresentation
@@ -436,7 +472,9 @@ The following example illustrates the use of this representation::
 
 ``PYTHON_LEGACY`` encodes native :py:class`uuid.UUID` objects to
 :py:class`~bson.binary.Binary` subtype 3 objects, preserving the same
-byte-order as :attr:`~uuid.UUID.bytes`::
+byte-order as :attr:`~uuid.UUID.bytes`:
+
+.. code-block:: python
 
   from bson.binary import Binary
 
@@ -463,12 +501,16 @@ As an example, consider the same UUID described in :ref:`example-legacy-uuid`.
 Let us assume that an application used the Java driver without an explicitly
 specified UUID representation to insert the example UUID
 ``00112233-4455-6677-8899-aabbccddeeff`` into MongoDB. If we try to read this
-value using ``PYTHON_LEGACY``, we end up with an entirely different UUID::
+value using ``PYTHON_LEGACY``, we end up with an entirely different UUID:
+
+.. code-block:: python
 
   UUID('77665544-3322-1100-ffee-ddccbbaa9988')
 
 However, if we explicitly set the representation to
-:data:`~bson.binary.UuidRepresentation.JAVA_LEGACY`, we get the correct result::
+:data:`~bson.binary.UuidRepresentation.JAVA_LEGACY`, we get the correct result:
+
+.. code-block:: python
 
   UUID('00112233-4455-6677-8899-aabbccddeeff')
 
@@ -497,12 +539,16 @@ As an example, consider the same UUID described in :ref:`example-legacy-uuid`.
 Let us assume that an application used the C# driver without an explicitly
 specified UUID representation to insert the example UUID
 ``00112233-4455-6677-8899-aabbccddeeff`` into MongoDB. If we try to read this
-value using PYTHON_LEGACY, we end up with an entirely different UUID::
+value using PYTHON_LEGACY, we end up with an entirely different UUID:
+
+.. code-block:: python
 
   UUID('33221100-5544-7766-8899-aabbccddeeff')
 
 However, if we explicitly set the representation to
-:data:`~bson.binary.UuidRepresentation.CSHARP_LEGACY`, we get the correct result::
+:data:`~bson.binary.UuidRepresentation.CSHARP_LEGACY`, we get the correct result:
+
+.. code-block:: python
 
   UUID('00112233-4455-6677-8899-aabbccddeeff')
 

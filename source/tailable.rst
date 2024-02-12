@@ -9,7 +9,9 @@ use a `tailable cursor
 that remains open after the client exhausts the results in the initial cursor.
 
 The following is a basic example of using a tailable cursor to tail the oplog
-of a replica set member::
+of a replica set member:
+
+.. code-block:: python
 
   import time
 

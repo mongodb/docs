@@ -12,7 +12,9 @@ follow these guidelines:
   in the daemon's main Python interpreter, not a sub interpreter.
 
 For example, this ``mod_wsgi`` configuration ensures an application runs in the
-main interpreter::
+main interpreter:
+
+.. code-block:: python
 
     <VirtualHost *>
         WSGIDaemonProcess my_process
@@ -22,7 +24,9 @@ main interpreter::
     </VirtualHost>
 
 If you have multiple applications that use PyMongo, put each in a separate
-daemon, still in the global application group::
+daemon, still in the global application group:
+
+.. code-block:: python
 
     <VirtualHost *>
         WSGIDaemonProcess my_process
