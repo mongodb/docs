@@ -32,7 +32,7 @@ MongoDB <= 4.0
 When using MongoDB <= 4.0, it is possible to use the deprecated ``copydb`` command
 to copy a database. To copy a database within a single ``mongod`` process, or
 between ``mongod`` servers, connect to the target ``mongod`` and use the
-:meth:`~pymongo.database.Database.command` method::
+:py:meth:`~pymongo.database.Database.command` method::
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient('target.example.com')

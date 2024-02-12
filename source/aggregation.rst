@@ -17,7 +17,7 @@ Setup
 To start, we'll insert some example data which we can perform
 aggregations on:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> db = MongoClient().aggregation_example
@@ -38,7 +38,7 @@ Aggregation Framework
 ---------------------
 
 This example shows how to use the
-:meth:`~pymongo.collection.Collection.aggregate` method to use the aggregation
+:py:meth:`~pymongo.collection.Collection.aggregate` method to use the aggregation
 framework.  We'll perform a simple aggregation to count the number of
 occurrences for each tag in the ``tags`` array, across the entire collection.
 To achieve this we need to pass in three operations to the pipeline.
@@ -53,7 +53,7 @@ eg "$sort":
 
     aggregate requires server version **>= 2.1.0**.
 
-.. doctest::
+.. code-block:: python
 
   >>> from bson.son import SON
   >>> pipeline = [
@@ -76,7 +76,7 @@ by providing a few convenience classes::
   >>> ExplainableCollection(collection).aggregate(pipeline)
   {'ok': 1.0, 'queryPlanner': [...]}
 
-Or, use the :meth:`~pymongo.database.Database.command` method::
+Or, use the :py:meth:`~pymongo.database.Database.command` method::
 
   >>> db.command('aggregate', 'things', pipeline=pipeline, explain=True)
   {'ok': 1.0, 'stages': [...]}

@@ -15,7 +15,7 @@ Setting Up
 
 We'll start by getting a clean database to use for the example:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient()
@@ -32,7 +32,7 @@ distinct from Python's built-in :py:py:class`~decimal.Decimal` type, attempting
 to save an instance of ``Decimal`` with PyMongo, results in an
 :exc:`~bson.errors.InvalidDocument` exception.
 
-.. doctest::
+.. code-block:: python
 
   >>> from decimal import Decimal
   >>> num = Decimal("45.321")
@@ -73,7 +73,7 @@ The type codec for our custom type simply needs to define how a
 interested in both encoding and decoding our custom type, we use the
 ``TypeCodec`` base class to define our codec:
 
-.. doctest::
+.. code-block:: python
 
   >>> from bson.decimal128 import Decimal128
   >>> from bson.codec_options import TypeCodec
@@ -103,7 +103,7 @@ Before we can begin encoding and decoding our custom type objects, we must
 first inform PyMongo about the corresponding codec. This is done by creating
 a :py:class`~bson.codec_options.TypeRegistry` instance:
 
-.. doctest::
+.. code-block:: python
 
   >>> from bson.codec_options import TypeRegistry
   >>> type_registry = TypeRegistry([decimal_codec])
@@ -122,7 +122,7 @@ with our ``type_registry`` and use it to get a
 :py:class`~pymongo.collection.Collection` object that understands the
 :py:py:class`~decimal.Decimal` data type:
 
-.. doctest::
+.. code-block:: python
 
   >>> from bson.codec_options import CodecOptions
   >>> codec_options = CodecOptions(type_registry=type_registry)
@@ -132,7 +132,7 @@ with our ``type_registry`` and use it to get a
 Now, we can seamlessly encode and decode instances of
 :py:py:class`~decimal.Decimal`:
 
-.. doctest::
+.. code-block:: python
 
   >>> collection.insert_one({"num": Decimal("45.321")})
   InsertOneResult(ObjectId('...'), acknowledged=True)
@@ -146,7 +146,7 @@ We can see what's actually being saved to the database by creating a fresh
 collection object without the customized codec options and using that to query
 MongoDB:
 
-.. doctest::
+.. code-block:: python
 
   >>> vanilla_collection = db.get_collection("test")
   >>> pprint.pprint(vanilla_collection.find_one())
@@ -165,7 +165,7 @@ described above does not offer the same flexibility.
 Consider this subtype of ``Decimal`` that has a method to return its value as
 an integer:
 
-.. doctest::
+.. code-block:: python
 
   >>> class DecimalInt(Decimal):
   ...     def my_method(self):
@@ -176,7 +176,7 @@ an integer:
 If we try to save an instance of this type without first registering a type
 codec for it, we get an error:
 
-.. doctest::
+.. code-block:: python
 
   >>> collection.insert_one({"num": DecimalInt("45.321")})
   Traceback (most recent call last):
@@ -187,7 +187,7 @@ In order to proceed further, we must define a type codec for ``DecimalInt``.
 This is trivial to do since the same transformation as the one used for
 ``Decimal`` is adequate for encoding ``DecimalInt`` as well:
 
-.. doctest::
+.. code-block:: python
 
   >>> class DecimalIntCodec(DecimalCodec):
   ...     @property
@@ -210,7 +210,7 @@ This is trivial to do since the same transformation as the one used for
 After creating a new codec options object and using it to get a collection
 object, we can seamlessly encode instances of ``DecimalInt``:
 
-.. doctest::
+.. code-block:: python
 
   >>> type_registry = TypeRegistry([decimal_codec, decimalint_codec])
   >>> codec_options = CodecOptions(type_registry=type_registry)
@@ -288,7 +288,7 @@ method, it accepts an unencodable value as a parameter and returns a
 BSON-encodable value. The following fallback encoder encodes python's
 :py:py:class`~decimal.Decimal` type to a :py:class`~bson.decimal128.Decimal128`:
 
-.. doctest::
+.. code-block:: python
 
   >>> def fallback_encoder(value):
   ...     if isinstance(value, Decimal):
@@ -299,7 +299,7 @@ BSON-encodable value. The following fallback encoder encodes python's
 After declaring the callback, we must create a type registry and codec options
 with this fallback encoder before it can be used for initializing a collection:
 
-.. doctest::
+.. code-block:: python
 
   >>> type_registry = TypeRegistry(fallback_encoder=fallback_encoder)
   >>> codec_options = CodecOptions(type_registry=type_registry)
@@ -308,7 +308,7 @@ with this fallback encoder before it can be used for initializing a collection:
 
 We can now seamlessly encode instances of :py:py:class`~decimal.Decimal`:
 
-.. doctest::
+.. code-block:: python
 
   >>> collection.insert_one({"num": Decimal("45.321")})
   InsertOneResult(ObjectId('...'), acknowledged=True)
@@ -430,7 +430,7 @@ limitations:
    type that is either BSON-encodable by default, or can be
    transformed by the fallback encoder into something BSON-encodable--it
    *cannot* be transformed a second time by a different type codec.
-#. The :meth:`~pymongo.database.Database.command` method does not apply the
+#. The :py:meth:`~pymongo.database.Database.command` method does not apply the
    user's TypeDecoders while decoding the command response document.
 #. :mod:`gridfs` does not apply custom type encoding or decoding to any
    documents received from or to returned to the user.

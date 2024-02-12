@@ -19,12 +19,12 @@ Bulk Insert
 .. versionadded:: 2.6
 
 A batch of documents can be inserted by passing a list to the
-:meth:`~pymongo.collection.Collection.insert_many` method. PyMongo
+:py:meth:`~pymongo.collection.Collection.insert_many` method. PyMongo
 will automatically split the batch into smaller sub-batches based on
 the maximum message size accepted by MongoDB, supporting very large
 bulk insert operations.
 
-.. doctest::
+.. code-block:: python
 
   >>> import pymongo
   >>> db = pymongo.MongoClient().bulk_example
@@ -52,7 +52,7 @@ order provided for serial execution. The return value is an instance of
 :py:class`~pymongo.results.BulkWriteResult` describing the type and count
 of operations performed.
 
-.. doctest::
+.. code-block:: python
   :options: +NORMALIZE_WHITESPACE
 
   >>> from pprint import pprint
@@ -85,7 +85,7 @@ the exception instance provides the execution results up until the failure
 occurred and details about the failure - including the operation that caused
 the failure.
 
-.. doctest::
+.. code-block:: python
   :options: +NORMALIZE_WHITESPACE
 
   >>> from pymongo import InsertOne, DeleteOne, ReplaceOne
@@ -125,7 +125,7 @@ In the next example the first and third operations fail due to the unique
 constraint on _id. Since we are doing unordered execution the second
 and fourth operations succeed.
 
-.. doctest::
+.. code-block:: python
   :options: +NORMALIZE_WHITESPACE
 
   >>> requests = [

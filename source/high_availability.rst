@@ -80,7 +80,7 @@ Connecting to a Replica Set
 The initial connection as made above is a special case for an
 uninitialized replica set. Normally we'll want to connect
 differently. A connection to a replica set can be made using the
-:meth:`~pymongo.mongo_client.MongoClient` constructor, specifying
+:py:meth:`~pymongo.mongo_client.MongoClient` constructor, specifying
 one or more members of the set and optionally the replica set name.
 Any of the following connects to the replica set we just created::
 
@@ -97,7 +97,7 @@ Any of the following connects to the replica set we just created::
   >>> MongoClient('mongodb://localhost:27017,localhost:27018/?replicaSet=foo')
   MongoClient(['localhost:27017', 'localhost:27018'], replicaset='foo', ...)
 
-The addresses passed to :meth:`~pymongo.mongo_client.MongoClient` are called
+The addresses passed to :py:meth:`~pymongo.mongo_client.MongoClient` are called
 the *seeds*. As long as at least one of the seeds is online, MongoClient
 discovers all the members in the replica set, and determines which is the
 current primary and which are secondaries or arbiters. Each seed must be the
@@ -119,8 +119,8 @@ set::
 
 You need not wait for replica set discovery in your application, however.
 If you need to do any operation with a MongoClient, such as a
-:meth:`~pymongo.collection.Collection.find` or an
-:meth:`~pymongo.collection.Collection.insert_one`, the client waits to discover
+:py:meth:`~pymongo.collection.Collection.find` or an
+:py:meth:`~pymongo.collection.Collection.insert_one`, the client waits to discover
 a suitable member before it attempts the operation.
 
 Handling Failover
@@ -198,8 +198,8 @@ By default the read preference of a :py:class`~pymongo.database.Database` is
 inherited from its MongoClient, and the read preference of a
 :py:class`~pymongo.collection.Collection` is inherited from its Database. To use
 a different read preference use the
-:meth:`~pymongo.mongo_client.MongoClient.get_database` method, or the
-:meth:`~pymongo.database.Database.get_collection` method::
+:py:meth:`~pymongo.mongo_client.MongoClient.get_database` method, or the
+:py:meth:`~pymongo.database.Database.get_collection` method::
 
   >>> from pymongo import ReadPreference
   >>> client.read_preference
@@ -213,7 +213,7 @@ a different read preference use the
 
 You can also change the read preference of an existing
 :py:class`~pymongo.collection.Collection` with the
-:meth:`~pymongo.collection.Collection.with_options` method::
+:py:meth:`~pymongo.collection.Collection.with_options` method::
 
   >>> coll2 = coll.with_options(read_preference=ReadPreference.NEAREST)
   >>> coll.read_preference
@@ -222,7 +222,7 @@ You can also change the read preference of an existing
   Nearest(tag_sets=None)
 
 Note that since most database commands can only be sent to the primary of a
-replica set, the :meth:`~pymongo.database.Database.command` method does not obey
+replica set, the :py:meth:`~pymongo.database.Database.command` method does not obey
 the Database's :attr:`~pymongo.database.Database.read_preference`, but you can
 pass an explicit read preference to the method::
 

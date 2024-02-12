@@ -18,7 +18,7 @@ Creating a Geospatial Index
 
 Creating a geospatial index in pymongo is easy:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient, GEO2D
   >>> db = MongoClient().geo_example
@@ -32,7 +32,7 @@ Locations in MongoDB are represented using either embedded documents
 or lists where the first two elements are coordinates. Here, we'll
 insert a couple of example locations:
 
-.. doctest::
+.. code-block:: python
 
   >>> result = db.places.insert_many(
   ...     [{"loc": [2, 5]}, {"loc": [30, 5]}, {"loc": [1, 2]}, {"loc": [4, 4]}]
@@ -47,7 +47,7 @@ Querying
 
 Using the geospatial index we can find documents near another point:
 
-.. doctest::
+.. code-block:: python
 
   >>> import pprint
   >>> for doc in db.places.find({"loc": {"$near": [3, 6]}}).limit(3):
@@ -61,7 +61,7 @@ Using the geospatial index we can find documents near another point:
 
 The $maxDistance operator requires the use of :py:class`~bson.son.SON`:
 
-.. doctest::
+.. code-block:: python
 
   >>> from bson.son import SON
   >>> query = {"loc": SON([("$near", [3, 6]), ("$maxDistance", 100)])}
@@ -75,7 +75,7 @@ The $maxDistance operator requires the use of :py:class`~bson.son.SON`:
 It's also possible to query for all items within a given rectangle
 (specified by lower-left and upper-right coordinates):
 
-.. doctest::
+.. code-block:: python
 
   >>> query = {"loc": {"$within": {"$box": [[2, 2], [5, 6]]}}}
   >>> for doc in db.places.find(query).sort("_id"):
@@ -86,7 +86,7 @@ It's also possible to query for all items within a given rectangle
 
 Or circle (specified by center point and radius):
 
-.. doctest::
+.. code-block:: python
 
   >>> query = {"loc": {"$within": {"$center": [[0, 0], 6]}}}
   >>> for doc in db.places.find(query).sort("_id"):

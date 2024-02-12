@@ -51,7 +51,7 @@ The described server selection logic is implemented in the following server
 selector function:
 
 
-.. doctest::
+.. code-block:: python
 
    >>> def server_selector(server_descriptions):
    ...     servers = [
@@ -68,7 +68,7 @@ Finally, we can create a :py:class`~pymongo.MongoClient` instance with this
 server selector.
 
 
-.. doctest::
+.. code-block:: python
 
    >>> client = MongoClient(server_selector=server_selector)
 

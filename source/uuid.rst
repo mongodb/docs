@@ -336,7 +336,7 @@ automatically converting UUID fields in BSON to native UUID types. Decoding
 a UUID when using this representation returns a :py:class`~bson.binary.Binary`
 object instead. If required, users can coerce the decoded
 :py:class`~bson.binary.Binary` objects into native UUIDs using the
-:meth:`~bson.binary.Binary.as_uuid` method and specifying the appropriate
+:py:meth:`~bson.binary.Binary.as_uuid` method and specifying the appropriate
 representation format. The following example shows
 what this might look like for a UUID stored by the C# driver::
 
@@ -376,7 +376,7 @@ and attempting to do so will result in an exception::
 
 Instead, applications using :data:`~bson.binary.UuidRepresentation.UNSPECIFIED`
 must explicitly coerce a native UUID using the
-:meth:`~bson.binary.Binary.from_uuid` method::
+:py:meth:`~bson.binary.Binary.from_uuid` method::
 
   explicit_binary = Binary.from_uuid(uuid4(), UuidRepresentation.STANDARD)
   unspec_collection.insert_one({'_id': 'bar', 'uuid': explicit_binary})

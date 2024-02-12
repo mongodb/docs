@@ -17,7 +17,7 @@ Before we start, make sure that you have the **PyMongo** distribution
 :doc:`installed <installation>`. In the Python shell, the following
 should run without raising an exception:
 
-.. doctest::
+.. code-block:: python
 
   >>> import pymongo
 
@@ -36,7 +36,7 @@ The first step when working with **PyMongo** is to create a
 :py:class`~pymongo.mongo_client.MongoClient` to the running **mongod**
 instance. Doing so is easy:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client = MongoClient()
@@ -44,13 +44,13 @@ instance. Doing so is easy:
 The above code will connect on the default host and port. We can also
 specify the host and port explicitly, as follows:
 
-.. doctest::
+.. code-block:: python
 
   >>> client = MongoClient("localhost", 27017)
 
 Or use the MongoDB URI format:
 
-.. doctest::
+.. code-block:: python
 
   >>> client = MongoClient("mongodb://localhost:27017/")
 
@@ -61,7 +61,7 @@ A single instance of MongoDB can support multiple independent
 working with PyMongo you access databases using attribute style access
 on :py:class`~pymongo.mongo_client.MongoClient` instances:
 
-.. doctest::
+.. code-block:: python
 
   >>> db = client.test_database
 
@@ -69,7 +69,7 @@ If your database name is such that using attribute style access won't
 work (like ``test-database``), you can use dictionary style access
 instead:
 
-.. doctest::
+.. code-block:: python
 
   >>> db = client["test-database"]
 
@@ -80,13 +80,13 @@ group of documents stored in MongoDB, and can be thought of as roughly
 the equivalent of a table in a relational database. Getting a
 collection in PyMongo works the same as getting a database:
 
-.. doctest::
+.. code-block:: python
 
   >>> collection = db.test_collection
 
 or (using dictionary style access):
 
-.. doctest::
+.. code-block:: python
 
   >>> collection = db["test-collection"]
 
@@ -102,7 +102,7 @@ documents. In PyMongo we use dictionaries to represent documents. As
 an example, the following dictionary might be used to represent a blog
 post:
 
-.. doctest::
+.. code-block:: python
 
   >>> import datetime
   >>> post = {
@@ -122,9 +122,9 @@ converted to and from the appropriate `BSON
 Inserting a Document
 --------------------
 To insert a document into a collection we can use the
-:meth:`~pymongo.collection.Collection.insert_one` method:
+:py:meth:`~pymongo.collection.Collection.insert_one` method:
 
-.. doctest::
+.. code-block:: python
 
   >>> posts = db.posts
   >>> post_id = posts.insert_one(post).inserted_id
@@ -134,7 +134,7 @@ To insert a document into a collection we can use the
 When a document is inserted a special key, ``"_id"``, is automatically
 added if the document doesn't already contain an ``"_id"`` key. The value
 of ``"_id"`` must be unique across the
-collection. :meth:`~pymongo.collection.Collection.insert_one` returns an
+collection. :py:meth:`~pymongo.collection.Collection.insert_one` returns an
 instance of :py:class`~pymongo.results.InsertOneResult`. For more information
 on ``"_id"``, see the `documentation on _id
 <https://www.mongodb.com/docs/manual/reference/method/ObjectId/>`_.
@@ -143,22 +143,22 @@ After inserting the first document, the *posts* collection has
 actually been created on the server. We can verify this by listing all
 of the collections in our database:
 
-.. doctest::
+.. code-block:: python
 
   >>> db.list_collection_names()
   ['posts']
 
-Getting a Single Document With :meth:`~pymongo.collection.Collection.find_one`
+Getting a Single Document With :py:meth:`~pymongo.collection.Collection.find_one`
 ------------------------------------------------------------------------------
 The most basic type of query that can be performed in MongoDB is
-:meth:`~pymongo.collection.Collection.find_one`. This method returns a
+:py:meth:`~pymongo.collection.Collection.find_one`. This method returns a
 single document matching a query (or ``None`` if there are no
 matches). It is useful when you know there is only one matching
 document, or are only interested in the first match. Here we use
-:meth:`~pymongo.collection.Collection.find_one` to get the first
+:py:meth:`~pymongo.collection.Collection.find_one` to get the first
 document from the posts collection:
 
-.. doctest::
+.. code-block:: python
 
   >>> import pprint
   >>> pprint.pprint(posts.find_one())
@@ -173,11 +173,11 @@ The result is a dictionary matching the one that we inserted previously.
 .. note:: The returned document contains an ``"_id"``, which was
    automatically added on insert.
 
-:meth:`~pymongo.collection.Collection.find_one` also supports querying
+:py:meth:`~pymongo.collection.Collection.find_one` also supports querying
 on specific elements that the resulting document must match. To limit
 our results to a document with author "Mike" we do:
 
-.. doctest::
+.. code-block:: python
 
   >>> pprint.pprint(posts.find_one({"author": "Mike"}))
   {'_id': ObjectId('...'),
@@ -188,7 +188,7 @@ our results to a document with author "Mike" we do:
 
 If we try with a different author, like "Eliot", we'll get no result:
 
-.. doctest::
+.. code-block:: python
 
   >>> posts.find_one({"author": "Eliot"})
   >>>
@@ -199,7 +199,7 @@ Querying By ObjectId
 --------------------
 We can also find a post by its ``_id``, which in our example is an ObjectId:
 
-.. doctest::
+.. code-block:: python
 
   >>> post_id
   ObjectId(...)
@@ -212,7 +212,7 @@ We can also find a post by its ``_id``, which in our example is an ObjectId:
 
 Note that an ObjectId is not the same as its string representation:
 
-.. doctest::
+.. code-block:: python
 
   >>> post_id_as_str = str(post_id)
   >>> posts.find_one({"_id": post_id_as_str})  # No result
@@ -237,11 +237,11 @@ Bulk Inserts
 In order to make querying a little more interesting, let's insert a
 few more documents. In addition to inserting a single document, we can
 also perform *bulk insert* operations, by passing a list as the
-first argument to :meth:`~pymongo.collection.Collection.insert_many`.
+first argument to :py:meth:`~pymongo.collection.Collection.insert_many`.
 This will insert each document in the list, sending only a single
 command to the server:
 
-.. doctest::
+.. code-block:: python
 
   >>> new_posts = [
   ...     {
@@ -263,7 +263,7 @@ command to the server:
 
 There are a couple of interesting things to note about this example:
 
-  - The result from :meth:`~pymongo.collection.Collection.insert_many` now
+  - The result from :py:meth:`~pymongo.collection.Collection.insert_many` now
     returns two :py:class`~bson.objectid.ObjectId` instances, one for
     each inserted document.
   - ``new_posts[1]`` has a different "shape" than the other posts -
@@ -274,13 +274,13 @@ There are a couple of interesting things to note about this example:
 Querying for More Than One Document
 -----------------------------------
 To get more than a single document as the result of a query we use the
-:meth:`~pymongo.collection.Collection.find`
-method. :meth:`~pymongo.collection.Collection.find` returns a
+:py:meth:`~pymongo.collection.Collection.find`
+method. :py:meth:`~pymongo.collection.Collection.find` returns a
 :py:class`~pymongo.cursor.Cursor` instance, which allows us to iterate
 over all matching documents. For example, we can iterate over every
 document in the ``posts`` collection:
 
-.. doctest::
+.. code-block:: python
 
   >>> for post in posts.find():
   ...     pprint.pprint(post)
@@ -301,12 +301,12 @@ document in the ``posts`` collection:
    'text': 'and pretty easy too!',
    'title': 'MongoDB is fun'}
 
-Just like we did with :meth:`~pymongo.collection.Collection.find_one`,
-we can pass a document to :meth:`~pymongo.collection.Collection.find`
+Just like we did with :py:meth:`~pymongo.collection.Collection.find_one`,
+we can pass a document to :py:meth:`~pymongo.collection.Collection.find`
 to limit the returned results. Here, we get only those documents whose
 author is "Mike":
 
-.. doctest::
+.. code-block:: python
 
   >>> for post in posts.find({"author": "Mike"}):
   ...     pprint.pprint(post)
@@ -325,18 +325,18 @@ author is "Mike":
 Counting
 --------
 If we just want to know how many documents match a query we can
-perform a :meth:`~pymongo.collection.Collection.count_documents` operation
+perform a :py:meth:`~pymongo.collection.Collection.count_documents` operation
 instead of a full query. We can get a count of all of the documents
 in a collection:
 
-.. doctest::
+.. code-block:: python
 
   >>> posts.count_documents({})
   3
 
 or just of those documents that match a specific query:
 
-.. doctest::
+.. code-block:: python
 
   >>> posts.count_documents({"author": "Mike"})
   2
@@ -348,7 +348,7 @@ MongoDB supports many different types of `advanced queries
 example, lets perform a query where we limit results to posts older
 than a certain date, but also sort the results by author:
 
-.. doctest::
+.. code-block:: python
 
   >>> d = datetime.datetime(2009, 11, 12, 12)
   >>> for post in posts.find({"date": {"$lt": d}}).sort("author"):
@@ -366,7 +366,7 @@ than a certain date, but also sort the results by author:
    'text': 'Another post!'}
 
 Here we use the special ``"$lt"`` operator to do a range query, and
-also call :meth:`~pymongo.cursor.Cursor.sort` to sort the results
+also call :py:meth:`~pymongo.cursor.Cursor.sort` to sort the results
 by author.
 
 Indexing
@@ -380,7 +380,7 @@ documents whose value for that key already exists in the index.
 
 First, we'll need to create the index:
 
-.. doctest::
+.. code-block:: python
 
    >>> result = db.profiles.create_index([("user_id", pymongo.ASCENDING)], unique=True)
    >>> sorted(list(db.profiles.index_information()))
@@ -392,7 +392,7 @@ created.
 
 Now let's set up some user profiles:
 
-.. doctest::
+.. code-block:: python
 
    >>> user_profiles = [{"user_id": 211, "name": "Luke"}, {"user_id": 212, "name": "Ziltoid"}]
    >>> result = db.profiles.insert_many(user_profiles)
@@ -400,7 +400,7 @@ Now let's set up some user profiles:
 The index prevents us from inserting a document whose ``user_id`` is already in
 the collection:
 
-.. doctest::
+.. code-block:: python
    :options: +IGNORE_EXCEPTION_DETAIL
 
    >>> new_profile = {"user_id": 213, "name": "Drew"}

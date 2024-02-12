@@ -35,9 +35,9 @@ Stopping Executors
 
 Just as :py:class`~cursor.Cursor` must not take any locks from its destructor,
 neither can :py:class`~mongo_client.MongoClient` and :py:class`~topology.Topology`.
-Thus, although the client calls :meth:`close` on its kill-cursors thread, and
-the topology calls :meth:`close` on all its monitor threads, the :meth:`close`
-method cannot actually call :meth:`wake` on the executor, since :meth:`wake`
+Thus, although the client calls :py:meth:`close` on its kill-cursors thread, and
+the topology calls :py:meth:`close` on all its monitor threads, the :py:meth:`close`
+method cannot actually call :py:meth:`wake` on the executor, since :py:meth:`wake`
 takes a lock.
 
 Instead, executors wake periodically to check if ``self.close`` is set,

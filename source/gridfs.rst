@@ -22,7 +22,7 @@ Setup
 
 We start by creating a :py:class`~gridfs.GridFS` instance to use:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> import gridfs
@@ -37,34 +37,34 @@ Saving and Retrieving Data
 --------------------------
 
 The simplest way to work with :mod:`gridfs` is to use its key/value
-interface (the :meth:`~gridfs.GridFS.put` and
-:meth:`~gridfs.GridFS.get` methods). To write data to GridFS, use
-:meth:`~gridfs.GridFS.put`:
+interface (the :py:meth:`~gridfs.GridFS.put` and
+:py:meth:`~gridfs.GridFS.get` methods). To write data to GridFS, use
+:py:meth:`~gridfs.GridFS.put`:
 
-.. doctest::
+.. code-block:: python
 
   >>> a = fs.put(b"hello world")
 
-:meth:`~gridfs.GridFS.put` creates a new file in GridFS, and returns
+:py:meth:`~gridfs.GridFS.put` creates a new file in GridFS, and returns
 the value of the file document's ``"_id"`` key. Given that ``"_id"``
-we can use :meth:`~gridfs.GridFS.get` to get back the contents of the
+we can use :py:meth:`~gridfs.GridFS.get` to get back the contents of the
 file:
 
-.. doctest::
+.. code-block:: python
 
   >>> fs.get(a).read()
   b'hello world'
 
-:meth:`~gridfs.GridFS.get` returns a file-like object, so we get the
-file's contents by calling :meth:`~gridfs.grid_file.GridOut.read`.
+:py:meth:`~gridfs.GridFS.get` returns a file-like object, so we get the
+file's contents by calling :py:meth:`~gridfs.grid_file.GridOut.read`.
 
 In addition to putting a :py:class`str` as a GridFS file, we can also
-put any file-like object (an object with a :meth:`read`
+put any file-like object (an object with a :py:meth:`read`
 method). GridFS will handle reading the file in chunk-sized segments
 automatically. We can also add additional attributes to the file as
 keyword arguments:
 
-.. doctest::
+.. code-block:: python
 
   >>> b = fs.put(fs.get(a), filename="foo", bar="baz")
   >>> out = fs.get(b)
@@ -77,8 +77,8 @@ keyword arguments:
   >>> out.upload_date
   datetime.datetime(...)
 
-The attributes we set in :meth:`~gridfs.GridFS.put` are stored in the
+The attributes we set in :py:meth:`~gridfs.GridFS.put` are stored in the
 file document, and retrievable after calling
-:meth:`~gridfs.GridFS.get`. Some attributes (like ``"filename"``) are
+:py:meth:`~gridfs.GridFS.get`. Some attributes (like ``"filename"``) are
 special and are defined in the GridFS specification - see that
 document for more details.

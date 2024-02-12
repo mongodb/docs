@@ -111,9 +111,9 @@ Other Query Types
 
 You can use collations to control document matching rules for several different
 types of queries. All the various update and delete methods
-(:meth:`~pymongo.collection.Collection.update_one`,
-:meth:`~pymongo.collection.Collection.update_many`,
-:meth:`~pymongo.collection.Collection.delete_one`, etc.) support collation, and
+(:py:meth:`~pymongo.collection.Collection.update_one`,
+:py:meth:`~pymongo.collection.Collection.update_many`,
+:py:meth:`~pymongo.collection.Collection.delete_one`, etc.) support collation, and
 you can create query filters which employ collations to comply with any of the
 languages and variants available to the ``locale`` parameter.
 

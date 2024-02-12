@@ -4,7 +4,7 @@
 Client Side Operation Timeout
 =============================
 
-PyMongo 4.2 introduced :meth:`~pymongo.timeout` and the ``timeoutMS``
+PyMongo 4.2 introduced :py:meth:`~pymongo.timeout` and the ``timeoutMS``
 URI and keyword argument to :py:class`~pymongo.mongo_client.MongoClient`.
 These features allow applications to more easily limit the amount of time that
 one or more operations can execute before control is returned to the app. This
@@ -15,14 +15,14 @@ server-side execution.
 Basic Usage
 -----------
 
-The following example uses :meth:`~pymongo.timeout` to configure a 10-second
-timeout for an :meth:`~pymongo.collection.Collection.insert_one` operation::
+The following example uses :py:meth:`~pymongo.timeout` to configure a 10-second
+timeout for an :py:meth:`~pymongo.collection.Collection.insert_one` operation::
 
   import pymongo
   with pymongo.timeout(10):
       coll.insert_one({"name": "Nunu"})
 
-The :meth:`~pymongo.timeout` applies to all pymongo operations within the block.
+The :py:meth:`~pymongo.timeout` applies to all pymongo operations within the block.
 The following example ensures that both the ``insert`` and the ``find`` complete
 within 10 seconds total, or raise a timeout error::
 
@@ -46,7 +46,7 @@ When exiting the block, the previous deadline is restored::
 Timeout errors
 --------------
 
-When the :meth:`~pymongo.timeout` with-statement is entered, a deadline is set
+When the :py:meth:`~pymongo.timeout` with-statement is entered, a deadline is set
 for the entire block. When that deadline is exceeded, any blocking pymongo operation
 will raise a timeout exception. For example::
 
@@ -90,8 +90,8 @@ The above is roughly equivalent to::
 pymongo.timeout overrides timeoutMS
 -----------------------------------
 
-:meth:`~pymongo.timeout` overrides ``timeoutMS``; within a
-:meth:`~pymongo.timeout` block a client's ``timeoutMS`` option is ignored::
+:py:meth:`~pymongo.timeout` overrides ``timeoutMS``; within a
+:py:meth:`~pymongo.timeout` block a client's ``timeoutMS`` option is ignored::
 
   client = MongoClient("mongodb://localhost/?timeoutMS=10000")
   coll = client.test.test
@@ -105,15 +105,15 @@ pymongo.timeout overrides timeoutMS
 pymongo.timeout is thread safe
 ------------------------------
 
-:meth:`~pymongo.timeout` is thread safe; the timeout only applies to current
+:py:meth:`~pymongo.timeout` is thread safe; the timeout only applies to current
 thread and multiple threads can configure different timeouts in parallel.
 
 pymongo.timeout is asyncio safe
 -------------------------------
 
-:meth:`~pymongo.timeout` is asyncio safe; the timeout only applies to current
+:py:meth:`~pymongo.timeout` is asyncio safe; the timeout only applies to current
 Task and multiple Tasks can configure different timeouts concurrently.
-:meth:`~pymongo.timeout` can be used identically in
+:py:meth:`~pymongo.timeout` can be used identically in
 `Motor <https://github.com/mongodb/motor>`_, for example::
 
   import motor.motor_asyncio
@@ -156,7 +156,7 @@ that write (according to the configured write concern) within the given timeout:
 
   pymongo.errors.WTimeoutError: operation exceeded time limit, full error: {'code': 50, 'codeName': 'MaxTimeMSExpired', 'errmsg': 'operation exceeded time limit', 'errInfo': {'writeConcern': {'w': 1, 'wtimeout': 0}}}
 
-The same error as above but for :meth:`~pymongo.collection.Collection.insert_many`
-or :meth:`~pymongo.collection.Collection.bulk_write`::
+The same error as above but for :py:meth:`~pymongo.collection.Collection.insert_many`
+or :py:meth:`~pymongo.collection.Collection.bulk_write`::
 
   pymongo.errors.BulkWriteError: batch op errors occurred, full error: {'writeErrors': [], 'writeConcernErrors': [{'code': 50, 'codeName': 'MaxTimeMSExpired', 'errmsg': 'operation exceeded time limit', 'errInfo': {'writeConcern': {'w': 1, 'wtimeout': 0}}}], 'nInserted': 2, 'nUpserted': 0, 'nMatched': 0, 'nModified': 0, 'nRemoved': 0, 'upserted': []}

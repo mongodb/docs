@@ -35,7 +35,7 @@ Basic Usage
 Note that a type for :py:class`~pymongo.mongo_client.MongoClient` must be specified.  Here we use the
 default, unspecified document type:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> client: MongoClient = MongoClient()
@@ -46,7 +46,7 @@ default, unspecified document type:
 
 For a more accurate typing for document type you can use:
 
-.. doctest::
+.. code-block:: python
 
   >>> from typing import Any, Dict
   >>> from pymongo import MongoClient
@@ -63,7 +63,7 @@ Typed Client
 
 You can specify a :py:class`~bson.raw_bson.RawBSONDocument` document type:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> from bson.raw_bson import RawBSONDocument
@@ -75,7 +75,7 @@ You can specify a :py:class`~bson.raw_bson.RawBSONDocument` document type:
 
 Subclasses of :py:py:class`collections.abc.Mapping` can also be used, such as :py:class`~bson.son.SON`:
 
-.. doctest::
+.. code-block:: python
 
   >>> from bson import SON
   >>> from pymongo import MongoClient
@@ -96,7 +96,7 @@ You can use :py:py:class`~typing.TypedDict` (Python 3.8+) when using a well-defi
 :py:class`~pymongo.collection.Collection`. Note that all `schema validation`_ for inserts and updates is done on the server.
 These methods automatically add an "_id" field.
 
-.. doctest::
+.. code-block:: python
   :pyversion: >= 3.8
 
   >>> from typing import TypedDict
@@ -115,11 +115,11 @@ These methods automatically add an "_id" field.
   >>> # This will raise a type-checking error, despite being present, because it is added by PyMongo.
   >>> assert result["_id"]  # type:ignore[typeddict-item]
 
-This same typing scheme works for all of the insert methods (:meth:`~pymongo.collection.Collection.insert_one`,
-:meth:`~pymongo.collection.Collection.insert_many`, and :meth:`~pymongo.collection.Collection.bulk_write`).
+This same typing scheme works for all of the insert methods (:py:meth:`~pymongo.collection.Collection.insert_one`,
+:py:meth:`~pymongo.collection.Collection.insert_many`, and :py:meth:`~pymongo.collection.Collection.bulk_write`).
 For ``bulk_write`` both :py:class`~pymongo.operations.InsertOne` and :py:class`~pymongo.operations.ReplaceOne` operators are generic.
 
-.. doctest::
+.. code-block:: python
   :pyversion: >= 3.8
 
   >>> from typing import TypedDict
@@ -150,7 +150,7 @@ There are three approaches to this:
 
 Note: to use :py:py:class`~typing.TypedDict` and :py:py:class`~typing.NotRequired` in earlier versions of Python (<3.8, <3.11), use the ``typing_extensions`` package.
 
-.. doctest:: typed-dict-example
+.. code-block:: python typed-dict-example
   :pyversion: >= 3.11
 
   >>> from typing import TypedDict, NotRequired
@@ -203,7 +203,7 @@ While less common, you could specify that the documents in an entire database
 match a well-defined schema using :py:py:class`~typing.TypedDict` (Python 3.8+).
 
 
-.. doctest::
+.. code-block:: python
 
   >>> from typing import TypedDict
   >>> from pymongo import MongoClient
@@ -222,9 +222,9 @@ match a well-defined schema using :py:py:class`~typing.TypedDict` (Python 3.8+).
 
 Typed Command
 -------------
-When using the :meth:`~pymongo.database.Database.command`, you can specify the document type by providing a custom :py:class`~bson.codec_options.CodecOptions`:
+When using the :py:meth:`~pymongo.database.Database.command`, you can specify the document type by providing a custom :py:class`~bson.codec_options.CodecOptions`:
 
-.. doctest::
+.. code-block:: python
 
   >>> from pymongo import MongoClient
   >>> from bson.raw_bson import RawBSONDocument
@@ -241,7 +241,7 @@ Typed BSON Decoding
 -------------------
 You can specify the document type returned by :mod:`bson` decoding functions by providing :py:class`~bson.codec_options.CodecOptions`:
 
-.. doctest::
+.. code-block:: python
 
   >>> from typing import Any, Dict
   >>> from bson import CodecOptions, encode, decode

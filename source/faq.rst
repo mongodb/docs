@@ -159,7 +159,7 @@ A thread that waits more than 100ms (in this example) for a socket raises
 important to bound the duration of operations during a load spike than it is to
 complete every operation.
 
-When :meth:`~pymongo.mongo_client.MongoClient.close` is called by any thread,
+When :py:meth:`~pymongo.mongo_client.MongoClient.close` is called by any thread,
 all idle sockets are closed, and all sockets that are in use will be closed as
 they are returned to the pool.
 
@@ -187,9 +187,9 @@ Why does PyMongo add an _id field to all of my documents?
 ---------------------------------------------------------
 
 When a document is inserted to MongoDB using
-:meth:`~pymongo.collection.Collection.insert_one`,
-:meth:`~pymongo.collection.Collection.insert_many`, or
-:meth:`~pymongo.collection.Collection.bulk_write`, and that document does not
+:py:meth:`~pymongo.collection.Collection.insert_one`,
+:py:meth:`~pymongo.collection.Collection.insert_many`, or
+:py:meth:`~pymongo.collection.Collection.bulk_write`, and that document does not
 include an ``_id`` field, PyMongo automatically adds one for you, set to an
 instance of :py:class`~bson.objectid.ObjectId`. For example::
 
@@ -200,7 +200,7 @@ instance of :py:class`~bson.objectid.ObjectId`. For example::
   {'x': 1, '_id': ObjectId('560db337fba522189f171720')}
 
 Users often discover this behavior when calling
-:meth:`~pymongo.collection.Collection.insert_many` with a list of references
+:py:meth:`~pymongo.collection.Collection.insert_many` with a list of references
 to a single document raises :exc:`~pymongo.errors.BulkWriteError`. Several
 Python idioms lead to this pitfall::
 
@@ -278,7 +278,7 @@ To preserve order when reading BSON, use the :py:class`~bson.son.SON` class,
 which is a dict that remembers its key order. First, get a handle to the
 collection, configured to use :py:class`~bson.son.SON` instead of dict:
 
-.. doctest:: key-order
+.. code-block:: python key-order
   :options: +NORMALIZE_WHITESPACE
 
   >>> from bson import CodecOptions, SON
@@ -290,7 +290,7 @@ collection, configured to use :py:class`~bson.son.SON` instead of dict:
 Now, documents and subdocuments in query results are represented with
 :py:class`~bson.son.SON` objects:
 
-.. doctest:: key-order
+.. code-block:: python key-order
 
   >>> print(collection_son.find_one())
   SON([('_id', 1.0), ('subdocument', SON([('b', 1.0), ('a', 1.0)]))])
@@ -347,7 +347,7 @@ How do I change the timeout value for cursors?
 ----------------------------------------------
 MongoDB doesn't support custom timeouts for cursors, but cursor
 timeouts can be turned off entirely. Pass ``no_cursor_timeout=True`` to
-:meth:`~pymongo.collection.Collection.find`.
+:py:meth:`~pymongo.collection.Collection.find`.
 
 How can I store :mod:`decimal.Decimal` instances?
 -------------------------------------------------
@@ -424,7 +424,7 @@ It's common in web applications to encode documents' ObjectIds in URLs, like::
 
 Your web framework will pass the ObjectId portion of the URL to your request
 handler as a string, so it must be converted to :py:class`~bson.objectid.ObjectId`
-before it is passed to :meth:`~pymongo.collection.Collection.find_one`. It is a
+before it is passed to :py:meth:`~pymongo.collection.Collection.find_one`. It is a
 common mistake to forget to do this conversion. Here's how to do it correctly
 in Flask_ (other web frameworks are similar)::
 
@@ -523,7 +523,7 @@ this behavior to instead return :py:class`~bson.datetime_ms.DatetimeMS` when
 representations are out-of-range, while returning :py:class`~datetime.datetime`
 objects as before:
 
-.. doctest::
+.. code-block:: python
 
     >>> from datetime import datetime
     >>> from bson.datetime_ms import DatetimeMS

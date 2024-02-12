@@ -23,17 +23,17 @@ care should be taken to ensure that dates and times written to the database
 reflect UTC. For example, the following code stores the current UTC date and
 time into MongoDB:
 
-.. doctest::
+.. code-block:: python
 
    >>> result = db.objects.insert_one(
    ...     {"last_modified": datetime.datetime.now(tz=datetime.timezone.utc)}
    ... )
 
-Always use :meth:`datetime.datetime.now(tz=datetime.timezone.utc)`, which explicitly returns the current time in
-UTC, instead of :meth:`datetime.datetime.now`, with no arguments, which returns the current local
+Always use :py:meth:`datetime.datetime.now(tz=datetime.timezone.utc)`, which explicitly returns the current time in
+UTC, instead of :py:meth:`datetime.datetime.now`, with no arguments, which returns the current local
 time. Avoid doing this:
 
-.. doctest::
+.. code-block:: python
 
    >>> result = db.objects.insert_one({"last_modified": datetime.datetime.now()})
 
@@ -41,7 +41,7 @@ The value for ``last_modified`` is very different between these two examples, ev
 though both documents were stored at around the same local time. This will be
 confusing to the application that reads them:
 
-.. doctest::
+.. code-block:: python
 
    >>> [doc["last_modified"] for doc in db.objects.find()]  # doctest: +SKIP
    [datetime.datetime(2015, 7, 8, 18, 17, 28, 324000),
@@ -51,7 +51,7 @@ confusing to the application that reads them:
 "aware" :py:class`datetime.datetime` objects, i.e., datetimes that know what
 timezone they're in. By default, PyMongo retrieves naive datetimes:
 
-.. doctest::
+.. code-block:: python
 
    >>> result = db.tzdemo.insert_one({"date": datetime.datetime(2002, 10, 27, 6, 0, 0)})
    >>> db.tzdemo.find_one()["date"]
@@ -68,7 +68,7 @@ When storing :py:class`datetime.datetime` objects that specify a timezone
 (i.e. they have a ``tzinfo`` property that isn't ``None``), PyMongo will convert
 those datetimes to UTC automatically:
 
-.. doctest::
+.. code-block:: python
 
    >>> import pytz
    >>> pacific = pytz.timezone("US/Pacific")
@@ -130,7 +130,7 @@ attempting to decode an out-of-range date.
 :py:class`~bson.datetime_ms.DatetimeMS` objects, regardless of whether the
 represented datetime is in- or out-of-range:
 
-.. doctest::
+.. code-block:: python
 
     >>> from datetime import datetime
     >>> from bson import encode, decode
@@ -146,7 +146,7 @@ represented datetime is in- or out-of-range:
 or :py:class`~bson.datetime_ms.DatetimeMS` if the underlying datetime
 cannot be represented using the builtin Python :py:class`~datetime.datetime`:
 
-.. doctest::
+.. code-block:: python
 
     >>> x = encode({"x": datetime(1970, 1, 1)})
     >>> y = encode({"x": DatetimeMS(-(2**62))})
@@ -161,7 +161,7 @@ resulting :py:class`~datetime.datetime` objects to be within
 :attr:`~datetime.datetime.min` and :attr:`~datetime.datetime.max`
 (trimmed to ``999000`` microseconds):
 
-.. doctest::
+.. code-block:: python
 
     >>> x = encode({"x": DatetimeMS(2**62)})
     >>> y = encode({"x": DatetimeMS(-(2**62))})
@@ -174,4 +174,4 @@ resulting :py:class`~datetime.datetime` objects to be within
 :py:class`~bson.datetime_ms.DatetimeMS` objects have support for rich comparison
 methods against other instances of :py:class`~bson.datetime_ms.DatetimeMS`.
 They can also be converted to :py:class`~datetime.datetime` objects with
-:meth:`~bson.datetime_ms.DatetimeMS.to_datetime()`.
+:py:meth:`~bson.datetime_ms.DatetimeMS.to_datetime()`.

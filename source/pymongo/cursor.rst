@@ -20,7 +20,7 @@
 
       .. describe:: c[index]
 
-         See :meth:`__getitem__` and read the warning.
+         See :py:meth:`__getitem__` and read the warning.
 
       .. automethod:: __getitem__
 

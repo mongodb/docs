@@ -25,9 +25,9 @@ By default, PyMongo uses threads to discover and monitor your servers' topology
 your application first begins, PyMongo automatically uses greenlets instead
 of threads.
 
-When shutting down, if your application calls :meth:`~gevent.hub.Hub.join` on
+When shutting down, if your application calls :py:meth:`~gevent.hub.Hub.join` on
 Gevent's :py:class`~gevent.hub.Hub` without first terminating these background
-greenlets, the call to :meth:`~gevent.hub.Hub.join` blocks indefinitely. You
+greenlets, the call to :py:meth:`~gevent.hub.Hub.join` blocks indefinitely. You
 therefore **must close or dereference** any active
 :py:class`~pymongo.mongo_client.MongoClient` before exiting.
 

@@ -155,8 +155,8 @@ replaced as noted in the 'Migration Notes' column.
 MongoClient.fsync is removed
 ............................
 
-Removed :meth:`pymongo.mongo_client.MongoClient.fsync`. Run the
-`fsync command`_ directly with :meth:`~pymongo.database.Database.command`
+Removed :py:meth:`pymongo.mongo_client.MongoClient.fsync`. Run the
+`fsync command`_ directly with :py:meth:`~pymongo.database.Database.command`
 instead. For example::
 
     client.admin.command('fsync', lock=True)
@@ -166,9 +166,9 @@ instead. For example::
 MongoClient.unlock is removed
 .............................
 
-Removed :meth:`pymongo.mongo_client.MongoClient.unlock`. Run the
+Removed :py:meth:`pymongo.mongo_client.MongoClient.unlock`. Run the
 `fsyncUnlock command`_ directly with
-:meth:`~pymongo.database.Database.command` instead. For example::
+:py:meth:`~pymongo.database.Database.command` instead. For example::
 
      client.admin.command('fsyncUnlock')
 
@@ -179,7 +179,7 @@ MongoClient.is_locked is removed
 
 Removed :attr:`pymongo.mongo_client.MongoClient.is_locked`. Run the
 `currentOp command`_ directly with
-:meth:`~pymongo.database.Database.command` instead. For example::
+:py:meth:`~pymongo.database.Database.command` instead. For example::
 
     is_locked = client.admin.command('currentOp').get('fsyncLock')
 
@@ -188,8 +188,8 @@ Removed :attr:`pymongo.mongo_client.MongoClient.is_locked`. Run the
 MongoClient.database_names is removed
 .....................................
 
-Removed :meth:`pymongo.mongo_client.MongoClient.database_names`. Use
-:meth:`~pymongo.mongo_client.MongoClient.list_database_names` instead. Code like
+Removed :py:meth:`pymongo.mongo_client.MongoClient.database_names`. Use
+:py:meth:`~pymongo.mongo_client.MongoClient.list_database_names` instead. Code like
 this::
 
     names = client.database_names()
@@ -258,7 +258,7 @@ can be changed to this::
 ..................................
 
 The ``tz_aware`` argument to :py:class`~bson.json_util.JSONOptions`
-now defaults to ``False`` instead of ``True``. :meth:`bson.json_util.loads`
+now defaults to ``False`` instead of ``True``. :py:meth:`bson.json_util.loads`
 now decodes datetime as naive by default::
 
     >>> from bson import json_util
@@ -303,8 +303,8 @@ Database
 Database.authenticate and Database.logout are removed
 .....................................................
 
-Removed :meth:`pymongo.database.Database.authenticate` and
-:meth:`pymongo.database.Database.logout`. Authenticating multiple users
+Removed :py:meth:`pymongo.database.Database.authenticate` and
+:py:meth:`pymongo.database.Database.logout`. Authenticating multiple users
 on the same client conflicts with support for logical sessions in MongoDB 3.6+.
 To authenticate as multiple users, create multiple instances of
 :py:class`~pymongo.mongo_client.MongoClient`. Code like this::
@@ -324,8 +324,8 @@ required by your application.
 Database.collection_names is removed
 ....................................
 
-Removed :meth:`pymongo.database.Database.collection_names`. Use
-:meth:`~pymongo.database.Database.list_collection_names` instead. Code like
+Removed :py:meth:`pymongo.database.Database.collection_names`. Use
+:py:meth:`~pymongo.database.Database.list_collection_names` instead. Code like
 this::
 
     names = client.collection_names()
@@ -339,8 +339,8 @@ can be changed to this::
 Database.current_op is removed
 ..............................
 
-Removed :meth:`pymongo.database.Database.current_op`. Use
-:meth:`~pymongo.database.Database.aggregate` instead with the
+Removed :py:meth:`pymongo.database.Database.current_op`. Use
+:py:meth:`~pymongo.database.Database.aggregate` instead with the
 `$currentOp aggregation pipeline stage`_. Code like
 this::
 
@@ -355,7 +355,7 @@ can be changed to this::
 Database.add_user is removed
 ............................
 
-Removed :meth:`pymongo.database.Database.add_user`  which was deprecated in
+Removed :py:meth:`pymongo.database.Database.add_user`  which was deprecated in
 PyMongo 3.6. Use the `createUser command`_ or `updateUser command`_ instead.
 To create a user::
 
@@ -379,7 +379,7 @@ Or change roles::
 Database.remove_user is removed
 ...............................
 
-Removed :meth:`pymongo.database.Database.remove_user` which was deprecated in
+Removed :py:meth:`pymongo.database.Database.remove_user` which was deprecated in
 PyMongo 3.6. Use the `dropUser command`_ instead::
 
   db.command("dropUser", "user")
@@ -389,7 +389,7 @@ PyMongo 3.6. Use the `dropUser command`_ instead::
 Database.profiling_level is removed
 ...................................
 
-Removed :meth:`pymongo.database.Database.profiling_level` which was deprecated in
+Removed :py:meth:`pymongo.database.Database.profiling_level` which was deprecated in
 PyMongo 3.12. Use the `profile command`_ instead. Code like this::
 
   level = db.profiling_level()
@@ -404,7 +404,7 @@ Can be changed to this::
 Database.set_profiling_level is removed
 .......................................
 
-Removed :meth:`pymongo.database.Database.set_profiling_level` which was deprecated in
+Removed :py:meth:`pymongo.database.Database.set_profiling_level` which was deprecated in
 PyMongo 3.12. Use the `profile command`_ instead. Code like this::
 
   db.set_profiling_level(pymongo.ALL, filter={'op': 'query'})
@@ -416,7 +416,7 @@ Can be changed to this::
 Database.profiling_info is removed
 ..................................
 
-Removed :meth:`pymongo.database.Database.profiling_info` which was deprecated in
+Removed :py:meth:`pymongo.database.Database.profiling_info` which was deprecated in
 PyMongo 3.12. Query the `'system.profile' collection`_ instead. Code like this::
 
   profiling_info = db.profiling_info()
@@ -447,16 +447,16 @@ The useCursor option for Collection.aggregate is removed
 ........................................................
 
 Removed the ``useCursor`` option for
-:meth:`~pymongo.collection.Collection.aggregate` which was deprecated in
+:py:meth:`~pymongo.collection.Collection.aggregate` which was deprecated in
 PyMongo 3.6. The option was only necessary when upgrading from MongoDB 2.4
 to MongoDB 2.6.
 
 Collection.insert is removed
 ............................
 
-Removed :meth:`pymongo.collection.Collection.insert`. Use
-:meth:`~pymongo.collection.Collection.insert_one` or
-:meth:`~pymongo.collection.Collection.insert_many` instead.
+Removed :py:meth:`pymongo.collection.Collection.insert`. Use
+:py:meth:`~pymongo.collection.Collection.insert_one` or
+:py:meth:`~pymongo.collection.Collection.insert_many` instead.
 
 Code like this::
 
@@ -471,9 +471,9 @@ Can be changed to this::
 Collection.save is removed
 ..........................
 
-Removed :meth:`pymongo.collection.Collection.save`. Applications will
-get better performance using :meth:`~pymongo.collection.Collection.insert_one`
-to insert a new document and :meth:`~pymongo.collection.Collection.update_one`
+Removed :py:meth:`pymongo.collection.Collection.save`. Applications will
+get better performance using :py:meth:`~pymongo.collection.Collection.insert_one`
+to insert a new document and :py:meth:`~pymongo.collection.Collection.update_one`
 to update an existing document. Code like this::
 
   doc = collection.find_one({"_id": "some id"})
@@ -498,10 +498,10 @@ implemented like so::
 Collection.update is removed
 ............................
 
-Removed :meth:`pymongo.collection.Collection.update`. Use
-:meth:`~pymongo.collection.Collection.update_one`
+Removed :py:meth:`pymongo.collection.Collection.update`. Use
+:py:meth:`~pymongo.collection.Collection.update_one`
 to update a single document or
-:meth:`~pymongo.collection.Collection.update_many` to update multiple
+:py:meth:`~pymongo.collection.Collection.update_many` to update multiple
 documents. Code like this::
 
   collection.update({}, {'$set': {'a': 1}})
@@ -515,10 +515,10 @@ Can be changed to this::
 Collection.remove is removed
 ............................
 
-Removed :meth:`pymongo.collection.Collection.remove`. Use
-:meth:`~pymongo.collection.Collection.delete_one`
+Removed :py:meth:`pymongo.collection.Collection.remove`. Use
+:py:meth:`~pymongo.collection.Collection.delete_one`
 to delete a single document or
-:meth:`~pymongo.collection.Collection.delete_many` to delete multiple
+:py:meth:`~pymongo.collection.Collection.delete_many` to delete multiple
 documents. Code like this::
 
   collection.remove({'a': 1}, multi=False)
@@ -532,10 +532,10 @@ Can be changed to this::
 Collection.find_and_modify is removed
 .....................................
 
-Removed :meth:`pymongo.collection.Collection.find_and_modify`. Use
-:meth:`~pymongo.collection.Collection.find_one_and_update`,
-:meth:`~pymongo.collection.Collection.find_one_and_replace`, or
-:meth:`~pymongo.collection.Collection.find_one_and_delete` instead.
+Removed :py:meth:`pymongo.collection.Collection.find_and_modify`. Use
+:py:meth:`~pymongo.collection.Collection.find_one_and_update`,
+:py:meth:`~pymongo.collection.Collection.find_one_and_replace`, or
+:py:meth:`~pymongo.collection.Collection.find_one_and_delete` instead.
 Code like this::
 
   updated_doc = collection.find_and_modify({'a': 1}, {'$set': {'b': 1}})
@@ -551,10 +551,10 @@ Can be changed to this::
 Collection.count and Cursor.count is removed
 ............................................
 
-Removed :meth:`pymongo.collection.Collection.count` and
-:meth:`pymongo.cursor.Cursor.count`. Use
-:meth:`~pymongo.collection.Collection.count_documents` or
-:meth:`~pymongo.collection.Collection.estimated_document_count` instead.
+Removed :py:meth:`pymongo.collection.Collection.count` and
+:py:meth:`pymongo.cursor.Cursor.count`. Use
+:py:meth:`~pymongo.collection.Collection.count_documents` or
+:py:meth:`~pymongo.collection.Collection.estimated_document_count` instead.
 Code like this::
 
   ntotal = collection.count({})
@@ -568,7 +568,7 @@ Can be changed to this::
   ntotal = collection.estimated_document_count()
   nmatched = collection.count_documents({'price': {'$gte': 10}})
 
-.. note:: When migrating from :meth:`count` to :meth:`count_documents`
+.. note:: When migrating from :py:meth:`count` to :py:meth:`count_documents`
    the following query operators must be replaced:
 
    +-------------+--------------------------------------------------------------+
@@ -591,9 +591,9 @@ Can be changed to this::
 Collection.initialize_ordered_bulk_op and initialize_unordered_bulk_op is removed
 .................................................................................
 
-Removed :meth:`pymongo.collection.Collection.initialize_ordered_bulk_op`
+Removed :py:meth:`pymongo.collection.Collection.initialize_ordered_bulk_op`
 and :py:class`pymongo.bulk.BulkOperationBuilder`. Use
-:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this::
+:py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this::
 
   batch = coll.initialize_ordered_bulk_op()
   batch.insert({'a': 1})
@@ -614,8 +614,8 @@ Can be changed to this::
 Collection.initialize_unordered_bulk_op is removed
 ..................................................
 
-Removed :meth:`pymongo.collection.Collection.initialize_unordered_bulk_op`.
-Use :meth:`pymongo.collection.Collection.bulk_write` instead. Code like this::
+Removed :py:meth:`pymongo.collection.Collection.initialize_unordered_bulk_op`.
+Use :py:meth:`pymongo.collection.Collection.bulk_write` instead. Code like this::
 
   batch = coll.initialize_unordered_bulk_op()
   batch.insert({'a': 1})
@@ -636,9 +636,9 @@ Can be changed to this::
 Collection.group is removed
 ...........................
 
-Removed :meth:`pymongo.collection.Collection.group`. This method was
+Removed :py:meth:`pymongo.collection.Collection.group`. This method was
 deprecated in PyMongo 3.5. MongoDB 4.2 removed the `group command`_.
-Use :meth:`~pymongo.collection.Collection.aggregate` with the ``$group`` stage
+Use :py:meth:`~pymongo.collection.Collection.aggregate` with the ``$group`` stage
 instead.
 
 .. _group command: https://mongodb.com/docs/manual/reference/command/group/
@@ -646,10 +646,10 @@ instead.
 Collection.map_reduce and Collection.inline_map_reduce are removed
 ..................................................................
 
-Removed :meth:`pymongo.collection.Collection.map_reduce` and
-:meth:`pymongo.collection.Collection.inline_map_reduce`.
-Migrate to :meth:`~pymongo.collection.Collection.aggregate` or run the
-`mapReduce command`_ directly with :meth:`~pymongo.database.Database.command`
+Removed :py:meth:`pymongo.collection.Collection.map_reduce` and
+:py:meth:`pymongo.collection.Collection.inline_map_reduce`.
+Migrate to :py:meth:`~pymongo.collection.Collection.aggregate` or run the
+`mapReduce command`_ directly with :py:meth:`~pymongo.database.Database.command`
 instead. For more guidance on this migration see:
 
 - https://mongodb.com/docs/manual/reference/map-reduce-to-aggregation-pipeline/
@@ -660,13 +660,13 @@ instead. For more guidance on this migration see:
 Collection.ensure_index is removed
 ..................................
 
-Removed :meth:`pymongo.collection.Collection.ensure_index`. Use
-:meth:`~pymongo.collection.Collection.create_index` or
-:meth:`~pymongo.collection.Collection.create_indexes` instead. Note that
+Removed :py:meth:`pymongo.collection.Collection.ensure_index`. Use
+:py:meth:`~pymongo.collection.Collection.create_index` or
+:py:meth:`~pymongo.collection.Collection.create_indexes` instead. Note that
 ``ensure_index`` maintained an in memory cache of recently created indexes
 whereas the newer methods do not. Applications should avoid frequent calls
-to :meth:`~pymongo.collection.Collection.create_index` or
-:meth:`~pymongo.collection.Collection.create_indexes`. Code like this::
+to :py:meth:`~pymongo.collection.Collection.create_index` or
+:py:meth:`~pymongo.collection.Collection.create_indexes`. Code like this::
 
   def persist(self, document):
       collection.ensure_index('a', unique=True)
@@ -683,7 +683,7 @@ Can be changed to this::
 Collection.reindex is removed
 .............................
 
-Removed :meth:`pymongo.collection.Collection.reindex`. Run the
+Removed :py:meth:`pymongo.collection.Collection.reindex`. Run the
 `reIndex command`_ directly instead. Code like this::
 
   >>> result = database.my_collection.reindex()
@@ -698,10 +698,10 @@ The modifiers parameter is removed
 ..................................
 
 Removed the ``modifiers`` parameter from
-:meth:`~pymongo.collection.Collection.find`,
-:meth:`~pymongo.collection.Collection.find_one`,
-:meth:`~pymongo.collection.Collection.find_raw_batches`, and
-:meth:`~pymongo.cursor.Cursor`. Pass the options directly to the method
+:py:meth:`~pymongo.collection.Collection.find`,
+:py:meth:`~pymongo.collection.Collection.find_one`,
+:py:meth:`~pymongo.collection.Collection.find_raw_batches`, and
+:py:meth:`~pymongo.cursor.Cursor`. Pass the options directly to the method
 instead. Code like this::
 
   cursor = coll.find({}, modifiers={
@@ -731,7 +731,7 @@ The hint parameter is required with min/max
 ...........................................
 
 The ``hint`` option is now required when using ``min`` or ``max`` queries
-with :meth:`~pymongo.collection.Collection.find` to ensure the query utilizes
+with :py:meth:`~pymongo.collection.Collection.find` to ensure the query utilizes
 the correct index. For example, code like this::
 
   cursor = coll.find({}, min={'x', min_value})
@@ -756,8 +756,8 @@ You must now explicitly compare with None.
 Collection.find returns entire document with empty projection
 .............................................................
 Empty projections (eg {} or []) for
-:meth:`~pymongo.collection.Collection.find`, and
-:meth:`~pymongo.collection.Collection.find_one`
+:py:meth:`~pymongo.collection.Collection.find`, and
+:py:meth:`~pymongo.collection.Collection.find_one`
 are passed to the server as-is rather than the previous behavior which
 substituted in a projection of ``{"_id": 1}``. This means that an empty
 projection will now return the entire document, not just the ``"_id"`` field.
@@ -778,16 +778,16 @@ Removed :mod:`pymongo.son_manipulator`,
 :py:class`pymongo.son_manipulator.ObjectIdShuffler`,
 :py:class`pymongo.son_manipulator.AutoReference`,
 :py:class`pymongo.son_manipulator.NamespaceInjector`,
-:meth:`pymongo.database.Database.add_son_manipulator`,
+:py:meth:`pymongo.database.Database.add_son_manipulator`,
 :attr:`pymongo.database.Database.outgoing_copying_manipulators`,
 :attr:`pymongo.database.Database.outgoing_manipulators`,
 :attr:`pymongo.database.Database.incoming_copying_manipulators`, and
 :attr:`pymongo.database.Database.incoming_manipulators`.
 
 Removed the ``manipulate`` parameter from
-:meth:`~pymongo.collection.Collection.find`,
-:meth:`~pymongo.collection.Collection.find_one`, and
-:meth:`~pymongo.cursor.Cursor`.
+:py:meth:`~pymongo.collection.Collection.find`,
+:py:meth:`~pymongo.collection.Collection.find_one`, and
+:py:meth:`~pymongo.cursor.Cursor`.
 
 The :py:class`pymongo.son_manipulator.SONManipulator` API has limitations as a
 technique for transforming your data and was deprecated in PyMongo 3.0.
@@ -803,7 +803,7 @@ For more information, see the
 
 ``SON().items()`` now returns ``dict_items`` object.
 ----------------------------------------------------
-:meth:`~bson.son.SON.items` now returns a ``dict_items`` object rather than
+:py:meth:`~bson.son.SON.items` now returns a ``dict_items`` object rather than
 a list.
 
 ``SON().iteritems()`` removed.
@@ -845,7 +845,7 @@ UUIDLegacy is removed
 ---------------------
 
 Removed :py:class`bson.binary.UUIDLegacy`. Use
-:meth:`bson.binary.Binary.from_uuid` instead.  Code like this::
+:py:meth:`bson.binary.Binary.from_uuid` instead.  Code like this::
 
   uu = uuid.uuid4()
   uuid_legacy = UUIDLegacy(uu)
@@ -895,22 +895,22 @@ cursor_manager support is removed
 
 Removed :py:class`pymongo.cursor_manager.CursorManager`,
 :mod:`pymongo.cursor_manager`, and
-:meth:`pymongo.mongo_client.MongoClient.set_cursor_manager`.
+:py:meth:`pymongo.mongo_client.MongoClient.set_cursor_manager`.
 
 MongoClient.close_cursor is removed
 ...................................
 
-Removed :meth:`pymongo.mongo_client.MongoClient.close_cursor` and
-:meth:`pymongo.mongo_client.MongoClient.kill_cursors`. Instead, close cursors
-with :meth:`pymongo.cursor.Cursor.close` or
-:meth:`pymongo.command_cursor.CommandCursor.close`.
+Removed :py:meth:`pymongo.mongo_client.MongoClient.close_cursor` and
+:py:meth:`pymongo.mongo_client.MongoClient.kill_cursors`. Instead, close cursors
+with :py:meth:`pymongo.cursor.Cursor.close` or
+:py:meth:`pymongo.command_cursor.CommandCursor.close`.
 
 .. _killCursors command: https://mongodb.com/docs/manual/reference/command/killCursors/
 
 Database.eval, Database.system_js, and SystemJS are removed
 ...........................................................
 
-Removed :meth:`~pymongo.database.Database.eval`,
+Removed :py:meth:`~pymongo.database.Database.eval`,
 :data:`~pymongo.database.Database.system_js` and
 :py:class`~pymongo.database.SystemJS`. The eval command was deprecated in
 MongoDB 3.0 and removed in MongoDB 4.2. There is no replacement for eval with
@@ -928,10 +928,10 @@ can be changed to this::
 Database.error, Database.last_status, Database.previous_error, and Database.reset_error_history are removed
 ...........................................................................................................
 
-Removed :meth:`pymongo.database.Database.error`,
-:meth:`pymongo.database.Database.last_status`,
-:meth:`pymongo.database.Database.previous_error`, and
-:meth:`pymongo.database.Database.reset_error_history`.
+Removed :py:meth:`pymongo.database.Database.error`,
+:py:meth:`pymongo.database.Database.last_status`,
+:py:meth:`pymongo.database.Database.previous_error`, and
+:py:meth:`pymongo.database.Database.reset_error_history`.
 These methods are obsolete: all MongoDB write operations use an acknowledged
 write concern and report their errors by default. These methods were
 deprecated in PyMongo 2.8.
@@ -939,7 +939,7 @@ deprecated in PyMongo 2.8.
 Collection.parallel_scan is removed
 ...................................
 
-Removed :meth:`~pymongo.collection.Collection.parallel_scan`. MongoDB 4.2
+Removed :py:meth:`~pymongo.collection.Collection.parallel_scan`. MongoDB 4.2
 removed the `parallelCollectionScan command`_.  There is no replacement.
 
 .. _parallelCollectionScan command: https://mongodb.com/docs/manual/reference/command/parallelCollectionScan/
@@ -947,9 +947,9 @@ removed the `parallelCollectionScan command`_.  There is no replacement.
 pymongo.message helpers are removed
 ...................................
 
-Removed :meth:`pymongo.message.delete`, :meth:`pymongo.message.get_more`,
-:meth:`pymongo.message.insert`, :meth:`pymongo.message.kill_cursors`,
-:meth:`pymongo.message.query`, and :meth:`pymongo.message.update`.
+Removed :py:meth:`pymongo.message.delete`, :py:meth:`pymongo.message.get_more`,
+:py:meth:`pymongo.message.insert`, :py:meth:`pymongo.message.kill_cursors`,
+:py:meth:`pymongo.message.query`, and :py:meth:`pymongo.message.update`.
 
 
 Name is a required argument for pymongo.driver_info.DriverInfo

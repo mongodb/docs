@@ -17,7 +17,7 @@
 
            from bson.objectid import ObjectId
 
-         .. doctest::
+         .. code-block:: python
 
            >>> o = ObjectId()
            >>> o == ObjectId(str(o))

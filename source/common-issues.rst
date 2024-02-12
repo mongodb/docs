@@ -49,8 +49,8 @@ To fix this, check your spelling and make sure that the keyword argument you are
 DeprecationWarning: count is deprecated
 ---------------------------------------
 
-PyMongo no longer supports :meth:`pymongo.cursor.count`.
-Instead, use :meth:`pymongo.collection.count_documents`::
+PyMongo no longer supports :py:meth:`pymongo.cursor.count`.
+Instead, use :py:meth:`pymongo.collection.count_documents`::
 
   >>> client = MongoClient()
   >>> d = datetime.datetime(2009, 11, 12, 12)
