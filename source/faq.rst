@@ -203,11 +203,11 @@ instance of :py:class:`~bson.objectid.ObjectId`. For example:
 
 .. code-block:: python
 
-  >>> my_doc = {'x': 1}
-  >>> collection.insert_one(my_doc)
-  InsertOneResult(ObjectId('560db337fba522189f171720'), acknowledged=True)
-  >>> my_doc
-  {'x': 1, '_id': ObjectId('560db337fba522189f171720')}
+   >>> my_doc = {'x': 1}
+   >>> collection.insert_one(my_doc)
+   InsertOneResult(ObjectId('560db337fba522189f171720'), acknowledged=True)
+   >>> my_doc
+   {'x': 1, '_id': ObjectId('560db337fba522189f171720')}
 
 Users often discover this behavior when calling
 :py:meth:`~pymongo.collection.Collection.insert_many` with a list of references
