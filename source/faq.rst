@@ -246,10 +246,9 @@ documents that already have an ``_id`` field, added by your application.
 Key order in subdocuments -- why does my query work in the shell but not PyMongo?
 ---------------------------------------------------------------------------------
 
-..
-  Note: We should rework this section now that Python 3.6+ has ordered dict.
+.. Note: We should rework this section now that Python 3.6+ has ordered dict.
 
-.. code-block:: python key-order
+.. code-block:: python
 
   from bson.son import SON
   from pymongo.mongo_client import MongoClient
@@ -290,8 +289,7 @@ To preserve order when reading BSON, use the :py:class:`~bson.son.SON` class,
 which is a dict that remembers its key order. First, get a handle to the
 collection, configured to use :py:class:`~bson.son.SON` instead of dict:
 
-.. code-block:: python key-order
-  :options: +NORMALIZE_WHITESPACE
+.. code-block:: python
 
   >>> from bson import CodecOptions, SON
   >>> opts = CodecOptions(document_class=SON)
@@ -302,7 +300,7 @@ collection, configured to use :py:class:`~bson.son.SON` instead of dict:
 Now, documents and subdocuments in query results are represented with
 :py:class:`~bson.son.SON` objects:
 
-.. code-block:: python key-order
+.. code-block:: python
 
   >>> print(collection_son.find_one())
   SON([('_id', 1.0), ('subdocument', SON([('b', 1.0), ('a', 1.0)]))])
