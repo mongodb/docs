@@ -44,7 +44,7 @@ Basic configuration
 
 In many cases connecting to MongoDB over TLS/SSL requires nothing more than
 passing ``tls=True`` as a keyword argument to
-:class:`~pymongo.mongo_client.MongoClient`::
+:py:class`~pymongo.mongo_client.MongoClient`::
 
   >>> client = pymongo.MongoClient('example.com', tls=True)
 

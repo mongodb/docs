@@ -20,7 +20,7 @@ objects (e.g. files) in MongoDB.
 Setup
 -----
 
-We start by creating a :class:`~gridfs.GridFS` instance to use:
+We start by creating a :py:class`~gridfs.GridFS` instance to use:
 
 .. doctest::
 
@@ -30,8 +30,8 @@ We start by creating a :class:`~gridfs.GridFS` instance to use:
   >>> db = MongoClient().gridfs_example
   >>> fs = gridfs.GridFS(db)
 
-Every :class:`~gridfs.GridFS` instance is created with and will
-operate on a specific :class:`~pymongo.database.Database` instance.
+Every :py:class`~gridfs.GridFS` instance is created with and will
+operate on a specific :py:class`~pymongo.database.Database` instance.
 
 Saving and Retrieving Data
 --------------------------
@@ -58,7 +58,7 @@ file:
 :meth:`~gridfs.GridFS.get` returns a file-like object, so we get the
 file's contents by calling :meth:`~gridfs.grid_file.GridOut.read`.
 
-In addition to putting a :class:`str` as a GridFS file, we can also
+In addition to putting a :py:class`str` as a GridFS file, we can also
 put any file-like object (an object with a :meth:`read`
 method). GridFS will handle reading the file in chunk-sized segments
 automatically. We can also add additional attributes to the file as

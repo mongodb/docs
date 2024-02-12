@@ -26,10 +26,10 @@ your application first begins, PyMongo automatically uses greenlets instead
 of threads.
 
 When shutting down, if your application calls :meth:`~gevent.hub.Hub.join` on
-Gevent's :class:`~gevent.hub.Hub` without first terminating these background
+Gevent's :py:class`~gevent.hub.Hub` without first terminating these background
 greenlets, the call to :meth:`~gevent.hub.Hub.join` blocks indefinitely. You
 therefore **must close or dereference** any active
-:class:`~pymongo.mongo_client.MongoClient` before exiting.
+:py:class`~pymongo.mongo_client.MongoClient` before exiting.
 
 An example solution to this issue in some application frameworks is a signal
 handler to end background greenlets when your application receives SIGHUP:

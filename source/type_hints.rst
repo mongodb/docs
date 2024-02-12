@@ -32,7 +32,7 @@ your `mypy config`_: ::
 Basic Usage
 -----------
 
-Note that a type for :class:`~pymongo.mongo_client.MongoClient` must be specified.  Here we use the
+Note that a type for :py:class`~pymongo.mongo_client.MongoClient` must be specified.  Here we use the
 default, unspecified document type:
 
 .. doctest::
@@ -59,9 +59,9 @@ For a more accurate typing for document type you can use:
 Typed Client
 ------------
 
-:class:`~pymongo.mongo_client.MongoClient` is generic on the document type used to decode BSON documents.
+:py:class`~pymongo.mongo_client.MongoClient` is generic on the document type used to decode BSON documents.
 
-You can specify a :class:`~bson.raw_bson.RawBSONDocument` document type:
+You can specify a :py:class`~bson.raw_bson.RawBSONDocument` document type:
 
 .. doctest::
 
@@ -73,7 +73,7 @@ You can specify a :class:`~bson.raw_bson.RawBSONDocument` document type:
   >>> result = collection.find_one({"x": 1})
   >>> assert isinstance(result, RawBSONDocument)
 
-Subclasses of :py:class:`collections.abc.Mapping` can also be used, such as :class:`~bson.son.SON`:
+Subclasses of :py:py:class`collections.abc.Mapping` can also be used, such as :py:class`~bson.son.SON`:
 
 .. doctest::
 
@@ -86,14 +86,14 @@ Subclasses of :py:class:`collections.abc.Mapping` can also be used, such as :cla
   >>> assert result is not None
   >>> assert result["x"] == 1
 
-Note that when using :class:`~bson.son.SON`, the key and value types must be given, e.g. ``SON[str, Any]``.
+Note that when using :py:class`~bson.son.SON`, the key and value types must be given, e.g. ``SON[str, Any]``.
 
 
 Typed Collection
 ----------------
 
-You can use :py:class:`~typing.TypedDict` (Python 3.8+) when using a well-defined schema for the data in a
-:class:`~pymongo.collection.Collection`. Note that all `schema validation`_ for inserts and updates is done on the server.
+You can use :py:py:class`~typing.TypedDict` (Python 3.8+) when using a well-defined schema for the data in a
+:py:class`~pymongo.collection.Collection`. Note that all `schema validation`_ for inserts and updates is done on the server.
 These methods automatically add an "_id" field.
 
 .. doctest::
@@ -117,7 +117,7 @@ These methods automatically add an "_id" field.
 
 This same typing scheme works for all of the insert methods (:meth:`~pymongo.collection.Collection.insert_one`,
 :meth:`~pymongo.collection.Collection.insert_many`, and :meth:`~pymongo.collection.Collection.bulk_write`).
-For ``bulk_write`` both :class:`~pymongo.operations.InsertOne` and :class:`~pymongo.operations.ReplaceOne` operators are generic.
+For ``bulk_write`` both :py:class`~pymongo.operations.InsertOne` and :py:class`~pymongo.operations.ReplaceOne` operators are generic.
 
 .. doctest::
   :pyversion: >= 3.8
@@ -138,7 +138,7 @@ For ``bulk_write`` both :class:`~pymongo.operations.InsertOne` and :class:`~pymo
 Modeling Document Types with TypedDict
 --------------------------------------
 
-You can use :py:class:`~typing.TypedDict` (Python 3.8+) to model structured data.
+You can use :py:py:class`~typing.TypedDict` (Python 3.8+) to model structured data.
 As noted above, PyMongo will automatically add an ``_id`` field if it is not present. This also applies to TypedDict.
 There are three approaches to this:
 
@@ -146,9 +146,9 @@ There are three approaches to this:
 
   2. Specify ``_id`` explicitly. This will mean that every instance of your custom TypedDict class will have to pass a value for ``_id``.
 
-  3. Make use of :py:class:`~typing.NotRequired`. This has the flexibility of option 1, but with the ability to access the ``_id`` field without causing a type-checking error.
+  3. Make use of :py:py:class`~typing.NotRequired`. This has the flexibility of option 1, but with the ability to access the ``_id`` field without causing a type-checking error.
 
-Note: to use :py:class:`~typing.TypedDict` and :py:class:`~typing.NotRequired` in earlier versions of Python (<3.8, <3.11), use the ``typing_extensions`` package.
+Note: to use :py:py:class`~typing.TypedDict` and :py:py:class`~typing.NotRequired` in earlier versions of Python (<3.8, <3.11), use the ``typing_extensions`` package.
 
 .. doctest:: typed-dict-example
   :pyversion: >= 3.11
@@ -200,7 +200,7 @@ Typed Database
 --------------
 
 While less common, you could specify that the documents in an entire database
-match a well-defined schema using :py:class:`~typing.TypedDict` (Python 3.8+).
+match a well-defined schema using :py:py:class`~typing.TypedDict` (Python 3.8+).
 
 
 .. doctest::
@@ -222,7 +222,7 @@ match a well-defined schema using :py:class:`~typing.TypedDict` (Python 3.8+).
 
 Typed Command
 -------------
-When using the :meth:`~pymongo.database.Database.command`, you can specify the document type by providing a custom :class:`~bson.codec_options.CodecOptions`:
+When using the :meth:`~pymongo.database.Database.command`, you can specify the document type by providing a custom :py:class`~bson.codec_options.CodecOptions`:
 
 .. doctest::
 
@@ -234,12 +234,12 @@ When using the :meth:`~pymongo.database.Database.command`, you can specify the d
   >>> result = client.admin.command("ping", codec_options=options)
   >>> assert isinstance(result, RawBSONDocument)
 
-Custom :py:class:`collections.abc.Mapping` subclasses and :py:class:`~typing.TypedDict` (Python 3.8+) are also supported.
-For :py:class:`~typing.TypedDict`, use the form: ``options: CodecOptions[MyTypedDict] = CodecOptions(...)``.
+Custom :py:py:class`collections.abc.Mapping` subclasses and :py:py:class`~typing.TypedDict` (Python 3.8+) are also supported.
+For :py:py:class`~typing.TypedDict`, use the form: ``options: CodecOptions[MyTypedDict] = CodecOptions(...)``.
 
 Typed BSON Decoding
 -------------------
-You can specify the document type returned by :mod:`bson` decoding functions by providing :class:`~bson.codec_options.CodecOptions`:
+You can specify the document type returned by :mod:`bson` decoding functions by providing :py:class`~bson.codec_options.CodecOptions`:
 
 .. doctest::
 
@@ -255,8 +255,8 @@ You can specify the document type returned by :mod:`bson` decoding functions by 
   >>> rt_document = decode(bsonbytes, codec_options=options)
   >>> assert rt_document.foo() == "bar"
 
-:class:`~bson.raw_bson.RawBSONDocument` and :py:class:`~typing.TypedDict` (Python 3.8+) are also supported.
-For :py:class:`~typing.TypedDict`, use  the form: ``options: CodecOptions[MyTypedDict] = CodecOptions(...)``.
+:py:class`~bson.raw_bson.RawBSONDocument` and :py:py:class`~typing.TypedDict` (Python 3.8+) are also supported.
+For :py:py:class`~typing.TypedDict`, use  the form: ``options: CodecOptions[MyTypedDict] = CodecOptions(...)``.
 
 
 Troubleshooting
@@ -264,7 +264,7 @@ Troubleshooting
 
 Client Type Annotation
 ~~~~~~~~~~~~~~~~~~~~~~
-If you forget to add a type annotation for a :class:`~pymongo.mongo_client.MongoClient` object you may get the following ``mypy`` error::
+If you forget to add a type annotation for a :py:class`~pymongo.mongo_client.MongoClient` object you may get the following ``mypy`` error::
 
   from pymongo import MongoClient
   client = MongoClient()  # error: Need type annotation for "client"
@@ -273,7 +273,7 @@ The solution is to annotate the type as ``client: MongoClient`` or ``client: Mon
 
 Incompatible Types
 ~~~~~~~~~~~~~~~~~~
-If you use the generic form of :class:`~pymongo.mongo_client.MongoClient` you
+If you use the generic form of :py:class`~pymongo.mongo_client.MongoClient` you
 may encounter a ``mypy`` error like::
 
   from pymongo import MongoClient
@@ -304,7 +304,7 @@ Other times ``mypy`` will catch an actual error, like the following code::
 
 In this case the solution is to use ``insert_one({})``, passing a document instead of a list.
 
-Another example is trying to set a value on a :class:`~bson.raw_bson.RawBSONDocument`, which is read-only.::
+Another example is trying to set a value on a :py:class`~bson.raw_bson.RawBSONDocument`, which is read-only.::
 
     from bson.raw_bson import RawBSONDocument
     from pymongo import MongoClient

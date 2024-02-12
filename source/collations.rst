@@ -29,7 +29,7 @@ Users can specify a collation for a
 Collation Parameters:
 ~~~~~~~~~~~~~~~~~~~~~
 
-Collations can be specified with the :class:`~pymongo.collation.Collation` model
+Collations can be specified with the :py:class`~pymongo.collation.Collation` model
 or with plain Python dictionaries. The structure is the same::
 
    Collation(locale=<string>,

@@ -2,7 +2,7 @@ Server Selector Example
 =======================
 
 Users can exert fine-grained control over the `server selection algorithm`_
-by setting the ``server_selector`` option on the :class:`~pymongo.MongoClient`
+by setting the ``server_selector`` option on the :py:class`~pymongo.MongoClient`
 to an appropriate callable. This example shows how to use this functionality
 to prefer servers running on ``localhost``.
 
@@ -27,10 +27,10 @@ Example: Selecting Servers Running on ``localhost``
 
 To start, we need to write the server selector function that will be used.
 The server selector function should accept a list of
-:class:`~pymongo.server_description.ServerDescription` objects and return a
+:py:class`~pymongo.server_description.ServerDescription` objects and return a
 list of server descriptions that are suitable for the read or write operation.
 A server selector must not create or modify
-:class:`~pymongo.server_description.ServerDescription` objects, and must return
+:py:class`~pymongo.server_description.ServerDescription` objects, and must return
 the selected instances unchanged.
 
 In this example, we write a server selector that prioritizes servers running on
@@ -64,7 +64,7 @@ selector function:
 
 
 
-Finally, we can create a :class:`~pymongo.MongoClient` instance with this
+Finally, we can create a :py:class`~pymongo.MongoClient` instance with this
 server selector.
 
 
@@ -99,9 +99,9 @@ writes. In the case of a write, the driver performs the following operations
 
 In the case of **reads** the process is identical except for the first step.
 Here, instead of selecting all writeable servers, we select all servers
-matching the user's :class:`~pymongo.read_preferences.ReadPreference` from the
+matching the user's :py:class`~pymongo.read_preferences.ReadPreference` from the
 list of known hosts. As an example, for a 3-member replica set with a
-:class:`~pymongo.read_preferences.Secondary` read preference, we would select
+:py:class`~pymongo.read_preferences.Secondary` read preference, we would select
 all available secondaries.
 
 

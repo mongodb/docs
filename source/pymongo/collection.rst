@@ -22,9 +22,9 @@
 
       .. describe:: c[name] || c.name
 
-         Get the `name` sub-collection of :class:`Collection` `c`.
+         Get the `name` sub-collection of :py:class`Collection` `c`.
 
-         Raises :class:`~pymongo.errors.InvalidName` if an invalid
+         Raises :py:class`~pymongo.errors.InvalidName` if an invalid
          collection name is used.
 
       .. autoattribute:: full_name

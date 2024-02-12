@@ -9,7 +9,7 @@
 
       .. describe:: str(o)
 
-         Get a hex encoded version of :class:`ObjectId` `o`.
+         Get a hex encoded version of :py:class`ObjectId` `o`.
 
          The following property always holds:
 

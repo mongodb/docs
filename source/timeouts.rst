@@ -5,7 +5,7 @@ Client Side Operation Timeout
 =============================
 
 PyMongo 4.2 introduced :meth:`~pymongo.timeout` and the ``timeoutMS``
-URI and keyword argument to :class:`~pymongo.mongo_client.MongoClient`.
+URI and keyword argument to :py:class`~pymongo.mongo_client.MongoClient`.
 These features allow applications to more easily limit the amount of time that
 one or more operations can execute before control is returned to the app. This
 timeout applies to all of the work done to execute the operation, including
@@ -70,7 +70,7 @@ The timeoutMS URI option
 ------------------------
 
 PyMongo 4.2 also added support for the ``timeoutMS`` URI and keyword argument to
-:class:`~pymongo.mongo_client.MongoClient`. When this option is configured, the
+:py:class`~pymongo.mongo_client.MongoClient`. When this option is configured, the
 client will automatically apply the timeout to each API call. For example::
 
   client = MongoClient("mongodb://localhost/?timeoutMS=10000")

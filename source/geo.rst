@@ -59,7 +59,7 @@ Using the geospatial index we can find documents near another point:
 
 .. note:: If using :data:`pymongo.GEOSPHERE`, using $nearSphere is recommended.
 
-The $maxDistance operator requires the use of :class:`~bson.son.SON`:
+The $maxDistance operator requires the use of :py:class`~bson.son.SON`:
 
 .. doctest::
 
@@ -96,7 +96,7 @@ Or circle (specified by center point and radius):
   {'_id': ObjectId('...'), 'loc': [1, 2]}
   {'_id': ObjectId('...'), 'loc': [4, 4]}
 
-geoNear queries are also supported using :class:`~bson.son.SON`::
+geoNear queries are also supported using :py:class`~bson.son.SON`::
 
   >>> from bson.son import SON
   >>> db.command(SON([('geoNear', 'places'), ('near', [1, 2])]))

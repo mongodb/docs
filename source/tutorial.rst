@@ -33,7 +33,7 @@ can start it like so:
 Making a Connection with MongoClient
 ------------------------------------
 The first step when working with **PyMongo** is to create a
-:class:`~pymongo.mongo_client.MongoClient` to the running **mongod**
+:py:class`~pymongo.mongo_client.MongoClient` to the running **mongod**
 instance. Doing so is easy:
 
 .. doctest::
@@ -59,7 +59,7 @@ Getting a Database
 A single instance of MongoDB can support multiple independent
 `databases <https://www.mongodb.com/docs/manual/core/databases-and-collections>`_. When
 working with PyMongo you access databases using attribute style access
-on :class:`~pymongo.mongo_client.MongoClient` instances:
+on :py:class`~pymongo.mongo_client.MongoClient` instances:
 
 .. doctest::
 
@@ -113,7 +113,7 @@ post:
   ... }
 
 Note that documents can contain native Python types (like
-:class:`datetime.datetime` instances) which will be automatically
+:py:class`datetime.datetime` instances) which will be automatically
 converted to and from the appropriate `BSON
 <https://bsonspec.org/>`_ types.
 
@@ -135,7 +135,7 @@ When a document is inserted a special key, ``"_id"``, is automatically
 added if the document doesn't already contain an ``"_id"`` key. The value
 of ``"_id"`` must be unique across the
 collection. :meth:`~pymongo.collection.Collection.insert_one` returns an
-instance of :class:`~pymongo.results.InsertOneResult`. For more information
+instance of :py:class`~pymongo.results.InsertOneResult`. For more information
 on ``"_id"``, see the `documentation on _id
 <https://www.mongodb.com/docs/manual/reference/method/ObjectId/>`_.
 
@@ -264,7 +264,7 @@ command to the server:
 There are a couple of interesting things to note about this example:
 
   - The result from :meth:`~pymongo.collection.Collection.insert_many` now
-    returns two :class:`~bson.objectid.ObjectId` instances, one for
+    returns two :py:class`~bson.objectid.ObjectId` instances, one for
     each inserted document.
   - ``new_posts[1]`` has a different "shape" than the other posts -
     there is no ``"tags"`` field and we've added a new field,
@@ -276,7 +276,7 @@ Querying for More Than One Document
 To get more than a single document as the result of a query we use the
 :meth:`~pymongo.collection.Collection.find`
 method. :meth:`~pymongo.collection.Collection.find` returns a
-:class:`~pymongo.cursor.Cursor` instance, which allows us to iterate
+:py:class`~pymongo.cursor.Cursor` instance, which allows us to iterate
 over all matching documents. For example, we can iterate over every
 document in the ``posts`` collection:
 

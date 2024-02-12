@@ -104,7 +104,7 @@ current primary and which are secondaries or arbiters. Each seed must be the
 address of a single mongod. Multihomed and round robin DNS addresses are
 **not** supported.
 
-The :class:`~pymongo.mongo_client.MongoClient` constructor is non-blocking:
+The :py:class`~pymongo.mongo_client.MongoClient` constructor is non-blocking:
 the constructor returns immediately while the client connects to the replica
 set using background threads. Note how, if you create a client and immediately
 print the string representation of its
@@ -151,7 +151,7 @@ query again::
   Traceback (most recent call last):
   pymongo.errors.AutoReconnect: ...
 
-We get an :class:`~pymongo.errors.AutoReconnect` exception. This means
+We get an :py:class`~pymongo.errors.AutoReconnect` exception. This means
 that the driver was not able to connect to the old primary (which
 makes sense, as we killed the server), but that it will attempt to
 automatically reconnect on subsequent operations. When this exception
@@ -194,9 +194,9 @@ no secondary members the primary will be used as a fallback. If you have
 queries you would prefer to never send to the primary you can specify that
 using the ``secondary`` read preference.
 
-By default the read preference of a :class:`~pymongo.database.Database` is
+By default the read preference of a :py:class`~pymongo.database.Database` is
 inherited from its MongoClient, and the read preference of a
-:class:`~pymongo.collection.Collection` is inherited from its Database. To use
+:py:class`~pymongo.collection.Collection` is inherited from its Database. To use
 a different read preference use the
 :meth:`~pymongo.mongo_client.MongoClient.get_database` method, or the
 :meth:`~pymongo.database.Database.get_collection` method::
@@ -212,7 +212,7 @@ a different read preference use the
   Primary()
 
 You can also change the read preference of an existing
-:class:`~pymongo.collection.Collection` with the
+:py:class`~pymongo.collection.Collection` with the
 :meth:`~pymongo.collection.Collection.with_options` method::
 
   >>> coll2 = coll.with_options(read_preference=ReadPreference.NEAREST)
@@ -235,23 +235,23 @@ and **local threshold**.
 **Read preference**:
 
 Read preference is configured using one of the classes from
-:mod:`~pymongo.read_preferences` (:class:`~pymongo.read_preferences.Primary`,
-:class:`~pymongo.read_preferences.PrimaryPreferred`,
-:class:`~pymongo.read_preferences.Secondary`,
-:class:`~pymongo.read_preferences.SecondaryPreferred`, or
-:class:`~pymongo.read_preferences.Nearest`). For convenience, we also provide
-:class:`~pymongo.read_preferences.ReadPreference` with the following
+:mod:`~pymongo.read_preferences` (:py:class`~pymongo.read_preferences.Primary`,
+:py:class`~pymongo.read_preferences.PrimaryPreferred`,
+:py:class`~pymongo.read_preferences.Secondary`,
+:py:class`~pymongo.read_preferences.SecondaryPreferred`, or
+:py:class`~pymongo.read_preferences.Nearest`). For convenience, we also provide
+:py:class`~pymongo.read_preferences.ReadPreference` with the following
 attributes:
 
 - ``PRIMARY``: Read from the primary. This is the default read preference,
   and provides the strongest consistency. If no primary is available, raise
-  :class:`~pymongo.errors.AutoReconnect`.
+  :py:class`~pymongo.errors.AutoReconnect`.
 
 - ``PRIMARY_PREFERRED``: Read from the primary if available, otherwise read
   from a secondary.
 
 - ``SECONDARY``: Read from a secondary. If no matching secondary is available,
-  raise :class:`~pymongo.errors.AutoReconnect`.
+  raise :py:class`~pymongo.errors.AutoReconnect`.
 
 - ``SECONDARY_PREFERRED``: Read from a secondary if available, otherwise
   from the primary.
@@ -279,7 +279,7 @@ MongoClient like so::
   Secondary(tag_sets=[{'dc': 'ny'}, {'dc': 'sf'}])
 
 MongoClient tries to find secondaries in New York, then San Francisco,
-and raises :class:`~pymongo.errors.AutoReconnect` if none are available. As an
+and raises :py:class`~pymongo.errors.AutoReconnect` if none are available. As an
 additional fallback, specify a final, empty tag set, ``{}``, which means "read
 from any member that matches the mode, ignoring tags."
 
@@ -332,7 +332,7 @@ members as the state of the replica set changes.
 mongos Load Balancing
 ---------------------
 
-An instance of :class:`~pymongo.mongo_client.MongoClient` can be configured
+An instance of :py:class`~pymongo.mongo_client.MongoClient` can be configured
 with a list of addresses of mongos servers:
 
   >>> client = MongoClient('mongodb://host1,host2,host3')
