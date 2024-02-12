@@ -163,7 +163,7 @@ load spike. Threads are allowed to wait for any length of time unless
     client = MongoClient(host, port, waitQueueTimeoutMS=100)
 
 A thread that waits more than 100ms (in this example) for a socket raises
-:exc:`~pymongo.errors.ConnectionFailure`. Use this option if it is more
+``~pymongo.errors.ConnectionFailure``. Use this option if it is more
 important to bound the duration of operations during a load spike than it is to
 complete every operation.
 
@@ -211,7 +211,7 @@ instance of :py:class:`~bson.objectid.ObjectId`. For example:
 
 Users often discover this behavior when calling
 :py:meth:`~pymongo.collection.Collection.insert_many` with a list of references
-to a single document raises :exc:`~pymongo.errors.BulkWriteError`. Several
+to a single document raises ``~pymongo.errors.BulkWriteError``. Several
 Python idioms lead to this pitfall:
 
 .. code-block:: python

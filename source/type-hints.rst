@@ -99,7 +99,6 @@ You can use :py:class:`~typing.TypedDict` (Python 3.8+) when using a well-define
 These methods automatically add an "_id" field.
 
 .. code-block:: python
-  :pyversion: >= 3.8
 
   >>> from typing import TypedDict
   >>> from pymongo import MongoClient
@@ -122,7 +121,6 @@ This same typing scheme works for all of the insert methods (:py:meth:`~pymongo.
 For ``bulk_write`` both :py:class:`~pymongo.operations.InsertOne` and :py:class:`~pymongo.operations.ReplaceOne` operators are generic.
 
 .. code-block:: python
-  :pyversion: >= 3.8
 
   >>> from typing import TypedDict
   >>> from pymongo import MongoClient
@@ -152,8 +150,7 @@ There are three approaches to this:
 
 Note: to use :py:class:`~typing.TypedDict` and :py:class:`~typing.NotRequired` in earlier versions of Python (<3.8, <3.11), use the ``typing_extensions`` package.
 
-.. code-block:: python typed-dict-example
-  :pyversion: >= 3.11
+.. code-block:: python
 
   >>> from typing import TypedDict, NotRequired
   >>> from pymongo import MongoClient

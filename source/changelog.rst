@@ -496,7 +496,7 @@ Breaking Changes in 4.0
   See :ref:`handling-uuid-data-example` for details.
 - Removed the ``waitQueueMultiple`` keyword argument to
   :py:class:`~pymongo.mongo_client.MongoClient` and removed
-  :exc:`pymongo.errors.ExceededMaxWaiters`.
+  ``pymongo.errors.ExceededMaxWaiters``.
 - Removed the ``socketKeepAlive`` keyword argument to
   :py:class:`~pymongo.mongo_client.MongoClient`.
 - Removed :py:meth:`pymongo.mongo_client.MongoClient.fsync`,
@@ -582,9 +582,9 @@ Breaking Changes in 4.0
 - Removed :py:meth:`pymongo.message.delete`, :py:meth:`pymongo.message.get_more`,
   :py:meth:`pymongo.message.insert`, :py:meth:`pymongo.message.kill_cursors`,
   :py:meth:`pymongo.message.query`, and :py:meth:`pymongo.message.update`.
-- Removed :exc:`pymongo.errors.NotMasterError`.
-  Use :exc:`pymongo.errors.NotPrimaryError` instead.
-- Removed :exc:`pymongo.errors.CertificateError`.
+- Removed ``pymongo.errors.NotMasterError``.
+  Use ``pymongo.errors.NotPrimaryError`` instead.
+- Removed ``pymongo.errors.CertificateError``.
 - Removed :attr:`pymongo.GEOHAYSTACK`.
 - Removed :py:class:`bson.binary.UUIDLegacy`.
 - Removed :const:`bson.json_util.STRICT_JSON_OPTIONS`. Use
@@ -641,10 +641,10 @@ Breaking Changes in 4.0
   substituted in a projection of ``{"_id": 1}``. This means that an empty
   projection will now return the entire document, not just the ``"_id"`` field.
 - :py:class:`~pymongo.mongo_client.MongoClient` now raises a
-  :exc:`~pymongo.errors.ConfigurationError` when more than one URI is passed
+  ``~pymongo.errors.ConfigurationError`` when more than one URI is passed
   into the ``hosts`` argument.
 - :py:class:`~pymongo.mongo_client.MongoClient`` now raises an
-  :exc:`~pymongo.errors.InvalidURI` exception
+  ``~pymongo.errors.InvalidURI`` exception
   when it encounters unescaped percent signs in username and password when
   parsing MongoDB URIs.
 - Comparing two :py:class:`~pymongo.mongo_client.MongoClient` instances now
@@ -873,7 +873,7 @@ Bug fixes
   initial command response.
 - Fixed a bug in :py:class:`~pymongo.cursor.RawBatchCursor` that caused it to
   return an empty bytestring when the cursor contained no results. It now
-  raises :exc:`StopIteration` instead.
+  raises ``StopIteration`` instead.
 
 Deprecations
 ............
@@ -885,8 +885,8 @@ Deprecations
   and :py:meth:`~pymongo.database.Database.profiling_info`. Instead, users
   should run the `profile command`_ with the
   :py:meth:`~pymongo.database.Database.command` helper directly.
-- Deprecated :exc:`~pymongo.errors.NotMasterError`. Users should
-  use :exc:`~pymongo.errors.NotPrimaryError` instead.
+- Deprecated ``~pymongo.errors.NotMasterError``. Users should
+  use ``~pymongo.errors.NotPrimaryError`` instead.
 - Deprecated :py:class:`~pymongo.ismaster.IsMaster` and ``~pymongo.ismaster``
   which will be removed in PyMongo 4.0 and are replaced by
   :py:class:`~pymongo.hello.Hello` and ``~pymongo.hello`` which provide the
@@ -933,13 +933,13 @@ Version 3.11.2 includes a number of bugfixes. Highlights include:
 
 - Fixed a memory leak caused by failing SDAM monitor checks on Python 3 (`PYTHON-2433`_).
 - Fixed a regression that changed the string representation of
-  :exc:`~pymongo.errors.BulkWriteError` (`PYTHON-2438`_).
+  ``~pymongo.errors.BulkWriteError`` (`PYTHON-2438`_).
 - Fixed a bug that made it impossible to use
   :py:meth:`bson.codec_options.CodecOptions.with_options` and
   :py:meth:`~bson.json_util.JSONOptions.with_options` on some early versions of
   Python 3.4 and Python 3.5 due to a bug in the standard library implementation
   of :py:meth:`collections.namedtuple._asdict` (`PYTHON-2440`_).
-- Fixed a bug that resulted in a :exc:`TypeError` exception when a PyOpenSSL
+- Fixed a bug that resulted in a ``TypeError`` exception when a PyOpenSSL
   socket was configured with a timeout of ``None`` (`PYTHON-2443`_).
 
 See the `PyMongo 3.11.2 release notes in JIRA`_ for the list of resolved issues
@@ -1263,7 +1263,7 @@ Changes in Version 3.8.0
   :py:class:`~bson.codec_options.TypeRegistry` APIs. For more information, see
   the :doc:`custom type example <examples/custom_type>`.
 - Attempting a multi-document transaction on a sharded cluster now raises a
-  :exc:`~pymongo.errors.ConfigurationError`.
+  ``~pymongo.errors.ConfigurationError``.
 - :py:meth:`pymongo.cursor.Cursor.distinct` and
   :py:meth:`pymongo.cursor.Cursor.count` now send the Cursor's
   :py:meth:`~pymongo.cursor.Cursor.comment` as the "comment" top-level
@@ -1495,7 +1495,7 @@ Changes in Version 3.6.0
 Version 3.6 adds support for MongoDB 3.6, drops support for CPython 3.3 (PyPy3
 is still supported), and drops support for MongoDB versions older than 2.6. If
 connecting to a MongoDB 2.4 server or older, PyMongo now throws a
-:exc:`~pymongo.errors.ConfigurationError`.
+``~pymongo.errors.ConfigurationError``.
 
 Highlights include:
 
@@ -1806,7 +1806,7 @@ Changes in Version 3.2.1
 Version 3.2.1 fixes a few issues reported since the release of 3.2, including
 running the mapreduce command twice when calling the
 :py:meth:`~pymongo.collection.Collection.inline_map_reduce` method and a
-:exc:`TypeError` being raised when calling
+``TypeError`` being raised when calling
 :py:meth:`~gridfs.GridFSBucket.download_to_stream`. This release also
 improves error messaging around BSON decoding.
 
@@ -1840,7 +1840,7 @@ Highlights include:
 
 .. note:: Certain :py:class:`~pymongo.mongo_client.MongoClient` properties now
   block until a connection is established or raise
-  :exc:`~pymongo.errors.ServerSelectionTimeoutError` if no server is available.
+  ``~pymongo.errors.ServerSelectionTimeoutError`` if no server is available.
   See :py:class:`~pymongo.mongo_client.MongoClient` for details.
 
 Issues Resolved
@@ -1875,7 +1875,7 @@ of 3.0.3.
 Highlights include:
 
 - Command monitoring support. See ``~pymongo.monitoring`` for details.
-- Configurable error handling for :exc:`UnicodeDecodeError`. See the
+- Configurable error handling for ``UnicodeDecodeError``. See the
   ``unicode_decode_error_handler`` option of
   :py:class:`~bson.codec_options.CodecOptions`.
 - Optional automatic timezone conversion when decoding BSON datetime. See the
@@ -2005,7 +2005,7 @@ SSL/TLS changes
 When ``ssl`` is ``True`` the ``ssl_cert_reqs`` option now defaults to
 :attr:`ssl.CERT_REQUIRED` if not provided. PyMongo will attempt to load OS
 provided CA certificates to verify the server, raising
-:exc:`~pymongo.errors.ConfigurationError` if it cannot.
+``~pymongo.errors.ConfigurationError`` if it cannot.
 
 Gevent Support
 ..............
@@ -2715,7 +2715,7 @@ in this release.
 Changes in Version 2.6.2
 ------------------------
 
-Version 2.6.2 fixes a :exc:`TypeError` problem when max_pool_size=None
+Version 2.6.2 fixes a ``TypeError`` problem when max_pool_size=None
 is used in Python 3.
 
 Issues Resolved
@@ -2757,7 +2757,7 @@ Important new features:
   Once the pool has reaches max_pool_size
   operations will block waiting for a socket to become available. If
   ``waitQueueTimeoutMS`` is set, an operation that blocks waiting for a socket
-  will raise :exc:`~pymongo.errors.ConnectionFailure` after the timeout. By
+  will raise ``~pymongo.errors.ConnectionFailure`` after the timeout. By
   default ``waitQueueTimeoutMS`` is not set.
   See :ref:`connection-pooling` for more information.
 - The :py:meth:`~pymongo.collection.Collection.insert` method automatically splits
@@ -2912,10 +2912,10 @@ Important new features:
     :py:class:`~pymongo.mongo_replica_set_client.MongoReplicaSetClient`,
     :py:class:`~pymongo.connection.Connection`, and
     :py:class:`~pymongo.replica_set_connection.ReplicaSetConnection` now raise
-    :exc:`~pymongo.errors.ConnectionFailure` instead of its subclass
-    :exc:`~pymongo.errors.AutoReconnect` if the server is unavailable. Applications
-    that expect to catch :exc:`~pymongo.errors.AutoReconnect` should now catch
-    :exc:`~pymongo.errors.ConnectionFailure` while creating a new connection.
+    ``~pymongo.errors.ConnectionFailure`` instead of its subclass
+    ``~pymongo.errors.AutoReconnect`` if the server is unavailable. Applications
+    that expect to catch ``~pymongo.errors.AutoReconnect`` should now catch
+    ``~pymongo.errors.ConnectionFailure`` while creating a new connection.
 
 Issues Resolved
 ...............

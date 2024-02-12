@@ -324,7 +324,7 @@ Supported UUID Representations
 
    * - :ref:`unspecified-representation-details`
      - Yes, in PyMongo>=4
-     - Raise :exc:`ValueError`
+     - Raise ``ValueError``
      - :py:class:`~bson.binary.Binary` subtype 4
      - :py:class:`~bson.binary.Binary` subtype 3
 

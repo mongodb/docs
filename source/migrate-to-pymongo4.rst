@@ -39,7 +39,7 @@ Python 2 should consult the :doc:`python3`.
 Enable Deprecation Warnings
 ---------------------------
 
-:exc:`DeprecationWarning` is raised by most methods removed in PyMongo 4.0.
+``DeprecationWarning`` is raised by most methods removed in PyMongo 4.0.
 Make sure you enable runtime warnings to see where deprecated functions and
 methods are being used in your application:
 
@@ -53,7 +53,7 @@ Warnings can also be changed to errors:
 
   python -Wd -Werror <your application>
 
-.. note:: Not all deprecated features raise :exc:`DeprecationWarning` when
+.. note:: Not all deprecated features raise ``DeprecationWarning`` when
   used. See `Removed features with no migration path`_.
 
 MongoReplicaSetClient
@@ -79,7 +79,7 @@ allowing for the automatic discovery of replica sets. This means that if you
 want a direct connection to a single server you must pass
 ``directConnection=True`` as a URI option or keyword argument.
 
-If you see any :exc:`~pymongo.errors.ServerSelectionTimeoutError`'s after upgrading from PyMongo 3 to 4.x, you likely
+If you see any ``~pymongo.errors.ServerSelectionTimeoutError``'s after upgrading from PyMongo 3 to 4.x, you likely
 need to add ``directConnection=True`` when creating the client.
 Here are some example errors:
 
@@ -112,7 +112,7 @@ The waitQueueMultiple parameter is removed
 
 Removed the ``waitQueueMultiple`` keyword argument to
 :py:class:`~pymongo.mongo_client.MongoClient` and removed
-:exc:`pymongo.errors.ExceededMaxWaiters`. Instead of using
+``pymongo.errors.ExceededMaxWaiters``. Instead of using
 ``waitQueueMultiple`` to bound queuing, limit the size of the thread
 pool in your application.
 
@@ -319,14 +319,14 @@ now you must create a new instance.
 MongoClient raises exception when given more than one URI
 .........................................................
 
-:py:class:`~pymongo.mongo_client.MongoClient` now raises a :exc:`~pymongo.errors.ConfigurationError`
+:py:class:`~pymongo.mongo_client.MongoClient` now raises a ``~pymongo.errors.ConfigurationError``
 when more than one URI is passed into the ``hosts`` argument.
 
 MongoClient raises exception when given unescaped percent sign in login info
 ............................................................................
 
 :py:class:`~pymongo.mongo_client.MongoClient` now raises an
-:exc:`~pymongo.errors.InvalidURI` exception
+``~pymongo.errors.InvalidURI`` exception
 when it encounters unescaped percent signs in username and password.
 
 Database
@@ -957,13 +957,13 @@ Use :py:class:`pymongo.hello.Hello` instead.
 NotMasterError is removed
 -------------------------
 
-Removed :exc:`~pymongo.errors.NotMasterError`.
-Use :exc:`~pymongo.errors.NotPrimaryError` instead.
+Removed ``~pymongo.errors.NotMasterError``.
+Use ``~pymongo.errors.NotPrimaryError`` instead.
 
 CertificateError is removed
 ---------------------------
 
-Removed :exc:`~pymongo.errors.CertificateError`. Since PyMongo 3.0 this error
+Removed ``~pymongo.errors.CertificateError``. Since PyMongo 3.0 this error
 is handled internally and is never raised to the application.
 
 pymongo.GEOHAYSTACK is removed

@@ -30,7 +30,7 @@ BSON library's :py:class:`~bson.decimal128.Decimal128` type (that implements
 the IEEE 754 decimal128 decimal-based floating-point numbering format) is
 distinct from Python's built-in :py:class:`~decimal.Decimal` type, attempting
 to save an instance of ``Decimal`` with PyMongo, results in an
-:exc:`~bson.errors.InvalidDocument` exception.
+``~bson.errors.InvalidDocument`` exception.
 
 .. code-block:: python
 
