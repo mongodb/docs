@@ -43,7 +43,7 @@ confusing to the application that reads them:
 
 .. code-block:: python
 
-   >>> [doc["last_modified"] for doc in db.objects.find()]  # doctest: +SKIP
+   >>> [doc["last_modified"] for doc in db.objects.find()]
    [datetime.datetime(2015, 7, 8, 18, 17, 28, 324000),
     datetime.datetime(2015, 7, 8, 11, 17, 42, 911000)]
 
@@ -57,7 +57,7 @@ timezone they're in. By default, PyMongo retrieves naive datetimes:
    >>> db.tzdemo.find_one()["date"]
    datetime.datetime(2002, 10, 27, 6, 0)
    >>> options = CodecOptions(tz_aware=True)
-   >>> db.get_collection("tzdemo", codec_options=options).find_one()["date"]  # doctest: +SKIP
+   >>> db.get_collection("tzdemo", codec_options=options).find_one()["date"]
    datetime.datetime(2002, 10, 27, 6, 0,
                      tzinfo=<bson.tz_util.FixedOffset object at 0x10583a050>)
 
@@ -99,7 +99,7 @@ out of MongoDB in US/Pacific time:
    ...     tz_aware=True,
    ...     tzinfo=pytz.timezone('US/Pacific')))
    >>> result = aware_times.find_one()
-   datetime.datetime(2002, 10, 27, 6, 0,  # doctest: +NORMALIZE_WHITESPACE
+   datetime.datetime(2002, 10, 27, 6, 0,
                      tzinfo=<DstTzInfo 'US/Pacific' PST-1 day, 16:00:00 STD>)
 
 .. _handling-out-of-range-datetimes:
