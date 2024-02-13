@@ -1,0 +1,150 @@
+===========
+autoCompact
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: autoCompact
+
+   .. versionadded:: 8.0
+
+   Enables or disables background :ref:`compaction <compact>`. 
+   When enabled, ``autoCompact`` periodically iterates through all available 
+   files and continuously runs compaction if there is enough free storage space 
+   available. 
+
+   Before you enable ``autoCompact``, run the :dbcommand:`dbStats` command to 
+   see if you have enough available storage space for compaction to proceed. If 
+   the amount of available space returned by ``dbStats`` is less than 
+   ``freeSpaceTargetMB``, background compaction has no effect.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.runCommand(
+      { 
+        autoCompact: <boolean>, 
+        freeSpaceTargetMB: <int>, // Optional 
+        runOnce: <boolean>, // Optional
+      }
+   )
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-no-free.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Command Fields
+--------------
+
+The command can take the following optional fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``freeSpaceTargetMB`` 
+     - Integer 
+     - .. versionadded: 7.3
+
+       .. include:: /includes/fact-freeSpaceTargetMB.rst
+
+       *Default:* 20
+
+   * - ``runOnce``
+     - boolean
+     - Optional. If ``runOnce`` is set to ``true``, background compaction runs 
+       only once through every collection on the node.
+
+       If ``runOnce`` is set to ``false``, background compaction runs 
+       continuously on all collections in the database. If a collection fails to
+       compact while ``runOnce`` is ``false``, MongoDB temporarily skips that 
+       collection and continues compacting the remaining collections. MongoDB 
+       attempts to compact the failed collection again after approximately one 
+       day. 
+
+.. warning:: 
+
+   Always have an up-to-date backup before performing server
+   maintenance such as the ``autoCompact`` operation.
+
+.. _autocompact-authentication:
+
+Required Privileges
+-------------------
+
+For clusters enforcing :ref:`authentication <authentication>`,
+you must authenticate as a user with the :authaction:`compact` privilege
+action on the target collection. The :authrole:`dbAdmin` and 
+:authrole:`hostManager` roles provide the required privileges for running 
+``autoCompact`` against all collections. 
+
+Behavior
+--------
+
+Blocking
+~~~~~~~~
+
+Although the ``autoCompact`` command itself doesn't block any reads and 
+writes, background compaction applies the same :ref:`blocking behavior 
+<compact-blocking>` as the :dbcommand:`compact` command.
+
+Excluded Collections 
+~~~~~~~~~~~~~~~~~~~~
+
+If an :term:`oplog` exists, MongoDB excludes it from background compaction.
+
+Performance Considerations 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend running ``autoCompact`` during periods of low traffic. If you run 
+background compaction in parallel with other operations, it can negatively 
+impact performance.
+
+Replica Sets
+~~~~~~~~~~~~
+
+You can run background compaction on collections and indexes that are 
+stored in a replica set. However, note the following considerations:  
+
+- The primary node does not replicate the ``autoCompact`` command to the
+  secondary nodes.
+- A secondary node can replicate data while background compaction is 
+  running.
+- Reads and writes are permitted while background compaction is running.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+``autoCompact`` only applies to :binary:`~bin.mongod` instances. In a
+sharded environment, run ``autoCompact`` on each shard separately.
+
+You cannot run ``autoCompact`` against a :binary:`~bin.mongos` instance.
+
+Learn More 
+----------
+
+- :dbcommand:`compact`
