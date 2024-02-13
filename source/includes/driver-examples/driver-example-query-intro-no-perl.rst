@@ -5,7 +5,7 @@
        content: |
         
          This page provides examples of |query_operations| using the
-         :method:`db.collection.find()` method in :binary:`mongosh`.
+         :method:`db.collection.find()` method in :binary:`mongo`.
 
          .. include:: /includes/driver-examples/examples-intro.rst
 

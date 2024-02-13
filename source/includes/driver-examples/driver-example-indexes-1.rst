@@ -162,7 +162,7 @@
        content: |
          To create an index using the
          `PHP driver <https://docs.mongodb.com/php-library/current/>`_, use
-         :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex>`.
+         :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex()>`.
 
 
          .. code-block:: php
@@ -177,7 +177,7 @@
 
             $collection->createIndex(['name' => -1]);
 
-         The :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex>`
+         The :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex()>`
          method only creates an index if an index of the same
          specification does not already exist.
 
