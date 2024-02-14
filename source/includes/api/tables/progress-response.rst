@@ -40,14 +40,20 @@
 
    * - ``lagTimeSeconds``
      - integer
-     - Time in seconds between the last applied event and time of the
-       current latest event for this instance of ``mongosync``.
+     - Time difference in seconds between the latest event timestamp that
+       ``mongosync`` applied to the destination cluster and the latest
+       timestamp on the source cluster for this instance of ``mongosync``.
 
        .. note::
 
           ``mongosync`` performs periodic no-op writes on the source cluster,
           which may prevent the value of the ``lagTimeSeconds`` field from
-          reaching zero.
+          reaching zero until ``mongosync`` commits the migration.
+
+       Due to constant no-ops on the source cluster, the time difference
+       is often a few seconds above zero, even if there are no real
+       writes on the source cluster. The time difference becomes zero
+       when ``mongosync`` commits the migration.
 
    * - ``collectionCopy``
      - object
