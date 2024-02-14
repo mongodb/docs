@@ -29,6 +29,11 @@ You can set the following in the {+atlas-ui+}:
          There is also a :guilabel:`User Preferences` timezone, which 
          only affects the activity feed.
 
+  * - :guilabel:`Tags`
+
+    - Allows you to label and organize your projects with key-value
+      pairs. To learn more, see :ref:`project-tags`.
+
   * - :guilabel:`Connect via Peering Only (GCP and Azure)`
 
     - Allows you to enable or disable connections between MongoDB
