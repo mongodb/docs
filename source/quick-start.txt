@@ -1,0 +1,710 @@
+.. uses installation.rst, atlas.rst
+.. uses tutorial.rst
+
+Installing / Upgrading
+======================
+.. highlight:: bash
+
+**PyMongo** is in the `Python Package Index
+<http://pypi.python.org/pypi/pymongo/>`_.
+
+.. warning:: **Do not install the "bson" package from pypi.** PyMongo comes
+   with its own bson package; doing "pip install bson" or "easy_install bson"
+   installs a third-party package that is incompatible with PyMongo.
+
+Installing with pip
+-------------------
+
+We recommend using `pip <http://pypi.python.org/pypi/pip>`_
+to install pymongo on all platforms:
+
+.. code-block:: python
+
+  $ python3 -m pip install pymongo
+
+To get a specific version of pymongo:
+
+.. code-block:: python
+
+  $ python3 -m pip install pymongo==3.5.1
+
+To upgrade using pip:
+
+.. code-block:: python
+
+  $ python3 -m pip install --upgrade pymongo
+
+Dependencies
+------------
+
+PyMongo supports CPython 3.7+ and PyPy3.7+.
+
+Required dependencies
+.....................
+
+Support for mongodb+srv:// URIs requires `dnspython
+<https://pypi.python.org/pypi/dnspython>`_
+
+.. _optional-deps:
+
+Optional dependencies
+.....................
+
+GSSAPI authentication requires `pykerberos
+<https://pypi.python.org/pypi/pykerberos>`_ on Unix or `WinKerberos
+<https://pypi.python.org/pypi/winkerberos>`_ on Windows. The correct
+dependency can be installed automatically along with PyMongo:
+
+.. code-block:: python
+
+  $ python3 -m pip install "pymongo[gssapi]"
+
+:ref:`MONGODB-AWS` authentication requires `pymongo-auth-aws
+<https://pypi.org/project/pymongo-auth-aws/>`_:
+
+.. code-block:: python
+
+  $ python3 -m pip install "pymongo[aws]"
+
+
+
+:ref:`OCSP` requires `PyOpenSSL
+<https://pypi.org/project/pyOpenSSL/>`_, `requests
+<https://pypi.org/project/requests/>`_ and `service_identity
+<https://pypi.org/project/service_identity/>`_:
+
+.. code-block:: python
+
+  $ python3 -m pip install "pymongo[ocsp]"
+
+Wire protocol compression with snappy requires `python-snappy
+<https://pypi.org/project/python-snappy>`_:
+
+.. code-block:: python
+
+  $ python3 -m pip install "pymongo[snappy]"
+
+Wire protocol compression with zstandard requires `zstandard
+<https://pypi.org/project/zstandard>`_:
+
+.. code-block:: python
+
+  $ python3 -m pip install "pymongo[zstd]"
+
+:ref:`Client-Side Field Level Encryption` requires `pymongocrypt
+<https://pypi.org/project/pymongocrypt/>`_ and
+`pymongo-auth-aws <https://pypi.org/project/pymongo-auth-aws/>`_:
+
+.. code-block:: python
+
+  $ python3 -m pip install "pymongo[encryption]"
+
+You can install all dependencies automatically with the following
+command:
+
+.. code-block:: python
+
+  $ python3 -m pip install "pymongo[gssapi,aws,ocsp,snappy,zstd,encryption]"
+
+Installing from source
+----------------------
+
+If you'd rather install directly from the source (i.e. to stay on the
+bleeding edge), install the C extension dependencies then check out the
+latest source from GitHub and install the driver from the resulting tree:
+
+.. code-block:: python
+
+  $ git clone https://github.com/mongodb/mongo-python-driver.git pymongo
+  $ cd pymongo/
+  $ pip install .
+
+Installing from source on Unix
+..............................
+
+To build the optional C extensions on Linux or another non-macOS Unix you must
+have the GNU C compiler (gcc) installed. Depending on your flavor of Unix
+(or Linux distribution) you may also need a python development package that
+provides the necessary header files for your version of Python. The package
+name may vary from distro to distro.
+
+Debian and Ubuntu users should issue the following command:
+
+.. code-block:: python
+
+  $ sudo apt-get install build-essential python-dev
+
+Users of Red Hat based distributions (RHEL, CentOS, Amazon Linux, Oracle Linux,
+Fedora, etc.) should issue the following command:
+
+.. code-block:: python
+
+  $ sudo yum install gcc python-devel
+
+Installing from source on macOS / OSX
+.....................................
+
+If you want to install PyMongo with C extensions from source you will need
+the command line developer tools. On modern versions of macOS they can be
+installed by running the following in Terminal (found in
+/Applications/Utilities/):
+
+.. code-block:: python
+
+  xcode-select --install
+
+For older versions of OSX you may need Xcode. See the notes below for various
+OSX and Xcode versions.
+
+**Snow Leopard (10.6)** - Xcode 3 with 'UNIX Development Support'.
+
+**Snow Leopard Xcode 4**: The Python versions shipped with OSX 10.6.x
+are universal binaries. They support i386, PPC, and x86_64. Xcode 4 removed
+support for PPC, causing the distutils version shipped with Apple's builds of
+Python to fail to build the C extensions if you have Xcode 4 installed. There
+is a workaround:
+
+.. code-block:: python
+
+  # For some Python builds from python.org
+  $ env ARCHFLAGS='-arch i386 -arch x86_64' python -m easy_install pymongo
+
+See `http://bugs.python.org/issue11623 <http://bugs.python.org/issue11623>`_
+for a more detailed explanation.
+
+**Lion (10.7) and newer** - PyMongo's C extensions can be built against
+versions of Python 3.7+ downloaded from python.org. In all cases Xcode must be
+installed with 'UNIX Development Support'.
+
+**Xcode 5.1**: Starting with version 5.1 the version of clang that ships with
+Xcode throws an error when it encounters compiler flags it doesn't recognize.
+This may cause C extension builds to fail with an error similar to:
+
+.. code-block:: python
+
+  clang: error: unknown argument: '-mno-fused-madd' [-Wunused-command-line-argument-hard-error-in-future]
+
+There are workarounds:
+
+.. code-block:: python
+
+  # Apple specified workaround for Xcode 5.1
+  # easy_install
+  $ ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future easy_install pymongo
+  # or pip
+  $ ARCHFLAGS=-Wno-error=unused-command-line-argument-hard-error-in-future pip install pymongo
+
+  # Alternative workaround using CFLAGS
+  # easy_install
+  $ CFLAGS=-Qunused-arguments easy_install pymongo
+  # or pip
+  $ CFLAGS=-Qunused-arguments pip install pymongo
+
+
+Installing from source on Windows
+.................................
+
+If you want to install PyMongo with C extensions from source the following
+requirements apply to both CPython and ActiveState's ActivePython:
+
+Windows
+~~~~~~~
+
+Install Visual Studio 2015+.
+
+.. _install-no-c:
+
+Installing Without C Extensions
+-------------------------------
+
+By default, the driver attempts to build and install optional C
+extensions (used for increasing performance) when it is installed. If
+any extension fails to build the driver will be installed anyway but a
+warning will be printed.
+
+If you wish to install PyMongo without the C extensions, even if the
+extensions build properly, it can be done using a command line option to
+*pip install*:
+
+.. code-block:: python
+
+  $ NO_EXT=1 python -m pip install .
+
+Installing a beta or release candidate
+--------------------------------------
+
+MongoDB, Inc. may occasionally tag a beta or release candidate for testing by
+the community before final release. These releases will not be uploaded to pypi
+but can be found on the
+`GitHub tags page <https://github.com/mongodb/mongo-python-driver/tags>`_.
+They can be installed by passing the full URL for the tag to pip:
+
+.. code-block:: python
+
+  $ python3 -m pip install https://github.com/mongodb/mongo-python-driver/archive/4.4.0b0.tar.gz
+
+Using PyMongo with MongoDB Atlas
+================================
+
+`Atlas <https://www.mongodb.com/cloud>`_ is MongoDB, Inc.'s hosted MongoDB as a
+service offering. To connect to Atlas, pass the connection string provided by
+Atlas to :py:class:`~pymongo.mongo_client.MongoClient`:
+
+.. code-block:: python
+
+  client = pymongo.MongoClient(<Atlas connection string>)
+
+Connections to Atlas require TLS/SSL.
+
+.. warning:: Industry best practices recommend, and some regulations require,
+  the use of TLS 1.1 or newer. Though no application changes are required for
+  PyMongo to make use of the newest protocols, some operating systems or
+  versions may not provide an OpenSSL version new enough to support them.
+
+  Users of macOS older than 10.13 (High Sierra) will need to install Python
+  from `python.org`_, `homebrew`_, `macports`_, or another similar source.
+
+  Users of Linux or other non-macOS Unix can check their OpenSSL version like
+  this:
+
+.. code-block:: python
+
+    $ openssl version
+
+  If the version number is less than 1.0.1 support for TLS 1.1 or newer is not
+  available. Contact your operating system vendor for a solution or upgrade to
+  a newer distribution.
+
+  You can check your Python interpreter by installing the `requests`_ module
+  and executing the following command:
+
+.. code-block:: python
+
+    python -c "import requests; print(requests.get('https://www.howsmyssl.com/a/check', verify=False).json()['tls_version'])"
+
+  You should see "TLS 1.X" where X is >= 1.
+
+  You can read more about TLS versions and their security implications here:
+
+  `<https://cheatsheetseries.owasp.org/cheatsheets/Transport_Layer_Security_Cheat_Sheet.html#only-support-strong-protocols>`_
+
+.. _python.org: https://www.python.org/downloads/
+.. _homebrew: https://brew.sh/
+.. _macports: https://www.macports.org/
+.. _requests: https://pypi.python.org/pypi/requests
+
+
+Quick Start
+===========
+
+.. code-block:: python
+
+  from pymongo import MongoClient
+
+  client = MongoClient()
+  client.drop_database("test-database")
+
+This tutorial is intended as an introduction to working with
+**MongoDB** and **PyMongo**.
+
+Prerequisites
+-------------
+Before we start, make sure that you have the **PyMongo** distribution
+installed. In the Python shell, the following
+should run without raising an exception:
+
+.. code-block:: python
+
+  >>> import pymongo
+
+This tutorial also assumes that a MongoDB instance is running on the
+default host and port. Assuming you have `downloaded and installed
+<https://www.mongodb.com/docs/manual/installation/>`_ MongoDB, you
+can start it like so:
+
+.. code-block:: bash
+
+  $ mongod
+
+Making a Connection with MongoClient
+------------------------------------
+The first step when working with **PyMongo** is to create a
+:py:class:`~pymongo.mongo_client.MongoClient` to the running **mongod**
+instance. Doing so is easy:
+
+.. code-block:: python
+
+  >>> from pymongo import MongoClient
+  >>> client = MongoClient()
+
+The above code will connect on the default host and port. We can also
+specify the host and port explicitly, as follows:
+
+.. code-block:: python
+
+  >>> client = MongoClient("localhost", 27017)
+
+Or use the MongoDB URI format:
+
+.. code-block:: python
+
+  >>> client = MongoClient("mongodb://localhost:27017/")
+
+Getting a Database
+------------------
+A single instance of MongoDB can support multiple independent
+`databases <https://www.mongodb.com/docs/manual/core/databases-and-collections>`_. When
+working with PyMongo you access databases using attribute style access
+on :py:class:`~pymongo.mongo_client.MongoClient` instances:
+
+.. code-block:: python
+
+  >>> db = client.test_database
+
+If your database name is such that using attribute style access won't
+work (like ``test-database``), you can use dictionary style access
+instead:
+
+.. code-block:: python
+
+  >>> db = client["test-database"]
+
+Getting a Collection
+--------------------
+A `collection <https://www.mongodb.com/docs/manual/core/databases-and-collections>`_ is a
+group of documents stored in MongoDB, and can be thought of as roughly
+the equivalent of a table in a relational database. Getting a
+collection in PyMongo works the same as getting a database:
+
+.. code-block:: python
+
+  >>> collection = db.test_collection
+
+or (using dictionary style access):
+
+.. code-block:: python
+
+  >>> collection = db["test-collection"]
+
+An important note about collections (and databases) in MongoDB is that
+they are created lazily - none of the above commands have actually
+performed any operations on the MongoDB server. Collections and
+databases are created when the first document is inserted into them.
+
+Documents
+---------
+Data in MongoDB is represented (and stored) using JSON-style
+documents. In PyMongo we use dictionaries to represent documents. As
+an example, the following dictionary might be used to represent a blog
+post:
+
+.. code-block:: python
+
+  >>> import datetime
+  >>> post = {
+  ...     "author": "Mike",
+  ...     "text": "My first blog post!",
+  ...     "tags": ["mongodb", "python", "pymongo"],
+  ...     "date": datetime.datetime.now(tz=datetime.timezone.utc),
+  ... }
+
+Note that documents can contain native Python types (like
+:py:class:`datetime.datetime` instances) which will be automatically
+converted to and from the appropriate `BSON
+<https://bsonspec.org/>`_ types.
+
+.. todo:: link to table of Python <-> BSON types
+
+Inserting a Document
+--------------------
+To insert a document into a collection we can use the
+:py:meth:`~pymongo.collection.Collection.insert_one` method:
+
+.. code-block:: python
+
+  >>> posts = db.posts
+  >>> post_id = posts.insert_one(post).inserted_id
+  >>> post_id
+  ObjectId('...')
+
+When a document is inserted a special key, ``"_id"``, is automatically
+added if the document doesn't already contain an ``"_id"`` key. The value
+of ``"_id"`` must be unique across the
+collection. :py:meth:`~pymongo.collection.Collection.insert_one` returns an
+instance of :py:class:`~pymongo.results.InsertOneResult`. For more information
+on ``"_id"``, see the `documentation on _id
+<https://www.mongodb.com/docs/manual/reference/method/ObjectId/>`_.
+
+After inserting the first document, the *posts* collection has
+actually been created on the server. We can verify this by listing all
+of the collections in our database:
+
+.. code-block:: python
+
+  >>> db.list_collection_names()
+  ['posts']
+
+Getting a Single Document With :py:meth:`~pymongo.collection.Collection.find_one`
+--------------------------------------------------------------------------------
+The most basic type of query that can be performed in MongoDB is
+:py:meth:`~pymongo.collection.Collection.find_one`. This method returns a
+single document matching a query (or ``None`` if there are no
+matches). It is useful when you know there is only one matching
+document, or are only interested in the first match. Here we use
+:py:meth:`~pymongo.collection.Collection.find_one` to get the first
+document from the posts collection:
+
+.. code-block:: python
+
+  >>> import pprint
+  >>> pprint.pprint(posts.find_one())
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['mongodb', 'python', 'pymongo'],
+   'text': 'My first blog post!'}
+
+The result is a dictionary matching the one that we inserted previously.
+
+.. note:: The returned document contains an ``"_id"``, which was
+   automatically added on insert.
+
+:py:meth:`~pymongo.collection.Collection.find_one` also supports querying
+on specific elements that the resulting document must match. To limit
+our results to a document with author "Mike" we do:
+
+.. code-block:: python
+
+  >>> pprint.pprint(posts.find_one({"author": "Mike"}))
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['mongodb', 'python', 'pymongo'],
+   'text': 'My first blog post!'}
+
+If we try with a different author, like "Eliot", we'll get no result:
+
+.. code-block:: python
+
+  >>> posts.find_one({"author": "Eliot"})
+  >>>
+
+.. _querying-by-objectid:
+
+Querying By ObjectId
+--------------------
+We can also find a post by its ``_id``, which in our example is an ObjectId:
+
+.. code-block:: python
+
+  >>> post_id
+  ObjectId(...)
+  >>> pprint.pprint(posts.find_one({"_id": post_id}))
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['mongodb', 'python', 'pymongo'],
+   'text': 'My first blog post!'}
+
+Note that an ObjectId is not the same as its string representation:
+
+.. code-block:: python
+
+  >>> post_id_as_str = str(post_id)
+  >>> posts.find_one({"_id": post_id_as_str})  # No result
+  >>>
+
+A common task in web applications is to get an ObjectId from the
+request URL and find the matching document. It's necessary in this
+case to **convert the ObjectId from a string** before passing it to
+``find_one``:
+
+.. code-block:: python
+
+  from bson.objectid import ObjectId
+
+  # The web framework gets post_id from the URL and passes it as a string
+  def get(post_id):
+      # Convert from string to ObjectId:
+      document = client.db.collection.find_one({'_id': ObjectId(post_id)})
+
+.. seealso:: :ref:`web-application-querying-by-objectid`
+
+Bulk Inserts
+------------
+In order to make querying a little more interesting, let's insert a
+few more documents. In addition to inserting a single document, we can
+also perform *bulk insert* operations, by passing a list as the
+first argument to :py:meth:`~pymongo.collection.Collection.insert_many`.
+This will insert each document in the list, sending only a single
+command to the server:
+
+.. code-block:: python
+
+  >>> new_posts = [
+  ...     {
+  ...         "author": "Mike",
+  ...         "text": "Another post!",
+  ...         "tags": ["bulk", "insert"],
+  ...         "date": datetime.datetime(2009, 11, 12, 11, 14),
+  ...     },
+  ...     {
+  ...         "author": "Eliot",
+  ...         "title": "MongoDB is fun",
+  ...         "text": "and pretty easy too!",
+  ...         "date": datetime.datetime(2009, 11, 10, 10, 45),
+  ...     },
+  ... ]
+  >>> result = posts.insert_many(new_posts)
+  >>> result.inserted_ids
+  [ObjectId('...'), ObjectId('...')]
+
+There are a couple of interesting things to note about this example:
+
+- The result from :py:meth:`~pymongo.collection.Collection.insert_many` now
+  returns two :py:class:`~bson.objectid.ObjectId` instances, one for
+  each inserted document.
+- ``new_posts[1]`` has a different "shape" than the other posts -
+  there is no ``"tags"`` field and we've added a new field,
+  ``"title"``. This is what we mean when we say that MongoDB is
+  *schema-free*.
+
+Querying for More Than One Document
+-----------------------------------
+To get more than a single document as the result of a query we use the
+:py:meth:`~pymongo.collection.Collection.find`
+method. :py:meth:`~pymongo.collection.Collection.find` returns a
+:py:class:`~pymongo.cursor.Cursor` instance, which allows us to iterate
+over all matching documents. For example, we can iterate over every
+document in the ``posts`` collection:
+
+.. code-block:: python
+
+  >>> for post in posts.find():
+  ...     pprint.pprint(post)
+  ...
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['mongodb', 'python', 'pymongo'],
+   'text': 'My first blog post!'}
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['bulk', 'insert'],
+   'text': 'Another post!'}
+  {'_id': ObjectId('...'),
+   'author': 'Eliot',
+   'date': datetime.datetime(...),
+   'text': 'and pretty easy too!',
+   'title': 'MongoDB is fun'}
+
+Just like we did with :py:meth:`~pymongo.collection.Collection.find_one`,
+we can pass a document to :py:meth:`~pymongo.collection.Collection.find`
+to limit the returned results. Here, we get only those documents whose
+author is "Mike":
+
+.. code-block:: python
+
+  >>> for post in posts.find({"author": "Mike"}):
+  ...     pprint.pprint(post)
+  ...
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['mongodb', 'python', 'pymongo'],
+   'text': 'My first blog post!'}
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['bulk', 'insert'],
+   'text': 'Another post!'}
+
+Counting
+--------
+If we just want to know how many documents match a query we can
+perform a :py:meth:`~pymongo.collection.Collection.count_documents` operation
+instead of a full query. We can get a count of all of the documents
+in a collection:
+
+.. code-block:: python
+
+  >>> posts.count_documents({})
+  3
+
+or just of those documents that match a specific query:
+
+.. code-block:: python
+
+  >>> posts.count_documents({"author": "Mike"})
+  2
+
+Range Queries
+-------------
+MongoDB supports many different types of `advanced queries
+<https://www.mongodb.com/docs/manual/reference/operator/>`_. As an
+example, lets perform a query where we limit results to posts older
+than a certain date, but also sort the results by author:
+
+.. code-block:: python
+
+  >>> d = datetime.datetime(2009, 11, 12, 12)
+  >>> for post in posts.find({"date": {"$lt": d}}).sort("author"):
+  ...     pprint.pprint(post)
+  ...
+  {'_id': ObjectId('...'),
+   'author': 'Eliot',
+   'date': datetime.datetime(...),
+   'text': 'and pretty easy too!',
+   'title': 'MongoDB is fun'}
+  {'_id': ObjectId('...'),
+   'author': 'Mike',
+   'date': datetime.datetime(...),
+   'tags': ['bulk', 'insert'],
+   'text': 'Another post!'}
+
+Here we use the special ``"$lt"`` operator to do a range query, and
+also call :py:meth:`~pymongo.cursor.Cursor.sort` to sort the results
+by author.
+
+Indexing
+--------
+
+Adding indexes can help accelerate certain queries and can also add additional
+functionality to querying and storing documents. In this example, we'll
+demonstrate how to create a `unique index
+<http://mongodb.com/docs/manual/core/index-unique/>`_ on a key that rejects
+documents whose value for that key already exists in the index.
+
+First, we'll need to create the index:
+
+.. code-block:: python
+
+   >>> result = db.profiles.create_index([("user_id", pymongo.ASCENDING)], unique=True)
+   >>> sorted(list(db.profiles.index_information()))
+   ['_id_', 'user_id_1']
+
+Notice that we have two indexes now: one is the index on ``_id`` that MongoDB
+creates automatically, and the other is the index on ``user_id`` we just
+created.
+
+Now let's set up some user profiles:
+
+.. code-block:: python
+
+   >>> user_profiles = [{"user_id": 211, "name": "Luke"}, {"user_id": 212, "name": "Ziltoid"}]
+   >>> result = db.profiles.insert_many(user_profiles)
+
+The index prevents us from inserting a document whose ``user_id`` is already in
+the collection:
+
+.. code-block:: python
+
+   >>> new_profile = {"user_id": 213, "name": "Drew"}
+   >>> duplicate_profile = {"user_id": 212, "name": "Tommy"}
+   >>> result = db.profiles.insert_one(new_profile)  # This is fine.
+   >>> result = db.profiles.insert_one(duplicate_profile)
+   Traceback (most recent call last):
+   DuplicateKeyError: E11000 duplicate key error index: test_database.profiles.$user_id_1 dup key: { : 212 }
+
+.. seealso:: The MongoDB documentation on `indexes <https://www.mongodb.com/docs/manual/indexes/>`_
