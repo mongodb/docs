@@ -3,7 +3,7 @@ Before upgrading |onprem| from 6.0 to 7.0, review the following considerations:
 Backing Databases
 ~~~~~~~~~~~~~~~~~
 
-|onprem| 7.0.0 requires a minimum of MongoDB 5.0.0 for |onprem| backing 
+|onprem| 7.0.0 requires a minimum of MongoDB 6.0.0 for |onprem| backing 
 databases.
 
 .. include:: /includes/fact-opsmanager-backingdb-version.rst
