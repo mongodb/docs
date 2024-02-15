@@ -67,9 +67,11 @@ instances. Using this array, you can:
      - Required
      - MongoDB configuration object for MongoDB versions 2.6 and later.
 
-       .. seealso::
+       .. note::
 
-          :doc:`Supported configuration options </reference/cluster-configuration-process-options>`.
+          The ``processes.args2_6`` object accepts most MongoDB 
+          settings and parameters for MongoDB versions 2.6 and later. 
+          To learn more, see :ref:`cm-unsupported-mdb-settings`.
 
    * - processes[n].alias
      - string
