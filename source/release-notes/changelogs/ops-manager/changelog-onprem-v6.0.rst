@@ -78,6 +78,7 @@
   - `CVE-2023-40167 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-40167>`__
   - `CVE-2023-36479 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-36479>`__
   - `CWE-611 <https://cwe.mitre.org/data/definitions//611.html>`__
+  - `CVE-2023-44487 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-44487>`__
 
 .. _opsmgr-server-6.0.19:
 
