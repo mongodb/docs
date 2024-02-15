@@ -295,19 +295,19 @@ collection, configured to use :py:class:`~bson.son.SON` instead of dict:
 
 .. code-block:: python
 
-  >>> from bson import CodecOptions, SON
-  >>> opts = CodecOptions(document_class=SON)
-  >>> opts
-  CodecOptions(document_class=...SON..., tz_aware=False, uuid_representation=UuidRepresentation.UNSPECIFIED, unicode_decode_error_handler='strict', tzinfo=None, type_registry=TypeRegistry(type_codecs=[], fallback_encoder=None), datetime_conversion=DatetimeConversion.DATETIME)
-  >>> collection_son = collection.with_options(codec_options=opts)
+   >>> from bson import CodecOptions, SON
+   >>> opts = CodecOptions(document_class=SON)
+   >>> opts
+   CodecOptions(document_class=...SON..., tz_aware=False, uuid_representation=UuidRepresentation.UNSPECIFIED, unicode_decode_error_handler='strict', tzinfo=None, type_registry=TypeRegistry(type_codecs=[], fallback_encoder=None), datetime_conversion=DatetimeConversion.DATETIME)
+   >>> collection_son = collection.with_options(codec_options=opts)
 
 Now, documents and subdocuments in query results are represented with
 :py:class:`~bson.son.SON` objects:
 
 .. code-block:: python
 
-  >>> print(collection_son.find_one())
-  SON([('_id', 1.0), ('subdocument', SON([('b', 1.0), ('a', 1.0)]))])
+   >>> print(collection_son.find_one())
+   SON([('_id', 1.0), ('subdocument', SON([('b', 1.0), ('a', 1.0)]))])
 
 The subdocument's actual storage layout is now visible: "b" is before "a".
 
@@ -316,21 +316,27 @@ serialized **to** BSON. But MongoDB considers subdocuments equal only if their
 keys have the same order. So if you use a dict to query on a subdocument it may
 not match:
 
-  >>> collection.find_one({'subdocument': {'a': 1.0, 'b': 1.0}}) is None
-  True
+.. code-block:: python
+
+   >>> collection.find_one({'subdocument': {'a': 1.0, 'b': 1.0}}) is None
+   True
 
 Swapping the key order in your query makes no difference:
 
-  >>> collection.find_one({'subdocument': {'b': 1.0, 'a': 1.0}}) is None
-  True
+.. code-block:: python
+
+   >>> collection.find_one({'subdocument': {'b': 1.0, 'a': 1.0}}) is None
+   True
 
 ... because, as we saw above, Python considers the two dicts the same.
 
 There are two solutions. First, you can match the subdocument field-by-field:
 
-  >>> collection.find_one({'subdocument.a': 1.0,
-  ...                      'subdocument.b': 1.0})
-  {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
+.. code-block:: python
+
+   >>> collection.find_one({'subdocument.a': 1.0,
+   ...                      'subdocument.b': 1.0})
+   {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
 
 The query matches any subdocument with an "a" of 1.0 and a "b" of 1.0,
 regardless of the order you specify them in Python or the order they are stored
@@ -339,9 +345,11 @@ keys besides "a" and "b", whereas the previous query required an exact match.
 
 The second solution is to use a :py:class:`~bson.son.SON` to specify the key order:
 
-  >>> query = {'subdocument': SON([('b', 1.0), ('a', 1.0)])}
-  >>> collection.find_one(query)
-  {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
+.. code-block:: python
+
+   >>> query = {'subdocument': SON([('b', 1.0), ('a', 1.0)])}
+   >>> collection.find_one(query)
+   {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
 
 The key order you use when you create a :py:class:`~bson.son.SON` is preserved
 when it is serialized to BSON and used as a query. Thus you can create a
