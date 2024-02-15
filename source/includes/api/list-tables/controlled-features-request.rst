@@ -88,6 +88,6 @@
        | ``.disabledParams``
      - array
      - List of |mongod| settings to disable when you apply the
-       ``DISABLE_SET_MONGOD_CONFIG`` policy. For information about
-       accepted values, see :doc:`Supported MongoDB Options for
-       Automation </reference/cluster-configuration-process-options>`.
+       ``DISABLE_SET_MONGOD_CONFIG`` policy. Automation doesn't support 
+       all MongoDB options, which can result in failed import attempts. 
+       To learn more, see :ref:`om-unsupported-mdb-settings`.
