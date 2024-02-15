@@ -1,5 +1,47 @@
 .. uses geo.rst
 
+Indexing
+--------
+
+Adding indexes can help accelerate certain queries and can also add additional
+functionality to querying and storing documents. In this example, we'll
+demonstrate how to create a `unique index
+<http://mongodb.com/docs/manual/core/index-unique/>`_ on a key that rejects
+documents whose value for that key already exists in the index.
+
+First, we'll need to create the index:
+
+.. code-block:: python
+
+   >>> result = db.profiles.create_index([("user_id", pymongo.ASCENDING)], unique=True)
+   >>> sorted(list(db.profiles.index_information()))
+   ['_id_', 'user_id_1']
+
+Notice that we have two indexes now: one is the index on ``_id`` that MongoDB
+creates automatically, and the other is the index on ``user_id`` we just
+created.
+
+Now let's set up some user profiles:
+
+.. code-block:: python
+
+   >>> user_profiles = [{"user_id": 211, "name": "Luke"}, {"user_id": 212, "name": "Ziltoid"}]
+   >>> result = db.profiles.insert_many(user_profiles)
+
+The index prevents us from inserting a document whose ``user_id`` is already in
+the collection:
+
+.. code-block:: python
+
+   >>> new_profile = {"user_id": 213, "name": "Drew"}
+   >>> duplicate_profile = {"user_id": 212, "name": "Tommy"}
+   >>> result = db.profiles.insert_one(new_profile)  # This is fine.
+   >>> result = db.profiles.insert_one(duplicate_profile)
+   Traceback (most recent call last):
+   DuplicateKeyError: E11000 duplicate key error index: test_database.profiles.$user_id_1 dup key: { : 212 }
+
+.. seealso:: The MongoDB documentation on `indexes <https://www.mongodb.com/docs/manual/indexes/>`_
+
 Geospatial Indexing Example
 ===========================
 
