@@ -14,7 +14,7 @@
      - Unique identifier of your Azure directory. You
        can find this information on the
        :guilabel:`Properties` tab of your
-       :guilabel:`Azure Active Directory` dashboard.
+       :guilabel:`Microsoft Entra ID` dashboard.
 
    * - :guilabel:`Resource Group Name`
      - Unique identifier of the Azure resource group to

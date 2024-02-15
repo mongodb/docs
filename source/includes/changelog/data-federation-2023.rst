@@ -10,7 +10,7 @@
 28 November 2023 Release 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports :abbr:`OIDC (OpenID Connect)` for Azure AD, Okta, and Ping
+- Supports :abbr:`OIDC (OpenID Connect)` for |azure-ad|, Okta, and Ping
   Identity as :abbr:`IdPs (Identity Providers)`. To learn more, see
   :ref:`oidc-authentication-authorization`.
 

@@ -108,7 +108,7 @@
 - Provides preview of :ref:`federated access
   <oidc-authentication-authorization>` to MongoDB 7.0+ databases on 
   |service| using an identity provider (IdP) that supports OpenID
-  Connect (OIDC), including Azure AD, Okta, and Ping Identity.
+  Connect (OIDC), including |azure-ad|, Okta, and Ping Identity.
 - Introduces resource-level :ref:`versioning <api-versioning-overview>`
   in the {+atlas-admin-api+}.
 - Provides :ref:`Go SDK <atlas-admin-sdk>` to fetch or modify data from

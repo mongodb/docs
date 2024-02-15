@@ -8,7 +8,7 @@
 
    * - ``azureDirectoryId``
      - string
-     - Unique identifier of your Azure AD directory.
+     - Unique identifier of your |azure-ad| directory.
 
    * - ``azureSubscriptionId``
      - string

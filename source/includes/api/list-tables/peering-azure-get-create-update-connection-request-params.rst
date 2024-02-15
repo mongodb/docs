@@ -22,7 +22,7 @@
 
    * - ``azureDirectoryId``
      - string
-     - Unique identifier for an Azure AD directory.
+     - Unique identifier for an |azure-ad| directory.
 
    * - ``resourceGroupName``
      - string
