@@ -64,8 +64,8 @@ You do not need to add the :urioption:`tls=true <tls>` option to a
 .. code-block:: shell
 
    mongosync \
-      --cluster0 "mongodb+srv://clusterAdmin:superSecret@clusterOne01.fancyCorp.com:20020/" \
-      --cluster1 "mongodb+srv://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020/"
+      --cluster0 "mongodb+srv://clusterAdmin:superSecret@clusterOne01.fancyCorp.com/" \
+      --cluster1 "mongodb+srv://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com/"
 
 For more details about ``mongodb+srv`` connection strings, see
 :ref:`connections-dns-seedlist`.

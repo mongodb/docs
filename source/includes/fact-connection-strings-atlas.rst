@@ -5,7 +5,7 @@ connection string <mongodb-uri>` to connect clusters:
 
   .. code-block:: none
 
-     mongodb+srv://[username:password@][host.domain.TLD][:port][/defaultauthdb][?options]
+     mongodb+srv://[username:password@][host.domain.TLD][/defaultauthdb][?options]
 
   For information on how to find your SRV connection
   string in Atlas, see :atlas:`Connect to Your Cluster 
