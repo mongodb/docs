@@ -18,6 +18,7 @@
        - :pipeline:`$merge`
        - :pipeline:`$out`
        - :pipeline:`$planCacheStats`
+       - :pipeline:`$unionWith`
 
    * - :method:`db.collection.countDocuments()` 
      -
