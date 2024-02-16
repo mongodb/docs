@@ -1,4 +1,4 @@
-MongoDB C++ Documentation
+MongoDB C++ Driver Documentation
 ====================================
 
 This repository contains documentation for C++, the MongoDB driver
