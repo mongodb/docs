@@ -5,20 +5,8 @@
    * - {+df+} Regions
      - |azure| Regions
 
-   * - US East (N. Virginia)
-     - eastus2
+   * - Virginia, USA
+     - ``US_EAST_2``
 
-   * - US West (California)
-     - westus
-
-   * - Asia Pacific (Singapore)
-     - southeastasia
-
-   * - Asia Pacific (New South Wales)
-     - australiaeast
-
-   * - Europe (Ireland)
-     - northeurope
-
-   * - Europe (Netherlands)
-     - westeurope
+   * - Netherlands
+     - ``EUROPE_WEST``
