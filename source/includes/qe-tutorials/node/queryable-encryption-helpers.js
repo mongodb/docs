@@ -147,28 +147,28 @@ export async function getAutoEncryptionOptions(
     const tlsOptions = getKmipTlsOptions();
 
     // start-kmip-encryption-options
-    const sharedLibraryPathOptions = {
+    const extraOptions = {
       cryptSharedLibPath: process.env.SHARED_LIB_PATH, // Path to your Automatic Encryption Shared Library
     };
 
     const autoEncryptionOptions = {
       keyVaultNamespace,
       kmsProviders,
-      sharedLibraryPathOptions,
+      extraOptions,
       tlsOptions,
     };
     // end-kmip-encryption-options
     return autoEncryptionOptions;
   } else {
     // start-auto-encryption-options
-    const sharedLibraryPathOptions = {
+    const extraOptions = {
       cryptSharedLibPath: process.env.SHARED_LIB_PATH, // Path to your Automatic Encryption Shared Library
     };
 
     const autoEncryptionOptions = {
       keyVaultNamespace,
       kmsProviders,
-      sharedLibraryPathOptions,
+      extraOptions,
     };
     // end-auto-encryption-options
 
