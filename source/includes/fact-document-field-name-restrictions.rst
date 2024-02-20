@@ -7,3 +7,7 @@
   in field names. There are some restrictions. See
   :ref:`Field Name Considerations <crud-concepts-dot-dollar-considerations>` for more details.
 
+- Each field name must be unique within the document. You must not store
+  documents with duplicate fields because MongoDB :ref:`CRUD <crud>`
+  operations might behave unexpectedly if a document has duplicate
+  fields.
