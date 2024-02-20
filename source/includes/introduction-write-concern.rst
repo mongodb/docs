@@ -1,5 +1,5 @@
 :ref:`Write Concern <write-concern>` describes the level of
-acknowledgement requested from MongoDB for write operations. The level
+acknowledgment requested from MongoDB for write operations. The level
 of the write concerns affects how quickly the write operation returns.
 When write operations have a *weak* write concern, they return quickly.
 With *stronger* write concerns, clients must wait after sending a write

@@ -62,7 +62,7 @@ a three member replica set:
        | **Secondary**\ :sub:`2`: Write\ :sub:`prev`
 
    * - t\ :sub:`3`
-     - Primary is aware of successful replication to Secondary\ :sub:`1` and sends acknowledgement to client
+     - Primary is aware of successful replication to Secondary\ :sub:`1` and sends acknowledgment to client
      - | **Primary**: Write\ :sub:`0`
        | **Secondary**\ :sub:`1`: Write\ :sub:`0`
        | **Secondary**\ :sub:`2`: Write\ :sub:`0`
