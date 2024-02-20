@@ -1,0 +1,132 @@
+.. _c2c-verification:
+
+====================
+Verify Data Transfer
+====================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+When :program:`mongosync` has fully committed, verify the successful transfer
+of your data before you switch your application to using the destination
+cluster. You can verify your data transfer using document counts, hash
+comparison, document comparison, or the Migration Verifier.
+
+Use Cases
+---------
+
+You should verify your data after every sync. This is important in
+cases where you plan to move your application load from the source to the
+destination cluster.
+
+Verification methods:
+
+- :ref:`c2c-verify-with-doc-counts`
+
+- :ref:`c2c-verify-with-hash-comp`
+
+- :ref:`c2c-verify-with-doc-comp`
+
+- :ref:`c2c-verify-with-verifier`
+
+The specific method you use to verify your data depends on your application
+workload and the complexity of the data.
+
+.. _c2c-verify-method:
+
+Tasks
+-------
+
+.. _c2c-verify-with-doc-counts:
+
+Document Counts
+~~~~~~~~~~~~~~~
+
+The most basic method of verification is to compare the number of documents
+in each synced collection on the source cluster to the number on the
+destination cluster.
+
+This method only verifies a successful sync when run against clusters with
+insert-only workloads.
+
+For more information, see :ref:`c2c-verify-doc-counts`.
+
+.. _c2c-verify-with-hash-comp:
+
+Hash Comparison
+~~~~~~~~~~~~~~~
+
+You can verify sync by comparing MD5 hashes of collections synced from the
+source cluster to the destination cluster.
+
+While hash comparison ensures that the destination cluster has received all
+changes from the source, the :dbcommand:`dbHash` command locks the cluster,
+preventing additional writes until it completes.
+
+.. note::
+
+   Hash comparison is not possible with sharded clusters. It also does not
+   work for standalone servers and replica sets that use MongoDB 4.4 or earlier
+   releases, since the document field order can vary.
+
+For more information, see :ref:`c2c-verify-hash-comp`.
+
+.. _c2c-verify-with-doc-comp:
+
+Document Comparison
+~~~~~~~~~~~~~~~~~~~
+
+You can verify sync by comparing documents on the source and destination
+clusters. Write a script that queries collections on the source cluster and
+then checks that the document exists with the same values on the destination
+cluster.
+
+.. _c2c-verify-with-verifier:
+
+Migration Verifier
+~~~~~~~~~~~~~~~~~~
+
+Migration Verifier connects to the source and destination clusters and performs
+a series of verification checks, comparing documents, views, and indexes to
+confirm the sync was successful.
+
+.. important::
+
+   Migration Verifier is an experimental and unsupported tool.
+
+   For installation instructions, see
+   `GitHub <https://github.com/mongodb-labs/migration-verifier>`__.
+
+Unlike other verification methods, Migration Verifier can run concurrent
+with ``mongosync``, checking documents on the destination cluster as they
+sync.
+
+For more information, see :ref:`c2c-migration-verifier`.
+
+.. toctree::
+   :hidden:
+
+   /reference/verification/count
+   /reference/verification/hash
+   /reference/verification/verifier
+
+Learn More
+----------
+
+For more information, see:
+
+- :method:`db.collection.countDocuments`
+
+- :dbcommand:`dbHash`
+
+
+

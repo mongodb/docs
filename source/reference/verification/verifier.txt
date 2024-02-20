@@ -1,0 +1,161 @@
+.. _c2c-migration-verifier:
+
+==============================
+Verify with Migration Verifier
+==============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Migration Verifier connects to the source and destination clusters and performs
+a series of verification checks, comparing documents, views, and indexes to
+confirm the sync was successful.
+
+Unlike other verification methods, Migration Verifier can run concurrently with
+``mongosync``, checking documents on the destination cluster as they sync. This
+can reduce the amount of time needed to verify the success of the sync before
+transferring your application load from the source to the destination cluster.
+
+About This Task
+---------------
+
+Migration Verifier is an experimental and unsupported tool.
+
+For installation instructions, see
+`GitHub <https://github.com/mongodb-labs/migration-verifier>`__.
+
+Steps
+-----
+
+.. procedure::
+
+   .. step:: Sync Clusters
+
+      Run :program:`mongosync` to sync the source and destination clusters.
+
+   .. step:: Wait for ``mongosync`` to reach CEA 
+
+      Before you can start verification checks with Migration Verifier,
+      you must wait until ``mongosync`` reaches the Change Event Application
+      (CEA) phase.
+
+      To check that ``mongosync`` has reached the CEA phase, send the
+      :ref:`/progress <c2c-api-progress>` command and check that the
+      ``progress.info`` field returns ``change event application``.
+
+      .. io-code-block::
+
+         .. input:: 
+            :language: bash
+
+            curl localhost:27182/api/v1/progress -XGET
+
+         .. output::
+            :language: json
+            :emphasize-lines: 7
+
+            {
+               "progress":
+                  {
+                     "state":"RUNNING",
+                     "canCommit":true,
+                     "canWrite":false,
+                     "info":"change event application",
+                     "lagTimeSeconds":0,
+                     "collectionCopy":
+                        {
+                           "estimatedTotalBytes":694,
+                           "estimatedCopiedBytes":694
+                        },
+                     "directionMapping":
+                        {
+                           "Source":"cluster0: localhost:27017",
+                           "Destination":"cluster1: localhost:27018"
+                        }
+                  }
+            }
+   .. step:: Start Migration Verifier
+
+      Start the ``migration-verifier`` process:
+
+      .. code-block:: bash
+
+         migration-verifier --verifyAll \
+            --srcURI example.net:27020 \
+            --destURI example.net:27021 \
+            --metaURI example.net:27017
+
+   .. step:: Start the Verification Checks
+
+      To start the verification checks, use cURL to send the ``check`` command to
+      Migration Verifier:
+
+      .. code-block:: bash
+
+         curl -H "Content-Type: application/json" \
+             -X POST -d '{}' http://127.0.0.1:27020/api/v1/check
+
+   .. step:: Signal Sync Completion
+
+      When the sync is complete and :program:`mongosync` has reached the
+      ``COMMITTED`` state, use cURL to send the ``writesOff`` command to
+      Migration Verifier:
+
+      .. code-block:: bash
+
+         curl -H "Content-Type: application/json" \
+             -X POST -d '{}' http://127.0.0.1:27020/api/v1/writesOff
+
+   .. step:: Check Progress
+
+      To view the results, use cURL to send the ``progress`` command to
+      Migration Verifier.
+
+      .. io-code-block::
+
+         .. input::
+            :language: bash
+
+            curl -H "Content-Type: application/json" \
+               -X GET http://127.0.0.1:27020/api/v1/progress
+
+         .. output::
+            :language: json
+
+            {
+               "progress": {
+                  "phase": "idle",
+                  "error": null,
+                  "verificationStatus": {
+                     "totalTasks": 1,
+                     "addedTasks": 0,
+                     "processingTasks": 0,
+                     "failedTasks": 0,
+                     "completedTasks": 0,
+                     "metadataMismatchTasks": 0,
+                     "recheckTasks": 0
+                  }
+               }
+            }
+
+
+      When the ``phase`` field is ``idle``, the verification checks are
+      complete. If the ``failedTasks`` field returns 0, the sync was successful.
+
+Learn More
+----------
+
+- :ref:`c2c-verify-doc-counts`
+- :ref:`c2c-verify-hash-comp`
+- `Migration Verifier on GitHub <https://github.com/mongodb-labs/migration-verifier>`__.
+
+
