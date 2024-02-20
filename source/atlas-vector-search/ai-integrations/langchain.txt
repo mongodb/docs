@@ -1,0 +1,174 @@
+.. _langchain:
+
+==========================================
+Get Started with the LangChain Integration
+==========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Integrate Atlas Vector Search with LangChain to build LLM and RAG applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can integrate {+avs+} with `LangChain <https://langchain.com/>`__
+to build |llm| applications and implement 
+retrieval-augmented generation (RAG). This tutorial demonstrates
+how to start using {+avs+} with LangChain. 
+In this tutorial, you perform the following actions:
+
+#. Set up the environment.
+#. Use |service| to store custom vector data.
+#. Create an {+avs+} index on your data.
+#. Run the following vector search queries:
+
+   - Similarity search.
+   - Similarity search with score.
+   - Similarity search with metadata pre-filtering.
+
+#. Implement |rag| by using {+avs+} to answer questions using your data.
+
+Background
+----------
+
+LangChain is a framework designed to simplify the creation of 
+|llm| applications through the use of "chains." Chains are LangChain-specific
+components that can be combined for a variety of AI use cases, including
+|rag|. 
+
+By integrating {+avs+} with LangChain, you can use 
+|service| as a vector database, use {+avs+} to perform similarity 
+search over your data, and implement |rag| by chaining together 
+{+avs+} as a retriever. For more context, see :ref:`ai-key-concepts`.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- An |service| {+cluster+} running MongoDB version 6.0.11, 7.0.2, or later
+  (including :abbr:`RCs (Release Candidates)`).
+
+- An OpenAI API Key. You must have a paid OpenAI account with credits
+  available for API requests.
+
+- A notebook to run your Python project such as `Colab <https://colab.research.google.com>`__.
+
+Set Up the Environment
+----------------------
+
+First, set up the environment for this tutorial by copying 
+and pasting the following code snippets into your notebook:
+
+.. include:: /includes/ai-integrations/langchain/langchain-set-up-environment.rst
+
+Use |service| as a Vector Store
+-------------------------------
+
+Then, load custom data into |service| and instantiate it as 
+an external vector database, also called a `vector store 
+<https://python.langchain.com/docs/modules/data_connection/vectorstores/>`__.
+Copy and paste the following code snippets into your notebook:
+
+.. include:: /includes/ai-integrations/langchain/langchain-create-vector-store.rst
+
+Create the {+avs+} Index
+------------------------------------
+
+To enable vector search queries on your vector store,
+create an {+avs+} index on the ``langchain_db.test`` collection.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+To create an {+avs+} index, you must have :authrole:`Project Data Access 
+Admin` or higher access to the |service| project.
+
+Procedure 
+~~~~~~~~~
+
+.. include:: /includes/ai-integrations/langchain/langchain-create-index.rst
+
+Run Vector Search Queries
+-------------------------
+
+Once |service| has finished building your index, return 
+to your notebook and run vector search queries on your data. 
+The following examples demonstrate various queries that you can 
+run on your vectorized data.
+
+.. include:: /includes/ai-integrations/langchain/langchain-query-examples.rst
+
+.. seealso::
+
+   For a full list of similarity search methods, refer to 
+   the `API reference 
+   <https://api.python.langchain.com/en/latest/vectorstores/langchain_community.vectorstores.mongodb_atlas.MongoDBAtlasVectorSearch.html>`__.
+
+Perform Question Answering on Your Data
+---------------------------------------
+
+This section demonstrates how you might implement |rag| in your 
+application. Now that you've used {+avs+} to retrieve semantically 
+similar documents, run the following code in your notebook to create a 
+question-answering model that uses these documents as context
+for the |llm|. This example does the following:
+
+- Instantiates {+avs+} as a retriever to query for similar documents.
+  We include optional parameters to keep only the 10 most relevant
+  documents with a relevance score above ``0.75``.
+  
+- Defines a LangChain prompt template to instruct the |llm| to use 
+  these documents as context for your query.
+  LangChain passes these documents to the ``{context}`` input
+  variable and your query to the ``{question}`` variable.
+
+- Uses the ``RetrievalQA`` chain to create a question-answering 
+  model that generates context-aware responses. 
+  It specifies the following:
+
+  - OpenAI as the |llm| used to generate the response. 
+  - {+avs+} as the retriever used to augment the data set.
+  - The boolean value ``true`` to return the source documents
+    used as context.
+  - The ``stuff`` chain type, which specifies that the relevant 
+    documents should be inserted, or "stuffed," into the prompt.
+  - The prompt template that you constructed.
+
+- Prompts the |llm| with a sample query about |service| security 
+  recommendations. The generated response might vary.
+
+.. include:: /includes/ai-integrations/langchain/langchain-perform-qa.rst
+
+Next Steps
+----------
+
+To learn about additional |rag| use-cases with {+avs+}, 
+see the following templates provided by LangChain to help you build applications:
+
+- :github:`Basic RAG with MongoDB and OpenAI </langchain-ai/langchain/tree/master/templates/rag-mongo>`
+- :github:`Advanced RAG: Parent-Document Retrieval </langchain-ai/langchain/tree/master/templates/mongo-parent-document-retrieval>`
+
+MongoDB also provides the following developer resources:
+
+- `Introduction to LangChain and MongoDB Atlas Vector Search 
+  <https://www.mongodb.com/developer/products/atlas/rag-atlas-vector-search-langchain-openai>`__
+- `RAG with Atlas Vector Search, LangChain, and OpenAI 
+  <https://www.mongodb.com/developer/products/atlas/rag-atlas-vector-search-langchain-openai>`__
+
+.. seealso:: 
+
+   - `LangChain Documentation <https://python.langchain.com/docs/integrations/vectorstores/mongodb_atlas>`__
+   - `LangChain API Reference <https://api.python.langchain.com/en/latest/vectorstores/langchain_community.vectorstores.mongodb_atlas.MongoDBAtlasVectorSearch.html>`__

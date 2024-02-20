@@ -1,7 +1,7 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Navigate to the :guilabel:`Database Deployments` page for your project.
+   .. step:: In |service|, navigate to the :guilabel:`Database Deployments` page for your project.
 
       a. If it is not already displayed, select the organization that
          contains your desired project from the
@@ -24,53 +24,43 @@
       #. Under :guilabel:`{+avs+}`, select :guilabel:`JSON Editor`  and
          then click :guilabel:`Next`.
       #. In the :guilabel:`Database and Collection` section, find the 
-         ``sample_mflix`` database, and select the ``embedded_movies``
+         ``langchain_db`` database, and select the ``test``
          collection.
       #. In the :guilabel:`Index Name` field, enter
-         ``vector-search-tutorial``. 
+         ``vector_index``. 
       #. Replace the default definition with the following index
          definition and then click :guilabel:`Next`.
-
-   .. step:: Define the {+avs+} index. 
-
-      a. Replace the default definition with the following index definition.
 
          This index definition specifies indexing the following fields
          in an index of the :ref:`vectorSearch
          <avs-types-vector-search>` type: 
          
-         - ``plot_embedding`` field as the :ref:`vector
-           <avs-types-vector-search>` type. The ``plot_embedding`` field
-           contains embeddings created using OpenAI's
+         - ``embedding`` field as the :ref:`vector
+           <avs-types-vector-search>` type. The ``embedding`` field
+           contains the embeddings created using OpenAI's
            ``text-embedding-ada-002`` embedding model. The index
            definition specifies ``1536`` vector dimensions and
-           measures similarity using ``euclidean``. 
-         - ``genres`` field as the :ref:`filter <avs-types-vector-search>`
-           type for pre-filtering data by string values in the field.
-         - ``year`` field as the :ref:`filter <avs-types-vector-search>`
-           type for pre-filtering data by numeric values in the field.
+           measures similarity using ``cosine``.
+         - ``page`` field as the :ref:`filter <avs-types-vector-search>`
+           type for pre-filtering data by the page number in the PDF.
 
          .. code-block:: json 
             :copyable: true 
             :linenos: 
 
             {
-              "fields": [
-                {
-                  "type": "vector",
-                  "path": "plot_embedding",
-                  "numDimensions": 1536,
-                  "similarity": "euclidean"
-                },
-                {
-                  "type": "filter",
-                  "path": "genres"
-                },
-                {
-                  "type": "filter",
-                  "path": "year"
-                }
-              ]
+               "fields":[
+                  {
+                     "type": "vector",
+                     "path": "embedding",
+                     "numDimensions": 1536,
+                     "similarity": "cosine"
+                  },
+                  {
+                     "type": "filter",
+                     "path": "page"
+                  }
+               ]
             }
 
    .. step:: Review the index definition and then click :guilabel:`Create Search Index`.
