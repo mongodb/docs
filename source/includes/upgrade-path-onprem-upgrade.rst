@@ -101,5 +101,5 @@ The following table lists upgrade paths for all versions:
 
    * - 2.x or earlier
      - Use the
-       `v3.4 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/v3.4/tutorial/nav/upgrade-application/tutorial/nav/upgrade-application>`__
+       `v3.4 upgrade tutorial <https://www.mongodb.com/docs/ops-manager/v3.4/tutorial/nav/upgrade-application/>`__
        to upgrade from |onprem| 2.x or earlier.

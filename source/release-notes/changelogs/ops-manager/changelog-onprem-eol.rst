@@ -545,8 +545,7 @@ Considerations for Upgrade (v1.8)
   :ref:`backup-database` run MongoDB 2.6 or later.
   |onprem| will not start after upgrade if your backing databases are
   using an earlier version of MongoDB. The MongoDB Manual provides
-  upgrade tutorials with each release. To upgrade from MongoDB 2.4 to
-  2.6, see: :manual:`Upgrade MongoDB to 2.6 </release-notes/2.6-upgrade/>`.
+  upgrade tutorials with each release.
 
 - When you upgrade to |onprem| 1.8, |onprem| disables all Automation
   Agents until they are upgraded to :ref:`automation-2.0.9.1201`. You

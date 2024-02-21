@@ -248,7 +248,7 @@
 - Fixes a bug that disallows configuring |ldap| group names longer
   than 100 characters.
 - Updates the {+mdbagent+} to :ref:`10.14.22.6489 <mongodb-10.14.22.6489>`.
-- Requires :dbtools:`MongoDB Database Tools 100.3.1 <//release-notes/database-tools-changelog#100.3.1-changelog>`.
+- Requires `MongoDB Database Tools 100.3.1 <https://www.mongodb.com/docs/database-tools/release-notes/database-tools-changelog#100.3.1-changelog>`__.
 - Changes the :ref:`protocolVersion <autoconfig-mongodb-replicasets>` 
   API parameter from an integer to a string. For example, previously, 
   you could specify  ``1`` for this parameter. Now, you must specify 

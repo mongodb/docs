@@ -332,7 +332,7 @@ Upgrades Agent: :ref:`mongodb-10.2.16.5960`.
 
 - Bootstrapping a Backup
   :term:`initial sync <initial sync>` using
-  :manual:`rsync </core/backups/index.html#back-up-with-cp-or-rsync>` 
+  :manual:`rsync </core/backups/#back-up-with-cp-or-rsync>` 
   can now complete when syncing from a hidden secondary.
 - Logs are viewable in the |onprem| Admin panel.
 - Ensures initial sync can complete after FCV downgrades.
