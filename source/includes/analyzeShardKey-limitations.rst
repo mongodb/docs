@@ -1,5 +1,5 @@
 - You cannot run |analyzeShardKey| on Atlas
-  :atlas:`multi-tenant </docs/atlas/build-multi-tenant-arch/>`
+  :atlas:`multi-tenant </build-multi-tenant-arch>`
   configurations.
 - You cannot run |analyzeShardKey| on standalone deployments.
 - You cannot run |analyzeShardKey| directly against a
