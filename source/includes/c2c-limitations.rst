@@ -1,6 +1,6 @@
 
-- The |fcv| for source and destination {+cluster+}\s is at least 6.0 and
-  is the same on source and destination {+cluster+}\s.
+- The |fcv| for source and destination {+cluster+}\s is at least {+c2c-version+}
+  and is the same on source and destination {+cluster+}\s.
 - You can't run this live migration procedure for source or destination
   {+clusters+} with MongoDB versions earlier than MongoDB {+c2c-version+}. To learn more,
   see :manual:`Server Release Notes </release-notes/6.0/>`.
@@ -35,6 +35,8 @@
 - Within a collection, the ``_id`` field must be unique across all of the
   shards in the {+cluster+}. To learn more, see :manual:`Sharded Clusters and Unique Indexes
   </core/index-unique/#std-label-sharded-clusters-unique-indexes>`.
+- You can't sync a collection with any documents that have an empty timestamp,
+  such as ``Timestamp(0,0)``.
 - You can't use the :manual:`movePrimary </reference/command/movePrimary/#mongodb-dbcommand-dbcmd.movePrimary>`
   command to reassign the primary shard while running this live migration process.
 - This live migration process only migrates indexes that exist on all shards
