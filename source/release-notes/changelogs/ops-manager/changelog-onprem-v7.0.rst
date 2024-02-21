@@ -45,7 +45,7 @@
   upgrade to this version of the {+mdbagent+} to allow clusters 
   using |oidc| to continue functioning after upgrading to MongoDB 7.0.5.
 - Fixes a bug where clusters on MongoDB 7.0.0 to 7.0.4 using :manual:`OpenID
-  Connect authentication </security-oidc/#std-label-authentication-oidc>` 
+  Connect authentication </core/security-oidc/#std-label-authentication-oidc>` 
   fail to properly upgrade to MongoDB 7.0.5.
 
 .. _opsmgr-server-7.0.0:
