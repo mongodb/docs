@@ -464,10 +464,6 @@
     :abbr:`API (Application Programming Interface)` keys created
     before |onprem| 3.4.
 
-    The change to the Agent
-    :abbr:`API (Application Programming Interface)` Key model is
-    :v3.6:`described in the v3.6 documentation </tutorial/manage-agent-api-key>`.
-
 - Provided :doc:`new option </tutorial/configure-local-mode>` to only
   have |onprem| connect to the internet to download MongoDB installer
   binaries.
