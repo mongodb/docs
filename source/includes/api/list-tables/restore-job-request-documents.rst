@@ -165,7 +165,7 @@
        hours of the current time.
 
        If you provide this setting, this endpoint restores all data up
-       to this :cloudmgr:`Point in Time </reference/glossary/#std-term-point-in-time-restore>  to the
+       to this :cloudmgr:`Point in Time </reference/glossary/#std-term-point-in-time-restore>`  to the
        database you specified in the ``delivery`` object.
 
        ``"delivery.methodName" : "AUTOMATED_RESTORE"``
