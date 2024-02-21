@@ -65,7 +65,7 @@
 
        .. important::
 
-          You must have the :opsmgr:`Organization Project Creator </current/reference/user-roles/#Organization Project Creator>`
+          You must have the :opsmgr:`Organization Project Creator </reference/user-roles/#Organization Project Creator>`
           role to create a new project *within an existing organization*.
 
           .. include:: /includes/admonitions/note-k8s-supported-in-om4.rst

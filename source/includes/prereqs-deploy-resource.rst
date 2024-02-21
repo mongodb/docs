@@ -1,6 +1,6 @@
 To deploy a |deployment| using an |k8s-obj|, you must:
 
-- Have or create an :opsmgr:`Ops Manager instance <installation>` or a :opsmgr:`Cloud Manager organization </current/tutorial/manage-organizations/#create-organization>`.
+- Have or create an :opsmgr:`Ops Manager instance </installation>` or a :opsmgr:`Cloud Manager organization </tutorial/manage-organizations/#create-organization>`.
 
 - Have or install the :ref:`MongoDB Enterprise Kubernetes Operator <install-k8s>`.
 
