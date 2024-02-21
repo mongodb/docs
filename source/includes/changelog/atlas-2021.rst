@@ -336,7 +336,7 @@
   using the |service| :oas-atlas-op:`API 
   </createOneNewNetworkPeeringConnection>`,
   you can specify a |cidr| block between ``/21`` and ``/24``, inclusive,
-  insead of the default, ``/18``.
+  instead of the default, ``/18``.
 - Adds the ability to specify an |aws| |arn| with a compound path when
   you create an |aws| IAM-authenticated :ref:`database user
   <mongodb-users>`.
