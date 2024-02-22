@@ -149,6 +149,7 @@ from. The following connection types are supported:
 - An {+kafka+} broker
 - The change stream for a specific MongoDB collection within a database
 - The change stream for an entire MongoDB database
+- An array of documents
 
 .. note:: 
 
@@ -163,15 +164,14 @@ from. The following connection types are supported:
       {
         "$source": {
 	        "connectionName": "<registered-connection>",
-	        "topic" : "<source-topic>" | "db" : "<source-db>",
+	        "topic" : "<source-topic>" | "db" : "<source-db>" | "documents" : [{source-doc},...],
           "coll" : ["<source-coll>",...],
           "config": { 
             "autoOffsetReset": "<start-event>",
             "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
             "fullDocument": "<full-doc-condition>",
             "fullDocumentOnly": <boolean>
-            "fullDocumentBeforeChange": "<before-change-condition>",
-            
+            "fullDocumentBeforeChange": "<before-change-condition>",          
           },
           "tsFieldOverride": "<timestamp>" 
           "timeField": { 
@@ -334,10 +334,11 @@ The ``$source`` stage takes a document with the following fields:
 
    * - ``connectionName`` 
      - string
-     - Required 
-     - Label, that identifies the connection in the
+     - Conditional
+     - Label that identifies the connection in the
        :ref:`Connection Registry <manage-spi-connection-add>`, to 
-       ingest data from.
+       ingest data from. Do not use this field when using the 
+       ``documents`` field.
 
    * - ``db``
      - string
@@ -347,7 +348,15 @@ The ``$source`` stage takes a document with the following fields:
        database acts as the streaming data source. This field is
        necessary for and limited to connections to MongoDB databases or
        collections.
-  
+
+   * - ``documents``
+     - array
+     - Conditional
+     - Array of documents to use as a streaming data source. The 
+       value of this field can either be an array of objects or an 
+       expression that evaluates to an array of objects. Do not use this
+       field when using the ``connectionName`` field.
+
    * - ``partitionIdleTimeout``
      - document
      - Optional
