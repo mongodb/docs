@@ -42,7 +42,8 @@ Starting in version 4.3, {+driver-short+} uses ``os.register_at_fork`` to
 reset its locks and other shared state in the child process after an
 ``os.fork`` to reduce the frequency of deadlocks. However, deadlocks
 are still possible, because libraries that {+driver-short+} depends on, like
-`OpenSSL <http://bugs.python.org/issue6721>`__ and `getaddrinfo(3) <https://man7.org/linux/man-pages/man3/gai_strerror.3.html>`__
+`OpenSSL <https://github.com/openssl/openssl/issues/19066>`__ and
+`getaddrinfo(3) <https://man7.org/linux/man-pages/man3/gai_strerror.3.html>`__
 (on some platforms), are not ``fork()``-safe in a
 multithreaded application.
 
@@ -60,7 +61,8 @@ Linux also imposes the following restriction:
 `async-signal-safe <https://man7.org/linux/man-pages/man7/signal-safety.7.html>`__, and
 hence the child process can experience deadlocks or crashes when attempting to call
 a non-async-signal-safe function. For examples of deadlocks or crashes
-that could occur, see `PYTHON-3406 <https://jira.mongodb.org/browse/PYTHON-3406>`__.
+that could occur, see `PYTHON-3406 <https://jira.mongodb.org/browse/PYTHON-3406>`__
+in Jira.
 
 For a lot more information about the problems caused by Python locks in
 multithreaded contexts with ``fork()``, see `Issue 6721 <http://bugs.python.org/issue6721>`__
@@ -260,8 +262,8 @@ and when it is displayed:
    > db.collection.findOne()
    { "_id" : 1, "subdocument" : { "b" : 1, "a" : 1 } }
 
-{+driver-short+} represents BSON documents as instances of the ``dict`` class by default,
-and the order of keys in ``dict`` objects is not defined. A ``dict`` object declared with
+{+driver-short+} represents BSON documents as Python dictionaries by default,
+and the order of keys in dictionaries is not defined. A dictionary declared with
 the "a" key first is the same, to Python, as one with "b" first:
 
 .. code-block:: python
@@ -301,9 +303,9 @@ Now, documents and subdocuments in query results are represented with
 
 The subdocument's actual storage layout is now visible: "b" is before "a".
 
-Because a dict's key order is not defined, you cannot predict how it will be
+Because a Python dictionary's key order is not defined, you cannot predict how it will be
 serialized **to** BSON. But MongoDB considers subdocuments equal only if their
-keys have the same order. If you use a dict to query on a subdocument, it may
+keys have the same order. If you use a Python dictionary to query on a subdocument, it may
 not match:
 
 .. code-block:: python
@@ -311,7 +313,7 @@ not match:
    >>> collection.find_one({'subdocument': {'a': 1.0, 'b': 1.0}}) is None
    True
 
-Because Python considers the two dicts the same, swapping the key order in your query
+Because Python considers the two dictionaries the same, swapping the key order in your query
 makes no difference:
 
 .. code-block:: python
@@ -346,8 +348,9 @@ subdocument that exactly matches the subdocument in the collection.
 
 .. note:: 
    
-   For more information about subdocument matching, see :manual:`</tutorial/query-embedded-documents/>`
-   in the MongoDB Server documentation.
+   For more information about subdocument matching, see the
+   `Query on Embedded/Nested Documents <https://www.mongodb.com/docs/manual/tutorial/query-embedded-documents/>`__
+   guide in the MongoDB Server documentation.
 
 What Does "*CursorNotFound* cursor id not valid at server" Mean?
 ----------------------------------------------------------------
