@@ -24,7 +24,7 @@ For example, suppose you are configuring the online archive for the ``movies`` c
 
 |service| can also use the partitions to support a query on the ``title`` and ``released`` fields. However, in this case, |service| would not be as efficient in supporting the query as it would be if the query were on the ``title`` and ``plot`` fields only. Partitions are parsed in order; if a query omits a particular partition, |service| is less efficient in making use of any partitions that follow that. Since a query on ``title`` and ``released`` omits ``plot``, |service| uses the ``title`` partition more efficiently than the ``released`` partition to support this query. 
   
-|service| can't use the partitions to support queries on fields not specified here. Also, |service| can't use the partitions to support queries that include the following fields without the ``title`` field:
+|service| can't use the partitioning strategy to efficiently support queries on fields not specified here. Also, |service| can't use the partitions to support queries that include the following fields without the ``title`` field:
 
 - the ``plot`` field,
 - the ``released`` field, or
