@@ -5,7 +5,7 @@
 Frequently Asked Questions
 ==========================
 
-Is PyMongo thread-safe?
+Is PyMongo Thread-Safe?
 -----------------------
 
 PyMongo is thread-safe and provides built-in connection pooling
@@ -13,179 +13,170 @@ for threaded applications.
 
 .. _pymongo-fork-safe:
 
-Is PyMongo fork-safe?
+Is PyMongo Fork-Safe?
 ---------------------
 
-PyMongo is not fork-safe. Care must be taken when using instances of
+PyMongo is not fork-safe. Take care when using instances of
 ``~pymongo.mongo_client.MongoClient`` with ``fork()``. Specifically,
-instances of MongoClient must not be copied from a parent process to
+don't copy instances of ``MongoClient`` from a parent process to
 a child process. Instead, the parent process and each child process must
-create their own instances of MongoClient. Instances of MongoClient copied from
-the parent process have a high probability of deadlock in the child process due
-to the inherent incompatibilities between ``fork()``, threads, and locks
-described :ref:`below <pymongo-fork-safe-details>`. PyMongo will attempt to
-issue a warning if there is a chance of this deadlock occurring.
+create their own instances of ``MongoClient``. Instances of ``MongoClient`` copied from
+the parent process are likely to deadlock in the child process. {+driver-short+} will
+attempt to issue a warning if there is a chance of this deadlock occurring.
 
 .. _pymongo-fork-safe-details:
 
-MongoClient spawns multiple threads to run background tasks such as monitoring
+``MongoClient`` spawns multiple threads to run background tasks, such as monitoring
 connected servers. These threads share state that is protected by instances of
-``~threading.Lock``, which are themselves `not fork-safe`_. The
-driver is therefore subject to the same limitations as any other multithreaded
+``~threading.Lock``, which are themselves `not fork-safe <http://bugs.python.org/issue6721>`__.
+The driver is therefore subject to the same limitations as any other multithreaded
 code that uses ``~threading.Lock`` (and mutexes in general). One of these
 limitations is that the locks become useless after ``fork()``. During the fork,
 all locks are copied over to the child process in the same state as they were
 in the parent: if they were locked, the copied locks are also locked. The child
 created by ``fork()`` only has one thread, so any locks that were taken out by
-other threads in the parent will never be released in the child. The next time
-the child process attempts to acquire one of these locks, deadlock occurs.
+other threads in the parent process will never be released in the child process.
+The next time the child process attempts to acquire one of these locks, deadlock occurs.
 
-Starting in version 4.3, PyMongo utilizes ``os.register_at_fork`` to
-reset its locks and other shared state in the child process after a
-``os.fork`` to reduce the frequency of deadlocks. However deadlocks
-are still possible because libraries that PyMongo depends on, like `OpenSSL`_
-and `getaddrinfo(3)`_ (on some platforms), are not fork() safe in a
-multithreaded application. Linux also imposes the restriction that:
+Starting in version 4.3, {+driver-short+} uses ``os.register_at_fork`` to
+reset its locks and other shared state in the child process after an
+``os.fork`` to reduce the frequency of deadlocks. However, deadlocks
+are still possible, because libraries that {+driver-short+} depends on, like
+`OpenSSL <http://bugs.python.org/issue6721>`__ and `getaddrinfo(3) <https://man7.org/linux/man-pages/man3/gai_strerror.3.html>`__
+(on some platforms), are not ``fork()``-safe in a
+multithreaded application.
+
+Linux also imposes the following restriction:
 
 .. blockquote::
 
-    After a `fork()`_ in a multithreaded program, the child can
+    After a `fork() <https://man7.org/linux/man-pages/man2/fork.2.html>`__ in a
+    multithreaded program, the child can
     safely call only async-signal-safe functions (see
-    `signal-safety(7)`_) until such time as it calls `execve(2)`_.
+    `signal-safety(7) <https://man7.org/linux/man-pages/man7/signal-safety.7.html>`__)
+    until such time as it calls `execve(2) <https://man7.org/linux/man-pages/man2/execve.2.html>`__.
 
-PyMongo relies on functions that are *not* `async-signal-safe`_ and hence the
-child process can experience deadlocks or crashes when attempting to call
-a non `async-signal-safe`_ function. For examples of deadlocks or crashes
-that could occur see `PYTHON-3406`_.
+{+driver-short+} relies on functions that are *not*
+`async-signal-safe <https://man7.org/linux/man-pages/man7/signal-safety.7.html>`__, and
+hence the child process can experience deadlocks or crashes when attempting to call
+a non-async-signal-safe function. For examples of deadlocks or crashes
+that could occur, see `PYTHON-3406 <https://jira.mongodb.org/browse/PYTHON-3406>`__.
 
-For a long but interesting read about the problems of Python locks in
-multithreaded contexts with ``fork()``, see http://bugs.python.org/issue6721.
-
-.. _not fork-safe: http://bugs.python.org/issue6721
-.. _OpenSSL: https://github.com/openssl/openssl/issues/19066
-.. _fork(): https://man7.org/linux/man-pages/man2/fork.2.html
-.. _signal-safety(7): https://man7.org/linux/man-pages/man7/signal-safety.7.html
-.. _async-signal-safe: https://man7.org/linux/man-pages/man7/signal-safety.7.html
-.. _execve(2): https://man7.org/linux/man-pages/man2/execve.2.html
-.. _getaddrinfo(3): https://man7.org/linux/man-pages/man3/gai_strerror.3.html
-.. _PYTHON-3406: https://jira.mongodb.org/browse/PYTHON-3406
+For a lot more information about the problems caused by Python locks in
+multithreaded contexts with ``fork()``, see `Issue 6721 <http://bugs.python.org/issue6721>`__
+in the Python Issue Tracker.
 
 .. _connection-pooling:
 
-Can PyMongo help me load the results of my query as a Pandas ``DataFrame``?
+Can {+driver-short+} Help Me Load the Results of My Query as a Pandas ``DataFrame``?
 ---------------------------------------------------------------------------
 
-While PyMongo itself does not provide any APIs for working with
+While {+driver-short+} itself does not provide any APIs for working with
 numerical or columnar data,
 `PyMongoArrow <https://mongo-arrow.readthedocs.io/en/pymongoarrow-0.1.1/>`_
-is a companion library to PyMongo that makes it easy to load MongoDB query result sets as
+is a companion library to {+driver-short+} that makes it easy to load MongoDB query result sets as
 `Pandas DataFrames <https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html>`_,
 `NumPy ndarrays <https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html>`_, or
 `Apache Arrow Tables <https://arrow.apache.org/docs/python/generated/pyarrow.Table.html>`_.
 
-How does connection pooling work in PyMongo?
+How Does Connection Pooling Work in {+driver-short+}?
 --------------------------------------------
 
-Every ``~pymongo.mongo_client.MongoClient`` instance has a built-in
+Every ``MongoClient`` instance has a built-in
 connection pool per server in your MongoDB topology. These pools open sockets
 on demand to support the number of concurrent MongoDB operations that your
-multi-threaded application requires. There is no thread-affinity for sockets.
+multithreaded application requires. There is no thread-affinity for sockets.
 
-The size of each connection pool is capped at ``maxPoolSize``, which defaults
-to 100. If there are ``maxPoolSize`` connections to a server and all are in
-use, the next request to that server will wait until one of the connections
-becomes available.
+The size of each connection pool is capped at the value of the ``maxPoolSize`` setting,
+which defaults to 100. If the number of connections to a server equals the value of
+``maxPoolSize`` and all connections are in use, the next request to that server will wait until one
+of the connections becomes available.
 
 The client instance opens two additional sockets per server in your MongoDB
 topology for monitoring the server's state.
 
-For example, a client connected to a 3-node replica set opens 6 monitoring
-sockets. It also opens as many sockets as needed to support a multi-threaded
-application's concurrent operations on each server, up to ``maxPoolSize``. With
-a ``maxPoolSize`` of 100, if the application only uses the primary (the
-default), then only the primary connection pool grows and the total connections
-is at most 106. If the application uses a
-``~pymongo.read_preferences.ReadPreference`` to query the secondaries,
-their pools also grow and the total connections can reach 306.
+For example, a client connected to a three-node replica set opens six monitoring
+sockets. The client also opens as many sockets as are needed to support a multithreaded
+application's concurrent operations on each server, up to the value of ``maxPoolSize``.
+With a ``maxPoolSize`` of 100, if the application only uses the primary member (the
+default), then only the primary connection pool grows and the total number of connections
+is, at most, 106. If the application uses a
+``ReadPreference`` to query the secondary members, their pools also grow and the total
+connections can reach 306.
 
-Additionally, the pools are rate limited such that each connection pool can
-only create at most 2 connections in parallel at any time. The connection
-creation covers covers all the work required to setup a new connection
+Additionally, the pools are rate-limited such that each connection pool can
+only create a maximum of two connections in parallel at any time. The connection
+creation covers all the work required to set up a new connection,
 including DNS, TCP, SSL/TLS, MongoDB handshake, and MongoDB authentication.
 For example, if three threads concurrently attempt to check out a connection
 from an empty pool, the first two threads will begin creating new connections
 while the third thread will wait. The third thread stops waiting when either:
 
-- one of the first two threads finishes creating a connection, or
-- an existing connection is checked back into the pool.
+- One of the first two threads finishes creating a connection, or
+- An existing connection is checked back into the pool.
 
 Rate limiting concurrent connection creation reduces the likelihood of
 connection storms and improves the driver's ability to reuse existing
 connections.
 
 It is possible to set the minimum number of concurrent connections to each
-server with ``minPoolSize``, which defaults to 0. The connection pool will be
-initialized with this number of sockets. If sockets are closed due to any
-network errors, causing the total number of sockets (both in use and idle) to
-drop below the minimum, more sockets are opened until the minimum is reached.
+server by using the ``minPoolSize`` setting, which defaults to 0. The connection pool
+will be initialized with this number of sockets. If network errors cause any sockets to
+close, and the total number of sockets (both in use and idle)
+drops below the value of ``minPoolSize``, more sockets are opened until the minimum is reached.
 
-The maximum number of milliseconds that a connection can remain idle in the
-pool before being removed and replaced can be set with ``maxIdleTimeMS``, which
-defaults to ``None`` (no limit).
+You can use the ``maxIdleTimeMS`` setting to specify the maximum number of milliseconds
+that a connection can remain idle in the pool before being removed and replaced. This
+setting defaults to ``None`` (no limit).
 
-The default configuration for a ``~pymongo.mongo_client.MongoClient``
-works for most applications:
+The default configuration for a ``MongoClient`` works for most applications:
 
 .. code-block:: python
 
-    client = MongoClient(host, port)
+   client = MongoClient(host, port)
 
 Create this client **once** for each process, and reuse it for all
 operations. It is a common mistake to create a new client for each request,
 which is very inefficient.
 
 To support extremely high numbers of concurrent MongoDB operations within one
-process, increase ``maxPoolSize``:
+process, increase the value of ``maxPoolSize``:
 
 .. code-block:: python
 
-    client = MongoClient(host, port, maxPoolSize=200)
+   client = MongoClient(host, port, maxPoolSize=200)
 
-... or make it unbounded:
+If you specify a ``maxPoolSize`` value of ``None``, there is no upper limit on the
+number of concurrent connections:
 
 .. code-block:: python
 
-    client = MongoClient(host, port, maxPoolSize=None)
+   client = MongoClient(host, port, maxPoolSize=None)
 
-Once the pool reaches its maximum size, additional threads have to wait for
-sockets to become available. PyMongo does not limit the number of threads
-that can wait for sockets to become available and it is the application's
+Once the pool reaches its maximum size, additional threads must wait for
+sockets to become available. {+driver-short+} does not limit the number of threads
+that can wait for sockets to become available, and it is the application's
 responsibility to limit the size of its thread pool to bound queuing during a
 load spike. Threads are allowed to wait for any length of time unless
-``waitQueueTimeoutMS`` is defined:
+the ``waitQueueTimeoutMS`` setting is defined:
 
 .. code-block:: python
 
-    client = MongoClient(host, port, waitQueueTimeoutMS=100)
+   client = MongoClient(host, port, waitQueueTimeoutMS=100)
 
 A thread that waits more than 100ms (in this example) for a socket raises
-``~pymongo.errors.ConnectionFailure``. Use this option if it is more
+a ``ConnectionFailure`` error. Use the ``waitQueueTimeoutMS`` setting if it's more
 important to bound the duration of operations during a load spike than it is to
 complete every operation.
 
-When the ``~pymongo.mongo_client.MongoClient.close`` method is called by any thread,
+When the ``MongoClient.close()`` method is called by any thread,
 all idle sockets are closed, and all sockets that are in use will be closed as
 they are returned to the pool.
 
-Does PyMongo support Python 3?
-------------------------------
+Does PyMongo Support Asynchronous Frameworks?
+---------------------------------------------
 
-.. PyMongo supports CPython 3.7+ and PyPy3.8+. See the :doc:`python3` for details.
-
-Does PyMongo support asynchronous frameworks like Gevent, asyncio, Tornado, or Twisted?
----------------------------------------------------------------------------------------
-
-.. PyMongo fully supports :doc:`Gevent <examples/gevent>`.
+PyMongo fully supports :ref:`pymongo-gevent`.
 
 To use MongoDB with `asyncio <https://docs.python.org/3/library/asyncio.html>`_
 or `Tornado <http://www.tornadoweb.org/>`_, see the
@@ -193,19 +184,23 @@ or `Tornado <http://www.tornadoweb.org/>`_, see the
 
 For `Twisted <http://twistedmatrix.com/>`_, see `TxMongo
 <https://github.com/twisted/txmongo>`_. Its stated mission is to keep feature
-parity with PyMongo.
+parity with {+driver-short+}.
 
 .. _writes-and-ids:
 
-Why does PyMongo add an _id field to all of my documents?
+Why Does PyMongo Add an _id Field to All of My Documents?
 ---------------------------------------------------------
 
-When a document is inserted to MongoDB using
-the ``~pymongo.collection.Collection.insert_one`` method,
-the ``~pymongo.collection.Collection.insert_many`` method, or
-the ``~pymongo.collection.Collection.bulk_write`` method, and that document does not
-include an ``_id`` field, PyMongo automatically adds one for you, set to an
-instance of ``~bson.objectid.ObjectId``. For example:
+When you use the ``Collection.insert_one()`` method,
+``Collection.insert_many()`` method, or
+``Collection.bulk_write()`` method to insert a document into MongoDB,
+and that document does not
+include an ``_id`` field, {+driver-short+} automatically adds one for you. It also sets
+the value of the field to an instance of ``ObjectId``.
+
+The following code example inserts a document without an ``_id`` field into MongoDB, then
+prints the document. After it's inserted, the document contains an ``_id`` field whose
+value is an instance of ``ObjectId``.
 
 .. code-block:: python
 
@@ -215,56 +210,47 @@ instance of ``~bson.objectid.ObjectId``. For example:
    >>> my_doc
    {'x': 1, '_id': ObjectId('560db337fba522189f171720')}
 
-Users often discover this behavior when calling
-the ``~pymongo.collection.Collection.insert_many`` method with a list of references
-to a single document raises ``~pymongo.errors.BulkWriteError``. Several
-Python idioms lead to this pitfall:
-
-.. code-block:: python
-
-  >>> doc = {}
-  >>> collection.insert_many(doc for _ in range(10))
-  Traceback (most recent call last):
-  ...
-  pymongo.errors.BulkWriteError: batch op errors occurred
-  >>> doc
-  {'_id': ObjectId('560f171cfba52279f0b0da0c')}
-
-  >>> docs = [{}]
-  >>> collection.insert_many(docs * 10)
-  Traceback (most recent call last):
-  ...
-  pymongo.errors.BulkWriteError: batch op errors occurred
-  >>> docs
-  [{'_id': ObjectId('560f1933fba52279f0b0da0e')}]
-
-PyMongo adds an ``_id`` field in this manner for a few reasons:
+{+driver-short+} adds an ``_id`` field in this manner for a few reasons:
 
 - All MongoDB documents are required to have an ``_id`` field.
-- If PyMongo were to insert a document without an ``_id`` MongoDB would add one
-  itself, but it would not report the value back to PyMongo.
+- If {+driver-short+} were to insert a document without an ``_id``, MongoDB would add one
+  itself, but it would not report the value back to {+driver-short+}.
 - Copying the document to insert before adding the ``_id`` field would be
-  prohibitively expensive for most high write volume applications.
+  prohibitively expensive for most high-write-volume applications.
 
-If you don't want PyMongo to add an ``_id`` to your documents, insert only
+If you don't want {+driver-short+} to add an ``_id`` to your documents, insert only
 documents that already have an ``_id`` field, added by your application.
 
-Why Does My Query Work in the Shell But Not in PyMongo?
--------------------------------------------------------
+You might discover this behavior when calling
+the ``Collection.insert_many()`` method with a list of references
+to a single document. This raises a ``BulkWriteError``. Several
+Python idioms can lead to this pitfall:
 
 .. code-block:: python
 
-   from bson.son import SON
-   from pymongo.mongo_client import MongoClient
+   >>> doc = {}
+   >>> collection.insert_many(doc for _ in range(10))
+   Traceback (most recent call last):
+   ...
+   pymongo.errors.BulkWriteError: batch op errors occurred
+   >>> doc
+   {'_id': ObjectId('560f171cfba52279f0b0da0c')}
 
-   collection = MongoClient().test.collection
-   collection.drop()
-   collection.insert_one({"_id": 1.0, "subdocument": SON([("b", 1.0), ("a", 1.0)])})
+   >>> docs = [{}]
+   >>> collection.insert_many(docs * 10)
+   Traceback (most recent call last):
+   ...
+   pymongo.errors.BulkWriteError: batch op errors occurred
+   >>> docs
+   [{'_id': ObjectId('560f1933fba52279f0b0da0e')}]
 
-The key-value pairs in a BSON document can have any order (except that ``_id``
-is always first). The mongo shell preserves key order when reading and writing
-data. Observe that "b" comes before "a" when we create the document and when it
-is displayed:
+Why Does My Query Work in the Shell But Not in {+driver-short+}?
+-------------------------------------------------------
+
+After the ``_id`` field, which is always first, the key-value pairs in a BSON document can
+be in any order. The ``mongo`` shell preserves key order when reading and writing
+data. In the following code example, "b" comes comes before "a" in the inserted document
+and when it is displayed:
 
 .. code-block:: javascript
 
@@ -274,9 +260,9 @@ is displayed:
    > db.collection.findOne()
    { "_id" : 1, "subdocument" : { "b" : 1, "a" : 1 } }
 
-PyMongo represents BSON documents as Python dicts by default, and the order
-of keys in dicts is not defined. That is, a dict declared with the "a" key
-first is the same, to Python, as one with "b" first:
+{+driver-short+} represents BSON documents as instances of the ``dict`` class by default,
+and the order of keys in ``dict`` objects is not defined. A ``dict`` object declared with
+the "a" key first is the same, to Python, as one with "b" first:
 
 .. code-block:: python
    
@@ -285,7 +271,7 @@ first is the same, to Python, as one with "b" first:
    >>> print({'b': 1.0, 'a': 1.0})
    {'a': 1.0, 'b': 1.0}
 
-Therefore, Python dicts are not guaranteed to show keys in the order they are
+Therefore, Python dictionaries are not guaranteed to show keys in the order they are
 stored in BSON. Here, "a" is shown before "b":
 
 .. code-block:: python
@@ -293,9 +279,9 @@ stored in BSON. Here, "a" is shown before "b":
    >>> print(collection.find_one())
    {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
 
-To preserve order when reading BSON, use the ``~bson.son.SON`` class,
-which is a dict that remembers its key order. First, get a handle to the
-collection, configured to use ``~bson.son.SON`` instead of dict:
+To preserve the order of keys when reading BSON, use the ``~bson.son.SON`` class,
+which is a dictionary that remembers its key order. First, get a handle to the
+collection, configured to use ``~bson.son.SON`` instead of ``dict``:
 
 .. code-block:: python
 
@@ -317,7 +303,7 @@ The subdocument's actual storage layout is now visible: "b" is before "a".
 
 Because a dict's key order is not defined, you cannot predict how it will be
 serialized **to** BSON. But MongoDB considers subdocuments equal only if their
-keys have the same order. So if you use a dict to query on a subdocument it may
+keys have the same order. If you use a dict to query on a subdocument, it may
 not match:
 
 .. code-block:: python
@@ -325,14 +311,13 @@ not match:
    >>> collection.find_one({'subdocument': {'a': 1.0, 'b': 1.0}}) is None
    True
 
-Swapping the key order in your query makes no difference:
+Because Python considers the two dicts the same, swapping the key order in your query
+makes no difference:
 
 .. code-block:: python
 
    >>> collection.find_one({'subdocument': {'b': 1.0, 'a': 1.0}}) is None
    True
-
-... because, as we saw above, Python considers the two dicts the same.
 
 There are two solutions. First, you can match the subdocument field-by-field:
 
@@ -343,11 +328,11 @@ There are two solutions. First, you can match the subdocument field-by-field:
    {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
 
 The query matches any subdocument with an "a" of 1.0 and a "b" of 1.0,
-regardless of the order you specify them in Python or the order they are stored
-in BSON. Additionally, this query now matches subdocuments with additional
+regardless of the order in which you specify them in Python or the order in which they're
+stored in BSON. This query also now matches subdocuments with additional
 keys besides "a" and "b", whereas the previous query required an exact match.
 
-The second solution is to use a ``~bson.son.SON`` to specify the key order:
+The second solution is to use a ``~bson.son.SON`` object to specify the key order:
 
 .. code-block:: python
 
@@ -356,44 +341,47 @@ The second solution is to use a ``~bson.son.SON`` to specify the key order:
    {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
 
 The key order you use when you create a ``~bson.son.SON`` is preserved
-when it is serialized to BSON and used as a query. Thus you can create a
+when it is serialized to BSON and used as a query. Thus, you can create a
 subdocument that exactly matches the subdocument in the collection.
 
-.. seealso:: 
+.. note:: 
    
-   `MongoDB Manual entry on subdocument matching <https://mongodb.com/docs/manual/tutorial/query-embedded-documents/>`__.
+   For more information about subdocument matching, see :manual:`</tutorial/query-embedded-documents/>`
+   in the MongoDB Server documentation.
 
-What does *CursorNotFound* cursor id not valid at server mean?
---------------------------------------------------------------
+What Does "*CursorNotFound* cursor id not valid at server" Mean?
+----------------------------------------------------------------
+
 Cursors in MongoDB can timeout on the server if they've been open for
 a long time without any operations being performed on them. This can
-lead to an ``~pymongo.errors.CursorNotFound`` exception being
-raised when attempting to iterate the cursor.
+lead to an ``CursorNotFound`` exception being
+raised when you attempt to iterate the cursor.
 
-How do I change the timeout value for cursors?
+How Do I Change the Timeout Value for Cursors?
 ----------------------------------------------
 MongoDB doesn't support custom timeouts for cursors, but cursor
 timeouts can be turned off entirely. Pass ``no_cursor_timeout=True`` to
-the ``~pymongo.collection.Collection.find`` method.
+the ``Collection.find()`` method.
 
-How can I store ``decimal.Decimal`` instances?
+How Can I Store ``decimal.Decimal`` Instances?
 -------------------------------------------------
 
-PyMongo >= 3.4 supports the Decimal128 BSON type introduced in MongoDB 3.4.
+PyMongo >= 3.4 supports the ``Decimal128`` BSON type introduced in MongoDB 3.4.
 See ``~bson.decimal128`` for more information.
 
-MongoDB <= 3.2 only supports IEEE 754 floating points - the same as the
-Python float type. The only way PyMongo could store Decimal instances to
+MongoDB <= 3.2 supports only IEEE 754 floating points, equivalent to the
+Python ``float`` type. The only way {+driver-short+} could store ``Decimal`` instances to
 these versions of MongoDB would be to convert them to this standard, so
-you'd really only be storing floats anyway - we force users to do this
+you'd really only be storing floats anyway. {+driver-short+} requires users to do this
 conversion explicitly so that they are aware that it is happening.
 
-I'm saving ``9.99`` but when I query my document contains ``9.9900000000000002`` - what's going on here?
---------------------------------------------------------------------------------------------------------
-The database representation is ``9.99`` as an IEEE floating point (which
+I Save ``9.99``, But When I Query My Document, It Contains ``9.9900000000000002``. Why?
+---------------------------------------------------------------------------------------
+
+The database represents ``9.99`` as an IEEE floating point (which
 is common to MongoDB and Python as well as most other modern
 languages). The problem is that ``9.99`` cannot be represented exactly
-with a double precision floating point - this is true in some versions of
+with a double-precision floating point. This is true in some versions of
 Python as well:
 
 .. code-block:: python
@@ -401,155 +389,165 @@ Python as well:
    >>> 9.99
    9.9900000000000002
 
-The result that you get when you save ``9.99`` with PyMongo is exactly the
-same as the result you'd get saving it with the JavaScript shell or
-any of the other languages (and as the data you're working with when
+The result that you get when you save ``9.99`` with {+driver-short+} is exactly the
+same as the result you'd get when saving it with the JavaScript shell or
+any other MongoDB driver (and the same as the data you're working with when
 you type ``9.99`` into a Python program).
 
-Can you add attribute style access for documents?
+Can You Add Attribute-style Access for Documents?
 -------------------------------------------------
-This request has come up a number of times but we've decided not to
-implement anything like this. The relevant `jira case
-<http://jira.mongodb.org/browse/PYTHON-35>`_ has some information
+
+We've decided not to implement anything like this. The relevant `Jira case
+<http://jira.mongodb.org/browse/PYTHON-35>`__ has some information
 about the decision, but here is a brief summary:
 
-1. This will pollute the attribute namespace for documents, so could
-   lead to subtle bugs / confusing errors when using a key with the
+1. This will pollute the attribute namespace for documents and could
+   lead to subtle bugs or confusing errors when using a key with the
    same name as a dictionary method.
 
 2. The only reason we even use SON objects instead of regular
    dictionaries is to maintain key ordering, since the server
-   requires this for certain operations. So we're hesitant to
-   needlessly complicate SON (at some point it's hypothetically
-   possible we might want to revert back to using dictionaries alone,
-   without breaking backwards compatibility for everyone).
+   requires this for certain operations. We're hesitant to
+   needlessly complicate SON, since at some point
+   we might want to revert back to using dictionaries alone
+   without breaking backwards compatibility.
 
 3. It's easy (and Pythonic) for new users to deal with documents,
    since they behave just like dictionaries. If we start changing
-   their behavior it adds a barrier to entry for new users - another
-   class to learn.
+   their behavior, it adds a barrier to entry for new users (another
+   class to learn).
 
-What is the correct way to handle time zones with PyMongo?
+What is the Correct Way to Handle Time Zones with {+driver-short+}?
 ----------------------------------------------------------
 
-.. See :doc:`examples/datetimes` for examples on how to handle ``~datetime.datetime`` objects correctly.
+See :ref:`pymongo-datetimes-timezones` for examples of how to handle
+``~datetime.datetime`` objects correctly.
 
-How can I save a ``datetime.date`` instance?
+How Can I Save a ``datetime.date`` Instance?
 -----------------------------------------------
-PyMongo doesn't support saving ``datetime.date`` instances, since
+
+{+driver-short+} doesn't support saving ``datetime.date`` instances, since
 there is no BSON type for dates without times. Rather than having the
 driver enforce a convention for converting ``datetime.date``
-instances to ``datetime.datetime`` instances for you, any
-conversion should be performed in your client code.
+instances to ``datetime.datetime`` instances for you, you should
+perform any conversion in your client code.
 
 .. _web-application-querying-by-objectid:
 
-When I query for a document by ObjectId in my web application I get no result
------------------------------------------------------------------------------
-It's common in web applications to encode documents' ObjectIds in URLs, like:
+Why Do I Get No Result When I Query for a Document by ObjectId in My Web Application?
+-------------------------------------------------------------------------------------
+
+It's common in web applications to encode documents' ObjectIds in URLs, as shown
+in the following code example:
 
 .. code-block:: python
 
-  "/posts/50b3bda58a02fb9a84d8991e"
+   "/posts/50b3bda58a02fb9a84d8991e"
 
 Your web framework will pass the ObjectId portion of the URL to your request
-handler as a string, so it must be converted to ``~bson.objectid.ObjectId``
-before it is passed to the ``~pymongo.collection.Collection.find_one`` method. It is a
+handler as a string, so it must be converted to a ``~bson.objectid.ObjectId`` instance
+before it's passed to the ``Collection.find_one`` method. It's a
 common mistake to forget to do this conversion. Here's how to do it correctly
-in Flask_ (other web frameworks are similar):
+in `Flask <http://flask.pocoo.org/>`__ (other web frameworks are similar):
 
 .. code-block:: python
 
-  from pymongo import MongoClient
-  from bson.objectid import ObjectId
+   from pymongo import MongoClient
+   from bson.objectid import ObjectId
 
-  from flask import Flask, render_template
+   from flask import Flask, render_template
 
-  client = MongoClient()
-  app = Flask(__name__)
+   client = MongoClient()
+   app = Flask(__name__)
 
-  @app.route("/posts/<_id>")
-  def show_post(_id):
-     # NOTE!: converting _id from string to ObjectId before passing to find_one
-     post = client.db.posts.find_one({'_id': ObjectId(_id)})
-     return render_template('post.html', post=post)
+   @app.route("/posts/<_id>")
+   def show_post(_id):
+      # NOTE!: converting _id from string to ObjectId before passing to find_one
+      post = client.db.posts.find_one({'_id': ObjectId(_id)})
+      return render_template('post.html', post=post)
 
-  if __name__ == "__main__":
-      app.run()
+   if __name__ == "__main__":
+       app.run()
 
-.. _Flask: http://flask.pocoo.org/
+.. note::
+   
+   For more information, see the :ref:`querying-by-objectid` section in the Find guide.
 
-.. seealso:: :ref:`querying-by-objectid`
-
-How can I use PyMongo from Django?
+How Can I Use {+driver-short+} from Django?
 ----------------------------------
-`Django <http://www.djangoproject.com/>`_ is a popular Python web
+
+`Django <http://www.djangoproject.com/>`__ is a popular Python web
 framework. Django includes an ORM, ``django.db``. Currently,
 there's no official MongoDB backend for Django.
 
-`django-mongodb-engine <https://django-mongodb-engine.readthedocs.io/>`_
+`django-mongodb-engine <https://django-mongodb-engine.readthedocs.io/>`__
 is an unofficial MongoDB backend that supports Django aggregations, (atomic)
-updates, embedded objects, Map/Reduce and GridFS. It allows you to use most
+updates, embedded objects, Map/Reduce, and GridFS. It allows you to use most
 of Django's built-in features, including the ORM, admin, authentication, site
-and session frameworks and caching.
+and session frameworks, and caching.
 
-However, it's easy to use MongoDB (and PyMongo) from Django
+However, it's easy to use MongoDB (and {+driver-short+}) from Django
 without using a Django backend. Certain features of Django that require
-``django.db`` (admin, authentication and sessions) will not work
-using just MongoDB, but most of what Django provides can still be
-used.
+``django.db`` (admin, authentication, and sessions) will not work
+when using only MongoDB, but you can use most of what Django provides.
 
-One project which should make working with MongoDB and Django easier
-is `mango <http://github.com/vpulim/mango>`_. Mango is a set of
+One project that might make it easier to work with MongoDB and Django
+is `mango <http://github.com/vpulim/mango>`__. Mango is a set of
 MongoDB backends for Django sessions and authentication (bypassing
 ``django.db`` entirely).
 
 .. _using-with-mod-wsgi:
 
-Does PyMongo work with **mod_wsgi**?
-------------------------------------
-.. Yes. See the configuration guide for :ref:`pymongo-and-mod_wsgi`.
+Does PyMongo Work with mod_wsgi?
+--------------------------------
 
-Does PyMongo work with PythonAnywhere?
+Yes. See the configuration guide for :ref:`pymongo-and-mod_wsgi`.
+
+Does PyMongo Work with PythonAnywhere?
 --------------------------------------
-No. PyMongo creates Python threads which
-`PythonAnywhere <https://www.pythonanywhere.com>`_ does not support. For more
-information see `PYTHON-1495 <https://jira.mongodb.org/browse/PYTHON-1495>`_.
 
-How can I use something like Python's ``json`` module to encode my documents to JSON?
+No. PyMongo creates Python threads, which
+`PythonAnywhere <https://www.pythonanywhere.com>`__ does not support.
+
+For more information, see `PYTHON-1495 <https://jira.mongodb.org/browse/PYTHON-1495>`__ in
+the Python Driver Jira project.
+
+How Can I Use Something Like Python's ``json`` Module to Encode My Documents to JSON?
 -------------------------------------------------------------------------------------
-``~bson.json_util`` is PyMongo's built in, flexible tool for using
+
+``~bson.json_util`` is {+driver-short+}'s built-in, flexible tool for using
 Python's ``json`` module with BSON documents and `MongoDB Extended JSON
-<https://mongodb.com/docs/manual/reference/mongodb-extended-json/>`_. The
-``json`` module won't work out of the box with all documents from PyMongo
-as PyMongo supports some special types (like ``~bson.objectid.ObjectId``
+<https://mongodb.com/docs/manual/reference/mongodb-extended-json/>`__. The
+``json`` module won't work out of the box with all documents from {+driver-short+},
+as {+driver-short+} supports some special types (like ``~bson.objectid.ObjectId``
 and ``~bson.dbref.DBRef``) that are not supported in JSON.
 
-`python-bsonjs <https://pypi.python.org/pypi/python-bsonjs>`_ is a fast
-BSON to MongoDB Extended JSON converter built on top of
-`libbson <https://github.com/mongodb/libbson>`_. ``python-bsonjs`` does not
-depend on PyMongo and can offer a nice performance improvement over
-``~bson.json_util``. ``python-bsonjs`` works best with PyMongo when using
+`python-bsonjs <https://pypi.python.org/pypi/python-bsonjs>`__ is a fast
+BSON-to-MongoDB-Extended-JSON converter built on top of
+`libbson <https://github.com/mongodb/libbson>`__. ``python-bsonjs`` doesn't
+depend on {+driver-short+} and can offer a performance improvement over
+``~bson.json_util``. ``python-bsonjs`` works best with {+driver-short+} when using
 ``~bson.raw_bson.RawBSONDocument``.
 
-Why do I get OverflowError decoding dates stored by another language's driver?
-------------------------------------------------------------------------------
-PyMongo decodes BSON datetime values to instances of Python's
-``datetime.datetime``. Instances of ``datetime.datetime`` are
+Why Do I Get OverflowError When Decoding Dates Stored by Another Language's Driver?
+-----------------------------------------------------------------------------------
+
+{+driver-short+} decodes BSON ``datetime`` values to instances of Python's
+``datetime.datetime`` class. Instances of ``datetime.datetime`` are
 limited to years between ``datetime.MINYEAR`` (usually 1) and
-``datetime.MAXYEAR`` (usually 9999). Some MongoDB drivers (e.g. the PHP
+``datetime.MAXYEAR`` (usually 9999). Some MongoDB drivers (for example, the PHP
 driver) can store BSON datetimes with year values far outside those supported
 by ``datetime.datetime``.
 
 There are a few ways to work around this issue. Starting with PyMongo 4.3,
-``bson.decode`` can decode BSON datetimes in one of four ways, and can
-be specified using the ``datetime_conversion`` parameter of
+``bson.decode`` can decode BSON ``datetime`` values in one of four ways. You can specify
+the conversion method by using ``datetime_conversion`` parameter of
 ``~bson.codec_options.CodecOptions``.
 
-The default option is
+The default conversion option is
 ``~bson.codec_options.DatetimeConversion.DATETIME``, which will
-attempt to decode as a ``datetime.datetime``, allowing
-``~builtin.OverflowError`` to occur upon out-of-range dates.
+attempt to decode the value as a ``datetime.datetime``, allowing
+``~builtin.OverflowError`` to occur for out-of-range dates.
 ``~bson.codec_options.DatetimeConversion.DATETIME_AUTO`` alters
 this behavior to instead return ``~bson.datetime_ms.DatetimeMS`` when
 representations are out-of-range, while returning ``~datetime.datetime``
@@ -557,206 +555,195 @@ objects as before:
 
 .. code-block:: python
 
-    >>> from datetime import datetime
-    >>> from bson.datetime_ms import DatetimeMS
-    >>> from bson.codec_options import DatetimeConversion
-    >>> from pymongo import MongoClient
-    >>> client = MongoClient(datetime_conversion=DatetimeConversion.DATETIME_AUTO)
-    >>> client.db.collection.insert_one({"x": datetime(1970, 1, 1)})
-    InsertOneResult(ObjectId('...'), acknowledged=True)
-    >>> client.db.collection.insert_one({"x": DatetimeMS(2**62)})
-    InsertOneResult(ObjectId('...'), acknowledged=True)
-    >>> for x in client.db.collection.find():
-    ...     print(x)
-    ...
-    {'_id': ObjectId('...'), 'x': datetime.datetime(1970, 1, 1, 0, 0)}
-    {'_id': ObjectId('...'), 'x': DatetimeMS(4611686018427387904)}
+   >>> from datetime import datetime
+   >>> from bson.datetime_ms import DatetimeMS
+   >>> from bson.codec_options import DatetimeConversion
+   >>> from pymongo import MongoClient
+   >>> client = MongoClient(datetime_conversion=DatetimeConversion.DATETIME_AUTO)
+   >>> client.db.collection.insert_one({"x": datetime(1970, 1, 1)})
+   InsertOneResult(ObjectId('...'), acknowledged=True)
+   >>> client.db.collection.insert_one({"x": DatetimeMS(2**62)})
+   InsertOneResult(ObjectId('...'), acknowledged=True)
+   >>> for x in client.db.collection.find():
+   ...     print(x)
+   ...
+   {'_id': ObjectId('...'), 'x': datetime.datetime(1970, 1, 1, 0, 0)}
+   {'_id': ObjectId('...'), 'x': DatetimeMS(4611686018427387904)}
 
-For other options, please refer to
-``~bson.codec_options.DatetimeConversion``.
+For other options, see the
+``~bson.codec_options.DatetimeConversion`` API.
 
-Another option that does not involve setting ``datetime_conversion`` is to to
-filter out documents values outside of the range supported by
+Another option that does not involve setting ``datetime_conversion`` is to
+filter out document values outside of the range supported by
 ``~datetime.datetime``:
 
 .. code-block:: python
 
-  >>> from datetime import datetime
-  >>> coll = client.test.dates
-  >>> cur = coll.find({'dt': {'$gte': datetime.min, '$lte': datetime.max}})
+   >>> from datetime import datetime
+   >>> coll = client.test.dates
+   >>> cur = coll.find({'dt': {'$gte': datetime.min, '$lte': datetime.max}})
 
-Another option, assuming you don't need the datetime field, is to filter out
+Another option, assuming you don't need the ``datetime`` field, is to filter out
 just that field:
 
 .. code-block:: python
 
-  >>> cur = coll.find({}, projection={'dt': False})
+   >>> cur = coll.find({}, projection={'dt': False})
 
 .. _multiprocessing:
 
-Using PyMongo with Multiprocessing
-----------------------------------
+Can I Use {+driver-short+} with Multiprocessing?
+---------------------------------------
 
-On Unix systems the multiprocessing module spawns processes using ``fork()``.
-Care must be taken when using instances of
-``~pymongo.mongo_client.MongoClient`` with ``fork()``. Specifically,
-instances of MongoClient must not be copied from a parent process to a child
-process. Instead, the parent process and each child process must create their
-own instances of MongoClient. For example:
+On Unix systems, the multiprocessing module spawns processes by using ``fork()``.
+See :ref:`pymongo-fork-safe` for more information about the risks of using ``fork()``
+with instances of ``MongoClient``.
+
+When using {+driver-short+} with multiprocessing, write code similar to the following:
 
 .. code-block:: python
 
-  # Each process creates its own instance of MongoClient.
-  def func():
-      db = pymongo.MongoClient().mydb
-      # Do something with db.
+   # Each process creates its own instance of MongoClient.
+   def func():
+       db = pymongo.MongoClient().mydb
+       # Do something with db.
 
-  proc = multiprocessing.Process(target=func)
-  proc.start()
+   proc = multiprocessing.Process(target=func)
+   proc.start()
 
 **Never do this**:
 
 .. code-block:: python
 
-  client = pymongo.MongoClient()
+   client = pymongo.MongoClient()
 
-  # Each child process attempts to copy a global MongoClient
-  # created in the parent process. Never do this.
-  def func():
-    db = client.mydb
-    # Do something with db.
+   # Each child process attempts to copy a global MongoClient
+   # created in the parent process. Never do this.
+   def func():
+     db = client.mydb
+     # Do something with db.
 
-  proc = multiprocessing.Process(target=func)
-  proc.start()
+   proc = multiprocessing.Process(target=func)
+   proc.start()
 
-Instances of MongoClient copied from the parent process have a high probability
-of deadlock in the child process due to
-:ref:`inherent incompatibilities between fork(), threads, and locks
-<pymongo-fork-safe-details>`. PyMongo will attempt to issue a warning if there
-is a chance of this deadlock occurring.
-
-.. seealso:: :ref:`pymongo-fork-safe`
-
-What Python 3 versions are supported?
--------------------------------------
+Which Python 3 Versions Are Supported?
+--------------------------------------
 
 PyMongo supports CPython 3.7+ and PyPy3.8+.
 
-Are there any PyMongo behavior changes with Python 3?
+Are There Any {+driver-short+} Behavior Changes with Python 3?
 -----------------------------------------------------
 
-Only one intentional change. Instances of ``bytes``
-are encoded as BSON type 5 (Binary data) with subtype 0.
-In Python 3 they are decoded back to ``bytes``. In
-Python 2 they are decoded to ``~bson.binary.Binary``
+There's only one intentional change. Instances of ``bytes``
+are encoded as BSON type 5 (binary data) with subtype 0.
+In Python 3, these instances are decoded back to ``bytes``. In
+Python 2, they are decoded to ``~bson.binary.Binary``
 with subtype 0.
 
-For example, let's insert a ``bytes`` instance using Python 3 then
-read it back. Notice the byte string is decoded back to ``bytes``:
+The following code example uses Python 3 to insert a ``bytes`` instance, then
+reads it back. Notice that the byte string is decoded back to ``bytes``.
 
 .. code-block:: python
 
-  Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
-  [Clang 6.0 (clang-600.0.57)] on darwin
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import pymongo
-  >>> c = pymongo.MongoClient()
-  >>> c.test.bintest.insert_one({'binary': b'this is a byte string'}).inserted_id
-  ObjectId('4f9086b1fba5222021000000')
-  >>> c.test.bintest.find_one()
-  {'binary': b'this is a byte string', '_id': ObjectId('4f9086b1fba5222021000000')}
+   Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
+   [Clang 6.0 (clang-600.0.57)] on darwin
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> import pymongo
+   >>> c = pymongo.MongoClient()
+   >>> c.test.bintest.insert_one({'binary': b'this is a byte string'}).inserted_id
+   ObjectId('4f9086b1fba5222021000000')
+   >>> c.test.bintest.find_one()
+   {'binary': b'this is a byte string', '_id': ObjectId('4f9086b1fba5222021000000')}
 
-Now retrieve the same document in Python 2. Notice the byte string is decoded
-to ``~bson.binary.Binary``:
+The next code example uses Python 2 to retrieve the same document. Notice that the byte
+string is decoded to ``~bson.binary.Binary``.
 
 .. code-block:: python
 
-  Python 2.7.6 (default, Feb 26 2014, 10:36:22)
-  [GCC 4.7.3] on linux2
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import pymongo
-  >>> c = pymongo.MongoClient()
-  >>> c.test.bintest.find_one()
-  {u'binary': Binary('this is a byte string', 0), u'_id': ObjectId('4f9086b1fba5222021000000')}
+   Python 2.7.6 (default, Feb 26 2014, 10:36:22)
+   [GCC 4.7.3] on linux2
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> import pymongo
+   >>> c = pymongo.MongoClient()
+   >>> c.test.bintest.find_one()
+   {u'binary': Binary('this is a byte string', 0), u'_id': ObjectId('4f9086b1fba5222021000000')}
 
-
-There is a similar change in behavior in parsing JSON binary with subtype 0.
-In Python 3 they are decoded into ``bytes``. In Python 2 they are
+There is a similar change in behavior when parsing JSON binary values with subtype 0.
+In Python 3, JSON binary values are decoded into ``bytes``. In Python 2, they are
 decoded to ``~bson.binary.Binary`` with subtype 0.
 
-For example, let's decode a JSON binary subtype 0 using Python 3. Notice the
-byte string is decoded to ``bytes``:
+The following code example uses Python 3 to decode a JSON binary value with subtype 0.
+Notice that the byte string is decoded to ``bytes``.
 
 .. code-block:: python
 
-  Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
-  [Clang 6.0 (clang-600.0.57)] on darwin
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> from bson.json_util import loads
-  >>> loads('{"b": {"$binary": "dGhpcyBpcyBhIGJ5dGUgc3RyaW5n", "$type": "00"}}')
-  {'b': b'this is a byte string'}
+   Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
+   [Clang 6.0 (clang-600.0.57)] on darwin
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> from bson.json_util import loads
+   >>> loads('{"b": {"$binary": "dGhpcyBpcyBhIGJ5dGUgc3RyaW5n", "$type": "00"}}')
+   {'b': b'this is a byte string'}
 
-Now decode the same JSON in Python 2 . Notice the byte string is decoded
+If you use Python 2 to decode the same JSON, the byte string is decoded
 to ``~bson.binary.Binary``:
 
 .. code-block:: python
 
-  Python 2.7.10 (default, Feb  7 2017, 00:08:15)
-  [GCC 4.2.1 Compatible Apple LLVM 8.0.0 (clang-800.0.34)] on darwin
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> from bson.json_util import loads
-  >>> loads('{"b": {"$binary": "dGhpcyBpcyBhIGJ5dGUgc3RyaW5n", "$type": "00"}}')
-  {u'b': Binary('this is a byte string', 0)}
+   Python 2.7.10 (default, Feb  7 2017, 00:08:15)
+   [GCC 4.2.1 Compatible Apple LLVM 8.0.0 (clang-800.0.34)] on darwin
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> from bson.json_util import loads
+   >>> loads('{"b": {"$binary": "dGhpcyBpcyBhIGJ5dGUgc3RyaW5n", "$type": "00"}}')
+   {u'b': Binary('this is a byte string', 0)}
 
-Why can't I share pickled ObjectIds between some versions of Python 2 and 3?
+Why Can't I Share Pickled ObjectIds Between Some Versions of Python 2 and 3?
 ----------------------------------------------------------------------------
 
 Instances of ``~bson.objectid.ObjectId`` pickled using Python 2
 can always be unpickled using Python 3.
 
 If you pickled an ObjectId using Python 2 and want to unpickle it using
-Python 3 you must pass ``encoding='latin-1'`` to pickle.loads:
+Python 3, you must pass ``encoding='latin-1'`` to ``pickle.loads``:
 
 .. code-block:: python
 
-  Python 2.7.6 (default, Feb 26 2014, 10:36:22)
-  [GCC 4.7.3] on linux2
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import pickle
-  >>> from bson.objectid import ObjectId
-  >>> oid = ObjectId()
-  >>> oid
-  ObjectId('4f919ba2fba5225b84000000')
-  >>> pickle.dumps(oid)
-  'ccopy_reg\n_reconstructor\np0\n(cbson.objectid\...'
+   Python 2.7.6 (default, Feb 26 2014, 10:36:22)
+   [GCC 4.7.3] on linux2
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> import pickle
+   >>> from bson.objectid import ObjectId
+   >>> oid = ObjectId()
+   >>> oid
+   ObjectId('4f919ba2fba5225b84000000')
+   >>> pickle.dumps(oid)
+   'ccopy_reg\n_reconstructor\np0\n(cbson.objectid\...'
 
-  Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
-  [Clang 6.0 (clang-600.0.57)] on darwin
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import pickle
-  >>> pickle.loads(b'ccopy_reg\n_reconstructor\np0\n(cbson.objectid\...', encoding='latin-1')
-  ObjectId('4f919ba2fba5225b84000000')
+   Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
+   [Clang 6.0 (clang-600.0.57)] on darwin
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> import pickle
+   >>> pickle.loads(b'ccopy_reg\n_reconstructor\np0\n(cbson.objectid\...', encoding='latin-1')
+   ObjectId('4f919ba2fba5225b84000000')
 
-
-If you need to pickle ObjectIds using Python 3 and unpickle them using Python 2
+If you need to pickle ObjectIds using Python 3 and unpickle them using Python 2,
 you must use ``protocol <= 2``:
 
 .. code-block:: python
 
-  Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
-  [Clang 6.0 (clang-600.0.57)] on darwin
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import pickle
-  >>> from bson.objectid import ObjectId
-  >>> oid = ObjectId()
-  >>> oid
-  ObjectId('4f96f20c430ee6bd06000000')
-  >>> pickle.dumps(oid, protocol=2)
-  b'\x80\x02cbson.objectid\nObjectId\nq\x00)\x81q\x01c_codecs\nencode\...'
+   Python 3.7.9 (v3.7.9:13c94747c7, Aug 15 2020, 01:31:08)
+   [Clang 6.0 (clang-600.0.57)] on darwin
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> import pickle
+   >>> from bson.objectid import ObjectId
+   >>> oid = ObjectId()
+   >>> oid
+   ObjectId('4f96f20c430ee6bd06000000')
+   >>> pickle.dumps(oid, protocol=2)
+   b'\x80\x02cbson.objectid\nObjectId\nq\x00)\x81q\x01c_codecs\nencode\...'
 
-  Python 2.7.15 (default, Jun 21 2018, 15:00:48)
-  [GCC 7.3.0] on linux2
-  Type "help", "copyright", "credits" or "license" for more information.
-  >>> import pickle
-  >>> pickle.loads('\x80\x02cbson.objectid\nObjectId\nq\x00)\x81q\x01c_codecs\nencode\...')
-  ObjectId('4f96f20c430ee6bd06000000')
+   Python 2.7.15 (default, Jun 21 2018, 15:00:48)
+   [GCC 7.3.0] on linux2
+   Type "help", "copyright", "credits" or "license" for more information.
+   >>> import pickle
+   >>> pickle.loads('\x80\x02cbson.objectid\nObjectId\nq\x00)\x81q\x01c_codecs\nencode\...')
+   ObjectId('4f96f20c430ee6bd06000000')
