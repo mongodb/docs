@@ -1,6 +1,8 @@
 // Retrieves documents that match a query filter by using the C# driver
 
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace CSharpExamples.UsageExamples.FindMany;
@@ -116,5 +118,5 @@ public class GradeEntry
 
     public string Grade { get; set; }
 
-    public float Score { get; set; }
+    public float? Score { get; set; }
 }

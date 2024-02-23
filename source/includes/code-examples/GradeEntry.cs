@@ -4,5 +4,5 @@ public class GradeEntry
 
     public string Grade { get; set; }
 
-    public float Score { get; set; }
+    public float? Score { get; set; }
 }

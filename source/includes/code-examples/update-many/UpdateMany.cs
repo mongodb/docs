@@ -1,6 +1,8 @@
 // Updates documents that match a query filter by using the C# driver
 
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace CSharpExamples.UsageExamples.UpdateMany;
@@ -43,9 +45,9 @@ public class UpdateMany
         const string oldValue = "Pizza";
         const string newValue = "Pasta and breadsticks";
 
-       // Creates a filter for all documents with a "cuisine" value of "Pizza"
-       var filter = Builders<Restaurant>.Filter
-            .Eq(restaurant => restaurant.Cuisine, oldValue);
+        // Creates a filter for all documents with a "cuisine" value of "Pizza"
+        var filter = Builders<Restaurant>.Filter
+             .Eq(restaurant => restaurant.Cuisine, oldValue);
 
         // Creates instructions to update the "cuisine" field of documents that
         // match the filter
@@ -126,5 +128,5 @@ public class GradeEntry
 
     public string Grade { get; set; }
 
-    public float Score { get; set; }
+    public float? Score { get; set; }
 }

@@ -1,5 +1,7 @@
 // Deletes a document from a collection by using the C# driver
 
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;
 
@@ -95,5 +97,5 @@ public class GradeEntry
 
     public string Grade { get; set; }
 
-    public float Score { get; set; }
+    public float? Score { get; set; }
 }

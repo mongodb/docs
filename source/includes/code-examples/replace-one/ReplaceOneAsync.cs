@@ -2,6 +2,7 @@
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace CSharpExamples.UsageExamples.ReplaceOne;
@@ -52,10 +53,10 @@ public class ReplaceOneAsync
             Id = oldId,
             Name = "Mongo's Pizza",
             Cuisine = "Pizza",
-            Address = new BsonDocument
+            Address = new()
             {
-                {"street", "Pizza St"},
-                {"zipcode", "10003"}
+                Street = "Pizza St",
+                ZipCode = "10003"
             },
             Borough = "Manhattan",
         };
@@ -115,5 +116,5 @@ public class GradeEntry
 
     public string Grade { get; set; }
 
-    public float Score { get; set; }
+    public float? Score { get; set; }
 }

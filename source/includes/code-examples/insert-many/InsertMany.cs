@@ -2,6 +2,7 @@
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace CSharpExamples.UsageExamples.InsertMany;
@@ -93,10 +94,10 @@ public class InsertMany
                 Name = "Mongo's Pizza",
                 RestaurantId = $"12345-{i}",
                 Cuisine = "Pizza",
-                Address = new BsonDocument
+                Address = new()
                 {
-                    {"street", "Pizza St"},
-                    {"zipcode", "10003"}
+                    Street = "Pizza St",
+                    ZipCode = "10003"
                 },
                 Borough = "Manhattan",
             };
@@ -153,5 +154,5 @@ public class GradeEntry
 
     public string Grade { get; set; }
 
-    public float Score { get; set; }
+    public float? Score { get; set; }
 }
