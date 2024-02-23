@@ -1,0 +1,244 @@
+.. _streams-agg-pipeline-lookup:
+
+=============
+``$lookup``
+=============
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $lookup aggregation pipeline stage 
+   :description: Learn how to use the $lookup stage to perform joins across 
+   disparate data sources
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: includes/atlas-sp/public-preview.rst
+
+Definition
+~~~~~~~~~~
+
+The :ref:`$lookup <stream-agg-pipeline-lookup>` performs a left outer
+join of the stream of messages from your :pipeline:`$source` to an
+{+service+} collection in your :ref:`Connection Registry <manage-spi-connection-add>`.
+
+Depending on your use case, a ``$lookup`` pipeline stage uses one of 
+the following three syntaxes:
+
+- :manual:`Equality Match with a Single Join Collection 
+  </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
+- :manual:`Join Conditions and Subqueries on a Joined Collection
+  </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
+- :manual:`Correlated Subqueries Using Concise Syntax
+  </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+
+To learn more, see :manual:`$lookup Syntax 
+</reference/operator/aggregation/lookup/#syntax>` .
+
+The following prototype form illustrates all available fields:
+
+.. code-block:: json
+
+  {
+    "$lookup": {
+      "from": {
+        "connectionName": "<registered-atlas-connection>",
+        "db": "<registered-database-name>",
+        "coll": "<atlas-collection-name>"
+      },
+      "localField": "<field-in-source-messages>",
+      "foreignField": "<field-in-from-collection>",
+      "let": { 
+        <var_1>: <expression>, 
+        <var_2>: <expression>, 
+        …, 
+        <var_n>: <expression> 
+      },
+      "pipeline": [ 
+        <pipeline to run> 
+      ],
+      "as": "<output-array-field>"
+    }  
+  } 
+
+Fields
+~~~~~~
+
+The ``$lookup`` stage takes a document with the following fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 15 15 65
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - from
+     - document 
+     - Required 
+     - Document that specifies a collection in an {+service+} database
+       to join to messages from your :pipeline:`$source`. You must 
+       specify a collection from your Connection Registry, and you must
+       identify it with the following fields:
+
+       - ``connectionName``: Name of the connection in your Connection 
+         Registry.
+       - ``db``: Name of the {+service+} database that contains the 
+         collection you want to join.
+       - ``coll``: Name of the collection you want to join.
+
+   * - localField
+     - string
+     - Conditional
+     - Field from your ``$source`` messages to join on.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Equality Match with a Single Join Collection 
+         </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+
+   * - foreignField
+     - string
+     - Conditional
+     - Field from documents in the ``from`` collection to join on.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Equality Match with a Single Join Collection 
+         </reference/operator/aggregation/lookup/#equality-match-with-a-single-join-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+
+   * - let
+     - document
+     - Conditional
+     - Specifies the variables to use in the 
+       :ref:`pipeline <lookup-join-pipeline>` stages. To learn more,
+       see :ref:`let <lookup-join-let>`.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Join Conditions and Subqueries on a Joined Collection
+         </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+
+   * - pipeline
+     - document
+     - Conditional
+     - Specifies the ``pipeline`` to run on the joined collection. To
+       learn more, see :ref:`pipeline <lookup-join-pipeline>`.
+
+       This field is part of the following syntaxes:
+
+       - :manual:`Join Conditions and Subqueries on a Joined Collection
+         </reference/operator/aggregation/lookup/#join-conditions-and-subqueries-on-a-joined-collection>`
+       - :manual:`Correlated Subqueries Using Concise Syntax
+         </reference/operator/aggregation/lookup/#correlated-subqueries-using-concise-syntax>`
+
+   * - as
+     - string
+     - Required
+     - Name of the new array field to add to the input documents. This
+       new array field contains the matching documents from the 
+       ``from`` collection. If the specified name already exists as a 
+       field in the input document, that field is overwritten.
+
+Behavior
+~~~~~~~~
+
+The {+atlas-sp+} version of :ref:`$lookup <stream-agg-pipeline-lookup>` 
+performs a left outer join of messages from your ``$source`` and the 
+documents in a specified {+service+} collection. This version behaves 
+similarly to the :pipeline:`$lookup` stage available in a standard 
+MongoDB database. However, this version requires that you specify an 
+{+service+} collection from your 
+:ref:`Connection Registry <manage-spi-connection-add>` as the value for
+the ``from`` field.
+
+The :ref:`pipeline <lookup-join-pipeline>` can contain a nested 
+:pipeline:`$lookup` stage. If you include a nested :pipeline:`$lookup` 
+stage in your pipeline, you must use the standard ``from`` syntax to
+specify a collection in the same remote {+service+} connection as the
+outer :pipeline:`$lookup` stage.
+
+.. example::
+
+   .. code-block:: json
+
+      $lookup : {
+        from: {connectionName: "dbsrv1", db: "db1", coll: "coll1"},
+          …,
+        pipeline: [
+          …,
+          {
+            $lookup: {
+              from: "coll2",
+              …,
+            }
+          },
+          …,
+        ]
+      }
+
+If your pipeline has both :pipeline:`$lookup` and :pipeline:`$merge`
+on the same collection, {+atlas-sp+} results might vary if you
+try to maintain an incremental view. {+atlas-sp+} processes
+multiple source messages simultaneously and then merges them all
+together. If multiple messages have the same ID, which both
+:pipeline:`$lookup` and :pipeline:`$merge` use, {+atlas-sp+} might 
+return results that haven't yet materialized. 
+
+.. example:: 
+
+   Consider the following input stream:
+
+   .. code-block:: shell
+      :copyable: false 
+
+      { _id: 1, count: 2 }
+      { _id: 1, count: 3 }
+
+   Suppose your query contains the following inside the pipeline: 
+
+   .. code-block:: js
+      :copyable: false 
+
+      {
+        ...,
+        pipeline: [
+          { $lookup on _id == foreignDoc._id from collection A }
+          { $project: { _id: 1, count: $count + $foreignDoc.count } }
+          { $merge: { into collection A } }
+        ]
+      }
+
+   If you are trying to maintain an incremental view, you might expect a
+   result similar to the following:
+
+   .. code-block:: shell
+      :copyable: false 
+
+      { _id: 1, count: 5 } 
+
+   However, {+atlas-sp+} might return a count of ``5`` or ``3``
+   depending on whether {+atlas-sp+} has processed the documents.
+
+For more information, see :pipeline:`$lookup`.
+
+.. warning::
+
+   Using ``$lookup`` to enrich a stream can reduce stream processing
+   speed.

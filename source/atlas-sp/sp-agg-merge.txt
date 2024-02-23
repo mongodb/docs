@@ -1,0 +1,136 @@
+.. _streams-agg-pipeline-merge:
+
+=========
+``$merge``
+=========
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $merge aggregation pipeline stage 
+   :description: Learn how to use the $merge stage to output processed data
+   to persistent storage systems.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: includes/atlas-sp/public-preview.rst
+
+Definition
+~~~~~~~~~~
+
+The :ref:`$merge <stream-agg-pipeline-merge>` stage specifies a 
+connection in the :ref:`Connection Registry <manage-spi-connection-add>` 
+to write messages to. The connection must be an {+service+} connection.
+
+A ``$merge`` pipeline stage has the following prototype form:
+
+.. code-block:: json
+
+  {
+    "$merge": {
+      "into": {
+        "connectionName": "<registered-atlas-connection>",
+        "db": "<registered-database-name>" | <expression>,
+        "coll": "<atlas-collection-name>" | <expression>
+      },
+      "on": "<identifier field>" | [ "<identifier field1>", ...],
+      "whenMatched": "replace | keepExisting | merge",
+      "whenNotMatched": "insert | discard"
+    }  
+  }
+
+Fields
+~~~~~~
+
+The {+atlas-sp+} version of :ref:`$merge <stream-agg-pipeline-merge>` 
+uses most of the same fields as the {+adf+} version. However, because 
+{+atlas-sp+} only supports merging into an {+service+} connection, the 
+syntax of ``into`` is simplified. For more information, see 
+:ref:`this description <adf-merge-fields>` of the {+adf+} ``$merge``
+fields.
+
+Behavior
+~~~~~~~~
+
+``$merge`` must be the last stage of any pipeline it appears in. You can
+use only one ``$merge`` stage per pipeline.
+
+The ``on`` field has special requirements for ``$merge`` against
+sharded collections. To learn more, see 
+:manual:`$merge syntax </reference/operator/aggregation/merge/#merge-on>`.
+
+You can use a :manual:`dynamic expression 
+</reference/operator/aggregation/#expression-operators>` as
+the value of the following fields: 
+
+- ``into.db``
+- ``into.coll``
+
+This enables your stream processor to write messages to different 
+target {+service+} collections on a message-by-message basis.
+
+.. example::
+
+   You have a stream of transaction events that generates messages of 
+   the following form:
+
+   .. code-block:: json
+
+      { 
+        "customer": "Very Important Industries",
+        "customerStatus": "VIP",
+        "tenantId": 1,
+        "transactionType": "subscription"
+      }
+
+      { 
+        "customer": "N. E. Buddy",
+        "customerStatus": "employee",
+        "tenantId": 5,
+        "transactionType": "requisition"
+      }
+
+      { 
+        "customer": "Khan Traktor",
+        "customerStatus": "contractor",
+        "tenantId": 11,
+        "transactionType": "billableHours"
+      }
+
+   To sort each of these into a distinct {+service+} database and 
+   collection, you can write the following ``$merge`` stage:
+
+   .. code-block:: json
+
+      $merge: {
+        into: {
+          connectionName: "db1",
+          db: "$customerStatus",
+          coll: "$transactionType"
+      }
+
+   This ``$merge`` stage:
+
+   - Writes the ``Very Important Industries`` message to a {+service+} 
+     collection named ``VIP.subscription``. 
+   - Writes the ``N. E. Buddy`` message to a {+service+} 
+     collection named ``employee.requisition``. 
+   - Writes the ``Khan Traktor`` message to a {+service+} 
+     collection named ``contractor.billableHours``. 
+
+You can only use dynamic expressions that evaluate to strings. For more 
+information on dynamic expressions, see :manual:`expression operators 
+</reference/operator/aggregation/#expression-operators>`.
+
+If you specify a database or collection with a dynamic expression, but 
+{+atlas-sp+} cannot evaluate the expression for a given message, 
+{+atlas-sp+} skips that message and continues processing subsequent 
+messages.

@@ -1,0 +1,142 @@
+.. _streams-agg-pipeline-emit:
+
+=========
+``$emit``
+=========
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $emit aggregation pipeline stage 
+   :description: Learn how to use the $emit stage to output processed data
+   to streaming data platforms.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: includes/atlas-sp/public-preview.rst
+
+Definition
+~~~~~~~~~~
+
+The :pipeline:`$emit` stage specifies a connection in the 
+:ref:`Connection Registry <manage-spi-connection-add>` to emit messages
+to. The connection must be an {+kafka+} broker.
+
+.. pipeline:: $emit
+
+   An ``$emit`` pipeline stage has the following prototype form:
+
+   .. code-block:: json
+
+      {
+        "$emit": {
+          "connectionName": "<registered-connection>",
+          "topic" : "<target-topic>" | <expression>,
+          }
+        }  
+      }
+
+Fields
+~~~~~~
+
+The ``$emit`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - The logical name, as it appears in the 
+       :ref:`Connection Registry <manage-spi-connection-add>`, of the
+       connection to ingest data from.
+
+   * - ``topic``
+     - string | expression
+     - Conditional 
+     - The name of the {+kafka+} topic to emit messages to.
+
+Behavior
+~~~~~~~~
+
+``$emit`` must be the last stage of any pipeline it appears in. You can
+use only one ``$emit`` stage per pipeline.
+
+You can use a :manual:`dynamic expression </reference/operator/aggregation/#expression-operators>`
+as the value of the ``topic`` field to enable your stream processor to 
+write to different target {+kafka+} topics on a message-by-message 
+basis.
+
+.. example::
+
+   You have a stream of transaction events that generates messages of 
+   the following form:
+
+   .. code-block:: json
+
+      { 
+        "customer": "Very Important Industries",
+        "customerStatus": "VIP",
+        "tenantId": 1,
+        "transactionType": "subscription"
+      }
+
+      { 
+        "customer": "N. E. Buddy",
+        "customerStatus": "employee",
+        "tenantId": 5,
+        "transactionType": "requisition"
+      }
+
+      { 
+        "customer": "Khan Traktor",
+        "customerStatus": "contractor",
+        "tenantId": 11,
+        "transactionType": "billableHours"
+      }
+
+   To sort each of these into a distinct {+kafka+} topic, you can write
+   the following ``$emit`` stage:
+
+   .. code-block:: json
+
+      $emit: {
+        connectionName: "kafka1",
+        topic: "$customerStatus"
+      }
+
+   This ``$emit`` stage:
+
+   - Writes the ``Very Important Industries`` message to a topic named 
+     ``VIP``.
+   - Writes the ``N. E. Buddy`` message to a topic named ``employee``.
+   - Writes the ``Khan Traktor`` message to a topic named 
+     ``contractor``.
+
+You can use only dynamic expressions that evaluate to strings. For 
+more information on dynamic expressions, see 
+:manual:`expression operators
+</reference/operator/aggregation/#expression-operators>`. 
+
+If you specify a topic that doesn't already exist, {+kafka+}
+automatically creates the topic when it receives the first message
+that targets it.
+
+If you specify a topic with a dynamic expression, but 
+{+atlas-sp+} cannot evaluate the expression for a given message, 
+{+atlas-sp+} skips that message and continues processing subsequent 
+messages.
