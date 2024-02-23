@@ -42,6 +42,12 @@
         set up the endpoints within your |vpc| by running the shell 
         script.
 
+    * - Verified
+      - |service| verified the endpoints within your |vpc| but has not
+        yet accepted the private endpoint 
+        in your |gcp| |vpc|. It might take several minutes for the
+        :guilabel:`Endpoint Status` to become ``Available``. 
+
     * - Available
       - The |service| |vpc| resources are connected to the private endpoint 
         in your |gcp| |vpc|. |service| has accepted the endpoints.
