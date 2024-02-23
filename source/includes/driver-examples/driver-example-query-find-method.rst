@@ -39,6 +39,12 @@
          document as the query filter parameter to the find method. The
          query filter parameter determines the select criteria:
 
+     - id: kotlin-coroutine
+       content: |
+         To select all documents in the collection, pass an empty
+         document as the query filter parameter to the find method. The
+         query filter parameter determines the select criteria:
+
      - id: nodejs
        content: |
          To select all documents in the collection, pass an empty
