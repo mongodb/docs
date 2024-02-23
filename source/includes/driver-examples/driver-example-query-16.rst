@@ -49,6 +49,15 @@
             :start-after: Start Example 16
             :end-before: End Example 16
 
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
+            :start-after: Start Example 16
+            :end-before: End Example 16
+
      - id: nodejs
        content: |
          .. literalinclude:: /driver-examples/node_query_embedded_documents.js
