@@ -1,4 +1,4 @@
-.. option:: --destinationAuthenticationMechanism <authentication mechanicsm>
+.. option:: --destinationAuthenticationMechanism <authentication mechanism>
 
    Authentication mechanism for the database user in the |service| 
    cluster. |service| offers the following forms of authentication for 
