@@ -10,7 +10,7 @@ tries to rerun the transaction after a :ref:`TransientTransactionError
 <transient-transaction-error>` or :ref:`UnknownTransactionCommitResult
 <unknown-transaction-commit-result>` commit error.
 
-Starting in MongoDB 6.2, the server does not retry the transaction if
+Starting in MongoDB 6.0.5, the server does not retry the transaction if
 it receives a :ref:`TransactionTooLargeForCache
 <transactionTooLargeForCache-error>` error.
 
