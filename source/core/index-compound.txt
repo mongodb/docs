@@ -186,15 +186,25 @@ MongoDB can also use the index to support a query on the ``item`` and
 ``stock`` fields, since the ``item`` field corresponds to a prefix.
 However, in this case the index would not be as efficient in supporting
 the query as it would be if the index were on only ``item`` and
-``stock``. Index fields are parsed in order; if a query omits a
-particular index prefix, it is unable to make use of any index fields
-that follow that prefix.
+``stock``.
 
 Since a query on ``item`` and ``stock`` omits the ``location`` index
 prefix, it cannot use the ``stock`` index field which follows
 ``location``.  Only the ``item`` field in the index can support this
-query. See :ref:`create-indexes-to-support-queries` for
-more information.
+query. See :ref:`create-indexes-to-support-queries` for more
+information. The index: 
+
+1. Matches keys for ``item``.
+2. Performs a filter within the ``IXSCAN`` stage on the ``stock`` field.
+3. Returns the filtered result. 
+
+For example, consider a query for ``"item":
+"saccharomyces cerevisiae"`` and ``"stock": 60``. If the collection
+contains 10000 documents matching ``"item":
+"saccharomyces cerevisiae"`` and only 100 of those documents matching 
+``"stock": 60``, the query examines 10000 keys. In the ``IXSCAN``
+stage, the query filters those keys by the ``stock`` field and only
+returns 100 results to the next stage.   
 
 MongoDB cannot use the index to support queries that include the
 following fields since without the ``item`` field, none of the listed
