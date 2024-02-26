@@ -1,3 +1,32 @@
+.. _atlas_2024_02_14:
+
+14 February 2024 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces :ref:`{+atlas-sp+} <what-is-atlas-sp>` in
+  public preview. With {+atlas-sp+}, you can process streaming data in 
+  |service|.
+- Supports |service| deployments in the following new 
+  :ref:`cloud provider regions <cloud-providers-list>`:
+
+  - |aws|
+   
+    - Israel (``il-central-1``)
+    - Canada West (``ca-west-1``)
+
+  - |azure|
+
+    - Poland (``polandcentral``)
+    - Israel Central (``israelcenttral``)
+    - Italy North (``italynorth``)
+
+  - |gcp|
+
+    - Berlin, Germany (``europe-west10``)
+
+- Supports adding resource tags to projects in |service|. To learn
+  more, see :ref:`project-tags`.
+
 .. _atlas_2024_01_24:
 
 24 January 2024 Release
