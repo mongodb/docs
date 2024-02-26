@@ -21,7 +21,7 @@ connection settings when constructing your ``MongoClient``.  Select the
 :guilabel:`MongoCredential` tab to see the syntax for authenticating using a
 ``MongoCredential``.
 
-For more information on these classes and methods, refer to the following API
+For more information about these classes and methods, see the following API
 documentation:
 
 - `MongoClients.create() <{+api+}/apidocs/mongodb-driver-sync/com/mongodb/client/MongoClients.html#create()>`__

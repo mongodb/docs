@@ -7,4 +7,4 @@ If you are not using an IDE, see
 `Building Maven <https://maven.apache.org/guides/development/guide-building-maven.html>`_
 or
 `Creating New Gradle Builds <https://guides.gradle.org/creating-new-gradle-builds/>`_
-for more information on how to set up your project.
+For more information about how to set up your project.
