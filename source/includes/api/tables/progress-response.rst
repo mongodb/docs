@@ -58,7 +58,16 @@
        ``.estimatedTotalBytes``
      - integer
      - Estimated total number of bytes to be copied globally by all
-       ``mongosync`` instances during the initial copying of collections.
+       ``mongosync`` instances during the initial copying of
+       collections.
+       
+       .. note::
+
+         ``mongosync`` approximates the estimated total number of bytes
+         prior to migration and does not update this value during the
+         synchronization process. This value does not reflect changes
+         made to the source cluster during sync and is not an accurate
+         indicator of migration progress. 
 
    * - ``collectionCopy``
        ``.estimatedCopiedBytes``
@@ -71,6 +80,14 @@
        of the ``estimatedCopiedBytes`` field for each ``mongosync`` instance
        and divide the result by the value of the ``estimatedTotalBytes`` field
        . Then, multiply the result by 100.
+
+       .. note::
+
+         The value of ``estimatedCopiedBytes`` may be larger than the
+         value of the ``estimatedTotalBytes`` due to retried operations.
+         A comparison of ``estimatedTotalBytes`` and
+         ``estimatedCopiedBytes`` is not an accurate indicator of
+         migration progress.  
 
    * - ``directionMapping``
      - object
