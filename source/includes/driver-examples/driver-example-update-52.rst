@@ -149,6 +149,17 @@
 
          .. include:: /includes/fact-update-operation-uses.rst
 
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
+            :start-after: Start Example 52
+            :end-before: End Example 52
+
+         .. include:: /includes/fact-update-operation-uses.rst
+
      - id: nodejs
        content: |
          .. literalinclude:: /driver-examples/node_update.js
