@@ -490,11 +490,6 @@ fun main() = runBlocking {
         .find(eq("item", null))
     // End Example 39
 
-    // Start Example 39
-    val findFlow = collection
-        .find(eq("item", null))
-    // End Example 39
-
     val findFlow = collection
         .find(ne("item", null))
 
