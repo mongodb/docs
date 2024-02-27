@@ -26,7 +26,7 @@ to use :ref:`static mappings <static-dynamic-mappings>`:
 .. code-block::
    :copyable: true
 
-   db.movies.updateSearchIndexes(
+   db.movies.updateSearchIndex(
        "default",
        {
            "mappings": {
