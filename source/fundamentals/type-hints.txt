@@ -1,340 +1,435 @@
-.. uses type-hints.rst
-
-.. _type_hints-example:
+.. _pymongo-type_hints:
 
 Type Hints
 ==========
 
-As of version 4.1, PyMongo ships with `type hints`_. With type hints, Python
-type checkers can easily find bugs before they reveal themselves in your code.
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
-If your IDE is configured to use type hints,
+.. facet::
+   :name: genre
+   :values: tutorial
+ 
+.. meta::
+   :keywords: mypy, type safety, compile time, type check, static
+
+If your IDE is configured to use `type hints <https://docs.python.org/3/library/typing.html>`__,
 it can suggest more appropriate completions and highlight errors in your code.
-Some examples include `PyCharm`_,  `Sublime Text`_, and `Visual Studio Code`_.
 
-You can also use the `mypy`_ tool from your command line or in Continuous Integration tests.
+All of the public APIs in PyMongo are fully type hinted, and several of them support
+generic parameters for the type of document object returned when decoding BSON documents.
 
-All of the public APIs in PyMongo are fully type hinted, and
-several of them support generic parameters for the
-type of document object returned when decoding BSON documents.
+For a larger set of examples that use types, see the PyMongo
+`test_typing module <https://github.com/mongodb/mongo-python-driver/blob/master/test/test_typing.py>`__.
 
-Due to `limitations in mypy`_, the default
-values for generic document types are not yet provided (they will eventually be ``Dict[str, any]``).
+.. note::
 
-For a larger set of examples that use types, see the PyMongo `test_typing module`_.
+   You can also use the `Mypy <https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html>`__
+   tool from your command line or in continuous-integration tests. However, due to
+   `limitations in Mypy <https://github.com/python/mypy/issues/3737>`__, the default
+   values for generic document types are not yet available. They will eventually be
+   ``Dict[str, any]``).
 
-If you would like to opt out of using the provided types, add the following to
-your `mypy config`_: :
+   If you are using Mypy and would like to opt out of using the provided types, add the
+   following lines to your
+   `Mypy configuration file <https://mypy.readthedocs.io/en/stable/config_file.html>`__:
 
-.. code-block:: python
+   .. code-block:: python
 
-    [mypy-pymongo]
-    follow_imports = False
-
+      [mypy-pymongo]
+      follow_imports = False
 
 Basic Usage
 -----------
 
-Note that a type for ``~pymongo.mongo_client.MongoClient`` must be specified.  Here we use the
-default, unspecified document type:
+The following code example specifies the ``MongoClient`` type for the ``MongoClient`` object, but
+doesn't specify a type for documents. Therefore, {+driver-short+}
+uses the default, unspecified type for these documents:
 
 .. code-block:: python
+   :emphasize-lines: 2
 
-  >>> from pymongo import MongoClient
-  >>> client: MongoClient = MongoClient()
-  >>> collection = client.test.test
-  >>> inserted = collection.insert_one({"x": 1, "tags": ["dog", "cat"]})
-  >>> retrieved = collection.find_one({"x": 1})
-  >>> assert isinstance(retrieved, dict)
+   >>> from pymongo import MongoClient
+   >>> client: MongoClient = MongoClient()
+   >>> collection = client.test.test
+   >>> inserted = collection.insert_one({"x": 1, "tags": ["dog", "cat"]})
+   >>> retrieved = collection.find_one({"x": 1})
+   >>> assert isinstance(retrieved, dict)
 
-For a more accurate typing for document type you can use:
+To specify a type for documents, you can use the ``Dict[str, Any]`` type when you
+create the ``MongoClient`` object, as shown in the following example:
 
 .. code-block:: python
+   :emphasize-lines: 1,3
 
-  >>> from typing import Any, Dict
-  >>> from pymongo import MongoClient
-  >>> client: MongoClient[Dict[str, Any]] = MongoClient()
-  >>> collection = client.test.test
-  >>> inserted = collection.insert_one({"x": 1, "tags": ["dog", "cat"]})
-  >>> retrieved = collection.find_one({"x": 1})
-  >>> assert isinstance(retrieved, dict)
+   >>> from typing import Any, Dict
+   >>> from pymongo import MongoClient
+   >>> client: MongoClient[Dict[str, Any]] = MongoClient()
+   >>> collection = client.test.test
+   >>> inserted = collection.insert_one({"x": 1, "tags": ["dog", "cat"]})
+   >>> retrieved = collection.find_one({"x": 1})
+   >>> assert isinstance(retrieved, dict)
 
 Typed Client
 ------------
 
-``~pymongo.mongo_client.MongoClient`` is generic on the document type used to decode BSON documents.
+When you create a ``MongoClient`` object, you can specify the document type used to
+decode BSON documents.
 
-You can specify a ``~bson.raw_bson.RawBSONDocument`` document type:
-
-.. code-block:: python
-
-  >>> from pymongo import MongoClient
-  >>> from bson.raw_bson import RawBSONDocument
-  >>> client = MongoClient(document_class=RawBSONDocument)
-  >>> collection = client.test.test
-  >>> inserted = collection.insert_one({"x": 1, "tags": ["dog", "cat"]})
-  >>> result = collection.find_one({"x": 1})
-  >>> assert isinstance(result, RawBSONDocument)
-
-Subclasses of ``collections.abc.Mapping`` can also be used, such as ``~bson.son.SON``:
+The following example shows how to specify a ``~bson.raw_bson.RawBSONDocument`` document type:
 
 .. code-block:: python
 
-  >>> from bson import SON
-  >>> from pymongo import MongoClient
-  >>> client = MongoClient(document_class=SON[str, int])
-  >>> collection = client.test.test
-  >>> inserted = collection.insert_one({"x": 1, "y": 2})
-  >>> result = collection.find_one({"x": 1})
-  >>> assert result is not None
-  >>> assert result["x"] == 1
+   >>> from pymongo import MongoClient
+   >>> from bson.raw_bson import RawBSONDocument
+   >>> client = MongoClient(document_class=RawBSONDocument)
+   >>> collection = client.test.test
+   >>> inserted = collection.insert_one({"x": 1, "tags": ["dog", "cat"]})
+   >>> result = collection.find_one({"x": 1})
+   >>> assert isinstance(result, RawBSONDocument)
 
-Note that when using ``~bson.son.SON``, the key and value types must be given, e.g. ``SON[str, Any]``.
+You can also use subclasses of ``collections.abc.Mapping`` such as ``~bson.son.SON``,
+as shown in the following example:
 
+.. code-block:: python
+
+   >>> from bson import SON
+   >>> from pymongo import MongoClient
+   >>> client = MongoClient(document_class=SON[str, int])
+   >>> collection = client.test.test
+   >>> inserted = collection.insert_one({"x": 1, "y": 2})
+   >>> result = collection.find_one({"x": 1})
+   >>> assert result is not None
+   >>> assert result["x"] == 1
+
+.. note::
+  
+   When you use the ``~bson.son.SON`` document type, you must also specify types
+   for the key and value. The preceding example uses ``SON[str, int]``.
 
 Typed Collection
 ----------------
 
-You can use ``~typing.TypedDict`` (Python 3.8+) when using a well-defined schema for the data in a
-``~pymongo.collection.Collection``. Note that all `schema validation`_ for inserts and updates is done on the server.
-These methods automatically add an "_id" field.
+If you use a well-defined schema for the the data in a
+``~pymongo.collection.Collection``, you can use the ``~typing.TypedDict`` class
+to declare types for the values of the elements in the collection.
+
+.. important::
+   
+   The ``TypedDict`` class is available only in Python 3.8 and later.
+   To use ``TypedDict`` in earlier versions of Python, install the ``typing_extensions``
+   package.
+
+In the following example, ``Movie`` is an instance of ``TypedDict``. Each ``Movie`` object
+contains two key-value pairs: ``name``, a string key with a string value, and
+``year``, a string key with an integer value.
+
+.. code-block:: python
+   :emphasize-lines: 1, 4-6
+
+   >>> from typing import TypedDict
+   >>> from pymongo import MongoClient
+   >>> from pymongo.collection import Collection
+   >>> class Movie(TypedDict):
+   ...     name: str
+   ...     year: int
+   ...
+   >>> client: MongoClient = MongoClient()
+   >>> collection: Collection[Movie] = client.test.test
+   >>> inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> assert result is not None
+   >>> assert result["year"] == 1993
+
+This same typing scheme works for all of the insert methods:
+
+- ``~pymongo.collection.Collection.insert_one()``
+- ``~pymongo.collection.Collection.insert_many()``
+- ``~pymongo.collection.Collection.bulk_write()``
+
+For ``bulk_write()``, both the ``~pymongo.operations.InsertOne()`` and
+``~pymongo.operations.ReplaceOne()`` operators are generic.
+
+The following code example shows that the results are the same as the preceding examples
+when you call the ``bulk_write()`` method:
 
 .. code-block:: python
 
-  >>> from typing import TypedDict
-  >>> from pymongo import MongoClient
-  >>> from pymongo.collection import Collection
-  >>> class Movie(TypedDict):
-  ...     name: str
-  ...     year: int
-  ...
-  >>> client: MongoClient = MongoClient()
-  >>> collection: Collection[Movie] = client.test.test
-  >>> inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
-  >>> result = collection.find_one({"name": "Jurassic Park"})
-  >>> assert result is not None
-  >>> assert result["year"] == 1993
-  >>> # This will raise a type-checking error, despite being present, because it is added by PyMongo.
-  >>> assert result["_id"]  # type:ignore[typeddict-item]
-
-This same typing scheme works for all of the insert methods (the ``~pymongo.collection.Collection.insert_one`` method,
-the ``~pymongo.collection.Collection.insert_many`` method, and the ``~pymongo.collection.Collection.bulk_write`` method).
-For ``bulk_write`` both ``~pymongo.operations.InsertOne`` and ``~pymongo.operations.ReplaceOne`` operators are generic.
-
-.. code-block:: python
-
-  >>> from typing import TypedDict
-  >>> from pymongo import MongoClient
-  >>> from pymongo.operations import InsertOne
-  >>> from pymongo.collection import Collection
-  >>> client: MongoClient = MongoClient()
-  >>> collection: Collection[Movie] = client.test.test
-  >>> inserted = collection.bulk_write([InsertOne(Movie(name="Jurassic Park", year=1993))])
-  >>> result = collection.find_one({"name": "Jurassic Park"})
-  >>> assert result is not None
-  >>> assert result["year"] == 1993
-  >>> # This will raise a type-checking error, despite being present, because it is added by PyMongo.
-  >>> assert result["_id"]  # type:ignore[typeddict-item]
+   >>> from typing import TypedDict
+   >>> from pymongo import MongoClient
+   >>> from pymongo.operations import InsertOne
+   >>> from pymongo.collection import Collection
+   >>> client: MongoClient = MongoClient()
+   >>> collection: Collection[Movie] = client.test.test
+   >>> inserted = collection.bulk_write([InsertOne(Movie(name="Jurassic Park", year=1993))])
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> assert result is not None
+   >>> assert result["year"] == 1993
+   >>> # This will raise a type-checking error, despite being present, because it is added by PyMongo.
+   >>> assert result["_id"]  # type:ignore[typeddict-item]
 
 Modeling Document Types with TypedDict
 --------------------------------------
 
-You can use ``~typing.TypedDict`` (Python 3.8+) to model structured data.
-As noted above, PyMongo will automatically add an ``_id`` field if it is not present. This also applies to TypedDict.
-There are three approaches to this:
+All `schema validation <https://www.mongodb.com/docs/manual/core/schema-validation/#when-to-use-schema-validation>`__
+for inserts and updates is done on the server. These methods automatically add an ``_id``
+field to each document that doesn't include one. There are three ways to handle the ``_id``
+field in your custom ``TypedDict`` class.
 
-1. Do not specify ``_id`` at all. It will be inserted automatically, and can be retrieved at run-time, but will yield a type-checking error unless explicitly ignored.
+If you don't specify the ``_id`` field, {+driver-short+} automatically inserts it.
+You can retrieve the value of the field at runtime, but you'll see a type error
+at compile time, as shown in the following example:
 
-#. Specify ``_id`` explicitly. This will mean that every instance of your custom TypedDict class will have to pass a value for ``_id``.
+.. code-block:: python
+   :emphasize-lines: 12-13
 
-#. Make use of ``~typing.NotRequired``. This has the flexibility of option 1, but with the ability to access the ``_id`` field without causing a type-checking error.
+   >>> from typing import TypedDict
+   >>> from pymongo import MongoClient
+   >>> from pymongo.collection import Collection
+   >>> class Movie(TypedDict):
+   ...     name: str
+   ...     year: int
+   ...
+   >>> client: MongoClient = MongoClient()
+   >>> collection: Collection[Movie] = client.test.test
+   >>> inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> # _id is present but was added by PyMongo; this will raise a type-checking error
+   >>> assert result["_id"]
 
-Note: to use ``~typing.TypedDict`` and ``~typing.NotRequired`` in earlier versions of Python (<3.8, <3.11), use the ``typing_extensions`` package.
+You can ignore this type error by adding a ``# type:ignore`` comment at the end of
+the line, as shown in the following example:
+
+.. code-block:: python
+   :emphasize-lines: 13
+
+   >>> from typing import TypedDict
+   >>> from pymongo import MongoClient
+   >>> from pymongo.collection import Collection
+   >>> class Movie(TypedDict):
+   ...     name: str
+   ...     year: int
+   ...
+   >>> client: MongoClient = MongoClient()
+   >>> collection: Collection[Movie] = client.test.test
+   >>> inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> # _id is present but was added by PyMongo; this will raise a type-checking error
+   >>> assert result["_id"]  # type:ignore[typeddict-item]
+
+If you explicitly specify a value for the ``_id`` field, every instance of your custom
+``TypedDict`` class must have a value for ``_id``.
+
+A third alternative is to install the ``~typing.NotRequired`` package. When you use this
+package, you can access the ``_id`` field at run-time, but you won't see a type error, and
+you don't need to include the field in every instance of your class.
+
+The following example shows how to implement these three approaches to the ``_id`` field:
 
 .. code-block:: python
 
-  >>> from typing import TypedDict, NotRequired
-  >>> from pymongo import MongoClient
-  >>> from pymongo.collection import Collection
-  >>> from bson import ObjectId
-  >>> class Movie(TypedDict):
-  ...     name: str
-  ...     year: int
-  ...
-  >>> class ExplicitMovie(TypedDict):
-  ...     _id: ObjectId
-  ...     name: str
-  ...     year: int
-  ...
-  >>> class NotRequiredMovie(TypedDict):
-  ...     _id: NotRequired[ObjectId]
-  ...     name: str
-  ...     year: int
-  ...
-  >>> client: MongoClient = MongoClient()
-  >>> collection: Collection[Movie] = client.test.test
-  >>> inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
-  >>> result = collection.find_one({"name": "Jurassic Park"})
-  >>> assert result is not None
-  >>> # This will yield a type-checking error, despite being present, because it is added by PyMongo.
-  >>> assert result["_id"]  # type:ignore[typeddict-item]
-  >>> collection: Collection[ExplicitMovie] = client.test.test
-  >>> # Note that the _id keyword argument must be supplied
-  >>> inserted = collection.insert_one(
-  ...     ExplicitMovie(_id=ObjectId(), name="Jurassic Park", year=1993)
-  ... )
-  >>> result = collection.find_one({"name": "Jurassic Park"})
-  >>> assert result is not None
-  >>> # This will not raise a type-checking error.
-  >>> assert result["_id"]
-  >>> collection: Collection[NotRequiredMovie] = client.test.test
-  >>> # Note the lack of _id, similar to the first example
-  >>> inserted = collection.insert_one(NotRequiredMovie(name="Jurassic Park", year=1993))
-  >>> result = collection.find_one({"name": "Jurassic Park"})
-  >>> assert result is not None
-  >>> # This will not raise a type-checking error, despite not being provided explicitly.
-  >>> assert result["_id"]
+   >>> from typing import TypedDict, NotRequired
+   >>> from pymongo import MongoClient
+   >>> from pymongo.collection import Collection
+   >>> from bson import ObjectId
+   >>> class Movie(TypedDict):
+   ...     name: str
+   ...     year: int
+   ...
+   >>> class ExplicitMovie(TypedDict):
+   ...     _id: ObjectId
+   ...     name: str
+   ...     year: int
+   ...
+   >>> class NotRequiredMovie(TypedDict):
+   ...     _id: NotRequired[ObjectId]
+   ...     name: str
+   ...     year: int
+   ...
+   >>> client: MongoClient = MongoClient()
+   >>> collection: Collection[Movie] = client.test.test
+   >>> inserted = collection.insert_one(Movie(name="Jurassic Park", year=1993))
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> assert result is not None
+   >>> # This will yield a type-checking error, despite being present, because it is added by PyMongo.
+   >>> assert result["_id"]  # type:ignore[typeddict-item]
+   >>> collection: Collection[ExplicitMovie] = client.test.test
+   >>> # Note that the _id keyword argument must be supplied
+   >>> inserted = collection.insert_one(
+   ...     ExplicitMovie(_id=ObjectId(), name="Jurassic Park", year=1993)
+   ... )
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> assert result is not None
+   >>> # This will not raise a type-checking error.
+   >>> assert result["_id"]
+   >>> collection: Collection[NotRequiredMovie] = client.test.test
+   >>> # Note the lack of _id, similar to the first example
+   >>> inserted = collection.insert_one(NotRequiredMovie(name="Jurassic Park", year=1993))
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> assert result is not None
+   >>> # This will not raise a type-checking error, despite not being provided explicitly.
+   >>> assert result["_id"]
 
+.. important::
+   
+   The ``NotRequired`` class is available only in Python 3.11 and later.
+   To use ``NotRequired`` in earlier versions of Python, install the ``typing_extensions``
+   package.
 
 Typed Database
 --------------
 
-While less common, you could specify that the documents in an entire database
-match a well-defined schema using ``~typing.TypedDict`` (Python 3.8+).
-
+You can also use the ``TypedDict`` class to declare that all documents in a database
+match a well-defined schema, as shown in the following example:
 
 .. code-block:: python
-
-  >>> from typing import TypedDict
-  >>> from pymongo import MongoClient
-  >>> from pymongo.database import Database
-  >>> class Movie(TypedDict):
-  ...     name: str
-  ...     year: int
-  ...
-  >>> client: MongoClient = MongoClient()
-  >>> db: Database[Movie] = client.test
-  >>> collection = db.test
-  >>> inserted = collection.insert_one({"name": "Jurassic Park", "year": 1993})
-  >>> result = collection.find_one({"name": "Jurassic Park"})
-  >>> assert result is not None
-  >>> assert result["year"] == 1993
+   :emphasize-lines: 9
+ 
+   >>> from typing import TypedDict
+   >>> from pymongo import MongoClient
+   >>> from pymongo.database import Database
+   >>> class Movie(TypedDict):
+   ...     name: str
+   ...     year: int
+   ...
+   >>> client: MongoClient = MongoClient()
+   >>> db: Database[Movie] = client.test
+   >>> collection = db.test
+   >>> inserted = collection.insert_one({"name": "Jurassic Park", "year": 1993})
+   >>> result = collection.find_one({"name": "Jurassic Park"})
+   >>> assert result is not None
+   >>> assert result["year"] == 1993
 
 Typed Command
 -------------
-When using the the ``~pymongo.database.Database.command`` method, you can specify the document type by providing a custom ``~bson.codec_options.CodecOptions``:
+
+When using the the ``~pymongo.database.Database.command()`` method, you can specify
+the document type by providing a custom ``~bson.codec_options.CodecOptions``:
 
 .. code-block:: python
+   :emphasize-lines: 3, 5
 
-  >>> from pymongo import MongoClient
-  >>> from bson.raw_bson import RawBSONDocument
-  >>> from bson import CodecOptions
-  >>> client: MongoClient = MongoClient()
-  >>> options = CodecOptions(RawBSONDocument)
-  >>> result = client.admin.command("ping", codec_options=options)
-  >>> assert isinstance(result, RawBSONDocument)
+   >>> from pymongo import MongoClient
+   >>> from bson.raw_bson import RawBSONDocument
+   >>> from bson import CodecOptions
+   >>> client: MongoClient = MongoClient()
+   >>> options = CodecOptions(RawBSONDocument)
+   >>> result = client.admin.command("ping", codec_options=options)
+   >>> assert isinstance(result, RawBSONDocument)
 
-Custom ``collections.abc.Mapping`` subclasses and ``~typing.TypedDict`` (Python 3.8+) are also supported.
-For ``~typing.TypedDict``, use the form: ``options: CodecOptions[MyTypedDict] = CodecOptions(...)``.
+Custom ``collections.abc.Mapping`` subclasses and ``~typing.TypedDict``
+are also supported document types. Use the following syntax for ``~typing.TypedDict``:
+
+.. code-block:: python
+  
+   options: CodecOptions[MyTypedDict] = CodecOptions(...)
 
 Typed BSON Decoding
 -------------------
-You can specify the document type returned by ``bson`` decoding functions by providing ``~bson.codec_options.CodecOptions``:
+
+You can specify the document type returned by BSON-decoding functions by providing
+``~bson.codec_options.CodecOptions``:
 
 .. code-block:: python
+   :emphasize-lines: 2,7,9-10
 
-  >>> from typing import Any, Dict
-  >>> from bson import CodecOptions, encode, decode
-  >>> class MyDict(Dict[str, Any]):
-  ...     def foo(self):
-  ...         return "bar"
-  ...
-  >>> options = CodecOptions(document_class=MyDict)
-  >>> doc = {"x": 1, "y": 2}
-  >>> bsonbytes = encode(doc, codec_options=options)
-  >>> rt_document = decode(bsonbytes, codec_options=options)
-  >>> assert rt_document.foo() == "bar"
+   >>> from typing import Any, Dict
+   >>> from bson import CodecOptions, encode, decode
+   >>> class MyDict(Dict[str, Any]):
+   ...     def foo(self):
+   ...         return "bar"
+   ...
+   >>> options = CodecOptions(document_class=MyDict)
+   >>> doc = {"x": 1, "y": 2}
+   >>> bsonbytes = encode(doc, codec_options=options)
+   >>> rt_document = decode(bsonbytes, codec_options=options)
+   >>> assert rt_document.foo() == "bar"
 
-``~bson.raw_bson.RawBSONDocument`` and ``~typing.TypedDict`` (Python 3.8+) are also supported.
-For ``~typing.TypedDict``, use  the form: ``options: CodecOptions[MyTypedDict] = CodecOptions(...)``.
+``~bson.raw_bson.RawBSONDocument`` and ``~typing.TypedDict`` are also supported document
+types. Use the following syntax for ``~typing.TypedDict``:
 
+.. code-block:: python
+  
+   options: CodecOptions[MyTypedDict] = CodecOptions(...)
 
 Troubleshooting
 ---------------
 
-Client Type Annotation
-~~~~~~~~~~~~~~~~~~~~~~
-If you forget to add a type annotation for a ``~pymongo.mongo_client.MongoClient`` object you may get the following ``mypy`` error:
+Client Type Annotations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If you don't add a type annotation for a ``~pymongo.mongo_client.MongoClient`` object,
+you might see the following Mypy error:
 
 .. code-block:: python
 
-  from pymongo import MongoClient
-  client = MongoClient()  # error: Need type annotation for "client"
+   from pymongo import MongoClient
+   client = MongoClient()  # error: Need type annotation for "client"
 
-The solution is to annotate the type as ``client: MongoClient`` or ``client: MongoClient[Dict[str, Any]]``.  See the Basic Usage section.
+The solution is to annotate the type as
+``client: MongoClient`` or ``client: MongoClient[Dict[str, Any]]``.
 
 Incompatible Types
 ~~~~~~~~~~~~~~~~~~
-If you use the generic form of ``~pymongo.mongo_client.MongoClient`` you
-may encounter a ``mypy`` error like:
+
+If you use the generic form of ``~pymongo.mongo_client.MongoClient``, you
+might see the following Mypy error:
 
 .. code-block:: python
 
-  from pymongo import MongoClient
+   from pymongo import MongoClient
 
-  client: MongoClient = MongoClient()
-  client.test.test.insert_many(
-      {"a": 1}
-  )  # error: Dict entry 0 has incompatible type "str": "int";
-     # expected "Mapping[str, Any]": "int"
+   client: MongoClient = MongoClient()
+   client.test.test.insert_many(
+       {"a": 1}
+   )  # error: Dict entry 0 has incompatible type "str": "int";
+      # expected "Mapping[str, Any]": "int"
 
+The solution is to declare the ``MongoClient`` as shown below:
 
-The solution is to use ``client: MongoClient[Dict[str, Any]]`` as used in
-the Basic Usage section.
+.. code-block:: python
+  
+   ``client: MongoClient[Dict[str, Any]]``
 
-Actual Type Errors
+You might also see an ``incompatible type`` error if you pass a list to the
+``insert_one()`` method, as shown in the following example:
+
+.. code-block:: python
+
+   from pymongo import MongoClient
+   from typing import Mapping
+   client: MongoClient = MongoClient()
+   client.test.test.insert_one(
+       [{}]
+   )  # error: Argument 1 to "insert_one" of "Collection" has
+      # incompatible type "List[Dict[<nothing>, <nothing>]]";
+      # expected "Mapping[str, Any]"
+
+The solution is to pass a document, rather than a list, to the ``insert_one({})`` method.
+
+Modifying Raw BSON
 ~~~~~~~~~~~~~~~~~~
 
-Other times ``mypy`` will catch an actual error, like the following code:
+Instances of the ``~bson.raw_bson.RawBSONDocument`` class are read-only.
+The following example shows the error you will see if you try to set a value on a
+``RawBSONDocument`` object:
 
 .. code-block:: python
 
-    from pymongo import MongoClient
-    from typing import Mapping
-    client: MongoClient = MongoClient()
-    client.test.test.insert_one(
-        [{}]
-    )  # error: Argument 1 to "insert_one" of "Collection" has
-       # incompatible type "List[Dict[<nothing>, <nothing>]]";
-       # expected "Mapping[str, Any]"
+   from bson.raw_bson import RawBSONDocument
+   from pymongo import MongoClient
 
-In this case the solution is to use ``insert_one({})``, passing a document instead of a list.
-
-Another example is trying to set a value on a ``~bson.raw_bson.RawBSONDocument``, which is read-only.:
-
-.. code-block:: python
-
-    from bson.raw_bson import RawBSONDocument
-    from pymongo import MongoClient
-
-    client = MongoClient(document_class=RawBSONDocument)
-    coll = client.test.test
-    doc = {"my": "doc"}
-    coll.insert_one(doc)
-    retrieved = coll.find_one({"_id": doc["_id"]})
-    assert retrieved is not None
-    assert len(retrieved.raw) > 0
-    retrieved[
-        "foo"
-    ] = "bar"  # error: Unsupported target for indexed assignment
-               # ("RawBSONDocument")  [index]
-
-.. _PyCharm: https://www.jetbrains.com/help/pycharm/type-hinting-in-product.html
-.. _Visual Studio Code: https://code.visualstudio.com/docs/languages/python
-.. _Sublime Text: https://github.com/sublimelsp/LSP-pyright
-.. _type hints: https://docs.python.org/3/library/typing.html
-.. _mypy: https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html
-.. _limitations in mypy: https://github.com/python/mypy/issues/3737
-.. _mypy config: https://mypy.readthedocs.io/en/stable/config_file.html
-.. _test_typing module: https://github.com/mongodb/mongo-python-driver/blob/master/test/test_typing.py
-.. _schema validation: https://www.mongodb.com/docs/manual/core/schema-validation/#when-to-use-schema-validation
+   client = MongoClient(document_class=RawBSONDocument)
+   coll = client.test.test
+   doc = {"my": "doc"}
+   coll.insert_one(doc)
+   retrieved = coll.find_one({"_id": doc["_id"]})
+   assert retrieved is not None
+   assert len(retrieved.raw) > 0
+   retrieved[
+       "foo"
+   ] = "bar"  # error: Unsupported target for indexed assignment
+              # ("RawBSONDocument")  [index]
