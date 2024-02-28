@@ -21,6 +21,15 @@
          .. figure:: /images/compass-match-embedded.png
             :alt: Query embedded field
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 15
+            :end-before: End Example 15  
+
      - id: python
        content: |
 

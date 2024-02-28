@@ -15,6 +15,15 @@
          .. figure:: /images/compass-insert-document-inventory.png
             :alt: Compass insert new document into collection
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 1
+            :end-before: End Example 1
+     
      - id: python
        content: |
 

@@ -13,6 +13,16 @@
          .. figure:: /images/compass-find-embedded-no-match.png
             :alt: Query embedded field
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 16
+            :end-before: End Example 16
+      
+            
      - id: python
        content: |
 

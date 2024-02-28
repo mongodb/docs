@@ -7,6 +7,13 @@
          more information and examples, see
          :method:`~db.collection.deleteMany()`.
 
+     - id: c
+       content: |
+         The `mongoc_collection_delete_many <https://mongoc.org/libmongoc/current/mongoc_collection_delete_many.html>`__ 
+         method returns ``true`` if successful, or returns ``false`` and sets 
+         an error if there are invalid arguments or a server or network error 
+         occurs.
+
      - id: python
        content: |
          The :py:meth:`~pymongo.collection.Collection.delete_many`

@@ -35,6 +35,16 @@
             Compass, see the
             :ref:`Compass documentation <insert-documents>`.
 
+
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 55
+            :end-before: End Example 55
+
      - id: python
        content: |
 

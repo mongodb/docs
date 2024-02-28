@@ -11,6 +11,17 @@
                { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
             )
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 54
+            :end-before: End Example 54
+        
+         .. include:: /includes/driver-examples/driver-example-c-cleanup.rst
+     
      - id: python
        content: |
 

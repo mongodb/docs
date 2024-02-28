@@ -21,6 +21,16 @@
          .. figure:: /images/compass-find-filter-query-op.png
             :alt: Query using query operators
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 10
+            :end-before: End Example 10
+         
+
      - id: python
        content: |
 

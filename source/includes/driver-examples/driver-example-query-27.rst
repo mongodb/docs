@@ -21,6 +21,16 @@
          .. figure:: /images/compass-array-match-by-index.png
             :alt: Query array by index
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 27
+            :end-before: End Example 27
+    
+            
      - id: python
        content: |
 

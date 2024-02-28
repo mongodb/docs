@@ -33,6 +33,16 @@
          For instructions on inserting documents using |compass|, see
          :ref:`Insert Documents <write-op-insert>`.
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 3
+            :end-before: End Example 3
+
+
      - id: python
        content: |
 

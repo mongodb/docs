@@ -29,7 +29,15 @@
          For instructions on inserting documents in MongoDB Compass,
          see :doc:`Insert Documents </tutorial/insert-documents>`.
 
+     - id: c
+       content: |
 
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 42
+            :end-before: End Example 42
+            
      - id: python
        content: |
 

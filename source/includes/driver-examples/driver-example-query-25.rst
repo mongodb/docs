@@ -21,6 +21,16 @@
          .. figure:: /images/compass-array-compound-filter.png
             :alt: Query array using a compound filter
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 25
+            :end-before: End Example 25
+   
+            
      - id: python
        content: |
 

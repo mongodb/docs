@@ -8,6 +8,16 @@
 
             db.inventory.deleteMany({ status : "A" })
 
+     
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 57
+            :end-before: End Example 57
+            
      - id: python
        content: |
 

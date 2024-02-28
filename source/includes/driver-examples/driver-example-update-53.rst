@@ -16,6 +16,16 @@
 
          .. include:: /includes/fact-update-many-operation-uses.rst
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 53
+            :end-before: End Example 53
+         
+            
      - id: python
        content: |
 

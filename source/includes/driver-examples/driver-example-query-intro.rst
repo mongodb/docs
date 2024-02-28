@@ -8,6 +8,13 @@
 
          .. include:: /includes/driver-examples/examples-intro.rst
 
+     - id: c
+       content: |
+         This page provides examples of |query_operations| using
+         `mongoc_collection_find_with_opts <https://mongoc.org/libmongoc/current/mongoc_collection_find_with_opts.html>`__.
+
+         .. include:: /includes/driver-examples/examples-intro.rst
+
      - id: compass
        content: |
          This page provides examples of |query_operations| using

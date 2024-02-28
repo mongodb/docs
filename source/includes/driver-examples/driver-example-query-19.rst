@@ -21,6 +21,16 @@
          .. figure:: /images/compass-find-embedded-and.png
             :alt: Query multiple nested fields
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 19
+            :end-before: End Example 19
+      
+            
      - id: python
        content: |
 

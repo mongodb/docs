@@ -21,6 +21,16 @@
          .. figure:: /images/compass-array-compound-multiple-criteria.png
             :alt: Query array by multiple conditions
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 26
+            :end-before: End Example 26
+         
+            
      - id: python
        content: |
 

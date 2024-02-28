@@ -21,6 +21,16 @@
          .. figure:: /images/compass-find-nested-in-array.png
             :alt: Query for nested array element
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 30
+            :end-before: End Example 30
+         
+
      - id: python
        content: |
 

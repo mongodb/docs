@@ -22,6 +22,17 @@
          .. figure:: /images/compass-find-null-existence-check.png
             :alt: Query for null value
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 41
+            :end-before: End Example 41
+         
+         .. include:: /includes/driver-examples/driver-example-c-cleanup.rst
+            
      - id: python
        content: |
 

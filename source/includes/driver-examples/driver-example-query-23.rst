@@ -21,6 +21,16 @@
          .. figure:: /images/compass-array-elem-match.png
             :alt: Query array matching multiple criteria
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 23
+            :end-before: End Example 23
+           
+            
      - id: python
        content: |
 

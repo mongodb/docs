@@ -107,6 +107,16 @@
                :ref:`Field Update Operators <field-update-operators>`,
                you must manually enter the date value in Compass.
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 52
+            :end-before: End Example 52
+   
+            
      - id: python
        content: |
 

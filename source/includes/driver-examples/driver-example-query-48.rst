@@ -32,6 +32,15 @@
 
          #. Click :guilabel:`Find`.
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 48
+            :end-before: End Example 48  
+
      - id: python
        content: |
 

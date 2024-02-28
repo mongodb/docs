@@ -28,6 +28,15 @@
                { item: 1, status: 1, "instock.qty": 1 }
 
          #. Click :guilabel:`Find`.
+     
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 49
+            :end-before: End Example 49  
 
      - id: python
        content: |

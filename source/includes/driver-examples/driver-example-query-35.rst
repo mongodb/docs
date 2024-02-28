@@ -20,6 +20,15 @@
 
          .. figure:: /images/compass-array-multiple-cond-single-doc-2.png
             :alt: Query for single document matching multiple conditions
+     
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 35
+            :end-before: End Example 35
 
      - id: python
        content: |

@@ -22,6 +22,16 @@
          .. figure:: /images/compass-find-null-field.png
             :alt: Query null value or missing field
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 39
+            :end-before: End Example 39
+  
+            
      - id: python
        content: |
 

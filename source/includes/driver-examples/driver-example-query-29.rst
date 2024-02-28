@@ -29,6 +29,16 @@
          For instructions on inserting documents in MongoDB Compass, see
          :ref:`Insert Documents <write-op-insert>`.
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 29
+            :end-before: End Example 29
+    
+            
      - id: python
        content: |
 

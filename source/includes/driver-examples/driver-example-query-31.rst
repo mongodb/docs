@@ -13,6 +13,16 @@
          .. figure:: /images/compass-find-nested-array-no-match.png
             :alt: Query for nested array element
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 31
+            :end-before: End Example 31
+          
+            
      - id: python
        content: |
 

@@ -21,6 +21,16 @@
          .. figure:: /images/compass-array-query-op.png
             :alt:  Query array for at least one matching element
 
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 24
+            :end-before: End Example 24
+ 
+
      - id: python
        content: |
 
