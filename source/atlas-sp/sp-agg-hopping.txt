@@ -42,25 +42,29 @@ stage.
 
       {
         "$hoppingWindow": {
-          "idleTimeout": {
-            "size": <number>,
-            "unit": <string>
-          },
           "interval": { 
-            "size": <number>,
-            "unit": <string>
+            "size": <int>,
+            "unit": "<unit-of-time>"
           },
           "hopSize": {
-            "size": <number>,
-            "unit": <string>
-          },
-          "allowedLateness": {
-            size: <int> 
-            unit: "<unit-of-time>" 
+            "size": <int>,
+            "unit": "<unit-of-time>"
           },
           "pipeline" : [ 
             <aggregation-stage-array> 
-          ]
+          ],
+          "offset": {
+            "offsetFromUtc": <int>,
+            "unit": "<unit-of-time>"
+          },
+          "idleTimeout": {
+            "size": <int>,
+            "unit": "<unit-of-time>"
+          },
+          "allowedLateness": {
+            "size": <int>,
+            "unit": "<unit-of-time>" 
+          },
         }  
       }
 
@@ -79,14 +83,24 @@ fields:
      - Necessity 
      - Description
 
-   * - ``allowedLateness``
+   * - ``interval``
      - document 
-     - Optional
-     - Document that specifies how long to keep 
-       :ref:`windows <atlas-sp-windows>` generated from the 
-       source open to accept late-arriving data after processing
-       documents for window end time. If omitted, defaults to 3
-       seconds. 
+     - Required
+     - Document specifying the interval of a 
+       :ref:`hopping window <hopping-windows>` as a combination of
+       a size and a unit of time where: 
+       
+       - The value of ``size`` must be a non-zero positive integer. 
+       - The value of ``unit`` can be one of the following:
+
+         - ``"ms"`` (millisecond)
+         - ``"second"``
+         - ``"minute"``
+         - ``"hour"``
+         - ``"day"``
+
+       For example, a ``size`` of ``20`` and a ``unit`` of ``second``
+       sets each window to remain open for 20 seconds.
 
    * - ``hopSize``
      - document 
@@ -106,6 +120,32 @@ fields:
        
        For example, a ``size`` of ``10`` and a ``unit`` of ``second``
        defines a 10-second hop between window start times.
+
+   * - ``pipeline`` 
+     - array
+     - Required 
+     - Nested aggregation pipeline evaluated against the messages
+       within the window.
+
+   * - ``offset``
+     - document
+     - Optional
+     - Document specifying a time offset for window boundaries relative 
+       to UTC. The document is a combination of the size field 
+       ``offsetFromUtc`` and a unit of time where:
+       
+       - The value of ``offsetFromUtc`` must be a non-zero positive integer. 
+       - The value of ``unit`` must be one of the following:
+
+         - ``"ms"`` (millisecond)
+         - ``"second"``
+         - ``"minute"``
+         - ``"hour"``
+       
+       For example, an ``offsetFromUtc`` of ``8`` and a ``unit`` of 
+       ``hour`` generates boundaries that are shifted eight hours
+       ahead of UTC. If you do not specify an offset, the window 
+       boundaries align with UTC.
 
    * - ``idleTimeout`` 
      - document 
@@ -138,30 +178,14 @@ fields:
        minutes of idleness at 1:00 pm, which is longer than
        ``idleTimeout`` time and the remaining window time.  
  
-   * - ``interval``
+   * - ``allowedLateness``
      - document 
-     - Required
-     - Document specifying the interval of a 
-       :ref:`hopping window <hopping-windows>` as a combination of
-       a size and a unit of time where: 
-       
-       - The value of ``size`` must be a non-zero positive integer. 
-       - The value of ``unit`` can be one of the following:
-
-         - ``"ms"`` (millisecond)
-         - ``"second"``
-         - ``"minute"``
-         - ``"hour"``
-         - ``"day"``
-
-       For example, a ``size`` of ``20`` and a ``unit`` of ``second``
-       sets each window to remain open for 20 seconds.
-
-   * - ``pipeline`` 
-     - array
-     - Required 
-     - Nested aggregation pipeline evaluated against the messages
-       within the window.
+     - Optional
+     - Document that specifies how long to keep 
+       :ref:`windows <atlas-sp-windows>` generated from the 
+       source open to accept late-arriving data after processing
+       documents for window end time. If omitted, defaults to 3
+       seconds. 
 
 Behavior
 ~~~~~~~~
