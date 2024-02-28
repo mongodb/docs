@@ -1,3 +1,12 @@
+.. _adf-v20240228:
+
+28 February 2024 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Makes :ref:`Azure data stores <adf-configuration-file-azure>`
+  generally available for both your development and production
+  deployments. 
+
 .. _adf-v20240214:
 
 14 February 2024 Release 
