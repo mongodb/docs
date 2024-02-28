@@ -1,86 +1,84 @@
-.. uses gridfs.rst
+.. _pymongo-gridfs:
 
-GridFS Example
-==============
+GridFS
+======
 
-.. code-block:: python
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
-  from pymongo import MongoClient
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: binary large object, blob, file, storage
 
-  client = MongoClient()
-  client.drop_database("gridfs_example")
-
-This example shows how to use ``gridfs`` to store large binary
-objects (e.g. files) in MongoDB.
-
-.. seealso:: The API docs for ``gridfs``.
-
-.. seealso:: `This blog post
-   <http://dirolf.com/2010/03/29/new-gridfs-implementation-for-pymongo.html>`_
-   for some motivation behind this API.
+This guide shows how to use GridFS to store and retrieve large files
+in MongoDB.
 
 Setup
 -----
 
-We start by creating a ``~gridfs.GridFS`` instance to use:
+Each ``GridFS`` instance operates on a specific MongoDB database.
+To create a ``GridFS`` instance, call the ``GridFS()``
+constructor and pass in a MongoDB database:
 
 .. code-block:: python
 
-  >>> from pymongo import MongoClient
-  >>> import gridfs
-  >>>
-  >>> db = MongoClient().gridfs_example
-  >>> fs = gridfs.GridFS(db)
-
-Every ``~gridfs.GridFS`` instance is created with and will
-operate on a specific ``~pymongo.database.Database`` instance.
+   >>> from pymongo import MongoClient
+   >>> import gridfs
+   >>>
+   >>> db = MongoClient().gridfs_example
+   >>> fs = gridfs.GridFS(db)
 
 Saving and Retrieving Data
 --------------------------
 
-The simplest way to work with ``gridfs`` is to use its key/value
-interface (the the ``~gridfs.GridFS.put`` method and
-the ``~gridfs.GridFS.get`` method methods). To write data to GridFS, use
-the ``~gridfs.GridFS.put`` method:
+GridFS offers a key-value-pair interface through the ``~gridfs.GridFS.put()`` and
+``~gridfs.GridFS.get()`` methods.
+
+To write data to GridFS, use the ``~gridfs.GridFS.put()`` method:
 
 .. code-block:: python
 
-  >>> a = fs.put(b"hello world")
+   >>> a = fs.put("hello world")
 
-the ``~gridfs.GridFS.put`` method creates a new file in GridFS, and returns
-the value of the file document's ``"_id"`` key. Given that ``"_id"``
-we can use the ``~gridfs.GridFS.get`` method to get back the contents of the
-file:
-
-.. code-block:: python
-
-  >>> fs.get(a).read()
-  b'hello world'
-
-the ``~gridfs.GridFS.get`` method returns a file-like object, so we get the
-file's contents by calling the ``~gridfs.grid_file.GridOut.read`` method.
-
-In addition to putting a ``str`` as a GridFS file, we can also
-put any file-like object (an object with a the ``read`` method
-method). GridFS will handle reading the file in chunk-sized segments
-automatically. We can also add additional attributes to the file as
-keyword arguments:
+The ``~gridfs.GridFS.put()`` method creates a new file in GridFS, and returns
+the value of the file's ``_id`` key. You can use the file's returned ``_id``
+value to retrieve the contents of the file:
 
 .. code-block:: python
 
-  >>> b = fs.put(fs.get(a), filename="foo", bar="baz")
-  >>> out = fs.get(b)
-  >>> out.read()
-  b'hello world'
-  >>> out.filename
-  'foo'
-  >>> out.bar
-  'baz'
-  >>> out.upload_date
-  datetime.datetime(...)
+   >>> fs.get(a).read()
+   'hello world'
 
-The attributes we set in the ``~gridfs.GridFS.put`` method are stored in the
-file document, and retrievable after calling
-the ``~gridfs.GridFS.get`` method. Some attributes (like ``"filename"``) are
-special and are defined in the GridFS specification - see that
-document for more details.
+The ``~gridfs.GridFS.get()`` method returns a file-like object. To read the
+file's contents, call the ``~gridfs.grid_file.GridOut.read()`` method. You can store
+any object that has a ``read()`` method in GridFS.
+
+The following code example shows how to add additional attributes to a file.
+To add an attribute, pass it as a named argument to the ``~gridfs.GridFS.put()`` method.
+To retrieve an attribute's value, call
+the ``~gridfs.GridFS.get()`` method to retrieve the file-like object,
+then use the attribute name to access each value on this object.
+
+.. code-block:: python
+
+   >>> b = fs.put(fs.get(a), filename="foo", bar="baz")
+   >>> out = fs.get(b)
+   >>> out.read()
+   'hello world'
+   >>> out.filename
+   'foo'
+   >>> out.bar
+   'baz'
+   >>> out.upload_date
+   datetime.datetime(...)
+
+.. note::
+
+   Some attributes (for example, ``"filename"``) are GridFS keywords and can't be
+   assigned values.
