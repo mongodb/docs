@@ -30,42 +30,47 @@ The :pipeline:`$source` stage specifies a connection in the
 :ref:`Connection Registry <manage-spi-connection-add>` to stream data
 from. The following connection types are supported:
 
-- An {+kafka+} broker
-- The change stream for a specific MongoDB collection within a database
-- The change stream for an entire MongoDB database
-- An array of documents
+- {+kafka+} broker
+- MongoDB collection change stream 
+- MongoDB database change stream
+- Document array
 
 .. note:: 
 
-   You can't use |service| serverless instances as a :pipeline:`$source`.
+   You can't use |service| serverless instances as a 
+   :pipeline:`$source`.
 
 .. pipeline:: $source
 
-   The ``$source`` pipeline stage has the following prototype form:
+{+kafka+} Broker
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   To operate on streaming data from a {+kafka+} broker, the 
+   ``$source`` stage has the following prototype form:
 
    .. code-block:: json
 
       {
         "$source": {
 	        "connectionName": "<registered-connection>",
-	        "topic" : "<source-topic>" | "db" : "<source-db>" | "documents" : [{source-doc},...],
-          "coll" : ["<source-coll>",...],
-          "config": { 
-            "autoOffsetReset": "<start-event>",
-            "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
-            "fullDocument": "<full-doc-condition>",
-            "fullDocumentOnly": <boolean>
-            "fullDocumentBeforeChange": "<before-change-condition>",          
-          },
-          "tsFieldOverride": "<timestamp>" 
+	        "topic" : "<source-topic>",
           "timeField": { 
             $toDate | $dateFromString: <expression>
-          }
+          },
+          "tsFieldOverride": "<timestamp>", 
+          "partitionIdleTimeout": {
+            "size": <duration-number>,
+            "unit": "<duration-unit>"
+          },
+          "config": { 
+            "autoOffsetReset": "<start-event>",
+            "group_id": "<group-id>"
+          },
         }
       }
 
 Fields
-~~~~~~
+------
 
 The ``$source`` stage takes a document with the following fields: 
 
@@ -78,23 +83,15 @@ The ``$source`` stage takes a document with the following fields:
      - Necessity 
      - Description
 
-   * - ``coll``
-     - string or array of strings
-     - Conditional
-     - Name of one or more MongoDB collections hosted on the |service|
-       instance specified by ``connectionName``. The change stream of
-       these collections act as the streaming data source. This field is 
-       necessary for and limited to connections to MongoDB collections.
-
    * - ``config``
      - document 
      - Optional
      - Document containing fields that override various default 
-       values.  
+       values.
 
    * - ``config.auto_offset_reset`` 
      - string 
-     - Conditional
+     - Optional
      - Specifies which event in the {+kafka+} source topic to begin 
        ingestion with. ``auto_offset_reset`` takes the following values: 
        
@@ -103,14 +100,12 @@ The ``$source`` stage takes a document with the following fields:
          initialized.
        - ``earliest``, ``beginning``, or ``smallest`` - to begin
          ingestion from the earliest event in the topic. 
-         
-       This field only applies to {+kafka+} sources.
 
        Defaults to ``latest``.
 
    * - ``config.group_id`` 
      - string
-     - Conditional 
+     - Optional 
      - ID of the kafka consumer group to associate with the stream
        processor. If omitted, {+atlas-sp+} associates the {+spi+} with
        an auto-generated ID in the following format:  
@@ -120,132 +115,26 @@ The ``$source`` stage takes a document with the following fields:
 
           asp-${streamProcessorId}-consumer
 
-       {+atlas-sp+} commits partition offsets to the {+kafka+} broker for the
-       specified consumer group ID after a checkpoint is committed. It
-       commits an offset when messages up through that offset are durably
-       recorded in a checkpoint. This allows you to track the offset lag
-       and progress of the stream processor directly from the Kafka
-       broker consumer group metadata. 
-
-       This field applies only to {+kafka+} sources.
-
-   * - ``config.startAfter`` 
-     - resumeToken
-     - Conditional
-     - The change event after which the source begins reporting.
-       This takes the form of a :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
-
-       You can use only one of either ``config.startAfter`` or ``config.StartAtOperationTime``.
-
-   * - ``config.startAtOperationTime`` 
-     - timestamp
-     - Conditional
-     - The operation time after which the source should begin reporting.
-
-       You can use only one of either ``config.startAfter`` or ``config.StartAtOperationTime``.
-
-   * - ``config.fullDocument``
-     - string
-     - Conditional
-     - Setting that controls whether a change stream source should 
-       return a full document, or only the changes when an update 
-       occurs. Must be one of the following:
-
-       - ``updateLookup`` - Returns only changes on update.
-       - ``required`` - Must return a full document. If a full document
-         is unavailable, returns nothing.
-       - ``whenAvailable`` - Returns a full document whenever one is 
-         available, otherwise returns changes.
-      
-       If you do not specify a value for fullDocument, it defaults to
-       ``updateLookup``.
-
-       This field applies only to connections to MongoDB change streams.
-       
-       To use this field with a collection change stream, you must
-       enable change stream :ref:`Pre- and Post-Images <collMod-change-stream-pre-and-post-images>`
-       on that collection.
-
-       To use this field with a database change stream, you must 
-       enable change stream pre- and post-images on every collection 
-       in that database.
-
-   * - ``config.fullDocumentOnly``
-     - boolean
-     - Conditional
-     - Setting that controls whether a change stream source returns 
-       the entire change event document including all metadata, or 
-       only the contents of ``fullDocument``. If set to ``true``, the 
-       source returns only the contents of ``fullDocument``.
-
-       This field applies only to connections to MongoDB change streams.
-       
-       To use this field with a collection change stream, you must
-       enable change stream :ref:`Pre- and Post-Images <collMod-change-stream-pre-and-post-images>`
-       on that collection.
-
-       To use this field with a database change stream, you must 
-       enable change stream Pre- and Post-Images on every collection 
-       in that database.
-
-   * - ``config.fullDocumentBeforeChange``
-     - string
-     - Optional
-     - Specifies whether a change stream source should include the
-       full document in its original "before changes" state
-       in the output. Must be one of the following:
-
-       - ``off`` - Omits the ``fullDocumentBeforeChange`` field.
-       - ``required`` - Must return a full document in its before
-         changes state. If a full document in its before changes state
-         is unavailable, the stream processor fails.
-       - ``whenAvailable`` - Returns a full document in its before
-         changes state whenever one is 
-         available, otherwise omits the ``fullDocumentBeforeChange`` field.
-      
-       If you do not specify a value for ``fullDocumentBeforeChange``,
-       it defaults to ``off``.
-
-       This field is limited to connections to MongoDB change streams.
-       
-       To use this field with a collection change stream, you must
-       enable change stream :ref:`Pre- and Post-Images <collMod-change-stream-pre-and-post-images>`
-       on that collection.
-
-       To use this field with a database change stream, you must 
-       enable change stream Pre- and Post-Images on every collection 
-       in that database.
+       {+atlas-sp+} commits partition offsets to the {+kafka+} broker 
+       for the specified consumer group ID after a checkpoint is 
+       committed. It commits an offset when messages up through that 
+       offset are durably recorded in a checkpoint. This allows you to 
+       track the offset lag and progress of the stream processor 
+       directly from the Kafka broker consumer group metadata. 
 
    * - ``connectionName`` 
      - string
-     - Conditional
+     - Required
      - Label that identifies the connection in the
        :ref:`Connection Registry <manage-spi-connection-add>`, to 
-       ingest data from. Do not use this field when using the 
-       ``documents`` field.
-
-   * - ``db``
-     - string
-     - Conditional
-     - Name of a MongoDB database hosted on the |service| instance
-       specified by ``connectionName``. The change stream of this 
-       database acts as the streaming data source. This field is
-       necessary for and limited to connections to MongoDB databases or
-       collections.
-
-   * - ``documents``
-     - array
-     - Conditional
-     - Array of documents to use as a streaming data source. The 
-       value of this field can either be an array of objects or an 
-       expression that evaluates to an array of objects. Do not use this
-       field when using the ``connectionName`` field.
+       ingest data from.
 
    * - ``partitionIdleTimeout``
      - document
      - Optional
      - Document specifying the amount of time that a partition is
-       allowed to be idle before it is ignored in watermark calculations. This field is limited to connections to {+kafka+} brokers.
+       allowed to be idle before it is ignored in watermark 
+       calculations.
 
    * - ``timeField``
      - document
@@ -266,10 +155,8 @@ The ``$source`` stage takes a document with the following fields:
 
    * - ``topic``
      - string
-     - Conditional 
-     - Name of the {+kafka+} topic to stream messages from. This
-       field is necessary for and limited to connections to {+kafka+}
-       brokers.
+     - Required
+     - Name of the {+kafka+} topic to stream messages from.
 
    * - ``tsFieldOverride``
      - string 
@@ -284,6 +171,420 @@ The ``$source`` stage takes a document with the following fields:
        between these fields, use ``tsFieldOverride`` to rename any
        source-provided field named ``_ts`` before additional processing
        takes place.
+
+MongoDB Collection Change Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   To operate on streaming data from an {+service+} collection change
+   stream, the ``$source`` stage has the following prototype form:
+
+   .. code-block:: json
+
+      {
+        "$source": {
+	        "connectionName": "<registered-connection>",
+          "timeField": { 
+            $toDate | $dateFromString: <expression>
+          },
+          "tsFieldOverride": "<timestamp>",
+          "allowedLateness": {
+            "size": <duration-number>,
+            "unit": "<duration-unit>"
+          },
+	        "db" : "<source-db>",
+          "coll" : ["<source-coll>",...],
+          "config": { 
+            "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
+            "fullDocument": "<full-doc-condition>",
+            "fullDocumentOnly": <boolean>,
+            "fullDocumentBeforeChange": "<before-change-condition>",          
+          },
+        }
+      }
+
+Fields
+------
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Conditional
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <manage-spi-connection-add>`, to 
+       ingest data from.
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldOverride``
+     - string 
+     - Optional
+     - Name that overrides the name of default timestamp fields
+       declared by the source.
+
+       {+atlas-sp+} pipelines internally add a field to incoming 
+       messages called ``_ts`` to store checkpointing information.
+       Sources of streaming data might also use a field named ``_ts`` 
+       to store the timestamps of each message. To prevent a conflict 
+       between these fields, use ``tsFieldOverride`` to rename any
+       source-provided field named ``_ts`` before additional processing
+       takes place.
+
+   * - ``db``
+     - string
+     - Name of a MongoDB database hosted on the |service| instance
+       specified by ``connectionName``. The change stream of this 
+       database acts as the streaming data source.
+
+   * - ``coll``
+     - string or array of strings
+     - Name of one or more MongoDB collections hosted on the |service|
+       instance specified by ``connectionName``. The change stream of
+       these collections act as the streaming data source.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.  
+
+   * - ``config.startAfter`` 
+     - resumeToken
+     - Conditional
+     - The change event after which the source begins reporting.
+       This takes the form of a 
+       :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.startAtOperationTime`` 
+     - timestamp
+     - Conditional
+     - The operation time after which the source should begin 
+       reporting.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.fullDocument``
+     - string
+     - Conditional
+     - Setting that controls whether a change stream source should 
+       return a full document, or only the changes when an update 
+       occurs. Must be one of the following:
+
+       - ``updateLookup`` - Returns only changes on update.
+       - ``required`` - Must return a full document. If a full document
+         is unavailable, returns nothing.
+       - ``whenAvailable`` - Returns a full document whenever one is 
+         available, otherwise returns changes.
+      
+       If you do not specify a value for fullDocument, it defaults to
+       ``updateLookup``.
+
+       To use this field with a collection change stream, you must
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on that collection.
+
+   * - ``config.fullDocumentOnly``
+     - boolean
+     - Conditional
+     - Setting that controls whether a change stream source returns 
+       the entire change event document including all metadata, or 
+       only the contents of ``fullDocument``. If set to ``true``, the 
+       source returns only the contents of ``fullDocument``.
+
+       To use this field with a collection change stream, you must
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on that collection.
+
+   * - ``config.fullDocumentBeforeChange``
+     - string
+     - Optional
+     - Specifies whether a change stream source should include the
+       full document in its original "before changes" state
+       in the output. Must be one of the following:
+
+       - ``off`` - Omits the ``fullDocumentBeforeChange`` field.
+       - ``required`` - Must return a full document in its before
+         changes state. If a full document in its before changes state
+         is unavailable, the stream processor fails.
+       - ``whenAvailable`` - Returns a full document in its before
+         changes state whenever one is 
+         available, otherwise omits the ``fullDocumentBeforeChange`` field.
+      
+       If you do not specify a value for ``fullDocumentBeforeChange``,
+       it defaults to ``off``.
+
+       To use this field with a collection change stream, you must
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on that collection.
+
+MongoDB Database Change Stream
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   To operate on streaming data from an {+service+} database change
+   stream, the ``$source`` stage has the following prototype form:
+
+   .. code-block:: json
+
+      {
+        "$source": {
+	        "connectionName": "<registered-connection>",
+          "timeField": { 
+            $toDate | $dateFromString: <expression>
+          },
+          "tsFieldOverride": "<timestamp>",
+          "allowedLateness": {
+            "size": <duration-number>,
+            "unit": "<duration-unit>"
+          },
+	        "db" : "<source-db>",
+          "config": { 
+            "startAfter": <start-token> | "startAtOperationTime": <timestamp>,
+            "fullDocument": "<full-doc-condition>",
+            "fullDocumentOnly": <boolean>,
+            "fullDocumentBeforeChange": "<before-change-condition>",          
+          },
+        }
+      }
+
+Fields
+------
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Conditional
+     - Label that identifies the connection in the
+       :ref:`Connection Registry <manage-spi-connection-add>`, to 
+       ingest data from.
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldOverride``
+     - string 
+     - Optional
+     - Name that overrides the name of default timestamp fields
+       declared by the source.
+
+       {+atlas-sp+} pipelines internally add a field to incoming 
+       messages called ``_ts`` to store checkpointing information.
+       Sources of streaming data might also use a field named ``_ts`` 
+       to store the timestamps of each message. To prevent a conflict 
+       between these fields, use ``tsFieldOverride`` to rename any
+       source-provided field named ``_ts`` before additional processing
+       takes place.
+
+   * - ``db``
+     - string
+     - Name of a MongoDB database hosted on the |service| instance
+       specified by ``connectionName``. The change stream of this 
+       database acts as the streaming data source.
+
+   * - ``config``
+     - document 
+     - Optional
+     - Document containing fields that override various default 
+       values.  
+
+   * - ``config.startAfter`` 
+     - resumeToken
+     - Conditional
+     - The change event after which the source begins reporting.
+       This takes the form of a 
+       :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.startAtOperationTime`` 
+     - timestamp
+     - Conditional
+     - The operation time after which the source should begin 
+       reporting.
+
+       You can use only one of either ``config.startAfter`` or 
+       ``config.StartAtOperationTime``.
+
+   * - ``config.fullDocument``
+     - string
+     - Conditional
+     - Setting that controls whether a change stream source should 
+       return a full document, or only the changes when an update 
+       occurs. Must be one of the following:
+
+       - ``updateLookup`` - Returns only changes on update.
+       - ``required`` - Must return a full document. If a full document
+         is unavailable, returns nothing.
+       - ``whenAvailable`` - Returns a full document whenever one is 
+         available, otherwise returns changes.
+      
+       If you do not specify a value for fullDocument, it defaults to
+       ``updateLookup``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentOnly``
+     - boolean
+     - Conditional
+     - Setting that controls whether a change stream source returns 
+       the entire change event document including all metadata, or 
+       only the contents of ``fullDocument``. If set to ``true``, the 
+       source returns only the contents of ``fullDocument``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+   * - ``config.fullDocumentBeforeChange``
+     - string
+     - Optional
+     - Specifies whether a change stream source should include the
+       full document in its original "before changes" state
+       in the output. Must be one of the following:
+
+       - ``off`` - Omits the ``fullDocumentBeforeChange`` field.
+       - ``required`` - Must return a full document in its before
+         changes state. If a full document in its before changes state
+         is unavailable, the stream processor fails.
+       - ``whenAvailable`` - Returns a full document in its before
+         changes state whenever one is 
+         available, otherwise omits the ``fullDocumentBeforeChange`` field.
+      
+       If you do not specify a value for ``fullDocumentBeforeChange``,
+       it defaults to ``off``.
+
+       To use this field with a database change stream, you must 
+       enable change stream :ref:`Pre- and Post-Images 
+       <collMod-change-stream-pre-and-post-images>` on every collection 
+       in that database.
+
+Document Array
+~~~~~~~~~~~~~~
+
+   To operate on an array of documents, the ``$source`` stage has the 
+   following prototype form:
+
+   .. code-block:: json
+
+      {
+        "$source": {
+          "timeField": { 
+            $toDate | $dateFromString: <expression>
+          },
+          "tsFieldOverride": "<timestamp>",
+          "documents" : [{source-doc},...] | <expression>
+        }
+      }
+
+Fields
+------
+
+The ``$source`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 16 17 17 60
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+
+   * - ``timeField``
+     - document
+     - Optional 
+     - Document that defines an authoritative timestamp for incoming
+       messages.
+       
+       If you use ``timeField``, you must define it as one of the
+       following:
+
+       - a ``$toDate`` expression that takes a source message field as 
+         an argument
+       - a ``$dateFromString`` expression that takes a source message 
+         field as an argument.
+
+       If you do not declare a ``timeField``, {+atlas-sp+} creates a
+       timestamp from the message timestamp provided by the source.
+
+   * - ``tsFieldOverride``
+     - string 
+     - Optional
+     - Name that overrides the name of default timestamp fields
+       declared by the source.
+
+       {+atlas-sp+} pipelines internally add a field to incoming 
+       messages called ``_ts`` to store checkpointing information.
+       Sources of streaming data might also use a field named ``_ts`` 
+       to store the timestamps of each message. To prevent a conflict 
+       between these fields, use ``tsFieldOverride`` to rename any
+       source-provided field named ``_ts`` before additional processing
+       takes place.
+
+   * - ``documents``
+     - array
+     - Conditional
+     - Array of documents to use as a streaming data source. The 
+       value of this field can either be an array of objects or an 
+       expression that evaluates to an array of objects. Do not use this
+       field when using the ``connectionName`` field.
 
 Behavior
 ~~~~~~~~
