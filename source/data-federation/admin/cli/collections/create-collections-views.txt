@@ -44,6 +44,13 @@ Click on the tab to learn more about creating a collection or a view.
             This tab contains the syntax and parameters for creating a 
             collection for |s3| {+fdi+} store.
 
+         .. tab:: Azure  
+            :tabid: azure 
+
+            This tab contains the syntax and parameters for creating a 
+            collection for |azure| {+fdi+} store.
+
+
          .. tab:: Atlas Cluster 
             :tabid: atlas
 
@@ -86,6 +93,14 @@ Syntax
       
          .. tab:: S3  
             :tabid: s3
+
+            .. code-block:: sh 
+               :copyable: true
+
+               db.runCommand({ "create" : "<collection-name>|*", "dataSources" : [{ "storeName" : "<store-name>", "path" : "<path-to-files-or-folders>", "defaultFormat" :  "<file-extension>" }]})
+
+         .. tab:: Azure  
+            :tabid: azure
 
             .. code-block:: sh 
                :copyable: true
@@ -178,6 +193,57 @@ Parameters
                * - ``dataSources.path``
                  - string
                  - The path to the files and folders. Specify ``/`` to 
+                   capture all files and folders from the ``prefix`` 
+                   path. See :ref:`adf-path-syntax` for more 
+                   information. 
+                 - Required
+
+               * - ``dataSources.defaultFormat`` 
+                 - string 
+                 - .. include:: /includes/extracts/cli-param-default-format.rst
+                 - Optional
+
+         .. tab:: Azure Configuration 
+            :tabid: azure
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 20 15 50 15 
+
+               * - Parameter 
+                 - Type 
+                 - Description 
+                 - Necessity
+
+               * - ``<collection-name>|*``
+                 - string
+                 - .. include:: /includes/extracts/cli-param-collection-name.rst
+
+                   You can generate collection names dynamically from 
+                   file paths by  specifying ``*`` for the collection 
+                   name and the ``collectionName()`` function in the 
+                   ``dataSources.collection`` field. By default, 
+                   {+adf+} creates up to ``100`` wildcard collections. 
+                   You can customize the maximum number of wildcard 
+                   collections that {+adf+} automatically generates 
+                   using the :datalakeconf-aws:`databases.[n].maxWildcardCollections` 
+                   parameter. Note that each wildcard collection can 
+                   contain only one ``dataSource``.
+                 - Required
+
+               * - ``dataSources``
+                 - object 
+                 - .. include:: /includes/extracts/cli-param-data-sources.rst
+                 - Required
+
+               * - ``dataSources.storeName``
+                 - string
+                 - .. include:: /includes/extracts/cli-param-data-sources-store-name.rst
+                 - Required
+
+               * - ``dataSources.path``
+                 - string
+                 - Path to the files and folders. Specify ``/`` to 
                    capture all files and folders from the ``prefix`` 
                    path. See :ref:`adf-path-syntax` for more 
                    information. 
@@ -512,6 +578,28 @@ Examples
                * - **Sample Dataset**
                  - ``airbnb``
 
+         .. tab:: Azure Example 
+            :tabid: azure
+
+            The following examples use the sample ``airbnb`` data on an
+            {+az-bs+} container with the following settings:
+
+            .. list-table:: 
+               :stub-columns: 1
+               :widths: 20 80
+
+               * - **Store Name** 
+                 - ``egAzureStore``
+
+               * - **Prefix**
+                 - ``sample``
+
+               * - **Delimiter**
+                 - ``/``
+
+               * - **Sample Dataset**
+                 - ``airbnb``
+
          .. tab:: Atlas Example 
             :tabid: atlas 
 
@@ -641,6 +729,43 @@ Examples
 		                  }]
 	                  }
                   }
+
+         .. tab:: Azure Example 
+            :tabid: azure
+      
+            The ``airbnb`` collection maps to the ``airbnb`` sample 
+            dataset in the ``sample`` folder in the |azure| store named 
+            ``egAzureStore``.
+
+            .. io-code-block::
+               :copyable: true 
+   
+               .. input::
+                  :language: javascript
+
+                  use sampleDB
+                  db.runCommand({ "create" : "airbnb", "dataSources" : [{ "storeName" : "egAzureStore", "path" : "/sample/airbnb", "defaultFormat" : ".json" }]})
+
+               .. output::
+                  :language: json
+
+                  { "ok" : 1 }
+
+            The following commands show that the collection was 
+            successfully created: 
+
+            .. io-code-block::
+               :copyable: true 
+   
+               .. input::
+                  :language: javascript 
+
+                  show collections
+
+               .. output::
+                  :language: javascript
+
+                  airbnb
 
          .. tab:: Atlas Example 
             :tabid: atlas
@@ -984,6 +1109,93 @@ Examples
 	                       }
                         }
          
+         .. tab:: Azure Example 
+            :tabid: azure
+
+            The following examples show how to specify a wildcard
+            ``"*"`` with the ``create`` command.
+
+            .. tabs:: 
+
+               .. tab:: Collection Name Example
+                  :tabid: collnameeg
+         
+                  The following example uses the ``create`` command to 
+                  dynamically create collections for the files in the 
+                  path ``/sample/`` in the ``egAzureStore`` {+fdi+}
+                  store. It uses the ``collectionName()`` function to
+                  name the collections after the filenames in the
+                  specified path. 
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript 
+         
+                        use sampleDB 
+                        db.runCommand({ "create" : "*", "dataSources" : [{ "storeName" : "egAzureStore", "path": "/json/{collectionName()}"}]})
+
+                     .. output::
+                        :language: json 
+
+                        { "ok" : 1 }
+      
+                  The following commands show that the collection was 
+                  successfully created:
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript 
+
+                        show collections
+                    
+                     .. output::
+                        :language: javascript
+
+                        airbnb
+
+               .. tab:: Path Glob Example
+                  :tabid: pathglobeg
+
+                  The following example uses the ``create`` command to 
+                  create a collection named ``egCollection`` that maps 
+                  to a {+adf+} store named ``egAzureStore``. The 
+                  ``egAzureStore`` contains the sample dataset,
+                  ``airbnb``, in a folder named ``sample``. 
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript  
+      
+                        use sampleDB
+                        db.runCommand({ "create" : "egCollection", "dataSources" : [{ "storeName" : "egAzureStore", "path": "/sample/*"}]}})
+
+                     .. output::
+                        :language: json 
+
+                        { "ok" : 1 }
+
+                  The following commands show that the collection was 
+                  successfully created: 
+
+                  .. io-code-block::
+                     :copyable: true 
+   
+                     .. input::
+                        :language: javascript 
+
+                        show collections
+
+                     .. output::
+                        :language: javascript
+
+                        egCollection
+
          .. tab:: Atlas Example 
             :tabid: atlas
 
@@ -1208,7 +1420,6 @@ Examples
                           }
                         }
 
-
          .. tab:: HTTP Example 
             :tabid: http
 
@@ -1273,6 +1484,12 @@ Examples
         collection on the |service| cluster named ``myTestCluster``
       - ``airbnb`` dataset in the |url| ``https://atlas-data-lake.s3.amazonaws.com/json/sample_airbnb/listingsAndReviews.json``
 
+      .. warning:: 
+
+         You can't create a {+fdi+} that maps to both |aws| |s3| buckets
+         and {+az-bs+} containers. {+adf+} doesn't support federated
+         queries across different cloud providers. 
+
       .. io-code-block::
          :copyable: true 
    
@@ -1321,7 +1538,7 @@ Examples
 			         {
 				        "name" : "egS3Store",
 				        "provider" : "s3",
-	   			     "region" : "us-east-2",
+				        "region" : "us-east-2",
 				        "bucket" : "test-data-federation",
 				        "delimiter" : "/",
 				        "prefix" : ""
@@ -1329,7 +1546,7 @@ Examples
 			         {
 				        "name" : "egAtlasStore",
 				        "provider" : "atlas",
-			   	     "clusterName" : "myTestCluster",
+				        "clusterName" : "myTestCluster",
 				        "projectId" : "<project-id>"
 			         },
 			         {
@@ -1495,7 +1712,7 @@ Verify Collection
 -----------------
 
 You can verify that the command successfully created the 
-collection or view by running one of the following commands: 
+collection or view by running any of the following commands: 
 
 .. code-block:: shell
 

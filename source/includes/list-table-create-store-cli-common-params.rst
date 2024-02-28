@@ -22,9 +22,15 @@
        Value can be one of the following: 
        
        - ``s3`` for an |aws| |s3| bucket.
+       - ``azure`` for {+az-bs+} container.
        - ``atlas`` for |service| cluster.
        - ``http`` for files hosted at publicly accessible |url|\s.
-       - ``dls:aws`` for {+adl+} datasets.
+       - ``dls:<subtype>`` for {+adl+} datasets. {+adf+} supports the
+         following subtypes:
+
+         - ``aws`` - for data stored on |aws|. Value must be ``dls:aws``. 
+         - ``azure`` - for data stored on |azure|. Value must be
+           ``dls:azure``. 
 
      - yes
      

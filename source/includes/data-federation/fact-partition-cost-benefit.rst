@@ -9,3 +9,8 @@ Processed" cost in addition to the "Data Returned" cost:
   Processed" cost.
 - If you have 10 partitions of 1 GB each, {+adf+} targets and reads a 
   single partition. Therefore, you incur 1 GB of "Data Processed" cost.
+
+You can configure :ref:`query limits <adf-manage-query-limits>` per
+{+fdi+} and for all {+fdi+}\s in your project to limit the amount of
+:ref:`processed data <atlas-data-federation-billing>`. To learn more,
+see :ref:`adf-manage-query-limits`.

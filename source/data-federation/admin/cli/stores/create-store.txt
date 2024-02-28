@@ -25,6 +25,24 @@ source.
       This tab contains the syntax and parameters for creating a 
       {+fdi+} store for data in |aws| |s3| bucket.
 
+      .. important:: 
+
+         You can't create a {+fdi+} that maps to both |aws| |s3| buckets
+         and {+az-bs+} containers. {+adf+} doesn't support federated
+         queries across different cloud providers. 
+
+   .. tab:: Azure  
+      :tabid: azure
+
+      This tab contains the syntax and parameters for creating a 
+      {+fdi+} store for data in {+az-bs+} containers.
+
+      .. note:: 
+
+         You can't create a {+fdi+} that maps to both {+az-bs+}
+         containers and |aws| |s3| buckets. {+adf+} doesn't support
+         federated queries across different cloud providers. 
+
    .. tab:: Atlas Cluster 
       :tabid: atlas 
 
@@ -60,7 +78,15 @@ Syntax
       .. code-block:: sh 
          :copyable: true
 
-         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, bucket: <bucket-name>, additionalStorageClasses: [ <storage-classes> ], delimiter: <delimiter>, prefix: <prefix>, public: true|false })
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, bucket: <bucket-name>, additionalStorageClasses: [ <storage-classes> ], delimiter: <delimiter>, public: true|false })
+
+   .. tab:: Azure Configuration 
+      :tabid: azure
+
+      .. code-block:: sh 
+         :copyable: true
+
+         db.runCommand({ createStore: <store-name>, provider: <storage-provider>, region: <region-name>, serviceURL: <service-account-URL>, containerName: <storage-container-name>, delimiter: <delimiter>, public: true|false })
 
    .. tab:: Atlas Configuration 
       :tabid: atlas 
@@ -155,13 +181,59 @@ Parameters
              - ``false`` to require the |aws| |iam| role to access the 
                bucket
              
-             If ommitted, defaults to ``false``.
+             If omitted, defaults to ``false``.
            - no
 
-         * - ``prefix`` 
+   .. tab:: Azure Configuration
+      :tabid: azure
+
+      .. include:: /includes/list-table-create-store-cli-common-params.rst
+
+      .. list-table::
+         :widths: 27 10 53 10 
+
+         * - ``region``
+           - string
+           - Region in which the container is hosted. For a list of 
+             valid region names, see :atlas:`Microsoft Azure
+             </reference/microsoft-azure/>`. 
+           - yes
+
+         * - ``serviceURL`` 
            - string 
-           - Value prepended to the ``path``. If ommitted, defaults to 
-             ``""``.
+           - |url| of the {+az-bs+} account that contains your blob
+             containers. For example: 
+
+             .. code-block:: 
+
+                https://<azure-storage-account-name>.blob.core.windows.net/
+
+           - yes
+
+         * - ``containerName`` 
+           - string 
+           - Name of the {+az-bs+} container that contains the files.
+             For more information, see |azure| documentation for `Naming
+             and Referencing Containers <https://learn.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata>`__.
+           - yes
+
+         * - ``delimiter`` 
+           - string 
+           - Character used to separate path segments in the 
+             {+fdi+} store. If omitted, defaults to ``"/"``.
+           - no
+
+         * - ``public`` 
+           - boolean 
+           - Flag that indicates whether or not the {+az-bs+} container
+             is public. Valid values are:
+
+             - ``true`` to not use the |azure| Service Principal to
+               access the bucket
+             - ``false`` to require the |azure| Service Principal to
+               access the bucket
+             
+             If omitted, defaults to ``false``.
            - no
 
    .. tab:: Atlas Configuration 
@@ -297,7 +369,24 @@ fails, see :ref:`adf-create-store-cmd-errors` for recommended solutions.
             "bucket": "<bucket-name>",
             "additionalStorageClasses": ["<storage-classes>"]
             "delimiter": "<delimiter>",
-            "prefix": "<prefix>",
+            "provider": "<storage-provider>"
+          }
+        }
+
+   .. tab:: Azure Configuration 
+      :tabid: azure
+
+      .. code-block:: json 
+         :copyable: false
+
+        {
+          "ok": 1,
+          "store": {
+            "name": "<store-name>",
+            "region": "<region-name>",
+            "serviceURL": "<service-account-URL>",
+            "containerName": "<storage-container-name>"
+            "delimiter": "<delimiter>",
             "provider": "<storage-provider>"
           }
         }
@@ -378,7 +467,7 @@ The following example uses the ``createStore`` command to create a new
             :language: javascript 
 
             use sample
-            db.runCommand({ createStore: "myStore", provider: "s3", region: "us-east-1", bucket: "my-bucket", "additionalStorageClasses" : ["STANDARD_IA","INTELLIGENT_TIERING"], prefix: "/sample" })
+            db.runCommand({ createStore: "myStore", provider: "s3", region: "us-east-1", bucket: "my-bucket", "additionalStorageClasses" : ["STANDARD_IA","INTELLIGENT_TIERING"] })
 
          .. output::
             :language: json
@@ -394,8 +483,34 @@ The following example uses the ``createStore`` command to create a new
 			            "INTELLIGENT_TIERING"
 		            ],
                 "delimiter": "/",
-                "prefix": "/sample",
                 "provider": "s3"
+              }
+            }
+
+   .. tab:: Azure Configuration 
+      :tabid: azure
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript 
+
+            use sample
+            db.runCommand({ createStore: "myStore", provider: "azure", region: "eastus2", serviceURL: "https://mystorage.blob.core.windows.net/", "containerName" : "my-data-container" })
+
+         .. output::
+            :language: json
+
+            {
+              "ok": 1,
+              "store": {
+                "name": "myStore",
+                "region": "eastus2",
+                "serviceURL": "https://mystorage.blob.core.windows.net/",
+                "containerName" : "my-data-container",
+                "delimiter": "/",
+                "provider": "azure"
               }
             }
 
@@ -523,6 +638,9 @@ If the command fails, it returns one of the following errors.
 
    .. tab:: S3 Configuration 
       :tabid: s3
+
+   .. tab:: Azure Configuration 
+      :tabid: azure
 
    .. tab:: Atlas Configuration 
       :tabid: atlas 
