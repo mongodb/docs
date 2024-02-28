@@ -45,6 +45,9 @@ Patch Releases
       * - :issue:`SERVER-58936`
         - 5.0.0 - 5.0.1
 
+      * - :issue:`SERVER-60176`
+        - 5.0.0 - 5.0.21
+
       * - :issue:`SERVER-68511`
         - 5.0.0 - 5.0.10
 
@@ -579,8 +582,6 @@ Issues fixed:
 
 The rest of this page provides the 5.0.0 release notes:
 
-.. _5.0-rel-notes-agg:
-
 Time Series Collections
 -----------------------
 
@@ -589,6 +590,8 @@ MongoDB 5.0 introduces :ref:`time series collections
 measurements over a period of time. Compared to normal collections,
 storing time series data in time series collections improves query
 efficiency and reduces disk usage for your data and indexes.
+
+.. _5.0-rel-notes-agg:
 
 Aggregation
 -----------
@@ -1190,8 +1193,8 @@ with this naming change.
 
 .. _5.0-rel-notes-general:
 
-General Improvements
---------------------
+General Changes
+---------------
 
 Execution Plan Statistics for Query with ``$lookup`` Pipeline Stage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1223,17 +1226,6 @@ The :writeconcern:`{ w: "majority" } <"majority">` default
 :ref:`write concern <write-concern>` provides a stronger
 durability guarantee in the event of an election, or if replica set
 members become unavailable.
-
-The :writeconcern:`{ w: "majority" } <"majority">` write concern may
-impact performance since writes will only be acknowledged once a
-:ref:`calculated majority <calculating-majority-count>` of replica set
-members have executed and persisted the write to disk. If your
-application relies on performance-sensitive writes, you can use the
-:dbcommand:`setDefaultRWConcern` command to explicitly set the default
-write concern for improved performance at the cost of data durability
-guarantees. You can also set the write concern at the individual
-operation level for performance-critical writes. See your
-:driver:`driver documentation </>` for details. 
 
 ``mongosShutdownTimeoutMillisForSignaledShutdown`` Parameter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1515,6 +1507,55 @@ New ``validateDBMetadata`` Command
 MongoDB 5.0 adds the :dbcommand:`validateDBMetadata` command. The 
 :dbcommand:`validateDBMetadata` command checks that the stored metadata 
 of a database or a collection is valid within a particular API version.
+
+.. _5.0-rel-notes-performance: 
+
+Performance Considerations
+--------------------------
+
+Implicit Default Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 changes the default :ref:`write concern <write-concern>` to 
+:writeconcern:`{ w: "majority" } <"majority">`. The new default write concern 
+might impact performance since MongoDB acknowledges writes only after a 
+:ref:`calculated majority <calculating-majority-count>` of replica set
+members have executed and persisted the write to disk. 
+
+If your application relies on performance-sensitive writes, you can 
+override the default write concern at the cost of data durability guarantees. 
+To override this setting, you can: 
+
+- Set the write concern at the individual operation level for 
+  performance-critical writes. For more information, see your 
+  :driver:`driver documentation </>`.
+
+- Use the :dbcommand:`setDefaultRWConcern` command to explicitly set the default 
+  write concern. 
+
+.. include:: /includes/w-1-rollback-warning.rst
+
+``local`` Default Read Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.0-read-concern-latency.rst
+
+Snapshot History Retention
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 5.0 increases the default value of 
+:parameter:`minSnapshotHistoryWindowInSeconds` to ``300``, which might 
+negatively impact performance.  If you aren't using read concern 
+:readconcern:`"snapshot"`, you can reduce the value of the 
+``minSnapshotHistoryWindowInSeconds`` parameter to ``5`` on all 
+:binary:`~bin.mongod` instances. For more information, see 
+:ref:`storage-snapshot-history`.
+
+.. note:: 
+
+   If you are running a sharded cluster, do not change 
+   ``minSnapshotHistoryWindowInSeconds`` on :ref:`config servers 
+   <sharding-config-server>`.
 
 .. _5.0-rel-notes-platforms:
 
