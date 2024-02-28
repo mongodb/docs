@@ -46,10 +46,6 @@ You can configure the following properties when reading data from MongoDB in str
    * - ``collection``
      - | **Required.**
        | The collection name configuration.
-       | You can specify multiple collections by separating the collection names
-         with a comma.
-       |
-       | To learn more about specifying multiple collections, see :ref:`spark-specify-multiple-collections`.
 
    * - ``comment``
      - | The comment to append to the read operation. Comments appear in the 
@@ -172,7 +168,7 @@ You can configure the following properties when reading a change stream from Mon
          omit the ``fullDocument`` field and publishes only the value of the
          field.
        - If you don't specify a schema, the connector infers the schema
-         from the change stream document.
+         from the change stream document rather than from the underlying collection.
 
        **Default**: ``false``
        
@@ -208,90 +204,3 @@ Specifying Properties in ``connection.uri``
 -------------------------------------------
 
 .. include:: /includes/connection-read-config.rst
-
-.. _spark-specify-multiple-collections:
-
-Specifying Multiple Collections in the ``collection`` Property
---------------------------------------------------------------
-
-You can specify multiple collections in the ``collection`` change stream
-configuration property by separating the collection names
-with a comma. Do not add a space between the collections unless the space is a
-part of the collection name.
-
-Specify multiple collections as shown in the following example:
-
-.. code-block:: java
-
-   ...
-   .option("spark.mongodb.collection", "collectionOne,collectionTwo")
-
-If a collection name is "*", or if the name includes a comma or a backslash (\\),
-you must escape the character as follows:
-
-- If the name of a collection used in your ``collection`` configuration
-  option contains a comma, the {+connector-short+} treats it as two different
-  collections. To avoid this, you must escape the comma by preceding it with
-  a backslash (\\). Escape a collection named "my,collection" as follows:
-
-  .. code-block:: java
-
-     "my\,collection"
-
-- If the name of a collection used in your ``collection`` configuration
-  option is "*", the {+connector-short+} interprets it as a specification
-  to scan all collections. To avoid this, you must escape the asterisk by preceding it
-  with a backslash (\\). Escape a collection named "*" as follows:
-
-  .. code-block:: java
-
-     "\*"
-
-- If the name of a collection used in your ``collection`` configuration
-  option contains a backslash (\\), the
-  {+connector-short+} treats the backslash as an escape character, which
-  might change how it interprets the value. To avoid this, you must escape
-  the backslash by preceding it with another backslash. Escape a collection named "\\collection" as follows:
-
-  .. code-block:: java
-
-     "\\collection"
-  
-  .. note:: 
-     
-     When specifying the collection name as a string literal in Java, you must
-     further escape each backslash with another one. For example, escape a collection 
-     named "\\collection" as follows:
-
-     .. code-block:: java
-
-        "\\\\collection"
-
-You can stream from all collections in the database by passing an
-asterisk (*) as a string for the collection name.
-
-Specify all collections as shown in the following example:
-
-.. code-block:: java
-
-   ...
-   .option("spark.mongodb.collection", "*")
-
-If you create a collection while streaming from all collections, the new
-collection is automatically included in the stream. 
-
-You can drop collections at any time while streaming from multiple collections.
-
-.. important:: Inferring the Schema with Multiple Collections
-
-   If you set the ``change.stream.publish.full.document.only``
-   option to ``true``, the {+connector-short+} infers the schema of a ``DataFrame``
-   by using the schema of the scanned documents. 
-   
-   Schema inference happens at the beginning of streaming, and does not take
-   into account collections that are created during streaming.
-
-   When streaming from multiple collections and inferring the schema, the connector samples
-   each collection sequentially. Streaming from a large number of
-   collections can cause the schema inference to have noticeably slower
-   performance. This performance impact occurs only while inferring the schema.
