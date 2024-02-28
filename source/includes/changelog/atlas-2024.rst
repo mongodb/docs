@@ -1,3 +1,12 @@
+.. _atlas_2024_02_28:
+
+28 February 2024 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports archiving data using {+Online-Archive+} to |azure| storage
+  for |service| {+clusters+} deployed on |azure|. To learn more,
+  see :ref:`config-online-archive`.
+
 .. _atlas_2024_02_14:
 
 14 February 2024 Release
