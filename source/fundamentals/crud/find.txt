@@ -1,217 +1,191 @@
-.. uses tutorial.rst
+.. _pymongo-find:
 
-Getting a Single Document With the ``~pymongo.collection.Collection.find_one`` method
----------------------------------------------------------------------------------
-The most basic type of query that can be performed in MongoDB is
-the ``~pymongo.collection.Collection.find_one`` method. This method returns a
-single document matching a query (or ``None`` if there are no
-matches). It is useful when you know there is only one matching
-document, or are only interested in the first match. Here we use
-the ``~pymongo.collection.Collection.find_one`` method to get the first
-document from the posts collection:
+==================
+Retrieve Documents
+==================
 
-.. code-block:: python
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
 
-  >>> import pprint
-  >>> pprint.pprint(posts.find_one())
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['mongodb', 'python', 'pymongo'],
-   'text': 'My first blog post!'}
+.. facet::
+   :name: genre
+   :values: reference
 
-The result is a dictionary matching the one that we inserted previously.
+.. meta::
+   :keywords: retrieve, query
 
-.. note:: The returned document contains an ``"_id"``, which was
-   automatically added on insert.
+In this guide, you can learn how to use {+driver-short+} to retrieve data from a
+MongoDB collection.
 
-the ``~pymongo.collection.Collection.find_one`` method also supports querying
-on specific elements that the resulting document must match. To limit
-our results to a document with author "Mike" we do:
+Find a Single Document
+----------------------
 
-.. code-block:: python
+The ``~pymongo.collection.Collection.find_one()`` method returns a
+single document matching a query, or ``None`` if there are no
+matches. Use this method when you know there is only one matching
+document, or to see only the first document that matches a query. 
 
-  >>> pprint.pprint(posts.find_one({"author": "Mike"}))
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['mongodb', 'python', 'pymongo'],
-   'text': 'My first blog post!'}
-
-If we try with a different author, like "Eliot", we'll get no result:
+The following example uses the ``find_one()`` method to retrieve the first
+document from the ``posts`` collection: 
 
 .. code-block:: python
 
-  >>> posts.find_one({"author": "Eliot"})
-  >>>
+   >>> import pprint
+   >>> pprint.pprint(posts.find_one())
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['mongodb', 'python', 'pymongo'],
+    'text': 'My first blog post!'}
+
+The ``find_one()`` method also supports querying
+with specific elements that the resulting document must match.
+
+The following example retrieves a document with a value of "Mike" in the
+``author`` field:
+
+.. code-block:: python
+
+   >>> pprint.pprint(posts.find_one({"author": "Mike"}))
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['mongodb', 'python', 'pymongo'],
+    'text': 'My first blog post!'}
+
+If the search query doesn't find a matching document, the ``find_one()`` method returns nothing:
+
+.. code-block:: python
+
+   >>> posts.find_one({"author": "Eliot"})
+   >>>
 
 .. _querying-by-objectid:
 
 Querying By ObjectId
---------------------
-We can also find a post by its ``_id``, which in our example is an ObjectId:
+~~~~~~~~~~~~~~~~~~~~
+
+You can also find a document by its ``_id``. 
+
+The following example retrieves a document based on the ``_id``, which is an
+``ObjectId``:
 
 .. code-block:: python
 
-  >>> post_id
-  ObjectId(...)
-  >>> pprint.pprint(posts.find_one({"_id": post_id}))
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['mongodb', 'python', 'pymongo'],
-   'text': 'My first blog post!'}
+   >>> post_id
+   ObjectId(...)
+   >>> pprint.pprint(posts.find_one({"_id": post_id}))
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['mongodb', 'python', 'pymongo'],
+    'text': 'My first blog post!'}
 
-Note that an ObjectId is not the same as its string representation:
+.. note::
+  
+   An ``ObjectId`` is not the same as its string representation.
 
-.. code-block:: python
+   .. code-block:: python
 
-  >>> post_id_as_str = str(post_id)
-  >>> posts.find_one({"_id": post_id_as_str})  # No result
-  >>>
+      >>> post_id_as_str = str(post_id)
+      >>> posts.find_one({"_id": post_id_as_str})  # No result
+      >>>
 
-A common task in web applications is to get an ObjectId from the
-request URL and find the matching document. It's necessary in this
-case to **convert the ObjectId from a string** before passing it to
-``find_one``:
-
-.. code-block:: python
-
-  from bson.objectid import ObjectId
-
-  # The web framework gets post_id from the URL and passes it as a string
-  def get(post_id):
-      # Convert from string to ObjectId:
-      document = client.db.collection.find_one({'_id': ObjectId(post_id)})
-
-.. seealso:: :ref:`web-application-querying-by-objectid`
-
-Querying for More Than One Document
------------------------------------
-To get more than a single document as the result of a query we use the
-the ``~pymongo.collection.Collection.find`` method
-method. the ``~pymongo.collection.Collection.find`` method returns a
-``~pymongo.cursor.Cursor`` instance, which allows us to iterate
-over all matching documents. For example, we can iterate over every
-document in the ``posts`` collection:
+A common task in web applications is to get an ``ObjectId`` from the
+request URL and find the matching document. To do this, you must convert the
+``ObjectId`` from a string before passing it to ``find_one()``:
 
 .. code-block:: python
 
-  >>> for post in posts.find():
-  ...     pprint.pprint(post)
-  ...
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['mongodb', 'python', 'pymongo'],
-   'text': 'My first blog post!'}
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['bulk', 'insert'],
-   'text': 'Another post!'}
-  {'_id': ObjectId('...'),
-   'author': 'Eliot',
-   'date': datetime.datetime(...),
-   'text': 'and pretty easy too!',
-   'title': 'MongoDB is fun'}
+   from bson.objectid import ObjectId
 
-Just like we did with the ``~pymongo.collection.Collection.find_one`` method,
-we can pass a document to the ``~pymongo.collection.Collection.find`` method
-to limit the returned results. Here, we get only those documents whose
-author is "Mike":
+   # The web framework gets post_id from the URL and passes it as a string
+   def get(post_id):
+       # Convert from string to ObjectId:
+       document = client.db.collection.find_one({'_id': ObjectId(post_id)})
+
+For more information about querying by ``ObjectId``, see :ref:`web-application-querying-by-objectid`.
+
+Find Multiple Documents
+-----------------------
+
+To retrieve more than a single document as the result of a query, use the
+the ``~pymongo.collection.Collection.find()`` method. The
+``find()`` method returns a ``~pymongo.cursor.Cursor`` instance, which allows you to iterate
+over all matching documents. 
+
+The following example retrieves and iterates over every document in the
+``posts`` collection:
 
 .. code-block:: python
 
-  >>> for post in posts.find({"author": "Mike"}):
-  ...     pprint.pprint(post)
-  ...
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['mongodb', 'python', 'pymongo'],
-   'text': 'My first blog post!'}
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['bulk', 'insert'],
-   'text': 'Another post!'}
+   >>> for post in posts.find():
+   ...     pprint.pprint(post)
+   ...
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['mongodb', 'python', 'pymongo'],
+    'text': 'My first blog post!'}
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['bulk', 'insert'],
+    'text': 'Another post!'}
+   {'_id': ObjectId('...'),
+    'author': 'Eliot',
+    'date': datetime.datetime(...),
+    'text': 'and pretty easy too!',
+    'title': 'MongoDB is fun'}
 
-Querying for More Than One Document
------------------------------------
-To get more than a single document as the result of a query we use the
-the ``~pymongo.collection.Collection.find`` method
-method. the ``~pymongo.collection.Collection.find`` method returns a
-``~pymongo.cursor.Cursor`` instance, which allows us to iterate
-over all matching documents. For example, we can iterate over every
-document in the ``posts`` collection:
+You can pass a document to the ``find()`` method
+to limit the returned results.
 
-.. code-block:: python
-
-  >>> for post in posts.find():
-  ...     pprint.pprint(post)
-  ...
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['mongodb', 'python', 'pymongo'],
-   'text': 'My first blog post!'}
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['bulk', 'insert'],
-   'text': 'Another post!'}
-  {'_id': ObjectId('...'),
-   'author': 'Eliot',
-   'date': datetime.datetime(...),
-   'text': 'and pretty easy too!',
-   'title': 'MongoDB is fun'}
-
-Just like we did with the ``~pymongo.collection.Collection.find_one`` method,
-we can pass a document to the ``~pymongo.collection.Collection.find`` method
-to limit the returned results. Here, we get only those documents whose
-author is "Mike":
+The following example finds only documents with a value of "Mike" in the
+``author`` field:
 
 .. code-block:: python
 
-  >>> for post in posts.find({"author": "Mike"}):
-  ...     pprint.pprint(post)
-  ...
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['mongodb', 'python', 'pymongo'],
-   'text': 'My first blog post!'}
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['bulk', 'insert'],
-   'text': 'Another post!'}
+   >>> for post in posts.find({"author": "Mike"}):
+   ...     pprint.pprint(post)
+   ...
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['mongodb', 'python', 'pymongo'],
+    'text': 'My first blog post!'}
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['bulk', 'insert'],
+    'text': 'Another post!'}
 
 Range Queries
 -------------
-MongoDB supports many different types of `advanced queries
-<https://www.mongodb.com/docs/manual/reference/operator/>`_. As an
-example, lets perform a query where we limit results to posts older
-than a certain date, but also sort the results by author:
+MongoDB supports many different types of :manual:`advanced queries </reference/operator/>`.
+For example, you can perform a query that limits results to posts older
+than a certain date, and also sorts the results by the ``author`` field:
 
 .. code-block:: python
 
-  >>> d = datetime.datetime(2009, 11, 12, 12)
-  >>> for post in posts.find({"date": {"$lt": d}}).sort("author"):
-  ...     pprint.pprint(post)
-  ...
-  {'_id': ObjectId('...'),
-   'author': 'Eliot',
-   'date': datetime.datetime(...),
-   'text': 'and pretty easy too!',
-   'title': 'MongoDB is fun'}
-  {'_id': ObjectId('...'),
-   'author': 'Mike',
-   'date': datetime.datetime(...),
-   'tags': ['bulk', 'insert'],
-   'text': 'Another post!'}
+   >>> d = datetime.datetime(2009, 11, 12, 12)
+   >>> for post in posts.find({"date": {"$lt": d}}).sort("author"):
+   ...     pprint.pprint(post)
+   ...
+   {'_id': ObjectId('...'),
+    'author': 'Eliot',
+    'date': datetime.datetime(...),
+    'text': 'and pretty easy too!',
+    'title': 'MongoDB is fun'}
+   {'_id': ObjectId('...'),
+    'author': 'Mike',
+    'date': datetime.datetime(...),
+    'tags': ['bulk', 'insert'],
+    'text': 'Another post!'}
 
-Here we use the special ``"$lt"`` operator to do a range query, and
-also call the ``~pymongo.cursor.Cursor.sort`` method to sort the results
-by author.
+The preceding example uses the ``"$lt"`` operator to perform a range query. It
+also calls the ``~pymongo.cursor.Cursor.sort()`` method to sort the results
+by the ``author`` field.
