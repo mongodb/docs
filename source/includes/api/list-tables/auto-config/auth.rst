@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 20 14 11 55
+   :widths: 20 14 12 54
    :header-rows: 1
    :stub-columns: 1
 
@@ -33,7 +33,7 @@
 
        **auth.authoritativeSet** defaults to **false**.
 
-       Required if **"auth" : true**.
+       **Required if you enable authentication.**
 
    * - auth.autoUser
      - string
@@ -41,7 +41,7 @@
      - Username that the {+aagent+} uses when connecting to an
        instance.
 
-       Required if **"auth" : true**.
+       **Required if you enable authentication.**
 
    * - auth.autoPwd
      - string
@@ -49,7 +49,7 @@
      - Password that the {+aagent+} uses when connecting to an
        instance.
 
-       Required if **"auth" : true**.
+       **Required if you enable authentication.**
 
    * - auth.disabled
      - boolean
@@ -63,7 +63,7 @@
      - Lists the supported authentication mechanisms for the processes
        in the deployment.
 
-       Required if **"auth" : true**.
+       **Required if you enable authentication.**
 
        Specify:
 
@@ -94,8 +94,8 @@
      - Conditional
      - Sets the authentication mechanism used by the {+aagent+}. 
        If not specified, **disabled** defaults to **false**.
-    
-       Required if **"auth" : true**.
+
+       **Required if you enable authentication.**
 
        .. note::
 
@@ -126,15 +126,13 @@
           * - GSSAPI
             - :ref:`Kerberos <security-auth-kerberos>`
 
-          
-
    * - auth.key
      - string
      - Conditional
      - Contents of the key file that |mms| uses to authenticate to the
        MongoDB processes.
 
-       Required if **"auth" : true** and **"auth.disabled" : false**.
+       Required if **you enable authentication** and **"auth.disabled" : false**.
 
        .. note::
 
@@ -147,7 +145,7 @@
      - Path and name of the key file that |mms| uses to authenticate to
        the MongoDB processes.
 
-       Required if **"auth" : true** and **"auth.disabled" : false**.
+       Required if **you enable authentication** and **"auth.disabled" : false**.
 
        .. note::
 
@@ -233,10 +231,9 @@
 
        Required if:
 
-       - **"auth" : true**,
-       - **"auth.deploymentAuthMechanisms" : "MONGODB-CR"**, and
-       - **"auth.usersWanted[n].initPwd"** is unset.
-
+       - You enable authentication
+       - **"auth.deploymentAuthMechanisms" : "MONGODB-CR"**
+       - **"auth.usersWanted[n].initPwd"** is unset
 
    * - auth.usersWanted[n].initPwd
      - string
@@ -245,9 +242,9 @@
 
        Required if:
 
-       - **"auth" : true**,
-       - **"auth.deploymentAuthMechanisms" : "MONGODB-CR"**, and
-       - **"auth.usersWanted[n].pwd"** is unset.
+       - You enable authentication
+       - **"auth.deploymentAuthMechanisms" : "MONGODB-CR"**
+       - **"auth.usersWanted[n].initPwd"** is unset
 
    * - auth.usersWanted[n].userSource
      - string
