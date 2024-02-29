@@ -1,5 +1,6 @@
-|mms| doesn't require the ``auth`` object. This object defines
-:manual:`authentication-related </core/authentication>` settings.
+To enable authentication, configure the ``auth`` object. This object is
+optional and defines :manual:`authentication-related
+</core/authentication>` settings.
 
 .. code-block:: json
    :linenos:
