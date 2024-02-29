@@ -1,69 +1,86 @@
-.. uses tutorial.rst
+.. _pymongo-insert:
 
-Inserting a Document
---------------------
-To insert a document into a collection we can use the
-the ``~pymongo.collection.Collection.insert_one`` method method:
+================
+Insert Documents
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: add, save
+
+In this guide, you can learn how to use {+driver-short+} to insert data into a
+MongoDB collection.
+
+Insert One
+----------
+
+To insert a document into a collection, use the
+``~pymongo.collection.Collection.insert_one()`` method:
 
 .. code-block:: python
 
-  >>> posts = db.posts
-  >>> post_id = posts.insert_one(post).inserted_id
-  >>> post_id
-  ObjectId('...')
+   >>> posts = db.posts
+   >>> post_id = posts.insert_one(post).inserted_id
+   >>> post_id
+   ObjectId('...')
 
-When a document is inserted a special key, ``"_id"``, is automatically
-added if the document doesn't already contain an ``"_id"`` key. The value
-of ``"_id"`` must be unique across the
-collection. the ``~pymongo.collection.Collection.insert_one`` method returns an
-instance of ``~pymongo.results.InsertOneResult``. For more information
-on ``"_id"``, see the `documentation on _id
-<https://www.mongodb.com/docs/manual/reference/method/ObjectId/>`_.
+When you insert a document, the driver automatically adds an ``_id`` field, if
+the document doesn't already contain one. The value
+of ``_id`` must be unique across the collection. The
+``insert_one()`` method returns an instance of
+``~pymongo.results.InsertOneResult``.
 
-After inserting the first document, the *posts* collection has
-actually been created on the server. We can verify this by listing all
-of the collections in our database:
+When you insert the first document, MongoDB automatically creates the
+``posts`` collection on the server. You can verify this by listing all
+of the collections in the database:
 
 .. code-block:: python
 
-  >>> db.list_collection_names()
-  ['posts']
+   >>> db.list_collection_names()
+   ['posts']
 
 Bulk Inserts
 ------------
-In order to make querying a little more interesting, let's insert a
-few more documents. In addition to inserting a single document, we can
-also perform *bulk insert* operations, by passing a list as the
-first argument to the ``~pymongo.collection.Collection.insert_many`` method.
-This will insert each document in the list, sending only a single
-command to the server:
+
+In addition to inserting a single document, you can
+also perform bulk insert operations by passing a list as the
+first argument to the ``~pymongo.collection.Collection.insert_many()`` method.
+This sends a single command to the server to insert each document in the list.
 
 .. code-block:: python
 
-  >>> new_posts = [
-  ...     {
-  ...         "author": "Mike",
-  ...         "text": "Another post!",
-  ...         "tags": ["bulk", "insert"],
-  ...         "date": datetime.datetime(2009, 11, 12, 11, 14),
-  ...     },
-  ...     {
-  ...         "author": "Eliot",
-  ...         "title": "MongoDB is fun",
-  ...         "text": "and pretty easy too!",
-  ...         "date": datetime.datetime(2009, 11, 10, 10, 45),
-  ...     },
-  ... ]
-  >>> result = posts.insert_many(new_posts)
-  >>> result.inserted_ids
-  [ObjectId('...'), ObjectId('...')]
+   >>> new_posts = [
+   ...     {
+   ...         "author": "Mike",
+   ...         "text": "Another post!",
+   ...         "tags": ["bulk", "insert"],
+   ...         "date": datetime.datetime(2009, 11, 12, 11, 14),
+   ...     },
+   ...     {
+   ...         "author": "Eliot",
+   ...         "title": "MongoDB is fun",
+   ...         "text": "and pretty easy too!",
+   ...         "date": datetime.datetime(2009, 11, 10, 10, 45),
+   ...     },
+   ... ]
+   >>> result = posts.insert_many(new_posts)
+   >>> result.inserted_ids
+   [ObjectId('...'), ObjectId('...')]
 
-There are a couple of interesting things to note about this example:
+The ``insert_many()`` method returns an instance of ``~bson.objectid.ObjectId`` 
+for each inserted document.
 
-- The result from the ``~pymongo.collection.Collection.insert_many`` method now
-  returns two ``~bson.objectid.ObjectId`` instances, one for
-  each inserted document.
-- ``new_posts[1]`` has a different "shape" than the other posts -
-  there is no ``"tags"`` field and we've added a new field,
-  ``"title"``. This is what we mean when we say that MongoDB is
-  *schema-free*.
+.. note::
+
+   Because MongoDB is schema-free, ``new_posts[1]`` has different fields than
+   other posts in the collection. It doesn't have a ``tags`` field, and
+   has an added ``title`` field.
