@@ -23,7 +23,6 @@
   - Key Management Operations
 
     - ``GET``
-    - ``LIST``
 
   - Cryptographic Operations
 
