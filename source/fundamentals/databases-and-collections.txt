@@ -1,283 +1,233 @@
-.. uses copydb.rst, high-availability.rst, tutorial.rst
+.. _pymongo-databases-collections:
 
-Getting a Database
-------------------
-A single instance of MongoDB can support multiple independent
-`databases <https://www.mongodb.com/docs/manual/core/databases-and-collections>`_. When
-working with PyMongo you access databases using attribute style access
+Databases and Collections
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+ 
+.. meta::
+   :keywords: primary, secondary, replica set, ping, latency
+
+Overview
+--------
+
+This guide describes how to use {+driver-short+} to work with databases and collections.
+
+Retrieve a Database
+-------------------
+
+A single deployment of MongoDB can support multiple independent
+:manual:`databases </core/databases-and-collections>`. When
+working with PyMongo, you can access a database by using attribute-style access
 on ``~pymongo.mongo_client.MongoClient`` instances:
 
 .. code-block:: python
 
-  >>> db = client.test_database
+   >>> db = client.test_database
 
-If your database name is such that using attribute style access won't
-work (like ``test-database``), you can use dictionary style access
-instead:
-
-.. code-block:: python
-
-  >>> db = client["test-database"]
-
-Getting a Collection
---------------------
-A `collection <https://www.mongodb.com/docs/manual/core/databases-and-collections>`_ is a
-group of documents stored in MongoDB, and can be thought of as roughly
-the equivalent of a table in a relational database. Getting a
-collection in PyMongo works the same as getting a database:
+If the name of the database won't work with attribute-style access--for example,
+``test-database``-- you can use dictionary-style access instead:
 
 .. code-block:: python
 
-  >>> collection = db.test_collection
+   >>> db = client["test-database"]
 
-or (using dictionary style access):
+Retrieve a Collection
+---------------------
+
+A :manual:`collection </core/databases-and-collections>` is a
+group of documents stored in MongoDB, roughly
+equivalent to a table in a relational database. When using {+driver-short+},
+you can access a collection by using either attribute-style or dictionary-style
+access:
 
 .. code-block:: python
 
-  >>> collection = db["test-collection"]
+   >>> collection = db.test_collection
+   >>> collection = db["test-collection"]
 
-An important note about collections (and databases) in MongoDB is that
-they are created lazily - none of the above commands have actually
-performed any operations on the MongoDB server. Collections and
-databases are created when the first document is inserted into them.
+.. note::
+
+   Using the preceding syntax to access a database or collection doesn't create the
+   database or collection. MongoDB creates collections and databases *lazily*: they
+   are created only when you insert the first document into them.
 
 Documents
 ---------
-Data in MongoDB is represented (and stored) using JSON-style
-documents. In PyMongo we use dictionaries to represent documents. As
-an example, the following dictionary might be used to represent a blog
-post:
+
+MongoDB uses JSON-style documents to represent data. {+driver-short+} uses dictionaries
+to represent these documents. The following example uses a dictionary to represent a
+blog post:
 
 .. code-block:: python
 
-  >>> import datetime
-  >>> post = {
-  ...     "author": "Mike",
-  ...     "text": "My first blog post!",
-  ...     "tags": ["mongodb", "python", "pymongo"],
-  ...     "date": datetime.datetime.now(tz=datetime.timezone.utc),
-  ... }
+   >>> import datetime
+   >>> post = {
+   ...     "author": "Mike",
+   ...     "text": "My first blog post!",
+   ...     "tags": ["mongodb", "python", "pymongo"],
+   ...     "date": datetime.datetime.now(tz=datetime.timezone.utc),
+   ... }
 
-Note that documents can contain native Python types (like
-``datetime.datetime`` instances) which will be automatically
-converted to and from the appropriate `BSON
-<https://bsonspec.org/>`_ types.
+.. note::
+  
+   {+driver-short+} automatically converts native Python types in documents 
+   to and from the appropriate `BSON <https://bsonspec.org/>`__ types.
 
-.. todo:: link to table of Python <-> BSON types
+.. todo link to table of Python <-> BSON types
 
-Copying a Database
-==================
+Configure Read Operations
+-------------------------
 
-MongoDB >= 4.2
---------------
-
-Starting in MongoDB version 4.2, the server removes the deprecated ``copydb`` command.
-As an alternative, users can use ``mongodump`` and ``mongorestore`` (with the ``mongorestore``
-options ``--nsFrom`` and ``--nsTo``).
-
-For example, to copy the ``test`` database from a local instance running on the
-default port 27017 to the ``examples`` database on the same instance, you can:
-
-#. Use ``mongodump`` to dump the test database to an archive ``mongodump-test-db``:
-
-.. code-block:: python
-
-    mongodump --archive="mongodump-test-db" --db=test
-
-#. Use ``mongorestore`` with ``--nsFrom`` and ``--nsTo`` to restore (with database name change)
-   from the archive:
-
-.. code-block:: python
-
-    mongorestore --archive="mongodump-test-db" --nsFrom='test.*' --nsTo='examples.*'
-
-Include additional options as necessary, such as to specify the uri or host, username,
-password and authentication database.
-
-For more info about using ``mongodump`` and ``mongorestore`` see the `Copy a Database`_ example
-in the official ``mongodump`` documentation.
-
-MongoDB <= 4.0
---------------
-
-When using MongoDB <= 4.0, it is possible to use the deprecated ``copydb`` command
-to copy a database. To copy a database within a single ``mongod`` process, or
-between ``mongod`` servers, connect to the target ``mongod`` and use the
-the ``~pymongo.database.Database.command`` method method:
-
-.. code-block:: python
-
-  >>> from pymongo import MongoClient
-  >>> client = MongoClient('target.example.com')
-  >>> client.admin.command('copydb',
-                           fromdb='source_db_name',
-                           todb='target_db_name')
-
-To copy from a different mongod server that is not password-protected:
-
-.. code-block:: python
-
-  >>> client.admin.command('copydb',
-                           fromdb='source_db_name',
-                           todb='target_db_name',
-                           fromhost='source.example.com')
-
-If the target server is password-protected, authenticate to the "admin"
-database:
-
-.. code-block:: python
-
-  >>> client = MongoClient('target.example.com',
-  ...                      username='administrator',
-  ...                      password='pwd')
-  >>> client.admin.command('copydb',
-                           fromdb='source_db_name',
-                           todb='target_db_name',
-                           fromhost='source.example.com')
-
-.. See the :doc:`authentication examples </examples/authentication>`.
-
-If the **source** server is password-protected, use the `copyDatabase
-function in the mongo shell`_.
-
-Versions of PyMongo before 3.0 included a ``copy_database`` helper method,
-but it has been removed.
-
-.. _copyDatabase function in the mongo shell:
-   http://mongodb.com/docs/manual/reference/method/db.copyDatabase/
-
-.. _Copy a Database:
-   https://www.mongodb.com/docs/database-tools/mongodump/#std-label-mongodump-example-copy-clone-database
+This section describes how to configure read operations against MongoDB replica sets.
 
 Read Preferences
-================
+~~~~~~~~~~~~~~~~
 
-By default the read preference of a ``~pymongo.database.Database`` is
-inherited from its MongoClient, and the read preference of a
-``~pymongo.collection.Collection`` is inherited from its Database. To use
-a different read preference use the
-the ``~pymongo.mongo_client.MongoClient.get_database`` method method, or the
-the ``~pymongo.database.Database.get_collection`` method method:
+By default, the read preference of a ``~pymongo.database.Database`` is
+inherited from the ``MongoClient``, and the read preference of a
+``~pymongo.collection.Collection`` is inherited from its database.
+To change the read preference of a collection or database, call
+the ``~pymongo.mongo_client.MongoClient.get_database()`` method or the
+``~pymongo.database.Database.get_collection()`` method, and pass one of the following
+read preferences as an argument:
 
-.. code-block:: python
+- ``~pymongo.read_preferences.ReadPreference.PRIMARY``: {+driver-short+} reads from the
+  primary replica-set member. This is the default read preference and provides the
+  strongest consistency. If no primary member is available, {+driver-short+} raises an
+  ``AutoReconnect`` error.
 
-  >>> from pymongo import ReadPreference
-  >>> client.read_preference
-  SecondaryPreferred(tag_sets=None)
-  >>> db = client.get_database('test', read_preference=ReadPreference.SECONDARY)
-  >>> db.read_preference
-  Secondary(tag_sets=None)
-  >>> coll = db.get_collection('test', read_preference=ReadPreference.PRIMARY)
-  >>> coll.read_preference
-  Primary()
+- ``~pymongo.read_preferences.ReadPreference.PRIMARY_PREFERRED``: {+driver-short+} reads
+  from the primary replica-set member if it's available. Otherwise, it reads from a
+  secondary member.
 
-You can also change the read preference of an existing
-``~pymongo.collection.Collection`` with the
-the ``~pymongo.collection.Collection.with_options`` method method:
+- ``~pymongo.read_preferences.ReadPreference.SECONDARY``: {+driver-short+} reads from a
+  secondary replica-set member. If no matching secondary member is available, {+driver-short+}
+  raises an ``AutoReconnect`` error.
 
-.. code-block:: python
+- ``~pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED``: {+driver-short+} reads
+  from a secondary replica-set member if one is available. Otherwise, it reads from the
+  primary.
 
-  >>> coll2 = coll.with_options(read_preference=ReadPreference.NEAREST)
-  >>> coll.read_preference
-  Primary()
-  >>> coll2.read_preference
-  Nearest(tag_sets=None)
+- ``~pymongo.read_preferences.ReadPreference.NEAREST``: {+driver-short+} reads from any
+  available replica-set member.
 
-Note that since most database commands can only be sent to the primary of a
-replica set, the the ``~pymongo.database.Database.command`` method method does not obey
-the Database's ``~pymongo.database.Database.read_preference``, but you can
-pass an explicit read preference to the method:
+.. tip::
+   
+   The driver also includes a class to represent each read preference:
 
-.. code-block:: python
+   - ``~pymongo.read_preferences.Primary``
+   - ``~pymongo.read_preferences.PrimaryPreferred``
+   - ``~pymongo.read_preferences.Secondary``
+   - ``~pymongo.read_preferences.SecondaryPreferred``
+   - ``~pymongo.read_preferences.Nearest``
 
-  >>> db.command('dbstats', read_preference=ReadPreference.NEAREST)
-  {...}
-
---------
-
-Reads are configured using three options: **read preference**, **tag sets**,
-and **local threshold**.
-
-**Read preference**:
-
-Read preference is configured using one of the classes from
-``~pymongo.read_preferences`` (``~pymongo.read_preferences.Primary``,
-``~pymongo.read_preferences.PrimaryPreferred``,
-``~pymongo.read_preferences.Secondary``,
-``~pymongo.read_preferences.SecondaryPreferred``, or
-``~pymongo.read_preferences.Nearest``). For convenience, we also provide
-``~pymongo.read_preferences.ReadPreference`` with the following
-attributes:
-
-- ``PRIMARY``: Read from the primary. This is the default read preference,
-  and provides the strongest consistency. If no primary is available, raise
-  ``~pymongo.errors.AutoReconnect``.
-
-- ``PRIMARY_PREFERRED``: Read from the primary if available, otherwise read
-  from a secondary.
-
-- ``SECONDARY``: Read from a secondary. If no matching secondary is available,
-  raise ``~pymongo.errors.AutoReconnect``.
-
-- ``SECONDARY_PREFERRED``: Read from a secondary if available, otherwise
-  from the primary.
-
-- ``NEAREST``: Read from any available member.
-
-**Tag sets**:
-
-Replica-set members can be `tagged
-<https://www.mongodb.com/docs/manual/data-center-awareness/>`_ according to any
-criteria you choose. By default, PyMongo ignores tags when
-choosing a member to read from, but your read preference can be configured with
-a ``tag_sets`` parameter. ``tag_sets`` must be a list of dictionaries, each
-dict providing tag values that the replica set member must match.
-PyMongo tries each set of tags in turn until it finds a set of
-tags with at least one matching member. For example, to prefer reads from the
-New York data center, but fall back to the San Francisco data center, tag your
-replica set members according to their location and create a
-MongoClient like so:
+The following example shows how to set the read preferences for a database and a
+collection:
 
 .. code-block:: python
 
-  >>> from pymongo.read_preferences import Secondary
-  >>> db = client.get_database(
-  ...     'test', read_preference=Secondary([{'dc': 'ny'}, {'dc': 'sf'}]))
-  >>> db.read_preference
-  Secondary(tag_sets=[{'dc': 'ny'}, {'dc': 'sf'}])
+   >>> from pymongo import ReadPreference
+   >>> client.read_preference
+   SecondaryPreferred(tag_sets=None)
+   >>> db = client.get_database('test', read_preference=ReadPreference.SECONDARY)
+   >>> db.read_preference
+   Secondary(tag_sets=None)
+   >>> coll = db.get_collection('test', read_preference=ReadPreference.PRIMARY)
+   >>> coll.read_preference
+   Primary()
 
-MongoClient tries to find secondaries in New York, then San Francisco,
-and raises ``~pymongo.errors.AutoReconnect`` if none are available. As an
-additional fallback, specify a final, empty tag set, ``{}``, which means "read
-from any member that matches the mode, ignoring tags."
+You can also change the read preference of an existing ``~pymongo.collection.Collection``
+by using the ``~pymongo.collection.Collection.with_options()`` method:
 
-See ``~pymongo.read_preferences`` for more information.
+.. code-block:: python
 
------
+   >>> coll2 = coll.with_options(read_preference=ReadPreference.NEAREST)
+   >>> coll.read_preference
+   Primary()
+   >>> coll2.read_preference
+   Nearest(tag_sets=None)
+
+Because most database commands can be sent only to the primary member of a
+replica set, the ``~pymongo.database.Database.command()`` method doesn't
+obey the database's ``~pymongo.database.Database.read_preference``. Instead, you can
+pass a read preference to the method:
+
+.. code-block:: python
+
+   >>> db.command('dbstats', read_preference=ReadPreference.NEAREST)
+   {...}
+
+Tag Sets
+~~~~~~~~
+
+You can :manual:`tag </core/read-preference-tags/>` replica-set
+members according to any criteria you choose. By default, {+driver-short+} ignores tags
+when choosing a member to read from, but your read preference can be configured with
+a ``tag_sets`` parameter.
+
+The ``tag_sets`` parameter is a list of dictionaries. Each dictionary
+includes tag values that the replica-set member must match in order to be used.
+{+driver-short+} tries each set of tags in turn until it finds a set of
+tags with at least one matching replica-set member.
+
+In the following code example, the tag set passed to the ``read_preference`` argument
+instructs {+driver-short+} to prefer reads from the
+New York data center (``dc``), but to fall back to the San Francisco data center:
+
+.. code-block:: python
+
+   >>> from pymongo.read_preferences import Secondary
+   >>> db = client.get_database(
+   ...     'test', read_preference=Secondary([{'dc': 'ny'}, {'dc': 'sf'}]))
+   >>> db.read_preference
+   Secondary(tag_sets=[{'dc': 'ny'}, {'dc': 'sf'}])
+
+When performing a read, the ``MongoClient`` in the preceding example tries to find
+secondary members in New York, then in San Francisco. If it can't find a secondary member
+in either location, it raises an ``AutoReconnect`` error.
+
+.. tip::
+
+   To avoid an ``AutoReconnect`` error, include an empty dictionary (``{}``) at the end of
+   the list. This instructs {+driver-short+} to read from any member that matches the mode,
+   ignoring tags.
 
 .. _distributes reads to secondaries:
 
-**Local threshold**:
+Local Threshold
+~~~~~~~~~~~~~~~
 
-If multiple members match the read preference and tag sets, PyMongo reads
-from among the nearest members, chosen according to ping time. By default,
-only members whose ping times are within 15 milliseconds of the nearest
-are used for queries. You can choose to distribute reads among members with
-higher latencies by setting ``localThresholdMS`` to a larger
-number:
+If multiple replica-set members match the read preference and tag sets you specify,
+{+driver-short+} reads from among the nearest members, chosen according to ping time.
+By default, the driver uses only those members whose ping times are within 15 milliseconds
+of the nearest member for queries.
+To distribute reads among members with
+higher latencies, pass the ``localThresholdMS`` to the ``MongoClient()`` constructor.
+
+The following example specifies a local threshold of 35 milliseconds:
 
 .. code-block:: python
 
-  >>> client = pymongo.MongoClient(
-  ...     replicaSet='repl0',
-  ...     readPreference='secondaryPreferred',
-  ...     localThresholdMS=35)
+   >>> client = pymongo.MongoClient(
+   ...     replicaSet='repl0',
+   ...     readPreference='secondaryPreferred',
+   ...     localThresholdMS=35)
 
-In this case, PyMongo distributes reads among matching members within 35
-milliseconds of the closest member's ping time.
+In the preceding example, {+driver-short+} distributes reads among matching members
+within 35 milliseconds of the closest member's ping time.
 
-.. note:: ``localThresholdMS`` is ignored when talking to a
-  replica set *through* a mongos. The equivalent is the localThreshold_ command
-  line option.
-
-.. _localThreshold: https://mongodb.com/docs/manual/reference/program/mongos/#std-option-mongos.--localThreshold
+.. note::
+  
+  {+driver-short+} ignores the value of ``localThresholdMS`` when communicating with a
+  replica set through a ``mongos`` instance. In this case, use the
+  :manual:`localThreshold </reference/program/mongos/#std-option-mongos.--localThreshold>`
+  command-line option.
