@@ -1,0 +1,173 @@
+.. _pymongo-dates-times: 
+
+Dates and Times
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: convert, span, central, mountain, pacific, eastern, calendar 
+
+These examples show how to handle Python ``datetime.datetime`` objects
+correctly in PyMongo.
+
+Basic Usage
+-----------
+
+PyMongo uses ``datetime.datetime`` objects to represent dates and times
+in MongoDB documents. Because MongoDB assumes that dates and times are in UTC,
+take care to ensure that dates and times written to the database
+reflect UTC. For example, the following code stores the current UTC date and
+time into MongoDB:
+
+.. code-block:: python
+
+   >>> result = db.objects.insert_one(
+   ...     {"last_modified": datetime.datetime.now(tz=datetime.timezone.utc)}
+   ... )
+
+.. important::
+   
+   Always use the ``datetime.datetime.now(tz=datetime.timezone.utc)`` method, which
+   explicitly returns the current time in UTC. Avoid using the ``datetime.datetime.now()``
+   method, with no arguments, which returns the current local time.
+
+Saving Datetimes with Time Zones
+--------------------------------
+
+When storing ``datetime.datetime`` objects that specify a time zone
+(they have a ``tzinfo`` property that isn't ``None``), PyMongo automatically converts
+the ``datetime`` value to UTC:
+
+.. code-block:: python
+
+   >>> import pytz
+   >>> pacific = pytz.timezone("US/Pacific")
+   >>> aware_datetime = pacific.localize(datetime.datetime(2002, 10, 27, 6, 0, 0))
+   >>> result = db.times.insert_one({"date": aware_datetime})
+   >>> db.times.find_one()["date"]
+   datetime.datetime(2002, 10, 27, 14, 0)
+
+Reading Time
+------------
+
+By default, PyMongo retrieves "naive" ``datetime`` values, which show the time
+only in UTC. The ``bson.codec_options.CodecOptions``
+class contains a ``tz_aware`` option that enables
+"aware" ``datetime.datetime`` objects, which include a ``tzinfo`` property that
+shows the UTC time zone.
+
+The following example stores a ``datetime`` value, then retrieves the value twice: once
+without the ``tz_aware`` option, and once with ``tz_aware=true``.
+
+.. code-block:: python
+
+   >>> result = db.tzdemo.insert_one({"date": datetime.datetime(2002, 10, 27, 6, 0, 0)})
+   >>> db.tzdemo.find_one()["date"]
+   datetime.datetime(2002, 10, 27, 6, 0)
+   >>> options = CodecOptions(tz_aware=True)
+   >>> db.get_collection("tzdemo", codec_options=options).find_one()["date"]
+   datetime.datetime(2002, 10, 27, 6, 0,
+                     tzinfo=<bson.tz_util.FixedOffset object at 0x10583a050>)
+
+To automatically convert all times read from MongoDB to a specific time zone,
+call the ``CodecOptions()`` constructor and pass in the ``tz_aware`` and ``tzinfo``
+arguments. Pass your ``CodecOptions`` object to the ``with_options()`` method. 
+
+The following example shows how to automatically convert all times
+read MongoDB into US/Pacific time:
+
+.. code-block::
+
+   >>> from bson.codec_options import CodecOptions
+   >>> db.times.find_one()['date']
+   datetime.datetime(2002, 10, 27, 14, 0)
+   >>> aware_times = db.times.with_options(codec_options=CodecOptions(
+   ...     tz_aware=True,
+   ...     tzinfo=pytz.timezone('US/Pacific')))
+   >>> result = aware_times.find_one()
+   datetime.datetime(2002, 10, 27, 6, 0,
+                     tzinfo=<DstTzInfo 'US/Pacific' PST-1 day, 16:00:00 STD>)
+
+.. _handling-out-of-range-datetimes:
+
+Handling Out-of-Range datetimes
+-------------------------------
+
+Python's ``~datetime.datetime`` can only represent ``datetime`` values within the
+range allowed by ``~datetime.datetime.min`` and ``~datetime.datetime.max``.
+BSON allows any 64-bit of milliseconds from the Unix epoch.
+
+If you need represent a BSON time, you can use a
+``bson.datetime_ms.DatetimeMS`` object, a wrapper for the
+built-in ``int`` type.
+
+To decode UTC datetime values as ``~bson.datetime_ms.DatetimeMS``,
+set the ``datetime_conversion`` parameter of ``~bson.codec_options.CodecOptions``
+to one of the following values from ``bson.datetime_ms.DatetimeConversion``:
+
+- ``~bson.datetime_ms.DatetimeConversion.DATETIME``
+- ``~bson.datetime_ms.DatetimeConversion.DATETIME_MS``
+- ``~bson.datetime_ms.DatetimeConversion.DATETIME_AUTO``
+- ``~bson.datetime_ms.DatetimeConversion.DATETIME_CLAMP``
+
+The default value, ``~bson.datetime_ms.DatetimeConversion.DATETIME``,
+raises an ``~builtin.OverflowError`` upon attempting to decode an out-of-range date.
+
+``~bson.datetime_ms.DatetimeConversion.DATETIME_MS`` returns only
+``~bson.datetime_ms.DatetimeMS`` objects, regardless of whether the
+represented datetime is in out-of-range: 
+
+.. code-block:: python
+
+   >>> from datetime import datetime
+   >>> from bson import encode, decode
+   >>> from bson.datetime_ms import DatetimeMS
+   >>> from bson.codec_options import CodecOptions, DatetimeConversion
+   >>> x = encode({"x": datetime(1970, 1, 1)})
+   >>> codec_ms = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_MS)
+   >>> decode(x, codec_options=codec_ms)
+   {'x': DatetimeMS(0)}
+
+``~bson.datetime_ms.DatetimeConversion.DATETIME_AUTO`` returns
+``~datetime.datetime`` if the underlying UTC datetime is within range,
+or ``~bson.datetime_ms.DatetimeMS`` if the underlying datetime
+cannot be represented using the built-in Python ``~datetime.datetime``:
+
+.. code-block:: python
+
+   >>> x = encode({"x": datetime(1970, 1, 1)})
+   >>> y = encode({"x": DatetimeMS(-(2**62))})
+   >>> codec_auto = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_AUTO)
+   >>> decode(x, codec_options=codec_auto)
+   {'x': datetime.datetime(1970, 1, 1, 0, 0)}
+   >>> decode(y, codec_options=codec_auto)
+   {'x': DatetimeMS(-4611686018427387904)}
+
+``~bson.datetime_ms.DatetimeConversion.DATETIME_CLAMP`` "clamps"
+the resulting ``~datetime.datetime`` objects, forcing them to be within
+the ``~datetime.datetime.min`` and ``~datetime.datetime.max`` boundaries
+(trimmed to ``999000`` microseconds):
+
+.. code-block:: python
+
+   >>> x = encode({"x": DatetimeMS(2**62)})
+   >>> y = encode({"x": DatetimeMS(-(2**62))})
+   >>> codec_clamp = CodecOptions(datetime_conversion=DatetimeConversion.DATETIME_CLAMP)
+   >>> decode(x, codec_options=codec_clamp)
+   {'x': datetime.datetime(9999, 12, 31, 23, 59, 59, 999000)}
+   >>> decode(y, codec_options=codec_clamp)
+   {'x': datetime.datetime(1, 1, 1, 0, 0)}
+
+``~bson.datetime_ms.DatetimeMS`` objects support rich comparison
+methods against other instances of ``~bson.datetime_ms.DatetimeMS``.
+They can also be converted to ``~datetime.datetime`` objects by using
+the ``~bson.datetime_ms.DatetimeMS.to_datetime()`` method.
