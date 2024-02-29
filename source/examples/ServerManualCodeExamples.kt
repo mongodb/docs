@@ -605,7 +605,7 @@ fun main() = runBlocking {
     // End Example 58
 
     // Start Index Example 1
-    collection.createIndex(Indexes.ascending("score"))
+    collection.createIndex(Indexes.descending("name"))
     // End Index Example 1
     
     // Start Index Example 2
