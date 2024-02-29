@@ -647,6 +647,23 @@ fun main() = runBlocking {
 
     // Start Changestream Example 4
     val pipeline = listOf(
+        Aggregates.match(
+            or(
+                eq("fullDocument.username", "alice"),
+                `in`("operationType", listOf("delete"))
+            )
+    ))
+
+    val job = launch {
+        val changeStream = collection.watch(pipeline)
+        changeStream.collect {
+            println("Received a change event: $it")
+        }
+    }
+    // End Changestream Example 4
+    
+    // Start Changestream Example 4 Alt
+    val pipeline = listOf(
     Aggregates.match(Filters.`in`("operationType",
         listOf("insert", "update")))
     )
@@ -657,7 +674,7 @@ fun main() = runBlocking {
             println("Received a change event: $it")
         }
     }
-    // End Changestream Example 4
+    // End Changestream Example 4 Alt
 
     // Start Stable API Example 1
     val serverApi = ServerApi.builder()
