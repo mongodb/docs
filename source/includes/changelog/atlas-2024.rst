@@ -36,6 +36,12 @@
 - Supports adding resource tags to projects in |service|. To learn
   more, see :ref:`project-tags`.
 
+- Fixes an issue where |service| inaccurately reported the 
+  :guilabel:`network bytes out` metric that appears in the 
+  :guilabel:`System Network` chart. This release resets this metric and 
+  the previous values no longer appear. To learn more, see 
+  :ref:`review-available-metrics` and :alert:`System Network Out is`.
+
 .. _atlas_2024_01_24:
 
 24 January 2024 Release
