@@ -44,6 +44,14 @@
          object of type com.mongodb.client.result.DeleteResult_ if
          successful. Returns an instance of ``com.mongodb.MongoException`` if unsuccessful.
 
+     - id: kotlin-coroutine
+       content: |
+         The `MongoCollection.deleteMany() <{+java-api-docs+}/mongodb-driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/delete-many.html>`__
+         method returns an instance of
+         `com.mongodb.client.result.DeleteResult <{+java-api-docs+}/mongodb-driver-core/com/mongodb/client/result/DeleteResult.html>`__
+         that describes the status of the
+         operation and count of deleted documents.
+
      - id: nodejs
        content: |
          :node-api:`deleteMany() <Collection.html#deleteMany>` returns a
