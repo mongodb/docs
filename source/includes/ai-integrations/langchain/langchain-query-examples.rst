@@ -1,10 +1,10 @@
 .. tabs::
 
-   .. tab:: Similarity Search
-      :tabid: similarity-search
+   .. tab:: Semantic Search
+      :tabid: semantic-search
 
       The following query uses the ``similarity_search`` method 
-      to perform a basic similarity search for 
+      to perform a basic semantic search for 
       the string ``MongoDB Atlas security``. It returns a 
       list of documents ranked by relevance.
 
@@ -27,11 +27,11 @@
              Document(page_content='MongoD B.\nMongoD B Atlas incorporates best practices to help keep\nmanaged databases healthy and optimized. T hey ensure\noperational continuity by converting comple x manual tasks', metadata={'_id': ObjectId('65c2e8f380f26794dedad883'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 13}),
              Document(page_content='Atlas provides encryption of data at rest with encrypted\nstorage volumes.\nOptionally , Atlas users can configure an additional layer of\nencryption on their data at rest using the MongoD B', metadata={'_id': ObjectId('65c2e8f480f26794dedad8e3'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 18})]
 
-   .. tab:: Similarity Search with Score
-      :tabid: similarity-search-score
+   .. tab:: Semantic Search with Score
+      :tabid: semantic-search-score
 
       The following query uses the ``similarity_search_with_score`` 
-      method to perform a similarity search for 
+      method to perform a semantic search for 
       the string ``MongoDB Atlas security`` and specifies the
       ``k`` parameter to limit the number of documents to return
       to ``3``.
@@ -69,8 +69,8 @@
              (Document(page_content='MongoD B.\nMongoD B Atlas incorporates best practices to help keep\nmanaged databases healthy and optimized. T hey ensure\noperational continuity by converting comple x manual tasks', metadata={'_id': ObjectId('65c2e8f380f26794dedad883'), 'source': 'https://query.prod.cms.rt.microsoft.com/cms/api/am/binary/RE4HkJP', 'page': 13}),
               0.9317940473556519)]
 
-   .. tab:: Similarity Search with Pre-Filtering
-      :tabid: similarity-search-filter
+   .. tab:: Semantic Search with Filtering
+      :tabid: semantic-search-filter
 
       You can pre-filter your data by using an
       :abbr:`MQL (MongoDB Query Language)` match expression
@@ -78,8 +78,14 @@
       string values. You must specify any metadata fields to filter 
       on in your {+avs+} index definition.
 
+      .. note:: 
+
+         You specified the ``page`` field as a filter 
+         when you :ref:`created the index <langchain-create-index>`
+         for this tutorial.
+
       The following query uses the ``similarity_search_with_score`` method 
-      to perform a similarity search for 
+      to perform a semantic search for 
       the string ``MongoDB Atlas security``. It also specifies the following:
 
       - The ``k`` parameter to limit the number of documents to return

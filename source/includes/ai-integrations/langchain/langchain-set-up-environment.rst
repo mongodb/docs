@@ -32,5 +32,5 @@
       .. code-block:: python
 
          os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
-         MONGODB_ATLAS_CLUSTER_URI = getpass.getpass("MongoDB Atlas Cluster URI:")
+         ATLAS_CONNECTION_STRING = getpass.getpass("MongoDB Atlas SRV Connection String:")
 
