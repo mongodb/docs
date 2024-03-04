@@ -12,7 +12,7 @@
      - :manual:`Default level of acknowledgment requested from MongoDB for read operations </reference/read-concern/>`
        set for this cluster.
 
-       MongoDB 4.4 clusters default to :manual:`available </reference/read-concern-available>`.
+       MongoDB 5.0 clusters default to :manual:`available </reference/read-concern-available>`.
 
        .. MongoDB version 5.0 and later clusters default to :manual:`/reference/read-concern-local`.
 
@@ -21,7 +21,7 @@
      - :manual:`Default level of acknowledgment requested from MongoDB for write operations </reference/write-concern/>`
        set for this cluster.
 
-       MongoDB 4.4 clusters default to :manual:`1 </reference/write-concern>`.
+       MongoDB 5.0 clusters default to :manual:`1 </reference/write-concern>`.
 
        .. MongoDB version 5.0 and later default to :manual:`majority </reference/write-concern>`.
 
@@ -41,12 +41,12 @@
      - Flag that indicates whether the cluster allows execution of
        operations that perform server-side executions of JavaScript.
 
-       - If your cluster runs a MongoDB version less than 4.4, this
+       - If your cluster runs a MongoDB version less than 5.0, this
          option corresponds to modifying the
          :setting:`security.javascriptEnabled` configuration file
          option for each |mongod| in the cluster.
 
-       - If your cluster runs MongoDB version 4.4 or greater, this
+       - If your cluster runs MongoDB version 5.0 or greater, this
          option corresponds to  modifying the
          :setting:`security.javascriptEnabled` configuration file
          option for each |mongod| and |mongos| in the cluster.

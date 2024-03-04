@@ -20,7 +20,7 @@
        .. note::
 
           AWS IAM authentication is available only on {+database-deployments+} which use
-          MongoDB version 4.4 and higher.
+          MongoDB version 5.0 and higher.
 
        .. include:: /includes/steps/add-aws-iam-user.rst
 

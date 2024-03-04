@@ -47,7 +47,7 @@
 
        Default value is ``false``. If ``false``, |service| uses 
        :manual:`ranged sharding </core/ranged-sharding/>`. This is only 
-       available for |service| clusters with MongoDB v4.4 and later.
+       available for |service| clusters with MongoDB v5.0 and later.
 
    * - ``managedNamespaces[n].isShardKeyUnique``
      - boolean
@@ -64,7 +64,7 @@
        </core/hashed-sharding/#std-label-sharding-hashed>`. To learn 
        more, see :ref:`Global Cluster Sharding Reference 
        <global-cluster-sharding>`. This is only available for 
-       |service| clusters with MongoDB v4.4 and later.
+       |service| clusters with MongoDB v5.0 and later.
 
    * - ``managedNamespaces[n].presplitHashedZones``
      - boolean
@@ -78,4 +78,4 @@
          distribution (default)
        
        Default value is ``false``. This is only available for 
-       |service| clusters with MongoDB v4.4 and later.
+       |service| clusters with MongoDB v5.0 and later.
