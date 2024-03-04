@@ -109,6 +109,42 @@ Steps
 
             .. include:: /includes/fact-query-converter-filter.rst
 
+      .. code-block:: sql
+
+         CREATE TRIGGER TRIGGER_UPPER_PRODUCTS
+         BEFORE INSERT
+         ON sakila.PRODUCTS
+         FOR EACH ROW
+         SET NEW.FULL_NAME = UPPER(new.FULL_NAME)
+
+      .. code-block:: javascript
+
+         // The relational database trigger has been converted to MongoDB Atlas Triggers format.
+         // To create a trigger, open your Atlas project (https://cloud.mongodb.com) and choose Triggers
+         // For more on Atlas triggers see the docs: https://www.mongodb.com/docs/atlas/triggers/
+         //
+         // Create your trigger using the following settings and paste the code into the Function section:
+         // Watch Against: Collection
+         // Cluster Name: Ensure clusterName matches selection in Atlas Trigger configuration
+         // Database Name: Ensure databaseName matches selection in Atlas Trigger configuration
+         // Collection Name: products
+         // Operation Type: Insert
+         // Full Document: On
+         // Document Preimage: Off
+         exports = async function(changeEvent) {
+         const clusterName = "clusterName";
+         const databaseName = "databaseName";
+
+         const { fullDocument } = changeEvent;
+         const db = context.services.get(clusterName).db(databaseName);
+         const collection = db.collection('products');
+
+         if (fullDocument && fullDocument.fullName) {
+            fullDocument.fullName = fullDocument.fullName.toUpperCase();
+            await collection.updateOne({ _id: fullDocument._id }, { $set: { fullName: fullDocument.fullName } });
+         }
+         };
+
 Example
 -------
 
