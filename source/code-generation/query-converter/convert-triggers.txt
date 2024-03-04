@@ -115,54 +115,59 @@ Steps
 Example
 -------
 
-Optional.
-
-In some cases, you can work through a specific example throughout the steps. 
-In others, it is helpful to show a complete example at the end. In most cases, 
-it's helpful to include an example of what a successful result looks like. It 
-could be a brief description, code block, or screenshot. 
-
-
 Convert a MySQL Trigger
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: sql
-   :copyable: false
 
-   CREATE TABLE PRODUCTS (
-      PRODUCT_ID INT,  
-      FULL_NAME varchar(200)
-   );
+.. tabs::
 
-.. code-block:: sql
-   :copyable: false
+   .. tab:: Relational Input
+      :tabid: sql-input-1
 
-   DELIMITER |
-   CREATE TRIGGER TRIGGER_UPPER_PRODUCTS
-      BEFORE INSERT ON PRODUCTS
-      FOR EACH ROW
-      SET NEW.FULL_NAME = UPPER(new.FULL_NAME)
-   |
-   DELIMITER ;
+      .. code-block:: sql
+         :copyable: false
 
-.. code-block:: sql
-   :copyable: false
+         CREATE TRIGGER TRIGGER_UPPER_PRODUCTS
+         BEFORE INSERT
+         ON sakila.PRODUCTS
+         FOR EACH ROW
+         SET NEW.FULL_NAME = UPPER(new.FULL_NAME)
 
-   INSERT INTO PRODUCTS VALUES(1,"mongodb");
-   INSERT INTO PRODUCTS  VALUES(2,"atlas");
-   INSERT INTO PRODUCTS  VALUES(3,"relational migrator");
+   .. tab:: MongoDB Output
+      :tabid: mongodb-output-1
 
-.. code-block:: sql
-   :copyable: false
+      .. code-block:: javascript
+         :copyable: false
 
-   SELECT * FROM PRODUCTS;
+         // The relational database trigger has been converted to MongoDB Atlas Triggers format.
+         // To create a trigger, open your Atlas project (https://cloud.mongodb.com) and choose Triggers
+         // For more on Atlas triggers see the docs: https://www.mongodb.com/docs/atlas/triggers/
+         //
+         // Create your trigger using the following settings and paste the code into the Function section:
+         // Watch Against: Collection
+         // Cluster Name: Ensure clusterName matches selection in Atlas Trigger configuration
+         // Database Name: Ensure databaseName matches selection in Atlas Trigger configuration
+         // Collection Name: products
+         // Operation Type: Insert
+         // Full Document: On
+         // Document Preimage: Off
+         exports = async function(changeEvent) {
+         const clusterName = "clusterName";
+         const databaseName = "databaseName";
 
-Next Steps
-----------
+         const { fullDocument } = changeEvent;
+         const db = context.services.get(clusterName).db(databaseName);
+         const collection = db.collection('products');
 
-Optional.
+         if (fullDocument && fullDocument.fullName) {
+            fullDocument.fullName = fullDocument.fullName.toUpperCase();
+            await collection.updateOne({ _id: fullDocument._id }, { $set: { fullName: fullDocument.fullName } });
+         }
+         };
 
 Learn More
 ----------
 
-TBD.
+- ref:`rm-convert-views`
+- ref:`rm-convert-queries`
+- ref:`rm-convert-stored-procedures`
