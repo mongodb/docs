@@ -43,12 +43,3 @@
        response body.
 
      - ``false``
-
-   * - backupJobsEnabledOnly
-     - boolean
-     - Optional
-     - Flag indicating whether to exclude daemons not enabled for 
-       backing up databases from the response. Set this to ``false`` to 
-       include daemon configurations with the ``backupJobsEnabled`` 
-       flag set to ``false``.
-     - ``true``
