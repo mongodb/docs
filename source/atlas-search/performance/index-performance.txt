@@ -64,7 +64,9 @@ indexing-intensive features:
 Autocomplete
 ++++++++++++
 
-The |fts| :ref:`autocomplete <bson-data-types-autocomplete>` field type
+The |fts| :ref:`autocomplete-ref` operator can be used to build
+functionality similar to search-as-you-type in your application. The 
+|fts| :ref:`autocomplete <bson-data-types-autocomplete>` field type
 can cause large indexes, especially in the following cases:
 
 - Using ``nGram`` tokenization.
@@ -72,10 +74,51 @@ can cause large indexes, especially in the following cases:
 - Setting a ``minGram`` value of ``1`` on a collection with millions of 
   documents.
 
+You can reduce the space used by the ``autocomplete`` type index by
+doing the following:
+
+- Reduce the range of ``minGrams`` and ``maxGrams`` to the minimum.
+  Generally, we recommend setting ``maxGrams`` to the character count of
+  the longest word in the field that you want to query. If you are
+  unsure, for English language fields, we recommend starting with
+  ``maxGrams`` value of ``10``.
+- Avoid ``nGram`` tokenization strategy as, for a given string, |fts|
+  creates more tokens for ``nGram`` than for ``edgeGram`` or
+  ``rightEdgeGram`` tokenization. 
+
+When indexing a ``string`` field as the :ref:`autocomplete
+<bson-data-types-autocomplete>` type, we recommend that you index the
+field as the |fts| :ref:`string <bson-data-types-string>` type also for 
+the following advantages: 
+
+- Boost the score of exact matches when using the
+  :ref:`autocomplete-ref` operator. For an example, see the Advanced
+  Example in the :ref:`autocomplete-tutorial` tutorial.
+- Query the same field in the same query using the 
+  :ref:`autocomplete-ref` operator and another operator that supports
+  string search, such as the :ref:`text-ref` operator. For an example,
+  see the :ref:`autocomplete-compound` example.
+
 Embedded Documents 
 ++++++++++++++++++
 
 .. include:: /includes/fact-fts-embedded-documents-limitation.rst
+
+Faceted Search 
+++++++++++++++
+
+If you want to filter and facet your data using the same field, we
+recommend that you index the field as following |fts| types: 
+
+- :ref:`stringFacet <bson-data-types-string-facet>` and :ref:`token
+  <bson-data-types-token>`  
+- :ref:`numberFacet <bson-data-types-number-facet>` and 
+  :ref:`number <bson-data-types-number>` 
+- :ref:`dateFacet <bson-data-types-date-facet>` and :ref:`date
+  <bson-data-types-date>`
+
+For an example of filtering the data by another field for faceting, see
+the :ref:`facet-tutorial` tutorial.
 
 ``multi`` Analyzers
 +++++++++++++++++++
@@ -83,6 +126,37 @@ Embedded Documents
 Using a ``multi`` analyzer to analyze the same field multiple 
 different ways can cause large indexes, especially when analyzing 
 fields with very long values.
+
+Multilingual Search 
++++++++++++++++++++
+
+You can use the |fts| :ref:`ref-language-analyzers` to index many 
+languages. For the list of languages for which |fts| provides built-in
+analyzers, see the :ref:`ref-language-analyzers`. For an example, see
+the :ref:`multilingual-tutorial` tutorial. To index and query languages
+that are currently not in the list of built-in
+:ref:`ref-language-analyzers`, you can create a :ref:`custom analyzer
+<custom-analyzers>`. For an example, see the 
+:ref:`custom-language-analyzer-eg`. 
+
+Suppose you have one document for each language in your collection.
+Consider the following:  
+
+- You can index the fields separately in the same index using the
+  :ref:`ref-language-analyzers`. A single index can support multiple
+  languages in the same query. 
+
+- Alternatively, you can create an index per language, which is useful
+  in isolating the different language documents. Note that each index
+  is a change stream cursor and so this might be expensive to
+  maintain.
+
+- If you have the language documents nested inside a parent document,
+  you can create a single index. However, your index definition payload 
+  might be large and your query might be complex. 
+
+To learn more about these data models and index definitions, see the
+`MongoDB blog <https://www.mongodb.com/developer/products/atlas/atlas-search-multi-language-data-modeling/>`__. 
 
 Synonym Collections
 +++++++++++++++++++
