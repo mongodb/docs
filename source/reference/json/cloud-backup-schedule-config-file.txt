@@ -10,218 +10,57 @@ Cloud Backup Schedule Configuration File
    :depth: 1
    :class: singlecol
 
-You can use a cloud backup schedule configuration file to specify the
-settings required when you `update a cloud backup schedule
-<https://www.mongodb.com/docs/atlas/cli/stable/command/atlas-backups-schedule-update/>`__
-using the {+atlas-cli+}. The {+atlas-cli+} accepts ``.json`` cloud
-backup schedule configuration files.
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. To create a configuration file doc, copy this template, change
+.. the replacements below, and update the H1 title and refs.
+
+.. |atlas-cli command| replace:: :ref:`atlas-backups-schedule-update`
+.. |configuration-file-name| replace:: cloud backup schedule configuration  
+.. |openapi-link| replace:: :oas-atlas-tag:`Update Cloud Backup Schedule for One Cluster </Cloud-Backups/operation/updateBackupSchedule>`
+.. |action| replace:: update a cloud backup schedule
+
+You can use a |configuration-file-name| file to specify the
+settings required when you |action|
+using the {+atlas-cli+}. The {+atlas-cli+} accepts ``.json`` 
+|configuration-file-name| files.
 
 .. _cloud-backup-schedule-settings:
 
-Cloud Backup Schedule Settings
-------------------------------
+Available Settings
+------------------
 
-You can specify the following settings to update a cloud
-backup schedule either in the configuration file or as flags in the
-command:
-
-.. list-table:: 
-   :header-rows: 1 
-   :widths: 20 10 70 
-
-   * - Field 
-     - Type 
-     - Description 
-
-   * - ``autoExportEnabled``
-     - boolean
-     - Flag that indicates whether |service| automatically exports
-       cloud backup snapshots to the |aws| bucket.
-
-   * - ``copySettings``
-     - array
-     - List that contains a document for each copy setting item in the
-       desired backup policy.
-
-   * - | ``copySettings.``
-       | ``cloudProvider``
-     - string
-     - Human-readable label that identifies the cloud provider that
-       stores the snapshot copy.
-
-   * - | ``copySettings.``
-       | ``frequencies``
-     - array of strings
-     - List that describes which types of snapshots to copy.
-
-   * - | ``copySettings.``
-       | ``regionName``
-     - string
-     - Target Atlas region to copy snapshots belonging to ``replicationSpecId``
-       to. Please supply the **Atlas Region** that corresponds to your
-       :ref:`AWS <amazon-aws>`, :ref:`GCP <google-gcp>` or :ref:`Azure
-       <microsoft-azure>` region.
-
-   * - | ``copySettings.``
-       | ``replicationSpecId``
-     - string
-     - Unique 24-hexadecimal digit string that identifies the
-       replication object for a zone in a cluster. For global clusters,
-       there can be multiple zones to choose from. For sharded clusters
-       and replica set clusters, there is only one zone in the cluster.
-       To find ``thereplicationSpecId``, do a GET request to
-       :oas-atlas-op:`Return One Cluster in One Project
-       </getLegacyCluster>` and consult its ``replicationSpecs`` array.
-
-   * - | ``copySettings.``
-       | ``shouldCopyOplogs``
-     - boolean
-     - Flag that indicates whether to copy the oplogs to the target
-       region. You can use the oplogs to perform point-in-time restores.
-
-   * - ``deleteCopiedBackups``
-     - array
-     - List that contains a document for each copy setting item in the
-       desired backup policy.
-
-   * - | ``deleteCopiedBackups.``
-       | ``cloudProvider``
-     - string
-     - Human-readable label that identifies the cloud provider for the
-       deleted copy setting whose backup copies you want to delete.
-
-   * - | ``deleteCopiedBackups.``
-       | ``regionName``
-     - string
-     - Target Atlas region to copy snapshots belonging to ``replicationSpecId``
-       to. Please supply the **Atlas Region** that corresponds to your
-       :ref:`AWS <amazon-aws>`, :ref:`GCP <google-gcp>` or :ref:`Azure
-       <microsoft-azure>` region.
-
-   * - | ``deleteCopiedBackups.``
-       | ``replicationSpecId``
-     - string
-     - Unique 24-hexadecimal digit string that identifies the
-       replication object for a zone in a cluster. For global clusters,
-       there can be multiple zones to choose from. For sharded clusters
-       and replica setclusters, there is only one zone in the cluster.
-       To find ``thereplicationSpecId``, do a GET request to
-       :oas-atlas-op:`Return One Cluster in One Project
-       </getLegacyCluster>` and consult its ``replicationSpecs`` array.
-
-   * - ``export``
-     - object
-     - List that contains a document for each copy setting item in the
-       desired backup policy.
-
-   * - | ``export.``
-       | ``exportBucketId``
-     - string
-     - Unique 24-hexadecimal character string that identifies the |aws|
-       Bucket.
-
-   * - | ``export.``
-       | ``frequencyType``
-     - string
-     - Human-readable label that indicates the rate at which the export
-       policy item occurs.
-
-   * - ``policies``
-     - array
-     - Rules set for this backup schedule.
-
-   * - | ``policies.``
-       | ``id``
-     - string
-     - Unique 24-hexadecimal digit string that identifies this backup
-       policy.
-
-   * - | ``policies.``
-       | ``policyItems``
-     - array
-     - List that contains the specifications for one policy.
-
-   * - | ``policies.``
-       | ``policyItems.``
-       | ``frequencyInterval``
-     - integer
-     - Number that indicates the frequency interval for a set of
-       snapshots. A value of ``1`` specifies the first instance of the
-       corresponding ``frequencyType``.
-
-       - In a monthly policy item, ``1`` indicates that the monthly
-         snapshot occurs on the first day of the month and ``40``
-         indicates the last day of the month.
-
-       - In a weekly policy item, ``1`` indicates that the weekly
-         snapshot occurs on Monday and ``7`` indicates Sunday.
-
-       - In an hourly policy item, you can set the frequency interval to
-         ``1``, ``2``, ``4``, ``6``, ``8``, or ``12``. For hourly policy
-         items for NVMe clusters, |service| only accepts ``12`` as
-         the frequency interval value.
-
-   * - | ``policies.``
-       | ``policyItems.``
-       | ``frequencyType``
-     - string
-     - Human-readable label that identifies the frequency type
-       associated with the backup policy.
-
-   * - | ``policies.``
-       | ``policyItems.``
-       | ``retentionUnit``
-     - string
-     - Unit of time in which |service| measures snapshot retention.
-
-   * - | ``policies.``
-       | ``policyItems.``
-       | ``retentionValue``
-     - integer
-     - Duration in days, weeks, or months that |service| retains the
-       snapshot. For less frequent policy items, |service| requires
-       that you specify a value greater than or equal to the value
-       specified for more frequent policy items. 
-
-       For example: If the hourly policy item specifies a retention of two
-       days, you must specify two days or greater for the retention of the
-       weekly policy item. 
-
-   * - ``referenceHourOfDay``
-     - integer
-     - Hour of day in Coordinated Universal Time (UTC) that represents
-       when |service| takes the snapshot.
-
-   * - ``referenceMinuteOfHour``
-     - integer
-     - Minute of the ``referenceHourOfDay`` that represents when
-       |service| takes the snapshot.
-
-   * - ``restoreWindowDays``
-     - integer
-     - Number of previous days that you can restore back to with
-       continuous cloud backup accuracy. You must specify a positive,
-       non-zero integer. This parameter applies to continuous cloud
-       backups only.
-
-   * - ``updateSnapshots``
-     - boolean
-     - Flag that indicates whether to apply the retention changes in the
-       updated backup policy to snapshots that |service| took
-       previously.
-
-   * - ``useOrgAndGroupNamesInExportPrefix``
-     - boolean
-     - Flag that indicates whether to use organization and project names
-       instead of organization and project UUIDs in the path to the
-       metadata files that |service| uploads to your |aws| bucket. 
+When you |action| using a configuration file, you
+can specify any settings that are listed in 
+|openapi-link| under :guilabel:`Request Body Schema`.
 
 .. _example-cloud-backup-schedule-config-file:
 
-Example Cloud Backup Schedule Configuration File
-------------------------------------------------
+Create a Configuration File
+---------------------------
 
-To update a cloud backup schedule for a single cluster, specify the
-fields you want to update as shown in the following example file:
+Follow these steps to |action| with a configuration file:
 
-.. literalinclude:: /includes/update-cloud-backup-schedule-config-file.json
+.. procedure::
+   :style: normal
+
+   .. step:: Copy the sample request for |openapi-link|.
+
+      a. Navigate to the |openapi-link|
+         section of the |service| Admin API specification.
+      b. Under :guilabel:`Request samples` on the right side, click
+         :guilabel:`Expand all`.
+      c. Click :guilabel:`Copy` to copy the sample request.
+
+   .. step:: Create the configuration file.
+    
+      a. Paste the copied sample request into a text editor and change
+         the values to reflect your values.
+      b. Save the file with a ``.json`` extension.
+
+   .. step:: Run the |atlas-cli command| command with 
+      the ``--file`` option.
+
+      Specify the path to the file you saved with the ``--file`` flag.
