@@ -42,6 +42,23 @@ Required Access
 You need the :authrole:`Project Data Access Admin` or higher role to create
 and manage {+avs+} indexes.
 
+.. _avs-create-index-supported-clients:
+
+Supported Clients 
+-----------------
+
+You can create an {+avs+} index by using one of the following methods: 
+
+- {+atlas-ui+}
+- {+atlas-admin-api+} :oas-atlas-op:`Create One Atlas Search Index
+  <createAtlasSearchIndex>` endpoint
+- {+atlas-cli+} v1.14.3 :atlascli:`atlas clusters search indexes create
+  </command/atlas-clusters-search-indexes-create/>` command on both the
+  :atlascli:`cloud deployment </atlas-cli-local-cloud/>` and
+  :atlascli:`local deployment </atlas-cli-deploy-local>`
+- {+mongosh+} v2.1.2 or later
+  :method:`db.collection.createSearchIndex()` method
+
 .. _avs-create-index-procedure:
 
 Procedure 
@@ -59,14 +76,133 @@ Procedure
 
       To create an {+avs+} index for a collection using the
       {+atlas-admin-api+}, send a ``POST`` request to the |fts|
-      ``indexes`` endpoint with the required parameters. To learn more 
-      about the syntax and parameters for the endpoint, see
+      ``indexes`` endpoint with the required parameters. 
+      
+      .. example:: 
+
+         .. code-block:: shell 
+            :copyable: true 
+
+            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            --header "Accept: application/json" \
+            --header "Content-Type: application/json" \
+            --include \
+            --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/fts/indexes" \
+            --data '
+              {
+                "collectionName": "<name-of-collection>",
+                "database": "<name-of-database>",
+                "type": "vectorSearch",
+                "name": "<index-name>",
+                "fields":[ 
+                  {
+                    "type": "vector",
+                    "path": <field-to-index>,
+                    "numDimensions": <number-of-dimensions>,
+                    "similarity": "euclidean | cosine | dotProduct"
+                  },
+                  {
+                    "type": "filter",
+                    "path": "<field-to-index>"
+                  },
+                  ...
+                ]
+              }'
+      
+      To learn more about the syntax and parameters for the endpoint, see
       :oas-atlas-op:`Create One Atlas Search Index </createAtlasSearchIndex>`.  
+
+   .. tab:: Atlas CLI 
+      :tabid: atlascli 
+
+      To create an {+avs+} index for a collection using the {+atlas-cli+},
+      run the following command: 
+
+      .. code-block:: shell 
+         :copyable: true
+      
+         atlas clusters search indexes create --clusterName [cluster-name] --file [vector_index].json
+      
+      Replace the following placeholder values:
+
+      - ``cluster-name`` is the name of the |service| {+cluster+} that
+        contains the collection for which you want to create the index.
+      - ``vector_index`` is the name of the |json| file that contains the
+        index definition for the {+avs+} index. Your
+        index definition should resemble the following form: 
+
+        .. code-block:: json
+         :copyable: true 
+         :linenos:
+
+         {
+           "collectionName": "<name-of-collection>",
+           "database": "<name-of-database>",
+           "type": "vectorSearch",
+           "name": "<index-name>",
+           "fields":[ 
+             {
+               "type": "vector",
+               "path": <field-to-index>,
+               "numDimensions": <number-of-dimensions>,
+               "similarity": "euclidean | cosine | dotProduct"
+             },
+             {
+               "type": "filter",
+               "path": "<field-to-index>"
+             },
+             ...
+           ]
+         }
+
+      To learn more about the command syntax and parameters, see the
+      {+atlas-cli+} documentation for :atlascli:`atlas clusters search
+      indexes create </command/atlas-clusters-search-indexes-create/>`
+      command. 
+
+   .. tab:: mongosh 
+      :tabid: mongosh 
+
+      To create an {+avs+} index for a collection using {+mongosh+}, do
+      the following:
+      
+      1. :ref:`Connect <connect-mongo-shell>` to the |service|
+         {+cluster+} using {+mongosh+}.   
+      #. Switch to the database that contains the collection for which
+         you want to create the index.
+      #. Run the :method:`db.collection.createSearchIndex()` method. 
+
+         The :method:`db.collection.createSearchIndex()` method has the
+         following syntax:  
+
+         .. code-block:: shell 
+            :copyable: true 
+            :linenos: 
+
+            db.movies.createSearchIndex(
+              "<index-name>",
+              "vectorSearch", //index type
+              {
+                fields: [
+                  {
+                    type: "vector",
+                    numDimensions: <number-of-dimensions>,
+                    path: "<field-to-index>",
+                    similarity: "euclidean | cosine | dotProduct"
+                  },
+                  {
+                    "type": "filter",
+                    "path": "<field-to-index>"
+                  },
+                  ...
+                ]
+              }
+            );
 
 .. _avs-types-vector-search-egs:
 
-Create an Example Index  
---------------------------------
+Create an Example Index From the {+atlas-ui+}
+---------------------------------------------
 
 The following index definition for the ``sample_mflix.embedded_movies``
 collection indexes the ``plot_embedding`` field as the ``vector`` type
