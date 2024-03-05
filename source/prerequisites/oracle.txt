@@ -10,4 +10,137 @@ Configure Migration Prerequisites for Oracle
    :depth: 1
    :class: singlecol
 
-Oracle.
+To run sync jobs from an Oracle source database, the database may require 
+some configuration changes. If Relational Migrator determines the 
+database needs configuration changes, it automatically generates a 
+SQL script with the required changes. It is recommended to have a 
+Database Administrator (DBA) review the commands in this script and 
+perform their execution on the database server. The 
+Oracle configurations depend on the type of sync job:
+
+.. include:: /includes/fact-short-sync-job-desc.rst
+
+For details on supported versions of Oracle, see 
+:ref:`supported-databases`.
+
+About this Task
+---------------
+
+- If your migrating from an Oracle 12c instance, you must run commands as 
+  the SYSDBA role.
+- In Oracle 12c the concept of a pluggable database was introduced. Some
+  of these commands can be run on PDB(plugable database) while commands 
+  such as enabling ``ARCHIVELOG`` must be run on the
+  CDB(container/master database). For details on each architecture, 
+  see `Overview of Container Databases and Pluggable Databases
+  <https://oracle-base.com/articles/12c/multitenant-overview-container-database-cdb-12cr1>`__.
+- Supplemental logging is not allowed in Oracle Express editions.
+
+Steps
+-----
+
+.. tabs::
+
+   .. tab:: Snapshot Jobs
+      :tabid: enable-snapshot-jobs
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Set up user permissions
+
+            .. include:: /includes/fact-data-prep-oracle-step1.rst
+
+   .. tab:: Continuous Jobs
+      :tabid: enable-continuous-jobs
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Set up user permissions
+
+            .. include:: /includes/fact-data-prep-oracle-step1.rst
+
+            c. Grant additional permissions to the service account 
+               to run continuous sync jobs:
+
+               .. code-block:: sql
+                  :copyable: true
+
+                  GRANT SET CONTAINER TO <user>;
+                  GRANT EXECUTE_CATALOG_ROLE TO <user>;
+                  GRANT SELECT ANY TRANSACTION TO <user>;
+                  GRANT LOGMINING TO <user>;
+                  GRANT CREATE TABLE TO <user>;
+                  GRANT LOCK <table> TO <user>;
+                  GRANT CREATE SEQUENCE TO <user>;
+                  GRANT SELECT ON DBA_TABLESPACES TO <user>; 
+                  GRANT EXECUTE ON DBMS_LOGMNR TO <user>;
+                  GRANT EXECUTE ON DBMS_LOGMNR_D TO <user>;
+                  GRANT SELECT ON V_$LOG TO <user>;
+                  GRANT SELECT ON V_$LOG_HISTORY TO <user>;
+                  GRANT SELECT ON V_$LOGMNR_LOGS TO <user>;
+                  GRANT SELECT ON V_$LOGMNR_CONTENTS TO <user>;
+                  GRANT SELECT ON V_$LOGMNR_PARAMETERS TO <user>;
+                  GRANT SELECT ON V_$LOGFILE TO <user>;
+                  GRANT SELECT ON V_$ARCHIVED_LOG TO <user>;
+                  GRANT SELECT ON V_$ARCHIVE_DEST_STATUS TO <user>;
+                  GRANT SELECT ON V_$TRANSACTION TO <user>;
+
+         .. step:: Turn on ``LogMiner`` at the database level
+            
+            To run continous jobs against Oracle, you must enable 
+            ``LogMiner`` at the database level. The following code-block
+            is an example of automatically-generated code, which you 
+            can run manually by substituting your database name:
+
+            .. code-block:: sql
+                :copyable: true
+
+                ALTER SYSTEM SET db_recovery_file_dest_size = 10G;
+                ALTER SYSTEM SET db_recovery_file_dest = '/opt/oracle/oradata/recovery_area' SCOPE=spfile;
+                SHUTDOWN IMMEDIATE;
+                STARTUP MOUNT
+                ALTER DATABASE ARCHIVELOG;
+                ALTER DATABASE OPEN;
+            
+            .. tip::
+
+                To check if ``LogMiner`` is already enabled, run the 
+                following query:
+
+                .. code-block:: sql
+                   :copyable: true
+
+                    SELECT LOG_MODE FROM V_$DATABASE; 
+    
+         .. step:: Enable supplemental logging
+
+            a. To run continuous sync jobs against Oracle, you must 
+               enable supplemental logging at the database level:
+
+               .. code-block:: sql
+                  :copyable: true
+
+                  ALTER DATABASE ADD SUPPLEMENTAL LOG DATA; 
+
+            #. You must also enable supplemental logging for every 
+               table in the migration:
+
+               .. code-block:: sql
+                  :copyable: true
+
+                  ALTER TABLE schemaName.tableName ADD SUPPLEMENTAL LOG DATA (ALL) COLUMNS;
+                  /* Additional ALTER TABLE STATEMENTS... */ 
+
+Learn More
+----------
+
+- Relational Migrator relies on the open-source Debezium connector to 
+  capture row-level changes. For more details, see `Debezium Oracle 
+  <https://debezium.io/documentation/reference/stable/connectors/oracle.html#_preparing_the_databas>`__
+- For details on enabling archive logging, see `Managing Archived Redo Logs 
+  <https://docs.oracle.com/cd/B19306_01/server.102/b14231/archredo.htm>`__.
+- For additional troubleshooting and debugging information, see the 
+  `Debezium Oracle help blog post
+  <https://debezium.io/blog/2022/09/30/debezium-oracle-series-part-1/#configure-oracle-users>`__.
