@@ -1,16 +1,18 @@
 ==================================
-{+driver-long+} Documentation
+MongoDB PymongoArrow Documentation
 ==================================
 
-This repository contains documentation for {+driver-short+}, an extension to the
+This repository contains documentation for PyMongoArrow, an extension to the
 MongoDB PyMongo driver.
 
-## File JIRA Tickets
+File JIRA Tickets
+-----------------
 
 Please file issue reports or requests at the `Documentation Jira Project
 <https://jira.mongodb.org/browse/DOCS>`_.
 
-## Licenses
+Licenses
+--------
 
 All documentation is available under the terms of a `Creative Commons
 License <https://creativecommons.org/licenses/by-nc-sa/3.0/>`_.
