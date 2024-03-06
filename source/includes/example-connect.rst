@@ -47,16 +47,6 @@ following command on one line:
          --cluster0 "mongodb://clusterAdmin:superSecret@clusterOne01.fancyCorp.com:20020,clusterOne02.fancyCorp.com:20020,clusterOne03.fancyCorp.com:20020" \
          --cluster1 "mongodb://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020,clusterTwo02.fancyCorp.com:20020,clusterTwo03.fancyCorp.com:20020"
 
-Atlas clusters require TLS connections. To use ``mongosync`` with Atlas
-clusters, you add the :urioption:`tls=true <tls>` option. For example,
-to connect to the ``admin`` database on ``cluster0`` and ``cluster1``:
-
-.. code-block:: shell
-
-   mongosync \
-      --cluster0 "mongodb://clusterAdmin:superSecret@clusterOne01.fancyCorp.com:20020,clusterOne02.fancyCorp.com:20020,clusterOne03.fancyCorp.com:20020/admin?tls=true" \
-      --cluster1 "mongodb://clusterAdmin:superSecret@clusterTwo01.fancyCorp.com:20020,clusterTwo02.fancyCorp.com:20020,clusterTwo03.fancyCorp.com:20020/admin?tls=true"
-
 You can also use ``mongodb+srv`` connection strings with ``mongosync``.
 You do not need to add the :urioption:`tls=true <tls>` option to a
 ``mongodb+srv`` connection string. For example:
