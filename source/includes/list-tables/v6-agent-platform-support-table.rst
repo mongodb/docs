@@ -131,10 +131,18 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - ARM
-      - RHEL/Centos 8
+      - RHEL/CentOS 8
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
+      -
+      -
+      -
+    * -
+      - RHEL/CentOS 9
+      - :icon:`check-circle`
+      - :icon:`check-circle`
+      -
       -
       -
       -
@@ -164,7 +172,7 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * - 
-      - RHEL/ Centos 8
+      - RHEL/ CentOS 8
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
