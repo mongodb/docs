@@ -1,5 +1,5 @@
 ==================================
-MongoDB PymongoArrow Documentation
+MongoDB PyMongoArrow Documentation
 ==================================
 
 This repository contains documentation for PyMongoArrow, an extension to the
