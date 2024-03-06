@@ -1,5 +1,3 @@
-.. uses changelog.rst
-
 .. _pymongo-whats-new:
 
 ==========
@@ -11,7 +9,6 @@ What's New
    :backlinks: none
    :depth: 1
    :class: singlecol
-
 
 .. facet::
    :name: genre
@@ -31,71 +28,38 @@ Learn what's new in:
 What's New in 4.7
 -----------------
 
+.. warning:: Breaking Changes
+
+   {+driver-short+} v4.7 contains breaking changes. For more information, see
+   :ref:`version-4.7-breaking-changes`.
+
 The {+driver-short+} v4.7 release includes the following new features:
 
-- Added the ``~pymongo.hello.Hello.server_connection_id``,
-  ``pymongo.monitoring.CommandStartedEvent.server_connection_id``,
-  ``pymongo.monitoring.CommandSucceededEvent.server_connection_id``, and
-  ``pymongo.monitoring.CommandFailedEvent.server_connection_id`` properties.
-- Added support for named Key Management Service (KMS) providers for Client-Side Field
-  Level Encryption (CSFLE).
-  Previously supported KMS providers were only: aws, azure, gcp, kmip, and local.
-  The KMS provider is now expanded to support name suffixes (e.g. local:myname).
-  Named KMS providers enables more than one of each KMS provider type to be configured.
-  See the docstring for ``~pymongo.encryption_options.AutoEncryptionOpts``.
-  Note that named KMS providers requires pymongocrypt >=1.9 and libmongocrypt >=1.9.
+- Added the ``Hello.connection_id``,
+  `CommandStartedEvent.server_connection_id <https://pymongo.readthedocs.io/en/latest/api/pymongo/monitoring.html#pymongo.monitoring.CommandStartedEvent.server_connection_id>`__,
+  `CommandSucceededEvent.server_connection_id <https://pymongo.readthedocs.io/en/latest/api/pymongo/monitoring.html#pymongo.monitoring.CommandSucceededEvent.server_connection_id>`__,
+  and `CommandFailedEvent.server_connection_id <https://pymongo.readthedocs.io/en/latest/api/pymongo/monitoring.html#pymongo.monitoring.CommandFailedEvent.server_connection_id>`__
+  properties.
+- Added support for name suffixes for Key Management Service (KMS) providers for Client-Side Field
+  Level Encryption (CSFLE). This feature requires ``pymongocrypt`` v1.9+ and
+  ``libmongocrypt`` v1.9+. For more information, see the API documentation for the
+  `AutoEncryptionOpts <https://pymongo.readthedocs.io/en/latest/api/pymongo/encryption_options.html#pymongo.encryption_options.AutoEncryptionOpts>`__
+  class.
 - Improved the performance of encoding BSON documents to JSON.
-- The ``~pymongo.encryption.ClientEncryption.encrypt`` method and
-  the ``~pymongo.encryption.ClientEncryption.encrypt_expression`` method now allow ``key_id``
-  to be passed in as a ``uuid.UUID``.
-- Fixed a bug where inflating a ``~bson.raw_bson.RawBSONDocument`` containing a
-  ``~bson.code.Code`` would cause an error.
+- The ``ClientEncryption.encrypt()`` and ``ClientEncryption.encrypt_expression()`` methods
+  now allow the ``key_id`` argument to be passed in as a ``UUID`` Object.
+- Inflating a ``RawBSONDocument`` object containing a ``Code`` value no longer causes an
+  error.
 - Fixed a bug in Python 3.12 where the error message
   ``RuntimeError: can't create new thread at interpreter shutdown``
   could be written to ``stderr`` when a ``MongoClient`` thread starts as the Python
   interpreter is shutting down.
-- Fixed a bug where ``~bson.int64.Int64`` instances could not always be encoded by
+- Fixed a bug where ``Int64`` instances could not always be encoded by
   `orjson <https://github.com/ijl/orjson>`__. Code like the following example now
-  run correctly:
+  runs correctly:
 
 .. code-block:: python
 
    >>> import orjson
    >>> from bson import json_util
    >>> orjson.dumps({'a': Int64(1)}, default=json_util.default, option=orjson.OPT_PASSTHROUGH_SUBCLASS)
-
-
-Breaking Changes
-````````````````
-
-- Replaced usage of ``bson.son.SON`` on all internal classes and commands to dict,
-  ``options.pool_options.metadata`` is now of type ``dict`` as opposed to ``bson.son.SON``.
-  Here's some examples of how this changes expected output as well as how to convert from ``dict`` to ``bson.son.SON``:
-
-.. code-block:: python
-
-    # Before
-    >>> from pymongo import MongoClient
-    >>> client = MongoClient()
-    >>> client.options.pool_options.metadata
-    SON([('driver', SON([('name', 'PyMongo'), ('version', '4.7.0.dev0')])), ('os', SON([('type', 'Darwin'), ('name', 'Darwin'), ('architecture', 'arm64'), ('version', '14.3')])), ('platform', 'CPython 3.11.6.final.0')])
-
-    # After
-    >>> client.options.pool_options.metadata
-    {'driver': {'name': 'PyMongo', 'version': '4.7.0.dev0'}, 'os': {'type': 'Darwin', 'name': 'Darwin', 'architecture': 'arm64', 'version': '14.3'}, 'platform': 'CPython 3.11.6.final.0'}
-
-    # To convert from dict to SON
-    # This will only convert the first layer of the dictionary
-    >>> data_as_dict = client.options.pool_options.metadata
-    >>> SON(data_as_dict)
-    SON([('driver', {'name': 'PyMongo', 'version': '4.7.0.dev0'}), ('os', {'type': 'Darwin', 'name': 'Darwin', 'architecture': 'arm64', 'version': '14.3'}), ('platform', 'CPython 3.11.6.final.0')])
-
-    # To convert from dict to SON on a nested dictionary
-    >>> def dict_to_SON(data_as_dict: dict[Any, Any]):
-    ...     data_as_SON = SON()
-    ...     for key, value in data_as_dict.items():
-    ...         data_as_SON[key] = dict_to_SON(value) if isinstance(value, dict) else value
-    ...     return data_as_SON
-    >>>
-    >>> dict_to_SON(data_as_dict)
-    SON([('driver', SON([('name', 'PyMongo'), ('version', '4.7.0.dev0')])), ('os', SON([('type', 'Darwin'), ('name', 'Darwin'), ('architecture', 'arm64'), ('version', '14.3')])), ('platform', 'CPython 3.11.6.final.0')])
