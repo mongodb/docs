@@ -5,6 +5,7 @@
 - ``US3``
 - ``US5``
 - ``EU1``
+- ``AP1``
 
 Datadog uses ``US1`` by default.
 

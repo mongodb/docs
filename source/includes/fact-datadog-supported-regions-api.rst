@@ -15,6 +15,8 @@
      - ``US5``
    * - ``EU``
      - ``EU1``
+   * - ``AP1``
+     - ``AP1``
 
 Datadog uses ``US1`` (``US`` in the {+atlas-admin-api+}) by default.
 
