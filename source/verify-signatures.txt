@@ -1,0 +1,98 @@
+.. _k8s-signatures:
+
+=========================
+Verify MongoDB Signatures
+=========================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can require that the {+mdbagent+} verifies the signature file after it 
+downloads the MongoDB binary by enabling a setting in the :ref:`k8s-om-specification`. 
+Once you enable signature verification, the {+mdbagent+} requires signature files 
+for all MongoDB deployments that your |onprem| instance manages. 
+You can enable signature verification for 
+:ref:`local or remote deployments <om-local-mode>`.
+
+Prerequisites
+-------------
+
+Your |onprem| server must run over |https| so the {+mdbagent+} downloads the 
+signature files. To learn more, see :ref:`config-https`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step::
+
+      In the :ref:`k8s-om-specification`, add 
+      :opsmgrkube:`spec.configuration.mms.featureFlag.automation.verifyDownloads` and set to ``enabled``. 
+      For example:
+
+      .. code-block:: yaml
+
+         spec:
+           configuration:
+             mms.featureFlag.automation.verifyDownloads=enabled
+
+      .. note::
+      
+         Once you enable signature verification, the {+mdbagent+} requires signature 
+         files for all MongoDB binaries that it downloads. 
+
+   .. step::
+
+      Ensure the {+mdbagent+} can locate the MongoDB binary and its signature (.sig) 
+      file from the same directory, the location of which depends on whether your 
+      deployment is :ref:`local or remote <om-local-mode>`.
+
+      .. tabs::
+
+           .. tab:: Remote
+              :tabid: remote
+
+              If your |onprem| instance can access the Internet or a custom |https| 
+              server and you download the MongoDB binary from the official sources, 
+              the {+mdbagent+} automatically downloads the signature file along with 
+              the MongoDB binary.
+
+              If you don't download the MongoDB binary from the official sources, 
+              configure your |https| server to locate the MongoDB binary and its 
+              signature file from the same link.
+
+           .. tab:: Local
+              :tabid: local
+
+              If your |onprem| instance can't access the Internet, the MongoDB binary 
+              and its signature file are stored in ``/mongodb-ops-manager/mongodb-releases/``
+              by default. Ensure the signature file is named the same as the MongoDB 
+              binary and both are in the same directory. For example: 
+
+              .. code-block:: sh
+
+                 /mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel80-4.2.8.tgz.sig
+                 /mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel80-4.2.8.tgz
+
+   .. step::
+
+      Save and apply the :ref:`k8s-om-specification`.
+
+      .. code-block:: sh
+
+         kubectl apply -f <my-ops-manager-resource-specification>.yaml
+      
+      After you've applied the :ref:`k8s-om-specification`, the {+mdbagent+} performs a 
+      :ref:`rolling restart <rolling-restart-faq>` on the cluster nodes, reconciling 
+      the changes.  
