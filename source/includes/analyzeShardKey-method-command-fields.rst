@@ -16,7 +16,7 @@
 
        There is no default value.
 
-   * - ``keyCharacteristics``
+   * - ``opts.keyCharacteristics``
      - boolean
      - Optional
      - Whether or not the metrics about the characteristics of the shard 
@@ -25,7 +25,7 @@
 
        Defaults to ``true``.
 
-   * - ``readWriteDistribution`` 
+   * - ``opts.readWriteDistribution`` 
      - boolean
      - Optional
      - Whether or not the metrics about the read and write distribution
@@ -34,7 +34,7 @@
 
        Defaults to ``true``.
 
-   * - ``sampleRate``
+   * - ``opts.sampleRate``
      - double
      - Optional
      - The proportion of the documents in the collection to sample when 
@@ -45,7 +45,7 @@
 
        There is no default value.
 
-   * - ``sampleSize``
+   * - ``opts.sampleSize``
      - integer
      - Optional
      - The number of documents to sample when calculating the metrics 
