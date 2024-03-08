@@ -111,7 +111,7 @@
          .. tab:: ARM64
             :tabid: arm64
 
-            On ARM64 architecture running RHEL 8.x or Amazon Linux 2 (managing MongoDB 4.4 or later deployments):
+            On ARM64 architecture running RHEL 8.x/9.x or Amazon Linux 2:
 
             .. tabs::
 
@@ -120,8 +120,8 @@
 
                   .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                  Running RHEL 8.x or Amazon Linux 2 using the rpm
-                  package manager (managing MongoDB 4.4 or later deployments):
+                  Running RHEL 8.x/9.x or Amazon Linux 2 using the rpm
+                  package manager:
 
                   .. include:: /includes/steps/install-mongodb-agent-manage-arm64.rhel8-rpm.rst
 
