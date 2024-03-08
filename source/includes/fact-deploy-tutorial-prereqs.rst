@@ -37,7 +37,7 @@ Before you begin, complete the following prerequisites:
 
   .. code-block:: sh	
 
-     brew install mongodb-database-tools
+     brew tap mongodb/brew && brew install mongodb-database-tools
 
 - Install `Podman <https://podman.io/>`__ version 4.4 and later.
 
