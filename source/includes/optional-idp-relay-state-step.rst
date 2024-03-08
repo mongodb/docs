@@ -9,9 +9,9 @@ You can use:
    * - Destination
      - RelayState URL
      
-   * - MongoDB |service|
+   * - MongoDB |cloud|
      - The :guilabel:`Login URL` that was generated for your identity 
-       provider configuration in the |service| 
+       provider configuration in the |cloud| 
        :ref:`Federation Management App <federation-management-access>`.
    
    * - MongoDB Support Portal
