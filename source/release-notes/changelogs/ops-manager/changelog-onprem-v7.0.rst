@@ -1,3 +1,29 @@
+.. _opsmgr-server-7.0.3: 
+
+|onprem| Server 7.0.3
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-03-07*
+
+- Updates the {+mdbagent+} to :ref:`107.0.3.8550-1 <mongodb-107.0.3.8550>`.
+- Fixes a bug where |onprem| upgrades might become stuck
+  when webhook notifications are configured due to ``webhook_url`` 
+  not populating correctly.
+- Adds {+mdbagent+} support for Ubuntu 20.04 and RHEL 9 on ARM.
+- Fixes a bug where the {+mdbagent+} wasn't considering all of 
+  a certificate's :abbr:`SANs (Subject Alternative Names)`.
+- Adds the ability to edit WiredTiger job setting, number of 
+  backup workers, and bandwidth for backups in the
+  :ref:`admin-console`.
+- Adds the ability for |onprem| to automatically choose the
+  number of backup workers based on available CPU cores and
+  memory.
+- Fixes `CVE-2023-52428 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-52428>`__
+- Fixes `CVE-2024-25710 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-25710>`__
+- Fixes `CVE-2024-26308 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-26308>`__
+- Releases {+mongosh+} 2.1.5 to |onprem|. To learn more, see {+mongosh+}
+  :mdb-shell:`Release Notes </changelog/#v2.1.5>`.
+
 .. _opsmgr-server-7.0.2:
 
 |onprem| Server 7.0.2
