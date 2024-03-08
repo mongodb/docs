@@ -1,0 +1,25 @@
+kubectl apply --context "${K8S_CLUSTER_0_CONTEXT_NAME}" -n "${NAMESPACE}" -f - <<EOF
+apiVersion: mongodb.com/v1
+kind: MongoDBOpsManager
+metadata:
+  name: om
+spec:
+  topology: MultiCluster
+  version: 7.0.1
+  adminCredentials: om-admin-user-credentials
+  clusterSpecList:
+    - clusterName: "${K8S_CLUSTER_0_CONTEXT_NAME}"
+      members: 1
+    - clusterName: "${K8S_CLUSTER_1_CONTEXT_NAME}"
+      members: 1
+  applicationDatabase:
+    version: "6.0.5-ubi8"
+    topology: MultiCluster
+    clusterSpecList:
+      - clusterName: "${K8S_CLUSTER_0_CONTEXT_NAME}"
+        members: 3
+      - clusterName: "${K8S_CLUSTER_1_CONTEXT_NAME}"
+        members: 2
+  backup:
+    enabled: false
+EOF
