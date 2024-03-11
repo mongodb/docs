@@ -1,6 +1,5 @@
 import com.mongodb.client.model.Aggregates.limit
 import com.mongodb.client.model.Aggregates.project
-import com.mongodb.client.model.Filters.eq
 import com.mongodb.client.model.Projections.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import kotlinx.coroutines.runBlocking
@@ -10,60 +9,66 @@ fun main() {
     val uri = "<connection string>"
     val mongoClient = MongoClient.create(uri)
 
-    val database = mongoClient.getDatabase("local_school_district")
-    val collection = database.getCollection<Document>("schools")
+    val database = mongoClient.getDatabase("sample_mflix")
+    val collection = database.getCollection<Document>("movies")
 
     runBlocking {
-        val agg = Document("index", "compound-query-custom-score-tutorial")
-            .append(
-                "must", listOf(
+        val agg = Document(
+            "\$search",
+            Document("index", "compound-query-custom-score-tutorial")
+                .append(
+                    "compound",
                     Document(
-                        "text",
-                        Document("path", "genres")
-                            .append("query", "comedy")
-                            .append(
-                                "score",
-                                Document(
-                                    "boost",
-                                    Document("value", 9)
-                                )
+                        "must", listOf(
+                            Document(
+                                "text",
+                                Document("path", "genres")
+                                    .append("query", "comedy")
+                                    .append(
+                                        "score",
+                                        Document(
+                                            "boost",
+                                            Document("value", 9)
+                                        )
+                                    )
+                            ),
+                            Document(
+                                "text",
+                                Document("path", "title")
+                                    .append("query", "snow")
+                                    .append(
+                                        "score",
+                                        Document(
+                                            "boost",
+                                            Document("value", 5)
+                                        )
+                                    )
                             )
-                    ),
-                    Document(
-                        "text",
-                        Document("path", "title")
-                            .append("query", "snow")
-                            .append(
-                                "score",
-                                Document(
-                                    "boost",
-                                    Document("value", 5)
-                                )
-                            )
+                        )
                     )
-                )
-            )
-            .append(
-                "should", listOf(
-                    Document(
-                        "range",
-                        Document("path", "year")
-                            .append("gte", 2013)
-                            .append("lte", 2015)
-                            .append(
-                                "score",
+                        .append(
+                            "should", listOf(
                                 Document(
-                                    "boost",
-                                    Document("value", 3)
+                                    "range",
+                                    Document("path", "year")
+                                        .append("gte", 2013)
+                                        .append("lte", 2015)
+                                        .append(
+                                            "score",
+                                            Document(
+                                                "boost",
+                                                Document("value", 3)
+                                            )
+                                        )
                                 )
                             )
-                    )
+                        )
                 )
-            )
+        )
 
         val resultsFlow = collection.aggregate<Document>(
             listOf(
-                eq("\$search", eq("compound", agg)),
+                agg,
                 limit(10),
                 project(fields(
                     excludeId(),
