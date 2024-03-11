@@ -23,6 +23,11 @@
 - Fixes `CVE-2024-26308 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-26308>`__
 - Releases {+mongosh+} 2.1.5 to |onprem|. To learn more, see {+mongosh+}
   :mdb-shell:`Release Notes </changelog/#v2.1.5>`.
+- Fixes an issue where |mms| inaccurately reported the 
+  :guilabel:`network bytes out` metric that appears in the 
+  :guilabel:`System Network` chart. This release resets this metric and 
+  the previous values no longer appear. To learn more, see 
+  :ref:`review-available-metrics` and :ref:`system-disk-alerts`.
 
 .. _opsmgr-server-7.0.2:
 
