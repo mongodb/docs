@@ -111,6 +111,15 @@
       -
       -
     * -
+      - Debian 12 :sup:`2`
+      - :icon:`check-circle`
+      - 
+      - 
+      -
+      -
+      -
+      -
+    * -
       - Ubuntu 16.x
       -
       -
