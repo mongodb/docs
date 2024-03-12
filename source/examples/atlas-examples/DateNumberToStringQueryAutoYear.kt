@@ -38,7 +38,7 @@ fun main() {
 
         val resultsFlow = collection.aggregate<Document>(
             listOf(
-                eq("\$search", eq("compound", agg)),
+                agg,
                 limit(5),
                 project(fields(excludeId()))
             )
