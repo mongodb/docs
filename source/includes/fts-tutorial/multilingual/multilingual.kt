@@ -8,7 +8,7 @@ import java.util.*
 
 fun main() {
     // establish connection and set namespace
-    val uri = "<connection string>"
+    val uri = "<connection-string>"
     val mongoClient = MongoClient.create(uri)
 
     val database = mongoClient.getDatabase("sample_mflix")

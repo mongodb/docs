@@ -4,6 +4,8 @@ import com.mongodb.client.model.Projections.*
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import kotlinx.coroutines.runBlocking
 import org.bson.Document
+import java.time.Instant
+import java.util.*
 
 fun main() {
     // establish connection and set namespace
@@ -16,43 +18,41 @@ fun main() {
         // define clauses
         val mustClauses = listOf(
             Document(
-                "range", Document("path", "year")
-                    .append("gte", 2013)
-                    .append("lte", 2015)
+                "range", Document("path", "released")
+                    .append("gt", Date.from(Instant.parse("2015-01-01T00:00:00.000Z")))
+                    .append("lt", Date.from(Instant.parse("2015-12-31T00:00:00.000Z")))
             )
         )
 
         val shouldClauses = listOf(
             Document(
-                "text",
-                Document("query", "snow")
-                    .append("path", "title")
-                    .append("score", Document("constant", Document("value", 5)))
+                "near",
+                Document("pivot", 2629800000L)
+                    .append("path", "released")
+                    .append("origin", Date.from(Instant.parse("2015-07-01T00:00:00.000+00:00")))
             )
         )
 
-        val highlightOption = Document("path", "title")
-
-        // define pipeline
+        // define query
         val agg = Document(
             "\$search",
-            Document("index", "compound-query-custom-score-tutorial")
+            Document("index", "date-range-tutorial")
                 .append(
                     "compound",
-                    Document("must", mustClauses).append("should", shouldClauses)
+                    Document().append("must", mustClauses)
+                        .append("should", shouldClauses)
                 )
-                .append("highlight", highlightOption)
         )
 
+        // run query and print results
         val resultsFlow = collection.aggregate<Document>(
             listOf(
                 agg,
-                limit(10),
+                limit(6),
                 project(fields(
                     excludeId(),
-                    include("title", "year"),
-                    computed("score", Document("\$meta", "searchScore")),
-                    computed("highlights", Document("\$meta", "searchHighlights"))
+                    include("title", "released", "genres"),
+                    computed("score", Document("\$meta", "searchScore"))
                 ))
             )
         )

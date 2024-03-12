@@ -7,7 +7,7 @@ import org.bson.Document
 
 fun main() {
     // establish connection and set namespace
-    val uri = "<connection string>"
+    val uri = "<connection-string>"
     val mongoClient = MongoClient.create(uri)
     val database = mongoClient.getDatabase("local_school_district")
     val collection = database.getCollection<Document>("schools")

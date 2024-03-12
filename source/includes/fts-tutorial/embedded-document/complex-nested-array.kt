@@ -7,7 +7,7 @@ import org.bson.Document
 
 fun main() {
     // connect to your Atlas cluster
-    val uri = "<connection string>"
+    val uri = "<connection-string>"
     val mongoClient = MongoClient.create(uri)
 
     // set namespace
