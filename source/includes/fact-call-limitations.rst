@@ -6,6 +6,7 @@ contexts:
 - Class constructor functions
 - Non-async generator functions
 - Callbacks to ``.sort()`` on an array
+- JavaScript setters in classes
 
 To access to the results of database calls, use `async functions
 <https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function>`__,
@@ -119,3 +120,24 @@ Use ``.map()`` instead.
 This approach to array sort is often more performant than the
 equivalent unsupported code.
 
+JavaScript Setters 
+~~~~~~~~~~~~~~~~~~
+
+The following JavaScript setter does not work: 
+
+.. code-block:: javascript
+   :copyable: false
+
+   // This code will fail
+   class TestClass {
+     value = 1;
+
+     get property() {
+       return this.value;
+     }
+
+     // does not work:
+     set property(value) {
+       this.value = db.test.findOne({ value });
+     }
+   }
