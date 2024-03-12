@@ -117,6 +117,8 @@
 
     - Optional
 
+    - boolean
+
     - Determines if the ``authorizationClaim`` is required. The default value is 
       ``true``.
     
@@ -149,9 +151,7 @@
             { user: "mdbinc/spencer.jackson@example.com", 
               db: "$external" }
         
-      .. versionadded:: 7.2
-
-    - boolean
+      .. versionadded:: 7.2 (Also, available in 7.0.5).
 
   * - ``authorizationClaim`` 
 
