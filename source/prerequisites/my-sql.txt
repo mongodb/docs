@@ -1,0 +1,180 @@
+.. _rm-prereq-mysql:
+
+===========================================
+Configure Migration Prerequisites for MySQL
+===========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To run sync jobs from a MySQL source database, the database may require 
+some configuration changes. If Relational Migrator determines the 
+database needs configuration changes, it automatically generates a 
+SQL script with the required changes. It is recommended to have a 
+Database Administrator (DBA) review the commands in this script and 
+perform their execution on the database server. The 
+MySQL Server configurations depend on the type of sync job:
+
+.. include:: /includes/fact-short-sync-job-desc.rst
+
+For details on supported versions of MySQL, see 
+:ref:`supported-databases`.
+
+Steps
+-----
+
+
+.. tabs::
+
+   .. tab:: Snapshot Jobs
+      :tabid: enable-snapshot-jobs
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/fact-my-sql-setup-user-permission-step.rst
+
+   .. tab:: Continuous Jobs
+      :tabid: enable-continuous-jobs
+
+      Running continuous jobs on Relational Migrator 
+      requires the `binary log <https://dev.mysql.com/doc/refman/8.0/en/binary-log.html>`__ 
+      to be enabled on your MySQL instance. The binary log (Binlog) 
+      records all operations in the order they are committed to the 
+      database. 
+
+      .. procedure::
+         :style: normal
+
+         .. include:: /includes/fact-my-sql-setup-user-permission-step.rst
+
+         .. step:: (Optional) Manually verify Binlog is enabled
+
+               Relational Migrator automatically checks this setting for 
+               you. To manually check the if the ``Binlog`` option is 
+               enabled, use the queries below for your version of MySQL:
+
+               .. note:: 
+
+                  ``Binlog`` is automatically enabled by default 
+                  on MySQL ``8.x`` versions.
+
+               .. tabs::
+
+                  .. tab:: MySql 8.x
+                     :tabid: mysql-8x
+
+                     .. code-block:: sql
+                        :copyable: true
+
+                        SELECT variable_value as "BINARY LOGGING STATUS (log-bin) ::"
+
+                        FROM performance_schema.global_variables WHERE variable_name='log_bin'; 
+
+                  .. tab:: MySql 5.x
+                     :tabid: mysql-5x
+
+                     .. code-block:: sql
+                        :copyable: true
+
+                        SELECT variable_value as "BINARY LOGGING STATUS (log-bin) ::"
+
+                        FROM information_schema.global_variables WHERE variable_name='log_bin';
+
+         .. step:: Locate and update the MySQL configuration file
+
+            a. Run the following SQL query to get the ``server_id`` 
+               value for your MySQL instance:
+
+               .. tabs::
+
+                  .. tab:: MySql 8.x
+                     :tabid: mysql-8x
+
+                     .. code-block:: sql
+                        :copyable: true
+
+                        SELECT variable_value 
+                        FROM 
+                        performance_schema.global_variables 
+                        WHERE variable_name='server_id';
+
+                  .. tab:: MySql 5.x
+                     :tabid: mysql-5x
+
+                     .. code-block:: sql
+                        :copyable: true
+
+                        SELECT variable_value 
+                        FROM 
+                        information_schema.global_variables 
+                        WHERE variable_name='server_id';
+
+            #. Locate the config file for your MySQL instance by running 
+               the following ``mysqld`` command in your terminal:
+
+               .. tabs::
+
+                  .. tab:: Windows
+                     :tabid: windows
+
+                     .. code-block:: 
+                        :copyable: true
+
+                        mysql --help | findstr cnf
+
+                  .. tab:: MacOS / Linux
+                     :tabid: macos-linux
+
+                     .. code-block:: 
+                        :copyable: true
+
+                        mysql --help | grep cnf
+
+            #. Under the ``[mysqld]`` section of your MySQL 
+               configuration file add the following lines. Replace 
+               the ``XXXXX`` value with the ``server_id`` from the 
+               previous query:
+
+               .. tabs::
+
+                  .. tab:: MySql 8.x
+                     :tabid: mysql-8x
+
+                     .. code-block::
+                        :copyable: true
+
+                        server-id = XXXXX
+                        log_bin = mysql-bin
+                        binlog_format = ROW
+                        binlog_row_image = FULL
+                        binlog_expire_logs_seconds = 864000
+
+                  .. tab:: MySql 5.x
+                     :tabid: mysql-5x
+
+                     .. code-block:: 
+                        :copyable: true
+
+                        server-id = XXXXX
+                        log_bin = mysql-bin
+                        binlog_format = ROW
+                        binlog_row_image = FULL
+                        expire_log_days = 10 
+
+               .. note::
+
+                  If you're running MySQL on AWS RDS and `automated backups 
+                  <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_WorkingWithAutomatedBackups.html>`__
+                  are not enabled, ``Binlog`` will be disabled, even if 
+                  the values are set in the configuration file. 
+
+Learn More
+----------
+
+Relational Migrator relies on the open-source Debezium connector to 
+capture row-level changes. For more details, see
+`Debezium MySQL <https://debezium.io/documentation/reference/stable/connectors/mysql.html>`__.

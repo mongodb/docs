@@ -1,0 +1,201 @@
+.. _rm-convert-triggers:
+
+================
+Convert Triggers
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can import and convert your SQL triggers to 
+:ref:`MongoDB Atlas Triggers <atlas-triggers>` with the query converter. 
+The query converter considers the SQL code and relational schema defined 
+in your project when converting your triggers.
+
+About this Task
+---------------
+
+.. include:: /includes/fact-query-converter-generic.rst
+
+Before you Begin
+----------------
+
+- Your relational database must have at least one trigger to convert.
+
+- .. include:: /includes/fact-query-converter-disclaimer.rst
+
+Steps
+-----
+
+.. procedure::
+   :style:  connected
+
+   .. step:: Navigate to the query converter pane
+
+      From the :guilabel:`Code Generation` tab, click the 
+      :guilabel:`Query Converter` pane.
+
+      If it is your first time accessing Query Converter or your session 
+      has expired, click :guilabel:`Log In To Use Query Converter` 
+      and provide your Atlas credentials.
+
+   .. step:: Open the query converter view
+
+      -  If it is your first time using the query converter in your
+         project, click :guilabel:`Import From Database`.
+
+      -  If your project already has converted SQL code, click the
+         :guilabel:`Manage Database Objects` button on the left
+         pane.
+
+   .. step:: Select triggers
+
+      a. On the :guilabel:`Import Database Objects` modal, click
+         the :icon-fa5:`chevron-right` icon next to :guilabel:`Database`.
+
+      #. Click the :icon-fa5:`chevron-right` icon next to your schema.
+
+      #. Click the :icon-fa5:`chevron-right` icon next to
+         :guilabel:`Triggers`.
+
+         You can toggle triggers for conversion by clicking
+         the :icon-fa5:`check-square` icon next to a trigger's
+         name. All triggers are selected by default.
+
+      #. Click :guilabel:`Save`.
+
+         The code for each trigger in your database 
+         schema is imported into your project and is visible in the 
+         left :guilabel:`Query Converter` pane under 
+         :guilabel:`Triggers`.
+
+   .. step:: Convert the SQL trigger
+
+      a. Click a trigger's name from the left pane under
+         :guilabel:`Triggers`.
+
+         .. tip::
+
+            .. include:: /includes/fact-query-converter-filter.rst
+
+         The SQL trigger code displays in the 
+         :guilabel:`Imported Trigger` pane.
+
+      #. Click the :guilabel:`Convert` button. Wait for the query 
+         converter to convert your code. 
+
+         The converted MongoDB code displays
+         on the :guilabel:`Converted MongoDB Query` pane.
+
+      #. Click the :icon-fa5:`copy` icon on the 
+         :guilabel:`Converted MongoDB Query` pane to copy the MongoDB 
+         code to your clipboard.
+
+   .. step:: Create the Trigger in Atlas
+
+         a. Login to your `Atlas account <https://cloud.mongodb.com/v2/>`__.
+
+         #. From the :guilabel:`Overview` screen, click :guilabel:`Triggers`.
+
+         #. Click :guilabel:`Add Trigger`.
+
+            .. tip::
+
+               The converted MongoDB code contains commented lines for 
+               all the variables you must select in Atlas to create 
+               your trigger. For example:
+
+               .. code-block:: javascript
+                  :copyable: false
+
+                  // Collection Name: products
+                  // Operation Type: Insert
+
+         #. Enter a name for the trigger in the :guilabel:`Name` text 
+            field.
+
+         #. Select the :guilabel:`Cluster Name`, the 
+            :guilabel:`Database Name` and the 
+            :guilabel:`Collection Name`.
+
+         #. Select the :guilabel:`Operation Type` as 
+            :guilabel:`Insert Document`.
+
+         #. Toggle the :guilabel:`Document Preimage` and 
+            :guilabel:`Full Document` switches to on.
+
+         #. Enter converted MongoDB code in the :guilabel:`Function`
+            text field.
+
+            .. important::
+
+               Update the ``clusterName`` and ``databaseName`` in 
+               the generated Atlas code to match your cluster and 
+               database name.
+
+         #. Click :guilabel:`Save` to save the Atlas trigger.
+
+Example
+-------
+
+Convert a MySQL Trigger
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows a MySQL trigger converter to Atlas:
+
+.. tabs::
+
+   .. tab:: Relational Input
+      :tabid: sql-input-1
+
+      .. code-block:: sql
+         :copyable: false
+
+         CREATE TRIGGER TRIGGER_UPPER_PRODUCTS
+         BEFORE INSERT
+         ON MYDATABASE.PRODUCTS
+         FOR EACH ROW
+         SET NEW.FULL_NAME = UPPER(new.FULL_NAME)
+
+   .. tab:: MongoDB Output
+      :tabid: mongodb-output-1
+
+      .. code-block:: javascript
+         :emphasize-lines: 14-15
+         :copyable: false
+
+         // The relational database trigger has been converted to MongoDB Atlas Triggers format.
+         // To create a trigger, open your Atlas project (https://cloud.mongodb.com) and choose Triggers
+         // For more on Atlas triggers see the docs: https://www.mongodb.com/docs/atlas/triggers/
+         // Create your trigger using the following settings and paste the code into the Function section:
+         // Watch Against: Collection
+         // Cluster Name: Ensure clusterName matches selection in Atlas Trigger configuration
+         // Database Name: Ensure databaseName matches selection in Atlas Trigger configuration
+         // Collection Name: products
+         // Operation Type: Insert
+         // Full Document: On
+         // Document Preimage: Off
+
+         exports = async function(changeEvent) {
+            const clusterName = "clusterName";
+            const databaseName = "databaseName";
+
+            const { fullDocument } = changeEvent;
+            const db = context.services.get(clusterName).db(databaseName);
+            const collection = db.collection('products');
+
+            if (fullDocument && fullDocument.fullName) {
+               fullDocument.fullName = fullDocument.fullName.toUpperCase();
+               await collection.updateOne({ _id: fullDocument._id }, { $set: { fullName: fullDocument.fullName } });
+            }
+         };
+
+Learn More
+----------
+
+- :ref:`rm-convert-views`
+- :ref:`rm-convert-queries`
+- :ref:`rm-convert-stored-procedures`

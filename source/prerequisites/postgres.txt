@@ -1,0 +1,158 @@
+.. _rm-prereq-postgres:
+
+================================================
+Configure Migration Prerequisites for PostgreSQL
+================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+To run sync jobs from an PostgreSQL source database, the database may 
+require some configuration changes. If Relational Migrator determines the 
+database needs configuration changes, it automatically generates a 
+SQL script with the required changes. It is recommended to have a 
+Database Administrator (DBA) review the commands in this script and 
+perform their execution on the database server. These instructions 
+configuration PostgreSQL for both types of sync jobs:
+
+.. include:: /includes/fact-short-sync-job-desc.rst
+
+Before you Begin
+----------------
+
+If PostgreSQL is configured as a cluster, Relational Migrator must 
+connect to the master server.
+
+Steps
+-----
+
+.. tabs::
+
+   .. tab:: Snapshot Jobs
+      :tabid: enable-snapshot-jobs
+
+      For snapshot jobs against PostgreSQL, the service account requires
+      schema ``USAGE`` and table ``SELECT`` permissions.
+
+      .. code-block:: sql
+         :copyable: true
+
+         GRANT USAGE ON SCHEMA <schema_name> TO <database_user_name>;
+         GRANT SELECT ON TABLE <schema_name>.<table_name> TO <database_user_name>;
+
+   .. tab:: Continuous Jobs
+      :tabid: enable-continuous-jobs
+
+      .. procedure::
+         :style: normal
+
+         For continuous jobs against PostgreSQL, you must enable 
+         logical replication, grant role permissions to the service 
+         account, and create a publication.
+
+         .. step:: Enable logical replication 
+
+            Logical replication may not be enabled by default. To enable logical 
+            replication, change the `wal_level <https://postgresqlco.nf/doc/en/param/wal_level>`__ 
+            configuration in the 
+            `postgresql.conf configuration file <https://www.postgresql.org/docs/current/config-setting.html>`__. 
+            You *must restart the database instance* after changing the configuration file. 
+
+            .. code-block:: none
+
+               wal_level = logical 
+
+            If you are using PostgreSQL hosted on AWS RDS, you must 
+            set the ``rds.logical_replication`` parameter to ``1``. 
+            For details, see `Enable Logical Replication on AWS 
+            <https://repost.aws/knowledge-center/rds-postgresql-use-logical-replication>`__.
+            You *must restart the database instance* after setting the 
+            parameter.
+
+            .. tip::
+
+               You can use the following query to check if your 
+               AWS RDS instance has logical 
+               replication enabled:
+
+               .. code-block:: sql
+                  :copyable: true
+
+                  SELECT name,setting 
+                  FROM pg_settings 
+                  WHERE name IN ('wal_level','rds.logical_replication');
+
+         .. step:: Create a SQL replication role
+
+            a. Create a role with ``REPLICATION`` and ``LOGIN`` 
+               database permissions:
+
+               .. code-block:: sql
+
+                  CREATE ROLE <role> REPLICATION LOGIN;
+
+            #. Grant the table ``SELECT`` and schema ``USAGE``
+               permissions to the role. Each table in
+               the migration requires a ``GRANT SELECT`` statement:
+
+               .. code-block:: sql
+                  :copyable: true
+
+                  GRANT USAGE ON SCHEMA <schema> TO <role>;
+                  GRANT SELECT ON <schema>.<table> TO <role>;
+                  -- ADDITIONAL GRANT SELECT STATEMENTS...
+
+            #. Grant the role to the service account
+
+               Replace ``<original_owner>`` with the owner of the 
+               participating tables.
+
+               .. code-block:: sql
+                  :copyable: true
+
+                  GRANT <role> TO <original_owner>;
+                  GRANT <role> TO <database_user_name>;
+
+         .. step:: Grant ownership of each table to the role
+            
+            Each table in the migration requires a ``ALTER TABLE`` 
+            statement:
+
+            .. code-block:: sql
+               :copyable: true
+
+               ALTER TABLE <schema>.<table> OWNER TO <role>;
+               -- ADDITIONAL ALTER TABLE STATEMENTS...
+
+         .. step:: Create a publication
+
+            Create a `publication <https://www.postgresql.org/docs/current/logical-replication-publication.html>`__ 
+            each table in the migration must be specified 
+            in the ``FOR`` statement separated by commas:
+
+            .. code-block:: sql
+               :copyable: true
+
+               CREATE PUBLICATION "MIGRATOR_<name>_PUBLICATION" 
+               FOR TABLE "<schema>"."<table1>","<schema>"."<table2>"; 
+
+         .. step:: Set replica identity to full
+
+            Each table in the migration requires a ``ALTER TABLE`` 
+            statement:
+
+            .. code-block:: sql
+               :copyable: true
+
+               ALTER TABLE <schema>.<table> REPLICA IDENTITY FULL;
+               -- ADDITIONAL ALTER TABLE STATEMENTS...
+
+Learn More
+----------
+
+Relational Migrator relies on the open-source Debezium connector to 
+capture row-level changes. For more details, see
+`Debezium PostgreSQL <https://debezium.io/documentation/reference/stable/connectors/postgresql.html>`__.
