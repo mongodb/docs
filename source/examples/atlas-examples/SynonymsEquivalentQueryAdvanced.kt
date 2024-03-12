@@ -17,7 +17,7 @@ fun main() {
             "\$search",
             Document("index", "synonyms-tutorial")
                 .append(
-                    "autocomplete",
+                    "compound",
                     Document(
                         "should", listOf(
                             Document(
