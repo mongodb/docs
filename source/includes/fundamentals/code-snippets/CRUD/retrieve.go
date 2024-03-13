@@ -101,7 +101,7 @@ func main() {
 		// Retrieves a document that matches the filter and prints it as
 		// a struct
 		var result Tea
-		err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
+		err = coll.FindOne(context.TODO(), filter, opts).Decode(&result)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				fmt.Println("No documents found")
