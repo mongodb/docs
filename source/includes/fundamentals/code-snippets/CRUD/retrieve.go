@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -104,7 +103,7 @@ func main() {
 		var result Tea
 		err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
 		if err != nil {
-			if errors.Is(err, mongo.ErrNoDocuments) {
+			if err == mongo.ErrNoDocuments {
 				fmt.Println("No documents found")
 			} else {
 				panic(err)
