@@ -3,7 +3,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -26,7 +25,7 @@ type Tea struct {
 
 func main() {
 	var uri string
-	if uri = os.Getenv("DRIVER_REF_URI"); uri == "" {
+	if uri = os.Getenv("MONGODB_URI"); uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/#environment-variable")
 	}
 
@@ -44,12 +43,12 @@ func main() {
 	// begin insert docs
 	coll := client.Database("db").Collection("tea")
 	docs := []interface{}{
-		Review{Item: "Masala", Rating: 10, DateOrdered: time.Date(2009, 11, 17, 0, 0, 0, 0, time.Local)},
-		Review{Item: "Sencha", Rating: 7, DateOrdered: time.Date(2009, 11, 18, 0, 0, 0, 0, time.Local)},
-		Review{Item: "Masala", Rating: 9, DateOrdered: time.Date(2009, 11, 12, 0, 0, 0, 0, time.Local)},
-		Review{Item: "Masala", Rating: 8, DateOrdered: time.Date(2009, 12, 1, 0, 0, 0, 0, time.Local)},
-		Review{Item: "Sencha", Rating: 10, DateOrdered: time.Date(2009, 12, 17, 0, 0, 0, 0, time.Local)},
-		Review{Item: "Hibiscus", Rating: 4, DateOrdered: time.Date(2009, 12, 18, 0, 0, 0, 0, time.Local)},
+		Tea{Item: "Masala", Rating: 10, DateOrdered: time.Date(2009, 11, 17, 0, 0, 0, 0, time.Local)},
+		Tea{Item: "Sencha", Rating: 7, DateOrdered: time.Date(2009, 11, 18, 0, 0, 0, 0, time.Local)},
+		Tea{Item: "Masala", Rating: 9, DateOrdered: time.Date(2009, 11, 12, 0, 0, 0, 0, time.Local)},
+		Tea{Item: "Masala", Rating: 8, DateOrdered: time.Date(2009, 12, 1, 0, 0, 0, 0, time.Local)},
+		Tea{Item: "Sencha", Rating: 10, DateOrdered: time.Date(2009, 12, 17, 0, 0, 0, 0, time.Local)},
+		Tea{Item: "Hibiscus", Rating: 4, DateOrdered: time.Date(2009, 12, 18, 0, 0, 0, 0, time.Local)},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
@@ -80,7 +79,7 @@ func main() {
 			panic(err)
 		}
 
-		var results []Review
+		var results []Tea
 		if err = cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
@@ -101,10 +100,14 @@ func main() {
 
 		// Retrieves a document that matches the filter and prints it as
 		// a struct
-		var result Review
+		var result Tea
 		err := coll.FindOne(context.TODO(), filter, opts).Decode(&result)
 		if err != nil {
-			panic(err)
+			if err == mongo.ErrNoDocuments {
+				fmt.Println("No documents found")
+			} else {
+				panic(err)
+			}
 		}
 
 		res, _ := bson.MarshalExtJSON(result, false, false)
@@ -127,10 +130,14 @@ func main() {
 
 		// Retrieves a document that matches the filter and prints it as
 		// a struct
-		var result Review
+		var result Tea
 		err = coll.FindOne(context.TODO(), filter, opts).Decode(&result)
 		if err != nil {
-			panic(err)
+			if err == mongo.ErrNoDocuments {
+				fmt.Println("No documents found")
+			} else {
+				panic(err)
+			}
 		}
 
 		res, _ := bson.MarshalExtJSON(result, false, false)
