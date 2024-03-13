@@ -16,7 +16,7 @@ public class SynonymsEquivalentQuery {
 	public static void main( String[] args ) {
 		Document agg = new Document("$search",
 			new Document("index", "synonyms-tutorial")
-			.append("autocomplete", 
+			.append("compound", 
 				new Document("should", Arrays.asList(new Document("text", 
                 	new Document("path", "title")
                 	.append("query", "automobile")

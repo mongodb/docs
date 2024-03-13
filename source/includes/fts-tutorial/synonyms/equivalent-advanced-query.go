@@ -30,7 +30,7 @@ func main() {
 	searchStage := bson.D{{"$search", bson.M{
 		"index": "synonyms-tutorial",
 		"compound": bson.M{
-			"must": bson.A{
+			"should": bson.A{
 				bson.M{
 					"text": bson.D{
 						{"path", "title"}, {"query", "automobile"}, {"synonyms", "transportSynonyms"},
