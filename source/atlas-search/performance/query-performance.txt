@@ -234,14 +234,15 @@ Using a :manual:`$match </reference/operator/aggregation/match/>`
 aggregation pipeline stage after a :ref:`$search <query-syntax-ref>`
 stage can drastically slow down query results. If possible, design
 your ``$search`` query so that all necessary filtering occurs in the
-``$search`` stage to remove the need for a ``$match`` stage. The |fts| 
-:ref:`compound-ref` operator is helpful for queries that require
-multiple filtering operations. If you must use the :pipeline:`$match`
-stage in your aggregation pipeline, consider using the
-:ref:`storedSource <fts-stored-source-definition>` option to store 
+``$search`` stage to remove the need for a ``$match`` stage. 
+
+The |fts| :ref:`compound-ref` operator helps with queries that
+require multiple filtering operations. If you must use the
+:pipeline:`$match` stage in your aggregation pipeline, consider using
+the :ref:`storedSource <fts-stored-source-definition>` option to store 
 only the fields that your :pipeline:`$match` condition needs. You can 
-then use the :ref:`returnStoredSource 
-<fts-return-stored-source-option>` option to retrieve stored fields. 
+then use the :ref:`returnStoredSource <fts-return-stored-source-option>`
+option to retrieve stored fields.
 
 .. seealso:: 
 
@@ -266,17 +267,32 @@ Avoid ``$sort`` After ``$search``
 
 Using a :manual:`$sort </reference/operator/aggregation/sort/>` 
 aggregation pipeline stage after a :ref:`$search <query-syntax-ref>` 
-stage can drastically slow down query results. If possible, design
-your ``$search`` query so that all necessary sorting occurs in the 
-``$search`` stage to remove the need for a ``$sort`` stage. In 
-general, the |fts| :ref:`compound-ref` operator is helpful for queries
-that require multiple sorting operations. To sort documents based on a 
-numeric, date, or geo field, consider using the |fts| :ref:`near-ref` 
-operator. Alternatively, you can use the :ref:`storedSource 
-<fts-stored-source-definition>` option to store only the fields that 
-you need for :pipeline:`$sort` on |fts| and use the 
-:ref:`returnStoredSource <fts-return-stored-source-option>` option 
-to retrieve stored fields.
+stage can drastically slow down query results. 
+
+- For sorting numeric, date, or string fields,  use the ``sort`` option with
+  the :pipeline:`$search` stage. To learn more, see :ref:`sort-ref`.  
+- For sorting geo fields, use the :ref:`near <near-ref>` operator. 
+- To sort other fields, use ``$sort`` and :ref:`returnStoredSource
+  <fts-return-stored-source-option>` fields.  
+
+Limit Use of ``$skip`` and ``$limit`` After ``$search`` 
+-------------------------------------------------------
+
+Using :pipeline:`$skip` and :pipeline:`$limit` to retrieve results
+non-sequentially might be slow if the results for your query are large. 
+For optimal performance, use the :pipeline:`$search` ``searchAfter`` or
+``searchBefore`` options to paginate results. To learn more, see 
+:ref:`fts-paginate-results`. 
+
+To return non-sequential results, such as jumping from page 2 to page 5,
+you can use the following pipeline stages: 
+
+- :pipeline:`$search` ``searchAfter`` the last result on Page 2
+- :pipeline:`$skip` documents on Pages 3 and 4 
+- :pipeline:`$limit` results for Page 5
+
+Here, your query is optimized to skip only 2 pages of results, instead
+of skipping 4 pages if you didn't use ``searchAfter``.
 
 .. _query-performance-monitoring:
 
@@ -316,7 +332,7 @@ more, see :ref:`review-atlas-search-metrics`.
 Continue Learning 
 -----------------
 
-Follow along with this video to learn how to understand, interate, and
+Follow along with this video to learn how to understand, iterate, and
 improve your |fts| results using :ref:`explain <explain-ref>` and
 :ref:`$search score details <fts-score-details>`.
 
