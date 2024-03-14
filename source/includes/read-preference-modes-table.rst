@@ -16,20 +16,20 @@
        if it is unavailable, operations read from :term:`secondary`
        members.
        
-       Starting in version 4.4, :readmode:`primaryPreferred` supports
+       Read preference :readmode:`primaryPreferred` supports
        :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
 
    * - :readmode:`secondary`
      - All operations read from the :term:`secondary` members of the
        replica set.
        
-       Starting in version 4.4, :readmode:`secondary` supports
+       Read preference :readmode:`secondary` supports
        :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
 
    * - :readmode:`secondaryPreferred`
      - .. include:: /includes/secondaryPreferred-read-mode.rst
 
-       Starting in version 4.4, :readmode:`secondaryPreferred` supports
+       Read preference :readmode:`secondaryPreferred` supports
        :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters.
 
    * - :readmode:`nearest`
@@ -45,6 +45,6 @@
        - Any specified :doc:`tag set lists
          </tutorial/configure-replica-set-tag-sets>`
 
-       Starting in version 4.4, :readmode:`nearest` supports
+       Read preference :readmode:`nearest` supports
        :ref:`hedged reads <mongos-hedged-reads>` on sharded clusters
        and enables the hedged read option by default.

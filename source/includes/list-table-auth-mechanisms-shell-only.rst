@@ -33,8 +33,6 @@
        `MongoDB Atlas <https://www.mongodb.com/atlas/database?tck=docs_server>`_
        cluster. See :ref:`example-connect-mongo-using-aws-iam`.
 
-       .. versionadded:: 4.4
-
    * - :ref:`GSSAPI <security-auth-kerberos>` (Kerberos)
 
      - External authentication using Kerberos. This mechanism is
