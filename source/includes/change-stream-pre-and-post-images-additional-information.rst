@@ -8,7 +8,7 @@ Pre- and post-images are not available for a :ref:`change stream event
   ``expireAfterSeconds``.
   
   - The following example sets ``expireAfterSeconds`` to ``100``
-    seconds:
+    seconds on an entire cluster:
 
     .. code-block:: javascript
 
@@ -17,6 +17,16 @@ Pre- and post-images are not available for a :ref:`change stream event
           setClusterParameter:
              { changeStreamOptions: { preAndPostImages: { expireAfterSeconds: 100 } } }
        } )
+
+  - The following example sets ``expireAfterSeconds`` to ``100``
+    seconds on a specific collection:
+    
+    .. code-block:: javascript
+
+       use admin
+       db.getSiblingDB("my_collection")
+         .sensors.watch({ changeStreamOptions: 
+           { preAndPostImages: { expireAfterSeconds: 100 } } })
 
   - The following example returns the current ``changeStreamOptions``
     settings, including ``expireAfterSeconds``:
