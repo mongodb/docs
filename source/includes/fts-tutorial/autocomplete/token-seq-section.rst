@@ -64,6 +64,15 @@
          :language: java
          :dedent:
 
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/token-seq.kt
+         :language: kotlin
+         :dedent:
+
    .. tab::
       :tabid: nodejs
 
@@ -212,6 +221,11 @@
       :tabid: java-sync 
 
       .. include:: /includes/fts-tutorial/autocomplete/token-seq-output-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts-tutorial/autocomplete/token-seq-output-kotlin.rst
 
    .. tab::
       :tabid: nodejs

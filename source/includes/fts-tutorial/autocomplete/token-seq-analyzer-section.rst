@@ -105,6 +105,15 @@ The following query searches for movie titles that start with the term
          :language: java
          :dedent:
 
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fact-fts-autocomplete-limit-project-stages-token-order.rst
+
+      .. literalinclude:: /includes/fts-tutorial/autocomplete/starts-with.kt
+         :language: kotlin
+         :dedent:
+
    .. tab::
       :tabid: nodejs
 
@@ -171,6 +180,11 @@ The following query searches for movie titles that start with the term
       :tabid: java-sync 
 
       .. include:: /includes/fts-tutorial/autocomplete/starts-with-output-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/fts-tutorial/autocomplete/starts-with-output-kotlin.rst
 
    .. tab::
       :tabid: nodejs
