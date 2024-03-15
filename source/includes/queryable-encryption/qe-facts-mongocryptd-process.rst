@@ -12,11 +12,14 @@ The ``mongocryptd`` process:
   :query:`document validation <$jsonSchema>` syntax, ``mongocryptd``
   returns an error. 
 
-``mongocryptd`` only performs the previous functions, and doesn't perform any of the following:
+``mongocryptd`` only performs the previous functions, and doesn't
+perform any of the following:
 
 - ``mongocryptd`` doesn't perform encryption or decryption
 - ``mongocryptd`` doesn't access any encryption key material
 - ``mongocryptd`` doesn't listen over the network
 
-To perform client-side field level encryption and automatic decryption, Drivers use the Apache-licensed `libmongocrypt
-<https://github.com/mongodb/libmongocrypt>`__ library
+To perform field encryption and automatic decryption, the drivers use 
+the Apache-licensed `libmongocrypt
+<https://github.com/mongodb/libmongocrypt>`__ 
+library.

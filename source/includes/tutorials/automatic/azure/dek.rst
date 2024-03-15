@@ -174,9 +174,9 @@
 
    To view a diagram showing how your client application creates your
    {+dek-long+} when using an {+azure-kv+}, see
-   :ref:`csfle-reference-kms-providers-azure-architecture`.
+   :ref:`qe-fundamentals-kms-providers-azure-architecture`.
 
    To learn more about the options for creating a {+dek-long+}
    encrypted with a {+cmk-long+} hosted in {+azure-kv+}, see
-   :ref:`csfle-kms-provider-object-azure` and
-   :ref:`csfle-kms-datakeyopts-azure`.
+   :ref:`qe-kms-provider-object-azure` and
+   :ref:`qe-kms-datakeyopts-azure`.

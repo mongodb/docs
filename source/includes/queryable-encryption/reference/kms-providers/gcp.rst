@@ -1,4 +1,4 @@
-.. _qe-reference-kms-providers-gcp-architecture:
+.. _qe-fundamentals-kms-providers-gcp-architecture:
 
 Architecture
 ````````````

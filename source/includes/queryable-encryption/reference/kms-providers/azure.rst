@@ -1,4 +1,4 @@
-.. _qe-reference-kms-providers-azure-architecture:
+.. _qe-fundamentals-kms-providers-azure-architecture:
 
 Architecture
 ````````````

@@ -284,7 +284,7 @@ The output from the code in this section should resemble the following:
 
    To view a diagram showing how your client application creates your
    {+dek-long+} when using an {+gcp-kms+}, see
-   :ref:`qe-reference-kms-providers-gcp-architecture`.
+   :ref:`qe-fundamentals-kms-providers-gcp-architecture`.
 
    To learn more about the options for creating a {+dek-long+}
    encrypted with a {+cmk-long+} hosted in {+azure-kv+}, see

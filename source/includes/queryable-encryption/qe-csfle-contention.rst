@@ -25,6 +25,9 @@ Consider increasing ``contention`` above the default value of 8 only if:
   update operations, the benefit of a high contention factor for a
   rarely updated field is unlikely to outweigh the drawback.
 
+Some other examples of low cardinality fields are credit card types,
+gender, and ethnicity.
+
 Consider decreasing ``contention`` if:
 
 - The field is high cardinality and contains entirely unique values,
@@ -32,3 +35,6 @@ Consider decreasing ``contention`` if:
 
 - The field is often queried, but never or rarely updated. In this
   case, find performance is preferable to write and update performance.
+
+Some other examples of high cardinality fields are mobile phone numbers,
+social security numbers, full names, and addresses.

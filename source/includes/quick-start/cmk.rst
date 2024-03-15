@@ -54,6 +54,6 @@ as the file ``master-key.txt``:
          :language: csharp
          :dedent:
 
-.. include:: /includes/csfle-warning-local-keys.rst
+.. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
 
 .. include:: /includes/in-use-encryption/cmk-bash.rst
