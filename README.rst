@@ -1,5 +1,3 @@
-# MongoDB C Driver Documentation
-
 =================================
 MongoDB Rust Driver Documentation
 =================================
