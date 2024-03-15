@@ -5,5 +5,4 @@ settings for your platform.
 
 .. note:: 
 
-    Starting in MongoDB 4.4, a startup error is generated if the
-    ``ulimit`` value for number of open files is under ``64000``.
+    .. include:: /includes/fact-ulimit-minimum.rst
