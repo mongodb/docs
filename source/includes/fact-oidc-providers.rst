@@ -18,8 +18,16 @@
     - string
 
     - The issuer URI of the IDP that the server should accept tokens from. This 
-      must match the ``iss`` field in any JWT used for authentication. 
-    
+      must match the ``iss`` field in any JWT used for authentication.
+
+      If you specify an unreachable issuer URI, MongoDB:
+      
+      1. Logs a warning.
+      #. Continues server startup, which allows you to update the issuer
+         URI.
+      #. Reattempts issuer contact. If MongoDB reaches the issuer URI
+         and validates the access token, authentication succeeds. If
+         the issuer URI remains unreachable, authentication fails.
 
   * - ``authNamePrefix``
 
@@ -116,7 +124,7 @@
 
     - Optional
 
-    - Boolean
+    - boolean
 
     - Determines if the ``authorizationClaim`` field is required. The default 
       value is ``true``.
@@ -152,6 +160,16 @@
 
       .. versionadded:: 7.2 (*Also available in 7.0.5*)
 
+  * - ``authorizationClaim`` 
+
+    - Conditional 
+
+    - string
+
+    - Required, unless ``useAuthorizationClaim`` is set to ``false``.
+    
+      Claim extracted from access token that contains MongoDB role names.
+      
   * - ``logClaims``
 
     - Optional
@@ -165,7 +183,7 @@
 
     - Optional
 
-    - Integer
+    - integer
 
     - Frequency, in seconds, to request an updated JSON Web Key Set (JWKS) from the IDP. 
       A setting of 0 disables polling.
@@ -174,7 +192,7 @@
 
     - Optional
 
-    - Boolean
+    - boolean
 
     - Whether the OIDC provider supports human or machine workflows.  This
       affects the ``clientId`` and ``matchPattern`` fields.
