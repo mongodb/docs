@@ -25,17 +25,6 @@
 
        .. MongoDB version 5.0 and later default to :manual:`majority </reference/write-concern>`.
 
-   * - failIndexKeyTooLong
-     - boolean
-     - Flag that indicates whether you can insert or update documents
-       where all indexed entries don't exceed 1024 bytes. If you set
-       this to ``false``, |mongod| writes documents that exceed this
-       limit but *doesn't* index them.
-
-       This option corresponds to the
-       :parameter:`failIndexKeyTooLong <param.failIndexKeyTooLong>`
-       |mongod| parameter.
-
    * - javascriptEnabled
      - boolean
      - Flag that indicates whether the cluster allows execution of
