@@ -25,7 +25,7 @@ The |meta-object| expression can specify the following values as the
        signifies how well the document matched the :ref:`search term or
        terms <match-operation-stemmed-words>`. 
 
-       Starting in MongoDB 4.4, must be used in conjunction with a
+       ``{ $meta: "textScore" }`` must be used in conjunction with a
        :query:`$text` query.
 
        In earlier versions, if not used in conjunction with a
@@ -38,8 +38,6 @@ The |meta-object| expression can specify the following values as the
        expression is for debugging purposes only, and not for
        application logic, and is preferred over
        :method:`cursor.returnKey()`.
-
-       .. versionadded:: 4.4
 
 :atlas:`MongoDB Atlas Search </full-text-search>` provides
 additional ``$meta`` keywords, such as:

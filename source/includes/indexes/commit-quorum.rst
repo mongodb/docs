@@ -1,6 +1,6 @@
 Index creation is a :ref:`multistage process <index-build-process>`. 
-Starting in MongoDB 4.4, the index creation process uses the ``commit
-quorum`` to minimize replication lag on secondary nodes.
+The index creation process uses the ``commit quorum`` to minimize replication 
+lag on secondary nodes.
 
 When a secondary node receives a ``commitIndexBuild`` oplog entry, the 
 node stops further oplog applications until the local index build can be

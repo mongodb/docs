@@ -16,11 +16,10 @@ bind to the LDAP server.
 You can configure this setting on a running :binary:`~bin.mongod` or 
 :binary:`~bin.mongos` using :dbcommand:`setParameter`.
 
-Starting in MongoDB 4.4, the ``ldapQueryPassword``
-:dbcommand:`setParameter` command accepts either a string or 
-an array of strings. If ``ldapQueryPassword`` is set to an array, MongoDB tries
-each password in order until one succeeds. Use a password array to roll over the
-LDAP account password without downtime.
+The ``ldapQueryPassword`` :dbcommand:`setParameter` command accepts either a 
+string or an array of strings. If ``ldapQueryPassword`` is set to an array, 
+MongoDB tries each password in order until one succeeds. Use a password array 
+to roll over the LDAP account password without downtime.
 
 .. note::
 
@@ -46,11 +45,10 @@ If not set, :program:`mongod` does not attempt to bind to the LDAP server.
 You can configure this setting on a running :program:`mongod` using
 :dbcommand:`setParameter`.
 
-Starting in MongoDB 4.4, the ``ldapQueryPassword``
-:dbcommand:`setParameter` command accepts either a string or 
-an array of strings. If ``ldapQueryPassword`` is set to an array, MongoDB tries
-each password in order until one succeeds. Use a password array to roll over the
-LDAP account password without downtime.
+The ``ldapQueryPassword`` :dbcommand:`setParameter` command accepts either a 
+string or an array of strings. If ``ldapQueryPassword`` is set to an array, 
+MongoDB tries each password in order until one succeeds. Use a password array 
+to roll over the LDAP account password without downtime.
 
 .. note::
 
@@ -75,11 +73,10 @@ If not set, :program:`mongoldap` does not attempt to bind to the LDAP server.
 You can configure this setting on a running :program:`mongoldap` using
 :dbcommand:`setParameter`.
 
-Starting in MongoDB 4.4, the ``ldapQueryPassword``
-:dbcommand:`setParameter` command accepts either a string or 
-an array of strings. If ``ldapQueryPassword`` is set to an array, MongoDB tries
-each password in order until one succeeds. Use a password array to roll over the
-LDAP account password without downtime.
+The ``ldapQueryPassword``:dbcommand:`setParameter` command accepts either a 
+string or an array of strings. If ``ldapQueryPassword`` is set to an array, 
+MongoDB tries each password in order until one succeeds. Use a password array 
+to roll over the LDAP account password without downtime.
 
 .. note::
 
