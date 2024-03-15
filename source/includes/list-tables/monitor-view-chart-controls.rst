@@ -43,8 +43,8 @@
      - Directs |service| to split the :guilabel:`Opcounters` chart into
        its individual components. You can then choose to chart one or
        more of those components. If you select this checkbox, |service|
-       displays the number of the following operations per second on a
-       ``mongot`` process: 
+       displays the number of the following operations per second
+       on the :binary:`mongod <bin.mongod>` process:
 
        - delete 
        - getmore
@@ -53,9 +53,9 @@
        
        If you deployed search nodes for workload isolation, you can't
        view opcounters on separate charts in the :guilabel:`Search
-       Nodes` tab. You can group opcounters metrics in the
-       :guilabel:`Search Nodes` tab by selecting the :guilabel:`Group
-       Opcounters metrics` checkbox. 
+       Nodes` tab. To group opcounters metrics in the
+       :guilabel:`Search Nodes` tab, select the :guilabel:`Group
+       Opcounters metrics` checkbox.
 
    * - :guilabel:`Display Timeline Annotations`
      - Directs |service| to display or hide chart annotations. 
