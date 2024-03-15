@@ -68,6 +68,7 @@ func main() {
 		// Creates a stage to group documents by "category" and
 		// calculates the average price and total number of documents
 		// for each "category"
+		// begin average
 		groupStage := bson.D{
 			{"$group", bson.D{
 				{"_id", "$category"},
@@ -89,12 +90,14 @@ func main() {
 			fmt.Printf("Average price of %v tea options: $%v \n", result["_id"], result["average_price"])
 			fmt.Printf("Number of %v tea options: %v \n\n", result["_id"], result["type_total"])
 		}
+		// end average
 	}
 
 	fmt.Println("\nAggregation Example - Unset\n")
 	{
 		// Creates stages to match documents, remove the "category"
 		// field, specify a sort, and limit the output to 2 documents
+		// begin unset
 		matchStage := bson.D{{"$match", bson.D{{"toppings", "milk foam"}}}}
 		unsetStage := bson.D{{"$unset", bson.A{"_id", "category"}}}
 		sortStage := bson.D{{"$sort", bson.D{{"price", 1}, {"toppings", 1}}}}
@@ -113,5 +116,6 @@ func main() {
 		for _, result := range results {
 			fmt.Printf("Tea: %v \nToppings: %v \nPrice: $%v \n\n", result.Type, strings.Join(result.Toppings, ", "), result.Price)
 		}
+		// end unset
 	}
 }

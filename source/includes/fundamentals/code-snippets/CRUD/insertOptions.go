@@ -15,6 +15,11 @@ type Book struct {
 
 // end-book-struct
 
+func main() {
+	insertManyOpts()
+	insertOneOpts()
+}
+
 func insertManyOpts() {
 	// Sets options to bypass document validation and specify an
 	// unordered insert when inserting multiple documents
