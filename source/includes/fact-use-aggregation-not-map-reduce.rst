@@ -11,7 +11,7 @@ deprecated:
 
 - For map-reduce operations that require custom functionality, you can
   use the :group:`$accumulator` and :expression:`$function` aggregation
-  operators, available starting in version 4.4. You can use those
+  operators. You can use those
   operators to define custom aggregation expressions in JavaScript.
 
 For examples of aggregation pipeline alternatives to map-reduce, see:

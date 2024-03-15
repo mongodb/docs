@@ -25,14 +25,6 @@ Definition
 Syntax
 ------
 
-.. versionchanged:: 4.4
-
-   MongoDB deprecates the ``oplogReplay`` option to the :dbcommand:`find` 
-   command. The optimization enabled by this flag in previous versions now 
-   happens automatically for eligible queries on the oplog. Therefore, 
-   you don't need to specify this flag. If specified, the server accepts 
-   the flag for backwards compatibility, but the flag has no effect.
-
 The :dbcommand:`find` command has the following syntax:
 
 .. versionchanged:: 5.0
@@ -153,8 +145,6 @@ The command accepts the following fields:
           by any subsequent :dbcommand:`getMore` commands run on the
           ``find`` cursor.
 
-       *Changed in version 4.4.* Prior to 4.4, comments could only be strings.
-
    * - ``maxTimeMS``
      - non-negative integer
      - Optional.
@@ -213,45 +203,6 @@ The command accepts the following fields:
        :dbcommand:`getMore` command on the cursor temporarily if at the end
        of data rather than returning no data. After a timeout period,
        :dbcommand:`find` returns as normal.
-       
-   * - ``oplogReplay``
-     - boolean
-     - .. deprecated:: 4.4
-     
-       Optional. An internal command for replaying a :ref:`replica set's oplog
-       <replica-set-oplog>`.
-       
-       To use ``oplogReplay``, the ``find`` field must provide a ``filter`` 
-       option comparing the ``ts`` document field to a
-       :bsontype:`timestamp <Timestamp>` using one of the following
-       comparison operators:
-       
-       * :expression:`$gte`
-       * :expression:`$gt`
-       * :expression:`$eq`
-       
-       For example, the following command replays documents from the ``data``
-       :doc:`capped collection </core/capped-collections>` with a timestamp
-       later than or equal to January 1st, 2018 UTC:
-       
-       .. code-block:: javascript
-       
-          { find: "data",
-            oplogReplay: true,
-            filter: { ts: { $gte: new Timestamp(1514764800, 0) } } }
-       
-       .. note:: Deprecated
-
-
-          .. versionchanged:: 4.4
-
-          Starting in MongoDB 4.4, the ``oplogReplay`` field is deprecated. 
-          ``find`` fields that use the :expression:`$gte`, :expression:`$gt`, 
-          or :expression:`$eq` ``filter`` predicated on the ``ts`` field 
-          will automatically utilize the storage format of the :ref:`replica 
-          set's oplog <replica-set-oplog>` to execute the command more 
-          efficiently. If specified, the server accepts the ``oplogReplay`` 
-          flag for backwards compatibility, but the flag has no effect. 
 
    * - ``noCursorTimeout``
      - boolean
@@ -294,8 +245,6 @@ The command accepts the following fields:
        For more information on memory restrictions for large blocking
        sorts, see :ref:`sort-index-use`.
 
-       .. versionadded:: 4.4
-
    * - :ref:`let <find-let-syntax>`
      - document
      - .. _find-let-syntax:
@@ -337,7 +286,7 @@ collection:
                "x" : 1
             }
          ],
-         "partialResultsReturned" : true, // Starting in version 4.4
+         "partialResultsReturned" : true, 
          "id" : NumberLong("668860441858272439"),
          "ns" : "test.contacts"
       },
@@ -364,11 +313,10 @@ collection:
      - Contains the cursor information, including the
        cursor ``id`` and the ``firstBatch`` of documents.
 
-       Starting in 4.4, if the operation against a sharded collection
-       returns partial results due to the unavailability of the queried
-       shard(s), the ``cursor`` document includes a
-       ``partialResultsReturned`` field. To return partial results,
-       rather than error, due to the unavailability of the queried
+       If the operation against a sharded collection returns partial results 
+       due to the unavailability of the queried shard(s), the ``cursor`` 
+       document includes a ``partialResultsReturned`` field. To return partial 
+       results, rather than error, due to the unavailability of the queried
        shard(s), the :dbcommand:`find` command must run with
        :ref:`allowPartialResults <cmd-find-allowPartialResults>` set to
        ``true``. See :ref:`allowPartialResults

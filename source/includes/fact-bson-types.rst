@@ -76,11 +76,6 @@
      - "symbol"
      - Deprecated.
 
-   * - JavaScript code with scope
-     - 15
-     - "javascriptWithScope"
-     - Deprecated in MongoDB 4.4.
-
    * - 32-bit integer
      - 16
      - "int"

@@ -1,4 +1,4 @@
-Starting in MongoDB 4.4 running on Linux:
+For MongoDB instances running on Linux:
 
 - When the :binary:`~bin.mongod` and :binary:`~bin.mongos` processes
   receive a ``SIGUSR2`` signal, backtrace details are added to the logs
@@ -10,4 +10,4 @@ Starting in MongoDB 4.4 running on Linux:
 The backtrace functionality is available for these architectures:
 
 - ``x86_64``
-- ``arm64`` (starting in MongoDB 4.4.15, 5.0.10, and 6.0)
+- ``arm64`` (starting in MongoDB 5.0.10, and 6.0)
