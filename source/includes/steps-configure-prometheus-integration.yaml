@@ -24,7 +24,7 @@ content: |
      access the password after you leave this screen.
 
 ---
-title: "Select your preferred service discovery method."
+title: "Select your preferred Service Discovery method."
 stepnum: 4
 level: 4
 ref: sd-method-prometheus
@@ -37,13 +37,51 @@ content: |
      * - Discovery Method
        - Description
 
-     * - `HTTP SD <https://prometheus.io/docs/prometheus/latest/http_sd/>`__
+     * - `HTTP Service Discovery <https://prometheus.io/docs/prometheus/latest/http_sd/>`__
        - This method requires Prometheus v2.28 and later. It
          automatically generates the `scrape_config
          <https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config>`__
          part of your `configuration file
          <https://prometheus.io/docs/prometheus/latest/configuration/configuration/#configuration-file>`__
          to discover targets over an HTTP endpoint.
+         
+         a. Add the IP of the device hosting your Prometheus instance to the
+            :ref:`IP Access List <access-list>`. This grants Prometheus
+            the network access to scrape metrics from your |service| clusters.
+            Ensure that ``0.0.0.0/0`` isn't on the list. Having this entry
+            disables the integration.
+
+         b. In the :guilabel:`Choose Discovery API Target Type`
+            step in the {+atlas-ui+}, do one of the following tasks:
+
+            - Select :guilabel:`Public Internet Targets`.
+            - Select :guilabel:`Private IP for Peering Targets` and then
+              :guilabel:`Peering Connection`.
+
+            .. note::
+
+               |service| doesn't support private endpoints for the Prometheus
+               integration.
+
+         c. Insert the following snippet into the ``scrape_configs`` section
+            of your ``Prometheus.yaml`` file and update it with values for
+            your Prometheus integration:
+             
+            .. code-block:: sh
+
+               - job_name: "<insert-job-name"
+                 scrape_interval: 10s
+                 metrics_path: /metrics
+                 scheme: https
+                 basic_auth:
+                    username: <insert-prometheus-user-id>
+                    password: <insert-password>
+                 http_sd_configs:
+                   - url: <url-of-the-service-discovery-configuration>
+                     refresh_interval: 60s
+                     basic_auth:
+                       username: <insert-prometheus-user-id>
+                       password: <insert-password>
 
      * - `File Service Discovery <https://prometheus.io/docs/guides/file-sd/#use-file-based-service-discovery-to-discover-scrape-targets>`__
        - This method allows Prometheus to read YAML or JSON documents to
