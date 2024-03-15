@@ -134,7 +134,7 @@
        | (mongodb.atlas.replset.oplogWindow) 
      - Process
      - Estimated average number, in seconds, of database 
-       operations available in the primary’s replication oplog. This 
+       operations available in the primary's replication oplog. This 
        metric is based on oplog churn. A :manual:`full resync 
        </tutorial/resync-replica-set-member/>` is required if 
        replication lag on a secondary node exceeds the replication 
@@ -235,13 +235,13 @@
        normalized with respect to the number of logical CPU cores.
 
    * - | ``PROCESS_NORMALIZED_CPU_USER`` 
-       | (mongodb.atlas.system.cpu.mongoprocess.user)
+       | (mongodb.atlas.system.cpu.mongoprocess.norm.user)
        | ``PROCESS_NORMALIZED_CPU_KERNEL``
-       | (mongodb.atlas.system.cpu.mongoprocess.kernel)
+       | (mongodb.atlas.system.cpu.mongoprocess.norm.kernel)
        | ``PROCESS_NORMALIZED_CPU_CHILDREN_USER`` 
-       | (mongodb.atlas.system.cpu.mongoprocess.childrenuser)
+       | (mongodb.atlas.system.cpu.mongoprocess.norm.childrenuser)
        | ``PROCESS_NORMALIZED_CPU_CHILDREN_KERNEL``
-       | (mongodb.atlas.system.cpu.mongoprocess.childrenkernel)
+       | (mongodb.atlas.system.cpu.mongoprocess.norm.childrenkernel)
      - Process
      - Percent of time utilized by logical CPUs across various
        processes specific to the MongoDB process in the server. These
