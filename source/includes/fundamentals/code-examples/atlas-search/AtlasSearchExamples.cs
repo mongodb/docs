@@ -29,7 +29,7 @@ public class AtlasSearchExamples
         // Finds documents with a "make" value that contains the string fragment "Gib"
         // start-autocomplete-search
         var result = guitarsCollection.Aggregate()
-            .Search(Builders<Guitar>.Search.Autocomplete(g => g.Make, "Gib"))
+            .Search(Builders<Guitar>.Search.Autocomplete(g => g.Make, "Gib"), indexName: "guitarmakes")
             .ToList();
         // end-autocomplete-search
 
