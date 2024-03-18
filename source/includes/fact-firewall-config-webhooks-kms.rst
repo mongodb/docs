@@ -69,60 +69,18 @@ see the prerequisites for managing customer keys with :ref:`AWS <aws-ksm-prereqs
 Required Outbound Access
 ------------------------
 
-.. note::
-
-   The following IP addresses are subject to change. We recommend that you 
-   :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>` 
-   to fetch the current inbound and outbound |service| control plane IP addresses.
-
-If your network allows outbound HTTP requests only to specific IP
-addresses, you must allow access to the following IP addresses so that
-your API requests can reach the |service| control plane:
-
-.. code-block:: none
-
-   3.93.83.52
-   3.214.160.189
-   13.248.140.125
-   13.248.203.97
-   13.248.214.115
-   18.210.185.2
-   18.210.245.203
-   18.232.30.107
-   18.235.209.93
-   34.192.82.120
-   34.194.131.15
-   34.194.251.66
-   34.195.55.18
-   34.195.194.204
-   34.203.104.26
-   34.227.138.166
-   34.230.213.36
-   34.233.152.179
-   34.233.179.140
-   35.172.148.213
-   35.172.245.18
-   44.216.169.184
-   54.147.76.65
-   54.204.237.208
-   75.2.1.110
-   76.223.14.2
-   76.223.77.37
-   76.223.84.31
-   99.83.223.45
+Outbound access is traffic coming from the |service| control plane. We
+recommend that you :ref:`use the Atlas Admin API
+<atlas-fetch-control-plane-ips>` to fetch the current outbound |service|
+control plane IP addresses.
 
 .. _atlas-required-inbound-access:
 
 Required Inbound Access
 -----------------------
 
-.. note::
-
-   The following IP addresses are subject to change. We recommend that you 
-   :ref:`use the Atlas Admin API <atlas-fetch-control-plane-ips>` 
-   to fetch the current inbound and outbound |service| control plane IP addresses.
-
-If your network allows inbound HTTP requests only from specific IP
+Inbound access is traffic coming into the |service| control plane. If
+your network allows outbound HTTP requests only to specific IP
 addresses, you must allow access from the following IP addresses so that
 |service| can communicate with your webhooks and |kms|:
 
@@ -175,4 +133,3 @@ addresses, you must allow access from the following IP addresses so that
    107.20.0.247
    107.20.107.166
    107.22.44.69
-
