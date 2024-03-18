@@ -8,4 +8,4 @@
    :oas-atlas-op:`creating </createOneCluster>` or 
    :oas-atlas-op:`modifying </updateConfigurationOfOneCluster>` a 
    cluster with the API, be sure to specify your desired cluster class 
-   by name with the ``providerSettings.instanceSizeName`` attribute.
+   by name with the ``electableSpecs.instanceSize`` attribute.
