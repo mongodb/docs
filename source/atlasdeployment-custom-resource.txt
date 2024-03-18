@@ -94,22 +94,20 @@ The following example shows the ``AtlasDeployment`` resource with a
    kind: AtlasDeployment
    metadata:
      name: my-atlas-cluster
-     namespace: default
-     labels:
-       app.kubernetes.io/version: 1.6.0
+     namespace: mongodb-atlas-system
    spec:
      projectRef:
        name: my-project
      deploymentSpec:
        name: test-cluster
        tags: 
-       - key: "environment",
+       - key: "environment"
          value: "production"
        replicationSpecs:
          - zoneName: US-Zone
            numShards: 3
-           regionsConfig:
-             - regionName: US_CENTRAL
+           regionConfigs:
+             - regionName: CENTRAL_US
                providerName: GCP
                backingProviderName: GCP
                priority: 7
@@ -142,29 +140,26 @@ specification configured for autoscaling multi-region {+clusters+}:
 
    apiVersion: atlas.mongodb.com/v1
    kind: AtlasDeployment
+   metadata:
      name: test-cluster-name
      namespace: mongodb-atlas-system
    spec:
      projectRef:
        name: development
      deploymentSpec:
-       autoScaling:
-         compute:
-           enabled: true
-           scaleDownEnabled: true
        clusterType: REPLICASET
        name: service-name
        tags: 
-       - key: "environment",
+       - key: "environment"
          value: "production"
        backupEnabled: true
        replicationSpecs:
          - numShards: 1
-           regionsConfig:
+           regionConfigs:
             - regionName: EASTERN_US
               providerName: GCP
-              autoscaling:
-                disk:
+              autoScaling:
+                diskGB:
                   enabled: true
                 compute:
                   enabled: true
@@ -197,20 +192,23 @@ specification configured with some of the :oas-atlas-tag:`additional options
    kind: AtlasDeployment
    metadata:
      name: my-atlas-cluster
-     labels:
-       app.kubernetes.io/version: 1.6.0
    spec:
      projectRef:
        name: my-project
      deploymentSpec:
-       name: Test-cluster
+       name: test-cluster
        tags: 
-       - key: "environment",
+       - key: "environment"
          value: "production"
-       providerSettings:
-         instanceSizeName: M10
-         providerName: AWS
-         regionName: US_EAST_1
+       replicationSpecs:
+         - zoneName: Zone 1
+           regionConfigs:
+            - electableSpecs:
+                instanceSize: M10
+                nodeCount: 3
+              providerName: AWS
+              regionName: US_EAST_1
+              priority: 7
      processArgs:
        javascriptEnabled: false
 
@@ -229,15 +227,13 @@ specification configured for a {+serverless-instance+}:
    metadata:
      name: test-cluster-name
      namespace: mongodb-atlas-system
-     labels:
-       app.kubernetes.io/version: 1.6.0
    spec:
      projectRef:
        name: development
      serverlessSpec:
        name: serverless-instance
        tags: 
-       - key: "environment",
+       - key: "environment"
          value: "production"
        providerSettings:
          providerName: AWS
@@ -268,8 +264,6 @@ resource specification configured for multi-region {+clusters+}:
    kind: AtlasDeployment
    metadata:
      name: my-atlas-cluster
-     labels:
-       app.kubernetes.io/version: 1.6.0
    spec:
      projectRef:
        name: my-project
@@ -277,12 +271,15 @@ resource specification configured for multi-region {+clusters+}:
        clusterType: REPLICASET
        name: tenantCluster
        tags: 
-       - key: "environment",
+       - key: "environment"
          value: "production"
        replicationSpecs:
-         - regionConfigs:
+         - zoneName: Zone 1
+           regionConfigs:
+           priority: 7
            - electableSpecs:
-               instanceSize: M5
+               instanceSize: M10
+               nodeCount: 3
              providerName: AWS
              regionName: US_EAST_1
 
@@ -299,8 +296,6 @@ providers:
    kind: AtlasDeployment
    metadata:
      name: my-atlas-cluster
-     labels:
-       app.kubernetes.io/version: 1.6.0
    spec:
      projectRef:
        name: my-project
@@ -308,7 +303,7 @@ providers:
        clusterType: REPLICASET
        name: tenantCluster
        tags: 
-       - key: "environment",
+       - key: "environment"
          value: "production"
        replicationSpecs:
          - regionConfigs:
@@ -580,7 +575,7 @@ documentation to customize your specifications.
         - |service| deploys a {+cluster+} that runs MongoDB 6.0.
 
       * - You set the 
-          :setting:`spec.deploymentSpec.providerSettings.instanceSizeName` 
+          :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.instanceSize` 
           parameter to ``M0``, ``M2``, or ``M5``.
         - You must deploy MongoDB 6.0.
 
@@ -603,96 +598,6 @@ documentation to customize your specifications.
    continuous cloud backup, you must specify this setting with a value
    of ``true``.
 
-.. setting:: spec.deploymentSpec.providerSettings
-
-   *Type*: Object
-
-   *Conditional*
-
-   Configuration that specifies the settings for the provisioned hosts 
-   on which MongoDB runs. The available options are specific to the 
-   cloud service provider. To learn more, see the :ref:`AWS 
-   <amazon-aws>`, :ref:`GCP <google-gcp>`, and :ref:`Azure 
-   <microsoft-azure>` {+cluster+} configuration options.
-
-   If you want to create or update a {+cluster+}, you must
-   specify this setting.
-
-.. setting:: spec.deploymentSpec.providerSettings.providerName
-
-   *Type*: string
-
-   *Conditional*
-
-   Cloud service provider on which |service| provisions the hosts.
-
-   .. list-table::
-      :widths: 20 80
-      :stub-columns: 1
-
-      * - AWS
-        - Amazon AWS
-      * - GCP
-        - Google Cloud Platform
-      * - AZURE
-        - Microsoft Azure
-
-.. setting:: spec.deploymentSpec.providerSettings.instanceSizeName
-
-   *Type*: string
-
-   *Required*
-
-   |service| provides different {+cluster+} tiers, each with a default
-   storage capacity and RAM size. The {+cluster+} you select is
-   used for all the data-bearing servers in your {+cluster+}. To learn 
-   more, see the :ref:`AWS <amazon-aws>`, :ref:`GCP <google-gcp>`, and 
-   :ref:`Azure <microsoft-azure>` custom storage sizes.
-
-   If you change the instance size name after you deploy your 
-   {+cluster+}, |service| changes the {+database-deployment+} to the
-   instance size you specify unless it falls outside the range you
-   specify in 
-   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
-   and 
-   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize` 
-   with autoscaling enabled. To learn more, see 
-   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
-   and 
-   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
-
-   .. note::
-
-      You can change this setting to upgrade an ``M0``, ``M2``, or 
-      ``M5`` {+cluster+} to an ``M10+`` {+cluster+}. However, you can't 
-      upgrade an ``M0``, ``M2``, or ``M5`` {+cluster+} to another free 
-      or shared {+cluster+}. For example, you can't upgrade an ``M0``
-      {+cluster+} to an ``M5`` {+cluster+}.
-
-.. setting:: spec.deploymentSpec.providerSettings.regionName
-
-   *Type*: string
-
-   *Conditional*
-
-   Physical location of your MongoDB {+cluster+}. The region you
-   choose can affect network latency for clients accessing your
-   databases.
-
-   For a complete list of region name values, refer to the
-   cloud provider reference pages:
-
-   - :ref:`AWS <amazon-aws>`
-
-   - :ref:`GCP <google-gcp>`
-
-   - :ref:`Azure <microsoft-azure>`
-
-   For multi-region {+clusters+}, see
-   :setting:`spec.deploymentSpec.replicationSpecs`. You must set either 
-   :setting:`spec.deploymentSpec.providerSettings.regionName` or 
-   :setting:`spec.deploymentSpec.replicationSpecs`.
-
 .. setting:: spec.deploymentSpec.replicationSpecs
 
    *Type*: array of objects
@@ -701,7 +606,7 @@ documentation to customize your specifications.
 
    List that contains the configurations for your {+cluster+} regions. 
    Use this parameter for multi-region {+clusters+}. You must set 
-   either :setting:`spec.deploymentSpec.providerSettings.regionName` or 
+   either :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.regionName` or 
    :setting:`spec.deploymentSpec.replicationSpecs`.
 
    **When should you use this parameter?**
@@ -851,7 +756,7 @@ documentation to customize your specifications.
 
       If |service| changes the current instance size and you don't
       change the 
-      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
+      :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.instanceSize`
       in |ak8so| to match the new instance size, |ak8so| displays a
       warning in the logs but doesn't prevent autoscaling.
 
@@ -881,7 +786,7 @@ documentation to customize your specifications.
 
       If |service| changes the current instance size and you don't
       change the 
-      :setting:`spec.deploymentSpec.providerSettings.instanceSizeName`
+      :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.instanceSize`
       in |ak8so| to match the new instance size, |ak8so| displays a
       warning in the logs but doesn't prevent autoscaling.
 
@@ -915,10 +820,30 @@ documentation to customize your specifications.
    </global-clusters>`, you must choose an instance size of ``M30`` or 
    greater.
 
+   If you change the instance size name after you deploy your 
+   {+cluster+}, |service| changes the {+database-deployment+} to the
+   instance size you specify unless it falls outside the range you
+   specify in 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
+   and 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize` 
+   with autoscaling enabled. To learn more, see 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.minInstanceSize` 
+   and 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.maxInstanceSize`.
+
    .. note::
 
       If you have autoscaling enabled for the compute field, you can't 
       edit this option. To learn more, see :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.autoScaling.compute.enabled`.
+
+   .. note::
+
+      You can change this setting to upgrade an ``M0``, ``M2``, or 
+      ``M5`` {+cluster+} to an ``M10+`` {+cluster+}. However, you can't 
+      upgrade an ``M0``, ``M2``, or ``M5`` {+cluster+} to another free 
+      or shared {+cluster+}. For example, you can't upgrade an ``M0``
+      {+cluster+} to an ``M5`` {+cluster+}.
 
 .. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.electableSpecs.nodeCount
 
@@ -979,6 +904,49 @@ documentation to customize your specifications.
       for supporting electable nodes, the priorities of those
       regions would be ``4`` and ``3`` respectively.
 
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.providerName
+
+   *Type*: string
+
+   *Conditional*
+
+   Cloud service provider on which |service| provisions the hosts.
+
+   .. list-table::
+      :widths: 20 80
+      :stub-columns: 1
+
+      * - AWS
+        - Amazon AWS
+      * - GCP
+        - Google Cloud Platform
+      * - AZURE
+        - Microsoft Azure
+
+.. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.regionName
+
+   *Type*: string
+
+   *Conditional*
+
+   Physical location of your MongoDB {+cluster+}. The region you
+   choose can affect network latency for clients accessing your
+   databases.
+
+   For a complete list of region name values, refer to the
+   cloud provider reference pages:
+
+   - :ref:`AWS <amazon-aws>`
+
+   - :ref:`GCP <google-gcp>`
+
+   - :ref:`Azure <microsoft-azure>`
+
+   For multi-region {+clusters+}, see
+   :setting:`spec.deploymentSpec.replicationSpecs`. You must set either 
+   :setting:`spec.deploymentSpec.replicationSpecs.regionConfigs.regionName` or 
+   :setting:`spec.deploymentSpec.replicationSpecs`.
+   
 .. setting:: spec.deploymentSpec.replicationSpecs.regionConfigs.readOnlySpecs
 
    *Type*: object

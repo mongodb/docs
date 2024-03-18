@@ -44,8 +44,6 @@ a. Add the :setting:`spec.encryptionAtRest.awsKms` object to
       kind: AtlasProject
       metadata:
         name: my-project
-        labels:
-          app.kubernetes.io/version: 1.6.0
       spec:
         name: Test Atlas Operator Project
         encryptionAtRest:
