@@ -1,0 +1,213 @@
+---
+stepnum: 1
+level: 4
+title: "Start the Temporary Standalone Instance on the Ephemeral Port."
+ref: start-as-standalone
+content: |
+
+  Start the |mongod| process in standalone mode as a temporary measure.
+  This allows you to add new configuration parameters to the
+  ``system.replset`` collection in subsequent steps.
+  
+  Use the ``<ephemeralPort>`` for the temporary standalone |mongod| process
+  in all steps in this procedure  where it is mentioned. This port must
+  differ from the source and target host ports.
+
+  Run the |mongod| process as follows. Depending on your path, you may
+  need to specify the path to the |mongod| binary.
+
+  .. code-block:: sh
+
+     mongod  --dbpath </path/to/datafiles> \
+             --port <ephemeralPort> \
+
+  If you are restoring
+  from a namespace-filtered snapshot, use the ``--restore`` option.
+
+  .. code-block:: sh
+
+     mongod --dbpath </path/to/datafiles> \
+            --port <ephemeralPort> \
+            --restore
+
+  After the |mongod| process starts accepting connections, continue.
+
+---
+stepnum: 2
+level: 4
+title: "Connect to the Temporary Standalone Instance with {+mongosh+}."
+ref: connect-on-ephemeral-port
+content: |
+
+  From the host running this |mongod| process, start {+mongosh+}. Depending 
+  on your path, you may need to specify the path to {+mongosh+}.
+  
+  To connect to the |mongod| listening to localhost on
+  the same ``<ephemeralPort>`` specified in the previous step, run:
+
+  .. code-block:: sh
+
+     mongosh  --port <ephemeralPort>
+
+  After {+mongosh+} connects to |mongod|, continue.
+
+---
+stepnum: 3
+level: 4
+title: "Remove Replica Set-Related Collections from the ``local`` Database."
+ref: remove-replset-config
+content: |
+
+  .. include:: /includes/fact-restore-manual-user-role.rst
+
+  Run the following commands to remove the previous replica set
+  configuration and other non-oplog, replication-related collections.
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("local").replset.minvalid.drop()
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     db.getSiblingDB("local").replset.election.drop()
+     db.getSiblingDB("local").system.replset.remove({})
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     > db.getSiblingDB("local").replset.minvalid.drop()
+     true
+     > db.getSiblingDB("local").replset.oplogTruncateAfterPoint.drop()
+     true
+     > db.getSiblingDB("local").replset.election.drop()
+     true
+     > db.getSiblingDB("local").system.replset.remove({})
+     WriteResult({ "nRemoved" : 1 })
+
+---
+stepnum: 4
+level: 4
+title: "Add a New Replica Set Configuration."
+ref: add-new-replset-config
+content: |
+
+  Insert the following document into the ``system.replset`` collection
+  in the ``local`` database. Change the following variables:
+
+  - ``<replaceMeWithTheReplicaSetName>`` to the name of your replica set. This
+    name does not have to be the same as the old name.
+  - ``<host>`` to the host serving this replica set member.
+  - ``<finalPortNewReplicaSet>`` to the final port for the new
+    replica set. This must be a different port than the
+    ``<ephemeralPort>`` that you specified in Step 11 of this procedure.
+
+  Ensure that you include and configure all members of the new replica
+  set in the ``members`` array.
+
+  .. code-block:: javascript
+     :linenos:
+
+     db.getSiblingDB("local").system.replset.insertOne({
+       "_id" : "<replaceMeWithTheReplicaSetName>",
+       "version" : NumberInt(1),
+       "protocolVersion" : NumberInt(1),
+       "members" : [
+         {
+           "_id" : NumberInt(0),
+           "host" : "<host>:<finalPortNewReplicaSet>"
+         },
+         {
+           . . .
+         },
+         . . .
+       ],
+       "settings" : {
+
+       }
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "acknowledged" : true, "insertedId" : "<yourReplicaSetName>" }
+
+---
+stepnum: 5
+level: 4
+title: "Insert the Minimum Valid Timestamp."
+ref: set-minvalid-timestamp
+content: |
+
+  Issue the following command:
+
+  .. code-block:: javascript
+
+     db.getSiblingDB("local").replset.minvalid.insertOne({
+       "_id" : ObjectId(),
+       "t" : NumberLong(-1),
+       "ts" : Timestamp(0,1)
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "acknowledged" : true, "insertedId" : ObjectId("<yourObjectId>") }
+
+---
+stepnum: 6
+level: 4
+title: "Set the Restore Point to the Values in ``Restore Timestamp`` from ``restoreInfo.txt``."
+ref: set-restore-point
+content: |
+  Set the ``oplogTruncateAfterPoint`` document to the
+  values provided in the ``Restore Timestamp`` field of the
+  :ref:`restoreInfo.txt <com-restore-info-rs>` file.
+
+  The ``Restore Timestamp`` field in that file contains two
+  values. In the following example, the first value is the
+  timestamp, and the second value is the increment.
+
+  .. code-block:: sh
+     :copyable: false
+     :linenos:
+     :emphasize-lines: 2
+     
+     ...
+     Restore timestamp:  (1609947369, 2)
+     Last Oplog Applied: Wed Jan 06 15:36:09 GMT 2021 (1609947369, 1)
+     MongoDB Version: 4.2.11
+     ...
+
+  The following example code uses the timestamp value and increment value from the previous example.
+
+  .. code-block:: javascript
+
+     truncateAfterPoint = Timestamp(1609947369,2)
+     db.getSiblingDB("local").replset.oplogTruncateAfterPoint.insertOne({
+        "_id": "oplogTruncateAfterPoint",
+        "oplogTruncateAfterPoint": truncateAfterPoint
+     })
+
+  A successful response should look like this:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     WriteResult({ "nInserted" : 1 })
+
+  .. note:: Restoring MongoDB 4.2 Snapshots using MongoDB 4.4
+
+     If you try to restore a MongoDB 4.2 snapshot with a |mongod|
+     running MongoDB 4.4, your oplog may contain unneeded documents.
+
+     To resolve this issue, you can either:
+
+     - Decrement the timestamp by 1.
+     - Restore using MongoDB 4.2.
+     - Have |mms| run an automated restore.
+
+     This issue doesn't apply to MongoDB 4.4 or later snapshots.

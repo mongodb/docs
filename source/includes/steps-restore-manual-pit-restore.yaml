@@ -1,0 +1,107 @@
+---
+
+stepnum: 1
+title: "(Point-in-Time Restore Only) Run the MongoDB Backup Restore Utility."
+level: 4
+ref: mbru-binary
+content: |
+  This step is optional. Run it if you need Point-in-Time Restore. If you
+  need this step, complete it and then run steps 21 and 22. If you
+  don't need this step, then proceed to step 23.
+  In this step, you download and run the MongoDB Backup Restore Utility on the
+  target instance for the replica set, and then stop the instance.
+
+  a. Download the MongoDB Backup Restore Utility to your host.
+     
+     If you closed the restore panel, click :guilabel:`Continuous
+     Backup in Deployment`, :guilabel:`More`, and then
+     :guilabel:`Download MongoDB Backup Restore Utility`.
+
+  #. Start a :manual:`~bin.mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` instance without authentication
+     enabled using the extracted snapshot directory as the data
+     directory. Depending on your path, you may need to
+     specify the path to the |mongod| binary.
+
+     .. code-block:: sh
+
+        mongod  --port <ephemeralPort> \
+                --dbpath </path/to/datafiles> \
+                --setParameter ttlMonitorEnabled=false
+
+     .. warning::
+     
+        The MongoDB Backup Restore Utility doesn't support
+        authentication, so you can't start this temporary database with
+        authentication.
+
+  #. Run the MongoDB Backup Restore Utility on your target host.
+     Run it once for the replica set.
+
+     .. include:: /includes/fact-pre-configured-mbru-command.rst
+
+     The ``mongodb-backup-restore-util`` command uses the following
+     options:
+
+     .. include:: /includes/fact-restore-manual-replica-set-onprem.rst
+
+     :icon:`check-circle` means that if you copied the
+     ``mongodb-backup-restore-util`` command provided in
+     |application|, this field is pre-configured.
+
+  #. Stop the :manual:`~bin.mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` on the instance. Depending on your path,
+     you may need to specify the path to {+mongosh+}. Run:
+
+     .. code-block:: sh
+
+        mongosh --port <ephemeralPort> \
+              --eval "db.getSiblingDB('admin').shutdownServer()"
+
+---
+stepnum: 2
+level: 4
+title: "(Point-in-Time Restore Only) Restart the Instance to Recover the Oplog."
+ref: restart-rs
+content: |
+  This step is needed only if you ran step 20. If you didn't need to run
+  step 20, then proceed to step 23.
+
+  Start the |mongod| using the following command, specifying these
+  parameters:
+
+  - ``<bind_ip>`` to the host serving this replica set member that you
+    specified in the replica set configuration.
+  - ``<port>`` to the <ephemeralPort> that you
+    specified when you started the temporary standalone instance.
+  
+  This action replays the oplog up to the latest entry, including
+  those inserted when you ran the MongoDB Backup Restore Utility.
+
+  .. code-block:: sh
+
+     mongod  --dbpath </path/to/datafiles> \
+             --port <ephemeralPort> \
+             --bind_ip <host-serving-this-replica-set-member>
+             --setParameter recoverFromOplogAsStandalone=true
+             --setParameter takeUnstableCheckpointOnShutdown=true
+             --setParameter startupRecoveryForRestore=true
+
+  After you complete this step, the actual restore process is completed.
+---
+stepnum: 3
+level: 4
+title: "(Point-in-Time Restore Only) Stop the Standalone Instance."
+ref: stop-the-replica-set
+content: |
+  Depending on your path, you may need to specify
+  the path to {+mongosh+}. Run:
+
+  .. code-block:: sh
+
+     mongosh --port <port> \
+           --eval "db.getSiblingDB('admin').shutdownServer()"
+---
+stepnum: 4
+level: 4
+title: "Repeat This Procedure for Each Node in the Replica Set."
+ref: repeat-rs
+content: |
