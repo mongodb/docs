@@ -25,7 +25,7 @@ content: |
          .. code-block:: shell 
             :copyable: false 
 
-            /exported_snapshots/<orgName>/<projectName>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
+            /exported_snapshots/<orgId>/<projectId>/<clusterName>/<initiationDateOfSnapshot>/<timestamp>/
 
      * - ``<downloadFolder>``
        - Path to the local folder where you want to copy the archived 
@@ -38,7 +38,9 @@ content: |
      .. code-block:: shell 
         :copyable: false
 
-        aws s3 cp s3://export-test-bucket/exported_snapshots/myOrg/myProj/export-me-sharded-cluster/2021-04-24T0013/1619224539 mybucket --recursive
+        aws s3 cp
+        s3://export-test-bucket/exported_snapshots/1ab2cdef3a5e5a6c3bd12de4/12ab3456c7d89d786feba4e7/myCluster/2021-04-24T0013/1619224539
+        mybucket --recursive
         gunzip -r mybucket
 
 --- 
@@ -52,14 +54,30 @@ content: |
   .. code-block:: shell 
         
      #!/bin/bash
+
      regex='/(.+)/(.+)/.+'
      dir=${1%/}
+     connstr=$2
+
+     # iterate through the subdirectories of the downloaded and
+     # extracted snapshot export and restore the docs with mongoimport
      find $dir -type f -not -path '*/\.*' -not -path '*metadata\.json' | while read line ; do
        [[ $line =~ $regex ]]
        db_name=${BASH_REMATCH[1]}
        col_name=${BASH_REMATCH[2]}
-       mongoimport --uri "$2" --mode=upsert -d $db_name -c $col_name --file $line --type json
-     done 
+       mongoimport --uri "$connstr" --mode=upsert -d $db_name -c $col_name --file $line --type json
+     done
+
+     # create the required directory structure and copy/rename files
+     # as needed for mongorestore to rebuild indexes on the collections
+     # from exported snapshot metadata files and feed them to mongorestore
+     find $dir -type f -name '*metadata\.json' | while read line ; do
+       [[ $line =~ $regex ]]
+       db_name=${BASH_REMATCH[1]}
+       col_name=${BASH_REMATCH[2]}
+       mkdir -p ${dir}/metadata/${db_name}/
+       cp $line ${dir}/metadata/${db_name}/${col_name}.metadata.json
+     done
 
   Here: 
   
@@ -69,7 +87,7 @@ content: |
 
 ---
 title: "Run the ``massimport.sh`` utility to import the archived data 
-       into your collection using |mongoimport|."
+       into the |service| {+cluster+}."
 level: 4
 ref: import-s3-archived-data-step3
 stepnum: 1
@@ -98,6 +116,6 @@ content: |
      .. code-block:: shell 
         :copyable: false
         
-        sh massimport.sh mybucket/ "mongodb+srv://<myConnString>"
+        sh massimport.sh mybucket "mongodb+srv://<myConnString>"
 
 ...

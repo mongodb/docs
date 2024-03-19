@@ -6,17 +6,44 @@ Import Archive from S3
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: atlas
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 1
    :class: singlecol
 
+.. To test the procedure documented here, VPN to NYC and do the following: 
+   1. Set up Unified AWS access. See https://www.mongodb.com/docs/atlas/security/set-up-unified-aws-access/. 
+   2. Install the MongoDB Database Tools. See https://www.mongodb.com/docs/database-tools/installation/installation/.
+   3. Deploy M10+ cluster, load sample data or some simple dataset, create one or more non-_id indexes on fields in one or more collections.
+   4. Take a snapshot now, wait for atlas to complete taking the snapshot.
+   5. Create AWS bucket using CLI or use existing S3 bucket: 
+     
+      atlas cloudProviders accessRoles list -- to get role ID
+      atlas backups exports buckets create <bucketname> --cloudProvider AWS --iamRoleId <roleId> // to create new bucket
+      atlas backups snapshots list <clusterName> // to get snapshot ID
+      atlas backups exports jobs create --bucketId <bucketId> --clusterName <clusterName> --snapshotId <snapshotId> //to export snapshot to S3
+      atlas backups exports jobs watch <snapshotId> --clusterName <clusterName> //wait for export to complete
+
+   6. Copy the data from S3 bucket to a folder locally on your system.
+      See https://www.mongodb.com/docs/atlas/backup/cloud-backup/import-archive/ 
+   7. Delete data on Atlas.
+   8. Import data to Atlas using script.
+   9. Verify restored data and indexes.
+
 .. include:: /includes/fact-atlas-free-tier-limits.rst
 
-You can restore data archived to |s3| buckets using |mongoimport|. This 
-page has a sample procedure to import archived data using the |aws| CLI 
-and the MongoDB |mongoimport| utility.
+You can restore data archived to |s3| buckets using |mongoimport| and
+|mongorestore|. This page has a sample procedure to import archived data
+and rebuild indexes using the |aws| CLI and the :dbtools:`MongoDB
+Database Tools </>`. 
 
 Prerequisites 
 -------------
@@ -29,7 +56,8 @@ Before you begin, you must:
 - `Configure 
   <https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-configure.html#cli-quick-configuration>`__ 
   the |aws| CLI
-- Install the :doc:`mongoimport </import/mongoimport>` tool
+- Install the :doc:`mongoimport </import/mongoimport>` and
+  :doc:`mongorestore </import/mongorestore>` tools 
 
 Procedure 
 ---------
