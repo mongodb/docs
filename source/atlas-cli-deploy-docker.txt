@@ -100,6 +100,10 @@ deployment with `Docker Compose <https://docs.docker.com/compose/>`__.
 .. procedure::
    :style: normal
 
+   .. step:: Install and start Docker.
+
+      To learn more, see the `Docker documentation <https://docs.docker.com/desktop/install/mac-install/>`__.
+
    .. step:: Install Docker Compose.
 
       **Example:**
@@ -107,6 +111,9 @@ deployment with `Docker Compose <https://docs.docker.com/compose/>`__.
       .. code-block:: sh
 
          brew install docker-compose
+
+      To learn more, see the `Docker Compose install documentation 
+      <https://docs.docker.com/compose/install/>`__.
 
    .. step:: Create a ``docker-compose.yaml`` file.
 
@@ -166,6 +173,142 @@ deployment with `Docker Compose <https://docs.docker.com/compose/>`__.
       .. code-block:: sh
 
          mongosh mongodb://root:root@localhost:27778/?directConnection=true
+
+Persist Data Across Runs with Docker Compose
+--------------------------------------------
+
+You can persist data across multiple runs with `Docker Compose 
+<https://docs.docker.com/compose/>`__. Persisting data helps to ensure 
+that data isn't lost between runs. Data remains available across runs 
+of Docker Compose.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Install and start Docker.
+
+      To learn more, see the `Docker documentation <https://docs.docker.com/desktop/install/mac-install/>`__.
+
+   .. step:: Install Docker Compose.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         brew install docker-compose
+
+      To learn more, see the `Docker Compose install documentation 
+      <https://docs.docker.com/compose/install/>`__.
+
+   .. step:: Create a script to start and stop your local deployment.
+
+      a. Create the following ``entrypoint.sh`` script file in the same 
+         directory that you run Docker Compose from:
+
+         .. code-block:: sh
+
+            #!/bin/bash
+            stop_atlas() {
+              echo "Stopping Atlas deployment..."
+              atlas deployments stop
+            }
+            start_atlas() {
+              echo "Starting Atlas deployment..."
+              atlas deployments start
+            }
+           trap 'stop_atlas' SIGTERM SIGINT
+           deployment_status=$(atlas deployments list | grep 'LOCAL')
+           if [[ -z "$deployment_status" ]]; then
+             echo "No local deployment found. Setting up..."
+             atlas deployments setup dev --bindIpAll --username root --password $LOCALDEV_PASSWORD --type local --port 27017 --force
+           else
+             if [[ $deployment_status == *"STOPPED"* ]]; then
+               start_atlas
+             fi
+           fi
+           while true
+           do
+             tail -f /dev/null & wait ${!}
+           done
+
+      #. Run the following command to make the script executable only 
+         by you:
+
+         .. code-block:: sh
+
+            chmod u+x entrypoint.sh
+
+   .. step:: Update your ``docker-compose.yaml`` file.
+
+      a. Update the ``docker-compose.yaml`` file to mount the necessary 
+         data directories as volumes.
+
+         **Example:**
+
+         .. code-block:: sh
+            :linenos: 
+         
+            services:
+              mongo:
+                image: mongodb/atlas
+                privileged: true
+                volumes:
+                  - data-cni:/etc/cni
+                  - data-containers:/var/lib/containers
+                  - ./entrypoint.sh:/entrypoint.s
+                ports:
+                  - 27017:27017
+                environment:
+                  - LOCALDEV_PASSWORD={your-password}
+            volumes:
+              data-cni:
+              data-containers:
+
+      #. Replace the ``{your-password}`` variable in the example with 
+         your password and save the file.
+
+      To learn more about the available options, see 
+      :ref:`atlas-deployments-setup`.
+
+   .. step:: Run Docker Compose.
+
+      The following command creates a local |service| deployment with 
+      |fts| capabilities enabled. It also returns a connection string.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         docker-compose up
+
+      You can also run Docker Compose in `detached mode <https://docs.docker.com/reference/cli/docker/compose/up/#options>`__.
+
+      **Example:**
+
+      .. code-block:: sh
+
+         docker-compose up -d
+
+   .. step:: Connect to the local |service| deployment.
+
+      To connect to the local |service| deployment from the host (not 
+      container), copy and paste the following command, and replace 
+      the ``{connection_string}`` variable with your connection string.
+
+      .. note::
+
+         The following example uses {+mongosh+}, but you can use the 
+         connection method that you prefer.
+
+      .. code-block:: sh
+
+         mongosh {connection_string}
+
+      **Example:**
+
+      .. code-block:: sh
+
+         mongosh mongodb://root:{your-password}@localhost:27017/?directConnection=true
 
 Supported Actions
 -----------------
