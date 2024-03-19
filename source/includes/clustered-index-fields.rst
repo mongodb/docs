@@ -1,14 +1,15 @@
-.. include:: /includes/clustered-collections-introduction.rst
+Starting in MongoDB 5.3, you can create a collection with a **clustered
+index**. Clustered indexes are stored in the same :ref:`WiredTiger
+<storage-wiredtiger>` file as the collection. The resulting collection
+is called a :ref:`clustered collection <clustered-collections>`.
 
-See :ref:`clustered-collections`.
-
-``clusteredIndex`` has the following syntax:
+The ``clusteredIndex`` field has the following syntax:
 
 .. code-block:: javascript
    :copyable: false
 
    clusteredIndex: {
-      key: { <string> },
+      key: <object>,
       unique: <boolean>,
       name: <string>
    }
