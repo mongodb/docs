@@ -7,6 +7,6 @@ set to :guilabel:`On`, |service| automatically enables
 {+bcp+}. |service| automatically modifies the backup to meet the 
 minimum requirements of the {+bcp+}.
 
-If you deployed search nodes separately, |service| rebuilds the |fts| 
-indexes to restore the data on the search nodes that it deleted when you 
+If you deployed Search Nodes separately, |service| rebuilds the |fts| 
+indexes to restore the data on the Search Nodes that it deleted when you 
 paused the |service| {+cluster+}.

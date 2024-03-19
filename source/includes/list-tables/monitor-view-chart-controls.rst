@@ -51,7 +51,7 @@
        - insert
        - update
        
-       If you deployed search nodes for workload isolation, you can't
+       If you deployed Search Nodes for workload isolation, you can't
        view opcounters on separate charts in the :guilabel:`Search
        Nodes` tab. To group opcounters metrics in the
        :guilabel:`Search Nodes` tab, select the :guilabel:`Group
@@ -61,6 +61,6 @@
      - Directs |service| to display or hide chart annotations. 
        Chart annotations consist of colored vertical lines that 
        indicate server events, such as a server restart or 
-       a transition in member state. If you deployed search nodes for
+       a transition in member state. If you deployed Search Nodes for
        workload isolation, you can't display or hide chart annotations
        in the :guilabel:`Search Nodes` tab.
