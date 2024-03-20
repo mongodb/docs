@@ -1,0 +1,50 @@
+.. _bson_lifetimes:
+
+==========================
+:ref:`bson_t` Lifetimes
+==========================
+
+A :ref:`bson_t` may contain its data directly or may contain pointers to heap-allocated memory.
+Overwriting an existing :ref:`bson_t` or allowing a stack-allocated :ref:`bson_t` to go out of
+scope may cause a memory leak. A :ref:`bson_t` should always be destroyed with :ref:`bson_destroy`.
+
+:ref:`bson_t` Out Parameters
+-------------------------------
+
+A :ref:`bson_t` pointer used as an out parameter must point to valid overwritable storage for a
+new :ref:`bson_t` which must be one of:
+
+- Uninitialized storage for a :ref:`bson_t`.
+- A zero-initialized :ref:`bson_t` object.
+- A :ref:`bson_t` object initialized with ``BSON_INITIALIZER``.
+- A :ref:`bson_t` object not created with :ref:`bson_new` that was destroyed with :ref:`bson_destroy`.
+
+This can be on the stack:
+
+.. code-block:: c
+
+   bson_t stack_doc = BSON_INITIALIZER;
+   example_get_doc (&stack_doc);
+   bson_destroy (&stack_doc);
+
+Or on the heap:
+
+.. code-block:: c
+
+   bson_t *heap_doc = bson_malloc (sizeof (bson_t));
+   example_get_doc (heap_doc);
+   bson_destroy (heap_doc);
+   bson_free (heap_doc);
+
+Omitting :ref:`bson_destroy` in either case may cause memory leaks.
+
+.. warning::
+
+   Passing a :ref:`bson_t` pointer obtained from :ref:`bson_new` as an out parameter will result in a leak of the :ref:`bson_t` struct.
+
+   .. code-block:: c
+
+      bson_t *heap_doc = bson_new ();
+      example_get_doc (heap_doc);
+      bson_destroy (heap_doc); // Leaks the `bson_t` struct!
+      
