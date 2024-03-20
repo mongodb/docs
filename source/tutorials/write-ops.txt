@@ -14,508 +14,400 @@ Write Operations
    :depth: 2
    :class: singlecol
 
-Perform write operations to insert new documents into a collection,
-update existing document or documents in a collection, replace an
-existing document in a collection, or delete existing document or
-documents from a collection.
-
-
+You can perform write operations to insert new documents,
+update existing documents, replace an existing document, or delete
+existing documents from a collection.
 
 Prerequisites
 -------------
 
+You must set up the following components to run the code examples in
+this guide:
 
-+ The example below requires a `restaurants` collection in the `test`
-  database. To create and populate the collection, follow the directions
-  in `github`_.
-+ Include the following import statements:
+- A ``test.restaurants`` collection populated with documents from the
+  ``restaurants.json`` file in the `documentation assets GitHub
+  <https://raw.githubusercontent.com/mongodb/docs-assets/drivers/restaurants.json>`__.
 
-::
+- The following import statements:
 
-     ` import com.mongodb.*;
-     import com.mongodb.client.MongoClients;
-     import com.mongodb.client.MongoClient;
-     import com.mongodb.client.MongoCollection;
-     import com.mongodb.client.MongoDatabase;
-     import com.mongodb.client.model.Filters;
-     import static com.mongodb.client.model.Filters.*;
-     import static com.mongodb.client.model.Updates.*;
-     import com.mongodb.client.model.UpdateOptions;
-     import com.mongodb.client.result.*;
-     import org.bson.Document;
-     import org.bson.types.ObjectId;
+.. code-block:: java
+
+   import com.mongodb.*;
+   import com.mongodb.client.MongoClients;
+   import com.mongodb.client.MongoClient;
+   import com.mongodb.client.MongoCollection;
+   import com.mongodb.client.MongoDatabase;
+   import com.mongodb.client.model.Filters;
+   import static com.mongodb.client.model.Filters.*;
+   import static com.mongodb.client.model.Updates.*;
+   import com.mongodb.client.model.UpdateOptions;
+   import com.mongodb.client.result.*;
+   import org.bson.Document;
+   import org.bson.types.ObjectId;
     
-     import java.util.List;
-     import java.util.Arrays;
-     import java.util.ArrayList;
-    `
+   import java.util.List;
+   import java.util.Arrays;
+   import java.util.ArrayList;
 
+.. important::
 
-
-
-
-
-important
-+++++++++
-
-This guide uses the `Subscriber` implementations as covered in the
-`Quick Start Primer`_.
-
-
+   This guide uses the ``Subscriber`` implementations, which are
+   described in the :ref:`Quick Start Primer <javars-primer>`.
 
 Connect to a MongoDB Deployment
 -------------------------------
 
-Connect to a MongoDB deployment and declare and define a
-`MongoDatabase` instance.
+First, connect to a MongoDB deployment and declare and define
+``MongoDatabase`` and ``MongoCollection`` instances.
 
-For example, include the following code to connect to a standalone
-MongoDB deployment running on localhost on port `27017` and define
-`database` to refer to the `test` database and `collection` to refer
-to the `restaurants` collection:
+The following code connects to a standalone
+MongoDB deployment running on ``localhost`` on port ``27017``. Then, it
+defines the ``database`` variable to refer to the ``test`` database and
+the ``collection`` variable to refer to the ``restaurants`` collection:
 
+.. code-block:: java
 
-::
+   MongoClient mongoClient = MongoClients.create();
+   MongoDatabase database = mongoClient.getDatabase("test");
+   MongoCollection<Document> collection = database.getCollection("restaurants");
 
-     `MongoClient mongoClient = MongoClients.create();
-    MongoDatabase database = mongoClient.getDatabase("test");
-    MongoCollection<Document> collection = database.getCollection("restaurants");
-    `
+To learn more about connecting to MongoDB deployments,
+see the :ref:`javars-connect` tutorial.
 
-
-For additional information on connecting to MongoDB, see `Connect to
-MongoDB`_.
-
-
-
-Insert New Document
--------------------
+Insert a Document
+-----------------
 
 To insert a single document into the collection, you can use the
-collections ` `insertOne()``_ method.
+collection's ``insertOne()`` method:
 
+.. code-block:: java
 
-::
-
-     `Document document = new Document("name", "Café Con Leche")
-                   .append("contact", new Document("phone", "228-555-0149")
-                                           .append("email", "cafeconleche@example.com")
-                                           .append("location",Arrays.asList(-73.92502, 40.8279556)))
-                   .append("stars", 3)
-                   .append("categories", Arrays.asList("Bakery", "Coffee", "Pastries"));
+   Document document = new Document("name", "Café Con Leche")
+       .append("contact", new Document("phone", "228-555-0149")
+           .append("email", "cafeconleche@example.com")
+           .append("location",Arrays.asList(-73.92502, 40.8279556)))
+       .append("stars", 3)
+       .append("categories", Arrays.asList("Bakery", "Coffee", "Pastries"));
     
-    collection.insertOne(document).subscribe(new ObservableSubscriber<Void>());
-    `
+   collection.insertOne(document).subscribe(new ObservableSubscriber<Void>());
 
+.. note::
 
-
-
-Note
-++++
-
-If no top-level `_id` field is specified in the document, the Java
-driver automatically adds the `_id` field to the inserted document.
-
-
+   If no top-level ``id`` field is specified in the document, MongoDB
+   automatically generates a value and adds this field to the inserted
+   document.
 
 Insert Multiple Documents
 -------------------------
 
-To add multiple documents, you can use the collections `
-`insertMany()``_ method, which takes a list of documents to insert.
+To insert multiple documents, you can use the collection's
+``insertMany()`` method, which takes a list of documents to insert as a parameter.
 
-The following example inserts two documents to the collection:
+The following example inserts two documents into the collection:
 
+.. code-block:: java
 
-::
-
-     `Document doc1 = new Document("name", "Amarcord Pizzeria")
-                   .append("contact", new Document("phone", "264-555-0193")
-                                           .append("email", "amarcord.pizzeria@example.net")
-                                           .append("location",Arrays.asList(-73.88502, 40.749556)))
-                   .append("stars", 2)
-                   .append("categories", Arrays.asList("Pizzeria", "Italian", "Pasta"));
+   Document doc1 = new Document("name", "Amarcord Pizzeria")
+       .append("contact", new Document("phone", "264-555-0193")
+           .append("email", "amarcord.pizzeria@example.net")
+           .append("location",Arrays.asList(-73.88502, 40.749556)))
+       .append("stars", 2)
+       .append("categories", Arrays.asList("Pizzeria", "Italian", "Pasta"));
     
     
-    Document doc2 = new Document("name", "Blue Coffee Bar")
-                   .append("contact", new Document("phone", "604-555-0102")
-                                           .append("email", "bluecoffeebar@example.com")
-                                           .append("location",Arrays.asList(-73.97902, 40.8479556)))
-                   .append("stars", 5)
-                   .append("categories", Arrays.asList("Coffee", "Pastries"));
+   Document doc2 = new Document("name", "Blue Coffee Bar")
+       .append("contact", new Document("phone", "604-555-0102")
+           .append("email", "bluecoffeebar@example.com")
+           .append("location",Arrays.asList(-73.97902, 40.8479556)))
+       .append("stars", 5)
+       .append("categories", Arrays.asList("Coffee", "Pastries"));
     
-    List<Document> documents = new ArrayList<Document>();
-    documents.add(doc1);
-    documents.add(doc2);
+   List<Document> documents = new ArrayList<Document>();
+   documents.add(doc1);
+   documents.add(doc2);
     
-    collection.insertMany(documents).subscribe(new ObservableSubscriber<Void>());;
-    `
+   collection.insertMany(documents).subscribe(new ObservableSubscriber<Void>());;
 
+.. note::
 
-
-
-Note
-++++
-
-If no top-level `_id` field is specified in the documents, the Java
-driver automatically adds the `_id` field to the inserted documents.
-
-
+   If no top-level ``id`` field is specified in the document, MongoDB
+   automatically generates a value and adds this field to the inserted
+   document.
 
 Update Existing Documents
 -------------------------
 
 To update existing documents in a collection, you can use the
-collections ` `updateOne()``_ or ` `updateMany``_ methods.
-
-
+collection's ``updateOne()`` or ``updateMany()`` methods.
 
 Filters
 ~~~~~~~
 
 You can pass in a filter document to the methods to specify which
 documents to update. The filter document specification is the same as
-for `read operations`_. To facilitate creating filter objects, the
-Java driver provides the ` `Filters``_ helper.
+for read operations. To facilitate the creation of filter objects, the
+driver provides the ``Filters`` helper class.
 
-To specify an empty filter (i.e. match all documents in a collection),
-use an empty ` `Document``_ object.
-
-
+To specify an empty filter and match all documents in a collection,
+use an empty ``Document`` object as the filter.
 
 Update Operators
 ~~~~~~~~~~~~~~~~
 
-To change a field in a document, MongoDB provides `update operators`_.
+To change a field in a document, MongoDB provides update operators.
 To specify the modification to perform using the update operators, use
-an updates document.
+create an update document. To learn more about update operators, see
+:manual:`Update Operators </reference/operator/update/>` in the Server manual.
 
-To facilitate the creation of updates documents, the Java driver
-provides the ` `Updates``_ class.
+To facilitate the creation of update documents, the driver
+provides the ``Updates`` helper class.
 
+.. important::
 
-
-important
-+++++++++
-
-The `_id` field is immutable; i.e. you cannot change the value of the
-`_id` field.
-
-
+   The ``id`` field is immutable, so you cannot change the value of the
+   ``id`` field in a document.
 
 Update a Single Document
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ` `updateOne()``_ method updates at most a single document, even
+The ``updateOne()`` method updates a single document, even
 if the filter condition matches multiple documents in the collection.
 
-The following operation on the `restaurants` collection updates a
-document whose `_id` field equals
-`ObjectId("57506d62f57802807471dd41")`.
+The following operation on the ``restaurants`` collection updates a
+document in which the value of the ``id`` field is
+``ObjectId("57506d62f57802807471dd41")``:
 
+.. code-block:: java
 
-::
+   collection.updateOne(
+       eq("_id", new ObjectId("57506d62f57802807471dd41")),
+       combine(set("stars", 1), set("contact.phone", "228-555-9999"), currentDate("lastModified"))
+   ).subscribe(new ObservableSubscriber<UpdateResult>());
 
-     `collection.updateOne(
-                    eq("_id", new ObjectId("57506d62f57802807471dd41")),
-                    combine(set("stars", 1), set("contact.phone", "228-555-9999"), currentDate("lastModified")))
-              .subscribe(new ObservableSubscriber<UpdateResult>());
-    `
+Specifically, the operation uses the following methods:
 
-
-Specifically, the operation uses:
-
-
-+ ` `Updates.set``_ to set the value of the `stars` field to `1` and
-  the `contact.phone` field to `"228-555-9999"`, and
-+ ` `Updates.currentDate``_ to modify the `lastModified` field to the
-  current date. If the `lastModified` field does not exist, the operator
+- ``Updates.set()`` to set the value of the ``stars`` field to ``1`` and
+  the ``contact.phone`` field to ``"228-555-9999"``
+- ``Updates.currentDate()`` to modify the ``lastModified`` field to the
+  current date. If the ``lastModified`` field does not exist, the operator
   adds the field to the document.
-
-
-
 
 Update Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ` `updateMany``_ method updates all documents that match the
+The ``updateMany()`` method updates all documents that match the
 filter condition.
 
-The following operation on the `restaurants` collection updates all
-documents whose `stars` field equals `2`.
+The following operation on the ``restaurants`` collection updates all
+documents in which the value of the ``stars`` field is ``2``:
 
+.. code-block:: java
 
-::
+   collection.updateMany(
+       eq("stars", 2),
+       combine(set("stars", 0), currentDate("lastModified"))
+   ).subscribe(new ObservableSubscriber<UpdateResult>());
 
-     `collection.updateMany(
-                  eq("stars", 2),
-                  combine(set("stars", 0), currentDate("lastModified")))
-              .subscribe(new ObservableSubscriber<UpdateResult>());
-    `
+Specifically, the operation uses the following methods:
 
-
-Specifically, the operation uses:
-
-
-+ ` `Updates.set``_ to set the value of the `stars` field to `0` , and
-+ ` `Updates.currentDate``_ to modify the `lastModified` field to the
-  current date. If the `lastModified` field does not exist, the operator
+- ``Updates.set()`` to set the value of the ``stars`` field to ``0``
+- ``Updates.currentDate()`` to set the ``lastModified`` field to the
+  current date. If the ``lastModified`` field does not exist, the operator
   adds the field to the document.
-
-
-
 
 Update Options
 ~~~~~~~~~~~~~~
 
-With the ` `updateOne()``_ and ` `updateMany``_ methods, you can
-include an ` `UpdateOptions``_ document to specify the ` `upsert``_
-option or the ` `bypassDocumentationValidation``_ option.
+When using the ``updateOne()`` and ``updateMany()`` methods, you can
+include an ``UpdateOptions`` document to specify the ``upsert``
+option or the ``bypassDocumentationValidation`` option:
 
+.. code-block:: java
 
-::
-
-     `collection.updateOne(
-                    eq("_id", 1),
-                    combine(set("name", "Fresh Breads and Tulips"), currentDate("lastModified")),
-                    new UpdateOptions().upsert(true).bypassDocumentValidation(true))
-              .subscribe(new ObservableSubscriber<UpdateResult>());
-    `
-
-
-
+   collection.updateOne(
+       eq("_id", 1),
+       combine(set("name", "Fresh Breads and Tulips"), currentDate("lastModified")),
+       new UpdateOptions().upsert(true).bypassDocumentValidation(true)
+   ).subscribe(new ObservableSubscriber<UpdateResult>());
 
 Replace an Existing Document
 ----------------------------
 
 To replace an existing document in a collection, you can use the
-collections ` `replaceOne``_ method.
+collection's ``replaceOne()`` method.
 
+.. important::
 
-
-important
-+++++++++
-
-The `_id` field is immutable; i.e. you cannot replace the `_id` field
-value.
-
-
+   The ``id`` field is immutable, so you cannot replace the ``id``
+   field in a document.
 
 Filters
 ~~~~~~~
 
-You can pass in a filter document to the method to specify which
-document to replace. The filter document specification is the same as
-for `read operations`_. To facilitate creating filter objects, the
-Java driver provides the ` `Filters``_ helper.
+You can pass in a filter document to the ``replaceOne()`` method to
+specify which document to replace. The filter document specification is the same as
+for read operations. To facilitate the creation of filter objects, the
+driver provides the ``Filters`` helper class.
 
-To specify an empty filter (i.e. match all documents in a collection),
-use an empty ` `Document``_ object.
+To specify an empty filter and match all documents in a collection,
+use an empty ``Document`` object as the filter.
 
-The ` `replaceOne``_ method replaces at most a single document, even
+The ``replaceOne()`` method replaces at most a single document, even
 if the filter condition matches multiple documents in the collection.
-
-
 
 Replace a Document
 ~~~~~~~~~~~~~~~~~~
 
-To replace a document, pass a new document to the ` `replaceOne``_
+To replace a document, pass a new document to the ``replaceOne()``
 method.
 
+.. important::
 
+   The replacement document can have different fields from the original
+   document. In the replacement document, you can omit the ``id`` field
+   since the ``id`` field is immutable. However, if you do include the
+   ``id`` field, you cannot specify a different value for the ``id`` field.
 
-important
-+++++++++
+The following operation on the ``restaurants`` collection replaces the
+document in which the value of the ``id`` field is
+``ObjectId("57506d62f57802807471dd41")``:
 
-The replacement document can have different fields from the original
-document. In the replacement document, you can omit the `_id` field
-since the `_id` field is immutable; however, if you do include the
-`_id` field, you cannot specify a different value for the `_id` field.
+.. code-block:: java
 
-The following operation on the `restaurants` collection replaces the
-document whose `_id` field equals
-`ObjectId("57506d62f57802807471dd41")`.
-
-
-::
-
-     `collection.replaceOne(
-                    eq("_id", new ObjectId("57506d62f57802807471dd41")),
-                    new Document("name", "Green Salads Buffet")
-                            .append("contact", "TBD")
-                            .append("categories", Arrays.asList("Salads", "Health Foods", "Buffet")))
-             .subscribe(new ObservableSubscriber<UpdateResult>());
-    `
-
-
-See also Update a Document.
-
-
+   collection.replaceOne(
+       eq("_id", new ObjectId("57506d62f57802807471dd41")),
+       new Document("name", "Green Salads Buffet")
+           .append("contact", "TBD")
+           .append("categories", Arrays.asList("Salads", "Health Foods", "Buffet"))
+   ).subscribe(new ObservableSubscriber<UpdateResult>());
 
 Update Options
 ~~~~~~~~~~~~~~
 
-With the ` `replaceOne``_, you can include an ` `UpdateOptions``_
-document to specify the ` `upsert``_ option or the `
-`bypassDocumentationValidation``_ option.
+When using the ``replaceOne()`` method, you can include an ``UpdateOptions``
+document to specify the ``upsert`` option or the
+``bypassDocumentationValidation`` option:
 
+.. code-block:: java
 
-::
-
-     `collection.replaceOne(
-                    eq("name", "Orange Patisserie and Gelateria"),
-                    new Document("stars", 5)
-                            .append("contact", "TBD")
-                            .append("categories", Arrays.asList("Cafe", "Pastries", "Ice Cream")),
-                    new UpdateOptions().upsert(true).bypassDocumentValidation(true))
-              .subscribe(new ObservableSubscriber<UpdateResult>());
-    `
-
-
-
+   collection.replaceOne(
+       eq("name", "Orange Patisserie and Gelateria"),
+       new Document("stars", 5)
+           .append("contact", "TBD")
+           .append("categories", Arrays.asList("Cafe", "Pastries", "Ice Cream")),
+       new UpdateOptions().upsert(true).bypassDocumentValidation(true)
+   ).subscribe(new ObservableSubscriber<UpdateResult>());
 
 Delete Documents
 ----------------
 
-To delete documents in a collection, you can use the` `deleteOne``_
-and ` `deleteMany``_ methods.
-
-
+To delete documents in a collection, you can use the ``deleteOne()``
+and ``deleteMany()`` methods.
 
 Filters
 ~~~~~~~
 
 You can pass in a filter document to the methods to specify which
 documents to delete. The filter document specification is the same as
-for `read operations`_. To facilitate creating filter objects, the
-Java driver provides the ` `Filters``_ helper.
+for read operations. To facilitate the creation of filter objects, the
+driver provides the ``Filters`` helper class.
 
-To specify an empty filter (i.e. match all documents in a collection),
-use an empty ` `Document``_ object.
-
-
+To specify an empty filter and match all documents in a collection,
+use an empty ``Document`` object as the filter.
 
 Delete a Single Document
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ` `deleteOne``_ method deletes at most a single document, even if
+The ``deleteOne()`` method deletes at most a single document, even if
 the filter condition matches multiple documents in the collection.
 
-The following operation on the `restaurants` collection deletes a
-document whose `_id` field equals
-`ObjectId("57506d62f57802807471dd41")`.
+The following operation on the ``restaurants`` collection deletes a
+document in which the value of the ``_id`` field is
+``ObjectId("57506d62f57802807471dd41")``:
 
+.. code-block:: java
 
-::
-
-     `collection.deleteOne(eq("_id", new ObjectId("57506d62f57802807471dd41"))).subscribe(new ObservableSubscriber<DeleteResult>());
-    `
-
-
-
+   collection
+       .deleteOne(eq("_id", new ObjectId("57506d62f57802807471dd41")))
+       .subscribe(new ObservableSubscriber<DeleteResult>());
 
 Delete Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ` `deleteMany``_ method deletes all documents that match the
+The ``deleteMany()`` method deletes all documents that match the
 filter condition.
 
-The following operation on the `restaurants` collection deletes all
-documents whose `stars` field equals `4`.
+The following operation on the ``restaurants`` collection deletes all
+documents in which the value of the ``stars`` field is ``4``:
 
+.. code-block:: java
 
-::
-
-     `collection.deleteMany(eq("stars", 4)).subscribe(new ObservableSubscriber<DeleteResult>());
-    `
-
-
-See also `Drop a Collection`_.
-
-
+   collection
+       .deleteMany(eq("stars", 4))
+       .subscribe(new ObservableSubscriber<DeleteResult>());
 
 Write Concern
 -------------
 
-`Write concern`_ describes the level of acknowledgement requested from
+Write concern describes the level of acknowledgment requested from
 MongoDB for write operations.
 
-Applications can configure `write concern`_ at three levels:
+You can configure a write concern at the following levels:
 
+- In a ``MongoClient`` in the following ways:
 
-+ In a ` `MongoClient()``_
+  - By creating a ``MongoClientSettings`` instance:
 
-    + Via ` `MongoClientSettings``_:
+    .. code-block:: java
 
+       MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
+           .applyConnectionString(new ConnectionString("mongodb://host1,host2"))
+           .writeConcern(WriteConcern.MAJORITY)
+           .build());
 
-::
+  - By creating a ``ConnectionString`` instance:
 
-     `  MongoClient mongoClient = MongoClients.create(MongoClientSettings.builder()
-                                                    .applyConnectionString(new ConnectionString("mongodb://host1,host2"))
-                                                    .writeConcern(WriteConcern.MAJORITY)
-                                                    .build());
-    `
+    .. code-block:: java
 
+       MongoClient mongoClient = MongoClients.create("mongodb://host1:27017,host2:27017/?w=majority");
 
+- In a ``MongoDatabase`` by using the ``withWriteConcern()`` method:
 
-    + Via ` `ConnectionString``_, as in the following example:
+  .. code-block:: java
 
+     MongoDatabase database = mongoClient.getDatabase("test").withWriteConcern(WriteConcern.MAJORITY);
 
-::
+- In a ``MongoCollection`` by using the ``withWriteConcern()`` method:
 
-     `  MongoClient mongoClient = MongoClients.create("mongodb://host1:27017,host2:27017/?w=majority");
-    `
+  .. code-block:: java
 
+     MongoCollection<Document> collection = database
+         .getCollection("restaurants")
+         .withWriteConcern(WriteConcern.MAJORITY);
 
-+ In a ` `MongoDatabase``_ via its ` `withWriteConcern``_ method, as
-  in the following example:
-
-::
-
-     ` MongoDatabase database = mongoClient.getDatabase("test").withWriteConcern(WriteConcern.MAJORITY);
-    `
-
-
-+ In a ` `MongoCollection``_ via its ` `withWriteConcern``_ method, as
-  in the following example:
-
-::
-
-     ` MongoCollection<Document> collection = database.getCollection("restaurants").withWriteConcern(WriteConcern.MAJORITY);
-    `
-
-
-
-
-`MongoDatabase` and `MongoCollection` instances are immutable. Calling
-`.withWriteConcern()` on an existing `MongoDatabase` or
-`MongoCollection` instance returns a new instance and does not affect
+``MongoDatabase`` and ``MongoCollection`` instances are immutable. Calling
+``withWriteConcern()`` on an existing ``MongoDatabase`` or
+``MongoCollection`` instance returns a new instance and does not affect
 the instance on which the method is called.
 
-For example, in the following, the `collWithWriteConcern` instance has
-the write concern of majority whereas the write concern of the
-`collection` is unaffected.
+In the following example, the ``collWithWriteConcern`` instance
+has the read preference of ``majority`` whereas the read
+preference of the ``collection`` is unaffected:
 
+.. code-block:: java
 
-::
+   MongoCollection<Document> collWithWriteConcern = collection
+       .withWriteConcern(WriteConcern.MAJORITY);
 
-     `MongoCollection<Document> collWithWriteConcern = collection
-                                                      .withWriteConcern(WriteConcern.MAJORITY);
-    `
+You can build ``MongoClientSettings``, ``MongoDatabase``, or
+``MongoCollection`` instances to include combinations of read concerns, read
+preferences, and write concerns.
 
+For example, the following code sets all three at the collection level:
 
-You can build `MongoClientSettings`, `MongoDatabase`, or
-`MongoCollection` to include a combination of write concern, `read
-concern`_, and `read preference`_.
+.. code-block:: java
 
-For example, the following sets all three at the collection level:
-
-
-::
-
-     `collection = database.getCollection("restaurants")
-                    .withReadPreference(ReadPreference.primary())
-                    .withReadConcern(ReadConcern.MAJORITY)
-                    .withWriteConcern(WriteConcern.MAJORITY);
-    `
+   Collection = database.getCollection("restaurants")
+       .withReadPreference(ReadPreference.primary())
+       .withReadConcern(ReadConcern.MAJORITY)
+       .withWriteConcern(WriteConcern.MAJORITY);
