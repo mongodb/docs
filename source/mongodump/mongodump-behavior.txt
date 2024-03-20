@@ -1,0 +1,247 @@
+.. _mongodump-behavior:
+
+=====================================
+mongodump Behavior, Access, and Usage
+=====================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |arrow| unicode:: U+27A4
+.. |tool-binary| replace:: ``mongodump``
+.. |mongodb-aws-example| replace:: :ref:`mongodump-example-connect-using-aws-iam`
+
+.. warning::
+   
+   When dumping to a case-insensitive file system such as Windows 
+   or macOS, collections with names that differ only by capitalization 
+   will be overwritten. For case-insensitive file systems, always use 
+   the :dbtools:`--archive </mongodump/#std-option-mongodump.--archive>` 
+   option.  
+
+Behavior
+--------
+
+Using ``mongodump`` Without an ``authSource``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When :urioption:`authSource` is not specified in the MongoDB URI, the
+database name specified in :option:`--db <mongodump --db>` is used both
+to authenticate your ``mongodump`` session and to indicate the database
+being dumped. For an example of using a different database for
+authentication when using ``mongodump``, see :ref:`mongodump-auth-dump`.
+
+Restore to Matching Server Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-match-dump-restore-versions.rst
+
+Read Preference
+~~~~~~~~~~~~~~~
+
+By default, ``mongodump`` uses read preference
+:readmode:`primary`. To override the default, you can specify the
+:ref:`read preference <replica-set-read-preference>` in the
+:option:`--readPreference <mongodump --readPreference>` command-line
+option or in the :option:`--uri connection string <mongodump --uri>`.
+
+If read preference is specified in both the URI string and the
+:option:`--readPreference <mongodump --readPreference>`
+option, the ``--readPreference``
+value overrides the read preference specified in the URI string.
+
+Data Exclusion
+~~~~~~~~~~~~~~
+
+If you specify both the :option:`--db <mongodump --db>` and the
+:option:`--collection <mongodump --collection>` options, ``mongodump``
+dumps the specified collection.
+
+If you only specify the :option:`--db <mongodump --db>` option,
+``mongodump`` dumps that database with the following exclusions:
+
+- If the value of ``--db`` is ``admin``:
+
+  - If you aren't connected to an Atlas Proxy, ``mongodump`` dumps the
+    database but excludes the ``system.keys`` collection. 
+  - If you're connected to an Atlas Proxy, ``mongodump`` attempts to
+    dump the database but errors out.
+
+- If the value of ``--db`` is ``config``, ``mongodump`` dumps all
+  collections in that database. 
+
+- If the value of ``--db`` is ``local``, ``mongodump`` dumps all
+  collections in that database.  
+  
+- For all other databases, ``mongodump`` excludes all collections that
+  start with ``system.``, except for ``system.js``. 
+
+If you omit the ``--db`` option, the following exclusions apply: 
+
+- ``mongodump`` excludes the ``local`` database.
+- ``mongodump`` only includes the following collections in the output
+  for the ``config`` database:   
+
+  - ``chunks``
+  - ``collections``
+  - ``databases``
+  - ``settings``
+  - ``shards``
+  - ``tags``
+  - ``version``
+    
+- If you're connected to an Atlas Proxy, ``mongodump`` excludes the
+  ``admin`` database.
+
+:binary:`~bin.mongodump` output:
+
+- Contains the documents in the database and the index definitions.
+- Does not contain the index data.
+
+:binary:`~bin.mongorestore` or :binary:`~bin.mongod` must rebuild the
+indexes after restoring data.
+
+If you're using :ref:`views <views-landing-page>`:
+
+- By default, :binary:`~bin.mongodump` only exports a view's metadata.
+  :binary:`~bin.mongodump` doesn't create a binary export of the
+  documents included in the view.
+- To export the documents in a view, use
+  :option:`--viewsAsCollections <mongodump --viewsAsCollections>`.
+
+Metadata Output
+~~~~~~~~~~~~~~~
+
+If :binary:`~bin.mongodump` outputs to a directory, the output contains
+collection metadata which includes the following properties: 
+
+- Collection names
+- Collection types
+- Collection configuration options
+- UUIDs
+- Indexes
+
+If :binary:`~bin.mongodump` outputs to standard output (``stdout``), the
+output does not include metadata. For more information, see the
+:option:`--out` option. 
+
+Metadata Format
+~~~~~~~~~~~~~~~
+
+``mongodump`` uses :manual:`Extended
+JSON v2.0 (Canonical) </reference/mongodb-extended-json>` format
+for the metadata files. To parse these files for restore, use
+``mongorestore``, which supports :manual:`Extended
+JSON v2.0 (Canonical or Relaxed mode)
+</reference/mongodb-extended-json>` format.
+
+Overwrite Files
+~~~~~~~~~~~~~~~
+
+``mongodump`` overwrites output files if they exist in the
+backup data folder. Before running the ``mongodump`` command
+multiple times, either ensure that you no longer need the files in the
+output folder (the default is the ``dump/`` folder) or rename the
+folders or files.
+
+``mongodump`` During Resharding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongodump`` fails if:
+
+- ``mongodump`` is initiated when a 
+  :ref:`resharding operation <sharding-resharding>` is in progress.
+
+- The :dbcommand:`reshardCollection` command is run during a 
+  ``mongodump`` operation.
+
+Data Compression Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When run against a ``mongod`` instance that uses the
+:manual:`WiredTiger </core/wiredtiger>` storage engine,
+``mongodump`` outputs uncompressed data.
+
+Working Set
+~~~~~~~~~~~
+
+``mongodump`` can adversely affect performance of the
+``mongod``. If your data is larger than system memory,
+``mongodump`` will push the working set out of memory.
+
+FIPS
+~~~~
+
+``mongodump`` automatically creates FIPS-compliant
+connections to a ``mongod``/``mongos`` that is
+:manual:`configured to use FIPS mode </tutorial/configure-fips>`.
+
+Using ``mongodump`` on Atlas Free and Shared Tier Clusters 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On free (``M0``) and shared (``M2`` and ``M5``) tier Atlas clusters, the
+following limitations apply: 
+
+- You can't run ``mongodump`` on the ``admin`` database. By default,
+  ``mongodump`` skips this database. If you use the :option:`--db
+  <mongodump --db>` option to set the destination database to ``admin``,
+  the program returns an error.
+
+- You can't use the following options with the ``mongodump`` program:
+
+  - :option:`--dumpDbUsersAndRoles`
+  - :option:`--oplog <mongodump --oplog>`
+
+Required Access
+---------------
+
+To run ``mongodump`` against a MongoDB deployment that has
+:manual:`access control </core/authorization>` enabled, you must have
+privileges that grant :authaction:`find` action for each database to
+back up. The built-in :authrole:`backup` role provides the required
+privileges to perform backup of any and all databases.
+
+Usage in Backup Strategy
+------------------------
+
+Standalone Deployments and Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For standalone or a replica set, ``mongodump`` can be a part
+of a :ref:`backup strategy <backup-with-mongodump>` with
+``mongorestore`` for partial backups based on a query,
+syncing from production to staging or development environments, or
+changing the storage engine of a standalone.
+
+For details on using ``mongodump`` with
+``mongorestore`` as part of a backup and recovery strategy,
+see:
+
+- :manual:`Back Up and Restore with MongoDB Tools</tutorial/backup-and-restore-tools>`
+
+- :manual:`MongoDB Backup Methods</core/backups>`
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
+
+Learn More
+----------
+
+- :ref:`mongodump`
+- :ref:`mongodump-compatibility-and-installation`
+- :ref:`mongodump-examples`

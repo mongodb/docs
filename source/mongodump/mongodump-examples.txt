@@ -1,0 +1,255 @@
+.. _mongodump-examples:
+
+==================
+mongodump Examples
+==================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. |arrow| unicode:: U+27A4
+.. |tool-binary| replace:: ``mongodump``
+.. |mongodb-aws-example| replace:: :ref:`mongodump-example-connect-using-aws-iam`
+.. |tool-command| replace:: ``mongodump``
+
+This page shows examples for |tool-binary|.
+
+Run ``mongodump`` from the system command line, not the
+:binary:`~bin.mongo` shell.
+
+Use ``mongodump`` with a Collection
+-----------------------------------
+
+The following operation creates a dump file that contains only the
+collection named ``records`` in the database named ``test``. In
+the example, the database is running on the local interface on port
+``27017``.
+
+.. code-block:: sh
+
+   mongodump  --db=test --collection=records
+
+Use ``mongodump`` with a Database and Exclude Specified Collections
+-------------------------------------------------------------------
+
+The following operation dumps all collections in the ``test`` database
+except for ``users`` and ``salaries``:
+
+.. code-block:: sh
+
+   mongodump  --db=test --excludeCollection=users --excludeCollection=salaries
+
+Use ``mongodump`` with Access Control
+-------------------------------------
+
+In the next example, ``mongodump`` creates a database dump
+located at ``/opt/backup/mongodump-2011-10-24``, from a database
+running on port ``37017`` on the host ``mongodb1.example.net`` and
+authenticating using the username ``user`` as follows:
+
+.. code-block:: sh
+
+   mongodump --host=mongodb1.example.net --port=37017 --username=user --authenticationDatabase=admin --out=/opt/backup/mongodump-2011-10-24
+
+If you do not include the :option:`--password <mongodump --password>`,
+:binary:`mongodump` prompts the user for the password.
+
+.. _mongodump-example-archive-file:
+
+Output to an Archive File
+-------------------------
+
+To output the dump to an archive file, run ``mongodump`` with the
+``--archive`` option and the archive filename. For example, the following
+operation creates a file ``test.20150715.archive`` that contains the dump
+of the ``test`` database.
+
+.. code-block:: sh
+
+   mongodump --archive=test.20150715.archive --db=test
+
+.. _mongodump-example-archive-stdout:
+
+Output an Archive to Standard Output
+------------------------------------
+
+To output the archive to the standard output stream in order to pipe to
+another process, run ``mongodump`` with the ``archive``
+option but *omit* the filename:
+
+.. code-block:: sh
+
+   mongodump --archive --db=test --port=27017 | mongorestore --archive --port=27018
+
+.. note::
+
+   You cannot use the ``--archive`` option with the
+   :option:`--out <mongodump --out>` option.
+
+.. _mongodump-example-gzip:
+
+Compress the Output
+-------------------
+
+To compress the files in the output dump directory, run
+``mongodump`` with the new ``--gzip`` option. For example,
+the following operation outputs compressed files into the default
+``dump`` directory.
+
+.. code-block:: sh
+
+   mongodump --gzip --db=test
+
+To compress the archive file output by ``mongodump``, use the
+``--gzip`` option in conjunction with the :option:`--archive <mongodump --archive>`
+option, specifying the name of the compressed file.
+
+.. code-block:: sh
+
+   mongodump --archive=test.20150715.gz --gzip --db=test
+
+.. _mongodump-example-copy-clone-database:
+
+Copy and Clone Databases
+------------------------
+
+Starting in version 4.2, MongoDB removes the deprecated ``copydb``
+command and ``clone`` command.
+
+As an alternative, users can use ``mongodump`` and
+:binary:`~bin.mongorestore` (with the ``mongorestore`` options
+:option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo
+<mongorestore --nsFrom>`).
+
+.. include:: /includes/extracts/clone-copy-db-same-instance.rst
+
+.. _mongodump-example-connect-using-aws-iam:
+
+Connect to a MongoDB Atlas Cluster using AWS IAM Credentials
+------------------------------------------------------------
+
+.. versionadded:: 100.1.0
+
+To connect to a :atlas:`MongoDB Atlas <?tck=docs_server>` cluster which
+has been configured to support authentication via `AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__,
+provide a :option:`connection string <mongodump --uri>` to
+|tool-binary| similar to the following:
+
+.. code-block:: none
+
+   mongodump 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS' <other options>
+
+Connecting to Atlas using AWS IAM credentials in this manner uses the
+``MONGODB-AWS`` :urioption:`authentication mechanism <authMechanism>`
+and the ``$external`` :urioption:`authSource`, as shown in this example.
+
+If using an `AWS session token
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__,
+as well, provide it with the ``AWS_SESSION_TOKEN``
+:urioption:`authMechanismProperties` value, as follows:
+
+.. code-block:: none
+
+   mongodump 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<aws session token>' <other options>
+
+.. include:: /includes/fact-pct-encode-uri.rst
+
+Alternatively, the AWS access key ID, secret access key, and optionally
+session token can each be provided outside of the connection string
+using the :option:`--username <mongodump --username>`, 
+:option:`--password <mongodump --password>`, and
+:option:`--awsSessionToken <mongodump --password>` options instead, like so:
+
+.. code-block:: none
+
+   mongodump 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS' --username <aws access key id> --password <aws secret access key> --awsSessionToken <aws session token> <other options>
+
+When provided as command line parameters, the previous three options do not
+require percent encoding.
+
+You may also set these credentials on your platform using standard
+`AWS IAM environment variables
+<https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__.
+|tool-binary| checks for the following environment variables when you
+use the ``MONGODB-AWS``
+:urioption:`authentication mechanism <authMechanism>`:
+
+- ``AWS_ACCESS_KEY_ID``
+- ``AWS_SECRET_ACCESS_KEY``
+- ``AWS_SESSION_TOKEN``
+
+If set, these credentials do not need to be specified in the connection
+string or via their explicit options.
+
+.. note::
+
+   If you chose to use the AWS environment variables to specify these
+   values, you cannot mix and match with the corresponding explicit or 
+   connection string options for these credentials. Either use the
+   environment variables for access key ID *and* secret access key
+   (*and* session token if used), **or** specify each of these using the
+   explicit or connection string options instead.
+
+The following example sets environment variables in the ``bash`` shell:
+
+.. code-block:: none
+
+   export AWS_ACCESS_KEY_ID='<aws access key id>'
+   export AWS_SECRET_ACCESS_KEY='<aws secret access key>'
+   export AWS_SESSION_TOKEN='<aws session token>'
+
+The syntax for setting environment variables in other shells is
+different. For more information, see the documentation for your shell.
+
+To verify the environment variables are set, use this command:
+
+.. code-block:: none
+
+   env | grep AWS
+
+After you set the environment variables, run the following example to
+connect to a MongoDB Atlas cluster:
+
+.. code-block:: none
+
+   mongodump 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'  <other options>
+
+.. _mongodump-auth-dump:
+
+Authenticating with a Specific Database
+---------------------------------------
+
+To authenticate with a different database than the one being dumped, you 
+must specify ``authSource`` in the MongoDB URI.
+
+In this example:
+
+- The username ``myuser`` and password ``mypassword`` is used. This user
+  has read access to ``testdb``.
+- The ``admin`` database is used to authenticate the user.
+- The ``testdb`` database is being dumped.
+
+.. code-block:: none
+
+   mongodump 'mongodb+srv://myuser:mypassword@cluster0.example.com/?authSource=admin' --db testdb
+
+Learn More
+----------
+
+- :ref:`mongodump`
+- :ref:`mongodump-compatibility-and-installation`
+- :ref:`mongodump-behavior`
