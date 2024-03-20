@@ -1,0 +1,54 @@
+.. _javars-bulk-writes:
+
+=====================
+Bulk Write Operations
+=====================
+
+Starting in v2.6, MongoDB supports bulk write commands
+for insert, update, and delete operations in a way that allows the
+driver to implement the correct semantics for ``BulkWriteResult`` and
+``BulkWriteException``.
+
+There are two types of bulk operations, ordered and unordered bulk
+operations:
+
+1. Ordered bulk operations execute all the operations in order and
+   error out on the first write error.
+#. Unordered bulk operations execute all the operations and report any
+   the errors. Unordered bulk operations do not guarantee an order of
+   execution.
+
+.. important::
+
+   This guide uses the ``Subscriber`` implementations, which are
+   described in the :ref:`Quick Start Primer <javars-primer>`.
+
+The following code provides examples using ordered and unordered
+operations:
+
+.. code-block:: java
+
+   // Ordered bulk operation - order is guaranteed
+   collection.bulkWrite(
+       Arrays.asList(new InsertOneModel<>(new Document("_id", 4)),
+           new InsertOneModel<>(new Document("_id", 5)),
+           new InsertOneModel<>(new Document("_id", 6)),
+           new UpdateOneModel<>(new Document("_id", 1),
+                                new Document("$set", new Document("x", 2))),
+           new DeleteOneModel<>(new Document("_id", 2)),
+           new ReplaceOneModel<>(new Document("_id", 3),
+                                 new Document("_id", 3).append("x", 4))))
+   .subscribe(new ObservableSubscriber<BulkWriteResult>());
+    
+   // Unordered bulk operation - no guarantee of order of operation
+   collection.bulkWrite(
+       Arrays.asList(new InsertOneModel<>(new Document("_id", 4)),
+           new InsertOneModel<>(new Document("_id", 5)),
+           new InsertOneModel<>(new Document("_id", 6)),
+           new UpdateOneModel<>(new Document("_id", 1),
+                                new Document("$set", new Document("x", 2))),
+           new DeleteOneModel<>(new Document("_id", 2)),
+           new ReplaceOneModel<>(new Document("_id", 3),
+                                 new Document("_id", 3).append("x", 4))),
+       new BulkWriteOptions().ordered(false))
+   .subscribe(new ObservableSubscriber<BulkWriteResult>());
