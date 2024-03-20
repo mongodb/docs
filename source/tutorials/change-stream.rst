@@ -1,0 +1,143 @@
+.. _javars-changestream:
+
+==============
+Change Streams
+==============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB 3.6 introduces the new ``$changeStream`` aggregation pipeline
+operator.
+
+Change streams provide a way to watch changes to documents in a
+collection. To improve the usability of this new stage, the
+``MongoCollection`` type includes a new ``watch()`` method. The
+``ChangeStreamPublisher`` instance sets up the change stream and automatically
+attempts to resume if it encounters a potentially recoverable error.
+
+Prerequisites
+-------------
+
+You must set up the following components to run the code examples in
+this guide:
+
+- A ``test.restaurants`` collection populated with documents from the
+  ``restaurants.json`` file in the `documentation assets GitHub
+  <https://raw.githubusercontent.com/mongodb/docs-assets/drivers/restaurants.json>`__.
+
+- The following import statements:
+
+.. code-block:: java
+
+   import com.mongodb.reactivestreams.client.MongoClients;
+   import com.mongodb.reactivestreams.client.MongoClient;
+   import com.mongodb.reactivestreams.client.MongoCollection;
+   import com.mongodb.reactivestreams.client.MongoDatabase;
+    
+   import com.mongodb.client.model.Aggregates;
+   import com.mongodb.client.model.Filters;
+   import com.mongodb.client.model.changestream.FullDocument;
+   import com.mongodb.client.model.changestream.ChangeStreamDocument;
+   
+   import org.bson.Document;
+
+.. important::
+
+   This guide uses the ``Subscriber`` implementations, which are
+   described in the :ref:`Quick Start Primer <javars-primer>`.
+
+Connect to a MongoDB Deployment
+-------------------------------
+
+First, connect to a MongoDB deployment and declare and define
+``MongoDatabase`` and ``MongoCollection`` instances.
+
+The following code connects to a standalone
+MongoDB deployment running on ``localhost`` on port ``27017``. Then, it
+defines the ``database`` variable to refer to the ``test`` database and
+the ``collection`` variable to refer to the ``restaurants`` collection:
+
+.. code-block:: java
+
+   MongoClient mongoClient = MongoClients.create();
+   MongoDatabase database = mongoClient.getDatabase("test");
+   MongoCollection<Document> collection = database.getCollection("restaurants");
+
+To learn more about connecting to MongoDB deployments,
+see the :ref:`javars-connect` tutorial.
+
+Watch for Changes on a Collection
+---------------------------------
+
+To create a change stream use one of the ``MongoCollection.watch()``
+methods.
+
+In the following example, the change stream prints out all changes it
+observes:
+
+.. code-block:: java
+
+   collection.watch().subscribe(new PrintDocumentSubscriber());
+
+Watch for Changes on a Database
+-------------------------------
+
+Applications can open a single change stream to watch all non-system
+collections of a database. To create such a change stream use one of the
+``MongoDatabase.watch()`` methods.
+
+In the following example, the change stream prints out all the changes
+it observes on the given database:
+
+.. code-block:: java
+
+   database.watch().subscribe(new PrintDocumentSubscriber());
+
+Watch for Changes on All Databases
+----------------------------------
+
+Applications can open a single change stream to watch all non-system
+collections of all databases in a MongoDB deployment. To create such a
+change stream use one of the ``MongoClient.watch()`` methods.
+
+In the following example, the change stream prints out all the changes
+it observes on the deployment to which the ``MongoClient`` is connected:
+
+.. code-block:: java
+
+   client.watch().subscribe(new PrintDocumentSubscriber());
+
+Filtering Content
+-----------------
+
+You can pass a list of aggregation stages to the  ``watch()`` method to
+modify the data returned by the ``$changeStream`` operator.
+
+.. note::
+   
+   Not all aggregation operators are supported. See
+   :manual:`Change Streams </changeStreams/>` in the Server manual to learn more.
+
+In the following example the change stream prints out all changes it
+observes corresponding to ``insert``, ``update``, ``replace`` and
+``delete`` operations.
+
+First, the pipeline includes a ``$match`` stage to filter for documents
+where the ``operationType`` is either an ``insert``, ``update``, ``replace`` or
+``delete``. Then, it sets the ``fullDocument`` to
+``FullDocument.UPDATE_LOOKUP``, so that the document after the update is
+included in the results:
+
+.. code-block:: java
+
+   collection.watch(
+       asList(
+           Aggregates.match(
+               Filters.in("operationType", asList("insert", "update", "replace", "delete"))
+           )
+       )
+   ).fullDocument(FullDocument.UPDATE_LOOKUP).subscribe(new PrintDocumentSubscriber());
