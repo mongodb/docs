@@ -95,7 +95,15 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Provides preview of MongoDB 7.0+ databases support for {+dedicated-clusters+}.
-- Suppports cross-organization billing in :atlas:`Atlas for Government </government>`.
+- Supports cross-organization billing in :atlas:`Atlas for Government </government>`.
+- Releases v2.0 of the :atlas:`Atlas Admin API </reference/api-resources-spec>`. 
+  To learn more, see :ref:`api-versioning-overview`.
+
+  .. important:: 
+
+     This version unifies the |api| endpoints for single-cloud {+clusters+}
+     and :ref:`multi-cloud <create-cluster-multi-region>` {+clusters+}
+     under the :oas-atlas-tag:`Clusters </Clusters>` |api| resource.
 
 .. _atlas_2023_06_14:
 
