@@ -78,3 +78,14 @@ To enable or disable the regionalized private endpoint setting:
 To learn more about optimized connection strings for sharded 
 {+clusters+} behind a private endpoint, see
 :ref:`optimized-connection-strings`. 
+
+
+Connecting to Multi-Region {+Clusters+} Without Regionalized Private Endpoints 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use {+aws-pl+} and have applications that connect to multi-region {+clusters+}
+that have endpoints in different regions but are not using :ref:`regionalized private endpoints
+<atlas_regionalized-pl>`, ensure that those applications can reach endpoints 
+in the other regions. For example, to do this with |aws|, 
+you can :ref:`peer <vpc-peering>` the |vpc|\s that 
+contains the endpoints on their side.
