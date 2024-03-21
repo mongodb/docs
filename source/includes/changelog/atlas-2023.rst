@@ -28,7 +28,7 @@
 27 November 2023 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Makes :ref:`MongoDB 7.1 <release-notes-7.1>` generally available for all deployments.
+- Makes MongoDB 7.1 generally available for all deployments.
 
 .. _atlas_2023_15_11:
 
