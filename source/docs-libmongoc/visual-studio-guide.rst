@@ -1,5 +1,12 @@
+====================================================
 Using libmongoc in a Microsoft Visual Studio project
 ====================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
 :doc:`Download and install libmongoc on your system </learn/get/from-source>`,
 then open Visual Studio, select "File |rarrow| New |rarrow| Project...", and

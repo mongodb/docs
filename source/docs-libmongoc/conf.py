@@ -188,10 +188,10 @@ rst_prolog = rf"""
     :cmake:command:`find_package() <command:find_package>`
 
 .. |bson_t-storage-ptr| replace::
-    non-``NULL`` pointer to :doc:`overwritable storage <bson:lifetimes>` for a :symbol:`bson_t`
+    non-``NULL`` pointer to :doc:`overwritable storage <bson:lifetimes>` for a :ref:`bson_t`
 
 .. |bson_t-opt-storage-ptr| replace::
-    maybe-``NULL`` pointer to :doc:`overwritable storage <bson:lifetimes>` for a :symbol:`bson_t`
+    maybe-``NULL`` pointer to :doc:`overwritable storage <bson:lifetimes>` for a :ref:`bson_t`
 
 """
 
