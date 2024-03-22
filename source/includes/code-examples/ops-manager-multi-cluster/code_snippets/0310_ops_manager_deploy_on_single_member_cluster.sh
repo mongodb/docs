@@ -7,12 +7,20 @@ spec:
   topology: MultiCluster
   version: 7.0.1
   adminCredentials: om-admin-user-credentials
+  security:
+    certsSecretPrefix: cert-prefix
+    tls:
+      ca: om-cert-ca
   clusterSpecList:
     - clusterName: "${K8S_CLUSTER_0_CONTEXT_NAME}"
       members: 1
   applicationDatabase:
     version: "6.0.5-ubi8"
     topology: MultiCluster
+    security:
+      certsSecretPrefix: cert-prefix
+      tls:
+        ca: appdb-cert-ca
     clusterSpecList:
       - clusterName: "${K8S_CLUSTER_0_CONTEXT_NAME}"
         members: 3
