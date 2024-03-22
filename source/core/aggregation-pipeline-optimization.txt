@@ -379,44 +379,66 @@ stage
 
 .. _agg-lookup-unwind-coalescence:
 
-``$lookup`` + ``$unwind`` Coalescence
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``$lookup``, ``$unwind``, and ``$match`` Coalescence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When a :pipeline:`$unwind` immediately follows another
-:pipeline:`$lookup`, and the :pipeline:`$unwind` operates on the ``as``
-field of the :pipeline:`$lookup`, the optimizer can coalesce the
-:pipeline:`$unwind` into the :pipeline:`$lookup` stage. This avoids
-creating large intermediate documents.
+When :pipeline:`$unwind` immediately follows :pipeline:`$lookup`, and the 
+:pipeline:`$unwind` operates on the ``as`` field of the :pipeline:`$lookup`, 
+the optimizer coalesces the :pipeline:`$unwind` into the :pipeline:`$lookup` 
+stage. This avoids creating large intermediate documents. Furthermore, if 
+:pipeline:`$unwind` is followed by a :pipeline:`$match` on any ``as`` subfield 
+of the :pipeline:`$lookup`, the optimizer also coalesces the :pipeline:`$match`.
 
 For example, a pipeline contains the following sequence:
 
 .. code-block:: javascript
+   :copyable: false
 
    {
-     $lookup: {
-       from: "otherCollection",
-       as: "resultingArray",
-       localField: "x",
-       foreignField: "y"
-     }
+      $lookup: {
+        from: "otherCollection",
+        as: "resultingArray",
+        localField: "x",
+        foreignField: "y"
+      }
    },
-   { $unwind: "$resultingArray"}
-
-The optimizer can coalesce the :pipeline:`$unwind` stage into the
-:pipeline:`$lookup` stage. If you run the aggregation with ``explain``
-option, the ``explain`` output shows the coalesced stage:
-
-.. code-block:: javascript
-
-   {
-     $lookup: {
-       from: "otherCollection",
-       as: "resultingArray",
-       localField: "x",
-       foreignField: "y",
-       unwinding: { preserveNullAndEmptyArrays: false }
+   { $unwind: "$resultingArray"  },
+   { $match: {
+       "resultingArray.foo": "bar"
      }
    }
+
+The optimizer coalesces the :pipeline:`$unwind` and :pipeline:`$match` stages 
+into the :pipeline:`$lookup` stage. If you run the aggregation with ``explain``
+option, the ``explain`` output shows the coalesced stages:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+      $lookup: {
+        from: "otherCollection",
+        as: "resultingArray",
+        localField: "x",
+        foreignField: "y",
+        let: {},
+        pipeline: [
+          {
+            $match: {
+              "foo": {
+                "$eq": "bar"
+              }
+            }
+          }
+        ],
+        unwinding: {
+          "preserveNullAndEmptyArrays": false
+        }
+      }
+   }
+
+You can see this optimized pipeline in the :ref:`explain plan
+<example-aggregate-method-explain-option>`.
 
 .. _sbe-pipeline-optimizations:
 
