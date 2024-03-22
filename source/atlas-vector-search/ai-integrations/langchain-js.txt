@@ -1,0 +1,234 @@
+.. _langchain-js:
+
+================================================
+Get Started with the LangChain JS/TS Integration
+================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta::
+   :description: Integrate Atlas Vector Search with LangChain JS/TS to build LLM and RAG applications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. note::
+
+   This tutorial uses LangChain's `JavaScript library
+   <https://js.langchain.com/docs/get_started/introduction>`__. 
+   For a tutorial that uses the Python library, see :ref:`langchain`.
+
+You can integrate {+avs+} with `LangChain <https://langchain.com/>`__
+to build |llm| applications and implement 
+retrieval-augmented generation (RAG). This tutorial demonstrates
+how to start using {+avs+} with LangChain to perform
+semantic search on your data and build a |rag| implementation. 
+Specifically, you perform the following actions:
+
+#. Set up the environment.
+#. Store custom data on |service|.
+#. Create an {+avs+} index on your data.
+#. Run the following vector search queries:
+
+   - Semantic search.
+   - Semantic search with metadata pre-filtering.
+   - Maximal Marginal Relevance (MMR) search.
+
+#. Implement |rag| by using {+avs+} to answer questions on your data.
+
+Background
+----------
+
+.. include:: /includes/ai-integrations/langchain/langchain-background.rst
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- An |service| {+cluster+} running MongoDB version 6.0.11, 7.0.2, or later
+  (including :abbr:`RCs (Release Candidates)`).
+
+- An OpenAI API Key. You must have a paid OpenAI account with credits
+  available for API requests.
+
+- A terminal and code editor to run your Node.js project.
+
+- `npm and Node.js <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__ installed.
+
+Set Up the Environment
+----------------------
+
+You must first set up the environment for this tutorial. 
+To set up your environment, complete the following steps.
+
+.. include:: /includes/ai-integrations/langchain/langchain-set-up-environment-node.rst
+
+Use |service| as a Vector Store
+-------------------------------
+
+In this section, you define an asynchronous function 
+to load custom data into |service| and instantiate |service| as a vector database, 
+also called a `vector store 
+<https://js.langchain.com/docs/modules/data_connection/vectorstores/>`__. 
+Add the following code into your ``get-started.js`` file.
+
+.. include:: /includes/ai-integrations/langchain/langchain-vector-store-description-node.rst
+
+.. literalinclude:: /includes/ai-integrations/langchain/langchain-create-vector-store.js
+   :language: javascript
+   :copyable:
+
+Save the file, then run the following command to load your data into |service|.
+
+.. code-block::
+
+   node get-started.js
+
+.. tip:: 
+
+   After running ``get-started.js``, you can
+   view your vector embeddings :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`
+   by navigating to the ``langchain_db.test`` collection in your {+cluster+}.
+
+.. _langchain-create-index:
+
+Create the {+avs+} Index
+------------------------------------
+
+To enable vector search queries on your vector store,
+create an {+avs+} index on the ``langchain_db.test`` collection.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+To create an {+avs+} index, you must have :authrole:`Project Data Access 
+Admin` or higher access to the |service| project.
+
+Procedure 
+~~~~~~~~~
+
+.. include:: /includes/ai-integrations/langchain/langchain-create-index-node.rst
+
+Run Vector Search Queries
+-------------------------
+
+This section demonstrates various queries that you can 
+run on your vectorized data. Now that you've created the index, 
+add the following code to your asynchronous function to run vector search 
+queries against your data.
+
+.. note:: 
+
+   If you experience inaccurate results when querying 
+   your data, your index might be taking longer 
+   than expected to sync. Increase the number in the ``setTimeout``
+   function to allow more time for the initial sync.
+
+.. include:: /includes/ai-integrations/langchain/langchain-query-examples-node.rst
+
+.. seealso::
+
+   For more information, refer to 
+   the `API reference 
+   <https://api.js.langchain.com/classes/langchain_mongodb.MongoDBAtlasVectorSearch.html>`__.
+
+Answer Questions on Your Data
+-----------------------------
+
+This section demonstrates two different |rag| implementations using
+{+avs+} and LangChain. Now that you've used {+avs+} 
+to retrieve semantically similar documents, use the following 
+code examples to prompt the |llm| to answer 
+questions against the documents returned by {+avs+}.
+
+.. tabs::
+
+   .. tab:: Basic RAG
+      :tabid: langchain-js-rag
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Add the following code to your asynchronous function and save the file. 
+
+            This code does the following: 
+
+            - Instantiates {+avs+} as a `retriever 
+              <https://js.langchain.com/docs/modules/data_connection/retrievers/>`__
+              to query for semantically similar documents.
+                  
+            .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-description-node.rst
+
+            .. literalinclude:: /includes/ai-integrations/langchain/langchain-perform-qa.js
+               :language: javascript
+               :copyable:
+
+         .. step:: Run the following command to execute your file.
+
+            .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-node-output.rst
+
+   .. tab:: RAG with Filtering and MMR Search
+      :tabid: langchain-js-rag-filtering
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Add the following code to your asynchronous function and save the file. 
+
+            This code does the following: 
+
+            - Instantiates {+avs+} as a `retriever 
+              <https://js.langchain.com/docs/modules/data_connection/retrievers/>`__
+              to query for semantically similar documents. It also specifies the
+              following optional parameters:
+
+              - ``searchType`` as ``mmr``, which specifies that {+avs+} retrieves 
+                documents based on Max Marginal Relevance (MMR).
+
+              - ``filter`` to add a pre-filter on the ``log.pageNumbers`` field to include 
+                documents that appear on page 17 only.
+
+              - The following :abbr:`MMR (Max Marginal Relevance)`-specific parameters:
+
+                - ``fetchK`` to fetch only ``20`` documents before passing 
+                  the documents to the :abbr:`MMR (Max Marginal Relevance)` algorithm.
+
+                - ``lambda``, a value between ``0`` and ``1`` to determine the degree of 
+                  diversity among the results, with ``0`` representing maximum diversity
+                  and ``1`` representing minimum diversity.
+               
+            .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-description-node.rst
+            
+            .. literalinclude:: /includes/ai-integrations/langchain/langchain-perform-qa-filtered.js
+               :language: javascript
+               :copyable:
+ 
+         .. step:: Run the following command to execute your file.
+
+            .. include:: /includes/ai-integrations/langchain/langchain-perform-qa-node-filtered-output.rst
+
+Next Steps
+----------
+
+MongoDB also provides the following developer resources:
+
+- :website:`AI Shop: The Power of LangChain, OpenAI, and MongoDB Atlas Working Together 
+  </developer/products/atlas/ai-shop-mongodb-atlas-langchain-openai/>`
+- :github:`MongoDB Developer GitHub Repository </mongodb-developer>`
+
+.. seealso:: 
+
+   - `LangChain JS/TS Documentation <https://js.langchain.com/docs/integrations/vectorstores/mongodb_atlas>`__
+   - `LangChain JS/TS API Reference <https://api.js.langchain.com/modules/langchain_mongodb.html>`__

@@ -54,7 +54,7 @@
       
       - A connection to your |service| {+cluster+}.
       - ``llamaindex_db.test`` as the |service| database and collection 
-        for which to insert the documents.
+        used to store the documents.
       - ``vector_index`` as the index to use for querying the vector store.
 
       Then, you save the vector store to a `storage context

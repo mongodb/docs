@@ -59,8 +59,9 @@
 
       You can also pre-filter your data by using a match expression
       that compares the indexed field with boolean, number, or 
-      string values. You must specify any metadata fields to filter 
-      on in your {+avs+} index definition.
+      string values. You must index any metadata fields that you want to 
+      filter by as the ``filter`` type. To learn more, see 
+      :ref:`avs-types-vector-search`.
 
       .. note:: 
 

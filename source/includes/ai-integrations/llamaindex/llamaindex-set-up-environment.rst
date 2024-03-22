@@ -35,6 +35,14 @@
          os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
          ATLAS_CONNECTION_STRING = getpass.getpass("MongoDB Atlas SRV Connection String:")
 
+      .. note:: 
+
+         Your connection string should use the following format:
+
+         .. code-block::
+
+            mongodb+srv://<username>:<password>@<clusterName>.<hostname>.mongodb.net
+            
    .. step:: Configure LlamaIndex settings.
 
       Run the following code to configure settings that are specific

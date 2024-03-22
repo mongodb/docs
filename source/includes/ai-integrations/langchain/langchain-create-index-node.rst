@@ -41,11 +41,11 @@
            ``text-embedding-ada-002`` embedding model. The index
            definition specifies ``1536`` vector dimensions and
            measures similarity using ``cosine``.
-         - ``page`` field as the :ref:`filter <avs-types-vector-search>`
+         - ``loc.pageNumber`` field as the :ref:`filter <avs-types-vector-search>`
            type for pre-filtering data by the page number in the PDF.
 
          .. code-block::
-            :copyable: true 
+            :copyable: true
 
             {
                "fields":[
@@ -57,7 +57,7 @@
                   },
                   {
                      "type": "filter",
-                     "path": "page"
+                     "path": "loc.pageNumber"
                   }
                ]
             }
@@ -66,9 +66,20 @@
 
       A modal window displays to let you know that your index is building.
 
-   .. step::  Click :guilabel:`Close` to close the :guilabel:`You're All Set!` modal window and wait for the index to finish building. 
+   .. step:: Click :guilabel:`Close` to close the :guilabel:`You're All Set!` modal window. 
 
-      The index should take about one minute to build. While it
-      builds, the :guilabel:`Status` column reads :guilabel:`Initial
-      Sync`. When it finishes building, the :guilabel:`Status` column
-      reads :guilabel:`Active`. 
+   .. step:: In your ``get-started.js`` file, add the following code.
+
+      Return to the ``get-started.js`` file and add the 
+      following code to the asynchronous function that you defined.
+      This code helps to ensure that your search index has 
+      :ref:`synced <troubleshoot-initial-sync>`
+      to your data before it's used.
+
+      .. code-block:: javascript
+
+         // Wait for Atlas to sync index
+         console.log("Waiting for initial sync...");
+         await new Promise(resolve => setTimeout(() => {
+           resolve();
+         }, 10000));

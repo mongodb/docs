@@ -27,10 +27,18 @@
       Run the following code and provide your OpenAI API Key and
       the |srv| :manual:`connection string
       </reference/connection-string/#find-your-mongodb-atlas-connection-string>`
-      for your |service| cluster once prompted:
+      for your |service| {+cluster+} once prompted:
       
       .. code-block:: python
 
          os.environ["OPENAI_API_KEY"] = getpass.getpass("OpenAI API Key:")
          ATLAS_CONNECTION_STRING = getpass.getpass("MongoDB Atlas SRV Connection String:")
 
+      .. note:: 
+
+         Your connection string should use the following format:
+
+         .. code-block::
+
+            mongodb+srv://<username>:<password>@<clusterName>.<hostname>.mongodb.net
+            

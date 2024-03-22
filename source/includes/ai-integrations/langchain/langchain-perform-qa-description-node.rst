@@ -1,0 +1,17 @@
+- Defines a LangChain `prompt template 
+  <https://js.langchain.com/docs/modules/model_io/prompts/quick_start#what-is-a-prompt-template>`__
+  to instruct the |llm| to use 
+  these documents as context for your query.
+  LangChain passes these documents to the ``{context}`` input
+  variable and your query to the ``{question}`` variable.
+
+- Constructs a `chain 
+  <https://js.langchain.com/docs/modules/chains>`__
+  that uses OpenAI's chat model
+  to generate context-aware responses based on
+  your prompt.
+
+- Prompts the chain with a sample query about |service| security 
+  recommendations.
+
+- Returns the |llm|'s response and the documents used as context.

@@ -9,7 +9,7 @@
       - ``langchain_db.test`` as the name of the collection for which to load the data.
       - ``vector_index`` as the name of the {+avs+} index to use for querying the data.
 
-      .. code-block::
+      .. code-block:: python
 
          # Connect to your Atlas cluster
          client = MongoClient(ATLAS_CONNECTION_STRING)
@@ -70,7 +70,7 @@
       - The sample documents to store in the vector database.
       - OpenAI's embedding model as the model used to convert text into 
         vector embeddings for the ``embedding`` field.
-      - ``langchain_db.test`` as the |service| collection for which to insert the documents.
+      - ``langchain_db.test`` as the |service| collection to store the documents.
       - ``vector_index`` as the index to use for querying the vector store.
 
       .. code-block:: python

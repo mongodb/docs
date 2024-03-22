@@ -75,9 +75,10 @@
       You can pre-filter your data by using an
       :abbr:`MQL (MongoDB Query Language)` match expression
       that compares the indexed field with boolean, number, or 
-      string values. You must specify any metadata fields to filter 
-      on in your {+avs+} index definition.
-
+      string values. You must index any metadata fields that you want to 
+      filter by as the ``filter`` type. To learn more, see 
+      :ref:`avs-types-vector-search`.
+      
       .. note:: 
 
          You specified the ``page`` field as a filter 
