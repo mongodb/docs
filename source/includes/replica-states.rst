@@ -38,8 +38,8 @@
 
    * - 5
      - :replstate:`STARTUP2`
-     - The member has joined the set and is running an initial sync. Not 
-       eligible to vote.
+     - The member is running an initial sync. Eligible to vote,
+       except when newly added to the replica set.
 
    * - 6
      - :replstate:`UNKNOWN`
