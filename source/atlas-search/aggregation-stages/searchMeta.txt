@@ -1,0 +1,188 @@
+.. _searchMeta-agg-pipeline:
+
+===============
+``$searchMeta``
+===============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas search, full-text search, metadata search, $searchMeta pipeline stage
+   :description: Learn about the Atlas Search $searchMeta stage syntax and options.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. pipeline:: $searchMeta
+
+The :pipeline:`$searchMeta` stage returns different :ref:`types of 
+metadata result <fts-metadata-results>` documents. 
+
+.. note:: 
+
+   To run :pipeline:`$searchMeta` queries over sharded collections, 
+   your cluster must run MongoDB v6.0 or later.
+
+Syntax 
+------
+
+A ``$searchMeta`` pipeline stage has the following prototype form: 
+
+.. code-block:: json
+
+   {
+     $searchMeta: {
+       "index": "<index-name>",
+       "<collector-name>"|"<operator-name>": {
+         <collector-specification>|<operator-specification>
+       },
+       "count": {
+         <count-options>
+       }
+     }
+   }
+  
+Fields
+------
+
+The ``$searchMeta`` stage takes a document with the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 10 15 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``<collector-name>``
+     - object 
+     - Conditional
+     - Name of the :ref:`collector <collectors-ref>` to use with the 
+       query. You can provide a document that contains the 
+       collector-specific options as the value for this field. Value 
+       must be ``facet`` to retrieve a mapping of the defined facet 
+       names to an array of buckets for that facet. To learn more, see  
+       :ref:`fts-facet-ref`. You must specify this or 
+       ``<operator-name>``.
+
+   * - ``count``
+     - object 
+     - Optional
+     - Document that specifies the :ref:`count <count-ref>` options for 
+       retrieving a count of the results. To learn more, see 
+       :ref:`count-ref`.
+
+   * - ``index`` 
+     - string 
+     - Optional 
+     - Name of the |fts| index to use. If omitted, defaults to 
+       ``default``. 
+       
+       |fts| doesn't return results if you misspell the index name or 
+       if the specified index doesn't already exist on the cluster.
+
+   * - ``<operator-name>``
+     - object 
+     - Conditional
+     - Name of the :ref:`operator <operators-ref>` to search with. You 
+       can provide a document that contains the operator-specific 
+       options as the value for this field. You must specify 
+       this or ``<collector-name>``. :pipeline:`$searchMeta` 
+       returns the default ``count`` metadata only.
+
+Behavior
+--------
+
+The :pipeline:`$searchMeta` stage must be the first stage in any 
+pipeline.
+
+.. _fts-metadata-results:
+
+Metadata Result Types 
+---------------------
+
+The structure of the metadata results document that is returned by 
+the :pipeline:`$searchMeta` stage varies based on the type of 
+results. |fts| supports the following result types:
+
+.. list-table::
+   :header-rows: 1 
+   :widths: 20 80
+   
+   * - Type
+     - Result Structure
+
+   * - ``count``
+     - The count result included in the results indicate whether the 
+       count returned in the results is a total count of the search 
+       results, or a lower bound. To learn more, see 
+       :ref:`count-results`.
+
+   * - ``facet``
+     - The result to a facet query is a mapping of the defined facet 
+       names to an array of buckets for that facet. To learn more, 
+       see :ref:`fts-facet-results`.
+
+Example
+-------
+
+Suppose the following index on the ``sample_mflix.movies`` 
+collection.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     "mappings": {
+       "dynamic": false,
+       "fields": {
+         "year": {
+           "type": "number"
+         }
+       }
+     }
+   }
+
+The following query searches for the number of movies released in 1998
+using the :pipeline:`$searchMeta` stage.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      db.movies.aggregate([
+        {
+          "$searchMeta": {
+            "range": {
+              "path": "year",
+              "gte": 1998,
+              "lt": 1999
+            },
+            "count": {
+              "type": "total"
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: json
+      :visible: true
+      
+      [ { count: { total: Long("552") } } ]
+
+Troubleshooting
+---------------
+
+.. include:: /includes/fact-fts-troubleshooting 
