@@ -20,7 +20,7 @@ Parameters
 ----------
 
 * ``bulk``: A :ref:`mongoc_bulk_operation_t`.
-* ``selector``: A :ref:`bson:bson_t` that selects which document to remove.
+* ``selector``: A :ref:`bson_t` that selects which document to remove.
 
 Errors
 ------

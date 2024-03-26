@@ -19,8 +19,8 @@ Parameters
 ----------
 
 * ``database``: A :ref:`mongoc_database_t`.
-* ``pipeline``: A :ref:`bson:bson_t`, either a BSON array or a BSON document containing an array field named "pipeline".
-* ``opts``: A :ref:`bson:bson_t` containing options for the command, or ``NULL``.
+* ``pipeline``: A :ref:`bson_t`, either a BSON array or a BSON document containing an array field named "pipeline".
+* ``opts``: A :ref:`bson_t` containing options for the command, or ``NULL``.
 * ``read_prefs``: A :ref:`mongoc_read_prefs_t` or ``NULL``.
 
 .. ``opts-source`` replace:: ``database``

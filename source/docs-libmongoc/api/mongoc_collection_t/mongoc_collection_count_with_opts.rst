@@ -35,10 +35,10 @@ Parameters
 
 * ``collection``: A :ref:`mongoc_collection_t`.
 * ``flags``: A :ref:`mongoc_query_flags_t`.
-* ``query``: A :ref:`bson:bson_t` containing the query.
+* ``query``: A :ref:`bson_t` containing the query.
 * ``skip``: A int64_t, zero to ignore.
 * ``limit``: A int64_t, zero to ignore.
-* ``opts``: A :ref:`bson:bson_t`, ``NULL`` to ignore.
+* ``opts``: A :ref:`bson_t`, ``NULL`` to ignore.
 * ``read_prefs``: An optional :ref:`mongoc_read_prefs_t`, otherwise uses the collection's read preference.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.
 

@@ -32,9 +32,9 @@ Parameters
 ----------
 
 * ``database``: A :ref:`mongoc_database_t`.
-* ``command``: A :ref:`bson:bson_t` containing the command specification.
+* ``command``: A :ref:`bson_t` containing the command specification.
 * ``read_prefs``: An optional :ref:`mongoc_read_prefs_t`.
-* ``opts``: A :ref:`bson:bson_t` containing additional options.
+* ``opts``: A :ref:`bson_t` containing additional options.
 * ``reply``: A ``bson_t-opt-storage-ptr`` to contain the results.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.
 

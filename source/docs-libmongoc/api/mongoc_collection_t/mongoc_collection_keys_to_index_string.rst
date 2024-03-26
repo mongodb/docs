@@ -15,7 +15,7 @@ Synopsis
 Parameters
 ----------
 
-* ``keys``: A :ref:`bson:bson_t`. This is expected to match the form of the ``key`` field in the `createIndexes <https://www.mongodb.com/docs/manual/reference/command/createIndexes/>`_ command.
+* ``keys``: A :ref:`bson_t`. This is expected to match the form of the ``key`` field in the `createIndexes <https://www.mongodb.com/docs/manual/reference/command/createIndexes/>`_ command.
 
 Description
 -----------

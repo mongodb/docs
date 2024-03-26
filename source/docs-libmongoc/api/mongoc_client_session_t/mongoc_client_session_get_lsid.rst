@@ -21,6 +21,6 @@ Parameters
 Returns
 -------
 
-A :ref:`bson:bson_t` that is valid only for the lifetime of ``session``.
+A :ref:`bson_t` that is valid only for the lifetime of ``session``.
 
 .. include:: includes/seealso/session.txt

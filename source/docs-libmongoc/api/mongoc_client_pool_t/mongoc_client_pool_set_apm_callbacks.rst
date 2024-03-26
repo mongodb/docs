@@ -33,5 +33,5 @@ Returns true on success. If any arguments are invalid, returns false and logs an
 
 .. seealso::
 
-  | :doc:`Introduction to Application Performance Monitoring <application-performance-monitoring>`
+  | :ref:`Introduction to Application Performance Monitoring <mongoc_application_performance_monitoring>`
 

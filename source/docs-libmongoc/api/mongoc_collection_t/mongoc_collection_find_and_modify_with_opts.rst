@@ -20,7 +20,7 @@ Parameters
 ----------
 
 * ``collection``: A :ref:`mongoc_collection_t`.
-* ``query``: A :ref:`bson:bson_t` containing the query to locate target document(s).
+* ``query``: A :ref:`bson_t` containing the query to locate target document(s).
 * ``opts``: A :symbol:`find and modify options <mongoc_find_and_modify_opts_t>`. Must not be NULL.
 * ``reply``: A ``bson_t-opt-storage-ptr`` to contain the results.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.

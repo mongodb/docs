@@ -16,7 +16,7 @@ Parameters
 ----------
 
 * ``file``: A :ref:`mongoc_gridfs_file_t`.
-* ``bson``: A :ref:`bson:bson_t` containing metadata for ``file``.
+* ``bson``: A :ref:`bson_t` containing metadata for ``file``.
 
 Description
 -----------

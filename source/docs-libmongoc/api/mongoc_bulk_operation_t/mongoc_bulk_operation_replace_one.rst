@@ -22,8 +22,8 @@ Parameters
 ----------
 
 * ``bulk``: A :ref:`mongoc_bulk_operation_t`.
-* ``selector``: A :ref:`bson:bson_t` that selects which document to remove.
-* ``document``: A :ref:`bson:bson_t` containing the replacement document.
+* ``selector``: A :ref:`bson_t` that selects which document to remove.
+* ``document``: A :ref:`bson_t` containing the replacement document.
 * ``upsert``: ``true`` if this should be an ``upsert``.
 
 .. warning::

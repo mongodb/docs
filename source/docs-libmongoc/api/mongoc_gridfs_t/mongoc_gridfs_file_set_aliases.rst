@@ -15,7 +15,7 @@ Parameters
 ----------
 
 * ``file``: A :ref:`mongoc_gridfs_file_t`.
-* ``bson``: A :ref:`bson:bson_t` containing the aliases.
+* ``bson``: A :ref:`bson_t` containing the aliases.
 
 Description
 -----------

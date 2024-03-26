@@ -16,7 +16,7 @@ Parameters
 ----------
 
 * ``opts``: A :ref:`mongoc_find_and_modify_opts_t`.
-* ``update``: An uninitialized :ref:`bson:bson_t`.
+* ``update``: An uninitialized :ref:`bson_t`.
 
 Description
 -----------

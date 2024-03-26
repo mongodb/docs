@@ -21,8 +21,8 @@ Parameters
 
 * ``collection``: A :ref:`mongoc_collection_t`.
 * ``flags``: A :ref:`mongoc_query_flags_t`. Not all flag values apply. In particular, setting ``MONGOC_QUERY_EXHAUST`` results in an error.
-* ``pipeline``: A :ref:`bson:bson_t`, either a BSON array or a BSON document containing an array field named "pipeline".
-* ``opts``: A :ref:`bson:bson_t` containing options for the command, or ``NULL``.
+* ``pipeline``: A :ref:`bson_t`, either a BSON array or a BSON document containing an array field named "pipeline".
+* ``opts``: A :ref:`bson_t` containing options for the command, or ``NULL``.
 * ``read_prefs``: A :ref:`mongoc_read_prefs_t` or ``NULL``.
 
 .. |opts-source| replace:: ``collection``

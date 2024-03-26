@@ -27,7 +27,7 @@ Sets an individual URI option, after the URI has been parsed from a string.
 
 Only known options of type int32 or int64 can be set. For 32-bit integer options, the function returns ``false`` when trying to set a 64-bit value that exceeds the range of an ``int32_t``. Values that fit into an ``int32_t`` will be set correctly. In both cases, a warning will be emitted.
 
-Updates the option in-place if already set, otherwise appends it to the URI's :ref:`bson:bson_t` of options.
+Updates the option in-place if already set, otherwise appends it to the URI's :ref:`bson_t` of options.
 
 Returns
 -------

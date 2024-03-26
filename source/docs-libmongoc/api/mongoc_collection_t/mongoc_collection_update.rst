@@ -21,8 +21,8 @@ Parameters
 
 * ``collection``: A :ref:`mongoc_collection_t`.
 * ``flags``: A bitwise or of :ref:`mongoc_update_flags_t`.
-* ``selector``: A :ref:`bson:bson_t` containing the query to match documents for updating.
-* ``update``: A :ref:`bson:bson_t` containing the update to perform. If updating with a pipeline, a :ref:`bson:bson_t` array.
+* ``selector``: A :ref:`bson_t` containing the query to match documents for updating.
+* ``update``: A :ref:`bson_t` containing the update to perform. If updating with a pipeline, a :ref:`bson_t` array.
 * ``write_concern``: A :ref:`mongoc_write_concern_t`.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.
 

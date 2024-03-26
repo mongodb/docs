@@ -17,7 +17,7 @@ Parameters
 ----------
 
 * ``client_session``: A pointer to a :ref:`mongoc_client_session_t`.
-* ``opts``: A pointer to a :ref:`bson:bson_t`.
+* ``opts``: A pointer to a :ref:`bson_t`.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.
 
 Description

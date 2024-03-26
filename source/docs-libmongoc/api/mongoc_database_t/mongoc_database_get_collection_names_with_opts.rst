@@ -22,7 +22,7 @@ Parameters
 ----------
 
 * ``database``: A :ref:`mongoc_database_t`.
-* ``opts``: A :ref:`bson:bson_t` containing additional options.
+* ``opts``: A :ref:`bson_t` containing additional options.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.
 
 .. ``opts-source`` replace:: ``database``

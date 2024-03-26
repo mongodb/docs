@@ -20,7 +20,7 @@ Parameters
 ----------
 
 * ``collection``: A :ref:`mongoc_collection_t`.
-* ``documents``: An array of pointers to :ref:`bson:bson_t`.
+* ``documents``: An array of pointers to :ref:`bson_t`.
 * ``n_documents``: The length of ``documents``.
 * ``reply``: A ``bson_t-opt-storage-ptr`` to contain the results.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.

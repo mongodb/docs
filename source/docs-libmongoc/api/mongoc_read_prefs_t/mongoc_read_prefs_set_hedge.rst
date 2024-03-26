@@ -16,7 +16,7 @@ Parameters
 ----------
 
 * ``read_prefs``: A :ref:`mongoc_read_prefs_t`.
-* ``hedge``: A :ref:`bson:bson_t`.
+* ``hedge``: A :ref:`bson_t`.
 
 Description
 -----------

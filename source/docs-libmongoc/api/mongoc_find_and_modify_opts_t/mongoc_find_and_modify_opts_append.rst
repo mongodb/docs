@@ -16,7 +16,7 @@ Parameters
 ----------
 
 * ``opts``: A :ref:`mongoc_find_and_modify_opts_t`.
-* ``extra``: A :ref:`bson:bson_t` with fields and values to append directly to `the findAndModify command`_ sent to the server.
+* ``extra``: A :ref:`bson_t` with fields and values to append directly to `the findAndModify command`_ sent to the server.
 
 Description
 -----------

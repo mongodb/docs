@@ -24,5 +24,5 @@ Fetches any read preference tags that have been registered.
 Returns
 -------
 
-Returns a :ref:`bson:bson_t` that should not be modified or freed.
+Returns a :ref:`bson_t` that should not be modified or freed.
 

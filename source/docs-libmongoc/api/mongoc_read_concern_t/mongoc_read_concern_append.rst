@@ -15,7 +15,7 @@ Parameters
 ----------
 
 * ``read_concern``: A pointer to a :ref:`mongoc_read_concern_t`.
-* ``command``: A pointer to a :ref:`bson:bson_t`.
+* ``command``: A pointer to a :ref:`bson_t`.
 
 Description
 -----------

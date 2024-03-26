@@ -27,7 +27,7 @@ Sets an individual URI option, after the URI has been parsed from a string.
 
 Only known options of type integer can be set. Some integer options, such as :ref:`minHeartbeatFrequencyMS <sdam_uri_options>`, have additional constraints.
 
-Updates the option in-place if already set, otherwise appends it to the URI's :ref:`bson:bson_t` of options.
+Updates the option in-place if already set, otherwise appends it to the URI's :ref:`bson_t` of options.
 
 Returns
 -------

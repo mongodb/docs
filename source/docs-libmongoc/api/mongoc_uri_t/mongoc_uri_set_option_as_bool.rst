@@ -27,7 +27,7 @@ Sets an individual URI option, after the URI has been parsed from a string.
 
 Only known options of type bool can be set.
 
-Updates the option in-place if already set, otherwise appends it to the URI's :ref:`bson:bson_t` of options.
+Updates the option in-place if already set, otherwise appends it to the URI's :ref:`bson_t` of options.
 
 Returns
 -------

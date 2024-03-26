@@ -56,7 +56,7 @@ Parameters
       parameter when the callback was set.
     - ``params`` - Parameters for the requested KMS credentials. Currently
       empty.
-    - ``out`` - The output :ref:`bson:bson_t` in which to write the new
+    - ``out`` - The output :ref:`bson_t` in which to write the new
       KMS providers. When passed to the callback, this already points to an
       empty BSON document which must be populated.
     - ``error`` - An output parameter for indicating any errors that might

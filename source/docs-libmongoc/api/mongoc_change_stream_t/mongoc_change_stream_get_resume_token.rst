@@ -23,7 +23,7 @@ Parameters
 Returns
 -------
 
-A :ref:`bson:bson_t` that should not be modified or freed.
+A :ref:`bson_t` that should not be modified or freed.
 
 Returns ``NULL`` if no resume token is available. This is possible if the change
 stream has not been iterated and neither ``resumeAfter`` nor ``startAfter``
@@ -32,7 +32,7 @@ options were specified in the ``watch`` function.
 Lifecycle
 ---------
 
-The returned :ref:`bson:bson_t` is valid for the lifetime of ``stream`` and
+The returned :ref:`bson_t` is valid for the lifetime of ``stream`` and
 its data may be updated if :ref:`mongoc_change_stream_next` is called after
 this function. The value may be copied to extend its lifetime or preserve the
 current resume token.

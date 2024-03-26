@@ -20,7 +20,7 @@ Parameters
 ----------
 
 * ``client``: A :ref:`mongoc_client_t`.
-* ``opts``: A :ref:`bson:bson_t` containing additional options.
+* ``opts``: A :ref:`bson_t` containing additional options.
 
 .. |opts-source| replace:: ``client``
 

@@ -24,5 +24,5 @@ Fetches the cursors current document or ``NULL`` if there has been an error.
 Returns
 -------
 
-A :ref:`bson:bson_t` that should not be modified or freed or ``NULL``.
+A :ref:`bson_t` that should not be modified or freed or ``NULL``.
 

@@ -30,8 +30,8 @@ Parameters
 ----------
 
 * ``db``: A :ref:`mongoc_client_t` specifying the client which the change stream listens to.
-* ``pipeline``: A :ref:`bson:bson_t` representing an aggregation pipeline appended to the change stream. This may be an empty document.
-* ``opts``: A :ref:`bson:bson_t` containing change stream options.
+* ``pipeline``: A :ref:`bson_t` representing an aggregation pipeline appended to the change stream. This may be an empty document.
+* ``opts``: A :ref:`bson_t` containing change stream options.
 
 .. include:: includes/change-stream-opts.txt
 

@@ -26,5 +26,5 @@ A write_concern must be at least ``MONGOC_WRITE_CONCERN_W_DEFAULT`` in last comm
 Returns
 -------
 
-A :ref:`bson:bson_t` that should not be modified or ``NULL``.
+A :ref:`bson_t` that should not be modified or ``NULL``.
 

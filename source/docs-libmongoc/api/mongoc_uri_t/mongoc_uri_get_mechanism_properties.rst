@@ -16,12 +16,12 @@ Parameters
 ----------
 
 * ``uri``: A :ref:`mongoc_uri_t`.
-* ``properties``: An uninitialized :ref:`bson:bson_t`.
+* ``properties``: An uninitialized :ref:`bson_t`.
 
 Description
 -----------
 
-Fetches the "authMechanismProperties" options set on this :ref:`mongoc_uri_t`. The out-parameter ``properties`` should be an uninitialized, stack-allocated :ref:`bson:bson_t`. It is statically initialized with :ref:`bson:bson_init_static` to point to the internal data of ``uri``, so its contents must not be modified and it becomes invalid after ``uri`` is destroyed.
+Fetches the "authMechanismProperties" options set on this :ref:`mongoc_uri_t`. The out-parameter ``properties`` should be an uninitialized, stack-allocated :ref:`bson_t`. It is statically initialized with :ref:`bson:bson_init_static` to point to the internal data of ``uri``, so its contents must not be modified and it becomes invalid after ``uri`` is destroyed.
 
 Returns
 -------

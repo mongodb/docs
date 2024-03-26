@@ -20,6 +20,6 @@ Parameters
 ----------
 
 * ``session``: A :ref:`mongoc_client_session_t`.
-* ``cluster_time``: The session's new cluster time, as a :ref:`bson:bson_t` like `{"cluster time": <timestamp>}`.
+* ``cluster_time``: The session's new cluster time, as a :ref:`bson_t` like `{"cluster time": <timestamp>}`.
 
 .. include:: includes/seealso/session.txt

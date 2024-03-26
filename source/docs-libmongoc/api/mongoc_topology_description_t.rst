@@ -15,7 +15,7 @@ Synopsis
 ``mongoc_topology_description_t`` is an opaque type representing the driver's knowledge of the MongoDB server or servers it is connected to.
 Its API conforms to the `SDAM Monitoring Specification <https://github.com/mongodb/specifications/blob/master/source/server-discovery-and-monitoring/server-discovery-and-monitoring-monitoring.rst>`_.
 
-Applications receive a temporary reference to a ``mongoc_topology_description_t`` as a parameter to an SDAM Monitoring callback that must not be destroyed. See :doc:`Introduction to Application Performance Monitoring <application-performance-monitoring>`.
+Applications receive a temporary reference to a ``mongoc_topology_description_t`` as a parameter to an SDAM Monitoring callback that must not be destroyed. See :ref:`Introduction to Application Performance Monitoring <mongoc_application_performance_monitoring>`.
 
 Functions
 ---------

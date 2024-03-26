@@ -18,7 +18,7 @@ Parameters
 
 * ``client``: A :ref:`mongoc_client_t`.
 * ``reply``: The reply to a command, such as "aggregate", "find", or "listCollections", that returns a cursor document. The reply is destroyed by ``mongoc_cursor_new_from_command_reply_with_opts`` and must not be accessed afterward.
-* ``opts``: A :ref:`bson:bson_t`.
+* ``opts``: A :ref:`bson_t`.
 
 ``opts`` may be NULL or a BSON document with additional options, which have the same meaning for this function as for :ref:`mongoc_collection_find_with_opts`:
 

@@ -26,7 +26,7 @@ Parameters
 ----------
 
 * ``bulk``: A :ref:`mongoc_bulk_operation_t`.
-* ``selector``: A :ref:`bson:bson_t`.
+* ``selector``: A :ref:`bson_t`.
 
 Errors
 ------

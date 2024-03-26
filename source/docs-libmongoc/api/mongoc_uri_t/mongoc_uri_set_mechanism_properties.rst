@@ -16,7 +16,7 @@ Parameters
 ----------
 
 * ``uri``: A :ref:`mongoc_uri_t`.
-* ``properties``: A :ref:`bson:bson_t` .
+* ``properties``: A :ref:`bson_t` .
 
 Description
 -----------

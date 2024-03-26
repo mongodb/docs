@@ -36,8 +36,8 @@ Parameters
 * ``skip``: The number of documents to skip on the server.
 * ``limit``: The maximum number of documents to return from the cursor.
 * ``batch_size``: Attempt to batch results from the server in groups of ``batch_size`` documents.
-* ``command``: A :ref:`bson:bson_t` containing the command.
-* ``fields``: An optional :ref:`bson:bson_t` containing the fields to return. ``NULL`` for all fields.
+* ``command``: A :ref:`bson_t` containing the command.
+* ``fields``: An optional :ref:`bson_t` containing the fields to return. ``NULL`` for all fields.
 * ``read_prefs``: An optional :ref:`mongoc_read_prefs_t`. Otherwise, the command uses mode ``MONGOC_READ_PRIMARY``.
 
 Returns

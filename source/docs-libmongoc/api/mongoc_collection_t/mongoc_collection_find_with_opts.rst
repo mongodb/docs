@@ -19,8 +19,8 @@ Parameters
 ----------
 
 * ``collection``: A :ref:`mongoc_collection_t`.
-* ``filter``: A :ref:`bson:bson_t` containing the query to execute.
-* ``opts``: A :ref:`bson:bson_t` query options, including sort order and which fields to return. Can be ``NULL``.
+* ``filter``: A :ref:`bson_t` containing the query to execute.
+* ``opts``: A :ref:`bson_t` query options, including sort order and which fields to return. Can be ``NULL``.
 * ``read_prefs``: A :ref:`mongoc_read_prefs_t` or ``NULL``.
 
 Description

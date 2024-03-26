@@ -24,5 +24,5 @@ Fetches a bson document containing all of the options provided after the ``?`` o
 Returns
 -------
 
-A :ref:`bson:bson_t` which should not be modified or freed if ``uri`` has options provided, otherwise ``NULL``.
+A :ref:`bson_t` which should not be modified or freed if ``uri`` has options provided, otherwise ``NULL``.
 

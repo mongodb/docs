@@ -19,8 +19,8 @@ Parameters
 ----------
 
 * ``gridfs``: A :ref:`mongoc_gridfs_t`.
-* ``filter``: A :ref:`bson:bson_t` containing the query to execute.
-* ``opts``: A :ref:`bson:bson_t` query options, including sort order and which fields to return. Can be ``NULL``.
+* ``filter``: A :ref:`bson_t` containing the query to execute.
+* ``opts``: A :ref:`bson_t` query options, including sort order and which fields to return. Can be ``NULL``.
 * ``error``: An optional location for a :symbol:`bson_error_t <errors>` or ``NULL``.
 
 Description

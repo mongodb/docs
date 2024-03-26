@@ -40,7 +40,7 @@ Parameters
 * ``skip``: Unused.
 * ``limit``: Unused.
 * ``batch_size``: Unused.
-* ``query``: A :ref:`bson:bson_t` containing the command specification.
+* ``query``: A :ref:`bson_t` containing the command specification.
 * ``fields``: Unused.
 * ``read_prefs``: An optional :ref:`mongoc_read_prefs_t`. Otherwise, the command uses mode ``MONGOC_READ_PRIMARY``.
 
