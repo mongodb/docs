@@ -80,7 +80,7 @@
              documents = docs,
              embedding = OpenAIEmbeddings(disallowed_special=()),
              collection = atlas_collection,
-             index_name = vector_search_index,
+             index_name = vector_search_index
          )
 
       .. tip:: 

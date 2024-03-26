@@ -10,4 +10,7 @@
     response based on the retrieved documents.
   
 - Prompts the |llm| with a sample query about |service| security 
-  recommendations. The generated response might vary.
+  recommendations. 
+
+- Returns the |llm|'s response and the documents used as context. 
+  The generated response might vary.

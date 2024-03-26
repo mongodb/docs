@@ -7,17 +7,18 @@
 
       .. code-block:: python
 
-         %pip install --upgrade --quiet langchain pypdf pymongo langchain-openai tiktoken
+         %pip install --upgrade --quiet langchain langchain-mongodb langchain-openai pymongo pypdf
 
       Then, run the following code to import the required packages:
 
       .. code-block:: python
 
-         import getpass, os, pprint
-         from langchain.chains import RetrievalQA
+         import getpass, os, pymongo, pprint
          from langchain_community.document_loaders import PyPDFLoader
-         from langchain_community.vectorstores import MongoDBAtlasVectorSearch
-         from langchain_openai import OpenAI, OpenAIEmbeddings
+         from langchain_core.output_parsers import StrOutputParser
+         from langchain_core.runnables import RunnablePassthrough
+         from langchain_mongodb import MongoDBAtlasVectorSearch
+         from langchain_openai import ChatOpenAI, OpenAIEmbeddings
          from langchain.prompts import PromptTemplate
          from langchain.text_splitter import RecursiveCharacterTextSplitter
          from pymongo import MongoClient

@@ -33,7 +33,6 @@
             pprint.pprint(response.source_nodes)
 
          .. output:: 
-            :language: json
             
             You can secure your MongoDB Atlas cluster by utilizing security features 
             such as authentication, IP address whitelisting, encryption for data in 
@@ -92,7 +91,6 @@
             pprint.pprint(response.source_nodes)
 
          .. output:: 
-            :language: json     
 
             Regular backups are essential for securing your MongoDB Atlas cluster. 
             By ensuring that backups are maintained continuously and are just a few 
