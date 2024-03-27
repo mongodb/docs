@@ -203,7 +203,16 @@
     * - 
       - Ubuntu 20.x
       - :icon:`check-circle`
+      - :icon:`check-circle`
       -
+      -
+      -
+      -
+      -
+    * - 
+      - Ubuntu 22.x
+      - :icon:`check-circle`
+      - :icon:`check-circle`
       -
       -
       -
@@ -252,5 +261,3 @@ must include the ``redhat-lsb-core`` package.
 :sup:`2` The Debian installation must include the
 ``lsb-release`` package. To learn more, see `lsb-release
 <https://packages.debian.org/sid/lsb-release>`__. 
-
-:sup:`3` |bic-full| isn't supported on Ubuntu 22.04.

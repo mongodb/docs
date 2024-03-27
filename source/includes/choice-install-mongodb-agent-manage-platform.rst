@@ -20,9 +20,18 @@
 
             .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            On x86_64 architecture running Debian 8/9/10/11 or Ubuntu 18.04/20.04/22.04:
+            On x86_64 architecture running Debian 8/9/10/11/12 or Ubuntu 18.04/20.04/22.04:
 
             .. include:: /includes/steps/install-mongodb-agent-manage-amd64.ubuntu1604-deb.rst
+
+         .. tab:: ARM64
+            :tabid: ARM64
+
+            .. include:: /includes/agents/binaries-removed-from-path.rst
+
+            On ARM64 architecture running Ubuntu 20.04/22.04:
+
+            .. include:: /includes/steps/install-mongodb-agent-manage-arm64.ubuntu2004.rst
 
    .. tab::
       :tabid: rhel
