@@ -1,10 +1,8 @@
-.. uses server-selection.rst
-
 .. _pymongo-server-selection:
 
-================
-Server Selection
-================
+==========================
+Customize Server Selection
+==========================
 
 .. contents:: On this page
    :local:
@@ -17,88 +15,119 @@ Server Selection
    :values: reference
 
 .. meta::
-   :keywords: code example
+   :keywords: code example, read preference, write
 
-Users can exert fine-grained control over the :manual:`Server Selection
-Algorithm </core/read-preference-mechanics/>` by setting the ``server_selector``
-option on the ``~pymongo.MongoClient`` to an appropriate callable. This guide
-shows you how to use this functionality to prefer servers running on ``localhost``.
+Overview
+--------
 
-.. warning::
+All MongoDB drivers follow a defined algorithm when selecting a server to read or write
+from. By using the ``server_selector`` property of ``MongoClient``, you can customize this
+algorithm to choose the server that works best for your application.
 
-   Use of custom server selector functions is a power-user feature. Misusing
-   custom server selectors can have unintended consequences, such as degraded
-   read or write performance.
+.. important::
 
-Example: Selecting Servers Running on ``localhost``
----------------------------------------------------
+   Customizing the server-selection algorithm can have unintended consequences,
+   such as degraded read or write performance.
 
-First, write the server selector function.
-The server selector function should accept a list of
-``~pymongo.server_description.ServerDescription`` objects, and return a
-list of server descriptions that are suitable for the read or write operation.
-A server selector must not create or modify
-``~pymongo.server_description.ServerDescription`` objects, and must return
-the selected instances unchanged.
+Customized Selection Algorithm
+------------------------------
 
-This example shows a server selector that prioritizes servers running on
-``localhost``. This can be desirable when using a sharded cluster with multiple
-``mongos`` servers, because locally run queries usually have lower latency and higher
-throughput. However, the benefit of preferring ``localhost`` is highly dependent on the
-application.
+When {+driver-short+} executes a read operation, it performs the following steps,
+in order, to select a MongoDB deployment:
 
-In addition to comparing the hostname with ``localhost``, the server selector
-function accounts for the edge case when no servers are running on
-``localhost``. In this case, the default server selection logic
-prevails by returning the received server description list unchanged.
-Failure to do this renders the client unable to communicate with MongoDB
-if no servers are running on ``localhost``.
+1. From the list of known servers, {+driver-short+} selects all servers
+   that match the active read preference.
 
-The following example implements the server selection logic:
+#. If at least one readable server exists, {+driver-short+} calls the user-defined
+   server-selector function and passes in the list from the previous step.
+
+#. {+driver-short+} applies the ``localThresholdMS`` connection setting to the list of
+   servers returned from the function.
+
+#. {+driver-short+} selects a server at random from the servers still on the list and
+   executes the operation against this server.
+
+When {+driver-short+} executes a write operation, it begins by selecting all writeable
+servers, not just those that match the active read preference. The remaining steps are
+identical.
+
+To learn more about the default server-selection algorithm, which the driver follows
+when you don't use the ``server_selector`` argument, see
+:manual:`Server Selection Algorithm </core/read-preference-mechanics/>` in the
+MongoDB Server manual.
+
+Example: Select Servers on ``localhost``
+----------------------------------------
+
+When using a sharded cluster with multiple ``mongos`` servers, you might want to prefer
+deployments running on ``localhost``. Operations against these deployments
+usually have lower latency and higher throughput.
+This example shows how to customize the server-selection algorithm to favor
+servers running on ``localhost``. 
+
+First, write a Python function to select your preferred servers.
+The server-selection function must meet the following criteria:
+
+- Accepts a list of ``ServerDescription`` objects as a parameter
+- Returns the list of ``ServerDescription`` objects suitable for the read or write operation
+- Doesn't create or modify any ``ServerDescription`` objects
+
+The following example defines a function named ``prefer_local`` that accepts and returns a list of
+``ServerDescription`` objects:
+
+.. code-block:: python
+   :emphasize-lines: 1,3
+   
+   def prefer_local(server_descriptions):
+       ... 
+       return servers  # list containing preferred servers
+
+Next, implement your server-selection logic in the function body. You can use any
+property defined in the ``ServerDescription`` class to select your preferred servers.
+To return only MongoDB deployments running on ``localhost``, this example loops on the
+servers in ``server_descriptions`` and checks the ``address`` property of each server
+for the value ``"localhost"``:
+
+.. code-block:: python
+   :emphasize-lines: 2-4
+   
+   def prefer_local(server_descriptions):
+       servers = [
+           server for server in server_descriptions if server.address[0] == "localhost"
+       ]
+       return servers 
+
+Next, consider the case when your algorithm finds no matching servers. If your function
+returns an empty list, your application can't communicate with MongoDB. Therefore,
+return a list containing at least one ``ServerDescription`` object from your function.
+
+In this example, if no matching server is found, the ``prefer_local`` function returns
+the list of servers originally passed as an argument:
+
+.. code-block:: python
+   :emphasize-lines: 6-7
+
+   def prefer_local(server_descriptions):
+       servers = [
+           server for server in server_descriptions if server.address[0] == "localhost"
+       ]
+
+       if not servers:
+           return server_descriptions
+       return servers 
+
+Finally, instruct {+driver-short+} to use your function. To do so, call the ``MongoClient``
+constructor and pass the ``server_selector`` argument with your function name as the value:
 
 .. code-block:: python
 
-   >>> def server_selector(server_descriptions):
-   ...     servers = [
-   ...         server for server in server_descriptions if server.address[0] == "localhost"
-   ...     ]
-   ...     if not servers:
-   ...         return server_descriptions
-   ...     return servers
-   ...
+   client = MongoClient(server_selector=prefer_local)
 
-Finally, create a ``~pymongo.MongoClient`` instance with the
-server selector:
+API Documentation
+-----------------
 
-.. code-block:: python
+For more information about customizing {+driver-short+}'s server-selection algorithm,
+see the following API documentation:
 
-   >>> client = MongoClient(server_selector=server_selector)
-
-Server Selection Process
-------------------------
-
-This section describes the server selection process for reads and
-writes. For writes, the driver performs the following operations, in order,
-during the selection process:
-
-1. Select all writeable servers from the list of known hosts. For a replica set,
-   the writeable server is the primary. For a sharded cluster, the
-   writeable servers are all the known ``mongos`` servers.
-
-#. Apply the user-defined server selector function. The custom server
-   selector is **not** called if there are no servers left from the previous
-   filtering stage.
-
-#. Apply the ``localThresholdMS`` setting to the list of remaining hosts. This
-   whittles the host list down to contain only servers whose latency is at most
-   ``localThresholdMS`` milliseconds higher than the lowest observed latency.
-
-#. Select a server at random from the remaining host list. The appropriate
-   operation is then performed against the selected server.
-
-For reads, the process is identical, except for the first step.
-Instead of selecting all writeable servers, the driver selects all servers from the
-list of known hosts that match the user's
-``~pymongo.read_preferences.ReadPreference``. For example, for a 3-member
-replica set with a ``~pymongo.read_preferences.Secondary`` read preference,
-the driver selects all available secondaries.
+- `MongoClient <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__
+- `ServerDescription <{+api-root+}pymongo/server_description.html#pymongo.server_description.ServerDescription>`__
