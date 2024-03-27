@@ -15,4 +15,4 @@ applications with the new connection string
 
 You can't modify the cloud provider or cloud provider region if you
 deployed Search Nodes on your |service| {+cluster+}. |service| supports
-Search Nodes only on single region |aws| {+clusters+}.
+Search Nodes only on single region |aws| or |gcp| {+clusters+}.
