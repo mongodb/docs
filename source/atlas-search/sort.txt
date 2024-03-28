@@ -515,6 +515,141 @@ following:
         { title: 'Another Country', score: 3.3635599613189697 }
       ]
 
+UUID Search and Sort
+~~~~~~~~~~~~~~~~~~~~
+
+UUID sorting follows the behavior of :manual:`MongoDB comparison order </reference/bson-type-comparison-order/>`.
+
+.. code-block:: json
+   :copyable: true
+
+   db.users.insertMany([
+     {
+       "_id": 0,
+       "a": UUID("00000000-1111-2222-3333-444444444444"),
+       "b": "hello"
+     },
+     {
+       "_id": 1,
+       "a": "foo",
+       "b": "hello"
+     },
+     {
+       "_id": 2,
+       "a": 5,
+       "b": "hello"
+     },
+     {
+       "_id": 3,
+       "b": "hello"
+     }
+   ])
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      {
+        $search: {
+          "text": {
+            "path": "b",
+            "query": "hello"
+          },
+          "sort": {
+            "a": 1
+          }
+        }
+      }
+
+   .. output::
+      :language: json
+
+      "results": [
+        {
+          "_id": 3      // missing
+        },
+        {
+          "_id": 2      // number
+        },
+        {
+          "_id": 1      // string
+        },
+        {
+          "_id": 0      // binary data (UUID)
+        }
+      ]
+
+Null Value Search and Sort
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Fields which contain null values that are used for sorting will treat null as equivalent to missing fields.
+For example, given the following documents and query,
+the ordering between documents 2 and 3 is non-deterministic,
+since the MQL sort order treats missing and nulls equally when sorting.
+
+.. code-block:: json
+   :copyable: true
+
+   db.users.insertMany([
+     {
+       "_id": 0,
+       "a": 20,
+       "b": "hello"
+     },
+     {
+       "_id": 1,
+       "a": 10,
+       "b": "hello"
+     },
+     {
+       "_id": 2,
+       "a": null,
+       "b": "hello"
+     },
+     {
+       "_id": 3,
+       "b": "hello"
+     }
+   ])
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: json
+
+      {
+        $search: {
+          "text": {
+            "path": "b",
+            "query": "hello"
+          },
+          "sort": {
+            "a": 1
+          }
+        }
+      }
+
+   .. output::
+      :language: json
+
+      "results": [
+        {
+          "_id": 3
+        },
+        {
+          "_id": 2
+        },
+        {
+          "_id": 1
+        },
+        {
+          "_id": 0
+        }
+      ]
+
 Compound Search and Sort 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
