@@ -27,7 +27,7 @@
             ]
 
          For instructions on inserting documents in MongoDB Compass,
-         see :doc:`Insert Documents </tutorial/insert-documents>`.
+         see :ref:`Insert Documents <write-op-insert>`.
 
      - id: c
        content: |
