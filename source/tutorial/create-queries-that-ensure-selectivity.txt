@@ -1,8 +1,8 @@
 .. _index-selectivity:
 
-======================================
-Create Queries that Ensure Selectivity
-======================================
+==========================================
+Create Indexes to Ensure Query Selectivity
+==========================================
 
 .. default-domain:: mongodb
 
@@ -12,80 +12,98 @@ Create Queries that Ensure Selectivity
    :depth: 1
    :class: singlecol
 
-Selectivity is the ability of a query to narrow results using the index.
-Effective indexes are more selective and allow MongoDB to use the index
+Selectivity is the ability of a query to narrow results using indexes.
+Effective queries are more selective and allow MongoDB to use indexes
 for a larger portion of the work associated with fulfilling the query.
 
-To ensure selectivity,
-write queries that limit the number of possible documents with the
-indexed field. Write queries that are appropriately selective relative
-to your indexed data.
+To ensure selectivity, write queries that limit the number of possible
+documents with the indexed field or fields. Write queries that are
+appropriately selective relative to your indexed data.
 
-.. example::
+Examples
+--------
 
-   Suppose you have a field called ``status`` where the possible values
-   are ``new`` and ``processed``. If you add an index on ``status``
-   you've created a low-selectivity index. The index will
-   be of little help in locating records.
+Selectivity with Many Common Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   A better strategy, depending on your queries, would be to create a
-   :ref:`compound index <index-type-compound>` that includes the
-   low-selectivity field and another field. For example, you could
-   create a compound index on ``status`` and ``created_at.``
+Consider a collection of documents that have the following form:
 
-   Another option, again depending on your use case, might be to use
-   separate collections, one for each status.
+.. code-block:: javascript
 
-.. example::
+   {
+      status: "processed",
+      product_type: "electronics"
+   }
 
-   Consider an index ``{ a : 1 }`` (i.e. an index on the key ``a``
-   sorted in ascending order) on a collection where ``a`` has three
-   values evenly distributed across the collection:
+In this example, the ``status`` of 99% of documents in the collection is
+``processed``. If you add an index on ``status`` and query for documents
+with the ``status`` of ``processed``, the index has low selectivity with
+this query. However, if you want to query for documents that do **not**
+have the ``status`` of ``processed``, this index has high selectivity
+because the query only reads 1% of the index. 
 
-   .. code-block:: javascript
+Selectivity with Distributed Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      { _id: ObjectId(), a: 1, b: "ab" }
-      { _id: ObjectId(), a: 1, b: "cd" }
-      { _id: ObjectId(), a: 1, b: "ef" }
-      { _id: ObjectId(), a: 2, b: "jk" }
-      { _id: ObjectId(), a: 2, b: "lm" }
-      { _id: ObjectId(), a: 2, b: "no" }
-      { _id: ObjectId(), a: 3, b: "pq" }
-      { _id: ObjectId(), a: 3, b: "rs" }
-      { _id: ObjectId(), a: 3, b: "tv" }
+Consider a collection of documents where the ``status`` field has three
+values distributed across the collection:
 
-   If you query for ``{ a: 2, b: "no" }`` MongoDB must scan 3
-   :term:`documents <document>` in the collection to return the one
-   matching result. Similarly, a query for ``{ a: { $gt: 1}, b: "tv" }``
-   must scan 6 documents, also to return one result.
+.. code-block:: javascript
 
-   Consider the same index on a collection where ``a`` has *nine* values
-   evenly distributed across the collection:
+   [
+      { _id: ObjectId(), "status": "processed", "product_type": "electronics" },
+      { _id: ObjectId(), "status": "processed", "product_type": "grocery" },
+      { _id: ObjectId(), "status": "processed", "product_type": "household" },
+      { _id: ObjectId(), "status": "pending", "product_type": "electronics" },
+      { _id: ObjectId(), "status": "pending", "product_type": "grocery" },
+      { _id: ObjectId(), "status": "pending", "product_type": "household" },
+      { _id: ObjectId(), "status": "new", "product_type": "electronics" },
+      { _id: ObjectId(), "status": "new", "product_type": "grocery" },
+      { _id: ObjectId(), "status": "new", "product_type": "household" }
+   ]
 
-   .. code-block:: javascript
+If you add an index on ``status`` and query for ``{ "status": "pending",
+"product_type": "electronics" }``, MongoDB must read three index keys to
+return the one matching result. Similarly, a query for ``{ "status": {
+$in: ["processed", "pending"] }, "product_type" : "electronics" }`` must
+read six documents to return the two matching documents. 
 
-      { _id: ObjectId(), a: 1, b: "ab" }
-      { _id: ObjectId(), a: 2, b: "cd" }
-      { _id: ObjectId(), a: 3, b: "ef" }
-      { _id: ObjectId(), a: 4, b: "jk" }
-      { _id: ObjectId(), a: 5, b: "lm" }
-      { _id: ObjectId(), a: 6, b: "no" }
-      { _id: ObjectId(), a: 7, b: "pq" }
-      { _id: ObjectId(), a: 8, b: "rs" }
-      { _id: ObjectId(), a: 9, b: "tv" }
+Consider the same index on a collection where ``status`` has *nine*
+values distributed across the collection:
 
-   If you query for ``{ a: 2, b: "cd" }``, MongoDB must scan only one
-   document to fulfill the query. The index and query are more selective
-   because the values of ``a`` are evenly distributed *and* the query
-   can select a specific document using the index.
+.. code-block:: javascript
 
-   However, although the index on ``a`` is more selective, a query such
-   as ``{ a: { $gt: 5 }, b: "tv" }`` would still need to scan 4
-   documents.
+   [
+      { _id: ObjectId(), "status": 1, "product_type": "electronics" },
+      { _id: ObjectId(), "status": 2, "product_type": "grocery" },
+      { _id: ObjectId(), "status": 3, "product_type": "household"},
+      { _id: ObjectId(), "status": 4, "product_type": "electronics"  },
+      { _id: ObjectId(), "status": 5, "product_type": "grocery"},
+      { _id: ObjectId(), "status": 6, "product_type": "household"},
+      { _id: ObjectId(), "status": 7, "product_type": "electronics"  },
+      { _id: ObjectId(), "status": 8, "product_type": "grocery" },
+      { _id: ObjectId(), "status": 9, "product_type": "household" }
+   ]
 
-   .. todo:: is there an answer to that last "However" paragraph?
+If you query for ``{ "status": 2, "product_type": "grocery" }``, MongoDB
+only reads one document to fulfill the query. The index and query are
+more selective because there is only one matching document and the query
+can select that specific document using the index.
 
-If overall selectivity is low, and if MongoDB must read a number of
-documents to return results, then some queries may perform faster
-without indexes. To determine performance, see
-:ref:`indexes-measuring-use`.
+Although this example's query on ``status`` equality is more selective,
+a query such as ``{ "status": { $gt: 5 }, "product_type": "grocery" }``
+would still need to read four documents. However, if you create a
+compound index on ``product_type`` and ``status``, a query for ``{
+"status": { $gt: 5 }, "product_type": "grocery" }`` would only need to
+read two documents. 
+
+To improve selectivity, you can create a :ref:`compound index
+<index-type-compound>` that narrows the documents that queries read. For
+example, if you want to improve selectivity for queries on ``status``
+and ``product_type``, you could create a compound index on those two
+fields. 
+
+If MongoDB reads a high number of documents to return results, some
+queries may perform faster without indexes. To determine performance,
+see :ref:`indexes-measuring-use`.
+
