@@ -4,6 +4,7 @@
    :class: compatibility-large
 
    * - Java Reactive Streams Driver Version
+     - Java 21
      - Java 17
      - Java 11 [#backwards-compatible-rs]_
      - Java 8
@@ -14,6 +15,7 @@
      - ✓
      - ✓
      - ✓
+     - ✓
      -
      -
 
@@ -21,10 +23,12 @@
      - ✓
      - ✓
      - ✓
+     - ✓
      -
      -
 
    * - 4.10
+     - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
      - ✓
@@ -32,6 +36,7 @@
      -
 
    * - 4.9
+     - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
      - ✓
@@ -39,6 +44,7 @@
      -
 
    * - 4.8
+     - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
      - ✓
@@ -46,6 +52,7 @@
      -
 
    * - 4.7
+     - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
      - ✓
@@ -53,6 +60,7 @@
      -
 
    * - 4.6
+     - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
      - ✓
@@ -60,6 +68,7 @@
      -
 
    * - 4.5
+     - ✓ [#virtual-threads-note]_
      - ✓
      - ✓
      - ✓
@@ -67,6 +76,7 @@
      -
 
    * - 4.4
+     -
      - ✓
      - ✓
      - ✓
@@ -75,12 +85,14 @@
 
    * - 4.3
      -
+     -
      - ✓
      - ✓
      - ✓
      - ✓
    
    * - 4.2
+     -
      -
      - ✓
      - ✓
@@ -89,93 +101,11 @@
 
    * - 4.1
      -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.13
      -
      - ✓
      - ✓
      - ✓
      - ✓
 
-   * - 1.12
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.11
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.10
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.9
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.7
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.6
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.5
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.3
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.2
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.1
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
-   * - 1.0
-     -
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-
+.. [#virtual-threads-note] This driver version is not compatible with virtual threads.
 .. [#backwards-compatible-rs] Java versions 8 and above are all supported thanks to the JVM backwards compatibility promise. Only LTS versions will be explicitly listed in future.

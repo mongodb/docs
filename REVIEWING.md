@@ -1,4 +1,4 @@
-# Pull Request Reviewing Guidelines for the Java RS Driver Documentation
+# Pull Request Reviewing Guidelines for the Java Reactive Streams Driver Documentation
 
 Contributions to the set of documents in this repository can receive reviews from one or both of the following types of reviews:
 
