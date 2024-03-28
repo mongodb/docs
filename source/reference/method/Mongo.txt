@@ -107,7 +107,8 @@ syntax:
      "keyVaultNamespace" : "<string>",
      "kmsProviders" : <object>,
      "schemaMap" : <object>,
-     "bypassAutoEncryption" : <boolean>
+     "bypassAutoEncryption" : <boolean>,
+     "tlsOptions": <object>
    }
 
 The ``{+auto-encrypt-options+}`` document takes the
@@ -282,6 +283,13 @@ following parameters:
        encryption. This option is mutually exclusive with ``schemaMap``.
        If omitted, defaults to ``false``.
 
+   * - ``tlsOptions``
+     - object 
+     - *(Optional)* The path to the TLS client certificate and private key file in PEM format
+       (``tlsCertificateKeyFile``), TLS client certificate and private key file password
+       (``tlsCertificateKeyFilePassword``), or TLS certificate authority file
+       (``tlsCAFile``) to use to connect to the KMS in PEM format. To learn more 
+       about these options, see :mongosh:`TLS Options <reference/options/#tls-options>`. 
 
 .. _mongo-api-options:
 
@@ -438,6 +446,23 @@ The specified automatic encryption rules encrypt the ``taxid`` and
 ``taxid-short`` fields using the specified data encryption key and
 algorithm. Only clients configured for the correct KMS *and* access to
 the specified data encryption key can decrypt the field.
+
+The following operation creates a new connection object from within a
+:binary:`~bin.mongosh` session. The ``mongo.tlsOptions`` option enables
+a connection using KMIP as the KMS provider:
+
+.. code-block:: javascript
+
+   var csfleConnection = {
+     keyVaultNamespace: "encryption.__keyVault",
+     kmsProviders: { kmip: { endpoint: "kmip.example.com:123" } },
+     tlsOptions: { kmip: { tlsCertificateKeyFile: "/path/to/client/cert-and-key-bundle.pem" } }
+   }
+
+   cluster = Mongo(
+     "mongodb://mymongo.example.net:27017/?replicaSet=myMongoCluster",
+     csfleConnection
+   );
 
 See :doc:`/reference/method/js-client-side-field-level-encryption` for
 a complete list of client-side field level encryption methods.
