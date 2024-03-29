@@ -1,8 +1,11 @@
+.. uses compatibility-policy.rst
+.. uses migrate-to-pymongo4.rst
+
 .. _pymongo-upgrade:
 
-=================================
-Upgrade {+driver-short+} Versions
-=================================
+=======================
+Upgrade Driver Versions
+=======================
 
 .. contents:: On this page
    :local:
@@ -20,42 +23,33 @@ Upgrade {+driver-short+} Versions
 Overview
 --------
 
-This page describes the changes you must make to your application
-when you upgrade to a new version of {+driver-short+}.
+On this page, you can learn how to upgrade your driver to a new version. This page also
+includes the changes you must make to your application to upgrade your driver without
+losing functionality, if applicable.
 
-.. important:: 
-  
-   This guide includes breaking changes to only {+driver-short+} versions after v4.0.
-   If you're upgrading from {+driver-short+} v2 or v3, see the
-   `{+driver-short+} 4 Migration Guide. <https://pymongo.readthedocs.io/en/latest/migrate-to-pymongo4.html>`__
+Deprecation
+-----------
 
-Before you upgrade, perform the following actions:
+Before we remove a feature in a major release, PyMongo's maintainers make an
+effort to release at least one minor version that *deprecates* it. We add
+"**DEPRECATED**" to the feature's documentation, and update the code to raise a
+``DeprecationWarning``. You can ensure your code is future-proof by running
+your code with the latest PyMongo release and looking for ``DeprecationWarning``
+messages.
 
-- Ensure the new {+driver-short+} version is compatible with the MongoDB Server versions
-  your application connects to and the Python version your
-  application runs on. For version compatibility information, see the
-  :ref:`{+driver-short+} Compatibility <pymongo-compatibility>`
-  page.
-- Address any breaking changes between the driver version
-  your application is using and your planned upgrade version in the
-  :ref:`Breaking Changes <pymongo-breaking-changes>` section.
+The interpreter silences ``DeprecationWarning`` messages by default. For example, the
+following code uses the deprecated ``insert`` method but does not raise any
+warning:
 
-.. TODO: Stable API page
-.. tip::
-   To minimize the number of changes your application requires when
-   upgrading driver versions in the future, use the
-   :ref:`{+stable-api+} <pymongo-stable-api>`.
+.. code-block:: python
 
-Show Deprecation Warnings
--------------------------
+   # "insert.py" (with PyMongo 3.X)
+   from pymongo import MongoClient
 
-When you use a deprecated {+driver-short+} feature, the driver raises a
-``DeprecationWarning``. By default, the Python interpreter silences these warnings.
-To print them to ``stderr``, start Python with the ``-Wd`` options.
+   client = MongoClient()
+   client.test.test.insert({})
 
-The following example runs ``insert.py``, a Python application that calls a
-deprecated method. The interpreter shows a ``DeprecationWarning`` because Python
-was started with the ``-Wd`` options.
+To print deprecation warnings to ``stderr``, run python with the ``-Wd`` options:
 
 .. code-block:: python
 
@@ -63,8 +57,7 @@ was started with the ``-Wd`` options.
    insert.py:4: DeprecationWarning: insert is deprecated. Use insert_one or insert_many instead.
      client.test.test.insert({})
 
-To treat ``DeprecationWarning`` messages as exceptions, start Python with the
-``-We`` options instead, as shown in the following example:
+You can turn warnings into exceptions by using ``python -We``:
 
 .. code-block:: python
 
@@ -76,33 +69,27 @@ To treat ``DeprecationWarning`` messages as exceptions, start Python with the
        "instead.", DeprecationWarning, stacklevel=2)
    DeprecationWarning: insert is deprecated. Use insert_one or insert_many instead.
 
-.. tip::
-  
-   For more information about interpreter warnings and the ``-W`` option, see the
-   following Python documentation:
-   
-   - `Warnings <https://docs.python.org/3/library/warnings.html>`__
-   - `-W option <https://docs.python.org/3/using/cmdline.html#cmdoption-W>`__
+If your code's test suite passes when you use ``python -We`` to run it, then it uses no
+deprecated PyMongo features.
 
-.. _pymongo-breaking-changes:
+.. note::
+  
+   For more information, see the Python documentation about
+   `the warnings module <https://docs.python.org/3/library/warnings.html>`__
+   and `the -W command line option <https://docs.python.org/3/using/cmdline.html#cmdoption-W>`__.
+
 
 Breaking Changes
 ----------------
 
-A breaking change is a change of a convention or a behavior starting in a specific
+A breaking change is a modification of a convention or a behavior starting in a specific
 version of the driver. This type of change may prevent your application from working
 properly if not addressed before upgrading the driver.
 
 The breaking changes in this section are categorized by the driver version that introduced
 them. When upgrading driver versions, address all the breaking changes between the current
-and upgrade versions.
-
-.. example:: Upgrading from Version 4.0
-
-  If you're upgrading {+driver-short+} from v4.0 to v4.7,
-  address all breaking changes listed for versions 4.1 to 4.7, if any.
-
-.. diagram for this example?
+and upgrade versions. For example, if you're upgrading {+driver-short+} from v4.0 to v4.7,
+address all breaking changes from the version after v4.0, including any listed under v4.7.
 
 .. _version-4.7-breaking-changes:
 
@@ -117,13 +104,13 @@ Version 4.7 Breaking Changes
   
 .. code-block:: python
 
-    # Before (SON)
+    # Before
     >>> from pymongo import MongoClient
     >>> client = MongoClient()
     >>> client.options.pool_options.metadata
     SON([('driver', SON([('name', 'PyMongo'), ('version', '4.7.0.dev0')])), ('os', SON([('type', 'Darwin'), ('name', 'Darwin'), ('architecture', 'arm64'), ('version', '14.3')])), ('platform', 'CPython 3.11.6.final.0')])
 
-    # After (dict)
+    # After
     >>> client.options.pool_options.metadata
     {'driver': {'name': 'PyMongo', 'version': '4.7.0.dev0'}, 'os': {'type': 'Darwin', 'name': 'Darwin', 'architecture': 'arm64', 'version': '14.3'}, 'platform': 'CPython 3.11.6.final.0'}
 
@@ -150,17 +137,939 @@ as shown in the following example:
    >>> dict_to_SON(data_as_dict)
    SON([('driver', SON([('name', 'PyMongo'), ('version', '4.7.0.dev0')])), ('os', SON([('type', 'Darwin'), ('name', 'Darwin'), ('architecture', 'arm64'), ('version', '14.3')])), ('platform', 'CPython 3.11.6.final.0')])
 
-Version 4.2 Breaking Changes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _pymongo4-migration-guide:
 
-- To improve support for the `Pyright <https://github.com/microsoft/pyright>`__ tool,
-  the ``ClientSession`` class no longer uses generic typing.
-- pymongocrypt v1.3.0 or later is required for Client-Side Field Level Encryption (CSFLE).
-- The bson, pymongo, and gridfs packages now use the ``__all__`` variable to declare their
-  public APIs. If your application contains a ``from bson import *`` statement, ensure
-  that it still imports the necessary APIs.
-- The ``estimated_document_count()`` method always uses the count command.
-  This command is not available in the Stable API in MongoDB versions 5.0.0 through 5.0.8.
-  If you use the ``estimated_document_count()`` method with the Stable API, you must
-  either upgrade to MongoDB Server v5.0.9 or later, or set the
-  ``pymongo.server_api.ServerApi.strict`` option to ``False``.
+PyMongo 4 Migration Guide
+-------------------------
+
+.. code-block:: python
+
+   from pymongo import MongoClient, ReadPreference
+
+   client = MongoClient()
+   database = client.my_database
+   collection = database.my_collection
+
+PyMongo 4.0 brings a number of improvements as well as some breaking
+changes. This guide provides a roadmap for migrating an existing application
+from PyMongo 3.x to 4.x or writing libraries that will work with both
+PyMongo 3.x and 4.x.
+
+PyMongo 3
+~~~~~~~~~
+
+The first step in any successful migration involves upgrading to, or
+requiring, at least the latest version of PyMongo 3.x. If your project has a
+``requirements.txt`` file, add the line ``pymongo >= 3.12, < 4.0`` until you have
+completely migrated to PyMongo 4. Most of the new methods and options from
+PyMongo 4.0 are backported to PyMongo 3.12, making migration much easier.
+
+.. note::
+  
+   Users of PyMongo 2.X who wish to upgrade to 4.x must first upgrade
+   to PyMongo 3.x by following the `PyMongo 3 Migration Guide
+   <https://pymongo.readthedocs.io/en/3.12.1/migrate-to-pymongo3.html>`__.
+
+Python 3.6+
+~~~~~~~~~~~
+
+PyMongo 4.0 drops support for Python 2.7, 3.4, and 3.5. Users who wish to
+upgrade to 4.x must first upgrade to Python 3.6.2+. Users upgrading from
+Python 2 should consult the Python Upgrade page.
+
+Enable Deprecation Warnings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``DeprecationWarning`` is raised by most methods removed in PyMongo 4.0.
+Make sure you enable runtime warnings to see where deprecated functions and
+methods are being used in your application:
+
+.. code-block:: python
+
+   python -Wd <your application>
+
+Warnings can also be changed to errors:
+
+.. code-block:: python
+
+   python -Wd -Werror <your application>
+
+.. note::
+  
+   Not all deprecated features raise ``DeprecationWarning`` when
+   used. See the :ref:`pymongo-removed-features` section.
+
+MongoReplicaSetClient
+~~~~~~~~~~~~~~~~~~~~~
+
+Removed ``~pymongo.mongo_replica_set_client.MongoReplicaSetClient``.
+Since PyMongo 3.0, ``MongoReplicaSetClient`` has been identical to
+``pymongo.mongo_client.MongoClient``. Applications can simply replace
+``MongoReplicaSetClient`` with ``pymongo.mongo_client.MongoClient`` and
+get the same behavior.
+
+MongoClient
+~~~~~~~~~~~
+
+.. _pymongo4-migration-direct-connection:
+
+directConnection Defaults to False
+``````````````````````````````````
+
+The ``directConnection`` URI option and keyword argument to ``~pymongo.mongo_client.MongoClient``
+defaults to ``False`` instead of ``None``,
+allowing for the automatic discovery of replica sets. This means that if you
+want a direct connection to a single server, you must pass
+``directConnection=True`` as a URI option or keyword argument.
+
+If you see any ``~pymongo.errors.ServerSelectionTimeoutError``'s after upgrading from
+PyMongo 3 to 4.x, you likely
+need to add ``directConnection=True`` when creating the client.
+Here are some example errors:
+
+.. code-block:: python
+
+   pymongo.errors.ServerSelectionTimeoutError: mongo_node2: [Errno 8] nodename nor servname
+    provided, or not known,mongo_node1:27017
+
+.. code-block:: python
+
+   ServerSelectionTimeoutError: No servers match selector "Primary()", Timeout: 30s,
+    Topology Description: ...
+
+Additionally, the ``isWritablePrimary`` attribute of a ``hello`` command sent back by the
+server will always be ``True`` if ``directConnection=False``:
+
+.. code-block:: python
+
+   >>> client.admin.command('hello')['isWritablePrimary']
+   True
+
+The waitQueueMultiple Parameter Is Removed
+``````````````````````````````````````````
+
+Removed the ``waitQueueMultiple`` keyword argument to
+``~pymongo.mongo_client.MongoClient`` and removed
+``pymongo.errors.ExceededMaxWaiters``. Instead of using
+``waitQueueMultiple`` to bound queuing, limit the size of the thread
+pool in your application.
+
+The socketKeepAlive Parameter Is Removed
+````````````````````````````````````````
+
+Removed the ``socketKeepAlive`` keyword argument to
+``~pymongo.mongo_client.MongoClient``. PyMongo now always enables TCP
+keepalive. For more information, see the
+`keepalive documentation <https://mongodb.com/docs/manual/faq/diagnostics/#does-tcp-keepalive-time-affect-mongodb-deployments->`__.
+
+Renamed URI Options
+```````````````````
+
+Several deprecated URI options have been renamed to the standardized
+option names defined in the
+`URI options specification <https://github.com/mongodb/specifications/blob/master/source/uri-options/uri-options.rst>`__.
+The old option names and their renamed equivalents are summarized in the table
+below. Some renamed options have different semantics from the option being
+replaced, as noted in the Migration Notes column.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 10 20
+
+   * - Old URI Option
+     - Renamed URI Option
+     - Migration Notes
+   * - ``ssl_pem_passphrase``
+     - ``tlsCertificateKeyFilePassword``
+     - N/A
+   * - ``ssl_ca_certs``
+     - ``tlsCAFile``
+     - N/A 
+   * - ``ssl_crlfile``
+     - ``tlsCRLFile``
+     - N/A 
+   * - ``ssl_match_hostname``
+     - ``tlsAllowInvalidHostnames``
+     - ``ssl_match_hostname=True`` is equivalent to ``tlsAllowInvalidHostnames=False`` and vice-versa.
+   * - ``ssl_cert_reqs``
+     - ``tlsAllowInvalidCertificates``
+     - Instead of ``ssl.CERT_NONE``, ``ssl.CERT_OPTIONAL``, or ``ssl.CERT_REQUIRED``, the
+       | new option expects a boolean value: ``True`` is equivalent to ``ssl.CERT_NONE``
+       | and ``False`` is equivalent to ``ssl.CERT_REQUIRED``.                                 
+   * - ``ssl_certfile`` and ``ssl_keyfile``
+     - ``tlsCertificateKeyFile``
+     - Instead of using ``ssl_certfile`` and ``ssl_keyfile`` to specify the certificate and
+       | private key files respectively,  use ``tlsCertificateKeyFile`` to pass a single file
+       | containing both the client certificate and the private key.
+   * - ``j``
+     - ``journal`` 
+     - N/A
+   * - ``wtimeout``
+     - ``wTimeoutMS`` 
+     - N/A
+
+MongoClient.fsync Is Removed
+````````````````````````````
+
+Removed the ``pymongo.mongo_client.MongoClient.fsync`` method.
+Use the ``~pymongo.database.Database.command`` method to execute the
+`fsync command <https://mongodb.com/docs/manual/reference/command/fsync/>`__
+command instead. For example:
+
+.. code-block:: python
+
+   client.admin.command('fsync', lock=True)
+
+MongoClient.unlock Is Removed
+`````````````````````````````
+
+Removed the ``pymongo.mongo_client.MongoClient.unlock`` method. Use the
+``~pymongo.database.Database.command`` method to execute the `fsyncUnlock command <https://mongodb.com/docs/manual/reference/command/fsyncUnlock/>`__
+instead. For example:
+
+.. code-block:: python
+
+   client.admin.command('fsyncUnlock')
+
+MongoClient.is_locked Is Removed
+````````````````````````````````
+
+Removed ``pymongo.mongo_client.MongoClient.is_locked``. Use the
+```~pymongo.database.Database.command`` method to execute the `currentOp command <https://mongodb.com/docs/manual/reference/command/currentOp/>`__
+instead. For example:
+
+.. code-block:: python
+
+   is_locked = client.admin.command('currentOp').get('fsyncLock')
+
+MongoClient.database_names Is Removed
+`````````````````````````````````````
+
+Removed the ``pymongo.mongo_client.MongoClient.database_names`` method. Use
+the ``~pymongo.mongo_client.MongoClient.list_database_names`` method instead,
+as shown in the following example:
+
+.. code-block:: python
+
+   names = client.list_database_names()
+
+MongoClient.max_bson_size/max_message_size/max_write_batch_size Are Removed
+```````````````````````````````````````````````````````````````````````````
+
+Removed ``pymongo.mongo_client.MongoClient.max_bson_size``,
+``pymongo.mongo_client.MongoClient.max_message_size``, and
+``pymongo.mongo_client.MongoClient.max_write_batch_size``. These helpers
+were incorrect when in ``loadBalanced=true`` mode, and ambiguous in clusters
+with mixed versions. Use the `hello command <https://mongodb.com/docs/manual/reference/command/hello/>`__
+to get the authoritative value from the remote server instead, as shown in the following
+example:
+
+.. code-block:: python
+
+   doc = client.admin.command('hello')
+   max_bson_size = doc['maxBsonObjectSize']
+   max_message_size = doc['maxMessageSizeBytes']
+   max_write_batch_size = doc['maxWriteBatchSize']
+
+MongoClient.event_listeners and Other Configuration Option Helpers Are Removed
+``````````````````````````````````````````````````````````````````````````````
+
+The following client configuration option helpers are removed:
+
+- ``pymongo.mongo_client.MongoClient.event_listeners``. Use ``client.options.event_listeners``
+  instead.
+- ``pymongo.mongo_client.MongoClient.max_pool_size``. Use ``client.options.pool_options.max_pool_size``
+  instead.
+- ``pymongo.mongo_client.MongoClient.min_pool_size``. Use ``client.options.pool_options.min_pool_size``
+  instead.
+- ``pymongo.mongo_client.MongoClient.max_idle_time_ms``. Use ``client.options.pool_options.max_idle_time_seconds``
+  instead.
+- ``pymongo.mongo_client.MongoClient.local_threshold_ms``. Use ``client.options.local_threshold_ms``
+  instead.
+- ``pymongo.mongo_client.MongoClient.server_selection_timeout``. Use ``client.options.server_selection_timeout``
+  instead.
+- ``pymongo.mongo_client.MongoClient.retry_writes``.
+- ``pymongo.mongo_client.MongoClient.retry_reads``.
+
+.. _tz_aware_default_change:
+
+``tz_aware`` Defaults to ``False``
+``````````````````````````````````
+
+The ``tz_aware`` argument to ``~bson.json_util.JSONOptions``
+now defaults to ``False`` instead of ``True``. The ``bson.json_util.loads`` method
+now decodes ``datetime`` as naive by default:
+
+.. code-block:: python
+
+   >>> from bson import json_util
+   >>> s = '{"dt": {"$date": "2022-05-09T17:54:00Z"}}'
+   >>> json_util.loads(s)
+    {'dt': datetime.datetime(2022, 5, 9, 17, 54)}
+
+To retain the PyMongo 3 behavior, set ``tz_aware=True``, as shown in the following example:
+
+.. code-block:: python
+
+   >>> from bson import json_util
+   >>> opts = json_util.JSONOptions(tz_aware=True)
+   >>> s = '{"dt": {"$date": "2022-05-09T17:54:00Z"}}'
+   >>> json_util.loads(s, json_options=opts)
+    {'dt': datetime.datetime(2022, 5, 9, 17, 54, tzinfo=<bson.tz_util.FixedOffset object at 0x7fd1ebc1add0>)}
+
+This change was made to match the default behavior of
+``~bson.codec_options.CodecOptions`` and ``bson.decode``.
+
+MongoClient Cannot Execute Operations After ``close()``
+```````````````````````````````````````````````````````
+
+``~pymongo.mongo_client.MongoClient`` cannot execute any operations
+after being closed. The previous behavior would simply reconnect. However,
+now you must create a new instance.
+
+MongoClient Raises Exception When Given More Than One URI
+`````````````````````````````````````````````````````````
+
+``~pymongo.mongo_client.MongoClient`` now raises a ``~pymongo.errors.ConfigurationError``
+when more than one URI is passed into the ``hosts`` argument.
+
+MongoClient Raises Exception When Given Unescaped Percent Sign in Login Info
+````````````````````````````````````````````````````````````````````````````
+
+``~pymongo.mongo_client.MongoClient`` now raises an
+``~pymongo.errors.InvalidURI`` exception
+when it encounters unescaped percent signs in username and password.
+
+Database
+~~~~~~~~
+
+Database.authenticate and Database.logout Are Removed
+`````````````````````````````````````````````````````
+
+Removed the ``pymongo.database.Database.authenticate`` method and
+the ``pymongo.database.Database.logout`` method. Authenticating multiple users
+on the same client conflicts with support for logical sessions in MongoDB 3.6+.
+To authenticate as multiple users, create multiple instances of
+``~pymongo.mongo_client.MongoClient``, as shown in the following example:
+
+.. code-block:: python
+
+   client1 = MongoClient(username='user1', password='pass1')
+   client2 = MongoClient(username='user2', password='pass2')
+
+Alternatively, create a single user that contains all the authentication privileges
+required by your application.
+
+Database.collection_names Is Removed
+````````````````````````````````````
+
+Removed the ``pymongo.database.Database.collection_names`` method. Use
+the ``~pymongo.database.Database.list_collection_names`` method instead, as shown in
+the following example:
+
+.. code-block:: python
+
+   names = client.list_collection_names()
+   non_system_names = client.list_collection_names(filter={"name": {"$regex": r"^(?!system\\.)"}})
+
+Database.current_op Is Removed
+``````````````````````````````
+
+Removed the ``pymongo.database.Database.current_op`` method. Instead, use 
+the ``~pymongo.database.Database.aggregate`` method and the
+`$currentOp aggregation pipeline stage <https://mongodb.com/docs/manual/reference/operator/aggregation/currentOp/>`__,
+as shown in the following example:
+
+.. code-block:: python
+
+   ops = list(client.admin.aggregate([{'$currentOp': {}}]))
+
+Database.add_user Is Removed
+````````````````````````````
+
+Removed the ``pymongo.database.Database.add_user`` method, which was deprecated in
+PyMongo 3.6. Use the `createUser command <https://mongodb.com/docs/manual/reference/command/createUser/>`__
+or the `updateUser command <https://mongodb.com/docs/manual/reference/command/updateUser/>`__
+instead.
+
+To create a user:
+
+.. code-block:: python
+
+   db.command("createUser", "admin", pwd="password", roles=["dbAdmin"])
+
+To create a read-only user:
+
+.. code-block:: python
+
+   db.command("createUser", "user", pwd="password", roles=["read"])
+
+To change a password:
+
+.. code-block:: python
+
+   db.command("updateUser", "user", pwd="newpassword")
+
+Or change roles:
+
+.. code-block:: python
+
+   db.command("updateUser", "user", roles=["readWrite"])
+
+Database.remove_user Is Removed
+```````````````````````````````
+
+Removed the ``pymongo.database.Database.remove_user`` method, which was deprecated in
+PyMongo 3.6. Use the `dropUser command <https://mongodb.com/docs/manual/reference/command/dropUser/>`__
+instead:
+
+.. code-block:: python
+
+   db.command("dropUser", "user")
+
+Database.profiling_level Is Removed
+```````````````````````````````````
+
+Removed the ``pymongo.database.Database.profiling_level`` method, which was deprecated in
+PyMongo 3.12. Use the `profile command <https://mongodb.com/docs/manual/reference/command/profile/>`__
+instead, as shown in the following example:
+
+.. code-block:: python
+
+   profile = db.command('profile', -1)
+   level = profile['was']
+
+Database.set_profiling_level Is Removed
+```````````````````````````````````````
+
+Removed the ``pymongo.database.Database.set_profiling_level`` method, which was deprecated in
+PyMongo 3.12. Use the `profile command <https://mongodb.com/docs/manual/reference/command/profile/>`__
+instead, as shown in the following example:
+
+.. code-block:: python
+
+   res = db.command('profile', 2, filter={'op': 'query'})
+
+Database.profiling_info Is Removed
+``````````````````````````````````
+
+Removed the ``pymongo.database.Database.profiling_info`` method, which was deprecated in
+PyMongo 3.12. Query the `system.profile collection <https://mongodb.com/docs/manual/reference/database-profiler/>`__
+instead, as shown in the following example:
+
+.. code-block:: python
+
+   profiling_info = list(db['system.profile'].find())
+
+Database.__bool__ Raises NotImplementedError
+````````````````````````````````````````````
+
+``~pymongo.database.Database`` now raises an error upon evaluating as a
+Boolean. You must now explicitly compare the database object with ``None``, as shown
+in the following example:
+
+.. code-block:: python
+
+   if database is not None:
+
+Collection
+~~~~~~~~~~
+
+The useCursor Option for Collection.aggregate Is Removed
+````````````````````````````````````````````````````````
+
+Removed the ``useCursor`` option for
+the ``~pymongo.collection.Collection.aggregate`` method, which was deprecated in
+PyMongo 3.6. The option was only necessary when upgrading from MongoDB 2.4
+to MongoDB 2.6.
+
+Collection.insert Is Removed
+````````````````````````````
+
+Removed the ``pymongo.collection.Collection.insert`` method. Use
+the ``~pymongo.collection.Collection.insert_one`` method or
+the ``~pymongo.collection.Collection.insert_many`` method instead, as shown in the
+following example:
+
+.. code-block:: python
+
+  collection.insert_one({'my': 'document'})
+  collection.insert_many([{'doc': 2}, {'doc': 3}])
+
+Collection.save Is Removed
+``````````````````````````
+
+Removed the ``pymongo.collection.Collection.save`` method. Applications will
+get better performance by using the ``~pymongo.collection.Collection.insert_one`` method
+to insert a new document and the ``~pymongo.collection.Collection.update_one`` method
+to update an existing document, as shown in the following example:
+
+.. code-block:: python
+
+  result = collection.update_one({"_id": "some id"}, {"$set": {"some field": <some value>}})
+
+If performance is not a concern and refactoring is untenable, you can implement the
+``save`` method as shown in the following code block:
+
+.. code-block:: python
+
+   def save(doc):
+       if '_id' in doc:
+           collection.replace_one({'_id': doc['_id']}, doc, upsert=True)
+           return doc['_id']
+       else:
+           res = collection.insert_one(doc)
+           return res.inserted_id
+
+Collection.update Is Removed
+````````````````````````````
+
+Removed the ``pymongo.collection.Collection.update`` method. Use
+the ``~pymongo.collection.Collection.update_one`` method
+to update a single document or
+the ``~pymongo.collection.Collection.update_many`` method to update multiple
+documents, as shown in the following example:
+
+.. code-block:: python
+
+   collection.update_one({}, {'$set': {'a': 1}})
+   collection.update_many({}, {'$set': {'b': 1}})
+
+Collection.remove Is Removed
+````````````````````````````
+
+Removed the ``pymongo.collection.Collection.remove`` method. Use
+the ``~pymongo.collection.Collection.delete_one`` method
+to delete a single document or
+the ``~pymongo.collection.Collection.delete_many`` method to delete multiple
+documents, as shown in the following example:
+
+.. code-block:: python
+
+   collection.delete_one({'a': 1})
+   collection.delete_many({'b': 1})
+
+Collection.find_and_modify Is Removed
+`````````````````````````````````````
+
+Removed the ``pymongo.collection.Collection.find_and_modify`` method. Use
+the ``~pymongo.collection.Collection.find_one_and_update`` method,
+the ``~pymongo.collection.Collection.find_one_and_replace`` method, or
+the ``~pymongo.collection.Collection.find_one_and_delete`` method instead, as shown
+in the following example:
+
+.. code-block:: python
+
+   updated_doc = collection.find_one_and_update({'a': 1}, {'$set': {'b': 1}})
+   replaced_doc = collection.find_one_and_replace({'b': 1}, {'c': 1})
+   deleted_doc = collection.find_one_and_delete({'c': 1})
+
+Collection.count and Cursor.count Are Removed
+`````````````````````````````````````````````
+
+Removed the ``pymongo.collection.Collection.count`` method and
+the ``pymongo.cursor.Cursor.count`` method. Use
+the ``~pymongo.collection.Collection.count_documents`` method or
+the ``~pymongo.collection.Collection.estimated_document_count`` method instead, as
+shown in the following example:
+
+.. code-block:: python
+
+   ntotal = collection.estimated_document_count()
+   nmatched = collection.count_documents({'price': {'$gte': 10}})
+
+.. note::
+   
+   When migrating from the ``count`` method to the ``count_documents`` method,
+   the following query operators must be replaced:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 10 10
+      
+      * - Operator
+        - Replacement
+      
+      * - ``$where``
+        - `$expr <https://mongodb.com/docs/manual/reference/operator/query/expr/>`__
+        
+      * - ``$near``
+        - `$geoWithin <https://mongodb.com/docs/manual/reference/operator/query/geoWithin/>`__ with `$center <https://mongodb.com/docs/manual/reference/operator/query/center/>`__
+          | For example: ``{'$geoWithin': {'$center': [[<x>,<y>], <radius>]}}``
+        
+      * - ``$nearSphere``
+        - `$geoWithin <https://mongodb.com/docs/manual/reference/operator/query/geoWithin/>`__ with `$centerSphere <https://mongodb.com/docs/manual/reference/operator/query/centerSphere/>`__
+          | For example: ``{'$geoWithin': {'$centerSphere': [[<x>,<y>], <radius>]}}`` |
+
+Collection.initialize_ordered_bulk_op and initialize_unordered_bulk_op Are Removed
+``````````````````````````````````````````````````````````````````````````````````
+
+Removed the ``pymongo.collection.Collection.initialize_ordered_bulk_op`` method
+and ``pymongo.bulk.BulkOperationBuilder``. Use
+the ``pymongo.collection.Collection.bulk_write`` method instead, as shown in the following
+example:
+
+.. code-block:: python
+
+   coll.bulk_write([
+       InsertOne({'a': 1}),
+       UpdateOne({'a': 1}, {'$set': {'b': 1}}),
+       ReplaceOne({'a': 2}, {'b': 2}, upsert=True),
+       DeleteOne({'a': 3}),
+   ])
+
+Collection.initialize_unordered_bulk_op Is Removed
+``````````````````````````````````````````````````
+
+Removed the ``pymongo.collection.Collection.initialize_unordered_bulk_op`` method.
+Use the ``pymongo.collection.Collection.bulk_write`` method instead, as shown in the
+following example:
+
+.. code-block:: python
+
+   coll.bulk_write([
+       InsertOne({'a': 1}),
+       UpdateOne({'a': 1}, {'$set': {'b': 1}}),
+       ReplaceOne({'a': 2}, {'b': 2}, upsert=True),
+       DeleteOne({'a': 3}),
+   ], ordered=False)
+
+Collection.group Is Removed
+```````````````````````````
+
+Removed the ``pymongo.collection.Collection.group`` method. This method was
+deprecated in PyMongo 3.5. MongoDB 4.2 removed the `group command <https://mongodb.com/docs/manual/reference/command/group/>`__
+Use the ``~pymongo.collection.Collection.aggregate`` method with the ``$group`` stage
+instead.
+
+Collection.map_reduce and Collection.inline_map_reduce Are Removed
+``````````````````````````````````````````````````````````````````
+
+Removed the ``pymongo.collection.Collection.map_reduce`` method and
+the ``pymongo.collection.Collection.inline_map_reduce`` method.
+Migrate to the ``~pymongo.collection.Collection.aggregate`` method or run the
+`mapReduce command <https://mongodb.com/docs/manual/reference/command/mapReduce/>`__ directly
+with the ``~pymongo.database.Database.command`` method instead.
+
+For more guidance on this migration, see the following documentation:
+
+- :manual:`</reference/map-reduce-to-aggregation-pipeline/>`
+- :manual:`</reference/aggregation-commands-comparison/>`
+
+Collection.ensure_index Is Removed
+``````````````````````````````````
+
+Removed the ``pymongo.collection.Collection.ensure_index`` method. Use
+the ``~pymongo.collection.Collection.create_index`` method or
+the ``~pymongo.collection.Collection.create_indexes`` method instead.
+
+Note that ``ensure_index`` maintained an in-memory cache of recently created indexes,
+whereas the newer methods do not. Applications should avoid frequent calls
+to the ``~pymongo.collection.Collection.create_index`` method or
+the ``~pymongo.collection.Collection.create_indexes`` method. The following code
+example shows how to check whether an index exists before creating a new one:
+
+.. code-block:: python
+
+   def persist(self, document):
+       if not self.created_index:
+           collection.create_index('a', unique=True)
+           self.created_index = True
+       collection.insert_one(document)
+
+Collection.reindex Is Removed
+`````````````````````````````
+
+Removed the ``pymongo.collection.Collection.reindex`` method. Run the
+`reIndex command <https://mongodb.com/docs/manual/reference/command/reindex/>`__
+directly instead, as shown in the following example:
+
+.. code-block:: python
+
+   >>> result = database.command('reIndex', 'my_collection')
+
+.. note::
+
+   The ``reIndex`` command is deprecated as of MongoDB v6.0.
+
+The modifiers Parameter Is Removed
+``````````````````````````````````
+
+Removed the ``modifiers`` parameter from
+the ``~pymongo.collection.Collection.find`` method,
+the ``~pymongo.collection.Collection.find_one`` method,
+the ``~pymongo.collection.Collection.find_raw_batches`` method, and
+the ``~pymongo.cursor.Cursor`` method. Pass the options directly to the method
+instead, as shown in the following example:
+
+.. code-block:: python
+
+   cursor = coll.find(
+       {},
+       comment="comment",
+       hint={"_id": 1},
+       min={"_id": 0},
+       max={"_id": 6},
+       max_time_ms=6000,
+       return_key=False,
+       show_record_id=False,
+   )
+
+The hint Parameter Is Required with min/max
+```````````````````````````````````````````
+
+The ``hint`` option is now required when using ``min`` or ``max`` queries
+with the ``~pymongo.collection.Collection.find`` method to ensure that the query utilizes
+the correct index. The following example shows how to use the ``hint`` option:
+
+.. code-block:: python
+
+   cursor = coll.find({}, min={'x', min_value}, hint=[('x', ASCENDING)])
+
+Collection.__bool__ raises NotImplementedError
+``````````````````````````````````````````````
+``~pymongo.collection.Collection`` now raises an error upon evaluating as a
+Boolean. You must now explicitly compare the collection object with ``None``, as shown
+in the following example:
+
+.. code-block:: python
+
+   if collection is not None:
+
+Collection.find Returns Entire Document with Empty Projection
+`````````````````````````````````````````````````````````````
+
+Empty projections--for example, ``{}`` or ``[]``--for the
+``~pymongo.collection.Collection.find`` and ``~pymongo.collection.Collection.find_one``
+methods
+are now passed to the server as-is. Previously, the driver
+substituted in a projection of ``{"_id": 1}``. This means that an empty
+projection will now return the entire document, not just the ``"_id"`` field.
+
+To ensure that behavior remains consistent, pass ``"_id":1`` explicitly, as shown
+in the following example:
+
+.. code-block:: python
+
+   coll.find({}, projection={"_id":1})
+
+SONManipulator Is Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Removed ``pymongo.son_manipulator``,
+``pymongo.son_manipulator.SONManipulator``,
+``pymongo.son_manipulator.ObjectIdInjector``,
+``pymongo.son_manipulator.ObjectIdShuffler``,
+``pymongo.son_manipulator.AutoReference``,
+``pymongo.son_manipulator.NamespaceInjector``,
+the ``pymongo.database.Database.add_son_manipulator`` method,
+``pymongo.database.Database.outgoing_copying_manipulators``,
+``pymongo.database.Database.outgoing_manipulators``,
+``pymongo.database.Database.incoming_copying_manipulators``, and
+``pymongo.database.Database.incoming_manipulators``.
+
+Removed the ``manipulate`` parameter from
+the ``~pymongo.collection.Collection.find`` method,
+the ``~pymongo.collection.Collection.find_one`` method, and
+the ``~pymongo.cursor.Cursor`` method.
+
+The ``pymongo.son_manipulator.SONManipulator`` API has limitations as a
+technique for transforming your data and was deprecated in PyMongo 3.0.
+Instead, it is more flexible and straightforward to transform outgoing
+documents in your own code before passing them to PyMongo, and transform
+incoming documents after receiving them from PyMongo.
+
+Alternatively, if your application uses the ``SONManipulator`` API to convert
+custom types to BSON, the ``~bson.codec_options.TypeCodec`` and
+``~bson.codec_options.TypeRegistry`` APIs may be a suitable alternative.
+
+``SON().items()`` Now Returns ``dict_items`` Object
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``~bson.son.SON.items`` method now returns a ``dict_items`` object rather than
+a list.
+
+``SON().iteritems()`` Is  Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``SON.iteritems()`` is now removed. Instead, use the ``SON.items()`` method, as shown
+in the following example:
+
+.. code-block:: python
+
+   for k, v in son.items():
+
+IsMaster Is Removed
+~~~~~~~~~~~~~~~~~~~
+
+Removed ``pymongo.ismaster.IsMaster``.
+Use ``pymongo.hello.Hello`` instead.
+
+NotMasterError Is Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Removed ``~pymongo.errors.NotMasterError``.
+Use ``~pymongo.errors.NotPrimaryError`` instead.
+
+CertificateError Is Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Removed ``~pymongo.errors.CertificateError``. Since PyMongo 3.0, this error
+is handled internally and is never raised to the application.
+
+pymongo.GEOHAYSTACK Is Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Removed ``pymongo.GEOHAYSTACK``. Replace with "geoHaystack" or create a
+2d index and use ``$geoNear`` or ``$geoWithin`` instead.
+
+UUIDLegacy Is Removed
+~~~~~~~~~~~~~~~~~~~~~
+
+Removed ``bson.binary.UUIDLegacy``. Use
+the ``bson.binary.Binary.from_uuid`` method instead, as shown in the following example:
+
+.. code-block:: python
+
+   uu = uuid.uuid4()
+   uuid_legacy = Binary.from_uuid(uu, PYTHON_LEGACY)
+
+Default JSONMode Changed from LEGACY to RELAXED
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Changed the default JSON encoding representation from ``LEGACY`` to ``RELAXED``.
+The ``json_mode`` parameter for ``bson.json_util.dumps`` now defaults to
+``~bson.json_util.RELAXED_JSON_OPTIONS``.
+
+GridFS
+~~~~~~
+
+.. _removed-gridfs-checksum:
+
+disable_md5 Parameter Is Removed
+````````````````````````````````
+
+Removed the ``disable_md5`` option for ``~gridfs.GridFSBucket`` and
+``~gridfs.GridFS``. GridFS no longer generates checksums.
+Applications that desire a file digest should implement it outside GridFS
+and store it with other file metadata. For example:
+
+.. code-block:: python
+
+  import hashlib
+  my_db = MongoClient().test
+  fs = GridFSBucket(my_db)
+  with fs.open_upload_stream("test_file") as grid_in:
+      file_data = b'...'
+      sha356 = hashlib.sha256(file_data).hexdigest()
+      grid_in.write(file_data)
+      grid_in.sha356 = sha356  # Set the custom 'sha356' field
+
+Note that for large files, the checksum may need to be computed in chunks
+to avoid the excessive memory needed to load the entire file at once.
+
+.. _pymongo-removed-features:
+
+Removed Features with No Migration Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+cursor_manager support Is Removed
+`````````````````````````````````
+
+Removed ``pymongo.cursor_manager.CursorManager``,
+``pymongo.cursor_manager``, and
+the ``pymongo.mongo_client.MongoClient.set_cursor_manager`` method.
+
+MongoClient.close_cursor Is Removed
+```````````````````````````````````
+
+Removed the ``pymongo.mongo_client.MongoClient.close_cursor`` method and
+the ``pymongo.mongo_client.MongoClient.kill_cursors`` method. Instead, close cursors
+by using the ``pymongo.cursor.Cursor.close`` method or
+the ``pymongo.command_cursor.CommandCursor.close`` method.
+
+Database.eval, Database.system_js, and SystemJS Are Removed
+```````````````````````````````````````````````````````````
+
+Removed the ``~pymongo.database.Database.eval`` method,
+``~pymongo.database.Database.system_js``, and
+``~pymongo.database.SystemJS``. The ``eval`` command was deprecated in
+MongoDB 3.0 and removed in MongoDB 4.2.
+
+There is no replacement for ``eval`` in MongoDB 4.2+. However, on MongoDB <= 4.0, you can
+call the ``eval`` command as follows:
+
+.. code-block:: python
+
+   >>> from bson.code import Code
+   >>> result = database.command('eval', Code('function (x) {return x;}'), args=[3]).get('retval')
+
+Database.error, Database.last_status, Database.previous_error, and Database.reset_error_history Are Removed
+```````````````````````````````````````````````````````````````````````````````````````````````````````````
+
+Removed the ``pymongo.database.Database.error`` method,
+the ``pymongo.database.Database.last_status`` method,
+the ``pymongo.database.Database.previous_error`` method, and
+the ``pymongo.database.Database.reset_error_history`` method.
+These methods were deprecated in PyMongo 2.8 and are now obsolete.
+All MongoDB write operations use an acknowledged
+write concern and report their errors by default. 
+
+Collection.parallel_scan Is Removed
+```````````````````````````````````
+
+Removed the ``~pymongo.collection.Collection.parallel_scan`` method. MongoDB 4.2
+removed the `parallelCollectionScan command <https://mongodb.com/docs/manual/reference/command/parallelCollectionScan/>`__.
+There is no replacement.
+
+pymongo.message Helpers Are Removed
+```````````````````````````````````
+
+Removed the ``pymongo.message.delete`` method, the ``pymongo.message.get_more`` method,
+the ``pymongo.message.insert`` method, the ``pymongo.message.kill_cursors`` method,
+the ``pymongo.message.query`` method, and the ``pymongo.message.update`` method.
+
+Name Is a Required Argument for pymongo.driver_info.DriverInfo
+``````````````````````````````````````````````````````````````
+
+``name`` is now a required argument for the ``pymongo.driver_info.DriverInfo`` class.
+
+DBRef BSON/JSON Decoding Behavior
+`````````````````````````````````
+
+PyMongo now decodes a subdocument into a
+``~bson.dbref.DBRef`` if and only if it contains both ``$ref`` and
+``$id`` fields and the ``$ref``, ``$id``, and ``$db`` fields are of the
+correct type. Otherwise, the document is returned as normal. Previously, any
+subdocument containing a ``$ref`` field would be decoded as a
+``~bson.dbref.DBRef``.
+
+
+Encoding a UUID Raises an Error by Default
+``````````````````````````````````````````
+
+The default ``uuid_representation`` for ``~bson.codec_options.CodecOptions``,
+``~bson.json_util.JSONOptions``, and
+``~pymongo.mongo_client.MongoClient`` has been changed from
+``bson.binary.UuidRepresentation.PYTHON_LEGACY`` to
+``bson.binary.UuidRepresentation.UNSPECIFIED``. Attempting to encode a
+``uuid.UUID`` instance to BSON or JSON now produces an error by default.
+
+If you were using UUIDs previously, you will need to set your ``uuid_representation`` to
+``bson.binary.UuidRepresentation.PYTHON_LEGACY`` to avoid data corruption.
+If you do not have UUIDs, set ``bson.binary.UuidRepresentation.STANDARD``.
+If you do not explicitly set a value, you will receive an error like the following when
+attempting to encode a ``uuid.UUID``:
+
+.. code-block:: python
+
+    ValueError: cannot encode native uuid.UUID with UuidRepresentation.UNSPECIFIED. UUIDs can be manually converted...
+
+Additional BSON Classes Implement __slots__
+````````````````````````````````````````````
+
+``~bson.int64.Int64``, ``~bson.min_key.MinKey``,
+``~bson.max_key.MaxKey``, ``~bson.timestamp.Timestamp``,
+``~bson.regex.Regex``, and ``~bson.dbref.DBRef`` now implement
+``__slots__`` to reduce memory usage. This means that their attributes are fixed, and new
+attributes cannot be added to the object at runtime.
