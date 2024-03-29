@@ -10,6 +10,11 @@ Troubleshooting
 .. meta::
    :keywords: error, help
 
+.. note:: Troubleshooting TLS Errors
+  
+   For information about TLS errors you might see when using {+driver-short+}, see the
+   :ref:`TLSErrors` section.
+
 Server Reports Wire Version X, PyMongo Requires Y
 -------------------------------------------------
 
@@ -119,9 +124,303 @@ tunnel.
 Instead, you can connect directly to a single MongoDB node by using the
 ``directConnection=True`` option with SSH tunneling.
 
-.. _pymongo-troubleshoot-tls:
+What Does "*CursorNotFound* cursor id not valid at server" Mean?
+----------------------------------------------------------------
 
-TLS
----
+Cursors in MongoDB can timeout on the server if they've been open for
+a long time without any operations being performed on them. This can
+lead to a ``CursorNotFound`` exception being
+raised when you attempt to iterate the cursor.
 
-.. include:: /includes/troubleshooting/tls.rst
+.. _web-application-querying-by-objectid:
+
+Why Do I Get No Result When I Query for a Document by ObjectId in My Web Application?
+-------------------------------------------------------------------------------------
+
+It's common in web applications to encode documents' ObjectIds in URLs, as shown
+in the following code example:
+
+.. code-block:: python
+
+   "/posts/50b3bda58a02fb9a84d8991e"
+
+Your web framework will pass the ObjectId portion of the URL to your request
+handler as a string. You must convert the string to an ``ObjectId`` instance
+before passing it to the ``find_one()`` method.
+
+The following code example shows how to perform this conversion in a
+`Flask <http://flask.pocoo.org/>`__ application. The process is similar for other web
+frameworks.
+
+.. code-block:: python
+
+   from pymongo import MongoClient
+   from bson.objectid import ObjectId
+
+   from flask import Flask, render_template
+
+   client = MongoClient()
+   app = Flask(__name__)
+
+   @app.route("/posts/<_id>")
+   def show_post(_id):
+      # NOTE!: converting _id from string to ObjectId before passing to find_one
+      post = client.db.posts.find_one({'_id': ObjectId(_id)})
+      return render_template('post.html', post=post)
+
+   if __name__ == "__main__":
+       app.run()
+
+.. tip::
+   
+   For more information, see the :ref:`querying-by-objectid` section in the Find guide.
+
+.. _pymongo-fork-safe-details:
+
+Why Does Forking a Process Cause a Deadlock?
+--------------------------------------------
+
+A ``MongoClient`` instance spawns multiple threads to run background tasks, such as
+monitoring connected servers. These threads share state that is protected by instances
+of the ``threading.Lock`` class, which are themselves
+`not fork-safe <http://bugs.python.org/issue6721>`__.
+{+driver-short+} is therefore subject to the same limitations as any other multithreaded
+code that uses the ``threading.Lock`` class, or mutexes in general.
+
+One of these limitations is that the locks become useless after the ``fork()`` method
+is called. When ``fork()`` executes, all of the parent process's locks are copied to
+the child process in the same state as they were
+in the parent--in other words, if they were locked in the parent process, they're also
+locked in the child process. The child process
+created by ``fork()`` has only one thread, so any locks created by
+other threads in the parent process will never be released in the child process.
+The next time the child process attempts to acquire one of these locks, deadlock occurs.
+
+Starting in {+driver-short+} version 4.3, after you call the ``os.fork()`` method, the
+driver uses the ``os.register_at_fork()`` method to reset its locks and other shared state
+in the child process. Although this reduces the likelihood of a deadlock,
+{+driver-short+} depends
+on libraries that aren't fork-safe in multithreaded applications, including
+`OpenSSL <https://github.com/openssl/openssl/issues/19066>`__ and
+`getaddrinfo(3). <https://man7.org/linux/man-pages/man3/gai_strerror.3.html>`__
+Therefore, a deadlock can still occur.
+
+The Linux manual page for `fork(2) <https://man7.org/linux/man-pages/man2/fork.2.html>`__
+also imposes the following restriction:
+
+.. blockquote::
+
+    After a ``fork()``  in a multithreaded program, the child can
+    safely call only async-signal-safe functions (see
+    `signal-safety(7) <https://man7.org/linux/man-pages/man7/signal-safety.7.html>`__)
+    until such time as it calls
+    `execve(2) <https://man7.org/linux/man-pages/man2/execve.2.html>`__.
+
+Because {+driver-short+} relies on functions that are *not*
+async-signal-safe, it can cause deadlocks or crashes when running in a child
+process.
+
+.. tip::
+   
+   For an example of a deadlock in a child process, see
+   `PYTHON-3406 <https://jira.mongodb.org/browse/PYTHON-3406>`__ in Jira.
+   
+   For more information about the problems caused by Python locks in
+   multithreaded contexts with ``fork()``, see `Issue 6721 <http://bugs.python.org/issue6721>`__
+   in the Python Issue Tracker.
+
+Why Does My Query Work in the Shell But Not in {+driver-short+}?
+-------------------------------------------------------
+
+After the ``_id`` field, which is always first, the key-value pairs in a BSON document can
+be in any order. The ``mongo`` shell preserves key order when reading and writing
+data, as shown by the fields "b" and "a" in the following code example:
+
+.. code-block:: javascript
+
+   > // mongo shell.
+   > db.collection.insertOne( { "_id" : 1, "subdocument" : { "b" : 1, "a" : 1 } } )
+   WriteResult({ "nInserted" : 1 })
+   > db.collection.findOne()
+   { "_id" : 1, "subdocument" : { "b" : 1, "a" : 1 } }
+
+{+driver-short+} represents BSON documents as Python dictionaries by default,
+and the order of keys in dictionaries is not defined. In Python, a dictionary declared with
+the "a" key first is the same as one with the "b" key first. In the following example,
+the keys are displayed in the same order regardless of their order in the ``print``
+statement:
+
+.. code-block:: python
+   
+   >>> print({'a': 1.0, 'b': 1.0})
+   {'a': 1.0, 'b': 1.0}
+   >>> print({'b': 1.0, 'a': 1.0})
+   {'a': 1.0, 'b': 1.0}
+
+Similarly, Python dictionaries might not show keys in the order they are
+stored in BSON. The following example shows the result of printing the document
+inserted in a preceding example:
+
+.. code-block:: python
+
+   >>> print(collection.find_one())
+   {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
+
+To preserve the order of keys when reading BSON, use the ``SON`` class,
+which is a dictionary that remembers its key order.
+
+The following code example shows how to create a collection
+configured to use the ``SON`` class:
+
+.. code-block:: python
+
+   >>> from bson import CodecOptions, SON
+   >>> opts = CodecOptions(document_class=SON)
+   >>> opts
+   CodecOptions(document_class=...SON..., tz_aware=False, uuid_representation=UuidRepresentation.UNSPECIFIED, unicode_decode_error_handler='strict', tzinfo=None, type_registry=TypeRegistry(type_codecs=[], fallback_encoder=None), datetime_conversion=DatetimeConversion.DATETIME)
+   >>> collection_son = collection.with_options(codec_options=opts)
+
+When you find the preceding subdocument, query results are represented with
+``SON`` objects and key order is preserved:
+
+.. code-block:: python
+
+   >>> print(collection_son.find_one())
+   SON([('_id', 1.0), ('subdocument', SON([('b', 1.0), ('a', 1.0)]))])
+
+The subdocument's actual storage layout is now visible: "b" is before "a".
+
+Because a Python dictionary's key order is not defined, you cannot predict how it will be
+serialized to BSON. However, MongoDB considers subdocuments equal only if their
+keys have the same order. If you use a Python dictionary to query on a subdocument, it may
+not match:
+
+.. code-block:: python
+
+   >>> collection.find_one({'subdocument': {'a': 1.0, 'b': 1.0}}) is None
+   True
+
+Because Python considers the two dictionaries the same, swapping the key order in your query
+makes no difference:
+
+.. code-block:: python
+
+   >>> collection.find_one({'subdocument': {'b': 1.0, 'a': 1.0}}) is None
+   True
+
+There are two solutions. First, you can match the subdocument field-by-field:
+
+.. code-block:: python
+
+   >>> collection.find_one({'subdocument.a': 1.0,
+   ...                      'subdocument.b': 1.0})
+   {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
+
+The query matches any subdocument with an "a" of 1.0 and a "b" of 1.0,
+regardless of the order in which you specify them in Python, or the order in which they're
+stored in BSON. This query also now matches subdocuments with additional
+keys besides "a" and "b", whereas the previous query required an exact match.
+
+The second solution is to use a ``~bson.son.SON`` object to specify the key order:
+
+.. code-block:: python
+
+   >>> query = {'subdocument': SON([('b', 1.0), ('a', 1.0)])}
+   >>> collection.find_one(query)
+   {'_id': 1.0, 'subdocument': {'a': 1.0, 'b': 1.0}}
+
+The key order you use when you create a ``~bson.son.SON`` is preserved
+when it is serialized to BSON and used as a query. Thus, you can create a
+subdocument that exactly matches the subdocument in the collection.
+
+.. note:: 
+   
+   For more information about subdocument matching, see the
+   `Query on Embedded/Nested Documents <https://www.mongodb.com/docs/manual/tutorial/query-embedded-documents/>`__
+   guide in the MongoDB Server documentation.
+
+Why Do I Get OverflowError When Decoding Dates Stored by Another Language's Driver?
+-----------------------------------------------------------------------------------
+
+{+driver-short+} decodes BSON ``datetime`` values to instances of Python's
+``datetime.datetime`` class. Instances of ``datetime.datetime`` are
+limited to years between ``datetime.MINYEAR`` (1) and
+``datetime.MAXYEAR`` (9999). Some MongoDB drivers
+can store BSON datetimes with year values far outside those supported
+by ``datetime.datetime``.
+
+There are a few ways to work around this issue. Starting with {+driver-short+} 4.3,
+``bson.decode`` can decode BSON ``datetime`` values in one of four ways. You can specify
+the conversion method by using ``datetime_conversion`` parameter of
+``~bson.codec_options.CodecOptions``.
+
+The default conversion option is
+``~bson.codec_options.DatetimeConversion.DATETIME``, which will
+attempt to decode the value as a ``datetime.datetime``, allowing
+``~builtin.OverflowError`` to occur for out-of-range dates.
+``~bson.codec_options.DatetimeConversion.DATETIME_AUTO`` alters
+this behavior to instead return ``~bson.datetime_ms.DatetimeMS`` when
+representations are out-of-range, while returning ``~datetime.datetime``
+objects as before:
+
+.. code-block:: python
+
+   >>> from datetime import datetime
+   >>> from bson.datetime_ms import DatetimeMS
+   >>> from bson.codec_options import DatetimeConversion
+   >>> from pymongo import MongoClient
+   >>> client = MongoClient(datetime_conversion=DatetimeConversion.DATETIME_AUTO)
+   >>> client.db.collection.insert_one({"x": datetime(1970, 1, 1)})
+   InsertOneResult(ObjectId('...'), acknowledged=True)
+   >>> client.db.collection.insert_one({"x": DatetimeMS(2**62)})
+   InsertOneResult(ObjectId('...'), acknowledged=True)
+   >>> for x in client.db.collection.find():
+   ...     print(x)
+   ...
+   {'_id': ObjectId('...'), 'x': datetime.datetime(1970, 1, 1, 0, 0)}
+   {'_id': ObjectId('...'), 'x': DatetimeMS(4611686018427387904)}
+
+For other options, see the API documentation for the
+`DatetimeConversion <{+api-root+}bson/codec_options.html#bson.codec_options.DatetimeConversion>`__
+class.
+
+Another option that does not involve setting ``datetime_conversion`` is to
+filter out document values outside of the range supported by
+``~datetime.datetime``:
+
+.. code-block:: python
+
+   >>> from datetime import datetime
+   >>> coll = client.test.dates
+   >>> cur = coll.find({'dt': {'$gte': datetime.min, '$lte': datetime.max}})
+
+If you don't need the value of ``datetime``, you can filter out just that field: 
+
+.. code-block:: python
+
+   >>> cur = coll.find({}, projection={'dt': False})
+
+BulkWriteError
+--------------
+
+You might see this behavior when calling the ``Collection.insert_many()`` method and
+passing a list of references to a single document. This raises a ``BulkWriteError``.
+The following Python idioms can produce this result:
+
+.. code-block:: python
+
+   >>> doc = {}
+   >>> collection.insert_many(doc for _ in range(10))
+   Traceback (most recent call last):
+   ...
+   pymongo.errors.BulkWriteError: batch op errors occurred
+   >>> doc
+   {'_id': ObjectId('560f171cfba52279f0b0da0c')}
+
+   >>> docs = [{}]
+   >>> collection.insert_many(docs * 10)
+   Traceback (most recent call last):
+   ...
+   pymongo.errors.BulkWriteError: batch op errors occurred
+   >>> docs
+   [{'_id': ObjectId('560f1933fba52279f0b0da0e')}]
