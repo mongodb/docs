@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_get_journal
+.. _mongoc_write_concern_get_journal:
 
 mongoc_write_concern_get_journal()
 ==================================
@@ -14,7 +14,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
 
 Description
 -----------

@@ -1,5 +1,6 @@
-.. _mongoc_uri_set_mechanism_properties
+.. _mongoc_uri_set_mechanism_properties:
 
+=====================================
 mongoc_uri_set_mechanism_properties()
 =====================================
 
@@ -15,8 +16,8 @@ Synopsis
 Parameters
 ----------
 
-* ``uri``: A :ref:`mongoc_uri_t`.
-* ``properties``: A :ref:`bson_t` .
+- ``uri``: A :ref:`mongoc_uri_t`.
+- ``properties``: A :ref:`bson_t` .
 
 Description
 -----------
@@ -48,5 +49,5 @@ Example
 
   bson_destroy (&props);
 
-.. include:: includes/seealso/authmechanism.txt
+.. include:: ../../includes/seealso/authmechanism.txt
 

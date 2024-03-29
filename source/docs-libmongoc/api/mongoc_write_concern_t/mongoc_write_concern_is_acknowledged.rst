@@ -1,5 +1,6 @@
-.. _mongoc_write_concern_is_acknowledged
+.. _mongoc_write_concern_is_acknowledged:
 
+======================================
 mongoc_write_concern_is_acknowledged()
 ======================================
 
@@ -15,7 +16,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
 
 Description
 -----------

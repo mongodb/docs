@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_get_wtimeout
+.. _mongoc_write_concern_get_wtimeout:
 
 mongoc_write_concern_get_wtimeout()
 ===================================
@@ -14,7 +14,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
 
 Description
 -----------

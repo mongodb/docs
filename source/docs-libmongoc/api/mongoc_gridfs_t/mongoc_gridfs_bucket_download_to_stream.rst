@@ -1,5 +1,6 @@
-.. _mongoc_gridfs_bucket_download_to_stream
+.. _mongoc_gridfs_bucket_download_to_stream:
 
+=========================================
 mongoc_gridfs_bucket_download_to_stream()
 =========================================
 
@@ -17,10 +18,10 @@ Synopsis
 Parameters
 ----------
 
-* ``bucket``: A :ref:`mongoc_gridfs_bucket_t`.
-* ``file_id``: A :ref:`bson_value_t` of the id of the file to download.
-* ``destination``: A :ref:`mongoc_stream_t` which receives data from the downloaded file.
-* ``error``: A :ref:`bson_error_t` to receive any error or ``NULL``.
+- ``bucket``: A :ref:`mongoc_gridfs_bucket_t`.
+- ``file_id``: A :ref:`bson_value_t` of the id of the file to download.
+- ``destination``: A :ref:`mongoc_stream_t` which receives data from the downloaded file.
+- ``error``: A :ref:`bson_error_t` to receive any error or ``NULL``.
 
 Description
 -----------
@@ -30,7 +31,7 @@ Reads from the GridFS file and writes to the ``destination`` stream.
 Writes the full contents of the file to the ``destination`` stream.
 The ``destination`` stream is not closed after calling :ref:`mongoc_gridfs_bucket_download_to_stream()`; call :ref:`mongoc_stream_close()` after.
 
-.. include:: includes/retryable-read.txt
+.. include:: ../../includes/retryable-read.txt
 
 Returns
 -------

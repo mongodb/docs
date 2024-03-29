@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_copy
+.. _mongoc_write_concern_copy:
 
 mongoc_write_concern_copy()
 ===========================
@@ -15,7 +15,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
 
 Description
 -----------

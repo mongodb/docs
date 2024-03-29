@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_set_w
+.. _mongoc_write_concern_set_w:
 
 mongoc_write_concern_set_w()
 ============================
@@ -14,8 +14,8 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
-* ``w``: A positive ``int32_t`` or zero.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``w``: A positive ``int32_t`` or zero.
 
 Description
 -----------

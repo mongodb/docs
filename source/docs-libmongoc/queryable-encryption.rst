@@ -1,3 +1,5 @@
+.. _queryable-encryption:
+
 ####################
 Queryable Encryption
 ####################

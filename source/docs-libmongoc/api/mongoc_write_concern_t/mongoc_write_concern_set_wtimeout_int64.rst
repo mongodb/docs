@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_set_wtimeout_int64
+.. _mongoc_write_concern_set_wtimeout_int64:
 
 mongoc_write_concern_set_wtimeout_int64()
 =========================================
@@ -15,8 +15,8 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
-* ``wtimeout_msec``: A positive ``int64_t`` or zero.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``wtimeout_msec``: A positive ``int64_t`` or zero.
 
 Description
 -----------

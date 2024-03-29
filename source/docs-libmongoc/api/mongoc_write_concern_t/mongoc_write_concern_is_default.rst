@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_is_default
+.. _mongoc_write_concern_is_default:
 
 mongoc_write_concern_is_default()
 =================================
@@ -14,7 +14,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A pointer to a :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A pointer to a :ref:`mongoc_write_concern_t`.
 
 Description
 -----------

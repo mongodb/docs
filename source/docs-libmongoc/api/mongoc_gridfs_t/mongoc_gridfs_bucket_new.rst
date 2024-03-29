@@ -1,5 +1,6 @@
-.. _mongoc_gridfs_bucket_new
+.. _mongoc_gridfs_bucket_new:
 
+==========================
 mongoc_gridfs_bucket_new()
 ==========================
 
@@ -17,12 +18,12 @@ Synopsis
 Parameters
 ----------
 
-* ``db``: A :ref:`mongoc_database_t`.
-* ``opts``: A :ref:`bson_t` or ``NULL``
-* ``read_prefs``: A :ref:`mongoc_read_prefs_t` used for read operations or ``NULL`` to inherit read preferences from ``db``.
-* ``error``: A :ref:`bson_error_t` or ``NULL``.
+- ``db``: A :ref:`mongoc_database_t`.
+- ``opts``: A :ref:`bson_t` or ``NULL``
+- ``read_prefs``: A :ref:`mongoc_read_prefs_t` used for read operations or ``NULL`` to inherit read preferences from ``db``.
+- ``error``: A :ref:`bson_error_t` or ``NULL``.
 
-.. include:: includes/gridfs-bucket-opts.txt
+.. include:: ../../includes/gridfs-bucket-opts.txt
 
 Description
 -----------

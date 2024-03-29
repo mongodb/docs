@@ -1,5 +1,6 @@
-.. _mongoc_write_concern_get_w
+.. _mongoc_write_concern_get_w:
 
+============================
 mongoc_write_concern_get_w()
 ============================
 
@@ -14,7 +15,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
 
 Description
 -----------

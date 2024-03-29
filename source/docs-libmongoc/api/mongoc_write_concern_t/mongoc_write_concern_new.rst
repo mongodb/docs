@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_new
+.. _mongoc_write_concern_new:
 
 mongoc_write_concern_new()
 ==========================

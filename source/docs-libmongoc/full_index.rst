@@ -1,4 +1,4 @@
-.. _mongoc_reference
+.. _mongoc_reference:
 :orphan:
 
 .. Yes it's confusing: the home page is called "index" so this is "full_index",

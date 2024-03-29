@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_set_fsync
+.. _mongoc_write_concern_set_fsync:
 
 mongoc_write_concern_set_fsync()
 ================================
@@ -22,8 +22,8 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
-* ``fsync_``: A boolean.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``fsync_``: A boolean.
 
 Description
 -----------

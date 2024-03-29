@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_get_wmajority
+.. _mongoc_write_concern_get_wmajority:
 
 mongoc_write_concern_get_wmajority()
 ====================================
@@ -15,7 +15,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
 
 Description
 -----------

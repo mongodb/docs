@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_set_wmajority
+.. _mongoc_write_concern_set_wmajority:
 
 mongoc_write_concern_set_wmajority()
 ====================================
@@ -15,8 +15,8 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
-* ``wtimeout_msec``: A positive ``int32_t`` or zero. If you need to set wtimeout with an ``int64_t``, use :ref:`mongoc_write_concern_set_wtimeout_int64`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``wtimeout_msec``: A positive ``int32_t`` or zero. If you need to set wtimeout with an ``int64_t``, use :ref:`mongoc_write_concern_set_wtimeout_int64`.
 
 Description
 -----------

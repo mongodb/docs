@@ -1,4 +1,4 @@
-.. _mongoc_write_concern_destroy
+.. _mongoc_write_concern_destroy:
 
 mongoc_write_concern_destroy()
 ==============================
@@ -14,7 +14,7 @@ Synopsis
 Parameters
 ----------
 
-* ``write_concern``: A :ref:`mongoc_write_concern_t`.
+- ``write_concern``: A :ref:`mongoc_write_concern_t`.
 
 Description
 -----------
