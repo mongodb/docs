@@ -5,8 +5,8 @@
 
       This example does the following:
 
-      - Instantiates {+avs+} as a `vector store retriever 
-        <https://docs.llamaindex.ai/en/latest/api_reference/query/retrievers/vector_store.html>`__, 
+      - Instantiates {+avs+} as a `vector index retriever 
+        <https://docs.llamaindex.ai/en/stable/api_reference/retrievers/vector/>`__, 
         a specific type of retriever for vector stores.
         It includes the ``similarity_top_k``  parameter so that {+avs+} retrieves 
         only the 5 most relevant documents.
@@ -57,8 +57,8 @@
       - Defines a metadata filter on the ``metadata.page_label`` field 
         so that {+avs+} searches for documents appearing on page 17 only.
 
-      - Instantiates {+avs+} as a `vector store retriever 
-        <https://docs.llamaindex.ai/en/latest/api_reference/query/retrievers/vector_store.html>`__, 
+      - Instantiates {+avs+} as a `vector index retriever 
+        <https://docs.llamaindex.ai/en/stable/api_reference/retrievers/vector/>`__, 
         a specific type of retriever for vector stores.
         It includes the metadata filters that you defined
         and the ``similarity_top_k`` parameter so that {+avs+} retrieves 

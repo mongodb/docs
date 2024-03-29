@@ -9,7 +9,7 @@
       It also specifies the following:
 
       - {+avs+} as a `retriever 
-        <https://docs.llamaindex.ai/en/stable/module_guides/querying/retriever/root.html>`__
+        <https://docs.llamaindex.ai/en/stable/module_guides/querying/retriever/>`__
         to perform semantic search.
       - The  ``similarity_top_k`` parameter to return 
         only the three most relevant documents.
@@ -75,7 +75,7 @@
       It also specifies the following:
 
       - {+avs+} as a `retriever 
-        <https://docs.llamaindex.ai/en/stable/module_guides/querying/retriever/root.html>`__
+        <https://docs.llamaindex.ai/en/stable/module_guides/querying/retriever/>`__
         to perform semantic search.
       - The  ``similarity_top_k`` parameter to return 
         only the three most relevant documents.

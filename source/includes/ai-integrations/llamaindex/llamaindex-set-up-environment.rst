@@ -52,7 +52,7 @@
       - ``text-embedding-ada-002`` as the embedding model used by your application 
         to generate vector embeddings from your data.
       - `Chunk size and overlap
-        <https://docs.llamaindex.ai/en/stable/optimizing/basic_strategies/basic_strategies.html#chunk-sizes>`__
+        <https://docs.llamaindex.ai/en/stable/optimizing/basic_strategies/basic_strategies/#chunk-sizes>`__
         to customize how LlamaIndex partitions your data for storage.
 
       .. code-block:: python

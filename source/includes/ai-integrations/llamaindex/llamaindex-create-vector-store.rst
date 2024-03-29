@@ -17,7 +17,7 @@
       - Creates a new directory called ``data``.
       - Retrieves the PDF from the specified URL and saves it as a file in the directory.
       - Uses the ``SimpleDirectoryReader`` `data connector
-        <https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/root.html>`__
+        <https://docs.llamaindex.ai/en/stable/module_guides/loading/connector/>`__
         to extract raw text and metadata from the file. It also formats the data into
         documents.
 
@@ -58,7 +58,7 @@
       - ``vector_index`` as the index to use for querying the vector store.
 
       Then, you save the vector store to a `storage context
-      <https://docs.llamaindex.ai/en/stable/api_reference/storage.html>`__,
+      <https://docs.llamaindex.ai/en/stable/api_reference/storage/storage_context/>`__,
       which is a LlamaIndex container object used to prepare your data for storage.
       
       .. code-block:: python
@@ -80,7 +80,7 @@
       Once you've loaded your data and instantiated |service| as a vector store, 
       generate vector embeddings from your data and store them in |service|. 
       To do this, you must build a `vector store index 
-      <https://docs.llamaindex.ai/en/stable/understanding/indexing/indexing.html>`__.
+      <https://docs.llamaindex.ai/en/stable/understanding/indexing/indexing/>`__.
       This type of index is a LlamaIndex data structure that 
       splits, embeds, and then stores your data in the vector store.
 
