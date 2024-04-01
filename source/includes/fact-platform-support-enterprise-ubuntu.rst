@@ -20,8 +20,6 @@ MongoDB {+version+} Enterprise Edition supports the following
 
 - 18.04 :abbr:`LTS (Long Term Support)` ("Bionic")
 
-- 16.04 :abbr:`LTS (Long Term Support)` ("Xenial")
-
 MongoDB only supports the 64-bit versions of these platforms. To
 determine which Ubuntu release your host is running, run the following
 command on the host's terminal:
@@ -35,5 +33,3 @@ MongoDB {+version+} Enterprise Edition on Ubuntu also supports the
 select platforms.
 
 See :ref:`prod-notes-supported-platforms` for more information.
-
-.. include:: /includes/admonition-power-ubuntu-restriction.rst
