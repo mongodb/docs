@@ -29,7 +29,8 @@ Description
 Reads from the GridFS file and writes to the ``destination`` stream.
 
 Writes the full contents of the file to the ``destination`` stream.
-The ``destination`` stream is not closed after calling :ref:`mongoc_gridfs_bucket_download_to_stream()`; call :ref:`mongoc_stream_close()` after.
+The ``destination`` stream is not closed after calling :ref:`mongoc_gridfs_bucket_download_to_stream`;
+call :ref:`mongoc_stream_close` after.
 
 .. include:: ../../includes/retryable-read.txt
 

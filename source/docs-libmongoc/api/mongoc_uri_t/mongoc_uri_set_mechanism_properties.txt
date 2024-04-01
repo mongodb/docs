@@ -1,5 +1,6 @@
 .. _mongoc_uri_set_mechanism_properties:
 
+=====================================
 mongoc_uri_set_mechanism_properties()
 =====================================
 

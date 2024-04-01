@@ -33,4 +33,4 @@ Creates a new :ref:`mongoc_gridfs_bucket_t`. Use this handle to perform GridFS o
 Returns
 -------
 
-A newly allocated :ref:`mongoc_gridfs_bucket_t` that should be freed with :ref:`mongoc_gridfs_bucket_destroy()` or ``NULL`` on failure.
+A newly allocated :ref:`mongoc_gridfs_bucket_t` that should be freed with :ref:`mongoc_gridfs_bucket_destroy` or ``NULL`` on failure.
