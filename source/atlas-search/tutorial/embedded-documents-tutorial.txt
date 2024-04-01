@@ -30,9 +30,12 @@ following steps:
    - ``teachers.classes`` field 
    - ``clubs.sports`` field
   
-#. Run |fts| queries that search the embedded documents in the  
+#. Run :pipeline:`$search` queries that search the embedded documents in
    the ``schools`` collection using the :ref:`compound-ref` operator with 
    the :ref:`embedded-document-ref` and :ref:`text-ref` operators.
+
+#. Run a :pipeline:`$searchMeta` query against an embedded document
+   field to get a count. 
 
 Before you begin, ensure that your |service| {+cluster+} meets the 
 requirements described in the :ref:`fts-tutorials-prereqs`. For this 
@@ -310,66 +313,52 @@ embedded documents in the ``local_school_district.schools`` collection.
          .. tab:: Visual Editor 
             :tabid: vib
 
-            a. Click :guilabel:`Next`.
+            1. Click :guilabel:`Next`.
             #. Click :guilabel:`Refine Your Index`.
-            #. In the :guilabel:`Field Mappings` section, click
-               :guilabel:`Add Field Mapping`. 
-            #. Select the following from the dropdown. 
+            #. Click :guilabel:`Add Field` in the :guilabel:`Field Mappings`
+               section and add the following fields by clicking
+               :guilabel:`Add` after configuring the settings for each
+               field, one at a time, in the :guilabel:`Add Field Mapping` 
+               window. 
 
                .. list-table:: 
-                  :stub-columns: 1
+                  :header-rows: 1 
+                  :widths: 40 40 20
 
                   * - :guilabel:`Field Name`
-                    - ``teachers`` 
+                    - :guilabel:`Data Type`
+                    - :guilabel:`Enable Dynamic Mapping`
 
-                  * - :guilabel:`Data Type`
+                  * - ``teachers``
                     - :guilabel:`EmbeddedDocuments`
-                       
-            #. Toggle to enable :guilabel:`Enable Dynamic Mapping` if it
-               isn't already enabled and click :guilabel:`Add`.
-            #. For the  **teachers** field in the :guilabel:`Field
-               Mappings` table, configure the following mappings: 
-               
-               1. Click the ellipses (:guilabel:`...`) under
-                  :guilabel:`Actions`, select :guilabel:`Add Data Type`,
-                  and make the following changes: 
-                  
-                  i. Select :guilabel:`Document` from the :guilabel:`Data
-                     Type` dropdown.
-                  #. Toggle to enable :guilabel:`Enable Dynamic Mapping` if it
-                     isn't already enabled.
-                  #. Click :guilabel:`Add`. 
-                   
-               2. Click :guilabel:`Add Embedded Field` and do the following:
-               
-                  i. Select the following from the dropdown. 
+                    - On
 
-                     .. list-table:: 
-                        :stub-columns: 1
+                  * - ``teachers.classes``
+                    - :guilabel:`EmbeddedDocuments`
+                    - On
+                    
+                  * - ``teachers``
+                    - :guilabel:`Document`
+                    - On
+                    
+                  * - ``teachers.classes``
+                    - :guilabel:`Document`
+                    - On
+                    
+                  * - ``teachers.classes.grade``
+                    - :guilabel:`StringFacet` 
+                    - N/A
 
-                        * - :guilabel:`Field Name`
-                          - ``teachers.classes`` 
-
-                        * - :guilabel:`Data Type`
-                          - :guilabel:`EmbeddedDocuments`
-
-                  #. Toggle to enable :guilabel:`Enable Dynamic Mapping` if it
-                     isn't already enabled.
-                  #. Click :guilabel:`Add`.
+                  * - ``clubs.sports``
+                    - :guilabel:`EmbeddedDocuments`
+                    - On
 
             #. Click :guilabel:`Add Field Mappings` to open the
                :guilabel:`Add Field Mapping` window.
+            #. Select the following from the dropdown.
+            #. Click :guilabel:`Add Field Mappings` to open the
+               :guilabel:`Add Field Mapping` window.
             #. Select the following from the dropdown. 
-
-               .. list-table:: 
-                  :stub-columns: 1
-
-                  * - :guilabel:`Field Name`
-                    - ``clubs.sports`` 
-
-                  * - :guilabel:`Data Type`
-                    - :guilabel:`EmbeddedDocuments`
-
             #. Toggle to enable :guilabel:`Enable Dynamic Mapping` if it
                isn't already enabled and click :guilabel:`Add`
             #. Click :guilabel:`Save`.
@@ -411,6 +400,17 @@ embedded documents in the ``local_school_district.schools`` collection.
                           },
                           {
                             "dynamic": true,
+                            "fields": {
+                              "classes": {
+                                "dynamic": true,
+                                "fields": {
+                                  "grade": {
+                                    "type": "stringFacet"
+                                  }
+                                },
+                                "type": "document"
+                              }
+                            },
                             "type": "document"
                           }
                         ]
@@ -432,8 +432,8 @@ embedded documents in the ``local_school_district.schools`` collection.
       Progress``. When it is finished building, the :guilabel:`Status`
       column reads ``Active``. 
 
-Run |fts| Queries Against Embedded Document Fields 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Run ``$search`` Queries Against Embedded Document Fields 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can run queries against the embedded document fields. This 
 tutorial uses :ref:`embedded-document-ref` and :ref:`text-ref` 
@@ -500,3 +500,58 @@ set the language of the examples in this section.
       :tabid: python
 
       .. include:: /includes/steps-fts-embedded-document-query-python.txt
+
+Run ``$searchMeta`` Query Against Embedded Document Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can run :pipeline:`$searchMeta` queries against the embedded
+document fields. In this section, you will connect to your |service|
+{+cluster+} and run a sample query using the ``$searchMeta`` stage and
+facet on an embedded document field. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-atlas-ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-mongosh.rst 
+
+   .. tab::
+      :tabid: compass
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-compass.rst
+
+   .. tab::
+      :tabid: csharp
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-cs.rst
+
+   .. tab:: 
+      :tabid: go
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-go.rst
+
+   .. tab:: 
+      :tabid: java-sync 
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-java.rst
+
+   .. tab:: 
+      :tabid: kotlin-coroutine
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-kotlin.rst
+
+   .. tab::
+      :tabid: nodejs
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-nodejs.rst
+
+   .. tab::
+      :tabid: python
+
+      .. include:: /includes/steps-fts-embedded-document-facet-query-python.rst
