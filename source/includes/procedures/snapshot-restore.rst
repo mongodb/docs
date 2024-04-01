@@ -1,8 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Click :guilabel:`Database` in the top-left corner of 
-      |service|.
+   .. include:: /includes/nav/steps-db-deployments-page.rst
 
    .. step:: From the :guilabel:`{+Database-Deployments+}` view, click 
       on the {+database-deployment+} name.
