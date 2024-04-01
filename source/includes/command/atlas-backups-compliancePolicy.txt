@@ -1,0 +1,71 @@
+.. _atlas-backups-compliancePolicy:
+
+==============================
+atlas backups compliancePolicy
+==============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Manage cloud backup compliance policy for your project. Use "atlas backups compliancepolicy setup" to enable backup compliance policy with a full configuration. Use "atlas backups compliancepolicy enable" to enable backup compliance policy without any configuration.
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -h, --help
+     - 
+     - false
+     - help for compliancePolicy
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Related Commands
+----------------
+
+* :ref:`atlas-backups-compliancePolicy-copyProtection` - Manage copy protection of the backup compliance policy for your project. Learn more: https://www.mongodb.com/docs/atlas/backup/cloud-backup/backup-compliance-policy/#-optional--keep-all-snapshots-when-removing-additional-snapshot-regions.
+* :ref:`atlas-backups-compliancePolicy-describe` - Return the backup compliance policy for your project.
+* :ref:`atlas-backups-compliancePolicy-enable` - Enable Backup Compliance Policy without any configuration.
+* :ref:`atlas-backups-compliancePolicy-encryptionAtRest` - Manage encryption-at-rest for the backup compliance policy for your project. Encryption-at-rest enforces all clusters with a Backup Compliance Policy to use Customer Key Management.
+* :ref:`atlas-backups-compliancePolicy-pointInTimeRestores` - Manage whether the project uses Continuous Cloud Backups with a Backup Compliance Policy. Read more in the documentation: https://www.mongodb.com/docs/atlas/backup/cloud-backup/configure-backup-policy/#configure-the-restore-window.
+* :ref:`atlas-backups-compliancePolicy-policies` - Manage the individual policy items of the backup compliance policy for your project.
+* :ref:`atlas-backups-compliancePolicy-setup` - Setup the backup compliance policy for your project with a configuration file.
+
+
+.. toctree::
+   :titlesonly:
+
+   copyProtection </command/atlas-backups-compliancePolicy-copyProtection>
+   describe </command/atlas-backups-compliancePolicy-describe>
+   enable </command/atlas-backups-compliancePolicy-enable>
+   encryptionAtRest </command/atlas-backups-compliancePolicy-encryptionAtRest>
+   pointInTimeRestores </command/atlas-backups-compliancePolicy-pointInTimeRestores>
+   policies </command/atlas-backups-compliancePolicy-policies>
+   setup </command/atlas-backups-compliancePolicy-setup>
+
