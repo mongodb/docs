@@ -1,12 +1,12 @@
 .. _pymongo-csot:
 
-Client Side Operation Timeout
-=============================
+Limit Server Execution Time
+===========================
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. facet::
@@ -14,197 +14,228 @@ Client Side Operation Timeout
    :values: reference
  
 .. meta::
-   :keywords: error, blocking
+   :keywords: error, blocking, thread, task
 
-PyMongo 4.2 introduced the ``~pymongo.timeout()`` method and the ``timeoutMS``
-URI and keyword argument to the ``~pymongo.mongo_client.MongoClient`` class.
-These features allow applications to more easily limit the amount of time that
-one or more operations can execute before control is returned to the app. This
-timeout applies to all of the work done to execute the operation, including
-server selection, connection checkout, serialization, and
-server-side execution.
+Overview
+--------
 
-Basic Usage
------------
+When you use {+driver-short+} to perform a server operation, you can also limit the amount
+of time the server has to finish this operation. To do so, specify a
+**client-side operation timeout**. The timeout applies all steps needed to complete the
+operation, including server selection, connection checkout, serialization, and server-side
+execution. When the timeout expires, {+driver-short+} raises a timeout exception.
 
-The following example uses the ``~pymongo.timeout()`` method to configure a 10-second
-timeout for a ``~pymongo.collection.Collection.insert_one()``.
+You can specify a timeout in two ways: by using the ``timeout()`` method or by using
+the ``timeoutMS`` connection option.
 
-.. code-block:: python
+timeout() Method
+----------------
 
-   import pymongo
-   with pymongo.timeout(10):
-       coll.insert_one({"name": "Nunu"})
-
-.. note::
-  
-   The ``~pymongo.timeout()`` method applies to all {+driver-short+} operations inside the
-   ``with`` block.
-
-The following example ensures that both the ``insert_one()`` and ``find()`` methods
-finish within 10 seconds total. If they don't, {+driver-short+} raises a timeout error.
+To specify a timeout in your code, call the ``timeout()`` method and pass it the timeout
+length, in seconds. You must call the ``timeout()`` method
+in a ``with`` statement, as shown in the following example:
 
 .. code-block:: python
 
    with pymongo.timeout(10):
-       coll.insert_one({"name": "Nunu"})
-       coll.find_one({"name": "Nunu"})
+       collection.insert_one({"name": "Yngwie"})
 
-If you nest calls to the ``~pymongo.timeout()`` method, the deadline of the inner method
-call is capped by the deadline of the outer method call. The deadline can only be
-shortened, not extended.
+In the preceding example, if the insert operation doesn't finish within 10 seconds,
+{+driver-short+} raises an error.
 
-When execution enters a nested ``timeout`` block, the outer ``timeout`` deadline is paused.
-When execution exits the nested ``timeout`` block, the previous ``timeout`` deadline resumes.
-The following example shows how nested calls to the ``timeout()`` method interact:
+The timeout you specify applies to all operations inside the ``with`` block. In the
+following example, the insert and find operations must both finish within a total of
+10 seconds:
 
 .. code-block:: python
+
+   with pymongo.timeout(10):
+       coll.insert_one({"name": "Yngwie"})
+       coll.find_one({"name": "Yngwie"})
+
+Nested Timeout Blocks
+~~~~~~~~~~~~~~~~~~~~~
+
+When execution enters a nested timeout block, the outer timeout is
+paused. When execution exits the nested timeout block, the previous timeout
+resumes.
+
+.. important::
+
+   A nested timeout block can shorten the deadline of an outer timeout block,
+   but it can't extend it.
+
+The following example shows how to use nested calls to the ``timeout()`` method:
+
+.. code-block:: python
+   :linenos:
 
    with pymongo.timeout(5):
-       coll.find_one()  # Uses the 5 second deadline.
+       collection.find_one()
        with pymongo.timeout(3):
-           coll.find_one() # Uses the 3 second deadline.
-       coll.find_one()  # Uses the original 5 second deadline.
+           collection.find_one()
+       collection.find_one()
        with pymongo.timeout(10):
-           coll.find_one()  # Still uses the original 5 second deadline.
-       coll.find_one()  # Uses the original 5 second deadline.
+           collection.find_one()
+       collection.find_one()
 
-Timeout Errors
---------------
+In the preceding example, the code performs the following steps:
 
-When execution enters a ``~pymongo.timeout()`` ``with`` block, a deadline is set
-for the entire block. When that deadline is exceeded, any blocking {+driver-short+}
-operation will raise a timeout exception. For example:
+- **Line 1**: Creates a five-second timeout block.
+- **Line 2**: Calls the ``find_one()`` method inside the five-second timeout block. The server must
+   complete this operation within the five-second timeout.
+- **Line 3**: Creates a nested three-second timeout block.
+- **Line 4**: Calls the ``find_one()`` method inside the three-second timeout block. The server must
+   complete this operation within three seconds.
+- **Line 5**: Calls the ``find_one()`` method outside the three-second timeout block. The server must
+   complete this operation within the original five-second timeout.
+- **Line 6**: Creates a nested ten-second timeout block.
+- **Line 7**: Calls the ``find_one()`` method inside the ten-second timeout block. A nested timeout
+   block can't extend an outer timeout block, so the server must complete this operation
+   within the original five-second timeout.
+- **Line 8**: Calls the ``find_one()`` method outside the ten-second timeout block. The
+  server must complete this operation within the original five-second timeout. 
+
+Thread and Task Safety
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``timeout()`` method is thread-safe. The timeout applies only to the current
+thread, and multiple threads can configure different timeouts in parallel.
+
+The ``timeout()`` method is also ``asyncio``-safe. The timeout applies only to the
+current Task, and multiple Tasks can configure different timeouts at the same time.
+
+The following example shows how to use the ``timeout()`` method with
+`Motor <https://github.com/mongodb/motor>`__, the MongoDB
+Python driver for asynchronous applications: 
 
 .. code-block:: python
+
+   import motor.motor_asyncio
+   client = motor.motor_asyncio.AsyncIOMotorClient()
+   coll = client["test-db"]["test-collection"]
+   with pymongo.timeout(10):
+       await coll.insert_one({"name": "Yngwie"})
+       await coll.find_one({"name": "Yngwie"})
+
+timeoutMS Connection Option
+---------------------------
+
+To specify a timeout when connecting to a MongoDB deployment, set the ``timeoutMS``
+connection option to the timeout length, in milliseconds.
+You can do this in two ways: by passing an argument to the
+``MongoClient`` constructor or through a parameter in your connection string.
+
+The following code examples use the ``timeoutMS`` option to specify a timeout of 10 seconds:
+
+.. tabs::
+
+   .. tab:: MongoClient
+      :tabid: mongoclient
+
+      .. code-block:: python
+         :emphasize-lines: 2
+
+         client = pymongo.MongoClient("mongodb://<username>:<password>@<hostname@:<port>",
+                                      timeoutMS=10000)
+
+   .. tab:: Connection String
+      :tabid: connectionstring
+
+      .. code-block:: python
+         :emphasize-lines: 1
+
+         uri = "mongodb://<username>:<password>@<hostname@:<port>/?timeoutMS=10000"
+         client = pymongo.MongoClient(uri)
+
+If you specify the ``timeoutMS`` option, {+driver-short+} automatically applies the
+specified timeout to each server operation. The following code examples specify
+a timeout of 10 seconds, then call the ``insert_one()`` and
+``find_one()`` methods. To see how the ``timeoutMS`` option compares to using the
+``timeout()`` method, select the corresponding tab.
+
+.. tabs::
+
+   .. tab:: timeoutMS Option
+      :tabid: uri-option
+
+      .. code-block:: python
+
+         uri = "mongodb://<username>:<password>@<hostname@:<port>/?timeoutMS=10000"
+         client = pymongo.MongoClient(uri)
+
+         coll = client["test-db"]["test-collection"]
+         coll.insert_one({"name": "Yngwie"})  # Uses a 10-second timeout.
+         coll.find_one({"name": "Yngwie"})  # Also uses a 10-second timeout.
+
+   .. tab:: timeout Method
+      :tabid: method
+
+      .. code-block:: python
+
+         client = MongoClient()
+         coll = client["test-db"]["test-collection"]
+         with pymongo.timeout(10):
+            coll.insert_one({"name": "Yngwie"})
+         with pymongo.timeout(10):
+            coll.find_one({"name": "Yngwie"})
+
+.. important:: ``timeout()`` Overrides ``timeoutMS``
+
+   If you specify the ``timeoutMS`` option, then call the ``timeout()`` method
+   in your code, {+driver-short+} ignores the ``timeoutMS`` value inside the ``timeout``
+   block:
+
+   .. code-block:: python
+
+      client = MongoClient("mongodb://localhost/?timeoutMS=10000")
+      coll = client["test-db"]["test-collection"]
+      coll.insert_one({"name": "Yngwie"})  # Uses the client's 10-second timeout
+      # pymongo.timeout overrides the client's timeoutMS.
+      with pymongo.timeout(20):
+         coll.insert_one({"name": "Yngwie"})  # Uses the 20-second timeout
+      with pymongo.timeout(5):
+         coll.find_one({"name": "Yngwie"})  # Uses the 5-second timeout
+
+Handling Exceptions
+-------------------
+
+When a server operation exceeds the specified timeout, {+driver-short+}
+raises a timeout exception and sets the ``PyMongoError.timeout`` property to ``True``.
+
+The following code example shows one way to handle a timeout exception. Inside the
+``except`` block, the code checks the ``timeout`` property to determine whether
+the exception was caused by a timeout.
+
+.. code-block:: python
+   :emphasize-lines: 9-12
 
    try:
        with pymongo.timeout(10):
-           coll.insert_one({"name": "Nunu"})
+           coll.insert_one({"name": "Yngwie"})
            time.sleep(10)
-           # The deadline has now expired, the next operation will raise
+           # The deadline has now expired. The next operation will raise
            # a timeout exception.
-           coll.find_one({"name": "Nunu"})
+           coll.find_one({"name": "Yngwie"})
    except PyMongoError as exc:
        if exc.timeout:
            print(f"block timed out: {exc!r}")
        else:
            print(f"failed with non-timeout error: {exc!r}")
 
-The ``pymongo.errors.PyMongoError.timeout`` property (added in PyMongo 4.2)
-is ``True`` when the error was caused by a timeout and ``False`` otherwise.
-
-The timeoutMS URI Option
-------------------------
-
-PyMongo 4.2 also added support for the ``timeoutMS`` URI and keyword argument to
-``~pymongo.mongo_client.MongoClient``. When this option is configured, the
-client automatically applies the timeout to each API call. For example:
-
-.. code-block:: python
-
-   client = MongoClient("mongodb://localhost/?timeoutMS=10000")
-   coll = client.test.test
-   coll.insert_one({"name": "Nunu"})  # Uses a 10-second timeout.
-   coll.find_one({"name": "Nunu"})  # Also uses a 10-second timeout.
-
-The above code example is roughly equivalent to the following example:
-
-.. code-block:: python
-
-   client = MongoClient()
-   coll = client.test.test
-   with pymongo.timeout(10):
-       coll.insert_one({"name": "Nunu"})
-   with pymongo.timeout(10):
-       coll.find_one({"name": "Nunu"})
-
-pymongo.timeout Overrides timeoutMS
------------------------------------
-
-The ``~pymongo.timeout()`` method overrides ``timeoutMS``. Within a
-``~pymongo.timeout`` block, a client's ``timeoutMS`` option is ignored:
-
-.. code-block:: python
-
-   client = MongoClient("mongodb://localhost/?timeoutMS=10000")
-   coll = client.test.test
-   coll.insert_one({"name": "Nunu"})  # Uses the client's 10-second timeout.
-   # pymongo.timeout overrides the client's timeoutMS.
-   with pymongo.timeout(20):
-       coll.insert_one({"name": "Nunu"})  # Uses the 20-second timeout.
-   with pymongo.timeout(5):
-       coll.find_one({"name": "Nunu"})  # Uses the 5-second timeout.
-
-pymongo.timeout Is Thread-safe
-------------------------------
-
-The ``~pymongo.timeout()`` method is thread-safe. The timeout applies only to the current
-thread, and multiple threads can configure different timeouts in parallel.
-
-pymongo.timeout Is asyncio-safe
--------------------------------
-
-The ``~pymongo.timeout()`` method is ``asyncio``-safe. The timeout applies only to the
-current Task, and multiple Tasks can configure different timeouts concurrently.
-
-The ``~pymongo.timeout()`` method can be used identically in
-`Motor <https://github.com/mongodb/motor>`__: 
-
-.. code-block:: python
-
-   import motor.motor_asyncio
-   client = motor.motor_asyncio.AsyncIOMotorClient()
-   coll = client.test.test
-   with pymongo.timeout(10):
-       await coll.insert_one({"name": "Nunu"})
-       await coll.find_one({"name": "Nunu"})
-
 Troubleshooting
 ---------------
 
-In code, you can identify timeout errors by using the ``pymongo.errors.PyMongoError.timeout``
-property. Some specific timeout errors examples are described below.
+The following sections describe errors you might see when using timeouts.
 
-When the client was unable to find an available server to run the operation
-within the given timeout:
+.. include:: /includes/troubleshooting/csot.rst
 
-.. code-block:: python
+API Documentation
+-----------------
 
-   pymongo.errors.ServerSelectionTimeoutError: No servers found yet, Timeout: -0.00202266700216569s, Topology Description: <TopologyDescription id: 63698e87cebfd22ab1bd2ae0, topology_type: Unknown, servers: [<ServerDescription ('localhost', 27017) server_type: Unknown, rtt: None>]>
+To learn more about using timeouts in {+driver-short+},
+see the following API documentation:
 
-When either the client was unable to establish a connection within the given
-timeout or the operation was sent but the server was not able to respond in time:
-
-.. code-block:: python
-
-   pymongo.errors.NetworkTimeout: localhost:27017: timed out
-
-When the server cancelled the operation because it exceeded the given timeout.
-Note that the operation may have partially completed on the server (depending
-on the operation).
-
-.. code-block:: python
-
-   pymongo.errors.ExecutionTimeout: operation exceeded time limit, full error: {'ok': 0.0, 'errmsg': 'operation exceeded time limit', 'code': 50, 'codeName': 'MaxTimeMSExpired'}
-
-When the client cancelled the operation because it was not possible to complete
-within the given timeout:
-
-.. code-block:: python
-
-   pymongo.errors.ExecutionTimeout: operation would exceed time limit, remaining timeout:0.00196 <= network round trip time:0.00427
-
-When the client attempted a write operation but the server could not replicate
-that operation (according to the configured write concern) within the given timeout:
-
-.. code-block:: python
-
-   pymongo.errors.WTimeoutError: operation exceeded time limit, full error: {'code': 50, 'codeName': 'MaxTimeMSExpired', 'errmsg': 'operation exceeded time limit', 'errInfo': {'writeConcern': {'w': 1, 'wtimeout': 0}}}
-
-The same error as above, but for the ``~pymongo.collection.Collection.insert_many()`` method
-or the ``~pymongo.collection.Collection.bulk_write()`` method:
-
-.. code-block:: python
-
-   pymongo.errors.BulkWriteError: batch op errors occurred, full error: {'writeErrors': [], 'writeConcernErrors': [{'code': 50, 'codeName': 'MaxTimeMSExpired', 'errmsg': 'operation exceeded time limit', 'errInfo': {'writeConcern': {'w': 1, 'wtimeout': 0}}}], 'nInserted': 2, 'nUpserted': 0, 'nMatched': 0, 'nModified': 0, 'nRemoved': 0, 'upserted': []}
+- `MongoClient <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient>`__ 
+- `timeout() <{+api-root+}pymongo/index.html#pymongo.timeout>`__
+- `PyMongoError <{+api-root+}pymongo/errors.html#pymongo.errors.PyMongoError>`__ 
