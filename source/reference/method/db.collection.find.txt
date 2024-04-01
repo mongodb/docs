@@ -80,7 +80,9 @@ parameters:
      - document
      - .. _method-find-options:
 
-       .. include:: /includes/find-options-description.rst
+       Optional. Specifies additional options for the query. These options
+       modify query behavior and how results are returned. For details, 
+       see :ref:`find-options`.
 
 Behavior
 --------
@@ -101,6 +103,13 @@ of the following form:
    { <field1>: <value>, <field2>: <value> ... }
 
 .. include:: /includes/extracts/projection-values-table.rst
+
+.. _find-options:
+
+Options
+~~~~~~~
+
+.. include:: /includes/find-options-values-table.rst
 
 Embedded Field Specification
 ````````````````````````````
@@ -620,8 +629,6 @@ You can also specify embedded fields using the nested form. For example:
       { _id: 0, name: { last: 1 }, contribs: { $slice: 2 } }
    )
 
-
-
 Use Aggregation Expression
 ``````````````````````````
 
@@ -949,8 +956,97 @@ Perform the following steps to retrieve the documents accessible to
 
       .. include:: /includes/user-roles-system-variable-example-output-jane.rst
 
+Modify a Query with options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following examples show how you can use the ``options`` field
+in a ``find()`` query. Use the following 
+:method:`~db.collection.insertMany()` to setup the ``users`` collection:
+
+.. code-block:: javascript
+   :copyable: true
+
+   db.users.insertMany( [
+      { username: "david", age: 27 },
+      { username: "amanda", age: 25 },
+      { username: "rajiv", age: 32 },
+      { username: "rajiv", age: 90 }
+   ] )
+
+limit with options
+``````````````````
+
+The following query limits the number of documents in the result set 
+with the ``limit`` options parameter:
+
+.. code-block:: javascript
+   :copyable: true
+   :emphasize-lines: 4
+
+   db.users.find(
+      { username : "rajiv"}, // query
+      { age : 1 }, // projection
+      { limit : 1 } // options
+   )
+
+allowDiskUse with options
+`````````````````````````
+
+The following query uses the ``options`` parameter to enable 
+``allowDiskUse``:
+
+.. code-block:: javascript
+   :copyable: true
+   :emphasize-lines: 4
+
+   db.users.find(
+      { username : "david" },
+      { age : 1 },
+      { allowDiskUse : true }
+   )
+
+explain with options
+````````````````````
+
+The following query uses the ``options`` parameter to get the 
+``executionStats`` explain output:
+
+.. code-block:: javascript
+   :copyable: true 
+   :emphasize-lines: 4
+
+   var cursor = db.users.find(
+      { username: "amanda" },
+      { age : 1 },
+      { explain : "executionStats" }
+   )
+   cursor.next()
+
+Specify Multiple options in a query
+```````````````````````````````````
+
+The following query uses multiple ``options`` in a single query. This 
+query uses ``limit`` set to ``2`` to return only two documents, and
+``showRecordId`` set to ``true`` to return the position of the document
+in the result set:
+
+.. code-block:: javascript
+   :copyable: true
+   :emphasize-lines: 4-7
+
+   db.users.find(
+      {},
+      { username: 1, age: 1 },
+      {
+        limit: 2, 
+        showRecordId: true
+      }
+   )
+
 Learn More
 ----------
 
-To see all available query options, see :node-api-4.0:`FindOptions
-</interfaces/findoptions.html>`.
+- :method:`~db.collection.findOne()`
+- :method:`~db.collection.findAndModify()`
+- :method:`~db.collection.findOneAndDelete()`
+- :method:`~db.collection.findOneAndReplace()`
