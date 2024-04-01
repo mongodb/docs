@@ -14,8 +14,6 @@ MongoDB {+version+} Community Edition supports the following
 
 - 18.04 :abbr:`LTS (Long Term Support)` ("Bionic")
 
-- 16.04 :abbr:`LTS (Long Term Support)` ("Xenial")
-
 MongoDB only supports the 64-bit versions of these platforms.
 
 MongoDB {+version+} Community Edition on Ubuntu also supports the
