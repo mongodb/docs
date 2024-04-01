@@ -1,10 +1,7 @@
 .. procedure::
    :style: connected
 
-   .. step:: Navigate to your {+fdi+}.
-
-      If it isn't already displayed, select :guilabel:`Data Federation` 
-      from the left navigation panel.
+   .. include:: /includes/nav/steps-data-federation.rst
    
    .. step:: Click :guilabel:`Connect` to open the {+fdi+} connection modal.
 

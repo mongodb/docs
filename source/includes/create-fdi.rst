@@ -1,9 +1,7 @@
 .. procedure::
    :style: connected
 
-   .. step:: Navigate to the {+df+} dashboard in |service|.
-
-      Select :guilabel:`Data Federation` from the left navigation panel.
+   .. include:: /includes/nav/steps-data-federation.rst
 
    .. step:: Click :guilabel:`Create Federated Database Instance`.
 
