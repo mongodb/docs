@@ -2,13 +2,14 @@
 :guilabel:`Snapshots` page. To view snapshots that |service| has 
 already taken:
 
-1. Click :guilabel:`Database` in the top-left corner of |service|.
-   
-#. From the :guilabel:`{+Database-Deployments+}` view, click the cluster name.
+.. procedure::
+   :style: normal
 
-#. Click the :guilabel:`Backup` tab.
+   .. include:: /includes/nav/steps-db-deployments-page.rst
 
-#. Click :guilabel:`Snapshots`.
+   .. include:: /includes/nav/steps-backup-page.rst
+
+   .. step:: Click :guilabel:`Snapshots`.
 
 Alternatively, you can view a list of all ``M10+`` {+clusters+} with
 {+cloud-backup+} enabled by clicking :guilabel:`Backup` in the left

@@ -1,10 +1,9 @@
-1. Click :guilabel:`Database` in the top-left corner of the
-   {+atlas-ui+}.
+.. procedure::
+   :style: normal
 
-#. From the :guilabel:`{+Database-Deployments+}` view, click the name 
-   of your {+serverless-instance+}.
+   .. include:: /includes/nav/steps-db-deployments-page.rst
 
-#. Click the :guilabel:`Backup` tab.
+   .. include:: /includes/nav/steps-backup-page.rst
 
 |service| displays existing snapshots in the
 :guilabel:`All Snapshots` table. From this table, you can

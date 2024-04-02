@@ -3,14 +3,7 @@
 
    .. include:: /includes/nav/steps-db-deployments-page.rst
 
-   .. step:: From the :guilabel:`{+Database-Deployments+}` view, click 
-      on the {+database-deployment+} name.
-
-   .. step:: Click the :guilabel:`Backup` tab.
-
-      If the {+database-deployment+} has no 
-      :guilabel:`Backup` tab, then |service| backups are 
-      disabled for it and no snapshots are available.
+   .. include:: /includes/nav/steps-backup-page.rst
 
    .. step:: Select the snapshot to restore and click 
       :guilabel:`Restore`.
