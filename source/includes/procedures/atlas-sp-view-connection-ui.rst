@@ -1,26 +1,16 @@
 .. procedure::
    :style: normal
 
-   .. step:: Navigate to the 
-      :guilabel:`Stream Processing` page.
+   .. include:: /includes/nav/steps-stream-processing.rst
 
-      .. procedure::
-         :style: connected
+   .. step:: Go to the :guilabel:`Connection Registry` page.
+      
+      a. Locate the overview panel of the {+spi+} containing the 
+         connection registry you want to view.
+         
+      #. Click :guilabel:`Configure`. 
 
-         .. step:: If it is not already displayed, select the project
-            where you want to create a {+spi+} from the 
-            :guilabel:`Projects` menu.
-
-         .. step:: In the left-hand navigation pane, click 
-            :guilabel:`Stream Processing` under the :guilabel:`Services` 
-            menu.
-
-   .. step:: Locate the overview panel of the {+spi+} containing
-      the connection registry you want to view and click 
-      :guilabel:`Configure`. 
-
-   .. step:: Select the :guilabel:`Connection Registry` 
-      tab.
+      #. Select the :guilabel:`Connection Registry` tab.
 
       {+atlas-sp+} displays all of the connections available in your
       instance connection registry.

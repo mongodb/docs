@@ -1,31 +1,18 @@
 .. procedure::
    :style: normal
 
-   .. step:: Navigate to the 
-      :guilabel:`Connection Registry`.
+   .. include:: /includes/nav/steps-stream-processing.rst
 
-      .. procedure::
-         :style: connected
+   .. step:: Go to the :guilabel:`Connection Registry`.
 
-         .. step:: If it is not already displayed, select the project
-            where you want to create a {+spi+} from the 
-            :guilabel:`Projects` menu.
+      a. Locate the overview panel of the {+spi+} you want to 
+         modify and click :guilabel:`Configure`. 
 
-         .. step:: In the left-hand navigation pane, click 
-            :guilabel:`Stream Processing` under the 
-            :guilabel:`Services` menu.
+      #. Select the :guilabel:`Connection Registry` tab.
 
-         .. step:: Locate the overview panel of the {+spi+} you want to 
-            modify and click :guilabel:`Configure`. 
+   .. step:: Click :guilabel:`+ Add connection`.
 
-         .. step:: Select the :guilabel:`Connection Registry` 
-            tab.
-
-   .. step:: Click 
-      :guilabel:`+ Add connection`.
-
-   .. step:: Add a new 
-      connection.
+   .. step:: Add a new connection.
 
       .. tabs:: 
             
@@ -34,84 +21,70 @@
 
             To create a new connection to an {+kafka+} system:
 
-            .. procedure::
-               :style: connected
+            a. Select a :guilabel:`Kafka` 
+               connection.
 
-               .. step:: Select a :guilabel:`Kafka` 
-                  connection.
+            #. Provide a :guilabel:`Connection Name`. Each
+               connection name must be unique within a {+spi+}.
+               This is the name used to reference the connection in 
+               {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
 
-               .. step:: Provide a :guilabel:`Connection Name`. Each
-                  connection name must be unique within a {+spi+}.
-                  This is the name used to reference the connection in 
-                  {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
+            #. Specify an IP address for one or more 
+               `bootstrap servers <https://kafka.apache.org/documentation/#streamsconfigs_bootstrap.servers>`__
+               for your {+kafka+} system.
 
-               .. step:: Specify an IP address for one or more 
-                  `bootstrap servers <https://kafka.apache.org/documentation/#streamsconfigs_bootstrap.servers>`__
-                  for your {+kafka+} system.
-
-               .. step:: From the dropdown menu, select a 
-                  :guilabel:`Security Protocol Method`. 
+            #. From the dropdown menu, select a 
+               :guilabel:`Security Protocol Method`. 
                   
-                  {+atlas-sp+} supports ``SASL_PLAINTEXT`` or 
-                  ``SASL_SSL``.
+               {+atlas-sp+} supports ``SASL_PLAINTEXT`` or 
+               ``SASL_SSL``.
 
-                  .. tabs:: 
+               .. tabs:: 
 
-                     .. tab:: ``SASL_PLAINTEXT``
-                        :tabid: stream-connect-kafka-plain-auth
+                  .. tab:: ``SASL_PLAINTEXT``
+                     :tabid: stream-connect-kafka-plain-auth
 
-                        .. procedure::
-                           :style: normal
+                     a. From the dropdown menu, select a
+                        :guilabel:`SASL Mechanism`. 
 
-                           .. step:: From the dropdown menu, select a
-                              :guilabel:`SASL Mechanism`. 
-
-                              {+atlas-sp+} supports:
+                        {+atlas-sp+} supports:
                               
-                              - ``PLAIN``
+                        - ``PLAIN``
 
-                              - ``SCRAM-SHA-256``
+                        - ``SCRAM-SHA-256``
 
-                              - ``SCRAM-SHA-512``
+                        - ``SCRAM-SHA-512``
 
-                           .. step:: Provide a :guilabel:`Username` for 
-                              authentication.
+                     #. Provide a :guilabel:`Username` for 
+                        authentication.
 
-                           .. step:: Provide a password for 
-                              authentication.
+                     #. Provide a password for authentication.
 
-                           .. step:: Click 
-                              :guilabel:`Add connection`.
+                     #. Click :guilabel:`Add connection`.
 
-                     .. tab:: ``SASL_SSL``
-                        :tabid: stream-connect-kafka-ssl-auth
+                  .. tab:: ``SASL_SSL``
+                     :tabid: stream-connect-kafka-ssl-auth
 
-                        .. procedure::
-                           :style: normal
+                     a. From the dropdown menu, select a
+                        :guilabel:`SASL Mechanism`. 
 
-                           .. step:: From the dropdown menu, select a
-                              :guilabel:`SASL Mechanism`. 
-
-                              {+atlas-sp+} supports: 
+                        {+atlas-sp+} supports: 
                               
-                              - ``PLAIN`` 
+                        - ``PLAIN`` 
 
-                              - ``SCRAM-SHA-256``
+                        - ``SCRAM-SHA-256``
 
-                              - ``SCRAM-SHA-512``
+                        - ``SCRAM-SHA-512``
 
-                           .. step:: Click :guilabel:`Upload` to upload 
-                              your 
-                              :guilabel:`Certificate Authority PEM file`
+                     #. Click :guilabel:`Upload` to upload your 
+                        :guilabel:`Certificate Authority PEM file`
 
-                           .. step:: Provide a :guilabel:`Username` for 
-                              authentication.
+                     #. Provide a :guilabel:`Username` for  
+                        authentication.
 
-                           .. step:: Provide a password for 
-                              authentication.
+                     #. Provide a password for authentication.
 
-                           .. step:: Click 
-                              :guilabel:`Add connection`.
+                     #. Click :guilabel:`Add connection`.
 
          .. tab:: {+service+} Database
             :tabid: stream-connect-atlas
@@ -119,23 +92,19 @@
             To create a new connection to an {+service+}
             :manual:`change stream <changeStreams>`:
 
-            .. procedure::
-               :style: connected
+            a. Select an :guilabel:`{+service+} Database` 
+               connection.
 
-               .. step:: Select an :guilabel:`{+service+} Database` 
-                  connection.
+            #. Provide a :guilabel:`Connection Name`. Each
+               connection name must be unique within an {+spi+}. 
+               This is the name used to reference the connection in 
+               {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
 
-               .. step:: Provide a :guilabel:`Connection Name`. Each
-                  connection name must be unique within an {+spi+}. 
-                  This is the name used to reference the connection in 
-                  {+atlas-sp+} :ref:`aggregations <stream-aggregation>`.
+            #. From the dropdown menu, select an 
+               :guilabel:`{+service+} {+Cluster+}`. {+atlas-sp+}
+               is only available on dedicated-tier {+clusters+}.
 
-               .. step:: From the dropdown menu, select an 
-                  :guilabel:`{+service+} {+Cluster+}`. {+atlas-sp+}
-                  is only available on dedicated-tier {+clusters+}.
-
-               .. step:: Click 
-                  :guilabel:`Add connection`. 
+            #. Click :guilabel:`Add connection`. 
 
          .. tab:: Sample Connection
             :tabid: stream-connect-sample
@@ -147,14 +116,9 @@
 
             To create a new connection to the sample stream:
 
-            .. procedure::
-               :style: connected
+            a. Select a :guilabel:`Sample Stream` connection.
 
-               .. step:: Select a :guilabel:`Sample Stream` 
-                  connection.
+            #. From the dropdown menu, select ``sample_stream_solar``.
 
-               .. step:: From the dropdown menu, select 
-                  ``sample_stream_solar``.
-
-               .. step:: Click
-                  :guilabel:`Add connection`.
+            #. Click :guilabel:`Add connection`.
+            
