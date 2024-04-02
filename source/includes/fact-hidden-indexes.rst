@@ -1,8 +1,8 @@
 MongoDB offers the ability to hide or unhide indexes from the query planner. 
-By hiding an index from the planner, users can evaluate the potential impact of 
+By hiding an index from the planner, you can evaluate the potential impact of 
 dropping an index without actually dropping the index. 
 
-If after the evaluation, the user decides to drop the index, the user
+If after the evaluation, the user decides to drop the index, you
 can drop the hidden index; i.e. you do not need to unhide it first to
 drop it.
 
