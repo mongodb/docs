@@ -1,10 +1,10 @@
 ``M0``, ``M2``, or ``M5`` Tier Clusters
-  You can modify the cloud provider when you upgrade to an ``M10`` or
-  larger {+cluster+}. 
+  You can modify the cloud provider and region when you upgrade to an
+  ``M10`` or larger {+cluster+}. 
 
 ``M10`` or larger Tier Clusters
   You can select a different provider to change the cloud provider for
-  your dedicated {+clusters+}. 
+  your dedicated {+clusters+}.
 
 Changing to a different provider could change the connection string to 
 your new {+cluster+} if your old {+cluster+} was deployed on GCP or
