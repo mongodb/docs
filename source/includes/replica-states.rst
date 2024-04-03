@@ -18,7 +18,7 @@
    * - 1
      - :replstate:`PRIMARY`
 
-     - The member in state :doc:`primary </core/replica-set-primary>`
+     - The member in state :ref:`primary <replica-set-primary>`
        is the only member that can accept write operations. Eligible to
        vote.
 
