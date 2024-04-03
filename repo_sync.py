@@ -22,23 +22,6 @@ def get_installation_access_token(app_id: int, private_key: str,
     assert auth
     return auth.token
 
-# TODO: this may not be required
-# def create_mongodb_bot_gitconfig():
-#     """Create the mongodb-bot.gitconfig file with the desired content."""
-
-#     content = """
-#     [user]
-#         name = MongoDB Bot
-#         email = mongo-bot@mongodb.com
-#     """
-
-#     gitconfig_path = os.path.expanduser("~/mongodb-bot.gitconfig")
-
-#     with open(gitconfig_path, 'w') as file:
-#         file.write(content)
-
-#     print("mongodb-bot.gitconfig file created.")
-
 
 def main(branch: Annotated[str, typer.Option(envvar="GITHUB_REF")],
          app_id: Annotated[int, typer.Option(envvar="APP_ID")],
@@ -47,19 +30,15 @@ def main(branch: Annotated[str, typer.Option(envvar="GITHUB_REF")],
 
     access_token = get_installation_access_token(app_id, server_docs_private_key, installation_id)
 
-    # Create the mongodb-bot.gitconfig file as necessary.
-    # TODO: this may not be required
-    # create_mongodb_bot_gitconfig()
-
     git_destination_url_with_token = f"https://x-access-token:{access_token}@github.com/mongodb/docs.git"
 
     # Use a local path for testing
     # git_destination_url_with_token = "path_to_local_git"
 
     # Add the destination repo and name it upstream
-    subprocess.run(["git", "remote", "add", "upstream", git_destination_url_with_token], check=True)
+    subprocess.run(["git", "remote", "add", "mongodb-docs", git_destination_url_with_token], check=True)
     # Push the code upstream
-    subprocess.run(["git", "push", "upstream", branch], check=True)
+    subprocess.run(["git", "push", "mongodb-docs", branch], check=True)
 
 
 if __name__ == "__main__":
