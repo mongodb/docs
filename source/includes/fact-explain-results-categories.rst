@@ -5,7 +5,7 @@
 - ``command``, which details the command being explained;
 
 - :ref:`queryPlanner`, which details the plan selected by the
-  :doc:`query optimizer </core/query-plans>` and lists the rejected
+  :ref:`query optimizer <read-operations-query-optimization>` and lists the rejected
   plans;
 
 - :ref:`executionStats`, which details the execution of the winning
