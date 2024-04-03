@@ -36,7 +36,7 @@
 
           * - ``status``
             - |http| response code
-          * - ``envelope``
+          * - ``content``
             - Expected response body
 
      - ``false``

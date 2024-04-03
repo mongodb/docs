@@ -37,9 +37,9 @@
           * - Name
             - Description
 
-          * - status
+          * - ``status``
             - |http| response code
-          * - envelope
+          * - ``content``
             - Expected response body
 
      - ``false``

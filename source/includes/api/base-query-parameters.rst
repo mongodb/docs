@@ -40,9 +40,12 @@
           :header-rows: 1
           :stub-columns: 1
 
-          * - status
+          * - Name
+            - Description
+
+          * - ``status``
             - |http| response code
-          * - envelope
+          * - ``content``
             - Expected response body
 
        For endpoints that return a list of results, the ``results``
