@@ -1,6 +1,6 @@
 # Pull Request Info
 
-[PR Reviewing Guidelines](https://github.com/mongodb/docs-java-rs/blob/master/REVIEWING.md)
+[PR Reviewing Guidelines](https://github.com/mongodb/docs-scala/blob/master/REVIEWING.md)
 
 **Note: this is part of a consolidation effort, so your review should
 not address style guide issues or phrasing unless there are errors**
