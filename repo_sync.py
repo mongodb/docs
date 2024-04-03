@@ -31,14 +31,11 @@ def main(branch: Annotated[str, typer.Option(envvar="GITHUB_REF")],
     access_token = get_installation_access_token(app_id, server_docs_private_key, installation_id)
 
     git_destination_url_with_token = f"https://x-access-token:{access_token}@github.com/mongodb/docs.git"
-
     # Use a local path for testing
     # git_destination_url_with_token = "path_to_local_git"
 
-    # Add the destination repo and name it upstream
-    subprocess.run(["git", "remote", "add", "mongodb-docs", git_destination_url_with_token], check=True)
     # Push the code upstream
-    subprocess.run(["git", "push", "mongodb-docs", branch], check=True)
+    subprocess.run(["git", "push", git_destination_url_with_token, branch], check=True)
 
 
 if __name__ == "__main__":
