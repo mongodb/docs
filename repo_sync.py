@@ -23,7 +23,7 @@ def get_installation_access_token(app_id: int, private_key: str,
     return auth.token
 
 
-def main(branch: Annotated[str, typer.Option(envvar="GITHUB_REF")],
+def main(branch: Annotated[str, typer.Option(envvar="GITHUB_REF_NAME")],
          app_id: Annotated[int, typer.Option(envvar="APP_ID")],
          installation_id: Annotated[int, typer.Option(envvar="INSTALLATION_ID")],
          server_docs_private_key: Annotated[str, typer.Option(envvar="SERVER_DOCS_PRIVATE_KEY")]):
