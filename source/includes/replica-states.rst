@@ -25,15 +25,15 @@
    * - 2
      - :replstate:`SECONDARY`
 
-     - A member in state :doc:`secondary </core/replica-set-secondary>`
+     - A member in state :ref:`secondary <replica-set-secondary-members-ref>`
        is replicating the data store. Eligible to vote.
 
    * - 3
      - :replstate:`RECOVERING`
 
      - Members either perform startup self-checks, or transition from
-       completing a :doc:`rollback </core/replica-set-rollbacks>` or
-       :doc:`resync </tutorial/resync-replica-set-member>`. Data is not
+       completing a :ref:`rollback <replica-set-rollbacks>` or
+       :ref:`resync <resync-replica-member>`. Data is not
        available for reads from this member. Eligible to vote.
 
    * - 5
@@ -55,7 +55,7 @@
 
    * - 9
      - :replstate:`ROLLBACK`
-     - This member is actively performing a :doc:`rollback </core/replica-set-rollbacks>`.  Eligible to
+     - This member is actively performing a :ref:`rollback <replica-set-rollbacks>`.  Eligible to
        vote. Data is not available for reads from this member.
 
        .. include:: /includes/extracts/4.2-changes-rollback-user-ops.rst
