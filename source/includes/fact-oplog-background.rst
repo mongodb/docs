@@ -23,7 +23,7 @@ You might exceed the oplog window if you:
 To increase the size of the ``oplog`` on the source cluster, use
 :setting:`~replication.oplogSizeMB`. For more information, see
 :ref:`Change Oplog Size <tutorial-change-oplog-size>` and
-:ref:`Workloads that Might Requre a Large Oplog Size
+:ref:`Workloads that Might Requre a Large Oplog Size 
 <replica-set-large-oplog-required>`.
 
 
