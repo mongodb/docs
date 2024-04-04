@@ -20,6 +20,7 @@ def get_installation_access_token(app_id: int, private_key: str,
     integration = github.GithubIntegration(app_id, private_key)
     auth = integration.get_access_token(installation_id)
     assert auth
+    assert auth.token
     return auth.token
 
 
