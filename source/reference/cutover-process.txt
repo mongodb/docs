@@ -1,0 +1,88 @@
+.. _c2c-cutover-process:
+
+===============
+Cutover Process 
+===============
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :class: singlecol
+
+You can finalize a migration and transfer your application's writes from
+the source to the destination cluster using the ``mongosync`` cutover
+process. 
+
+Procedure 
+---------
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Verify the status of the :program:`mongosync` process. 
+    
+      Call the :ref:`progress <c2c-api-progress>` endpoint to determine
+      the status of ``mongosync`` before starting the cutover process. 
+      Ensure that the ``mongosync`` process  status indicates the 
+      following values:  
+
+      - ``lagTimeSeconds`` is small (near ``0``). 
+   
+        If ``lagTimeSeconds`` isn't close to ``0`` when the cutover
+        starts, cutover might take a long time. 
+  
+      - ``canCommit`` is ``true``. 
+
+   .. step:: Stop any write operations to the synced collections on the source. 
+
+      - If you started ``mongosync`` with ``enableUserWriteBlocking``
+        set to ``true``, ``mongosync`` blocks all write operations on
+        the entire source cluster during the commit (step 4) for you. 
+      - If you didn't start ``mongosync`` with
+        ``enableUserWriteBlocking``, ensure that writes are disabled.
+        For example, run the ``setUserWriteBlockMode`` command on the
+        source cluster.  
+      - If ``mongosync`` uses filtered sync, it's not necessary to
+        disable writes to the entire source cluster. But you must ensure
+        that write operations are stopped for the collections included
+        by the filter. 
+
+   .. step:: Send a :ref:`commit <c2c-api-commit>` request to ``mongosync``.
+
+      If you started multiple ``mongosync`` instances for your
+      migration, you must issue a commit request for each ``mongosync``
+      instance.
+
+      .. note:: 
+
+         Ensure that the ``mongosync`` process response for the
+         ``commit`` request indicates that the ``mongosync`` state is
+         ``COMMITTING`` or ``COMMITTED``, which is the correct
+         ``mongosync`` state when you send a ``commit`` request.
+
+   .. step:: Wait until you can perform writes on the destination cluster.
+
+      Call the ``progress`` endpoint to determine if ``canWrite`` is
+      ``true``. If ``canWrite`` is ``false``, wait until ``progress``
+      shows ``canWrite`` is ``true``.  
+
+   .. step:: Enable application writes on the destination cluster.
+
+      To enable writes, update :dbcommand:`setUserWriteBlockMode`:
+
+      .. code-block:: javascript
+
+         db.adminCommand(
+           {
+             setUserWriteBlockMode: 1,
+             global: false
+           }
+         )
+
+   .. step:: Call the ``progress`` endpoint to determine the status of the ``mongosync`` process.
+
+      When the ``mongosync`` progress response indicates that the 
+      ``mongosync`` state is ``COMMITTED``, the cutover process is
+      complete. 
