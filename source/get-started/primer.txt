@@ -1,0 +1,116 @@
+.. _scala-primer:
+
+======
+Primer
+======
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, design, types, preparation
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This guide provides background about the {+driver-short+} and its
+asynchronous API before showing you how to use the driver and MongoDB in
+the 
+
+.. :ref:`Quick Start guide <>`.
+
+.. note::
+
+   See the :ref:`Installation guide <scala-install>`
+   for instructions on how to install the driver.
+
+Reactive Streams
+----------------
+
+The {+driver-short+} is built upon the `MongoDB Java Reactive Streams
+driver <https://www.mongodb.com/docs/languages/java/drivers/java-rs/current/>`__.
+The reactive stream API consists of the following components:
+
+1. ``Observable``: a custom implementation of a `Publisher <{+rs-docs+}/Publisher.html>`__
+#. ``Observer``: a custom implementation of a `Subscriber <{+rs-docs+}/Subscriber.html>`__
+#. `Subscription <{+rs-docs+}/Subscription.html>`__
+
+An ``Observable`` is a provider of a potentially unbounded number of
+sequenced elements, published according to the demand received from its
+``Observer`` or multiple instances of ``Observer``.
+
+In response to a call to ``Observable.subscribe(Observer)``, the
+possible invocation sequences for methods on the ``Observer`` class
+are given by the following protocol:
+
+.. code-block:: scala
+   :copyable: false
+
+   onSubscribe onNext* (onError | onComplete)?
+
+This means that ``onSubscribe()`` is always
+signaled, followed by a possibly unbounded number
+of ``onNext()`` signals, as requested by
+``Observer``. This is followed by an ``onError()`` signal
+if there is a failure or an ``onComplete()`` signal
+when no more elements are available, as long as
+the ``Subscription`` is not canceled.
+
+.. tip::
+
+   To learn more about reactive streams, visit
+   the `Reactive Streams documentation <http://www.reactive-streams.org>`__.
+
+Observables
+-----------
+
+The {+driver-short+} API mirrors the :driver:`Java Sync driver
+</java/sync/current/>` API and any methods that cause network 
+I/O to return an ``Observable<T>`` type, where ``T`` is the type of response
+for the operation.
+
+.. note::
+
+   All ``Observable`` types returned from the API are
+   `cold <https://projectreactor.io/docs/core/release/reference/#reactor.hotCold>`__,
+   meaning that nothing happens until they are subscribed to. So just
+   creating an ``Observable`` won’t cause any network I/O. It’s not until
+   you call the ``Subscription.request()`` method that the driver executes
+   the operation.
+   
+   Publishers in this implementation are *unicast*. Each
+   ``Subscription`` to an ``Observable`` relates to a single MongoDB
+   operation, and the ``Observable`` instance's ``Observer`` receives its
+   own specific set of results.
+
+Back Pressure
+~~~~~~~~~~~~~
+
+By default, the ``Observer`` trait will request all the results from the
+``Observer`` as soon as the ``Observable`` is subscribed to. Ensure that
+the ``Observer`` can handle all the results from the
+``Observable``. Custom implementations of the ``Observer.onSubscribe()``
+method can save the ``Subscription`` so that data is only
+requested when the ``Observer`` has the capacity.
+
+Helpers Used in the in the Quick Start
+--------------------------------------
+
+In the Quick Start, we have implemented custom implicit helpers defined
+in the `Helpers.scala
+<{+driver-source-gh+}/blob/master/driver-scala/src/integration/scala/tour/Helpers.scala>`__
+file in the driver source GitHub repository.
+These helpers retrieve and print results. Though the Quick Start is an
+artificial scenario for asynchronous code, the examples block on the 
+results of one example before starting the next, to ensure the
+state of the database. The ``Helpers`` object provides the following
+methods:
+
+- ``results()``: blocks until the ``Observable`` is completed and returns the collected results
+- ``headResult()``: blocks until the first result of the ``Observable`` can be returned
+- ``printResults()``: blocks until the ``Observable`` is completed, and prints out each result
+- ``printHeadResult()``: blocks until the first result of the ``Observable`` is available and then prints it
