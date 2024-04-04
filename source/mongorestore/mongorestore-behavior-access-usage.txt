@@ -1,0 +1,178 @@
+.. _mongorestore-behavior-access-usage:
+
+============================================
+mongorestore Behavior, Access, and Usage
+============================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. |arrow| unicode:: U+27A4
+.. |tool-binary| replace:: ``mongorestore``
+
+Behavior
+--------
+
+Restore to Matching Server Version
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-match-dump-restore-versions.rst
+
+Insert Only
+~~~~~~~~~~~
+
+``mongorestore`` can create a new database or add data to an
+existing database. However, ``mongorestore`` performs inserts
+only and does not perform updates. That is, if restoring documents to
+an existing database and collection and existing documents have the
+same value ``_id`` field as the to-be-restored documents,
+``mongorestore`` will *not* overwrite those documents.
+
+Rebuild Indexes
+~~~~~~~~~~~~~~~
+
+``mongorestore`` recreates indexes recorded by 
+:binary:`~bin.mongodump` after restoring data.
+
+.. note::
+
+   For MongoDB installations with ``featureCompatibilityVersion`` (fCV)
+   set to ``"4.0"`` or earlier, creating indexes will
+   :limit:`error if an index key in an existing document exceeds the
+   limit <Index Key Limit>`. 
+
+   To avoid this issue, consider using hashed indexes or indexing a
+   computed value instead. If you want to resolve the index issue after
+   restoring the data, you can disable the default index key length
+   validation on the target database by setting the :binary:`~bin.mongod`
+   instance's ``failIndexKeyTooLong`` parameter to false.
+
+
+Exclude ``system.profile`` Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongorestore`` does not restore the :data:`system.profile
+<<database>.system.profile>` collection data.
+
+FIPS
+~~~~
+
+``mongorestore`` automatically creates FIPS-compliant
+connections to a :binary:`~bin.mongod`/:binary:`~bin.mongos` that is
+:manual:`configured to use FIPS mode </tutorial/configure-fips>`.
+
+Write Concern
+~~~~~~~~~~~~~
+
+If you specify write concern in both the
+:option:`--writeConcern <mongorestore --writeConcern>` option and the
+:option:`--uri <mongorestore --uri>` connection string option, the
+:option:`--writeConcern <mongorestore --writeConcern>` value overrides
+the write concern specified in the URI string.
+
+.. _mongorestore-time-series-collections:
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, you can use ``mongorestore`` to restore 
+:ref:`timeseries collections <manual-timeseries-landing>`.
+For details, see :ref:`mongorestore-example-time-series`.
+
+Using ``mongorestore`` on Atlas Free and Shared Tier Clusters 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On free (``M0``) and shared (``M2`` and ``M5``) tier Atlas clusters, the
+following limitations apply:
+
+- You can't run ``mongorestore`` on the ``admin`` database. By default,
+  ``mongorestore`` skips this database. If you use the :option:`--db
+  <mongorestore --db>` option to set the destination database to
+  ``admin``, the program returns an error.
+
+- You can't use the following options with the ``mongorestore`` program:
+
+  - :option:`--restoreDbUsersAndRoles`
+  - :option:`--oplogReplay <mongorestore --oplogReplay>`
+  - :option:`--preserveUUID <mongorestore --preserveUUID>`
+
+.. _mongorestore-required-access:
+
+Required Access
+---------------
+
+To restore data to a MongoDB deployment that has :manual:`access control
+</core/authorization>` enabled, the :authrole:`restore` role provides
+the necessary privileges to restore data from backups *if* the data does
+not include :data:`system.profile <<database>.system.profile>`
+collection data and you run ``mongorestore`` without the
+:option:`--oplogReplay <mongorestore --oplogReplay>` option.
+
+If the backup data includes :data:`system.profile
+<<database>.system.profile>` collection data or you run
+``mongorestore`` with the
+:option:`--oplogReplay <mongorestore --oplogReplay>` option, you need
+additional privileges:
+
+.. list-table::
+   :widths: 20 80
+
+   * - ``system.profile``
+
+     - If the backup data includes :data:`system.profile
+       <<database>.system.profile>` collection data and the target
+       database does not contain the :data:`system.profile
+       <<database>.system.profile>` collection,
+       ``mongorestore`` attempts to create the collection
+       even though the program does not actually restore
+       ``system.profile`` documents. As such, the user requires
+       additional privileges to perform
+       :authaction:`createCollection` and
+       :authaction:`convertToCapped` actions on the
+       :data:`system.profile <<database>.system.profile>`
+       collection for a database.
+
+       Both the built-in roles :authrole:`dbAdmin` and
+       :authrole:`dbAdminAnyDatabase` provide the additional
+       privileges.
+
+   * - ``--oplogReplay``
+
+     - To run with :option:`--oplogReplay <mongorestore
+       --oplogReplay>`, create a :ref:`user-defined role
+       <create-user-defined-role>` that has :authaction:`anyAction`
+       on :ref:`resource-anyresource`.
+
+       Grant only to users who must run :binary:`mongorestore`
+       with :option:`--oplogReplay <mongorestore --oplogReplay>`.
+
+Usage in Backup Strategy
+------------------------
+
+Standalones/Replica Sets
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+For an overview of ``mongorestore`` usage as part of a
+backup and recovery strategy, see
+:manual:`Back Up and Restore with MongoDB Tools</tutorial/backup-and-restore-tools>`.
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
+
+Learn More
+----------
+
+- :ref:`mongorestore`
+- :ref:`mongorestore-compatibility-and-installation`
+- :ref:`mongorestore-examples`

@@ -1,22 +1,14 @@
-.. default-domain:: mongodb
-
-.. facet::
-   :name: programming_language
-   :values: shell
-
-.. facet::
-   :name: genre
-   :values: reference
-
-.. binary:: mongorestore
-
-.. program:: mongorestore
-
 .. _mongorestore:
 
 ================
 ``mongorestore``
 ================
+
+.. default-domain:: mongodb
+
+.. binary:: mongorestore
+
+.. program:: mongorestore
 
 .. contents:: On this page
    :local:
@@ -24,9 +16,16 @@
    :depth: 1
    :class: singlecol
 
+.. facet::
+   :name: genre
+   :values: reference
+
 .. |arrow| unicode:: U+27A4
 .. |tool-binary| replace:: ``mongorestore``
+.. |tool-command| replace:: ``mongorestore``
 .. |mongodb-aws-example| replace:: :ref:`mongorestore-example-connect-using-aws-iam`
+
+This documentation is for version ``{+release+}`` of |tool-binary|.
 
 Synopsis
 --------
@@ -35,7 +34,8 @@ The ``mongorestore`` program loads data from either a binary
 database dump created by :binary:`~bin.mongodump` or the standard input
 into a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
 
-.. include:: /includes/extracts/require-cmd-line-mongorestore.rst
+Run ``mongorestore`` from the system command line, not the
+:binary:`~bin.mongo` shell.
 
 .. seealso::
 
@@ -43,54 +43,18 @@ into a :binary:`~bin.mongod` or :binary:`~bin.mongos` instance.
    binary data export capability.
 
 MongoDB doesn't support running multiple ``mongorestore`` programs concurrently 
-for the same collection. 
-
-.. |tool-command| replace:: ``mongorestore``
+for the same collection.
 
 .. include:: /includes/fact-migrate-atlas.rst
-
-Versioning
-~~~~~~~~~~
-
-This documentation is for version ``{+release+}`` of |tool-binary|. 
-
-Compatibility
--------------
-
-MongoDB Server Compatibility
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/dbtools-compatibility-single.rst
-
-Platform Support
-~~~~~~~~~~~~~~~~
-
-|tool-binary| version ``{+release+}`` is supported on the following
-platforms:
-
-.. include:: /includes/fact-platform-support.rst
-
-Additional Considerations for Ubuntu 18.04
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. |app-name| replace:: ``mongorestore``
-.. include:: /includes/ubuntu-connection.rst
-
-Installation
-------------
-
-.. include:: /includes/fact-see-install-guide.rst
 
 Syntax
 ------
 
-The ``mongorestore`` command has the following syntax:
+``mongorestore`` syntax:
 
 .. code-block:: sh
 
    mongorestore <options> <connection-string> <directory or file to restore>
-
-.. include:: /includes/extracts/require-cmd-line-mongorestore.rst
 
 For example, to restore from a ``dump`` directory to a local
 :binary:`~bin.mongod` instance running on port ``27017``:
@@ -146,145 +110,6 @@ The ``mongorestore`` outputs the following messages:
 
 For more examples, see :ref:`mongorestore-examples`.
 
-For more information on the options and arguments, see
-:ref:`mongorestore-options`.
-
-Behavior
---------
-
-Restore to Matching Server Version
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-match-dump-restore-versions.rst
-
-Insert Only
-~~~~~~~~~~~
-
-``mongorestore`` can create a new database or add data to an
-existing database. However, ``mongorestore`` performs inserts
-only and does not perform updates. That is, if restoring documents to
-an existing database and collection and existing documents have the
-same value ``_id`` field as the to-be-restored documents,
-``mongorestore`` will *not* overwrite those documents.
-
-Rebuild Indexes
-~~~~~~~~~~~~~~~
-
-``mongorestore`` recreates indexes recorded by 
-:binary:`~bin.mongodump` after restoring data.
-
-Exclude ``system.profile`` Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``mongorestore`` does not restore the :data:`system.profile
-<<database>.system.profile>` collection data.
-
-FIPS
-~~~~
-
-``mongorestore`` automatically creates FIPS-compliant
-connections to a :binary:`~bin.mongod`/:binary:`~bin.mongos` that is
-:manual:`configured to use FIPS mode </tutorial/configure-fips>`.
-
-Write Concern
-~~~~~~~~~~~~~
-
-If you specify write concern in both the
-:option:`--writeConcern <mongorestore --writeConcern>` option and the
-:option:`--uri <mongorestore --uri>` connection string option, the
-:option:`--writeConcern <mongorestore --writeConcern>` value overrides
-the write concern specified in the URI string.
-
-.. _mongorestore-time-series-collections:
-
-Time Series Collections
-~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 5.0, you can use ``mongorestore`` to restore 
-:ref:`timeseries collections <manual-timeseries-landing>`.
-For details, see :ref:`mongorestore-example-time-series`.
-
-Using ``mongorestore`` on Atlas Free and Shared Tier Clusters 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-On free (``M0``) and shared (``M2`` and ``M5``) tier Atlas clusters, the
-following limitations apply:
-
-- You can't run ``mongorestore`` on the ``admin`` database. By default,
-  ``mongorestore`` skips this database. If you use the :option:`--db
-  <mongorestore --db>` option to set the destination database to
-  ``admin``, the program returns an error.
-
-- You can't use the following options with the ``mongorestore`` program:
-
-  - :option:`--restoreDbUsersAndRoles`
-  - :option:`--oplogReplay <mongorestore --oplogReplay>`
-  - :option:`--preserveUUID <mongorestore --preserveUUID>`
-
-.. _mongorestore-required-access:
-
-Required Access
----------------
-
-To restore data to a MongoDB deployment that has :manual:`access control
-</core/authorization>` enabled, the :authrole:`restore` role provides
-the necessary privileges to restore data from backups *if* the data does
-not include :data:`system.profile <<database>.system.profile>`
-collection data and you run ``mongorestore`` without the
-:option:`--oplogReplay <mongorestore --oplogReplay>` option.
-
-If the backup data includes :data:`system.profile
-<<database>.system.profile>` collection data or you run
-``mongorestore`` with the
-:option:`--oplogReplay <mongorestore --oplogReplay>` option, you need
-additional privileges:
-
-.. list-table::
-   :widths: 20 80
-
-   * - ``system.profile``
-
-     - If the backup data includes :data:`system.profile
-       <<database>.system.profile>` collection data and the target
-       database does not contain the :data:`system.profile
-       <<database>.system.profile>` collection,
-       ``mongorestore`` attempts to create the collection
-       even though the program does not actually restore
-       ``system.profile`` documents. As such, the user requires
-       additional privileges to perform
-       :authaction:`createCollection` and
-       :authaction:`convertToCapped` actions on the
-       :data:`system.profile <<database>.system.profile>`
-       collection for a database.
-
-       Both the built-in roles :authrole:`dbAdmin` and
-       :authrole:`dbAdminAnyDatabase` provide the additional
-       privileges.
-
-   * - ``--oplogReplay``
-
-     - To run with :option:`--oplogReplay <mongorestore
-       --oplogReplay>`, create a :ref:`user-defined role
-       <create-user-defined-role>` that has :authaction:`anyAction`
-       on :ref:`resource-anyresource`.
-
-       Grant only to users who must run :binary:`mongorestore`
-       with :option:`--oplogReplay <mongorestore --oplogReplay>`.
-
-Usage in Backup Strategy
-------------------------
-
-Standalones/Replica Sets
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-For an overview of ``mongorestore`` usage as part of a
-backup and recovery strategy, see
-:manual:`Back Up and Restore with MongoDB Tools</tutorial/backup-and-restore-tools>`.
-
-Sharded Clusters
-~~~~~~~~~~~~~~~~
-
-.. include:: /includes/extracts/sharded-clusters-backup-restore-mongodump-mongorestore-restriction.rst
    
 .. _mongorestore-options:
 
@@ -1022,420 +847,17 @@ Options
    - You cannot use the ``--archive`` option with the ``--dir`` option.
 
 
-.. _mongorestore-examples:
-
-Examples
---------
-
-.. include:: /includes/extracts/require-cmd-line-mongorestore.rst
-
-Restore with Access Control
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In the following example, ``mongorestore`` restores from
-``/opt/backup/mongodump-2011-10-24`` to a :binary:`~bin.mongod`
-instance running on port ``27017`` on the host
-``mongodb1.example.net``. The :option:`--uri <mongorestore --uri>`
-string omits the user's password to have ``mongorestore``
-prompt for the password.
-
-.. code-block:: sh
-
-   mongorestore --uri="mongodb://user@mongodb1.example.net:27017/?authSource=admin" /opt/backup/mongodump-2011-10-24
-
-Alternatively, you can specify the host, port, username, and
-authentication database using :option:`--host <mongorestore --host>`,
-:option:`--port <mongorestore --port>`, :option:`--username <mongorestore
---username>`, and :option:`--authenticationDatabase <mongorestore
---authenticationDatabase>`.  Omit :option:`--password <mongorestore
---password>` to have ``mongorestore`` prompt for the password:
-
-.. code-block:: sh
-
-   mongorestore --host=mongodb1.example.net --port=27017 --username=user --authenticationDatabase=admin /opt/backup/mongodump-2011-10-24
-
-Restore a Collection
-~~~~~~~~~~~~~~~~~~~~
-
-To restore a specific collection, use :option:`--nsInclude
-<mongorestore --nsInclude>`, passing in the full namespace
-(``<database>.<collection>``) of the collection.
-
-For example, the following restores the collection named
-``purchaseorders`` in the database ``test`` from the corresponding
-files located in the ``dump/`` directory.
-
-.. code-block:: sh
-
-   mongorestore --nsInclude=test.purchaseorders dump/
-
-The ``mongorestore`` outputs the results, including the
-number of documents restored:
-
-.. code-block:: sh
-   :copyable: false
-   
-   2019-06-28T19:23:42.858-0400   preparing collections to restore from
-   2019-06-28T19:23:42.858-0400   reading metadata for test.purchaseorders from dump/test/purchaseorders.metadata.json
-   2019-06-28T19:23:42.893-0400   restoring test.purchaseorders from dump/test/purchaseorders.bson
-   2019-06-28T19:23:42.896-0400   restoring indexes for collection test.purchaseorders from metadata
-   2019-06-28T19:23:42.991-0400   finished restoring test.purchaseorders (6 documents, 0 failures)
-   2019-06-28T19:23:42.991-0400   6 document(s) restored successfully. 0 document(s) failed to restore.
-
-If the ``dump/`` directory does not contain the corresponding data
-files for the specified namespace, no data will be restored:
-
-.. code-block:: sh
-   :copyable: false
-
-   2019-07-08T14:39:57.121-0400. preparing collections to restore from
-   2019-07-08T14:39:57.121-0400  0 document(s) restored successfully. 0 document(s) failed to restore.
-
-Alternatively, you can restore a specific collection using the
-:option:`--db <mongorestore --db>`, :option:`--collection <mongorestore
---collection>`, and a ``.bson`` file:
-
-.. code-block:: sh
-
-   mongorestore --db=test --collection=purchaseorders dump/test/purchaseorders.bson
-
-.. code-block:: sh
-   :copyable: false
-
-   2019-06-30T12:21:44.777-0400   checking for collection data in dump/test/purchaseorders.bson
-   2019-06-30T12:21:44.779-0400   reading metadata for test.purchaseorders from dump/test/purchaseorders.metadata.json
-   2019-06-30T12:21:44.813-0400   restoring test.purchaseorders from dump/test/purchaseorders.bson
-   2019-06-30T12:21:44.881-0400   restoring indexes for collection test.purchaseorders from metadata
-   2019-06-30T12:21:44.987-0400   finished restoring test.purchaseorders (6 documents, 0 failures)
-   2019-06-30T12:21:44.987-0400   6 document(s) restored successfully. 0 document(s) failed to restore.
-
-Restore a {+qe+} Enabled Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-{+qe+} adds a ``__safeContent__`` field to documents in an encrypted
-collection and blocks insert and update operations on those
-documents unless document validation is disabled. To restore a
-collection that includes encrypted fields, use
-:option:`--bypassDocumentValidation`.
-
-:binary:`~bin.mongodump` exports a {+qe+} enabled collection's
-associated metadata collections. Running ``mongorestore`` restores these collections as well.
-
-
-.. code-block:: sh
-
-   mongorestore --db=test --collection=personaldata dump/test/personaldata.bson --bypassDocumentValidation
-
-.. _example-basic-wildcard-usage:
-
-Restore Collections Using Wild Cards
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-:option:`--nsInclude <mongorestore --nsInclude>` and
-:option:`--nsExclude <mongorestore --nsExclude>` support specifying the
-:term:`namespaces <namespace>` you wish to include or exclude from a
-restore operation using asterisks as *wild cards*.
-
-The following example restores the documents in the ``dump/``
-sub-directory of the current directory that match the specified
-namespace pattern. The :option:`--nsInclude <mongorestore --nsInclude>`
-statement specifies to only restore documents in the ``transactions``
-database while :option:`--nsExclude <mongorestore --nsExclude>`
-instructs ``mongorestore`` to exclude collections whose
-names end with ``_dev``. ``mongorestore`` restores data to
-the :binary:`~bin.mongod` instance running on the localhost interface
-on port ``27017``.
-
-.. code-block:: sh
-
-   mongorestore --nsInclude='transactions.*' --nsExclude='transactions.*_dev' dump/
-
-.. _example-complex-wildcard-usage:
-
-Change Collection Namespaces during Restore
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To change the namespace of the collection that you are restoring, use the 
-:option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo <mongorestore --nsTo>` 
-options.
-
-The :option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo
-<mongorestore --nsTo>` options support using asterisks as wild cards *and*
-support using dollar signs to delimit "wild card" variables to use in
-the replacement.
-
-Consider a database ``data`` that you have exported to a ``dump/``
-directory using :binary:`~bin.mongodump`. The ``data`` database
-contains the following collections:
-
-- ``sales_customer1``
-- ``sales_customer2``
-- ``sales_customer3``
-- ``users_customer1``
-- ``users_customer2``
-- ``users_customer3``
-
-Using :option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo
-<mongorestore --nsTo>`, you can restore the data into different
-namespaces. The following operation
-
-- restores the ``sales_<customerName>`` collections in the ``data``
-  database to ``sales`` collections in the ``<customerName>`` database,
-  and
-
-- restores the ``users_<customerName>`` collections to ``users``
-  collections in the ``<customerName>`` database.
-
-.. code-block:: sh
-
-   mongorestore --nsInclude="data.*" --nsFrom="data.$prefix$_$customer$" --nsTo="$customer$.$prefix$"
-
-.. _mongorestore-example-copy-clone-database:
-
-Copy/Clone a Database
-~~~~~~~~~~~~~~~~~~~~~
-
-Starting in version 4.2, MongoDB removes the deprecated ``copydb``
-command and ``clone`` command.
-
-As an alternative, users can use :binary:`~bin.mongodump` and
-``mongorestore`` (with the ``mongorestore`` options
-:option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo
-<mongorestore --nsFrom>`).
-
-.. include:: /includes/extracts/clone-copy-db-same-instance.rst
-
-.. _mongorestore-example-archive-file:
-
-Restore from an Archive File
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To restore from an archive file, run ``mongorestore`` with the new
-``--archive`` option and the archive filename.
-
-.. code-block:: sh
-
-   mongorestore --archive=test.20150715.archive 
-
-.. _mongorestore-example-archive-file-db:
-
-Restore a Database from an Archive File
-````````````````````````````````````````
-
-To restore from an archive file, run ``mongorestore`` with the new
-``--archive`` option and the archive filename. For example, the
-following operation restores the ``test`` database from the file
-``test.20150715.archive``.
-
-.. code-block:: sh
-
-   mongorestore --archive=test.20150715.archive  --nsInclude="test.*"
-
-
-.. _mongorestore-example-gzip:
-
-Restore from Compressed Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``mongorestore`` can restore from compressed files or
-compressed archive files created by :binary:`~bin.mongodump`.
-
-To restore from a dump directory that contains compressed files, run
-``mongorestore`` with the :option:`--gzip <mongorestore
---gzip>` option. For example, the following operation restores the ``test``
-database from the compressed files located in the default ``dump``
-directory:
-
-.. code-block:: sh
-
-   mongorestore --gzip  --nsInclude="test.*" dump/
-
-To restore from a compressed archive file, run
-``mongorestore`` with the :option:`--gzip <mongorestore
---gzip>` option and the :option:`--archive <mongorestore --archive>`
-option. For example, the following operation restores the ``test``
-database from the archive file ``test.20150715.gz``.
-
-.. code-block:: sh
-
-   mongorestore --gzip --archive=test.20150715.gz --nsInclude="test.*"
-
-To change the namespace of the collection that you are restoring, use the 
-:option:`--nsFrom <mongorestore --nsFrom>` and :option:`--nsTo <mongorestore --nsTo>` 
-options with the ``--gzip`` option.
-
-.. code-block:: sh
-
-   mongorestore --gzip --nsFrom="data.$prefix$_$customer$" --nsTo="$customer$.$prefix$"
-
-.. _mongorestore-example-archive-stdin:
-
-Restore a Database from Standard Input
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-To restore from the standard input, run ``mongorestore``
-with the :option:`--archive <mongorestore --archive>` option but *omit*
-the filename. For example:
-
-.. code-block:: sh
-
-   mongodump --archive --db=test --port=27017 | mongorestore --archive --port=27018
-
-
-.. _mongorestore-example-time-series:
-
-Restore a Time Series Collection
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Use ``mongosh`` to create a time series collection. This example 
-uses the default ``test`` database:
-
-.. code-block:: javascript
-
-   db.createCollection(
-      "weather",
-      {
-         timeseries: {
-            timeField: "timestamp",
-            metaField: "metadata",
-            granularity: "hours"
-         }
-      }
-   )
-
-Insert time series documents into the collection:
-
-.. code-block:: javascript
-
-   db.weather.insertMany( [
-      {
-         "metadata": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate("2021-05-18T00:00:00.000Z"),
-         "temp": 12
-      },
-      {
-         "metadata": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate("2021-05-18T04:00:00.000Z"),
-         "temp": 11
-      },
-      {
-         "metadata": { "sensorId": 5578, "type": "temperature" },
-         "timestamp": ISODate("2021-05-18T08:00:00.000Z"),
-         "temp": 11
-      }
-   ] )
-
-From your terminal, use ``mongodump`` to export the time series collection 
-to the ``dump/test`` directory. This commands adds 
-``system.buckets.weather.bson`` and ``weather.metadata.json`` to 
-the directory:
-
-.. code-block:: sh
-
-   mongodump --db=test
-
-Use ``mongorestore`` to restore the data to the ``mongorestore.weather`` 
-namespace:
-
-.. code-block:: sh
-
-   mongorestore --host localhost --port 27017 --nsFrom="test.*" --nsTo="mongorestore.*" dump/
-
-.. note::
-
-       You cannot restore the ``system.buckets.weather.bson`` file
-       by itself. Attempting to do so results in an error.
-
-.. _mongorestore-example-connect-using-aws-iam:
-
-Connect to a MongoDB Atlas Cluster using AWS IAM Credentials
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 100.1.0
-
-To connect to a :atlas:`MongoDB Atlas <?tck=docs_server>` cluster which
-has been configured to support authentication via `AWS IAM credentials
-<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__,
-provide a :option:`connection string <mongorestore --uri>` to
-|tool-binary| similar to the following:
-
-.. code-block:: none
-
-   mongorestore 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS' <other options>
-
-Connecting to Atlas using AWS IAM credentials in this manner uses the
-``MONGODB-AWS`` :urioption:`authentication mechanism <authMechanism>`
-and the ``$external`` :urioption:`authSource`, as shown in this example.
-
-If using an `AWS session token
-<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp_use-resources.html>`__,
-as well, provide it with the ``AWS_SESSION_TOKEN``
-:urioption:`authMechanismProperties` value, as follows:
-
-.. code-block:: none
-
-   mongorestore 'mongodb+srv://<aws access key id>:<aws secret access key>@cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS&authMechanismProperties=AWS_SESSION_TOKEN:<aws session token>' <other options>
-
-.. include:: /includes/fact-pct-encode-uri.rst
-
-Alternatively, the AWS access key ID, secret access key, and optionally
-session token can each be provided outside of the connection string
-using the :option:`--username <mongorestore --username>`, :option:`--password <mongorestore --password>`, and
-:option:`--awsSessionToken` options instead, like so:
-
-.. code-block:: none
-
-   mongorestore 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS' --username <aws access key id> --password <aws secret access key> --awsSessionToken <aws session token> <other options>
-
-When provided as command line parameters, these three options do not
-require percent encoding.
-
-You may also set these credentials on your platform using standard
-`AWS IAM environment variables
-<https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html#envvars-list>`__.
-|tool-binary| checks for the following environment variables when you
-use the ``MONGODB-AWS``
-:urioption:`authentication mechanism <authMechanism>`:
-
-- ``AWS_ACCESS_KEY_ID``
-- ``AWS_SECRET_ACCESS_KEY``
-- ``AWS_SESSION_TOKEN``
-
-If set, these credentials do not need to be specified in the connection
-string or via their explicit options.
-
-.. note::
-
-   If you chose to use the AWS environment variables to specify these
-   values, you cannot mix and match with the corresponding explicit or 
-   connection string options for these credentials. Either use the
-   environment variables for access key ID *and* secret access key
-   (*and* session token if used), **or** specify each of these using the
-   explicit or connection string options instead.
-
-The following example sets these environment variables in the ``bash``
-shell:
-
-.. code-block:: none
-
-   export AWS_ACCESS_KEY_ID='<aws access key id>'
-   export AWS_SECRET_ACCESS_KEY='<aws secret access key>'
-   export AWS_SESSION_TOKEN='<aws session token>'
-
-Syntax for setting environment variables in other shells will be
-different. Consult the documentation for your platform for more
-information.
-
-You can verify that these environment variables have been set with the
-following command:
-
-.. code-block:: none
-
-   env | grep AWS
-
-Once set, the following example connects to a MongoDB Atlas cluster
-using these environment variables:
-
-.. code-block:: none
-
-   mongorestore 'mongodb+srv://cluster0.example.com/testdb?authSource=$external&authMechanism=MONGODB-AWS'  <other options>
+Learn More
+----------
+
+- :ref:`mongorestore-compatibility-and-installation`
+- :ref:`Behavior <mongorestore-behavior-access-usage>`
+- :ref:`mongorestore-examples`
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   Compatibility and Installation </mongorestore/mongorestore-compatibility-and-installation>
+   Behavior </mongorestore/mongorestore-behavior-access-usage>
+   Examples </mongorestore/mongorestore-examples>
