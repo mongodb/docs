@@ -7,7 +7,7 @@
   the |gcp| Japan (Tokyo) and |azure| Canada Central (Toronto) regions.
 
 - Introduces
-  :doc:`Atlas Triggers integration with Amazon EventBridge </triggers/eventbridge>`.
+  :appservices:`Atlas Triggers integration with Amazon EventBridge </triggers/aws-eventbridge>`.
 
 - Introduces
   :ref:`Identity Federation with SAML <atlas-federated-authentication>`.
