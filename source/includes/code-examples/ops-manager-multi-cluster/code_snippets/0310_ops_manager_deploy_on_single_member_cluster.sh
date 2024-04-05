@@ -5,7 +5,7 @@ metadata:
   name: om
 spec:
   topology: MultiCluster
-  version: 7.0.1
+  version: "${OPS_MANAGER_VERSION}"
   adminCredentials: om-admin-user-credentials
   security:
     certsSecretPrefix: cert-prefix
@@ -15,7 +15,7 @@ spec:
     - clusterName: "${K8S_CLUSTER_0_CONTEXT_NAME}"
       members: 1
   applicationDatabase:
-    version: "6.0.5-ubi8"
+    version: "${APPDB_VERSION}"
     topology: MultiCluster
     security:
       certsSecretPrefix: cert-prefix
