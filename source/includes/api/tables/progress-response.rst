@@ -114,11 +114,11 @@
 
    * - ``mongosyncID``
      - string
-     - The identifier string for the ``mongosync`` instance.
+     - Identifier string for the ``mongosync`` instance.
 
    * - ``coordinatorID``
      - string
-     - The identifier string for the coordinator instance.
+     - Identifier string for the coordinator instance.
 
        - When ``mongosync`` is coordinated by another instance, this field shows
          the identifier string for the coordinator instance.
@@ -128,4 +128,3 @@
 
        - When ``mongosync`` starts up, this field returns ``null`` until
          ``mongosync`` identifies the coordinator.
-

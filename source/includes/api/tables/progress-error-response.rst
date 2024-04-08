@@ -8,8 +8,15 @@
      - Type
      - Description
 
+   * - ``success``
+     - boolean
+     - Status of the ``progress`` command. Value is ``true`` if the
+       command succeeds and ``false`` if the command fails.
+
    * - ``error``
      - string
-     - If an error occurred, gives a detailed description of the error.
-       This field is omitted when the call to the endpoint is successful
+     - Type of error.
 
+   * - ``errorDescription``
+     - string
+     - Detailed description of the error.
