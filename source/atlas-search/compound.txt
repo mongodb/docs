@@ -16,6 +16,8 @@ compound
    :keywords: compound operator, combine operators, clause, match score, compounds search queries, search scoring
    :description: Use the compound operator to combine multiple operators in a single query and get results with a match score.
 
+.. |arrow| unicode:: U+27A4
+
 Definition
 ----------
 
@@ -205,6 +207,14 @@ for each subquery in each clause. For some examples of altered scores in
 Examples
 --------
 
+You can try the following examples in the {+playground+} or your
+|service| {+cluster+}. 
+
+.. _compound-egs-sample-collections:
+
+Sample Collection 
+~~~~~~~~~~~~~~~~~
+
 The examples on this page use a collection called ``fruit``, which 
 contains the following documents:
 
@@ -233,15 +243,29 @@ contains the following documents:
      "in_stock" : true
    }
 
-The ``fruit`` collection has an |fts| index on the ``description``
-field which uses the :ref:`standard <ref-standard-analyzer>` analyzer.
-The ``standard`` analyzer lower-cases all words and disregards common
-stop words (``"the", "a", "and",`` etc).
+.. _compound-egs-sample-index:
+
+Sample Index 
+~~~~~~~~~~~~
+
+The ``fruit`` collection has a default index with :ref:`dynamic mappings
+<static-dynamic-mappings>` that automatically indexes all the fields in
+the collection and uses the default :ref:`standard
+<ref-standard-analyzer>` analyzer. The ``standard`` analyzer lower-cases
+all words and disregards common stop words (``"the", "a", "and",`` etc). 
+
+.. _compound-egs-sample-queries:
+
+Sample Queries 
+~~~~~~~~~~~~~~
+
+The following queries demonstrate the :pipeline:`$search` ``compound``
+operator in |fts| queries.
 
 .. _must-must-not-example-ref:
 
 ``must`` and ``mustNot`` Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+````````````````````````````````
 
 The following example uses a combination of ``must`` and ``mustNot``
 clauses to contruct a query. The ``must`` clause uses the 
@@ -256,7 +280,7 @@ match, it must *not* fulfill the ``mustNot`` clause.
 
    db.fruit.aggregate([
      {
-       $search: {
+       "$search": {
          "compound": {
            "must": [{
              "text": {
@@ -279,10 +303,12 @@ The above query returns the document with ``_id: 3`` because its
 ``description`` field contains the word ``varieties`` and does not
 contain ``apples``.
 
+|arrow| Try this in the :asp:`Atlas Search Playground </6613fd6e53a0260867247809>`.
+
 .. _must-should-example:
 
 ``must`` and ``should`` Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```````````````````````````````
 
 The following queries use ``must`` to specify search conditions
 that must be met and ``should`` to specify preference for documents
@@ -297,46 +323,51 @@ that contain the word ``Fuji``.
       document fields except ``_id`` and adds a ``score`` field, which
       displays the document's relevance score.
 
-      .. code-block:: javascript
-         :linenos:
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
 
-         db.fruit.aggregate([
-           {
-             "$search": {
-               "compound": {
-                 "must": [{
-                   "text": {
-                     "query": "varieties",
-                     "path": "description"
-                   }
-                 }],
-                 "should": [{
-                   "text": {
-                     "query": "Fuji",
-                     "path": "description"
-                   }
-                 }]
-               }
-             }
-           },
-           {
-             "$project": {
-               "score": { "$meta": "searchScore" }
-             }
-           }
-         ])
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "Fuji",
+                        "path": "description"
+                      }
+                    }]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
 
-      The above query returns the following results:
+         .. output:: 
+            :language: javascript
+            :visible: false
 
-      .. code-block:: json
-         :copyable: false
-
-         { "_id" : 1, "score" : 0.6425117254257202 }
-         { "_id" : 3, "score" : 0.21649497747421265 }
+            { "_id" : 1, "score" : 0.6425117254257202 }
+            { "_id" : 3, "score" : 0.21649497747421265 }
 
       The document with ``_id: 1`` has a higher score because its
       ``description`` field contains the word ``Fuji``, satisfying the
       ``should`` clause.
+
+      |arrow| Try this in the :asp:`Atlas Search Playground </6613fe1753a026086724780b>`.
 
    .. tab:: Compound Score Example
       :tabid: compoundscore 
@@ -346,51 +377,56 @@ that contain the word ``Fuji``.
       query, the ``$project`` pipeline stage excludes all document 
       fields except ``_id`` and adds a ``score`` field.
 
-      .. code-block:: javascript
-         :linenos:
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
 
-         db.fruit.aggregate([
-           {
-             "$search": {
-               "compound": {
-                 "must": [{
-                   "text": {
-                     "query": "varieties",
-                     "path": "description"
-                   }
-                 }],
-                 "should": [{
-                   "text": {
-                     "query": "Fuji",
-                     "path": "description"
-                   }
-                 }],
-                 "score": { "constant": { "value": 3 } }
-               }
-             }
-           },
-           {
-             "$project": {
-               "score": { "$meta": "searchScore" }
-             }
-           }
-         ])
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "Fuji",
+                        "path": "description"
+                      }
+                    }],
+                    "score": { "constant": { "value": 3 } }
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
 
-      The above query returns the following results:
+         .. output:: 
+            :language: javascript
+            :visible: false
 
-      .. code-block:: json
-         :copyable: false
-
-         [ { _id: 1, score: 3 }, { _id: 3, score: 3 } ]
+            [ { _id: 1, score: 3 }, { _id: 3, score: 3 } ]
 
       Both the documents receive the same score because the 
       ``constant`` option in the query replaces the score of each 
       document in the result with the number ``3``. 
 
+      |arrow| Try this in the :asp:`Atlas Search Playground </6613fe7b53a026086724780d>`.
+
 .. _min-example:
 
 minimumShouldMatch Example
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+``````````````````````````
 
 In a query with multiple ``should`` clauses, you can use the
 ``miniumumShouldMatch`` option to specify a minimum number of clauses
@@ -402,58 +438,63 @@ the term ``varieties`` in the ``description`` field and must include
 either ``Fuji`` or ``Golden Delicious`` in the description field to be
 included in the result set.
 
-.. code-block:: javascript
-   :linenos:
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "compound": {
-           "must": [{
-             "text": {
-                "query": "varieties",
-                "path": "description"
-             }
-           }],
-           "should": [
-             {
-               "text": {
-                 "query": "Fuji",
-                 "path": "description"
-               }
-             },
-             {
-               "text": {
-                 "query": "Golden Delicious",
-                 "path": "description"
-               }
-             }],
-             "minimumShouldMatch": 1
-           }
-         }
-       }
-   ])
+      db.fruit.aggregate([
+        {
+          $search: {
+            "compound": {
+              "must": [{
+                "text": {
+                   "query": "varieties",
+                   "path": "description"
+                }
+              }],
+              "should": [{
+                "text": {
+                  "query": "Fuji",
+                  "path": "description"
+                }
+              },
+              {
+                "text": {
+                  "query": "Golden Delicious",
+                  "path": "description"
+                }
+              }],
+              "minimumShouldMatch": 1
+            }
+          }
+        }
+      ])
 
-The above query returns the following result:
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
 
-.. code-block:: json
-   :copyable: false
-
-   {
-     "_id" : 1,
-     "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
-     "category" : "nonorganic",
-     "in_stock" : false
-   }
+      {
+        "_id" : 1,
+        "type" : "apple",
+        "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+        "category" : "nonorganic",
+        "in_stock" : false
+      }
 
 The document with ``_id: 1`` matches the ``must`` clause and the first
 of the two ``should`` clauses.
 
+|arrow| Try this in the :asp:`Atlas Search Playground </6613ff6fbfc02dcf24ce9588>`.
+
 .. _filter-example:
 
 ``filter`` Examples
-~~~~~~~~~~~~~~~~~~~
+```````````````````
 
 ``filter`` behaves the same as ``must``, except that the ``filter`` 
 clause is not considered in a returned document's score, and therefore 
@@ -473,48 +514,52 @@ does not affect the order of the returned documents.
         ``minimumShouldMatch`` option. When you omit 
         ``minimumShouldMatch``, it defaults to ``0``.
 
-      .. code-block:: javascript
-         :linenos:
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
 
-         db.fruit.aggregate([
-           {
-             "$search": {
-               "compound": {
-                 "must": [{
-                   "text": {
-                     "query": "varieties",
-                     "path": "description"
-                   }
-                 }],
-                 "should": [{
-                   "text": {
-                     "query": "banana",
-                     "path": "description"
-                   }
-                 }],
-                 "filter": [{
-                   "text": {
-                     "query": "granny",
-                     "path": "description"
-                   }
-                 }]
-               }
-             }
-           }
-         ])
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "must": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "banana",
+                        "path": "description"
+                      }
+                    }],
+                    "filter": [{
+                      "text": {
+                        "query": "granny",
+                        "path": "description"
+                      }
+                    }]
+                  }
+                }
+              }
+            ])
 
-      The query returns the following result:
+         .. output:: 
+            :language: javascript
+            :linenos:
+            :visible: false
 
-      .. code-block:: json
-         :copyable: false
-
-         {
-           "_id" : 1,
-           "type" : "apple",
-           "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
-           "category" : "nonorganic",
-           "in_stock" : false
-         }
+            {
+              "_id" : 1,
+              "type" : "apple",
+              "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+              "category" : "nonorganic",
+              "in_stock" : false
+            }
 
       The returned document fulfills all the requirements for inclusion:
 
@@ -522,6 +567,8 @@ does not affect the order of the returned documents.
       - The ``minimumShouldMatch`` value is not specified, so it 
         defaults to ``0``. As a result, the ``should`` clause fails 
         and still returns a document.
+
+      |arrow| Try this in the :asp:`Atlas Search Playground </6614008353a026086724780f>`.
 
    .. tab:: $match Replacement Example 
       :tabid: match
@@ -539,52 +586,57 @@ does not affect the order of the returned documents.
       - Add a ``score`` field, which displays the document's relevance 
         score.
 
-      .. code-block:: json 
+      .. io-code-block:: 
+         :copyable: true 
+         
+         .. input:: 
+            :language: javascript
+            :linenos:
 
-         db.fruit.aggregate([
-           {
-             "$search": {
-               "compound": {
-                 "filter": [{
-                   "text": {
-                     "query": ["apples", "bananas"],
-                     "path": "description"
-                   }
-                 }],
-                 "should": [{
-                   "text": {
-                     "query": "varieties",
-                     "path": "description"
-                   }
-                 }]
-               }
-             }
-           },
-           {
-             "$project": {
-               "description": 1,
-               "score": { "$meta": "searchScore" }
-             }
-           }
-         ])
+            db.fruit.aggregate([
+              {
+                "$search": {
+                  "compound": {
+                    "filter": [{
+                      "text": {
+                        "query": ["apples", "bananas"],
+                        "path": "description"
+                      }
+                    }],
+                    "should": [{
+                      "text": {
+                        "query": "varieties",
+                        "path": "description"
+                      }
+                    }]
+                  }
+                }
+              },
+              {
+                "$project": {
+                  "description": 1,
+                  "score": { "$meta": "searchScore" }
+                }
+              }
+            ])
+         
+         .. output:: 
+            :language: javascript
+            :linenos:
+            :visible: false
 
-      The query returns the following documents:
-
-      .. code-block:: json
-         :copyable: false
-
-         [
-           {
-             _id: 1,
-             description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.',
-             score: 0.36074575781822205
-           },
-           {
-             _id: 2,
-             description: 'Bananas are usually sold in bunches of five or six.',
-             score: 0
-           }
-         ]
+            [
+              {
+                _id: 1,
+                description: 'Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp. The most popular varieties are McIntosh, Gala, and Granny Smith.',
+                score: 0.36074575781822205
+              },
+              {
+                _id: 2,
+                description: 'Bananas are usually sold in bunches of five or six.',
+                score: 0
+              }
+            ]
 
       The documents in the result fulfill all the requirements for 
       inclusion:
@@ -595,8 +647,10 @@ does not affect the order of the returned documents.
         ``_id: 2`` because it contains the term ``varieties`` specified 
         in the ``should`` clause of the query.
 
+      |arrow| Try this in the :asp:`Atlas Search Playground </661400e853a0260867247811>`.
+
 Nested Example 
-~~~~~~~~~~~~~~
+``````````````
 
 The following example uses nested ``compound`` clauses to construct a 
 query. For this example, the ``fruit`` collection has an index on the 
@@ -608,67 +662,73 @@ documents to only satisfy one of the following  ``should`` clauses:
 - Contain the term ``organic`` in the ``category`` field and have the 
   value ``true`` in the ``in_stock`` field.
 
-.. code-block:: javascript
-   :linenos:
-
-   db.fruit.aggregate([
-     {
-       $search: {
-         "compound": {
-           "should": [
-             {
-               "text": {
-                 "query": "apple",
-                 "path": "type"
-               }
-             },
-             {
-               "compound": {
-                 "must": [
-                   {
-                     "text": {
-                       "query": "organic",
-                       "path": "category"
-                     }
-                   },
-                   {
-                     "equals": {
-                       "value": true,
-                       "path": "in_stock"
-                     }
-                   }
-                 ]
-               }
-             }
-           ],
-           "minimumShouldMatch": 1
-         }
-       }
-     }
-   ])
-
-The above query returns the following result:
-
-.. code-block:: json
-   :copyable: false
+.. io-code-block:: 
+   :copyable: true 
    
-   { 
-     "_id" : 3, 
-     "type" : "pear", 
-     "description" : "Bosc and Bartlett are the most common varieties of pears.", 
-     "category" : "organic", 
-     "in_stock" : true 
-   }
-   {
-     "_id" : 1,
-     "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
-     "category" : "nonorganic",
-     "in_stock" : false
-   }
+   .. input:: 
+      :language: javascript
+      :linenos:
 
-The above document fulfills all the requirements for inclusion: 
+      db.fruit.aggregate([
+        {
+          $search: {
+            "compound": {
+              "should": [
+                {
+                  "text": {
+                    "query": "apple",
+                    "path": "type"
+                  }
+                },
+                {
+                  "compound": {
+                    "must": [
+                      {
+                        "text": {
+                          "query": "organic",
+                          "path": "category"
+                        }
+                      },
+                      {
+                        "equals": {
+                          "value": true,
+                          "path": "in_stock"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ],
+              "minimumShouldMatch": 1
+            }
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
+   
+      { 
+        "_id" : 3, 
+        "type" : "pear", 
+        "description" : "Bosc and Bartlett are the most common varieties of pears.", 
+        "category" : "organic", 
+        "in_stock" : true 
+      }
+      {
+        "_id" : 1,
+        "type" : "apple",
+        "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp.",
+        "category" : "nonorganic",
+        "in_stock" : false
+      }
+
+The documents in the results fulfill all the requirements for inclusion: 
 
 - The document with ``_id: 3`` matches the ``must`` clause nested within 
   the second ``should`` clause.
 - The document with ``_id: 1`` matches the first ``should`` clause.  
+
+|arrow| Try this in the :asp:`Atlas Search Playground </66140231bfc02dcf24ce958a>`.
