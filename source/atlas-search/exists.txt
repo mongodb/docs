@@ -16,6 +16,8 @@ exists
    :depth: 1
    :class: singlecol
 
+.. |arrow| unicode:: U+27A4
+
 Definition
 ----------
 
@@ -90,6 +92,14 @@ score returned by |fts|, see :ref:`scoring-options`.
 Examples
 --------
 
+You can try the following examples in the {+playground+} or your
+|service| {+cluster+}. 
+
+.. _exists-eg-collection:
+
+Sample Collection 
+~~~~~~~~~~~~~~~~~
+
 The examples on this page use a collection called ``fruit`` that contains
 the following documents:
 
@@ -119,16 +129,30 @@ the following documents:
      }
    }
 
-The ``fruit`` collection has an |fts| index on the ``description``
-field that uses the :ref:`standard <ref-standard-analyzer>` analyzer.
-The ``standard`` analyzer lower-cases all words and disregards common
-stop words (``"the", "a", "and",`` etc).
+.. _exists-eg-index:
+
+Sample Index 
+~~~~~~~~~~~~
+
+The ``fruit`` collection has a default :ref:`dynamic
+<static-dynamic-mappings>` |fts| index that uses the default
+:ref:`standard <ref-standard-analyzer>` analyzer. The ``standard``
+analyzer lower-cases all words and disregards common stop words
+(``"the", "a", "and",`` etc).
+
+.. _exists-eg-queries:
+
+Sample Queries 
+~~~~~~~~~~~~~~
+
+The following queries demonstrate the ``exists`` operator in |fts|
+queries.
 
 Basic Example
-~~~~~~~~~~~~~
+`````````````
 
 The following example searches for documents which include a field
-called ``type``:
+named ``type``. 
 
 .. code-block:: javascript
    :linenos:
@@ -147,94 +171,107 @@ The above query returns the first three documents of the collection.
 The document with ``_id: 4`` is not included because it does not have a
 ``type`` field.
 
+|arrow| Try this in the :asp:`Atlas Search Playground </660c6fee12432a8450ea1647>`.
+
 Embedded Example
-~~~~~~~~~~~~~~~~
+````````````````
 
 Use dot notation to search for embedded fields. The following example
 searches for documents which have a field named ``lemons`` embedded
-within a field named ``quantities``.
+within a field named ``quantities``. 
 
-.. code-block:: javascript
-   :linenos:
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "exists": {
-           "path": "quantities.lemons"
-         }
-       }
-     }
-   ])
+      db.fruit.aggregate([
+        {
+          "$search": {
+            "exists": {
+              "path": "quantities.lemons"
+            }
+          }
+        }
+      ])
 
-The above query returns the following result:
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
 
-.. code-block:: json
-   :linenos:
+      {
+        "_id" : 4,
+        "description" : "Types of citrus fruit include lemons, oranges, and grapefruit.",
+        "quantities" : {
+          "lemons": 200,
+          "oranges": 240,
+          "grapefruit": 160
+        }
+      }
 
-   {
-     "_id" : 4,
-     "description" : "Types of citrus fruit include lemons, oranges, and grapefruit.",
-     "quantities" : {
-       "lemons": 200,
-       "oranges": 240,
-       "grapefruit": 160
-     }
-   }
+|arrow| Try this in the :asp:`Atlas Search Playground </660c704112432a8450ea1649>`.
 
 Compound Example
-~~~~~~~~~~~~~~~~
+````````````````
 
 The following example uses ``exists`` as part of a
-:ref:`compound <compound-ref>` query.
+:ref:`compound <compound-ref>` query. 
 
-.. code-block:: javascript
-   :linenos:
+.. io-code-block:: 
+   :copyable: true 
+   
+   .. input:: 
+      :language: javascript
+      :linenos:
 
-   db.fruit.aggregate([
-     {
-       $search: {
-         "compound": {
-           "must": [
-             {
-               "exists": {
-                 "path": "type"
-               }
-             },
-             {
-               "text": {
-                 "query": "apple",
-                 "path": "type"
-               }
-             }],
-           "should": {
-             "text": {
-               "query": "fuji",
-               "path": "description"
-             }
-           }
-         }
-       }
-     }
-   ])
+      db.fruit.aggregate([
+        {
+          $search: {
+            "compound": {
+              "must": [
+                {
+                  "exists": {
+                    "path": "type"
+                  }
+                },
+                {
+                  "text": {
+                    "query": "apple",
+                    "path": "type"
+                  }
+                }],
+              "should": {
+                "text": {
+                  "query": "fuji",
+                  "path": "description"
+                }
+              }
+            }
+          }
+        }
+      ])
 
-The above query returns the following results:
+   .. output:: 
+      :language: javascript
+      :linenos:
+      :visible: false
 
-.. code-block:: json
-   :linenos:
-   :copyable: false
-
-   {
-     "_id" : 1,
-     "type" : "apple",
-     "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
-   }
-   {
-     "_id" : 3,
-     "type" : "apple",
-     "description" : "Apple pie and apple cobbler are popular apple-based desserts."
-   }
+      {
+        "_id" : 1,
+        "type" : "apple",
+        "description" : "Apples come in several varieties, including Fuji, Granny Smith, and Honeycrisp."
+      }
+      {
+        "_id" : 3,
+        "type" : "apple",
+        "description" : "Apple pie and apple cobbler are popular apple-based desserts."
+      }
 
 Both documents have a ``type`` field, and both include the search term
 ``apple``. The document with ``_id: 1`` is returned first because it
 satisfies the :data:`should` clause.
+
+|arrow| Try this in the :asp:`Atlas Search Playground </660c713212432a8450ea164b>`.
