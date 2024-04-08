@@ -76,11 +76,11 @@ The following generator functions do not work:
 
    // This code will fail
    function* FindResults() {
-      yield db.students.findMany();
+      yield db.students.findOne();
    }
 
    // This code will fail
-   function listEntries() { return db.students.findMany(); }
+   function listEntries() { return db.students.findOne(); }
    function* findResults() {
       yield listEntries();
    }
@@ -89,7 +89,7 @@ Use an ``async generator function`` instead:
 
 .. code-block:: javascript
 
-   function listEntries() { return db.students.findMany(); }
+   function listEntries() { return db.students.findOne(); }
    async function* findResults() {
       yield listEntries();
    }
