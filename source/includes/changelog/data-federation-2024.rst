@@ -1,3 +1,24 @@
+.. _adf-v20240326:
+
+26 March 2024 Release 
+~~~~~~~~~~~~~~~~~~~~~
+
+- Resolves an issue where generated dates in the ISO 8602 format caused incorrect query
+  results. 
+
+.. _adf-v20240319:
+
+19 March 2024 Release 
+~~~~~~~~~~~~~~~~~~~~~
+
+- Fixes an issue that prevented the Python driver from failing to
+  connect when using |aws| IAM authentication. 
+- Fixes an issue that caused :pipeline:`$limit` queries to fail with an
+  ``InternalError``. 
+- Improves template partition filtering in the query planner, which
+  improves query performance in certain cases against multiple blob
+  storage sources.
+
 .. _adf-v20240228:
 
 28 February 2024 Release 
