@@ -1,0 +1,271 @@
+.. _pymongo-databases-collections:
+
+=========================
+Databases and Collections
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: table, row, organize, storage
+
+Overview
+--------
+
+In this guide, you can learn how to use MongoDB databases and
+collections with {+driver-short+}.
+
+MongoDB organizes data into a hierarchy of the following levels:
+
+- **Databases**: The top level of data organization in a MongoDB instance.
+- **Collections**: MongoDB stores documents in collections. They are analogous to tables in relational databases.
+- **Documents**: Contain literal data such as string, numbers, dates, and other embedded documents.
+
+For more information about document field types and structure, see the
+:manual:`Documents </core/document/>` guide in the MongoDB Server manual.
+
+.. TODO: Add a diagram here
+
+Access a Database
+-----------------
+
+Access a database by using dictionary-style access on your ``MongoClient`` instance.
+
+The following example accesses a database named "test_database":
+
+.. code-block:: python
+
+   database = client["test_database"]
+
+Access a Collection
+-------------------
+
+Access a collection by using dictionary-style access on an instance of your database.
+
+The following example accesses a collection named "test_collection":
+
+.. code-block:: python
+   :emphasize-lines: 2
+
+   database = client["test_database"]
+   collection = database["test_collection"]
+
+.. tip::
+
+   If the provided collection name does not already exist in the database,
+   MongoDB implicitly creates the collection when you first insert data
+   into it.
+
+Create a Collection
+-------------------
+
+Use the ``create_collection()`` method to explicitly create a collection in a
+MongoDB database.
+
+The following example creates a collection called ``"example_collection"``:
+
+.. code-block:: python
+   :emphasize-lines: 2
+
+   database = client["test_database"]
+   database.create_collection("example_collection")
+
+You can specify collection options, such as maximum size and document
+validation rules, by passing them in as keyword arguments. For a full list of
+optional parameters, see the `create_collection() API documentation
+<{+api-root+}pymongo/database.html#pymongo.database.Database.create_collection>`__.
+
+Get a List of Collections
+-------------------------
+
+You can query for a list of collections in a database by calling the
+``list_collections()`` method. The method returns a cursor containing all
+collections in the database and their associated metadata.
+
+The following example calls the ``list_collections()`` method and iterates over
+the cursor to print the results:
+
+.. code-block:: python
+
+   collection_list = database.list_collections()
+
+   for c in collection_list:
+       print(c)
+
+To query for only the names of the collections in the database, call the
+``list_collection_name()`` method as follows:
+
+.. code-block:: python
+
+   collection_list = database.list_collection_names()
+
+   for c in collection_list:
+       print(c)
+
+For more information about iterating over a cursor, see :ref:`pymongo-cursors`. 
+
+Delete a Collection
+-------------------
+
+You can delete a collection from the database by using the ``drop_collection()``
+method.
+
+The following example deletes the ``test_collection`` collection:
+
+.. code-block:: python
+
+   collection = database["test_collection"];
+   collection.drop();
+
+.. warning:: Dropping a Collection Deletes All Data in the Collection
+
+   Dropping a collection from your database permanently deletes all
+   documents and all indexes within that collection.
+
+   Drop a collection only if the data in it is no longer needed.
+
+Configure Read and Write Operations
+-----------------------------------
+
+You can control how the driver routes read operations by setting a **read preference**.
+You can also control options for how the driver waits for acknowledgment of
+read and write operations on a replica set by setting a **read concern** and a
+**write concern**.
+
+By default, databases inherit these settings from the ``MongoClient`` instance,
+and collections inherit them from the database. However, you can change these
+settings on your database or collection by using one of the following methods:
+
+- ``get_database()``: Gets the database and applies the client's read
+  preference, read concern, and write preference.
+- ``database.with_options()``: Gets the database and applies its current read
+  preference, read concern, and write preference.
+- ``get_collection()``: Gets the collection and applies its current read preference, read concern, and write preference.
+- ``collection.with_options()``: Gets the collection and applies the database's read
+  preference, read concern, and write preference.
+
+To change read or write settings with the preceding methods, call the method and
+pass in the collection or database name, and the new read preference, read
+concern, or write preference.
+
+The following example shows how to change the read preference, read concern and
+write preference of a database called ``test-database`` with the ``get_database()`` method:
+
+.. code-block:: python
+
+   client.get_database("test-database", 
+                       read_preference=ReadPreference.SECONDARY,
+                       read_concern="local",
+                       write_concern="majority")
+
+The following example shows how to change read and write settings of a
+collection called ``test-collection`` with the ``get_collection()`` method:
+
+.. code-block:: python
+
+   database.get_collection("test-collection", 
+                       read_preference=ReadPreference.SECONDARY,
+                       read_concern="local",
+                       write_concern="majority")
+
+The following example shows how to change read and write settings of a
+collection called ``test-collection`` with the ``with_options()`` method:
+
+.. code-block:: python
+
+   collection.with_options(read_preference=ReadPreference.SECONDARY,
+                           read_concern="local",
+                           write_concern="majority")
+
+.. tip::
+
+   To see the types of read preferences available in the ``ReadPreference`` enum, see the
+   `API documentation <{+api-root+}pymongo/read_preferences.html#pymongo.read_preferences.ReadPreference>`__. 
+
+To learn more about the read and write settings, see the following guides in the
+MongoDB Server manual:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+
+Tag Sets
+~~~~~~~~
+
+In MongoDB Server, you can apply key-value :manual:`tags
+</core/read-preference-tags/>` to replica-set
+members according to any criteria you choose. You can then use
+those tags to target one or more members for a read operation.
+
+By default, {+driver-short+} ignores tags
+when choosing a member to read from. To instruct {+driver-short+}
+to prefer certain tags, pass them as a parameter to your
+`read preference class <{+api-root+}pymongo/read_preferences.html#pymongo.read_preferences.Primary>`__ 
+constructor. 
+
+In the following code example, the tag set passed to the ``read_preference`` parameter
+instructs {+driver-short+} to prefer reads from the
+New York data center (``'dc': 'ny'``) and to fall back to the San Francisco data
+center (``'dc': 'sf'``):
+
+.. code-block:: python
+
+   db = client.get_database(
+        'test', read_preference=Secondary([{'dc': 'ny'}, {'dc': 'sf'}]))
+
+Local Threshold
+~~~~~~~~~~~~~~~
+
+If multiple replica-set members match the read preference and tag sets you specify,
+{+driver-short+} reads from the nearest replica-set members, chosen according to
+their ping time.
+
+By default, the driver uses only those members whose ping times are within 15 milliseconds
+of the nearest member for queries. To distribute reads between members with
+higher latencies, pass the ``localThresholdMS`` option to the ``MongoClient()`` constructor.
+
+The following example specifies a local threshold of 35 milliseconds:
+
+.. code-block:: python
+   :emphasize-lines: 3
+
+   client = MongoClient(replicaSet='repl0',
+                        readPreference=ReadPreference.SECONDARY_PREFERRED,
+                        localThresholdMS=35)
+
+In the preceding example, {+driver-short+} distributes reads between matching members
+within 35 milliseconds of the closest member's ping time.
+
+.. note::
+  
+   {+driver-short+} ignores the value of ``localThresholdMS`` when communicating with a
+   replica set through a ``mongos`` instance. In this case, use the
+   :manual:`localThreshold </reference/program/mongos/#std-option-mongos.--localThreshold>`
+   command-line option.
+
+Troubleshooting
+---------------
+
+.. include:: /includes/troubleshooting/read-write-options.rst
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `create_collection() <{+api-root+}pymongo/database.html#pymongo.database.Database.create_collection>`__
+- `list_collections() <{+api-root+}pymongo/database.html#pymongo.database.Database.list_collections>`__
+- `list_collection_names() <{+api-root+}pymongo/database.html#pymongo.database.Database.list_collection_names>`__
+- `get_database() <{+api-root+}pymongo/mongo_client.html#pymongo.mongo_client.MongoClient.get_database>`__
+- `get_collection() <{+api-root+}pymongo/database.html#pymongo.database.Database.get_collection>`__
+- `database.with_options() <{+api-root+}pymongo/database.html#pymongo.database.Database.with_options>`__
+- `collection.with_options() <{+api-root+}pymongo/collection.html#pymongo.collection.Collection.with_options>`__
