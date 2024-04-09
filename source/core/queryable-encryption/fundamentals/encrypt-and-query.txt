@@ -60,7 +60,7 @@ To specify fields for encryption and querying, create an {+enc-schema+} that inc
 
 .. list-table::
    :header-rows: 1
-   :widths: 30 30 40
+   :widths: 20 20 60
 
    * - Key Name
      - Type
@@ -76,9 +76,15 @@ To specify fields for encryption and querying, create an {+enc-schema+} that inc
 
    * - ``keyId``
      - Binary
-     - Optional. Use only if you want to use {+manual-enc+}, which
-       requires you to generate a key for each field in advance.
-
+     - Required. Specify a key value for each field. 
+     
+       .. note:: 
+         
+          If you call :method:`~ClientEncryption.createEncryptedCollection()` 
+          and set ``keyId: null``, the MongoDB driver automatically creates a 
+          data key. ``createEncryptedCollection`` then returns a new 
+          {+enc-schema+}a with the new ``keyId`` values.
+       
    * - ``queries``
      - Object
      - Optional. Include to make the field queryable.
@@ -88,8 +94,8 @@ Example
 
 This example shows how to create the {+enc-schema+}.
 
-Consider the following document that contains personally identifiable information
-(PII), credit card information, and sensitive medical information:
+Consider the following document that contains personally identifiable 
+information (PII), credit card information, and sensitive medical information:
 
 .. code-block:: json
 
@@ -113,7 +119,8 @@ Consider the following document that contains personally identifiable informatio
 
 To ensure the PII and sensitive medical information stays secure, create
 the {+enc-schema+} and configure those fields for automatic 
-encryption. For example:
+encryption. You must generate a unique key for each encrypted field in advance. 
+For example:
 
 .. code-block:: javascript
 
@@ -121,50 +128,30 @@ encryption. For example:
       fields: [
          {
             path: "patientId",
+            keyId: "<unique data encryption key>",
             bsonType: "int"
          },
          {
             path: "patientInfo.ssn",
+            keyId: "<unique data encryption key>",
             bsonType: "string"
          },
          {
             path: "medications",
+            keyId: "<unique data encryption key>",
             bsonType: "array"
          },
          {
             path: "patientInfo.billing",
+            keyId: "<unique data encryption key>",
             bsonType: "object"
          }
       ]
    }
 
-MongoDB creates encryption keys for each field automatically.
-Configure ``AutoEncryptionSettings`` on the client, then use the
-``createEncryptedCollection`` helper method to create your collections. 
-
-If you are using :ref:`explicit encryption
-<qe-fundamentals-manual-encryption>`, you must create a unique
-{+dek-long+} for each encrypted field in advance. Add a ``keyId`` field
-to each entry that includes the key:
-
-.. code-block:: javascript
-   :emphasize-lines: 5, 10
-
-   const encryptedFieldsObject = {
-      fields: [
-         {
-            path: "patientId",
-            keyId: "<unique data encryption key>",
-            bsonType: "int"
-         },
-         {
-            path: "patientInfo.ssn",
-            keyId: "<unique data encryption key>",
-            bsonType: "string"
-         },
-         . . .
-      ]
-   }
+Configure ``AutoEncryptionSettings`` on the client, then use the 
+:method:`~ClientEncryption.createEncryptedCollection()` helper method to create 
+your collections.
 
 .. _qe-enable-queries:
 
@@ -173,7 +160,8 @@ Configure Fields for Querying
 
 Include the ``queries`` property on fields to make them queryable. This
 enables an authorized client to issue read and write queries against
-those fields. Omitting the ``queries`` property prevents clients from querying a field.
+those fields. Omitting the ``queries`` property prevents clients from querying a 
+field.
 
 
 Example
