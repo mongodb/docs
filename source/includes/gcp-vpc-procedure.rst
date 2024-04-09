@@ -3,59 +3,72 @@ Configure VPC Peering for a GCP-backed Cluster
 
 To configure VPC Peering for a GCP-backed cluster:
 
-1. In the :guilabel:`Security` section of the left navigation, click
-   :guilabel:`Network Access`.
+.. procedure::
+   :style: normal
 
-#. Click the :guilabel:`Peering` tab.
+   .. include:: /includes/nav/steps-network-access.rst
 
-#. Click :icon-fa5:`plus` :guilabel:`Add Peering Connection`.
+   .. step:: Click the :guilabel:`Peering` tab.
+            
+      |service| displays your network peering connections.
 
-#. Enter the required information in the :guilabel:`Peering Connection` modal.
+   .. step:: Initiate peering.
 
-   To create the VPC Peering connection, fill in the requested
-   information:
+      a. Click :icon-fa5:`plus` :guilabel:`Add Peering Connection`.
+
+      #. Enter the required information in the 
+         :guilabel:`Peering Connection` modal.
+
+         To create the VPC Peering connection, fill in the requested
+         information:
      
-   .. list-table::
-      :header-rows: 1
-      :widths: 35 65
+         .. list-table::
+            :header-rows: 1
+            :widths: 35 65
      
-      * - Field
-        - Notes
+            * - Field
+              - Notes
 
-      * - :guilabel:`Project ID`
+            * - :guilabel:`Project ID`
 
-        - |gcp| Project ID of the peer VPC. Refer to the
-          dialog for instructions on finding your :guilabel:`GCP
-          Project ID`.
+              - |gcp| Project ID of the peer VPC. Refer to the
+                dialog for instructions on finding your :guilabel:`GCP
+                Project ID`.
 
-      * - :guilabel:`VPC Name`
+            * - :guilabel:`VPC Name`
 
-        - The name of the peer VPC. Refer to the dialog
-          for instructions on finding your :guilabel:`VPC Name`.
+              - The name of the peer VPC. Refer to the dialog
+                for instructions on finding your :guilabel:`VPC Name`.
 
-#. Click :guilabel:`Initiate Peering`.
+      #. Click :guilabel:`Initiate Peering`.
 
-#. In the :guilabel:`Google Cloud Console`, click :guilabel:`VPC network peering`.
+   .. step:: Configure VPC Peering.
 
-#. Click :guilabel:`Create Connection`.
+      a. In the :guilabel:`Google Cloud Console`, click 
+         :guilabel:`VPC network peering`.
 
-#. Click :guilabel:`Continue`.
+      #. Click :guilabel:`Create Connection`.
 
-#. In :guilabel:`Name`, enter a name for your peering connection.
+      #. Click :guilabel:`Continue`.
 
-#. In :guilabel:`Your VPC Network`, enter the name of your
-   |gcp| VPC network.
+      #. In :guilabel:`Name`, enter a name for your peering connection.
 
-#. In :guilabel:`Peered VPC network`, select :guilabel:`In another project`.
+      #. In :guilabel:`Your VPC Network`, enter the name of your
+         |gcp| VPC network.
 
-#. In :guilabel:`Project ID`, enter your |service| Project ID.
+      #. In :guilabel:`Peered VPC network`, select 
+         :guilabel:`In another project`.
 
-   You can find this name in the VPC Peering view. In the :guilabel:`Security` section of the left navigation, click
-   :guilabel:`Network Access` and then click the :guilabel:`Peering`
-   tab.
+      #. In :guilabel:`Project ID`, enter your |service| Project ID.
 
-#. In :guilabel:`VPC network name`, enter your Atlas VPC Name.
+         You can find this name in the VPC Peering view. In the 
+         :guilabel:`SECURITY` section of the left navigation, click
+         :guilabel:`Network Access` and then click the 
+         :guilabel:`Peering` tab.
 
-   You can find this name in the VPC Peering view. In the :guilabel:`Security` section of the left navigation, click
-   :guilabel:`Network Access` and then click the :guilabel:`Peering`
-   tab.
+      #. In :guilabel:`VPC network name`, enter your Atlas VPC Name.
+
+         You can find this name in the VPC Peering view. In the 
+         :guilabel:`SECURITY` section of the left navigation, click
+         :guilabel:`Network Access` and then click the 
+         :guilabel:`Peering` tab.
