@@ -1,9 +1,10 @@
+import pymongo
 from pymongo import MongoClient
 
-uri = "<connection string URI>"
-client = MongoClient(uri)
-
 try:
+    uri = "<connection string URI>"
+    client = MongoClient(uri)
+
     database = client["<database name>"]
     collection = database["<collection name>"]
 
