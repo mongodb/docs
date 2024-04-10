@@ -1,0 +1,310 @@
+.. _transition-bic-to-atlas-sql:
+
+====================================
+Transition from {+abic+} to {+asql+}
+====================================
+
+.. default-domain:: 
+
+.. meta::
+   :keywords: bi connector, sql
+    
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB recommends migrating from the 
+:ref:`{+abic+} <bi-connection>` to the newer 
+:ref:`{+asql+} Interface <query-with-sql>`.
+
+.. note::
+
+   The {+abic+} and the on-premise BI Connector
+   are separate tools. This guide is about migrating from the
+   {+abic+}, which MongoDB is phasing out.
+
+{+asql+}
+---------
+
+Similar to the {+abic+}, 
+{+asql+} enables you to analyze data from |service| clusters
+using a variety of SQL-based tools, such as Tableau and Power BI.
+
+Compared to the {+abic+}, {+asql+} offers the
+following advantages:
+
+- You can read data from sources other than |service| clusters 
+  using the {+adf+} infrastructure.
+- You can set your schema.
+- You pay only for your usage; you don't need a subscription.
+- You can use custom MongoDB connectors for Tableau and Power BI.
+
+To learn more about {+asql+}, see :ref:`query-with-sql`.
+
+{+asql+} Limitations
+--------------------
+
+- {+asql+} is read-only.
+- {+asql+} is compatible only with the SQL 92 dialect; 
+  other SQL dialects are not supported.
+- All :ref:`{+adf+} limitations <df-limitations>` apply to {+asql+} because it's a feature of {+adf+}.
+
+{+asql+} Pricing
+----------------
+
+{+asql+} incurs only {+adf+} query costs and |aws| transfer costs;
+the {+asql+} Interface itself is free to use. To learn more about the
+cost of querying your {+fdi+}, see :ref:`atlas-data-federation-billing`.
+
+.. note::
+   
+   Costs incurred by {+asql+} queries appear on your invoice under 
+   the {+fdi+} that you queried, either as "Data Processed" or 
+   "Data Returned and Transferred" charges.
+
+Prepare to Transition to {+asql+}
+---------------------------------
+
+To transition from the {+abic+} to {+asql+}, make sure your deployment
+meets the following prerequisites:
+
+Additionally, MongoDB recommends that you generate a
+:ref:`Transition Readiness Report <bic-asql-transition-report-tool>` 
+to help plan your transition.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- An {+fdi+} containing queryable data.
+- A MongoDB database user to connect to your {+fdi+}.
+
+.. _bic-asql-transition-report-tool:
+
+Generate a Transition Readiness Report
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB provides an {+asql+} Transition Readiness Tool to help you
+plan your move from the {+abic+} to the {+asql+} Interface.
+The tool generates a report based on your past {+abic+} usage,
+providing schema suggestions and highlighting queries that need 
+syntax changes to run properly using {+asql+}.
+
+To generate a report, you must provide the tool 
+with at least one of the following details:
+
+- Your {+abic+} logs, for query analysis.
+- Your cluster |uri|, for schema analysis.
+
+You can analyze your queries, your schema, or both.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the {+asql+} Readiness Report Tool.
+      
+      Select the tab for your operating system below and
+      download the executable file.
+
+      .. tabs::
+      
+         .. tab:: MacOS (ARM)
+            :tabid: macosarm
+      
+            Download the `MongoDB {+asql+} Readiness Report Tool 
+            <https://translators-connectors-releases.s3.amazonaws.com/transition-readiness-report/AtlasSQLReadinessReport-macos-arm>`__.
+      
+         .. tab:: MacOS (Intel)
+            :tabid: macosintel
+      
+            Download the `MongoDB {+asql+} Readiness Report Tool 
+            <https://translators-connectors-releases.s3.amazonaws.com/transition-readiness-report/AtlasSQLReadinessReport-macos>`__.
+      
+         .. tab:: Ubuntu
+            :tabid: ubuntu
+      
+            Download the `MongoDB {+asql+} Readiness Report Tool 
+            <https://translators-connectors-releases.s3.amazonaws.com/transition-readiness-report/AtlasSQLReadinessReport-linux>`__.
+      
+         .. tab:: Windows
+            :tabid: windows
+      
+            Download the `MongoDB {+asql+} Readiness Report Tool 
+            <https://translators-connectors-releases.s3.amazonaws.com/transition-readiness-report/AtlasSQLReadinessReport-win.exe>`__.
+
+
+   .. step:: Grant execution permission to the Readiness Report Tool.
+
+      If the file doesn't have execution permission already, grant it.
+
+      .. tabs:: 
+         :hidden: true
+
+         .. tab:: MacOS (ARM)
+            :tabid: macosarm
+      
+            .. code-block:: sh 
+               :copyable: false
+
+                chmod +x <executable-filename>
+      
+         .. tab:: MacOS (Intel)
+            :tabid: macosintel
+            
+            .. code-block:: sh 
+               :copyable: false
+
+                chmod +x <executable-filename>
+      
+         .. tab:: Ubuntu
+            :tabid: ubuntu
+
+            .. code-block:: sh 
+               :copyable: false
+
+                chmod +x <executable-filename>
+      
+         .. tab:: Windows
+            :tabid: windows
+
+   .. step:: (Optional) Download and decompress your {+abic+} logs.
+
+      Providing your {+abic+} logs enables the Readiness Report Tool to 
+      report on the following information:
+      
+      - Historical query data, such as volume and frequency.
+      - Query syntax that will fail in {+asql+}.
+      - Collection fields with data types
+        unknown to relational databases.
+
+      To download your {+abic+} logs:
+      
+      a. In the {+atlas-ui+}, go to the |service| cluster with the 
+         BI connection that you want to analyze. 
+      
+      #. From your cluster's options (:icon-mms:`ellipsis`), 
+         select :guilabel:`Download Logs`.
+         
+      #. Download ``mongosql.gz``.
+
+      #. Create a new directory,
+         then decompress ``mongosql.gz`` into it.
+   
+   .. step:: (Optional) Copy your cluster URI.
+
+      Providing your |service| cluster |uri| enables the Readiness Report Tool 
+      analyze your collection schemas and identify fields that 
+      contain data types unknown to SQL tools.
+
+      To find your cluster |uri|:
+      
+      a. In the {+atlas-ui+}, go to the
+         cluster with the collections that you
+         want to analyze.
+      
+      #. Click :guilabel:`Connect`.
+
+      #. Select :guilabel:`Shell` from the list of connection options.
+
+      #. Copy only your connection |uri|.
+
+         The connection |uri| resembles: ``mongodb+srv://bicluster.example.mongodb.net/``.
+         Exclude the shell executable, ``mongosh``, and any shell-specific
+         command line options.
+
+   .. step:: Generate a report.
+
+      In a terminal, run the Readiness Report Tool executable, providing
+      your downloaded logs or your cluster |uri|.
+
+      - You must include your database username. 
+      - You must include either ``--input``, ``--uri``, or both. 
+        If you include your |uri|, the Readiness Report Tool prompts you 
+        for your database user password.
+      - You can specify an ``--output`` destination for your generated
+        report. If you don't, it's generated in your current
+        directory.
+      
+      The ``--help`` option returns the full list of 
+      Readiness Report Tool options:
+      
+      .. code-block:: sh
+         :copyable: false
+
+         <executable-filename> --help
+         Options:
+              -i, --input <INPUT>        Sets the input file or directory
+              -o, --output <OUTPUT>      Sets the output directory
+                  --uri <URI>            The Atlas cluster URI
+              -u, --username <USERNAME>  Username for authentication
+                  --quiet                Enables quiet mode for less output
+              -h, --help                 Print help
+              -V, --version              Print version
+
+Transition to {+asql+}
+----------------------
+
+The underlying architecture of {+asql+} is different from {+abic+} 
+and you might need to adapt your schema or your queries.
+
+To transition to {+asql+}, identify existing {+abic+}
+queries that fail on {+asql+} and update your schema or their syntax
+to fix them.
+
+.. warning::
+   
+   MongoDB recommends testing the full transition process in a sandbox environment
+   before you make changes to your production environment. Transitioning from the {+abic+}
+   to {+asql+} without adapting your schema or your queries
+   might cause breaking changes.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable {+asql+} for your {+fdi+}.
+
+      To learn more about enabling and using {+asql+},
+      see :ref:`enable-sql-interface`.
+
+   .. step:: Connect to your data with the {+asql+} Interface.
+
+      To learn more about connecting with {+asql+},
+      see :ref:`sql-connect`.
+
+   .. step:: Test your queries.
+      
+      Test your queries with your new {+asql+} connection to ensure
+      they run and return the results you expect.
+
+      To learn more about querying with {+asql+},
+      see :ref:`asql-write-asql-queries`.
+
+   .. step:: View your schema and adapt it if necessary.
+      
+      To learn more about schemas in {+asql+}, see
+      :ref:`sql-schema-management`.
+
+   .. step:: Adapt any failing queries.
+
+      Some query syntax might need to be changed when you
+      transition from the {+abic+} to {+asql+}.
+
+      To learn more about {+asql+} query syntax, see :ref:`sql-reference`.
+
+Troubleshoot {+asql+}
+---------------------
+
+The following MongoDB resources can help you 
+troubleshoot your {+asql+} configuration:
+
+- The `Community Forum <https://www.mongodb.com/community/forums/>`__
+- `Support <https://www.mongodb.com/services/support>`__
+- `Professional Services <https://www.mongodb.com/services/consulting>`__
+- Your 
+  `Customer Success <https://www.mongodb.com/services/customer-success-program>`__ 
+  team
