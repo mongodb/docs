@@ -91,11 +91,11 @@
        cluster.
 
    * - ``cluster {clusterName} profiler``
-     - Go to the :ref:`Profiler <query-profiler>` tab for the specified cluster
+     - Go to the :ref:`Query Profiler <query-profiler>` for the specified cluster
        within the current project.
 
        You can also use the ``profiler`` command without specifying a cluster to
-       go to the :ref:`Profiler <query-profiler>` tab for the current cluster.
+       go to the :ref:`Query Profiler <query-profiler>` for the current cluster.
 
        The ``cluster {clusterName} profiler`` and ``profiler`` commands are unavailable for sharded {+clusters+}.
 
@@ -188,7 +188,7 @@
        :ref:`enable or disable {+atlas-go-to+} <enable-atlas-go-to>`.
   
    * - ``profiler``
-     - Go to the :ref:`Profiler <query-profiler>` tab for the current
+     - Go to the :ref:`Query Profiler <query-profiler>` for the current
        cluster.
 
        The ``profiler`` command is unavailable for sharded {+clusters+}.
