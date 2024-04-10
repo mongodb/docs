@@ -1,3 +1,58 @@
+.. _opsmgr-server-6.0.23:
+
+|onprem| Server 6.0.23:
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-04-04*
+
+- Fixes the following |cve|\s:
+
+  - `CVE-2023-34062 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-34062>`__
+  - `CVE-2023-3635 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-3635>`__
+  - `CVE-2023-44483 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-44483>`__
+  - `CVE-2023-51775 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-51775>`__
+  - `CVE-2023-52428 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-52428>`__
+  - `CVE-2024-22201 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-22201>`__
+  - `CVE-2024-25710 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-25710>`__
+  - `CVE-2024-26308 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2024-26308>`__
+
+- Updates JDK to ``jdk-11.0.22+7``.
+- Releases {+mongosh+} 2.1.5 to |onprem|. To learn more, see {+mongosh+}
+  :mdb-shell:`Release Notes </changelog/#v2.1.5>`. 
+- Supports automating deployments on RedHat Enterprise Linux 9 ARM architectures.
+- Adds API support for project level MongoDB :ref:`log rotation
+  <automation-configuration-resource>` settings.
+- Adds ability for backup to automatically configure an improved default
+  blocksize for mongo blockstores.
+- Enhances logging for MongoDB blockstores groom progress.
+- Improves MongoDB and S3-compatible blockstore snapshot performance for
+  large files through enhanced memory utilization. 
+- Supports tracking restore block download performance.
+- Supports editing WiredTiger job setting, number of backup workers, and
+  bandwidth for backups in the Administration Console. 
+- Automatically chooses the number of backup workers based on available
+  CPU cores and memory. 
+- Adds additional snapshot metrics to the snapshot summary table.
+- Adds automation support for :manual:`at-rest encryption
+  </core/security-encryption-at-rest/#encryption-at-rest>` of
+  :ref:`audit logs <deployment-advanced-options-audit-log>` in MongoDB
+  6.0 and later versions.
+- Supports configuration of the ``net.tls.clusterCAFile`` parameter.
+- Improves the agent's ability to retry for more blockstore errors.
+- Fixes the following bugs:
+
+  - Restore would fail in existing deployments if credentials version
+    didn't match. 
+  - Restores couldn't progress due to a DOWN host.
+  - The ``mongodVersion`` in the backup jobs collection didn't update correctly.
+  - LDAP version manifest URLs weren't constructed properly in local mode.
+  - Enabling automation on a deployment might fail.
+  - DBUsage API endpoint issue that affected totalCount, pageNum,
+    filtering and pagination in the UI. 
+  - ``Oplog Behind`` warning would be displayed for non-active shards.
+  - ``LOW_APP_DB_FREE_SPACE_PERCENT`` alert wasn't working correctly.
+  - Servers might display stale statuses in the |onprem| UI.
+
 .. _opsmgr-server-6.0.22:
 
 |onprem| Server 6.0.22:
