@@ -1,3 +1,34 @@
+.. _opsmgr-server-7.0.4: 
+
+|onprem| Server 7.0.4
+~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2024-04-04*
+
+- Releases {+mongosh+} 2.2.3 to |onprem|. To learn more, see {+mongosh+} 
+  Release Notes.
+- Supports enabling and configuring regional backups.
+- Supports ``net.tls.clusterAuthX509`` parameter in MongoDB 7.0 for
+  ``clusterAuthMode`` set to ``x509``. 
+- Adds API support for project level MongoDB :ref:`log rotation
+  <automation-configuration-resource>` settings. 
+- Adds ability for backup to automatically configure an improved default
+  blocksize for mongo blockstores.
+- Adds automation support for :manual:`at-rest encryption
+  </core/security-encryption-at-rest/#encryption-at-rest>` of
+  :ref:`audit logs <deployment-advanced-options-audit-log>` in MongoDB
+  6.0 and later versions.  
+- Enhances logging for MongoDB blockstores groom progress.
+- Fixes the following issues:
+  
+  - Inactive accounts prevented users from navigating to the continuous backup page.
+  - Restore would fail in existing deployments if credentials version didn't match.
+  - Restores couldn't progress due to a DOWN host.
+  - The ``mongodVersion`` in the backup jobs collection doesn't update correctly.
+
+- Fixes `CVE-2023-33546 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2023-33546>`__
+- Fixes `CVE-2024-22201 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=/CVE-2024-22201>`__
+
 .. _opsmgr-server-7.0.3: 
 
 |onprem| Server 7.0.3
