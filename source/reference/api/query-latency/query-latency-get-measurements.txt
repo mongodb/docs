@@ -1,0 +1,608 @@
+==================================
+Return Cluster-Level Query Latency
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Return a list of cluster-level :manual:`query latency
+</reference/operator/aggregation/collStats/#latencystats-document>` 
+measurements for the specified namespace.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   GET /groups/{PROJECT-ID}/clusters/{hostClusterId}/{clusterView}/{databaseName}/{collectionName}/collStats/measurements
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - PROJECT-ID
+     - string
+     - *(Required.)* Unique 24-hexadecimal digit string that 
+       identifies the project that contains the namespace.
+
+   * - hostClusterId
+     - string
+     - *(Required.)* Unique identifier for the cluster that contains 
+       the namespace.
+
+   * - clusterView
+     - string
+     - *(Required.)* Name that identifies the cluster topology. Values 
+       include:
+       
+       - ``PRIMARY``
+       - ``SECONDARY``
+       - ``INDIVIDUAL_PROCESS`` 
+
+   * - databaseName
+     - string
+     - *(Required.)* Name that identifies the database.
+
+   * - collectionName
+     - string
+     - *(Required.)* Name that identifies the collection.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+All parameters are optional.
+
+.. list-table::
+   :widths: 15 10 65 10
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type 
+     - Description
+     - Default
+
+   * - pretty
+     - boolean
+     - Indicates whether the response body should be in a
+       `prettyprint <https://en.wikipedia.org/wiki/Prettyprint?oldid=791126873>`_ format.
+     - ``false``
+
+   * - envelope
+     - boolean
+     - Indicates whether or not to wrap the response in an
+       envelope.
+     - ``false``
+
+   * - metrics
+     - array
+     - List that contains the metrics to retrieve for the associated 
+       data series. If you don't specify this parameter, this resource 
+       returns the data series for all query latency metrics.
+     - All
+
+   * - period
+     - string
+     - |iso8601-duration| that specifies how far back in the past to
+       retrieve measurements. If you specify this value, you can't 
+       specify ``start`` and ``end``.
+
+       .. example:: 
+
+          To request the last 36 hours, include this query parameter:
+          ``period=P1DT12H``.
+     - 
+
+   * - start
+     - string
+     - |iso8601-time| for the beginning of the period for which to
+       retrieve measurements. If you specify ``start`` you must also
+       specify ``end`` and you can't specify ``period``.
+     - 
+
+   * - end
+     - string
+     - |iso8601-time| for the end of the period for which to retrieve
+       measurements. If you specify ``end`` you must also specify
+       ``start`` and you can't specify ``period``.
+     - 
+
+Metrics
+~~~~~~~
+
+.. include:: /includes/api/list-table-query-latency-metrics.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+.. list-table::
+   :widths: 20 10 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type 
+     - Description
+
+   * - collectionName
+     - string
+     - Name that identifies the collection.
+
+   * - databaseName
+     - string
+     - Name that identifies the database.
+
+   * - end
+     - string
+     - |iso8601-time| for the end of the period for which to retrieve
+       measurements.
+
+   * - granularity
+     - string
+     - |iso8601-duration| that specifies the size of the interval that
+       each data point covers.
+
+       .. example:: 
+
+          ``PT5M`` specifies a 5-minute granularity.
+
+   * - groupId
+     - string
+     - Unique 24-hexadecimal digit string that identifies the project 
+       that contains the namespace.
+
+   * - links
+     - object array
+     - .. include:: /includes/api/links-explanation.rst
+
+   * - measurements
+     - object array
+     - Each object in this array represents a measurement and the data
+       points for that measurement.
+
+   * - measurements.dataPoints
+     - object array
+     - Each object represents a single data point. If there is no data
+       point available for a particular moment in time, this ``value``
+       is set to ``null``.
+
+   * - measurements.dataPoints.timestamp
+     - string
+     - |iso8601-time| for the beginning of the time interval this data
+       point represents.
+
+   * - measurements.dataPoints.value
+     - float
+     - Value of this data point.
+
+   * - measurements.name
+     - string
+     - Name of the measurement. Accepted values are given in the
+       :doc:`/reference/api/measures/measurement-types` page.
+
+   * - measurements.units
+     - string
+     - How this measurement is quantified.
+
+   * - processId
+     - string
+     - |fqdn| and port of the MongoDB process.
+
+   * - start
+     - string
+     - |iso8601-time| for the beginning of the period for which to
+       retrieve measurements.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+    --header 'Accept: application/json' \
+    --include \
+    --request GET 'https://{CLOUD-MANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/clusters/{hostClusterId}/{clusterView}/{databaseName}/{collectionName}/collStats/measurements?pretty=true&period={period}'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "collectionName": {collectionName},
+     "databaseName": "{datbaseName}",
+     "end": "2024-03-21T13:49:25Z",
+     "granularity": "PT10M",
+     "groupId": "{PROJECT-ID}",
+     "links": [
+       {
+         "href": "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}/hosts/{hostId}/{databaseName}/{collectionName}/collStats/measurements?period={period}",
+         "rel": "self"
+       },
+       {
+         "href": "https://cloud.mongodb.com/api/public/v1.0/groups/{PROJECT-ID}",
+         "rel": "https://cloud.mongodb.com/group"
+       }
+     ],
+     "measurements": [
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-22T20:26:17Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-22T20:31:29Z",
+             "value": 0.003203013395002018
+           },
+           {
+             "timestamp": "2024-03-22T20:41:29Z",
+             "value": 0.0016666722222407407
+           }
+         ],
+         "name": "READS_OPS",
+         "units": "SCALAR_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 115.25475560992174
+           }
+         ],
+         "name": "READS_LATENCY",
+         "units": "MICROSECONDS_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 229.8723404255319
+           }
+         ],
+         "name": "AVERAGE_READS_LATENCY",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 98.5945945945946
+           }
+         ],
+         "name": "READS_P50_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 174.54545454545456
+           }
+         ],
+         "name": "READS_P95_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 244.36363636363637
+           }
+         ],
+         "name": "READS_P99_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-22T20:26:17Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-22T20:31:29Z",
+             "value": 0.0
+           },
+           {
+             "timestamp": "2024-03-22T20:41:29Z",
+             "value": 0.0
+           }
+         ],
+         "name": "WRITES_OPS",
+         "units": "SCALAR_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 0.0
+           }
+         ],
+         "name": "WRITES_LATENCY",
+         "units": "MICROSECONDS_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "AVERAGE_WRITES_LATENCY",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "WRITES_P50_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "WRITES_P95_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "WRITES_P99_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-22T20:26:17Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-22T20:31:29Z",
+             "value": 0.0
+           },
+           {
+             "timestamp": "2024-03-22T20:41:29Z",
+             "value": 0.0
+           }
+         ],
+         "name": "COMMANDS_OPS",
+         "units": "SCALAR_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 0.0
+           }
+         ],
+         "name": "COMMANDS_LATENCY",
+         "units": "MICROSECONDS_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "AVERAGE_COMMANDS_LATENCY",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "COMMANDS_P50_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "COMMANDS_P95_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": null
+           }
+         ],
+         "name": "COMMANDS_P99_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 0.5013859231457166
+           }
+         ],
+         "name": "TOTAL_OPS",
+         "units": "SCALAR_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 115.25475560992174
+           }
+         ],
+         "name": "TOTAL_LATENCY",
+         "units": "MICROSECONDS_PER_SECOND"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 229.8723404255319
+           }
+         ],
+         "name": "AVERAGE_TOTAL_OPS_LATENCY",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 98.5945945945946
+           }
+         ],
+         "name": "TOTAL_OPS_P50_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 174.54545454545456
+           }
+         ],
+         "name": "TOTAL_OPS_P95_VALUE",
+         "units": "MICROSECONDS"
+       },
+       {
+         "dataPoints": [
+           {
+             "timestamp": "2024-03-21T13:40:02Z",
+             "value": null
+           },
+           {
+             "timestamp": "2024-03-21T13:49:25Z",
+             "value": 244.36363636363637
+           }
+         ],
+         "name": "TOTAL_OPS_P99_VALUE",
+         "units": "MICROSECONDS"
+       }
+     ],
+     "processId": "notApplicable", 
+     "start": "2024-03-21T13:40:02Z"
+   }

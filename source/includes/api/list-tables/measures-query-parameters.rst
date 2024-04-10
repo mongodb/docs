@@ -53,13 +53,13 @@
      - string
      - |iso8601-time| for the beginning of the period for which to
        retrieve measurements. If you specify ``start`` you must also
-       specify ``end``.
+       specify ``end`` and you can't specify ``period``.
 
    * - end
      - string
      - |iso8601-time| for the end of the period for which to retrieve
        measurements. If you specify ``end`` you must also specify
-       ``start``.
+       ``start`` and you can't specify ``period``.
 
    * - m
      - string
