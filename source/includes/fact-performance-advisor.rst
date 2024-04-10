@@ -8,3 +8,6 @@ Recommended indexes are accompanied by sample queries, grouped by
 :term:`query shape`, that were run against a collection that would
 benefit from the suggested index. The Performance Advisor does not
 negatively affect the performance of your |mms| clusters.
+
+You can also monitor collection-level :manual:`query latency </reference/operator/aggregation/collStats/#latencystats-document>` with 
+:ref:`Query Insights <query-insights>`.
