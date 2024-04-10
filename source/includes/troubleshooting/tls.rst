@@ -96,7 +96,7 @@ revocation checking failed:
 
    [('SSL routines', 'tls_process_initial_server_flight', 'invalid status response')]
 
-For more details, see the :ref:`OCSP <pymongo-ocsp>` section of this guide.
+For more details, see the :ref:`OCSP <pymongo-disable-ocsp>` section of this guide.
 
 SSLV3_ALERT_HANDSHAKE_FAILURE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,4 +122,4 @@ following steps:
 
 - Downgrade Python to v3.9 or earlier
 - Upgrade MongoDB Server to v4.2 or later
-- Install {+driver-short+} with the :ref:`OCSP <pymongo-ocsp>` option, which relies on PyOpenSSL
+- Install {+driver-short+} with the :ref:`OCSP <pymongo-disable-ocsp>` option, which relies on PyOpenSSL

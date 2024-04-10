@@ -1,13 +1,12 @@
-# start sample app
 from pymongo import MongoClient
 
 try:
-    # start authentication code here
+    # start example code here
 
-    # end authentication code here
+    # end example code here
 
     client.admin.command("ping")
-    print("Authenticated successfully")
+    print("Connected successfully")
 
     # other application code
 
@@ -16,4 +15,3 @@ try:
 except Exception as e:
     raise Exception(
         "The following error occurred: ", e)
-# end sample app
