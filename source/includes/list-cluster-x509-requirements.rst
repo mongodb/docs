@@ -19,4 +19,3 @@
         tls:
           clusterAuthX509:
             attributes: O=MongoDB, OU=MongoDB Server
-
