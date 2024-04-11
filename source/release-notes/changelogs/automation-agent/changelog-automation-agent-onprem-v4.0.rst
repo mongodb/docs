@@ -102,7 +102,7 @@ Automation Agent 5.4.15.5513
 - Add support for the net.ssl.certificateSelector configuration option.
 
 - **Fix:** Allow the successful change in the storageEngine for
-  standalone binary: :manual:`~bin.mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` with |tls-ssl| enabled.
+  standalone binary: :binary:`~bin.mongod` with |tls-ssl| enabled.
 
 - **Fix:** Automation Agent no longer attempts to authenticate to
   arbiters that are configured to use X.509 for ``clusterAuthMode``.
