@@ -38,6 +38,101 @@ To create and manage a stream processor, you must have:
   and run stream processors
 - An |service| {+cluster+}
 
+.. _streams-manage-process:
+
+Create a Stream Processor Interactively
+---------------------------------------
+
+You can create a stream processor interactively with the
+``sp.process()`` method. Stream processors that you create
+interactively exhibit the following behavior:
+
+- Write output and dead letter queue documents to the shell
+- Begin running immediately upon creation
+- Run for either 10 minutes or until the user stops them
+- Don't persist after stopping
+
+Stream processors that you create interactively are intended for
+prototyping. To create a persistent stream processor, see
+:ref:`streams-manage-create`.
+
+``sp.process()`` has the following syntax:
+
+.. code-block:: sh
+
+   sp.process(<pipeline>)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 20 40
+
+   * - Field
+     - Type
+     - Necessity	  
+     - Description
+
+   * - ``pipeline``
+     - array
+     - Required
+     - :ref:`Stream aggregation pipeline <stream-aggregation>` you
+       want to apply to your streaming data.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Connect to your {+spi+}.
+      
+      Use the connection string associated with your {+spi+}
+      to connect using {+mongosh+}.
+
+      .. example::
+
+         The following command connects to a {+spi+} as a user named
+         ``streamOwner`` using SCRAM-SHA-256 authentication:
+
+         .. code-block:: sh
+
+            mongosh "mongodb://atlas-stream-78xq9gi1v4b4288x06a73e9f-zi30g.virginia-usa.a.query.mongodb-qa.net/?authSource=%24external&authMechanism=MONGODB-X509" \\ 
+            --tls --authenticationDatabase admin --username streamOwner
+
+         Provide your user password when prompted.
+
+   .. step:: Define a pipeline.
+
+      In the {+mongosh+} prompt, assign an array containing the
+      aggregation stages you want to apply to a variable named 
+      ``pipeline``. 
+      
+      The following example uses the ``stuff`` topic in
+      the  ``myKafka`` connection in the connection registry as the 
+      :pipeline:`$source`, matches records where the ``temperature`` 
+      field has a value of ``46`` and emits the processed messages to 
+      the ``output`` topic of the ``mySink`` connection in 
+      the connection registry:
+
+      .. code-block:: sh
+
+         pipeline = [
+          {$source: {"connectionName": "myKafka", "topic": "stuff"}},
+          {$match: { temperature: 46 }},
+          {
+            "$emit": {
+              "connectionName": "mySink",
+              "topic" : "output",
+            }  
+          }
+         ]
+
+
+   .. step:: Create a stream processor.
+
+      The following command creates a stream processor that
+      applies the logic defined in ``pipeline``.
+
+      .. code-block:: sh
+      
+         sp.process(pipeline)
+
 .. _streams-manage-create:
 
 Create a Stream Processor
@@ -185,6 +280,78 @@ To create a new stream processor with {+mongosh+}, use the
       
          sp.createStreamProcessor("proc01", pipeline, deadLetter)
 
+.. _streams-manage-start:
+
+Start a Stream Processor
+------------------------
+
+To start an existing stream processor with {+mongosh+}, use the 
+``sp.<streamprocessor>.start()`` method. ``<streamprocessor>`` must be 
+the name of a stream processor defined for the current {+spi+}.
+
+For example, to start a stream processor named ``proc01``, run the 
+following command:
+
+.. code-block:: sh
+
+   sp.proc01.start()
+
+This method returns: 
+
+- ``true`` if the stream processor exists and isn't currently running. 
+
+- ``false`` if you try to start a stream processor that doesn't exist, 
+  or exists and is currently running.
+
+.. _streams-manage-stop:
+
+Stop a Stream Processor
+-------------------------
+
+To stop an existing stream processor with {+mongosh+}, use the 
+``sp.<streamprocessor>.stop()`` method. ``<streamprocessor>`` must be 
+the name of a currently running stream processor defined for the 
+current {+spi+}.
+
+For example, to stop a stream processor named ``proc01``, run the 
+following command:
+
+.. code-block:: sh
+
+   sp.proc01.stop()
+
+This method returns: 
+
+- ``true`` if the stream processor exists and is currently running. 
+
+- ``false`` if the stream processor doesn't exist, or if the stream 
+  processor isn't currently running.
+
+.. _streams-manage-drop:
+
+Drop a Stream Processor
+-------------------------
+
+To delete an existing stream processor with {+mongosh+}, use the 
+``sp.<streamprocessor>.drop()`` method. ``<streamprocessor>`` must be 
+the name of a stream processor defined for the current {+spi+}.
+
+For example, to drop a stream processor named ``proc01``, run the 
+following command:
+
+.. code-block:: sh
+
+   sp.proc01.drop()
+
+This method returns: 
+
+- ``true`` if the stream processor exists.
+
+- ``false`` if the stream processor doesn't exist.
+
+When you drop a stream processor, all resources that {+atlas-sp+} 
+provisioned for it are destroyed, along with all saved state.
+
 .. _streams-list-procs:
 
 List Available Stream Processors
@@ -317,78 +484,6 @@ by.
            ],
            lastStateChange: ISODate("2023-03-20T20:15:59.442Z")
          }
-
-.. _streams-manage-start:
-
-Start a Stream Processor
-------------------------
-
-To start an existing stream processor with {+mongosh+}, use the 
-``sp.<streamprocessor>.start()`` method. ``<streamprocessor>`` must be 
-the name of a stream processor defined for the current {+spi+}.
-
-For example, to start a stream processor named ``proc01``, run the 
-following command:
-
-.. code-block:: sh
-
-   sp.proc01.start()
-
-This method returns: 
-
-- ``true`` if the stream processor exists and is not currently running. 
-
-- ``false`` if you try to start a stream processor that doesn't exist, 
-  or exists and is not currently running.
-
-.. _streams-manage-stop:
-
-Stop a Stream Processor
--------------------------
-
-To stop an existing stream processor with {+mongosh+}, use the 
-``sp.<streamprocessor>.stop()`` method. ``<streamprocessor>`` must be 
-the name of a currently running stream processor defined for the 
-current {+spi+}.
-
-For example, to stop a stream processor named ``proc01``, run the 
-following command:
-
-.. code-block:: sh
-
-   sp.proc01.stop()
-
-This method returns: 
-
-- ``true`` if the stream processor exists and is currently running. 
-
-- ``false`` if the stream processor doesn't exist, or if the stream 
-  processor is not currently running.
-
-.. _streams-manage-drop:
-
-Drop a Stream Processor
--------------------------
-
-To delete an existing stream processor with {+mongosh+}, use the 
-``sp.<streamprocessor>.drop()`` method. ``<streamprocessor>`` must be 
-the name of a stream processor defined for the current {+spi+}.
-
-For example, to drop a stream processor named ``proc01``, run the 
-following command:
-
-.. code-block:: sh
-
-   sp.proc01.drop()
-
-This method returns: 
-
-- ``true`` if the stream processor exists.
-
-- ``false`` if the stream processor doesn't exist.
-
-When you drop a stream processor, all resources that {+atlas-sp+} 
-provisioned for it are destroyed, along with all saved state.
 
 .. _streams-manage-sample:
 
