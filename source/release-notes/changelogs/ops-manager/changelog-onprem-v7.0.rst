@@ -7,7 +7,8 @@
 
 - Releases {+mongosh+} 2.2.3 to |onprem|. To learn more, see {+mongosh+} 
   Release Notes.
-- Supports enabling and configuring regional backups.
+- Supports enabling and configuring :ref:`regional backups
+  <deployment-regions-interface>`.
 - Supports ``net.tls.clusterAuthX509`` parameter in MongoDB 7.0 for
   ``clusterAuthMode`` set to ``x509``. 
 - Adds API support for project level MongoDB :ref:`log rotation
