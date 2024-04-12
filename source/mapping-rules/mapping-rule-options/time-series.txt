@@ -10,8 +10,8 @@ Configure a Time Series Collection
    :depth: 1
    :class: singlecol
 
-You can configure mapping rules to migrate a table that contains a date 
-time column as a :ref:`time series collection <manual-timeseries-collection>`. 
+You can configure mapping rules to migrate a table that contains a 
+datetime column as a :ref:`time series collection <manual-timeseries-collection>`. 
 Time series collections efficiently store time series data. In time 
 series collections, writes are organized so that data from the same 
 source is stored alongside other data points from a similar point in time.
@@ -19,9 +19,18 @@ source is stored alongside other data points from a similar point in time.
 About this Task
 ---------------
 
-Compared to normal collections, storing time series data in time series
-collections improves query efficiency and reduces the disk usage for
-time series data and :term:`secondary indexes <secondary index>`.
+- You can use :ref:`field customizations <rm-field-customizations>` to 
+  convert string columns to datetime in Relational Migrator.
+
+- CDC jobs that have time series configurations do not create the 
+  time series collections until the CDC job completes. 
+
+- Compared to normal collections, storing time series data in time series
+  collections improves query efficiency and reduces the disk usage for
+  time series data and :term:`secondary indexes <secondary index>`.
+
+- Use cases for time series collections include 
+  :abbr:`IoT (Internet of Things)`, forecasting, and time based analysis.
 
 Before you Begin
 ----------------
@@ -43,15 +52,56 @@ Steps
          datetime field.
 
    .. step:: Configure the time series collection
-     
+
       a. On the :guilabel:`Mappings` pane, click the :icon-lg:`Edit` 
          :guilabel:`Configure` button.
       #. Select the :guilabel:`Time Series Collection` radio button.
       #. Select a :guilabel:`Time Field`.
+      
+         The name of the field which contains the datetime field in each
+         time series document. Documents in a time series collection must
+         have a valid BSON date as the value for the ``timeField``.
+         For details on converting a field to a datetime type in Relational 
+         Migrator, see :ref:`field customizations <rm-field-customizations>`.
+
+         .. note::
+
+            If you have multiple datetime columns you need to select a 
+            single field per timeseries collection.
+
       #. (Optional) Select a :guilabel:`Meta Field`.
+
+         The name of the field which contains metadata in
+         each time series document. The metadata in the specified field
+         should be data that is used to label a unique series of
+         documents. The metadata should rarely, if ever, change.
+
       #. Select a :guilabel:`Granularity`.
+
+         Set ``granularity`` to the value that most closely matches 
+         the time between consecutive incoming timestamps. This
+         improves performance by optimizing how MongoDB stores data in the 
+         collection.
+         Possible values are ``seconds`` (default), ``minutes``, and 
+         ``hours``.
+
       #. (Optional) Select a :guilabel:`Expire After Seconds`.
+
+         ``Expire After Seconds`` enables the automatic deletion 
+         of documents in a time series collection by specifying the 
+         number of seconds after which documents expire. MongoDB 
+         deletes expired documents automatically. See 
+         :ref:`manual-timeseries-automatic-removal` for more information.
+
       #. Click :guilabel:`Save And Close`.
+         
+         Before you run a timeseries sync job, consider the following:
+
+         - If your sync job contains no transformation logic, consider running
+           the timeseries job as a separate sync job. 
+
+         - If your migrating larges amounts of data, consider using table 
+           filters to batch your migrations based on logical conditions.
 
          .. note::
 
