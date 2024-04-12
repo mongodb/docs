@@ -1,0 +1,278 @@
+.. _scala-db-coll:
+
+=========================
+Databases and Collections
+=========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, validation, codec registry, write concern
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB organizes data in a hierarchical structure. A MongoDB deployment
+contains one or more databases, and each database contains one or more
+collections. In each collection, MongoDB stores data as documents that
+contain field-and-value pairs.
+
+Prerequisites
+-------------
+
+You must include the following import statements in your program to run the
+code examples in this guide:
+
+.. code-block:: scala
+
+   import org.mongodb.scala._
+   import org.mongodb.scala.model.Filters._
+
+.. include:: /includes/obs-note.rst
+
+Connect to a MongoDB Deployment
+-------------------------------
+
+First, connect to a running MongoDB deployment.
+
+The following code connects to a standalone MongoDB deployment running
+on ``localhost`` on port ``27017``:
+
+.. code-block:: scala
+
+   val mongoClient = MongoClient()
+
+To learn more about connecting to MongoDB deployments,
+see the :ref:`scala-connect` tutorial.
+
+Access a Database
+-----------------
+
+Once you have a ``MongoClient`` instance connected to a MongoDB
+deployment, use the ```getDatabase()`` method to access a database.
+
+Pass the name of the database as a parameter to the ``getDatabase()``
+method. If a database does not exist, MongoDB creates it when
+you insert any data into the database.
+
+The following example accesses the ``test`` database:
+
+.. code-block:: scala
+
+   val database: MongoDatabase = mongoClient.getDatabase("test")
+
+.. note::
+
+   ``MongoDatabase`` instances are immutable. To learn more, see the
+   :ref:`Immutability <scala-immutability>` section of this guide.
+
+Access a Collection
+-------------------
+
+After you create a ``MongoDatabase`` instance, use the
+``getCollection()`` method to access a collection from within that
+database.
+
+Pass the name of the collection as a parameter to the ``getCollection()``
+method.
+
+Using the ``database`` instance created in the preceding section, the
+following code accesses the collection named ``myTestCollection``:
+
+.. code-block:: scala
+
+   val coll: MongoCollection[Document] = database.getCollection("myTestCollection")
+
+.. note::
+   
+   ``MongoCollection`` instances are immutable. To learn more, see the
+   :ref:`Immutability <scala-immutability>` section of this guide.
+
+If a collection with that name does not exist, MongoDB creates it when
+you first insert data into that collection.
+
+You can also directly create a collection with various options, such
+as setting the maximum size or creating documentation validation rules.
+
+Create a Collection
+-------------------
+
+The driver provides the ``createCollection()`` method to
+directly create a collection. When you create a
+collection, you can specify various collection options, such as a
+maximum size or documentation validation rules, with the
+``CreateCollectionOptions`` class.
+
+If you are not specifying any options, you do not need to directly
+create the collection since MongoDB automatically creates new
+collections when you first insert data.
+
+Capped Collection
+~~~~~~~~~~~~~~~~~
+
+The following operation creates a capped collection limited to 1
+megabyte:
+
+.. code-block:: scala
+
+   database.createCollection("cappedCollection", CreateCollectionOptions().capped(true).sizeInBytes(0x100000))
+           .printResults()
+
+To learn more about capped collections, see :manual:`Capped Collections
+</core/capped-collections/>` in the Server manual.
+
+Document Validation
+~~~~~~~~~~~~~~~~~~~
+
+MongoDB allows you to validate documents during
+updates and inserts. Validation rules are specified on a collection
+level by using the ``ValidationOptions`` class, which takes a
+filter document that specifies the validation rules or expressions.
+
+The following example creates a collection with schema validation:
+
+.. code-block:: scala
+
+   ValidationOptions collOptions = ValidationOptions().validator(
+           Filters.or(Filters.exists("email"), Filters.exists("phone")))
+   
+   database.createCollection("contacts", CreateCollectionOptions().validationOptions(collOptions))
+           .printResults()
+
+To learn more about document validation, see :manual:`Schema Validation
+</core/schema-validation/>` in the Server manual.
+
+Get A List of Collections
+-------------------------
+
+You can get a list of the collections in a database by using the
+``MongoDatabase.listCollectionNames()`` method:
+
+.. code-block:: scala
+
+   database.listCollectionNames().printResults()
+
+Drop a Collection
+-----------------
+
+You can drop a collection and delete all of the data in the collection
+by using the ``MongoCollection.drop()`` method:
+
+.. code-block:: scala
+
+   val collection: MongoCollection[Document] = database.getCollection("contacts")
+   collection.drop().printResults()
+
+.. _scala-immutability:
+
+Immutability
+------------
+
+``MongoDatabase`` and ``MongoCollection`` instances are immutable. To
+create new instances from existing instances that have different
+properties, such as different :manual:`read concerns
+</reference/read-concern/>`, :manual:`read preferences
+</reference/read-preference/>`, and :manual:`write concerns
+</reference/write-concern/>`, the ``MongoDatabase`` and
+``MongoCollection`` class provides the following methods:
+
+- ``MongoDatabase.withReadConcern()``
+- ``MongoDatabase.withReadPreference()``
+- ``MongoDatabase.withWriteConcern()``
+- ``MongoCollection.withReadConcern()``
+- ``MongoCollection.withReadPreference()``
+- ``MongoCollection.withWriteConcern()``
+
+.. TODO To learn more, see the :ref:`scala-read-operations` and
+.. :ref:`scala-write-ops` tutorials.
+
+CodecRegistry
+-------------
+
+An overload of the ``getCollection()`` method allows you to specify a
+different class for representing BSON documents. For example, you
+might want to use the strict and type-safe ``BsonDocument`` class to
+model your documents when performing CRUD operations:
+
+.. code-block:: scala
+
+   import org.mongodb.scala.bson._
+   
+   val collection: MongoCollection[BsonDocument] = database.getCollection[BsonDocument]("mycoll")
+   
+   // insert a document
+   val document = BsonDocument("{x: 1}")
+   collection.insertOne(document).printResults()
+   
+   document.append("x", BsonInt32(2)).append("y", BsonInt32(3))
+   
+   // replace a document
+   collection.replaceOne(Filters.equal("_id", document.get("_id")), document)
+             .printResults()
+   
+   // find documents
+   collection.find().printResults()
+
+There are two requirements that any class must meet to be used in
+this way:
+
+- ``Codec`` instance for the class must be registered in the
+  ``CodecRegistry`` for the ``MongoCollection``.
+
+- ``Codec`` instance must be one that encodes and decodes a full BSON
+  document, and not just, for example, a single BSON value like an
+  ``Int32``.
+
+By default, a ``MongoCollection`` is configured with ``Codec`` instances
+for four classes:
+
+- ``Document`` (Scala ``BsonDocument`` wrapper)
+- ``BsonDocument``
+- ``Document`` (Java driver's loosely typed ``Document`` class)
+- ``BasicDBObject``
+
+Applications are free to register ``Codec`` implementations
+for other classes by customizing the ``CodecRegistry``. New
+``CodecRegistry`` instances are configurable at the following levels:
+
+- In a ``MongoClient`` within ``MongoClientSettings``
+- In a ``MongoDatabase`` within its ``withCodecRegistry`` method
+- In a ``MongoCollection`` within its ``withCodecRegistry`` method
+
+Consider the case of encoding and decoding instances of the ``UUID``
+class. The driver by default encodes instances of ``UUID`` by using a
+byte ordering that is not compatible with other MongoDB drivers, and
+changing the default would be dangerous.
+
+It is possible for new applications that require interoperability across
+multiple drivers to be able to change that default, and they can do that
+by specifying a ``CodecRegistry``
+
+.. code-block:: scala
+
+   // replaces the default UuidCodec with one that uses the new standard UUID representation
+   import org.bson.UuidRepresentation
+   import org.bson.codecs.UuidCodec
+   import org.bson.codecs.configuration.CodecRegistries
+   
+   val codecRegistry = CodecRegistries.fromRegistries(
+     CodecRegistries.fromCodecs(new UuidCodec(UuidRepresentation.STANDARD)),
+     MongoClient.DEFAULT_CODEC_REGISTRY)
+   
+   // globally
+   val settings = MongoClientSettings.builder()
+                   .codecRegistry(codecRegistry).build()
+   val client = MongoClient(settings)
+   
+   // or at the database level
+   val database = client.getDatabase("mydb")
+                        .withCodecRegistry(codecRegistry)
+   
+   // or at the collection level
+   val collection = database.getCollection("mycoll")
+                            .withCodecRegistry(codecRegistry)
