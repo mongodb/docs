@@ -7,7 +7,8 @@
 
 - Releases {+mongosh+} 2.2.3 to |onprem|. To learn more, see {+mongosh+} 
   Release Notes.
-- Supports enabling and configuring regional backups.
+- Supports enabling and configuring :ref:`regional backups
+  <deployment-regions-interface>`.
 - Supports ``net.tls.clusterAuthX509`` parameter in MongoDB 7.0 for
   ``clusterAuthMode`` set to ``x509``. 
 - Adds API support for project level MongoDB :ref:`log rotation
@@ -75,7 +76,6 @@
 - Adds ability to configure the ``net.tls.clusterCAFile`` parameter. 
 - Adds additional snapshot metrics to the snapshot summary table.
 - Adds ability to track restore block download performance.
-- Adds ability to specify a cluster CA file.
 - Improves MongoDB and S3-compatible blockstore snapshot performance for
   large files through enhanced memory utilization.
 - Improves the agent's ability to retry for more blockstore errors.
