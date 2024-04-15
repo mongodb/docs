@@ -1,0 +1,369 @@
+.. _scala-write-ops:
+
+================
+Write Operations
+================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, insert data, change data
+
+.. toctree::
+   
+   /tutorials/bulk-writes/
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can perform write operations to insert new documents,
+update existing documents, replace an existing document, or delete
+existing documents from a collection.
+
+Prerequisites
+-------------
+
+.. include:: /includes/prereq-restaurants.rst
+
+.. code-block:: scala
+
+   import org.mongodb.scala._
+   import org.mongodb.scala.model._
+   import org.mongodb.scala.model.Filters._
+   import org.mongodb.scala.model.Updates._
+   import org.mongodb.scala.model.UpdateOptions
+   import org.mongodb.scala.bson.BsonObjectId
+
+.. include:: /includes/obs-note.rst
+
+Connect to a MongoDB Deployment
+-------------------------------
+
+.. include:: /includes/connect-section.rst
+
+Insert a Document
+-----------------
+
+To insert a single document into the collection, you can use the
+collection's ``insertOne()`` method:
+
+.. code-block:: scala
+
+   val document = Document("name" -> "Café Con Leche" , 
+                           "contact" -> Document("phone" -> "228-555-0149", 
+                                                 "email" -> "cafeconleche@example.com", 
+                                                 "location" -> Seq(-73.92502, 40.8279556)),
+                           "stars" -> 3, "categories" -> Seq("Bakery", "Coffee", "Pastries"))
+   
+   collection.insertOne(document).printResults()
+
+.. note::
+
+   If no top-level ``_id`` field is specified in the document, MongoDB
+   automatically generates a value and adds this field to the inserted
+   document.
+
+Insert Multiple Documents
+-------------------------
+
+To insert multiple documents, you can use the collection's
+``insertMany()`` method, which takes a list of documents to insert as a parameter.
+
+The following example inserts two documents into the collection:
+
+.. code-block:: scala
+
+   val doc1 = Document("name" -> "Amarcord Pizzeria" , 
+                       "contact" -> Document("phone" -> "264-555-0193", 
+                                             "email" -> "amarcord.pizzeria@example.net", 
+                                             "location" -> Seq(-73.88502, 40.749556)),
+                       "stars" -> 2, "categories" -> Seq("Pizzeria", "Italian", "Pasta"))
+   
+   val doc2 = Document("name" -> "Blue Coffee Bar" , 
+                       "contact" -> Document("phone" -> "604-555-0102", 
+                                             "email" -> "bluecoffeebar@example.com", 
+                                             "location" -> Seq(-73.97902, 40.8479556)),
+                       "stars" -> 5, "categories" -> Seq("Coffee", "Pastries"))
+   
+   collection.insertMany(Seq(doc1, doc2)).printResults()
+
+.. note::
+
+   If no top-level ``_id`` field is specified in the document, MongoDB
+   automatically generates a value and adds this field to the inserted
+   document.
+
+Update Existing Documents
+-------------------------
+
+To update existing documents in a collection, you can use the
+collection's ``updateOne()`` or ``updateMany()`` methods.
+
+Filters
+~~~~~~~
+
+You can pass in a filter document to the methods to specify which
+documents to update. The filter document specification is the same as
+for read operations. To facilitate the creation of filter objects, the
+driver provides the ``Filters`` helper class.
+
+To specify an empty filter and match all documents in a collection,
+use an empty ``Document`` object as the filter.
+
+Update Operators
+~~~~~~~~~~~~~~~~
+
+To change a field in a document, MongoDB provides update operators.
+To specify the modification to perform using the update operators,
+create an update document. To learn more about update operators, see
+:manual:`Update Operators </reference/operator/update/>` in the Server manual.
+
+To facilitate the creation of update documents, the driver
+provides the ``Updates`` helper class.
+
+.. important::
+
+   The ``_id`` field is immutable, so you cannot change the value of the
+   ``_id`` field in a document.
+
+Update a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``updateOne()`` method updates a single document, even
+if the filter condition matches multiple documents in the collection.
+
+The following operation on the ``restaurants`` collection updates a
+document in which the value of the ``_id`` field is
+``BsonObjectId("57506d62f57802807471dd41")``:
+
+.. code-block:: scala
+
+   collection.updateOne(
+                   equal("_id", BsonObjectId("57506d62f57802807471dd41")),
+                   combine(set("stars", 1), set("contact.phone", "228-555-9999"), currentDate("lastModified")))
+             .printResults()
+
+Specifically, the operation uses the following methods:
+
+- ``Updates.set()`` to set the value of the ``stars`` field to ``1`` and
+  the ``contact.phone`` field to ``"228-555-9999"``
+- ``Updates.currentDate()`` to modify the ``lastModified`` field to the
+  current date. If the ``lastModified`` field does not exist, the operator
+  adds the field to the document.
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``updateMany()`` method updates all documents that match the
+filter condition.
+
+The following operation on the ``restaurants`` collection updates all
+documents in which the value of the ``stars`` field is ``2``:
+
+.. code-block:: scala
+
+   collection.updateMany(
+                 equal("stars", 2),
+                 combine(set("stars", 0), currentDate("lastModified")))
+             .println()
+
+Specifically, the operation uses the following methods:
+
+- ``Updates.set()`` to set the value of the ``stars`` field to ``0``
+- ``Updates.currentDate()`` to set the ``lastModified`` field to the
+  current date. If the ``lastModified`` field does not exist, the operator
+  adds the field to the document.
+
+Update Options
+~~~~~~~~~~~~~~
+
+When using the ``updateOne()`` and ``updateMany()`` methods, you can
+include an ``UpdateOptions`` document to specify the ``upsert``
+option or the ``bypassDocumentationValidation`` option:
+
+.. code-block:: scala
+
+   collection.updateOne(
+                   equal("_id", 1),
+                   combine(set("name", "Fresh Breads and Tulips"), currentDate("lastModified")),
+                   UpdateOptions().upsert(true).bypassDocumentValidation(true))
+             .printResults()
+
+Replace an Existing Document
+----------------------------
+
+To replace an existing document in a collection, you can use the
+collection's ``replaceOne()`` method.
+
+.. important::
+
+   The ``_id`` field is immutable, so you cannot replace the ``_id``
+   field in a document.
+
+Filters
+~~~~~~~
+
+You can pass in a filter document to the ``replaceOne()`` method to
+specify which document to replace. The filter document specification is the same as
+for read operations. To facilitate the creation of filter objects, the
+driver provides the ``Filters`` helper class.
+
+To specify an empty filter and match all documents in a collection,
+use an empty ``Document`` object as the filter.
+
+The ``replaceOne()`` method replaces at most a single document, even
+if the filter condition matches multiple documents in the collection.
+
+Replace a Document
+~~~~~~~~~~~~~~~~~~
+
+To replace a document, pass a new document to the ``replaceOne()``
+method.
+
+.. important::
+
+   The replacement document can have different fields from the original
+   document. In the replacement document, you can omit the ``_id`` field
+   since the ``_id`` field is immutable. However, if you do include the
+   ``_id`` field, you cannot specify a different value for the ``_id`` field.
+
+The following operation on the ``restaurants`` collection replaces the
+document in which the value of the ``_id`` field is
+``BsonObjectId("57506d62f57802807471dd41")``:
+
+.. code-block:: scala
+
+   collection.replaceOne(
+                   equal("_id", BsonObjectId("57506d62f57802807471dd41")),
+                   Document("name" -> "Green Salads Buffet", "contact" -> "TBD",
+                            "categories" -> Seq("Salads", "Health Foods", "Buffet")))
+            .printResults()
+
+Update Options
+~~~~~~~~~~~~~~
+
+When using the ``replaceOne()`` method, you can include an ``UpdateOptions``
+document to specify the ``upsert`` option or the
+``bypassDocumentationValidation`` option:
+
+.. code-block:: scala
+
+   collection.replaceOne(
+                   equal("name", "Orange Patisserie and Gelateria"),
+                   Document("stars" -> 5, "contact"  -> "TBD", 
+                            "categories" -> Seq("Cafe", "Pastries", "Ice Cream")),
+                   UpdateOptions().upsert(true).bypassDocumentValidation(true))
+             .printResults()
+
+Delete Documents
+----------------
+
+To delete documents in a collection, you can use the ``deleteOne()``
+and ``deleteMany()`` methods.
+
+Filters
+~~~~~~~
+
+You can pass in a filter document to the methods to specify which
+documents to delete. The filter document specification is the same as
+for read operations. To facilitate the creation of filter objects, the
+driver provides the ``Filters`` helper class.
+
+To specify an empty filter and match all documents in a collection,
+use an empty ``Document`` object as the filter.
+
+Delete a Single Document
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``deleteOne()`` method deletes at most a single document, even if
+the filter condition matches multiple documents in the collection.
+
+The following operation on the ``restaurants`` collection deletes a
+document in which the value of the ``_id`` field is
+``ObjectId("57506d62f57802807471dd41")``:
+
+.. code-block:: scala
+
+   collection.deleteOne(equal("_id", new ObjectId("57506d62f57802807471dd41"))).subscribe(new ObservableSubscriber<DeleteResult>())
+
+Delete Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``deleteMany()`` method deletes all documents that match the
+filter condition.
+
+The following operation on the ``restaurants`` collection deletes all
+documents in which the value of the ``stars`` field is ``4``:
+
+.. code-block:: scala
+
+   collection.deleteMany(equal("stars", 4)).printResults()
+
+Write Concern
+-------------
+
+Write concern describes the level of acknowledgment requested from
+MongoDB for write operations.
+
+You can configure a write concern at the following levels:
+
+- In a ``MongoClient`` in the following ways:
+
+  - By creating a ``MongoClientSettings`` instance:
+
+    .. code-block:: scala
+
+       val mongoClient: MongoClient = MongoClient(MongoClientSettings.builder()
+                                                       .applyConnectionString(ConnectionString("mongodb://host1,host2"))
+                                                       .writeConcern(WriteConcern.MAJORITY)
+                                                       .build())
+
+  - By creating a ``ConnectionString`` instance:
+
+    .. code-block:: scala
+
+       val mongoClientt = MongoClient("mongodb://host1:27017,host2:27017/?w=majority")
+
+- In a ``MongoDatabase`` by using the ``withWriteConcern()`` method:
+
+  .. code-block:: scala
+
+     val database = mongoClient.getDatabase("test").withWriteConcern(WriteConcern.MAJORITY)
+
+
+- In a ``MongoCollection`` by using the ``withWriteConcern()`` method:
+
+  .. code-block:: scala
+
+     val collection = database.getCollection("restaurants").withWriteConcern(WriteConcern.MAJORITY)
+
+``MongoDatabase`` and ``MongoCollection`` instances are immutable. Calling
+``withWriteConcern()`` on an existing ``MongoDatabase`` or
+``MongoCollection`` instance returns a new instance and does not affect
+the instance on which the method is called.
+
+In the following example, the ``collWithWriteConcern`` instance
+has the write concern of ``majority`` whereas the read
+preference of the ``collection`` is unaffected:
+
+.. code-block:: scala
+
+   val collWithWriteConcern = collection.withWriteConcern(WriteConcern.MAJORITY)
+
+You can build ``MongoClientSettings``, ``MongoDatabase``, or
+``MongoCollection`` instances to include combinations of read concerns, read
+preferences, and write concerns.
+
+For example, the following code sets all three at the collection level:
+
+.. code-block:: scala
+
+   val collection = database.getCollection("restaurants")
+                            .withReadPreference(ReadPreference.primary())
+                            .withReadConcern(ReadConcern.MAJORITY)
+                            .withWriteConcern(WriteConcern.MAJORITY)
