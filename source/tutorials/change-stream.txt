@@ -1,0 +1,140 @@
+.. _scala-changestream:
+
+==============
+Change Streams
+==============
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, watch for changes
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB Server version 3.6 introduces the ``$changeStream`` aggregation pipeline
+operator.
+
+Change streams provide a way to watch changes to documents in a
+collection. To improve the usability of this new stage, the
+``MongoCollection`` type includes the ``watch()`` method. The
+``ChangeStreamObservable`` instance sets up the change stream and automatically
+attempts to resume if it encounters a potentially recoverable error.
+
+Prerequisites
+-------------
+
+.. include:: /includes/prereq-restaurants.rst
+
+.. code-block:: scala
+
+   import java.util.concurrent.CountDownLatch
+   
+   import org.mongodb.scala._
+   import org.mongodb.scala.model.Aggregates._
+   import org.mongodb.scala.model.Filters._
+   import org.mongodb.scala.model.changestream._
+
+.. include:: /includes/obs-note.rst
+
+Connect to a MongoDB Deployment
+-------------------------------
+
+.. include:: /includes/connect-section.rst
+
+Watch for Changes in a Collection
+---------------------------------
+
+To create a change stream use one of the ``MongoCollection.watch()``
+methods.
+
+In the following example, the change stream prints out all changes it
+observes:
+
+.. code-block:: scala
+
+   case class LatchedObserver() extends Observer[ChangeStreamDocument[Document]] {
+     val latch = new CountDownLatch(1)
+   
+     override def onSubscribe(subscription: Subscription): Unit = subscription.request(Long.MaxValue) // Request data
+   
+     override def onNext(changeDocument: ChangeStreamDocument[Document]): Unit = println(changeDocument)
+   
+     override def onError(throwable: Throwable): Unit = {
+         println(s"Error: '$throwable")
+         latch.countDown()
+     }
+   
+     override def onComplete(): Unit = latch.countDown()
+   
+     def await(): Unit = latch.await()
+   }
+   
+   val observer = LatchedObserver()
+   collection.watch().subscribe(observer)
+   observer.await() // Block waiting for the latch
+
+Watch for Changes on a Database
+-------------------------------
+
+Applications can open a single change stream to watch all non-system
+collections of a database. To create such a change stream, use one of the
+``MongoDatabase.watch()`` methods.
+
+In the following example, the change stream prints out all the changes
+it observes on the given database:
+
+.. code-block:: scala
+
+   val observer = LatchedObserver()
+   database.watch().subscribe(observer)
+   observer.await() // Block waiting for the latch
+
+Watch for Changes on All Databases
+----------------------------------
+
+Applications can open a single change stream to watch all non-system
+collections of all databases in a MongoDB deployment. To create such a
+change stream, use one of the ``MongoClient.watch()`` methods.
+
+In the following example, the change stream prints out all the changes
+it observes in the deployment to which the ``MongoClient`` is connected:
+
+.. code-block:: scala
+
+   val observer = LatchedObserver()
+   client.watch().subscribe(observer)
+   observer.await() // Block waiting for the latch
+
+Filtering Content
+-----------------
+
+You can pass a list of aggregation stages to the  ``watch()`` method to
+modify the data returned by the ``$changeStream`` operator.
+
+.. note::
+   
+   Not all aggregation operators are supported. See
+   :manual:`Change Streams </changeStreams/>` in the Server manual to learn more.
+
+In the following example, the change stream prints out all changes it
+observes corresponding to ``insert``, ``update``, ``replace`` and
+``delete`` operations.
+
+First, the pipeline includes a ``$match`` stage to filter for documents
+where the ``operationType`` is either an ``insert``, ``update``, ``replace`` or
+``delete``. Then, it sets the ``fullDocument`` to
+``FullDocument.UPDATE_LOOKUP``, so that the document after the update is
+included in the results:
+
+.. code-block:: scala
+
+   val observer = LatchedObserver()
+   collection.watch(Seq(Aggregates.filter(Filters.in("operationType", Seq("insert", "update", "replace", "delete")))))
+           .fullDocument(FullDocument.UPDATE_LOOKUP).subscribe(observer)
+   observer.await() // Block waiting for the latch
