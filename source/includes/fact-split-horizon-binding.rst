@@ -13,7 +13,7 @@ configuration commands.
 :binary:`mongod` and :binary:`mongos` do not rely on
 :parameter:`disableSplitHorizonIPCheck` for validation at startup.
 Legacy :binary:`mongod` and :binary:`mongos` instances that use IP
-addresses instead of host names will start after an upgrade. 
+addresses instead of host names can start after an upgrade. 
 
 Instances that are configured with IP addresses log a warning to use
 host names instead of IP addresses. 
