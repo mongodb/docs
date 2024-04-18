@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Unlink your account from the GitHub acccount.
+   .. step:: Unlink your account from the GitHub account.
 
       a. Click :guilabel:`Manage your MongoDB Account`.
       #. Click :guilabel:`Profile Info`.

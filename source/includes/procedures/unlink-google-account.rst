@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Unlink your account from the Google acccount.
+   .. step:: Unlink your account from the Google account.
 
       a. Click :guilabel:`Manage your MongoDB Account`.
       #. Click :guilabel:`Profile Info`.
